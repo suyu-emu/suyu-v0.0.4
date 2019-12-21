@@ -264,27 +264,24 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
                   "#extension GL_NV_shader_thread_group : require\n"
                   "#extension GL_NV_shader_thread_shuffle : require\n";
     }
-    source += '\n';
 
     if (shader_type == ShaderType::Geometry) {
         const auto [glsl_topology, max_vertices] = GetPrimitiveDescription(variant.primitive_mode);
         source += fmt::format("#define MAX_VERTEX_INPUT {}\n", max_vertices);
-        source += fmt::format("layout ({}) in;\n\n", glsl_topology);
+        source += fmt::format("layout ({}) in;\n", glsl_topology);
     }
     if (shader_type == ShaderType::Compute) {
+        if (variant.local_memory_size > 0) {
+            source += fmt::format("#define LOCAL_MEMORY_SIZE {}\n",
+                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
+        }
         source +=
             fmt::format("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;\n",
                         variant.block_x, variant.block_y, variant.block_z);
 
         if (variant.shared_memory_size > 0) {
-            // TODO(Rodrigo): We should divide by four here, but having a larger shared memory pool
-            // avoids out of bound stores. Find out why shared memory size is being invalid.
+            // shared_memory_size is described in number of words
             source += fmt::format("shared uint smem[{}];\n", variant.shared_memory_size);
-        }
-
-        if (variant.local_memory_size > 0) {
-            source += fmt::format("#define LOCAL_MEMORY_SIZE {}\n",
-                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
         }
     }
 
