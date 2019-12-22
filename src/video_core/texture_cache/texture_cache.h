@@ -616,8 +616,9 @@ private:
     }
 
     /**
-     * Takes care of managing 3D textures and its slices. Does some HLE methods when possible.
-     * Fallsback to LLE when it isn't possible.
+     * Takes care of managing 3D textures and its slices. Does HLE methods for reconstructing the 3D
+     * textures within the GPU if possible. Falls back to LLE when it isn't possible to use any of
+     * the HLE methods.
      *
      * @param overlaps          The overlapping surfaces registered in the cache.
      * @param params            The parameters on the new surface.
@@ -766,7 +767,7 @@ private:
             }
         }
 
-        // Look if it's a 3D texture
+        // Check if it's a 3D texture
         if (params.block_depth > 0) {
             auto surface =
                 Manage3DSurfaces(overlaps, params, gpu_addr, cache_addr, preserve_contents);

@@ -141,7 +141,7 @@ public:
     /// Get this texture Tegra Block size in guest memory layout
     u32 GetBlockSize() const;
 
-    /// Get X, Y sizes of a block
+    /// Get X, Y coordinates max sizes of a single block.
     std::pair<u32, u32> GetBlockXY() const;
 
     /// Get the offset in x, y, z coordinates from a memory offset
