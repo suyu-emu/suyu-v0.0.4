@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <boost/safe_numerics/safe_integer.hpp>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/uuid.h"
@@ -16,6 +18,24 @@ namespace Service::Time::Clock {
 struct SteadyClockTimePoint {
     s64 time_point;
     Common::UUID clock_source_id;
+
+    ResultCode GetSpanBetween(SteadyClockTimePoint other, s64& span) const {
+        span = 0;
+
+        if (clock_source_id != other.clock_source_id) {
+            return ERROR_TIME_MISMATCH;
+        }
+
+        const boost::safe_numerics::safe<s64> this_time_point{time_point};
+        const boost::safe_numerics::safe<s64> other_time_point{other.time_point};
+        try {
+            span = other_time_point - this_time_point;
+        } catch (const std::exception&) {
+            return ERROR_OVERFLOW;
+        }
+
+        return RESULT_SUCCESS;
+    }
 
     static SteadyClockTimePoint GetRandom() {
         return {0, Common::UUID::Generate()};

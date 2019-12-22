@@ -24,7 +24,7 @@ Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* nam
         {100, nullptr, "IsStandardUserSystemClockAutomaticCorrectionEnabled"},
         {101, nullptr, "SetStandardUserSystemClockAutomaticCorrectionEnabled"},
         {102, nullptr, "GetStandardUserSystemClockInitialYear"},
-        {200, nullptr, "IsStandardNetworkSystemClockAccuracySufficient"},
+        {200, &Time::IsStandardNetworkSystemClockAccuracySufficient, "IsStandardNetworkSystemClockAccuracySufficient"},
         {201, nullptr, "GetStandardUserSystemClockAutomaticCorrectionUpdatedTime"},
         {300, &Time::CalculateMonotonicSystemClockBaseTimePoint, "CalculateMonotonicSystemClockBaseTimePoint"},
         {400, &Time::GetClockSnapshot, "GetClockSnapshot"},

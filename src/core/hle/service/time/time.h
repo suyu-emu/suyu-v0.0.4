@@ -27,6 +27,7 @@ public:
         void GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx);
         void GetStandardSteadyClock(Kernel::HLERequestContext& ctx);
         void GetTimeZoneService(Kernel::HLERequestContext& ctx);
+        void IsStandardNetworkSystemClockAccuracySufficient(Kernel::HLERequestContext& ctx);
         void CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERequestContext& ctx);
         void GetClockSnapshot(Kernel::HLERequestContext& ctx);
         void GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx);

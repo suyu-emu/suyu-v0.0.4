@@ -199,6 +199,15 @@ void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<ITimeZoneService>(module->GetTimeManager().GetTimeZoneContentManager());
 }
 
+void Module::Interface::IsStandardNetworkSystemClockAccuracySufficient(
+    Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+    auto& clock_core{module->GetTimeManager().GetStandardNetworkSystemClockCore()};
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(clock_core.IsStandardNetworkSystemClockAccuracySufficient(system));
+}
+
 void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 
