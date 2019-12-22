@@ -112,25 +112,25 @@ constexpr GLenum GetGLShaderType(ShaderType shader_type) {
 }
 
 /// Describes primitive behavior on geometry shaders
-constexpr std::tuple<const char*, const char*, u32> GetPrimitiveDescription(GLenum primitive_mode) {
+constexpr std::pair<const char*, u32> GetPrimitiveDescription(GLenum primitive_mode) {
     switch (primitive_mode) {
     case GL_POINTS:
-        return {"points", "Points", 1};
+        return {"points", 1};
     case GL_LINES:
     case GL_LINE_STRIP:
-        return {"lines", "Lines", 2};
+        return {"lines", 2};
     case GL_LINES_ADJACENCY:
     case GL_LINE_STRIP_ADJACENCY:
-        return {"lines_adjacency", "LinesAdj", 4};
+        return {"lines_adjacency", 4};
     case GL_TRIANGLES:
     case GL_TRIANGLE_STRIP:
     case GL_TRIANGLE_FAN:
-        return {"triangles", "Triangles", 3};
+        return {"triangles", 3};
     case GL_TRIANGLES_ADJACENCY:
     case GL_TRIANGLE_STRIP_ADJACENCY:
-        return {"triangles_adjacency", "TrianglesAdj", 6};
+        return {"triangles_adjacency", 6};
     default:
-        return {"points", "Invalid", 1};
+        return {"points", 1};
     }
 }
 
@@ -264,29 +264,24 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
                   "#extension GL_NV_shader_thread_group : require\n"
                   "#extension GL_NV_shader_thread_shuffle : require\n";
     }
-    source += '\n';
 
     if (shader_type == ShaderType::Geometry) {
-        const auto [glsl_topology, debug_name, max_vertices] =
-            GetPrimitiveDescription(variant.primitive_mode);
-
-        source += fmt::format("layout ({}) in;\n\n", glsl_topology);
+        const auto [glsl_topology, max_vertices] = GetPrimitiveDescription(variant.primitive_mode);
         source += fmt::format("#define MAX_VERTEX_INPUT {}\n", max_vertices);
+        source += fmt::format("layout ({}) in;\n", glsl_topology);
     }
     if (shader_type == ShaderType::Compute) {
+        if (variant.local_memory_size > 0) {
+            source += fmt::format("#define LOCAL_MEMORY_SIZE {}\n",
+                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
+        }
         source +=
             fmt::format("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;\n",
                         variant.block_x, variant.block_y, variant.block_z);
 
         if (variant.shared_memory_size > 0) {
-            // TODO(Rodrigo): We should divide by four here, but having a larger shared memory pool
-            // avoids out of bound stores. Find out why shared memory size is being invalid.
+            // shared_memory_size is described in number of words
             source += fmt::format("shared uint smem[{}];\n", variant.shared_memory_size);
-        }
-
-        if (variant.local_memory_size > 0) {
-            source += fmt::format("#define LOCAL_MEMORY_SIZE {}\n",
-                                  Common::AlignUp(variant.local_memory_size, 4) / 4);
         }
     }
 
