@@ -22,7 +22,23 @@ using Tegra::Shader::Register;
 
 namespace {
 
-u32 GetUniformTypeElementsCount(Tegra::Shader::UniformType uniform_type) {
+u32 GetLdgMemorySize(Tegra::Shader::UniformType uniform_type) {
+    switch (uniform_type) {
+    case Tegra::Shader::UniformType::UnsignedByte:
+    case Tegra::Shader::UniformType::Single:
+        return 1;
+    case Tegra::Shader::UniformType::Double:
+        return 2;
+    case Tegra::Shader::UniformType::Quad:
+    case Tegra::Shader::UniformType::UnsignedQuad:
+        return 4;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented size={}!", static_cast<u32>(uniform_type));
+        return 1;
+    }
+}
+
+u32 GetStgMemorySize(Tegra::Shader::UniformType uniform_type) {
     switch (uniform_type) {
     case Tegra::Shader::UniformType::Single:
         return 1;
@@ -170,7 +186,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         const auto [real_address_base, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, false);
 
-        const u32 count = GetUniformTypeElementsCount(type);
+        const u32 count = GetLdgMemorySize(type);
         if (!real_address_base || !base_address) {
             // Tracking failed, load zeroes.
             for (u32 i = 0; i < count; ++i) {
@@ -181,12 +197,22 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 
         for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
-            const Node real_address =
-                Operation(OperationCode::UAdd, NO_PRECISE, real_address_base, it_offset);
-            const Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
+            const Node real_address = Operation(OperationCode::UAdd, real_address_base, it_offset);
+            Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
+
+            if (type == Tegra::Shader::UniformType::UnsignedByte) {
+                // To handle unaligned loads get the byte used to dereferenced global memory
+                // and extract that byte from the loaded uint32.
+                Node byte = Operation(OperationCode::UBitwiseAnd, real_address, Immediate(3));
+                byte = Operation(OperationCode::ULogicalShiftLeft, std::move(byte), Immediate(3));
+
+                gmem = Operation(OperationCode::UBitfieldExtract, std::move(gmem), std::move(byte),
+                                 Immediate(8));
+            }
 
             SetTemporary(bb, i, gmem);
         }
+
         for (u32 i = 0; i < count; ++i) {
             SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
         }
@@ -276,7 +302,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             break;
         }
 
-        const u32 count = GetUniformTypeElementsCount(type);
+        const u32 count = GetStgMemorySize(type);
         for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address = Operation(OperationCode::UAdd, real_address_base, it_offset);
