@@ -543,7 +543,7 @@ private:
         }
 
         for (u32 rt = 0; rt < static_cast<u32>(frag_colors.size()); ++rt) {
-            if (!IsRenderTargetUsed(rt)) {
+            if (!specialization.enabled_rendertargets[rt]) {
                 continue;
             }
 
@@ -1555,25 +1555,10 @@ private:
 
     Expression Texture(Operation operation) {
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        UNIMPLEMENTED_IF(!meta.aoffi.empty());
 
         const bool can_implicit = stage == ShaderType::Fragment;
         const Id sampler = GetTextureSampler(operation);
         const Id coords = GetCoordinates(operation, Type::Float);
-
-        if (meta.depth_compare) {
-            // Depth sampling
-            UNIMPLEMENTED_IF(meta.bias);
-            const Id dref = AsFloat(Visit(meta.depth_compare));
-            if (can_implicit) {
-                return {OpImageSampleDrefImplicitLod(t_float, sampler, coords, dref, {}),
-                        Type::Float};
-            } else {
-                return {OpImageSampleDrefExplicitLod(t_float, sampler, coords, dref,
-                                                     spv::ImageOperandsMask::Lod, v_float_zero),
-                        Type::Float};
-            }
-        }
 
         std::vector<Id> operands;
         spv::ImageOperandsMask mask{};
@@ -1582,13 +1567,36 @@ private:
             operands.push_back(AsFloat(Visit(meta.bias)));
         }
 
+        if (!can_implicit) {
+            mask = mask | spv::ImageOperandsMask::Lod;
+            operands.push_back(v_float_zero);
+        }
+
+        if (!meta.aoffi.empty()) {
+            mask = mask | spv::ImageOperandsMask::Offset;
+            operands.push_back(GetOffsetCoordinates(operation));
+        }
+
+        if (meta.depth_compare) {
+            // Depth sampling
+            UNIMPLEMENTED_IF(meta.bias);
+            const Id dref = AsFloat(Visit(meta.depth_compare));
+            if (can_implicit) {
+                return {
+                    OpImageSampleDrefImplicitLod(t_float, sampler, coords, dref, mask, operands),
+                    Type::Float};
+            } else {
+                return {
+                    OpImageSampleDrefExplicitLod(t_float, sampler, coords, dref, mask, operands),
+                    Type::Float};
+            }
+        }
+
         Id texture;
         if (can_implicit) {
             texture = OpImageSampleImplicitLod(t_float4, sampler, coords, mask, operands);
         } else {
-            texture = OpImageSampleExplicitLod(t_float4, sampler, coords,
-                                               mask | spv::ImageOperandsMask::Lod, v_float_zero,
-                                               operands);
+            texture = OpImageSampleExplicitLod(t_float4, sampler, coords, mask, operands);
         }
         return GetTextureElement(operation, texture, Type::Float);
     }
@@ -1601,7 +1609,8 @@ private:
         const Id lod = AsFloat(Visit(meta.lod));
 
         spv::ImageOperandsMask mask = spv::ImageOperandsMask::Lod;
-        std::vector<Id> operands;
+        std::vector<Id> operands{lod};
+
         if (!meta.aoffi.empty()) {
             mask = mask | spv::ImageOperandsMask::Offset;
             operands.push_back(GetOffsetCoordinates(operation));
@@ -1609,11 +1618,10 @@ private:
 
         if (meta.sampler.IsShadow()) {
             const Id dref = AsFloat(Visit(meta.depth_compare));
-            return {
-                OpImageSampleDrefExplicitLod(t_float, sampler, coords, dref, mask, lod, operands),
-                Type::Float};
+            return {OpImageSampleDrefExplicitLod(t_float, sampler, coords, dref, mask, operands),
+                    Type::Float};
         }
-        const Id texture = OpImageSampleExplicitLod(t_float4, sampler, coords, mask, lod, operands);
+        const Id texture = OpImageSampleExplicitLod(t_float4, sampler, coords, mask, operands);
         return GetTextureElement(operation, texture, Type::Float);
     }
 
@@ -1722,7 +1730,7 @@ private:
         const std::vector grad = {dx, dy};
 
         static constexpr auto mask = spv::ImageOperandsMask::Grad;
-        const Id texture = OpImageSampleImplicitLod(t_float4, sampler, coords, mask, grad);
+        const Id texture = OpImageSampleExplicitLod(t_float4, sampler, coords, mask, grad);
         return GetTextureElement(operation, texture, Type::Float);
     }
 
@@ -1833,7 +1841,7 @@ private:
     }
 
     void PreExit() {
-        if (stage == ShaderType::Vertex) {
+        if (stage == ShaderType::Vertex && specialization.ndc_minus_one_to_one) {
             const u32 position_index = out_indices.position.value();
             const Id z_pointer = AccessElement(t_out_float, out_vertex, position_index, 2U);
             const Id w_pointer = AccessElement(t_out_float, out_vertex, position_index, 3U);
@@ -1860,12 +1868,18 @@ private:
             // rendertargets/components are skipped in the register assignment.
             u32 current_reg = 0;
             for (u32 rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
+                if (!specialization.enabled_rendertargets[rt]) {
+                    // Skip rendertargets that are not enabled
+                    continue;
+                }
                 // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
                 for (u32 component = 0; component < 4; ++component) {
+                    const Id pointer = AccessElement(t_out_float, frag_colors.at(rt), component);
                     if (header.ps.IsColorComponentOutputEnabled(rt, component)) {
-                        OpStore(AccessElement(t_out_float, frag_colors.at(rt), component),
-                                SafeGetRegister(current_reg));
+                        OpStore(pointer, SafeGetRegister(current_reg));
                         ++current_reg;
+                    } else {
+                        OpStore(pointer, component == 3 ? v_float_one : v_float_zero);
                     }
                 }
             }
@@ -1993,15 +2007,6 @@ private:
 
     Id DeclareInputBuiltIn(spv::BuiltIn builtin, Id type, std::string name) {
         return DeclareBuiltIn(builtin, spv::StorageClass::Input, type, std::move(name));
-    }
-
-    bool IsRenderTargetUsed(u32 rt) const {
-        for (u32 component = 0; component < 4; ++component) {
-            if (header.ps.IsColorComponentOutputEnabled(rt, component)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     template <typename... Args>
@@ -2567,7 +2572,7 @@ public:
         const Id target = decomp.Constant(decomp.t_uint, expr.value);
         Id gpr = decomp.OpLoad(decomp.t_float, decomp.registers.at(expr.gpr));
         gpr = decomp.OpBitcast(decomp.t_uint, gpr);
-        return decomp.OpLogicalEqual(decomp.t_uint, gpr, target);
+        return decomp.OpIEqual(decomp.t_bool, gpr, target);
     }
 
     Id Visit(const Expr& node) {
@@ -2637,11 +2642,11 @@ public:
         const Id loop_label = decomp.OpLabel();
         const Id endloop_label = decomp.OpLabel();
         const Id loop_start_block = decomp.OpLabel();
-        const Id loop_end_block = decomp.OpLabel();
+        const Id loop_continue_block = decomp.OpLabel();
         current_loop_exit = endloop_label;
         decomp.OpBranch(loop_label);
         decomp.AddLabel(loop_label);
-        decomp.OpLoopMerge(endloop_label, loop_end_block, spv::LoopControlMask::MaskNone);
+        decomp.OpLoopMerge(endloop_label, loop_continue_block, spv::LoopControlMask::MaskNone);
         decomp.OpBranch(loop_start_block);
         decomp.AddLabel(loop_start_block);
         ASTNode current = ast.nodes.GetFirst();
@@ -2649,6 +2654,8 @@ public:
             Visit(current);
             current = current->GetNext();
         }
+        decomp.OpBranch(loop_continue_block);
+        decomp.AddLabel(loop_continue_block);
         ExprDecompiler expr_parser{decomp};
         const Id condition = expr_parser.Visit(ast.condition);
         decomp.OpBranchConditional(condition, loop_label, endloop_label);
