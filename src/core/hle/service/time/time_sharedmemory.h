@@ -5,11 +5,14 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "common/uuid.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/hle/service/time/time.h"
+#include "core/hle/kernel/thread.h"
+#include "core/hle/service/time/clock_types.h"
 
 namespace Service::Time {
-class SharedMemory {
+
+class SharedMemory final {
 public:
     explicit SharedMemory(Core::System& system);
     ~SharedMemory();
@@ -17,22 +20,10 @@ public:
     // Return the shared memory handle
     std::shared_ptr<Kernel::SharedMemory> GetSharedMemoryHolder() const;
 
-    // Set memory barriers in shared memory and update them
-    void SetStandardSteadyClockTimepoint(const SteadyClockTimePoint& timepoint);
-    void SetStandardLocalSystemClockContext(const SystemClockContext& context);
-    void SetStandardNetworkSystemClockContext(const SystemClockContext& context);
-    void SetStandardUserSystemClockAutomaticCorrectionEnabled(bool enabled);
-
-    // Pull from memory barriers in the shared memory
-    SteadyClockTimePoint GetStandardSteadyClockTimepoint();
-    SystemClockContext GetStandardLocalSystemClockContext();
-    SystemClockContext GetStandardNetworkSystemClockContext();
-    bool GetStandardUserSystemClockAutomaticCorrectionEnabled();
-
     // TODO(ogniK): We have to properly simulate memory barriers, how are we going to do this?
     template <typename T, std::size_t Offset>
     struct MemoryBarrier {
-        static_assert(std::is_trivially_constructible_v<T>, "T must be trivially constructable");
+        static_assert(std::is_trivially_copyable_v<T>, "T must be trivially copyable");
         u32_le read_attempt{};
         std::array<T, 2> data{};
 
@@ -57,16 +48,22 @@ public:
 
     // Shared memory format
     struct Format {
-        MemoryBarrier<SteadyClockTimePoint, 0x0> standard_steady_clock_timepoint;
-        MemoryBarrier<SystemClockContext, 0x38> standard_local_system_clock_context;
-        MemoryBarrier<SystemClockContext, 0x80> standard_network_system_clock_context;
+        MemoryBarrier<Clock::SteadyClockContext, 0x0> standard_steady_clock_timepoint;
+        MemoryBarrier<Clock::SystemClockContext, 0x38> standard_local_system_clock_context;
+        MemoryBarrier<Clock::SystemClockContext, 0x80> standard_network_system_clock_context;
         MemoryBarrier<bool, 0xc8> standard_user_system_clock_automatic_correction;
         u32_le format_version;
     };
     static_assert(sizeof(Format) == 0xd8, "Format is an invalid size");
 
+    void SetupStandardSteadyClock(Core::System& system, const Common::UUID& clock_source_id,
+                                  Clock::TimeSpanType currentTimePoint);
+    void UpdateLocalSystemClockContext(const Clock::SystemClockContext& context);
+    void UpdateNetworkSystemClockContext(const Clock::SystemClockContext& context);
+    void SetAutomaticCorrectionEnabled(bool is_enabled);
+
 private:
-    std::shared_ptr<Kernel::SharedMemory> shared_memory_holder{};
+    std::shared_ptr<Kernel::SharedMemory> shared_memory_holder;
     Core::System& system;
     Format shared_memory_format{};
 };
