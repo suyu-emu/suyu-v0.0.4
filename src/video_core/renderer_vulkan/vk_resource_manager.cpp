@@ -72,12 +72,22 @@ VKFence::VKFence(const VKDevice& device, UniqueFence handle)
 VKFence::~VKFence() = default;
 
 void VKFence::Wait() {
+    static constexpr u64 timeout = std::numeric_limits<u64>::max();
     const auto dev = device.GetLogical();
     const auto& dld = device.GetDispatchLoader();
-    dev.waitForFences({*handle}, true, std::numeric_limits<u64>::max(), dld);
+    switch (const auto result = dev.waitForFences(1, &*handle, true, timeout, dld)) {
+    case vk::Result::eSuccess:
+        return;
+    case vk::Result::eErrorDeviceLost:
+        device.ReportLoss();
+        [[fallthrough]];
+    default:
+        vk::throwResultException(result, "vk::waitForFences");
+    }
 }
 
 void VKFence::Release() {
+    ASSERT(is_owned);
     is_owned = false;
 }
 
@@ -133,7 +143,31 @@ void VKFence::Unprotect(VKResource* resource) {
     protected_resources.erase(it);
 }
 
+void VKFence::RedirectProtection(VKResource* old_resource, VKResource* new_resource) noexcept {
+    std::replace(std::begin(protected_resources), std::end(protected_resources), old_resource,
+                 new_resource);
+}
+
 VKFenceWatch::VKFenceWatch() = default;
+
+VKFenceWatch::VKFenceWatch(VKFence& initial_fence) {
+    Watch(initial_fence);
+}
+
+VKFenceWatch::VKFenceWatch(VKFenceWatch&& rhs) noexcept {
+    fence = std::exchange(rhs.fence, nullptr);
+    if (fence) {
+        fence->RedirectProtection(&rhs, this);
+    }
+}
+
+VKFenceWatch& VKFenceWatch::operator=(VKFenceWatch&& rhs) noexcept {
+    fence = std::exchange(rhs.fence, nullptr);
+    if (fence) {
+        fence->RedirectProtection(&rhs, this);
+    }
+    return *this;
+}
 
 VKFenceWatch::~VKFenceWatch() {
     if (fence) {

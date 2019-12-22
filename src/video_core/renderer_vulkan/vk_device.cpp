@@ -3,12 +3,15 @@
 // Refer to the license.txt file included.
 
 #include <bitset>
+#include <chrono>
 #include <cstdlib>
 #include <optional>
 #include <set>
 #include <string_view>
+#include <thread>
 #include <vector>
 #include "common/assert.h"
+#include "core/settings.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 
@@ -201,6 +204,22 @@ vk::Format VKDevice::GetSupportedFormat(vk::Format wanted_format,
     return wanted_format;
 }
 
+void VKDevice::ReportLoss() const {
+    LOG_CRITICAL(Render_Vulkan, "Device loss occured!");
+
+    // Wait some time to let the log flush
+    std::this_thread::sleep_for(std::chrono::seconds{1});
+
+    if (!nv_device_diagnostic_checkpoints) {
+        return;
+    }
+
+    [[maybe_unused]] const std::vector data = graphics_queue.getCheckpointDataNV(dld);
+    // Catch here in debug builds (or with optimizations disabled) the last graphics pipeline to be
+    // executed. It can be done on a debugger by evaluating the expression:
+    // *(VKGraphicsPipeline*)data[0]
+}
+
 bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
                                       const vk::DispatchLoaderDynamic& dldi) const {
     // Disable for now to avoid converting ASTC twice.
@@ -381,6 +400,8 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
              VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME, true);
         Test(extension, ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
              false);
+        Test(extension, nv_device_diagnostic_checkpoints,
+             VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME, true);
     }
 
     if (khr_shader_float16_int8) {
@@ -464,6 +485,7 @@ std::vector<vk::DeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() con
 std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperties(
     const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical) {
     static constexpr std::array formats{vk::Format::eA8B8G8R8UnormPack32,
+                                        vk::Format::eA8B8G8R8UintPack32,
                                         vk::Format::eA8B8G8R8SnormPack32,
                                         vk::Format::eA8B8G8R8SrgbPack32,
                                         vk::Format::eB5G6R5UnormPack16,
