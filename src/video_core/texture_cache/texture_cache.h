@@ -616,6 +616,86 @@ private:
     }
 
     /**
+     * Takes care of managing 3D textures and its slices. Does HLE methods for reconstructing the 3D
+     * textures within the GPU if possible. Falls back to LLE when it isn't possible to use any of
+     * the HLE methods.
+     *
+     * @param overlaps          The overlapping surfaces registered in the cache.
+     * @param params            The parameters on the new surface.
+     * @param gpu_addr          The starting address of the new surface.
+     * @param cache_addr        The starting address of the new surface on physical memory.
+     * @param preserve_contents Indicates that the new surface should be loaded from memory or
+     *                          left blank.
+     */
+    std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(std::vector<TSurface>& overlaps,
+                                                               const SurfaceParams& params,
+                                                               const GPUVAddr gpu_addr,
+                                                               const CacheAddr cache_addr,
+                                                               bool preserve_contents) {
+        if (params.target == SurfaceTarget::Texture3D) {
+            bool failed = false;
+            if (params.num_levels > 1) {
+                // We can't handle mipmaps in 3D textures yet, better fallback to LLE approach
+                return std::nullopt;
+            }
+            TSurface new_surface = GetUncachedSurface(gpu_addr, params);
+            bool modified = false;
+            for (auto& surface : overlaps) {
+                const SurfaceParams& src_params = surface->GetSurfaceParams();
+                if (src_params.target != SurfaceTarget::Texture2D) {
+                    failed = true;
+                    break;
+                }
+                if (src_params.height != params.height) {
+                    failed = true;
+                    break;
+                }
+                if (src_params.block_depth != params.block_depth ||
+                    src_params.block_height != params.block_height) {
+                    failed = true;
+                    break;
+                }
+                const u32 offset = static_cast<u32>(surface->GetCacheAddr() - cache_addr);
+                const auto [x, y, z] = params.GetBlockOffsetXYZ(offset);
+                modified |= surface->IsModified();
+                const CopyParams copy_params(0, 0, 0, 0, 0, z, 0, 0, params.width, params.height,
+                                             1);
+                ImageCopy(surface, new_surface, copy_params);
+            }
+            if (failed) {
+                return std::nullopt;
+            }
+            for (const auto& surface : overlaps) {
+                Unregister(surface);
+            }
+            new_surface->MarkAsModified(modified, Tick());
+            Register(new_surface);
+            auto view = new_surface->GetMainView();
+            return {{std::move(new_surface), view}};
+        } else {
+            for (const auto& surface : overlaps) {
+                if (!surface->MatchTarget(params.target)) {
+                    if (overlaps.size() == 1 && surface->GetCacheAddr() == cache_addr) {
+                        if (Settings::values.use_accurate_gpu_emulation) {
+                            return std::nullopt;
+                        }
+                        Unregister(surface);
+                        return InitializeSurface(gpu_addr, params, preserve_contents);
+                    }
+                    return std::nullopt;
+                }
+                if (surface->GetCacheAddr() != cache_addr) {
+                    continue;
+                }
+                if (surface->MatchesStructure(params) == MatchStructureResult::FullMatch) {
+                    return {{surface, surface->GetMainView()}};
+                }
+            }
+            return InitializeSurface(gpu_addr, params, preserve_contents);
+        }
+    }
+
+    /**
      * Gets the starting address and parameters of a candidate surface and tries
      * to find a matching surface within the cache. This is done in 3 big steps:
      *
@@ -684,6 +764,15 @@ private:
             if (topological_result != MatchTopologyResult::FullMatch) {
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
+            }
+        }
+
+        // Check if it's a 3D texture
+        if (params.block_depth > 0) {
+            auto surface =
+                Manage3DSurfaces(overlaps, params, gpu_addr, cache_addr, preserve_contents);
+            if (surface) {
+                return *surface;
             }
         }
 
