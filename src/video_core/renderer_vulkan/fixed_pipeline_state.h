@@ -30,8 +30,13 @@ struct FixedPipelineState {
         u32 stride;
         u32 divisor;
 
-        std::size_t Hash() const;
-        bool operator==(const VertexBinding& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const VertexBinding& rhs) const noexcept;
+
+        bool operator!=(const VertexBinding& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct VertexAttribute {
@@ -46,8 +51,13 @@ struct FixedPipelineState {
         Maxwell::VertexAttribute::Size size;
         u32 offset;
 
-        std::size_t Hash() const;
-        bool operator==(const VertexAttribute& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const VertexAttribute& rhs) const noexcept;
+
+        bool operator!=(const VertexAttribute& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct StencilFace {
@@ -63,8 +73,13 @@ struct FixedPipelineState {
         Maxwell::StencilOp action_depth_pass;
         Maxwell::ComparisonOp test_func;
 
-        std::size_t Hash() const;
-        bool operator==(const StencilFace& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const StencilFace& rhs) const noexcept;
+
+        bool operator!=(const StencilFace& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct BlendingAttachment {
@@ -89,8 +104,13 @@ struct FixedPipelineState {
         Maxwell::Blend::Factor dst_a_func;
         std::array<bool, 4> components;
 
-        std::size_t Hash() const;
-        bool operator==(const BlendingAttachment& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const BlendingAttachment& rhs) const noexcept;
+
+        bool operator!=(const BlendingAttachment& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct VertexInput {
@@ -99,8 +119,13 @@ struct FixedPipelineState {
         std::array<VertexBinding, Maxwell::NumVertexArrays> bindings;
         std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
 
-        std::size_t Hash() const;
-        bool operator==(const VertexInput& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const VertexInput& rhs) const noexcept;
+
+        bool operator!=(const VertexInput& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct InputAssembly {
@@ -114,8 +139,13 @@ struct FixedPipelineState {
         bool primitive_restart_enable;
         float point_size;
 
-        std::size_t Hash() const;
-        bool operator==(const InputAssembly& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const InputAssembly& rhs) const noexcept;
+
+        bool operator!=(const InputAssembly& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct Tessellation {
@@ -130,8 +160,13 @@ struct FixedPipelineState {
         Maxwell::TessellationSpacing spacing;
         bool clockwise;
 
-        std::size_t Hash() const;
-        bool operator==(const Tessellation& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const Tessellation& rhs) const noexcept;
+
+        bool operator!=(const Tessellation& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct Rasterizer {
@@ -148,8 +183,13 @@ struct FixedPipelineState {
         Maxwell::Cull::CullFace cull_face;
         Maxwell::Cull::FrontFace front_face;
 
-        std::size_t Hash() const;
-        bool operator==(const Rasterizer& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const Rasterizer& rhs) const noexcept;
+
+        bool operator!=(const Rasterizer& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct DepthStencil {
@@ -171,8 +211,13 @@ struct FixedPipelineState {
         StencilFace front_stencil;
         StencilFace back_stencil;
 
-        std::size_t Hash() const;
-        bool operator==(const DepthStencil& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const DepthStencil& rhs) const noexcept;
+
+        bool operator!=(const DepthStencil& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     struct ColorBlending {
@@ -185,11 +230,17 @@ struct FixedPipelineState {
         std::size_t attachments_count;
         std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
 
-        std::size_t Hash() const;
-        bool operator==(const ColorBlending& rhs) const;
+        std::size_t Hash() const noexcept;
+
+        bool operator==(const ColorBlending& rhs) const noexcept;
+
+        bool operator!=(const ColorBlending& rhs) const noexcept {
+            return !operator==(rhs);
+        }
     };
 
     std::size_t Hash() const noexcept;
+
     bool operator==(const FixedPipelineState& rhs) const noexcept;
 
     bool operator!=(const FixedPipelineState& rhs) const noexcept {

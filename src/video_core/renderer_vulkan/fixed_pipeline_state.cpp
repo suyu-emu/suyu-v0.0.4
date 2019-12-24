@@ -125,39 +125,39 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
 
 } // Anonymous namespace
 
-std::size_t FixedPipelineState::VertexBinding::Hash() const {
+std::size_t FixedPipelineState::VertexBinding::Hash() const noexcept {
     return (index << stride) ^ divisor;
 }
 
-bool FixedPipelineState::VertexBinding::operator==(const VertexBinding& rhs) const {
+bool FixedPipelineState::VertexBinding::operator==(const VertexBinding& rhs) const noexcept {
     return std::tie(index, stride, divisor) == std::tie(rhs.index, rhs.stride, rhs.divisor);
 }
 
-std::size_t FixedPipelineState::VertexAttribute::Hash() const {
+std::size_t FixedPipelineState::VertexAttribute::Hash() const noexcept {
     return static_cast<std::size_t>(index) ^ (static_cast<std::size_t>(buffer) << 13) ^
            (static_cast<std::size_t>(type) << 22) ^ (static_cast<std::size_t>(size) << 31) ^
            (static_cast<std::size_t>(offset) << 36);
 }
 
-bool FixedPipelineState::VertexAttribute::operator==(const VertexAttribute& rhs) const {
+bool FixedPipelineState::VertexAttribute::operator==(const VertexAttribute& rhs) const noexcept {
     return std::tie(index, buffer, type, size, offset) ==
            std::tie(rhs.index, rhs.buffer, rhs.type, rhs.size, rhs.offset);
 }
 
-std::size_t FixedPipelineState::StencilFace::Hash() const {
+std::size_t FixedPipelineState::StencilFace::Hash() const noexcept {
     return static_cast<std::size_t>(action_stencil_fail) ^
            (static_cast<std::size_t>(action_depth_fail) << 4) ^
            (static_cast<std::size_t>(action_depth_fail) << 20) ^
            (static_cast<std::size_t>(action_depth_pass) << 36);
 }
 
-bool FixedPipelineState::StencilFace::operator==(const StencilFace& rhs) const {
+bool FixedPipelineState::StencilFace::operator==(const StencilFace& rhs) const noexcept {
     return std::tie(action_stencil_fail, action_depth_fail, action_depth_pass, test_func) ==
            std::tie(rhs.action_stencil_fail, rhs.action_depth_fail, rhs.action_depth_pass,
                     rhs.test_func);
 }
 
-std::size_t FixedPipelineState::BlendingAttachment::Hash() const {
+std::size_t FixedPipelineState::BlendingAttachment::Hash() const noexcept {
     return static_cast<std::size_t>(enable) ^ (static_cast<std::size_t>(rgb_equation) << 5) ^
            (static_cast<std::size_t>(src_rgb_func) << 10) ^
            (static_cast<std::size_t>(dst_rgb_func) << 15) ^
@@ -170,14 +170,15 @@ std::size_t FixedPipelineState::BlendingAttachment::Hash() const {
            (static_cast<std::size_t>(components[3]) << 38);
 }
 
-bool FixedPipelineState::BlendingAttachment::operator==(const BlendingAttachment& rhs) const {
+bool FixedPipelineState::BlendingAttachment::operator==(const BlendingAttachment& rhs) const
+    noexcept {
     return std::tie(enable, rgb_equation, src_rgb_func, dst_rgb_func, a_equation, src_a_func,
                     dst_a_func, components) ==
            std::tie(rhs.enable, rhs.rgb_equation, rhs.src_rgb_func, rhs.dst_rgb_func,
                     rhs.a_equation, rhs.src_a_func, rhs.dst_a_func, rhs.components);
 }
 
-std::size_t FixedPipelineState::VertexInput::Hash() const {
+std::size_t FixedPipelineState::VertexInput::Hash() const noexcept {
     std::size_t hash = num_bindings ^ (num_attributes << 32);
     for (std::size_t i = 0; i < num_bindings; ++i) {
         boost::hash_combine(hash, bindings[i].Hash());
@@ -188,37 +189,37 @@ std::size_t FixedPipelineState::VertexInput::Hash() const {
     return hash;
 }
 
-bool FixedPipelineState::VertexInput::operator==(const VertexInput& rhs) const {
+bool FixedPipelineState::VertexInput::operator==(const VertexInput& rhs) const noexcept {
     return std::equal(bindings.begin(), bindings.begin() + num_bindings, rhs.bindings.begin(),
                       rhs.bindings.begin() + rhs.num_bindings) &&
            std::equal(attributes.begin(), attributes.begin() + num_attributes,
                       rhs.attributes.begin(), rhs.attributes.begin() + rhs.num_attributes);
 }
 
-std::size_t FixedPipelineState::InputAssembly::Hash() const {
+std::size_t FixedPipelineState::InputAssembly::Hash() const noexcept {
     std::size_t point_size_int = 0;
     std::memcpy(&point_size_int, &point_size, sizeof(point_size));
     return (static_cast<std::size_t>(topology) << 24) ^ (point_size_int << 32) ^
            static_cast<std::size_t>(primitive_restart_enable);
 }
 
-bool FixedPipelineState::InputAssembly::operator==(const InputAssembly& rhs) const {
+bool FixedPipelineState::InputAssembly::operator==(const InputAssembly& rhs) const noexcept {
     return std::tie(topology, primitive_restart_enable, point_size) ==
            std::tie(rhs.topology, rhs.primitive_restart_enable, rhs.point_size);
 }
 
-std::size_t FixedPipelineState::Tessellation::Hash() const {
+std::size_t FixedPipelineState::Tessellation::Hash() const noexcept {
     return static_cast<std::size_t>(patch_control_points) ^
            (static_cast<std::size_t>(primitive) << 6) ^ (static_cast<std::size_t>(spacing) << 8) ^
            (static_cast<std::size_t>(clockwise) << 10);
 }
 
-bool FixedPipelineState::Tessellation::operator==(const Tessellation& rhs) const {
+bool FixedPipelineState::Tessellation::operator==(const Tessellation& rhs) const noexcept {
     return std::tie(patch_control_points, primitive, spacing, clockwise) ==
            std::tie(rhs.patch_control_points, rhs.primitive, rhs.spacing, rhs.clockwise);
 }
 
-std::size_t FixedPipelineState::Rasterizer::Hash() const {
+std::size_t FixedPipelineState::Rasterizer::Hash() const noexcept {
     return static_cast<std::size_t>(cull_enable) ^
            (static_cast<std::size_t>(depth_bias_enable) << 1) ^
            (static_cast<std::size_t>(ndc_minus_one_to_one) << 2) ^
@@ -226,13 +227,13 @@ std::size_t FixedPipelineState::Rasterizer::Hash() const {
            (static_cast<std::size_t>(front_face) << 48);
 }
 
-bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const {
+bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const noexcept {
     return std::tie(cull_enable, depth_bias_enable, ndc_minus_one_to_one, cull_face, front_face) ==
            std::tie(rhs.cull_enable, rhs.depth_bias_enable, rhs.ndc_minus_one_to_one, rhs.cull_face,
                     rhs.front_face);
 }
 
-std::size_t FixedPipelineState::DepthStencil::Hash() const {
+std::size_t FixedPipelineState::DepthStencil::Hash() const noexcept {
     std::size_t hash = static_cast<std::size_t>(depth_test_enable) ^
                        (static_cast<std::size_t>(depth_write_enable) << 1) ^
                        (static_cast<std::size_t>(depth_bounds_enable) << 2) ^
@@ -243,7 +244,7 @@ std::size_t FixedPipelineState::DepthStencil::Hash() const {
     return hash;
 }
 
-bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const {
+bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const noexcept {
     return std::tie(depth_test_enable, depth_write_enable, depth_bounds_enable, depth_test_function,
                     stencil_enable, front_stencil, back_stencil) ==
            std::tie(rhs.depth_test_enable, rhs.depth_write_enable, rhs.depth_bounds_enable,
@@ -251,7 +252,7 @@ bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const
                     rhs.back_stencil);
 }
 
-std::size_t FixedPipelineState::ColorBlending::Hash() const {
+std::size_t FixedPipelineState::ColorBlending::Hash() const noexcept {
     std::size_t hash = attachments_count << 13;
     for (std::size_t rt = 0; rt < static_cast<std::size_t>(attachments_count); ++rt) {
         boost::hash_combine(hash, attachments[rt].Hash());
@@ -259,7 +260,7 @@ std::size_t FixedPipelineState::ColorBlending::Hash() const {
     return hash;
 }
 
-bool FixedPipelineState::ColorBlending::operator==(const ColorBlending& rhs) const {
+bool FixedPipelineState::ColorBlending::operator==(const ColorBlending& rhs) const noexcept {
     return std::equal(attachments.begin(), attachments.begin() + attachments_count,
                       rhs.attachments.begin(), rhs.attachments.begin() + rhs.attachments_count);
 }
