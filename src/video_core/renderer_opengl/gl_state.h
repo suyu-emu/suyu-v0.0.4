@@ -133,12 +133,6 @@ public:
         GLfloat clamp = 0.0f;
     } polygon_offset;
 
-    struct {
-        bool enabled = false;    // GL_ALPHA_TEST
-        GLenum func = GL_ALWAYS; // GL_ALPHA_TEST_FUNC
-        GLfloat ref = 0.0f;      // GL_ALPHA_TEST_REF
-    } alpha_test;
-
     std::array<bool, 8> clip_distance = {}; // GL_CLIP_DISTANCE
 
     struct {
@@ -182,7 +176,6 @@ public:
     void ApplyImages();
     void ApplyDepthClamp();
     void ApplyPolygonOffset();
-    void ApplyAlphaTest();
     void ApplyClipControl();
     void ApplyRenderBuffer();
 

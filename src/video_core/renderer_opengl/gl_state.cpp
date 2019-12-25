@@ -368,14 +368,6 @@ void OpenGLState::ApplyPolygonOffset() {
     }
 }
 
-void OpenGLState::ApplyAlphaTest() {
-    Enable(GL_ALPHA_TEST, cur_state.alpha_test.enabled, alpha_test.enabled);
-    if (UpdateTie(std::tie(cur_state.alpha_test.func, cur_state.alpha_test.ref),
-                  std::tie(alpha_test.func, alpha_test.ref))) {
-        glAlphaFunc(alpha_test.func, alpha_test.ref);
-    }
-}
-
 void OpenGLState::ApplyClipControl() {
     if (UpdateTie(std::tie(cur_state.clip_control.origin, cur_state.clip_control.depth_mode),
                   std::tie(clip_control.origin, clip_control.depth_mode))) {
@@ -441,7 +433,6 @@ void OpenGLState::Apply() {
     ApplySamplers();
     ApplyImages();
     ApplyPolygonOffset();
-    ApplyAlphaTest();
     ApplyClipControl();
     ApplyRenderBuffer();
 }

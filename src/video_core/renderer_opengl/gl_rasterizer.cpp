@@ -1225,12 +1225,10 @@ void RasterizerOpenGL::SyncAlphaTest() {
     UNIMPLEMENTED_IF_MSG(regs.alpha_test_enabled != 0 && regs.rt_control.count > 1,
                          "Alpha Testing is enabled with more than one rendertarget");
 
-    state.alpha_test.enabled = regs.alpha_test_enabled;
-    if (!state.alpha_test.enabled) {
-        return;
+    oglEnable(GL_ALPHA_TEST, regs.alpha_test_enabled);
+    if (regs.alpha_test_enabled) {
+        glAlphaFunc(MaxwellToGL::ComparisonOp(regs.alpha_test_func), regs.alpha_test_ref);
     }
-    state.alpha_test.func = MaxwellToGL::ComparisonOp(regs.alpha_test_func);
-    state.alpha_test.ref = regs.alpha_test_ref;
 }
 
 } // namespace OpenGL
