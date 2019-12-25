@@ -1025,7 +1025,7 @@ void RasterizerOpenGL::SyncCullMode() {
         state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
     }
 
-    state.cull.front_face = MaxwellToGL::FrontFace(regs.cull.front_face);
+    glFrontFace(MaxwellToGL::FrontFace(regs.cull.front_face));
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {

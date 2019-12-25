@@ -170,10 +170,6 @@ void OpenGLState::ApplyCulling() {
     if (UpdateValue(cur_state.cull.mode, cull.mode)) {
         glCullFace(cull.mode);
     }
-
-    if (UpdateValue(cur_state.cull.front_face, cull.front_face)) {
-        glFrontFace(cull.front_face);
-    }
 }
 
 void OpenGLState::ApplyRasterizerDiscard() {

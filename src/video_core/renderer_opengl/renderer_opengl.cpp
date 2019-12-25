@@ -571,6 +571,10 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     state.textures[0] = screen_info.display_texture;
     state.framebuffer_srgb.enabled = screen_info.display_srgb;
     state.Apply();
+
+    // TODO: Signal state tracker about these changes
+    glFrontFace(GL_CW);
+
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     // Restore default state
