@@ -1238,79 +1238,6 @@ public:
 
     State state{};
 
-    struct DirtyRegs {
-        static constexpr std::size_t NUM_REGS = 256;
-        static_assert(NUM_REGS - 1 <= std::numeric_limits<u8>::max());
-
-        union {
-            struct {
-                bool null_dirty;
-
-                // Vertex Attributes
-                bool vertex_attrib_format;
-
-                // Vertex Arrays
-                std::array<bool, 32> vertex_array;
-
-                bool vertex_array_buffers;
-
-                // Vertex Instances
-                std::array<bool, 32> vertex_instance;
-
-                bool vertex_instances;
-
-                // Render Targets
-                std::array<bool, 8> render_target;
-                bool depth_buffer;
-
-                bool render_settings;
-
-                // Shaders
-                bool shaders;
-
-                // Rasterizer State
-                bool viewport;
-                bool clip_coefficient;
-                bool cull_mode;
-                bool primitive_restart;
-                bool depth_test;
-                bool stencil_test;
-                bool blend_state;
-                bool scissor_test;
-                bool transform_feedback;
-                bool color_mask;
-                bool polygon_offset;
-                bool depth_bounds_values;
-
-                // Complementary
-                bool viewport_transform;
-                bool screen_y_control;
-
-                bool memory_general;
-            };
-            std::array<bool, NUM_REGS> regs;
-        };
-
-        void ResetVertexArrays() {
-            vertex_array.fill(true);
-            vertex_array_buffers = true;
-        }
-
-        void ResetRenderTargets() {
-            depth_buffer = true;
-            render_target.fill(true);
-            render_settings = true;
-        }
-
-        void OnMemoryWrite() {
-            shaders = true;
-            memory_general = true;
-            ResetRenderTargets();
-            ResetVertexArrays();
-        }
-
-    } dirty{};
-
     /// Reads a register value located at the input method address
     u32 GetRegisterValue(u32 method) const;
 
@@ -1416,8 +1343,6 @@ private:
 
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
-
-    void InitDirtySettings();
 
     /**
      * Call a macro on this engine.

@@ -38,9 +38,6 @@ void KeplerCompute::CallMethod(const GPU::MethodCall& method_call) {
     case KEPLER_COMPUTE_REG_INDEX(data_upload): {
         const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(method_call.argument, is_last_call);
-        if (is_last_call) {
-            system.GPU().Maxwell3D().dirty.OnMemoryWrite();
-        }
         break;
     }
     case KEPLER_COMPUTE_REG_INDEX(launch):

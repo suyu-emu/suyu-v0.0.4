@@ -117,11 +117,6 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
-    if (!gpu.dirty.vertex_attrib_format) {
-        return state.draw.vertex_array;
-    }
-    gpu.dirty.vertex_attrib_format = false;
-
     MICROPROFILE_SCOPE(OpenGL_VAO);
 
     auto [iter, is_cache_miss] = vertex_array_cache.try_emplace(regs.vertex_attrib_format);
@@ -173,30 +168,18 @@ GLuint RasterizerOpenGL::SetupVertexFormat() {
         }
     }
 
-    // Rebinding the VAO invalidates the vertex buffer bindings.
-    gpu.dirty.ResetVertexArrays();
-
     state.draw.vertex_array = vao_entry.handle;
     return vao_entry.handle;
 }
 
 void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
     auto& gpu = system.GPU().Maxwell3D();
-    if (!gpu.dirty.vertex_array_buffers)
-        return;
-    gpu.dirty.vertex_array_buffers = false;
-
     const auto& regs = gpu.regs;
 
     MICROPROFILE_SCOPE(OpenGL_VB);
 
     // Upload all guest vertex arrays sequentially to our buffer
     for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        if (!gpu.dirty.vertex_array[index])
-            continue;
-        gpu.dirty.vertex_array[index] = false;
-        gpu.dirty.vertex_instance[index] = false;
-
         const auto& vertex_array = regs.vertex_array[index];
         if (!vertex_array.IsEnabled())
             continue;
@@ -224,19 +207,10 @@ void RasterizerOpenGL::SetupVertexBuffer(GLuint vao) {
 
 void RasterizerOpenGL::SetupVertexInstances(GLuint vao) {
     auto& gpu = system.GPU().Maxwell3D();
-
-    if (!gpu.dirty.vertex_instances)
-        return;
-    gpu.dirty.vertex_instances = false;
-
     const auto& regs = gpu.regs;
+
     // Upload all guest vertex arrays sequentially to our buffer
-    for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        if (!gpu.dirty.vertex_instance[index])
-            continue;
-
-        gpu.dirty.vertex_instance[index] = false;
-
+    for (u32 index = 0; index < 16; ++index) {
         if (regs.instanced_arrays.IsInstancingEnabled(index) &&
             regs.vertex_array[index].divisor != 0) {
             // Enable vertex buffer instancing with the specified divisor.
@@ -334,8 +308,6 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     }
 
     SyncClipEnabled(clip_distances);
-
-    gpu.dirty.shaders = false;
 }
 
 std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
@@ -371,10 +343,6 @@ void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
 void RasterizerOpenGL::ConfigureFramebuffers() {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     auto& gpu = system.GPU().Maxwell3D();
-    if (!gpu.dirty.render_settings) {
-        return;
-    }
-    gpu.dirty.render_settings = false;
 
     texture_cache.GuardRenderTargets(true);
 
@@ -453,7 +421,6 @@ void RasterizerOpenGL::Clear() {
 
     OpenGLState prev_state{OpenGLState::GetCurState()};
     SCOPE_EXIT({
-        prev_state.AllDirty();
         prev_state.Apply();
     });
 
@@ -528,7 +495,6 @@ void RasterizerOpenGL::Clear() {
         clear_state.EmulateViewportWithScissor();
     }
 
-    clear_state.AllDirty();
     clear_state.Apply();
 
     if (use_color) {
@@ -630,12 +596,6 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     vertex_array_pushbuffer.Bind();
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
-
-    if (invalidate) {
-        // As all cached buffers are invalidated, we need to recheck their state.
-        gpu.dirty.ResetVertexArrays();
-    }
-    gpu.dirty.memory_general = false;
 
     shader_program_manager->ApplyTo(state);
     state.Apply();
@@ -1084,14 +1044,8 @@ void RasterizerOpenGL::SyncDepthTestState() {
 
 void RasterizerOpenGL::SyncStencilTestState() {
     auto& maxwell3d = system.GPU().Maxwell3D();
-    if (!maxwell3d.dirty.stencil_test) {
-        return;
-    }
-    maxwell3d.dirty.stencil_test = false;
-
     const auto& regs = maxwell3d.regs;
     state.stencil.test_enabled = regs.stencil_enable != 0;
-    state.MarkDirtyStencilState();
 
     if (!regs.stencil_enable) {
         return;
@@ -1130,9 +1084,6 @@ void RasterizerOpenGL::SyncRasterizeEnable(OpenGLState& current_state) {
 
 void RasterizerOpenGL::SyncColorMask() {
     auto& maxwell3d = system.GPU().Maxwell3D();
-    if (!maxwell3d.dirty.color_mask) {
-        return;
-    }
     const auto& regs = maxwell3d.regs;
 
     const std::size_t count =
@@ -1145,9 +1096,6 @@ void RasterizerOpenGL::SyncColorMask() {
         dest.blue_enabled = (source.B == 0) ? GL_FALSE : GL_TRUE;
         dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
     }
-
-    state.MarkDirtyColorMask();
-    maxwell3d.dirty.color_mask = false;
 }
 
 void RasterizerOpenGL::SyncMultiSampleState() {
@@ -1163,9 +1111,6 @@ void RasterizerOpenGL::SyncFragmentColorClampState() {
 
 void RasterizerOpenGL::SyncBlendState() {
     auto& maxwell3d = system.GPU().Maxwell3D();
-    if (!maxwell3d.dirty.blend_state) {
-        return;
-    }
     const auto& regs = maxwell3d.regs;
 
     state.blend_color.red = regs.blend_color.r;
@@ -1189,8 +1134,6 @@ void RasterizerOpenGL::SyncBlendState() {
         for (std::size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             state.blend[i].enabled = false;
         }
-        maxwell3d.dirty.blend_state = false;
-        state.MarkDirtyBlendState();
         return;
     }
 
@@ -1207,9 +1150,6 @@ void RasterizerOpenGL::SyncBlendState() {
         blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
         blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
     }
-
-    state.MarkDirtyBlendState();
-    maxwell3d.dirty.blend_state = false;
 }
 
 void RasterizerOpenGL::SyncLogicOpState() {
@@ -1264,9 +1204,6 @@ void RasterizerOpenGL::SyncPointState() {
 
 void RasterizerOpenGL::SyncPolygonOffset() {
     auto& maxwell3d = system.GPU().Maxwell3D();
-    if (!maxwell3d.dirty.polygon_offset) {
-        return;
-    }
     const auto& regs = maxwell3d.regs;
 
     state.polygon_offset.fill_enable = regs.polygon_offset_fill_enable != 0;
@@ -1277,9 +1214,6 @@ void RasterizerOpenGL::SyncPolygonOffset() {
     state.polygon_offset.units = regs.polygon_offset_units / 2.0f;
     state.polygon_offset.factor = regs.polygon_offset_factor;
     state.polygon_offset.clamp = regs.polygon_offset_clamp;
-
-    state.MarkDirtyPolygonOffset();
-    maxwell3d.dirty.polygon_offset = false;
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {

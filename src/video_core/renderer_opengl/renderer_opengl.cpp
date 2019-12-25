@@ -311,11 +311,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         return;
     }
 
-    // Maintain the rasterizer's state as a priority
-    OpenGLState prev_state = OpenGLState::GetCurState();
-    state.AllDirty();
-    state.Apply();
-
     PrepareRendertarget(framebuffer);
     RenderScreenshot();
 
@@ -368,10 +363,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         m_current_frame++;
         rasterizer->TickFrame();
     }
-
-    // Restore the rasterizer state
-    prev_state.AllDirty();
-    prev_state.Apply();
 }
 
 void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer) {
@@ -445,7 +436,6 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Link shaders and get variable locations
     shader.CreateFromSource(vertex_shader, nullptr, fragment_shader);
     state.draw.shader_program = shader.handle;
-    state.AllDirty();
     state.Apply();
 
     // Generate VBO handle for drawing
@@ -580,14 +570,12 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
 
     state.textures[0] = screen_info.display_texture;
     state.framebuffer_srgb.enabled = screen_info.display_srgb;
-    state.AllDirty();
     state.Apply();
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     // Restore default state
     state.framebuffer_srgb.enabled = false;
     state.textures[0] = 0;
-    state.AllDirty();
     state.Apply();
 }
 
@@ -658,7 +646,6 @@ void RendererOpenGL::RenderScreenshot() {
     GLuint old_read_fb = state.draw.read_framebuffer;
     GLuint old_draw_fb = state.draw.draw_framebuffer;
     state.draw.read_framebuffer = state.draw.draw_framebuffer = screenshot_framebuffer.handle;
-    state.AllDirty();
     state.Apply();
 
     Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
@@ -678,7 +665,6 @@ void RendererOpenGL::RenderScreenshot() {
     screenshot_framebuffer.Release();
     state.draw.read_framebuffer = old_read_fb;
     state.draw.draw_framebuffer = old_draw_fb;
-    state.AllDirty();
     state.Apply();
     glDeleteRenderbuffers(1, &renderbuffer);
 

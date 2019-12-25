@@ -189,11 +189,6 @@ void OpenGLState::ApplyRasterizerDiscard() {
 }
 
 void OpenGLState::ApplyColorMask() {
-    if (!dirty.color_mask) {
-        return;
-    }
-    dirty.color_mask = false;
-
     for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
         const auto& updated = color_mask[i];
         auto& current = cur_state.color_mask[i];
@@ -232,11 +227,6 @@ void OpenGLState::ApplyPrimitiveRestart() {
 }
 
 void OpenGLState::ApplyStencilTest() {
-    if (!dirty.stencil_state) {
-        return;
-    }
-    dirty.stencil_state = false;
-
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
     const auto ConfigStencil = [](GLenum face, const auto& config, auto& current) {
@@ -351,11 +341,6 @@ void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) {
 }
 
 void OpenGLState::ApplyBlending() {
-    if (!dirty.blend_state) {
-        return;
-    }
-    dirty.blend_state = false;
-
     if (independant_blend.enabled) {
         const bool force = independant_blend.enabled != cur_state.independant_blend.enabled;
         for (std::size_t target = 0; target < Maxwell::NumRenderTargets; ++target) {
@@ -383,11 +368,6 @@ void OpenGLState::ApplyLogicOp() {
 }
 
 void OpenGLState::ApplyPolygonOffset() {
-    if (!dirty.polygon_offset) {
-        return;
-    }
-    dirty.polygon_offset = false;
-
     Enable(GL_POLYGON_OFFSET_FILL, cur_state.polygon_offset.fill_enable,
            polygon_offset.fill_enable);
     Enable(GL_POLYGON_OFFSET_LINE, cur_state.polygon_offset.line_enable,

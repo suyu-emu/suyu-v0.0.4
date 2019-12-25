@@ -212,39 +212,8 @@ public:
     /// Viewport does not affects glClearBuffer so emulate viewport using scissor test
     void EmulateViewportWithScissor();
 
-    void MarkDirtyBlendState() {
-        dirty.blend_state = true;
-    }
-
-    void MarkDirtyStencilState() {
-        dirty.stencil_state = true;
-    }
-
-    void MarkDirtyPolygonOffset() {
-        dirty.polygon_offset = true;
-    }
-
-    void MarkDirtyColorMask() {
-        dirty.color_mask = true;
-    }
-
-    void AllDirty() {
-        dirty.blend_state = true;
-        dirty.stencil_state = true;
-        dirty.polygon_offset = true;
-        dirty.color_mask = true;
-    }
-
 private:
     static OpenGLState cur_state;
-
-    struct {
-        bool blend_state;
-        bool stencil_state;
-        bool viewport_state;
-        bool polygon_offset;
-        bool color_mask;
-    } dirty{};
 };
 static_assert(std::is_trivially_copyable_v<OpenGLState>);
 

@@ -21,9 +21,6 @@ MICROPROFILE_DEFINE(DispatchCalls, "GPU", "Execute command buffer", MP_RGB(128, 
 void DmaPusher::DispatchCalls() {
     MICROPROFILE_SCOPE(DispatchCalls);
 
-    // On entering GPU code, assume all memory may be touched by the ARM core.
-    gpu.Maxwell3D().dirty.OnMemoryWrite();
-
     dma_pushbuffer_subindex = 0;
 
     while (Core::System::GetInstance().IsPoweredOn()) {

@@ -623,10 +623,6 @@ bool ShaderCacheOpenGL::GenerateUnspecializedShaders(
 }
 
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
-    if (!system.GPU().Maxwell3D().dirty.shaders) {
-        return last_shaders[static_cast<std::size_t>(program)];
-    }
-
     auto& memory_manager{system.GPU().MemoryManager()};
     const GPUVAddr address{GetShaderAddress(system, program)};
 

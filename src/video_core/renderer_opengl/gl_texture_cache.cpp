@@ -522,7 +522,6 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
 
     OpenGLState prev_state{OpenGLState::GetCurState()};
     SCOPE_EXIT({
-        prev_state.AllDirty();
         prev_state.Apply();
     });
 
@@ -530,7 +529,6 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     state.draw.read_framebuffer = src_framebuffer.handle;
     state.draw.draw_framebuffer = dst_framebuffer.handle;
     state.framebuffer_srgb.enabled = dst_params.srgb_conversion;
-    state.AllDirty();
     state.Apply();
 
     u32 buffers{};
