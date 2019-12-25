@@ -428,9 +428,7 @@ void RasterizerOpenGL::Clear() {
     bool use_stencil{};
 
     OpenGLState prev_state{OpenGLState::GetCurState()};
-    SCOPE_EXIT({
-        prev_state.Apply();
-    });
+    SCOPE_EXIT({ prev_state.Apply(); });
 
     OpenGLState clear_state{OpenGLState::GetCurState()};
     clear_state.SetDefaultViewports();
@@ -1205,9 +1203,9 @@ void RasterizerOpenGL::SyncPointState() {
     const auto& regs = system.GPU().Maxwell3D().regs;
     // Limit the point size to 1 since nouveau sometimes sets a point size of 0 (and that's invalid
     // in OpenGL).
-    state.point.program_control = regs.vp_point_size.enable != 0;
-    state.point.sprite = regs.point_sprite_enable != 0;
-    state.point.size = std::max(1.0f, regs.point_size);
+    oglEnable(GL_PROGRAM_POINT_SIZE, regs.vp_point_size.enable);
+    oglEnable(GL_POINT_SPRITE, regs.point_sprite_enable);
+    glPointSize(std::max(1.0f, regs.point_size));
 }
 
 void RasterizerOpenGL::SyncPolygonOffset() {

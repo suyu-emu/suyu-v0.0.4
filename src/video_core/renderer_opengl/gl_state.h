@@ -131,12 +131,6 @@ public:
     std::array<Viewport, Tegra::Engines::Maxwell3D::Regs::NumViewports> viewports;
 
     struct {
-        bool program_control = false; // GL_PROGRAM_POINT_SIZE
-        bool sprite = false;          // GL_POINT_SPRITE
-        GLfloat size = 1.0f;          // GL_POINT_SIZE
-    } point;
-
-    struct {
         bool point_enable = false;
         bool line_enable = false;
         bool fill_enable = false;
@@ -176,7 +170,6 @@ public:
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
     void ApplyClipDistances();
-    void ApplyPointSize();
     void ApplyFragmentColorClamp();
     void ApplyMultisample();
     void ApplySRgb();
