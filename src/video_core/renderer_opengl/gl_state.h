@@ -81,11 +81,6 @@ public:
         bool enabled = false;
     } independant_blend;
 
-    struct {
-        bool enabled = false; // GL_LOGIC_OP_MODE
-        GLenum operation = GL_COPY;
-    } logic_op;
-
     static constexpr std::size_t NumSamplers = 32 * 5;
     static constexpr std::size_t NumImages = 8 * 5;
     std::array<GLuint, NumSamplers> textures = {};
@@ -154,7 +149,6 @@ public:
     void ApplyTargetBlending(std::size_t target, bool force);
     void ApplyGlobalBlending();
     void ApplyBlending();
-    void ApplyLogicOp();
     void ApplyTextures();
     void ApplySamplers();
     void ApplyImages();

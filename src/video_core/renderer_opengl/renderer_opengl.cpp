@@ -574,6 +574,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
 
     // TODO: Signal state tracker about these changes
     glEnable(GL_CULL_FACE);
+    glDisable(GL_COLOR_LOGIC_OP);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);
     glCullFace(GL_BACK);

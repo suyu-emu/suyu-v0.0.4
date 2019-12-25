@@ -1156,15 +1156,10 @@ void RasterizerOpenGL::SyncBlendState() {
 void RasterizerOpenGL::SyncLogicOpState() {
     const auto& regs = system.GPU().Maxwell3D().regs;
 
-    state.logic_op.enabled = regs.logic_op.enable != 0;
-
-    if (!state.logic_op.enabled)
-        return;
-
-    ASSERT_MSG(regs.blend.enable[0] == 0,
-               "Blending and logic op can't be enabled at the same time.");
-
-    state.logic_op.operation = MaxwellToGL::LogicOp(regs.logic_op.operation);
+    oglEnable(GL_COLOR_LOGIC_OP, regs.logic_op.enable);
+    if (regs.logic_op.enable) {
+        glLogicOp(MaxwellToGL::LogicOp(regs.logic_op.operation));
+    }
 }
 
 void RasterizerOpenGL::SyncScissorTest(OpenGLState& current_state) {

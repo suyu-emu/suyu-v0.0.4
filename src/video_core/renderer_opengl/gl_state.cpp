@@ -332,14 +332,6 @@ void OpenGLState::ApplyBlending() {
     cur_state.independant_blend.enabled = independant_blend.enabled;
 }
 
-void OpenGLState::ApplyLogicOp() {
-    Enable(GL_COLOR_LOGIC_OP, cur_state.logic_op.enabled, logic_op.enabled);
-
-    if (UpdateValue(cur_state.logic_op.operation, logic_op.operation)) {
-        glLogicOp(logic_op.operation);
-    }
-}
-
 void OpenGLState::ApplyClipControl() {
     if (UpdateTie(std::tie(cur_state.clip_control.origin, cur_state.clip_control.depth_mode),
                   std::tie(clip_control.origin, clip_control.depth_mode))) {
@@ -400,7 +392,6 @@ void OpenGLState::Apply() {
     ApplyDepth();
     ApplyPrimitiveRestart();
     ApplyBlending();
-    ApplyLogicOp();
     ApplyTextures();
     ApplySamplers();
     ApplyImages();
