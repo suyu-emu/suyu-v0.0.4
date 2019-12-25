@@ -159,6 +159,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_buffer_cache.h
         renderer_vulkan/vk_device.cpp
         renderer_vulkan/vk_device.h
+        renderer_vulkan/vk_image.cpp
+        renderer_vulkan/vk_image.h
         renderer_vulkan/vk_memory_manager.cpp
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_resource_manager.cpp
