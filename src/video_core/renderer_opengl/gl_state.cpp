@@ -330,13 +330,6 @@ void OpenGLState::ApplyBlending() {
         ApplyGlobalBlending();
     }
     cur_state.independant_blend.enabled = independant_blend.enabled;
-
-    if (UpdateTie(
-            std::tie(cur_state.blend_color.red, cur_state.blend_color.green,
-                     cur_state.blend_color.blue, cur_state.blend_color.alpha),
-            std::tie(blend_color.red, blend_color.green, blend_color.blue, blend_color.alpha))) {
-        glBlendColor(blend_color.red, blend_color.green, blend_color.blue, blend_color.alpha);
-    }
 }
 
 void OpenGLState::ApplyLogicOp() {

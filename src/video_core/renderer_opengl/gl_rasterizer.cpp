@@ -1117,10 +1117,7 @@ void RasterizerOpenGL::SyncBlendState() {
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
 
-    state.blend_color.red = regs.blend_color.r;
-    state.blend_color.green = regs.blend_color.g;
-    state.blend_color.blue = regs.blend_color.b;
-    state.blend_color.alpha = regs.blend_color.a;
+    glBlendColor(regs.blend_color.r, regs.blend_color.g, regs.blend_color.b, regs.blend_color.a);
 
     state.independant_blend.enabled = regs.independent_blend_enable;
     if (!state.independant_blend.enabled) {

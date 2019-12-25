@@ -82,13 +82,6 @@ public:
     } independant_blend;
 
     struct {
-        GLclampf red = 0.0f;
-        GLclampf green = 0.0f;
-        GLclampf blue = 0.0f;
-        GLclampf alpha = 0.0f;
-    } blend_color; // GL_BLEND_COLOR
-
-    struct {
         bool enabled = false; // GL_LOGIC_OP_MODE
         GLenum operation = GL_COPY;
     } logic_op;
