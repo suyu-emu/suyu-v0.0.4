@@ -1020,10 +1020,8 @@ void RasterizerOpenGL::SyncClipCoef() {
 void RasterizerOpenGL::SyncCullMode() {
     const auto& regs = system.GPU().Maxwell3D().regs;
 
-    state.cull.enabled = regs.cull.enabled != 0;
-    if (state.cull.enabled) {
-        state.cull.mode = MaxwellToGL::CullFace(regs.cull.cull_face);
-    }
+    oglEnable(GL_CULL_FACE, regs.cull.enabled);
+    glCullFace(MaxwellToGL::CullFace(regs.cull.cull_face));
 
     glFrontFace(MaxwellToGL::FrontFace(regs.cull.front_face));
 }

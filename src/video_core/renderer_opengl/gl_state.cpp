@@ -164,14 +164,6 @@ void OpenGLState::ApplySRgb() {
     }
 }
 
-void OpenGLState::ApplyCulling() {
-    Enable(GL_CULL_FACE, cur_state.cull.enabled, cull.enabled);
-
-    if (UpdateValue(cur_state.cull.mode, cull.mode)) {
-        glCullFace(cull.mode);
-    }
-}
-
 void OpenGLState::ApplyRasterizerDiscard() {
     Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
 }
@@ -441,7 +433,6 @@ void OpenGLState::Apply() {
     ApplyViewport();
     ApplyStencilTest();
     ApplySRgb();
-    ApplyCulling();
     ApplyDepth();
     ApplyPrimitiveRestart();
     ApplyBlending();

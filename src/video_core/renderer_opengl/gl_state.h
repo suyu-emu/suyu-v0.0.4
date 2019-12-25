@@ -32,11 +32,6 @@ public:
     } depth_clamp; // GL_DEPTH_CLAMP
 
     struct {
-        bool enabled = false;       // GL_CULL_FACE
-        GLenum mode = GL_BACK;      // GL_CULL_FACE_MODE
-    } cull;
-
-    struct {
         bool test_enabled = false;      // GL_DEPTH_TEST
         GLboolean write_mask = GL_TRUE; // GL_DEPTH_WRITEMASK
         GLenum test_func = GL_LESS;     // GL_DEPTH_FUNC
@@ -172,7 +167,6 @@ public:
     void ApplyFragmentColorClamp();
     void ApplyMultisample();
     void ApplySRgb();
-    void ApplyCulling();
     void ApplyRasterizerDiscard();
     void ApplyColorMask();
     void ApplyDepth();

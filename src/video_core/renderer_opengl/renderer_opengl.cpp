@@ -573,6 +573,8 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     state.Apply();
 
     // TODO: Signal state tracker about these changes
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
     glFrontFace(GL_CW);
 
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
