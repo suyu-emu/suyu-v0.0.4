@@ -48,6 +48,8 @@ public:
         GLuint index = 0;
     } primitive_restart; // GL_PRIMITIVE_RESTART
 
+    bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
+
     struct ColorMask {
         GLboolean red_enabled = GL_TRUE;
         GLboolean green_enabled = GL_TRUE;
@@ -56,6 +58,7 @@ public:
     };
     std::array<ColorMask, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets>
         color_mask; // GL_COLOR_WRITEMASK
+
     struct {
         bool test_enabled = false; // GL_STENCIL_TEST
         struct {
@@ -174,6 +177,7 @@ public:
     void ApplyMultisample();
     void ApplySRgb();
     void ApplyCulling();
+    void ApplyRasterizerDiscard();
     void ApplyColorMask();
     void ApplyDepth();
     void ApplyPrimitiveRestart();

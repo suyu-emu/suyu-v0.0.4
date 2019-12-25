@@ -88,11 +88,11 @@ void Maxwell3D::InitializeRegisterDefaults() {
         color_mask.A.Assign(1);
     }
 
-    // Commercial games seem to assume this value is enabled and nouveau sets this value manually.
+    // NVN games expect these values to be enabled at boot
+    regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
-
-    // Some games (like Super Mario Odyssey) assume that SRGB is enabled.
     regs.framebuffer_srgb = 1;
+
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_end_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(vertex_buffer.count)] = true;

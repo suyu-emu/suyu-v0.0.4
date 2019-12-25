@@ -657,7 +657,11 @@ public:
                 std::array<f32, 4> tess_level_outer;
                 std::array<f32, 2> tess_level_inner;
 
-                INSERT_UNION_PADDING_WORDS(0x102);
+                INSERT_UNION_PADDING_WORDS(0x10);
+
+                u32 rasterize_enable;
+
+                INSERT_UNION_PADDING_WORDS(0xF1);
 
                 u32 tfb_enabled;
 
@@ -1420,6 +1424,7 @@ ASSERT_REG_POSITION(sync_info, 0xB2);
 ASSERT_REG_POSITION(tess_mode, 0xC8);
 ASSERT_REG_POSITION(tess_level_outer, 0xC9);
 ASSERT_REG_POSITION(tess_level_inner, 0xCD);
+ASSERT_REG_POSITION(rasterize_enable, 0xDF);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
