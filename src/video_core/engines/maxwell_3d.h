@@ -711,13 +711,15 @@ public:
 
                 u32 color_mask_common;
 
-                INSERT_UNION_PADDING_WORDS(0x6);
-
-                u32 rt_separate_frag_data;
+                INSERT_UNION_PADDING_WORDS(0x2);
 
                 f32 depth_bounds[2];
 
-                INSERT_UNION_PADDING_WORDS(0xA);
+                INSERT_UNION_PADDING_WORDS(0x2);
+
+                u32 rt_separate_frag_data;
+
+                INSERT_UNION_PADDING_WORDS(0xC);
 
                 struct {
                     u32 address_high;
@@ -1034,7 +1036,12 @@ public:
                     BitField<4, 1, u32> depth_clamp_far;
                 } view_volume_clip_control;
 
-                INSERT_UNION_PADDING_WORDS(0x21);
+                INSERT_UNION_PADDING_WORDS(0x1F);
+
+                u32 depth_bounds_enable;
+
+                INSERT_UNION_PADDING_WORDS(1);
+
                 struct {
                     u32 enable;
                     LogicOperation operation;
@@ -1444,7 +1451,7 @@ ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D6);
 ASSERT_REG_POSITION(stencil_back_mask, 0x3D7);
 ASSERT_REG_POSITION(color_mask_common, 0x3E4);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
-ASSERT_REG_POSITION(depth_bounds, 0x3EC);
+ASSERT_REG_POSITION(depth_bounds, 0x3E7);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(clear_flags, 0x43E);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
@@ -1500,6 +1507,7 @@ ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(pixel_center_integer, 0x649);
 ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
 ASSERT_REG_POSITION(view_volume_clip_control, 0x64F);
+ASSERT_REG_POSITION(depth_bounds_enable, 0x66F);
 ASSERT_REG_POSITION(logic_op, 0x671);
 ASSERT_REG_POSITION(clear_buffers, 0x674);
 ASSERT_REG_POSITION(color_mask, 0x680);
