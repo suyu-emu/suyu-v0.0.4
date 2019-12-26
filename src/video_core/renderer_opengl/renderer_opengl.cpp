@@ -441,22 +441,8 @@ void RendererOpenGL::InitOpenGLObjects() {
     // Generate VBO handle for drawing
     vertex_buffer.Create();
 
-    // Generate VAO
-    vertex_array.Create();
-    state.draw.vertex_array = vertex_array.handle;
-
     // Attach vertex data to VAO
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
-    glVertexArrayAttribFormat(vertex_array.handle, PositionLocation, 2, GL_FLOAT, GL_FALSE,
-                              offsetof(ScreenRectVertex, position));
-    glVertexArrayAttribFormat(vertex_array.handle, TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
-                              offsetof(ScreenRectVertex, tex_coord));
-    glVertexArrayAttribBinding(vertex_array.handle, PositionLocation, 0);
-    glVertexArrayAttribBinding(vertex_array.handle, TexCoordLocation, 0);
-    glEnableVertexArrayAttrib(vertex_array.handle, PositionLocation);
-    glEnableVertexArrayAttrib(vertex_array.handle, TexCoordLocation);
-    glVertexArrayVertexBuffer(vertex_array.handle, 0, vertex_buffer.handle, 0,
-                              sizeof(ScreenRectVertex));
 
     // Allocate textures for the screen
     screen_info.texture.resource.Create(GL_TEXTURE_2D);
@@ -580,6 +566,14 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     glDisable(GL_POLYGON_OFFSET_FILL);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
+
+    glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
+                         offsetof(ScreenRectVertex, position));
+    glVertexAttribFormat(TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
+                         offsetof(ScreenRectVertex, tex_coord));
+    glVertexAttribBinding(PositionLocation, 0);
+    glVertexAttribBinding(TexCoordLocation, 0);
+    glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
 
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);

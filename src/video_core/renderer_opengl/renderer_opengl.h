@@ -96,7 +96,6 @@ private:
     OpenGLState state;
 
     // OpenGL object IDs
-    OGLVertexArray vertex_array;
     OGLBuffer vertex_buffer;
     OGLProgram shader;
     OGLFramebuffer screenshot_framebuffer;

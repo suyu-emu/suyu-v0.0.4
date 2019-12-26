@@ -24,8 +24,7 @@ VertexArrayPushBuffer::VertexArrayPushBuffer() = default;
 
 VertexArrayPushBuffer::~VertexArrayPushBuffer() = default;
 
-void VertexArrayPushBuffer::Setup(GLuint vao_) {
-    vao = vao_;
+void VertexArrayPushBuffer::Setup() {
     index_buffer = nullptr;
     vertex_buffers.clear();
 }
@@ -41,13 +40,12 @@ void VertexArrayPushBuffer::SetVertexBuffer(GLuint binding_index, const GLuint* 
 
 void VertexArrayPushBuffer::Bind() {
     if (index_buffer) {
-        glVertexArrayElementBuffer(vao, *index_buffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *index_buffer);
     }
 
     // TODO(Rodrigo): Find a way to ARB_multi_bind this
     for (const auto& entry : vertex_buffers) {
-        glVertexArrayVertexBuffer(vao, entry.binding_index, *entry.buffer, entry.offset,
-                                  entry.stride);
+        glBindVertexBuffer(entry.binding_index, *entry.buffer, entry.offset, entry.stride);
     }
 }
 

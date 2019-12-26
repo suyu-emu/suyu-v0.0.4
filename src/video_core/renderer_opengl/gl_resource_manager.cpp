@@ -189,24 +189,6 @@ void OGLSync::Release() {
     handle = 0;
 }
 
-void OGLVertexArray::Create() {
-    if (handle != 0)
-        return;
-
-    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
-    glCreateVertexArrays(1, &handle);
-}
-
-void OGLVertexArray::Release() {
-    if (handle == 0)
-        return;
-
-    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
-    glDeleteVertexArrays(1, &handle);
-    OpenGLState::GetCurState().ResetVertexArray(handle).Apply();
-    handle = 0;
-}
-
 void OGLFramebuffer::Create() {
     if (handle != 0)
         return;
