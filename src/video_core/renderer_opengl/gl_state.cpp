@@ -113,18 +113,11 @@ void OpenGLState::ApplyRenderBuffer() {
     }
 }
 
-void OpenGLState::ApplyImages() {
-    if (const auto update = UpdateArray(cur_state.images, images)) {
-        glBindImageTextures(update->first, update->second, images.data() + update->first);
-    }
-}
-
 void OpenGLState::Apply() {
     MICROPROFILE_SCOPE(OpenGL_State);
     ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyImages();
     ApplyRenderBuffer();
 }
 

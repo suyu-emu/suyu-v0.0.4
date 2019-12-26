@@ -96,6 +96,10 @@ public:
         return texture_view.handle;
     }
 
+    GLenum GetFormat() const {
+        return format;
+    }
+
     const SurfaceParams& GetSurfaceParams() const {
         return surface.GetSurfaceParams();
     }
@@ -113,6 +117,7 @@ private:
 
     CachedSurface& surface;
     GLenum target{};
+    GLenum format{};
 
     OGLTextureView texture_view;
     u32 swizzle{};

@@ -13,9 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    static constexpr std::size_t NumImages = 8 * 5;
-    std::array<GLuint, NumImages> images = {};
-
     struct {
         GLuint read_framebuffer = 0; // GL_READ_FRAMEBUFFER_BINDING
         GLuint draw_framebuffer = 0; // GL_DRAW_FRAMEBUFFER_BINDING
@@ -38,7 +35,6 @@ public:
     void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyImages();
     void ApplyRenderBuffer();
 
     /// Resets any references to the given resource

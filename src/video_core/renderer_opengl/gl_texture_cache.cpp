@@ -397,6 +397,7 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
                                      const bool is_proxy)
     : VideoCommon::ViewBase(params), surface{surface}, is_proxy{is_proxy} {
     target = GetTextureTarget(params.target);
+    format = GetFormatTuple(surface.GetSurfaceParams().pixel_format).internal_format;
     if (!is_proxy) {
         texture_view = CreateTextureView();
     }
@@ -467,17 +468,12 @@ void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_sou
 }
 
 OGLTextureView CachedSurfaceView::CreateTextureView() const {
-    const auto& owner_params = surface.GetSurfaceParams();
     OGLTextureView texture_view;
     texture_view.Create();
 
-    const GLuint handle{texture_view.handle};
-    const FormatTuple& tuple{GetFormatTuple(owner_params.pixel_format)};
-
-    glTextureView(handle, target, surface.texture.handle, tuple.internal_format, params.base_level,
+    glTextureView(texture_view.handle, target, surface.texture.handle, format, params.base_level,
                   params.num_levels, params.base_layer, params.num_layers);
-
-    ApplyTextureDefaults(owner_params, handle);
+    ApplyTextureDefaults(surface.GetSurfaceParams(), texture_view.handle);
 
     return texture_view;
 }
@@ -521,9 +517,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     const auto& dst_params{dst_view->GetSurfaceParams()};
 
     OpenGLState prev_state{OpenGLState::GetCurState()};
-    SCOPE_EXIT({
-        prev_state.Apply();
-    });
+    SCOPE_EXIT({ prev_state.Apply(); });
 
     OpenGLState state;
     state.draw.read_framebuffer = src_framebuffer.handle;

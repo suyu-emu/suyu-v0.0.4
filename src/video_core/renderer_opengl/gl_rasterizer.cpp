@@ -633,7 +633,6 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
-    state.ApplyImages();
     state.ApplyShaderProgram();
     state.ApplyProgramPipeline();
 
@@ -899,7 +898,7 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
                                   const GLShader::ImageEntry& entry) {
     const auto view = texture_cache.GetImageSurface(tic, entry);
     if (!view) {
-        state.images[binding] = 0;
+        glBindImageTexture(binding, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8);
         return;
     }
     if (!tic.IsBuffer()) {
@@ -908,7 +907,8 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
     if (entry.IsWritten()) {
         view->MarkAsModified(texture_cache.Tick());
     }
-    state.images[binding] = view->GetTexture();
+    glBindImageTexture(binding, view->GetTexture(), 0, GL_TRUE, 0, GL_READ_WRITE,
+                       view->GetFormat());
 }
 
 void RasterizerOpenGL::SyncViewport() {
