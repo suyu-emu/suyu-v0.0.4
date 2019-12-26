@@ -54,8 +54,6 @@ public:
         GLuint program_pipeline = 0; // GL_PROGRAM_PIPELINE_BINDING
     } draw;
 
-    std::array<bool, 8> clip_distance = {}; // GL_CLIP_DISTANCE
-
     struct {
         GLenum origin = GL_LOWER_LEFT;
         GLenum depth_mode = GL_NEGATIVE_ONE_TO_ONE;
@@ -76,7 +74,6 @@ public:
     void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyClipDistances();
     void ApplyStencilTest();
     void ApplyTargetBlending(std::size_t target, bool force);
     void ApplyGlobalBlending();

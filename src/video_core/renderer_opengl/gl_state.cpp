@@ -106,13 +106,6 @@ void OpenGLState::ApplyProgramPipeline() {
     }
 }
 
-void OpenGLState::ApplyClipDistances() {
-    for (std::size_t i = 0; i < clip_distance.size(); ++i) {
-        Enable(GL_CLIP_DISTANCE0 + static_cast<GLenum>(i), cur_state.clip_distance[i],
-               clip_distance[i]);
-    }
-}
-
 void OpenGLState::ApplyStencilTest() {
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
@@ -249,7 +242,6 @@ void OpenGLState::Apply() {
     ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyClipDistances();
     ApplyStencilTest();
     ApplyBlending();
     ApplyTextures();

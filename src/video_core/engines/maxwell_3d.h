@@ -872,16 +872,7 @@ public:
 
                 INSERT_UNION_PADDING_WORDS(0x35);
 
-                union {
-                    BitField<0, 1, u32> c0;
-                    BitField<1, 1, u32> c1;
-                    BitField<2, 1, u32> c2;
-                    BitField<3, 1, u32> c3;
-                    BitField<4, 1, u32> c4;
-                    BitField<5, 1, u32> c5;
-                    BitField<6, 1, u32> c6;
-                    BitField<7, 1, u32> c7;
-                } clip_distance_enabled;
+                u32 clip_distance_enabled;
 
                 u32 samplecnt_enable;
 

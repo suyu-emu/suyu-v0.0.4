@@ -969,16 +969,10 @@ void RasterizerOpenGL::SyncDepthClamp() {
 
 void RasterizerOpenGL::SyncClipEnabled(
     const std::array<bool, Maxwell::Regs::NumClipDistances>& clip_mask) {
-
     const auto& regs = system.GPU().Maxwell3D().regs;
-    const std::array<bool, Maxwell::Regs::NumClipDistances> reg_state{
-        regs.clip_distance_enabled.c0 != 0, regs.clip_distance_enabled.c1 != 0,
-        regs.clip_distance_enabled.c2 != 0, regs.clip_distance_enabled.c3 != 0,
-        regs.clip_distance_enabled.c4 != 0, regs.clip_distance_enabled.c5 != 0,
-        regs.clip_distance_enabled.c6 != 0, regs.clip_distance_enabled.c7 != 0};
-
     for (std::size_t i = 0; i < Maxwell::Regs::NumClipDistances; ++i) {
-        state.clip_distance[i] = reg_state[i] && clip_mask[i];
+        oglEnable(static_cast<GLenum>(GL_CLIP_DISTANCE0 + i),
+                  clip_mask[i] && ((regs.clip_distance_enabled >> i) & 1));
     }
 }
 
