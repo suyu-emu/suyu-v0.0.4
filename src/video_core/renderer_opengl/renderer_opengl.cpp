@@ -205,8 +205,8 @@ constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
 
 struct ScreenRectVertex {
-    constexpr ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v)
-        : position{{x, y}}, tex_coord{{u, v}} {}
+    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
+        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
 
     std::array<GLfloat, 2> position;
     std::array<GLfloat, 2> tex_coord;
@@ -514,8 +514,18 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
     glTextureStorage2D(texture.resource.handle, 1, internal_format, texture.width, texture.height);
 }
 
-void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w,
-                                         float h) {
+void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
+    if (renderer_settings.set_background_color) {
+        // Update background color before drawing
+        glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
+                     0.0f);
+    }
+
+    // Set projection matrix
+    const std::array ortho_matrix =
+        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
+    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
+
     const auto& texcoords = screen_info.display_texcoords;
     auto left = texcoords.left;
     auto right = texcoords.right;
@@ -547,12 +557,14 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
                   static_cast<f32>(screen_info.texture.height);
     }
 
+    const auto& screen = layout.screen;
     const std::array vertices = {
-        ScreenRectVertex(x, y, texcoords.top * scale_u, left * scale_v),
-        ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left * scale_v),
-        ScreenRectVertex(x, y + h, texcoords.top * scale_u, right * scale_v),
-        ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v),
+        ScreenRectVertex(screen.left, screen.top, texcoords.top * scale_u, left * scale_v),
+        ScreenRectVertex(screen.right, screen.top, texcoords.bottom * scale_u, left * scale_v),
+        ScreenRectVertex(screen.left, screen.bottom, texcoords.top * scale_u, right * scale_v),
+        ScreenRectVertex(screen.right, screen.bottom, texcoords.bottom * scale_u, right * scale_v),
     };
+    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
     state.textures[0] = screen_info.display_texture;
     state.Apply();
@@ -572,6 +584,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glViewport(0, 0, layout.width, layout.height);
 
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
                          offsetof(ScreenRectVertex, position));
@@ -581,34 +594,12 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     glVertexAttribBinding(TexCoordLocation, 0);
     glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
 
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
+    glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     // Restore default state
     state.textures[0] = 0;
     state.Apply();
-}
-
-void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
-    if (renderer_settings.set_background_color) {
-        // Update background color before drawing
-        glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
-                     0.0f);
-    }
-
-    const auto& screen = layout.screen;
-
-    glViewport(0, 0, layout.width, layout.height);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Set projection matrix
-    const std::array ortho_matrix =
-        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
-    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
-
-    DrawScreenTriangles(screen_info, static_cast<float>(screen.left),
-                        static_cast<float>(screen.top), static_cast<float>(screen.GetWidth()),
-                        static_cast<float>(screen.GetHeight()));
 }
 
 void RendererOpenGL::TryPresent(int timeout_ms) {

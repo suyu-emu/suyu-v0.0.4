@@ -130,7 +130,7 @@ private:
                     const GLShader::ImageEntry& entry);
 
     /// Syncs the viewport and depth range to match the guest state
-    void SyncViewport(OpenGLState& current_state);
+    void SyncViewport();
 
     /// Syncs the depth clamp state
     void SyncDepthClamp();

@@ -85,10 +85,6 @@ void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
 
 OpenGLState::OpenGLState() = default;
 
-void OpenGLState::SetDefaultViewports() {
-    viewports.fill(Viewport{});
-}
-
 void OpenGLState::ApplyFramebufferState() {
     if (UpdateValue(cur_state.draw.read_framebuffer, draw.read_framebuffer)) {
         glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
@@ -148,30 +144,6 @@ void OpenGLState::ApplyStencilTest() {
     };
     ConfigStencil(GL_FRONT, stencil.front, cur_state.stencil.front);
     ConfigStencil(GL_BACK, stencil.back, cur_state.stencil.back);
-}
-
-void OpenGLState::ApplyViewport() {
-    for (GLuint i = 0; i < static_cast<GLuint>(Maxwell::NumViewports); ++i) {
-        const auto& updated = viewports[i];
-        auto& current = cur_state.viewports[i];
-
-        if (current.x != updated.x || current.y != updated.y || current.width != updated.width ||
-            current.height != updated.height) {
-            current.x = updated.x;
-            current.y = updated.y;
-            current.width = updated.width;
-            current.height = updated.height;
-            glViewportIndexedf(i, static_cast<GLfloat>(updated.x), static_cast<GLfloat>(updated.y),
-                               static_cast<GLfloat>(updated.width),
-                               static_cast<GLfloat>(updated.height));
-        }
-        if (current.depth_range_near != updated.depth_range_near ||
-            current.depth_range_far != updated.depth_range_far) {
-            current.depth_range_near = updated.depth_range_near;
-            current.depth_range_far = updated.depth_range_far;
-            glDepthRangeIndexed(i, updated.depth_range_near, updated.depth_range_far);
-        }
-    }
 }
 
 void OpenGLState::ApplyGlobalBlending() {
@@ -283,7 +255,6 @@ void OpenGLState::Apply() {
     ApplyProgramPipeline();
     ApplyClipDistances();
     ApplyRasterizerDiscard();
-    ApplyViewport();
     ApplyStencilTest();
     ApplyBlending();
     ApplyTextures();

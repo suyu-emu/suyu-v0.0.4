@@ -574,7 +574,7 @@ public:
             f32 translate_z;
             INSERT_UNION_PADDING_WORDS(2);
 
-            Common::Rectangle<s32> GetRect() const {
+            Common::Rectangle<f32> GetRect() const {
                 return {
                     GetX(),               // left
                     GetY() + GetHeight(), // top
@@ -583,20 +583,20 @@ public:
                 };
             };
 
-            s32 GetX() const {
-                return static_cast<s32>(std::max(0.0f, translate_x - std::fabs(scale_x)));
+            f32 GetX() const {
+                return std::max(0.0f, translate_x - std::fabs(scale_x));
             }
 
-            s32 GetY() const {
-                return static_cast<s32>(std::max(0.0f, translate_y - std::fabs(scale_y)));
+            f32 GetY() const {
+                return std::max(0.0f, translate_y - std::fabs(scale_y));
             }
 
-            s32 GetWidth() const {
-                return static_cast<s32>(translate_x + std::fabs(scale_x)) - GetX();
+            f32 GetWidth() const {
+                return translate_x + std::fabs(scale_x) - GetX();
             }
 
-            s32 GetHeight() const {
-                return static_cast<s32>(translate_y + std::fabs(scale_y)) - GetY();
+            f32 GetHeight() const {
+                return translate_y + std::fabs(scale_y) - GetY();
             }
         };
 

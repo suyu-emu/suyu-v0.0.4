@@ -76,8 +76,6 @@ private:
     /// Draws the emulated screens to the emulator window.
     void DrawScreen(const Layout::FramebufferLayout& layout);
 
-    void DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w, float h);
-
     void RenderScreenshot();
 
     /// Loads framebuffer from emulated memory into the active OpenGL texture.

@@ -360,7 +360,6 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     texture_cache.GuardRenderTargets(false);
 
     state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
-    SyncViewport(state);
 }
 
 void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
@@ -405,7 +404,6 @@ void RasterizerOpenGL::Clear() {
     SCOPE_EXIT({ prev_state.Apply(); });
 
     OpenGLState clear_state{OpenGLState::GetCurState()};
-    clear_state.SetDefaultViewports();
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
         use_color = true;
@@ -464,7 +462,6 @@ void RasterizerOpenGL::Clear() {
 
     ConfigureClearFramebuffer(clear_state, use_color, use_depth, use_stencil);
 
-    SyncViewport(clear_state);
     SyncRasterizeEnable(clear_state);
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
@@ -496,6 +493,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
 
     query_cache.UpdateCounters();
 
+    SyncViewport();
     SyncRasterizeEnable(state);
     SyncColorMask();
     SyncFragmentColorClampState();
@@ -935,22 +933,14 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
     state.images[binding] = view->GetTexture();
 }
 
-void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
+void RasterizerOpenGL::SyncViewport() {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    const bool geometry_shaders_enabled =
-        regs.IsShaderConfigEnabled(static_cast<size_t>(Maxwell::ShaderProgram::Geometry));
-    const std::size_t viewport_count =
-        geometry_shaders_enabled ? Tegra::Engines::Maxwell3D::Regs::NumViewports : 1;
-    for (std::size_t i = 0; i < viewport_count; i++) {
-        auto& viewport = current_state.viewports[i];
+    for (std::size_t i = 0; i < Maxwell::NumViewports; ++i) {
         const auto& src = regs.viewports[i];
-        const Common::Rectangle<s32> viewport_rect{regs.viewport_transform[i].GetRect()};
-        viewport.x = viewport_rect.left;
-        viewport.y = viewport_rect.bottom;
-        viewport.width = viewport_rect.GetWidth();
-        viewport.height = viewport_rect.GetHeight();
-        viewport.depth_range_far = src.depth_range_far;
-        viewport.depth_range_near = src.depth_range_near;
+        const Common::Rectangle<f32> rect{regs.viewport_transform[i].GetRect()};
+        glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom, rect.GetWidth(),
+                           rect.GetHeight());
+        glDepthRangef(src.depth_range_near, src.depth_range_far);
     }
 
     bool flip_y = false;
