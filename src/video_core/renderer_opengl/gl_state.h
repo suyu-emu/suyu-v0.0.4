@@ -14,13 +14,9 @@ namespace OpenGL {
 class OpenGLState {
 public:
     struct {
-        GLuint read_framebuffer = 0; // GL_READ_FRAMEBUFFER_BINDING
-        GLuint draw_framebuffer = 0; // GL_DRAW_FRAMEBUFFER_BINDING
         GLuint shader_program = 0;   // GL_CURRENT_PROGRAM
         GLuint program_pipeline = 0; // GL_PROGRAM_PIPELINE_BINDING
     } draw;
-
-    GLuint renderbuffer{}; // GL_RENDERBUFFER_BINDING
 
     OpenGLState();
 
@@ -32,16 +28,12 @@ public:
     /// Apply this state as the current OpenGL state
     void Apply();
 
-    void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyRenderBuffer();
 
     /// Resets any references to the given resource
     OpenGLState& ResetProgram(GLuint handle);
     OpenGLState& ResetPipeline(GLuint handle);
-    OpenGLState& ResetFramebuffer(GLuint handle);
-    OpenGLState& ResetRenderbuffer(GLuint handle);
 
 private:
     static OpenGLState cur_state;

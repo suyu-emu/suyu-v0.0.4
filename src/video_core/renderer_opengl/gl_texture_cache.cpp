@@ -515,14 +515,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
                                    const Tegra::Engines::Fermi2D::Config& copy_config) {
     const auto& src_params{src_view->GetSurfaceParams()};
     const auto& dst_params{dst_view->GetSurfaceParams()};
-
-    OpenGLState prev_state{OpenGLState::GetCurState()};
-    SCOPE_EXIT({ prev_state.Apply(); });
-
-    OpenGLState state;
-    state.draw.read_framebuffer = src_framebuffer.handle;
-    state.draw.draw_framebuffer = dst_framebuffer.handle;
-    state.Apply();
+    UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
+    UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
     // TODO: Signal state tracker about these changes
     if (dst_params.srgb_conversion) {
@@ -538,11 +532,10 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     glDisablei(GL_BLEND, 0);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
-    u32 buffers{};
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, src_framebuffer.handle);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_framebuffer.handle);
 
-    UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
-    UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
-
+    GLenum buffers = 0;
     if (src_params.type == SurfaceType::ColorTexture) {
         src_view->Attach(GL_COLOR_ATTACHMENT0, GL_READ_FRAMEBUFFER);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,

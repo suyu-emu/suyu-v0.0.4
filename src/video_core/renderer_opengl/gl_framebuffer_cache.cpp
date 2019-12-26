@@ -36,8 +36,7 @@ OGLFramebuffer FramebufferCacheOpenGL::CreateFramebuffer(const FramebufferCacheK
     framebuffer.Create();
 
     // TODO(Rodrigo): Use DSA here after Nvidia fixes their framebuffer DSA bugs.
-    local_state.draw.draw_framebuffer = framebuffer.handle;
-    local_state.ApplyFramebufferState();
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer.handle);
 
     if (key.zeta) {
         const bool stencil = key.zeta->GetSurfaceParams().type == SurfaceType::DepthStencil;

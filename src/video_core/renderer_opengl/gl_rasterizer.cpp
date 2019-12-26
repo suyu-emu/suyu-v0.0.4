@@ -359,7 +359,7 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
 
     texture_cache.GuardRenderTargets(false);
 
-    state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
 }
 
 void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
@@ -384,8 +384,7 @@ void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, boo
     key.colors[0] = color_surface;
     key.zeta = depth_surface;
 
-    current_state.draw.draw_framebuffer = framebuffer_cache.GetFramebuffer(key);
-    current_state.ApplyFramebufferState();
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
 }
 
 void RasterizerOpenGL::Clear() {

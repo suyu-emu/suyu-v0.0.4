@@ -20,7 +20,7 @@ void OGLRenderbuffer::Create() {
         return;
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
-    glGenRenderbuffers(1, &handle);
+    glCreateRenderbuffers(1, &handle);
 }
 
 void OGLRenderbuffer::Release() {
@@ -29,7 +29,6 @@ void OGLRenderbuffer::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteRenderbuffers(1, &handle);
-    OpenGLState::GetCurState().ResetRenderbuffer(handle).Apply();
     handle = 0;
 }
 
@@ -200,7 +199,6 @@ void OGLFramebuffer::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteFramebuffers(1, &handle);
-    OpenGLState::GetCurState().ResetFramebuffer(handle).Apply();
     handle = 0;
 }
 

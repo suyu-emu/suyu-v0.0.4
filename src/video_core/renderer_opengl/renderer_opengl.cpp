@@ -86,28 +86,22 @@ public:
     }
 
     void ReloadRenderFrame(Frame* frame, u32 width, u32 height) {
-        OpenGLState prev_state = OpenGLState::GetCurState();
-        OpenGLState state = OpenGLState::GetCurState();
-
         // Recreate the color texture attachment
         frame->color.Release();
         frame->color.Create();
-        state.renderbuffer = frame->color.handle;
-        state.Apply();
-        glRenderbufferStorage(GL_RENDERBUFFER, frame->is_srgb ? GL_SRGB8 : GL_RGB8, width, height);
+        const GLenum internal_format = frame->is_srgb ? GL_SRGB8 : GL_RGB8;
+        glNamedRenderbufferStorage(frame->color.handle, internal_format, width, height);
 
         // Recreate the FBO for the render target
         frame->render.Release();
         frame->render.Create();
-        state.draw.read_framebuffer = frame->render.handle;
-        state.draw.draw_framebuffer = frame->render.handle;
-        state.Apply();
+        glBindFramebuffer(GL_FRAMEBUFFER, frame->render.handle);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
                                   frame->color.handle);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG_CRITICAL(Render_OpenGL, "Failed to recreate render FBO!");
         }
-        prev_state.Apply();
+
         frame->width = width;
         frame->height = height;
         frame->color_reloaded = true;
@@ -353,8 +347,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
             frame->is_srgb = screen_info.display_srgb;
             frame_mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
         }
-        state.draw.draw_framebuffer = frame->render.handle;
-        state.Apply();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame->render.handle);
         DrawScreen(layout);
         // Create a fence for the frontend to wait on and swap this frame to OffTex
         frame->render_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -647,12 +640,14 @@ void RendererOpenGL::RenderScreenshot() {
         return;
     }
 
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+
     // Draw the current frame to the screenshot framebuffer
     screenshot_framebuffer.Create();
-    GLuint old_read_fb = state.draw.read_framebuffer;
-    GLuint old_draw_fb = state.draw.draw_framebuffer;
-    state.draw.read_framebuffer = state.draw.draw_framebuffer = screenshot_framebuffer.handle;
-    state.Apply();
+    glBindFramebuffer(GL_FRAMEBUFFER, screenshot_framebuffer.handle);
 
     Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
 
@@ -669,10 +664,10 @@ void RendererOpenGL::RenderScreenshot() {
                  renderer_settings.screenshot_bits);
 
     screenshot_framebuffer.Release();
-    state.draw.read_framebuffer = old_read_fb;
-    state.draw.draw_framebuffer = old_draw_fb;
-    state.Apply();
     glDeleteRenderbuffers(1, &renderbuffer);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
 
     renderer_settings.screenshot_complete_callback();
     renderer_settings.screenshot_requested = false;

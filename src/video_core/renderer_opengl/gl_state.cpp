@@ -85,15 +85,6 @@ void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
 
 OpenGLState::OpenGLState() = default;
 
-void OpenGLState::ApplyFramebufferState() {
-    if (UpdateValue(cur_state.draw.read_framebuffer, draw.read_framebuffer)) {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, draw.read_framebuffer);
-    }
-    if (UpdateValue(cur_state.draw.draw_framebuffer, draw.draw_framebuffer)) {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, draw.draw_framebuffer);
-    }
-}
-
 void OpenGLState::ApplyShaderProgram() {
     if (UpdateValue(cur_state.draw.shader_program, draw.shader_program)) {
         glUseProgram(draw.shader_program);
@@ -106,19 +97,10 @@ void OpenGLState::ApplyProgramPipeline() {
     }
 }
 
-void OpenGLState::ApplyRenderBuffer() {
-    if (cur_state.renderbuffer != renderbuffer) {
-        cur_state.renderbuffer = renderbuffer;
-        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
-    }
-}
-
 void OpenGLState::Apply() {
     MICROPROFILE_SCOPE(OpenGL_State);
-    ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyRenderBuffer();
 }
 
 OpenGLState& OpenGLState::ResetProgram(GLuint handle) {
@@ -131,23 +113,6 @@ OpenGLState& OpenGLState::ResetProgram(GLuint handle) {
 OpenGLState& OpenGLState::ResetPipeline(GLuint handle) {
     if (draw.program_pipeline == handle) {
         draw.program_pipeline = 0;
-    }
-    return *this;
-}
-
-OpenGLState& OpenGLState::ResetFramebuffer(GLuint handle) {
-    if (draw.read_framebuffer == handle) {
-        draw.read_framebuffer = 0;
-    }
-    if (draw.draw_framebuffer == handle) {
-        draw.draw_framebuffer = 0;
-    }
-    return *this;
-}
-
-OpenGLState& OpenGLState::ResetRenderbuffer(GLuint handle) {
-    if (renderbuffer == handle) {
-        renderbuffer = 0;
     }
     return *this;
 }
