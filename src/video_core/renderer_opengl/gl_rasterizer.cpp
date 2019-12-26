@@ -1210,14 +1210,13 @@ void RasterizerOpenGL::SyncPolygonOffset() {
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
 
-    state.polygon_offset.fill_enable = regs.polygon_offset_fill_enable != 0;
-    state.polygon_offset.line_enable = regs.polygon_offset_line_enable != 0;
-    state.polygon_offset.point_enable = regs.polygon_offset_point_enable != 0;
+    oglEnable(GL_POLYGON_OFFSET_FILL, regs.polygon_offset_fill_enable);
+    oglEnable(GL_POLYGON_OFFSET_LINE, regs.polygon_offset_line_enable);
+    oglEnable(GL_POLYGON_OFFSET_POINT, regs.polygon_offset_point_enable);
 
     // Hardware divides polygon offset units by two
-    state.polygon_offset.units = regs.polygon_offset_units / 2.0f;
-    state.polygon_offset.factor = regs.polygon_offset_factor;
-    state.polygon_offset.clamp = regs.polygon_offset_clamp;
+    glPolygonOffsetClamp(regs.polygon_offset_factor, regs.polygon_offset_units / 2.0f,
+                         regs.polygon_offset_clamp);
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {

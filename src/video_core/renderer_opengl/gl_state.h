@@ -124,15 +124,6 @@ public:
     };
     std::array<Viewport, Tegra::Engines::Maxwell3D::Regs::NumViewports> viewports;
 
-    struct {
-        bool point_enable = false;
-        bool line_enable = false;
-        bool fill_enable = false;
-        GLfloat units = 0.0f;
-        GLfloat factor = 0.0f;
-        GLfloat clamp = 0.0f;
-    } polygon_offset;
-
     std::array<bool, 8> clip_distance = {}; // GL_CLIP_DISTANCE
 
     struct {
@@ -175,7 +166,6 @@ public:
     void ApplySamplers();
     void ApplyImages();
     void ApplyDepthClamp();
-    void ApplyPolygonOffset();
     void ApplyClipControl();
     void ApplyRenderBuffer();
 

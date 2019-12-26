@@ -347,27 +347,6 @@ void OpenGLState::ApplyLogicOp() {
     }
 }
 
-void OpenGLState::ApplyPolygonOffset() {
-    Enable(GL_POLYGON_OFFSET_FILL, cur_state.polygon_offset.fill_enable,
-           polygon_offset.fill_enable);
-    Enable(GL_POLYGON_OFFSET_LINE, cur_state.polygon_offset.line_enable,
-           polygon_offset.line_enable);
-    Enable(GL_POLYGON_OFFSET_POINT, cur_state.polygon_offset.point_enable,
-           polygon_offset.point_enable);
-
-    if (UpdateTie(std::tie(cur_state.polygon_offset.factor, cur_state.polygon_offset.units,
-                           cur_state.polygon_offset.clamp),
-                  std::tie(polygon_offset.factor, polygon_offset.units, polygon_offset.clamp))) {
-        if (GLAD_GL_EXT_polygon_offset_clamp && polygon_offset.clamp != 0) {
-            glPolygonOffsetClamp(polygon_offset.factor, polygon_offset.units, polygon_offset.clamp);
-        } else {
-            UNIMPLEMENTED_IF_MSG(polygon_offset.clamp != 0,
-                                 "Unimplemented Depth polygon offset clamp.");
-            glPolygonOffset(polygon_offset.factor, polygon_offset.units);
-        }
-    }
-}
-
 void OpenGLState::ApplyClipControl() {
     if (UpdateTie(std::tie(cur_state.clip_control.origin, cur_state.clip_control.depth_mode),
                   std::tie(clip_control.origin, clip_control.depth_mode))) {
@@ -432,7 +411,6 @@ void OpenGLState::Apply() {
     ApplyTextures();
     ApplySamplers();
     ApplyImages();
-    ApplyPolygonOffset();
     ApplyClipControl();
     ApplyRenderBuffer();
 }
