@@ -92,6 +92,10 @@ void oglEnable(GLenum cap, bool state) {
     (state ? glEnable : glDisable)(cap);
 }
 
+void oglEnablei(GLenum cap, bool state, GLuint index) {
+    (state ? glEnablei : glDisablei)(cap, index);
+}
+
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
