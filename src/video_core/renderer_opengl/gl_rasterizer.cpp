@@ -271,6 +271,9 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             case Maxwell::ShaderProgram::Geometry:
                 shader_program_manager->UseTrivialGeometryShader();
                 break;
+            case Maxwell::ShaderProgram::Fragment:
+                shader_program_manager->UseTrivialFragmentShader();
+                break;
             default:
                 break;
             }

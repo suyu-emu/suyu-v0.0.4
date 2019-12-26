@@ -50,6 +50,10 @@ public:
         current_state.geometry_shader = 0;
     }
 
+    void UseTrivialFragmentShader() {
+        current_state.fragment_shader = 0;
+    }
+
 private:
     struct PipelineState {
         bool operator==(const PipelineState& rhs) const {
