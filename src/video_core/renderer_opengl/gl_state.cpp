@@ -117,13 +117,6 @@ void OpenGLState::ApplyClipDistances() {
     }
 }
 
-void OpenGLState::ApplyFragmentColorClamp() {
-    if (UpdateValue(cur_state.fragment_color_clamp.enabled, fragment_color_clamp.enabled)) {
-        glClampColor(GL_CLAMP_FRAGMENT_COLOR_ARB,
-                     fragment_color_clamp.enabled ? GL_TRUE : GL_FALSE);
-    }
-}
-
 void OpenGLState::ApplyRasterizerDiscard() {
     Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
 }
@@ -317,7 +310,6 @@ void OpenGLState::Apply() {
     ApplyShaderProgram();
     ApplyProgramPipeline();
     ApplyClipDistances();
-    ApplyFragmentColorClamp();
     ApplyRasterizerDiscard();
     ApplyColorMask();
     ApplyViewport();

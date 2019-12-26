@@ -415,6 +415,11 @@ void RasterizerOpenGL::Clear() {
         clear_state.color_mask[0].green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
         clear_state.color_mask[0].blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
         clear_state.color_mask[0].alpha_enabled = regs.clear_buffers.A ? GL_TRUE : GL_FALSE;
+
+        // TODO: Signal state tracker about these changes
+        SyncFramebufferSRGB();
+        // TODO(Rodrigo): Determine if clamping is used on clears
+        SyncFragmentColorClampState();
     }
     if (regs.clear_buffers.Z) {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
@@ -453,9 +458,6 @@ void RasterizerOpenGL::Clear() {
             }
         }
     }
-
-    // TODO: Signal state tracker about these changes
-    SyncFramebufferSRGB();
 
     if (!use_color && !use_depth && !use_stencil) {
         // No color surface nor depth/stencil surface are enabled
@@ -1089,7 +1091,7 @@ void RasterizerOpenGL::SyncMultiSampleState() {
 
 void RasterizerOpenGL::SyncFragmentColorClampState() {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    state.fragment_color_clamp.enabled = regs.frag_color_clamp != 0;
+    glClampColor(GL_CLAMP_FRAGMENT_COLOR, regs.frag_color_clamp ? GL_TRUE : GL_FALSE);
 }
 
 void RasterizerOpenGL::SyncBlendState() {

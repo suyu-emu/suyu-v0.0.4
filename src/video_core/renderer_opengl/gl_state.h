@@ -13,10 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    struct {
-        bool enabled = false; // GL_CLAMP_FRAGMENT_COLOR_ARB
-    } fragment_color_clamp;
-
     bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
 
     struct ColorMask {
@@ -110,7 +106,6 @@ public:
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
     void ApplyClipDistances();
-    void ApplyFragmentColorClamp();
     void ApplyRasterizerDiscard();
     void ApplyColorMask();
     void ApplyStencilTest();
