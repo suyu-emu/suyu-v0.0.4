@@ -183,20 +183,6 @@ void OpenGLState::ApplyColorMask() {
     }
 }
 
-void OpenGLState::ApplyDepth() {
-    Enable(GL_DEPTH_TEST, cur_state.depth.test_enabled, depth.test_enabled);
-
-    if (cur_state.depth.test_func != depth.test_func) {
-        cur_state.depth.test_func = depth.test_func;
-        glDepthFunc(depth.test_func);
-    }
-
-    if (cur_state.depth.write_mask != depth.write_mask) {
-        cur_state.depth.write_mask = depth.write_mask;
-        glDepthMask(depth.write_mask);
-    }
-}
-
 void OpenGLState::ApplyStencilTest() {
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
@@ -380,7 +366,6 @@ void OpenGLState::Apply() {
     ApplyViewport();
     ApplyStencilTest();
     ApplySRgb();
-    ApplyDepth();
     ApplyBlending();
     ApplyTextures();
     ApplySamplers();

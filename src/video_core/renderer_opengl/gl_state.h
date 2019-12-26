@@ -31,12 +31,6 @@ public:
         bool near_plane = false;
     } depth_clamp; // GL_DEPTH_CLAMP
 
-    struct {
-        bool test_enabled = false;      // GL_DEPTH_TEST
-        GLboolean write_mask = GL_TRUE; // GL_DEPTH_WRITEMASK
-        GLenum test_func = GL_LESS;     // GL_DEPTH_FUNC
-    } depth;
-
     bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
 
     struct ColorMask {
@@ -137,7 +131,6 @@ public:
     void ApplySRgb();
     void ApplyRasterizerDiscard();
     void ApplyColorMask();
-    void ApplyDepth();
     void ApplyStencilTest();
     void ApplyViewport();
     void ApplyTargetBlending(std::size_t target, bool force);

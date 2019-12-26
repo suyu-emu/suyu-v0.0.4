@@ -446,12 +446,8 @@ void RasterizerOpenGL::Clear() {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
         use_depth = true;
 
-        // Always enable the depth write when clearing the depth buffer. The depth write mask is
-        // ignored when clearing the buffer in the Switch, but OpenGL obeys it so we set it to
-        // true.
-        clear_state.depth.test_enabled = true;
-        clear_state.depth.test_func = GL_ALWAYS;
-        clear_state.depth.write_mask = GL_TRUE;
+        // TODO: Signal state tracker about these changes
+        glDepthMask(GL_TRUE);
     }
     if (regs.clear_buffers.S) {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear stencil but buffer is not enabled!");
@@ -1036,14 +1032,12 @@ void RasterizerOpenGL::SyncPrimitiveRestart() {
 void RasterizerOpenGL::SyncDepthTestState() {
     const auto& regs = system.GPU().Maxwell3D().regs;
 
-    state.depth.test_enabled = regs.depth_test_enable != 0;
-    state.depth.write_mask = regs.depth_write_enabled ? GL_TRUE : GL_FALSE;
+    glDepthMask(regs.depth_write_enabled ? GL_TRUE : GL_FALSE);
 
-    if (!state.depth.test_enabled) {
-        return;
+    oglEnable(GL_DEPTH_TEST, regs.depth_test_enable);
+    if (regs.depth_test_enable) {
+        glDepthFunc(MaxwellToGL::ComparisonOp(regs.depth_test_func));
     }
-
-    state.depth.test_func = MaxwellToGL::ComparisonOp(regs.depth_test_func);
 }
 
 void RasterizerOpenGL::SyncStencilTestState() {
