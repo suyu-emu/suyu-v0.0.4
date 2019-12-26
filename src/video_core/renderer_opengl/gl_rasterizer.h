@@ -176,7 +176,7 @@ private:
     void SyncPointState();
 
     /// Syncs the rasterizer enable state to match the guest state
-    void SyncRasterizeEnable(OpenGLState& current_state);
+    void SyncRasterizeEnable();
 
     /// Syncs Color Mask
     void SyncColorMask();

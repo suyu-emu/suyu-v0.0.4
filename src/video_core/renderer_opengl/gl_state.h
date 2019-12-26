@@ -13,8 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
-
     struct {
         bool test_enabled = false; // GL_STENCIL_TEST
         struct {
@@ -79,7 +77,6 @@ public:
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
     void ApplyClipDistances();
-    void ApplyRasterizerDiscard();
     void ApplyStencilTest();
     void ApplyTargetBlending(std::size_t target, bool force);
     void ApplyGlobalBlending();

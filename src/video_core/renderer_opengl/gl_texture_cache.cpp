@@ -536,6 +536,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     } else {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
+    // TODO(Rodrigo): Find out if rasterizer discard affects blits
+    glDisable(GL_RASTERIZER_DISCARD);
     glDisablei(GL_SCISSOR_TEST, 0);
 
     u32 buffers{};

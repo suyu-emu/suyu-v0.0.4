@@ -113,10 +113,6 @@ void OpenGLState::ApplyClipDistances() {
     }
 }
 
-void OpenGLState::ApplyRasterizerDiscard() {
-    Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
-}
-
 void OpenGLState::ApplyStencilTest() {
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
@@ -254,7 +250,6 @@ void OpenGLState::Apply() {
     ApplyShaderProgram();
     ApplyProgramPipeline();
     ApplyClipDistances();
-    ApplyRasterizerDiscard();
     ApplyStencilTest();
     ApplyBlending();
     ApplyTextures();

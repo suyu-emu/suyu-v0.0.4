@@ -462,7 +462,7 @@ void RasterizerOpenGL::Clear() {
 
     ConfigureClearFramebuffer(clear_state, use_color, use_depth, use_stencil);
 
-    SyncRasterizeEnable(clear_state);
+    SyncRasterizeEnable();
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
     }
@@ -494,7 +494,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     query_cache.UpdateCounters();
 
     SyncViewport();
-    SyncRasterizeEnable(state);
+    SyncRasterizeEnable();
     SyncColorMask();
     SyncFragmentColorClampState();
     SyncMultiSampleState();
@@ -1048,9 +1048,9 @@ void RasterizerOpenGL::SyncStencilTestState() {
     }
 }
 
-void RasterizerOpenGL::SyncRasterizeEnable(OpenGLState& current_state) {
+void RasterizerOpenGL::SyncRasterizeEnable() {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    current_state.rasterizer_discard = regs.rasterize_enable == 0;
+    oglEnable(GL_RASTERIZER_DISCARD, regs.rasterize_enable == 0);
 }
 
 void RasterizerOpenGL::SyncColorMask() {
