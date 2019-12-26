@@ -131,17 +131,6 @@ void OpenGLState::ApplyMultisample() {
            multisample_control.alpha_to_one);
 }
 
-void OpenGLState::ApplySRgb() {
-    if (cur_state.framebuffer_srgb.enabled == framebuffer_srgb.enabled)
-        return;
-    cur_state.framebuffer_srgb.enabled = framebuffer_srgb.enabled;
-    if (framebuffer_srgb.enabled) {
-        glEnable(GL_FRAMEBUFFER_SRGB);
-    } else {
-        glDisable(GL_FRAMEBUFFER_SRGB);
-    }
-}
-
 void OpenGLState::ApplyRasterizerDiscard() {
     Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
 }
@@ -341,7 +330,6 @@ void OpenGLState::Apply() {
     ApplyColorMask();
     ApplyViewport();
     ApplyStencilTest();
-    ApplySRgb();
     ApplyBlending();
     ApplyTextures();
     ApplySamplers();

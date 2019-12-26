@@ -332,7 +332,6 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     View depth_surface = texture_cache.GetDepthBufferSurface(true);
 
     const auto& regs = gpu.regs;
-    state.framebuffer_srgb.enabled = regs.framebuffer_srgb != 0;
     UNIMPLEMENTED_IF(regs.rt_separate_frag_data == 0);
 
     // Bind the framebuffer surfaces
@@ -455,6 +454,9 @@ void RasterizerOpenGL::Clear() {
         }
     }
 
+    // TODO: Signal state tracker about these changes
+    SyncFramebufferSRGB();
+
     if (!use_color && !use_depth && !use_stencil) {
         // No color surface nor depth/stencil surface are enabled
         return;
@@ -511,6 +513,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     SyncPointState();
     SyncPolygonOffset();
     SyncAlphaTest();
+    SyncFramebufferSRGB();
 
     buffer_cache.Acquire();
 
@@ -1196,6 +1199,11 @@ void RasterizerOpenGL::SyncAlphaTest() {
     if (regs.alpha_test_enabled) {
         glAlphaFunc(MaxwellToGL::ComparisonOp(regs.alpha_test_func), regs.alpha_test_ref);
     }
+}
+
+void RasterizerOpenGL::SyncFramebufferSRGB() {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    oglEnable(GL_FRAMEBUFFER_SRGB, regs.framebuffer_srgb);
 }
 
 } // namespace OpenGL

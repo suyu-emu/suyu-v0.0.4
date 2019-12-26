@@ -555,11 +555,15 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     };
 
     state.textures[0] = screen_info.display_texture;
-    state.framebuffer_srgb.enabled = screen_info.display_srgb;
     state.Apply();
 
     // TODO: Signal state tracker about these changes
     glEnable(GL_CULL_FACE);
+    if (screen_info.display_srgb) {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    } else {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
     glDisable(GL_COLOR_LOGIC_OP);
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
@@ -577,8 +581,8 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
 
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
     // Restore default state
-    state.framebuffer_srgb.enabled = false;
     state.textures[0] = 0;
     state.Apply();
 }

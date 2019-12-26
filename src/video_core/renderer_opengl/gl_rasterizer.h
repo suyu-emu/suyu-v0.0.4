@@ -187,6 +187,9 @@ private:
     /// Syncs the alpha test state to match the guest state
     void SyncAlphaTest();
 
+    /// Syncs the framebuffer sRGB state to match the guest state
+    void SyncFramebufferSRGB();
+
     /// Check for extension that are not strictly required but are needed for correct emulation
     void CheckExtensions();
 
