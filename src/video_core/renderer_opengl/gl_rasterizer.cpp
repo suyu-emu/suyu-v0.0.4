@@ -442,7 +442,9 @@ void RasterizerOpenGL::Clear() {
     }
 
     // TODO: Signal state tracker about these changes
+    // TODO(Rodrigo): Find out if these changes affect clearing
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    glDisablei(GL_BLEND, 0);
 
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
 
@@ -1049,37 +1051,34 @@ void RasterizerOpenGL::SyncBlendState() {
 
     glBlendColor(regs.blend_color.r, regs.blend_color.g, regs.blend_color.b, regs.blend_color.a);
 
-    state.independant_blend.enabled = regs.independent_blend_enable;
-    if (!state.independant_blend.enabled) {
-        auto& blend = state.blend[0];
+    if (!regs.independent_blend_enable) {
         const auto& src = regs.blend;
-        blend.enabled = src.enable[0] != 0;
-        if (blend.enabled) {
-            blend.rgb_equation = MaxwellToGL::BlendEquation(src.equation_rgb);
-            blend.src_rgb_func = MaxwellToGL::BlendFunc(src.factor_source_rgb);
-            blend.dst_rgb_func = MaxwellToGL::BlendFunc(src.factor_dest_rgb);
-            blend.a_equation = MaxwellToGL::BlendEquation(src.equation_a);
-            blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
-            blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
+        oglEnable(GL_BLEND, src.enable[0]);
+        if (!src.enable[0]) {
+            return;
         }
-        for (std::size_t i = 1; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
-            state.blend[i].enabled = false;
-        }
+        glBlendFuncSeparate(MaxwellToGL::BlendFunc(src.factor_source_rgb),
+                            MaxwellToGL::BlendFunc(src.factor_dest_rgb),
+                            MaxwellToGL::BlendFunc(src.factor_source_a),
+                            MaxwellToGL::BlendFunc(src.factor_dest_a));
+        glBlendEquationSeparate(MaxwellToGL::BlendEquation(src.equation_rgb),
+                                MaxwellToGL::BlendEquation(src.equation_a));
         return;
     }
 
-    for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
-        auto& blend = state.blend[i];
-        const auto& src = regs.independent_blend[i];
-        blend.enabled = regs.blend.enable[i] != 0;
-        if (!blend.enabled)
+    for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
+        oglEnablei(GL_BLEND, regs.blend.enable[i], static_cast<GLuint>(i));
+        if (!regs.blend.enable[i]) {
             continue;
-        blend.rgb_equation = MaxwellToGL::BlendEquation(src.equation_rgb);
-        blend.src_rgb_func = MaxwellToGL::BlendFunc(src.factor_source_rgb);
-        blend.dst_rgb_func = MaxwellToGL::BlendFunc(src.factor_dest_rgb);
-        blend.a_equation = MaxwellToGL::BlendEquation(src.equation_a);
-        blend.src_a_func = MaxwellToGL::BlendFunc(src.factor_source_a);
-        blend.dst_a_func = MaxwellToGL::BlendFunc(src.factor_dest_a);
+        }
+        const auto& src = regs.independent_blend[i];
+        glBlendFuncSeparatei(static_cast<GLuint>(i), MaxwellToGL::BlendFunc(src.factor_source_rgb),
+                             MaxwellToGL::BlendFunc(src.factor_dest_rgb),
+                             MaxwellToGL::BlendFunc(src.factor_source_a),
+                             MaxwellToGL::BlendFunc(src.factor_dest_a));
+        glBlendEquationSeparatei(static_cast<GLuint>(i),
+                                 MaxwellToGL::BlendEquation(src.equation_rgb),
+                                 MaxwellToGL::BlendEquation(src.equation_a));
     }
 }
 

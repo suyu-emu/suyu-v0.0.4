@@ -13,21 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    struct Blend {
-        bool enabled = false;              // GL_BLEND
-        GLenum rgb_equation = GL_FUNC_ADD; // GL_BLEND_EQUATION_RGB
-        GLenum a_equation = GL_FUNC_ADD;   // GL_BLEND_EQUATION_ALPHA
-        GLenum src_rgb_func = GL_ONE;      // GL_BLEND_SRC_RGB
-        GLenum dst_rgb_func = GL_ZERO;     // GL_BLEND_DST_RGB
-        GLenum src_a_func = GL_ONE;        // GL_BLEND_SRC_ALPHA
-        GLenum dst_a_func = GL_ZERO;       // GL_BLEND_DST_ALPHA
-    };
-    std::array<Blend, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> blend;
-
-    struct {
-        bool enabled = false;
-    } independant_blend;
-
     static constexpr std::size_t NumSamplers = 32 * 5;
     static constexpr std::size_t NumImages = 8 * 5;
     std::array<GLuint, NumSamplers> textures = {};
@@ -56,9 +41,6 @@ public:
     void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyTargetBlending(std::size_t target, bool force);
-    void ApplyGlobalBlending();
-    void ApplyBlending();
     void ApplyTextures();
     void ApplySamplers();
     void ApplyImages();

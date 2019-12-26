@@ -582,6 +582,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_RASTERIZER_DISCARD);
+    glDisablei(GL_BLEND, 0);
     glDisablei(GL_SCISSOR_TEST, 0);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);

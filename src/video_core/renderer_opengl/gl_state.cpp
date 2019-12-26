@@ -106,66 +106,6 @@ void OpenGLState::ApplyProgramPipeline() {
     }
 }
 
-void OpenGLState::ApplyGlobalBlending() {
-    const Blend& updated = blend[0];
-    Blend& current = cur_state.blend[0];
-
-    Enable(GL_BLEND, current.enabled, updated.enabled);
-
-    if (current.src_rgb_func != updated.src_rgb_func ||
-        current.dst_rgb_func != updated.dst_rgb_func || current.src_a_func != updated.src_a_func ||
-        current.dst_a_func != updated.dst_a_func) {
-        current.src_rgb_func = updated.src_rgb_func;
-        current.dst_rgb_func = updated.dst_rgb_func;
-        current.src_a_func = updated.src_a_func;
-        current.dst_a_func = updated.dst_a_func;
-        glBlendFuncSeparate(updated.src_rgb_func, updated.dst_rgb_func, updated.src_a_func,
-                            updated.dst_a_func);
-    }
-
-    if (current.rgb_equation != updated.rgb_equation || current.a_equation != updated.a_equation) {
-        current.rgb_equation = updated.rgb_equation;
-        current.a_equation = updated.a_equation;
-        glBlendEquationSeparate(updated.rgb_equation, updated.a_equation);
-    }
-}
-
-void OpenGLState::ApplyTargetBlending(std::size_t target, bool force) {
-    const Blend& updated = blend[target];
-    Blend& current = cur_state.blend[target];
-
-    if (current.enabled != updated.enabled || force) {
-        current.enabled = updated.enabled;
-        Enable(GL_BLEND, static_cast<GLuint>(target), updated.enabled);
-    }
-
-    if (UpdateTie(std::tie(current.src_rgb_func, current.dst_rgb_func, current.src_a_func,
-                           current.dst_a_func),
-                  std::tie(updated.src_rgb_func, updated.dst_rgb_func, updated.src_a_func,
-                           updated.dst_a_func))) {
-        glBlendFuncSeparatei(static_cast<GLuint>(target), updated.src_rgb_func,
-                             updated.dst_rgb_func, updated.src_a_func, updated.dst_a_func);
-    }
-
-    if (UpdateTie(std::tie(current.rgb_equation, current.a_equation),
-                  std::tie(updated.rgb_equation, updated.a_equation))) {
-        glBlendEquationSeparatei(static_cast<GLuint>(target), updated.rgb_equation,
-                                 updated.a_equation);
-    }
-}
-
-void OpenGLState::ApplyBlending() {
-    if (independant_blend.enabled) {
-        const bool force = independant_blend.enabled != cur_state.independant_blend.enabled;
-        for (std::size_t target = 0; target < Maxwell::NumRenderTargets; ++target) {
-            ApplyTargetBlending(target, force);
-        }
-    } else {
-        ApplyGlobalBlending();
-    }
-    cur_state.independant_blend.enabled = independant_blend.enabled;
-}
-
 void OpenGLState::ApplyRenderBuffer() {
     if (cur_state.renderbuffer != renderbuffer) {
         cur_state.renderbuffer = renderbuffer;
@@ -206,7 +146,6 @@ void OpenGLState::Apply() {
     ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyBlending();
     ApplyTextures();
     ApplySamplers();
     ApplyImages();

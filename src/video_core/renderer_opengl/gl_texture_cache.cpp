@@ -537,8 +537,11 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
     // TODO(Rodrigo): Find out if rasterizer discard affects blits
+    // TODO(Rodrigo): Find out if blending affects blits
+    // TODO(Rodrigo): Find out if clip control affects blits
     glDisable(GL_RASTERIZER_DISCARD);
     glDisablei(GL_SCISSOR_TEST, 0);
+    glDisablei(GL_BLEND, 0);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
     u32 buffers{};
