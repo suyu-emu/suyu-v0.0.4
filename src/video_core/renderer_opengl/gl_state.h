@@ -13,19 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    struct {
-        bool test_enabled = false; // GL_STENCIL_TEST
-        struct {
-            GLenum test_func = GL_ALWAYS;         // GL_STENCIL_FUNC
-            GLint test_ref = 0;                   // GL_STENCIL_REF
-            GLuint test_mask = 0xFFFFFFFF;        // GL_STENCIL_VALUE_MASK
-            GLuint write_mask = 0xFFFFFFFF;       // GL_STENCIL_WRITEMASK
-            GLenum action_stencil_fail = GL_KEEP; // GL_STENCIL_FAIL
-            GLenum action_depth_fail = GL_KEEP;   // GL_STENCIL_PASS_DEPTH_FAIL
-            GLenum action_depth_pass = GL_KEEP;   // GL_STENCIL_PASS_DEPTH_PASS
-        } front, back;
-    } stencil;
-
     struct Blend {
         bool enabled = false;              // GL_BLEND
         GLenum rgb_equation = GL_FUNC_ADD; // GL_BLEND_EQUATION_RGB
@@ -69,7 +56,6 @@ public:
     void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyStencilTest();
     void ApplyTargetBlending(std::size_t target, bool force);
     void ApplyGlobalBlending();
     void ApplyBlending();

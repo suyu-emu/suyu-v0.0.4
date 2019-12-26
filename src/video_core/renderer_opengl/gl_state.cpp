@@ -106,35 +106,6 @@ void OpenGLState::ApplyProgramPipeline() {
     }
 }
 
-void OpenGLState::ApplyStencilTest() {
-    Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
-
-    const auto ConfigStencil = [](GLenum face, const auto& config, auto& current) {
-        if (current.test_func != config.test_func || current.test_ref != config.test_ref ||
-            current.test_mask != config.test_mask) {
-            current.test_func = config.test_func;
-            current.test_ref = config.test_ref;
-            current.test_mask = config.test_mask;
-            glStencilFuncSeparate(face, config.test_func, config.test_ref, config.test_mask);
-        }
-        if (current.action_depth_fail != config.action_depth_fail ||
-            current.action_depth_pass != config.action_depth_pass ||
-            current.action_stencil_fail != config.action_stencil_fail) {
-            current.action_depth_fail = config.action_depth_fail;
-            current.action_depth_pass = config.action_depth_pass;
-            current.action_stencil_fail = config.action_stencil_fail;
-            glStencilOpSeparate(face, config.action_stencil_fail, config.action_depth_fail,
-                                config.action_depth_pass);
-        }
-        if (current.write_mask != config.write_mask) {
-            current.write_mask = config.write_mask;
-            glStencilMaskSeparate(face, config.write_mask);
-        }
-    };
-    ConfigStencil(GL_FRONT, stencil.front, cur_state.stencil.front);
-    ConfigStencil(GL_BACK, stencil.back, cur_state.stencil.back);
-}
-
 void OpenGLState::ApplyGlobalBlending() {
     const Blend& updated = blend[0];
     Blend& current = cur_state.blend[0];
@@ -235,7 +206,6 @@ void OpenGLState::Apply() {
     ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyStencilTest();
     ApplyBlending();
     ApplyTextures();
     ApplySamplers();
