@@ -1029,8 +1029,8 @@ void RasterizerOpenGL::SyncCullMode() {
 void RasterizerOpenGL::SyncPrimitiveRestart() {
     const auto& regs = system.GPU().Maxwell3D().regs;
 
-    state.primitive_restart.enabled = regs.primitive_restart.enabled;
-    state.primitive_restart.index = regs.primitive_restart.index;
+    oglEnable(GL_PRIMITIVE_RESTART, regs.primitive_restart.enabled);
+    glPrimitiveRestartIndex(regs.primitive_restart.index);
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {

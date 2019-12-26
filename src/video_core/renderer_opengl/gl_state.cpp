@@ -197,15 +197,6 @@ void OpenGLState::ApplyDepth() {
     }
 }
 
-void OpenGLState::ApplyPrimitiveRestart() {
-    Enable(GL_PRIMITIVE_RESTART, cur_state.primitive_restart.enabled, primitive_restart.enabled);
-
-    if (cur_state.primitive_restart.index != primitive_restart.index) {
-        cur_state.primitive_restart.index = primitive_restart.index;
-        glPrimitiveRestartIndex(primitive_restart.index);
-    }
-}
-
 void OpenGLState::ApplyStencilTest() {
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
@@ -390,7 +381,6 @@ void OpenGLState::Apply() {
     ApplyStencilTest();
     ApplySRgb();
     ApplyDepth();
-    ApplyPrimitiveRestart();
     ApplyBlending();
     ApplyTextures();
     ApplySamplers();

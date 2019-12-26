@@ -37,11 +37,6 @@ public:
         GLenum test_func = GL_LESS;     // GL_DEPTH_FUNC
     } depth;
 
-    struct {
-        bool enabled = false;
-        GLuint index = 0;
-    } primitive_restart; // GL_PRIMITIVE_RESTART
-
     bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
 
     struct ColorMask {
@@ -143,7 +138,6 @@ public:
     void ApplyRasterizerDiscard();
     void ApplyColorMask();
     void ApplyDepth();
-    void ApplyPrimitiveRestart();
     void ApplyStencilTest();
     void ApplyViewport();
     void ApplyTargetBlending(std::size_t target, bool force);
