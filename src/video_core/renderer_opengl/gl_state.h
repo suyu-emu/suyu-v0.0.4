@@ -15,15 +15,6 @@ class OpenGLState {
 public:
     bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
 
-    struct ColorMask {
-        GLboolean red_enabled = GL_TRUE;
-        GLboolean green_enabled = GL_TRUE;
-        GLboolean blue_enabled = GL_TRUE;
-        GLboolean alpha_enabled = GL_TRUE;
-    };
-    std::array<ColorMask, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets>
-        color_mask; // GL_COLOR_WRITEMASK
-
     struct {
         bool test_enabled = false; // GL_STENCIL_TEST
         struct {
@@ -107,7 +98,6 @@ public:
     void ApplyProgramPipeline();
     void ApplyClipDistances();
     void ApplyRasterizerDiscard();
-    void ApplyColorMask();
     void ApplyStencilTest();
     void ApplyViewport();
     void ApplyTargetBlending(std::size_t target, bool force);

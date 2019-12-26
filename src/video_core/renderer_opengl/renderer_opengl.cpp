@@ -570,6 +570,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     glDisable(GL_POLYGON_OFFSET_FILL);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
                          offsetof(ScreenRectVertex, position));

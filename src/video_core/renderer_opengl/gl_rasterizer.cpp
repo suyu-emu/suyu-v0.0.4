@@ -411,12 +411,10 @@ void RasterizerOpenGL::Clear() {
         use_color = true;
     }
     if (use_color) {
-        clear_state.color_mask[0].red_enabled = regs.clear_buffers.R ? GL_TRUE : GL_FALSE;
-        clear_state.color_mask[0].green_enabled = regs.clear_buffers.G ? GL_TRUE : GL_FALSE;
-        clear_state.color_mask[0].blue_enabled = regs.clear_buffers.B ? GL_TRUE : GL_FALSE;
-        clear_state.color_mask[0].alpha_enabled = regs.clear_buffers.A ? GL_TRUE : GL_FALSE;
-
         // TODO: Signal state tracker about these changes
+        glColorMaski(0, regs.clear_buffers.R, regs.clear_buffers.G, regs.clear_buffers.B,
+                     regs.clear_buffers.A);
+
         SyncFramebufferSRGB();
         // TODO(Rodrigo): Determine if clamping is used on clears
         SyncFragmentColorClampState();
@@ -1071,15 +1069,14 @@ void RasterizerOpenGL::SyncColorMask() {
     auto& maxwell3d = system.GPU().Maxwell3D();
     const auto& regs = maxwell3d.regs;
 
-    const std::size_t count =
-        regs.independent_blend_enable ? Tegra::Engines::Maxwell3D::Regs::NumRenderTargets : 1;
-    for (std::size_t i = 0; i < count; i++) {
-        const auto& source = regs.color_mask[regs.color_mask_common ? 0 : i];
-        auto& dest = state.color_mask[i];
-        dest.red_enabled = (source.R == 0) ? GL_FALSE : GL_TRUE;
-        dest.green_enabled = (source.G == 0) ? GL_FALSE : GL_TRUE;
-        dest.blue_enabled = (source.B == 0) ? GL_FALSE : GL_TRUE;
-        dest.alpha_enabled = (source.A == 0) ? GL_FALSE : GL_TRUE;
+    if (regs.color_mask_common) {
+        auto& mask = regs.color_mask[0];
+        glColorMask(mask.R, mask.B, mask.G, mask.A);
+    } else {
+        for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
+            const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : i];
+            glColorMaski(static_cast<GLuint>(i), mask.R, mask.G, mask.B, mask.A);
+        }
     }
 }
 

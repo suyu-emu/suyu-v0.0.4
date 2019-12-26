@@ -121,21 +121,6 @@ void OpenGLState::ApplyRasterizerDiscard() {
     Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
 }
 
-void OpenGLState::ApplyColorMask() {
-    for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
-        const auto& updated = color_mask[i];
-        auto& current = cur_state.color_mask[i];
-        if (updated.red_enabled != current.red_enabled ||
-            updated.green_enabled != current.green_enabled ||
-            updated.blue_enabled != current.blue_enabled ||
-            updated.alpha_enabled != current.alpha_enabled) {
-            current = updated;
-            glColorMaski(static_cast<GLuint>(i), updated.red_enabled, updated.green_enabled,
-                         updated.blue_enabled, updated.alpha_enabled);
-        }
-    }
-}
-
 void OpenGLState::ApplyStencilTest() {
     Enable(GL_STENCIL_TEST, cur_state.stencil.test_enabled, stencil.test_enabled);
 
@@ -311,7 +296,6 @@ void OpenGLState::Apply() {
     ApplyProgramPipeline();
     ApplyClipDistances();
     ApplyRasterizerDiscard();
-    ApplyColorMask();
     ApplyViewport();
     ApplyStencilTest();
     ApplyBlending();
