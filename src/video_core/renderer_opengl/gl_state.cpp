@@ -124,13 +124,6 @@ void OpenGLState::ApplyFragmentColorClamp() {
     }
 }
 
-void OpenGLState::ApplyMultisample() {
-    Enable(GL_SAMPLE_ALPHA_TO_COVERAGE, cur_state.multisample_control.alpha_to_coverage,
-           multisample_control.alpha_to_coverage);
-    Enable(GL_SAMPLE_ALPHA_TO_ONE, cur_state.multisample_control.alpha_to_one,
-           multisample_control.alpha_to_one);
-}
-
 void OpenGLState::ApplyRasterizerDiscard() {
     Enable(GL_RASTERIZER_DISCARD, cur_state.rasterizer_discard, rasterizer_discard);
 }
@@ -325,7 +318,6 @@ void OpenGLState::Apply() {
     ApplyProgramPipeline();
     ApplyClipDistances();
     ApplyFragmentColorClamp();
-    ApplyMultisample();
     ApplyRasterizerDiscard();
     ApplyColorMask();
     ApplyViewport();

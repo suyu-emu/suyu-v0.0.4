@@ -14,11 +14,6 @@ namespace OpenGL {
 class OpenGLState {
 public:
     struct {
-        bool alpha_to_coverage = false; // GL_ALPHA_TO_COVERAGE
-        bool alpha_to_one = false;      // GL_ALPHA_TO_ONE
-    } multisample_control;
-
-    struct {
         bool enabled = false; // GL_CLAMP_FRAGMENT_COLOR_ARB
     } fragment_color_clamp;
 
@@ -116,7 +111,6 @@ public:
     void ApplyProgramPipeline();
     void ApplyClipDistances();
     void ApplyFragmentColorClamp();
-    void ApplyMultisample();
     void ApplyRasterizerDiscard();
     void ApplyColorMask();
     void ApplyStencilTest();

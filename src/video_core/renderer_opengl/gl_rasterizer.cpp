@@ -1083,8 +1083,8 @@ void RasterizerOpenGL::SyncColorMask() {
 
 void RasterizerOpenGL::SyncMultiSampleState() {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    state.multisample_control.alpha_to_coverage = regs.multisample_control.alpha_to_coverage != 0;
-    state.multisample_control.alpha_to_one = regs.multisample_control.alpha_to_one != 0;
+    oglEnable(GL_SAMPLE_ALPHA_TO_COVERAGE, regs.multisample_control.alpha_to_coverage);
+    oglEnable(GL_SAMPLE_ALPHA_TO_ONE, regs.multisample_control.alpha_to_one);
 }
 
 void RasterizerOpenGL::SyncFragmentColorClampState() {
