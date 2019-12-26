@@ -195,13 +195,6 @@ void OpenGLState::ApplyBlending() {
     cur_state.independant_blend.enabled = independant_blend.enabled;
 }
 
-void OpenGLState::ApplyClipControl() {
-    if (UpdateTie(std::tie(cur_state.clip_control.origin, cur_state.clip_control.depth_mode),
-                  std::tie(clip_control.origin, clip_control.depth_mode))) {
-        glClipControl(clip_control.origin, clip_control.depth_mode);
-    }
-}
-
 void OpenGLState::ApplyRenderBuffer() {
     if (cur_state.renderbuffer != renderbuffer) {
         cur_state.renderbuffer = renderbuffer;
@@ -247,7 +240,6 @@ void OpenGLState::Apply() {
     ApplyTextures();
     ApplySamplers();
     ApplyImages();
-    ApplyClipControl();
     ApplyRenderBuffer();
 }
 

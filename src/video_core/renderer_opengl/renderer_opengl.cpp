@@ -585,6 +585,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glViewport(0, 0, layout.width, layout.height);
 
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,

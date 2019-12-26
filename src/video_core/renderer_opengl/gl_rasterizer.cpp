@@ -467,6 +467,9 @@ void RasterizerOpenGL::Clear() {
         SyncScissorTest();
     }
 
+    // TODO: Signal state tracker about these changes
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
 
     clear_state.Apply();
@@ -950,11 +953,9 @@ void RasterizerOpenGL::SyncViewport() {
     if (regs.screen_y_control.y_negate != 0) {
         flip_y = !flip_y;
     }
-    state.clip_control.origin = flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT;
-    state.clip_control.depth_mode =
-        regs.depth_mode == Tegra::Engines::Maxwell3D::Regs::DepthMode::ZeroToOne
-            ? GL_ZERO_TO_ONE
-            : GL_NEGATIVE_ONE_TO_ONE;
+    glClipControl(flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT,
+                  regs.depth_mode == Maxwell::DepthMode::ZeroToOne ? GL_ZERO_TO_ONE
+                                                                   : GL_NEGATIVE_ONE_TO_ONE);
 }
 
 void RasterizerOpenGL::SyncDepthClamp() {

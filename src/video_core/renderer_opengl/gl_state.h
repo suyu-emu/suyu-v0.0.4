@@ -54,11 +54,6 @@ public:
         GLuint program_pipeline = 0; // GL_PROGRAM_PIPELINE_BINDING
     } draw;
 
-    struct {
-        GLenum origin = GL_LOWER_LEFT;
-        GLenum depth_mode = GL_NEGATIVE_ONE_TO_ONE;
-    } clip_control;
-
     GLuint renderbuffer{}; // GL_RENDERBUFFER_BINDING
 
     OpenGLState();
@@ -81,7 +76,6 @@ public:
     void ApplyTextures();
     void ApplySamplers();
     void ApplyImages();
-    void ApplyClipControl();
     void ApplyRenderBuffer();
 
     /// Resets any references to the given resource
