@@ -88,6 +88,10 @@ std::size_t GetConstBufferSize(const Tegra::Engines::ConstBufferInfo& buffer,
     return buffer.size;
 }
 
+void oglEnable(GLenum cap, bool state) {
+    (state ? glEnable : glDisable)(cap);
+}
+
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
