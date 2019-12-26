@@ -359,8 +359,8 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
 }
 
-void RasterizerOpenGL::ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
-                                                 bool using_depth_fb, bool using_stencil_fb) {
+void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb,
+                                                 bool using_stencil_fb) {
     using VideoCore::Surface::SurfaceType;
 
     auto& gpu = system.GPU().Maxwell3D();
@@ -396,10 +396,6 @@ void RasterizerOpenGL::Clear() {
     bool use_depth{};
     bool use_stencil{};
 
-    OpenGLState prev_state{OpenGLState::GetCurState()};
-    SCOPE_EXIT({ prev_state.Apply(); });
-
-    OpenGLState clear_state{OpenGLState::GetCurState()};
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
         use_color = true;
@@ -430,7 +426,7 @@ void RasterizerOpenGL::Clear() {
         return;
     }
 
-    ConfigureClearFramebuffer(clear_state, use_color, use_depth, use_stencil);
+    ConfigureClearFramebuffer(use_color, use_depth, use_stencil);
 
     SyncRasterizeEnable();
     if (regs.clear_flags.scissor) {
@@ -443,8 +439,6 @@ void RasterizerOpenGL::Clear() {
     glDisablei(GL_BLEND, 0);
 
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
-
-    clear_state.Apply();
 
     if (use_color) {
         glClearBufferfv(GL_COLOR, 0, regs.clear_color);
@@ -548,7 +542,6 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     bind_ssbo_pushbuffer.Bind();
 
     program_manager.Update();
-    state.Apply();
 
     if (texture_cache.TextureBarrier()) {
         glTextureBarrier();

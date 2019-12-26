@@ -30,7 +30,6 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/textures/texture.h"
@@ -86,8 +85,7 @@ private:
     /// Configures the color and depth framebuffer states.
     void ConfigureFramebuffers();
 
-    void ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
-                                   bool using_depth_fb, bool using_stencil_fb);
+    void ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb, bool using_stencil_fb);
 
     /// Configures the current constbuffers to use for the draw command.
     void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
@@ -208,7 +206,6 @@ private:
     void SetupShaders(GLenum primitive_mode);
 
     const Device device;
-    OpenGLState state;
 
     TextureCacheOpenGL texture_cache;
     ShaderCacheOpenGL shader_cache;

@@ -13,7 +13,6 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 
 namespace OpenGL {
@@ -63,7 +62,6 @@ public:
 private:
     OGLFramebuffer CreateFramebuffer(const FramebufferCacheKey& key);
 
-    OpenGLState local_state;
     std::unordered_map<FramebufferCacheKey, OGLFramebuffer> cache;
 };
 

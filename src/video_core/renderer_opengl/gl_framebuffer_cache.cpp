@@ -11,7 +11,6 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
-#include "video_core/renderer_opengl/gl_state.h"
 
 namespace OpenGL {
 

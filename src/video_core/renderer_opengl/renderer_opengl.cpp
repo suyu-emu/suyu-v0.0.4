@@ -575,8 +575,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     };
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
-    state.Apply();
-
     // TODO: Signal state tracker about these changes
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);
@@ -616,9 +614,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    // Restore default state
-    state.Apply();
 }
 
 void RendererOpenGL::TryPresent(int timeout_ms) {
