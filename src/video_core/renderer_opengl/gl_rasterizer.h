@@ -167,7 +167,7 @@ private:
     void SyncMultiSampleState();
 
     /// Syncs the scissor test state to match the guest state
-    void SyncScissorTest(OpenGLState& current_state);
+    void SyncScissorTest();
 
     /// Syncs the transform feedback state to match the guest state
     void SyncTransformFeedback();

@@ -171,19 +171,6 @@ void OpenGLState::ApplyViewport() {
             current.depth_range_far = updated.depth_range_far;
             glDepthRangeIndexed(i, updated.depth_range_near, updated.depth_range_far);
         }
-
-        Enable(GL_SCISSOR_TEST, i, current.scissor.enabled, updated.scissor.enabled);
-
-        if (current.scissor.x != updated.scissor.x || current.scissor.y != updated.scissor.y ||
-            current.scissor.width != updated.scissor.width ||
-            current.scissor.height != updated.scissor.height) {
-            current.scissor.x = updated.scissor.x;
-            current.scissor.y = updated.scissor.y;
-            current.scissor.width = updated.scissor.width;
-            current.scissor.height = updated.scissor.height;
-            glScissorIndexed(i, updated.scissor.x, updated.scissor.y, updated.scissor.width,
-                             updated.scissor.height);
-        }
     }
 }
 
@@ -304,28 +291,6 @@ void OpenGLState::Apply() {
     ApplyImages();
     ApplyClipControl();
     ApplyRenderBuffer();
-}
-
-void OpenGLState::EmulateViewportWithScissor() {
-    auto& current = viewports[0];
-    if (current.scissor.enabled) {
-        const GLint left = std::max(current.x, current.scissor.x);
-        const GLint right =
-            std::max(current.x + current.width, current.scissor.x + current.scissor.width);
-        const GLint bottom = std::max(current.y, current.scissor.y);
-        const GLint top =
-            std::max(current.y + current.height, current.scissor.y + current.scissor.height);
-        current.scissor.x = std::max(left, 0);
-        current.scissor.y = std::max(bottom, 0);
-        current.scissor.width = std::max(right - left, 0);
-        current.scissor.height = std::max(top - bottom, 0);
-    } else {
-        current.scissor.enabled = true;
-        current.scissor.x = current.x;
-        current.scissor.y = current.y;
-        current.scissor.width = current.width;
-        current.scissor.height = current.height;
-    }
 }
 
 OpenGLState& OpenGLState::UnbindTexture(GLuint handle) {

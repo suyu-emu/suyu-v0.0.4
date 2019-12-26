@@ -63,13 +63,6 @@ public:
         GLint height = 0;
         GLfloat depth_range_near = 0.0f; // GL_DEPTH_RANGE
         GLfloat depth_range_far = 1.0f;  // GL_DEPTH_RANGE
-        struct {
-            bool enabled = false; // GL_SCISSOR_TEST
-            GLint x = 0;
-            GLint y = 0;
-            GLsizei width = 0;
-            GLsizei height = 0;
-        } scissor;
     };
     std::array<Viewport, Tegra::Engines::Maxwell3D::Regs::NumViewports> viewports;
 
@@ -116,9 +109,6 @@ public:
     OpenGLState& ResetPipeline(GLuint handle);
     OpenGLState& ResetFramebuffer(GLuint handle);
     OpenGLState& ResetRenderbuffer(GLuint handle);
-
-    /// Viewport does not affects glClearBuffer so emulate viewport using scissor test
-    void EmulateViewportWithScissor();
 
 private:
     static OpenGLState cur_state;

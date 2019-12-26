@@ -568,6 +568,7 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
     glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisablei(GL_SCISSOR_TEST, 0);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

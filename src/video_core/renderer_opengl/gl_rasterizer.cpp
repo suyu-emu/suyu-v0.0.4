@@ -467,12 +467,10 @@ void RasterizerOpenGL::Clear() {
     SyncViewport(clear_state);
     SyncRasterizeEnable(clear_state);
     if (regs.clear_flags.scissor) {
-        SyncScissorTest(clear_state);
+        SyncScissorTest();
     }
 
-    if (regs.clear_flags.viewport) {
-        clear_state.EmulateViewportWithScissor();
-    }
+    UNIMPLEMENTED_IF(regs.clear_flags.viewport);
 
     clear_state.Apply();
 
@@ -508,7 +506,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     SyncLogicOpState();
     SyncCullMode();
     SyncPrimitiveRestart();
-    SyncScissorTest(state);
+    SyncScissorTest();
     SyncTransformFeedback();
     SyncPointState();
     SyncPolygonOffset();
@@ -1140,25 +1138,13 @@ void RasterizerOpenGL::SyncLogicOpState() {
     }
 }
 
-void RasterizerOpenGL::SyncScissorTest(OpenGLState& current_state) {
+void RasterizerOpenGL::SyncScissorTest() {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    const bool geometry_shaders_enabled =
-        regs.IsShaderConfigEnabled(static_cast<size_t>(Maxwell::ShaderProgram::Geometry));
-    const std::size_t viewport_count =
-        geometry_shaders_enabled ? Tegra::Engines::Maxwell3D::Regs::NumViewports : 1;
-    for (std::size_t i = 0; i < viewport_count; i++) {
-        const auto& src = regs.scissor_test[i];
-        auto& dst = current_state.viewports[i].scissor;
-        dst.enabled = (src.enable != 0);
-        if (dst.enabled == 0) {
-            return;
-        }
-        const u32 width = src.max_x - src.min_x;
-        const u32 height = src.max_y - src.min_y;
-        dst.x = src.min_x;
-        dst.y = src.min_y;
-        dst.width = width;
-        dst.height = height;
+    for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
+        const auto& src = regs.scissor_test[index];
+        oglEnablei(GL_SCISSOR_TEST, src.enable, static_cast<GLuint>(index));
+        glScissorIndexed(static_cast<GLuint>(index), src.min_x, src.min_y, src.max_x - src.min_x,
+                         src.max_y - src.min_y);
     }
 }
 
