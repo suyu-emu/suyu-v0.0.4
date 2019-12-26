@@ -13,10 +13,7 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    static constexpr std::size_t NumSamplers = 32 * 5;
     static constexpr std::size_t NumImages = 8 * 5;
-    std::array<GLuint, NumSamplers> textures = {};
-    std::array<GLuint, NumSamplers> samplers = {};
     std::array<GLuint, NumImages> images = {};
 
     struct {
@@ -41,14 +38,10 @@ public:
     void ApplyFramebufferState();
     void ApplyShaderProgram();
     void ApplyProgramPipeline();
-    void ApplyTextures();
-    void ApplySamplers();
     void ApplyImages();
     void ApplyRenderBuffer();
 
     /// Resets any references to the given resource
-    OpenGLState& UnbindTexture(GLuint handle);
-    OpenGLState& ResetSampler(GLuint handle);
     OpenGLState& ResetProgram(GLuint handle);
     OpenGLState& ResetPipeline(GLuint handle);
     OpenGLState& ResetFramebuffer(GLuint handle);

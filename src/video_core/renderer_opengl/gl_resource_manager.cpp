@@ -47,7 +47,6 @@ void OGLTexture::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteTextures(1, &handle);
-    OpenGLState::GetCurState().UnbindTexture(handle).Apply();
     handle = 0;
 }
 
@@ -65,7 +64,6 @@ void OGLTextureView::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteTextures(1, &handle);
-    OpenGLState::GetCurState().UnbindTexture(handle).Apply();
     handle = 0;
 }
 
@@ -83,7 +81,6 @@ void OGLSampler::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteSamplers(1, &handle);
-    OpenGLState::GetCurState().ResetSampler(handle).Apply();
     handle = 0;
 }
 

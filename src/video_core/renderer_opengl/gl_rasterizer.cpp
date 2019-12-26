@@ -633,7 +633,6 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
-    state.ApplyTextures();
     state.ApplyImages();
     state.ApplyShaderProgram();
     state.ApplyProgramPipeline();
@@ -861,20 +860,20 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
     const auto view = texture_cache.GetTextureSurface(texture.tic, entry);
     if (!view) {
         // Can occur when texture addr is null or its memory is unmapped/invalid
-        state.samplers[binding] = 0;
-        state.textures[binding] = 0;
+        glBindSampler(binding, 0);
+        glBindTextureUnit(binding, 0);
         return;
     }
-    state.textures[binding] = view->GetTexture();
+    glBindTextureUnit(binding, view->GetTexture());
 
     if (view->GetSurfaceParams().IsBuffer()) {
         return;
     }
-    state.samplers[binding] = sampler_cache.GetSampler(texture.tsc);
-
     // Apply swizzle to textures that are not buffers.
     view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
                        texture.tic.w_source);
+
+    glBindSampler(binding, sampler_cache.GetSampler(texture.tsc));
 }
 
 void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader) {

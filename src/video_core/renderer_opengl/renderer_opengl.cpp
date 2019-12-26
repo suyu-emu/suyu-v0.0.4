@@ -566,7 +566,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     };
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
-    state.textures[0] = screen_info.display_texture;
     state.Apply();
 
     // TODO: Signal state tracker about these changes
@@ -598,11 +597,13 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glVertexAttribBinding(TexCoordLocation, 0);
     glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
 
+    glBindTextureUnit(0, screen_info.display_texture);
+    glBindSampler(0, 0);
+
     glClear(GL_COLOR_BUFFER_BIT);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
     // Restore default state
-    state.textures[0] = 0;
     state.Apply();
 }
 

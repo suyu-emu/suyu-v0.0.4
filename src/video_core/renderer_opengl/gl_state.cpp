@@ -113,28 +113,6 @@ void OpenGLState::ApplyRenderBuffer() {
     }
 }
 
-void OpenGLState::ApplyTextures() {
-    const std::size_t size = std::size(textures);
-    for (std::size_t i = 0; i < size; ++i) {
-        if (UpdateValue(cur_state.textures[i], textures[i])) {
-            // BindTextureUnit doesn't support binding null textures, skip those binds.
-            // TODO(Rodrigo): Stop using null textures
-            if (textures[i] != 0) {
-                glBindTextureUnit(static_cast<GLuint>(i), textures[i]);
-            }
-        }
-    }
-}
-
-void OpenGLState::ApplySamplers() {
-    const std::size_t size = std::size(samplers);
-    for (std::size_t i = 0; i < size; ++i) {
-        if (UpdateValue(cur_state.samplers[i], samplers[i])) {
-            glBindSampler(static_cast<GLuint>(i), samplers[i]);
-        }
-    }
-}
-
 void OpenGLState::ApplyImages() {
     if (const auto update = UpdateArray(cur_state.images, images)) {
         glBindImageTextures(update->first, update->second, images.data() + update->first);
@@ -146,28 +124,8 @@ void OpenGLState::Apply() {
     ApplyFramebufferState();
     ApplyShaderProgram();
     ApplyProgramPipeline();
-    ApplyTextures();
-    ApplySamplers();
     ApplyImages();
     ApplyRenderBuffer();
-}
-
-OpenGLState& OpenGLState::UnbindTexture(GLuint handle) {
-    for (auto& texture : textures) {
-        if (texture == handle) {
-            texture = 0;
-        }
-    }
-    return *this;
-}
-
-OpenGLState& OpenGLState::ResetSampler(GLuint handle) {
-    for (auto& sampler : samplers) {
-        if (sampler == handle) {
-            sampler = 0;
-        }
-    }
-    return *this;
 }
 
 OpenGLState& OpenGLState::ResetProgram(GLuint handle) {
