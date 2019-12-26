@@ -132,6 +132,9 @@ private:
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport(OpenGLState& current_state);
 
+    /// Syncs the depth clamp state
+    void SyncDepthClamp();
+
     /// Syncs the clip enabled status to match the guest state
     void SyncClipEnabled(
         const std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances>& clip_mask);

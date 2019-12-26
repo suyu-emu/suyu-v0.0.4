@@ -26,11 +26,6 @@ public:
         bool enabled = false; // GL_CLAMP_FRAGMENT_COLOR_ARB
     } fragment_color_clamp;
 
-    struct {
-        bool far_plane = false;
-        bool near_plane = false;
-    } depth_clamp; // GL_DEPTH_CLAMP
-
     bool rasterizer_discard = false; // GL_RASTERIZER_DISCARD
 
     struct ColorMask {
@@ -139,7 +134,6 @@ public:
     void ApplyTextures();
     void ApplySamplers();
     void ApplyImages();
-    void ApplyDepthClamp();
     void ApplyClipControl();
     void ApplyRenderBuffer();
 

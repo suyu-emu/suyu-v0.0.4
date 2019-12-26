@@ -87,9 +87,6 @@ OpenGLState::OpenGLState() = default;
 
 void OpenGLState::SetDefaultViewports() {
     viewports.fill(Viewport{});
-
-    depth_clamp.far_plane = false;
-    depth_clamp.near_plane = false;
 }
 
 void OpenGLState::ApplyFramebufferState() {
@@ -138,19 +135,6 @@ void OpenGLState::ApplyMultisample() {
            multisample_control.alpha_to_coverage);
     Enable(GL_SAMPLE_ALPHA_TO_ONE, cur_state.multisample_control.alpha_to_one,
            multisample_control.alpha_to_one);
-}
-
-void OpenGLState::ApplyDepthClamp() {
-    if (depth_clamp.far_plane == cur_state.depth_clamp.far_plane &&
-        depth_clamp.near_plane == cur_state.depth_clamp.near_plane) {
-        return;
-    }
-    cur_state.depth_clamp = depth_clamp;
-
-    UNIMPLEMENTED_IF_MSG(depth_clamp.far_plane != depth_clamp.near_plane,
-                         "Unimplemented Depth Clamp Separation!");
-
-    Enable(GL_DEPTH_CLAMP, depth_clamp.far_plane || depth_clamp.near_plane);
 }
 
 void OpenGLState::ApplySRgb() {
@@ -362,7 +346,6 @@ void OpenGLState::Apply() {
     ApplyMultisample();
     ApplyRasterizerDiscard();
     ApplyColorMask();
-    ApplyDepthClamp();
     ApplyViewport();
     ApplyStencilTest();
     ApplySRgb();

@@ -977,8 +977,6 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
         viewport.depth_range_far = src.depth_range_far;
         viewport.depth_range_near = src.depth_range_near;
     }
-    state.depth_clamp.far_plane = regs.view_volume_clip_control.depth_clamp_far != 0;
-    state.depth_clamp.near_plane = regs.view_volume_clip_control.depth_clamp_near != 0;
 
     bool flip_y = false;
     if (regs.viewport_transform[0].scale_y < 0.0) {
@@ -992,6 +990,16 @@ void RasterizerOpenGL::SyncViewport(OpenGLState& current_state) {
         regs.depth_mode == Tegra::Engines::Maxwell3D::Regs::DepthMode::ZeroToOne
             ? GL_ZERO_TO_ONE
             : GL_NEGATIVE_ONE_TO_ONE;
+}
+
+void RasterizerOpenGL::SyncDepthClamp() {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& state = regs.view_volume_clip_control;
+
+    UNIMPLEMENTED_IF_MSG(state.depth_clamp_far != state.depth_clamp_near,
+                         "Unimplemented Depth clamp separation!");
+
+    oglEnable(GL_DEPTH_CLAMP, state.depth_clamp_far || state.depth_clamp_near);
 }
 
 void RasterizerOpenGL::SyncClipEnabled(
