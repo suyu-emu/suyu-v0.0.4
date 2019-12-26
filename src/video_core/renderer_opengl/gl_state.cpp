@@ -85,36 +85,6 @@ void Enable(GLenum cap, GLuint index, bool& current_value, bool new_value) {
 
 OpenGLState::OpenGLState() = default;
 
-void OpenGLState::ApplyShaderProgram() {
-    if (UpdateValue(cur_state.draw.shader_program, draw.shader_program)) {
-        glUseProgram(draw.shader_program);
-    }
-}
-
-void OpenGLState::ApplyProgramPipeline() {
-    if (UpdateValue(cur_state.draw.program_pipeline, draw.program_pipeline)) {
-        glBindProgramPipeline(draw.program_pipeline);
-    }
-}
-
-void OpenGLState::Apply() {
-    MICROPROFILE_SCOPE(OpenGL_State);
-    ApplyShaderProgram();
-    ApplyProgramPipeline();
-}
-
-OpenGLState& OpenGLState::ResetProgram(GLuint handle) {
-    if (draw.shader_program == handle) {
-        draw.shader_program = 0;
-    }
-    return *this;
-}
-
-OpenGLState& OpenGLState::ResetPipeline(GLuint handle) {
-    if (draw.program_pipeline == handle) {
-        draw.program_pipeline = 0;
-    }
-    return *this;
-}
+void OpenGLState::Apply() {}
 
 } // namespace OpenGL

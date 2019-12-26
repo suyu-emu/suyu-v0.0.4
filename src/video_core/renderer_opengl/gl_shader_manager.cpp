@@ -10,27 +10,21 @@ namespace OpenGL::GLShader {
 
 using Tegra::Engines::Maxwell3D;
 
-ProgramManager::ProgramManager() {
+ProgramManager::~ProgramManager() = default;
+
+void ProgramManager::Create() {
     pipeline.Create();
 }
 
-ProgramManager::~ProgramManager() = default;
-
-void ProgramManager::ApplyTo(OpenGLState& state) {
-    UpdatePipeline();
-    state.draw.shader_program = 0;
-    state.draw.program_pipeline = pipeline.handle;
-}
-
-void ProgramManager::UpdatePipeline() {
+void ProgramManager::Update() {
     // Avoid updating the pipeline when values have no changed
     if (old_state == current_state) {
         return;
     }
 
     // Workaround for AMD bug
-    constexpr GLenum all_used_stages{GL_VERTEX_SHADER_BIT | GL_GEOMETRY_SHADER_BIT |
-                                     GL_FRAGMENT_SHADER_BIT};
+    static constexpr GLenum all_used_stages{GL_VERTEX_SHADER_BIT | GL_GEOMETRY_SHADER_BIT |
+                                            GL_FRAGMENT_SHADER_BIT};
     glUseProgramStages(pipeline.handle, all_used_stages, 0);
 
     glUseProgramStages(pipeline.handle, GL_VERTEX_SHADER_BIT, current_state.vertex_shader);

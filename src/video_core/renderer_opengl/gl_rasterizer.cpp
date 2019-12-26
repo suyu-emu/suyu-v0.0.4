@@ -99,14 +99,11 @@ void oglEnablei(GLenum cap, bool state, GLuint index) {
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                                   ScreenInfo& info)
+                                   ScreenInfo& info, GLShader::ProgramManager& program_manager)
     : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device},
       shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
-      screen_info{info}, buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
-    shader_program_manager = std::make_unique<GLShader::ProgramManager>();
-    state.draw.shader_program = 0;
-    state.Apply();
-
+      screen_info{info}, program_manager{program_manager}, buffer_cache{*this, system, device,
+                                                                        STREAM_BUFFER_SIZE} {
     CheckExtensions();
 }
 
@@ -228,10 +225,10 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         if (!gpu.regs.IsShaderConfigEnabled(index)) {
             switch (program) {
             case Maxwell::ShaderProgram::Geometry:
-                shader_program_manager->UseTrivialGeometryShader();
+                program_manager.UseGeometryShader(0);
                 break;
             case Maxwell::ShaderProgram::Fragment:
-                shader_program_manager->UseTrivialFragmentShader();
+                program_manager.UseFragmentShader(0);
                 break;
             default:
                 break;
@@ -262,13 +259,13 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         switch (program) {
         case Maxwell::ShaderProgram::VertexA:
         case Maxwell::ShaderProgram::VertexB:
-            shader_program_manager->UseProgrammableVertexShader(program_handle);
+            program_manager.UseVertexShader(program_handle);
             break;
         case Maxwell::ShaderProgram::Geometry:
-            shader_program_manager->UseProgrammableGeometryShader(program_handle);
+            program_manager.UseGeometryShader(program_handle);
             break;
         case Maxwell::ShaderProgram::Fragment:
-            shader_program_manager->UseProgrammableFragmentShader(program_handle);
+            program_manager.UseFragmentShader(program_handle);
             break;
         default:
             UNIMPLEMENTED_MSG("Unimplemented shader index={}, enable={}, offset=0x{:08X}", index,
@@ -550,7 +547,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
-    shader_program_manager->ApplyTo(state);
+    program_manager.Update();
     state.Apply();
 
     if (texture_cache.TextureBarrier()) {
@@ -613,8 +610,8 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     const ProgramVariant variant(launch_desc.block_dim_x, launch_desc.block_dim_y,
                                  launch_desc.block_dim_z, launch_desc.shared_alloc,
                                  launch_desc.local_pos_alloc);
-    state.draw.shader_program = kernel->GetHandle(variant);
-    state.draw.program_pipeline = 0;
+    glUseProgramStages(program_manager.GetHandle(), GL_COMPUTE_SHADER_BIT,
+                       kernel->GetHandle(variant));
 
     const std::size_t buffer_size =
         Tegra::Engines::KeplerCompute::NumConstBuffers *
@@ -631,9 +628,6 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
 
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
-
-    state.ApplyShaderProgram();
-    state.ApplyProgramPipeline();
 
     glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
     ++num_queued_commands;

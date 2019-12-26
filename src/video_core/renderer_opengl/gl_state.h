@@ -13,11 +13,6 @@ namespace OpenGL {
 
 class OpenGLState {
 public:
-    struct {
-        GLuint shader_program = 0;   // GL_CURRENT_PROGRAM
-        GLuint program_pipeline = 0; // GL_PROGRAM_PIPELINE_BINDING
-    } draw;
-
     OpenGLState();
 
     /// Get the currently active OpenGL state
@@ -27,13 +22,6 @@ public:
 
     /// Apply this state as the current OpenGL state
     void Apply();
-
-    void ApplyShaderProgram();
-    void ApplyProgramPipeline();
-
-    /// Resets any references to the given resource
-    OpenGLState& ResetProgram(GLuint handle);
-    OpenGLState& ResetPipeline(GLuint handle);
 
 private:
     static OpenGLState cur_state;

@@ -10,6 +10,7 @@
 #include "common/math_util.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state.h"
 
 namespace Core {
@@ -95,11 +96,15 @@ private:
 
     // OpenGL object IDs
     OGLBuffer vertex_buffer;
-    OGLProgram shader;
+    OGLProgram vertex_program;
+    OGLProgram fragment_program;
     OGLFramebuffer screenshot_framebuffer;
 
     /// Display information for Switch screen
     ScreenInfo screen_info;
+
+    /// Global dummy shader pipeline
+    GLShader::ProgramManager program_manager;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

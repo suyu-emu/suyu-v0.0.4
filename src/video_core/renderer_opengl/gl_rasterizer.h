@@ -55,7 +55,7 @@ struct DrawParameters;
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                              ScreenInfo& info);
+                              ScreenInfo& info, GLShader::ProgramManager& program_manager);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -218,8 +218,7 @@ private:
 
     Core::System& system;
     ScreenInfo& screen_info;
-
-    std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
+    GLShader::ProgramManager& program_manager;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;

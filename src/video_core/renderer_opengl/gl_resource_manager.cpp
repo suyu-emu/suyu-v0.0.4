@@ -123,7 +123,6 @@ void OGLProgram::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteProgram(handle);
-    OpenGLState::GetCurState().ResetProgram(handle).Apply();
     handle = 0;
 }
 
@@ -141,7 +140,6 @@ void OGLPipeline::Release() {
 
     MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
     glDeleteProgramPipelines(1, &handle);
-    OpenGLState::GetCurState().ResetPipeline(handle).Apply();
     handle = 0;
 }
 

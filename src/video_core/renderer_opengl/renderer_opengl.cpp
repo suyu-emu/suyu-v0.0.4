@@ -20,6 +20,7 @@
 #include "core/telemetry_session.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
+#include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 
 namespace OpenGL {
@@ -158,8 +159,12 @@ public:
 
 namespace {
 
-constexpr char vertex_shader[] = R"(
+constexpr char VERTEX_SHADER[] = R"(
 #version 430 core
+
+out gl_PerVertex {
+    vec4 gl_Position;
+};
 
 layout (location = 0) in vec2 vert_position;
 layout (location = 1) in vec2 vert_tex_coord;
@@ -181,7 +186,7 @@ void main() {
 }
 )";
 
-constexpr char fragment_shader[] = R"(
+constexpr char FRAGMENT_SHADER[] = R"(
 #version 430 core
 
 layout (location = 0) in vec2 frag_tex_coord;
@@ -426,10 +431,19 @@ void RendererOpenGL::InitOpenGLObjects() {
     glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
                  0.0f);
 
-    // Link shaders and get variable locations
-    shader.CreateFromSource(vertex_shader, nullptr, fragment_shader);
-    state.draw.shader_program = shader.handle;
-    state.Apply();
+    // Create shader programs
+    OGLShader vertex_shader;
+    vertex_shader.Create(VERTEX_SHADER, GL_VERTEX_SHADER);
+
+    OGLShader fragment_shader;
+    fragment_shader.Create(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
+
+    vertex_program.Create(true, false, vertex_shader.handle);
+    fragment_program.Create(true, false, fragment_shader.handle);
+
+    // Create program pipeline
+    program_manager.Create();
+    glBindProgramPipeline(program_manager.GetHandle());
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
@@ -468,7 +482,8 @@ void RendererOpenGL::CreateRasterizer() {
     if (rasterizer) {
         return;
     }
-    rasterizer = std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info);
+    rasterizer =
+        std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info, program_manager);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -517,7 +532,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     // Set projection matrix
     const std::array ortho_matrix =
         MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
-    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
+    glProgramUniformMatrix3x2fv(vertex_program.handle, ModelViewMatrixLocation, 1, GL_FALSE,
+                                std::data(ortho_matrix));
 
     const auto& texcoords = screen_info.display_texcoords;
     auto left = texcoords.left;
@@ -562,6 +578,11 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     state.Apply();
 
     // TODO: Signal state tracker about these changes
+    program_manager.UseVertexShader(vertex_program.handle);
+    program_manager.UseGeometryShader(0);
+    program_manager.UseFragmentShader(fragment_program.handle);
+    program_manager.Update();
+
     glEnable(GL_CULL_FACE);
     if (screen_info.display_srgb) {
         glEnable(GL_FRAMEBUFFER_SRGB);
