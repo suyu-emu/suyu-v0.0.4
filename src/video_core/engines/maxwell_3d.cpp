@@ -26,6 +26,8 @@ Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& raste
                      MemoryManager& memory_manager)
     : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
       macro_interpreter{*this}, upload_state{memory_manager, regs.upload} {
+    dirty.flags.flip();
+
     InitializeRegisterDefaults();
 }
 
@@ -158,7 +160,13 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid Maxwell3D register, increase the size of the Regs structure");
 
-    regs.reg_array[method] = method_call.argument;
+    if (regs.reg_array[method] != method_call.argument) {
+        regs.reg_array[method] = method_call.argument;
+
+        for (const auto& table : dirty.tables) {
+            dirty.flags[table[method]] = true;
+        }
+    }
 
     switch (method) {
     case MAXWELL3D_REG_INDEX(macros.data): {
@@ -243,6 +251,9 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     case MAXWELL3D_REG_INDEX(data_upload): {
         const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(method_call.argument, is_last_call);
+        if (is_last_call) {
+            OnMemoryWrite();
+        }
         break;
     }
     default:
@@ -549,6 +560,7 @@ void Maxwell3D::FinishCBData() {
 
     const u32 id = cb_data_state.id;
     memory_manager.WriteBlock(address, cb_data_state.buffer[id].data(), size);
+    OnMemoryWrite();
 
     cb_data_state.id = null_cb_data;
     cb_data_state.current = null_cb_data;

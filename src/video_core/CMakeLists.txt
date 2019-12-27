@@ -2,6 +2,7 @@ add_library(video_core STATIC
     buffer_cache/buffer_block.h
     buffer_cache/buffer_cache.h
     buffer_cache/map_interval.h
+    dirty_flags.h
     dma_pusher.cpp
     dma_pusher.h
     engines/const_buffer_engine_interface.h

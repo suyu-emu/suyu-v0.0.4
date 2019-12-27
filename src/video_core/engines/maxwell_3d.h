@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <limits>
 #include <optional>
 #include <type_traits>
 #include <unordered_map>
@@ -1274,6 +1275,13 @@ public:
         return execute_on;
     }
 
+    /// Notify a memory write has happened.
+    void OnMemoryWrite() {
+        for (const u8 store : dirty.on_write_stores) {
+            dirty.flags[store] = true;
+        }
+    }
+
     enum class MMEDrawMode : u32 {
         Undefined,
         Array,
@@ -1288,6 +1296,12 @@ public:
         bool gl_begin_consume{};
         u32 gl_end_count{};
     } mme_draw;
+
+    struct {
+        std::bitset<std::numeric_limits<u8>::max()> flags;
+        std::array<std::array<u8, Regs::NUM_REGS>, 3> tables{};
+        std::array<u8, 32> on_write_stores{};
+    } dirty;
 
 private:
     void InitializeRegisterDefaults();

@@ -89,6 +89,9 @@ public:
     virtual void LoadDiskResources(const std::atomic_bool& stop_loading = false,
                                    const DiskResourceLoadCallback& callback = {}) {}
 
+    /// Initializes renderer dirty flags
+    virtual void SetupDirtyFlags() {}
+
     /// Grant access to the Guest Driver Profile for recording/obtaining info on the guest driver.
     GuestDriverProfile& AccessGuestDriverProfile() {
         return guest_driver_profile;

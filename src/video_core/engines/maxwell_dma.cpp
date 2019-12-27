@@ -56,6 +56,9 @@ void MaxwellDMA::HandleCopy() {
         return;
     }
 
+    // All copies here update the main memory, so mark all rasterizer states as invalid.
+    system.GPU().Maxwell3D().OnMemoryWrite();
+
     if (regs.exec.is_dst_linear && regs.exec.is_src_linear) {
         // When the enable_2d bit is disabled, the copy is performed as if we were copying a 1D
         // buffer of length `x_count`, otherwise we copy a 2D image of dimensions (x_count,

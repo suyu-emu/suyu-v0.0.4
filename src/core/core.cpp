@@ -174,6 +174,7 @@ struct System::Impl {
         }
         interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
         gpu_core = VideoCore::CreateGPU(system);
+        renderer->Rasterizer().SetupDirtyFlags();
 
         is_powered_on = true;
         exit_lock = false;
