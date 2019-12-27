@@ -1239,7 +1239,7 @@ union Instruction {
         BitField<35, 1, u64> ndv_flag;
         BitField<49, 1, u64> nodep_flag;
         BitField<50, 1, u64> dc_flag;
-        BitField<54, 2, u64> info;
+        BitField<54, 2, u64> offset_mode;
         BitField<56, 2, u64> component;
 
         bool UsesMiscMode(TextureMiscMode mode) const {
@@ -1251,9 +1251,9 @@ union Instruction {
             case TextureMiscMode::DC:
                 return dc_flag != 0;
             case TextureMiscMode::AOFFI:
-                return info == 1;
+                return offset_mode == 1;
             case TextureMiscMode::PTP:
-                return info == 2;
+                return offset_mode == 2;
             default:
                 break;
             }
@@ -1265,7 +1265,7 @@ union Instruction {
         BitField<35, 1, u64> ndv_flag;
         BitField<49, 1, u64> nodep_flag;
         BitField<50, 1, u64> dc_flag;
-        BitField<33, 2, u64> info;
+        BitField<33, 2, u64> offset_mode;
         BitField<37, 2, u64> component;
 
         bool UsesMiscMode(TextureMiscMode mode) const {
@@ -1277,9 +1277,9 @@ union Instruction {
             case TextureMiscMode::DC:
                 return dc_flag != 0;
             case TextureMiscMode::AOFFI:
-                return info == 1;
+                return offset_mode == 1;
             case TextureMiscMode::PTP:
-                return info == 2;
+                return offset_mode == 2;
             default:
                 break;
             }

@@ -48,10 +48,10 @@ class ExprDecompiler;
 
 enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
-struct TextureAoffi {};
+struct TextureOffset {};
 struct TextureDerivates {};
 using TextureArgument = std::pair<Type, Node>;
-using TextureIR = std::variant<TextureAoffi, TextureDerivates, TextureArgument>;
+using TextureIR = std::variant<TextureOffset, TextureDerivates, TextureArgument>;
 
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(Maxwell::MaxConstBufferSize) / (4 * sizeof(float));
@@ -1077,7 +1077,7 @@ private:
     }
 
     std::string GenerateTexture(Operation operation, const std::string& function_suffix,
-                                const std::vector<TextureIR>& extras, bool sepparate_dc = false) {
+                                const std::vector<TextureIR>& extras, bool separate_dc = false) {
         constexpr std::array coord_constructors = {"float", "vec2", "vec3", "vec4"};
 
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
@@ -1090,10 +1090,12 @@ private:
         std::string expr = "texture" + function_suffix;
         if (!meta->aoffi.empty()) {
             expr += "Offset";
+        } else if (!meta->ptp.empty()) {
+            expr += "Offsets";
         }
         expr += '(' + GetSampler(meta->sampler) + ", ";
         expr += coord_constructors.at(count + (has_array ? 1 : 0) +
-                                      (has_shadow && !sepparate_dc ? 1 : 0) - 1);
+                                      (has_shadow && !separate_dc ? 1 : 0) - 1);
         expr += '(';
         for (std::size_t i = 0; i < count; ++i) {
             expr += Visit(operation[i]).AsFloat();
@@ -1106,7 +1108,7 @@ private:
             expr += ", float(" + Visit(meta->array).AsInt() + ')';
         }
         if (has_shadow) {
-            if (sepparate_dc) {
+            if (separate_dc) {
                 expr += "), " + Visit(meta->depth_compare).AsFloat();
             } else {
                 expr += ", " + Visit(meta->depth_compare).AsFloat() + ')';
@@ -1118,8 +1120,12 @@ private:
         for (const auto& variant : extras) {
             if (const auto argument = std::get_if<TextureArgument>(&variant)) {
                 expr += GenerateTextureArgument(*argument);
-            } else if (std::holds_alternative<TextureAoffi>(variant)) {
-                expr += GenerateTextureAoffi(meta->aoffi);
+            } else if (std::holds_alternative<TextureOffset>(variant)) {
+                if (!meta->aoffi.empty()) {
+                    expr += GenerateTextureAoffi(meta->aoffi);
+                } else if (!meta->ptp.empty()) {
+                    expr += GenerateTexturePtp(meta->ptp);
+                }
             } else if (std::holds_alternative<TextureDerivates>(variant)) {
                 expr += GenerateTextureDerivates(meta->derivates);
             } else {
@@ -1160,6 +1166,20 @@ private:
         return expr;
     }
 
+    std::string ReadTextureOffset(const Node& value) {
+        if (const auto immediate = std::get_if<ImmediateNode>(&*value)) {
+            // Inline the string as an immediate integer in GLSL (AOFFI arguments are required
+            // to be constant by the standard).
+            return std::to_string(static_cast<s32>(immediate->GetValue()));
+        } else if (device.HasVariableAoffi()) {
+            // Avoid using variable AOFFI on unsupported devices.
+            return Visit(value).AsInt();
+        } else {
+            // Insert 0 on devices not supporting variable AOFFI.
+            return "0";
+        }
+    }
+
     std::string GenerateTextureAoffi(const std::vector<Node>& aoffi) {
         if (aoffi.empty()) {
             return {};
@@ -1170,24 +1190,27 @@ private:
         expr += '(';
 
         for (std::size_t index = 0; index < aoffi.size(); ++index) {
-            const auto operand{aoffi.at(index)};
-            if (const auto immediate = std::get_if<ImmediateNode>(&*operand)) {
-                // Inline the string as an immediate integer in GLSL (AOFFI arguments are required
-                // to be constant by the standard).
-                expr += std::to_string(static_cast<s32>(immediate->GetValue()));
-            } else if (device.HasVariableAoffi()) {
-                // Avoid using variable AOFFI on unsupported devices.
-                expr += Visit(operand).AsInt();
-            } else {
-                // Insert 0 on devices not supporting variable AOFFI.
-                expr += '0';
-            }
+            expr += ReadTextureOffset(aoffi.at(index));
             if (index + 1 < aoffi.size()) {
                 expr += ", ";
             }
         }
         expr += ')';
 
+        return expr;
+    }
+
+    std::string GenerateTexturePtp(const std::vector<Node>& ptp) {
+        static constexpr std::size_t num_vectors = 4;
+        ASSERT(ptp.size() == num_vectors * 2);
+
+        std::string expr = ", ivec2[](";
+        for (std::size_t vector = 0; vector < num_vectors; ++vector) {
+            const bool has_next = vector + 1 < num_vectors;
+            expr += fmt::format("ivec2({}, {}){}", ReadTextureOffset(ptp.at(vector * 2)),
+                                ReadTextureOffset(ptp.at(vector * 2 + 1)), has_next ? ", " : "");
+        }
+        expr += ')';
         return expr;
     }
 
@@ -1689,7 +1712,7 @@ private:
         ASSERT(meta);
 
         std::string expr = GenerateTexture(
-            operation, "", {TextureAoffi{}, TextureArgument{Type::Float, meta->bias}});
+            operation, "", {TextureOffset{}, TextureArgument{Type::Float, meta->bias}});
         if (meta->sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
@@ -1701,7 +1724,7 @@ private:
         ASSERT(meta);
 
         std::string expr = GenerateTexture(
-            operation, "Lod", {TextureArgument{Type::Float, meta->lod}, TextureAoffi{}});
+            operation, "Lod", {TextureArgument{Type::Float, meta->lod}, TextureOffset{}});
         if (meta->sampler.IsShadow()) {
             expr = "vec4(" + expr + ')';
         }
@@ -1709,21 +1732,19 @@ private:
     }
 
     Expression TextureGather(Operation operation) {
-        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
-        ASSERT(meta);
+        const auto& meta = std::get<MetaTexture>(operation.GetMeta());
 
-        const auto type = meta->sampler.IsShadow() ? Type::Float : Type::Int;
-        if (meta->sampler.IsShadow()) {
-            return {GenerateTexture(operation, "Gather", {TextureAoffi{}}, true) +
-                        GetSwizzle(meta->element),
-                    Type::Float};
+        const auto type = meta.sampler.IsShadow() ? Type::Float : Type::Int;
+        const bool separate_dc = meta.sampler.IsShadow();
+
+        std::vector<TextureIR> ir;
+        if (meta.sampler.IsShadow()) {
+            ir = {TextureOffset{}};
         } else {
-            return {GenerateTexture(operation, "Gather",
-                                    {TextureAoffi{}, TextureArgument{type, meta->component}},
-                                    false) +
-                        GetSwizzle(meta->element),
-                    Type::Float};
+            ir = {TextureOffset{}, TextureArgument{type, meta.component}};
         }
+        return {GenerateTexture(operation, "Gather", ir, separate_dc) + GetSwizzle(meta.element),
+                Type::Float};
     }
 
     Expression TextureQueryDimensions(Operation operation) {
@@ -1794,7 +1815,8 @@ private:
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
-        std::string expr = GenerateTexture(operation, "Grad", {TextureDerivates{}, TextureAoffi{}});
+        std::string expr =
+            GenerateTexture(operation, "Grad", {TextureDerivates{}, TextureOffset{}});
         return {std::move(expr) + GetSwizzle(meta->element), Type::Float};
     }
 
