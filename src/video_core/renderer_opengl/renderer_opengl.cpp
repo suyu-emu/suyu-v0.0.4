@@ -582,6 +582,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     state_tracker.NotifyColorMask0();
     state_tracker.NotifyBlend0();
     state_tracker.NotifyFramebuffer();
+    state_tracker.NotifyFrontFace();
+    state_tracker.NotifyCullTest();
 
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);

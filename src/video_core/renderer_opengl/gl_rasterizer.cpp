@@ -995,12 +995,25 @@ void RasterizerOpenGL::SyncClipCoef() {
 }
 
 void RasterizerOpenGL::SyncCullMode() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    const auto& regs = gpu.regs;
 
-    oglEnable(GL_CULL_FACE, regs.cull_test_enabled);
-    glCullFace(MaxwellToGL::CullFace(regs.cull_face));
+    if (flags[Dirty::CullTest]) {
+        flags[Dirty::CullTest] = false;
 
-    glFrontFace(MaxwellToGL::FrontFace(regs.front_face));
+        if (regs.cull_test_enabled) {
+            glEnable(GL_CULL_FACE);
+            glCullFace(MaxwellToGL::CullFace(regs.cull_face));
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+    }
+
+    if (flags[Dirty::FrontFace]) {
+        flags[Dirty::FrontFace] = false;
+        glFrontFace(MaxwellToGL::FrontFace(regs.front_face));
+    }
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {

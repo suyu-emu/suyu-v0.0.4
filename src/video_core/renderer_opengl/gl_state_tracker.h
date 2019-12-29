@@ -56,9 +56,8 @@ enum : u8 {
     Shaders,
     ClipDistances,
 
-    CullTestEnable,
     FrontFace,
-    CullFace,
+    CullTest,
     PrimitiveRestart,
     DepthTest,
     StencilTest,
@@ -118,6 +117,16 @@ public:
     void NotifyFramebuffer() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[VideoCommon::Dirty::RenderTargets] = true;
+    }
+
+    void NotifyFrontFace() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::FrontFace] = true;
+    }
+
+    void NotifyCullTest() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::CullTest] = true;
     }
 
 private:

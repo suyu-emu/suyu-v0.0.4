@@ -145,7 +145,14 @@ void SetupDirtyBlend(Tables& tables) {
 }
 
 void SetupDirtyMisc(Tables& tables) {
-    tables[0][OFF(clip_distance_enabled)] = ClipDistances;
+    auto& table = tables[0];
+
+    table[OFF(clip_distance_enabled)] = ClipDistances;
+
+    table[OFF(front_face)] = FrontFace;
+
+    table[OFF(cull_test_enabled)] = CullTest;
+    table[OFF(cull_face)] = CullTest;
 }
 
 } // Anonymous namespace
