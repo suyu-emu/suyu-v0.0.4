@@ -120,7 +120,11 @@ void RasterizerOpenGL::CheckExtensions() {
 
 void RasterizerOpenGL::SetupVertexFormat() {
     auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::VertexFormats]) {
+        return;
+    }
+    flags[Dirty::VertexFormats] = false;
 
     MICROPROFILE_SCOPE(OpenGL_VAO);
 
@@ -130,25 +134,31 @@ void RasterizerOpenGL::SetupVertexFormat() {
     // avoid OpenGL errors.
     // TODO(Subv): Analyze the shader to identify which attributes are actually used and don't
     // assume every shader uses them all.
-    for (u32 index = 0; index < 16; ++index) {
-        const auto& attrib = regs.vertex_attrib_format[index];
+    for (std::size_t index = 0; index < 16; ++index) {
+        if (!flags[Dirty::VertexFormat0 + index]) {
+            continue;
+        }
+        flags[Dirty::VertexFormat0 + index] = false;
+
+        const auto attrib = gpu.regs.vertex_attrib_format[index];
+        const auto gl_index = static_cast<GLuint>(index);
 
         // Ignore invalid attributes.
         if (!attrib.IsValid()) {
-            glDisableVertexAttribArray(index);
+            glDisableVertexAttribArray(gl_index);
             continue;
         }
-        glEnableVertexAttribArray(index);
+        glEnableVertexAttribArray(gl_index);
 
         if (attrib.type == Maxwell::VertexAttribute::Type::SignedInt ||
             attrib.type == Maxwell::VertexAttribute::Type::UnsignedInt) {
-            glVertexAttribIFormat(index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
-                                  attrib.offset);
+            glVertexAttribIFormat(gl_index, attrib.ComponentCount(),
+                                  MaxwellToGL::VertexType(attrib), attrib.offset);
         } else {
-            glVertexAttribFormat(index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
+            glVertexAttribFormat(gl_index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
                                  attrib.IsNormalized() ? GL_TRUE : GL_FALSE, attrib.offset);
         }
-        glVertexAttribBinding(index, attrib.buffer);
+        glVertexAttribBinding(gl_index, attrib.buffer);
     }
 }
 

@@ -576,6 +576,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
     // TODO: Signal state tracker about these changes
+    state_tracker.NotifyScreenDrawVertexArray();
     state_tracker.NotifyViewport0();
     state_tracker.NotifyScissor0();
     state_tracker.NotifyColorMask0();
@@ -608,6 +609,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
                        static_cast<GLfloat>(layout.height));
     glDepthRangeIndexed(0, 0.0, 0.0);
 
+    glEnableVertexAttribArray(PositionLocation);
+    glEnableVertexAttribArray(TexCoordLocation);
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
                          offsetof(ScreenRectVertex, position));
     glVertexAttribFormat(TexCoordLocation, 2, GL_FLOAT, GL_FALSE,

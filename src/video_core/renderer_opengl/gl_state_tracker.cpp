@@ -71,6 +71,15 @@ void SetupDirtyColorMasks(Tables& tables) {
     FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMasks);
 }
 
+void SetupDirtyVertexFormat(Tables& tables) {
+    for (std::size_t i = 0; i < Regs::NumVertexAttributes; ++i) {
+        const std::size_t offset = OFF(vertex_attrib_format) + i * NUM(vertex_attrib_format[0]);
+        FillBlock(tables[0], offset, NUM(vertex_attrib_format[0]), VertexFormat0 + i);
+    }
+
+    FillBlock(tables[1], OFF(vertex_attrib_format), Regs::NumVertexAttributes, VertexFormats);
+}
+
 void SetupDirtyViewports(Tables& tables) {
     for (std::size_t i = 0; i < Regs::NumViewports; ++i) {
         const std::size_t transf_offset = OFF(viewport_transform) + i * NUM(viewport_transform[0]);
@@ -117,6 +126,7 @@ void StateTracker::Initialize() {
     SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
+    SetupDirtyVertexFormat(tables);
 }
 
 } // namespace OpenGL

@@ -20,6 +20,8 @@ enum : u8 {
     First = VideoCommon::Dirty::LastCommonEntry,
 
     VertexFormats,
+    VertexFormat0,
+    VertexFormat31 = VertexFormat0 + 31,
 
     VertexBuffers,
     VertexBuffer0,
@@ -65,6 +67,16 @@ public:
     explicit StateTracker(Core::System& system);
 
     void Initialize();
+
+    void NotifyScreenDrawVertexArray() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::VertexFormats] = true;
+        flags[OpenGL::Dirty::VertexFormat0 + 0] = true;
+        flags[OpenGL::Dirty::VertexFormat0 + 1] = true;
+
+        flags[OpenGL::Dirty::VertexBuffers] = true;
+        flags[OpenGL::Dirty::VertexBuffer0] = true;
+    }
 
     void NotifyViewport0() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
