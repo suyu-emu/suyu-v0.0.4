@@ -23,6 +23,7 @@ enum : u8 {
     VertexInstances,
     Shaders,
     Viewports,
+    ViewportTransform,
     CullTestEnable,
     FrontFace,
     CullFace,
@@ -33,7 +34,8 @@ enum : u8 {
     BlendState,
     PolygonOffset,
 
-    VertexBuffer0 = PolygonOffset + 8,
+    Viewport0,
+    VertexBuffer0 = Viewport0 + 16,
     VertexInstance0 = VertexBuffer0 + 32,
 };
 }
@@ -43,6 +45,12 @@ public:
     explicit StateTracker(Core::System& system);
 
     void Initialize();
+
+    void NotifyViewport0() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::Viewports] = true;
+        flags[OpenGL::Dirty::Viewport0] = true;
+    }
 
     void NotifyFramebuffer() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;

@@ -906,13 +906,30 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
 }
 
 void RasterizerOpenGL::SyncViewport() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    for (std::size_t i = 0; i < Maxwell::NumViewports; ++i) {
-        const auto& src = regs.viewports[i];
-        const Common::Rectangle<f32> rect{regs.viewport_transform[i].GetRect()};
-        glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom, rect.GetWidth(),
-                           rect.GetHeight());
-        glDepthRangef(src.depth_range_near, src.depth_range_far);
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    const auto& regs = gpu.regs;
+
+    if (flags[Dirty::Viewports]) {
+        flags[Dirty::Viewports] = false;
+
+        const bool force = flags[Dirty::ViewportTransform];
+        flags[Dirty::ViewportTransform] = false;
+
+        for (std::size_t i = 0; i < Maxwell::NumViewports; ++i) {
+            if (!force && !flags[Dirty::Viewport0 + i]) {
+                continue;
+            }
+            flags[Dirty::Viewport0 + i] = false;
+
+            const Common::Rectangle<f32> rect{regs.viewport_transform[i].GetRect()};
+            glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom, rect.GetWidth(),
+                               rect.GetHeight());
+
+            const auto& src = regs.viewports[i];
+            glDepthRangeIndexed(static_cast<GLuint>(i), static_cast<GLdouble>(src.depth_range_near),
+                                static_cast<GLdouble>(src.depth_range_far));
+        }
     }
 
     bool flip_y = false;

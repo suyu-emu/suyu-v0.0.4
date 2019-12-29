@@ -61,6 +61,22 @@ void SetupDirtyRenderTargets(Tables& tables) {
     }
 }
 
+void SetupDirtyViewports(Tables& tables) {
+    for (std::size_t i = 0; i < Regs::NumViewports; ++i) {
+        const std::size_t transf_offset = OFF(viewport_transform) + i * NUM(viewport_transform[0]);
+        const std::size_t viewport_offset = OFF(viewports) + i * NUM(viewports[0]);
+
+        FillBlock(tables[0], transf_offset, NUM(viewport_transform[0]), Viewport0 + i);
+        FillBlock(tables[0], viewport_offset, NUM(viewports[0]), Viewport0 + i);
+    }
+
+    FillBlock(tables[1], OFF(viewport_transform), NUM(viewport_transform), Viewports);
+    FillBlock(tables[1], OFF(viewports), NUM(viewports), Viewports);
+
+    tables[0][OFF(viewport_transform_enabled)] = ViewportTransform;
+    tables[1][OFF(viewport_transform_enabled)] = Viewports;
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system) : system{system} {}
@@ -80,6 +96,7 @@ void StateTracker::Initialize() {
 
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
+    SetupDirtyViewports(tables);
 }
 
 } // namespace OpenGL

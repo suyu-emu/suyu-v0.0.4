@@ -576,6 +576,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
     // TODO: Signal state tracker about these changes
+    state_tracker.NotifyViewport0();
     state_tracker.NotifyFramebuffer();
 
     program_manager.UseVertexShader(vertex_program.handle);
@@ -601,7 +602,9 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
-    glViewport(0, 0, layout.width, layout.height);
+    glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
+                       static_cast<GLfloat>(layout.height));
+    glDepthRangeIndexed(0, 0.0, 0.0);
 
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
                          offsetof(ScreenRectVertex, position));
