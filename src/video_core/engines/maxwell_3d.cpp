@@ -76,8 +76,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.stencil_back_mask = 0xFFFFFFFF;
 
     regs.depth_test_func = Regs::ComparisonOp::Always;
-    regs.cull.front_face = Regs::Cull::FrontFace::CounterClockWise;
-    regs.cull.cull_face = Regs::Cull::CullFace::Back;
+    regs.front_face = Regs::FrontFace::CounterClockWise;
+    regs.cull_face = Regs::CullFace::Back;
 
     // TODO(Rodrigo): Most games do not set a point size. I think this is a case of a
     // register carrying a default value. Assume it's OpenGL's default (1).
@@ -96,7 +96,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
     regs.framebuffer_srgb = 1;
-    regs.cull.front_face = Maxwell3D::Regs::Cull::FrontFace::ClockWise;
+    regs.front_face = Maxwell3D::Regs::FrontFace::ClockWise;
 
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_end_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)] = true;

@@ -432,21 +432,15 @@ public:
             GeneratedPrimitives = 0x1F,
         };
 
-        struct Cull {
-            enum class FrontFace : u32 {
-                ClockWise = 0x0900,
-                CounterClockWise = 0x0901,
-            };
+        enum class FrontFace : u32 {
+            ClockWise = 0x0900,
+            CounterClockWise = 0x0901,
+        };
 
-            enum class CullFace : u32 {
-                Front = 0x0404,
-                Back = 0x0405,
-                FrontAndBack = 0x0408,
-            };
-
-            u32 enabled;
-            FrontFace front_face;
-            CullFace cull_face;
+        enum class CullFace : u32 {
+            Front = 0x0404,
+            Back = 0x0405,
+            FrontAndBack = 0x0408,
         };
 
         struct Blend {
@@ -1052,7 +1046,9 @@ public:
 
                 INSERT_UNION_PADDING_WORDS(1);
 
-                Cull cull;
+                u32 cull_test_enabled;
+                FrontFace front_face;
+                CullFace cull_face;
 
                 u32 pixel_center_integer;
 
@@ -1491,7 +1487,9 @@ ASSERT_REG_POSITION(index_array, 0x5F2);
 ASSERT_REG_POSITION(polygon_offset_clamp, 0x61F);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(vp_point_size, 0x644);
-ASSERT_REG_POSITION(cull, 0x646);
+ASSERT_REG_POSITION(cull_test_enabled, 0x646);
+ASSERT_REG_POSITION(front_face, 0x647);
+ASSERT_REG_POSITION(cull_face, 0x648);
 ASSERT_REG_POSITION(pixel_center_integer, 0x649);
 ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
 ASSERT_REG_POSITION(view_volume_clip_control, 0x64F);

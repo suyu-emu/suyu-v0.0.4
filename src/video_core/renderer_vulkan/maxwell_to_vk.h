@@ -54,9 +54,9 @@ vk::BlendOp BlendEquation(Maxwell::Blend::Equation equation);
 
 vk::BlendFactor BlendFactor(Maxwell::Blend::Factor factor);
 
-vk::FrontFace FrontFace(Maxwell::Cull::FrontFace front_face);
+vk::FrontFace FrontFace(Maxwell::FrontFace front_face);
 
-vk::CullModeFlags CullFace(Maxwell::Cull::CullFace cull_face);
+vk::CullModeFlags CullFace(Maxwell::CullFace cull_face);
 
 vk::ComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
