@@ -577,6 +577,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyViewport0();
+    state_tracker.NotifyScissor0();
     state_tracker.NotifyFramebuffer();
 
     program_manager.UseVertexShader(vertex_program.handle);

@@ -519,6 +519,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
     // TODO: Signal state tracker about these changes
+    state_tracker.NotifyScissor0();
     state_tracker.NotifyFramebuffer();
 
     if (dst_params.srgb_conversion) {

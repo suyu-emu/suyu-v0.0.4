@@ -1102,12 +1102,28 @@ void RasterizerOpenGL::SyncLogicOpState() {
 }
 
 void RasterizerOpenGL::SyncScissorTest() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::Scissors]) {
+        return;
+    }
+    flags[Dirty::Scissors] = false;
+
+    const auto& regs = gpu.regs;
     for (std::size_t index = 0; index < Maxwell::NumViewports; ++index) {
+        if (!flags[Dirty::Scissor0 + index]) {
+            continue;
+        }
+        flags[Dirty::Scissor0 + index] = false;
+
         const auto& src = regs.scissor_test[index];
-        oglEnablei(GL_SCISSOR_TEST, src.enable, static_cast<GLuint>(index));
-        glScissorIndexed(static_cast<GLuint>(index), src.min_x, src.min_y, src.max_x - src.min_x,
-                         src.max_y - src.min_y);
+        if (src.enable) {
+            glEnablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
+            glScissorIndexed(static_cast<GLuint>(index), src.min_x, src.min_y,
+                             src.max_x - src.min_x, src.max_y - src.min_y);
+        } else {
+            glDisablei(GL_SCISSOR_TEST, static_cast<GLuint>(index));
+        }
     }
 }
 

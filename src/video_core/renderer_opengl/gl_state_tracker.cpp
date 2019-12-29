@@ -77,6 +77,14 @@ void SetupDirtyViewports(Tables& tables) {
     tables[1][OFF(viewport_transform_enabled)] = Viewports;
 }
 
+void SetupDirtyScissors(Tables& tables) {
+    for (std::size_t i = 0; i < Regs::NumViewports; ++i) {
+        const std::size_t offset = OFF(scissor_test) + i * NUM(scissor_test[0]);
+        FillBlock(tables[0], offset, NUM(scissor_test[0]), Scissor0 + i);
+    }
+    FillBlock(tables[1], OFF(scissor_test), NUM(scissor_test), Scissors);
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system) : system{system} {}
@@ -97,6 +105,7 @@ void StateTracker::Initialize() {
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
     SetupDirtyViewports(tables);
+    SetupDirtyScissors(tables);
 }
 
 } // namespace OpenGL

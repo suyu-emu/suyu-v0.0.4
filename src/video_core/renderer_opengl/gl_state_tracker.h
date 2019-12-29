@@ -15,15 +15,30 @@ class System;
 namespace OpenGL {
 
 namespace Dirty {
+
 enum : u8 {
     First = VideoCommon::Dirty::LastCommonEntry,
 
     VertexFormats,
+
     VertexBuffers,
+    VertexBuffer0,
+    VertexBuffer31 = VertexBuffer0 + 31,
+
     VertexInstances,
-    Shaders,
-    Viewports,
+    VertexInstance0,
+    VertexInstance31 = VertexInstance0 + 31,
+
     ViewportTransform,
+    Viewports,
+    Viewport0,
+    Viewport15 = Viewport0 + 15,
+
+    Scissors,
+    Scissor0,
+    Scissor15 = Scissor0 + 15,
+
+    Shaders,
     CullTestEnable,
     FrontFace,
     CullFace,
@@ -34,11 +49,11 @@ enum : u8 {
     BlendState,
     PolygonOffset,
 
-    Viewport0,
-    VertexBuffer0 = Viewport0 + 16,
-    VertexInstance0 = VertexBuffer0 + 32,
+    Last
 };
-}
+static_assert(Last <= 0xff);
+
+} // namespace Dirty
 
 class StateTracker {
 public:
@@ -50,6 +65,12 @@ public:
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::Viewports] = true;
         flags[OpenGL::Dirty::Viewport0] = true;
+    }
+
+    void NotifyScissor0() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::Scissors] = true;
+        flags[OpenGL::Dirty::Scissor0] = true;
     }
 
     void NotifyFramebuffer() {
