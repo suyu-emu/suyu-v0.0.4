@@ -137,8 +137,7 @@ private:
     void SyncDepthClamp();
 
     /// Syncs the clip enabled status to match the guest state
-    void SyncClipEnabled(
-        const std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances>& clip_mask);
+    void SyncClipEnabled(u32 clip_mask);
 
     /// Syncs the clip coefficients to match the guest state
     void SyncClipCoef();
@@ -230,6 +229,8 @@ private:
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;
+
+    u32 last_clip_distance_mask = 0;
 };
 
 } // namespace OpenGL

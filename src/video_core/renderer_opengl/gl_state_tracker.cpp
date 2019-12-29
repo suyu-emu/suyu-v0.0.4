@@ -124,6 +124,15 @@ void SetupDirtyScissors(Tables& tables) {
     FillBlock(tables[1], OFF(scissor_test), NUM(scissor_test), Scissors);
 }
 
+void SetupDirtyShaders(Tables& tables) {
+    FillBlock(tables[0], OFF(shader_config[0]), NUM(shader_config[0]) * Regs::MaxShaderProgram,
+              Shaders);
+}
+
+void SetupDirtyMisc(Tables& tables) {
+    tables[0][OFF(clip_distance_enabled)] = ClipDistances;
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system) : system{system} {}
@@ -137,6 +146,8 @@ void StateTracker::Initialize() {
     SetupDirtyScissors(tables);
     SetupDirtyVertexArrays(tables);
     SetupDirtyVertexFormat(tables);
+    SetupDirtyShaders(tables);
+    SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;
     store[RenderTargets] = true;

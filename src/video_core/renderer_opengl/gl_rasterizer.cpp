@@ -232,8 +232,7 @@ GLintptr RasterizerOpenGL::SetupIndexBuffer() {
 void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     MICROPROFILE_SCOPE(OpenGL_Shader);
     auto& gpu = system.GPU().Maxwell3D();
-
-    std::array<bool, Maxwell::NumClipDistances> clip_distances{};
+    u32 clip_distances = 0;
 
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto& shader_config = gpu.regs.shader_config[index];
@@ -294,9 +293,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         // When a clip distance is enabled but not set in the shader it crops parts of the screen
         // (sometimes it's half the screen, sometimes three quarters). To avoid this, enable the
         // clip distances only when it's written by a shader stage.
-        for (std::size_t i = 0; i < Maxwell::NumClipDistances; ++i) {
-            clip_distances[i] = clip_distances[i] || shader->GetShaderEntries().clip_distances[i];
-        }
+        clip_distances |= shader->GetShaderEntries().clip_distances;
 
         // When VertexA is enabled, we have dual vertex shaders
         if (program == Maxwell::ShaderProgram::VertexA) {
@@ -306,6 +303,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
     }
 
     SyncClipEnabled(clip_distances);
+    gpu.dirty.flags[Dirty::Shaders] = false;
 }
 
 std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
@@ -972,12 +970,22 @@ void RasterizerOpenGL::SyncDepthClamp() {
     oglEnable(GL_DEPTH_CLAMP, state.depth_clamp_far || state.depth_clamp_near);
 }
 
-void RasterizerOpenGL::SyncClipEnabled(
-    const std::array<bool, Maxwell::Regs::NumClipDistances>& clip_mask) {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+void RasterizerOpenGL::SyncClipEnabled(u32 clip_mask) {
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::ClipDistances] && !flags[Dirty::Shaders]) {
+        return;
+    }
+    flags[Dirty::ClipDistances] = false;
+
+    clip_mask &= gpu.regs.clip_distance_enabled;
+    if (clip_mask == last_clip_distance_mask) {
+        return;
+    }
+    last_clip_distance_mask = clip_mask;
+
     for (std::size_t i = 0; i < Maxwell::Regs::NumClipDistances; ++i) {
-        oglEnable(static_cast<GLenum>(GL_CLIP_DISTANCE0 + i),
-                  clip_mask[i] && ((regs.clip_distance_enabled >> i) & 1));
+        oglEnable(static_cast<GLenum>(GL_CLIP_DISTANCE0 + i), (clip_mask >> i) & 1);
     }
 }
 

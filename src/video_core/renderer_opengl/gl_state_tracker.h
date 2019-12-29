@@ -48,6 +48,7 @@ enum : u8 {
     ColorMask7 = ColorMask0 + 7,
 
     Shaders,
+    ClipDistances,
     CullTestEnable,
     FrontFace,
     CullFace,

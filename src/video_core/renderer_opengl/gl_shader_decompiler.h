@@ -74,7 +74,7 @@ struct ShaderEntries {
     std::vector<GlobalMemoryEntry> global_memory_entries;
     std::vector<SamplerEntry> samplers;
     std::vector<ImageEntry> images;
-    std::array<bool, Maxwell::NumClipDistances> clip_distances{};
+    u32 clip_distances{};
     std::size_t shader_length{};
 };
 
