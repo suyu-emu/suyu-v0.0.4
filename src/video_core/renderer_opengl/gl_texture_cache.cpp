@@ -10,6 +10,7 @@
 #include "core/core.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/texture_cache/surface_base.h"
@@ -479,8 +480,8 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
                                        VideoCore::RasterizerInterface& rasterizer,
-                                       const Device& device)
-    : TextureCacheBase{system, rasterizer} {
+                                       const Device& device, StateTracker& state_tracker)
+    : TextureCacheBase{system, rasterizer}, state_tracker{state_tracker} {
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }
@@ -518,6 +519,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
     // TODO: Signal state tracker about these changes
+    state_tracker.NotifyFramebuffer();
+
     if (dst_params.srgb_conversion) {
         glEnable(GL_FRAMEBUFFER_SRGB);
     } else {

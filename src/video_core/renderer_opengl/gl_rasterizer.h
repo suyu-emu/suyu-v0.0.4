@@ -30,6 +30,7 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/textures/texture.h"
@@ -54,7 +55,8 @@ struct DrawParameters;
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                              ScreenInfo& info, GLShader::ProgramManager& program_manager);
+                              ScreenInfo& info, GLShader::ProgramManager& program_manager,
+                              StateTracker& state_tracker);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -75,6 +77,7 @@ public:
                            u32 pixel_stride) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
+    void SetupDirtyFlags() override;
 
     /// Returns true when there are commands queued to the OpenGL server.
     bool AnyCommandQueued() const {
@@ -216,6 +219,7 @@ private:
     Core::System& system;
     ScreenInfo& screen_info;
     GLShader::ProgramManager& program_manager;
+    StateTracker& state_tracker;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;

@@ -22,6 +22,7 @@
 #include "core/core.h"
 #include "core/memory.h"
 #include "core/settings.h"
+#include "video_core/dirty_flags.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
@@ -142,6 +143,10 @@ public:
     TView GetDepthBufferSurface(bool preserve_contents) {
         std::lock_guard lock{mutex};
         auto& maxwell3d = system.GPU().Maxwell3D();
+        if (!maxwell3d.dirty.flags[VideoCommon::Dirty::ZetaBuffer]) {
+            return depth_buffer.view;
+        }
+        maxwell3d.dirty.flags[VideoCommon::Dirty::ZetaBuffer] = false;
 
         const auto& regs{maxwell3d.regs};
         const auto gpu_addr{regs.zeta.Address()};
@@ -170,6 +175,10 @@ public:
         std::lock_guard lock{mutex};
         ASSERT(index < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets);
         auto& maxwell3d = system.GPU().Maxwell3D();
+        if (!maxwell3d.dirty.flags[VideoCommon::Dirty::ColorBuffer0 + index]) {
+            return render_targets[index].view;
+        }
+        maxwell3d.dirty.flags[VideoCommon::Dirty::ColorBuffer0 + index] = false;
 
         const auto& regs{maxwell3d.regs};
         if (index >= regs.rt_control.count || regs.rt[index].Address() == 0 ||
@@ -310,7 +319,16 @@ protected:
     // and reading it from a separate buffer.
     virtual void BufferCopy(TSurface& src_surface, TSurface& dst_surface) = 0;
 
-    void ManageRenderTargetUnregister([[maybe_unused]] TSurface& surface) {}
+    void ManageRenderTargetUnregister(TSurface& surface) {
+        auto& dirty = system.GPU().Maxwell3D().dirty;
+        const u32 index = surface->GetRenderTarget();
+        if (index == DEPTH_RT) {
+            dirty.flags[VideoCommon::Dirty::ZetaBuffer] = true;
+        } else {
+            dirty.flags[VideoCommon::Dirty::ColorBuffer0 + index] = true;
+        }
+        dirty.flags[VideoCommon::Dirty::RenderTargets] = true;
+    }
 
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();

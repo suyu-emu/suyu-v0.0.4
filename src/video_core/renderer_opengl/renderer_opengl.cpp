@@ -482,8 +482,8 @@ void RendererOpenGL::CreateRasterizer() {
     if (rasterizer) {
         return;
     }
-    rasterizer =
-        std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info, program_manager);
+    rasterizer = std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info,
+                                                    program_manager, state_tracker);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -576,6 +576,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
     // TODO: Signal state tracker about these changes
+    state_tracker.NotifyFramebuffer();
+
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);
     program_manager.UseFragmentShader(fragment_program.handle);

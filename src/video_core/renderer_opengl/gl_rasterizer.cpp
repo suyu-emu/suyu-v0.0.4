@@ -99,11 +99,12 @@ void oglEnablei(GLenum cap, bool state, GLuint index) {
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                                   ScreenInfo& info, GLShader::ProgramManager& program_manager)
-    : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device},
+                                   ScreenInfo& info, GLShader::ProgramManager& program_manager,
+                                   StateTracker& state_tracker)
+    : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device, state_tracker},
       shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
-      screen_info{info}, program_manager{program_manager}, buffer_cache{*this, system, device,
-                                                                        STREAM_BUFFER_SIZE} {
+      screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker},
+      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
     CheckExtensions();
 }
 
@@ -320,9 +321,17 @@ void RasterizerOpenGL::LoadDiskResources(const std::atomic_bool& stop_loading,
     shader_cache.LoadDiskCache(stop_loading, callback);
 }
 
+void RasterizerOpenGL::SetupDirtyFlags() {
+    state_tracker.Initialize();
+}
+
 void RasterizerOpenGL::ConfigureFramebuffers() {
     MICROPROFILE_SCOPE(OpenGL_Framebuffer);
     auto& gpu = system.GPU().Maxwell3D();
+    if (!gpu.dirty.flags[VideoCommon::Dirty::RenderTargets]) {
+        return;
+    }
+    gpu.dirty.flags[VideoCommon::Dirty::RenderTargets] = false;
 
     texture_cache.GuardRenderTargets(true);
 
@@ -361,8 +370,6 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
 
 void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb,
                                                  bool using_stencil_fb) {
-    using VideoCore::Surface::SurfaceType;
-
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
@@ -381,6 +388,7 @@ void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using
     key.colors[0] = color_surface;
     key.zeta = depth_surface;
 
+    state_tracker.NotifyFramebuffer();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
 }
 

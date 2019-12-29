@@ -11,6 +11,7 @@
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 
 namespace Core {
 class System;
@@ -90,6 +91,8 @@ private:
 
     Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
+
+    StateTracker state_tracker{system};
 
     // OpenGL object IDs
     OGLBuffer vertex_buffer;
