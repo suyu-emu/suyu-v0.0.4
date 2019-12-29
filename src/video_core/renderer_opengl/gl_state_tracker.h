@@ -47,8 +47,15 @@ enum : u8 {
     ColorMask0,
     ColorMask7 = ColorMask0 + 7,
 
+    BlendColor,
+    BlendIndependentEnabled,
+    BlendStates,
+    BlendState0,
+    BlendState7 = BlendState0 + 7,
+
     Shaders,
     ClipDistances,
+
     CullTestEnable,
     FrontFace,
     CullFace,
@@ -56,7 +63,6 @@ enum : u8 {
     DepthTest,
     StencilTest,
     ColorMask,
-    BlendState,
     PolygonOffset,
 
     Last
@@ -101,6 +107,12 @@ public:
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::ColorMasks] = true;
         flags[OpenGL::Dirty::ColorMask0] = true;
+    }
+
+    void NotifyBlend0() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::BlendStates] = true;
+        flags[OpenGL::Dirty::BlendState0] = true;
     }
 
     void NotifyFramebuffer() {

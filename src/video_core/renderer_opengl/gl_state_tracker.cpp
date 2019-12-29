@@ -129,6 +129,21 @@ void SetupDirtyShaders(Tables& tables) {
               Shaders);
 }
 
+void SetupDirtyBlend(Tables& tables) {
+    FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendColor);
+
+    tables[0][OFF(independent_blend_enable)] = BlendIndependentEnabled;
+
+    for (std::size_t i = 0; i < Regs::NumRenderTargets; ++i) {
+        const std::size_t offset = OFF(independent_blend) + i * NUM(independent_blend[0]);
+        FillBlock(tables[0], offset, NUM(independent_blend[0]), BlendState0 + i);
+
+        tables[0][OFF(blend.enable) + i] = static_cast<u8>(BlendState0 + i);
+    }
+    FillBlock(tables[1], OFF(independent_blend), NUM(independent_blend), BlendStates);
+    FillBlock(tables[1], OFF(blend), NUM(blend), BlendStates);
+}
+
 void SetupDirtyMisc(Tables& tables) {
     tables[0][OFF(clip_distance_enabled)] = ClipDistances;
 }
@@ -147,6 +162,7 @@ void StateTracker::Initialize() {
     SetupDirtyVertexArrays(tables);
     SetupDirtyVertexFormat(tables);
     SetupDirtyShaders(tables);
+    SetupDirtyBlend(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

@@ -520,6 +520,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
 
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyScissor0();
+    state_tracker.NotifyBlend0();
     state_tracker.NotifyFramebuffer();
 
     if (dst_params.srgb_conversion) {
