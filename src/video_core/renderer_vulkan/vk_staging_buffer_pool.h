@@ -46,7 +46,7 @@ private:
 
         std::unique_ptr<VKBuffer> buffer;
         VKFenceWatch watch;
-        u64 last_epoch;
+        u64 last_epoch = 0;
     };
 
     struct StagingBuffers final {
