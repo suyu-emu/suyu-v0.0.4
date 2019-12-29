@@ -1273,9 +1273,7 @@ public:
 
     /// Notify a memory write has happened.
     void OnMemoryWrite() {
-        for (const u8 store : dirty.on_write_stores) {
-            dirty.flags[store] = true;
-        }
+        dirty.flags |= dirty.on_write_stores;
     }
 
     enum class MMEDrawMode : u32 {
@@ -1295,8 +1293,8 @@ public:
 
     struct {
         std::bitset<std::numeric_limits<u8>::max()> flags;
+        std::bitset<std::numeric_limits<u8>::max()> on_write_stores;
         std::array<std::array<u8, Regs::NUM_REGS>, 3> tables{};
-        std::array<u8, 32> on_write_stores{};
     } dirty;
 
 private:

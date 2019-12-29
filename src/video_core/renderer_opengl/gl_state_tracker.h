@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "common/common_types.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -58,7 +60,7 @@ enum : u8 {
 
     Last
 };
-static_assert(Last <= 0xff);
+static_assert(Last <= std::numeric_limits<u8>::max());
 
 } // namespace Dirty
 

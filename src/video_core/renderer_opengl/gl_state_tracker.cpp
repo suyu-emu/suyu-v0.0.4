@@ -110,23 +110,23 @@ StateTracker::StateTracker(Core::System& system) : system{system} {}
 
 void StateTracker::Initialize() {
     auto& dirty = system.GPU().Maxwell3D().dirty;
-    std::size_t entry_index = 0;
-    const auto AddEntry = [&dirty, &entry_index](std::size_t dirty_register) {
-        dirty.on_write_stores[entry_index++] = static_cast<u8>(dirty_register);
-    };
-
-    AddEntry(RenderTargets);
-    for (std::size_t i = 0; i < Regs::NumRenderTargets; ++i) {
-        AddEntry(ColorBuffer0 + i);
-    }
-    AddEntry(ZetaBuffer);
-
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
     SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
     SetupDirtyVertexFormat(tables);
+
+    auto& store = dirty.on_write_stores;
+    store[RenderTargets] = true;
+    store[ZetaBuffer] = true;
+    for (std::size_t i = 0; i < Regs::NumRenderTargets; ++i) {
+        store[ColorBuffer0 + i] = true;
+    }
+    store[VertexBuffers] = true;
+    for (std::size_t i = 0; i < Regs::NumVertexArrays; ++i) {
+        store[VertexBuffer0 + i] = true;
+    }
 }
 
 } // namespace OpenGL
