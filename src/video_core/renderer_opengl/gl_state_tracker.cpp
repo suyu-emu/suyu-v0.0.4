@@ -71,6 +71,26 @@ void SetupDirtyColorMasks(Tables& tables) {
     FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMasks);
 }
 
+void SetupDirtyVertexArrays(Tables& tables) {
+    static constexpr std::size_t num_array = 3;
+    static constexpr std::size_t instance_base_offset = 3;
+    for (std::size_t i = 0; i < Regs::NumVertexArrays; ++i) {
+        const std::size_t array_offset = OFF(vertex_array) + i * NUM(vertex_array[0]);
+        const std::size_t limit_offset = OFF(vertex_array_limit) + i * NUM(vertex_array_limit[0]);
+
+        FillBlock(tables, array_offset, num_array, VertexBuffer0 + i, VertexBuffers);
+        FillBlock(tables, limit_offset, NUM(vertex_array_limit), VertexBuffer0 + i, VertexBuffers);
+
+        const std::size_t instance_array_offset = array_offset + instance_base_offset;
+        tables[0][instance_array_offset] = static_cast<u8>(VertexInstance0 + i);
+        tables[1][instance_array_offset] = VertexInstances;
+
+        const std::size_t instance_offset = OFF(instanced_arrays) + i;
+        tables[0][instance_offset] = static_cast<u8>(VertexInstance0 + i);
+        tables[1][instance_offset] = VertexInstances;
+    }
+}
+
 void SetupDirtyVertexFormat(Tables& tables) {
     for (std::size_t i = 0; i < Regs::NumVertexAttributes; ++i) {
         const std::size_t offset = OFF(vertex_attrib_format) + i * NUM(vertex_attrib_format[0]);
@@ -115,6 +135,7 @@ void StateTracker::Initialize() {
     SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
+    SetupDirtyVertexArrays(tables);
     SetupDirtyVertexFormat(tables);
 
     auto& store = dirty.on_write_stores;

@@ -78,6 +78,10 @@ public:
 
         flags[OpenGL::Dirty::VertexBuffers] = true;
         flags[OpenGL::Dirty::VertexBuffer0] = true;
+
+        flags[OpenGL::Dirty::VertexInstances] = true;
+        flags[OpenGL::Dirty::VertexInstance0 + 0] = true;
+        flags[OpenGL::Dirty::VertexInstance0 + 1] = true;
     }
 
     void NotifyViewport0() {

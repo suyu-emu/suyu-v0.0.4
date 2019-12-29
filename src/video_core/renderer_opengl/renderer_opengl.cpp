@@ -611,6 +611,8 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     glEnableVertexAttribArray(PositionLocation);
     glEnableVertexAttribArray(TexCoordLocation);
+    glVertexAttribDivisor(PositionLocation, 0);
+    glVertexAttribDivisor(TexCoordLocation, 0);
     glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
                          offsetof(ScreenRectVertex, position));
     glVertexAttribFormat(TexCoordLocation, 2, GL_FLOAT, GL_FALSE,

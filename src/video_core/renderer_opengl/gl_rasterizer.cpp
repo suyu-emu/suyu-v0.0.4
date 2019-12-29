@@ -164,12 +164,22 @@ void RasterizerOpenGL::SetupVertexFormat() {
 
 void RasterizerOpenGL::SetupVertexBuffer() {
     auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::VertexBuffers]) {
+        return;
+    }
+    flags[Dirty::VertexBuffers] = false;
 
     MICROPROFILE_SCOPE(OpenGL_VB);
 
     // Upload all guest vertex arrays sequentially to our buffer
-    for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
+    const auto& regs = gpu.regs;
+    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        if (!flags[Dirty::VertexBuffer0 + index]) {
+            continue;
+        }
+        flags[Dirty::VertexBuffer0 + index] = false;
+
         const auto& vertex_array = regs.vertex_array[index];
         if (!vertex_array.IsEnabled()) {
             continue;
@@ -183,33 +193,30 @@ void RasterizerOpenGL::SetupVertexBuffer() {
         const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
 
         // Bind the vertex array to the buffer at the current offset.
-        vertex_array_pushbuffer.SetVertexBuffer(index, vertex_buffer, vertex_buffer_offset,
-                                                vertex_array.stride);
-
-        if (regs.instanced_arrays.IsInstancingEnabled(index) && vertex_array.divisor != 0) {
-            // Enable vertex buffer instancing with the specified divisor.
-            glVertexBindingDivisor(index, vertex_array.divisor);
-        } else {
-            // Disable the vertex buffer instancing.
-            glVertexBindingDivisor(index, 0);
-        }
+        vertex_array_pushbuffer.SetVertexBuffer(static_cast<GLuint>(index), vertex_buffer,
+                                                vertex_buffer_offset, vertex_array.stride);
     }
 }
 
 void RasterizerOpenGL::SetupVertexInstances() {
     auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::VertexInstances]) {
+        return;
+    }
+    flags[Dirty::VertexInstances] = false;
 
-    // Upload all guest vertex arrays sequentially to our buffer
-    for (u32 index = 0; index < 16; ++index) {
-        if (regs.instanced_arrays.IsInstancingEnabled(index) &&
-            regs.vertex_array[index].divisor != 0) {
-            // Enable vertex buffer instancing with the specified divisor.
-            glVertexBindingDivisor(index, regs.vertex_array[index].divisor);
-        } else {
-            // Disable the vertex buffer instancing.
-            glVertexBindingDivisor(index, 0);
+    const auto& regs = gpu.regs;
+    for (std::size_t index = 0; index < 16; ++index) {
+        if (!flags[Dirty::VertexInstance0 + index]) {
+            continue;
         }
+        flags[Dirty::VertexInstance0 + index] = false;
+
+        const auto gl_index = static_cast<GLuint>(index);
+        const bool instancing_enabled = regs.instanced_arrays.IsInstancingEnabled(gl_index);
+        const GLuint divisor = instancing_enabled ? regs.vertex_array[index].divisor : 0;
+        glVertexBindingDivisor(gl_index, divisor);
     }
 }
 
