@@ -410,8 +410,9 @@ void RasterizerOpenGL::Clear() {
     }
     if (use_color) {
         // TODO: Signal state tracker about these changes
-        glColorMaski(0, regs.clear_buffers.R, regs.clear_buffers.G, regs.clear_buffers.B,
-                     regs.clear_buffers.A);
+        state_tracker.NotifyColorMask0();
+        glColorMaski(0, regs.clear_buffers.R != 0, regs.clear_buffers.G != 0,
+                     regs.clear_buffers.B != 0, regs.clear_buffers.A != 0);
 
         SyncFramebufferSRGB();
         // TODO(Rodrigo): Determine if clamping is used on clears
@@ -1030,17 +1031,37 @@ void RasterizerOpenGL::SyncRasterizeEnable() {
 }
 
 void RasterizerOpenGL::SyncColorMask() {
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::ColorMasks]) {
+        return;
+    }
+    flags[Dirty::ColorMasks] = false;
 
+    const bool force = flags[Dirty::ColorMaskCommon];
+    flags[Dirty::ColorMaskCommon] = false;
+
+    const auto& regs = gpu.regs;
     if (regs.color_mask_common) {
-        auto& mask = regs.color_mask[0];
-        glColorMask(mask.R, mask.B, mask.G, mask.A);
-    } else {
-        for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
-            const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : i];
-            glColorMaski(static_cast<GLuint>(i), mask.R, mask.G, mask.B, mask.A);
+        if (!force && !flags[Dirty::ColorMask0]) {
+            return;
         }
+        flags[Dirty::ColorMask0] = false;
+
+        auto& mask = regs.color_mask[0];
+        glColorMask(mask.R != 0, mask.B != 0, mask.G != 0, mask.A != 0);
+        return;
+    }
+
+    // Path without color_mask_common set
+    for (std::size_t i = 0; i < Maxwell::NumRenderTargets; ++i) {
+        if (!force && !flags[Dirty::ColorMask0 + i]) {
+            continue;
+        }
+        flags[Dirty::ColorMask0 + i] = false;
+
+        const auto& mask = regs.color_mask[i];
+        glColorMaski(static_cast<GLuint>(i), mask.R != 0, mask.G != 0, mask.B != 0, mask.A != 0);
     }
 }
 

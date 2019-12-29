@@ -61,6 +61,16 @@ void SetupDirtyRenderTargets(Tables& tables) {
     }
 }
 
+void SetupDirtyColorMasks(Tables& tables) {
+    tables[0][OFF(color_mask_common)] = ColorMaskCommon;
+    for (std::size_t rt = 0; rt < Regs::NumRenderTargets; ++rt) {
+        const std::size_t offset = OFF(color_mask) + rt * NUM(color_mask[0]);
+        FillBlock(tables[0], offset, NUM(color_mask[0]), ColorMask0 + rt);
+    }
+
+    FillBlock(tables[1], OFF(color_mask), NUM(color_mask), ColorMasks);
+}
+
 void SetupDirtyViewports(Tables& tables) {
     for (std::size_t i = 0; i < Regs::NumViewports; ++i) {
         const std::size_t transf_offset = OFF(viewport_transform) + i * NUM(viewport_transform[0]);
@@ -104,6 +114,7 @@ void StateTracker::Initialize() {
 
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
+    SetupDirtyColorMasks(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
 }

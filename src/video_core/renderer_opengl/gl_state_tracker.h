@@ -38,6 +38,11 @@ enum : u8 {
     Scissor0,
     Scissor15 = Scissor0 + 15,
 
+    ColorMaskCommon,
+    ColorMasks,
+    ColorMask0,
+    ColorMask7 = ColorMask0 + 7,
+
     Shaders,
     CullTestEnable,
     FrontFace,
@@ -71,6 +76,12 @@ public:
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::Scissors] = true;
         flags[OpenGL::Dirty::Scissor0] = true;
+    }
+
+    void NotifyColorMask0() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::ColorMasks] = true;
+        flags[OpenGL::Dirty::ColorMask0] = true;
     }
 
     void NotifyFramebuffer() {
