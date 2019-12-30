@@ -195,7 +195,7 @@ layout (location = 0) out vec4 color;
 layout (binding = 0) uniform sampler2D color_texture;
 
 void main() {
-    color = texture(color_texture, frag_tex_coord);
+    color = vec4(texture(color_texture, frag_tex_coord).rgb, 1.0f);
 }
 )";
 
@@ -600,7 +600,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
     glDisable(GL_COLOR_LOGIC_OP);
-    glDisable(GL_ALPHA_TEST);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);

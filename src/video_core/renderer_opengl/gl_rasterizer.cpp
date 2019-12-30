@@ -1267,13 +1267,23 @@ void RasterizerOpenGL::SyncPolygonOffset() {
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    UNIMPLEMENTED_IF_MSG(regs.alpha_test_enabled != 0 && regs.rt_control.count > 1,
-                         "Alpha Testing is enabled with more than one rendertarget");
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::AlphaTest]) {
+        return;
+    }
+    flags[Dirty::AlphaTest] = false;
 
-    oglEnable(GL_ALPHA_TEST, regs.alpha_test_enabled);
+    const auto& regs = gpu.regs;
+    if (regs.alpha_test_enabled && regs.rt_control.count > 1) {
+        LOG_WARNING(Render_OpenGL, "Alpha testing with more than one render target is not tested");
+    }
+
     if (regs.alpha_test_enabled) {
+        glEnable(GL_ALPHA_TEST);
         glAlphaFunc(MaxwellToGL::ComparisonOp(regs.alpha_test_func), regs.alpha_test_ref);
+    } else {
+        glDisable(GL_ALPHA_TEST);
     }
 }
 

@@ -149,6 +149,13 @@ void SetupDirtyStencilTest(Tables& tables) {
     }
 }
 
+void SetupDirtyAlphaTest(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(alpha_test_ref)] = AlphaTest;
+    table[OFF(alpha_test_func)] = AlphaTest;
+    table[OFF(alpha_test_enabled)] = AlphaTest;
+}
+
 void SetupDirtyBlend(Tables& tables) {
     FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendColor);
 
@@ -205,6 +212,7 @@ void StateTracker::Initialize() {
     SetupDirtyShaders(tables);
     SetupDirtyDepthTest(tables);
     SetupDirtyStencilTest(tables);
+    SetupDirtyAlphaTest(tables);
     SetupDirtyBlend(tables);
     SetupDirtyPrimitiveRestart(tables);
     SetupDirtyPolygonOffset(tables);

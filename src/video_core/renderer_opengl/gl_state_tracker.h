@@ -62,6 +62,7 @@ enum : u8 {
     DepthMask,
     DepthTest,
     StencilTest,
+    AlphaTest,
     PrimitiveRestart,
     PolygonOffset,
 
