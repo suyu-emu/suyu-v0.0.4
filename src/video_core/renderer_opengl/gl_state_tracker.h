@@ -68,6 +68,7 @@ enum : u8 {
     MultisampleControl,
     RasterizeEnable,
     FramebufferSRGB,
+    LogicOp,
 
     Last
 };
@@ -157,6 +158,11 @@ public:
     void NotifyFramebufferSRGB() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::FramebufferSRGB] = true;
+    }
+
+    void NotifyLogicOp() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::LogicOp] = true;
     }
 
 private:

@@ -197,6 +197,10 @@ void SetupDirtyFramebufferSRGB(Tables& tables) {
     tables[0][OFF(framebuffer_srgb)] = FramebufferSRGB;
 }
 
+void SetupDirtyLogicOp(Tables& tables) {
+    FillBlock(tables[0], OFF(logic_op), NUM(logic_op), LogicOp);
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -231,6 +235,7 @@ void StateTracker::Initialize() {
     SetupDirtyMultisampleControl(tables);
     SetupDirtyRasterizeEnable(tables);
     SetupDirtyFramebufferSRGB(tables);
+    SetupDirtyLogicOp(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

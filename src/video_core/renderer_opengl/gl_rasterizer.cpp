@@ -1213,11 +1213,19 @@ void RasterizerOpenGL::SyncBlendState() {
 }
 
 void RasterizerOpenGL::SyncLogicOpState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::LogicOp]) {
+        return;
+    }
+    flags[Dirty::LogicOp] = false;
 
-    oglEnable(GL_COLOR_LOGIC_OP, regs.logic_op.enable);
+    const auto& regs = gpu.regs;
     if (regs.logic_op.enable) {
+        glEnable(GL_COLOR_LOGIC_OP);
         glLogicOp(MaxwellToGL::LogicOp(regs.logic_op.operation));
+    } else {
+        glDisable(GL_COLOR_LOGIC_OP);
     }
 }
 
