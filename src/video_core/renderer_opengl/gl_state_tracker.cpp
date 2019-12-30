@@ -185,6 +185,10 @@ void SetupDirtyPolygonOffset(Tables& tables) {
     table[OFF(polygon_offset_clamp)] = PolygonOffset;
 }
 
+void SetupDirtyMultisampleControl(Tables& tables) {
+    FillBlock(tables[0], OFF(multisample_control), NUM(multisample_control), MultisampleControl);
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -216,6 +220,7 @@ void StateTracker::Initialize() {
     SetupDirtyBlend(tables);
     SetupDirtyPrimitiveRestart(tables);
     SetupDirtyPolygonOffset(tables);
+    SetupDirtyMultisampleControl(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

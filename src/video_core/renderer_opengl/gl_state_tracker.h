@@ -65,6 +65,7 @@ enum : u8 {
     AlphaTest,
     PrimitiveRestart,
     PolygonOffset,
+    MultisampleControl,
 
     Last
 };
