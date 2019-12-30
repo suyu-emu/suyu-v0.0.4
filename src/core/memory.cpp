@@ -146,7 +146,7 @@ struct Memory::Impl {
     u8* GetPointer(const VAddr vaddr) {
         u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
         if (page_pointer != nullptr) {
-            return page_pointer + (vaddr & PAGE_MASK);
+            return page_pointer + vaddr;
         }
 
         if (current_page_table->attributes[vaddr >> PAGE_BITS] ==
@@ -229,7 +229,8 @@ struct Memory::Impl {
             case Common::PageType::Memory: {
                 DEBUG_ASSERT(page_table.pointers[page_index]);
 
-                const u8* const src_ptr = page_table.pointers[page_index] + page_offset;
+                const u8* const src_ptr =
+                    page_table.pointers[page_index] + page_offset + (page_index << PAGE_BITS);
                 std::memcpy(dest_buffer, src_ptr, copy_amount);
                 break;
             }
@@ -276,7 +277,8 @@ struct Memory::Impl {
             case Common::PageType::Memory: {
                 DEBUG_ASSERT(page_table.pointers[page_index]);
 
-                u8* const dest_ptr = page_table.pointers[page_index] + page_offset;
+                u8* const dest_ptr =
+                    page_table.pointers[page_index] + page_offset + (page_index << PAGE_BITS);
                 std::memcpy(dest_ptr, src_buffer, copy_amount);
                 break;
             }
@@ -322,7 +324,8 @@ struct Memory::Impl {
             case Common::PageType::Memory: {
                 DEBUG_ASSERT(page_table.pointers[page_index]);
 
-                u8* dest_ptr = page_table.pointers[page_index] + page_offset;
+                u8* dest_ptr =
+                    page_table.pointers[page_index] + page_offset + (page_index << PAGE_BITS);
                 std::memset(dest_ptr, 0, copy_amount);
                 break;
             }
@@ -368,7 +371,8 @@ struct Memory::Impl {
             }
             case Common::PageType::Memory: {
                 DEBUG_ASSERT(page_table.pointers[page_index]);
-                const u8* src_ptr = page_table.pointers[page_index] + page_offset;
+                const u8* src_ptr =
+                    page_table.pointers[page_index] + page_offset + (page_index << PAGE_BITS);
                 WriteBlock(process, dest_addr, src_ptr, copy_amount);
                 break;
             }
@@ -446,7 +450,8 @@ struct Memory::Impl {
                         page_type = Common::PageType::Unmapped;
                     } else {
                         page_type = Common::PageType::Memory;
-                        current_page_table->pointers[vaddr >> PAGE_BITS] = pointer;
+                        current_page_table->pointers[vaddr >> PAGE_BITS] =
+                            pointer - (vaddr & ~PAGE_MASK);
                     }
                     break;
                 }
@@ -493,7 +498,9 @@ struct Memory::Impl {
                       memory);
         } else {
             while (base != end) {
-                page_table.pointers[base] = memory;
+                page_table.pointers[base] = memory - (base << PAGE_BITS);
+                ASSERT_MSG(page_table.pointers[base],
+                           "memory mapping base yield a nullptr within the table");
 
                 base += 1;
                 memory += PAGE_SIZE;
@@ -518,7 +525,7 @@ struct Memory::Impl {
         if (page_pointer != nullptr) {
             // NOTE: Avoid adding any extra logic to this fast-path block
             T value;
-            std::memcpy(&value, &page_pointer[vaddr & PAGE_MASK], sizeof(T));
+            std::memcpy(&value, &page_pointer[vaddr], sizeof(T));
             return value;
         }
 
@@ -559,7 +566,7 @@ struct Memory::Impl {
         u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
         if (page_pointer != nullptr) {
             // NOTE: Avoid adding any extra logic to this fast-path block
-            std::memcpy(&page_pointer[vaddr & PAGE_MASK], &data, sizeof(T));
+            std::memcpy(&page_pointer[vaddr], &data, sizeof(T));
             return;
         }
 
