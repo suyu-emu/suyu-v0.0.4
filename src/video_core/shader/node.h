@@ -392,8 +392,30 @@ struct MetaImage {
 using Meta =
     std::variant<MetaArithmetic, MetaTexture, MetaImage, MetaStackClass, Tegra::Shader::HalfType>;
 
+class AmendNode {
+public:
+    std::optional<u32> GetAmendIndex() const {
+        if (amend_index == amend_null_index) {
+            return std::nullopt;
+        }
+        return {amend_index};
+    }
+
+    void SetAmendIndex(u32 index) {
+        amend_index = index;
+    }
+
+    void ClearAmend() {
+        amend_index = amend_null_index;
+    }
+
+private:
+    static constexpr u32 amend_null_index = 0xFFFFFFFF;
+    u32 amend_index{amend_null_index};
+};
+
 /// Holds any kind of operation that can be done in the IR
-class OperationNode final {
+class OperationNode final : public AmendNode {
 public:
     explicit OperationNode(OperationCode code) : OperationNode(code, Meta{}) {}
 
@@ -433,7 +455,7 @@ private:
 };
 
 /// Encloses inside any kind of node that returns a boolean conditionally-executed code
-class ConditionalNode final {
+class ConditionalNode final : public AmendNode {
 public:
     explicit ConditionalNode(Node condition, std::vector<Node>&& code)
         : condition{std::move(condition)}, code{std::move(code)} {}
@@ -630,7 +652,7 @@ private:
 };
 
 /// Commentary, can be dropped
-class CommentNode final {
+class CommentNode final : public AmendNode {
 public:
     explicit CommentNode(std::string text) : text{std::move(text)} {}
 
