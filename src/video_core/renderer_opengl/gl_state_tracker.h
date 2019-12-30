@@ -66,6 +66,7 @@ enum : u8 {
     PrimitiveRestart,
     PolygonOffset,
     MultisampleControl,
+    RasterizeEnable,
 
     Last
 };
@@ -145,6 +146,11 @@ public:
     void NotifyPolygonOffset() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::PolygonOffset] = true;
+    }
+
+    void NotifyRasterizeEnable() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::RasterizeEnable] = true;
     }
 
 private:

@@ -1090,8 +1090,14 @@ void RasterizerOpenGL::SyncStencilTestState() {
 }
 
 void RasterizerOpenGL::SyncRasterizeEnable() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    oglEnable(GL_RASTERIZER_DISCARD, regs.rasterize_enable == 0);
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::RasterizeEnable]) {
+        return;
+    }
+    flags[Dirty::RasterizeEnable] = false;
+
+    oglEnable(GL_RASTERIZER_DISCARD, gpu.regs.rasterize_enable == 0);
 }
 
 void RasterizerOpenGL::SyncColorMask() {

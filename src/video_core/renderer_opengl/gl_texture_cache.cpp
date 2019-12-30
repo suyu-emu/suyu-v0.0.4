@@ -522,6 +522,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     state_tracker.NotifyScissor0();
     state_tracker.NotifyBlend0();
     state_tracker.NotifyFramebuffer();
+    state_tracker.NotifyRasterizeEnable();
 
     if (dst_params.srgb_conversion) {
         glEnable(GL_FRAMEBUFFER_SRGB);

@@ -189,6 +189,10 @@ void SetupDirtyMultisampleControl(Tables& tables) {
     FillBlock(tables[0], OFF(multisample_control), NUM(multisample_control), MultisampleControl);
 }
 
+void SetupDirtyRasterizeEnable(Tables& tables) {
+    tables[0][OFF(rasterize_enable)] = RasterizeEnable;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -221,6 +225,7 @@ void StateTracker::Initialize() {
     SetupDirtyPrimitiveRestart(tables);
     SetupDirtyPolygonOffset(tables);
     SetupDirtyMultisampleControl(tables);
+    SetupDirtyRasterizeEnable(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;
