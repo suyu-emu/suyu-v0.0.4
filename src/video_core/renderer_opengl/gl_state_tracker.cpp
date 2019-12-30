@@ -168,6 +168,16 @@ void SetupDirtyPrimitiveRestart(Tables& tables) {
     FillBlock(tables[0], OFF(primitive_restart), NUM(primitive_restart), PrimitiveRestart);
 }
 
+void SetupDirtyPolygonOffset(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(polygon_offset_fill_enable)] = PolygonOffset;
+    table[OFF(polygon_offset_line_enable)] = PolygonOffset;
+    table[OFF(polygon_offset_point_enable)] = PolygonOffset;
+    table[OFF(polygon_offset_factor)] = PolygonOffset;
+    table[OFF(polygon_offset_units)] = PolygonOffset;
+    table[OFF(polygon_offset_clamp)] = PolygonOffset;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -197,6 +207,7 @@ void StateTracker::Initialize() {
     SetupDirtyStencilTest(tables);
     SetupDirtyBlend(tables);
     SetupDirtyPrimitiveRestart(tables);
+    SetupDirtyPolygonOffset(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

@@ -586,6 +586,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     state_tracker.NotifyCullTest();
     state_tracker.NotifyDepthTest();
     state_tracker.NotifyStencilTest();
+    state_tracker.NotifyPolygonOffset();
 
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);

@@ -140,6 +140,11 @@ public:
         flags[OpenGL::Dirty::StencilTest] = true;
     }
 
+    void NotifyPolygonOffset() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::PolygonOffset] = true;
+    }
+
 private:
     Core::System& system;
 };

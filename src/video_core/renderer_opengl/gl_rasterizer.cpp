@@ -1249,9 +1249,14 @@ void RasterizerOpenGL::SyncPointState() {
 }
 
 void RasterizerOpenGL::SyncPolygonOffset() {
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::PolygonOffset]) {
+        return;
+    }
+    flags[Dirty::PolygonOffset] = false;
 
+    const auto& regs = gpu.regs;
     oglEnable(GL_POLYGON_OFFSET_FILL, regs.polygon_offset_fill_enable);
     oglEnable(GL_POLYGON_OFFSET_LINE, regs.polygon_offset_line_enable);
     oglEnable(GL_POLYGON_OFFSET_POINT, regs.polygon_offset_point_enable);
