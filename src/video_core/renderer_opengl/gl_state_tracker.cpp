@@ -129,6 +129,13 @@ void SetupDirtyShaders(Tables& tables) {
               Shaders);
 }
 
+void SetupDirtyDepthTest(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(depth_test_enable)] = DepthTest;
+    table[OFF(depth_write_enabled)] = DepthMask;
+    table[OFF(depth_test_func)] = DepthTest;
+}
+
 void SetupDirtyBlend(Tables& tables) {
     FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendColor);
 
@@ -169,6 +176,7 @@ void StateTracker::Initialize() {
     SetupDirtyVertexArrays(tables);
     SetupDirtyVertexFormat(tables);
     SetupDirtyShaders(tables);
+    SetupDirtyDepthTest(tables);
     SetupDirtyBlend(tables);
     SetupDirtyMisc(tables);
 

@@ -1024,13 +1024,23 @@ void RasterizerOpenGL::SyncPrimitiveRestart() {
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
 
-    glDepthMask(regs.depth_write_enabled ? GL_TRUE : GL_FALSE);
+    const auto& regs = gpu.regs;
+    if (flags[Dirty::DepthMask]) {
+        flags[Dirty::DepthMask] = false;
+        glDepthMask(regs.depth_write_enabled ? GL_TRUE : GL_FALSE);
+    }
 
-    oglEnable(GL_DEPTH_TEST, regs.depth_test_enable);
-    if (regs.depth_test_enable) {
-        glDepthFunc(MaxwellToGL::ComparisonOp(regs.depth_test_func));
+    if (flags[Dirty::DepthTest]) {
+        flags[Dirty::DepthTest] = false;
+        if (regs.depth_test_enable) {
+            glEnable(GL_DEPTH_TEST);
+            glDepthFunc(MaxwellToGL::ComparisonOp(regs.depth_test_func));
+        } else {
+            glDisable(GL_DEPTH_TEST);
+        }
     }
 }
 

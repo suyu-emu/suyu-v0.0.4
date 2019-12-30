@@ -58,8 +58,9 @@ enum : u8 {
 
     FrontFace,
     CullTest,
-    PrimitiveRestart,
+    DepthMask,
     DepthTest,
+    PrimitiveRestart,
     StencilTest,
     ColorMask,
     PolygonOffset,
@@ -127,6 +128,11 @@ public:
     void NotifyCullTest() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::CullTest] = true;
+    }
+
+    void NotifyDepthTest() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::DepthTest] = true;
     }
 
 private:
