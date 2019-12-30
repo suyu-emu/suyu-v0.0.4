@@ -51,7 +51,7 @@ public:
 
 private:
     struct SubrangeState final {
-        vk::AccessFlags access = {};                          ///< Current access bits.
+        vk::AccessFlags access{};                             ///< Current access bits.
         vk::ImageLayout layout = vk::ImageLayout::eUndefined; ///< Current image layout.
     };
 
