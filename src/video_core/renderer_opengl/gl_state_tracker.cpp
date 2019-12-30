@@ -193,6 +193,10 @@ void SetupDirtyRasterizeEnable(Tables& tables) {
     tables[0][OFF(rasterize_enable)] = RasterizeEnable;
 }
 
+void SetupDirtyFramebufferSRGB(Tables& tables) {
+    tables[0][OFF(framebuffer_srgb)] = FramebufferSRGB;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -226,6 +230,7 @@ void StateTracker::Initialize() {
     SetupDirtyPolygonOffset(tables);
     SetupDirtyMultisampleControl(tables);
     SetupDirtyRasterizeEnable(tables);
+    SetupDirtyFramebufferSRGB(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

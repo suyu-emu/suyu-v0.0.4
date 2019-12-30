@@ -67,6 +67,7 @@ enum : u8 {
     PolygonOffset,
     MultisampleControl,
     RasterizeEnable,
+    FramebufferSRGB,
 
     Last
 };
@@ -151,6 +152,11 @@ public:
     void NotifyRasterizeEnable() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::RasterizeEnable] = true;
+    }
+
+    void NotifyFramebufferSRGB() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::FramebufferSRGB] = true;
     }
 
 private:

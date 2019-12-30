@@ -1301,8 +1301,14 @@ void RasterizerOpenGL::SyncAlphaTest() {
 }
 
 void RasterizerOpenGL::SyncFramebufferSRGB() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    oglEnable(GL_FRAMEBUFFER_SRGB, regs.framebuffer_srgb);
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::FramebufferSRGB]) {
+        return;
+    }
+    flags[Dirty::FramebufferSRGB] = false;
+
+    oglEnable(GL_FRAMEBUFFER_SRGB, gpu.regs.framebuffer_srgb);
 }
 
 } // namespace OpenGL
