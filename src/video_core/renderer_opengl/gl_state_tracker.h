@@ -56,13 +56,13 @@ enum : u8 {
     Shaders,
     ClipDistances,
 
+    ColorMask,
     FrontFace,
     CullTest,
     DepthMask,
     DepthTest,
-    PrimitiveRestart,
     StencilTest,
-    ColorMask,
+    PrimitiveRestart,
     PolygonOffset,
 
     Last

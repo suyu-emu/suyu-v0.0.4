@@ -164,6 +164,10 @@ void SetupDirtyBlend(Tables& tables) {
     FillBlock(tables[1], OFF(blend), NUM(blend), BlendStates);
 }
 
+void SetupDirtyPrimitiveRestart(Tables& tables) {
+    FillBlock(tables[0], OFF(primitive_restart), NUM(primitive_restart), PrimitiveRestart);
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -192,6 +196,7 @@ void StateTracker::Initialize() {
     SetupDirtyDepthTest(tables);
     SetupDirtyStencilTest(tables);
     SetupDirtyBlend(tables);
+    SetupDirtyPrimitiveRestart(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

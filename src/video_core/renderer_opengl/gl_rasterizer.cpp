@@ -1017,10 +1017,19 @@ void RasterizerOpenGL::SyncCullMode() {
 }
 
 void RasterizerOpenGL::SyncPrimitiveRestart() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::PrimitiveRestart]) {
+        return;
+    }
+    flags[Dirty::PrimitiveRestart] = false;
 
-    oglEnable(GL_PRIMITIVE_RESTART, regs.primitive_restart.enabled);
-    glPrimitiveRestartIndex(regs.primitive_restart.index);
+    if (gpu.regs.primitive_restart.enabled) {
+        glEnable(GL_PRIMITIVE_RESTART);
+        glPrimitiveRestartIndex(gpu.regs.primitive_restart.index);
+    } else {
+        glDisable(GL_PRIMITIVE_RESTART);
+    }
 }
 
 void RasterizerOpenGL::SyncDepthTestState() {
