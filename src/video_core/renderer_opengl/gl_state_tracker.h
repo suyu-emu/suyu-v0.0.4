@@ -135,6 +135,11 @@ public:
         flags[OpenGL::Dirty::DepthTest] = true;
     }
 
+    void NotifyStencilTest() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::StencilTest] = true;
+    }
+
 private:
     Core::System& system;
 };

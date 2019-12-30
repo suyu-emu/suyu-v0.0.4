@@ -136,6 +136,19 @@ void SetupDirtyDepthTest(Tables& tables) {
     table[OFF(depth_test_func)] = DepthTest;
 }
 
+void SetupDirtyStencilTest(Tables& tables) {
+    static constexpr std::array offsets = {
+        OFF(stencil_enable),          OFF(stencil_front_func_func), OFF(stencil_front_func_ref),
+        OFF(stencil_front_func_mask), OFF(stencil_front_op_fail),   OFF(stencil_front_op_zfail),
+        OFF(stencil_front_op_zpass),  OFF(stencil_front_mask),      OFF(stencil_two_side_enable),
+        OFF(stencil_back_func_func),  OFF(stencil_back_func_ref),   OFF(stencil_back_func_mask),
+        OFF(stencil_back_op_fail),    OFF(stencil_back_op_zfail),   OFF(stencil_back_op_zpass),
+        OFF(stencil_back_mask)};
+    for (const auto offset : offsets) {
+        tables[0][offset] = StencilTest;
+    }
+}
+
 void SetupDirtyBlend(Tables& tables) {
     FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendColor);
 
@@ -177,6 +190,7 @@ void StateTracker::Initialize() {
     SetupDirtyVertexFormat(tables);
     SetupDirtyShaders(tables);
     SetupDirtyDepthTest(tables);
+    SetupDirtyStencilTest(tables);
     SetupDirtyBlend(tables);
     SetupDirtyMisc(tables);
 
