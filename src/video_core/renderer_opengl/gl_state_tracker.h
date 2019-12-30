@@ -70,6 +70,7 @@ enum : u8 {
     FramebufferSRGB,
     LogicOp,
     FragmentClampColor,
+    PointSize,
 
     Last
 };

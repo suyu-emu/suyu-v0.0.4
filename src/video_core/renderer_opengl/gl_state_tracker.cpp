@@ -205,6 +205,12 @@ void SetupDirtyFragmentClampColor(Tables& tables) {
     tables[0][OFF(frag_color_clamp)] = FragmentClampColor;
 }
 
+void SetupDirtyPointSize(Tables& tables) {
+    tables[0][OFF(vp_point_size)] = PointSize;
+    tables[0][OFF(point_size)] = PointSize;
+    tables[0][OFF(point_sprite_enable)] = PointSize;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -241,6 +247,7 @@ void StateTracker::Initialize() {
     SetupDirtyFramebufferSRGB(tables);
     SetupDirtyLogicOp(tables);
     SetupDirtyFragmentClampColor(tables);
+    SetupDirtyPointSize(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

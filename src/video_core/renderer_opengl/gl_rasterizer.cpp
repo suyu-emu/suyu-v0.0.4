@@ -1267,12 +1267,25 @@ void RasterizerOpenGL::SyncTransformFeedback() {
 }
 
 void RasterizerOpenGL::SyncPointState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::PointSize]) {
+        return;
+    }
+    flags[Dirty::PointSize] = false;
+
+    oglEnable(GL_POINT_SPRITE, gpu.regs.point_sprite_enable);
+
+    if (gpu.regs.vp_point_size.enable) {
+        // By definition of GL_POINT_SIZE, it only matters if GL_PROGRAM_POINT_SIZE is disabled.
+        glEnable(GL_PROGRAM_POINT_SIZE);
+        return;
+    }
+
     // Limit the point size to 1 since nouveau sometimes sets a point size of 0 (and that's invalid
     // in OpenGL).
-    oglEnable(GL_PROGRAM_POINT_SIZE, regs.vp_point_size.enable);
-    oglEnable(GL_POINT_SPRITE, regs.point_sprite_enable);
-    glPointSize(std::max(1.0f, regs.point_size));
+    glPointSize(std::max(1.0f, gpu.regs.point_size));
+    glDisable(GL_PROGRAM_POINT_SIZE);
 }
 
 void RasterizerOpenGL::SyncPolygonOffset() {
