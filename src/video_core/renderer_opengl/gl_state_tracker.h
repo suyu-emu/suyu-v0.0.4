@@ -69,6 +69,7 @@ enum : u8 {
     RasterizeEnable,
     FramebufferSRGB,
     LogicOp,
+    FragmentClampColor,
 
     Last
 };

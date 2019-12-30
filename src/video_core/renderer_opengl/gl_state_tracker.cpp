@@ -201,6 +201,10 @@ void SetupDirtyLogicOp(Tables& tables) {
     FillBlock(tables[0], OFF(logic_op), NUM(logic_op), LogicOp);
 }
 
+void SetupDirtyFragmentClampColor(Tables& tables) {
+    tables[0][OFF(frag_color_clamp)] = FragmentClampColor;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -236,6 +240,7 @@ void StateTracker::Initialize() {
     SetupDirtyRasterizeEnable(tables);
     SetupDirtyFramebufferSRGB(tables);
     SetupDirtyLogicOp(tables);
+    SetupDirtyFragmentClampColor(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

@@ -1149,8 +1149,14 @@ void RasterizerOpenGL::SyncMultiSampleState() {
 }
 
 void RasterizerOpenGL::SyncFragmentColorClampState() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    glClampColor(GL_CLAMP_FRAGMENT_COLOR, regs.frag_color_clamp ? GL_TRUE : GL_FALSE);
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::FragmentClampColor]) {
+        return;
+    }
+    flags[Dirty::FragmentClampColor] = false;
+
+    glClampColor(GL_CLAMP_FRAGMENT_COLOR, gpu.regs.frag_color_clamp ? GL_TRUE : GL_FALSE);
 }
 
 void RasterizerOpenGL::SyncBlendState() {
