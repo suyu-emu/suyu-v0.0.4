@@ -590,6 +590,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     state_tracker.NotifyRasterizeEnable();
     state_tracker.NotifyFramebufferSRGB();
     state_tracker.NotifyLogicOp();
+    state_tracker.NotifyClipControl();
 
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);

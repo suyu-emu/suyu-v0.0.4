@@ -71,6 +71,7 @@ enum : u8 {
     LogicOp,
     FragmentClampColor,
     PointSize,
+    ClipControl,
 
     Last
 };
@@ -165,6 +166,11 @@ public:
     void NotifyLogicOp() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::LogicOp] = true;
+    }
+
+    void NotifyClipControl() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::ClipControl] = true;
     }
 
 private:

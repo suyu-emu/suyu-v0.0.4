@@ -211,6 +211,12 @@ void SetupDirtyPointSize(Tables& tables) {
     tables[0][OFF(point_sprite_enable)] = PointSize;
 }
 
+void SetupDirtyClipControl(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(screen_y_control)] = ClipControl;
+    table[OFF(depth_mode)] = ClipControl;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -248,6 +254,7 @@ void StateTracker::Initialize() {
     SetupDirtyLogicOp(tables);
     SetupDirtyFragmentClampColor(tables);
     SetupDirtyPointSize(tables);
+    SetupDirtyClipControl(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

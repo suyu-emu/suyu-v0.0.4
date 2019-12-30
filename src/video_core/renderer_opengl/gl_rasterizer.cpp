@@ -460,7 +460,6 @@ void RasterizerOpenGL::Clear() {
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyBlend0();
     // TODO(Rodrigo): Find out if these changes affect clearing
-    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
     glDisablei(GL_BLEND, 0);
 
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
@@ -927,7 +926,23 @@ void RasterizerOpenGL::SyncViewport() {
     auto& flags = gpu.dirty.flags;
     const auto& regs = gpu.regs;
 
-    if (flags[Dirty::Viewports]) {
+    const bool dirty_viewport = flags[Dirty::Viewports];
+    if (dirty_viewport || flags[Dirty::ClipControl]) {
+        flags[Dirty::ClipControl] = false;
+
+        bool flip_y = false;
+        if (regs.viewport_transform[0].scale_y < 0.0) {
+            flip_y = !flip_y;
+        }
+        if (regs.screen_y_control.y_negate != 0) {
+            flip_y = !flip_y;
+        }
+        glClipControl(flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT,
+                      regs.depth_mode == Maxwell::DepthMode::ZeroToOne ? GL_ZERO_TO_ONE
+                                                                       : GL_NEGATIVE_ONE_TO_ONE);
+    }
+
+    if (dirty_viewport) {
         flags[Dirty::Viewports] = false;
 
         const bool force = flags[Dirty::ViewportTransform];
@@ -948,17 +963,6 @@ void RasterizerOpenGL::SyncViewport() {
                                 static_cast<GLdouble>(src.depth_range_far));
         }
     }
-
-    bool flip_y = false;
-    if (regs.viewport_transform[0].scale_y < 0.0) {
-        flip_y = !flip_y;
-    }
-    if (regs.screen_y_control.y_negate != 0) {
-        flip_y = !flip_y;
-    }
-    glClipControl(flip_y ? GL_UPPER_LEFT : GL_LOWER_LEFT,
-                  regs.depth_mode == Maxwell::DepthMode::ZeroToOne ? GL_ZERO_TO_ONE
-                                                                   : GL_NEGATIVE_ONE_TO_ONE);
 }
 
 void RasterizerOpenGL::SyncDepthClamp() {
