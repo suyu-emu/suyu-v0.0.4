@@ -11,9 +11,11 @@
 
 namespace OpenGL {
 
+class StateTracker;
+
 class VertexArrayPushBuffer final {
 public:
-    explicit VertexArrayPushBuffer();
+    explicit VertexArrayPushBuffer(StateTracker& state_tracker);
     ~VertexArrayPushBuffer();
 
     void Setup();
@@ -27,6 +29,8 @@ public:
 
 private:
     struct Entry;
+
+    StateTracker& state_tracker;
 
     const GLuint* index_buffer{};
     std::vector<Entry> vertex_buffers;

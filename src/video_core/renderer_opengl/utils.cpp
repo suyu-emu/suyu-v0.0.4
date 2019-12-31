@@ -9,6 +9,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/utils.h"
 
 namespace OpenGL {
@@ -20,7 +21,8 @@ struct VertexArrayPushBuffer::Entry {
     GLsizei stride{};
 };
 
-VertexArrayPushBuffer::VertexArrayPushBuffer() = default;
+VertexArrayPushBuffer::VertexArrayPushBuffer(StateTracker& state_tracker)
+    : state_tracker{state_tracker} {}
 
 VertexArrayPushBuffer::~VertexArrayPushBuffer() = default;
 
@@ -40,10 +42,9 @@ void VertexArrayPushBuffer::SetVertexBuffer(GLuint binding_index, const GLuint* 
 
 void VertexArrayPushBuffer::Bind() {
     if (index_buffer) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *index_buffer);
+        state_tracker.BindIndexBuffer(*index_buffer);
     }
 
-    // TODO(Rodrigo): Find a way to ARB_multi_bind this
     for (const auto& entry : vertex_buffers) {
         glBindVertexBuffer(entry.binding_index, *entry.buffer, entry.offset, entry.stride);
     }

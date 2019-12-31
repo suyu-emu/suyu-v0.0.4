@@ -6,7 +6,10 @@
 
 #include <limits>
 
+#include <glad/glad.h>
+
 #include "common/common_types.h"
+#include "core/core.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
 
@@ -84,6 +87,14 @@ public:
     explicit StateTracker(Core::System& system);
 
     void Initialize();
+
+    void BindIndexBuffer(GLuint new_index_buffer) {
+        if (index_buffer == new_index_buffer) {
+            return;
+        }
+        index_buffer = new_index_buffer;
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, new_index_buffer);
+    }
 
     void NotifyScreenDrawVertexArray() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
@@ -175,6 +186,8 @@ public:
 
 private:
     Core::System& system;
+
+    GLuint index_buffer = 0;
 };
 
 } // namespace OpenGL
