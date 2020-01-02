@@ -120,6 +120,8 @@ inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return GL_POINTS;
     case Maxwell::PrimitiveTopology::Lines:
         return GL_LINES;
+    case Maxwell::PrimitiveTopology::LineLoop:
+        return GL_LINE_LOOP;
     case Maxwell::PrimitiveTopology::LineStrip:
         return GL_LINE_STRIP;
     case Maxwell::PrimitiveTopology::Triangles:
@@ -130,11 +132,23 @@ inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
         return GL_TRIANGLE_FAN;
     case Maxwell::PrimitiveTopology::Quads:
         return GL_QUADS;
-    default:
-        LOG_CRITICAL(Render_OpenGL, "Unimplemented topology={}", static_cast<u32>(topology));
-        UNREACHABLE();
-        return {};
+    case Maxwell::PrimitiveTopology::QuadStrip:
+        return GL_QUAD_STRIP;
+    case Maxwell::PrimitiveTopology::Polygon:
+        return GL_POLYGON;
+    case Maxwell::PrimitiveTopology::LinesAdjacency:
+        return GL_LINES_ADJACENCY;
+    case Maxwell::PrimitiveTopology::LineStripAdjacency:
+        return GL_LINE_STRIP_ADJACENCY;
+    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
+        return GL_TRIANGLES_ADJACENCY;
+    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
+        return GL_TRIANGLE_STRIP_ADJACENCY;
+    case Maxwell::PrimitiveTopology::Patches:
+        return GL_PATCHES;
     }
+    UNREACHABLE_MSG("Invalid topology={}", static_cast<int>(topology));
+    return GL_POINTS;
 }
 
 inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
