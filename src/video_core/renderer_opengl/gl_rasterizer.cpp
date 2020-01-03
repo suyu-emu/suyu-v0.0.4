@@ -408,13 +408,12 @@ void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using
 }
 
 void RasterizerOpenGL::Clear() {
-    const auto& maxwell3d = system.GPU().Maxwell3D();
-
-    if (!maxwell3d.ShouldExecute()) {
+    const auto& gpu = system.GPU().Maxwell3D();
+    if (!gpu.ShouldExecute()) {
         return;
     }
 
-    const auto& regs = maxwell3d.regs;
+    const auto& regs = gpu.regs;
     bool use_color{};
     bool use_depth{};
     bool use_stencil{};
@@ -424,14 +423,13 @@ void RasterizerOpenGL::Clear() {
         use_color = true;
     }
     if (use_color) {
-        // TODO: Signal state tracker about these changes
         state_tracker.NotifyColorMask0();
         glColorMaski(0, regs.clear_buffers.R != 0, regs.clear_buffers.G != 0,
                      regs.clear_buffers.B != 0, regs.clear_buffers.A != 0);
 
-        SyncFramebufferSRGB();
         // TODO(Rodrigo): Determine if clamping is used on clears
         SyncFragmentColorClampState();
+        SyncFramebufferSRGB();
     }
     if (regs.clear_buffers.Z) {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
@@ -441,7 +439,7 @@ void RasterizerOpenGL::Clear() {
         glDepthMask(GL_TRUE);
     }
     if (regs.clear_buffers.S) {
-        ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear stencil but buffer is not enabled!");
+        ASSERT_MSG(regs.zeta_enable, "Tried to clear stencil but buffer is not enabled!");
         use_stencil = true;
     }
 
@@ -450,19 +448,19 @@ void RasterizerOpenGL::Clear() {
         return;
     }
 
-    ConfigureClearFramebuffer(use_color, use_depth, use_stencil);
-
     SyncRasterizeEnable();
+
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
     }
 
-    // TODO: Signal state tracker about these changes
+    // TODO(Rodrigo): Find out if blending affects clearing
     state_tracker.NotifyBlend0();
-    // TODO(Rodrigo): Find out if these changes affect clearing
     glDisablei(GL_BLEND, 0);
 
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
+
+    ConfigureClearFramebuffer(use_color, use_depth, use_stencil);
 
     if (use_color) {
         glClearBufferfv(GL_COLOR, 0, regs.clear_color);
