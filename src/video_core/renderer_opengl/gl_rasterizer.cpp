@@ -493,6 +493,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     SyncFragmentColorClampState();
     SyncMultiSampleState();
     SyncDepthTestState();
+    SyncDepthClamp();
     SyncStencilTestState();
     SyncBlendState();
     SyncLogicOpState();
@@ -967,11 +968,16 @@ void RasterizerOpenGL::SyncViewport() {
 }
 
 void RasterizerOpenGL::SyncDepthClamp() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    const auto& state = regs.view_volume_clip_control;
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::DepthClampEnabled]) {
+        return;
+    }
+    flags[Dirty::DepthClampEnabled] = false;
 
+    const auto& state = gpu.regs.view_volume_clip_control;
     UNIMPLEMENTED_IF_MSG(state.depth_clamp_far != state.depth_clamp_near,
-                         "Unimplemented Depth clamp separation!");
+                         "Unimplemented depth clamp separation!");
 
     oglEnable(GL_DEPTH_CLAMP, state.depth_clamp_far || state.depth_clamp_near);
 }

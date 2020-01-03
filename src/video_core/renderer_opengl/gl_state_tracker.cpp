@@ -217,6 +217,10 @@ void SetupDirtyClipControl(Tables& tables) {
     table[OFF(depth_mode)] = ClipControl;
 }
 
+void SetupDirtyDepthClampEnabled(Tables& tables) {
+    tables[0][OFF(view_volume_clip_control)] = DepthClampEnabled;
+}
+
 void SetupDirtyMisc(Tables& tables) {
     auto& table = tables[0];
 
@@ -255,6 +259,7 @@ void StateTracker::Initialize() {
     SetupDirtyFragmentClampColor(tables);
     SetupDirtyPointSize(tables);
     SetupDirtyClipControl(tables);
+    SetupDirtyDepthClampEnabled(tables);
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;

@@ -75,6 +75,7 @@ enum : u8 {
     FragmentClampColor,
     PointSize,
     ClipControl,
+    DepthClampEnabled,
 
     Last
 };
