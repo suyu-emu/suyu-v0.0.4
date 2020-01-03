@@ -27,6 +27,7 @@ ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSet
                    ConstBufferLocker& locker)
     : program_code{program_code}, main_offset{main_offset}, settings{settings}, locker{locker} {
     Decode();
+    PostDecode();
 }
 
 ShaderIR::~ShaderIR() = default;

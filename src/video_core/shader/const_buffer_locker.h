@@ -10,6 +10,7 @@
 #include "common/hash.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/guest_driver.h"
 
 namespace VideoCommon::Shader {
 
@@ -69,6 +70,13 @@ public:
     /// Gets bindless samplers database.
     const BindlessSamplerMap& GetBindlessSamplers() const {
         return bindless_samplers;
+    }
+
+    VideoCore::GuestDriverProfile* AccessGuestDriverProfile() {
+        if (engine) {
+            return &(engine->AccessGuestDriverProfile());
+        }
+        return nullptr;
     }
 
 private:

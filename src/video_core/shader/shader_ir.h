@@ -191,6 +191,7 @@ private:
     };
 
     void Decode();
+    void PostDecode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
     void DecodeRangeInner(NodeBlock& bb, u32 begin, u32 end);

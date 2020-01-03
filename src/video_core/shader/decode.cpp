@@ -315,4 +315,25 @@ u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
     return pc + 1;
 }
 
+void ShaderIR::PostDecode() {
+    // Deduce texture handler size if needed
+    auto* gpu_driver = locker.AccessGuestDriverProfile();
+    if (gpu_driver) {
+        if (!gpu_driver->TextureHandlerSizeKnown() && used_samplers.size() > 1) {
+            u32 count{};
+            std::vector<u32> bound_offsets;
+            for (const auto& sampler : used_samplers) {
+                if (sampler.IsBindless()) {
+                    continue;
+                }
+                count++;
+                bound_offsets.emplace_back(sampler.GetOffset());
+            }
+            if (count > 1) {
+                gpu_driver->DeduceTextureHandlerSize(std::move(bound_offsets));
+            }
+        }
+    }
+}
+
 } // namespace VideoCommon::Shader

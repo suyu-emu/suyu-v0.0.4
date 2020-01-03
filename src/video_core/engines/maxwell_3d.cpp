@@ -784,4 +784,8 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
     return result;
 }
 
+VideoCore::GuestDriverProfile& Maxwell3D::AccessGuestDriverProfile() {
+    return rasterizer.AccessGuestDriverProfile();
+}
+
 } // namespace Tegra::Engines

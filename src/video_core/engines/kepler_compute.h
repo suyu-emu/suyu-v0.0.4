@@ -218,6 +218,8 @@ public:
         return regs.tex_cb_index;
     }
 
+    VideoCore::GuestDriverProfile& AccessGuestDriverProfile() override;
+
 private:
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;

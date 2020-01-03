@@ -29,6 +29,8 @@ add_library(video_core STATIC
     gpu_synch.h
     gpu_thread.cpp
     gpu_thread.h
+    guest_driver.cpp
+    guest_driver.h
     macro_interpreter.cpp
     macro_interpreter.h
     memory_manager.cpp
