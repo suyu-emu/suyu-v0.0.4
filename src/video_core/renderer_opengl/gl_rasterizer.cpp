@@ -452,6 +452,9 @@ void RasterizerOpenGL::Clear() {
 
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
+    } else {
+        state_tracker.NotifyScissor0();
+        glDisablei(GL_SCISSOR_TEST, 0);
     }
 
     // TODO(Rodrigo): Find out if blending affects clearing
