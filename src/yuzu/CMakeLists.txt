@@ -78,11 +78,6 @@ add_executable(yuzu
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
-    debugger/graphics/graphics_breakpoint_observer.cpp
-    debugger/graphics/graphics_breakpoint_observer.h
-    debugger/graphics/graphics_breakpoints.cpp
-    debugger/graphics/graphics_breakpoints.h
-    debugger/graphics/graphics_breakpoints_p.h
     debugger/console.cpp
     debugger/console.h
     debugger/profiler.cpp

@@ -22,7 +22,6 @@ class Config;
 class EmuThread;
 class GameList;
 class GImageInfo;
-class GraphicsBreakPointsWidget;
 class GRenderWindow;
 class LoadingScreen;
 class MicroProfileDialog;
@@ -41,10 +40,6 @@ class ContentProvider;
 class ManualContentProvider;
 class VfsFilesystem;
 } // namespace FileSys
-
-namespace Tegra {
-class DebugContext;
-}
 
 enum class EmulatedDirectoryTarget {
     NAND,
@@ -223,8 +218,6 @@ private:
 
     Ui::MainWindow ui;
 
-    std::shared_ptr<Tegra::DebugContext> debug_context;
-
     GRenderWindow* render_window;
     GameList* game_list;
     LoadingScreen* loading_screen;
@@ -255,7 +248,6 @@ private:
     // Debugger panes
     ProfilerWidget* profilerWidget;
     MicroProfileDialog* microProfileDialog;
-    GraphicsBreakPointsWidget* graphicsBreakpointsWidget;
     WaitTreeWidget* waitTreeWidget;
 
     QAction* actions_recent_files[max_recent_files_item];

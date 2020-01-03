@@ -307,10 +307,6 @@ public:
     Service::SM::ServiceManager& ServiceManager();
     const Service::SM::ServiceManager& ServiceManager() const;
 
-    void SetGPUDebugContext(std::shared_ptr<Tegra::DebugContext> context);
-
-    Tegra::DebugContext* GetGPUDebugContext() const;
-
     void SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs);
 
     std::shared_ptr<FileSys::VfsFilesystem> GetFilesystem() const;

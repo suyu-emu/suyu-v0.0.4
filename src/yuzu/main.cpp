@@ -93,7 +93,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
-#include "video_core/debug_utils/debug_utils.h"
 #include "yuzu/about_dialog.h"
 #include "yuzu/bootmanager.h"
 #include "yuzu/compatdb.h"
@@ -101,7 +100,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_dialog.h"
 #include "yuzu/debugger/console.h"
-#include "yuzu/debugger/graphics/graphics_breakpoints.h"
 #include "yuzu/debugger/profiler.h"
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/discord.h"
@@ -186,8 +184,6 @@ GMainWindow::GMainWindow()
       vfs(std::make_shared<FileSys::RealVfsFilesystem>()),
       provider(std::make_unique<FileSys::ManualContentProvider>()) {
     InitializeLogging();
-
-    debug_context = Tegra::DebugContext::Construct();
 
     setAcceptDrops(true);
     ui.setupUi(this);
@@ -494,11 +490,6 @@ void GMainWindow::InitializeDebugWidgets() {
     microProfileDialog->hide();
     debug_menu->addAction(microProfileDialog->toggleViewAction());
 #endif
-
-    graphicsBreakpointsWidget = new GraphicsBreakPointsWidget(debug_context, this);
-    addDockWidget(Qt::RightDockWidgetArea, graphicsBreakpointsWidget);
-    graphicsBreakpointsWidget->hide();
-    debug_menu->addAction(graphicsBreakpointsWidget->toggleViewAction());
 
     waitTreeWidget = new WaitTreeWidget(this);
     addDockWidget(Qt::LeftDockWidgetArea, waitTreeWidget);
@@ -868,8 +859,6 @@ bool GMainWindow::LoadROM(const QString& filename) {
 
     Core::System& system{Core::System::GetInstance()};
     system.SetFilesystem(vfs);
-
-    system.SetGPUDebugContext(debug_context);
 
     system.SetAppletFrontendSet({
         nullptr,                                     // Parental Controls
