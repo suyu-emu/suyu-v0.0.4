@@ -79,6 +79,7 @@ static_assert(std::is_trivially_copyable_v<ProgramVariant>);
 struct ShaderDiskCacheUsage {
     u64 unique_identifier{};
     ProgramVariant variant;
+    u32 bound_buffer{};
     VideoCommon::Shader::KeyMap keys;
     VideoCommon::Shader::BoundSamplerMap bound_samplers;
     VideoCommon::Shader::BindlessSamplerMap bindless_samplers;

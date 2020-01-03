@@ -53,7 +53,7 @@ struct BindlessSamplerKey {
     Tegra::Engines::SamplerDescriptor sampler{};
 };
 
-constexpr u32 NativeVersion = 11;
+constexpr u32 NativeVersion = 12;
 
 // Making sure sizes doesn't change by accident
 static_assert(sizeof(ProgramVariant) == 20);
@@ -186,7 +186,8 @@ ShaderDiskCacheOpenGL::LoadTransferable() {
             u32 num_bound_samplers{};
             u32 num_bindless_samplers{};
             if (file.ReadArray(&usage.unique_identifier, 1) != 1 ||
-                file.ReadArray(&usage.variant, 1) != 1 || file.ReadArray(&num_keys, 1) != 1 ||
+                file.ReadArray(&usage.variant, 1) != 1 ||
+                file.ReadArray(&usage.bound_buffer, 1) != 1 || file.ReadArray(&num_keys, 1) != 1 ||
                 file.ReadArray(&num_bound_samplers, 1) != 1 ||
                 file.ReadArray(&num_bindless_samplers, 1) != 1) {
                 LOG_ERROR(Render_OpenGL, error_loading);
@@ -281,7 +282,9 @@ ShaderDiskCacheOpenGL::LoadPrecompiledFile(FileUtil::IOFile& file) {
         u32 num_bindless_samplers{};
         ShaderDiskCacheUsage usage;
         if (!LoadObjectFromPrecompiled(usage.unique_identifier) ||
-            !LoadObjectFromPrecompiled(usage.variant) || !LoadObjectFromPrecompiled(num_keys) ||
+            !LoadObjectFromPrecompiled(usage.variant) ||
+            !LoadObjectFromPrecompiled(usage.bound_buffer) ||
+            !LoadObjectFromPrecompiled(num_keys) ||
             !LoadObjectFromPrecompiled(num_bound_samplers) ||
             !LoadObjectFromPrecompiled(num_bindless_samplers)) {
             return {};
@@ -393,6 +396,7 @@ void ShaderDiskCacheOpenGL::SaveUsage(const ShaderDiskCacheUsage& usage) {
 
     if (file.WriteObject(TransferableEntryKind::Usage) != 1 ||
         file.WriteObject(usage.unique_identifier) != 1 || file.WriteObject(usage.variant) != 1 ||
+        file.WriteObject(usage.bound_buffer) != 1 ||
         file.WriteObject(static_cast<u32>(usage.keys.size())) != 1 ||
         file.WriteObject(static_cast<u32>(usage.bound_samplers.size())) != 1 ||
         file.WriteObject(static_cast<u32>(usage.bindless_samplers.size())) != 1) {
@@ -447,7 +451,7 @@ void ShaderDiskCacheOpenGL::SaveDump(const ShaderDiskCacheUsage& usage, GLuint p
     };
 
     if (!SaveObjectToPrecompiled(usage.unique_identifier) ||
-        !SaveObjectToPrecompiled(usage.variant) ||
+        !SaveObjectToPrecompiled(usage.variant) || !SaveObjectToPrecompiled(usage.bound_buffer) ||
         !SaveObjectToPrecompiled(static_cast<u32>(usage.keys.size())) ||
         !SaveObjectToPrecompiled(static_cast<u32>(usage.bound_samplers.size())) ||
         !SaveObjectToPrecompiled(static_cast<u32>(usage.bindless_samplers.size()))) {

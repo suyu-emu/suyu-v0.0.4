@@ -66,6 +66,18 @@ std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBindle
     return value;
 }
 
+std::optional<u32> ConstBufferLocker::ObtainBoundBuffer() {
+    if (bound_buffer_saved) {
+        return bound_buffer;
+    }
+    if (!engine) {
+        return std::nullopt;
+    }
+    bound_buffer_saved = true;
+    bound_buffer = engine->GetBoundBuffer();
+    return bound_buffer;
+}
+
 void ConstBufferLocker::InsertKey(u32 buffer, u32 offset, u32 value) {
     keys.insert_or_assign({buffer, offset}, value);
 }
@@ -76,6 +88,11 @@ void ConstBufferLocker::InsertBoundSampler(u32 offset, SamplerDescriptor sampler
 
 void ConstBufferLocker::InsertBindlessSampler(u32 buffer, u32 offset, SamplerDescriptor sampler) {
     bindless_samplers.insert_or_assign({buffer, offset}, sampler);
+}
+
+void ConstBufferLocker::SetBoundBuffer(u32 buffer) {
+    bound_buffer_saved = true;
+    bound_buffer = buffer;
 }
 
 bool ConstBufferLocker::IsConsistent() const {

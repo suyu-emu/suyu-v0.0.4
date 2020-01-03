@@ -214,6 +214,7 @@ std::unique_ptr<ConstBufferLocker> MakeLocker(Core::System& system, ShaderType s
 }
 
 void FillLocker(ConstBufferLocker& locker, const ShaderDiskCacheUsage& usage) {
+    locker.SetBoundBuffer(usage.bound_buffer);
     for (const auto& key : usage.keys) {
         const auto [buffer, offset] = key.first;
         locker.InsertKey(buffer, offset, key.second);
@@ -418,7 +419,8 @@ bool CachedShader::EnsureValidLockerVariant() {
 
 ShaderDiskCacheUsage CachedShader::GetUsage(const ProgramVariant& variant,
                                             const ConstBufferLocker& locker) const {
-    return ShaderDiskCacheUsage{unique_identifier, variant, locker.GetKeys(),
+    return ShaderDiskCacheUsage{unique_identifier,         variant,
+                                locker.GetBoundBuffer(),   locker.GetKeys(),
                                 locker.GetBoundSamplers(), locker.GetBindlessSamplers()};
 }
 
