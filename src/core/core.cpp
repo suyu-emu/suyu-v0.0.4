@@ -46,7 +46,6 @@
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "core/tools/freezer.h"
-#include "video_core/debug_utils/debug_utils.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
@@ -341,7 +340,6 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<VideoCore::RendererBase> renderer;
     std::unique_ptr<Tegra::GPU> gpu_core;
-    std::shared_ptr<Tegra::DebugContext> debug_context;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     Memory::Memory memory;
     CpuCoreManager cpu_core_manager;
@@ -578,14 +576,6 @@ const std::string& System::GetStatusDetails() const {
 
 Loader::AppLoader& System::GetAppLoader() const {
     return *impl->app_loader;
-}
-
-void System::SetGPUDebugContext(std::shared_ptr<Tegra::DebugContext> context) {
-    impl->debug_context = std::move(context);
-}
-
-Tegra::DebugContext* System::GetGPUDebugContext() const {
-    return impl->debug_context.get();
 }
 
 void System::SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs) {

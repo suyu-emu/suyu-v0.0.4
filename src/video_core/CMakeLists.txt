@@ -4,8 +4,6 @@ add_library(video_core STATIC
     buffer_cache/map_interval.h
     dma_pusher.cpp
     dma_pusher.h
-    debug_utils/debug_utils.cpp
-    debug_utils/debug_utils.h
     engines/const_buffer_engine_interface.h
     engines/const_buffer_info.h
     engines/engine_upload.cpp

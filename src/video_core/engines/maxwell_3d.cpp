@@ -7,7 +7,6 @@
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "video_core/debug_utils/debug_utils.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
@@ -273,8 +272,6 @@ void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u3
 }
 
 void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
-    auto debug_context = system.GetGPUDebugContext();
-
     const u32 method = method_call.method;
 
     if (method == cb_data_state.current) {
@@ -314,10 +311,6 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid Maxwell3D register, increase the size of the Regs structure");
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::MaxwellCommandLoaded, nullptr);
-    }
 
     if (regs.reg_array[method] != method_call.argument) {
         regs.reg_array[method] = method_call.argument;
@@ -424,10 +417,6 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     default:
         break;
     }
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::MaxwellCommandProcessed, nullptr);
-    }
 }
 
 void Maxwell3D::StepInstance(const MMEDrawMode expected_mode, const u32 count) {
@@ -485,12 +474,6 @@ void Maxwell3D::FlushMMEInlineDraw() {
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
     ASSERT(mme_draw.instance_count == mme_draw.gl_end_count);
 
-    auto debug_context = system.GetGPUDebugContext();
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::IncomingPrimitiveBatch, nullptr);
-    }
-
     // Both instance configuration registers can not be set at the same time.
     ASSERT_MSG(!regs.draw.instance_next || !regs.draw.instance_cont,
                "Illegal combination of instancing parameters");
@@ -498,10 +481,6 @@ void Maxwell3D::FlushMMEInlineDraw() {
     const bool is_indexed = mme_draw.current_mode == MMEDrawMode::Indexed;
     if (ShouldExecute()) {
         rasterizer.DrawMultiBatch(is_indexed);
-    }
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
@@ -650,12 +629,6 @@ void Maxwell3D::DrawArrays() {
               regs.vertex_buffer.count);
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
 
-    auto debug_context = system.GetGPUDebugContext();
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::IncomingPrimitiveBatch, nullptr);
-    }
-
     // Both instance configuration registers can not be set at the same time.
     ASSERT_MSG(!regs.draw.instance_next || !regs.draw.instance_cont,
                "Illegal combination of instancing parameters");
@@ -671,10 +644,6 @@ void Maxwell3D::DrawArrays() {
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
     if (ShouldExecute()) {
         rasterizer.DrawBatch(is_indexed);
-    }
-
-    if (debug_context) {
-        debug_context->OnEvent(Tegra::DebugContext::Event::FinishedPrimitiveBatch, nullptr);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
