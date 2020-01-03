@@ -1294,7 +1294,7 @@ public:
     struct {
         std::bitset<std::numeric_limits<u8>::max()> flags;
         std::bitset<std::numeric_limits<u8>::max()> on_write_stores;
-        std::array<std::array<u8, Regs::NUM_REGS>, 3> tables{};
+        std::array<std::array<u8, Regs::NUM_REGS>, 2> tables{};
     } dirty;
 
 private:
