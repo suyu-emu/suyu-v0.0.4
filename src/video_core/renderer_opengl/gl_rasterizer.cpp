@@ -435,7 +435,7 @@ void RasterizerOpenGL::Clear() {
         ASSERT_MSG(regs.zeta_enable != 0, "Tried to clear Z but buffer is not enabled!");
         use_depth = true;
 
-        // TODO: Signal state tracker about these changes
+        state_tracker.NotifyDepthMask();
         glDepthMask(GL_TRUE);
     }
     if (regs.clear_buffers.S) {

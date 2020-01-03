@@ -149,6 +149,11 @@ public:
         flags[OpenGL::Dirty::CullTest] = true;
     }
 
+    void NotifyDepthMask() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::DepthMask] = true;
+    }
+
     void NotifyDepthTest() {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::DepthTest] = true;
