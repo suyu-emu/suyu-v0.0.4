@@ -62,7 +62,7 @@ private:
         u16_le flags;
         u16_le kind;
         u32_le nvmap_handle;
-        INSERT_PADDING_WORDS(1);
+        u32_le map_offset;
         u32_le offset;
         u32_le pages;
     };
