@@ -1312,9 +1312,12 @@ void RasterizerOpenGL::SyncPolygonOffset() {
     oglEnable(GL_POLYGON_OFFSET_LINE, regs.polygon_offset_line_enable);
     oglEnable(GL_POLYGON_OFFSET_POINT, regs.polygon_offset_point_enable);
 
-    // Hardware divides polygon offset units by two
-    glPolygonOffsetClamp(regs.polygon_offset_factor, regs.polygon_offset_units / 2.0f,
-                         regs.polygon_offset_clamp);
+    if (regs.polygon_offset_fill_enable || regs.polygon_offset_line_enable ||
+        regs.polygon_offset_point_enable) {
+        // Hardware divides polygon offset units by two
+        glPolygonOffsetClamp(regs.polygon_offset_factor, regs.polygon_offset_units / 2.0f,
+                             regs.polygon_offset_clamp);
+    }
 }
 
 void RasterizerOpenGL::SyncAlphaTest() {
