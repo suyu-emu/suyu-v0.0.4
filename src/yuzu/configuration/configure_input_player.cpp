@@ -516,7 +516,7 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
         }
         analog_map_stick[analog_id]->setText(tr("Set Analog Stick"));
 
-        auto& const param = analogs_param[analog_id];
+        auto& param = analogs_param[analog_id];
         auto* const analog_deadzone_slider = analog_map_deadzone[analog_id];
         auto* const analog_deadzone_label = analog_map_deadzone_label[analog_id];
 
