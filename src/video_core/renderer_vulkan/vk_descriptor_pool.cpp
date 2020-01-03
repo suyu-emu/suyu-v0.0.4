@@ -14,7 +14,7 @@
 namespace Vulkan {
 
 // Prefer small grow rates to avoid saturating the descriptor pool with barely used pipelines.
-static constexpr std::size_t SETS_GROW_RATE = 0x20;
+constexpr std::size_t SETS_GROW_RATE = 0x20;
 
 DescriptorAllocator::DescriptorAllocator(VKDescriptorPool& descriptor_pool,
                                          vk::DescriptorSetLayout layout)
