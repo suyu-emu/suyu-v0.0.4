@@ -1066,6 +1066,18 @@ private:
         rb.Push<u64>(ctx.WriteBuffer(native_window.Serialize()));
     }
 
+    void CloseLayer(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto layer_id{rp.Pop<u64>()};
+
+        LOG_DEBUG(Service_VI, "called. layer_id=0x{:016X}", layer_id);
+
+        nv_flinger->CloseLayer(layer_id);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
     void CreateStrayLayer(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const u32 flags = rp.Pop<u32>();
@@ -1178,7 +1190,7 @@ IApplicationDisplayService::IApplicationDisplayService(
         {1101, &IApplicationDisplayService::SetDisplayEnabled, "SetDisplayEnabled"},
         {1102, &IApplicationDisplayService::GetDisplayResolution, "GetDisplayResolution"},
         {2020, &IApplicationDisplayService::OpenLayer, "OpenLayer"},
-        {2021, nullptr, "CloseLayer"},
+        {2021, &IApplicationDisplayService::CloseLayer, "CloseLayer"},
         {2030, &IApplicationDisplayService::CreateStrayLayer, "CreateStrayLayer"},
         {2031, &IApplicationDisplayService::DestroyStrayLayer, "DestroyStrayLayer"},
         {2101, &IApplicationDisplayService::SetLayerScalingMode, "SetLayerScalingMode"},

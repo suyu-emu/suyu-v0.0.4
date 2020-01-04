@@ -88,6 +88,12 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
     return layer_id;
 }
 
+void NVFlinger::CloseLayer(u64 layer_id) {
+    for (auto& display : displays) {
+        display.CloseLayer(layer_id);
+    }
+}
+
 std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
     const auto* const layer = FindLayer(display_id, layer_id);
 
