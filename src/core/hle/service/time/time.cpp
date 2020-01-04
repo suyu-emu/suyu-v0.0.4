@@ -242,7 +242,7 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
 void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::RequestParser rp{ctx};
-    const auto type = rp.PopRaw<u8>();
+    const auto type{rp.PopRaw<u8>()};
 
     Clock::SystemClockContext user_context{};
     if (const ResultCode result{
@@ -277,6 +277,29 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
 }
 
+void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+    IPC::RequestParser rp{ctx};
+    const auto type{rp.PopRaw<u8>()};
+    rp.AlignWithPadding();
+
+    const Clock::SystemClockContext user_context{rp.PopRaw<Clock::SystemClockContext>()};
+    const Clock::SystemClockContext network_context{rp.PopRaw<Clock::SystemClockContext>()};
+
+    Clock::ClockSnapshot clock_snapshot{};
+    if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(
+            &ctx.GetThread(), user_context, network_context, type, clock_snapshot)};
+        result != RESULT_SUCCESS) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
+}
+
 void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
@@ -290,7 +313,7 @@ Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& syste
 Module::Interface::~Interface() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto module = std::make_shared<Module>(system);
+    auto module{std::make_shared<Module>(system)};
     std::make_shared<Time>(module, system, "time:a")->InstallAsService(system.ServiceManager());
     std::make_shared<Time>(module, system, "time:s")->InstallAsService(system.ServiceManager());
     std::make_shared<Time>(module, system, "time:u")->InstallAsService(system.ServiceManager());

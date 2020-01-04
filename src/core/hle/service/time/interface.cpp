@@ -28,7 +28,7 @@ Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* nam
         {201, nullptr, "GetStandardUserSystemClockAutomaticCorrectionUpdatedTime"},
         {300, &Time::CalculateMonotonicSystemClockBaseTimePoint, "CalculateMonotonicSystemClockBaseTimePoint"},
         {400, &Time::GetClockSnapshot, "GetClockSnapshot"},
-        {401, nullptr, "GetClockSnapshotFromSystemClockContext"},
+        {401, &Time::GetClockSnapshotFromSystemClockContext, "GetClockSnapshotFromSystemClockContext"},
         {500, nullptr, "CalculateStandardUserSystemClockDifferenceByUser"},
         {501, nullptr, "CalculateSpanBetween"},
     };

@@ -30,6 +30,7 @@ public:
         void IsStandardNetworkSystemClockAccuracySufficient(Kernel::HLERequestContext& ctx);
         void CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERequestContext& ctx);
         void GetClockSnapshot(Kernel::HLERequestContext& ctx);
+        void GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx);
         void GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx);
 
     private:
