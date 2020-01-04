@@ -176,6 +176,10 @@ public:
     /// Returns a condition code evaluated from internal flags
     Node GetConditionCode(Tegra::Shader::ConditionCode cc) const;
 
+    const Node& GetAmendNode(std::size_t index) const {
+        return amend_code[index];
+    }
+
 private:
     friend class ASTDecoder;
 
@@ -392,6 +396,9 @@ private:
                                                                Tegra::Shader::Instruction instr,
                                                                bool is_write);
 
+    /// Register new amending code and obtain the reference id.
+    std::size_t DeclareAmend(Node new_amend);
+
     const ProgramCode& program_code;
     const u32 main_offset;
     const CompilerSettings settings;
@@ -406,6 +413,7 @@ private:
     std::map<u32, NodeBlock> basic_blocks;
     NodeBlock global_code;
     ASTManager program_manager{true, true};
+    std::vector<Node> amend_code;
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;

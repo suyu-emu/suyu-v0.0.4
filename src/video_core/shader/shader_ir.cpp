@@ -446,4 +446,10 @@ Node ShaderIR::BitfieldInsert(Node base, Node insert, u32 offset, u32 bits) {
                      Immediate(bits));
 }
 
+std::size_t ShaderIR::DeclareAmend(Node new_amend) {
+    const std::size_t id = amend_code.size();
+    amend_code.push_back(new_amend);
+    return id;
+}
+
 } // namespace VideoCommon::Shader

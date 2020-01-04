@@ -751,6 +751,9 @@ private:
 
     Expression Visit(const Node& node) {
         if (const auto operation = std::get_if<OperationNode>(&*node)) {
+            if (const auto amend_index = operation->GetAmendIndex()) {
+                Visit(ir.GetAmendNode(*amend_index)).CheckVoid();
+            }
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
             if (operation_index >= operation_decompilers.size()) {
                 UNREACHABLE_MSG("Out of bounds operation: {}", operation_index);
@@ -872,6 +875,9 @@ private:
         }
 
         if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
+            if (const auto amend_index = conditional->GetAmendIndex()) {
+                Visit(ir.GetAmendNode(*amend_index)).CheckVoid();
+            }
             // It's invalid to call conditional on nested nodes, use an operation instead
             code.AddLine("if ({}) {{", Visit(conditional->GetCondition()).AsBool());
             ++code.scope;

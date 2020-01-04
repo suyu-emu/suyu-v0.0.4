@@ -954,6 +954,10 @@ private:
 
     Expression Visit(const Node& node) {
         if (const auto operation = std::get_if<OperationNode>(&*node)) {
+            if (const auto amend_index = operation->GetAmendIndex()) {
+                [[maybe_unused]] const Type type = Visit(ir.GetAmendNode(*amend_index)).type;
+                ASSERT(type == Type::Void);
+            }
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
             const auto decompiler = operation_decompilers[operation_index];
             if (decompiler == nullptr) {
@@ -1142,6 +1146,10 @@ private:
         }
 
         if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
+            if (const auto amend_index = conditional->GetAmendIndex()) {
+                [[maybe_unused]] const Type type = Visit(ir.GetAmendNode(*amend_index)).type;
+                ASSERT(type == Type::Void);
+            }
             // It's invalid to call conditional on nested nodes, use an operation instead
             const Id true_label = OpLabel();
             const Id skip_label = OpLabel();
