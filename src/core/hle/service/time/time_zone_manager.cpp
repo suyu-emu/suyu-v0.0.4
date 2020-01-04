@@ -4,8 +4,6 @@
 
 #include <climits>
 
-#include <boost/safe_numerics/safe_integer.hpp>
-
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/file_sys/content_archive.h"
@@ -77,13 +75,7 @@ struct CalendarTimeInternal {
 
 template <typename TResult, typename TOperand>
 static bool SafeAdd(TResult& result, TOperand op) {
-    const boost::safe_numerics::safe<TResult> safe_result{result};
-    const boost::safe_numerics::safe<TOperand> safe_op{op};
-    try {
-        result = safe_result + safe_op;
-    } catch (const std::exception&) {
-        return {}; // Failed with undefined behavior
-    }
+    result = result + op;
     return true;
 }
 

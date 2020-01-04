@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <boost/safe_numerics/safe_integer.hpp>
-
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/uuid.h"
@@ -26,13 +24,7 @@ struct SteadyClockTimePoint {
             return ERROR_TIME_MISMATCH;
         }
 
-        const boost::safe_numerics::safe<s64> this_time_point{time_point};
-        const boost::safe_numerics::safe<s64> other_time_point{other.time_point};
-        try {
-            span = other_time_point - this_time_point;
-        } catch (const std::exception&) {
-            return ERROR_OVERFLOW;
-        }
+        span = other.time_point - time_point;
 
         return RESULT_SUCCESS;
     }
