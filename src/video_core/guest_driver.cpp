@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+
 #include "video_core/guest_driver.h"
 
 namespace VideoCore {
@@ -28,7 +30,7 @@ void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32>&& bound_offse
         return;
     }
     texture_handler_size_deduced = true;
-    texture_handler_size = sizeof(u32) * min_val;
+    texture_handler_size = min_texture_handler_size * min_val;
 }
 
 } // namespace VideoCore

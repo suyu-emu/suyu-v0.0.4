@@ -27,6 +27,8 @@ public:
     void DeduceTextureHandlerSize(std::vector<u32>&& bound_offsets);
 
 private:
+    // Minimum size of texture handler any driver can use.
+    static constexpr u32 min_texture_handler_size = 4;
     // This goes with Vulkan and OpenGL standards but Nvidia GPUs can easily
     // use 4 bytes instead. Thus, certain drivers may squish the size.
     static constexpr u32 default_texture_handler_size = 8;
