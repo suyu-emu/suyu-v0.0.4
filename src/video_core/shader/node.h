@@ -394,14 +394,14 @@ using Meta =
 
 class AmendNode {
 public:
-    std::optional<u32> GetAmendIndex() const {
+    std::optional<std::size_t> GetAmendIndex() const {
         if (amend_index == amend_null_index) {
             return std::nullopt;
         }
         return {amend_index};
     }
 
-    void SetAmendIndex(u32 index) {
+    void SetAmendIndex(std::size_t index) {
         amend_index = index;
     }
 
@@ -410,8 +410,8 @@ public:
     }
 
 private:
-    static constexpr u32 amend_null_index = 0xFFFFFFFF;
-    u32 amend_index{amend_null_index};
+    static constexpr std::size_t amend_null_index = 0xFFFFFFFFFFFFFFFFULL;
+    std::size_t amend_index{amend_null_index};
 };
 
 /// Holds any kind of operation that can be done in the IR
@@ -652,7 +652,7 @@ private:
 };
 
 /// Commentary, can be dropped
-class CommentNode final : public AmendNode {
+class CommentNode final {
 public:
     explicit CommentNode(std::string text) : text{std::move(text)} {}
 

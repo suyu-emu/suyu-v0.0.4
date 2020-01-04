@@ -446,8 +446,8 @@ Node ShaderIR::BitfieldInsert(Node base, Node insert, u32 offset, u32 bits) {
                      Immediate(bits));
 }
 
-u32 ShaderIR::DeclareAmend(Node new_amend) {
-    const u32 id = static_cast<u32>(amend_code.size());
+std::size_t ShaderIR::DeclareAmend(Node new_amend) {
+    const std::size_t id = amend_code.size();
     amend_code.push_back(new_amend);
     return id;
 }

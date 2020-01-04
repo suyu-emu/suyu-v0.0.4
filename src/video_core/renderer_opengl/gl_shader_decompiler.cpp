@@ -751,10 +751,8 @@ private:
 
     Expression Visit(const Node& node) {
         if (const auto operation = std::get_if<OperationNode>(&*node)) {
-            auto amend_index = operation->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                Visit(amend_node).CheckVoid();
+            if (const auto amend_index = operation->GetAmendIndex()) {
+                Visit(ir.GetAmendNode(*amend_index)).CheckVoid();
             }
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
             if (operation_index >= operation_decompilers.size()) {
@@ -877,10 +875,8 @@ private:
         }
 
         if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
-            auto amend_index = conditional->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                Visit(amend_node).CheckVoid();
+            if (const auto amend_index = conditional->GetAmendIndex()) {
+                Visit(ir.GetAmendNode(*amend_index)).CheckVoid();
             }
             // It's invalid to call conditional on nested nodes, use an operation instead
             code.AddLine("if ({}) {{", Visit(conditional->GetCondition()).AsBool());
@@ -894,11 +890,6 @@ private:
         }
 
         if (const auto comment = std::get_if<CommentNode>(&*node)) {
-            auto amend_index = comment->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                Visit(amend_node).CheckVoid();
-            }
             code.AddLine("// " + comment->GetText());
             return {};
         }

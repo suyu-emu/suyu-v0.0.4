@@ -954,10 +954,8 @@ private:
 
     Expression Visit(const Node& node) {
         if (const auto operation = std::get_if<OperationNode>(&*node)) {
-            auto amend_index = operation->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                [[maybe_unused]] const Type type = Visit(amend_node).type;
+            if (const auto amend_index = operation->GetAmendIndex()) {
+                [[maybe_unused]] const Type type = Visit(ir.GetAmendNode(*amend_index)).type;
                 ASSERT(type == Type::Void);
             }
             const auto operation_index = static_cast<std::size_t>(operation->GetCode());
@@ -1148,10 +1146,8 @@ private:
         }
 
         if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
-            auto amend_index = conditional->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                [[maybe_unused]] const Type type = Visit(amend_node).type;
+            if (const auto amend_index = conditional->GetAmendIndex()) {
+                [[maybe_unused]] const Type type = Visit(ir.GetAmendNode(*amend_index)).type;
                 ASSERT(type == Type::Void);
             }
             // It's invalid to call conditional on nested nodes, use an operation instead
@@ -1176,12 +1172,6 @@ private:
         }
 
         if (const auto comment = std::get_if<CommentNode>(&*node)) {
-            auto amend_index = comment->GetAmendIndex();
-            if (amend_index) {
-                const Node& amend_node = ir.GetAmendNode(*amend_index);
-                [[maybe_unused]] const Type type = Visit(amend_node).type;
-                ASSERT(type == Type::Void);
-            }
             Name(OpUndef(t_void), comment->GetText());
             return {};
         }
