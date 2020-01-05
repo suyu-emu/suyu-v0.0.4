@@ -388,6 +388,9 @@ private:
 
     std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
+    std::tuple<Node, TrackSampler> TrackSampler(Node tracked, const NodeBlock& code,
+                                                s64 cursor) const;
+
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 
     std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code,

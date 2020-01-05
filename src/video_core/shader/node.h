@@ -230,6 +230,12 @@ using Node = std::shared_ptr<NodeData>;
 using Node4 = std::array<Node, 4>;
 using NodeBlock = std::vector<Node>;
 
+class BindlessSamplerNode;
+class ArraySamplerNode;
+
+using TrackSamplerData = std::variant<BindlessSamplerNode, ArraySamplerNode>;
+using TrackSampler = std::shared_ptr<TrackSamplerData>;
+
 class Sampler {
 public:
     /// This constructor is for bound samplers
@@ -286,6 +292,48 @@ private:
     bool is_shadow{};   ///< Whether the texture is being sampled as a depth texture or not.
     bool is_buffer{};   ///< Whether the texture is a texture buffer without sampler.
     bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
+};
+
+/// Represents a tracked bindless sampler into a direct const buffer
+class ArraySamplerNode final {
+public:
+    explicit ArraySamplerNode(u32 index, u32 base_offset, u32 bindless_var)
+        : index{index}, base_offset{base_offset}, bindless_var{bindless_var} {}
+
+    u32 GetIndex() const {
+        return index;
+    }
+
+    u32 GetBaseOffset() const {
+        return base_offset;
+    }
+
+    u32 GetIndexVar() const {
+        return bindless_var;
+    }
+
+private:
+    u32 index;
+    u32 base_offset;
+    u32 bindless_var;
+};
+
+/// Represents a tracked bindless sampler into a direct const buffer
+class BindlessSamplerNode final {
+public:
+    explicit BindlessSamplerNode(u32 index, u32 offset) : index{index}, offset{offset} {}
+
+    u32 GetIndex() const {
+        return index;
+    }
+
+    u32 GetOffset() const {
+        return offset;
+    }
+
+private:
+    u32 index;
+    u32 offset;
 };
 
 class Image final {
