@@ -1,8 +1,9 @@
-// Copyright 2019 yuzu Emulator Project
+// Copyright 2020 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <climits>
 
 #include "video_core/guest_driver.h"
 
@@ -12,13 +13,13 @@ void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32>&& bound_offse
     if (texture_handler_size_deduced) {
         return;
     }
-    std::size_t size = bound_offsets.size();
+    const std::size_t size = bound_offsets.size();
     if (size < 2) {
         return;
     }
     std::sort(bound_offsets.begin(), bound_offsets.end(),
               [](const u32& a, const u32& b) { return a < b; });
-    u32 min_val = 0xFFFFFFFF; // set to highest possible 32 bit integer;
+    u32 min_val = UINT_MAX;
     for (std::size_t i = 1; i < size; i++) {
         if (bound_offsets[i] == bound_offsets[i - 1]) {
             continue;

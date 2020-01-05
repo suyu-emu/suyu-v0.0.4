@@ -53,7 +53,6 @@ public:
     void InsertBindlessSampler(u32 buffer, u32 offset, Tegra::Engines::SamplerDescriptor sampler);
 
     /// Set the bound buffer for this locker.
-
     void SetBoundBuffer(u32 buffer);
 
     /// Checks keys and samplers against engine's current const buffers. Returns true if they are
