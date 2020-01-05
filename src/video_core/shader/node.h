@@ -240,15 +240,15 @@ class Sampler {
 public:
     /// This constructor is for bound samplers
     constexpr explicit Sampler(u32 index, u32 offset, Tegra::Shader::TextureType type,
-                               bool is_array, bool is_shadow, bool is_buffer)
+                               bool is_array, bool is_shadow, bool is_buffer, bool is_indexed)
         : index{index}, offset{offset}, type{type}, is_array{is_array}, is_shadow{is_shadow},
-          is_buffer{is_buffer} {}
+          is_buffer{is_buffer}, is_indexed{is_indexed} {}
 
     /// This constructor is for bindless samplers
     constexpr explicit Sampler(u32 index, u32 offset, u32 buffer, Tegra::Shader::TextureType type,
-                               bool is_array, bool is_shadow, bool is_buffer)
+                               bool is_array, bool is_shadow, bool is_buffer, bool is_indexed)
         : index{index}, offset{offset}, buffer{buffer}, type{type}, is_array{is_array},
-          is_shadow{is_shadow}, is_buffer{is_buffer}, is_bindless{true} {}
+          is_shadow{is_shadow}, is_buffer{is_buffer}, is_bindless{true}, is_indexed{is_indexed} {}
 
     constexpr u32 GetIndex() const {
         return index;
@@ -282,16 +282,30 @@ public:
         return is_bindless;
     }
 
+    constexpr bool IsIndexed() const {
+        return is_indexed;
+    }
+
+    constexpr u32 Size() const {
+        return size;
+    }
+
+    void SetSize(u32 new_size) {
+        size = new_size;
+    }
+
 private:
     u32 index{};  ///< Emulated index given for the this sampler.
     u32 offset{}; ///< Offset in the const buffer from where the sampler is being read.
     u32 buffer{}; ///< Buffer where the bindless sampler is being read (unused on bound samplers).
+    u32 size{};   ///< Size of the sampler if indexed.
 
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
     bool is_array{};    ///< Whether the texture is being sampled as an array texture or not.
     bool is_shadow{};   ///< Whether the texture is being sampled as a depth texture or not.
     bool is_buffer{};   ///< Whether the texture is a texture buffer without sampler.
     bool is_bindless{}; ///< Whether this sampler belongs to a bindless texture or not.
+    bool is_indexed{};  ///< Whether this sampler is an indexed array of textures.
 };
 
 /// Represents a tracked bindless sampler into a direct const buffer

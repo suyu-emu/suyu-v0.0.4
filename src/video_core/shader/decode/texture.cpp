@@ -383,7 +383,7 @@ const Sampler* ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
     // Otherwise create a new mapping for this sampler
     const auto next_index = static_cast<u32>(used_samplers.size());
     return &used_samplers.emplace_back(next_index, offset, info.type, info.is_array, info.is_shadow,
-                                       info.is_buffer);
+                                       info.is_buffer, false);
 }
 
 const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
@@ -417,7 +417,7 @@ const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
         // Otherwise create a new mapping for this sampler
         const auto next_index = static_cast<u32>(used_samplers.size());
         return &used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
-                                           info.is_shadow, info.is_buffer);
+                                           info.is_shadow, info.is_buffer, false);
     } else if (const auto array_sampler_info =
                    std::get_if<ArraySamplerNode>(&*tracked_sampler_info)) {
         const u32 base_offset = array_sampler_info->GetBaseOffset() / 4;
@@ -430,14 +430,15 @@ const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
         if (it != used_samplers.end()) {
             ASSERT(!it->IsBindless() && it->GetType() == info.type &&
                    it->IsArray() == info.is_array && it->IsShadow() == info.is_shadow &&
-                   it->IsBuffer() == info.is_buffer);
+                   it->IsBuffer() == info.is_buffer && it->IsIndexed());
             return &*it;
         }
 
+        uses_indexed_samplers = true;
         // Otherwise create a new mapping for this sampler
         const auto next_index = static_cast<u32>(used_samplers.size());
         return &used_samplers.emplace_back(next_index, base_offset, info.type, info.is_array,
-                                           info.is_shadow, info.is_buffer);
+                                           info.is_shadow, info.is_buffer, true);
     }
     return nullptr;
 }

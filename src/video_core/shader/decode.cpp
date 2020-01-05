@@ -56,6 +56,29 @@ void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
     }
 }
 
+std::optional<u32> TryDeduceSamplerSize(Sampler& sampler_to_deduce,
+                                        VideoCore::GuestDriverProfile* gpu_driver,
+                                        std::list<Sampler>& used_samplers) {
+    if (gpu_driver == nullptr) {
+        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
+        return std::nullopt;
+    }
+    const u32 base_offset = sampler_to_deduce.GetOffset();
+    u32 max_offset{UINT_MAX};
+    for (const auto& sampler : used_samplers) {
+        if (sampler.IsBindless()) {
+            continue;
+        }
+        if (sampler.GetOffset() > base_offset) {
+            max_offset = std::min(sampler.GetOffset(), max_offset);
+        }
+    }
+    if (max_offset == UINT_MAX) {
+        return std::nullopt;
+    }
+    return ((max_offset - base_offset) * 4) / gpu_driver->GetTextureHandlerSize();
+}
+
 } // Anonymous namespace
 
 class ASTDecoder {
@@ -342,6 +365,19 @@ void ShaderIR::PostDecode() {
     // Deduce texture handler size if needed
     auto gpu_driver = locker.AccessGuestDriverProfile();
     DeduceTextureHandlerSize(gpu_driver, used_samplers);
+    // Deduce Indexed Samplers
+    if (uses_indexed_samplers) {
+        for (auto& sampler : used_samplers) {
+            if (sampler.IsIndexed()) {
+                auto size = TryDeduceSamplerSize(sampler, gpu_driver, used_samplers);
+                if (size) {
+                    sampler.SetSize(*size);
+                } else {
+                    sampler.SetSize(1);
+                }
+            }
+        }
+    }
 }
 
 } // namespace VideoCommon::Shader

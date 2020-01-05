@@ -435,6 +435,7 @@ private:
     bool uses_instance_id{};
     bool uses_vertex_id{};
     bool uses_warps{};
+    bool uses_indexed_samplers{};
 
     Tegra::Shader::Header header;
 };
