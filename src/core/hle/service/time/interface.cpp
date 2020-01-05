@@ -14,7 +14,7 @@ Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* nam
         {1, &Time::GetStandardNetworkSystemClock, "GetStandardNetworkSystemClock"},
         {2, &Time::GetStandardSteadyClock, "GetStandardSteadyClock"},
         {3, &Time::GetTimeZoneService, "GetTimeZoneService"},
-        {4, nullptr, "GetStandardLocalSystemClock"},
+        {4, &Time::GetStandardLocalSystemClock, "GetStandardLocalSystemClock"},
         {5, nullptr, "GetEphemeralNetworkSystemClock"},
         {20, &Time::GetSharedMemoryNativeHandle, "GetSharedMemoryNativeHandle"},
         {30, nullptr, "GetStandardNetworkClockOperationEventReadableHandle"},
