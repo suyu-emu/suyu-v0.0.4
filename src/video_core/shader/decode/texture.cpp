@@ -389,31 +389,57 @@ const Sampler* ShaderIR::GetSampler(const Tegra::Shader::Sampler& sampler,
 const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
                                             std::optional<SamplerInfo> sampler_info) {
     const Node sampler_register = GetRegister(reg);
-    const auto [base_sampler, buffer, offset] =
-        TrackCbuf(sampler_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT(base_sampler != nullptr);
-    if (base_sampler == nullptr) {
+    const auto [base_node, tracked_sampler_info] =
+        TrackSampler(sampler_register, global_code, static_cast<s64>(global_code.size()));
+    ASSERT(base_node != nullptr);
+    if (base_node == nullptr) {
         return nullptr;
     }
 
-    const auto info = GetSamplerInfo(sampler_info, offset, buffer);
+    if (const auto bindless_sampler_info =
+            std::get_if<BindlessSamplerNode>(&*tracked_sampler_info)) {
+        const u32 buffer = bindless_sampler_info->GetIndex();
+        const u32 offset = bindless_sampler_info->GetOffset();
+        const auto info = GetSamplerInfo(sampler_info, offset, buffer);
 
-    // If this sampler has already been used, return the existing mapping.
-    const auto it =
-        std::find_if(used_samplers.begin(), used_samplers.end(),
-                     [buffer = buffer, offset = offset](const Sampler& entry) {
-                         return entry.GetBuffer() == buffer && entry.GetOffset() == offset;
-                     });
-    if (it != used_samplers.end()) {
-        ASSERT(it->IsBindless() && it->GetType() == info.type && it->IsArray() == info.is_array &&
-               it->IsShadow() == info.is_shadow);
-        return &*it;
+        // If this sampler has already been used, return the existing mapping.
+        const auto it =
+            std::find_if(used_samplers.begin(), used_samplers.end(),
+                         [buffer = buffer, offset = offset](const Sampler& entry) {
+                             return entry.GetBuffer() == buffer && entry.GetOffset() == offset;
+                         });
+        if (it != used_samplers.end()) {
+            ASSERT(it->IsBindless() && it->GetType() == info.type &&
+                   it->IsArray() == info.is_array && it->IsShadow() == info.is_shadow);
+            return &*it;
+        }
+
+        // Otherwise create a new mapping for this sampler
+        const auto next_index = static_cast<u32>(used_samplers.size());
+        return &used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
+                                           info.is_shadow, info.is_buffer);
+    } else if (const auto array_sampler_info =
+                   std::get_if<ArraySamplerNode>(&*tracked_sampler_info)) {
+        const u32 base_offset = array_sampler_info->GetBaseOffset() / 4;
+        const auto info = GetSamplerInfo(sampler_info, base_offset);
+
+        // If this sampler has already been used, return the existing mapping.
+        const auto it = std::find_if(
+            used_samplers.begin(), used_samplers.end(),
+            [base_offset](const Sampler& entry) { return entry.GetOffset() == base_offset; });
+        if (it != used_samplers.end()) {
+            ASSERT(!it->IsBindless() && it->GetType() == info.type &&
+                   it->IsArray() == info.is_array && it->IsShadow() == info.is_shadow &&
+                   it->IsBuffer() == info.is_buffer);
+            return &*it;
+        }
+
+        // Otherwise create a new mapping for this sampler
+        const auto next_index = static_cast<u32>(used_samplers.size());
+        return &used_samplers.emplace_back(next_index, base_offset, info.type, info.is_array,
+                                           info.is_shadow, info.is_buffer);
     }
-
-    // Otherwise create a new mapping for this sampler
-    const auto next_index = static_cast<u32>(used_samplers.size());
-    return &used_samplers.emplace_back(next_index, offset, buffer, info.type, info.is_array,
-                                       info.is_shadow, info.is_buffer);
+    return nullptr;
 }
 
 void ShaderIR::WriteTexInstructionFloat(NodeBlock& bb, Instruction instr, const Node4& components) {
