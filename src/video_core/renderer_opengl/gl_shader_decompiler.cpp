@@ -655,7 +655,8 @@ private:
         u32 binding = device.GetBaseBindings(stage).sampler;
         for (const auto& sampler : ir.GetSamplers()) {
             const std::string name = GetSampler(sampler);
-            const std::string description = fmt::format("layout (binding = {}) uniform", binding++);
+            const std::string description = fmt::format("layout (binding = {}) uniform", binding);
+            binding += sampler.IsIndexed() ? sampler.Size() : 1;
 
             std::string sampler_type = [&]() {
                 if (sampler.IsBuffer()) {
@@ -682,7 +683,11 @@ private:
                 sampler_type += "Shadow";
             }
 
-            code.AddLine("{} {} {};", description, sampler_type, name);
+            if (!sampler.IsIndexed()) {
+                code.AddLine("{} {} {};", description, sampler_type, name);
+            } else {
+                code.AddLine("{} {} {}[{}];", description, sampler_type, name, sampler.Size());
+            }
         }
         if (!ir.GetSamplers().empty()) {
             code.AddNewLine();
@@ -1099,7 +1104,11 @@ private:
         } else if (!meta->ptp.empty()) {
             expr += "Offsets";
         }
-        expr += '(' + GetSampler(meta->sampler) + ", ";
+        if (!meta->sampler.IsIndexed()) {
+            expr += '(' + GetSampler(meta->sampler) + ", ";
+        } else {
+            expr += '(' + GetSampler(meta->sampler) + "[0], ";
+        }
         expr += coord_constructors.at(count + (has_array ? 1 : 0) +
                                       (has_shadow && !separate_dc ? 1 : 0) - 1);
         expr += '(';
