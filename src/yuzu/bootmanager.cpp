@@ -215,18 +215,11 @@ void GRenderWindow::moveContext() {
 }
 
 void GRenderWindow::SwapBuffers() {
-    // In our multi-threaded QWidget use case we shouldn't need to call `makeCurrent`,
-    // since we never call `doneCurrent` in this thread.
-    // However:
-    // - The Qt debug runtime prints a bogus warning on the console if `makeCurrent` wasn't called
-    // since the last time `swapBuffers` was executed;
-    // - On macOS, if `makeCurrent` isn't called explicitly, resizing the buffer breaks.
-    context->makeCurrent(child);
-
     context->swapBuffers(child);
+
     if (!first_frame) {
-        emit FirstFrameDisplayed();
         first_frame = true;
+        emit FirstFrameDisplayed();
     }
 }
 
