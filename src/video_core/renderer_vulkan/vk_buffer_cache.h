@@ -5,105 +5,74 @@
 #pragma once
 
 #include <memory>
-#include <tuple>
+#include <unordered_map>
+#include <vector>
 
 #include "common/common_types.h"
-#include "video_core/gpu.h"
+#include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_vulkan/declarations.h"
-#include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_memory_manager.h"
+#include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_stream_buffer.h"
 
-namespace Memory {
-class Memory;
-}
-
-namespace Tegra {
-class MemoryManager;
+namespace Core {
+class System;
 }
 
 namespace Vulkan {
 
 class VKDevice;
-class VKFence;
 class VKMemoryManager;
-class VKStreamBuffer;
+class VKScheduler;
 
-class CachedBufferEntry final : public RasterizerCacheObject {
+class CachedBufferBlock final : public VideoCommon::BufferBlock {
 public:
-    explicit CachedBufferEntry(VAddr cpu_addr, std::size_t size, u64 offset, std::size_t alignment,
-                               u8* host_ptr);
+    explicit CachedBufferBlock(const VKDevice& device, VKMemoryManager& memory_manager,
+                               CacheAddr cache_addr, std::size_t size);
+    ~CachedBufferBlock();
 
-    VAddr GetCpuAddr() const override {
-        return cpu_addr;
-    }
-
-    std::size_t GetSizeInBytes() const override {
-        return size;
-    }
-
-    std::size_t GetSize() const {
-        return size;
-    }
-
-    u64 GetOffset() const {
-        return offset;
-    }
-
-    std::size_t GetAlignment() const {
-        return alignment;
+    const vk::Buffer* GetHandle() const {
+        return &*buffer.handle;
     }
 
 private:
-    VAddr cpu_addr{};
-    std::size_t size{};
-    u64 offset{};
-    std::size_t alignment{};
+    VKBuffer buffer;
 };
 
-class VKBufferCache final : public RasterizerCache<std::shared_ptr<CachedBufferEntry>> {
+using Buffer = std::shared_ptr<CachedBufferBlock>;
+
+class VKBufferCache final : public VideoCommon::BufferCache<Buffer, vk::Buffer, VKStreamBuffer> {
 public:
-    explicit VKBufferCache(Tegra::MemoryManager& tegra_memory_manager, Memory::Memory& cpu_memory_,
-                           VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
-                           VKMemoryManager& memory_manager, VKScheduler& scheduler, u64 size);
+    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
+                           const VKDevice& device, VKMemoryManager& memory_manager,
+                           VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
-    /// Uploads data from a guest GPU address. Returns host's buffer offset where it's been
-    /// allocated.
-    u64 UploadMemory(GPUVAddr gpu_addr, std::size_t size, u64 alignment = 4, bool cache = true);
-
-    /// Uploads from a host memory. Returns host's buffer offset where it's been allocated.
-    u64 UploadHostMemory(const u8* raw_pointer, std::size_t size, u64 alignment = 4);
-
-    /// Reserves memory to be used by host's CPU. Returns mapped address and offset.
-    std::tuple<u8*, u64> ReserveMemory(std::size_t size, u64 alignment = 4);
-
-    /// Reserves a region of memory to be used in subsequent upload/reserve operations.
-    void Reserve(std::size_t max_size);
-
-    /// Ensures that the set data is sent to the device.
-    void Send();
-
-    /// Returns the buffer cache handle.
-    vk::Buffer GetBuffer() const {
-        return buffer_handle;
-    }
+    const vk::Buffer* GetEmptyBuffer(std::size_t size) override;
 
 protected:
-    // We do not have to flush this cache as things in it are never modified by us.
-    void FlushObjectInner(const std::shared_ptr<CachedBufferEntry>& object) override {}
+    void WriteBarrier() override {}
+
+    Buffer CreateBlock(CacheAddr cache_addr, std::size_t size) override;
+
+    const vk::Buffer* ToHandle(const Buffer& buffer) override;
+
+    void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
+                         const u8* data) override;
+
+    void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
+                           u8* data) override;
+
+    void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
+                   std::size_t dst_offset, std::size_t size) override;
 
 private:
-    void AlignBuffer(std::size_t alignment);
-
-    Tegra::MemoryManager& tegra_memory_manager;
-    Memory::Memory& cpu_memory;
-
-    std::unique_ptr<VKStreamBuffer> stream_buffer;
-    vk::Buffer buffer_handle;
-
-    u8* buffer_ptr = nullptr;
-    u64 buffer_offset = 0;
-    u64 buffer_offset_base = 0;
+    const VKDevice& device;
+    VKMemoryManager& memory_manager;
+    VKScheduler& scheduler;
+    VKStagingBufferPool& staging_pool;
 };
 
 } // namespace Vulkan
