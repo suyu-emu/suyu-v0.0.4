@@ -163,6 +163,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_image.h
         renderer_vulkan/vk_memory_manager.cpp
         renderer_vulkan/vk_memory_manager.h
+        renderer_vulkan/vk_renderpass_cache.cpp
+        renderer_vulkan/vk_renderpass_cache.h
         renderer_vulkan/vk_resource_manager.cpp
         renderer_vulkan/vk_resource_manager.h
         renderer_vulkan/vk_sampler_cache.cpp
@@ -176,7 +178,9 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_stream_buffer.cpp
         renderer_vulkan/vk_stream_buffer.h
         renderer_vulkan/vk_swapchain.cpp
-        renderer_vulkan/vk_swapchain.h)
+        renderer_vulkan/vk_swapchain.h
+        renderer_vulkan/vk_update_descriptor.cpp
+        renderer_vulkan/vk_update_descriptor.h)
 
     target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
     target_compile_definitions(video_core PRIVATE HAS_VULKAN)
