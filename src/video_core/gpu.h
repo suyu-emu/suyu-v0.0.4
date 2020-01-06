@@ -6,6 +6,7 @@
 
 #include <array>
 #include <atomic>
+#include <condition_variable>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -181,7 +182,7 @@ public:
     virtual void WaitIdle() const = 0;
 
     /// Allows the CPU/NvFlinger to wait on the GPU before presenting a frame.
-    void WaitFence(u32 syncpoint_id, u32 value) const;
+    void WaitFence(u32 syncpoint_id, u32 value);
 
     void IncrementSyncPoint(u32 syncpoint_id);
 
@@ -311,6 +312,8 @@ private:
     std::array<std::list<u32>, Service::Nvidia::MaxSyncPoints> syncpt_interrupts;
 
     std::mutex sync_mutex;
+
+    std::condition_variable sync_cv;
 
     const bool is_async;
 };
