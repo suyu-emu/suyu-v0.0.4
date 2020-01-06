@@ -4,28 +4,24 @@
 
 #pragma once
 
-#include <memory>
 #include <optional>
 #include <tuple>
 #include <vector>
 
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/declarations.h"
-#include "video_core/renderer_vulkan/vk_memory_manager.h"
 
 namespace Vulkan {
 
 class VKDevice;
 class VKFence;
 class VKFenceWatch;
-class VKResourceManager;
 class VKScheduler;
 
-class VKStreamBuffer {
+class VKStreamBuffer final {
 public:
-    explicit VKStreamBuffer(const VKDevice& device, VKMemoryManager& memory_manager,
-                            VKScheduler& scheduler, u64 size, vk::BufferUsageFlags usage,
-                            vk::AccessFlags access, vk::PipelineStageFlags pipeline_stage);
+    explicit VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler,
+                            vk::BufferUsageFlags usage);
     ~VKStreamBuffer();
 
     /**
@@ -34,39 +30,47 @@ public:
      * @returns A tuple in the following order: Raw memory pointer (with offset added), buffer
      * offset and a boolean that's true when buffer has been invalidated.
      */
-    std::tuple<u8*, u64, bool> Reserve(u64 size);
+    std::tuple<u8*, u64, bool> Map(u64 size, u64 alignment);
 
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
-    void Send(u64 size);
+    void Unmap(u64 size);
 
-    vk::Buffer GetBuffer() const {
+    vk::Buffer GetHandle() const {
         return *buffer;
     }
 
 private:
+    struct Watch final {
+        VKFenceWatch fence;
+        u64 upper_bound{};
+    };
+
     /// Creates Vulkan buffer handles committing the required the required memory.
-    void CreateBuffers(VKMemoryManager& memory_manager, vk::BufferUsageFlags usage);
+    void CreateBuffers(vk::BufferUsageFlags usage);
 
     /// Increases the amount of watches available.
-    void ReserveWatches(std::size_t grow_size);
+    void ReserveWatches(std::vector<Watch>& watches, std::size_t grow_size);
+
+    void WaitPendingOperations(u64 requested_upper_bound);
 
     const VKDevice& device;                      ///< Vulkan device manager.
     VKScheduler& scheduler;                      ///< Command scheduler.
-    const u64 buffer_size;                       ///< Total size of the stream buffer.
     const vk::AccessFlags access;                ///< Access usage of this stream buffer.
     const vk::PipelineStageFlags pipeline_stage; ///< Pipeline usage of this stream buffer.
 
-    UniqueBuffer buffer;   ///< Mapped buffer.
-    VKMemoryCommit commit; ///< Memory commit.
-    u8* mapped_pointer{};  ///< Pointer to the host visible commit
+    UniqueBuffer buffer;       ///< Mapped buffer.
+    UniqueDeviceMemory memory; ///< Memory allocation.
 
     u64 offset{};      ///< Buffer iterator.
     u64 mapped_size{}; ///< Size reserved for the current copy.
 
-    std::vector<std::unique_ptr<VKFenceWatch>> watches; ///< Total watches
-    std::size_t used_watches{}; ///< Count of watches, reset on invalidation.
-    std::optional<std::size_t>
-        invalidation_mark{}; ///< Number of watches used in the current invalidation.
+    std::vector<Watch> current_watches;           ///< Watches recorded in the current iteration.
+    std::size_t current_watch_cursor{};           ///< Count of watches, reset on invalidation.
+    std::optional<std::size_t> invalidation_mark; ///< Number of watches used in the previous cycle.
+
+    std::vector<Watch> previous_watches; ///< Watches used in the previous iteration.
+    std::size_t wait_cursor{};           ///< Last watch being waited for completion.
+    u64 wait_bound{};                    ///< Highest offset being watched for completion.
 };
 
 } // namespace Vulkan
