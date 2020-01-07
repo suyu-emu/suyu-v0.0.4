@@ -24,11 +24,11 @@ Display::Display(u64 id, std::string name, Core::System& system) : id{id}, name{
 Display::~Display() = default;
 
 Layer& Display::GetLayer(std::size_t index) {
-    return layers.at(index);
+    return *layers.at(index);
 }
 
 const Layer& Display::GetLayer(std::size_t index) const {
-    return layers.at(index);
+    return *layers.at(index);
 }
 
 std::shared_ptr<Kernel::ReadableEvent> Display::GetVSyncEvent() const {
@@ -43,29 +43,38 @@ void Display::CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue) {
     // TODO(Subv): Support more than 1 layer.
     ASSERT_MSG(layers.empty(), "Only one layer is supported per display at the moment");
 
-    layers.emplace_back(id, buffer_queue);
+    layers.emplace_back(std::make_shared<Layer>(id, buffer_queue));
+}
+
+void Display::CloseLayer(u64 id) {
+    layers.erase(
+        std::remove_if(layers.begin(), layers.end(),
+                       [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; }),
+        layers.end());
 }
 
 Layer* Display::FindLayer(u64 id) {
-    const auto itr = std::find_if(layers.begin(), layers.end(),
-                                  [id](const VI::Layer& layer) { return layer.GetID() == id; });
+    const auto itr =
+        std::find_if(layers.begin(), layers.end(),
+                     [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; });
 
     if (itr == layers.end()) {
         return nullptr;
     }
 
-    return &*itr;
+    return itr->get();
 }
 
 const Layer* Display::FindLayer(u64 id) const {
-    const auto itr = std::find_if(layers.begin(), layers.end(),
-                                  [id](const VI::Layer& layer) { return layer.GetID() == id; });
+    const auto itr =
+        std::find_if(layers.begin(), layers.end(),
+                     [id](const std::shared_ptr<Layer>& layer) { return layer->GetID() == id; });
 
     if (itr == layers.end()) {
         return nullptr;
     }
 
-    return &*itr;
+    return itr->get();
 }
 
 } // namespace Service::VI

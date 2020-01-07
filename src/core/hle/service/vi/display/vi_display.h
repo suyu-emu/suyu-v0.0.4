@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -69,6 +70,12 @@ public:
     ///
     void CreateLayer(u64 id, NVFlinger::BufferQueue& buffer_queue);
 
+    /// Closes and removes a layer from this display with the given ID.
+    ///
+    /// @param id           The ID assigned to the layer to close.
+    ///
+    void CloseLayer(u64 id);
+
     /// Attempts to find a layer with the given ID.
     ///
     /// @param id The layer ID.
@@ -91,7 +98,7 @@ private:
     u64 id;
     std::string name;
 
-    std::vector<Layer> layers;
+    std::vector<std::shared_ptr<Layer>> layers;
     Kernel::EventPair vsync_event;
 };
 
