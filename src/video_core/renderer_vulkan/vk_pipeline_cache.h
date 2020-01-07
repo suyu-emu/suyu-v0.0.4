@@ -8,15 +8,40 @@
 #include <cstddef>
 #include <vector>
 
+#include <boost/functional/hash.hpp>
+
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace Vulkan {
 
 class VKDevice;
+
+using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+
+struct GraphicsPipelineCacheKey {
+    FixedPipelineState fixed_state;
+    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
+    RenderPassParams renderpass_params;
+
+    std::size_t Hash() const noexcept {
+        std::size_t hash = fixed_state.Hash();
+        for (const auto& shader : shaders) {
+            boost::hash_combine(hash, shader);
+        }
+        boost::hash_combine(hash, renderpass_params.Hash());
+        return hash;
+    }
+
+    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept {
+        return std::tie(fixed_state, shaders, renderpass_params) ==
+               std::tie(rhs.fixed_state, rhs.shaders, rhs.renderpass_params);
+    }
+};
 
 struct ComputePipelineCacheKey {
     GPUVAddr shader{};
@@ -40,6 +65,13 @@ struct ComputePipelineCacheKey {
 } // namespace Vulkan
 
 namespace std {
+
+template <>
+struct hash<Vulkan::GraphicsPipelineCacheKey> {
+    std::size_t operator()(const Vulkan::GraphicsPipelineCacheKey& k) const noexcept {
+        return k.Hash();
+    }
+};
 
 template <>
 struct hash<Vulkan::ComputePipelineCacheKey> {
