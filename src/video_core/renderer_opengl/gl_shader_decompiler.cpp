@@ -1123,7 +1123,7 @@ private:
         if (!meta->sampler.IsIndexed()) {
             expr += '(' + GetSampler(meta->sampler) + ", ";
         } else {
-            expr += '(' + GetSampler(meta->sampler) + "[0], ";
+            expr += '(' + GetSampler(meta->sampler) + '[' + Visit(meta->index).AsUint() + "], ";
         }
         expr += coord_constructors.at(count + (has_array ? 1 : 0) +
                                       (has_shadow && !separate_dc ? 1 : 0) - 1);

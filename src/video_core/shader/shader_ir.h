@@ -328,7 +328,7 @@ private:
                               std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses a texture sampler for a bindless texture.
-    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg,
+    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg, Node& index_var,
                                       std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses an image.
@@ -394,8 +394,7 @@ private:
 
     std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
-    std::tuple<Node, TrackSampler> TrackSampler(Node tracked, const NodeBlock& code,
-                                                s64 cursor) const;
+    std::tuple<Node, TrackSampler> TrackSampler(Node tracked, const NodeBlock& code, s64 cursor);
 
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 

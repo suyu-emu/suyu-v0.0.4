@@ -445,6 +445,7 @@ struct MetaTexture {
     Node lod;
     Node component{};
     u32 element{};
+    Node index{};
 };
 
 struct MetaImage {
@@ -563,7 +564,6 @@ public:
 private:
     u32 index{};
 };
-
 
 /// A 32-bits value that represents an immediate value
 class ImmediateNode final {

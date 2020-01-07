@@ -61,8 +61,19 @@ std::optional<std::pair<Node, Node>> DecoupleIndirectRead(const OperationNode& o
     return std::nullopt;
 }
 
+bool AmendNodeCv(std::size_t amend_index, Node node) {
+    if (const auto operation = std::get_if<OperationNode>(&*node)) {
+        operation->SetAmendIndex(amend_index);
+        return true;
+    } else if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
+        conditional->SetAmendIndex(amend_index);
+        return true;
+    }
+    return false;
+}
+
 std::tuple<Node, TrackSampler> ShaderIR::TrackSampler(Node tracked, const NodeBlock& code,
-                                                      s64 cursor) const {
+                                                      s64 cursor) {
     if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
         // Constant buffer found, test if it's an immediate
         const auto offset = cbuf->GetOffset();
@@ -84,9 +95,21 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackSampler(Node tracked, const NodeBl
             }
             auto [gpr, base_offset] = *pair;
             const auto offset_inm = std::get_if<ImmediateNode>(&*base_offset);
+            auto gpu_driver = locker.AccessGuestDriverProfile();
+            if (gpu_driver == nullptr) {
+                return {};
+            }
+            const u32 bindless_cv = NewCustomVariable();
+            const Node op = Operation(OperationCode::UDiv, NO_PRECISE, gpr,
+                                      Immediate(gpu_driver->GetTextureHandlerSize()));
+
+            const Node cv_node = GetCustomVariable(bindless_cv);
+            Node amend_op = Operation(OperationCode::Assign, cv_node, std::move(op));
+            const std::size_t amend_index = DeclareAmend(amend_op);
+            AmendNodeCv(amend_index, code[cursor]);
             // TODO Implement Bindless Index custom variable
-            auto track =
-                MakeTrackSampler<ArraySamplerNode>(cbuf->GetIndex(), offset_inm->GetValue(), 0);
+            auto track = MakeTrackSampler<ArraySamplerNode>(cbuf->GetIndex(),
+                                                            offset_inm->GetValue(), bindless_cv);
             return {tracked, track};
         }
         return {};
