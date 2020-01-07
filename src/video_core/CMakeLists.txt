@@ -163,6 +163,7 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_image.h
         renderer_vulkan/vk_memory_manager.cpp
         renderer_vulkan/vk_memory_manager.h
+        renderer_vulkan/vk_rasterizer.h
         renderer_vulkan/vk_renderpass_cache.cpp
         renderer_vulkan/vk_renderpass_cache.h
         renderer_vulkan/vk_resource_manager.cpp
