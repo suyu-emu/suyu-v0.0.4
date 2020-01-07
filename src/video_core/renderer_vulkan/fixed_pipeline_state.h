@@ -170,15 +170,17 @@ struct FixedPipelineState {
     };
 
     struct Rasterizer {
-        constexpr Rasterizer(bool cull_enable, bool depth_bias_enable, bool ndc_minus_one_to_one,
-                             Maxwell::Cull::CullFace cull_face, Maxwell::Cull::FrontFace front_face)
+        constexpr Rasterizer(bool cull_enable, bool depth_bias_enable, bool depth_clamp_enable,
+                             bool ndc_minus_one_to_one, Maxwell::Cull::CullFace cull_face,
+                             Maxwell::Cull::FrontFace front_face)
             : cull_enable{cull_enable}, depth_bias_enable{depth_bias_enable},
-              ndc_minus_one_to_one{ndc_minus_one_to_one}, cull_face{cull_face}, front_face{
-                                                                                    front_face} {}
+              depth_clamp_enable{depth_clamp_enable}, ndc_minus_one_to_one{ndc_minus_one_to_one},
+              cull_face{cull_face}, front_face{front_face} {}
         Rasterizer() = default;
 
         bool cull_enable;
         bool depth_bias_enable;
+        bool depth_clamp_enable;
         bool ndc_minus_one_to_one;
         Maxwell::Cull::CullFace cull_face;
         Maxwell::Cull::FrontFace front_face;
