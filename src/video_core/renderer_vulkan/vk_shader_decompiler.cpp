@@ -1361,6 +1361,8 @@ private:
             target = {OpAccessChain(t_gmem_float, gmem_buffer, Constant(t_uint, 0), offset),
                       Type::Float};
 
+        } else if (const auto cv = std::get_if<CustomVarNode>(&*dest)) {
+            target = {custom_variables.at(cv->GetIndex()), Type::Float};
         } else {
             UNIMPLEMENTED();
         }

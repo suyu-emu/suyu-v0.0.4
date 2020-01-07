@@ -1336,6 +1336,8 @@ private:
             const std::string final_offset = fmt::format("({} - {}) >> 2", real, base);
             target = {fmt::format("{}[{}]", GetGlobalMemory(gmem->GetDescriptor()), final_offset),
                       Type::Uint};
+        } else if (const auto cv = std::get_if<CustomVarNode>(&*dest)) {
+            target = {GetCustomVariable(cv->GetIndex()), Type::Float};
         } else {
             UNREACHABLE_MSG("Assign called without a proper target");
         }
