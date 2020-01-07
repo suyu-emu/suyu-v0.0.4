@@ -39,6 +39,10 @@ Node ShaderIR::GetRegister(Register reg) {
     return MakeNode<GprNode>(reg);
 }
 
+Node ShaderIR::GetCustomVariable(u32 id) {
+    return MakeNode<CustomVarNode>(id);
+}
+
 Node ShaderIR::GetImmediate19(Instruction instr) {
     return Immediate(instr.alu.GetImm20_19());
 }
@@ -450,6 +454,11 @@ Node ShaderIR::BitfieldInsert(Node base, Node insert, u32 offset, u32 bits) {
 std::size_t ShaderIR::DeclareAmend(Node new_amend) {
     const std::size_t id = amend_code.size();
     amend_code.push_back(new_amend);
+    return id;
+}
+
+u32 ShaderIR::NewCustomVariable() {
+    const u32 id = num_custom_variables++;
     return id;
 }
 

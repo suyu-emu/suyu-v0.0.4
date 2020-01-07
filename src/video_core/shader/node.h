@@ -212,6 +212,7 @@ enum class MetaStackClass {
 class OperationNode;
 class ConditionalNode;
 class GprNode;
+class CustomVarNode;
 class ImmediateNode;
 class InternalFlagNode;
 class PredicateNode;
@@ -223,7 +224,7 @@ class SmemNode;
 class GmemNode;
 class CommentNode;
 
-using NodeData = std::variant<OperationNode, ConditionalNode, GprNode, ImmediateNode,
+using NodeData = std::variant<OperationNode, ConditionalNode, GprNode, CustomVarNode, ImmediateNode,
                               InternalFlagNode, PredicateNode, AbufNode, PatchNode, CbufNode,
                               LmemNode, SmemNode, GmemNode, CommentNode>;
 using Node = std::shared_ptr<NodeData>;
@@ -549,6 +550,20 @@ public:
 private:
     Tegra::Shader::Register index{};
 };
+
+/// A custom variable
+class CustomVarNode final {
+public:
+    explicit constexpr CustomVarNode(u32 index) : index{index} {}
+
+    u32 GetIndex() const {
+        return index;
+    }
+
+private:
+    u32 index{};
+};
+
 
 /// A 32-bits value that represents an immediate value
 class ImmediateNode final {

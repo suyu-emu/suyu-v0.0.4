@@ -391,6 +391,7 @@ public:
         DeclareVertex();
         DeclareGeometry();
         DeclareRegisters();
+        DeclareCustomVariables();
         DeclarePredicates();
         DeclareLocalMemory();
         DeclareInternalFlags();
@@ -499,6 +500,16 @@ private:
             code.AddLine("float {} = 0.0f;", GetRegister(gpr));
         }
         if (!registers.empty()) {
+            code.AddNewLine();
+        }
+    }
+
+    void DeclareCustomVariables() {
+        const u32 cv_num = ir.GetCustomVariablesAmount();
+        for (u32 i = 0; i < cv_num; ++i) {
+            code.AddLine("float {} = 0.0f;", GetCustomVariable(i));
+        }
+        if (cv_num > 0) {
             code.AddNewLine();
         }
     }
@@ -778,6 +789,11 @@ private:
                 return {"0U", Type::Uint};
             }
             return {GetRegister(index), Type::Float};
+        }
+
+        if (const auto cv = std::get_if<CustomVarNode>(&*node)) {
+            const u32 index = cv->GetIndex();
+            return {GetCustomVariable(index), Type::Float};
         }
 
         if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
@@ -2248,6 +2264,10 @@ private:
 
     std::string GetRegister(u32 index) const {
         return GetDeclarationWithSuffix(index, "gpr");
+    }
+
+    std::string GetCustomVariable(u32 index) const {
+        return GetDeclarationWithSuffix(index, "custom_var");
     }
 
     std::string GetPredicate(Tegra::Shader::Pred pred) const {

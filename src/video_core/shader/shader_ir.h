@@ -180,6 +180,10 @@ public:
         return amend_code[index];
     }
 
+    u32 GetCustomVariablesAmount() const {
+        return num_custom_variables;
+    }
+
 private:
     friend class ASTDecoder;
 
@@ -236,6 +240,8 @@ private:
 
     /// Generates a node for a passed register.
     Node GetRegister(Tegra::Shader::Register reg);
+    /// Generates a node for a custom variable
+    Node GetCustomVariable(u32 id);
     /// Generates a node representing a 19-bit immediate value
     Node GetImmediate19(Tegra::Shader::Instruction instr);
     /// Generates a node representing a 32-bit immediate value
@@ -403,6 +409,8 @@ private:
     /// Register new amending code and obtain the reference id.
     std::size_t DeclareAmend(Node new_amend);
 
+    u32 NewCustomVariable();
+
     const ProgramCode& program_code;
     const u32 main_offset;
     const CompilerSettings settings;
@@ -418,6 +426,7 @@ private:
     NodeBlock global_code;
     ASTManager program_manager{true, true};
     std::vector<Node> amend_code;
+    u32 num_custom_variables{};
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;
