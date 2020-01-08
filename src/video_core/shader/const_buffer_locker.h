@@ -83,7 +83,7 @@ public:
 
     VideoCore::GuestDriverProfile* AccessGuestDriverProfile() const {
         if (engine) {
-            return &(engine->AccessGuestDriverProfile());
+            return &engine->AccessGuestDriverProfile();
         }
         return nullptr;
     }

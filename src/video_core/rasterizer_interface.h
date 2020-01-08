@@ -80,10 +80,12 @@ public:
     virtual void LoadDiskResources(const std::atomic_bool& stop_loading = false,
                                    const DiskResourceLoadCallback& callback = {}) {}
 
+    /// Grant access to the Guest Driver Profile for recording/obtaining info on the guest driver.
     GuestDriverProfile& AccessGuestDriverProfile() {
         return guest_driver_profile;
     }
 
+    /// Grant access to the Guest Driver Profile for recording/obtaining info on the guest driver.
     const GuestDriverProfile& AccessGuestDriverProfile() const {
         return guest_driver_profile;
     }

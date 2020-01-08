@@ -33,6 +33,29 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
     return (absolute_offset % SchedPeriod) == 0;
 }
 
+void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
+                              std::list<Sampler>& used_samplers) {
+    if (gpu_driver == nullptr) {
+        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
+        return;
+    }
+    if (gpu_driver->TextureHandlerSizeKnown() || used_samplers.size() <= 1) {
+        return;
+    }
+    u32 count{};
+    std::vector<u32> bound_offsets;
+    for (const auto& sampler : used_samplers) {
+        if (sampler.IsBindless()) {
+            continue;
+        }
+        ++count;
+        bound_offsets.emplace_back(sampler.GetOffset());
+    }
+    if (count > 1) {
+        gpu_driver->DeduceTextureHandlerSize(std::move(bound_offsets));
+    }
+}
+
 } // Anonymous namespace
 
 class ASTDecoder {
@@ -315,32 +338,9 @@ u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
     return pc + 1;
 }
 
-void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
-                              std::list<Sampler>& used_samplers) {
-    if (gpu_driver == nullptr) {
-        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
-        return;
-    }
-    if (gpu_driver->TextureHandlerSizeKnown() || used_samplers.size() <= 1) {
-        return;
-    }
-    u32 count{};
-    std::vector<u32> bound_offsets;
-    for (const auto& sampler : used_samplers) {
-        if (sampler.IsBindless()) {
-            continue;
-        }
-        count++;
-        bound_offsets.emplace_back(sampler.GetOffset());
-    }
-    if (count > 1) {
-        gpu_driver->DeduceTextureHandlerSize(std::move(bound_offsets));
-    }
-}
-
 void ShaderIR::PostDecode() {
     // Deduce texture handler size if needed
-    auto* gpu_driver = locker.AccessGuestDriverProfile();
+    auto gpu_driver = locker.AccessGuestDriverProfile();
     DeduceTextureHandlerSize(gpu_driver, used_samplers);
 }
 

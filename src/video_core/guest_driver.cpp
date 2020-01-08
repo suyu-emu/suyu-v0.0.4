@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <climits>
+#include <limits>
 
 #include "video_core/guest_driver.h"
 
@@ -17,10 +17,9 @@ void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32>&& bound_offse
     if (size < 2) {
         return;
     }
-    std::sort(bound_offsets.begin(), bound_offsets.end(),
-              [](const u32& a, const u32& b) { return a < b; });
-    u32 min_val = UINT_MAX;
-    for (std::size_t i = 1; i < size; i++) {
+    std::sort(bound_offsets.begin(), bound_offsets.end(), std::less{});
+    u32 min_val = std::numeric_limits<u32>::max();
+    for (std::size_t i = 1; i < size; ++i) {
         if (bound_offsets[i] == bound_offsets[i - 1]) {
             continue;
         }
