@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <limits>
 #include <set>
 
 #include <fmt/format.h>
@@ -64,7 +65,7 @@ std::optional<u32> TryDeduceSamplerSize(Sampler& sampler_to_deduce,
         return std::nullopt;
     }
     const u32 base_offset = sampler_to_deduce.GetOffset();
-    u32 max_offset{UINT_MAX};
+    u32 max_offset{std::numeric_limits<u32>::max()};
     for (const auto& sampler : used_samplers) {
         if (sampler.IsBindless()) {
             continue;
@@ -73,7 +74,7 @@ std::optional<u32> TryDeduceSamplerSize(Sampler& sampler_to_deduce,
             max_offset = std::min(sampler.GetOffset(), max_offset);
         }
     }
-    if (max_offset == UINT_MAX) {
+    if (max_offset == std::numeric_limits<u32>::max()) {
         return std::nullopt;
     }
     return ((max_offset - base_offset) * 4) / gpu_driver->GetTextureHandlerSize();
@@ -373,6 +374,7 @@ void ShaderIR::PostDecode() {
                 if (size) {
                     sampler.SetSize(*size);
                 } else {
+                    LOG_CRITICAL(HW_GPU, "Failed to deduce size of indexed sampler");
                     sampler.SetSize(1);
                 }
             }
