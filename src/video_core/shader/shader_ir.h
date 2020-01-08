@@ -394,7 +394,8 @@ private:
 
     std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
-    std::tuple<Node, TrackSampler> TrackSampler(Node tracked, const NodeBlock& code, s64 cursor);
+    std::tuple<Node, TrackSampler> TrackBindlessSampler(Node tracked, const NodeBlock& code,
+                                                        s64 cursor);
 
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 

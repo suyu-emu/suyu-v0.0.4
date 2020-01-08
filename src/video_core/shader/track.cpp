@@ -72,8 +72,8 @@ bool AmendNodeCv(std::size_t amend_index, Node node) {
     return false;
 }
 
-std::tuple<Node, TrackSampler> ShaderIR::TrackSampler(Node tracked, const NodeBlock& code,
-                                                      s64 cursor) {
+std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, const NodeBlock& code,
+                                                              s64 cursor) {
     if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
         // Constant buffer found, test if it's an immediate
         const auto offset = cbuf->GetOffset();
@@ -124,11 +124,12 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackSampler(Node tracked, const NodeBl
         if (!source) {
             return {};
         }
-        return TrackSampler(source, code, new_cursor);
+        return TrackBindlessSampler(source, code, new_cursor);
     }
     if (const auto operation = std::get_if<OperationNode>(&*tracked)) {
         for (std::size_t i = operation->GetOperandsCount(); i > 0; --i) {
-            if (auto found = TrackSampler((*operation)[i - 1], code, cursor); std::get<0>(found)) {
+            if (auto found = TrackBindlessSampler((*operation)[i - 1], code, cursor);
+                std::get<0>(found)) {
                 // Cbuf found in operand.
                 return found;
             }
@@ -137,7 +138,8 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackSampler(Node tracked, const NodeBl
     }
     if (const auto conditional = std::get_if<ConditionalNode>(&*tracked)) {
         const auto& conditional_code = conditional->GetCode();
-        return TrackSampler(tracked, conditional_code, static_cast<s64>(conditional_code.size()));
+        return TrackBindlessSampler(tracked, conditional_code,
+                                    static_cast<s64>(conditional_code.size()));
     }
     return {};
 }

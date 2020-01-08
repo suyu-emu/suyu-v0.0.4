@@ -393,7 +393,7 @@ const Sampler* ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg, Node& i
                                             std::optional<SamplerInfo> sampler_info) {
     const Node sampler_register = GetRegister(reg);
     const auto [base_node, tracked_sampler_info] =
-        TrackSampler(sampler_register, global_code, static_cast<s64>(global_code.size()));
+        TrackBindlessSampler(sampler_register, global_code, static_cast<s64>(global_code.size()));
     ASSERT(base_node != nullptr);
     if (base_node == nullptr) {
         return nullptr;
