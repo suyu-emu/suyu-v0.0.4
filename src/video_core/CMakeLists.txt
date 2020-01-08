@@ -180,6 +180,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_scheduler.h
         renderer_vulkan/vk_shader_decompiler.cpp
         renderer_vulkan/vk_shader_decompiler.h
+        renderer_vulkan/vk_shader_util.cpp
+        renderer_vulkan/vk_shader_util.h
         renderer_vulkan/vk_staging_buffer_pool.cpp
         renderer_vulkan/vk_staging_buffer_pool.h
         renderer_vulkan/vk_stream_buffer.cpp
