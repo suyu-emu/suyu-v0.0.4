@@ -155,6 +155,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/maxwell_to_vk.h
         renderer_vulkan/vk_buffer_cache.cpp
         renderer_vulkan/vk_buffer_cache.h
+        renderer_vulkan/vk_compute_pass.cpp
+        renderer_vulkan/vk_compute_pass.h
         renderer_vulkan/vk_compute_pipeline.cpp
         renderer_vulkan/vk_compute_pipeline.h
         renderer_vulkan/vk_descriptor_pool.cpp
