@@ -220,6 +220,8 @@ public:
 
     VideoCore::GuestDriverProfile& AccessGuestDriverProfile() override;
 
+    const VideoCore::GuestDriverProfile& AccessGuestDriverProfile() const override;
+
 private:
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;

@@ -81,7 +81,7 @@ public:
         return bound_buffer;
     }
 
-    VideoCore::GuestDriverProfile* AccessGuestDriverProfile() {
+    VideoCore::GuestDriverProfile* AccessGuestDriverProfile() const {
         if (engine) {
             return &(engine->AccessGuestDriverProfile());
         }

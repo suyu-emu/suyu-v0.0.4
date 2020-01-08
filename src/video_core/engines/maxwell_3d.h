@@ -1308,6 +1308,8 @@ public:
 
     VideoCore::GuestDriverProfile& AccessGuestDriverProfile() override;
 
+    const VideoCore::GuestDriverProfile& AccessGuestDriverProfile() const override;
+
     /// Memory for macro code - it's undetermined how big this is, however 1MB is much larger than
     /// we've seen used.
     using MacroMemory = std::array<u32, 0x40000>;

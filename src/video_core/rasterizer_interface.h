@@ -84,6 +84,10 @@ public:
         return guest_driver_profile;
     }
 
+    const GuestDriverProfile& AccessGuestDriverProfile() const {
+        return guest_driver_profile;
+    }
+
 private:
     GuestDriverProfile guest_driver_profile{};
 };

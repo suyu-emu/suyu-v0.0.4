@@ -788,4 +788,8 @@ VideoCore::GuestDriverProfile& Maxwell3D::AccessGuestDriverProfile() {
     return rasterizer.AccessGuestDriverProfile();
 }
 
+const VideoCore::GuestDriverProfile& Maxwell3D::AccessGuestDriverProfile() const {
+    return rasterizer.AccessGuestDriverProfile();
+}
+
 } // namespace Tegra::Engines
