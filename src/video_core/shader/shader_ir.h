@@ -394,7 +394,7 @@ private:
 
     std::tuple<Node, Node, GlobalMemoryBase> TrackGlobalMemory(NodeBlock& bb,
                                                                Tegra::Shader::Instruction instr,
-                                                               bool is_write);
+                                                               bool is_read, bool is_write);
 
     /// Register new amending code and obtain the reference id.
     std::size_t DeclareAmend(Node new_amend);
