@@ -22,7 +22,7 @@ vk::Filter Filter(Tegra::Texture::TextureFilter filter);
 
 vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter);
 
-vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
+vk::SamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
                                 Tegra::Texture::TextureFilter filter);
 
 vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func);
