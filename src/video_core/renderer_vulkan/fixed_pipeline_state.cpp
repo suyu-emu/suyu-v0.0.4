@@ -109,6 +109,9 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
     const auto topology = static_cast<std::size_t>(regs.draw.topology.Value());
     const bool depth_bias_enabled = enabled_lut[PolygonOffsetEnableLUT[topology]];
 
+    const auto& clip = regs.view_volume_clip_control;
+    const bool depth_clamp_enabled = clip.depth_clamp_near == 1 || clip.depth_clamp_far == 1;
+
     Maxwell::Cull::FrontFace front_face = regs.cull.front_face;
     if (regs.screen_y_control.triangle_rast_flip != 0 &&
         regs.viewport_transform[0].scale_y > 0.0f) {
@@ -119,8 +122,9 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
     }
 
     const bool gl_ndc = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
-    return FixedPipelineState::Rasterizer(regs.cull.enabled, depth_bias_enabled, gl_ndc,
-                                          regs.cull.cull_face, front_face);
+    return FixedPipelineState::Rasterizer(regs.cull.enabled, depth_bias_enabled,
+                                          depth_clamp_enabled, gl_ndc, regs.cull.cull_face,
+                                          front_face);
 }
 
 } // Anonymous namespace
@@ -222,15 +226,17 @@ bool FixedPipelineState::Tessellation::operator==(const Tessellation& rhs) const
 std::size_t FixedPipelineState::Rasterizer::Hash() const noexcept {
     return static_cast<std::size_t>(cull_enable) ^
            (static_cast<std::size_t>(depth_bias_enable) << 1) ^
-           (static_cast<std::size_t>(ndc_minus_one_to_one) << 2) ^
+           (static_cast<std::size_t>(depth_clamp_enable) << 2) ^
+           (static_cast<std::size_t>(ndc_minus_one_to_one) << 3) ^
            (static_cast<std::size_t>(cull_face) << 24) ^
            (static_cast<std::size_t>(front_face) << 48);
 }
 
 bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const noexcept {
-    return std::tie(cull_enable, depth_bias_enable, ndc_minus_one_to_one, cull_face, front_face) ==
-           std::tie(rhs.cull_enable, rhs.depth_bias_enable, rhs.ndc_minus_one_to_one, rhs.cull_face,
-                    rhs.front_face);
+    return std::tie(cull_enable, depth_bias_enable, depth_clamp_enable, ndc_minus_one_to_one,
+                    cull_face, front_face) ==
+           std::tie(rhs.cull_enable, rhs.depth_bias_enable, rhs.depth_clamp_enable,
+                    rhs.ndc_minus_one_to_one, rhs.cull_face, rhs.front_face);
 }
 
 std::size_t FixedPipelineState::DepthStencil::Hash() const noexcept {
