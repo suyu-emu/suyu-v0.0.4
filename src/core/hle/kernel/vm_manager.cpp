@@ -780,8 +780,7 @@ void VMManager::UpdatePageTableForVMA(const VirtualMemoryArea& vma) {
         memory.UnmapRegion(page_table, vma.base, vma.size);
         break;
     case VMAType::AllocatedMemoryBlock:
-        memory.MapMemoryRegion(page_table, vma.base, vma.size,
-                               vma.backing_block->data() + vma.offset);
+        memory.MapMemoryRegion(page_table, vma.base, vma.size, *vma.backing_block, vma.offset);
         break;
     case VMAType::BackingMemory:
         memory.MapMemoryRegion(page_table, vma.base, vma.size, vma.backing_memory);

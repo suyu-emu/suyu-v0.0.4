@@ -14,6 +14,7 @@
 #include "common/swap.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/hle/kernel/physical_memory.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
@@ -36,6 +37,11 @@ struct Memory::Impl {
         system.ArmInterface(1).PageTableChanged(*current_page_table, address_space_width);
         system.ArmInterface(2).PageTableChanged(*current_page_table, address_space_width);
         system.ArmInterface(3).PageTableChanged(*current_page_table, address_space_width);
+    }
+
+    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size,
+                         Kernel::PhysicalMemory& memory, VAddr offset) {
+        MapMemoryRegion(page_table, base, size, memory.data() + offset);
     }
 
     void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
@@ -599,6 +605,11 @@ Memory::~Memory() = default;
 
 void Memory::SetCurrentPageTable(Kernel::Process& process) {
     impl->SetCurrentPageTable(process);
+}
+
+void Memory::MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size,
+                             Kernel::PhysicalMemory& memory, VAddr offset) {
+    impl->MapMemoryRegion(page_table, base, size, memory, offset);
 }
 
 void Memory::MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target) {
