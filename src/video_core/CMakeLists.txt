@@ -155,6 +155,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/maxwell_to_vk.h
         renderer_vulkan/vk_buffer_cache.cpp
         renderer_vulkan/vk_buffer_cache.h
+        renderer_vulkan/vk_compute_pass.cpp
+        renderer_vulkan/vk_compute_pass.h
         renderer_vulkan/vk_compute_pipeline.cpp
         renderer_vulkan/vk_compute_pipeline.h
         renderer_vulkan/vk_descriptor_pool.cpp
@@ -180,6 +182,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_scheduler.h
         renderer_vulkan/vk_shader_decompiler.cpp
         renderer_vulkan/vk_shader_decompiler.h
+        renderer_vulkan/vk_shader_util.cpp
+        renderer_vulkan/vk_shader_util.h
         renderer_vulkan/vk_staging_buffer_pool.cpp
         renderer_vulkan/vk_staging_buffer_pool.h
         renderer_vulkan/vk_stream_buffer.cpp
