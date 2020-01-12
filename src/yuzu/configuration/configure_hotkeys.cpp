@@ -48,6 +48,7 @@ void ConfigureHotkeys::Populate(const HotkeyRegistry& registry) {
     }
 
     ui->hotkey_list->expandAll();
+    ui->hotkey_list->resizeColumnToContents(0);
 }
 
 void ConfigureHotkeys::changeEvent(QEvent* event) {
