@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include <iterator>
 #include <utility>
 #include "common/alignment.h"
@@ -269,18 +270,9 @@ ResultVal<VAddr> VMManager::SetHeapSize(u64 size) {
     // If necessary, expand backing vector to cover new heap extents in
     // the case of allocating. Otherwise, shrink the backing memory,
     // if a smaller heap has been requested.
-    const u64 old_heap_size = GetCurrentHeapSize();
-    if (size > old_heap_size) {
-        const u64 alloc_size = size - old_heap_size;
-
-        heap_memory->insert(heap_memory->end(), alloc_size, 0);
-        RefreshMemoryBlockMappings(heap_memory.get());
-    } else if (size < old_heap_size) {
-        heap_memory->resize(size);
-        heap_memory->shrink_to_fit();
-
-        RefreshMemoryBlockMappings(heap_memory.get());
-    }
+    heap_memory->resize(size);
+    heap_memory->shrink_to_fit();
+    RefreshMemoryBlockMappings(heap_memory.get());
 
     heap_end = heap_region_base + size;
     ASSERT(GetCurrentHeapSize() == heap_memory->size());
@@ -752,24 +744,20 @@ void VMManager::MergeAdjacentVMA(VirtualMemoryArea& left, const VirtualMemoryAre
     // Always merge allocated memory blocks, even when they don't share the same backing block.
     if (left.type == VMAType::AllocatedMemoryBlock &&
         (left.backing_block != right.backing_block || left.offset + left.size != right.offset)) {
-        const auto right_begin = right.backing_block->begin() + right.offset;
-        const auto right_end = right_begin + right.size;
 
         // Check if we can save work.
         if (left.offset == 0 && left.size == left.backing_block->size()) {
             // Fast case: left is an entire backing block.
-            left.backing_block->insert(left.backing_block->end(), right_begin, right_end);
+            left.backing_block->resize(left.size + right.size);
+            std::memcpy(left.backing_block->data() + left.size,
+                        right.backing_block->data() + right.offset, right.size);
         } else {
             // Slow case: make a new memory block for left and right.
-            const auto left_begin = left.backing_block->begin() + left.offset;
-            const auto left_end = left_begin + left.size;
-            const auto left_size = static_cast<std::size_t>(std::distance(left_begin, left_end));
-            const auto right_size = static_cast<std::size_t>(std::distance(right_begin, right_end));
-
             auto new_memory = std::make_shared<PhysicalMemory>();
-            new_memory->reserve(left_size + right_size);
-            new_memory->insert(new_memory->end(), left_begin, left_end);
-            new_memory->insert(new_memory->end(), right_begin, right_end);
+            new_memory->resize(left.size + right.size);
+            std::memcpy(new_memory->data(), left.backing_block->data() + left.offset, left.size);
+            std::memcpy(new_memory->data() + left.size, right.backing_block->data() + right.offset,
+                        right.size);
 
             left.backing_block = std::move(new_memory);
             left.offset = 0;
