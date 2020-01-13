@@ -190,8 +190,11 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_stream_buffer.h
         renderer_vulkan/vk_swapchain.cpp
         renderer_vulkan/vk_swapchain.h
+        renderer_vulkan/vk_texture_cache.cpp
+        renderer_vulkan/vk_texture_cache.h
         renderer_vulkan/vk_update_descriptor.cpp
-        renderer_vulkan/vk_update_descriptor.h)
+        renderer_vulkan/vk_update_descriptor.h
+    )
 
     target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
     target_compile_definitions(video_core PRIVATE HAS_VULKAN)
