@@ -54,6 +54,8 @@ MICROPROFILE_DEFINE(OpenGL_PrimitiveAssembly, "OpenGL", "Prim Asmbl", MP_RGB(255
 
 namespace {
 
+constexpr std::size_t NumSupportedVertexAttributes = 16;
+
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
                                                Tegra::Engines::ShaderType shader_type,
@@ -134,7 +136,7 @@ void RasterizerOpenGL::SetupVertexFormat() {
     // avoid OpenGL errors.
     // TODO(Subv): Analyze the shader to identify which attributes are actually used and don't
     // assume every shader uses them all.
-    for (std::size_t index = 0; index < 16; ++index) {
+    for (std::size_t index = 0; index < NumSupportedVertexAttributes; ++index) {
         if (!flags[Dirty::VertexFormat0 + index]) {
             continue;
         }
@@ -207,7 +209,7 @@ void RasterizerOpenGL::SetupVertexInstances() {
     flags[Dirty::VertexInstances] = false;
 
     const auto& regs = gpu.regs;
-    for (std::size_t index = 0; index < 16; ++index) {
+    for (std::size_t index = 0; index < NumSupportedVertexAttributes; ++index) {
         if (!flags[Dirty::VertexInstance0 + index]) {
             continue;
         }
