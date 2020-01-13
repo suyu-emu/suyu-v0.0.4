@@ -209,6 +209,11 @@ public:
         return target == VideoCore::Surface::SurfaceTarget::TextureBuffer;
     }
 
+    /// Returns the number of layers in the surface.
+    std::size_t GetNumLayers() const {
+        return is_layered ? depth : 1;
+    }
+
     /// Returns the debug name of the texture for use in graphic debuggers.
     std::string TargetName() const;
 
@@ -286,10 +291,6 @@ private:
 
     /// Returns the size of a layer
     std::size_t GetLayerSize(bool as_host_size, bool uncompressed) const;
-
-    std::size_t GetNumLayers() const {
-        return is_layered ? depth : 1;
-    }
 
     /// Returns true if these parameters are from a layered surface.
     bool IsLayered() const;
