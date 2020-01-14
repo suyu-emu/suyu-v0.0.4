@@ -6,6 +6,7 @@
 #include <vector>
 #include <fmt/format.h>
 
+#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -22,34 +23,39 @@ using Tegra::Shader::Register;
 
 namespace {
 
-u32 GetLdgMemorySize(Tegra::Shader::UniformType uniform_type) {
+bool IsUnaligned(Tegra::Shader::UniformType uniform_type) {
+    return uniform_type == Tegra::Shader::UniformType::UnsignedByte ||
+           uniform_type == Tegra::Shader::UniformType::UnsignedShort;
+}
+
+u32 GetUnalignedMask(Tegra::Shader::UniformType uniform_type) {
     switch (uniform_type) {
     case Tegra::Shader::UniformType::UnsignedByte:
-    case Tegra::Shader::UniformType::Single:
-        return 1;
-    case Tegra::Shader::UniformType::Double:
-        return 2;
-    case Tegra::Shader::UniformType::Quad:
-    case Tegra::Shader::UniformType::UnsignedQuad:
-        return 4;
+        return 0b11;
+    case Tegra::Shader::UniformType::UnsignedShort:
+        return 0b10;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented size={}!", static_cast<u32>(uniform_type));
-        return 1;
+        UNREACHABLE();
+        return 0;
     }
 }
 
-u32 GetStgMemorySize(Tegra::Shader::UniformType uniform_type) {
+u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
     switch (uniform_type) {
+    case Tegra::Shader::UniformType::UnsignedByte:
+        return 8;
+    case Tegra::Shader::UniformType::UnsignedShort:
+        return 16;
     case Tegra::Shader::UniformType::Single:
-        return 1;
+        return 32;
     case Tegra::Shader::UniformType::Double:
-        return 2;
+        return 64;
     case Tegra::Shader::UniformType::Quad:
     case Tegra::Shader::UniformType::UnsignedQuad:
-        return 4;
+        return 128;
     default:
         UNIMPLEMENTED_MSG("Unimplemented size={}!", static_cast<u32>(uniform_type));
-        return 1;
+        return 32;
     }
 }
 
@@ -184,9 +190,10 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }();
 
         const auto [real_address_base, base_address, descriptor] =
-            TrackGlobalMemory(bb, instr, false);
+            TrackGlobalMemory(bb, instr, true, false);
 
-        const u32 count = GetLdgMemorySize(type);
+        const u32 size = GetMemorySize(type);
+        const u32 count = Common::AlignUp(size, 32) / 32;
         if (!real_address_base || !base_address) {
             // Tracking failed, load zeroes.
             for (u32 i = 0; i < count; ++i) {
@@ -200,14 +207,15 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             const Node real_address = Operation(OperationCode::UAdd, real_address_base, it_offset);
             Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
 
-            if (type == Tegra::Shader::UniformType::UnsignedByte) {
-                // To handle unaligned loads get the byte used to dereferenced global memory
-                // and extract that byte from the loaded uint32.
-                Node byte = Operation(OperationCode::UBitwiseAnd, real_address, Immediate(3));
-                byte = Operation(OperationCode::ULogicalShiftLeft, std::move(byte), Immediate(3));
+            // To handle unaligned loads get the bytes used to dereference global memory and extract
+            // those bytes from the loaded u32.
+            if (IsUnaligned(type)) {
+                Node mask = Immediate(GetUnalignedMask(type));
+                Node offset = Operation(OperationCode::UBitwiseAnd, real_address, std::move(mask));
+                offset = Operation(OperationCode::ULogicalShiftLeft, offset, Immediate(3));
 
-                gmem = Operation(OperationCode::UBitfieldExtract, std::move(gmem), std::move(byte),
-                                 Immediate(8));
+                gmem = Operation(OperationCode::UBitfieldExtract, std::move(gmem),
+                                 std::move(offset), Immediate(size));
             }
 
             SetTemporary(bb, i, gmem);
@@ -295,19 +303,32 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             }
         }();
 
+        // For unaligned reads we have to read memory too.
+        const bool is_read = IsUnaligned(type);
         const auto [real_address_base, base_address, descriptor] =
-            TrackGlobalMemory(bb, instr, true);
+            TrackGlobalMemory(bb, instr, is_read, true);
         if (!real_address_base || !base_address) {
             // Tracking failed, skip the store.
             break;
         }
 
-        const u32 count = GetStgMemorySize(type);
+        const u32 size = GetMemorySize(type);
+        const u32 count = Common::AlignUp(size, 32) / 32;
         for (u32 i = 0; i < count; ++i) {
             const Node it_offset = Immediate(i * 4);
             const Node real_address = Operation(OperationCode::UAdd, real_address_base, it_offset);
             const Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-            const Node value = GetRegister(instr.gpr0.Value() + i);
+            Node value = GetRegister(instr.gpr0.Value() + i);
+
+            if (IsUnaligned(type)) {
+                Node mask = Immediate(GetUnalignedMask(type));
+                Node offset = Operation(OperationCode::UBitwiseAnd, real_address, std::move(mask));
+                offset = Operation(OperationCode::ULogicalShiftLeft, offset, Immediate(3));
+
+                value = Operation(OperationCode::UBitfieldInsert, gmem, std::move(value), offset,
+                                  Immediate(size));
+            }
+
             bb.push_back(Operation(OperationCode::Assign, gmem, value));
         }
         break;
@@ -336,7 +357,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 
 std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& bb,
                                                                      Instruction instr,
-                                                                     bool is_write) {
+                                                                     bool is_read, bool is_write) {
     const auto addr_register{GetRegister(instr.gmem.gpr)};
     const auto immediate_offset{static_cast<u32>(instr.gmem.offset)};
 
@@ -351,11 +372,8 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& 
     const GlobalMemoryBase descriptor{index, offset};
     const auto& [entry, is_new] = used_global_memory.try_emplace(descriptor);
     auto& usage = entry->second;
-    if (is_write) {
-        usage.is_written = true;
-    } else {
-        usage.is_read = true;
-    }
+    usage.is_written |= is_write;
+    usage.is_read |= is_read;
 
     const auto real_address =
         Operation(OperationCode::UAdd, NO_PRECISE, Immediate(immediate_offset), addr_register);
