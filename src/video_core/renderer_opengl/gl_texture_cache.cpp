@@ -253,14 +253,12 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
         glPixelStorei(GL_PACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
         const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
+        u8* const mip_data = staging_buffer.data() + mip_offset;
+        const GLsizei size = static_cast<GLsizei>(params.GetHostMipmapSize(level));
         if (is_compressed) {
-            glGetCompressedTextureImage(texture.handle, level,
-                                        static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                                        staging_buffer.data() + mip_offset);
+            glGetCompressedTextureImage(texture.handle, level, size, mip_data);
         } else {
-            glGetTextureImage(texture.handle, level, format, type,
-                              static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                              staging_buffer.data() + mip_offset);
+            glGetTextureImage(texture.handle, level, format, type, size, mip_data);
         }
     }
 }
