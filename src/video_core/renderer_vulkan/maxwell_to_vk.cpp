@@ -44,7 +44,7 @@ vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filt
     return {};
 }
 
-vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
+vk::SamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
                                 Tegra::Texture::TextureFilter filter) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
@@ -56,7 +56,12 @@ vk::SamplerAddressMode WrapMode(Tegra::Texture::WrapMode wrap_mode,
     case Tegra::Texture::WrapMode::Border:
         return vk::SamplerAddressMode::eClampToBorder;
     case Tegra::Texture::WrapMode::Clamp:
-        // TODO(Rodrigo): Emulate GL_CLAMP properly
+        if (device.GetDriverID() == vk::DriverIdKHR::eNvidiaProprietary) {
+            // Nvidia's Vulkan driver defaults to GL_CLAMP on invalid enumerations, we can hack this
+            // by sending an invalid enumeration.
+            return static_cast<vk::SamplerAddressMode>(0xcafe);
+        }
+        // TODO(Rodrigo): Emulate GL_CLAMP properly on other vendors
         switch (filter) {
         case Tegra::Texture::TextureFilter::Nearest:
             return vk::SamplerAddressMode::eClampToEdge;
