@@ -317,6 +317,8 @@ void Process::FreeTLSRegion(VAddr tls_address) {
 }
 
 void Process::LoadModule(CodeSet module_, VAddr base_addr) {
+    code_memory_size += module_.memory.size();
+
     const auto memory = std::make_shared<PhysicalMemory>(std::move(module_.memory));
 
     const auto MapSegment = [&](const CodeSet::Segment& segment, VMAPermission permissions,
@@ -332,8 +334,6 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
     MapSegment(module_.CodeSegment(), VMAPermission::ReadExecute, MemoryState::Code);
     MapSegment(module_.RODataSegment(), VMAPermission::Read, MemoryState::CodeData);
     MapSegment(module_.DataSegment(), VMAPermission::ReadWrite, MemoryState::CodeData);
-
-    code_memory_size += module_.memory.size();
 }
 
 Process::Process(Core::System& system)
