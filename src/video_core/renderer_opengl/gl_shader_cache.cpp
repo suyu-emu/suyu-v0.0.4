@@ -34,9 +34,6 @@ using VideoCommon::Shader::ShaderIR;
 
 namespace {
 
-// One UBO is always reserved for emulation values on staged shaders
-constexpr u32 STAGE_RESERVED_UBOS = 1;
-
 constexpr u32 STAGE_MAIN_OFFSET = 10;
 constexpr u32 KERNEL_MAIN_OFFSET = 0;
 
