@@ -274,15 +274,15 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     pad_state.d_right.Assign(button_state[DRight - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.d_down.Assign(button_state[DDown - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.l_stick_left.Assign(stick_l_x_f < 0.0);
-    pad_state.l_stick_up.Assign(stick_l_y_f > 0.0);
-    pad_state.l_stick_right.Assign(stick_l_x_f > 0.0);
-    pad_state.l_stick_down.Assign(stick_l_y_f < 0.0);
+    pad_state.l_stick_right.Assign(stick_l_x_f > 0.3f);
+    pad_state.l_stick_left.Assign(stick_l_x_f < -0.3f);
+    pad_state.l_stick_up.Assign(stick_l_y_f > 0.3f);
+    pad_state.l_stick_down.Assign(stick_l_y_f < -0.3f);
 
-    pad_state.r_stick_left.Assign(stick_r_x_f < 0.0);
-    pad_state.r_stick_up.Assign(stick_r_y_f > 0.0);
-    pad_state.r_stick_right.Assign(stick_r_x_f > 0.0);
-    pad_state.r_stick_down.Assign(stick_r_y_f < 0.0);
+    pad_state.r_stick_right.Assign(stick_r_x_f > 0.3f);
+    pad_state.r_stick_left.Assign(stick_r_x_f < -0.3f);
+    pad_state.r_stick_up.Assign(stick_r_y_f > 0.3f);
+    pad_state.r_stick_down.Assign(stick_r_y_f < -0.3f);
 
     pad_state.left_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.left_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
