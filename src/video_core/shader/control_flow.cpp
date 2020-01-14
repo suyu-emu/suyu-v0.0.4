@@ -65,7 +65,7 @@ struct BlockInfo {
 
 struct CFGRebuildState {
     explicit CFGRebuildState(const ProgramCode& program_code, u32 start, ConstBufferLocker& locker)
-        : program_code{program_code}, start{start}, locker{locker} {}
+        : program_code{program_code}, locker{locker}, start{start} {}
 
     const ProgramCode& program_code;
     ConstBufferLocker& locker;
