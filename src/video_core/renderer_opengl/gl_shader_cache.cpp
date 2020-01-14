@@ -313,9 +313,10 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 CachedShader::CachedShader(const ShaderParameters& params, ShaderType shader_type,
                            GLShader::ShaderEntries entries, ProgramCode code, ProgramCode code_b)
-    : RasterizerCacheObject{params.host_ptr}, system{params.system}, disk_cache{params.disk_cache},
-      device{params.device}, cpu_addr{params.cpu_addr}, unique_identifier{params.unique_identifier},
-      shader_type{shader_type}, entries{entries}, code{std::move(code)}, code_b{std::move(code_b)} {
+    : RasterizerCacheObject{params.host_ptr}, system{params.system},
+      disk_cache{params.disk_cache}, device{params.device}, cpu_addr{params.cpu_addr},
+      unique_identifier{params.unique_identifier}, shader_type{shader_type},
+      entries{std::move(entries)}, code{std::move(code)}, code_b{std::move(code_b)} {
     if (!params.precompiled_variants) {
         return;
     }
