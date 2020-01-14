@@ -34,9 +34,6 @@ using VideoCommon::Shader::ShaderIR;
 
 namespace {
 
-// One UBO is always reserved for emulation values on staged shaders
-constexpr u32 STAGE_RESERVED_UBOS = 1;
-
 constexpr u32 STAGE_MAIN_OFFSET = 10;
 constexpr u32 KERNEL_MAIN_OFFSET = 0;
 
@@ -243,7 +240,6 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
     if (!code_b.empty()) {
         ir_b.emplace(code_b, main_offset, COMPILER_SETTINGS, locker);
     }
-    const auto entries = GLShader::GetEntries(ir);
 
     std::string source = fmt::format(R"(// {}
 #version 430 core
@@ -314,9 +310,10 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 CachedShader::CachedShader(const ShaderParameters& params, ShaderType shader_type,
                            GLShader::ShaderEntries entries, ProgramCode code, ProgramCode code_b)
-    : RasterizerCacheObject{params.host_ptr}, system{params.system}, disk_cache{params.disk_cache},
-      device{params.device}, cpu_addr{params.cpu_addr}, unique_identifier{params.unique_identifier},
-      shader_type{shader_type}, entries{entries}, code{std::move(code)}, code_b{std::move(code_b)} {
+    : RasterizerCacheObject{params.host_ptr}, system{params.system},
+      disk_cache{params.disk_cache}, device{params.device}, cpu_addr{params.cpu_addr},
+      unique_identifier{params.unique_identifier}, shader_type{shader_type},
+      entries{std::move(entries)}, code{std::move(code)}, code_b{std::move(code_b)} {
     if (!params.precompiled_variants) {
         return;
     }
