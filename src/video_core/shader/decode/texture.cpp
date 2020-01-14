@@ -794,14 +794,10 @@ std::tuple<std::size_t, std::size_t> ShaderIR::ValidateAndGetCoordinateElement(
 
 std::vector<Node> ShaderIR::GetAoffiCoordinates(Node aoffi_reg, std::size_t coord_count,
                                                 bool is_tld4) {
-    const auto [coord_offsets, size, wrap_value,
-                diff_value] = [is_tld4]() -> std::tuple<std::array<u32, 3>, u32, s32, s32> {
-        if (is_tld4) {
-            return {{0, 8, 16}, 6, 32, 64};
-        } else {
-            return {{0, 4, 8}, 4, 8, 16};
-        }
-    }();
+    const std::array coord_offsets = is_tld4 ? std::array{0U, 8U, 16U} : std::array{0U, 4U, 8U};
+    const u32 size = is_tld4 ? 6 : 4;
+    const s32 wrap_value = is_tld4 ? 32 : 8;
+    const s32 diff_value = is_tld4 ? 64 : 16;
     const u32 mask = (1U << size) - 1;
 
     std::vector<Node> aoffi;
@@ -814,7 +810,7 @@ std::vector<Node> ShaderIR::GetAoffiCoordinates(Node aoffi_reg, std::size_t coor
         LOG_WARNING(HW_GPU,
                     "AOFFI constant folding failed, some hardware might have graphical issues");
         for (std::size_t coord = 0; coord < coord_count; ++coord) {
-            const Node value = BitfieldExtract(aoffi_reg, coord_offsets.at(coord), size);
+            const Node value = BitfieldExtract(aoffi_reg, coord_offsets[coord], size);
             const Node condition =
                 Operation(OperationCode::LogicalIGreaterEqual, value, Immediate(wrap_value));
             const Node negative = Operation(OperationCode::IAdd, value, Immediate(-diff_value));
@@ -824,7 +820,7 @@ std::vector<Node> ShaderIR::GetAoffiCoordinates(Node aoffi_reg, std::size_t coor
     }
 
     for (std::size_t coord = 0; coord < coord_count; ++coord) {
-        s32 value = (*aoffi_immediate >> coord_offsets.at(coord)) & mask;
+        s32 value = (*aoffi_immediate >> coord_offsets[coord]) & mask;
         if (value >= wrap_value) {
             value -= diff_value;
         }
