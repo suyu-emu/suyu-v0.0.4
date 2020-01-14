@@ -243,7 +243,6 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
     if (!code_b.empty()) {
         ir_b.emplace(code_b, main_offset, COMPILER_SETTINGS, locker);
     }
-    const auto entries = GLShader::GetEntries(ir);
 
     std::string source = fmt::format(R"(// {}
 #version 430 core
