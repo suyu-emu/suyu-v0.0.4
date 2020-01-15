@@ -131,7 +131,8 @@ public:
     std::array<Viewport, Tegra::Engines::Maxwell3D::Regs::NumViewports> viewports;
 
     struct {
-        float size = 1.0f; // GL_POINT_SIZE
+        GLboolean program_control = GL_FALSE; // GL_PROGRAM_POINT_SIZE
+        GLfloat size = 1.0f;                  // GL_POINT_SIZE
     } point;
 
     struct {
