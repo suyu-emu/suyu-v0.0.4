@@ -342,6 +342,22 @@ public:
         return std::make_tuple<float, float>(0.0f, 0.0f);
     }
 
+    bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
+        const auto [x, y] = GetStatus();
+        const float directional_deadzone = 0.4f;
+        switch (direction) {
+        case Input::AnalogDirection::RIGHT:
+            return x > directional_deadzone;
+        case Input::AnalogDirection::LEFT:
+            return x < -directional_deadzone;
+        case Input::AnalogDirection::UP:
+            return y > directional_deadzone;
+        case Input::AnalogDirection::DOWN:
+            return y < -directional_deadzone;
+        }
+        return false;
+    }
+
 private:
     std::shared_ptr<SDLJoystick> joystick;
     const int axis_x;
