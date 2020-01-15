@@ -16,6 +16,13 @@
 
 namespace OpenGL {
 
+struct VertexArrayPushBuffer::Entry {
+    GLuint binding_index{};
+    const GLuint* buffer{};
+    GLintptr offset{};
+    GLsizei stride{};
+};
+
 VertexArrayPushBuffer::VertexArrayPushBuffer() = default;
 
 VertexArrayPushBuffer::~VertexArrayPushBuffer() = default;
@@ -46,6 +53,13 @@ void VertexArrayPushBuffer::Bind() {
                                   entry.stride);
     }
 }
+
+struct BindBuffersRangePushBuffer::Entry {
+    GLuint binding;
+    const GLuint* buffer;
+    GLintptr offset;
+    GLsizeiptr size;
+};
 
 BindBuffersRangePushBuffer::BindBuffersRangePushBuffer(GLenum target) : target{target} {}
 
