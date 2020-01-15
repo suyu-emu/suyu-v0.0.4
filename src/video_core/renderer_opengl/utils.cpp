@@ -6,12 +6,9 @@
 #include <vector>
 
 #include <fmt/format.h>
-
 #include <glad/glad.h>
 
-#include "common/assert.h"
 #include "common/common_types.h"
-#include "common/scope_exit.h"
 #include "video_core/renderer_opengl/utils.h"
 
 namespace OpenGL {
