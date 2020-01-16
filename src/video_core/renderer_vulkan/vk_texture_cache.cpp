@@ -229,7 +229,7 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     }
     scheduler.Finish();
 
-    // TODO(Rodrigo): Use an intern buffer for staging buffers and avoid this unnecesary memcpy.
+    // TODO(Rodrigo): Use an intern buffer for staging buffers and avoid this unnecessary memcpy.
     std::memcpy(staging_buffer.data(), buffer.commit->Map(host_memory_size), host_memory_size);
 }
 
