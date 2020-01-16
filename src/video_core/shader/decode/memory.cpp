@@ -16,6 +16,8 @@
 
 namespace VideoCommon::Shader {
 
+using Tegra::Shader::AtomicOp;
+using Tegra::Shader::AtomicType;
 using Tegra::Shader::Attribute;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
@@ -331,6 +333,23 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 
             bb.push_back(Operation(OperationCode::Assign, gmem, value));
         }
+        break;
+    }
+    case OpCode::Id::ATOMS: {
+        UNIMPLEMENTED_IF_MSG(instr.atoms.operation != AtomicOp::Add, "operation={}",
+                             static_cast<int>(instr.atoms.operation.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.atoms.type != AtomicType::U32, "type={}",
+                             static_cast<int>(instr.atoms.type.Value()));
+
+        const s32 offset = instr.atoms.GetImmediateOffset();
+        Node address = GetRegister(instr.gpr8);
+        address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
+
+        Node memory = GetSharedMemory(std::move(address));
+        Node data = GetRegister(instr.gpr20);
+
+        Node value = Operation(OperationCode::UAtomicAdd, std::move(memory), std::move(data));
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::AL2P: {

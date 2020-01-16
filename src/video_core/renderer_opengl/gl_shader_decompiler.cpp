@@ -1856,6 +1856,16 @@ private:
                 Type::Uint};
     }
 
+    template <const std::string_view& opname, Type type>
+    Expression Atomic(Operation operation) {
+        ASSERT(stage == ShaderType::Compute);
+        auto& smem = std::get<SmemNode>(*operation[0]);
+
+        return {fmt::format("atomic{}(smem[{} >> 2], {})", opname, Visit(smem.GetAddress()).AsInt(),
+                            Visit(operation[1]).As(type)),
+                type};
+    }
+
     Expression Branch(Operation operation) {
         const auto target = std::get_if<ImmediateNode>(&*operation[0]);
         UNIMPLEMENTED_IF(!target);
@@ -2193,6 +2203,8 @@ private:
         &GLSLDecompiler::AtomicImage<Func::Or>,
         &GLSLDecompiler::AtomicImage<Func::Xor>,
         &GLSLDecompiler::AtomicImage<Func::Exchange>,
+
+        &GLSLDecompiler::Atomic<Func::Add, Type::Uint>,
 
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::BranchIndirect,

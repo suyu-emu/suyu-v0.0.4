@@ -1796,6 +1796,11 @@ private:
         return {};
     }
 
+    Expression UAtomicAdd(Operation) {
+        UNIMPLEMENTED();
+        return {};
+    }
+
     Expression Branch(Operation operation) {
         const auto& target = std::get<ImmediateNode>(*operation[0]);
         OpStore(jmp_to, Constant(t_uint, target.GetValue()));
@@ -2372,6 +2377,8 @@ private:
         &SPIRVDecompiler::AtomicImageOr,
         &SPIRVDecompiler::AtomicImageXor,
         &SPIRVDecompiler::AtomicImageExchange,
+
+        &SPIRVDecompiler::UAtomicAdd,
 
         &SPIRVDecompiler::Branch,
         &SPIRVDecompiler::BranchIndirect,
