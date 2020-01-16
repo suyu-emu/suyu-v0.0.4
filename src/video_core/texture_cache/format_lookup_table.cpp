@@ -95,7 +95,7 @@ constexpr std::array<Table, 74> DefinitionTable = {{
     {TextureFormat::ZF32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::Z32F},
     {TextureFormat::Z16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::Z16},
     {TextureFormat::S8Z24, C, UINT, UNORM, UNORM, UNORM, PixelFormat::S8Z24},
-    {TextureFormat::ZF32_X24S8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::Z32FS8},
+    {TextureFormat::ZF32_X24S8, C, FLOAT, UINT, UNORM, UNORM, PixelFormat::Z32FS8},
 
     {TextureFormat::DXT1, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT1},
     {TextureFormat::DXT1, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT1_SRGB},
