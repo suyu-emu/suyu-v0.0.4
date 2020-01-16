@@ -5,6 +5,10 @@ function(get_timestamp _var)
 endfunction()
 
 list(APPEND CMAKE_MODULE_PATH "${SRC_DIR}/externals/cmake-modules")
+
+# Find the package here with the known path so that the GetGit commands can find it as well
+find_package(Git QUIET PATHS "${GIT_EXECUTABLE}")
+
 # generate git/build information
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REF_SPEC GIT_REV)

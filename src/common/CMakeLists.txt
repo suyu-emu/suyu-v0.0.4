@@ -15,6 +15,10 @@ endif ()
 if (DEFINED ENV{DISPLAYVERSION})
   set(DISPLAY_VERSION $ENV{DISPLAYVERSION})
 endif ()
+
+# Pass the path to git to the GenerateSCMRev.cmake as well
+find_package(Git QUIET)
+
 add_custom_command(OUTPUT scm_rev.cpp
     COMMAND ${CMAKE_COMMAND}
       -DSRC_DIR="${CMAKE_SOURCE_DIR}"
@@ -23,6 +27,7 @@ add_custom_command(OUTPUT scm_rev.cpp
       -DTITLE_BAR_FORMAT_RUNNING="${TITLE_BAR_FORMAT_RUNNING}"
       -DBUILD_TAG="${BUILD_TAG}"
       -DBUILD_ID="${DISPLAY_VERSION}"
+      -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
       -P "${CMAKE_SOURCE_DIR}/CMakeModules/GenerateSCMRev.cmake"
     DEPENDS
       # WARNING! It was too much work to try and make a common location for this list,
