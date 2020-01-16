@@ -242,10 +242,8 @@ View CachedSurface::CreateView(const ViewParams& params) {
 }
 
 View CachedSurface::CreateViewInner(const ViewParams& params, bool is_proxy) {
-    auto view = std::make_shared<CachedSurfaceView>(device, *this, params, is_proxy);
-    views[params] = view;
     // TODO(Rodrigo): Add name decorations
-    return view;
+    return views[params] = std::make_shared<CachedSurfaceView>(device, *this, params, is_proxy);
 }
 
 void CachedSurface::UploadBuffer(const std::vector<u8>& staging_buffer) {
@@ -320,11 +318,8 @@ CachedSurfaceView::CachedSurfaceView(const VKDevice& device, CachedSurface& surf
       image{surface.GetImageHandle()}, buffer_view{surface.GetBufferViewHandle()},
       aspect_mask{surface.GetAspectMask()}, device{device}, surface{surface},
       base_layer{params.base_layer}, num_layers{params.num_layers}, base_level{params.base_level},
-      num_levels{params.num_levels} {
-    if (image) {
-        image_view_type = GetImageViewType(params.target);
-    }
-}
+      num_levels{params.num_levels}, image_view_type{image ? GetImageViewType(params.target)
+                                                           : vk::ImageViewType{}} {}
 
 CachedSurfaceView::~CachedSurfaceView() = default;
 
@@ -386,11 +381,6 @@ vk::ImageView CachedSurfaceView::GetHandle(SwizzleSource x_source, SwizzleSource
     const auto dev = device.GetLogical();
     image_view = dev.createImageViewUnique(image_view_ci, nullptr, device.GetDispatchLoader());
     return last_image_view = *image_view;
-}
-
-bool CachedSurfaceView::IsOverlapping(const View& rhs) const {
-    // TODO(Rodrigo): Also test for layer and mip level overlaps.
-    return &surface == &rhs->surface;
 }
 
 VKTextureCache::VKTextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
@@ -479,6 +469,7 @@ void VKTextureCache::ImageBlit(View& src_view, View& dst_view,
 void VKTextureCache::BufferCopy(Surface& src_surface, Surface& dst_surface) {
     // Currently unimplemented. PBO copies should be dropped and we should use a render pass to
     // convert from color to depth and viceversa.
+    LOG_WARNING(Render_Vulkan, "Unimplemented");
 }
 
 } // namespace Vulkan

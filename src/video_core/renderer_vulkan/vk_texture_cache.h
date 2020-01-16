@@ -5,15 +5,10 @@
 #pragma once
 
 #include <memory>
-#include <tuple>
 #include <unordered_map>
-
-#include <boost/functional/hash.hpp>
-#include <boost/icl/interval_map.hpp>
 
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "common/hash.h"
 #include "common/logging/log.h"
 #include "common/math_util.h"
 #include "video_core/gpu.h"
@@ -22,11 +17,9 @@
 #include "video_core/renderer_vulkan/vk_image.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
-#include "video_core/surface.h"
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/textures/decoders.h"
-#include "video_core/textures/texture.h"
 
 namespace Core {
 class System;
@@ -141,7 +134,9 @@ public:
                             Tegra::Texture::SwizzleSource z_source,
                             Tegra::Texture::SwizzleSource w_source);
 
-    bool IsOverlapping(const View& rhs) const;
+    bool IsSameSurface(const CachedSurfaceView& rhs) const {
+        return &surface == &rhs.surface;
+    }
 
     vk::ImageView GetHandle() {
         return GetHandle(Tegra::Texture::SwizzleSource::R, Tegra::Texture::SwizzleSource::G,
@@ -207,7 +202,7 @@ private:
     const u32 num_layers;
     const u32 base_level;
     const u32 num_levels;
-    vk::ImageViewType image_view_type{};
+    const vk::ImageViewType image_view_type;
 
     vk::ImageView last_image_view;
     u32 last_swizzle{};
