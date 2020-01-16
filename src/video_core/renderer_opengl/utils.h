@@ -26,12 +26,7 @@ public:
     void Bind();
 
 private:
-    struct Entry {
-        GLuint binding_index{};
-        const GLuint* buffer{};
-        GLintptr offset{};
-        GLsizei stride{};
-    };
+    struct Entry;
 
     GLuint vao{};
     const GLuint* index_buffer{};
@@ -50,12 +45,7 @@ public:
     void Bind();
 
 private:
-    struct Entry {
-        GLuint binding;
-        const GLuint* buffer;
-        GLintptr offset;
-        GLsizeiptr size;
-    };
+    struct Entry;
 
     GLenum target;
     std::vector<Entry> entries;
