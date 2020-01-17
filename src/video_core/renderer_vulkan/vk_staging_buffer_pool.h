@@ -13,6 +13,7 @@
 
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
+#include "video_core/renderer_vulkan/vk_resource_manager.h"
 
 namespace Vulkan {
 
