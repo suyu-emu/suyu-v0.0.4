@@ -44,7 +44,7 @@ struct FormatTuple {
 
 constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format_tuples = {{
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, false},                        // ABGR8U
-    {GL_RGBA8, GL_RGBA, GL_BYTE, false},                                            // ABGR8S
+    {GL_RGBA8_SNORM, GL_RGBA, GL_BYTE, false},                                      // ABGR8S
     {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, false},                         // ABGR8UI
     {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV, false},                        // B5G6R5U
     {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV, false},                  // A2B10G10R10U
@@ -83,9 +83,9 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
     {GL_RGB32F, GL_RGB, GL_FLOAT, false},                                           // RGB32F
     {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV, false},                 // RGBA8_SRGB
     {GL_RG8, GL_RG, GL_UNSIGNED_BYTE, false},                                       // RG8U
-    {GL_RG8, GL_RG, GL_BYTE, false},                                                // RG8S
+    {GL_RG8_SNORM, GL_RG, GL_BYTE, false},                                          // RG8S
     {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT, false},                             // RG32UI
-    {GL_RGB16F, GL_RGBA16, GL_HALF_FLOAT, false},                                   // RGBX16F
+    {GL_RGB16F, GL_RGBA, GL_HALF_FLOAT, false},                                     // RGBX16F
     {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, false},                             // R32UI
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, false},                                   // ASTC_2D_8X8
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE, false},                                   // ASTC_2D_8X5
@@ -253,14 +253,12 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
         glPixelStorei(GL_PACK_ALIGNMENT, std::min(8U, params.GetRowAlignment(level)));
         glPixelStorei(GL_PACK_ROW_LENGTH, static_cast<GLint>(params.GetMipWidth(level)));
         const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level);
+        u8* const mip_data = staging_buffer.data() + mip_offset;
+        const GLsizei size = static_cast<GLsizei>(params.GetHostMipmapSize(level));
         if (is_compressed) {
-            glGetCompressedTextureImage(texture.handle, level,
-                                        static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                                        staging_buffer.data() + mip_offset);
+            glGetCompressedTextureImage(texture.handle, level, size, mip_data);
         } else {
-            glGetTextureImage(texture.handle, level, format, type,
-                              static_cast<GLsizei>(params.GetHostMipmapSize(level)),
-                              staging_buffer.data() + mip_offset);
+            glGetTextureImage(texture.handle, level, format, type, size, mip_data);
         }
     }
 }
