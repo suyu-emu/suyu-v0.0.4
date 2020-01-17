@@ -2313,7 +2313,7 @@ public:
     explicit ExprDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
 
     void operator()(const ExprAnd& expr) {
-        inner += "( ";
+        inner += '(';
         std::visit(*this, *expr.operand1);
         inner += " && ";
         std::visit(*this, *expr.operand2);
@@ -2321,7 +2321,7 @@ public:
     }
 
     void operator()(const ExprOr& expr) {
-        inner += "( ";
+        inner += '(';
         std::visit(*this, *expr.operand1);
         inner += " || ";
         std::visit(*this, *expr.operand2);
@@ -2339,28 +2339,7 @@ public:
     }
 
     void operator()(const ExprCondCode& expr) {
-        const Node cc = decomp.ir.GetConditionCode(expr.cc);
-        std::string target;
-
-        if (const auto pred = std::get_if<PredicateNode>(&*cc)) {
-            const auto index = pred->GetIndex();
-            switch (index) {
-            case Tegra::Shader::Pred::NeverExecute:
-                target = "false";
-                break;
-            case Tegra::Shader::Pred::UnusedIndex:
-                target = "true";
-                break;
-            default:
-                target = decomp.GetPredicate(index);
-                break;
-            }
-        } else if (const auto flag = std::get_if<InternalFlagNode>(&*cc)) {
-            target = decomp.GetInternalFlag(flag->GetFlag());
-        } else {
-            UNREACHABLE();
-        }
-        inner += target;
+        inner += decomp.Visit(decomp.ir.GetConditionCode(expr.cc)).AsBool();
     }
 
     void operator()(const ExprVar& expr) {
@@ -2372,8 +2351,7 @@ public:
     }
 
     void operator()(VideoCommon::Shader::ExprGprEqual& expr) {
-        inner +=
-            "( ftou(" + decomp.GetRegister(expr.gpr) + ") == " + std::to_string(expr.value) + ')';
+        inner += fmt::format("(ftou({}) == {})", decomp.GetRegister(expr.gpr), expr.value);
     }
 
     const std::string& GetResult() const {
@@ -2381,8 +2359,8 @@ public:
     }
 
 private:
-    std::string inner;
     GLSLDecompiler& decomp;
+    std::string inner;
 };
 
 class ASTDecompiler {
