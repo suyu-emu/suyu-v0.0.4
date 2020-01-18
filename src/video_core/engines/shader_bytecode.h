@@ -215,6 +215,18 @@ enum class F2fRoundingOp : u64 {
     Trunc = 11,
 };
 
+enum class AtomicOp : u64 {
+    Add = 0,
+    Min = 1,
+    Max = 2,
+    Inc = 3,
+    Dec = 4,
+    And = 5,
+    Or = 6,
+    Xor = 7,
+    Exch = 8,
+};
+
 enum class UniformType : u64 {
     UnsignedByte = 0,
     SignedByte = 1,
@@ -234,6 +246,13 @@ enum class StoreType : u64 {
     Bits32 = 4,
     Bits64 = 5,
     Bits128 = 6,
+};
+
+enum class AtomicType : u64 {
+    U32 = 0,
+    S32 = 1,
+    U64 = 2,
+    S64 = 3,
 };
 
 enum class IMinMaxExchange : u64 {
@@ -937,6 +956,16 @@ union Instruction {
         BitField<48, 3, UniformType> type;
         BitField<46, 2, u64> cache_mode;
     } stg;
+
+    union {
+        BitField<52, 4, AtomicOp> operation;
+        BitField<28, 2, AtomicType> type;
+        BitField<30, 22, s64> offset;
+
+        s32 GetImmediateOffset() const {
+            return static_cast<s32>(offset << 2);
+        }
+    } atoms;
 
     union {
         BitField<32, 1, PhysicalAttributeDirection> direction;
@@ -1659,9 +1688,10 @@ public:
         ST_A,
         ST_L,
         ST_S,
-        ST,   // Store in generic memory
-        STG,  // Store in global memory
-        AL2P, // Transforms attribute memory into physical memory
+        ST,    // Store in generic memory
+        STG,   // Store in global memory
+        ATOMS, // Atomic operation on shared memory
+        AL2P,  // Transforms attribute memory into physical memory
         TEX,
         TEX_B,  // Texture Load Bindless
         TXQ,    // Texture Query
@@ -1964,6 +1994,7 @@ private:
             INST("1110111101010---", Id::ST_L, Type::Memory, "ST_L"),
             INST("101-------------", Id::ST, Type::Memory, "ST"),
             INST("1110111011011---", Id::STG, Type::Memory, "STG"),
+            INST("11101100--------", Id::ATOMS, Type::Memory, "ATOMS"),
             INST("1110111110100---", Id::AL2P, Type::Memory, "AL2P"),
             INST("110000----111---", Id::TEX, Type::Texture, "TEX"),
             INST("1101111010111---", Id::TEX_B, Type::Texture, "TEX_B"),
