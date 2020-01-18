@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <boost/container/static_vector.hpp>
+#include <boost/functional/hash.hpp>
 
 #include "common/common_types.h"
 #include "video_core/memory_manager.h"
@@ -51,10 +52,10 @@ using ImageViewsPack =
     boost::container::static_vector<vk::ImageView, Maxwell::NumRenderTargets + 1>;
 
 struct FramebufferCacheKey {
-    vk::RenderPass renderpass;
+    vk::RenderPass renderpass{};
+    u32 width = 0;
+    u32 height = 0;
     ImageViewsPack views;
-    u32 width;
-    u32 height;
 
     std::size_t Hash() const noexcept {
         std::size_t hash = 0;

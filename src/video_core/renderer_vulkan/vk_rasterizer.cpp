@@ -203,6 +203,8 @@ public:
             return BindStatic<30>(scheduler);
         case 31:
             return BindStatic<31>(scheduler);
+        case 32:
+            return BindStatic<32>(scheduler);
         }
         UNREACHABLE();
     }
@@ -526,7 +528,6 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(config.pixel_format)};
     ASSERT_MSG(params.width == config.width, "Framebuffer width is different");
     ASSERT_MSG(params.height == config.height, "Framebuffer height is different");
-    // ASSERT_MSG(params.pixel_format == pixel_format, "Framebuffer pixel_format is different");
 
     screen_info.image = &surface->GetImage();
     screen_info.width = params.width;
@@ -536,17 +537,24 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 }
 
 void RasterizerVulkan::FlushWork() {
+    static constexpr u32 DRAWS_TO_DISPATCH = 4096;
+
+    // Only check multiples of 8 draws
+    static_assert(DRAWS_TO_DISPATCH % 8 == 0);
     if ((++draw_counter & 7) != 7) {
         return;
     }
-    if (draw_counter < 4096) {
-        // Flush work to the worker thread every 8 draws
+
+    if (draw_counter < DRAWS_TO_DISPATCH) {
+        // Send recorded tasks to the worker thread
         scheduler.DispatchWork();
-    } else {
-        // Flush work to the GPU (and implicitly the worker thread) every N draws
-        scheduler.Flush();
-        draw_counter = 0;
+        return;
     }
+
+    // Otherwise (every certain number of draws) flush execution.
+    // This submits commands to the Vulkan driver.
+    scheduler.Flush();
+    draw_counter = 0;
 }
 
 RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
@@ -593,18 +601,16 @@ bool RasterizerVulkan::WalkAttachmentOverlaps(const CachedSurfaceView& attachmen
 
 std::tuple<vk::Framebuffer, vk::Extent2D> RasterizerVulkan::ConfigureFramebuffers(
     vk::RenderPass renderpass) {
-    FramebufferCacheKey fbkey;
-    fbkey.renderpass = renderpass;
-    fbkey.width = std::numeric_limits<u32>::max();
-    fbkey.height = std::numeric_limits<u32>::max();
+    FramebufferCacheKey key{renderpass, std::numeric_limits<u32>::max(),
+                            std::numeric_limits<u32>::max()};
 
     const auto MarkAsModifiedAndPush = [&](const View& view) {
         if (view == nullptr) {
             return false;
         }
-        fbkey.views.push_back(view->GetHandle());
-        fbkey.width = std::min(fbkey.width, view->GetWidth());
-        fbkey.height = std::min(fbkey.height, view->GetHeight());
+        key.views.push_back(view->GetHandle());
+        key.width = std::min(key.width, view->GetWidth());
+        key.height = std::min(key.height, view->GetHeight());
         return true;
     };
 
@@ -617,18 +623,18 @@ std::tuple<vk::Framebuffer, vk::Extent2D> RasterizerVulkan::ConfigureFramebuffer
         texture_cache.MarkDepthBufferInUse();
     }
 
-    const auto [fbentry, is_cache_miss] = framebuffer_cache.try_emplace(fbkey);
+    const auto [fbentry, is_cache_miss] = framebuffer_cache.try_emplace(key);
     auto& framebuffer = fbentry->second;
     if (is_cache_miss) {
-        const vk::FramebufferCreateInfo framebuffer_ci(
-            {}, fbkey.renderpass, static_cast<u32>(fbkey.views.size()), fbkey.views.data(),
-            fbkey.width, fbkey.height, 1);
+        const vk::FramebufferCreateInfo framebuffer_ci({}, key.renderpass,
+                                                       static_cast<u32>(key.views.size()),
+                                                       key.views.data(), key.width, key.height, 1);
         const auto dev = device.GetLogical();
         const auto& dld = device.GetDispatchLoader();
         framebuffer = dev.createFramebufferUnique(framebuffer_ci, nullptr, dld);
     }
 
-    return {*framebuffer, vk::Extent2D{fbkey.width, fbkey.height}};
+    return {*framebuffer, vk::Extent2D{key.width, key.height}};
 }
 
 RasterizerVulkan::DrawParameters RasterizerVulkan::SetupGeometry(FixedPipelineState& fixed_state,
@@ -771,8 +777,8 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
         if (!is_indexed) {
             break;
         }
-        auto [buffer, offset] =
-            buffer_cache.UploadMemory(regs.index_array.IndexStart(), CalculateIndexBufferSize());
+        const GPUVAddr gpu_addr = regs.index_array.IndexStart();
+        auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
 
         auto format = regs.index_array.format;
         const bool is_uint8 = format == Maxwell::IndexFormat::UnsignedByte;
@@ -918,7 +924,7 @@ void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAdd
 
 void RasterizerVulkan::SetupTexelBuffer(const Tegra::Texture::TICEntry& tic,
                                         const TexelBufferEntry& entry) {
-    auto view = texture_cache.GetTextureSurface(tic, entry);
+    const auto view = texture_cache.GetTextureSurface(tic, entry);
     ASSERT(view->IsBufferView());
 
     update_descriptor_queue.AddTexelBuffer(view->GetBufferView());
