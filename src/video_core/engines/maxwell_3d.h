@@ -1018,7 +1018,14 @@ public:
                     }
                 } instanced_arrays;
 
-                INSERT_UNION_PADDING_WORDS(0x6);
+                INSERT_UNION_PADDING_WORDS(0x4);
+
+                union {
+                    BitField<0, 1, u32> enable;
+                    BitField<4, 8, u32> unk4;
+                } vp_point_size;
+
+                INSERT_UNION_PADDING_WORDS(1);
 
                 Cull cull;
 
@@ -1503,6 +1510,7 @@ ASSERT_REG_POSITION(primitive_restart, 0x591);
 ASSERT_REG_POSITION(index_array, 0x5F2);
 ASSERT_REG_POSITION(polygon_offset_clamp, 0x61F);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
+ASSERT_REG_POSITION(vp_point_size, 0x644);
 ASSERT_REG_POSITION(cull, 0x646);
 ASSERT_REG_POSITION(pixel_center_integer, 0x649);
 ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
