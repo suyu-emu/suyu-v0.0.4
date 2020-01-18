@@ -335,7 +335,8 @@ Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
             codeset_segment->addr = segment_addr;
             codeset_segment->size = aligned_size;
 
-            memcpy(&program_image[current_image_position], GetSegmentPtr(i), p->p_filesz);
+            std::memcpy(program_image.data() + current_image_position, GetSegmentPtr(i),
+                        p->p_filesz);
             current_image_position += aligned_size;
         }
     }

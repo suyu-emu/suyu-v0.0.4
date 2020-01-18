@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <cstring>
 #include <vector>
 
 #include "common/common_funcs.h"
@@ -96,8 +97,9 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
-        program_image.resize(nso_header.segments[i].location);
-        program_image.insert(program_image.end(), data.begin(), data.end());
+        program_image.resize(nso_header.segments[i].location + data.size());
+        std::memcpy(program_image.data() + nso_header.segments[i].location, data.data(),
+                    data.size());
         codeset.segments[i].addr = nso_header.segments[i].location;
         codeset.segments[i].offset = nso_header.segments[i].location;
         codeset.segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
@@ -139,12 +141,12 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         std::vector<u8> pi_header;
         pi_header.insert(pi_header.begin(), reinterpret_cast<u8*>(&nso_header),
                          reinterpret_cast<u8*>(&nso_header) + sizeof(NSOHeader));
-        pi_header.insert(pi_header.begin() + sizeof(NSOHeader), program_image.begin(),
-                         program_image.end());
+        pi_header.insert(pi_header.begin() + sizeof(NSOHeader), program_image.data(),
+                         program_image.data() + program_image.size());
 
         pi_header = pm->PatchNSO(pi_header, file.GetName());
 
-        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.begin());
+        std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
     }
 
     // Apply cheats if they exist and the program has a valid title ID

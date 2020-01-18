@@ -14,6 +14,9 @@ namespace Kernel {
 // - Second to ensure all host backing memory used is aligned to 256 bytes due
 // to strict alignment restrictions on GPU memory.
 
-using PhysicalMemory = std::vector<u8, Common::AlignmentAllocator<u8, 256>>;
+using PhysicalMemoryVector = std::vector<u8, Common::AlignmentAllocator<u8, 256>>;
+class PhysicalMemory final : public PhysicalMemoryVector {
+    using PhysicalMemoryVector::PhysicalMemoryVector;
+};
 
 } // namespace Kernel
