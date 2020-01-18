@@ -98,6 +98,7 @@
     <addaction name="action_Display_Dock_Widget_Headers"/>
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
+    <addaction name="separator"/>
     <addaction name="menu_View_Debugging"/>
    </widget>
    <widget class="QMenu" name="menu_Tools">

@@ -526,18 +526,29 @@ void GMainWindow::InitializeHotkeys() {
 
     const QString main_window = QStringLiteral("Main Window");
     const QString load_file = QStringLiteral("Load File");
+    const QString load_amiibo = QStringLiteral("Load Amiibo");
     const QString exit_yuzu = QStringLiteral("Exit yuzu");
+    const QString restart_emulation = QStringLiteral("Restart Emulation");
     const QString stop_emulation = QStringLiteral("Stop Emulation");
     const QString toggle_filter_bar = QStringLiteral("Toggle Filter Bar");
     const QString toggle_status_bar = QStringLiteral("Toggle Status Bar");
     const QString fullscreen = QStringLiteral("Fullscreen");
+    const QString capture_screenshot = QStringLiteral("Capture Screenshot");
 
     ui.action_Load_File->setShortcut(hotkey_registry.GetKeySequence(main_window, load_file));
     ui.action_Load_File->setShortcutContext(
         hotkey_registry.GetShortcutContext(main_window, load_file));
 
+    ui.action_Load_Amiibo->setShortcut(hotkey_registry.GetKeySequence(main_window, load_amiibo));
+    ui.action_Load_Amiibo->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, load_amiibo));
+
     ui.action_Exit->setShortcut(hotkey_registry.GetKeySequence(main_window, exit_yuzu));
     ui.action_Exit->setShortcutContext(hotkey_registry.GetShortcutContext(main_window, exit_yuzu));
+
+    ui.action_Restart->setShortcut(hotkey_registry.GetKeySequence(main_window, restart_emulation));
+    ui.action_Restart->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, restart_emulation));
 
     ui.action_Stop->setShortcut(hotkey_registry.GetKeySequence(main_window, stop_emulation));
     ui.action_Stop->setShortcutContext(
@@ -552,6 +563,11 @@ void GMainWindow::InitializeHotkeys() {
         hotkey_registry.GetKeySequence(main_window, toggle_status_bar));
     ui.action_Show_Status_Bar->setShortcutContext(
         hotkey_registry.GetShortcutContext(main_window, toggle_status_bar));
+
+    ui.action_Capture_Screenshot->setShortcut(
+        hotkey_registry.GetKeySequence(main_window, capture_screenshot));
+    ui.action_Capture_Screenshot->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, capture_screenshot));
 
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load File"), this),
             &QShortcut::activated, this, &GMainWindow::OnMenuLoadFile);
