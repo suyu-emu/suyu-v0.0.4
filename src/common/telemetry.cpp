@@ -44,20 +44,6 @@ template class Field<std::string>;
 template class Field<const char*>;
 template class Field<std::chrono::microseconds>;
 
-#ifdef ARCHITECTURE_x86_64
-static const char* CpuVendorToStr(Common::CPUVendor vendor) {
-    switch (vendor) {
-    case Common::CPUVendor::INTEL:
-        return "Intel";
-    case Common::CPUVendor::AMD:
-        return "Amd";
-    case Common::CPUVendor::OTHER:
-        return "Other";
-    }
-    UNREACHABLE();
-}
-#endif
-
 void AppendBuildInfo(FieldCollection& fc) {
     const bool is_git_dirty{std::strstr(Common::g_scm_desc, "dirty") != nullptr};
     fc.AddField(FieldType::App, "Git_IsDirty", is_git_dirty);
@@ -71,7 +57,6 @@ void AppendCPUInfo(FieldCollection& fc) {
 #ifdef ARCHITECTURE_x86_64
     fc.AddField(FieldType::UserSystem, "CPU_Model", Common::GetCPUCaps().cpu_string);
     fc.AddField(FieldType::UserSystem, "CPU_BrandString", Common::GetCPUCaps().brand_string);
-    fc.AddField(FieldType::UserSystem, "CPU_Vendor", CpuVendorToStr(Common::GetCPUCaps().vendor));
     fc.AddField(FieldType::UserSystem, "CPU_Extension_x64_AES", Common::GetCPUCaps().aes);
     fc.AddField(FieldType::UserSystem, "CPU_Extension_x64_AVX", Common::GetCPUCaps().avx);
     fc.AddField(FieldType::UserSystem, "CPU_Extension_x64_AVX2", Common::GetCPUCaps().avx2);
