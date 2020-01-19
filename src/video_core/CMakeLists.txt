@@ -153,6 +153,7 @@ if (ENABLE_VULKAN)
         renderer_vulkan/fixed_pipeline_state.h
         renderer_vulkan/maxwell_to_vk.cpp
         renderer_vulkan/maxwell_to_vk.h
+        renderer_vulkan/renderer_vulkan.h
         renderer_vulkan/vk_buffer_cache.cpp
         renderer_vulkan/vk_buffer_cache.h
         renderer_vulkan/vk_compute_pass.cpp
@@ -171,6 +172,7 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_pipeline_cache.cpp
         renderer_vulkan/vk_pipeline_cache.h
+        renderer_vulkan/vk_rasterizer.cpp
         renderer_vulkan/vk_rasterizer.h
         renderer_vulkan/vk_renderpass_cache.cpp
         renderer_vulkan/vk_renderpass_cache.h
