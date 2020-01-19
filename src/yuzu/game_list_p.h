@@ -108,11 +108,14 @@ public:
             }};
 
             const auto& row1 = row_data.at(UISettings::values.row_1_text_id);
-            const auto& row2 = row_data.at(UISettings::values.row_2_text_id);
+            const int row2_id = UISettings::values.row_2_text_id;
 
-            if (row1.isEmpty() || row1 == row2)
-                return row2;
-            if (row2.isEmpty())
+            if (row2_id == 4) // None
+                return row1;
+
+            const auto& row2 = row_data.at(row2_id);
+
+            if (row1 == row2)
                 return row1;
 
             return QString(row1 + QStringLiteral("\n    ") + row2);

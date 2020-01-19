@@ -21,10 +21,8 @@ constexpr std::array default_icon_sizes{
 };
 
 constexpr std::array row_text_names{
-    QT_TR_NOOP("Filename"),
-    QT_TR_NOOP("Filetype"),
-    QT_TR_NOOP("Title ID"),
-    QT_TR_NOOP("Title Name"),
+    QT_TR_NOOP("Filename"),   QT_TR_NOOP("Filetype"), QT_TR_NOOP("Title ID"),
+    QT_TR_NOOP("Title Name"), QT_TR_NOOP("None"),
 };
 } // Anonymous namespace
 
@@ -46,6 +44,12 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
             &ConfigureGameList::RequestGameListUpdate);
     connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ConfigureGameList::RequestGameListUpdate);
+
+    // Update text ComboBoxes after user interaction.
+    connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::activated),
+            [=]() { ConfigureGameList::UpdateSecondRowComboBox(); });
+    connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::activated),
+            [=]() { ConfigureGameList::UpdateFirstRowComboBox(); });
 }
 
 ConfigureGameList::~ConfigureGameList() = default;
@@ -68,10 +72,6 @@ void ConfigureGameList::SetConfiguration() {
     ui->show_add_ons->setChecked(UISettings::values.show_add_ons);
     ui->icon_size_combobox->setCurrentIndex(
         ui->icon_size_combobox->findData(UISettings::values.icon_size));
-    ui->row_1_text_combobox->setCurrentIndex(
-        ui->row_1_text_combobox->findData(UISettings::values.row_1_text_id));
-    ui->row_2_text_combobox->setCurrentIndex(
-        ui->row_2_text_combobox->findData(UISettings::values.row_2_text_id));
 }
 
 void ConfigureGameList::changeEvent(QEvent* event) {
@@ -104,10 +104,43 @@ void ConfigureGameList::InitializeIconSizeComboBox() {
 }
 
 void ConfigureGameList::InitializeRowComboBoxes() {
+    UpdateFirstRowComboBox(true);
+    UpdateSecondRowComboBox(true);
+}
+
+void ConfigureGameList::UpdateFirstRowComboBox(bool init) {
+    const int currentIndex =
+        init ? UISettings::values.row_1_text_id
+             : ui->row_1_text_combobox->findData(ui->row_1_text_combobox->currentData());
+
+    ui->row_1_text_combobox->clear();
+
+    for (std::size_t i = 0; i < row_text_names.size(); i++) {
+        const QString row_text_name = QString::fromUtf8(row_text_names[i]);
+        ui->row_1_text_combobox->addItem(row_text_name, QVariant::fromValue(i));
+    }
+
+    ui->row_1_text_combobox->setCurrentIndex(ui->row_1_text_combobox->findData(currentIndex));
+
+    ui->row_1_text_combobox->removeItem(4); // None
+    ui->row_1_text_combobox->removeItem(
+        ui->row_1_text_combobox->findData(ui->row_2_text_combobox->currentData()));
+}
+
+void ConfigureGameList::UpdateSecondRowComboBox(bool init) {
+    const int currentIndex =
+        init ? UISettings::values.row_2_text_id
+             : ui->row_2_text_combobox->findData(ui->row_2_text_combobox->currentData());
+
+    ui->row_2_text_combobox->clear();
+
     for (std::size_t i = 0; i < row_text_names.size(); ++i) {
         const QString row_text_name = QString::fromUtf8(row_text_names[i]);
-
-        ui->row_1_text_combobox->addItem(row_text_name, QVariant::fromValue(i));
         ui->row_2_text_combobox->addItem(row_text_name, QVariant::fromValue(i));
     }
+
+    ui->row_2_text_combobox->setCurrentIndex(ui->row_2_text_combobox->findData(currentIndex));
+
+    ui->row_2_text_combobox->removeItem(
+        ui->row_2_text_combobox->findData(ui->row_1_text_combobox->currentData()));
 }

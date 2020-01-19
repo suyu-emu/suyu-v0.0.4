@@ -31,5 +31,8 @@ private:
     void InitializeIconSizeComboBox();
     void InitializeRowComboBoxes();
 
+    void UpdateFirstRowComboBox(bool init = false);
+    void UpdateSecondRowComboBox(bool init = false);
+
     std::unique_ptr<Ui::ConfigureGameList> ui;
 };
