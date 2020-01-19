@@ -111,6 +111,8 @@ struct PageTable {
     VirtualBuffer<u64> backing_addr;
 
     size_t current_address_space_width_in_bits;
+
+    u8* fastmem_arena;
 };
 
 } // namespace Common

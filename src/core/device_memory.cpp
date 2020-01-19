@@ -6,7 +6,7 @@
 
 namespace Core {
 
-DeviceMemory::DeviceMemory() : buffer{DramMemoryMap::Size} {}
+DeviceMemory::DeviceMemory() : buffer{DramMemoryMap::Size, 1ULL << 39} {}
 DeviceMemory::~DeviceMemory() = default;
 
 } // namespace Core

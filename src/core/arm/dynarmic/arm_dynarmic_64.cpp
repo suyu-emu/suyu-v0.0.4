@@ -160,6 +160,10 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable* 
         config.absolute_offset_page_table = true;
         config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
         config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+
+        config.fastmem_pointer = page_table->fastmem_arena;
+        config.fastmem_address_space_bits = address_space_bits;
+        config.silently_mirror_fastmem = false;
     }
 
     // Multi-process state
