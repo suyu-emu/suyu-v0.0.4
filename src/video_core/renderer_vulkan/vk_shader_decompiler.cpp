@@ -1796,9 +1796,17 @@ private:
         return {};
     }
 
-    Expression UAtomicAdd(Operation) {
-        UNIMPLEMENTED();
-        return {};
+    Expression UAtomicAdd(Operation operation) {
+        const auto& smem = std::get<SmemNode>(*operation[0]);
+        Id address = AsUint(Visit(smem.GetAddress()));
+        address = OpShiftRightLogical(t_uint, address, Constant(t_uint, 2U));
+        const Id pointer = OpAccessChain(t_smem_uint, shared_memory, address);
+
+        const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
+        const Id semantics = Constant(t_uint, 0U);
+
+        const Id value = AsUint(Visit(operation[1]));
+        return {OpAtomicIAdd(t_uint, pointer, scope, semantics, value), Type::Uint};
     }
 
     Expression Branch(Operation operation) {
