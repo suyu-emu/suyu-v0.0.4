@@ -191,8 +191,7 @@ UniquePipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& render
     const vk::PipelineRasterizationStateCreateInfo rasterizer_ci(
         {}, rs.depth_clamp_enable, false, vk::PolygonMode::eFill,
         rs.cull_enable ? MaxwellToVK::CullFace(rs.cull_face) : vk::CullModeFlagBits::eNone,
-        rs.cull_enable ? MaxwellToVK::FrontFace(rs.front_face) : vk::FrontFace::eCounterClockwise,
-        rs.depth_bias_enable, 0.0f, 0.0f, 0.0f, 1.0f);
+        MaxwellToVK::FrontFace(rs.front_face), rs.depth_bias_enable, 0.0f, 0.0f, 0.0f, 1.0f);
 
     const vk::PipelineMultisampleStateCreateInfo multisampling_ci(
         {}, vk::SampleCountFlagBits::e1, false, 0.0f, nullptr, false, false);
