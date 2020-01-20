@@ -1,4 +1,4 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -6,9 +6,8 @@
 
 namespace Service::Time {
 
-Time::Time(std::shared_ptr<Module> time, std::shared_ptr<SharedMemory> shared_memory,
-           Core::System& system, const char* name)
-    : Module::Interface(std::move(time), std::move(shared_memory), system, name) {
+Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* name)
+    : Module::Interface(std::move(module), system, name) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &Time::GetStandardUserSystemClock, "GetStandardUserSystemClock"},
@@ -22,15 +21,15 @@ Time::Time(std::shared_ptr<Module> time, std::shared_ptr<SharedMemory> shared_me
         {31, nullptr, "GetEphemeralNetworkClockOperationEventReadableHandle"},
         {50, nullptr, "SetStandardSteadyClockInternalOffset"},
         {51, nullptr, "GetStandardSteadyClockRtcValue"},
-        {100, &Time::IsStandardUserSystemClockAutomaticCorrectionEnabled, "IsStandardUserSystemClockAutomaticCorrectionEnabled"},
-        {101, &Time::SetStandardUserSystemClockAutomaticCorrectionEnabled, "SetStandardUserSystemClockAutomaticCorrectionEnabled"},
+        {100, nullptr, "IsStandardUserSystemClockAutomaticCorrectionEnabled"},
+        {101, nullptr, "SetStandardUserSystemClockAutomaticCorrectionEnabled"},
         {102, nullptr, "GetStandardUserSystemClockInitialYear"},
-        {200, nullptr, "IsStandardNetworkSystemClockAccuracySufficient"},
+        {200, &Time::IsStandardNetworkSystemClockAccuracySufficient, "IsStandardNetworkSystemClockAccuracySufficient"},
         {201, nullptr, "GetStandardUserSystemClockAutomaticCorrectionUpdatedTime"},
-        {300, nullptr, "CalculateMonotonicSystemClockBaseTimePoint"},
+        {300, &Time::CalculateMonotonicSystemClockBaseTimePoint, "CalculateMonotonicSystemClockBaseTimePoint"},
         {400, &Time::GetClockSnapshot, "GetClockSnapshot"},
-        {401, nullptr, "GetClockSnapshotFromSystemClockContext"},
-        {500, &Time::CalculateStandardUserSystemClockDifferenceByUser, "CalculateStandardUserSystemClockDifferenceByUser"},
+        {401, &Time::GetClockSnapshotFromSystemClockContext, "GetClockSnapshotFromSystemClockContext"},
+        {500, nullptr, "CalculateStandardUserSystemClockDifferenceByUser"},
         {501, nullptr, "CalculateSpanBetween"},
     };
     // clang-format on

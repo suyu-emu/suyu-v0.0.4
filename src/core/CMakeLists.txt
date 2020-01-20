@@ -96,6 +96,8 @@ add_library(core STATIC
     file_sys/system_archive/system_archive.h
     file_sys/system_archive/system_version.cpp
     file_sys/system_archive/system_version.h
+    file_sys/system_archive/time_zone_binary.cpp
+    file_sys/system_archive/time_zone_binary.h
     file_sys/vfs.cpp
     file_sys/vfs.h
     file_sys/vfs_concat.cpp
@@ -461,12 +463,40 @@ add_library(core STATIC
     hle/service/spl/spl.h
     hle/service/ssl/ssl.cpp
     hle/service/ssl/ssl.h
+    hle/service/time/clock_types.h
+    hle/service/time/ephemeral_network_system_clock_context_writer.h
+    hle/service/time/ephemeral_network_system_clock_core.h
+    hle/service/time/errors.h
     hle/service/time/interface.cpp
     hle/service/time/interface.h
+    hle/service/time/local_system_clock_context_writer.h
+    hle/service/time/network_system_clock_context_writer.h
+    hle/service/time/standard_local_system_clock_core.h
+    hle/service/time/standard_network_system_clock_core.h
+    hle/service/time/standard_steady_clock_core.cpp
+    hle/service/time/standard_steady_clock_core.h
+    hle/service/time/standard_user_system_clock_core.cpp
+    hle/service/time/standard_user_system_clock_core.h
+    hle/service/time/steady_clock_core.h
+    hle/service/time/system_clock_context_update_callback.cpp
+    hle/service/time/system_clock_context_update_callback.h
+    hle/service/time/system_clock_core.cpp
+    hle/service/time/system_clock_core.h
+    hle/service/time/tick_based_steady_clock_core.cpp
+    hle/service/time/tick_based_steady_clock_core.h
     hle/service/time/time.cpp
     hle/service/time/time.h
+    hle/service/time/time_manager.cpp
+    hle/service/time/time_manager.h
     hle/service/time/time_sharedmemory.cpp
     hle/service/time/time_sharedmemory.h
+    hle/service/time/time_zone_content_manager.cpp
+    hle/service/time/time_zone_content_manager.h
+    hle/service/time/time_zone_manager.cpp
+    hle/service/time/time_zone_manager.h
+    hle/service/time/time_zone_service.cpp
+    hle/service/time/time_zone_service.h
+    hle/service/time/time_zone_types.h
     hle/service/usb/usb.cpp
     hle/service/usb/usb.h
     hle/service/vi/display/vi_display.cpp

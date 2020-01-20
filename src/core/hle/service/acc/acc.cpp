@@ -211,7 +211,7 @@ protected:
     }
 
     ProfileManager& profile_manager;
-    Common::UUID user_id; ///< The user id this profile refers to.
+    Common::UUID user_id{Common::INVALID_UUID}; ///< The user id this profile refers to.
 };
 
 class IProfile final : public IProfileCommon {

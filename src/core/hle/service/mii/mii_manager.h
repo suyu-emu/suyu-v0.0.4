@@ -10,13 +10,13 @@
 
 namespace Service::Mii {
 
-constexpr std::size_t MAX_MIIS = 100;
-constexpr u32 INVALID_INDEX = 0xFFFFFFFF;
+constexpr std::size_t MAX_MIIS{100};
+constexpr u32 INVALID_INDEX{0xFFFFFFFF};
 
 struct RandomParameters {
-    u32 unknown_1;
-    u32 unknown_2;
-    u32 unknown_3;
+    u32 unknown_1{};
+    u32 unknown_2{};
+    u32 unknown_3{};
 };
 static_assert(sizeof(RandomParameters) == 0xC, "RandomParameters has incorrect size.");
 
@@ -30,57 +30,57 @@ enum class Source : u32 {
 std::ostream& operator<<(std::ostream& os, Source source);
 
 struct MiiInfo {
-    Common::UUID uuid;
-    std::array<char16_t, 11> name;
-    u8 font_region;
-    u8 favorite_color;
-    u8 gender;
-    u8 height;
-    u8 weight;
-    u8 mii_type;
-    u8 mii_region;
-    u8 face_type;
-    u8 face_color;
-    u8 face_wrinkle;
-    u8 face_makeup;
-    u8 hair_type;
-    u8 hair_color;
-    bool hair_flip;
-    u8 eye_type;
-    u8 eye_color;
-    u8 eye_scale;
-    u8 eye_aspect_ratio;
-    u8 eye_rotate;
-    u8 eye_x;
-    u8 eye_y;
-    u8 eyebrow_type;
-    u8 eyebrow_color;
-    u8 eyebrow_scale;
-    u8 eyebrow_aspect_ratio;
-    u8 eyebrow_rotate;
-    u8 eyebrow_x;
-    u8 eyebrow_y;
-    u8 nose_type;
-    u8 nose_scale;
-    u8 nose_y;
-    u8 mouth_type;
-    u8 mouth_color;
-    u8 mouth_scale;
-    u8 mouth_aspect_ratio;
-    u8 mouth_y;
-    u8 facial_hair_color;
-    u8 beard_type;
-    u8 mustache_type;
-    u8 mustache_scale;
-    u8 mustache_y;
-    u8 glasses_type;
-    u8 glasses_color;
-    u8 glasses_scale;
-    u8 glasses_y;
-    u8 mole_type;
-    u8 mole_scale;
-    u8 mole_x;
-    u8 mole_y;
+    Common::UUID uuid{Common::INVALID_UUID};
+    std::array<char16_t, 11> name{};
+    u8 font_region{};
+    u8 favorite_color{};
+    u8 gender{};
+    u8 height{};
+    u8 weight{};
+    u8 mii_type{};
+    u8 mii_region{};
+    u8 face_type{};
+    u8 face_color{};
+    u8 face_wrinkle{};
+    u8 face_makeup{};
+    u8 hair_type{};
+    u8 hair_color{};
+    bool hair_flip{};
+    u8 eye_type{};
+    u8 eye_color{};
+    u8 eye_scale{};
+    u8 eye_aspect_ratio{};
+    u8 eye_rotate{};
+    u8 eye_x{};
+    u8 eye_y{};
+    u8 eyebrow_type{};
+    u8 eyebrow_color{};
+    u8 eyebrow_scale{};
+    u8 eyebrow_aspect_ratio{};
+    u8 eyebrow_rotate{};
+    u8 eyebrow_x{};
+    u8 eyebrow_y{};
+    u8 nose_type{};
+    u8 nose_scale{};
+    u8 nose_y{};
+    u8 mouth_type{};
+    u8 mouth_color{};
+    u8 mouth_scale{};
+    u8 mouth_aspect_ratio{};
+    u8 mouth_y{};
+    u8 facial_hair_color{};
+    u8 beard_type{};
+    u8 mustache_type{};
+    u8 mustache_scale{};
+    u8 mustache_y{};
+    u8 glasses_type{};
+    u8 glasses_color{};
+    u8 glasses_scale{};
+    u8 glasses_y{};
+    u8 mole_type{};
+    u8 mole_scale{};
+    u8 mole_x{};
+    u8 mole_y{};
     INSERT_PADDING_BYTES(1);
 
     std::u16string Name() const;
@@ -94,14 +94,14 @@ bool operator!=(const MiiInfo& lhs, const MiiInfo& rhs);
 
 #pragma pack(push, 4)
 struct MiiInfoElement {
-    MiiInfo info;
-    Source source;
+    MiiInfo info{};
+    Source source{};
 };
 static_assert(sizeof(MiiInfoElement) == 0x5C, "MiiInfoElement has incorrect size.");
 
 struct MiiStoreBitFields {
     union {
-        u32 word_0;
+        u32 word_0{};
 
         BitField<24, 8, u32> hair_type;
         BitField<23, 1, u32> mole_type;
@@ -112,7 +112,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_1;
+        u32 word_1{};
 
         BitField<31, 1, u32> gender;
         BitField<24, 7, u32> eye_color;
@@ -122,7 +122,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_2;
+        u32 word_2{};
 
         BitField<31, 1, u32> mii_type;
         BitField<24, 7, u32> glasses_color;
@@ -135,7 +135,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_3;
+        u32 word_3{};
 
         BitField<29, 3, u32> mustache_type;
         BitField<24, 5, u32> eyebrow_type;
@@ -148,7 +148,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_4;
+        u32 word_4{};
 
         BitField<29, 3, u32> eye_rotate;
         BitField<24, 5, u32> mustache_y;
@@ -160,7 +160,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_5;
+        u32 word_5{};
 
         BitField<24, 5, u32> glasses_type;
         BitField<20, 4, u32> face_type;
@@ -172,7 +172,7 @@ struct MiiStoreBitFields {
     };
 
     union {
-        u32 word_6;
+        u32 word_6{};
 
         BitField<28, 4, u32> eyebrow_rotate;
         BitField<24, 4, u32> eyebrow_scale;
@@ -192,30 +192,30 @@ struct MiiStoreData {
     // This corresponds to the above structure MiiStoreBitFields. I did it like this because the
     // BitField<> type makes this (and any thing that contains it) not trivially copyable, which is
     // not suitable for our uses.
-    std::array<u8, 0x1C> data;
+    std::array<u8, 0x1C> data{};
     static_assert(sizeof(MiiStoreBitFields) == sizeof(data), "data field has incorrect size.");
 
-    std::array<char16_t, 10> name;
-    Common::UUID uuid;
-    u16 crc_1;
-    u16 crc_2;
+    std::array<char16_t, 10> name{};
+    Common::UUID uuid{Common::INVALID_UUID};
+    u16 crc_1{};
+    u16 crc_2{};
 
     std::u16string Name() const;
 };
 static_assert(sizeof(MiiStoreData) == 0x44, "MiiStoreData has incorrect size.");
 
 struct MiiStoreDataElement {
-    MiiStoreData data;
-    Source source;
+    MiiStoreData data{};
+    Source source{};
 };
 static_assert(sizeof(MiiStoreDataElement) == 0x48, "MiiStoreDataElement has incorrect size.");
 
 struct MiiDatabase {
-    u32 magic; // 'NFDB'
-    std::array<MiiStoreData, MAX_MIIS> miis;
+    u32 magic{}; // 'NFDB'
+    std::array<MiiStoreData, MAX_MIIS> miis{};
     INSERT_PADDING_BYTES(1);
-    u8 count;
-    u16 crc;
+    u8 count{};
+    u16 crc{};
 };
 static_assert(sizeof(MiiDatabase) == 0x1A98, "MiiDatabase has incorrect size.");
 #pragma pack(pop)
@@ -266,8 +266,8 @@ private:
     void EnsureDatabasePartition();
 
     MiiDatabase database;
-    bool updated_flag = false;
-    bool is_test_mode_enabled = false;
+    bool updated_flag{};
+    bool is_test_mode_enabled{};
 };
 
 }; // namespace Service::Mii

@@ -13,9 +13,10 @@
 #include "core/hle/result.h"
 
 namespace Service::Account {
-constexpr std::size_t MAX_USERS = 8;
 
-constexpr std::size_t profile_username_size = 32;
+constexpr std::size_t MAX_USERS{8};
+constexpr std::size_t profile_username_size{32};
+
 using ProfileUsername = std::array<u8, profile_username_size>;
 using UserIDArray = std::array<Common::UUID, MAX_USERS>;
 
@@ -23,8 +24,8 @@ using UserIDArray = std::array<Common::UUID, MAX_USERS>;
 /// TODO: RE this structure
 struct ProfileData {
     INSERT_PADDING_WORDS(1);
-    u32 icon_id;
-    u8 bg_color_id;
+    u32 icon_id{};
+    u8 bg_color_id{};
     INSERT_PADDING_BYTES(0x7);
     INSERT_PADDING_BYTES(0x10);
     INSERT_PADDING_BYTES(0x60);
@@ -34,17 +35,17 @@ static_assert(sizeof(ProfileData) == 0x80, "ProfileData structure has incorrect 
 /// This holds general information about a users profile. This is where we store all the information
 /// based on a specific user
 struct ProfileInfo {
-    Common::UUID user_uuid;
-    ProfileUsername username;
-    u64 creation_time;
-    ProfileData data; // TODO(ognik): Work out what this is
-    bool is_open;
+    Common::UUID user_uuid{Common::INVALID_UUID};
+    ProfileUsername username{};
+    u64 creation_time{};
+    ProfileData data{}; // TODO(ognik): Work out what this is
+    bool is_open{};
 };
 
 struct ProfileBase {
-    Common::UUID user_uuid;
-    u64_le timestamp;
-    ProfileUsername username;
+    Common::UUID user_uuid{Common::INVALID_UUID};
+    u64_le timestamp{};
+    ProfileUsername username{};
 
     // Zero out all the fields to make the profile slot considered "Empty"
     void Invalidate() {
@@ -101,7 +102,7 @@ private:
     bool RemoveProfileAtIndex(std::size_t index);
 
     std::array<ProfileInfo, MAX_USERS> profiles{};
-    std::size_t user_count = 0;
+    std::size_t user_count{};
     Common::UUID last_opened_user{Common::INVALID_UUID};
 };
 

@@ -1,9 +1,7 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2019 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <chrono>
-#include <ctime>
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -11,429 +9,321 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/service/time/interface.h"
 #include "core/hle/service/time/time.h"
 #include "core/hle/service/time/time_sharedmemory.h"
-#include "core/settings.h"
+#include "core/hle/service/time/time_zone_service.h"
 
 namespace Service::Time {
 
-static std::chrono::seconds GetSecondsSinceEpoch() {
-    return std::chrono::duration_cast<std::chrono::seconds>(
-               std::chrono::system_clock::now().time_since_epoch()) +
-           Settings::values.custom_rtc_differential;
-}
-
-static void PosixToCalendar(u64 posix_time, CalendarTime& calendar_time,
-                            CalendarAdditionalInfo& additional_info,
-                            [[maybe_unused]] const TimeZoneRule& /*rule*/) {
-    const std::time_t time(posix_time);
-    const std::tm* tm = std::localtime(&time);
-    if (tm == nullptr) {
-        calendar_time = {};
-        additional_info = {};
-        return;
-    }
-    calendar_time.year = static_cast<u16_le>(tm->tm_year + 1900);
-    calendar_time.month = static_cast<u8>(tm->tm_mon + 1);
-    calendar_time.day = static_cast<u8>(tm->tm_mday);
-    calendar_time.hour = static_cast<u8>(tm->tm_hour);
-    calendar_time.minute = static_cast<u8>(tm->tm_min);
-    calendar_time.second = static_cast<u8>(tm->tm_sec);
-
-    additional_info.day_of_week = tm->tm_wday;
-    additional_info.day_of_year = tm->tm_yday;
-    std::memcpy(additional_info.name.data(), "UTC", sizeof("UTC"));
-    additional_info.utc_offset = 0;
-}
-
-static u64 CalendarToPosix(const CalendarTime& calendar_time,
-                           [[maybe_unused]] const TimeZoneRule& /*rule*/) {
-    std::tm time{};
-    time.tm_year = calendar_time.year - 1900;
-    time.tm_mon = calendar_time.month - 1;
-    time.tm_mday = calendar_time.day;
-
-    time.tm_hour = calendar_time.hour;
-    time.tm_min = calendar_time.minute;
-    time.tm_sec = calendar_time.second;
-
-    std::time_t epoch_time = std::mktime(&time);
-    return static_cast<u64>(epoch_time);
-}
-
-enum class ClockContextType {
-    StandardSteady,
-    StandardUserSystem,
-    StandardNetworkSystem,
-    StandardLocalSystem,
-};
-
 class ISystemClock final : public ServiceFramework<ISystemClock> {
 public:
-    ISystemClock(std::shared_ptr<Service::Time::SharedMemory> shared_memory,
-                 ClockContextType clock_type)
-        : ServiceFramework("ISystemClock"), shared_memory(shared_memory), clock_type(clock_type) {
+    ISystemClock(Clock::SystemClockCore& clock_core)
+        : ServiceFramework("ISystemClock"), clock_core{clock_core} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISystemClock::GetCurrentTime, "GetCurrentTime"},
             {1, nullptr, "SetCurrentTime"},
-            {2, &ISystemClock::GetSystemClockContext, "GetSystemClockContext"},
+            {2,  &ISystemClock::GetSystemClockContext, "GetSystemClockContext"},
             {3, nullptr, "SetSystemClockContext"},
             {4, nullptr, "GetOperationEventReadableHandle"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
-        UpdateSharedMemoryContext(system_clock_context);
     }
 
 private:
     void GetCurrentTime(Kernel::HLERequestContext& ctx) {
-        const s64 time_since_epoch{GetSecondsSinceEpoch().count()};
         LOG_DEBUG(Service_Time, "called");
+
+        if (!clock_core.IsInitialized()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_UNINITIALIZED_CLOCK);
+            return;
+        }
+
+        s64 posix_time{};
+        if (const ResultCode result{
+                clock_core.GetCurrentTime(Core::System::GetInstance(), posix_time)};
+            result != RESULT_SUCCESS) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(result);
+            return;
+        }
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u64>(time_since_epoch);
+        rb.Push<s64>(posix_time);
     }
 
     void GetSystemClockContext(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Time, "(STUBBED) called");
+        LOG_DEBUG(Service_Time, "called");
 
-        // TODO(ogniK): This should be updated periodically however since we have it stubbed we'll
-        // only update when we get a new context
-        UpdateSharedMemoryContext(system_clock_context);
+        if (!clock_core.IsInitialized()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_UNINITIALIZED_CLOCK);
+            return;
+        }
 
-        IPC::ResponseBuilder rb{ctx, (sizeof(SystemClockContext) / 4) + 2};
+        Clock::SystemClockContext system_clock_context{};
+        if (const ResultCode result{
+                clock_core.GetClockContext(Core::System::GetInstance(), system_clock_context)};
+            result != RESULT_SUCCESS) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(result);
+            return;
+        }
+
+        IPC::ResponseBuilder rb{ctx, sizeof(Clock::SystemClockContext) / 4 + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(system_clock_context);
     }
 
-    void UpdateSharedMemoryContext(const SystemClockContext& clock_context) {
-        switch (clock_type) {
-        case ClockContextType::StandardLocalSystem:
-            shared_memory->SetStandardLocalSystemClockContext(clock_context);
-            break;
-        case ClockContextType::StandardNetworkSystem:
-            shared_memory->SetStandardNetworkSystemClockContext(clock_context);
-            break;
-        }
-    }
-
-    SystemClockContext system_clock_context{};
-    std::shared_ptr<Service::Time::SharedMemory> shared_memory;
-    ClockContextType clock_type;
+    Clock::SystemClockCore& clock_core;
 };
 
 class ISteadyClock final : public ServiceFramework<ISteadyClock> {
 public:
-    ISteadyClock(std::shared_ptr<SharedMemory> shared_memory, Core::System& system)
-        : ServiceFramework("ISteadyClock"), shared_memory(shared_memory), system(system) {
+    ISteadyClock(Clock::SteadyClockCore& clock_core)
+        : ServiceFramework("ISteadyClock"), clock_core{clock_core} {
         static const FunctionInfo functions[] = {
             {0, &ISteadyClock::GetCurrentTimePoint, "GetCurrentTimePoint"},
         };
         RegisterHandlers(functions);
-
-        shared_memory->SetStandardSteadyClockTimepoint(GetCurrentTimePoint());
     }
 
 private:
     void GetCurrentTimePoint(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Time, "called");
 
-        const auto time_point = GetCurrentTimePoint();
-        // TODO(ogniK): This should be updated periodically
-        shared_memory->SetStandardSteadyClockTimepoint(time_point);
+        if (!clock_core.IsInitialized()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_UNINITIALIZED_CLOCK);
+            return;
+        }
 
-        IPC::ResponseBuilder rb{ctx, (sizeof(SteadyClockTimePoint) / 4) + 2};
+        const Clock::SteadyClockTimePoint time_point{
+            clock_core.GetCurrentTimePoint(Core::System::GetInstance())};
+        IPC::ResponseBuilder rb{ctx, (sizeof(Clock::SteadyClockTimePoint) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(time_point);
     }
 
-    SteadyClockTimePoint GetCurrentTimePoint() const {
-        const auto& core_timing = system.CoreTiming();
-        const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
-        return {static_cast<u64_le>(ms.count() / 1000), {}};
-    }
-
-    std::shared_ptr<SharedMemory> shared_memory;
-    Core::System& system;
+    Clock::SteadyClockCore& clock_core;
 };
 
-class ITimeZoneService final : public ServiceFramework<ITimeZoneService> {
-public:
-    ITimeZoneService() : ServiceFramework("ITimeZoneService") {
-        // clang-format off
-        static const FunctionInfo functions[] = {
-            {0, &ITimeZoneService::GetDeviceLocationName, "GetDeviceLocationName"},
-            {1, nullptr, "SetDeviceLocationName"},
-            {2, &ITimeZoneService::GetTotalLocationNameCount, "GetTotalLocationNameCount"},
-            {3, nullptr, "LoadLocationNameList"},
-            {4, &ITimeZoneService::LoadTimeZoneRule, "LoadTimeZoneRule"},
-            {5, nullptr, "GetTimeZoneRuleVersion"},
-            {6, nullptr, "GetDeviceLocationNameAndUpdatedTime"},
-            {7, nullptr, "SetDeviceLocationNameWithTimeZoneRule"},
-            {8, nullptr, "ParseTimeZoneBinary"},
-            {20, nullptr, "GetDeviceLocationNameOperationEventReadableHandle"},
-            {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
-            {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
-            {201, &ITimeZoneService::ToPosixTime, "ToPosixTime"},
-            {202, &ITimeZoneService::ToPosixTimeWithMyRule, "ToPosixTimeWithMyRule"},
-        };
-        // clang-format on
+ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
+    Kernel::Thread* thread, Clock::SystemClockContext user_context,
+    Clock::SystemClockContext network_context, u8 type, Clock::ClockSnapshot& clock_snapshot) {
 
-        RegisterHandlers(functions);
+    auto& time_manager{module->GetTimeManager()};
+
+    clock_snapshot.is_automatic_correction_enabled =
+        time_manager.GetStandardUserSystemClockCore().IsAutomaticCorrectionEnabled();
+    clock_snapshot.user_context = user_context;
+    clock_snapshot.network_context = network_context;
+
+    if (const ResultCode result{
+            time_manager.GetTimeZoneContentManager().GetTimeZoneManager().GetDeviceLocationName(
+                clock_snapshot.location_name)};
+        result != RESULT_SUCCESS) {
+        return result;
     }
 
-private:
-    LocationName location_name{"UTC"};
-    TimeZoneRule my_time_zone_rule{};
-
-    void GetDeviceLocationName(Kernel::HLERequestContext& ctx) {
-        LOG_DEBUG(Service_Time, "called");
-
-        IPC::ResponseBuilder rb{ctx, (sizeof(LocationName) / 4) + 2};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushRaw(location_name);
+    const auto current_time_point{
+        time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(Core::System::GetInstance())};
+    if (const ResultCode result{Clock::ClockSnapshot::GetCurrentTime(
+            clock_snapshot.user_time, current_time_point, clock_snapshot.user_context)};
+        result != RESULT_SUCCESS) {
+        return result;
     }
 
-    void GetTotalLocationNameCount(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Time, "(STUBBED) called");
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(0);
+    TimeZone::CalendarInfo userCalendarInfo{};
+    if (const ResultCode result{
+            time_manager.GetTimeZoneContentManager().GetTimeZoneManager().ToCalendarTimeWithMyRules(
+                clock_snapshot.user_time, userCalendarInfo)};
+        result != RESULT_SUCCESS) {
+        return result;
     }
 
-    void LoadTimeZoneRule(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Time, "(STUBBED) called");
+    clock_snapshot.user_calendar_time = userCalendarInfo.time;
+    clock_snapshot.user_calendar_additional_time = userCalendarInfo.additiona_info;
 
-        ctx.WriteBuffer(&my_time_zone_rule, sizeof(TimeZoneRule));
-
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+    if (Clock::ClockSnapshot::GetCurrentTime(clock_snapshot.network_time, current_time_point,
+                                             clock_snapshot.network_context) != RESULT_SUCCESS) {
+        clock_snapshot.network_time = 0;
     }
 
-    void ToCalendarTime(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 posix_time = rp.Pop<u64>();
-        LOG_WARNING(Service_Time, "(STUBBED) called, posix_time=0x{:016X}", posix_time);
-
-        TimeZoneRule time_zone_rule{};
-        auto buffer = ctx.ReadBuffer();
-        std::memcpy(&time_zone_rule, buffer.data(), buffer.size());
-
-        CalendarTime calendar_time{2018, 1, 1, 0, 0, 0};
-        CalendarAdditionalInfo additional_info{};
-
-        PosixToCalendar(posix_time, calendar_time, additional_info, time_zone_rule);
-
-        IPC::ResponseBuilder rb{ctx, 10};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushRaw(calendar_time);
-        rb.PushRaw(additional_info);
+    TimeZone::CalendarInfo networkCalendarInfo{};
+    if (const ResultCode result{
+            time_manager.GetTimeZoneContentManager().GetTimeZoneManager().ToCalendarTimeWithMyRules(
+                clock_snapshot.network_time, networkCalendarInfo)};
+        result != RESULT_SUCCESS) {
+        return result;
     }
 
-    void ToCalendarTimeWithMyRule(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-        const u64 posix_time = rp.Pop<u64>();
-        LOG_WARNING(Service_Time, "(STUBBED) called, posix_time=0x{:016X}", posix_time);
+    clock_snapshot.network_calendar_time = networkCalendarInfo.time;
+    clock_snapshot.network_calendar_additional_time = networkCalendarInfo.additiona_info;
+    clock_snapshot.type = type;
 
-        CalendarTime calendar_time{2018, 1, 1, 0, 0, 0};
-        CalendarAdditionalInfo additional_info{};
-
-        PosixToCalendar(posix_time, calendar_time, additional_info, my_time_zone_rule);
-
-        IPC::ResponseBuilder rb{ctx, 10};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushRaw(calendar_time);
-        rb.PushRaw(additional_info);
-    }
-
-    void ToPosixTime(Kernel::HLERequestContext& ctx) {
-        // TODO(ogniK): Figure out how to handle multiple times
-        LOG_WARNING(Service_Time, "(STUBBED) called");
-
-        IPC::RequestParser rp{ctx};
-        auto calendar_time = rp.PopRaw<CalendarTime>();
-        auto posix_time = CalendarToPosix(calendar_time, {});
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushRaw<u32>(1); // Amount of times we're returning
-        ctx.WriteBuffer(&posix_time, sizeof(u64));
-    }
-
-    void ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Time, "(STUBBED) called");
-
-        IPC::RequestParser rp{ctx};
-        auto calendar_time = rp.PopRaw<CalendarTime>();
-        auto posix_time = CalendarToPosix(calendar_time, {});
-
-        IPC::ResponseBuilder rb{ctx, 3};
-        rb.Push(RESULT_SUCCESS);
-        rb.PushRaw<u32>(1); // Amount of times we're returning
-        ctx.WriteBuffer(&posix_time, sizeof(u64));
-    }
-};
+    return RESULT_SUCCESS;
+}
 
 void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(shared_memory, ClockContextType::StandardUserSystem);
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardUserSystemClockCore());
 }
 
 void Module::Interface::GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(shared_memory, ClockContextType::StandardNetworkSystem);
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardNetworkSystemClockCore());
 }
 
 void Module::Interface::GetStandardSteadyClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISteadyClock>(shared_memory, system);
+    rb.PushIpcInterface<ISteadyClock>(module->GetTimeManager().GetStandardSteadyClockCore());
 }
 
 void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ITimeZoneService>();
+    rb.PushIpcInterface<ITimeZoneService>(module->GetTimeManager().GetTimeZoneContentManager());
 }
 
 void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(shared_memory, ClockContextType::StandardLocalSystem);
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardLocalSystemClockCore());
+}
+
+void Module::Interface::IsStandardNetworkSystemClockAccuracySufficient(
+    Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+    auto& clock_core{module->GetTimeManager().GetStandardNetworkSystemClockCore()};
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(clock_core.IsStandardNetworkSystemClockAccuracySufficient(system));
+}
+
+void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    auto& steady_clock_core{module->GetTimeManager().GetStandardSteadyClockCore()};
+    if (!steady_clock_core.IsInitialized()) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(ERROR_UNINITIALIZED_CLOCK);
+        return;
+    }
+
+    IPC::RequestParser rp{ctx};
+    const auto context{rp.PopRaw<Clock::SystemClockContext>()};
+    const auto current_time_point{
+        steady_clock_core.GetCurrentTimePoint(Core::System::GetInstance())};
+
+    if (current_time_point.clock_source_id == context.steady_time_point.clock_source_id) {
+        const auto ticks{Clock::TimeSpanType::FromTicks(
+            Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
+            Core::Timing::CNTFREQ)};
+        const s64 base_time_point{context.offset + current_time_point.time_point -
+                                  ticks.ToSeconds()};
+        IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushRaw(base_time_point);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(ERROR_TIME_MISMATCH);
 }
 
 void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::RequestParser rp{ctx};
-    const auto initial_type = rp.PopRaw<u8>();
+    const auto type{rp.PopRaw<u8>()};
 
-    const s64 time_since_epoch{GetSecondsSinceEpoch().count()};
-    const std::time_t time(time_since_epoch);
-    const std::tm* tm = std::localtime(&time);
-    if (tm == nullptr) {
-        LOG_ERROR(Service_Time, "tm is a nullptr");
+    Clock::SystemClockContext user_context{};
+    if (const ResultCode result{
+            module->GetTimeManager().GetStandardUserSystemClockCore().GetClockContext(
+                Core::System::GetInstance(), user_context)};
+        result != RESULT_SUCCESS) {
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_UNKNOWN); // TODO(ogniK): Find appropriate error code
+        rb.Push(result);
+        return;
+    }
+    Clock::SystemClockContext network_context{};
+    if (const ResultCode result{
+            module->GetTimeManager().GetStandardNetworkSystemClockCore().GetClockContext(
+                Core::System::GetInstance(), network_context)};
+        result != RESULT_SUCCESS) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
         return;
     }
 
-    const auto& core_timing = system.CoreTiming();
-    const auto ms = Core::Timing::CyclesToMs(core_timing.GetTicks());
-    const SteadyClockTimePoint steady_clock_time_point{static_cast<u64_le>(ms.count() / 1000), {}};
-
-    CalendarTime calendar_time{};
-    calendar_time.year = static_cast<u16_le>(tm->tm_year + 1900);
-    calendar_time.month = static_cast<u8>(tm->tm_mon + 1);
-    calendar_time.day = static_cast<u8>(tm->tm_mday);
-    calendar_time.hour = static_cast<u8>(tm->tm_hour);
-    calendar_time.minute = static_cast<u8>(tm->tm_min);
-    calendar_time.second = static_cast<u8>(tm->tm_sec);
-
-    ClockSnapshot clock_snapshot{};
-    clock_snapshot.system_posix_time = time_since_epoch;
-    clock_snapshot.network_posix_time = time_since_epoch;
-    clock_snapshot.system_calendar_time = calendar_time;
-    clock_snapshot.network_calendar_time = calendar_time;
-
-    CalendarAdditionalInfo additional_info{};
-    PosixToCalendar(time_since_epoch, calendar_time, additional_info, {});
-
-    clock_snapshot.system_calendar_info = additional_info;
-    clock_snapshot.network_calendar_info = additional_info;
-
-    clock_snapshot.steady_clock_timepoint = steady_clock_time_point;
-    clock_snapshot.location_name = LocationName{"UTC"};
-    clock_snapshot.clock_auto_adjustment_enabled = 1;
-    clock_snapshot.type = initial_type;
+    Clock::ClockSnapshot clock_snapshot{};
+    if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(
+            &ctx.GetThread(), user_context, network_context, type, clock_snapshot)};
+        result != RESULT_SUCCESS) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(&clock_snapshot, sizeof(ClockSnapshot));
+    ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
 }
 
-void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
-    Kernel::HLERequestContext& ctx) {
+void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
-
     IPC::RequestParser rp{ctx};
-    const auto snapshot_a = rp.PopRaw<ClockSnapshot>();
-    const auto snapshot_b = rp.PopRaw<ClockSnapshot>();
-    const u64 difference =
-        snapshot_b.user_clock_context.offset - snapshot_a.user_clock_context.offset;
+    const auto type{rp.PopRaw<u8>()};
+    rp.AlignWithPadding();
 
-    IPC::ResponseBuilder rb{ctx, 4};
+    const Clock::SystemClockContext user_context{rp.PopRaw<Clock::SystemClockContext>()};
+    const Clock::SystemClockContext network_context{rp.PopRaw<Clock::SystemClockContext>()};
+
+    Clock::ClockSnapshot clock_snapshot{};
+    if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(
+            &ctx.GetThread(), user_context, network_context, type, clock_snapshot)};
+        result != RESULT_SUCCESS) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw<u64>(difference);
+    ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
 }
 
 void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(shared_memory->GetSharedMemoryHolder());
+    rb.PushCopyObjects(module->GetTimeManager().GetSharedMemory().GetSharedMemoryHolder());
 }
 
-void Module::Interface::IsStandardUserSystemClockAutomaticCorrectionEnabled(
-    Kernel::HLERequestContext& ctx) {
-    // ogniK(TODO): When clock contexts are implemented, the value should be read from the context
-    // instead of our shared memory holder
-    LOG_DEBUG(Service_Time, "called");
-
-    IPC::ResponseBuilder rb{ctx, 3};
-    rb.Push(RESULT_SUCCESS);
-    rb.Push<u8>(shared_memory->GetStandardUserSystemClockAutomaticCorrectionEnabled());
-}
-
-void Module::Interface::SetStandardUserSystemClockAutomaticCorrectionEnabled(
-    Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    const auto enabled = rp.Pop<u8>();
-
-    LOG_WARNING(Service_Time, "(PARTIAL IMPLEMENTATION) called");
-
-    // TODO(ogniK): Update clock contexts and correct timespans
-
-    shared_memory->SetStandardUserSystemClockAutomaticCorrectionEnabled(enabled > 0);
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-}
-
-Module::Interface::Interface(std::shared_ptr<Module> time,
-                             std::shared_ptr<SharedMemory> shared_memory, Core::System& system,
-                             const char* name)
-    : ServiceFramework(name), time(std::move(time)), shared_memory(std::move(shared_memory)),
-      system(system) {}
+Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
+    : ServiceFramework(name), module{std::move(module)}, system{system} {}
 
 Module::Interface::~Interface() = default;
 
 void InstallInterfaces(Core::System& system) {
-    auto time = std::make_shared<Module>();
-    auto shared_mem = std::make_shared<SharedMemory>(system);
-
-    std::make_shared<Time>(time, shared_mem, system, "time:a")
-        ->InstallAsService(system.ServiceManager());
-    std::make_shared<Time>(time, shared_mem, system, "time:s")
-        ->InstallAsService(system.ServiceManager());
-    std::make_shared<Time>(std::move(time), shared_mem, system, "time:u")
-        ->InstallAsService(system.ServiceManager());
+    auto module{std::make_shared<Module>(system)};
+    std::make_shared<Time>(module, system, "time:a")->InstallAsService(system.ServiceManager());
+    std::make_shared<Time>(module, system, "time:s")->InstallAsService(system.ServiceManager());
+    std::make_shared<Time>(module, system, "time:u")->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Time
