@@ -226,7 +226,7 @@ std::tuple<VKFence&, vk::Semaphore> VKBlitScreen::Draw(const Tegra::FramebufferC
     // Finish any pending renderpass
     scheduler.RequestOutsideRenderPassOperationContext();
 
-    const u32 image_index = swapchain.GetImageIndex();
+    const std::size_t image_index = swapchain.GetImageIndex();
     watches[image_index]->Watch(scheduler.GetFence());
 
     VKImage* blit_image = use_accelerated ? screen_info.image : raw_images[image_index].get();
@@ -345,10 +345,11 @@ void VKBlitScreen::CreateSemaphores() {
 
 void VKBlitScreen::CreateDescriptorPool() {
     const std::array<vk::DescriptorPoolSize, 2> pool_sizes{
-        vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, image_count},
-        vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler, image_count}};
-    const vk::DescriptorPoolCreateInfo pool_ci({}, image_count, static_cast<u32>(pool_sizes.size()),
-                                               pool_sizes.data());
+        vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, static_cast<u32>(image_count)},
+        vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler,
+                               static_cast<u32>(image_count)}};
+    const vk::DescriptorPoolCreateInfo pool_ci(
+        {}, static_cast<u32>(image_count), static_cast<u32>(pool_sizes.size()), pool_sizes.data());
     const auto dev = device.GetLogical();
     descriptor_pool = dev.createDescriptorPoolUnique(pool_ci, nullptr, device.GetDispatchLoader());
 }
@@ -397,7 +398,7 @@ void VKBlitScreen::CreateDescriptorSets() {
     const auto& dld = device.GetDispatchLoader();
 
     descriptor_sets.resize(image_count);
-    for (u32 i = 0; i < image_count; ++i) {
+    for (std::size_t i = 0; i < image_count; ++i) {
         const vk::DescriptorSetLayout layout = *descriptor_set_layout;
         const vk::DescriptorSetAllocateInfo descriptor_set_ai(*descriptor_pool, 1, &layout);
         const vk::Result result =
@@ -487,7 +488,7 @@ void VKBlitScreen::CreateFramebuffers() {
     const auto dev = device.GetLogical();
     const auto& dld = device.GetDispatchLoader();
 
-    for (u32 i = 0; i < image_count; ++i) {
+    for (std::size_t i = 0; i < image_count; ++i) {
         const vk::ImageView image_view{swapchain.GetImageViewIndex(i)};
         const vk::FramebufferCreateInfo framebuffer_ci({}, *renderpass, 1, &image_view, size.width,
                                                        size.height, 1);
@@ -496,7 +497,7 @@ void VKBlitScreen::CreateFramebuffers() {
 }
 
 void VKBlitScreen::ReleaseRawImages() {
-    for (u32 i = 0; i < static_cast<u32>(raw_images.size()); ++i) {
+    for (std::size_t i = 0; i < raw_images.size(); ++i) {
         watches[i]->Wait();
     }
     raw_images.clear();
@@ -523,7 +524,7 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
     raw_buffer_commits.resize(image_count);
 
     const auto format = GetFormat(framebuffer);
-    for (u32 i = 0; i < image_count; ++i) {
+    for (std::size_t i = 0; i < image_count; ++i) {
         const vk::ImageCreateInfo image_ci(
             {}, vk::ImageType::e2D, format, {framebuffer.width, framebuffer.height, 1}, 1, 1,
             vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
@@ -536,7 +537,7 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
     }
 }
 
-void VKBlitScreen::UpdateDescriptorSet(u32 image_index, vk::ImageView image_view) const {
+void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, vk::ImageView image_view) const {
     const vk::DescriptorSet descriptor_set = descriptor_sets[image_index];
 
     const vk::DescriptorBufferInfo buffer_info(*buffer, offsetof(BufferData, uniform),
@@ -568,7 +569,7 @@ void VKBlitScreen::SetVertexData(BufferData& data,
     const auto& framebuffer_transform_flags = framebuffer.transform_flags;
     const auto& framebuffer_crop_rect = framebuffer.crop_rect;
 
-    const Common::Rectangle<f32> texcoords{0.f, 0.f, 1.f, 1.f};
+    static constexpr Common::Rectangle<f32> texcoords{0.f, 0.f, 1.f, 1.f};
     auto left = texcoords.left;
     auto right = texcoords.right;
 
@@ -591,7 +592,8 @@ void VKBlitScreen::SetVertexData(BufferData& data,
 
     // Scale the output by the crop width/height. This is commonly used with 1280x720 rendering
     // (e.g. handheld mode) on a 1920x1080 framebuffer.
-    f32 scale_u = 1.0f, scale_v = 1.0f;
+    f32 scale_u = 1.0f;
+    f32 scale_v = 1.0f;
     if (framebuffer_crop_rect.GetWidth() > 0) {
         scale_u = static_cast<f32>(framebuffer_crop_rect.GetWidth()) /
                   static_cast<f32>(screen_info.width);
@@ -617,7 +619,7 @@ u64 VKBlitScreen::CalculateBufferSize(const Tegra::FramebufferConfig& framebuffe
 }
 
 u64 VKBlitScreen::GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer,
-                                    u32 image_index) const {
+                                    std::size_t image_index) const {
     constexpr auto first_image_offset = static_cast<u64>(sizeof(BufferData));
     return first_image_offset + GetSizeInBytes(framebuffer) * image_index;
 }

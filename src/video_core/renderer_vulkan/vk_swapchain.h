@@ -40,19 +40,19 @@ public:
         return extent;
     }
 
-    u32 GetImageCount() const {
+    std::size_t GetImageCount() const {
         return image_count;
     }
 
-    u32 GetImageIndex() const {
+    std::size_t GetImageIndex() const {
         return image_index;
     }
 
-    vk::Image GetImageIndex(u32 index) const {
+    vk::Image GetImageIndex(std::size_t index) const {
         return images[index];
     }
 
-    vk::ImageView GetImageViewIndex(u32 index) const {
+    vk::ImageView GetImageViewIndex(std::size_t index) const {
         return *image_views[index];
     }
 
@@ -77,7 +77,7 @@ private:
 
     UniqueSwapchainKHR swapchain;
 
-    u32 image_count{};
+    std::size_t image_count{};
     std::vector<vk::Image> images;
     std::vector<UniqueImageView> image_views;
     std::vector<UniqueFramebuffer> framebuffers;

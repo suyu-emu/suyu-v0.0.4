@@ -74,12 +74,13 @@ private:
     void CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer);
     void CreateRawImages(const Tegra::FramebufferConfig& framebuffer);
 
-    void UpdateDescriptorSet(u32 image_index, vk::ImageView image_view) const;
+    void UpdateDescriptorSet(std::size_t image_index, vk::ImageView image_view) const;
     void SetUniformData(BufferData& data, const Tegra::FramebufferConfig& framebuffer) const;
     void SetVertexData(BufferData& data, const Tegra::FramebufferConfig& framebuffer) const;
 
     u64 CalculateBufferSize(const Tegra::FramebufferConfig& framebuffer) const;
-    u64 GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer, u32 image_index) const;
+    u64 GetRawImageOffset(const Tegra::FramebufferConfig& framebuffer,
+                          std::size_t image_index) const;
 
     Core::System& system;
     Core::Frontend::EmuWindow& render_window;
@@ -89,7 +90,7 @@ private:
     VKMemoryManager& memory_manager;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;
-    const u32 image_count;
+    const std::size_t image_count;
     const VKScreenInfo& screen_info;
 
     UniqueShaderModule vertex_shader;
