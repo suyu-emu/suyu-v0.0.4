@@ -98,6 +98,17 @@ udp_pad_index=
 use_multi_core=
 
 [Renderer]
+# Which backend API to use.
+# 0 (default): OpenGL, 1: Vulkan
+backend =
+
+# Enable graphics API debugging mode.
+# 0 (default): Disabled, 1: Enabled
+debug =
+
+# Which Vulkan physical device to use (defaults to 0)
+vulkan_device =
+
 # Whether to use software or hardware rendering.
 # 0: Software, 1 (default): Hardware
 use_hw_renderer =

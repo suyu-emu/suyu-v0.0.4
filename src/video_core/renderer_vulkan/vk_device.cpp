@@ -400,8 +400,10 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
              VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME, true);
         Test(extension, ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
              false);
-        Test(extension, nv_device_diagnostic_checkpoints,
-             VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME, true);
+        if (Settings::values.renderer_debug) {
+            Test(extension, nv_device_diagnostic_checkpoints,
+                 VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME, true);
+        }
     }
 
     if (khr_shader_float16_int8) {
