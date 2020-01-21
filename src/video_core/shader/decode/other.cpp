@@ -191,7 +191,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "SYNC condition code used: {}",
                              static_cast<u32>(cc));
 
-        if (disable_flow_stack) {
+        if (decompiled) {
             break;
         }
 
@@ -203,7 +203,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "BRK condition code used: {}",
                              static_cast<u32>(cc));
-        if (disable_flow_stack) {
+        if (decompiled) {
             break;
         }
 
