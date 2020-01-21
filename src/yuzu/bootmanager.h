@@ -7,17 +7,28 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
+
 #include <QImage>
 #include <QThread>
 #include <QWidget>
+
+#include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 
 class QKeyEvent;
 class QScreen;
 class QTouchEvent;
+class QStringList;
+class QSurface;
+class QOpenGLContext;
+#ifdef HAS_VULKAN
+class QVulkanInstance;
+#endif
 
+class GWidgetInternal;
 class GGLWidgetInternal;
+class GVKWidgetInternal;
 class GMainWindow;
 class GRenderWindow;
 class QSurface;
@@ -123,6 +134,9 @@ public:
     void MakeCurrent() override;
     void DoneCurrent() override;
     void PollEvents() override;
+    bool IsShown() const override;
+    void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
+                                void* surface) const override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
     void ForwardKeyPressEvent(QKeyEvent* event);
@@ -142,7 +156,7 @@ public:
 
     void OnClientAreaResized(u32 width, u32 height);
 
-    void InitRenderTarget();
+    bool InitRenderTarget();
 
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
@@ -165,10 +179,13 @@ private:
 
     void OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) override;
 
-    QWidget* container = nullptr;
-    GGLWidgetInternal* child = nullptr;
+    bool InitializeOpenGL();
+    bool InitializeVulkan();
+    bool LoadOpenGL();
+    QStringList GetUnsupportedGLExtensions() const;
 
-    QByteArray geometry;
+    QWidget* container = nullptr;
+    GWidgetInternal* child = nullptr;
 
     EmuThread* emu_thread;
     // Context that backs the GGLWidgetInternal (and will be used by core to render)
@@ -177,9 +194,14 @@ private:
     // current
     std::unique_ptr<QOpenGLContext> shared_context;
 
+#ifdef HAS_VULKAN
+    std::unique_ptr<QVulkanInstance> vk_instance;
+#endif
+
     /// Temporary storage of the screenshot taken
     QImage screenshot_image;
 
+    QByteArray geometry;
     bool first_frame = false;
 
 protected:

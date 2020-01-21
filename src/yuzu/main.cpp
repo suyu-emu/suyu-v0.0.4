@@ -806,70 +806,12 @@ void GMainWindow::AllowOSSleep() {
 #endif
 }
 
-QStringList GMainWindow::GetUnsupportedGLExtensions() {
-    QStringList unsupported_ext;
-
-    if (!GLAD_GL_ARB_buffer_storage) {
-        unsupported_ext.append(QStringLiteral("ARB_buffer_storage"));
-    }
-    if (!GLAD_GL_ARB_direct_state_access) {
-        unsupported_ext.append(QStringLiteral("ARB_direct_state_access"));
-    }
-    if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev) {
-        unsupported_ext.append(QStringLiteral("ARB_vertex_type_10f_11f_11f_rev"));
-    }
-    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge) {
-        unsupported_ext.append(QStringLiteral("ARB_texture_mirror_clamp_to_edge"));
-    }
-    if (!GLAD_GL_ARB_multi_bind) {
-        unsupported_ext.append(QStringLiteral("ARB_multi_bind"));
-    }
-    if (!GLAD_GL_ARB_clip_control) {
-        unsupported_ext.append(QStringLiteral("ARB_clip_control"));
-    }
-
-    // Extensions required to support some texture formats.
-    if (!GLAD_GL_EXT_texture_compression_s3tc) {
-        unsupported_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
-    }
-    if (!GLAD_GL_ARB_texture_compression_rgtc) {
-        unsupported_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
-    }
-    if (!GLAD_GL_ARB_depth_buffer_float) {
-        unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
-    }
-
-    for (const QString& ext : unsupported_ext) {
-        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
-    }
-
-    return unsupported_ext;
-}
-
 bool GMainWindow::LoadROM(const QString& filename) {
     // Shutdown previous session if the emu thread is still active...
     if (emu_thread != nullptr)
         ShutdownGame();
 
-    render_window->InitRenderTarget();
-
-    {
-        Core::Frontend::ScopeAcquireWindowContext acquire_context{*render_window};
-        if (!gladLoadGL()) {
-            QMessageBox::critical(this, tr("Error while initializing OpenGL 4.3 Core!"),
-                                  tr("Your GPU may not support OpenGL 4.3, or you do not "
-                                     "have the latest graphics driver."));
-            return false;
-        }
-    }
-
-    const QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
-    if (!unsupported_gl_extensions.empty()) {
-        QMessageBox::critical(this, tr("Error while initializing OpenGL Core!"),
-                              tr("Your GPU may not support one or more required OpenGL"
-                                 "extensions. Please ensure you have the latest graphics "
-                                 "driver.<br><br>Unsupported extensions:<br>") +
-                                  unsupported_gl_extensions.join(QStringLiteral("<br>")));
+    if (!render_window->InitRenderTarget()) {
         return false;
     }
 
@@ -980,7 +922,9 @@ void GMainWindow::BootGame(const QString& filename) {
     // Create and start the emulation thread
     emu_thread = std::make_unique<EmuThread>(render_window);
     emit EmulationStarting(emu_thread.get());
-    render_window->moveContext();
+    if (Settings::values.renderer_backend == Settings::RendererBackend::OpenGL) {
+        render_window->moveContext();
+    }
     emu_thread->start();
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
@@ -2195,6 +2139,18 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     QWidget::closeEvent(event);
 }
 
+void GMainWindow::keyPressEvent(QKeyEvent* event) {
+    if (render_window) {
+        render_window->ForwardKeyPressEvent(event);
+    }
+}
+
+void GMainWindow::keyReleaseEvent(QKeyEvent* event) {
+    if (render_window) {
+        render_window->ForwardKeyReleaseEvent(event);
+    }
+}
+
 static bool IsSingleFileDropEvent(QDropEvent* event) {
     const QMimeData* mimeData = event->mimeData();
     return mimeData->hasUrls() && mimeData->urls().length() == 1;
@@ -2225,18 +2181,6 @@ void GMainWindow::dragEnterEvent(QDragEnterEvent* event) {
 
 void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
     event->acceptProposedAction();
-}
-
-void GMainWindow::keyPressEvent(QKeyEvent* event) {
-    if (render_window) {
-        render_window->ForwardKeyPressEvent(event);
-    }
-}
-
-void GMainWindow::keyReleaseEvent(QKeyEvent* event) {
-    if (render_window) {
-        render_window->ForwardKeyReleaseEvent(event);
-    }
 }
 
 bool GMainWindow::ConfirmChangeGame() {

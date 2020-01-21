@@ -9,6 +9,7 @@
 #include <SDL.h>
 #include <fmt/format.h>
 #include <glad/glad.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "common/string_util.h"
@@ -149,6 +150,12 @@ void EmuWindow_SDL2_GL::MakeCurrent() {
 
 void EmuWindow_SDL2_GL::DoneCurrent() {
     SDL_GL_MakeCurrent(render_window, nullptr);
+}
+
+void EmuWindow_SDL2_GL::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
+                                               void* surface) const {
+    // Should not have been called from OpenGL
+    UNREACHABLE();
 }
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {

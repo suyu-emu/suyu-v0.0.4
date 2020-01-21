@@ -5,10 +5,15 @@
 #include <algorithm>
 #include <cstdlib>
 #include <string>
+
+#include <fmt/format.h>
+
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
-#include <fmt/format.h>
+
 #include <glad/glad.h>
+
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "core/settings.h"
@@ -119,4 +124,12 @@ void EmuWindow_SDL2_Hide::MakeCurrent() {
 
 void EmuWindow_SDL2_Hide::DoneCurrent() {
     SDL_GL_MakeCurrent(render_window, nullptr);
+}
+
+bool EmuWindow_SDL2_Hide::IsShown() const {
+    return false;
+}
+
+void EmuWindow_SDL2_Hide::RetrieveVulkanHandlers(void*, void*, void*) const {
+    UNREACHABLE();
 }

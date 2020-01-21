@@ -89,6 +89,10 @@ bool EmuWindow_SDL2::IsOpen() const {
     return is_open;
 }
 
+bool EmuWindow_SDL2::IsShown() const {
+    return is_shown;
+}
+
 void EmuWindow_SDL2::OnResize() {
     int width, height;
     SDL_GetWindowSize(render_window, &width, &height);

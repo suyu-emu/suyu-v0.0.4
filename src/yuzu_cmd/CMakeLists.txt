@@ -8,10 +8,21 @@ add_executable(yuzu-cmd
     emu_window/emu_window_sdl2_gl.h
     emu_window/emu_window_sdl2.cpp
     emu_window/emu_window_sdl2.h
+    emu_window/emu_window_sdl2_gl.cpp
+    emu_window/emu_window_sdl2_gl.h
     resource.h
     yuzu.cpp
     yuzu.rc
 )
+
+if (ENABLE_VULKAN)
+    target_sources(yuzu-cmd PRIVATE
+                   emu_window/emu_window_sdl2_vk.cpp
+                   emu_window/emu_window_sdl2_vk.h)
+
+    target_include_directories(yuzu-cmd PRIVATE ../../externals/Vulkan-Headers/include)
+    target_compile_definitions(yuzu-cmd PRIVATE HAS_VULKAN)
+endif()
 
 create_target_directory_groups(yuzu-cmd)
 

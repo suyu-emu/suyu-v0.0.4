@@ -21,6 +21,9 @@ public:
     /// Whether the window is still open, and a close request hasn't yet been sent
     bool IsOpen() const;
 
+    /// Returns if window is shown (not minimized)
+    bool IsShown() const override;
+
 protected:
     /// Called by PollEvents when a key is pressed or released.
     void OnKeyEvent(int key, u8 state);
