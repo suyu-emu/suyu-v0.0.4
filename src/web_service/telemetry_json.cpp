@@ -117,6 +117,7 @@ bool TelemetryJson::SubmitTestcase() {
     impl->SerializeSection(Telemetry::FieldType::Session, "Session");
     impl->SerializeSection(Telemetry::FieldType::UserFeedback, "UserFeedback");
     impl->SerializeSection(Telemetry::FieldType::UserSystem, "UserSystem");
+    impl->SerializeSection(Telemetry::FieldType::UserConfig, "UserConfig");
 
     auto content = impl->TopSection().dump();
     Client client(impl->host, impl->username, impl->token);
