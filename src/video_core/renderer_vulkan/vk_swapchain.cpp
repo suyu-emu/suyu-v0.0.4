@@ -123,7 +123,7 @@ bool VKSwapchain::Present(vk::Semaphore render_semaphore, VKFence& fence) {
 
     ASSERT(fences[image_index] == nullptr);
     fences[image_index] = &fence;
-    frame_index = (frame_index + 1) % image_count;
+    frame_index = (frame_index + 1) % static_cast<u32>(image_count);
     return recreated;
 }
 
