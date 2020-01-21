@@ -31,8 +31,8 @@ public:
 private:
     bool UseStandardLayers(PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr) const;
 
-    VkInstance instance{};
-    VkSurfaceKHR surface{};
+    VkInstance vk_instance{};
+    VkSurfaceKHR vk_surface{};
 
     PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr{};
     PFN_vkDestroyInstance vkDestroyInstance{};

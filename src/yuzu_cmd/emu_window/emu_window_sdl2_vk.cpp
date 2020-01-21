@@ -82,19 +82,19 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(bool fullscreen) : EmuWindow_SDL2(fullscree
     const auto vkCreateInstance =
         reinterpret_cast<PFN_vkCreateInstance>(vkGetInstanceProcAddr(nullptr, "vkCreateInstance"));
     if (vkCreateInstance == nullptr ||
-        vkCreateInstance(&instance_ci, nullptr, &instance) != VK_SUCCESS) {
+        vkCreateInstance(&instance_ci, nullptr, &vk_instance) != VK_SUCCESS) {
         LOG_CRITICAL(Frontend, "Failed to create Vulkan instance!");
         exit(EXIT_FAILURE);
     }
 
     vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(
-        vkGetInstanceProcAddr(instance, "vkDestroyInstance"));
+        vkGetInstanceProcAddr(vk_instance, "vkDestroyInstance"));
     if (vkDestroyInstance == nullptr) {
         LOG_CRITICAL(Frontend, "Failed to retrieve Vulkan function pointer!");
         exit(EXIT_FAILURE);
     }
 
-    if (!SDL_Vulkan_CreateSurface(render_window, instance, &surface)) {
+    if (!SDL_Vulkan_CreateSurface(render_window, vk_instance, &vk_surface)) {
         LOG_CRITICAL(Frontend, "Failed to create Vulkan surface! {}", SDL_GetError());
         exit(EXIT_FAILURE);
     }
@@ -107,7 +107,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(bool fullscreen) : EmuWindow_SDL2(fullscree
 }
 
 EmuWindow_SDL2_VK::~EmuWindow_SDL2_VK() {
-    vkDestroyInstance(instance, nullptr);
+    vkDestroyInstance(vk_instance, nullptr);
 }
 
 void EmuWindow_SDL2_VK::SwapBuffers() {}
@@ -122,9 +122,10 @@ void EmuWindow_SDL2_VK::DoneCurrent() {
 
 void EmuWindow_SDL2_VK::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                                void* surface) const {
-    std::memcpy(get_instance_proc_addr, vkGetInstanceProcAddr, sizeof(vkGetInstanceProcAddr));
-    std::memcpy(instance, &this->instance, sizeof(this->instance));
-    std::memcpy(surface, &this->surface, sizeof(this->surface));
+    const auto instance_proc_addr = vkGetInstanceProcAddr;
+    std::memcpy(get_instance_proc_addr, &instance_proc_addr, sizeof(instance_proc_addr));
+    std::memcpy(instance, &vk_instance, sizeof(vk_instance));
+    std::memcpy(surface, &vk_surface, sizeof(vk_surface));
 }
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_VK::CreateSharedContext() const {
