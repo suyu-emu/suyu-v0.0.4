@@ -260,6 +260,10 @@ CachedProgram BuildShader(const Device& device, u64 unique_identifier, ShaderTyp
                   "#extension GL_NV_shader_thread_group : require\n"
                   "#extension GL_NV_shader_thread_shuffle : require\n";
     }
+    // This pragma stops Nvidia's driver from over optimizing math (probably using fp16 operations)
+    // on places where we don't want to.
+    // Thanks to Ryujinx for finding this workaround.
+    source += "#pragma optionNV(fastmath off)\n";
 
     if (shader_type == ShaderType::Geometry) {
         const auto [glsl_topology, max_vertices] = GetPrimitiveDescription(variant.primitive_mode);
