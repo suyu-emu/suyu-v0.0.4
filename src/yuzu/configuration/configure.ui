@@ -48,7 +48,7 @@
          <string>General</string>
         </attribute>
        </widget>
-       <widget class="ConfigureGameList" name="gameListTab">
+       <widget class="ConfigureUi" name="uiTab">
         <attribute name="title">
          <string>Game List</string>
         </attribute>
@@ -166,9 +166,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConfigureGameList</class>
+   <class>ConfigureUi</class>
    <extends>QWidget</extends>
-   <header>configuration/configure_gamelist.h</header>
+   <header>configuration/configure_ui.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

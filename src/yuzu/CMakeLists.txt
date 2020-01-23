@@ -36,9 +36,6 @@ add_executable(yuzu
     configuration/configure_filesystem.cpp
     configuration/configure_filesystem.h
     configuration/configure_filesystem.ui
-    configuration/configure_gamelist.cpp
-    configuration/configure_gamelist.h
-    configuration/configure_gamelist.ui
     configuration/configure_general.cpp
     configuration/configure_general.h
     configuration/configure_general.ui
@@ -75,6 +72,9 @@ add_executable(yuzu
     configuration/configure_touchscreen_advanced.cpp
     configuration/configure_touchscreen_advanced.h
     configuration/configure_touchscreen_advanced.ui
+    configuration/configure_ui.cpp
+    configuration/configure_ui.h
+    configuration/configure_ui.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui

@@ -7,8 +7,8 @@
 
 #include "common/common_types.h"
 #include "core/settings.h"
-#include "ui_configure_gamelist.h"
-#include "yuzu/configuration/configure_gamelist.h"
+#include "ui_configure_ui.h"
+#include "yuzu/configuration/configure_ui.h"
 #include "yuzu/uisettings.h"
 
 namespace {
@@ -26,9 +26,13 @@ constexpr std::array row_text_names{
 };
 } // Anonymous namespace
 
-ConfigureGameList::ConfigureGameList(QWidget* parent)
-    : QWidget(parent), ui(new Ui::ConfigureGameList) {
+ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureUi) {
     ui->setupUi(this);
+
+    for (const auto& theme : UISettings::themes) {
+        ui->theme_combobox->addItem(QString::fromUtf8(theme.first),
+                                    QString::fromUtf8(theme.second));
+    }
 
     InitializeIconSizeComboBox();
     InitializeRowComboBoxes();
@@ -36,25 +40,26 @@ ConfigureGameList::ConfigureGameList(QWidget* parent)
     SetConfiguration();
 
     // Force game list reload if any of the relevant settings are changed.
-    connect(ui->show_unknown, &QCheckBox::stateChanged, this,
-            &ConfigureGameList::RequestGameListUpdate);
+    connect(ui->show_unknown, &QCheckBox::stateChanged, this, &ConfigureUi::RequestGameListUpdate);
     connect(ui->icon_size_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &ConfigureGameList::RequestGameListUpdate);
+            &ConfigureUi::RequestGameListUpdate);
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &ConfigureGameList::RequestGameListUpdate);
+            &ConfigureUi::RequestGameListUpdate);
     connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
-            &ConfigureGameList::RequestGameListUpdate);
+            &ConfigureUi::RequestGameListUpdate);
 
     // Update text ComboBoxes after user interaction.
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::activated),
-            [=]() { ConfigureGameList::UpdateSecondRowComboBox(); });
+            [=]() { ConfigureUi::UpdateSecondRowComboBox(); });
     connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::activated),
-            [=]() { ConfigureGameList::UpdateFirstRowComboBox(); });
+            [=]() { ConfigureUi::UpdateFirstRowComboBox(); });
 }
 
-ConfigureGameList::~ConfigureGameList() = default;
+ConfigureUi::~ConfigureUi() = default;
 
-void ConfigureGameList::ApplyConfiguration() {
+void ConfigureUi::ApplyConfiguration() {
+    UISettings::values.theme =
+        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
     UISettings::values.show_unknown = ui->show_unknown->isChecked();
     UISettings::values.show_add_ons = ui->show_add_ons->isChecked();
     UISettings::values.icon_size = ui->icon_size_combobox->currentData().toUInt();
@@ -63,18 +68,19 @@ void ConfigureGameList::ApplyConfiguration() {
     Settings::Apply();
 }
 
-void ConfigureGameList::RequestGameListUpdate() {
+void ConfigureUi::RequestGameListUpdate() {
     UISettings::values.is_game_list_reload_pending.exchange(true);
 }
 
-void ConfigureGameList::SetConfiguration() {
+void ConfigureUi::SetConfiguration() {
+    ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
     ui->show_unknown->setChecked(UISettings::values.show_unknown);
     ui->show_add_ons->setChecked(UISettings::values.show_add_ons);
     ui->icon_size_combobox->setCurrentIndex(
         ui->icon_size_combobox->findData(UISettings::values.icon_size));
 }
 
-void ConfigureGameList::changeEvent(QEvent* event) {
+void ConfigureUi::changeEvent(QEvent* event) {
     if (event->type() == QEvent::LanguageChange) {
         RetranslateUI();
     }
@@ -82,7 +88,7 @@ void ConfigureGameList::changeEvent(QEvent* event) {
     QWidget::changeEvent(event);
 }
 
-void ConfigureGameList::RetranslateUI() {
+void ConfigureUi::RetranslateUI() {
     ui->retranslateUi(this);
 
     for (int i = 0; i < ui->icon_size_combobox->count(); i++) {
@@ -97,18 +103,18 @@ void ConfigureGameList::RetranslateUI() {
     }
 }
 
-void ConfigureGameList::InitializeIconSizeComboBox() {
+void ConfigureUi::InitializeIconSizeComboBox() {
     for (const auto& size : default_icon_sizes) {
         ui->icon_size_combobox->addItem(QString::fromUtf8(size.second), size.first);
     }
 }
 
-void ConfigureGameList::InitializeRowComboBoxes() {
+void ConfigureUi::InitializeRowComboBoxes() {
     UpdateFirstRowComboBox(true);
     UpdateSecondRowComboBox(true);
 }
 
-void ConfigureGameList::UpdateFirstRowComboBox(bool init) {
+void ConfigureUi::UpdateFirstRowComboBox(bool init) {
     const int currentIndex =
         init ? UISettings::values.row_1_text_id
              : ui->row_1_text_combobox->findData(ui->row_1_text_combobox->currentData());
@@ -127,7 +133,7 @@ void ConfigureGameList::UpdateFirstRowComboBox(bool init) {
         ui->row_1_text_combobox->findData(ui->row_2_text_combobox->currentData()));
 }
 
-void ConfigureGameList::UpdateSecondRowComboBox(bool init) {
+void ConfigureUi::UpdateSecondRowComboBox(bool init) {
     const int currentIndex =
         init ? UISettings::values.row_2_text_id
              : ui->row_2_text_combobox->findData(ui->row_2_text_combobox->currentData());
