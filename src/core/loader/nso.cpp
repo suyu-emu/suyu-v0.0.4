@@ -97,7 +97,8 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
-        program_image.resize(nso_header.segments[i].location + data.size());
+        program_image.resize(nso_header.segments[i].location +
+                             PageAlignSize(static_cast<u32>(data.size())));
         std::memcpy(program_image.data() + nso_header.segments[i].location, data.data(),
                     data.size());
         codeset.segments[i].addr = nso_header.segments[i].location;
@@ -105,8 +106,12 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         codeset.segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
     }
 
-    if (should_pass_arguments && !Settings::values.program_args.empty()) {
-        const auto arg_data = Settings::values.program_args;
+    if (should_pass_arguments) {
+        std::vector<u8> arg_data{Settings::values.program_args.begin(),
+                                 Settings::values.program_args.end()};
+        if (arg_data.empty()) {
+            arg_data.resize(NSO_ARGUMENT_DEFAULT_SIZE);
+        }
         codeset.DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
         NSOArgumentHeader args_header{
             NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
