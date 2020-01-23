@@ -22,6 +22,7 @@ private:
     void ToCalendarTime(Kernel::HLERequestContext& ctx);
     void ToCalendarTimeWithMyRule(Kernel::HLERequestContext& ctx);
     void ToPosixTime(Kernel::HLERequestContext& ctx);
+    void ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx);
 
 private:
     TimeZone::TimeZoneContentManager& time_zone_content_manager;

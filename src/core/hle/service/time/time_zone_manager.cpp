@@ -1019,6 +1019,15 @@ ResultCode TimeZoneManager::ToPosixTime(const TimeZoneRule& rules,
     return RESULT_SUCCESS;
 }
 
+ResultCode TimeZoneManager::ToPosixTimeWithMyRule(const CalendarTime& calendar_time,
+                                                  s64& posix_time) const {
+    if (is_initialized) {
+        return ToPosixTime(time_zone_rule, calendar_time, posix_time);
+    }
+    posix_time = 0;
+    return ERROR_UNINITIALIZED_CLOCK;
+}
+
 ResultCode TimeZoneManager::GetDeviceLocationName(LocationName& value) const {
     if (!is_initialized) {
         return ERROR_UNINITIALIZED_CLOCK;

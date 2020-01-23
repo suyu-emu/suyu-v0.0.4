@@ -22,7 +22,7 @@ ITimeZoneService ::ITimeZoneService(TimeZone::TimeZoneContentManager& time_zone_
         {100, &ITimeZoneService::ToCalendarTime, "ToCalendarTime"},
         {101, &ITimeZoneService::ToCalendarTimeWithMyRule, "ToCalendarTimeWithMyRule"},
         {201, &ITimeZoneService::ToPosixTime, "ToPosixTime"},
-        {202, nullptr, "ToPosixTimeWithMyRule"},
+        {202, &ITimeZoneService::ToPosixTimeWithMyRule, "ToPosixTimeWithMyRule"},
     };
     RegisterHandlers(functions);
 }
@@ -139,6 +139,28 @@ void ITimeZoneService::ToPosixTime(Kernel::HLERequestContext& ctx) {
     }
 
     // TODO(bunnei): Handle multiple times
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushRaw<u32>(1); // Number of times we're returning
+    ctx.WriteBuffer(&posix_time, sizeof(s64));
+}
+
+void ITimeZoneService::ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    IPC::RequestParser rp{ctx};
+    const auto calendar_time{rp.PopRaw<TimeZone::CalendarTime>()};
+
+    s64 posix_time{};
+    if (const ResultCode result{
+            time_zone_content_manager.GetTimeZoneManager().ToPosixTimeWithMyRule(calendar_time,
+                                                                                 posix_time)};
+        result != RESULT_SUCCESS) {
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(result);
+        return;
+    }
+
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.PushRaw<u32>(1); // Number of times we're returning

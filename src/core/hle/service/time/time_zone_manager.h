@@ -39,6 +39,7 @@ public:
     ResultCode ParseTimeZoneRuleBinary(TimeZoneRule& rules, FileSys::VirtualFile& vfs_file) const;
     ResultCode ToPosixTime(const TimeZoneRule& rules, const CalendarTime& calendar_time,
                            s64& posix_time) const;
+    ResultCode ToPosixTimeWithMyRule(const CalendarTime& calendar_time, s64& posix_time) const;
 
 private:
     bool is_initialized{};
