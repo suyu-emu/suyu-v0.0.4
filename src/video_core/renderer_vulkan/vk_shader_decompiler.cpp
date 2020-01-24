@@ -542,11 +542,10 @@ private:
             return;
         }
 
-        for (u32 rt = 0; rt < static_cast<u32>(frag_colors.size()); ++rt) {
-            if (!specialization.enabled_rendertargets[rt]) {
+        for (u32 rt = 0; rt < static_cast<u32>(std::size(frag_colors)); ++rt) {
+            if (!IsRenderTargetEnabled(rt)) {
                 continue;
             }
-
             const Id id = AddGlobalVariable(OpVariable(t_out_float4, spv::StorageClass::Output));
             Name(id, fmt::format("frag_color{}", rt));
             Decorate(id, spv::Decoration::Location, rt);
@@ -850,6 +849,15 @@ private:
             images.emplace(static_cast<u32>(image.GetIndex()), StorageImage{image_type, id});
         }
         return binding;
+    }
+
+    bool IsRenderTargetEnabled(u32 rt) const {
+        for (u32 component = 0; component < 4; ++component) {
+            if (header.ps.IsColorComponentOutputEnabled(rt, component)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     bool IsInputAttributeArray() const {
@@ -1889,19 +1897,14 @@ private:
             // rendertargets/components are skipped in the register assignment.
             u32 current_reg = 0;
             for (u32 rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
-                if (!specialization.enabled_rendertargets[rt]) {
-                    // Skip rendertargets that are not enabled
-                    continue;
-                }
                 // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
                 for (u32 component = 0; component < 4; ++component) {
-                    const Id pointer = AccessElement(t_out_float, frag_colors.at(rt), component);
-                    if (header.ps.IsColorComponentOutputEnabled(rt, component)) {
-                        OpStore(pointer, SafeGetRegister(current_reg));
-                        ++current_reg;
-                    } else {
-                        OpStore(pointer, component == 3 ? v_float_one : v_float_zero);
+                    if (!header.ps.IsColorComponentOutputEnabled(rt, component)) {
+                        continue;
                     }
+                    const Id pointer = AccessElement(t_out_float, frag_colors[rt], component);
+                    OpStore(pointer, SafeGetRegister(current_reg));
+                    ++current_reg;
                 }
             }
             if (header.ps.omap.depth) {
