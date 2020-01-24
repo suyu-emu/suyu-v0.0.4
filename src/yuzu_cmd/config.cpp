@@ -12,6 +12,7 @@
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/settings.h"
 #include "input_common/main.h"
+#include "input_common/udp/client.h"
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/default_ini.h"
 
@@ -297,6 +298,10 @@ void Config::ReadValues() {
         sdl2_config->GetInteger("ControlsGeneral", "touch_diameter_x", 15);
     Settings::values.touchscreen.diameter_y =
         sdl2_config->GetInteger("ControlsGeneral", "touch_diameter_y", 15);
+    Settings::values.udp_input_address =
+        sdl2_config->Get("Controls", "udp_input_address", InputCommon::CemuhookUDP::DEFAULT_ADDR);
+    Settings::values.udp_input_port = static_cast<u16>(sdl2_config->GetInteger(
+        "Controls", "udp_input_port", InputCommon::CemuhookUDP::DEFAULT_PORT));
 
     std::transform(keyboard_keys.begin(), keyboard_keys.end(),
                    Settings::values.keyboard_keys.begin(), InputCommon::GenerateKeyboardParam);

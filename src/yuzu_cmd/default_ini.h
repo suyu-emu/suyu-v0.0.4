@@ -69,11 +69,28 @@ rstick=
 #  - "motion_emu" (default) for emulating motion input from mouse input. Required parameters:
 #      - "update_period": update period in milliseconds (default to 100)
 #      - "sensitivity": the coefficient converting mouse movement to tilting angle (default to 0.01)
+#  - "cemuhookudp" reads motion input from a udp server that uses cemuhook's udp protocol
 motion_device=
 
 # for touch input, the following devices are available:
 #  - "emu_window" (default) for emulating touch input from mouse input to the emulation window. No parameters required
+#  - "cemuhookudp" reads touch input from a udp server that uses cemuhook's udp protocol
+#      - "min_x", "min_y", "max_x", "max_y": defines the udp device's touch screen coordinate system
 touch_device=
+
+# Most desktop operating systems do not expose a way to poll the motion state of the controllers
+# so as a way around it, cemuhook created a udp client/server protocol to broadcast the data directly
+# from a controller device to the client program. Citra has a client that can connect and read
+# from any cemuhook compatible motion program.
+
+# IPv4 address of the udp input server (Default "127.0.0.1")
+udp_input_address=
+
+# Port of the udp input server. (Default 26760)
+udp_input_port=
+
+# The pad to request data on. Should be between 0 (Pad 1) and 3 (Pad 4). (Default 0)
+udp_pad_index=
 
 [Core]
 # Whether to use multi-core for CPU emulation
