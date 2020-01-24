@@ -291,7 +291,7 @@ public:
         return size;
     }
 
-    void SetSize(u32 new_size) {
+    constexpr void SetSize(u32 new_size) {
         size = new_size;
     }
 
@@ -315,15 +315,15 @@ public:
     explicit ArraySamplerNode(u32 index, u32 base_offset, u32 bindless_var)
         : index{index}, base_offset{base_offset}, bindless_var{bindless_var} {}
 
-    u32 GetIndex() const {
+    constexpr u32 GetIndex() const {
         return index;
     }
 
-    u32 GetBaseOffset() const {
+    constexpr u32 GetBaseOffset() const {
         return base_offset;
     }
 
-    u32 GetIndexVar() const {
+    constexpr u32 GetIndexVar() const {
         return bindless_var;
     }
 
@@ -338,11 +338,11 @@ class BindlessSamplerNode final {
 public:
     explicit BindlessSamplerNode(u32 index, u32 offset) : index{index}, offset{offset} {}
 
-    u32 GetIndex() const {
+    constexpr u32 GetIndex() const {
         return index;
     }
 
-    u32 GetOffset() const {
+    constexpr u32 GetOffset() const {
         return offset;
     }
 
@@ -557,7 +557,7 @@ class CustomVarNode final {
 public:
     explicit constexpr CustomVarNode(u32 index) : index{index} {}
 
-    u32 GetIndex() const {
+    constexpr u32 GetIndex() const {
         return index;
     }
 

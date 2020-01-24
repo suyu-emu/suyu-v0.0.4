@@ -458,8 +458,7 @@ std::size_t ShaderIR::DeclareAmend(Node new_amend) {
 }
 
 u32 ShaderIR::NewCustomVariable() {
-    const u32 id = num_custom_variables++;
-    return id;
+    return num_custom_variables++;
 }
 
 } // namespace VideoCommon::Shader

@@ -505,11 +505,11 @@ private:
     }
 
     void DeclareCustomVariables() {
-        const u32 cv_num = ir.GetCustomVariablesAmount();
-        for (u32 i = 0; i < cv_num; ++i) {
+        const u32 num_custom_variables = ir.GetNumCustomVariables();
+        for (u32 i = 0; i < num_custom_variables; ++i) {
             code.AddLine("float {} = 0.0f;", GetCustomVariable(i));
         }
-        if (cv_num > 0) {
+        if (num_custom_variables > 0) {
             code.AddNewLine();
         }
     }

@@ -35,9 +35,9 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
 }
 
 void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
-                              std::list<Sampler>& used_samplers) {
+                              const std::list<Sampler>& used_samplers) {
     if (gpu_driver == nullptr) {
-        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
+        LOG_CRITICAL(HW_GPU, "GPU driver profile has not been created yet");
         return;
     }
     if (gpu_driver->TextureHandlerSizeKnown() || used_samplers.size() <= 1) {
@@ -57,9 +57,9 @@ void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
     }
 }
 
-std::optional<u32> TryDeduceSamplerSize(Sampler& sampler_to_deduce,
+std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
                                         VideoCore::GuestDriverProfile* gpu_driver,
-                                        std::list<Sampler>& used_samplers) {
+                                        const std::list<Sampler>& used_samplers) {
     if (gpu_driver == nullptr) {
         LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
         return std::nullopt;
@@ -367,17 +367,18 @@ void ShaderIR::PostDecode() {
     auto gpu_driver = locker.AccessGuestDriverProfile();
     DeduceTextureHandlerSize(gpu_driver, used_samplers);
     // Deduce Indexed Samplers
-    if (uses_indexed_samplers) {
-        for (auto& sampler : used_samplers) {
-            if (sampler.IsIndexed()) {
-                auto size = TryDeduceSamplerSize(sampler, gpu_driver, used_samplers);
-                if (size) {
-                    sampler.SetSize(*size);
-                } else {
-                    LOG_CRITICAL(HW_GPU, "Failed to deduce size of indexed sampler");
-                    sampler.SetSize(1);
-                }
-            }
+    if (!uses_indexed_samplers) {
+        return;
+    }
+    for (auto& sampler : used_samplers) {
+        if (!sampler.IsIndexed()) {
+            continue;
+        }
+        if (const auto size = TryDeduceSamplerSize(sampler, gpu_driver, used_samplers)) {
+            sampler.SetSize(*size);
+        } else {
+            LOG_CRITICAL(HW_GPU, "Failed to deduce size of indexed sampler");
+            sampler.SetSize(1);
         }
     }
 }

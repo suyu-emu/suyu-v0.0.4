@@ -36,7 +36,6 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
     }
     return {};
 }
-} // Anonymous namespace
 
 std::optional<std::pair<Node, Node>> DecoupleIndirectRead(const OperationNode& operation) {
     if (operation.GetCode() != OperationCode::UAdd) {
@@ -44,9 +43,7 @@ std::optional<std::pair<Node, Node>> DecoupleIndirectRead(const OperationNode& o
     }
     Node gpr{};
     Node offset{};
-    if (operation.GetOperandsCount() != 2) {
-        return std::nullopt;
-    }
+    ASSERT(operation.GetOperandsCount() == 2);
     for (std::size_t i = 0; i < operation.GetOperandsCount(); i++) {
         Node operand = operation[i];
         if (std::holds_alternative<ImmediateNode>(*operand)) {
@@ -56,7 +53,7 @@ std::optional<std::pair<Node, Node>> DecoupleIndirectRead(const OperationNode& o
         }
     }
     if (offset && gpr) {
-        return {std::make_pair(gpr, offset)};
+        return std::make_pair(gpr, offset);
     }
     return std::nullopt;
 }
@@ -71,6 +68,8 @@ bool AmendNodeCv(std::size_t amend_index, Node node) {
     }
     return false;
 }
+
+} // Anonymous namespace
 
 std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, const NodeBlock& code,
                                                               s64 cursor) {

@@ -201,7 +201,8 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
 
         for (u32 element = 0; element < values.size(); ++element) {
-            MetaTexture meta{*sampler, array_node, {}, {}, {}, derivates, {}, {}, {}, element, index_var};
+            MetaTexture meta{*sampler, array_node, {}, {},      {},       derivates,
+                             {},       {},         {}, element, index_var};
             values[element] = Operation(OperationCode::TextureGradient, std::move(meta), coords);
         }
 

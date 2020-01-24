@@ -77,10 +77,12 @@ public:
         return bindless_samplers;
     }
 
+    /// Gets bound buffer used on this shader
     u32 GetBoundBuffer() const {
         return bound_buffer;
     }
 
+    /// Obtains access to the guest driver's profile.
     VideoCore::GuestDriverProfile* AccessGuestDriverProfile() const {
         if (engine) {
             return &engine->AccessGuestDriverProfile();

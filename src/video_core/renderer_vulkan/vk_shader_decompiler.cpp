@@ -589,8 +589,8 @@ private:
     }
 
     void DeclareCustomVariables() {
-        const u32 cv_num = ir.GetCustomVariablesAmount();
-        for (u32 i = 0; i < cv_num; ++i) {
+        const u32 num_custom_variables = ir.GetNumCustomVariables();
+        for (u32 i = 0; i < num_custom_variables; ++i) {
             const Id id = OpVariable(t_prv_float, spv::StorageClass::Private, v_float_zero);
             Name(id, fmt::format("custom_var_{}", i));
             custom_variables.emplace(i, AddGlobalVariable(id));
@@ -1363,6 +1363,7 @@ private:
 
         } else if (const auto cv = std::get_if<CustomVarNode>(&*dest)) {
             target = {custom_variables.at(cv->GetIndex()), Type::Float};
+
         } else {
             UNIMPLEMENTED();
         }

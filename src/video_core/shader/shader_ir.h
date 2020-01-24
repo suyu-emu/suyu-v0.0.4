@@ -180,7 +180,7 @@ public:
         return amend_code[index];
     }
 
-    u32 GetCustomVariablesAmount() const {
+    u32 GetNumCustomVariables() const {
         return num_custom_variables;
     }
 
