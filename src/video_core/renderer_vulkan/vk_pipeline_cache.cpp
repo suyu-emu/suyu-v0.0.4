@@ -325,9 +325,6 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     specialization.tessellation.primitive = fixed_state.tessellation.primitive;
     specialization.tessellation.spacing = fixed_state.tessellation.spacing;
     specialization.tessellation.clockwise = fixed_state.tessellation.clockwise;
-    for (const auto& rt : key.renderpass_params.color_attachments) {
-        specialization.enabled_rendertargets.set(rt.index);
-    }
 
     SPIRVProgram program;
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
