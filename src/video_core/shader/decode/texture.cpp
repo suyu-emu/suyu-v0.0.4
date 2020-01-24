@@ -161,16 +161,16 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     case OpCode::Id::TXD: {
         UNIMPLEMENTED_IF_MSG(instr.txd.UsesMiscMode(TextureMiscMode::AOFFI),
                              "AOFFI is not implemented");
-        UNIMPLEMENTED_IF_MSG(instr.txd.is_array != 0, "TXD Array is not implemented");
 
+        const bool is_array = instr.txd.is_array != 0;
         u64 base_reg = instr.gpr8.Value();
         const auto derivate_reg = instr.gpr20.Value();
         const auto texture_type = instr.txd.texture_type.Value();
         const auto coord_count = GetCoordCount(texture_type);
 
-        const Sampler* sampler = is_bindless
-                                     ? GetBindlessSampler(base_reg, {{texture_type, false, false}})
-                                     : GetSampler(instr.sampler, {{texture_type, false, false}});
+        const Sampler* sampler =
+            is_bindless ? GetBindlessSampler(base_reg, {{texture_type, is_array, false}})
+                        : GetSampler(instr.sampler, {{texture_type, is_array, false}});
         Node4 values;
         if (sampler == nullptr) {
             for (u32 element = 0; element < values.size(); ++element) {
@@ -179,6 +179,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             WriteTexInstructionFloat(bb, instr, values);
             break;
         }
+
         if (is_bindless) {
             base_reg++;
         }
@@ -192,8 +193,14 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             derivates.push_back(GetRegister(derivate_reg + derivate + 1));
         }
 
+        Node array_node = {};
+        if (is_array) {
+            const Node info_reg = GetRegister(base_reg + coord_count);
+            array_node = BitfieldExtract(info_reg, 0, 16);
+        }
+
         for (u32 element = 0; element < values.size(); ++element) {
-            MetaTexture meta{*sampler, {}, {}, {}, {}, derivates, {}, {}, {}, element};
+            MetaTexture meta{*sampler, array_node, {}, {}, {}, derivates, {}, {}, {}, element};
             values[element] = Operation(OperationCode::TextureGradient, std::move(meta), coords);
         }
 
