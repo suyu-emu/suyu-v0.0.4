@@ -62,6 +62,20 @@ u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
     }
 }
 
+Node ExtractUnaligned(Node value, Node address, u32 mask, u32 size) {
+    Node offset = Operation(OperationCode::UBitwiseAnd, address, Immediate(mask));
+    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldExtract, std::move(value), std::move(offset),
+                     Immediate(size));
+}
+
+Node InsertUnaligned(Node dest, Node value, Node address, u32 mask, u32 size) {
+    Node offset = Operation(OperationCode::UBitwiseAnd, std::move(address), Immediate(mask));
+    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldInsert, std::move(dest), std::move(value),
+                     std::move(offset), Immediate(size));
+}
+
 Node Sign16Extend(Node value) {
     Node sign = Operation(OperationCode::UBitwiseAnd, value, Immediate(1U << 15));
     Node is_sign = Operation(OperationCode::LogicalUEqual, std::move(sign), Immediate(1U << 15));
@@ -144,19 +158,23 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         LOG_DEBUG(HW_GPU, "LD_L cache management mode: {}", static_cast<u64>(instr.ld_l.unknown));
         [[fallthrough]];
     case OpCode::Id::LD_S: {
-        const auto GetMemory = [&](s32 offset) {
+        const auto GetAddress = [&](s32 offset) {
             ASSERT(offset % 4 == 0);
             const Node immediate_offset = Immediate(static_cast<s32>(instr.smem_imm) + offset);
-            const Node address =
-                Operation(OperationCode::IAdd, GetRegister(instr.gpr8), immediate_offset);
-            return opcode->get().GetId() == OpCode::Id::LD_S ? GetSharedMemory(address)
-                                                             : GetLocalMemory(address);
+            return Operation(OperationCode::IAdd, GetRegister(instr.gpr8), immediate_offset);
+        };
+        const auto GetMemory = [&](s32 offset) {
+            return opcode->get().GetId() == OpCode::Id::LD_S ? GetSharedMemory(GetAddress(offset))
+                                                             : GetLocalMemory(GetAddress(offset));
         };
 
         switch (instr.ldst_sl.type.Value()) {
-        case StoreType::Signed16:
+        case StoreType::Signed16: {
+            Node address = GetAddress(0);
+
             SetRegister(bb, instr.gpr0, Sign16Extend(GetMemory(0)));
             break;
+        }
         case StoreType::Bits32:
         case StoreType::Bits64:
         case StoreType::Bits128: {
@@ -223,12 +241,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             // To handle unaligned loads get the bytes used to dereference global memory and extract
             // those bytes from the loaded u32.
             if (IsUnaligned(type)) {
-                Node mask = Immediate(GetUnalignedMask(type));
-                Node offset = Operation(OperationCode::UBitwiseAnd, real_address, std::move(mask));
-                offset = Operation(OperationCode::ULogicalShiftLeft, offset, Immediate(3));
-
-                gmem = Operation(OperationCode::UBitfieldExtract, std::move(gmem),
-                                 std::move(offset), Immediate(size));
+                gmem = ExtractUnaligned(gmem, real_address, GetUnalignedMask(type), size);
             }
 
             SetTemporary(bb, i, gmem);
@@ -334,12 +347,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             Node value = GetRegister(instr.gpr0.Value() + i);
 
             if (IsUnaligned(type)) {
-                Node mask = Immediate(GetUnalignedMask(type));
-                Node offset = Operation(OperationCode::UBitwiseAnd, real_address, std::move(mask));
-                offset = Operation(OperationCode::ULogicalShiftLeft, offset, Immediate(3));
-
-                value = Operation(OperationCode::UBitfieldInsert, gmem, std::move(value), offset,
-                                  Immediate(size));
+                const u32 mask = GetUnalignedMask(type);
+                value = InsertUnaligned(gmem, std::move(value), real_address, mask, size);
             }
 
             bb.push_back(Operation(OperationCode::Assign, gmem, value));
