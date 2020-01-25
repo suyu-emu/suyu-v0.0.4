@@ -120,7 +120,7 @@ private:
             duration_cast<std::chrono::microseconds>(steady_clock::now() - time_origin);
         entry.log_class = log_class;
         entry.log_level = log_level;
-        entry.filename = Common::TrimSourcePath(filename);
+        entry.filename = filename;
         entry.line_num = line_nr;
         entry.function = function;
         entry.message = std::move(message);

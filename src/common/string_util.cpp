@@ -223,26 +223,4 @@ std::u16string UTF16StringFromFixedZeroTerminatedBuffer(std::u16string_view buff
     return std::u16string(buffer.begin(), buffer.begin() + len);
 }
 
-const char* TrimSourcePath(const char* path, const char* root) {
-    const char* p = path;
-
-    while (*p != '\0') {
-        const char* next_slash = p;
-        while (*next_slash != '\0' && *next_slash != '/' && *next_slash != '\\') {
-            ++next_slash;
-        }
-
-        bool is_src = Common::ComparePartialString(p, next_slash, root);
-        p = next_slash;
-
-        if (*p != '\0') {
-            ++p;
-        }
-        if (is_src) {
-            path = p;
-        }
-    }
-    return path;
-}
-
 } // namespace Common
