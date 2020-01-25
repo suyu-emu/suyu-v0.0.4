@@ -29,23 +29,8 @@ constexpr std::array row_text_names{
 
 ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::ConfigureUi) {
     ui->setupUi(this);
-    ui->language_combobox->addItem(tr("<System>"), QString{});
-    ui->language_combobox->addItem(tr("English"), QStringLiteral("en"));
-    QDirIterator it(QStringLiteral(":/languages"), QDirIterator::NoIteratorFlags);
-    while (it.hasNext()) {
-        QString locale = it.next();
-        locale.truncate(locale.lastIndexOf(QLatin1Char{'.'}));
-        locale.remove(0, locale.lastIndexOf(QLatin1Char{'/'}) + 1);
-        QString lang = QLocale::languageToString(QLocale(locale).language());
-        ui->language_combobox->addItem(lang, locale);
-    }
 
-    // Unlike other configuration changes, interface language changes need to be reflected on the
-    // interface immediately. This is done by passing a signal to the main window, and then
-    // retranslating when passing back.
-    connect(ui->language_combobox,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-            &ConfigureUi::OnLanguageChanged);
+    InitializeLanguageComboBox();
 
     for (const auto& theme : UISettings::themes) {
         ui->theme_combobox->addItem(QString::fromUtf8(theme.first),
@@ -118,6 +103,25 @@ void ConfigureUi::RetranslateUI() {
         ui->row_1_text_combobox->setItemText(i, name);
         ui->row_2_text_combobox->setItemText(i, name);
     }
+}
+
+void ConfigureUi::InitializeLanguageComboBox() {
+    ui->language_combobox->addItem(tr("<System>"), QString{});
+    ui->language_combobox->addItem(tr("English"), QStringLiteral("en"));
+    QDirIterator it(QStringLiteral(":/languages"), QDirIterator::NoIteratorFlags);
+    while (it.hasNext()) {
+        QString locale = it.next();
+        locale.truncate(locale.lastIndexOf(QLatin1Char{'.'}));
+        locale.remove(0, locale.lastIndexOf(QLatin1Char{'/'}) + 1);
+        const QString lang = QLocale::languageToString(QLocale(locale).language());
+        ui->language_combobox->addItem(lang, locale);
+    }
+
+    // Unlike other configuration changes, interface language changes need to be reflected on the
+    // interface immediately. This is done by passing a signal to the main window, and then
+    // retranslating when passing back.
+    connect(ui->language_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &ConfigureUi::OnLanguageChanged);
 }
 
 void ConfigureUi::InitializeIconSizeComboBox() {

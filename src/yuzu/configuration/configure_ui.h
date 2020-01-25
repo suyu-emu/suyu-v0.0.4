@@ -34,6 +34,7 @@ private:
     void changeEvent(QEvent*) override;
     void RetranslateUI();
 
+    void InitializeLanguageComboBox();
     void InitializeIconSizeComboBox();
     void InitializeRowComboBoxes();
 
