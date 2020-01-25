@@ -14,6 +14,8 @@
 #include "core/core.h"
 #include "core/core_cpu.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
@@ -21,68 +23,15 @@
 
 namespace Core {
 
-void CpuBarrier::NotifyEnd() {
-    std::unique_lock lock{mutex};
-    end = true;
-    condition.notify_all();
-}
-
-bool CpuBarrier::Rendezvous() {
-    if (!Settings::values.use_multi_core) {
-        // Meaningless when running in single-core mode
-        return true;
-    }
-
-    if (!end) {
-        std::unique_lock lock{mutex};
-
-        --cores_waiting;
-        if (!cores_waiting) {
-            cores_waiting = NUM_CPU_CORES;
-            condition.notify_all();
-            return true;
-        }
-
-        condition.wait(lock);
-        return true;
-    }
-
-    return false;
-}
-
-Cpu::Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
-         std::size_t core_index)
-    : cpu_barrier{cpu_barrier}, global_scheduler{system.GlobalScheduler()},
-      core_timing{system.CoreTiming()}, core_index{core_index} {
-#ifdef ARCHITECTURE_x86_64
-    arm_interface = std::make_unique<ARM_Dynarmic>(system, exclusive_monitor, core_index);
-#else
-    arm_interface = std::make_unique<ARM_Unicorn>(system);
-    LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
-#endif
-
-    scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface, core_index);
+Cpu::Cpu(System& system, std::size_t core_index)
+    : global_scheduler{system.GlobalScheduler()},
+      physical_core{system.Kernel().PhysicalCore(core_index)}, core_timing{system.CoreTiming()},
+      core_index{core_index} {
 }
 
 Cpu::~Cpu() = default;
 
-std::unique_ptr<ExclusiveMonitor> Cpu::MakeExclusiveMonitor(
-    [[maybe_unused]] Memory::Memory& memory, [[maybe_unused]] std::size_t num_cores) {
-#ifdef ARCHITECTURE_x86_64
-    return std::make_unique<DynarmicExclusiveMonitor>(memory, num_cores);
-#else
-    // TODO(merry): Passthrough exclusive monitor
-    return nullptr;
-#endif
-}
-
 void Cpu::RunLoop(bool tight_loop) {
-    // Wait for all other CPU cores to complete the previous slice, such that they run in lock-step
-    if (!cpu_barrier.Rendezvous()) {
-        // If rendezvous failed, session has been killed
-        return;
-    }
-
     Reschedule();
 
     // If we don't have a currently active thread then don't execute instructions,
@@ -92,12 +41,10 @@ void Cpu::RunLoop(bool tight_loop) {
         core_timing.Idle();
     } else {
         if (tight_loop) {
-            arm_interface->Run();
+            physical_core.Run();
         } else {
-            arm_interface->Step();
+            physical_core.Step();
         }
-        // We are stopping a run, exclusive state must be cleared
-        arm_interface->ClearExclusiveState();
     }
     core_timing.Advance();
 
@@ -109,7 +56,7 @@ void Cpu::SingleStep() {
 }
 
 void Cpu::PrepareReschedule() {
-    arm_interface->PrepareReschedule();
+    physical_core.Stop();
 }
 
 void Cpu::Reschedule() {
@@ -117,11 +64,8 @@ void Cpu::Reschedule() {
     std::lock_guard lock(HLE::g_hle_lock);
 
     global_scheduler.SelectThread(core_index);
-    scheduler->TryDoContextSwitch();
-}
 
-void Cpu::Shutdown() {
-    scheduler->Shutdown();
+    physical_core.Scheduler().TryDoContextSwitch();
 }
 
 } // namespace Core

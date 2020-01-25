@@ -24,46 +24,16 @@ CpuCoreManager::CpuCoreManager(System& system) : system{system} {}
 CpuCoreManager::~CpuCoreManager() = default;
 
 void CpuCoreManager::Initialize() {
-    barrier = std::make_unique<CpuBarrier>();
-    exclusive_monitor = Cpu::MakeExclusiveMonitor(system.Memory(), cores.size());
 
     for (std::size_t index = 0; index < cores.size(); ++index) {
-        cores[index] = std::make_unique<Cpu>(system, *exclusive_monitor, *barrier, index);
-    }
-}
-
-void CpuCoreManager::StartThreads() {
-    // Create threads for CPU cores 1-3, and build thread_to_cpu map
-    // CPU core 0 is run on the main thread
-    thread_to_cpu[std::this_thread::get_id()] = cores[0].get();
-    if (!Settings::values.use_multi_core) {
-        return;
-    }
-
-    for (std::size_t index = 0; index < core_threads.size(); ++index) {
-        core_threads[index] = std::make_unique<std::thread>(RunCpuCore, std::cref(system),
-                                                            std::ref(*cores[index + 1]));
-        thread_to_cpu[core_threads[index]->get_id()] = cores[index + 1].get();
+        cores[index] = std::make_unique<Cpu>(system, index);
     }
 }
 
 void CpuCoreManager::Shutdown() {
-    barrier->NotifyEnd();
-    if (Settings::values.use_multi_core) {
-        for (auto& thread : core_threads) {
-            thread->join();
-            thread.reset();
-        }
-    }
-
-    thread_to_cpu.clear();
     for (auto& cpu_core : cores) {
-        cpu_core->Shutdown();
         cpu_core.reset();
     }
-
-    exclusive_monitor.reset();
-    barrier.reset();
 }
 
 Cpu& CpuCoreManager::GetCore(std::size_t index) {
@@ -74,42 +44,17 @@ const Cpu& CpuCoreManager::GetCore(std::size_t index) const {
     return *cores.at(index);
 }
 
-ExclusiveMonitor& CpuCoreManager::GetExclusiveMonitor() {
-    return *exclusive_monitor;
-}
-
-const ExclusiveMonitor& CpuCoreManager::GetExclusiveMonitor() const {
-    return *exclusive_monitor;
-}
-
 Cpu& CpuCoreManager::GetCurrentCore() {
-    if (Settings::values.use_multi_core) {
-        const auto& search = thread_to_cpu.find(std::this_thread::get_id());
-        ASSERT(search != thread_to_cpu.end());
-        ASSERT(search->second);
-        return *search->second;
-    }
-
     // Otherwise, use single-threaded mode active_core variable
     return *cores[active_core];
 }
 
 const Cpu& CpuCoreManager::GetCurrentCore() const {
-    if (Settings::values.use_multi_core) {
-        const auto& search = thread_to_cpu.find(std::this_thread::get_id());
-        ASSERT(search != thread_to_cpu.end());
-        ASSERT(search->second);
-        return *search->second;
-    }
-
     // Otherwise, use single-threaded mode active_core variable
     return *cores[active_core];
 }
 
 void CpuCoreManager::RunLoop(bool tight_loop) {
-    // Update thread_to_cpu in case Core 0 is run from a different host thread
-    thread_to_cpu[std::this_thread::get_id()] = cores[0].get();
-
     if (GDBStub::IsServerEnabled()) {
         GDBStub::HandlePacket();
 
@@ -140,12 +85,6 @@ void CpuCoreManager::RunLoop(bool tight_loop) {
 
     if (GDBStub::IsServerEnabled()) {
         GDBStub::SetCpuStepFlag(false);
-    }
-}
-
-void CpuCoreManager::InvalidateAllInstructionCaches() {
-    for (auto& cpu : cores) {
-        cpu->ArmInterface().ClearInstructionCache();
     }
 }
 

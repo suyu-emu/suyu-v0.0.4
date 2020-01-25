@@ -12,8 +12,6 @@
 namespace Core {
 
 class Cpu;
-class CpuBarrier;
-class ExclusiveMonitor;
 class System;
 
 class CpuCoreManager {
@@ -28,7 +26,6 @@ public:
     CpuCoreManager& operator=(CpuCoreManager&&) = delete;
 
     void Initialize();
-    void StartThreads();
     void Shutdown();
 
     Cpu& GetCore(std::size_t index);
@@ -37,24 +34,17 @@ public:
     Cpu& GetCurrentCore();
     const Cpu& GetCurrentCore() const;
 
-    ExclusiveMonitor& GetExclusiveMonitor();
-    const ExclusiveMonitor& GetExclusiveMonitor() const;
+    std::size_t GetCurrentCoreIndex() const {
+        return active_core;
+    }
 
     void RunLoop(bool tight_loop);
-
-    void InvalidateAllInstructionCaches();
 
 private:
     static constexpr std::size_t NUM_CPU_CORES = 4;
 
-    std::unique_ptr<ExclusiveMonitor> exclusive_monitor;
-    std::unique_ptr<CpuBarrier> barrier;
     std::array<std::unique_ptr<Cpu>, NUM_CPU_CORES> cores;
-    std::array<std::unique_ptr<std::thread>, NUM_CPU_CORES - 1> core_threads;
     std::size_t active_core{}; ///< Active core, only used in single thread mode
-
-    /// Map of guest threads to CPU cores
-    std::map<std::thread::id, Cpu*> thread_to_cpu;
 
     System& system;
 };

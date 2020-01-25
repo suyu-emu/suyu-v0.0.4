@@ -13,7 +13,7 @@
 
 namespace Kernel {
 class GlobalScheduler;
-class Scheduler;
+class PhysicalCore;
 } // namespace Kernel
 
 namespace Core {
@@ -30,32 +30,11 @@ class Memory;
 
 namespace Core {
 
-class ARM_Interface;
-class ExclusiveMonitor;
-
 constexpr unsigned NUM_CPU_CORES{4};
-
-class CpuBarrier {
-public:
-    bool IsAlive() const {
-        return !end;
-    }
-
-    void NotifyEnd();
-
-    bool Rendezvous();
-
-private:
-    unsigned cores_waiting{NUM_CPU_CORES};
-    std::mutex mutex;
-    std::condition_variable condition;
-    std::atomic<bool> end{};
-};
 
 class Cpu {
 public:
-    Cpu(System& system, ExclusiveMonitor& exclusive_monitor, CpuBarrier& cpu_barrier,
-        std::size_t core_index);
+    Cpu(System& system, std::size_t core_index);
     ~Cpu();
 
     void RunLoop(bool tight_loop = true);
@@ -63,22 +42,6 @@ public:
     void SingleStep();
 
     void PrepareReschedule();
-
-    ARM_Interface& ArmInterface() {
-        return *arm_interface;
-    }
-
-    const ARM_Interface& ArmInterface() const {
-        return *arm_interface;
-    }
-
-    Kernel::Scheduler& Scheduler() {
-        return *scheduler;
-    }
-
-    const Kernel::Scheduler& Scheduler() const {
-        return *scheduler;
-    }
 
     bool IsMainCore() const {
         return core_index == 0;
@@ -88,29 +51,11 @@ public:
         return core_index;
     }
 
-    void Shutdown();
-
-    /**
-     * Creates an exclusive monitor to handle exclusive reads/writes.
-     *
-     * @param memory The current memory subsystem that the monitor may wish
-     *               to keep track of.
-     *
-     * @param num_cores The number of cores to assume about the CPU.
-     *
-     * @returns The constructed exclusive monitor instance, or nullptr if the current
-     *          CPU backend is unable to use an exclusive monitor.
-     */
-    static std::unique_ptr<ExclusiveMonitor> MakeExclusiveMonitor(Memory::Memory& memory,
-                                                                  std::size_t num_cores);
-
 private:
     void Reschedule();
 
-    std::unique_ptr<ARM_Interface> arm_interface;
-    CpuBarrier& cpu_barrier;
     Kernel::GlobalScheduler& global_scheduler;
-    std::unique_ptr<Kernel::Scheduler> scheduler;
+    Kernel::PhysicalCore& physical_core;
     Timing::CoreTiming& core_timing;
 
     std::atomic<bool> reschedule_pending = false;

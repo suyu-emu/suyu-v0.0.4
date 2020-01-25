@@ -28,6 +28,7 @@
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
@@ -119,6 +120,15 @@ struct System::Impl {
         return cpu_core_manager.GetCurrentCore();
     }
 
+    Kernel::PhysicalCore& CurrentPhysicalCore() {
+        const auto i = cpu_core_manager.GetCurrentCoreIndex();
+        return kernel.PhysicalCore(i);
+    }
+
+    Kernel::PhysicalCore& GetPhysicalCore(std::size_t index) {
+        return kernel.PhysicalCore(index);
+    }
+
     ResultStatus RunLoop(bool tight_loop) {
         status = ResultStatus::Success;
 
@@ -131,8 +141,8 @@ struct System::Impl {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
         core_timing.Initialize();
-        cpu_core_manager.Initialize();
         kernel.Initialize();
+        cpu_core_manager.Initialize();
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch());
@@ -205,7 +215,6 @@ struct System::Impl {
         // Main process has been loaded and been made current.
         // Begin GPU and CPU execution.
         gpu_core->Start();
-        cpu_core_manager.StartThreads();
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -394,7 +403,7 @@ System::ResultStatus System::SingleStep() {
 }
 
 void System::InvalidateCpuInstructionCaches() {
-    impl->cpu_core_manager.InvalidateAllInstructionCaches();
+    impl->kernel.InvalidateAllInstructionCaches();
 }
 
 System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath) {
@@ -428,11 +437,11 @@ const TelemetrySession& System::TelemetrySession() const {
 }
 
 ARM_Interface& System::CurrentArmInterface() {
-    return CurrentCpuCore().ArmInterface();
+    return impl->CurrentPhysicalCore().ArmInterface();
 }
 
 const ARM_Interface& System::CurrentArmInterface() const {
-    return CurrentCpuCore().ArmInterface();
+    return impl->CurrentPhysicalCore().ArmInterface();
 }
 
 std::size_t System::CurrentCoreIndex() const {
@@ -440,19 +449,19 @@ std::size_t System::CurrentCoreIndex() const {
 }
 
 Kernel::Scheduler& System::CurrentScheduler() {
-    return CurrentCpuCore().Scheduler();
+    return impl->CurrentPhysicalCore().Scheduler();
 }
 
 const Kernel::Scheduler& System::CurrentScheduler() const {
-    return CurrentCpuCore().Scheduler();
+    return impl->CurrentPhysicalCore().Scheduler();
 }
 
 Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
-    return CpuCore(core_index).Scheduler();
+    return impl->GetPhysicalCore(core_index).Scheduler();
 }
 
 const Kernel::Scheduler& System::Scheduler(std::size_t core_index) const {
-    return CpuCore(core_index).Scheduler();
+    return impl->GetPhysicalCore(core_index).Scheduler();
 }
 
 /// Gets the global scheduler
@@ -474,11 +483,11 @@ const Kernel::Process* System::CurrentProcess() const {
 }
 
 ARM_Interface& System::ArmInterface(std::size_t core_index) {
-    return CpuCore(core_index).ArmInterface();
+    return impl->GetPhysicalCore(core_index).ArmInterface();
 }
 
 const ARM_Interface& System::ArmInterface(std::size_t core_index) const {
-    return CpuCore(core_index).ArmInterface();
+    return impl->GetPhysicalCore(core_index).ArmInterface();
 }
 
 Cpu& System::CpuCore(std::size_t core_index) {
@@ -491,11 +500,11 @@ const Cpu& System::CpuCore(std::size_t core_index) const {
 }
 
 ExclusiveMonitor& System::Monitor() {
-    return impl->cpu_core_manager.GetExclusiveMonitor();
+    return impl->kernel.GetExclusiveMonitor();
 }
 
 const ExclusiveMonitor& System::Monitor() const {
-    return impl->cpu_core_manager.GetExclusiveMonitor();
+    return impl->kernel.GetExclusiveMonitor();
 }
 
 Memory::Memory& System::Memory() {

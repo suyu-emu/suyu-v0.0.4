@@ -158,6 +158,8 @@ add_library(core STATIC
     hle/kernel/mutex.h
     hle/kernel/object.cpp
     hle/kernel/object.h
+    hle/kernel/physical_core.cpp
+    hle/kernel/physical_core.h
     hle/kernel/process.cpp
     hle/kernel/process.h
     hle/kernel/process_capability.cpp

@@ -8,14 +8,17 @@ namespace Kernel {
 class Scheduler;
 } // namespace Kernel
 
+namespace Core {
 class ARM_Interface;
 class ExclusiveMonitor;
+class System;
+} // namespace Core
 
 namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(KernelCore& kernel, std::size_t id, ExclusiveMonitor& exclusive_monitor);
+    PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor);
 
     /// Execute current jit state
     void Run();
@@ -24,11 +27,14 @@ public:
     /// Stop JIT execution/exit
     void Stop();
 
-    ARM_Interface& ArmInterface() {
+    // Shutdown this physical core.
+    void Shutdown();
+
+    Core::ARM_Interface& ArmInterface() {
         return *arm_interface;
     }
 
-    const ARM_Interface& ArmInterface() const {
+    const Core::ARM_Interface& ArmInterface() const {
         return *arm_interface;
     }
 
@@ -44,19 +50,19 @@ public:
         return core_index;
     }
 
-    Scheduler& Scheduler() {
+    Kernel::Scheduler& Scheduler() {
         return *scheduler;
     }
 
-    const Scheduler& Scheduler() const {
+    const Kernel::Scheduler& Scheduler() const {
         return *scheduler;
     }
 
 private:
     std::size_t core_index;
-    std::unique_ptr<ARM_Interface> arm_interface;
-    std::unique_ptr<Kernel::Scheduler> scheduler;
     KernelCore& kernel;
-}
+    std::unique_ptr<Core::ARM_Interface> arm_interface;
+    std::unique_ptr<Kernel::Scheduler> scheduler;
+};
 
 } // namespace Kernel

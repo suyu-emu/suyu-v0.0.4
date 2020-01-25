@@ -9,7 +9,11 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-
+#include "core/arm/arm_interface.h"
+#ifdef ARCHITECTURE_x86_64
+#include "core/arm/dynarmic/arm_dynarmic.h"
+#endif
+#include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -17,6 +21,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/scheduler.h"
@@ -98,6 +103,7 @@ struct KernelCore::Impl {
     void Initialize(KernelCore& kernel) {
         Shutdown();
 
+        InitializePhysicalCores(kernel);
         InitializeSystemResourceLimit(kernel);
         InitializeThreads();
         InitializePreemption();
@@ -121,6 +127,20 @@ struct KernelCore::Impl {
         global_scheduler.Shutdown();
 
         named_ports.clear();
+
+        for (auto& core : cores) {
+            core.Shutdown();
+        }
+        cores.clear();
+
+        exclusive_monitor.reset(nullptr);
+    }
+
+    void InitializePhysicalCores(KernelCore& kernel) {
+        exclusive_monitor = MakeExclusiveMonitor();
+        for (std::size_t i = 0; i < global_scheduler.CpuCoresCount(); i++) {
+            cores.emplace_back(system, kernel, i, *exclusive_monitor);
+        }
     }
 
     // Creates the default system resource limit
@@ -135,6 +155,7 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
     }
+
 
     void InitializeThreads() {
         thread_wakeup_event_type =
@@ -163,6 +184,16 @@ struct KernelCore::Impl {
         system.Memory().SetCurrentPageTable(*process);
     }
 
+    std::unique_ptr<Core::ExclusiveMonitor> MakeExclusiveMonitor() {
+    #ifdef ARCHITECTURE_x86_64
+        return std::make_unique<Core::DynarmicExclusiveMonitor>(system.Memory(),
+                                                              global_scheduler.CpuCoresCount());
+    #else
+        // TODO(merry): Passthrough exclusive monitor
+        return nullptr;
+    #endif
+    }
+
     std::atomic<u32> next_object_id{0};
     std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
     std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
@@ -185,6 +216,9 @@ struct KernelCore::Impl {
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
     NamedPortTable named_ports;
+
+    std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
+    std::vector<Kernel::PhysicalCore> cores;
 
     // System context
     Core::System& system;
@@ -238,6 +272,34 @@ Kernel::GlobalScheduler& KernelCore::GlobalScheduler() {
 
 const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
     return impl->global_scheduler;
+}
+
+Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
+    return impl->cores[id];
+}
+
+const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
+    return impl->cores[id];
+}
+
+Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {
+    return *impl->exclusive_monitor;
+}
+
+const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
+    return *impl->exclusive_monitor;
+}
+
+void KernelCore::InvalidateAllInstructionCaches() {
+    for (std::size_t i = 0; i < impl->global_scheduler.CpuCoresCount(); i++) {
+        PhysicalCore(i).ArmInterface().ClearInstructionCache();
+    }
+}
+
+void KernelCore::PrepareReschedule(std::size_t id) {
+    if (id >= 0 && id < impl->global_scheduler.CpuCoresCount()) {
+        impl->cores[id].Stop();
+    }
 }
 
 void KernelCore::AddNamedPort(std::string name, std::shared_ptr<ClientPort> port) {
