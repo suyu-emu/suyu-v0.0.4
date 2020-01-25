@@ -18,7 +18,11 @@ private:
     void RegisterClient(Kernel::HLERequestContext& ctx);
     void StartMonitoring(Kernel::HLERequestContext& ctx);
     void Socket(Kernel::HLERequestContext& ctx);
+    void Select(Kernel::HLERequestContext& ctx);
+    void Bind(Kernel::HLERequestContext& ctx);
     void Connect(Kernel::HLERequestContext& ctx);
+    void Listen(Kernel::HLERequestContext& ctx);
+    void SetSockOpt(Kernel::HLERequestContext& ctx);
     void SendTo(Kernel::HLERequestContext& ctx);
     void Close(Kernel::HLERequestContext& ctx);
 

@@ -42,7 +42,47 @@ void BSD::Socket(Kernel::HLERequestContext& ctx) {
     rb.Push<u32>(0); // bsd errno
 }
 
+void BSD::Select(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(0); // ret
+    rb.Push<u32>(0); // bsd errno
+}
+
+void BSD::Bind(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(0); // ret
+    rb.Push<u32>(0); // bsd errno
+}
+
 void BSD::Connect(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(0); // ret
+    rb.Push<u32>(0); // bsd errno
+}
+
+void BSD::Listen(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 4};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(0); // ret
+    rb.Push<u32>(0); // bsd errno
+}
+
+void BSD::SetSockOpt(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 4};
@@ -80,7 +120,7 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
         {2, &BSD::Socket, "Socket"},
         {3, nullptr, "SocketExempt"},
         {4, nullptr, "Open"},
-        {5, nullptr, "Select"},
+        {5, &BSD::Select, "Select"},
         {6, nullptr, "Poll"},
         {7, nullptr, "Sysctl"},
         {8, nullptr, "Recv"},
@@ -88,15 +128,15 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
         {10, nullptr, "Send"},
         {11, &BSD::SendTo, "SendTo"},
         {12, nullptr, "Accept"},
-        {13, nullptr, "Bind"},
+        {13, &BSD::Bind, "Bind"},
         {14, &BSD::Connect, "Connect"},
         {15, nullptr, "GetPeerName"},
         {16, nullptr, "GetSockName"},
         {17, nullptr, "GetSockOpt"},
-        {18, nullptr, "Listen"},
+        {18, &BSD::Listen, "Listen"},
         {19, nullptr, "Ioctl"},
         {20, nullptr, "Fcntl"},
-        {21, nullptr, "SetSockOpt"},
+        {21, &BSD::SetSockOpt, "SetSockOpt"},
         {22, nullptr, "Shutdown"},
         {23, nullptr, "ShutdownAllSockets"},
         {24, nullptr, "Write"},
