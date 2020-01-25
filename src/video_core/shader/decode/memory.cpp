@@ -22,6 +22,7 @@ using Tegra::Shader::Attribute;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::Register;
+using Tegra::Shader::StoreType;
 
 namespace {
 
@@ -59,6 +60,13 @@ u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
         UNIMPLEMENTED_MSG("Unimplemented size={}!", static_cast<u32>(uniform_type));
         return 32;
     }
+}
+
+Node Sign16Extend(Node value) {
+    Node sign = Operation(OperationCode::UBitwiseAnd, value, Immediate(1U << 15));
+    Node is_sign = Operation(OperationCode::LogicalUEqual, std::move(sign), Immediate(1U << 15));
+    Node extend = Operation(OperationCode::Select, is_sign, Immediate(0xFFFF0000), Immediate(0));
+    return Operation(OperationCode::UBitwiseOr, std::move(value), std::move(extend));
 }
 
 } // Anonymous namespace
@@ -139,23 +147,26 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         const auto GetMemory = [&](s32 offset) {
             ASSERT(offset % 4 == 0);
             const Node immediate_offset = Immediate(static_cast<s32>(instr.smem_imm) + offset);
-            const Node address = Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8),
-                                           immediate_offset);
+            const Node address =
+                Operation(OperationCode::IAdd, GetRegister(instr.gpr8), immediate_offset);
             return opcode->get().GetId() == OpCode::Id::LD_S ? GetSharedMemory(address)
                                                              : GetLocalMemory(address);
         };
 
         switch (instr.ldst_sl.type.Value()) {
-        case Tegra::Shader::StoreType::Bits32:
-        case Tegra::Shader::StoreType::Bits64:
-        case Tegra::Shader::StoreType::Bits128: {
-            const u32 count = [&]() {
+        case StoreType::Signed16:
+            SetRegister(bb, instr.gpr0, Sign16Extend(GetMemory(0)));
+            break;
+        case StoreType::Bits32:
+        case StoreType::Bits64:
+        case StoreType::Bits128: {
+            const u32 count = [&] {
                 switch (instr.ldst_sl.type.Value()) {
-                case Tegra::Shader::StoreType::Bits32:
+                case StoreType::Bits32:
                     return 1;
-                case Tegra::Shader::StoreType::Bits64:
+                case StoreType::Bits64:
                     return 2;
-                case Tegra::Shader::StoreType::Bits128:
+                case StoreType::Bits128:
                     return 4;
                 default:
                     UNREACHABLE();
@@ -274,14 +285,14 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
                                     : &ShaderIR::SetSharedMemory;
 
         switch (instr.ldst_sl.type.Value()) {
-        case Tegra::Shader::StoreType::Bits128:
+        case StoreType::Bits128:
             (this->*set_memory)(bb, GetAddress(12), GetRegister(instr.gpr0.Value() + 3));
             (this->*set_memory)(bb, GetAddress(8), GetRegister(instr.gpr0.Value() + 2));
             [[fallthrough]];
-        case Tegra::Shader::StoreType::Bits64:
+        case StoreType::Bits64:
             (this->*set_memory)(bb, GetAddress(4), GetRegister(instr.gpr0.Value() + 1));
             [[fallthrough]];
-        case Tegra::Shader::StoreType::Bits32:
+        case StoreType::Bits32:
             (this->*set_memory)(bb, GetAddress(0), GetRegister(instr.gpr0));
             break;
         default:
