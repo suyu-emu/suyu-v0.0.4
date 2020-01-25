@@ -10,6 +10,7 @@
 
 #include <QMainWindow>
 #include <QTimer>
+#include <QTranslator>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -225,6 +226,7 @@ private slots:
     void OnCaptureScreenshot();
     void OnCoreError(Core::System::ResultStatus, std::string);
     void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
+    void OnLanguageChanged(const QString& locale);
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
@@ -237,6 +239,7 @@ private:
     void HideMouseCursor();
     void ShowMouseCursor();
     void OpenURL(const QUrl& url);
+    void LoadTranslation();
 
     Ui::MainWindow ui;
 
@@ -284,6 +287,8 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
+
+    QTranslator translator;
 
     // Install progress dialog
     QProgressDialog* install_progress;

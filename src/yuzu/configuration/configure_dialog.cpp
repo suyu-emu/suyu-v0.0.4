@@ -23,6 +23,7 @@ ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
     SetConfiguration();
     PopulateSelectionList();
 
+    connect(ui->uiTab, &ConfigureUi::LanguageChanged, this, &ConfigureDialog::OnLanguageChanged);
     connect(ui->selectorList, &QListWidget::itemSelectionChanged, this,
             &ConfigureDialog::UpdateVisibleTabs);
 
@@ -96,6 +97,14 @@ void ConfigureDialog::PopulateSelectionList() {
 
         ui->selectorList->addItem(item);
     }
+}
+
+void ConfigureDialog::OnLanguageChanged(const QString& locale) {
+    emit LanguageChanged(locale);
+    // first apply the configuration, and then restore the display
+    ApplyConfiguration();
+    RetranslateUI();
+    SetConfiguration();
 }
 
 void ConfigureDialog::UpdateVisibleTabs() {

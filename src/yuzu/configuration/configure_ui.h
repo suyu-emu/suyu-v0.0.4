@@ -20,6 +20,12 @@ public:
 
     void ApplyConfiguration();
 
+private slots:
+    void OnLanguageChanged(int index);
+
+signals:
+    void LanguageChanged(const QString& locale);
+
 private:
     void RequestGameListUpdate();
 
