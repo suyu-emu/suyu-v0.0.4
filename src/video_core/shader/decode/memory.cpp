@@ -169,12 +169,10 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         };
 
         switch (instr.ldst_sl.type.Value()) {
-        case StoreType::Signed16: {
-            Node address = GetAddress(0);
-
-            SetRegister(bb, instr.gpr0, Sign16Extend(GetMemory(0)));
+        case StoreType::Signed16:
+            SetRegister(bb, instr.gpr0,
+                        Sign16Extend(ExtractUnaligned(GetMemory(0), GetAddress(0), 0b10, 16)));
             break;
-        }
         case StoreType::Bits32:
         case StoreType::Bits64:
         case StoreType::Bits128: {
