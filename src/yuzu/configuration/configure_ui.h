@@ -8,15 +8,15 @@
 #include <QWidget>
 
 namespace Ui {
-class ConfigureGameList;
+class ConfigureUi;
 }
 
-class ConfigureGameList : public QWidget {
+class ConfigureUi : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureGameList(QWidget* parent = nullptr);
-    ~ConfigureGameList() override;
+    explicit ConfigureUi(QWidget* parent = nullptr);
+    ~ConfigureUi() override;
 
     void ApplyConfiguration();
 
@@ -34,5 +34,5 @@ private:
     void UpdateFirstRowComboBox(bool init = false);
     void UpdateSecondRowComboBox(bool init = false);
 
-    std::unique_ptr<Ui::ConfigureGameList> ui;
+    std::unique_ptr<Ui::ConfigureUi> ui;
 };

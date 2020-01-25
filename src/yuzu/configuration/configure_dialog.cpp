@@ -34,7 +34,7 @@ void ConfigureDialog::SetConfiguration() {}
 
 void ConfigureDialog::ApplyConfiguration() {
     ui->generalTab->ApplyConfiguration();
-    ui->gameListTab->ApplyConfiguration();
+    ui->uiTab->ApplyConfiguration();
     ui->systemTab->ApplyConfiguration();
     ui->profileManagerTab->ApplyConfiguration();
     ui->filesystemTab->applyConfiguration();
@@ -74,7 +74,7 @@ Q_DECLARE_METATYPE(QList<QWidget*>);
 
 void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QList<QWidget*>>, 5> items{
-        {{tr("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->gameListTab}},
+        {{tr("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
          {tr("System"), {ui->systemTab, ui->profileManagerTab, ui->serviceTab, ui->filesystemTab}},
          {tr("Graphics"), {ui->graphicsTab}},
          {tr("Audio"), {ui->audioTab}},
@@ -108,7 +108,7 @@ void ConfigureDialog::UpdateVisibleTabs() {
         {ui->audioTab, tr("Audio")},
         {ui->debugTab, tr("Debug")},
         {ui->webTab, tr("Web")},
-        {ui->gameListTab, tr("Game List")},
+        {ui->uiTab, tr("UI")},
         {ui->filesystemTab, tr("Filesystem")},
         {ui->serviceTab, tr("Services")},
     };

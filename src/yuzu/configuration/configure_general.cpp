@@ -15,11 +15,6 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
     ui->setupUi(this);
 
-    for (const auto& theme : UISettings::themes) {
-        ui->theme_combobox->addItem(QString::fromUtf8(theme.first),
-                                    QString::fromUtf8(theme.second));
-    }
-
     SetConfiguration();
 
     connect(ui->toggle_frame_limit, &QCheckBox::toggled, ui->frame_limit, &QSpinBox::setEnabled);
@@ -30,7 +25,6 @@ ConfigureGeneral::~ConfigureGeneral() = default;
 void ConfigureGeneral::SetConfiguration() {
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot);
-    ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
 
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit);
@@ -41,8 +35,6 @@ void ConfigureGeneral::SetConfiguration() {
 void ConfigureGeneral::ApplyConfiguration() {
     UISettings::values.confirm_before_closing = ui->toggle_check_exit->isChecked();
     UISettings::values.select_user_on_boot = ui->toggle_user_on_boot->isChecked();
-    UISettings::values.theme =
-        ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
     UISettings::values.pause_when_in_background = ui->toggle_background_pause->isChecked();
 
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
