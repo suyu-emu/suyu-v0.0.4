@@ -291,9 +291,9 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             return Operation(OperationCode::IAdd, NO_PRECISE, GetRegister(instr.gpr8), immediate);
         };
 
-        const auto set_memory = opcode->get().GetId() == OpCode::Id::ST_L
-                                    ? &ShaderIR::SetLocalMemory
-                                    : &ShaderIR::SetSharedMemory;
+        const bool is_local = opcode->get().GetId() == OpCode::Id::ST_L;
+        const auto set_memory = is_local ? &ShaderIR::SetLocalMemory : &ShaderIR::SetSharedMemory;
+        const auto get_memory = is_local ? &ShaderIR::GetLocalMemory : &ShaderIR::GetSharedMemory;
 
         switch (instr.ldst_sl.type.Value()) {
         case StoreType::Bits128:
@@ -306,6 +306,13 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         case StoreType::Bits32:
             (this->*set_memory)(bb, GetAddress(0), GetRegister(instr.gpr0));
             break;
+        case StoreType::Signed16: {
+            Node address = GetAddress(0);
+            Node memory = (this->*get_memory)(address);
+            (this->*set_memory)(
+                bb, address, InsertUnaligned(memory, GetRegister(instr.gpr0), address, 0b10, 16));
+            break;
+        }
         default:
             UNIMPLEMENTED_MSG("{} unhandled type: {}", opcode->get().GetName(),
                               static_cast<u32>(instr.ldst_sl.type.Value()));
