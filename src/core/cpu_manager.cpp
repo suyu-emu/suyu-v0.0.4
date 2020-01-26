@@ -5,56 +5,49 @@
 #include "common/assert.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/core_timing.h"
-#include "core/cpu_core_manager.h"
+#include "core/cpu_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/settings.h"
 
 namespace Core {
-namespace {
-void RunCpuCore(const System& system, Cpu& cpu_state) {
-    while (system.IsPoweredOn()) {
-        cpu_state.RunLoop(true);
-    }
-}
-} // Anonymous namespace
 
-CpuCoreManager::CpuCoreManager(System& system) : system{system} {}
-CpuCoreManager::~CpuCoreManager() = default;
+CpuManager::CpuManager(System& system) : system{system} {}
+CpuManager::~CpuManager() = default;
 
-void CpuCoreManager::Initialize() {
+void CpuManager::Initialize() {
 
-    for (std::size_t index = 0; index < cores.size(); ++index) {
-        cores[index] = std::make_unique<Cpu>(system, index);
+    for (std::size_t index = 0; index < core_managers.size(); ++index) {
+        core_managers[index] = std::make_unique<CoreManager>(system, index);
     }
 }
 
-void CpuCoreManager::Shutdown() {
-    for (auto& cpu_core : cores) {
+void CpuManager::Shutdown() {
+    for (auto& cpu_core : core_managers) {
         cpu_core.reset();
     }
 }
 
-Cpu& CpuCoreManager::GetCore(std::size_t index) {
-    return *cores.at(index);
+CoreManager& CpuManager::GetCoreManager(std::size_t index) {
+    return *core_managers.at(index);
 }
 
-const Cpu& CpuCoreManager::GetCore(std::size_t index) const {
-    return *cores.at(index);
+const CoreManager& CpuManager::GetCoreManager(std::size_t index) const {
+    return *core_managers.at(index);
 }
 
-Cpu& CpuCoreManager::GetCurrentCore() {
+CoreManager& CpuManager::GetCurrentCoreManager() {
     // Otherwise, use single-threaded mode active_core variable
-    return *cores[active_core];
+    return *core_managers[active_core];
 }
 
-const Cpu& CpuCoreManager::GetCurrentCore() const {
+const CoreManager& CpuManager::GetCurrentCoreManager() const {
     // Otherwise, use single-threaded mode active_core variable
-    return *cores[active_core];
+    return *core_managers[active_core];
 }
 
-void CpuCoreManager::RunLoop(bool tight_loop) {
+void CpuManager::RunLoop(bool tight_loop) {
     if (GDBStub::IsServerEnabled()) {
         GDBStub::HandlePacket();
 
@@ -77,7 +70,7 @@ void CpuCoreManager::RunLoop(bool tight_loop) {
         for (active_core = 0; active_core < NUM_CPU_CORES; ++active_core) {
             core_timing.SwitchContext(active_core);
             if (core_timing.CanCurrentContextRun()) {
-                cores[active_core]->RunLoop(tight_loop);
+                core_managers[active_core]->RunLoop(tight_loop);
             }
             keep_running |= core_timing.CanCurrentContextRun();
         }

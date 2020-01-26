@@ -12,7 +12,7 @@
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
@@ -23,15 +23,15 @@
 
 namespace Core {
 
-Cpu::Cpu(System& system, std::size_t core_index)
+CoreManager::CoreManager(System& system, std::size_t core_index)
     : global_scheduler{system.GlobalScheduler()},
       physical_core{system.Kernel().PhysicalCore(core_index)}, core_timing{system.CoreTiming()},
       core_index{core_index} {
 }
 
-Cpu::~Cpu() = default;
+CoreManager::~CoreManager() = default;
 
-void Cpu::RunLoop(bool tight_loop) {
+void CoreManager::RunLoop(bool tight_loop) {
     Reschedule();
 
     // If we don't have a currently active thread then don't execute instructions,
@@ -51,15 +51,15 @@ void Cpu::RunLoop(bool tight_loop) {
     Reschedule();
 }
 
-void Cpu::SingleStep() {
+void CoreManager::SingleStep() {
     return RunLoop(false);
 }
 
-void Cpu::PrepareReschedule() {
+void CoreManager::PrepareReschedule() {
     physical_core.Stop();
 }
 
-void Cpu::Reschedule() {
+void CoreManager::Reschedule() {
     // Lock the global kernel mutex when we manipulate the HLE state
     std::lock_guard lock(HLE::g_hle_lock);
 

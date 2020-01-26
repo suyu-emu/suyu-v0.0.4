@@ -93,7 +93,7 @@ class Memory;
 namespace Core {
 
 class ARM_Interface;
-class Cpu;
+class CoreManager;
 class ExclusiveMonitor;
 class FrameLimiter;
 class PerfStats;
@@ -218,10 +218,10 @@ public:
     const ARM_Interface& ArmInterface(std::size_t core_index) const;
 
     /// Gets a CPU interface to the CPU core with the specified index
-    Cpu& CpuCore(std::size_t core_index);
+    CoreManager& GetCoreManager(std::size_t core_index);
 
     /// Gets a CPU interface to the CPU core with the specified index
-    const Cpu& CpuCore(std::size_t core_index) const;
+    const CoreManager& GetCoreManager(std::size_t core_index) const;
 
     /// Gets a reference to the exclusive monitor
     ExclusiveMonitor& Monitor();
@@ -364,10 +364,10 @@ private:
     System();
 
     /// Returns the currently running CPU core
-    Cpu& CurrentCpuCore();
+    CoreManager& CurrentCoreManager();
 
     /// Returns the currently running CPU core
-    const Cpu& CurrentCpuCore() const;
+    const CoreManager& CurrentCoreManager() const;
 
     /**
      * Initialize the emulated system.

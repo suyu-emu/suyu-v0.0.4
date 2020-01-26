@@ -32,10 +32,10 @@ namespace Core {
 
 constexpr unsigned NUM_CPU_CORES{4};
 
-class Cpu {
+class CoreManager {
 public:
-    Cpu(System& system, std::size_t core_index);
-    ~Cpu();
+    CoreManager(System& system, std::size_t core_index);
+    ~CoreManager();
 
     void RunLoop(bool tight_loop = true);
 

@@ -8,7 +8,6 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/scheduler.h"
