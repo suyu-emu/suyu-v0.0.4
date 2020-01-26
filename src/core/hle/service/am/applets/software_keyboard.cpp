@@ -119,7 +119,7 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         std::vector<u8> output_sub(SWKBD_OUTPUT_BUFFER_SIZE);
 
         if (config.utf_8) {
-            const u64 size = text->size() + 8;
+            const u64 size = text->size() + sizeof(u64);
             const auto new_text = Common::UTF16ToUTF8(*text);
 
             std::memcpy(output_sub.data(), &size, sizeof(u64));
@@ -130,7 +130,7 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
             std::memcpy(output_main.data() + 4, new_text.data(),
                         std::min(new_text.size(), SWKBD_OUTPUT_BUFFER_SIZE - 4));
         } else {
-            const u64 size = text->size() * 2 + 8;
+            const u64 size = text->size() * 2 + sizeof(u64);
             std::memcpy(output_sub.data(), &size, sizeof(u64));
             std::memcpy(output_sub.data() + 8, text->data(),
                         std::min(text->size() * 2, SWKBD_OUTPUT_BUFFER_SIZE - 8));
