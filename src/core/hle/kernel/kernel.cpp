@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <utility>
@@ -10,9 +11,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
-#ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic.h"
-#endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -137,7 +135,7 @@ struct KernelCore::Impl {
     }
 
     void InitializePhysicalCores(KernelCore& kernel) {
-        exclusive_monitor = MakeExclusiveMonitor();
+        exclusive_monitor = Core::MakeExclusiveMonitor(system.Memory(), global_scheduler.CpuCoresCount());
         for (std::size_t i = 0; i < global_scheduler.CpuCoresCount(); i++) {
             cores.emplace_back(system, kernel, i, *exclusive_monitor);
         }
@@ -155,7 +153,6 @@ struct KernelCore::Impl {
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
     }
-
 
     void InitializeThreads() {
         thread_wakeup_event_type =
@@ -182,16 +179,6 @@ struct KernelCore::Impl {
         }
 
         system.Memory().SetCurrentPageTable(*process);
-    }
-
-    std::unique_ptr<Core::ExclusiveMonitor> MakeExclusiveMonitor() {
-    #ifdef ARCHITECTURE_x86_64
-        return std::make_unique<Core::DynarmicExclusiveMonitor>(system.Memory(),
-                                                              global_scheduler.CpuCoresCount());
-    #else
-        // TODO(merry): Passthrough exclusive monitor
-        return nullptr;
-    #endif
     }
 
     std::atomic<u32> next_object_id{0};
