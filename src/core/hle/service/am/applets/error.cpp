@@ -186,7 +186,7 @@ void Error::Execute() {
 
 void Error::DisplayCompleted() {
     complete = true;
-    broker.PushNormalDataFromApplet(IStorage{{}});
+    broker.PushNormalDataFromApplet(IStorage{std::vector<u8>{}});
     broker.SignalStateChanged();
 }
 

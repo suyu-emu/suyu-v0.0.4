@@ -284,7 +284,7 @@ void WebBrowser::Finalize() {
     std::vector<u8> data(sizeof(WebCommonReturnValue));
     std::memcpy(data.data(), &out, sizeof(WebCommonReturnValue));
 
-    broker.PushNormalDataFromApplet(IStorage{data});
+    broker.PushNormalDataFromApplet(IStorage{std::move(data)});
     broker.SignalStateChanged();
 
     if (!temporary_dir.empty() && FileUtil::IsDirectory(temporary_dir)) {

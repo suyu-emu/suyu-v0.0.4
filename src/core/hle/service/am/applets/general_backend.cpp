@@ -148,7 +148,7 @@ void Auth::AuthFinished(bool successful) {
     std::vector<u8> out(sizeof(Return));
     std::memcpy(out.data(), &return_, sizeof(Return));
 
-    broker.PushNormalDataFromApplet(IStorage{out});
+    broker.PushNormalDataFromApplet(IStorage{std::move(out)});
     broker.SignalStateChanged();
 }
 
@@ -198,7 +198,7 @@ void PhotoViewer::Execute() {
 }
 
 void PhotoViewer::ViewFinished() {
-    broker.PushNormalDataFromApplet(IStorage{{}});
+    broker.PushNormalDataFromApplet(IStorage{std::vector<u8>{}});
     broker.SignalStateChanged();
 }
 

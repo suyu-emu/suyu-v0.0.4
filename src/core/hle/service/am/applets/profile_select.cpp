@@ -50,7 +50,7 @@ void ProfileSelect::ExecuteInteractive() {
 
 void ProfileSelect::Execute() {
     if (complete) {
-        broker.PushNormalDataFromApplet(IStorage{final_data});
+        broker.PushNormalDataFromApplet(IStorage{std::move(final_data)});
         return;
     }
 
@@ -71,7 +71,7 @@ void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {
 
     final_data = std::vector<u8>(sizeof(UserSelectionOutput));
     std::memcpy(final_data.data(), &output, final_data.size());
-    broker.PushNormalDataFromApplet(IStorage{final_data});
+    broker.PushNormalDataFromApplet(IStorage{std::move(final_data)});
     broker.SignalStateChanged();
 }
 
