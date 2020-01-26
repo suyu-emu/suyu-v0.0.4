@@ -415,7 +415,7 @@ bool System::IsPoweredOn() const {
 }
 
 void System::PrepareReschedule() {
-    CurrentCoreManager().PrepareReschedule();
+    impl->CurrentPhysicalCore().Stop();
 }
 
 void System::PrepareReschedule(const u32 core_index) {
