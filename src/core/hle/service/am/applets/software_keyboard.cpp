@@ -103,6 +103,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
 void SoftwareKeyboard::Execute() {
     if (complete) {
         broker.PushNormalDataFromApplet(IStorage{final_data});
+        broker.SignalStateChanged();
         return;
     }
 
