@@ -1,4 +1,4 @@
-// Copyright 2020 yuzu emulator team
+// Copyright 2018 yuzu emulator team
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
@@ -28,6 +28,7 @@ public:
     virtual bool ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) = 0;
 };
 
-std::unique_ptr<Core::ExclusiveMonitor> MakeExclusiveMonitor(Memory::Memory& memory, std::size_t num_cores);
+std::unique_ptr<Core::ExclusiveMonitor> MakeExclusiveMonitor(Memory::Memory& memory,
+                                                             std::size_t num_cores);
 
 } // namespace Core

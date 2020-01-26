@@ -13,7 +13,7 @@
 namespace Core {
 class ExclusiveMonitor;
 class System;
-}
+} // namespace Core
 
 namespace Core::Timing {
 class CoreTiming;

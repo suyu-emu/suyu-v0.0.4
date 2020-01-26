@@ -121,8 +121,8 @@ struct System::Impl {
     }
 
     Kernel::PhysicalCore& CurrentPhysicalCore() {
-        const auto i = cpu_manager.GetActiveCoreIndex();
-        return kernel.PhysicalCore(i);
+        const auto index = cpu_manager.GetActiveCoreIndex();
+        return kernel.PhysicalCore(index);
     }
 
     Kernel::PhysicalCore& GetPhysicalCore(std::size_t index) {

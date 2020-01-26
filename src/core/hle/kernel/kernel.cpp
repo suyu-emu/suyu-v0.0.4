@@ -135,7 +135,8 @@ struct KernelCore::Impl {
     }
 
     void InitializePhysicalCores(KernelCore& kernel) {
-        exclusive_monitor = Core::MakeExclusiveMonitor(system.Memory(), global_scheduler.CpuCoresCount());
+        exclusive_monitor =
+            Core::MakeExclusiveMonitor(system.Memory(), global_scheduler.CpuCoresCount());
         for (std::size_t i = 0; i < global_scheduler.CpuCoresCount(); i++) {
             cores.emplace_back(system, kernel, i, *exclusive_monitor);
         }
@@ -284,7 +285,7 @@ void KernelCore::InvalidateAllInstructionCaches() {
 }
 
 void KernelCore::PrepareReschedule(std::size_t id) {
-    if (id >= 0 && id < impl->global_scheduler.CpuCoresCount()) {
+    if (id < impl->global_scheduler.CpuCoresCount()) {
         impl->cores[id].Stop();
     }
 }

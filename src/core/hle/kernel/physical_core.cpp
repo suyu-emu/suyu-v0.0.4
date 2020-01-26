@@ -17,17 +17,20 @@
 
 namespace Kernel {
 
-PhysicalCore::PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor)
+PhysicalCore::PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id,
+                           Core::ExclusiveMonitor& exclusive_monitor)
     : core_index{id}, kernel{kernel} {
 #ifdef ARCHITECTURE_x86_64
-    arm_interface = std::make_unique<Core::ARM_Dynarmic>(system, exclusive_monitor, core_index);
+    arm_interface = std::make_shared<Core::ARM_Dynarmic>(system, exclusive_monitor, core_index);
 #else
-    arm_interface = std::make_unique<Core::ARM_Unicorn>(system);
+    arm_interface = std::make_shared<Core::ARM_Unicorn>(system);
     LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
 
-    scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface, core_index);
+    scheduler = std::make_shared<Kernel::Scheduler>(system, *arm_interface, core_index);
 }
+
+PhysicalCore::~PhysicalCore() = default;
 
 void PhysicalCore::Run() {
     arm_interface->Run();

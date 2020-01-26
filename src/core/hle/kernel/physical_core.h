@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <cstddef>
+#include <memory>
+
 namespace Kernel {
 class Scheduler;
 } // namespace Kernel
@@ -18,7 +21,10 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor);
+    PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id,
+                 Core::ExclusiveMonitor& exclusive_monitor);
+
+    ~PhysicalCore();
 
     /// Execute current jit state
     void Run();
@@ -61,8 +67,8 @@ public:
 private:
     std::size_t core_index;
     KernelCore& kernel;
-    std::unique_ptr<Core::ARM_Interface> arm_interface;
-    std::unique_ptr<Kernel::Scheduler> scheduler;
+    std::shared_ptr<Core::ARM_Interface> arm_interface;
+    std::shared_ptr<Kernel::Scheduler> scheduler;
 };
 
 } // namespace Kernel

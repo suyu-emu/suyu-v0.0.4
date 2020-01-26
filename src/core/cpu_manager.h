@@ -5,9 +5,7 @@
 #pragma once
 
 #include <array>
-#include <map>
 #include <memory>
-#include <thread>
 
 namespace Core {
 

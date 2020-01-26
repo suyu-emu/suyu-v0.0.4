@@ -5,10 +5,8 @@
 #pragma once
 
 #include <atomic>
-#include <condition_variable>
 #include <cstddef>
 #include <memory>
-#include <mutex>
 #include "common/common_types.h"
 
 namespace Kernel {

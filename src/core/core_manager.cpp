@@ -24,10 +24,9 @@
 namespace Core {
 
 CoreManager::CoreManager(System& system, std::size_t core_index)
-    : global_scheduler{system.GlobalScheduler()},
-      physical_core{system.Kernel().PhysicalCore(core_index)}, core_timing{system.CoreTiming()},
-      core_index{core_index} {
-}
+    : global_scheduler{system.GlobalScheduler()}, physical_core{system.Kernel().PhysicalCore(
+                                                      core_index)},
+      core_timing{system.CoreTiming()}, core_index{core_index} {}
 
 CoreManager::~CoreManager() = default;
 

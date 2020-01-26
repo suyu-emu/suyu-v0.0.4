@@ -17,7 +17,6 @@ CpuManager::CpuManager(System& system) : system{system} {}
 CpuManager::~CpuManager() = default;
 
 void CpuManager::Initialize() {
-
     for (std::size_t index = 0; index < core_managers.size(); ++index) {
         core_managers[index] = std::make_unique<CoreManager>(system, index);
     }
