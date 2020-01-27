@@ -184,7 +184,7 @@ void ApplyTextureDefaults(const SurfaceParams& params, GLuint texture) {
     glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTextureParameteri(texture, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, params.num_levels - 1);
+    glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(params.num_levels - 1));
     if (params.num_levels == 1) {
         glTextureParameterf(texture, GL_TEXTURE_LOD_BIAS, 1000.0f);
     }
@@ -529,8 +529,11 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     const Common::Rectangle<u32>& dst_rect = copy_config.dst_rect;
     const bool is_linear = copy_config.filter == Tegra::Engines::Fermi2D::Filter::Linear;
 
-    glBlitFramebuffer(src_rect.left, src_rect.top, src_rect.right, src_rect.bottom, dst_rect.left,
-                      dst_rect.top, dst_rect.right, dst_rect.bottom, buffers,
+    glBlitFramebuffer(static_cast<GLint>(src_rect.left), static_cast<GLint>(src_rect.top),
+                      static_cast<GLint>(src_rect.right), static_cast<GLint>(src_rect.bottom),
+                      static_cast<GLint>(dst_rect.left), static_cast<GLint>(dst_rect.top),
+                      static_cast<GLint>(dst_rect.right), static_cast<GLint>(dst_rect.bottom),
+                      buffers,
                       is_linear && (buffers == GL_COLOR_BUFFER_BIT) ? GL_LINEAR : GL_NEAREST);
 }
 
