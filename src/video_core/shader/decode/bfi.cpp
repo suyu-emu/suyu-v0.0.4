@@ -17,10 +17,13 @@ u32 ShaderIR::DecodeBfi(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    const auto [base, packed_shift] = [&]() -> std::tuple<Node, Node> {
+    const auto [packed_shift, base] = [&]() -> std::pair<Node, Node> {
         switch (opcode->get().GetId()) {
+        case OpCode::Id::BFI_RC:
+            return {GetRegister(instr.gpr39),
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
         case OpCode::Id::BFI_IMM_R:
-            return {GetRegister(instr.gpr39), Immediate(instr.alu.GetSignedImm20_20())};
+            return {Immediate(instr.alu.GetSignedImm20_20()), GetRegister(instr.gpr39)};
         default:
             UNREACHABLE();
             return {Immediate(0), Immediate(0)};
