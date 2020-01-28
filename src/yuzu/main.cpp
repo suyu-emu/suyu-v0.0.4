@@ -457,7 +457,7 @@ void GMainWindow::InitializeWidgets() {
     message_label->setFrameStyle(QFrame::NoFrame);
     message_label->setContentsMargins(4, 0, 4, 0);
     message_label->setAlignment(Qt::AlignLeft);
-    statusBar()->addPermanentWidget(message_label, 01);
+    statusBar()->addPermanentWidget(message_label, 1);
 
     emu_speed_label = new QLabel();
     emu_speed_label->setToolTip(
@@ -1911,7 +1911,7 @@ void GMainWindow::OnConfigure() {
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
 #ifdef HAS_VULKAN
     renderer_status_button->setChecked(
-        Settings::values.renderer_backend == Settings::RendererBackend::Vulkan ? true : false);
+        Settings::values.renderer_backend == Settings::RendererBackend::Vulkan);
 #endif
 }
 
