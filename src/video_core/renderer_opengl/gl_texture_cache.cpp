@@ -176,6 +176,19 @@ GLint GetSwizzleSource(SwizzleSource source) {
     return GL_NONE;
 }
 
+GLenum GetComponent(PixelFormat format, bool is_first) {
+    switch (format) {
+    case PixelFormat::Z24S8:
+    case PixelFormat::Z32FS8:
+        return is_first ? GL_DEPTH_COMPONENT : GL_STENCIL_INDEX;
+    case PixelFormat::S8Z24:
+        return is_first ? GL_STENCIL_INDEX : GL_DEPTH_COMPONENT;
+    default:
+        UNREACHABLE();
+        return GL_DEPTH_COMPONENT;
+    }
+}
+
 void ApplyTextureDefaults(const SurfaceParams& params, GLuint texture) {
     if (params.IsBuffer()) {
         return;
@@ -416,11 +429,21 @@ void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_sou
     if (new_swizzle == swizzle)
         return;
     swizzle = new_swizzle;
-    const std::array<GLint, 4> gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
-                                             GetSwizzleSource(z_source),
-                                             GetSwizzleSource(w_source)};
+    const std::array gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
+                                   GetSwizzleSource(z_source), GetSwizzleSource(w_source)};
     const GLuint handle = GetTexture();
-    glTextureParameteriv(handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
+    const PixelFormat format = surface.GetSurfaceParams().pixel_format;
+    switch (format) {
+    case PixelFormat::Z24S8:
+    case PixelFormat::Z32FS8:
+    case PixelFormat::S8Z24:
+        glTextureParameteri(handle, GL_DEPTH_STENCIL_TEXTURE_MODE,
+                            GetComponent(format, x_source == SwizzleSource::R));
+        break;
+    default:
+        glTextureParameteriv(handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
+        break;
+    }
 }
 
 OGLTextureView CachedSurfaceView::CreateTextureView() const {
