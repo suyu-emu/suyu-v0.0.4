@@ -1019,7 +1019,6 @@ private:
                 }
                 return {{"gl_ViewportIndex", Type::Int}};
             case 3:
-                UNIMPLEMENTED_MSG("Requires some state changes for gl_PointSize to work in shader");
                 return {{"gl_PointSize", Type::Float}};
             }
             return {};
