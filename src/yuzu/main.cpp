@@ -1910,8 +1910,8 @@ void GMainWindow::OnConfigure() {
     dock_status_button->setChecked(Settings::values.use_docked_mode);
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
 #ifdef HAS_VULKAN
-    renderer_status_button->setChecked(
-        Settings::values.renderer_backend == Settings::RendererBackend::Vulkan);
+    renderer_status_button->setChecked(Settings::values.renderer_backend ==
+                                       Settings::RendererBackend::Vulkan);
 #endif
 }
 
