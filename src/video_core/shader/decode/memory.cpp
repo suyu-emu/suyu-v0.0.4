@@ -19,6 +19,8 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::AtomicOp;
 using Tegra::Shader::AtomicType;
 using Tegra::Shader::Attribute;
+using Tegra::Shader::GlobalAtomicOp;
+using Tegra::Shader::GlobalAtomicType;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::Register;
@@ -335,6 +337,24 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
         break;
     }
+    case OpCode::Id::ATOM: {
+        UNIMPLEMENTED_IF_MSG(instr.atom.operation != GlobalAtomicOp::Add, "operation={}",
+                             static_cast<int>(instr.atom.operation.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.atom.type != GlobalAtomicType::S32, "type={}",
+                             static_cast<int>(instr.atom.type.Value()));
+
+        const auto [real_address, base_address, descriptor] =
+            TrackGlobalMemory(bb, instr, true, true);
+        if (!real_address || !base_address) {
+            // Tracking failed, skip atomic.
+            break;
+        }
+
+        Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
+        Node value = Operation(OperationCode::AtomicAdd, std::move(gmem), GetRegister(instr.gpr20));
+        SetRegister(bb, instr.gpr0, std::move(value));
+        break;
+    }
     case OpCode::Id::ATOMS: {
         UNIMPLEMENTED_IF_MSG(instr.atoms.operation != AtomicOp::Add, "operation={}",
                              static_cast<int>(instr.atoms.operation.Value()));
@@ -348,7 +368,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         Node memory = GetSharedMemory(std::move(address));
         Node data = GetRegister(instr.gpr20);
 
-        Node value = Operation(OperationCode::UAtomicAdd, std::move(memory), std::move(data));
+        Node value = Operation(OperationCode::AtomicAdd, std::move(memory), std::move(data));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }

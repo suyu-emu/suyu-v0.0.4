@@ -162,7 +162,7 @@ enum class OperationCode {
     AtomicImageXor,      /// (MetaImage, int[N] coords) -> void
     AtomicImageExchange, /// (MetaImage, int[N] coords) -> void
 
-    UAtomicAdd, /// (smem, uint) -> uint
+    AtomicAdd, /// (memory, {u}int) -> {u}int
 
     Branch,         /// (uint branch_target) -> void
     BranchIndirect, /// (uint branch_target) -> void

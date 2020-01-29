@@ -1857,10 +1857,7 @@ private:
 
     template <const std::string_view& opname, Type type>
     Expression Atomic(Operation operation) {
-        ASSERT(stage == ShaderType::Compute);
-        auto& smem = std::get<SmemNode>(*operation[0]);
-
-        return {fmt::format("atomic{}(smem[{} >> 2], {})", opname, Visit(smem.GetAddress()).AsInt(),
+        return {fmt::format("atomic{}({}, {})", opname, Visit(operation[0]).GetCode(),
                             Visit(operation[1]).As(type)),
                 type};
     }
