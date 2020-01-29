@@ -135,7 +135,7 @@ std::vector<CopyParams> SurfaceBaseImpl::BreakDownLayered(const SurfaceParams& i
         for (u32 level = 0; level < mipmaps; level++) {
             const u32 width = SurfaceParams::IntersectWidth(params, in_params, level, level);
             const u32 height = SurfaceParams::IntersectHeight(params, in_params, level, level);
-            result.emplace_back(width, height, layer, level);
+            result.emplace_back(0, 0, layer, 0, 0, layer, level, level, width, height, 1);
         }
     }
     return result;
