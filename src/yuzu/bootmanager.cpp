@@ -214,6 +214,7 @@ public:
     }
 };
 
+#ifdef HAS_VULKAN
 class GVKWidgetInternal final : public GWidgetInternal {
 public:
     GVKWidgetInternal(GRenderWindow* parent, QVulkanInstance* instance) : GWidgetInternal(parent) {
@@ -222,6 +223,7 @@ public:
     }
     ~GVKWidgetInternal() override = default;
 };
+#endif
 
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
