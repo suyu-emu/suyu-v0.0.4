@@ -4,7 +4,13 @@
 
 #pragma once
 
+#include <memory>
+
 #include "common/common_types.h"
+
+namespace Memory {
+class Memory;
+}
 
 namespace Core {
 
@@ -21,5 +27,8 @@ public:
     virtual bool ExclusiveWrite64(std::size_t core_index, VAddr vaddr, u64 value) = 0;
     virtual bool ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) = 0;
 };
+
+std::unique_ptr<Core::ExclusiveMonitor> MakeExclusiveMonitor(Memory::Memory& memory,
+                                                             std::size_t num_cores);
 
 } // namespace Core

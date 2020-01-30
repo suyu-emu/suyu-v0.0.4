@@ -7,7 +7,6 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
@@ -96,7 +95,7 @@ void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
     }
     if (resume) {
         thread->ResumeFromWait();
-        Core::System::GetInstance().PrepareReschedule(thread->GetProcessorID());
+        kernel.PrepareReschedule(thread->GetProcessorID());
     }
 }
 

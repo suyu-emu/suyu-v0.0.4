@@ -15,14 +15,14 @@ add_library(core STATIC
     constants.h
     core.cpp
     core.h
-    core_cpu.cpp
-    core_cpu.h
+    core_manager.cpp
+    core_manager.h
     core_timing.cpp
     core_timing.h
     core_timing_util.cpp
     core_timing_util.h
-    cpu_core_manager.cpp
-    cpu_core_manager.h
+    cpu_manager.cpp
+    cpu_manager.h
     crypto/aes_util.cpp
     crypto/aes_util.h
     crypto/encryption_layer.cpp
@@ -158,6 +158,8 @@ add_library(core STATIC
     hle/kernel/mutex.h
     hle/kernel/object.cpp
     hle/kernel/object.h
+    hle/kernel/physical_core.cpp
+    hle/kernel/physical_core.h
     hle/kernel/process.cpp
     hle/kernel/process.h
     hle/kernel/process_capability.cpp

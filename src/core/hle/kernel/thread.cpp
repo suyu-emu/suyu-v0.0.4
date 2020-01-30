@@ -13,7 +13,6 @@
 #include "common/thread_queue_list.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/errors.h"
@@ -356,7 +355,7 @@ void Thread::SetActivity(ThreadActivity value) {
         // Set status if not waiting
         if (status == ThreadStatus::Ready || status == ThreadStatus::Running) {
             SetStatus(ThreadStatus::Paused);
-            Core::System::GetInstance().CpuCore(processor_id).PrepareReschedule();
+            kernel.PrepareReschedule(processor_id);
         }
     } else if (status == ThreadStatus::Paused) {
         // Ready to reschedule

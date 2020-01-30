@@ -11,9 +11,9 @@
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/core_timing.h"
-#include "core/cpu_core_manager.h"
+#include "core/cpu_manager.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/mode.h"
@@ -28,6 +28,7 @@
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
@@ -113,16 +114,25 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system},
-          cpu_core_manager{system}, reporter{system}, applet_manager{system} {}
+          cpu_manager{system}, reporter{system}, applet_manager{system} {}
 
-    Cpu& CurrentCpuCore() {
-        return cpu_core_manager.GetCurrentCore();
+    CoreManager& CurrentCoreManager() {
+        return cpu_manager.GetCurrentCoreManager();
+    }
+
+    Kernel::PhysicalCore& CurrentPhysicalCore() {
+        const auto index = cpu_manager.GetActiveCoreIndex();
+        return kernel.PhysicalCore(index);
+    }
+
+    Kernel::PhysicalCore& GetPhysicalCore(std::size_t index) {
+        return kernel.PhysicalCore(index);
     }
 
     ResultStatus RunLoop(bool tight_loop) {
         status = ResultStatus::Success;
 
-        cpu_core_manager.RunLoop(tight_loop);
+        cpu_manager.RunLoop(tight_loop);
 
         return status;
     }
@@ -131,8 +141,8 @@ struct System::Impl {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
         core_timing.Initialize();
-        cpu_core_manager.Initialize();
         kernel.Initialize();
+        cpu_manager.Initialize();
 
         const auto current_time = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch());
@@ -205,7 +215,6 @@ struct System::Impl {
         // Main process has been loaded and been made current.
         // Begin GPU and CPU execution.
         gpu_core->Start();
-        cpu_core_manager.StartThreads();
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -272,7 +281,7 @@ struct System::Impl {
         gpu_core.reset();
 
         // Close all CPU/threading state
-        cpu_core_manager.Shutdown();
+        cpu_manager.Shutdown();
 
         // Shutdown kernel and core timing
         kernel.Shutdown();
@@ -342,7 +351,7 @@ struct System::Impl {
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     Memory::Memory memory;
-    CpuCoreManager cpu_core_manager;
+    CpuManager cpu_manager;
     bool is_powered_on = false;
     bool exit_lock = false;
 
@@ -377,12 +386,12 @@ struct System::Impl {
 System::System() : impl{std::make_unique<Impl>(*this)} {}
 System::~System() = default;
 
-Cpu& System::CurrentCpuCore() {
-    return impl->CurrentCpuCore();
+CoreManager& System::CurrentCoreManager() {
+    return impl->CurrentCoreManager();
 }
 
-const Cpu& System::CurrentCpuCore() const {
-    return impl->CurrentCpuCore();
+const CoreManager& System::CurrentCoreManager() const {
+    return impl->CurrentCoreManager();
 }
 
 System::ResultStatus System::RunLoop(bool tight_loop) {
@@ -394,7 +403,7 @@ System::ResultStatus System::SingleStep() {
 }
 
 void System::InvalidateCpuInstructionCaches() {
-    impl->cpu_core_manager.InvalidateAllInstructionCaches();
+    impl->kernel.InvalidateAllInstructionCaches();
 }
 
 System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath) {
@@ -406,13 +415,11 @@ bool System::IsPoweredOn() const {
 }
 
 void System::PrepareReschedule() {
-    CurrentCpuCore().PrepareReschedule();
+    impl->CurrentPhysicalCore().Stop();
 }
 
 void System::PrepareReschedule(const u32 core_index) {
-    if (core_index < GlobalScheduler().CpuCoresCount()) {
-        CpuCore(core_index).PrepareReschedule();
-    }
+    impl->kernel.PrepareReschedule(core_index);
 }
 
 PerfStatsResults System::GetAndResetPerfStats() {
@@ -428,31 +435,31 @@ const TelemetrySession& System::TelemetrySession() const {
 }
 
 ARM_Interface& System::CurrentArmInterface() {
-    return CurrentCpuCore().ArmInterface();
+    return impl->CurrentPhysicalCore().ArmInterface();
 }
 
 const ARM_Interface& System::CurrentArmInterface() const {
-    return CurrentCpuCore().ArmInterface();
+    return impl->CurrentPhysicalCore().ArmInterface();
 }
 
 std::size_t System::CurrentCoreIndex() const {
-    return CurrentCpuCore().CoreIndex();
+    return impl->cpu_manager.GetActiveCoreIndex();
 }
 
 Kernel::Scheduler& System::CurrentScheduler() {
-    return CurrentCpuCore().Scheduler();
+    return impl->CurrentPhysicalCore().Scheduler();
 }
 
 const Kernel::Scheduler& System::CurrentScheduler() const {
-    return CurrentCpuCore().Scheduler();
+    return impl->CurrentPhysicalCore().Scheduler();
 }
 
 Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
-    return CpuCore(core_index).Scheduler();
+    return impl->GetPhysicalCore(core_index).Scheduler();
 }
 
 const Kernel::Scheduler& System::Scheduler(std::size_t core_index) const {
-    return CpuCore(core_index).Scheduler();
+    return impl->GetPhysicalCore(core_index).Scheduler();
 }
 
 /// Gets the global scheduler
@@ -474,28 +481,28 @@ const Kernel::Process* System::CurrentProcess() const {
 }
 
 ARM_Interface& System::ArmInterface(std::size_t core_index) {
-    return CpuCore(core_index).ArmInterface();
+    return impl->GetPhysicalCore(core_index).ArmInterface();
 }
 
 const ARM_Interface& System::ArmInterface(std::size_t core_index) const {
-    return CpuCore(core_index).ArmInterface();
+    return impl->GetPhysicalCore(core_index).ArmInterface();
 }
 
-Cpu& System::CpuCore(std::size_t core_index) {
-    return impl->cpu_core_manager.GetCore(core_index);
+CoreManager& System::GetCoreManager(std::size_t core_index) {
+    return impl->cpu_manager.GetCoreManager(core_index);
 }
 
-const Cpu& System::CpuCore(std::size_t core_index) const {
+const CoreManager& System::GetCoreManager(std::size_t core_index) const {
     ASSERT(core_index < NUM_CPU_CORES);
-    return impl->cpu_core_manager.GetCore(core_index);
+    return impl->cpu_manager.GetCoreManager(core_index);
 }
 
 ExclusiveMonitor& System::Monitor() {
-    return impl->cpu_core_manager.GetExclusiveMonitor();
+    return impl->kernel.GetExclusiveMonitor();
 }
 
 const ExclusiveMonitor& System::Monitor() const {
-    return impl->cpu_core_manager.GetExclusiveMonitor();
+    return impl->kernel.GetExclusiveMonitor();
 }
 
 Memory::Memory& System::Memory() {

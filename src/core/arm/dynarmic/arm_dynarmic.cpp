@@ -10,7 +10,7 @@
 #include "common/microprofile.h"
 #include "core/arm/dynarmic/arm_dynarmic.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/gdbstub/gdbstub.h"

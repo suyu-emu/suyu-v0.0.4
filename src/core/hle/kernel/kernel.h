@@ -11,8 +11,9 @@
 #include "core/hle/kernel/object.h"
 
 namespace Core {
+class ExclusiveMonitor;
 class System;
-}
+} // namespace Core
 
 namespace Core::Timing {
 class CoreTiming;
@@ -25,6 +26,7 @@ class AddressArbiter;
 class ClientPort;
 class GlobalScheduler;
 class HandleTable;
+class PhysicalCore;
 class Process;
 class ResourceLimit;
 class Thread;
@@ -83,6 +85,21 @@ public:
 
     /// Gets the sole instance of the global scheduler
     const Kernel::GlobalScheduler& GlobalScheduler() const;
+
+    /// Gets the an instance of the respective physical CPU core.
+    Kernel::PhysicalCore& PhysicalCore(std::size_t id);
+
+    /// Gets the an instance of the respective physical CPU core.
+    const Kernel::PhysicalCore& PhysicalCore(std::size_t id) const;
+
+    /// Stops execution of 'id' core, in order to reschedule a new thread.
+    void PrepareReschedule(std::size_t id);
+
+    Core::ExclusiveMonitor& GetExclusiveMonitor();
+
+    const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
+
+    void InvalidateAllInstructionCaches();
 
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);

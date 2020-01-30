@@ -35,7 +35,7 @@
 #include "common/swap.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"

@@ -15,7 +15,7 @@
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
-#include "core/core_cpu.h"
+#include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/address_arbiter.h"
