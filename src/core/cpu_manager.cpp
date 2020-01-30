@@ -2,14 +2,12 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/assert.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/gdbstub/gdbstub.h"
-#include "core/settings.h"
 
 namespace Core {
 
