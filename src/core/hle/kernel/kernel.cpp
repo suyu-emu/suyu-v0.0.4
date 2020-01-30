@@ -101,7 +101,7 @@ struct KernelCore::Impl {
     void Initialize(KernelCore& kernel) {
         Shutdown();
 
-        InitializePhysicalCores(kernel);
+        InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
         InitializeThreads();
         InitializePreemption();
@@ -131,14 +131,14 @@ struct KernelCore::Impl {
         }
         cores.clear();
 
-        exclusive_monitor.reset(nullptr);
+        exclusive_monitor.reset();
     }
 
-    void InitializePhysicalCores(KernelCore& kernel) {
+    void InitializePhysicalCores() {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), global_scheduler.CpuCoresCount());
         for (std::size_t i = 0; i < global_scheduler.CpuCoresCount(); i++) {
-            cores.emplace_back(system, kernel, i, *exclusive_monitor);
+            cores.emplace_back(system, i, *exclusive_monitor);
         }
     }
 

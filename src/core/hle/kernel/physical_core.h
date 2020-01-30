@@ -21,9 +21,7 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, KernelCore& kernel, std::size_t id,
-                 Core::ExclusiveMonitor& exclusive_monitor);
-
+    PhysicalCore(Core::System& system, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor);
     ~PhysicalCore();
 
     /// Execute current jit state
@@ -66,7 +64,6 @@ public:
 
 private:
     std::size_t core_index;
-    KernelCore& kernel;
     std::shared_ptr<Core::ARM_Interface> arm_interface;
     std::shared_ptr<Kernel::Scheduler> scheduler;
 };
