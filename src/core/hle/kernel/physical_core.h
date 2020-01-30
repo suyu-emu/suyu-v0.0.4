@@ -24,6 +24,12 @@ public:
     PhysicalCore(Core::System& system, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor);
     ~PhysicalCore();
 
+    PhysicalCore(const PhysicalCore&) = delete;
+    PhysicalCore& operator=(const PhysicalCore&) = delete;
+
+    PhysicalCore(PhysicalCore&&) = default;
+    PhysicalCore& operator=(PhysicalCore&&) = default;
+
     /// Execute current jit state
     void Run();
     /// Execute a single instruction in current jit.
@@ -64,8 +70,8 @@ public:
 
 private:
     std::size_t core_index;
-    std::shared_ptr<Core::ARM_Interface> arm_interface;
-    std::shared_ptr<Kernel::Scheduler> scheduler;
+    std::unique_ptr<Core::ARM_Interface> arm_interface;
+    std::unique_ptr<Kernel::Scheduler> scheduler;
 };
 
 } // namespace Kernel
