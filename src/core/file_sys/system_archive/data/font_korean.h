@@ -8,6 +8,6 @@
 
 namespace FileSys::SystemArchive::SharedFontData {
 
-extern const std::array<unsigned char, 2227620> FONT_KOREAN;
+extern const std::array<unsigned char, 217276> FONT_KOREAN;
 
 } // namespace FileSys::SystemArchive::SharedFontData
