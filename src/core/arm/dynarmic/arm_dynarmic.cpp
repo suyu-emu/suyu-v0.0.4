@@ -15,6 +15,7 @@
 #include "core/core_timing_util.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
@@ -87,7 +88,7 @@ public:
             if (GDBStub::IsServerEnabled()) {
                 parent.jit->HaltExecution();
                 parent.SetPC(pc);
-                Kernel::Thread* thread = Kernel::GetCurrentThread();
+                Kernel::Thread* const thread = parent.system.CurrentScheduler().GetCurrentThread();
                 parent.SaveContext(thread->GetContext());
                 GDBStub::Break();
                 GDBStub::SendTrap(thread, 5);

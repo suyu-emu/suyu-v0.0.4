@@ -9,6 +9,7 @@
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
 
 namespace Core {
@@ -177,7 +178,7 @@ void ARM_Unicorn::ExecuteInstructions(std::size_t num_instructions) {
             uc_reg_write(uc, UC_ARM64_REG_PC, &last_bkpt.address);
         }
 
-        Kernel::Thread* thread = Kernel::GetCurrentThread();
+        Kernel::Thread* const thread = system.CurrentScheduler().GetCurrentThread();
         SaveContext(thread->GetContext());
         if (last_bkpt_hit || GDBStub::IsMemoryBreak() || GDBStub::GetCpuStepFlag()) {
             last_bkpt_hit = false;
