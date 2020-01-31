@@ -544,7 +544,8 @@ MemoryInfo VMManager::QueryMemory(VAddr address) const {
 
 ResultCode VMManager::SetMemoryAttribute(VAddr address, u64 size, MemoryAttribute mask,
                                          MemoryAttribute attribute) {
-    constexpr auto ignore_mask = MemoryAttribute::Uncached | MemoryAttribute::DeviceMapped;
+    constexpr auto ignore_mask =
+        MemoryAttribute::Uncached | MemoryAttribute::DeviceMapped | MemoryAttribute::Locked;
     constexpr auto attribute_mask = ~ignore_mask;
 
     const auto result = CheckRangeState(

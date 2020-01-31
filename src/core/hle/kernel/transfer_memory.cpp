@@ -8,15 +8,23 @@
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/result.h"
+#include "core/memory.h"
 
 namespace Kernel {
 
-TransferMemory::TransferMemory(KernelCore& kernel) : Object{kernel} {}
-TransferMemory::~TransferMemory() = default;
+TransferMemory::TransferMemory(KernelCore& kernel, Memory::Memory& memory)
+    : Object{kernel}, memory{memory} {}
 
-std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel, VAddr base_address,
-                                                       u64 size, MemoryPermission permissions) {
-    std::shared_ptr<TransferMemory> transfer_memory{std::make_shared<TransferMemory>(kernel)};
+TransferMemory::~TransferMemory() {
+    // Release memory region when transfer memory is destroyed
+    Reset();
+}
+
+std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel, Memory::Memory& memory,
+                                                       VAddr base_address, u64 size,
+                                                       MemoryPermission permissions) {
+    std::shared_ptr<TransferMemory> transfer_memory{
+        std::make_shared<TransferMemory>(kernel, memory)};
 
     transfer_memory->base_address = base_address;
     transfer_memory->memory_size = size;
@@ -27,7 +35,7 @@ std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel, VAddr
 }
 
 const u8* TransferMemory::GetPointer() const {
-    return backing_block.get()->data();
+    return memory.GetPointer(base_address);
 }
 
 u64 TransferMemory::GetSize() const {
@@ -60,6 +68,52 @@ ResultCode TransferMemory::MapMemory(VAddr address, u64 size, MemoryPermission p
 
     is_mapped = true;
     return RESULT_SUCCESS;
+}
+
+ResultCode TransferMemory::Reserve() {
+    auto& vm_manager{owner_process->VMManager()};
+    const auto check_range_result{vm_manager.CheckRangeState(
+        base_address, memory_size, MemoryState::FlagTransfer | MemoryState::FlagMemoryPoolAllocated,
+        MemoryState::FlagTransfer | MemoryState::FlagMemoryPoolAllocated, VMAPermission::All,
+        VMAPermission::ReadWrite, MemoryAttribute::Mask, MemoryAttribute::None,
+        MemoryAttribute::IpcAndDeviceMapped)};
+
+    if (check_range_result.Failed()) {
+        return check_range_result.Code();
+    }
+
+    auto [state_, permissions_, attribute] = *check_range_result;
+
+    if (const auto result{vm_manager.ReprotectRange(
+            base_address, memory_size, SharedMemory::ConvertPermissions(owner_permissions))};
+        result.IsError()) {
+        return result;
+    }
+
+    return vm_manager.SetMemoryAttribute(base_address, memory_size, MemoryAttribute::Mask,
+                                         attribute | MemoryAttribute::Locked);
+}
+
+ResultCode TransferMemory::Reset() {
+    auto& vm_manager{owner_process->VMManager()};
+    if (const auto result{vm_manager.CheckRangeState(
+            base_address, memory_size,
+            MemoryState::FlagTransfer | MemoryState::FlagMemoryPoolAllocated,
+            MemoryState::FlagTransfer | MemoryState::FlagMemoryPoolAllocated, VMAPermission::None,
+            VMAPermission::None, MemoryAttribute::Mask, MemoryAttribute::Locked,
+            MemoryAttribute::IpcAndDeviceMapped)};
+        result.Failed()) {
+        return result.Code();
+    }
+
+    if (const auto result{
+            vm_manager.ReprotectRange(base_address, memory_size, VMAPermission::ReadWrite)};
+        result.IsError()) {
+        return result;
+    }
+
+    return vm_manager.SetMemoryAttribute(base_address, memory_size, MemoryAttribute::Mask,
+                                         MemoryAttribute::None);
 }
 
 ResultCode TransferMemory::UnmapMemory(VAddr address, u64 size) {
