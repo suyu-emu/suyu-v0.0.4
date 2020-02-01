@@ -170,6 +170,44 @@
           </item>
          </layout>
         </item>
+        <item row="4" column="0" colspan="2">
+         <layout class="QVBoxLayout" name="sliderRStickDeadzoneVerticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="sliderRStickDeadzoneHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelRStickDeadzone">
+              <property name="text">
+               <string>Deadzone: 0</string>
+              </property>
+              <property name="alignment">
+               <enum>Qt::AlignHCenter</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QSlider" name="sliderRStickDeadzone">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="5" column="0">
+         <spacer name="RStick_verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
        </layout>
       </widget>
      </item>
@@ -744,6 +782,47 @@
            </widget>
           </item>
          </layout>
+        </item>
+        <item row="5" column="1" colspan="2">
+         <layout class="QVBoxLayout" name="sliderLStickDeadzoneVerticalLayout">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <item>
+           <layout class="QHBoxLayout" name="sliderLStickDeadzoneHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelLStickDeadzone">
+              <property name="text">
+               <string>Deadzone: 0</string>
+              </property>
+              <property name="alignment">
+               <enum>Qt::AlignHCenter</enum>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QSlider" name="sliderLStickDeadzone">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="6" column="1">
+         <spacer name="LStick_verticalSpacer">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
