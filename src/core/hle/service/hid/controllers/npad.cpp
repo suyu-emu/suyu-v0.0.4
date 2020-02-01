@@ -250,6 +250,10 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     auto& rstick_entry = npad_pad_states[controller_idx].r_stick;
     const auto& button_state = buttons[controller_idx];
     const auto& analog_state = sticks[controller_idx];
+    const auto [stick_l_x_f, stick_l_y_f] =
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
+    const auto [stick_r_x_f, stick_r_y_f] =
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]->GetStatus();
 
     using namespace Settings::NativeButton;
     pad_state.a.Assign(button_state[A - BUTTON_HID_BEGIN]->GetStatus());
@@ -270,23 +274,32 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     pad_state.d_right.Assign(button_state[DRight - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.d_down.Assign(button_state[DDown - BUTTON_HID_BEGIN]->GetStatus());
 
-    pad_state.l_stick_left.Assign(button_state[LStick_Left - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_up.Assign(button_state[LStick_Up - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_right.Assign(button_state[LStick_Right - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.l_stick_down.Assign(button_state[LStick_Down - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.l_stick_right.Assign(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+            Input::AnalogDirection::RIGHT));
+    pad_state.l_stick_left.Assign(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+            Input::AnalogDirection::LEFT));
+    pad_state.l_stick_up.Assign(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+            Input::AnalogDirection::UP));
+    pad_state.l_stick_down.Assign(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+            Input::AnalogDirection::DOWN));
 
-    pad_state.r_stick_left.Assign(button_state[RStick_Left - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_up.Assign(button_state[RStick_Up - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_right.Assign(button_state[RStick_Right - BUTTON_HID_BEGIN]->GetStatus());
-    pad_state.r_stick_down.Assign(button_state[RStick_Down - BUTTON_HID_BEGIN]->GetStatus());
+    pad_state.r_stick_up.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+                                    ->GetAnalogDirectionStatus(Input::AnalogDirection::RIGHT));
+    pad_state.r_stick_left.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::LEFT));
+    pad_state.r_stick_right.Assign(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+            ->GetAnalogDirectionStatus(Input::AnalogDirection::UP));
+    pad_state.r_stick_down.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::DOWN));
 
     pad_state.left_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.left_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
 
-    const auto [stick_l_x_f, stick_l_y_f] =
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
-    const auto [stick_r_x_f, stick_r_y_f] =
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]->GetStatus();
     lstick_entry.x = static_cast<s32>(stick_l_x_f * HID_JOYSTICK_MAX);
     lstick_entry.y = static_cast<s32>(stick_l_y_f * HID_JOYSTICK_MAX);
     rstick_entry.x = static_cast<s32>(stick_r_x_f * HID_JOYSTICK_MAX);

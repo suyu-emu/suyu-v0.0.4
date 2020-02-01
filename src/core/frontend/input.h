@@ -15,12 +15,22 @@
 
 namespace Input {
 
+enum class AnalogDirection : u8 {
+    RIGHT,
+    LEFT,
+    UP,
+    DOWN,
+};
+
 /// An abstract class template for an input device (a button, an analog input, etc.).
 template <typename StatusType>
 class InputDevice {
 public:
     virtual ~InputDevice() = default;
     virtual StatusType GetStatus() const {
+        return {};
+    }
+    virtual bool GetAnalogDirectionStatus(AnalogDirection direction) const {
         return {};
     }
 };
