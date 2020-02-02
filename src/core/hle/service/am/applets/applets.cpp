@@ -50,7 +50,7 @@ AppletDataBroker::RawChannelData AppletDataBroker::PeekDataToAppletForDebug() co
     return {std::move(out_normal), std::move(out_interactive)};
 }
 
-std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
+std::shared_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
     if (out_channel.empty())
         return nullptr;
 
@@ -60,7 +60,7 @@ std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
     return out;
 }
 
-std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToApplet() {
+std::shared_ptr<IStorage> AppletDataBroker::PopNormalDataToApplet() {
     if (in_channel.empty())
         return nullptr;
 
@@ -69,7 +69,7 @@ std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToApplet() {
     return out;
 }
 
-std::unique_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
+std::shared_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
     if (out_interactive_channel.empty())
         return nullptr;
 
@@ -79,7 +79,7 @@ std::unique_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
     return out;
 }
 
-std::unique_ptr<IStorage> AppletDataBroker::PopInteractiveDataToApplet() {
+std::shared_ptr<IStorage> AppletDataBroker::PopInteractiveDataToApplet() {
     if (in_interactive_channel.empty())
         return nullptr;
 
@@ -88,21 +88,21 @@ std::unique_ptr<IStorage> AppletDataBroker::PopInteractiveDataToApplet() {
     return out;
 }
 
-void AppletDataBroker::PushNormalDataFromGame(IStorage storage) {
-    in_channel.push_back(std::make_unique<IStorage>(storage));
+void AppletDataBroker::PushNormalDataFromGame(std::shared_ptr<IStorage>&& storage) {
+    in_channel.emplace_back(std::move(storage));
 }
 
-void AppletDataBroker::PushNormalDataFromApplet(IStorage storage) {
-    out_channel.push_back(std::make_unique<IStorage>(storage));
+void AppletDataBroker::PushNormalDataFromApplet(std::shared_ptr<IStorage>&& storage) {
+    out_channel.emplace_back(std::move(storage));
     pop_out_data_event.writable->Signal();
 }
 
-void AppletDataBroker::PushInteractiveDataFromGame(IStorage storage) {
-    in_interactive_channel.push_back(std::make_unique<IStorage>(storage));
+void AppletDataBroker::PushInteractiveDataFromGame(std::shared_ptr<IStorage>&& storage) {
+    in_interactive_channel.emplace_back(std::move(storage));
 }
 
-void AppletDataBroker::PushInteractiveDataFromApplet(IStorage storage) {
-    out_interactive_channel.push_back(std::make_unique<IStorage>(storage));
+void AppletDataBroker::PushInteractiveDataFromApplet(std::shared_ptr<IStorage>&& storage) {
+    out_interactive_channel.emplace_back(std::move(storage));
     pop_interactive_out_data_event.writable->Signal();
 }
 

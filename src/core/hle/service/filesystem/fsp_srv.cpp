@@ -420,7 +420,7 @@ public:
             return;
         }
 
-        IFile file(result.Unwrap());
+        auto file = std::make_shared<IFile>(result.Unwrap());
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -445,7 +445,7 @@ public:
             return;
         }
 
-        IDirectory directory(result.Unwrap());
+        auto directory = std::make_shared<IDirectory>(result.Unwrap());
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
@@ -794,8 +794,8 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenSdCardFileSystem(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_FS, "called");
 
-    IFileSystem filesystem(fsc.OpenSDMC().Unwrap(),
-                           SizeGetter::FromStorageId(fsc, FileSys::StorageId::SdCard));
+    auto filesystem = std::make_shared<IFileSystem>(
+        fsc.OpenSDMC().Unwrap(), SizeGetter::FromStorageId(fsc, FileSys::StorageId::SdCard));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -846,7 +846,8 @@ void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
         id = FileSys::StorageId::NandSystem;
     }
 
-    IFileSystem filesystem(std::move(dir.Unwrap()), SizeGetter::FromStorageId(fsc, id));
+    auto filesystem =
+        std::make_shared<IFileSystem>(std::move(dir.Unwrap()), SizeGetter::FromStorageId(fsc, id));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -898,7 +899,7 @@ void FSP_SRV::OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    IStorage storage(std::move(romfs.Unwrap()));
+    auto storage = std::make_shared<IStorage>(std::move(romfs.Unwrap()));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -937,7 +938,8 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
 
     FileSys::PatchManager pm{title_id};
 
-    IStorage storage(pm.PatchRomFS(std::move(data.Unwrap()), 0, FileSys::ContentRecordType::Data));
+    auto storage = std::make_shared<IStorage>(
+        pm.PatchRomFS(std::move(data.Unwrap()), 0, FileSys::ContentRecordType::Data));
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);

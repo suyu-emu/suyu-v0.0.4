@@ -847,7 +847,7 @@ private:
         LOG_DEBUG(Service_AM, "called");
 
         IPC::RequestParser rp{ctx};
-        applet->GetBroker().PushNormalDataFromGame(*rp.PopIpcInterface<IStorage>());
+        applet->GetBroker().PushNormalDataFromGame(rp.PopIpcInterface<IStorage>());
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
@@ -867,14 +867,14 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(*storage));
+        rb.PushIpcInterface<IStorage>(std::move(storage));
     }
 
     void PushInteractiveInData(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
         IPC::RequestParser rp{ctx};
-        applet->GetBroker().PushInteractiveDataFromGame(*rp.PopIpcInterface<IStorage>());
+        applet->GetBroker().PushInteractiveDataFromGame(rp.PopIpcInterface<IStorage>());
 
         ASSERT(applet->IsInitialized());
         applet->ExecuteInteractive();
@@ -898,7 +898,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IStorage>(std::move(*storage));
+        rb.PushIpcInterface<IStorage>(std::move(storage));
     }
 
     void GetPopOutDataEvent(Kernel::HLERequestContext& ctx) {
