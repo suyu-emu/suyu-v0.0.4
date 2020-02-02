@@ -55,16 +55,20 @@ namespace {
 
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
-                                               Tegra::Engines::ShaderType shader_type) {
+                                               Tegra::Engines::ShaderType shader_type,
+                                               std::size_t index = 0) {
     if (entry.IsBindless()) {
         const Tegra::Texture::TextureHandle tex_handle =
             engine.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
         return engine.GetTextureInfo(tex_handle);
     }
+    const auto& gpu_profile = engine.AccessGuestDriverProfile();
+    const u32 offset =
+        entry.GetOffset() + static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
     if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
-        return engine.GetStageTexture(shader_type, entry.GetOffset());
+        return engine.GetStageTexture(shader_type, offset);
     } else {
-        return engine.GetTexture(entry.GetOffset());
+        return engine.GetTexture(offset);
     }
 }
 
@@ -942,8 +946,15 @@ void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& 
     u32 binding = device.GetBaseBindings(stage_index).sampler;
     for (const auto& entry : shader->GetShaderEntries().samplers) {
         const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
-        const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
-        SetupTexture(binding++, texture, entry);
+        if (!entry.IsIndexed()) {
+            const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
+            SetupTexture(binding++, texture, entry);
+        } else {
+            for (std::size_t i = 0; i < entry.Size(); ++i) {
+                const auto texture = GetTextureInfo(maxwell3d, entry, shader_type, i);
+                SetupTexture(binding++, texture, entry);
+            }
+        }
     }
 }
 
@@ -952,8 +963,17 @@ void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     const auto& compute = system.GPU().KeplerCompute();
     u32 binding = 0;
     for (const auto& entry : kernel->GetShaderEntries().samplers) {
-        const auto texture = GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
-        SetupTexture(binding++, texture, entry);
+        if (!entry.IsIndexed()) {
+            const auto texture =
+                GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
+            SetupTexture(binding++, texture, entry);
+        } else {
+            for (std::size_t i = 0; i < entry.Size(); ++i) {
+                const auto texture =
+                    GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute, i);
+                SetupTexture(binding++, texture, entry);
+            }
+        }
     }
 }
 

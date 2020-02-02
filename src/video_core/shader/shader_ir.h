@@ -180,6 +180,10 @@ public:
         return amend_code[index];
     }
 
+    u32 GetNumCustomVariables() const {
+        return num_custom_variables;
+    }
+
 private:
     friend class ASTDecoder;
 
@@ -191,6 +195,7 @@ private:
     };
 
     void Decode();
+    void PostDecode();
 
     NodeBlock DecodeRange(u32 begin, u32 end);
     void DecodeRangeInner(NodeBlock& bb, u32 begin, u32 end);
@@ -235,6 +240,8 @@ private:
 
     /// Generates a node for a passed register.
     Node GetRegister(Tegra::Shader::Register reg);
+    /// Generates a node for a custom variable
+    Node GetCustomVariable(u32 id);
     /// Generates a node representing a 19-bit immediate value
     Node GetImmediate19(Tegra::Shader::Instruction instr);
     /// Generates a node representing a 32-bit immediate value
@@ -321,7 +328,7 @@ private:
                               std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses a texture sampler for a bindless texture.
-    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg,
+    const Sampler* GetBindlessSampler(Tegra::Shader::Register reg, Node& index_var,
                                       std::optional<SamplerInfo> sampler_info = std::nullopt);
 
     /// Accesses an image.
@@ -387,6 +394,9 @@ private:
 
     std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
+    std::tuple<Node, TrackSampler> TrackBindlessSampler(Node tracked, const NodeBlock& code,
+                                                        s64 cursor);
+
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 
     std::pair<Node, s64> TrackRegister(const GprNode* tracked, const NodeBlock& code,
@@ -398,6 +408,8 @@ private:
 
     /// Register new amending code and obtain the reference id.
     std::size_t DeclareAmend(Node new_amend);
+
+    u32 NewCustomVariable();
 
     const ProgramCode& program_code;
     const u32 main_offset;
@@ -414,6 +426,7 @@ private:
     NodeBlock global_code;
     ASTManager program_manager{true, true};
     std::vector<Node> amend_code;
+    u32 num_custom_variables{};
 
     std::set<u32> used_registers;
     std::set<Tegra::Shader::Pred> used_predicates;
@@ -431,6 +444,7 @@ private:
     bool uses_instance_id{};
     bool uses_vertex_id{};
     bool uses_warps{};
+    bool uses_indexed_samplers{};
 
     Tegra::Shader::Header header;
 };

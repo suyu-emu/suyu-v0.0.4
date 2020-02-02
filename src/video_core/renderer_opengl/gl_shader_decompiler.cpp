@@ -391,6 +391,7 @@ public:
         DeclareVertex();
         DeclareGeometry();
         DeclareRegisters();
+        DeclareCustomVariables();
         DeclarePredicates();
         DeclareLocalMemory();
         DeclareInternalFlags();
@@ -499,6 +500,16 @@ private:
             code.AddLine("float {} = 0.0f;", GetRegister(gpr));
         }
         if (!registers.empty()) {
+            code.AddNewLine();
+        }
+    }
+
+    void DeclareCustomVariables() {
+        const u32 num_custom_variables = ir.GetNumCustomVariables();
+        for (u32 i = 0; i < num_custom_variables; ++i) {
+            code.AddLine("float {} = 0.0f;", GetCustomVariable(i));
+        }
+        if (num_custom_variables > 0) {
             code.AddNewLine();
         }
     }
@@ -655,7 +666,8 @@ private:
         u32 binding = device.GetBaseBindings(stage).sampler;
         for (const auto& sampler : ir.GetSamplers()) {
             const std::string name = GetSampler(sampler);
-            const std::string description = fmt::format("layout (binding = {}) uniform", binding++);
+            const std::string description = fmt::format("layout (binding = {}) uniform", binding);
+            binding += sampler.IsIndexed() ? sampler.Size() : 1;
 
             std::string sampler_type = [&]() {
                 if (sampler.IsBuffer()) {
@@ -682,7 +694,11 @@ private:
                 sampler_type += "Shadow";
             }
 
-            code.AddLine("{} {} {};", description, sampler_type, name);
+            if (!sampler.IsIndexed()) {
+                code.AddLine("{} {} {};", description, sampler_type, name);
+            } else {
+                code.AddLine("{} {} {}[{}];", description, sampler_type, name, sampler.Size());
+            }
         }
         if (!ir.GetSamplers().empty()) {
             code.AddNewLine();
@@ -773,6 +789,11 @@ private:
                 return {"0U", Type::Uint};
             }
             return {GetRegister(index), Type::Float};
+        }
+
+        if (const auto cv = std::get_if<CustomVarNode>(&*node)) {
+            const u32 index = cv->GetIndex();
+            return {GetCustomVariable(index), Type::Float};
         }
 
         if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
@@ -1098,7 +1119,11 @@ private:
         } else if (!meta->ptp.empty()) {
             expr += "Offsets";
         }
-        expr += '(' + GetSampler(meta->sampler) + ", ";
+        if (!meta->sampler.IsIndexed()) {
+            expr += '(' + GetSampler(meta->sampler) + ", ";
+        } else {
+            expr += '(' + GetSampler(meta->sampler) + '[' + Visit(meta->index).AsUint() + "], ";
+        }
         expr += coord_constructors.at(count + (has_array ? 1 : 0) +
                                       (has_shadow && !separate_dc ? 1 : 0) - 1);
         expr += '(';
@@ -1310,6 +1335,8 @@ private:
             const std::string final_offset = fmt::format("({} - {}) >> 2", real, base);
             target = {fmt::format("{}[{}]", GetGlobalMemory(gmem->GetDescriptor()), final_offset),
                       Type::Uint};
+        } else if (const auto cv = std::get_if<CustomVarNode>(&*dest)) {
+            target = {GetCustomVariable(cv->GetIndex()), Type::Float};
         } else {
             UNREACHABLE_MSG("Assign called without a proper target");
         }
@@ -2235,6 +2262,10 @@ private:
 
     std::string GetRegister(u32 index) const {
         return GetDeclarationWithSuffix(index, "gpr");
+    }
+
+    std::string GetCustomVariable(u32 index) const {
+        return GetDeclarationWithSuffix(index, "custom_var");
     }
 
     std::string GetPredicate(Tegra::Shader::Pred pred) const {

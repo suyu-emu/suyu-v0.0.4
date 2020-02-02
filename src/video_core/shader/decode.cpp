@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <limits>
 #include <set>
 
 #include <fmt/format.h>
@@ -31,6 +32,52 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
     u32 absolute_offset = offset - main_offset;
 
     return (absolute_offset % SchedPeriod) == 0;
+}
+
+void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
+                              const std::list<Sampler>& used_samplers) {
+    if (gpu_driver == nullptr) {
+        LOG_CRITICAL(HW_GPU, "GPU driver profile has not been created yet");
+        return;
+    }
+    if (gpu_driver->TextureHandlerSizeKnown() || used_samplers.size() <= 1) {
+        return;
+    }
+    u32 count{};
+    std::vector<u32> bound_offsets;
+    for (const auto& sampler : used_samplers) {
+        if (sampler.IsBindless()) {
+            continue;
+        }
+        ++count;
+        bound_offsets.emplace_back(sampler.GetOffset());
+    }
+    if (count > 1) {
+        gpu_driver->DeduceTextureHandlerSize(std::move(bound_offsets));
+    }
+}
+
+std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
+                                        VideoCore::GuestDriverProfile* gpu_driver,
+                                        const std::list<Sampler>& used_samplers) {
+    if (gpu_driver == nullptr) {
+        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
+        return std::nullopt;
+    }
+    const u32 base_offset = sampler_to_deduce.GetOffset();
+    u32 max_offset{std::numeric_limits<u32>::max()};
+    for (const auto& sampler : used_samplers) {
+        if (sampler.IsBindless()) {
+            continue;
+        }
+        if (sampler.GetOffset() > base_offset) {
+            max_offset = std::min(sampler.GetOffset(), max_offset);
+        }
+    }
+    if (max_offset == std::numeric_limits<u32>::max()) {
+        return std::nullopt;
+    }
+    return ((max_offset - base_offset) * 4) / gpu_driver->GetTextureHandlerSize();
 }
 
 } // Anonymous namespace
@@ -313,6 +360,27 @@ u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
     }
 
     return pc + 1;
+}
+
+void ShaderIR::PostDecode() {
+    // Deduce texture handler size if needed
+    auto gpu_driver = locker.AccessGuestDriverProfile();
+    DeduceTextureHandlerSize(gpu_driver, used_samplers);
+    // Deduce Indexed Samplers
+    if (!uses_indexed_samplers) {
+        return;
+    }
+    for (auto& sampler : used_samplers) {
+        if (!sampler.IsIndexed()) {
+            continue;
+        }
+        if (const auto size = TryDeduceSamplerSize(sampler, gpu_driver, used_samplers)) {
+            sampler.SetSize(*size);
+        } else {
+            LOG_CRITICAL(HW_GPU, "Failed to deduce size of indexed sampler");
+            sampler.SetSize(1);
+        }
+    }
 }
 
 } // namespace VideoCommon::Shader

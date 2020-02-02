@@ -10,6 +10,7 @@
 #include "common/hash.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/guest_driver.h"
 
 namespace VideoCommon::Shader {
 
@@ -40,6 +41,8 @@ public:
 
     std::optional<Tegra::Engines::SamplerDescriptor> ObtainBindlessSampler(u32 buffer, u32 offset);
 
+    std::optional<u32> ObtainBoundBuffer();
+
     /// Inserts a key.
     void InsertKey(u32 buffer, u32 offset, u32 value);
 
@@ -48,6 +51,9 @@ public:
 
     /// Inserts a bindless sampler key.
     void InsertBindlessSampler(u32 buffer, u32 offset, Tegra::Engines::SamplerDescriptor sampler);
+
+    /// Set the bound buffer for this locker.
+    void SetBoundBuffer(u32 buffer);
 
     /// Checks keys and samplers against engine's current const buffers. Returns true if they are
     /// the same value, false otherwise;
@@ -71,12 +77,27 @@ public:
         return bindless_samplers;
     }
 
+    /// Gets bound buffer used on this shader
+    u32 GetBoundBuffer() const {
+        return bound_buffer;
+    }
+
+    /// Obtains access to the guest driver's profile.
+    VideoCore::GuestDriverProfile* AccessGuestDriverProfile() const {
+        if (engine) {
+            return &engine->AccessGuestDriverProfile();
+        }
+        return nullptr;
+    }
+
 private:
     const Tegra::Engines::ShaderType stage;
     Tegra::Engines::ConstBufferEngineInterface* engine = nullptr;
     KeyMap keys;
     BoundSamplerMap bound_samplers;
     BindlessSamplerMap bindless_samplers;
+    bool bound_buffer_saved{};
+    u32 bound_buffer{};
 };
 
 } // namespace VideoCommon::Shader

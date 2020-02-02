@@ -27,6 +27,7 @@ ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSet
                    ConstBufferLocker& locker)
     : program_code{program_code}, main_offset{main_offset}, settings{settings}, locker{locker} {
     Decode();
+    PostDecode();
 }
 
 ShaderIR::~ShaderIR() = default;
@@ -36,6 +37,10 @@ Node ShaderIR::GetRegister(Register reg) {
         used_registers.insert(static_cast<u32>(reg));
     }
     return MakeNode<GprNode>(reg);
+}
+
+Node ShaderIR::GetCustomVariable(u32 id) {
+    return MakeNode<CustomVarNode>(id);
 }
 
 Node ShaderIR::GetImmediate19(Instruction instr) {
@@ -450,6 +455,10 @@ std::size_t ShaderIR::DeclareAmend(Node new_amend) {
     const std::size_t id = amend_code.size();
     amend_code.push_back(new_amend);
     return id;
+}
+
+u32 ShaderIR::NewCustomVariable() {
+    return num_custom_variables++;
 }
 
 } // namespace VideoCommon::Shader

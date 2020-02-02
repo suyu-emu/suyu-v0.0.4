@@ -94,6 +94,14 @@ SamplerDescriptor KeplerCompute::AccessBindlessSampler(ShaderType stage, u64 con
     return result;
 }
 
+VideoCore::GuestDriverProfile& KeplerCompute::AccessGuestDriverProfile() {
+    return rasterizer.AccessGuestDriverProfile();
+}
+
+const VideoCore::GuestDriverProfile& KeplerCompute::AccessGuestDriverProfile() const {
+    return rasterizer.AccessGuestDriverProfile();
+}
+
 void KeplerCompute::ProcessLaunch() {
     const GPUVAddr launch_desc_loc = regs.launch_desc_loc.Address();
     memory_manager.ReadBlockUnsafe(launch_desc_loc, &launch_description,

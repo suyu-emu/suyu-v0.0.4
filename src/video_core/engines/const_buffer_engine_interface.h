@@ -9,6 +9,7 @@
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/guest_driver.h"
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
@@ -106,6 +107,9 @@ public:
     virtual SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,
                                                     u64 offset) const = 0;
     virtual u32 GetBoundBuffer() const = 0;
+
+    virtual VideoCore::GuestDriverProfile& AccessGuestDriverProfile() = 0;
+    virtual const VideoCore::GuestDriverProfile& AccessGuestDriverProfile() const = 0;
 };
 
 } // namespace Tegra::Engines

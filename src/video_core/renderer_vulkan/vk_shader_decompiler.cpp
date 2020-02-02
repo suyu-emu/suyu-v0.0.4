@@ -353,6 +353,7 @@ private:
         DeclareFragment();
         DeclareCompute();
         DeclareRegisters();
+        DeclareCustomVariables();
         DeclarePredicates();
         DeclareLocalMemory();
         DeclareSharedMemory();
@@ -583,6 +584,15 @@ private:
             const Id id = OpVariable(t_prv_float, spv::StorageClass::Private, v_float_zero);
             Name(id, fmt::format("gpr_{}", gpr));
             registers.emplace(gpr, AddGlobalVariable(id));
+        }
+    }
+
+    void DeclareCustomVariables() {
+        const u32 num_custom_variables = ir.GetNumCustomVariables();
+        for (u32 i = 0; i < num_custom_variables; ++i) {
+            const Id id = OpVariable(t_prv_float, spv::StorageClass::Private, v_float_zero);
+            Name(id, fmt::format("custom_var_{}", i));
+            custom_variables.emplace(i, AddGlobalVariable(id));
         }
     }
 
@@ -982,6 +992,11 @@ private:
             return {OpLoad(t_float, registers.at(index)), Type::Float};
         }
 
+        if (const auto cv = std::get_if<CustomVarNode>(&*node)) {
+            const u32 index = cv->GetIndex();
+            return {OpLoad(t_float, custom_variables.at(index)), Type::Float};
+        }
+
         if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
             return {Constant(t_uint, immediate->GetValue()), Type::Uint};
         }
@@ -1332,6 +1347,9 @@ private:
 
         } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
             target = {GetGlobalMemoryPointer(*gmem), Type::Uint};
+
+        } else if (const auto cv = std::get_if<CustomVarNode>(&*dest)) {
+            target = {custom_variables.at(cv->GetIndex()), Type::Float};
 
         } else {
             UNIMPLEMENTED();
@@ -2508,6 +2526,7 @@ private:
     Id out_vertex{};
     Id in_vertex{};
     std::map<u32, Id> registers;
+    std::map<u32, Id> custom_variables;
     std::map<Tegra::Shader::Pred, Id> predicates;
     std::map<u32, Id> flow_variables;
     Id local_memory{};

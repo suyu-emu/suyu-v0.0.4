@@ -45,6 +45,12 @@ Node MakeNode(Args&&... args) {
     return std::make_shared<NodeData>(T(std::forward<Args>(args)...));
 }
 
+template <typename T, typename... Args>
+TrackSampler MakeTrackSampler(Args&&... args) {
+    static_assert(std::is_convertible_v<T, TrackSamplerData>);
+    return std::make_shared<TrackSamplerData>(T(std::forward<Args>(args)...));
+}
+
 template <typename... Args>
 Node Operation(OperationCode code, Args&&... args) {
     if constexpr (sizeof...(args) == 0) {
