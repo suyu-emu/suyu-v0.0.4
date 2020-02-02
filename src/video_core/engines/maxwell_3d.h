@@ -704,8 +704,8 @@ public:
                 INSERT_UNION_PADDING_WORDS(0x15);
 
                 s32 stencil_back_func_ref;
-                u32 stencil_back_func_mask;
                 u32 stencil_back_mask;
+                u32 stencil_back_func_mask;
 
                 INSERT_UNION_PADDING_WORDS(0xC);
 
@@ -1458,8 +1458,8 @@ ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
 ASSERT_REG_POSITION(patch_vertices, 0x373);
 ASSERT_REG_POSITION(scissor_test, 0x380);
 ASSERT_REG_POSITION(stencil_back_func_ref, 0x3D5);
-ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D6);
-ASSERT_REG_POSITION(stencil_back_mask, 0x3D7);
+ASSERT_REG_POSITION(stencil_back_mask, 0x3D6);
+ASSERT_REG_POSITION(stencil_back_func_mask, 0x3D7);
 ASSERT_REG_POSITION(color_mask_common, 0x3E4);
 ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
 ASSERT_REG_POSITION(depth_bounds, 0x3E7);
