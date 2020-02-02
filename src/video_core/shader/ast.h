@@ -65,8 +65,8 @@ public:
     void DetachSegment(ASTNode start, ASTNode end);
     void Remove(ASTNode node);
 
-    ASTNode first{};
-    ASTNode last{};
+    ASTNode first;
+    ASTNode last;
 };
 
 class ASTProgram {
@@ -299,9 +299,9 @@ private:
     friend class ASTZipper;
 
     ASTData data;
-    ASTNode parent{};
-    ASTNode next{};
-    ASTNode previous{};
+    ASTNode parent;
+    ASTNode next;
+    ASTNode previous;
     ASTZipper* manager{};
 };
 

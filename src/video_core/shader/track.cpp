@@ -41,8 +41,8 @@ std::optional<std::pair<Node, Node>> DecoupleIndirectRead(const OperationNode& o
     if (operation.GetCode() != OperationCode::UAdd) {
         return std::nullopt;
     }
-    Node gpr{};
-    Node offset{};
+    Node gpr;
+    Node offset;
     ASSERT(operation.GetOperandsCount() == 2);
     for (std::size_t i = 0; i < operation.GetOperandsCount(); i++) {
         Node operand = operation[i];
