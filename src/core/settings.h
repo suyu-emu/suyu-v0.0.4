@@ -371,6 +371,11 @@ enum class SDMCSize : u64 {
     S1TB = 0x10000000000ULL,
 };
 
+enum class RendererBackend {
+    OpenGL = 0,
+    Vulkan = 1,
+};
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -419,6 +424,10 @@ struct Values {
     SDMCSize sdmc_size;
 
     // Renderer
+    RendererBackend renderer_backend;
+    bool renderer_debug;
+    int vulkan_device;
+
     float resolution_factor;
     bool use_frame_limit;
     u16 frame_limit;

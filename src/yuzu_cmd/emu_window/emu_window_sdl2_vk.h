@@ -1,17 +1,17 @@
-// Copyright 2019 yuzu Emulator Project
+// Copyright 2018 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <memory>
+#include <vulkan/vulkan.h>
 #include "core/frontend/emu_window.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
-class EmuWindow_SDL2_GL final : public EmuWindow_SDL2 {
+class EmuWindow_SDL2_VK final : public EmuWindow_SDL2 {
 public:
-    explicit EmuWindow_SDL2_GL(bool fullscreen);
-    ~EmuWindow_SDL2_GL();
+    explicit EmuWindow_SDL2_VK(bool fullscreen);
+    ~EmuWindow_SDL2_VK();
 
     /// Swap buffers to display the next frame
     void SwapBuffers() override;
@@ -22,17 +22,18 @@ public:
     /// Releases the GL context from the caller thread
     void DoneCurrent() override;
 
-    /// Ignored in OpenGL
+    /// Retrieves Vulkan specific handlers from the window
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                 void* surface) const override;
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
 private:
-    /// Whether the GPU and driver supports the OpenGL extension required
-    bool SupportsRequiredGLExtensions();
+    bool UseStandardLayers(PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr) const;
 
-    using SDL_GLContext = void*;
-    /// The OpenGL context associated with the window
-    SDL_GLContext gl_context;
+    VkInstance vk_instance{};
+    VkSurfaceKHR vk_surface{};
+
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr{};
+    PFN_vkDestroyInstance vkDestroyInstance{};
 };

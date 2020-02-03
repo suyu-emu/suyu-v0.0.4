@@ -624,6 +624,10 @@ void Config::ReadPathValues() {
 void Config::ReadRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
+    Settings::values.renderer_backend =
+        static_cast<Settings::RendererBackend>(ReadSetting(QStringLiteral("backend"), 0).toInt());
+    Settings::values.renderer_debug = ReadSetting(QStringLiteral("debug"), false).toBool();
+    Settings::values.vulkan_device = ReadSetting(QStringLiteral("vulkan_device"), 0).toInt();
     Settings::values.resolution_factor =
         ReadSetting(QStringLiteral("resolution_factor"), 1.0).toFloat();
     Settings::values.use_frame_limit =
@@ -1056,6 +1060,9 @@ void Config::SavePathValues() {
 void Config::SaveRendererValues() {
     qt_config->beginGroup(QStringLiteral("Renderer"));
 
+    WriteSetting(QStringLiteral("backend"), static_cast<int>(Settings::values.renderer_backend), 0);
+    WriteSetting(QStringLiteral("debug"), Settings::values.renderer_debug, false);
+    WriteSetting(QStringLiteral("vulkan_device"), Settings::values.vulkan_device, 0);
     WriteSetting(QStringLiteral("resolution_factor"),
                  static_cast<double>(Settings::values.resolution_factor), 1.0);
     WriteSetting(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);

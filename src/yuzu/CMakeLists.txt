@@ -200,3 +200,8 @@ if (MSVC)
     copy_yuzu_SDL_deps(yuzu)
     copy_yuzu_unicorn_deps(yuzu)
 endif()
+
+if (ENABLE_VULKAN)
+    target_include_directories(yuzu PRIVATE ../../externals/Vulkan-Headers/include)
+    target_compile_definitions(yuzu PRIVATE HAS_VULKAN)
+endif()

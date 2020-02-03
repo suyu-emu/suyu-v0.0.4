@@ -2,19 +2,30 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <glad/glad.h>
+
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QKeyEvent>
+#include <QMessageBox>
 #include <QOffscreenSurface>
 #include <QOpenGLWindow>
 #include <QPainter>
 #include <QScreen>
+#include <QStringList>
 #include <QWindow>
+#ifdef HAS_VULKAN
+#include <QVulkanWindow>
+#endif
+
 #include <fmt/format.h>
+
+#include "common/assert.h"
 #include "common/microprofile.h"
 #include "common/scm_rev.h"
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
+#include "core/frontend/scope_acquire_window_context.h"
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
@@ -114,19 +125,10 @@ private:
     QOpenGLContext context;
 };
 
-// This class overrides paintEvent and resizeEvent to prevent the GUI thread from stealing GL
-// context.
-// The corresponding functionality is handled in EmuThread instead
-class GGLWidgetInternal : public QOpenGLWindow {
+class GWidgetInternal : public QWindow {
 public:
-    GGLWidgetInternal(GRenderWindow* parent, QOpenGLContext* shared_context)
-        : QOpenGLWindow(shared_context), parent(parent) {}
-
-    void paintEvent(QPaintEvent* ev) override {
-        if (do_painting) {
-            QPainter painter(this);
-        }
-    }
+    GWidgetInternal(GRenderWindow* parent) : parent(parent) {}
+    virtual ~GWidgetInternal() = default;
 
     void resizeEvent(QResizeEvent* ev) override {
         parent->OnClientAreaResized(ev->size().width(), ev->size().height());
@@ -182,10 +184,46 @@ public:
         do_painting = true;
     }
 
+    std::pair<unsigned, unsigned> GetSize() const {
+        return std::make_pair(width(), height());
+    }
+
+protected:
+    bool IsPaintingEnabled() const {
+        return do_painting;
+    }
+
 private:
     GRenderWindow* parent;
-    bool do_painting;
+    bool do_painting = false;
 };
+
+// This class overrides paintEvent and resizeEvent to prevent the GUI thread from stealing GL
+// context.
+// The corresponding functionality is handled in EmuThread instead
+class GGLWidgetInternal final : public GWidgetInternal, public QOpenGLWindow {
+public:
+    GGLWidgetInternal(GRenderWindow* parent, QOpenGLContext* shared_context)
+        : GWidgetInternal(parent), QOpenGLWindow(shared_context) {}
+    ~GGLWidgetInternal() override = default;
+
+    void paintEvent(QPaintEvent* ev) override {
+        if (IsPaintingEnabled()) {
+            QPainter painter(this);
+        }
+    }
+};
+
+#ifdef HAS_VULKAN
+class GVKWidgetInternal final : public GWidgetInternal {
+public:
+    GVKWidgetInternal(GRenderWindow* parent, QVulkanInstance* instance) : GWidgetInternal(parent) {
+        setSurfaceType(QSurface::SurfaceType::VulkanSurface);
+        setVulkanInstance(instance);
+    }
+    ~GVKWidgetInternal() override = default;
+};
+#endif
 
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread)
     : QWidget(parent), emu_thread(emu_thread) {
@@ -201,9 +239,15 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread)
 
 GRenderWindow::~GRenderWindow() {
     InputCommon::Shutdown();
+
+    // Avoid an unordered destruction that generates a segfault
+    delete child;
 }
 
 void GRenderWindow::moveContext() {
+    if (!context) {
+        return;
+    }
     DoneCurrent();
 
     // If the thread started running, move the GL Context to the new thread. Otherwise, move it
@@ -215,8 +259,9 @@ void GRenderWindow::moveContext() {
 }
 
 void GRenderWindow::SwapBuffers() {
-    context->swapBuffers(child);
-
+    if (context) {
+        context->swapBuffers(child);
+    }
     if (!first_frame) {
         first_frame = true;
         emit FirstFrameDisplayed();
@@ -224,14 +269,37 @@ void GRenderWindow::SwapBuffers() {
 }
 
 void GRenderWindow::MakeCurrent() {
-    context->makeCurrent(child);
+    if (context) {
+        context->makeCurrent(child);
+    }
 }
 
 void GRenderWindow::DoneCurrent() {
-    context->doneCurrent();
+    if (context) {
+        context->doneCurrent();
+    }
 }
 
 void GRenderWindow::PollEvents() {}
+
+bool GRenderWindow::IsShown() const {
+    return !isMinimized();
+}
+
+void GRenderWindow::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
+                                           void* surface) const {
+#ifdef HAS_VULKAN
+    const auto instance_proc_addr = vk_instance->getInstanceProcAddr("vkGetInstanceProcAddr");
+    const VkInstance instance_copy = vk_instance->vkInstance();
+    const VkSurfaceKHR surface_copy = vk_instance->surfaceForWindow(child);
+
+    std::memcpy(get_instance_proc_addr, &instance_proc_addr, sizeof(instance_proc_addr));
+    std::memcpy(instance, &instance_copy, sizeof(instance_copy));
+    std::memcpy(surface, &surface_copy, sizeof(surface_copy));
+#else
+    UNREACHABLE_MSG("Executing Vulkan code without compiling Vulkan");
+#endif
+}
 
 // On Qt 5.0+, this correctly gets the size of the framebuffer (pixels).
 //
@@ -241,10 +309,9 @@ void GRenderWindow::PollEvents() {}
 void GRenderWindow::OnFramebufferSizeChanged() {
     // Screen changes potentially incur a change in screen DPI, hence we should update the
     // framebuffer size
-    const qreal pixel_ratio = GetWindowPixelRatio();
-    const u32 width = child->QPaintDevice::width() * pixel_ratio;
-    const u32 height = child->QPaintDevice::height() * pixel_ratio;
-    UpdateCurrentFramebufferLayout(width, height);
+    const qreal pixelRatio{GetWindowPixelRatio()};
+    const auto size{child->GetSize()};
+    UpdateCurrentFramebufferLayout(size.first * pixelRatio, size.second * pixelRatio);
 }
 
 void GRenderWindow::ForwardKeyPressEvent(QKeyEvent* event) {
@@ -290,7 +357,7 @@ qreal GRenderWindow::GetWindowPixelRatio() const {
 }
 
 std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF pos) const {
-    const qreal pixel_ratio = GetWindowPixelRatio();
+    const qreal pixel_ratio{GetWindowPixelRatio()};
     return {static_cast<u32>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
             static_cast<u32>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
 }
@@ -356,50 +423,46 @@ std::unique_ptr<Core::Frontend::GraphicsContext> GRenderWindow::CreateSharedCont
     return std::make_unique<GGLContext>(context.get());
 }
 
-void GRenderWindow::InitRenderTarget() {
+bool GRenderWindow::InitRenderTarget() {
     shared_context.reset();
     context.reset();
-
-    delete child;
-    child = nullptr;
-
-    delete container;
-    container = nullptr;
-
-    delete layout();
+    if (child) {
+        delete child;
+    }
+    if (container) {
+        delete container;
+    }
+    if (layout()) {
+        delete layout();
+    }
 
     first_frame = false;
 
-    // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
-    // WA_DontShowOnScreen, WA_DeleteOnClose
-    QSurfaceFormat fmt;
-    fmt.setVersion(4, 3);
-    fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
-    fmt.setOption(QSurfaceFormat::FormatOption::DeprecatedFunctions);
-    // TODO: expose a setting for buffer value (ie default/single/double/triple)
-    fmt.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
-    shared_context = std::make_unique<QOpenGLContext>();
-    shared_context->setFormat(fmt);
-    shared_context->create();
-    context = std::make_unique<QOpenGLContext>();
-    context->setShareContext(shared_context.get());
-    context->setFormat(fmt);
-    context->create();
-    fmt.setSwapInterval(0);
+    switch (Settings::values.renderer_backend) {
+    case Settings::RendererBackend::OpenGL:
+        if (!InitializeOpenGL()) {
+            return false;
+        }
+        break;
+    case Settings::RendererBackend::Vulkan:
+        if (!InitializeVulkan()) {
+            return false;
+        }
+        break;
+    }
 
-    child = new GGLWidgetInternal(this, shared_context.get());
     container = QWidget::createWindowContainer(child, this);
-
     QBoxLayout* layout = new QHBoxLayout(this);
+
     layout->addWidget(container);
     layout->setMargin(0);
     setLayout(layout);
 
-    // Reset minimum size to avoid unwanted resizes when this function is called for a second time.
+    // Reset minimum required size to avoid resizing issues on the main window after restarting.
     setMinimumSize(1, 1);
 
-    // Show causes the window to actually be created and the OpenGL context as well, but we don't
-    // want the widget to be shown yet, so immediately hide it.
+    // Show causes the window to actually be created and the gl context as well, but we don't want
+    // the widget to be shown yet, so immediately hide it.
     show();
     hide();
 
@@ -410,9 +473,17 @@ void GRenderWindow::InitRenderTarget() {
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
 
     OnFramebufferSizeChanged();
-    NotifyClientAreaSizeChanged(std::pair<unsigned, unsigned>(child->width(), child->height()));
+    NotifyClientAreaSizeChanged(child->GetSize());
 
     BackupGeometry();
+
+    if (Settings::values.renderer_backend == Settings::RendererBackend::OpenGL) {
+        if (!LoadOpenGL()) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void GRenderWindow::CaptureScreenshot(u32 res_scale, const QString& screenshot_path) {
@@ -439,6 +510,113 @@ void GRenderWindow::CaptureScreenshot(u32 res_scale, const QString& screenshot_p
 
 void GRenderWindow::OnMinimalClientAreaChangeRequest(std::pair<u32, u32> minimal_size) {
     setMinimumSize(minimal_size.first, minimal_size.second);
+}
+
+bool GRenderWindow::InitializeOpenGL() {
+    // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
+    // WA_DontShowOnScreen, WA_DeleteOnClose
+    QSurfaceFormat fmt;
+    fmt.setVersion(4, 3);
+    fmt.setProfile(QSurfaceFormat::CompatibilityProfile);
+    fmt.setOption(QSurfaceFormat::FormatOption::DeprecatedFunctions);
+    // TODO: expose a setting for buffer value (ie default/single/double/triple)
+    fmt.setSwapBehavior(QSurfaceFormat::DefaultSwapBehavior);
+    shared_context = std::make_unique<QOpenGLContext>();
+    shared_context->setFormat(fmt);
+    shared_context->create();
+    context = std::make_unique<QOpenGLContext>();
+    context->setShareContext(shared_context.get());
+    context->setFormat(fmt);
+    context->create();
+    fmt.setSwapInterval(false);
+
+    child = new GGLWidgetInternal(this, shared_context.get());
+    return true;
+}
+
+bool GRenderWindow::InitializeVulkan() {
+#ifdef HAS_VULKAN
+    vk_instance = std::make_unique<QVulkanInstance>();
+    vk_instance->setApiVersion(QVersionNumber(1, 1, 0));
+    vk_instance->setFlags(QVulkanInstance::Flag::NoDebugOutputRedirect);
+    if (Settings::values.renderer_debug) {
+        const auto supported_layers{vk_instance->supportedLayers()};
+        const bool found =
+            std::find_if(supported_layers.begin(), supported_layers.end(), [](const auto& layer) {
+                constexpr const char searched_layer[] = "VK_LAYER_LUNARG_standard_validation";
+                return layer.name == searched_layer;
+            });
+        if (found) {
+            vk_instance->setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+            vk_instance->setExtensions(QByteArrayList() << VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        }
+    }
+    if (!vk_instance->create()) {
+        QMessageBox::critical(
+            this, tr("Error while initializing Vulkan 1.1!"),
+            tr("Your OS doesn't seem to support Vulkan 1.1 instances, or you do not have the "
+               "latest graphics drivers."));
+        return false;
+    }
+
+    child = new GVKWidgetInternal(this, vk_instance.get());
+    return true;
+#else
+    QMessageBox::critical(this, tr("Vulkan not available!"),
+                          tr("yuzu has not been compiled with Vulkan support."));
+    return false;
+#endif
+}
+
+bool GRenderWindow::LoadOpenGL() {
+    Core::Frontend::ScopeAcquireWindowContext acquire_context{*this};
+    if (!gladLoadGL()) {
+        QMessageBox::critical(this, tr("Error while initializing OpenGL 4.3!"),
+                              tr("Your GPU may not support OpenGL 4.3, or you do not have the "
+                                 "latest graphics driver."));
+        return false;
+    }
+
+    QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
+    if (!unsupported_gl_extensions.empty()) {
+        QMessageBox::critical(
+            this, tr("Error while initializing OpenGL!"),
+            tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
+               "have the latest graphics driver.<br><br>Unsupported extensions:<br>") +
+                unsupported_gl_extensions.join(QStringLiteral("<br>")));
+        return false;
+    }
+    return true;
+}
+
+QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
+    QStringList unsupported_ext;
+
+    if (!GLAD_GL_ARB_buffer_storage)
+        unsupported_ext.append(QStringLiteral("ARB_buffer_storage"));
+    if (!GLAD_GL_ARB_direct_state_access)
+        unsupported_ext.append(QStringLiteral("ARB_direct_state_access"));
+    if (!GLAD_GL_ARB_vertex_type_10f_11f_11f_rev)
+        unsupported_ext.append(QStringLiteral("ARB_vertex_type_10f_11f_11f_rev"));
+    if (!GLAD_GL_ARB_texture_mirror_clamp_to_edge)
+        unsupported_ext.append(QStringLiteral("ARB_texture_mirror_clamp_to_edge"));
+    if (!GLAD_GL_ARB_multi_bind)
+        unsupported_ext.append(QStringLiteral("ARB_multi_bind"));
+    if (!GLAD_GL_ARB_clip_control)
+        unsupported_ext.append(QStringLiteral("ARB_clip_control"));
+
+    // Extensions required to support some texture formats.
+    if (!GLAD_GL_EXT_texture_compression_s3tc)
+        unsupported_ext.append(QStringLiteral("EXT_texture_compression_s3tc"));
+    if (!GLAD_GL_ARB_texture_compression_rgtc)
+        unsupported_ext.append(QStringLiteral("ARB_texture_compression_rgtc"));
+    if (!GLAD_GL_ARB_depth_buffer_float)
+        unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
+
+    for (const QString& ext : unsupported_ext)
+        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+
+    return unsupported_ext;
 }
 
 void GRenderWindow::OnEmulationStarting(EmuThread* emu_thread) {

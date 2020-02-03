@@ -101,7 +101,10 @@ public:
     void TickFrame() {
         ++epoch;
         while (!pending_destruction.empty()) {
-            if (pending_destruction.front()->GetEpoch() + 1 > epoch) {
+            // Delay at least 4 frames before destruction.
+            // This is due to triple buffering happening on some drivers.
+            static constexpr u64 epochs_to_destroy = 5;
+            if (pending_destruction.front()->GetEpoch() + epochs_to_destroy > epoch) {
                 break;
             }
             pending_destruction.pop_front();

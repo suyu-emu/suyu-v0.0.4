@@ -75,6 +75,13 @@ public:
         return nullptr;
     }
 
+    /// Returns if window is shown (not minimized)
+    virtual bool IsShown() const = 0;
+
+    /// Retrieves Vulkan specific handlers from the window
+    virtual void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
+                                        void* surface) const = 0;
+
     /**
      * Signal that a touch pressed event has occurred (e.g. mouse click pressed)
      * @param framebuffer_x Framebuffer x-coordinate that was pressed

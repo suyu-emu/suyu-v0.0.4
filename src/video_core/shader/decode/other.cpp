@@ -69,13 +69,16 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
     case OpCode::Id::MOV_SYS: {
         const Node value = [this, instr] {
             switch (instr.sys20) {
+            case SystemVariable::LaneId:
+                LOG_WARNING(HW_GPU, "MOV_SYS instruction with LaneId is incomplete");
+                return Immediate(0U);
             case SystemVariable::InvocationId:
                 return Operation(OperationCode::InvocationId);
             case SystemVariable::Ydirection:
                 return Operation(OperationCode::YNegate);
             case SystemVariable::InvocationInfo:
                 LOG_WARNING(HW_GPU, "MOV_SYS instruction with InvocationInfo is incomplete");
-                return Immediate(0u);
+                return Immediate(0U);
             case SystemVariable::Tid: {
                 Node value = Immediate(0);
                 value = BitfieldInsert(value, Operation(OperationCode::LocalInvocationIdX), 0, 9);
@@ -188,7 +191,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "SYNC condition code used: {}",
                              static_cast<u32>(cc));
 
-        if (disable_flow_stack) {
+        if (decompiled) {
             break;
         }
 
@@ -200,7 +203,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         const Tegra::Shader::ConditionCode cc = instr.flow_condition_code;
         UNIMPLEMENTED_IF_MSG(cc != Tegra::Shader::ConditionCode::T, "BRK condition code used: {}",
                              static_cast<u32>(cc));
-        if (disable_flow_stack) {
+        if (decompiled) {
             break;
         }
 

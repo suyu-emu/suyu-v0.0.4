@@ -268,7 +268,9 @@ struct System::Impl {
         is_powered_on = false;
         exit_lock = false;
 
-        gpu_core->WaitIdle();
+        if (gpu_core) {
+            gpu_core->WaitIdle();
+        }
 
         // Shutdown emulation session
         renderer.reset();

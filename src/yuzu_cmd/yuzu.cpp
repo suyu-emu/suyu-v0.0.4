@@ -32,6 +32,9 @@
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
+#ifdef HAS_VULKAN
+#include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
+#endif
 
 #include "core/file_sys/registered_cache.h"
 
@@ -174,7 +177,20 @@ int main(int argc, char** argv) {
     Settings::values.use_gdbstub = use_gdbstub;
     Settings::Apply();
 
-    std::unique_ptr<EmuWindow_SDL2> emu_window{std::make_unique<EmuWindow_SDL2_GL>(fullscreen)};
+    std::unique_ptr<EmuWindow_SDL2> emu_window;
+    switch (Settings::values.renderer_backend) {
+    case Settings::RendererBackend::OpenGL:
+        emu_window = std::make_unique<EmuWindow_SDL2_GL>(fullscreen);
+        break;
+    case Settings::RendererBackend::Vulkan:
+#ifdef HAS_VULKAN
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(fullscreen);
+        break;
+#else
+        LOG_CRITICAL(Frontend, "Vulkan backend has not been compiled!");
+        return 1;
+#endif
+    }
 
     if (!Settings::values.use_multi_core) {
         // Single core mode must acquire OpenGL context for entire emulation session

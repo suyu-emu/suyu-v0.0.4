@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>474</height>
+    <height>467</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -103,44 +103,6 @@
         </item>
        </layout>
       </item>
-      <item>
-       <widget class="QCheckBox" name="reporting_services">
-        <property name="text">
-         <string>Enable Verbose Reporting Services</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="font">
-         <font>
-          <italic>true</italic>
-         </font>
-        </property>
-        <property name="text">
-         <string>This will be reset automatically when yuzu closes.</string>
-        </property>
-        <property name="indent">
-         <number>20</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="groupBox_5">
-     <property name="title">
-      <string>Advanced</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QCheckBox" name="quest_flag">
-        <property name="text">
-         <string>Kiosk (Quest) Mode</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>
@@ -168,6 +130,95 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_4">
+     <property name="title">
+      <string>Graphics</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <item>
+       <widget class="QCheckBox" name="enable_graphics_debugging">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="whatsThis">
+         <string>When checked, the graphics API enters in a slower debugging mode</string>
+        </property>
+        <property name="text">
+         <string>Enable Graphics Debugging</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Dump</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <item>
+       <widget class="QCheckBox" name="dump_decompressed_nso">
+        <property name="whatsThis">
+         <string>When checked, any NSO yuzu tries to load or patch will be copied decompressed to the yuzu/dump directory.</string>
+        </property>
+        <property name="text">
+         <string>Dump Decompressed NSOs</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="dump_exefs">
+        <property name="whatsThis">
+         <string>When checked, any game that yuzu loads will have its ExeFS dumped to the yuzu/dump directory.</string>
+        </property>
+        <property name="text">
+         <string>Dump ExeFS</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="reporting_services">
+        <property name="text">
+         <string>Enable Verbose Reporting Services</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>This will be reset automatically when yuzu closes.</string>
+        </property>
+        <property name="indent">
+         <number>20</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="title">
+      <string>Advanced</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_7">
+      <item>
+       <widget class="QCheckBox" name="quest_flag">
+        <property name="text">
+         <string>Kiosk (Quest) Mode</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -185,6 +236,19 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>toggle_gdbstub</tabstop>
+  <tabstop>gdbport_spinbox</tabstop>
+  <tabstop>log_filter_edit</tabstop>
+  <tabstop>toggle_console</tabstop>
+  <tabstop>open_log_button</tabstop>
+  <tabstop>homebrew_args_edit</tabstop>
+  <tabstop>enable_graphics_debugging</tabstop>
+  <tabstop>dump_decompressed_nso</tabstop>
+  <tabstop>dump_exefs</tabstop>
+  <tabstop>reporting_services</tabstop>
+  <tabstop>quest_flag</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
