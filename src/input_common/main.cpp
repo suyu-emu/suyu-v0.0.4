@@ -41,6 +41,7 @@ void Shutdown() {
     Input::UnregisterFactory<Input::MotionDevice>("motion_emu");
     motion_emu.reset();
     sdl.reset();
+    udp.reset();
 }
 
 Keyboard* GetKeyboard() {
