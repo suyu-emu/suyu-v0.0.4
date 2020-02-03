@@ -630,7 +630,7 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
         aoffi = GetAoffiCoordinates(GetRegister(parameter_register++), coord_count, false);
     }
 
-    Node dc{};
+    Node dc;
     if (depth_compare) {
         // Depth is always stored in the register signaled by gpr20 or in the next register if lod
         // or bias are used
@@ -666,7 +666,7 @@ Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
 
     const Node array = is_array ? GetRegister(array_register) : nullptr;
 
-    Node dc{};
+    Node dc;
     if (depth_compare) {
         // Depth is always stored in the register signaled by gpr20 or in the next register if lod
         // or bias are used

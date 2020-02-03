@@ -443,9 +443,9 @@ struct MetaTexture {
     std::vector<Node> derivates;
     Node bias;
     Node lod;
-    Node component{};
+    Node component;
     u32 element{};
-    Node index{};
+    Node index;
 };
 
 struct MetaImage {

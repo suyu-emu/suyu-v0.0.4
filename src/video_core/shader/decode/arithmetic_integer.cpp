@@ -297,7 +297,7 @@ void ShaderIR::WriteLop3Instruction(NodeBlock& bb, Register dest, Node op_a, Nod
     const Node one = Immediate(1);
     const Node two = Immediate(2);
 
-    Node value{};
+    Node value;
     for (u32 i = 0; i < lop_iterations; ++i) {
         const Node shift_amount = Immediate(i);
 
