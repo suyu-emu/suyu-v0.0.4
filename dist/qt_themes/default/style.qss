@@ -1,0 +1,35 @@
+QPushButton#TogglableStatusBarButton {
+    color: #959595;
+    border: 1px solid transparent;
+    background-color: transparent;
+    padding: 0px 3px 0px 3px;
+    text-align: center;
+}
+
+QPushButton#TogglableStatusBarButton:checked {
+    color: #000000;
+}
+
+QPushButton#TogglableStatusBarButton:hover {
+    border: 1px solid #76797C;
+}
+
+QPushButton#RendererStatusBarButton {
+    color: #656565;
+    border: 1px solid transparent;
+    background-color: transparent;
+    padding: 0px 3px 0px 3px;
+    text-align: center;
+}
+
+QPushButton#RendererStatusBarButton:hover {
+    border: 1px solid #76797C;
+}
+
+QPushButton#RendererStatusBarButton:checked {
+    color: #e85c00;
+}
+
+QPushButton#RendererStatusBarButton:!checked{
+    color: #0066ff;
+}
