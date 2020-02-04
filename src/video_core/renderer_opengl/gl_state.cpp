@@ -128,6 +128,7 @@ void OpenGLState::ApplyClipDistances() {
 
 void OpenGLState::ApplyPointSize() {
     Enable(GL_PROGRAM_POINT_SIZE, cur_state.point.program_control, point.program_control);
+    Enable(GL_POINT_SPRITE, cur_state.point.sprite, point.sprite);
     if (UpdateValue(cur_state.point.size, point.size)) {
         glPointSize(point.size);
     }

@@ -132,6 +132,7 @@ public:
 
     struct {
         bool program_control = false; // GL_PROGRAM_POINT_SIZE
+        bool sprite = false;          // GL_POINT_SPRITE
         GLfloat size = 1.0f;          // GL_POINT_SIZE
     } point;
 

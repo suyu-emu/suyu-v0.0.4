@@ -1293,6 +1293,7 @@ void RasterizerOpenGL::SyncPointState() {
     // Limit the point size to 1 since nouveau sometimes sets a point size of 0 (and that's invalid
     // in OpenGL).
     state.point.program_control = regs.vp_point_size.enable != 0;
+    state.point.sprite = regs.point_sprite_enable != 0;
     state.point.size = std::max(1.0f, regs.point_size);
 }
 
