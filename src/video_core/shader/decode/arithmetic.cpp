@@ -21,7 +21,7 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
 
     Node op_a = GetRegister(instr.gpr8);
 
-    Node op_b = [&]() -> Node {
+    Node op_b = [&] {
         if (instr.is_b_imm) {
             return GetImmediate19(instr);
         } else if (instr.is_b_gpr) {
@@ -139,6 +139,15 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
 
         SetInternalFlagsFromFloat(bb, value, instr.generates_cc);
         SetRegister(bb, instr.gpr0, value);
+        break;
+    }
+    case OpCode::Id::FCMP_R: {
+        UNIMPLEMENTED_IF(instr.fcmp.ftz == 0);
+        Node op_c = GetRegister(instr.gpr39);
+        Node comp = GetPredicateComparisonFloat(instr.fcmp.cond, std::move(op_c), Immediate(0.0f));
+        SetRegister(
+            bb, instr.gpr0,
+            Operation(OperationCode::Select, std::move(comp), std::move(op_a), std::move(op_b)));
         break;
     }
     case OpCode::Id::RRO_C:

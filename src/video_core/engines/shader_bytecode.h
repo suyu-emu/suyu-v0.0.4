@@ -1124,6 +1124,11 @@ union Instruction {
     } fset;
 
     union {
+        BitField<47, 1, u64> ftz;
+        BitField<48, 4, PredCondition> cond;
+    } fcmp;
+
+    union {
         BitField<49, 1, u64> bf;
         BitField<35, 3, PredCondition> cond;
         BitField<50, 1, u64> ftz;
@@ -1800,6 +1805,7 @@ public:
         ICMP_R,
         ICMP_CR,
         ICMP_IMM,
+        FCMP_R,
         MUFU,  // Multi-Function Operator
         RRO_C, // Range Reduction Operator
         RRO_R,
@@ -2104,6 +2110,7 @@ private:
             INST("0101110100100---", Id::HSETP2_R, Type::HalfSetPredicate, "HSETP2_R"),
             INST("0111111-0-------", Id::HSETP2_IMM, Type::HalfSetPredicate, "HSETP2_IMM"),
             INST("0101110100011---", Id::HSET2_R, Type::HalfSet, "HSET2_R"),
+            INST("010110111010----", Id::FCMP_R, Type::Arithmetic, "FCMP_R"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),
