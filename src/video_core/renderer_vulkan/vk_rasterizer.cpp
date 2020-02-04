@@ -571,7 +571,7 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
             color_attachments[rt] = texture_cache.GetColorBufferSurface(rt, true);
         }
         if (color_attachments[rt] && WalkAttachmentOverlaps(*color_attachments[rt])) {
-            texceptions.set(rt);
+            texceptions[rt] = true;
         }
     }
 
@@ -579,7 +579,7 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
         zeta_attachment = texture_cache.GetDepthBufferSurface(true);
     }
     if (zeta_attachment && WalkAttachmentOverlaps(*zeta_attachment)) {
-        texceptions.set(ZETA_TEXCEPTION_INDEX);
+        texceptions[ZETA_TEXCEPTION_INDEX] = true;
     }
 
     texture_cache.GuardRenderTargets(false);
@@ -1122,11 +1122,12 @@ RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) 
 
     for (std::size_t rt = 0; rt < static_cast<std::size_t>(regs.rt_control.count); ++rt) {
         const auto& rendertarget = regs.rt[rt];
-        if (rendertarget.Address() == 0 || rendertarget.format == Tegra::RenderTargetFormat::NONE)
+        if (rendertarget.Address() == 0 || rendertarget.format == Tegra::RenderTargetFormat::NONE) {
             continue;
+        }
         renderpass_params.color_attachments.push_back(RenderPassParams::ColorAttachment{
             static_cast<u32>(rt), PixelFormatFromRenderTargetFormat(rendertarget.format),
-            texceptions.test(rt)});
+            texceptions[rt]});
     }
 
     renderpass_params.has_zeta = regs.zeta_enable;
