@@ -49,6 +49,11 @@ s64 nsToCycles(std::chrono::nanoseconds ns) {
     return (Hardware::BASE_CLOCK_RATE * ns.count()) / 1000000000;
 }
 
+u64 nsToClockCycles(std::chrono::nanoseconds ns) {
+    const u128 temporal = Common::Multiply64Into128(ns.count(), CNTFREQ);
+    return Common::Divide128On32(temporal, 1000000000).first;
+}
+
 u64 CpuCyclesToClockCycles(u64 ticks) {
     const u128 temporal = Common::Multiply64Into128(ticks, Hardware::CNTFREQ);
     return Common::Divide128On32(temporal, static_cast<u32>(Hardware::BASE_CLOCK_RATE)).first;

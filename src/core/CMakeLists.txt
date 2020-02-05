@@ -547,6 +547,8 @@ add_library(core STATIC
     hle/service/vi/vi_u.h
     hle/service/wlan/wlan.cpp
     hle/service/wlan/wlan.h
+    host_timing.cpp
+    host_timing.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/elf.cpp
