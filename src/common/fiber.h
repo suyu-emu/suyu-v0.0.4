@@ -10,6 +10,12 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 
+#ifndef _MSC_VER
+namespace boost::context::detail {
+    struct transfer_t;
+}
+#endif
+
 namespace Common {
 
 class Fiber {
@@ -31,9 +37,6 @@ public:
     /// Only call from main thread's fiber
     void Exit();
 
-    /// Used internally but required to be public, Shall not be used
-    void _start(void* parameter);
-
     /// Changes the start parameter of the fiber. Has no effect if the fiber already started
     void SetStartParameter(void* new_parameter) {
         start_parameter = new_parameter;
@@ -41,6 +44,16 @@ public:
 
 private:
     Fiber();
+
+#ifdef _MSC_VER
+    void start();
+    static void FiberStartFunc(void* fiber_parameter);
+#else
+    void start(boost::context::detail::transfer_t& transfer);
+    static void FiberStartFunc(boost::context::detail::transfer_t transfer);
+#endif
+
+
 
     struct FiberImpl;
 

@@ -3,18 +3,21 @@
 // Refer to the license.txt file included.
 
 #include "common/fiber.h"
+#ifdef _MSC_VER
+#include <windows.h>
+#else
+#include <boost/context/detail/fcontext.hpp>
+#endif
 
 namespace Common {
 
 #ifdef _MSC_VER
-#include <windows.h>
 
 struct Fiber::FiberImpl {
     LPVOID handle = nullptr;
 };
 
-void Fiber::_start([[maybe_unused]] void* parameter) {
-    guard.lock();
+void Fiber::start() {
     if (previous_fiber) {
         previous_fiber->guard.unlock();
         previous_fiber = nullptr;
@@ -22,10 +25,10 @@ void Fiber::_start([[maybe_unused]] void* parameter) {
     entry_point(start_parameter);
 }
 
-static void __stdcall FiberStartFunc(LPVOID lpFiberParameter)
+void __stdcall Fiber::FiberStartFunc(void* fiber_parameter)
 {
-   auto fiber = static_cast<Fiber *>(lpFiberParameter);
-   fiber->_start(nullptr);
+   auto fiber = static_cast<Fiber *>(fiber_parameter);
+   fiber->start();
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
@@ -74,30 +77,26 @@ std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
 
 #else
 
-#include <boost/context/detail/fcontext.hpp>
-
 constexpr std::size_t default_stack_size = 1024 * 1024 * 4; // 4MB
 
-struct Fiber::FiberImpl {
-    boost::context::detail::fcontext_t context;
+struct alignas(64) Fiber::FiberImpl {
     std::array<u8, default_stack_size> stack;
+    boost::context::detail::fcontext_t context;
 };
 
-void Fiber::_start(void* parameter) {
-    guard.lock();
-    boost::context::detail::transfer_t* transfer = static_cast<boost::context::detail::transfer_t*>(parameter);
+void Fiber::start(boost::context::detail::transfer_t& transfer) {
     if (previous_fiber) {
-        previous_fiber->impl->context = transfer->fctx;
+        previous_fiber->impl->context = transfer.fctx;
         previous_fiber->guard.unlock();
         previous_fiber = nullptr;
     }
     entry_point(start_parameter);
 }
 
-static void FiberStartFunc(boost::context::detail::transfer_t transfer)
+void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer)
 {
    auto fiber = static_cast<Fiber *>(transfer.data);
-   fiber->_start(&transfer);
+   fiber->start(transfer);
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
@@ -139,6 +138,7 @@ void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
 
 std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
     std::shared_ptr<Fiber> fiber = std::shared_ptr<Fiber>{new Fiber()};
+    fiber->guard.lock();
     fiber->is_thread_fiber = true;
     return fiber;
 }
