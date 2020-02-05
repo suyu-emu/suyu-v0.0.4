@@ -90,6 +90,14 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
             LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
             return {};
         }
+    case Maxwell::VertexAttribute::Type::UnsignedScaled:
+        switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return GL_UNSIGNED_BYTE;
+        default:
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
+            return {};
+        }
     default:
         LOG_ERROR(Render_OpenGL, "Unimplemented vertex type={}", attrib.TypeString());
         return {};
