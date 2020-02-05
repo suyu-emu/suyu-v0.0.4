@@ -21,7 +21,7 @@ u32 ShaderIR::DecodeBfi(NodeBlock& bb, u32 pc) {
         switch (opcode->get().GetId()) {
         case OpCode::Id::BFI_RC:
             return {GetRegister(instr.gpr39),
-                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+                    GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset())};
         case OpCode::Id::BFI_IMM_R:
             return {Immediate(instr.alu.GetSignedImm20_20()), GetRegister(instr.gpr39)};
         default:
