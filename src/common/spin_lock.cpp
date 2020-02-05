@@ -43,4 +43,11 @@ void SpinLock::unlock() {
     lck.clear(std::memory_order_release);
 }
 
+bool SpinLock::try_lock() {
+    if (lck.test_and_set(std::memory_order_acquire)) {
+        return false;
+    }
+    return true;
+}
+
 } // namespace Common

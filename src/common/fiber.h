@@ -18,6 +18,18 @@ namespace boost::context::detail {
 
 namespace Common {
 
+/**
+ * Fiber class
+ * a fiber is a userspace thread with it's own context. They can be used to
+ * implement coroutines, emulated threading systems and certain asynchronous
+ * patterns.
+ *
+ * This class implements fibers at a low level, thus allowing greater freedom
+ * to implement such patterns. This fiber class is 'threadsafe' only one fiber
+ * can be running at a time and threads will be locked while trying to yield to
+ * a running fiber until it yields. WARNING exchanging two running fibers between
+ * threads will cause a deadlock.
+ */
 class Fiber {
 public:
     Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter);
@@ -52,8 +64,6 @@ private:
     void start(boost::context::detail::transfer_t& transfer);
     static void FiberStartFunc(boost::context::detail::transfer_t transfer);
 #endif
-
-
 
     struct FiberImpl;
 

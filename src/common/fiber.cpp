@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "common/fiber.h"
 #ifdef _MSC_VER
 #include <windows.h>
@@ -18,11 +19,11 @@ struct Fiber::FiberImpl {
 };
 
 void Fiber::start() {
-    if (previous_fiber) {
-        previous_fiber->guard.unlock();
-        previous_fiber = nullptr;
-    }
+    ASSERT(previous_fiber != nullptr);
+    previous_fiber->guard.unlock();
+    previous_fiber.reset();
     entry_point(start_parameter);
+    UNREACHABLE();
 }
 
 void __stdcall Fiber::FiberStartFunc(void* fiber_parameter)
@@ -43,12 +44,16 @@ Fiber::Fiber() : guard{}, entry_point{}, start_parameter{}, previous_fiber{} {
 
 Fiber::~Fiber() {
     // Make sure the Fiber is not being used
-    guard.lock();
-    guard.unlock();
+    bool locked = guard.try_lock();
+    ASSERT_MSG(locked, "Destroying a fiber that's still running");
+    if (locked) {
+        guard.unlock();
+    }
     DeleteFiber(impl->handle);
 }
 
 void Fiber::Exit() {
+    ASSERT_MSG(is_thread_fiber, "Exitting non main thread fiber");
     if (!is_thread_fiber) {
         return;
     }
@@ -57,14 +62,15 @@ void Fiber::Exit() {
 }
 
 void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
+    ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
+    ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
     to->previous_fiber = from;
     SwitchToFiber(to->impl->handle);
     auto previous_fiber = from->previous_fiber;
-    if (previous_fiber) {
-        previous_fiber->guard.unlock();
-        previous_fiber.reset();
-    }
+    ASSERT(previous_fiber != nullptr);
+    previous_fiber->guard.unlock();
+    previous_fiber.reset();
 }
 
 std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
@@ -85,12 +91,12 @@ struct alignas(64) Fiber::FiberImpl {
 };
 
 void Fiber::start(boost::context::detail::transfer_t& transfer) {
-    if (previous_fiber) {
-        previous_fiber->impl->context = transfer.fctx;
-        previous_fiber->guard.unlock();
-        previous_fiber = nullptr;
-    }
+    ASSERT(previous_fiber != nullptr);
+    previous_fiber->impl->context = transfer.fctx;
+    previous_fiber->guard.unlock();
+    previous_fiber.reset();
     entry_point(start_parameter);
+    UNREACHABLE();
 }
 
 void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer)
@@ -113,11 +119,15 @@ Fiber::Fiber() : guard{}, entry_point{}, start_parameter{}, previous_fiber{} {
 
 Fiber::~Fiber() {
     // Make sure the Fiber is not being used
-    guard.lock();
-    guard.unlock();
+    bool locked = guard.try_lock();
+    ASSERT_MSG(locked, "Destroying a fiber that's still running");
+    if (locked) {
+        guard.unlock();
+    }
 }
 
 void Fiber::Exit() {
+    ASSERT_MSG(is_thread_fiber, "Exitting non main thread fiber");
     if (!is_thread_fiber) {
         return;
     }
@@ -125,15 +135,16 @@ void Fiber::Exit() {
 }
 
 void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
+    ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
+    ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
     to->previous_fiber = from;
     auto transfer = boost::context::detail::jump_fcontext(to->impl.context, nullptr);
     auto previous_fiber = from->previous_fiber;
-    if (previous_fiber) {
-        previous_fiber->impl->context = transfer.fctx;
-        previous_fiber->guard.unlock();
-        previous_fiber.reset();
-    }
+    ASSERT(previous_fiber != nullptr);
+    previous_fiber->impl->context = transfer.fctx;
+    previous_fiber->guard.unlock();
+    previous_fiber.reset();
 }
 
 std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
