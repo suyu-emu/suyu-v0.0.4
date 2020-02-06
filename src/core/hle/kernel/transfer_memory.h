@@ -11,6 +11,10 @@
 
 union ResultCode;
 
+namespace Memory {
+class Memory;
+}
+
 namespace Kernel {
 
 class KernelCore;
@@ -26,12 +30,13 @@ enum class MemoryPermission : u32;
 ///
 class TransferMemory final : public Object {
 public:
-    explicit TransferMemory(KernelCore& kernel);
+    explicit TransferMemory(KernelCore& kernel, Memory::Memory& memory);
     ~TransferMemory() override;
 
     static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
 
-    static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, VAddr base_address, u64 size,
+    static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, Memory::Memory& memory,
+                                                  VAddr base_address, u64 size,
                                                   MemoryPermission permissions);
 
     TransferMemory(const TransferMemory&) = delete;
@@ -80,6 +85,14 @@ public:
     ///
     ResultCode UnmapMemory(VAddr address, u64 size);
 
+    /// Reserves the region to be used for the transfer memory, called after the transfer memory is
+    /// created.
+    ResultCode Reserve();
+
+    /// Resets the region previously used for the transfer memory, called after the transfer memory
+    /// is closed.
+    ResultCode Reset();
+
 private:
     /// Memory block backing this instance.
     std::shared_ptr<PhysicalMemory> backing_block;
@@ -98,6 +111,8 @@ private:
 
     /// Whether or not this transfer memory instance has mapped memory.
     bool is_mapped = false;
+
+    Memory::Memory& memory;
 };
 
 } // namespace Kernel

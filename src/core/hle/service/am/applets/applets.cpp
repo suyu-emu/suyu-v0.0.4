@@ -56,6 +56,7 @@ std::unique_ptr<IStorage> AppletDataBroker::PopNormalDataToGame() {
 
     auto out = std::move(out_channel.front());
     out_channel.pop_front();
+    pop_out_data_event.writable->Clear();
     return out;
 }
 
@@ -74,6 +75,7 @@ std::unique_ptr<IStorage> AppletDataBroker::PopInteractiveDataToGame() {
 
     auto out = std::move(out_interactive_channel.front());
     out_interactive_channel.pop_front();
+    pop_interactive_out_data_event.writable->Clear();
     return out;
 }
 

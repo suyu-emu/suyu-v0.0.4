@@ -709,8 +709,34 @@ void ICommonStateGetter::SetCpuBoostMode(Kernel::HLERequestContext& ctx) {
     apm_sys->SetCpuBoostMode(ctx);
 }
 
-IStorage::IStorage(std::vector<u8> buffer)
-    : ServiceFramework("IStorage"), buffer(std::move(buffer)) {
+IStorageImpl::~IStorageImpl() = default;
+
+class StorageDataImpl final : public IStorageImpl {
+public:
+    explicit StorageDataImpl(std::vector<u8>&& buffer) : buffer{std::move(buffer)} {}
+
+    std::vector<u8>& GetData() override {
+        return buffer;
+    }
+
+    const std::vector<u8>& GetData() const override {
+        return buffer;
+    }
+
+    std::size_t GetSize() const override {
+        return buffer.size();
+    }
+
+private:
+    std::vector<u8> buffer;
+};
+
+IStorage::IStorage(std::vector<u8>&& buffer)
+    : ServiceFramework("IStorage"), impl{std::make_shared<StorageDataImpl>(std::move(buffer))} {
+    Register();
+}
+
+void IStorage::Register() {
     // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IStorage::Open, "Open"},
@@ -723,8 +749,13 @@ IStorage::IStorage(std::vector<u8> buffer)
 
 IStorage::~IStorage() = default;
 
-const std::vector<u8>& IStorage::GetData() const {
-    return buffer;
+void IStorage::Open(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IStorageAccessor>(*this);
 }
 
 void ICommonStateGetter::GetOperationMode(Kernel::HLERequestContext& ctx) {
@@ -825,17 +856,16 @@ private:
     void PopOutData(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
         const auto storage = applet->GetBroker().PopNormalDataToGame();
         if (storage == nullptr) {
             LOG_ERROR(Service_AM,
                       "storage is a nullptr. There is no data in the current normal channel");
-
+            IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
         }
 
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IStorage>(std::move(*storage));
     }
@@ -857,17 +887,16 @@ private:
     void PopInteractiveOutData(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
         const auto storage = applet->GetBroker().PopInteractiveDataToGame();
         if (storage == nullptr) {
             LOG_ERROR(Service_AM,
                       "storage is a nullptr. There is no data in the current interactive channel");
-
+            IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NO_DATA_IN_CHANNEL);
             return;
         }
 
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IStorage>(std::move(*storage));
     }
@@ -891,15 +920,6 @@ private:
     std::shared_ptr<Applets::Applet> applet;
 };
 
-void IStorage::Open(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_AM, "called");
-
-    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
-
-    rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IStorageAccessor>(*this);
-}
-
 IStorageAccessor::IStorageAccessor(IStorage& storage)
     : ServiceFramework("IStorageAccessor"), backing(storage) {
     // clang-format off
@@ -921,7 +941,7 @@ void IStorageAccessor::GetSize(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 4};
 
     rb.Push(RESULT_SUCCESS);
-    rb.Push(static_cast<u64>(backing.buffer.size()));
+    rb.Push(static_cast<u64>(backing.GetSize()));
 }
 
 void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
@@ -932,17 +952,17 @@ void IStorageAccessor::Write(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, data.size());
 
-    if (data.size() > backing.buffer.size() - offset) {
+    if (data.size() > backing.GetSize() - offset) {
         LOG_ERROR(Service_AM,
                   "offset is out of bounds, backing_buffer_sz={}, data_size={}, offset={}",
-                  backing.buffer.size(), data.size(), offset);
+                  backing.GetSize(), data.size(), offset);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
         return;
     }
 
-    std::memcpy(backing.buffer.data() + offset, data.data(), data.size());
+    std::memcpy(backing.GetData().data() + offset, data.data(), data.size());
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -956,16 +976,16 @@ void IStorageAccessor::Read(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_AM, "called, offset={}, size={}", offset, size);
 
-    if (size > backing.buffer.size() - offset) {
+    if (size > backing.GetSize() - offset) {
         LOG_ERROR(Service_AM, "offset is out of bounds, backing_buffer_sz={}, size={}, offset={}",
-                  backing.buffer.size(), size, offset);
+                  backing.GetSize(), size, offset);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_SIZE_OUT_OF_BOUNDS);
         return;
     }
 
-    ctx.WriteBuffer(backing.buffer.data() + offset, size);
+    ctx.WriteBuffer(backing.GetData().data() + offset, size);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -1031,7 +1051,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
     rp.SetCurrentOffset(3);
     const auto handle{rp.Pop<Kernel::Handle>()};
 
-    const auto transfer_mem =
+    auto transfer_mem =
         system.CurrentProcess()->GetHandleTable().Get<Kernel::TransferMemory>(handle);
 
     if (transfer_mem == nullptr) {
@@ -1047,7 +1067,7 @@ void ILibraryAppletCreator::CreateTransferMemoryStorage(Kernel::HLERequestContex
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface(std::make_shared<IStorage>(std::move(memory)));
+    rb.PushIpcInterface<IStorage>(std::move(memory));
 }
 
 IApplicationFunctions::IApplicationFunctions(Core::System& system_)
@@ -1189,13 +1209,11 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
         u64 build_id{};
         std::memcpy(&build_id, build_id_full.data(), sizeof(u64));
 
-        const auto data =
-            backend->GetLaunchParameter({system.CurrentProcess()->GetTitleID(), build_id});
-
+        auto data = backend->GetLaunchParameter({system.CurrentProcess()->GetTitleID(), build_id});
         if (data.has_value()) {
             IPC::ResponseBuilder rb{ctx, 2, 0, 1};
             rb.Push(RESULT_SUCCESS);
-            rb.PushIpcInterface<AM::IStorage>(*data);
+            rb.PushIpcInterface<IStorage>(std::move(*data));
             launch_popped_application_specific = true;
             return;
         }
@@ -1218,7 +1236,7 @@ void IApplicationFunctions::PopLaunchParameter(Kernel::HLERequestContext& ctx) {
         std::vector<u8> buffer(sizeof(LaunchParameterAccountPreselectedUser));
         std::memcpy(buffer.data(), &params, buffer.size());
 
-        rb.PushIpcInterface<AM::IStorage>(buffer);
+        rb.PushIpcInterface<IStorage>(std::move(buffer));
         launch_popped_account_preselect = true;
         return;
     }

@@ -98,6 +98,8 @@ enum class MemoryAttribute : u32 {
     DeviceMapped = 4,
     /// Uncached memory
     Uncached = 8,
+
+    IpcAndDeviceMapped = LockedForIPC | DeviceMapped,
 };
 
 constexpr MemoryAttribute operator|(MemoryAttribute lhs, MemoryAttribute rhs) {
@@ -654,6 +656,35 @@ public:
     /// is scheduled.
     Common::PageTable page_table{Memory::PAGE_BITS};
 
+    using CheckResults = ResultVal<std::tuple<MemoryState, VMAPermission, MemoryAttribute>>;
+
+    /// Checks if an address range adheres to the specified states provided.
+    ///
+    /// @param address         The starting address of the address range.
+    /// @param size            The size of the address range.
+    /// @param state_mask      The memory state mask.
+    /// @param state           The state to compare the individual VMA states against,
+    ///                        which is done in the form of: (vma.state & state_mask) != state.
+    /// @param permission_mask The memory permissions mask.
+    /// @param permissions     The permission to compare the individual VMA permissions against,
+    ///                        which is done in the form of:
+    ///                        (vma.permission & permission_mask) != permission.
+    /// @param attribute_mask  The memory attribute mask.
+    /// @param attribute       The memory attributes to compare the individual VMA attributes
+    ///                        against, which is done in the form of:
+    ///                        (vma.attributes & attribute_mask) != attribute.
+    /// @param ignore_mask     The memory attributes to ignore during the check.
+    ///
+    /// @returns If successful, returns a tuple containing the memory attributes
+    ///          (with ignored bits specified by ignore_mask unset), memory permissions, and
+    ///          memory state across the memory range.
+    /// @returns If not successful, returns ERR_INVALID_ADDRESS_STATE.
+    ///
+    CheckResults CheckRangeState(VAddr address, u64 size, MemoryState state_mask, MemoryState state,
+                                 VMAPermission permission_mask, VMAPermission permissions,
+                                 MemoryAttribute attribute_mask, MemoryAttribute attribute,
+                                 MemoryAttribute ignore_mask) const;
+
 private:
     using VMAIter = VMAMap::iterator;
 
@@ -706,35 +737,6 @@ private:
 
     /// Clears out the page table
     void ClearPageTable();
-
-    using CheckResults = ResultVal<std::tuple<MemoryState, VMAPermission, MemoryAttribute>>;
-
-    /// Checks if an address range adheres to the specified states provided.
-    ///
-    /// @param address         The starting address of the address range.
-    /// @param size            The size of the address range.
-    /// @param state_mask      The memory state mask.
-    /// @param state           The state to compare the individual VMA states against,
-    ///                        which is done in the form of: (vma.state & state_mask) != state.
-    /// @param permission_mask The memory permissions mask.
-    /// @param permissions     The permission to compare the individual VMA permissions against,
-    ///                        which is done in the form of:
-    ///                        (vma.permission & permission_mask) != permission.
-    /// @param attribute_mask  The memory attribute mask.
-    /// @param attribute       The memory attributes to compare the individual VMA attributes
-    ///                        against, which is done in the form of:
-    ///                        (vma.attributes & attribute_mask) != attribute.
-    /// @param ignore_mask     The memory attributes to ignore during the check.
-    ///
-    /// @returns If successful, returns a tuple containing the memory attributes
-    ///          (with ignored bits specified by ignore_mask unset), memory permissions, and
-    ///          memory state across the memory range.
-    /// @returns If not successful, returns ERR_INVALID_ADDRESS_STATE.
-    ///
-    CheckResults CheckRangeState(VAddr address, u64 size, MemoryState state_mask, MemoryState state,
-                                 VMAPermission permission_mask, VMAPermission permissions,
-                                 MemoryAttribute attribute_mask, MemoryAttribute attribute,
-                                 MemoryAttribute ignore_mask) const;
 
     /// Gets the amount of memory currently mapped (state != Unmapped) in a range.
     ResultVal<std::size_t> SizeOfAllocatedVMAsInRange(VAddr address, std::size_t size) const;
