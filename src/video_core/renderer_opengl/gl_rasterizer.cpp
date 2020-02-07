@@ -248,9 +248,6 @@ void RasterizerOpenGL::SetupVertexInstances(GLuint vao) {
 }
 
 GLintptr RasterizerOpenGL::SetupIndexBuffer() {
-    if (accelerate_draw != AccelDraw::Indexed) {
-        return 0;
-    }
     MICROPROFILE_SCOPE(OpenGL_Index);
     const auto& regs = system.GPU().Maxwell3D().regs;
     const std::size_t size = CalculateIndexBufferSize();
@@ -546,7 +543,8 @@ void RasterizerOpenGL::Clear() {
     }
 }
 
-void RasterizerOpenGL::DrawPrelude() {
+void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
+    MICROPROFILE_SCOPE(OpenGL_Drawing);
     auto& gpu = system.GPU().Maxwell3D();
 
     SyncRasterizeEnable(state);
@@ -566,9 +564,6 @@ void RasterizerOpenGL::DrawPrelude() {
     SyncAlphaTest();
 
     buffer_cache.Acquire();
-
-    // Draw the vertex batch
-    const bool is_indexed = accelerate_draw == AccelDraw::Indexed;
 
     std::size_t buffer_size = CalculateVertexArraysSize();
 
@@ -596,7 +591,11 @@ void RasterizerOpenGL::DrawPrelude() {
     // Upload vertex and index data.
     SetupVertexBuffer(vao);
     SetupVertexInstances(vao);
-    index_buffer_offset = SetupIndexBuffer();
+
+    GLintptr index_buffer_offset;
+    if (is_indexed) {
+        index_buffer_offset = SetupIndexBuffer();
+    }
 
     // Prepare packed bindings.
     bind_ubo_pushbuffer.Setup();
@@ -630,6 +629,7 @@ void RasterizerOpenGL::DrawPrelude() {
         // As all cached buffers are invalidated, we need to recheck their state.
         gpu.dirty.ResetVertexArrays();
     }
+    gpu.dirty.memory_general = false;
 
     shader_program_manager->ApplyTo(state);
     state.Apply();
@@ -637,106 +637,33 @@ void RasterizerOpenGL::DrawPrelude() {
     if (texture_cache.TextureBarrier()) {
         glTextureBarrier();
     }
+
+    const GLuint base_instance = static_cast<GLuint>(gpu.regs.vb_base_instance);
+    const GLsizei num_instances =
+        static_cast<GLsizei>(is_instanced ? gpu.mme_draw.instance_count : 1);
+    if (is_indexed) {
+        const GLenum index_format = MaxwellToGL::IndexFormat(gpu.regs.index_array.format);
+        const GLint base_vertex = static_cast<GLint>(gpu.regs.vb_element_base);
+        const GLsizei num_vertices = static_cast<GLsizei>(gpu.regs.index_array.count);
+        glDrawElementsInstancedBaseVertexBaseInstance(
+            primitive_mode, num_vertices, index_format,
+            reinterpret_cast<const void*>(index_buffer_offset), num_instances, base_vertex,
+            base_instance);
+    } else {
+        const GLint base_vertex = static_cast<GLint>(gpu.regs.vertex_buffer.first);
+        const GLsizei num_vertices = static_cast<GLsizei>(gpu.regs.vertex_buffer.count);
+        glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, num_vertices, num_instances,
+                                          base_instance);
+    }
 }
 
-struct DrawParams {
-    bool is_indexed{};
-    bool is_instanced{};
-    GLenum primitive_mode{};
-    GLint count{};
-    GLint base_vertex{};
-
-    // Indexed settings
-    GLenum index_format{};
-    GLintptr index_buffer_offset{};
-
-    // Instanced setting
-    GLint num_instances{};
-    GLint base_instance{};
-
-    void DispatchDraw() {
-        if (is_indexed) {
-            const auto index_buffer_ptr = reinterpret_cast<const void*>(index_buffer_offset);
-            if (is_instanced) {
-                glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, count, index_format,
-                                                              index_buffer_ptr, num_instances,
-                                                              base_vertex, base_instance);
-            } else {
-                glDrawElementsBaseVertex(primitive_mode, count, index_format, index_buffer_ptr,
-                                         base_vertex);
-            }
-        } else {
-            if (is_instanced) {
-                glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, count, num_instances,
-                                                  base_instance);
-            } else {
-                glDrawArrays(primitive_mode, base_vertex, count);
-            }
-        }
-    }
-};
-
 bool RasterizerOpenGL::DrawBatch(bool is_indexed) {
-    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-
-    MICROPROFILE_SCOPE(OpenGL_Drawing);
-
-    DrawPrelude();
-
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
-    const auto current_instance = maxwell3d.state.current_instance;
-    DrawParams draw_call{};
-    draw_call.is_indexed = is_indexed;
-    draw_call.num_instances = static_cast<GLint>(1);
-    draw_call.base_instance = static_cast<GLint>(current_instance);
-    draw_call.is_instanced = current_instance > 0;
-    draw_call.primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
-    if (draw_call.is_indexed) {
-        draw_call.count = static_cast<GLint>(regs.index_array.count);
-        draw_call.base_vertex = static_cast<GLint>(regs.vb_element_base);
-        draw_call.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
-        draw_call.index_buffer_offset = index_buffer_offset;
-    } else {
-        draw_call.count = static_cast<GLint>(regs.vertex_buffer.count);
-        draw_call.base_vertex = static_cast<GLint>(regs.vertex_buffer.first);
-    }
-    draw_call.DispatchDraw();
-
-    maxwell3d.dirty.memory_general = false;
-    accelerate_draw = AccelDraw::Disabled;
+    Draw(is_indexed, false);
     return true;
 }
 
 bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
-    accelerate_draw = is_indexed ? AccelDraw::Indexed : AccelDraw::Arrays;
-
-    MICROPROFILE_SCOPE(OpenGL_Drawing);
-
-    DrawPrelude();
-
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    const auto& regs = maxwell3d.regs;
-    const auto& draw_setup = maxwell3d.mme_draw;
-    DrawParams draw_call{};
-    draw_call.is_indexed = is_indexed;
-    draw_call.num_instances = static_cast<GLint>(draw_setup.instance_count);
-    draw_call.base_instance = static_cast<GLint>(regs.vb_base_instance);
-    draw_call.is_instanced = draw_setup.instance_count > 1;
-    draw_call.primitive_mode = MaxwellToGL::PrimitiveTopology(regs.draw.topology);
-    if (draw_call.is_indexed) {
-        draw_call.count = static_cast<GLint>(regs.index_array.count);
-        draw_call.base_vertex = static_cast<GLint>(regs.vb_element_base);
-        draw_call.index_format = MaxwellToGL::IndexFormat(regs.index_array.format);
-        draw_call.index_buffer_offset = index_buffer_offset;
-    } else {
-        draw_call.count = static_cast<GLint>(regs.vertex_buffer.count);
-        draw_call.base_vertex = static_cast<GLint>(regs.vertex_buffer.first);
-    }
-    draw_call.DispatchDraw();
-
-    maxwell3d.dirty.memory_general = false;
-    accelerate_draw = AccelDraw::Disabled;
+    Draw(is_indexed, true);
     return true;
 }
 

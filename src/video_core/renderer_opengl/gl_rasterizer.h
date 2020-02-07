@@ -103,7 +103,7 @@ private:
                            std::size_t size);
 
     /// Syncs all the state, shaders, render targets and textures setting before a draw call.
-    void DrawPrelude();
+    void Draw(bool is_indexed, bool is_instanced);
 
     /// Configures the current textures to use for the draw command.
     void SetupDrawTextures(std::size_t stage_index, const Shader& shader);
@@ -220,12 +220,7 @@ private:
 
     GLintptr SetupIndexBuffer();
 
-    GLintptr index_buffer_offset;
-
     void SetupShaders(GLenum primitive_mode);
-
-    enum class AccelDraw { Disabled, Arrays, Indexed };
-    AccelDraw accelerate_draw = AccelDraw::Disabled;
 };
 
 } // namespace OpenGL
