@@ -14,13 +14,15 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/spin_lock.h"
+#include "common/thread.h"
 #include "common/threadsafe_queue.h"
 
 namespace Core::HostTiming {
 
 /// A callback that may be scheduled for a particular core timing event.
 using TimedCallback = std::function<void(u64 userdata, s64 cycles_late)>;
-using sys_time_point = std::chrono::time_point<std::chrono::system_clock>;
+using sys_time_point = std::chrono::time_point<std::chrono::steady_clock>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -62,6 +64,23 @@ public:
 
     /// Tears down all timing related functionality.
     void Shutdown();
+
+    /// Pauses/Unpauses the execution of the timer thread.
+    void Pause(bool is_paused);
+
+    /// Pauses/Unpauses the execution of the timer thread and waits until paused.
+    void SyncPause(bool is_paused);
+
+    /// Checks if core timing is running.
+    bool IsRunning();
+
+    /// Checks if the timer thread has started.
+    bool HasStarted() {
+        return has_started;
+    }
+
+    /// Checks if there are any pending time events.
+    bool HasPendingEvents();
 
     /// Schedules an event in core timing
     void ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
@@ -107,11 +126,14 @@ private:
     u64 event_fifo_id = 0;
 
     std::shared_ptr<EventType> ev_lost;
-    bool is_set = false;
-    std::condition_variable condvar;
-    std::mutex inner_mutex;
+    Common::Event event{};
+    Common::SpinLock basic_lock{};
     std::unique_ptr<std::thread> timer_thread;
+    std::atomic<bool> paused{};
+    std::atomic<bool> paused_set{};
+    std::atomic<bool> wait_set{};
     std::atomic<bool> shutting_down{};
+    std::atomic<bool> has_started{};
 };
 
 /// Creates a core timing event with the given name and callback.

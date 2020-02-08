@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <mutex>
 #include <thread>
+#include "common/common_types.h"
 
 namespace Common {
 
@@ -28,8 +29,7 @@ public:
         is_set = false;
     }
 
-    template <class Duration>
-    bool WaitFor(const std::chrono::duration<Duration>& time) {
+    bool WaitFor(const std::chrono::nanoseconds& time) {
         std::unique_lock lk{mutex};
         if (!condvar.wait_for(lk, time, [this] { return is_set; }))
             return false;

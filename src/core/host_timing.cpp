@@ -10,7 +10,6 @@
 #include <tuple>
 
 #include "common/assert.h"
-#include "common/thread.h"
 #include "core/core_timing_util.h"
 
 namespace Core::HostTiming {
@@ -47,39 +46,55 @@ void CoreTiming::Initialize() {
     event_fifo_id = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
-    start_time = std::chrono::system_clock::now();
+    start_time = std::chrono::steady_clock::now();
     timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
 }
 
 void CoreTiming::Shutdown() {
-    std::unique_lock<std::mutex> guard(inner_mutex);
+    paused = true;
     shutting_down = true;
-    if (!is_set) {
-        is_set = true;
-        condvar.notify_one();
-    }
-    inner_mutex.unlock();
+    event.Set();
     timer_thread->join();
     ClearPendingEvents();
+    timer_thread.reset();
+    has_started = false;
+}
+
+void CoreTiming::Pause(bool is_paused) {
+    paused = is_paused;
+}
+
+void CoreTiming::SyncPause(bool is_paused) {
+    if (is_paused == paused && paused_set == paused) {
+        return;
+    }
+    Pause(is_paused);
+    event.Set();
+    while (paused_set != is_paused);
+}
+
+bool CoreTiming::IsRunning() {
+    return !paused_set;
+}
+
+bool CoreTiming::HasPendingEvents() {
+    return !(wait_set && event_queue.empty());
 }
 
 void CoreTiming::ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
                                u64 userdata) {
-    std::lock_guard guard{inner_mutex};
+    basic_lock.lock();
     const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
 
     event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
 
     std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
-    if (!is_set) {
-        is_set = true;
-        condvar.notify_one();
-    }
+    basic_lock.unlock();
+    event.Set();
 }
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata) {
-    std::lock_guard guard{inner_mutex};
-
+    basic_lock.lock();
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get() && e.userdata == userdata;
     });
@@ -89,6 +104,7 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
         event_queue.erase(itr, event_queue.end());
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
+    basic_lock.unlock();
 }
 
 u64 CoreTiming::GetCPUTicks() const {
@@ -106,7 +122,7 @@ void CoreTiming::ClearPendingEvents() {
 }
 
 void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
-    std::lock_guard guard{inner_mutex};
+    basic_lock.lock();
 
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get();
@@ -117,43 +133,54 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
         event_queue.erase(itr, event_queue.end());
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
+    basic_lock.unlock();
 }
 
 void CoreTiming::Advance() {
-    while (true) {
-        std::unique_lock<std::mutex> guard(inner_mutex);
+    has_started = true;
+    while (!shutting_down) {
+        while (!paused) {
+            paused_set = false;
+            basic_lock.lock();
+            global_timer = GetGlobalTimeNs().count();
 
-        global_timer = GetGlobalTimeNs().count();
+            while (!event_queue.empty() && event_queue.front().time <= global_timer) {
+                Event evt = std::move(event_queue.front());
+                std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+                event_queue.pop_back();
+                basic_lock.unlock();
 
-        while (!event_queue.empty() && event_queue.front().time <= global_timer) {
-            Event evt = std::move(event_queue.front());
-            std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
-            event_queue.pop_back();
-            inner_mutex.unlock();
+                if (auto event_type{evt.type.lock()}) {
+                    event_type->callback(evt.userdata, global_timer - evt.time);
+                }
 
-            if (auto event_type{evt.type.lock()}) {
-                event_type->callback(evt.userdata, global_timer - evt.time);
+                basic_lock.lock();
             }
 
-            inner_mutex.lock();
+            if (!event_queue.empty()) {
+                std::chrono::nanoseconds next_time = std::chrono::nanoseconds(event_queue.front().time - global_timer);
+                basic_lock.unlock();
+                event.WaitFor(next_time);
+            } else {
+                basic_lock.unlock();
+                wait_set = true;
+                event.Wait();
+            }
+
+            wait_set = false;
         }
-        auto next_time = std::chrono::nanoseconds(event_queue.front().time - global_timer);
-        condvar.wait_for(guard, next_time, [this] { return is_set; });
-        is_set = false;
-        if (shutting_down) {
-            break;
-        }
+        paused_set = true;
     }
 }
 
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
-    sys_time_point current = std::chrono::system_clock::now();
+    sys_time_point current = std::chrono::steady_clock::now();
     auto elapsed = current - start_time;
     return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed);
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    sys_time_point current = std::chrono::system_clock::now();
+    sys_time_point current = std::chrono::steady_clock::now();
     auto elapsed = current - start_time;
     return std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
 }
