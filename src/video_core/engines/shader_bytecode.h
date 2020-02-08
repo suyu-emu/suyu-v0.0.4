@@ -624,6 +624,19 @@ enum class ShuffleOperation : u64 {
     Bfly = 3, // shuffleXorNV
 };
 
+enum class ShfType : u64 {
+    Bits32 = 0,
+    U64 = 2,
+    S64 = 3,
+};
+
+enum class ShfXmode : u64 {
+    None = 0,
+    HI = 1,
+    X = 2,
+    XHI = 3,
+};
+
 union Instruction {
     constexpr Instruction& operator=(const Instruction& instr) {
         value = instr.value;
@@ -774,6 +787,13 @@ union Instruction {
     union {
         BitField<39, 1, u64> wrap;
     } shr;
+
+    union {
+        BitField<37, 2, ShfType> type;
+        BitField<48, 2, ShfXmode> xmode;
+        BitField<50, 1, u64> wrap;
+        BitField<20, 6, u64> immediate;
+    } shf;
 
     union {
         BitField<39, 5, u64> shift_amount;
