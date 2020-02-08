@@ -47,8 +47,7 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return GL_UNSIGNED_INT_2_10_10_10_REV;
         default:
-            LOG_CRITICAL(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
-            UNREACHABLE();
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
             return {};
         }
     case Maxwell::VertexAttribute::Type::SignedInt:
@@ -72,8 +71,7 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return GL_INT_2_10_10_10_REV;
         default:
-            LOG_CRITICAL(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
-            UNREACHABLE();
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
             return {};
         }
     case Maxwell::VertexAttribute::Type::Float:
@@ -89,13 +87,19 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
             return GL_FLOAT;
         default:
-            LOG_CRITICAL(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
-            UNREACHABLE();
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
+            return {};
+        }
+    case Maxwell::VertexAttribute::Type::UnsignedScaled:
+        switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return GL_UNSIGNED_BYTE;
+        default:
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
             return {};
         }
     default:
-        LOG_CRITICAL(Render_OpenGL, "Unimplemented vertex type={}", attrib.TypeString());
-        UNREACHABLE();
+        LOG_ERROR(Render_OpenGL, "Unimplemented vertex type={}", attrib.TypeString());
         return {};
     }
 }
