@@ -52,13 +52,6 @@
         <item>
          <layout class="QVBoxLayout" name="GeneralVerticalLayout">
           <item>
-           <widget class="QCheckBox" name="show_unknown">
-            <property name="text">
-             <string>Show files with type 'Unknown'</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QCheckBox" name="show_add_ons">
             <property name="text">
              <string>Show Add-Ons Column</string>
