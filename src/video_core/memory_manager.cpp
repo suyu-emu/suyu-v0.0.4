@@ -9,13 +9,12 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
+#include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
-#include "video_core/rasterizer_interface.h"
 
 namespace Tegra {
 
-MemoryManager::MemoryManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
-    : rasterizer{rasterizer}, system{system} {
+MemoryManager::MemoryManager(Core::System& system) : system{system} {
     std::fill(page_table.pointers.begin(), page_table.pointers.end(), nullptr);
     std::fill(page_table.attributes.begin(), page_table.attributes.end(),
               Common::PageType::Unmapped);
@@ -84,7 +83,8 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     const auto cpu_addr = GpuToCpuAddress(gpu_addr);
     ASSERT(cpu_addr);
 
-    rasterizer.FlushAndInvalidateRegion(cache_addr, aligned_size);
+    system.GPU().FlushAndInvalidateRegion(cache_addr, aligned_size);
+
     UnmapRange(gpu_addr, aligned_size);
     ASSERT(system.CurrentProcess()
                ->VMManager()
@@ -242,7 +242,7 @@ void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::s
         switch (page_table.attributes[page_index]) {
         case Common::PageType::Memory: {
             const u8* src_ptr{page_table.pointers[page_index] + page_offset};
-            rasterizer.FlushRegion(ToCacheAddr(src_ptr), copy_amount);
+            system.GPU().FlushRegion(ToCacheAddr(src_ptr), copy_amount);
             std::memcpy(dest_buffer, src_ptr, copy_amount);
             break;
         }
@@ -292,7 +292,7 @@ void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const
         switch (page_table.attributes[page_index]) {
         case Common::PageType::Memory: {
             u8* dest_ptr{page_table.pointers[page_index] + page_offset};
-            rasterizer.InvalidateRegion(ToCacheAddr(dest_ptr), copy_amount);
+            system.GPU().InvalidateRegion(ToCacheAddr(dest_ptr), copy_amount);
             std::memcpy(dest_ptr, src_buffer, copy_amount);
             break;
         }
@@ -340,7 +340,7 @@ void MemoryManager::CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, const std::
         switch (page_table.attributes[page_index]) {
         case Common::PageType::Memory: {
             const u8* src_ptr{page_table.pointers[page_index] + page_offset};
-            rasterizer.FlushRegion(ToCacheAddr(src_ptr), copy_amount);
+            system.GPU().FlushRegion(ToCacheAddr(src_ptr), copy_amount);
             WriteBlock(dest_addr, src_ptr, copy_amount);
             break;
         }
