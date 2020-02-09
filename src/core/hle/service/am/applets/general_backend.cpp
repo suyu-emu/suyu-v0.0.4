@@ -20,7 +20,7 @@ namespace Service::AM::Applets {
 constexpr ResultCode ERROR_INVALID_PIN{ErrorModule::PCTL, 221};
 
 static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix) {
-    std::unique_ptr<IStorage> storage = broker.PopNormalDataToApplet();
+    std::shared_ptr<IStorage> storage = broker.PopNormalDataToApplet();
     for (; storage != nullptr; storage = broker.PopNormalDataToApplet()) {
         const auto data = storage->GetData();
         LOG_INFO(Service_AM,
@@ -148,7 +148,7 @@ void Auth::AuthFinished(bool successful) {
     std::vector<u8> out(sizeof(Return));
     std::memcpy(out.data(), &return_, sizeof(Return));
 
-    broker.PushNormalDataFromApplet(IStorage{std::move(out)});
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(out)));
     broker.SignalStateChanged();
 }
 
@@ -198,7 +198,7 @@ void PhotoViewer::Execute() {
 }
 
 void PhotoViewer::ViewFinished() {
-    broker.PushNormalDataFromApplet(IStorage{std::vector<u8>{}});
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{}));
     broker.SignalStateChanged();
 }
 
@@ -234,8 +234,8 @@ void StubApplet::ExecuteInteractive() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     LogCurrentStorage(broker, "ExecuteInteractive");
 
-    broker.PushNormalDataFromApplet(IStorage{std::vector<u8>(0x1000)});
-    broker.PushInteractiveDataFromApplet(IStorage{std::vector<u8>(0x1000)});
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
+    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
     broker.SignalStateChanged();
 }
 
@@ -243,8 +243,8 @@ void StubApplet::Execute() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     LogCurrentStorage(broker, "Execute");
 
-    broker.PushNormalDataFromApplet(IStorage{std::vector<u8>(0x1000)});
-    broker.PushInteractiveDataFromApplet(IStorage{std::vector<u8>(0x1000)});
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
+    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
     broker.SignalStateChanged();
 }
 

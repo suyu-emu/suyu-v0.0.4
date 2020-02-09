@@ -102,7 +102,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
 
 void SoftwareKeyboard::Execute() {
     if (complete) {
-        broker.PushNormalDataFromApplet(IStorage{std::move(final_data)});
+        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(final_data)));
         broker.SignalStateChanged();
         return;
     }
@@ -145,15 +145,15 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         final_data = output_main;
 
         if (complete) {
-            broker.PushNormalDataFromApplet(IStorage{std::move(output_main)});
+            broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(output_main)));
             broker.SignalStateChanged();
         } else {
-            broker.PushInteractiveDataFromApplet(IStorage{std::move(output_sub)});
+            broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::move(output_sub)));
         }
     } else {
         output_main[0] = 1;
         complete = true;
-        broker.PushNormalDataFromApplet(IStorage{std::move(output_main)});
+        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(output_main)));
         broker.SignalStateChanged();
     }
 }
