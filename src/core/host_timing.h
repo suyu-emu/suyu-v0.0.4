@@ -17,12 +17,12 @@
 #include "common/spin_lock.h"
 #include "common/thread.h"
 #include "common/threadsafe_queue.h"
+#include "common/wall_clock.h"
 
 namespace Core::HostTiming {
 
 /// A callback that may be scheduled for a particular core timing event.
 using TimedCallback = std::function<void(u64 userdata, s64 cycles_late)>;
-using sys_time_point = std::chrono::time_point<std::chrono::steady_clock>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -112,7 +112,7 @@ private:
     static void ThreadEntry(CoreTiming& instance);
     void Advance();
 
-    sys_time_point start_time;
+    std::unique_ptr<Common::WallClock> clock;
 
     u64 global_timer = 0;
 

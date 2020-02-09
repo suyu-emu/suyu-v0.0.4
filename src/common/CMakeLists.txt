@@ -167,6 +167,8 @@ add_library(common STATIC
     vector_math.h
     virtual_buffer.cpp
     virtual_buffer.h
+    wall_clock.cpp
+    wall_clock.h
     web_result.h
     zstd_compression.cpp
     zstd_compression.h
@@ -177,6 +179,8 @@ if(ARCHITECTURE_x86_64)
         PRIVATE
             x64/cpu_detect.cpp
             x64/cpu_detect.h
+            x64/native_clock.cpp
+            x64/native_clock.h
             x64/xbyak_abi.h
             x64/xbyak_util.h
     )

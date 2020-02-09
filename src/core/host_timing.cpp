@@ -35,7 +35,11 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming() = default;
+CoreTiming::CoreTiming() {
+    Common::WallClock* wall = Common::CreateBestMatchingClock(Core::Timing::BASE_CLOCK_RATE, Core::Timing::CNTFREQ);
+    clock = std::unique_ptr<Common::WallClock>(wall);
+}
+
 CoreTiming::~CoreTiming() = default;
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
@@ -46,7 +50,6 @@ void CoreTiming::Initialize() {
     event_fifo_id = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
-    start_time = std::chrono::steady_clock::now();
     timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
 }
 
@@ -108,13 +111,11 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
 }
 
 u64 CoreTiming::GetCPUTicks() const {
-    std::chrono::nanoseconds time_now = GetGlobalTimeNs();
-    return Core::Timing::nsToCycles(time_now);
+    return clock->GetCPUCycles();
 }
 
 u64 CoreTiming::GetClockTicks() const {
-    std::chrono::nanoseconds time_now = GetGlobalTimeNs();
-    return Core::Timing::nsToClockCycles(time_now);
+    return clock->GetClockCycles();
 }
 
 void CoreTiming::ClearPendingEvents() {
@@ -174,15 +175,11 @@ void CoreTiming::Advance() {
 }
 
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
-    sys_time_point current = std::chrono::steady_clock::now();
-    auto elapsed = current - start_time;
-    return std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed);
+    return clock->GetTimeNS();
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    sys_time_point current = std::chrono::steady_clock::now();
-    auto elapsed = current - start_time;
-    return std::chrono::duration_cast<std::chrono::microseconds>(elapsed);
+    return clock->GetTimeUS();
 }
 
 } // namespace Core::Timing

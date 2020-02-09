@@ -17,7 +17,7 @@
 // Numbers are chosen randomly to make sure the correct one is given.
 static constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
 static constexpr int MAX_SLICE_LENGTH = 10000; // Copied from CoreTiming internals
-static constexpr std::array<u64, 5> calls_order{{2,0,1,4,3}};
+static constexpr std::array<u64, 5> calls_order{{2, 0, 1, 4, 3}};
 static std::array<s64, 5> delays{};
 
 static std::bitset<CB_IDS.size()> callbacks_ran_flags;
@@ -52,16 +52,11 @@ TEST_CASE("HostTiming[BasicOrder]", "[core]") {
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::HostTiming::EventType>> events;
     events.resize(5);
-    events[0] =
-        Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
-    events[1] =
-        Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
-    events[2] =
-        Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
-    events[3] =
-        Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
-    events[4] =
-        Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
+    events[0] = Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
+    events[1] = Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
+    events[2] = Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
+    events[3] = Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
+    events[4] = Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
 
     expected_callback = 0;
 
@@ -70,14 +65,15 @@ TEST_CASE("HostTiming[BasicOrder]", "[core]") {
     u64 one_micro = 1000U;
     for (std::size_t i = 0; i < events.size(); i++) {
         u64 order = calls_order[i];
-        core_timing.ScheduleEvent(i*one_micro + 100U, events[order], CB_IDS[order]);
+        core_timing.ScheduleEvent(i * one_micro + 100U, events[order], CB_IDS[order]);
     }
     /// test pause
     REQUIRE(callbacks_ran_flags.none());
 
     core_timing.Pause(false); // No need to sync
 
-    while (core_timing.HasPendingEvents());
+    while (core_timing.HasPendingEvents())
+        ;
 
     REQUIRE(callbacks_ran_flags.all());
 
@@ -106,16 +102,11 @@ TEST_CASE("HostTiming[BasicOrderNoPausing]", "[core]") {
     auto& core_timing = guard.core_timing;
     std::vector<std::shared_ptr<Core::HostTiming::EventType>> events;
     events.resize(5);
-    events[0] =
-        Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
-    events[1] =
-        Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
-    events[2] =
-        Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
-    events[3] =
-        Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
-    events[4] =
-        Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
+    events[0] = Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
+    events[1] = Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
+    events[2] = Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
+    events[3] = Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
+    events[4] = Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
 
     core_timing.SyncPause(true);
     core_timing.SyncPause(false);
@@ -126,13 +117,14 @@ TEST_CASE("HostTiming[BasicOrderNoPausing]", "[core]") {
     u64 one_micro = 1000U;
     for (std::size_t i = 0; i < events.size(); i++) {
         u64 order = calls_order[i];
-        core_timing.ScheduleEvent(i*one_micro + 100U, events[order], CB_IDS[order]);
+        core_timing.ScheduleEvent(i * one_micro + 100U, events[order], CB_IDS[order]);
     }
     u64 end = core_timing.GetGlobalTimeNs().count();
     const double scheduling_time = static_cast<double>(end - start);
     const double timer_time = static_cast<double>(TestTimerSpeed(core_timing));
 
-    while (core_timing.HasPendingEvents());
+    while (core_timing.HasPendingEvents())
+        ;
 
     REQUIRE(callbacks_ran_flags.all());
 
@@ -146,5 +138,6 @@ TEST_CASE("HostTiming[BasicOrderNoPausing]", "[core]") {
     const double micro = scheduling_time / 1000.0f;
     const double mili = micro / 1000.0f;
     printf("HostTimer No Pausing Scheduling Time: %.3f %.6f\n", micro, mili);
-    printf("HostTimer No Pausing Timer Time: %.3f %.6f\n", timer_time / 1000.f, timer_time / 1000000.f);
+    printf("HostTimer No Pausing Timer Time: %.3f %.6f\n", timer_time / 1000.f,
+           timer_time / 1000000.f);
 }
