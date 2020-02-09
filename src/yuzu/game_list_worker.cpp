@@ -298,8 +298,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
             }
 
             const auto file_type = loader->GetFileType();
-            if ((file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) &&
-                !UISettings::values.show_unknown) {
+            if (file_type == Loader::FileType::Unknown || file_type == Loader::FileType::Error) {
                 return true;
             }
 

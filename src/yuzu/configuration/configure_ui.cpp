@@ -40,7 +40,6 @@ ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::Configur
     SetConfiguration();
 
     // Force game list reload if any of the relevant settings are changed.
-    connect(ui->show_unknown, &QCheckBox::stateChanged, this, &ConfigureUi::RequestGameListUpdate);
     connect(ui->icon_size_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &ConfigureUi::RequestGameListUpdate);
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
@@ -60,7 +59,6 @@ ConfigureUi::~ConfigureUi() = default;
 void ConfigureUi::ApplyConfiguration() {
     UISettings::values.theme =
         ui->theme_combobox->itemData(ui->theme_combobox->currentIndex()).toString();
-    UISettings::values.show_unknown = ui->show_unknown->isChecked();
     UISettings::values.show_add_ons = ui->show_add_ons->isChecked();
     UISettings::values.icon_size = ui->icon_size_combobox->currentData().toUInt();
     UISettings::values.row_1_text_id = ui->row_1_text_combobox->currentData().toUInt();
@@ -74,7 +72,6 @@ void ConfigureUi::RequestGameListUpdate() {
 
 void ConfigureUi::SetConfiguration() {
     ui->theme_combobox->setCurrentIndex(ui->theme_combobox->findData(UISettings::values.theme));
-    ui->show_unknown->setChecked(UISettings::values.show_unknown);
     ui->show_add_ons->setChecked(UISettings::values.show_add_ons);
     ui->icon_size_combobox->setCurrentIndex(
         ui->icon_size_combobox->findData(UISettings::values.icon_size));

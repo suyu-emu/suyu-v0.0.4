@@ -89,7 +89,6 @@ struct Values {
     int profile_index;
 
     // Game List
-    bool show_unknown;
     bool show_add_ons;
     uint32_t icon_size;
     uint8_t row_1_text_id;
