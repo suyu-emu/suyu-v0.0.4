@@ -4,7 +4,7 @@
 
 #include "common/assert.h"
 #include "common/fiber.h"
-#ifdef _MSC_VER
+#if defined(_WIN32) || defined(WIN32)
 #include <windows.h>
 #else
 #include <boost/context/detail/fcontext.hpp>
@@ -12,7 +12,7 @@
 
 namespace Common {
 
-#ifdef _MSC_VER
+#if defined(_WIN32) || defined(WIN32)
 
 struct Fiber::FiberImpl {
     LPVOID handle = nullptr;

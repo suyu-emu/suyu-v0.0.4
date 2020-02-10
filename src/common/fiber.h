@@ -10,7 +10,7 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 
-#ifndef _MSC_VER
+#if !defined(_WIN32) && !defined(WIN32)
 namespace boost::context::detail {
 struct transfer_t;
 }
@@ -57,7 +57,7 @@ public:
 private:
     Fiber();
 
-#ifdef _MSC_VER
+#if defined(_WIN32) || defined(WIN32)
     void start();
     static void FiberStartFunc(void* fiber_parameter);
 #else
