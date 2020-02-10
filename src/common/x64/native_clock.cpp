@@ -11,43 +11,10 @@
 #include <x86intrin.h>
 #endif
 
+#include "common/uint128.h"
 #include "common/x64/native_clock.h"
 
 namespace Common {
-
-#ifdef _MSC_VER
-
-namespace {
-
-struct uint128 {
-    u64 low;
-    u64 high;
-};
-
-u64 umuldiv64(u64 a, u64 b, u64 d) {
-    uint128 r{};
-    r.low = _umul128(a, b, &r.high);
-    u64 remainder;
-    return _udiv128(r.high, r.low, d, &remainder);
-}
-
-} // namespace
-
-#else
-
-namespace {
-
-u64 umuldiv64(u64 a, u64 b, u64 d) {
-    const u64 diva = a / d;
-    const u64 moda = a % d;
-    const u64 divb = b / d;
-    const u64 modb = b % d;
-    return diva * b + moda * divb + moda * modb / d;
-}
-
-} // namespace
-
-#endif
 
 u64 EstimateRDTSCFrequency() {
     const auto milli_10 = std::chrono::milliseconds{10};
@@ -70,7 +37,7 @@ u64 EstimateRDTSCFrequency() {
     const u64 timer_diff =
         std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count();
     const u64 tsc_diff = tscEnd - tscStart;
-    const u64 tsc_freq = umuldiv64(tsc_diff, 1000000000ULL, timer_diff);
+    const u64 tsc_freq = MultiplyAndDivide64(tsc_diff, 1000000000ULL, timer_diff);
     return tsc_freq;
 }
 
@@ -100,27 +67,27 @@ u64 NativeClock::GetRTSC() {
 
 std::chrono::nanoseconds NativeClock::GetTimeNS() {
     const u64 rtsc_value = GetRTSC();
-    return std::chrono::nanoseconds{umuldiv64(rtsc_value, 1000000000, rtsc_frequency)};
+    return std::chrono::nanoseconds{MultiplyAndDivide64(rtsc_value, 1000000000, rtsc_frequency)};
 }
 
 std::chrono::microseconds NativeClock::GetTimeUS() {
     const u64 rtsc_value = GetRTSC();
-    return std::chrono::microseconds{umuldiv64(rtsc_value, 1000000, rtsc_frequency)};
+    return std::chrono::microseconds{MultiplyAndDivide64(rtsc_value, 1000000, rtsc_frequency)};
 }
 
 std::chrono::milliseconds NativeClock::GetTimeMS() {
     const u64 rtsc_value = GetRTSC();
-    return std::chrono::milliseconds{umuldiv64(rtsc_value, 1000, rtsc_frequency)};
+    return std::chrono::milliseconds{MultiplyAndDivide64(rtsc_value, 1000, rtsc_frequency)};
 }
 
 u64 NativeClock::GetClockCycles() {
     const u64 rtsc_value = GetRTSC();
-    return umuldiv64(rtsc_value, emulated_clock_frequency, rtsc_frequency);
+    return MultiplyAndDivide64(rtsc_value, emulated_clock_frequency, rtsc_frequency);
 }
 
 u64 NativeClock::GetCPUCycles() {
     const u64 rtsc_value = GetRTSC();
-    return umuldiv64(rtsc_value, emulated_cpu_frequency, rtsc_frequency);
+    return MultiplyAndDivide64(rtsc_value, emulated_cpu_frequency, rtsc_frequency);
 }
 
 } // namespace X64

@@ -36,8 +36,7 @@ struct CoreTiming::Event {
 };
 
 CoreTiming::CoreTiming() {
-    Common::WallClock* wall = Common::CreateBestMatchingClock(Core::Timing::BASE_CLOCK_RATE, Core::Timing::CNTFREQ);
-    clock = std::unique_ptr<Common::WallClock>(wall);
+    clock = Common::CreateBestMatchingClock(Core::Timing::BASE_CLOCK_RATE, Core::Timing::CNTFREQ);
 }
 
 CoreTiming::~CoreTiming() = default;

@@ -9,6 +9,9 @@
 
 namespace Common {
 
+// This function multiplies 2 u64 values and divides it by a u64 value.
+u64 MultiplyAndDivide64(u64 a, u64 b, u64 d);
+
 // This function multiplies 2 u64 values and produces a u128 value;
 u128 Multiply64Into128(u64 a, u64 b);
 

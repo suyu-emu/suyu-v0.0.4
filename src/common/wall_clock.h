@@ -5,6 +5,7 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 
 #include "common/common_types.h"
 
@@ -12,10 +13,20 @@ namespace Common {
 
 class WallClock {
 public:
+
+    /// Returns current wall time in nanoseconds
     virtual std::chrono::nanoseconds GetTimeNS() = 0;
+
+    /// Returns current wall time in microseconds
     virtual std::chrono::microseconds GetTimeUS() = 0;
+
+    /// Returns current wall time in milliseconds
     virtual std::chrono::milliseconds GetTimeMS() = 0;
+
+    /// Returns current wall time in emulated clock cycles
     virtual u64 GetClockCycles() = 0;
+
+    /// Returns current wall time in emulated cpu cycles
     virtual u64 GetCPUCycles() = 0;
 
     /// Tells if the wall clock, uses the host CPU's hardware clock
@@ -35,6 +46,6 @@ private:
     bool is_native;
 };
 
-WallClock* CreateBestMatchingClock(u32 emulated_cpu_frequency, u32 emulated_clock_frequency);
+std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency, u32 emulated_clock_frequency);
 
 } // namespace Common
