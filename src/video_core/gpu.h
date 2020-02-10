@@ -192,6 +192,8 @@ public:
 
     bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
+    u64 GetTicks() const;
+
     std::unique_lock<std::mutex> LockSync() {
         return std::unique_lock{sync_mutex};
     }

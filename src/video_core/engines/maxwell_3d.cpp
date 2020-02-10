@@ -9,6 +9,7 @@
 #include "core/core_timing.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/texture.h"
@@ -533,7 +534,7 @@ void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
         LongQueryResult query_result{};
         query_result.value = payload;
         // TODO(Subv): Generate a real GPU timestamp and write it here instead of CoreTiming
-        query_result.timestamp = system.CoreTiming().GetTicks();
+        query_result.timestamp = system.GPU().GetTicks();
         memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
     } else {
         memory_manager.Write<u32>(sequence_address, static_cast<u32>(payload));
