@@ -42,7 +42,7 @@ CoreTiming::CoreTiming() {
 CoreTiming::~CoreTiming() = default;
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
-    instance.Advance();
+    instance.ThreadLoop();
 }
 
 void CoreTiming::Initialize() {
@@ -137,38 +137,49 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
     basic_lock.unlock();
 }
 
-void CoreTiming::Advance() {
+std::optional<u64> CoreTiming::Advance() {
+    advance_lock.lock();
+    basic_lock.lock();
+    global_timer = GetGlobalTimeNs().count();
+
+    while (!event_queue.empty() && event_queue.front().time <= global_timer) {
+        Event evt = std::move(event_queue.front());
+        std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+        event_queue.pop_back();
+        basic_lock.unlock();
+
+        if (auto event_type{evt.type.lock()}) {
+            event_type->callback(evt.userdata, global_timer - evt.time);
+        }
+
+        basic_lock.lock();
+    }
+
+    if (!event_queue.empty()) {
+        const u64 next_time = event_queue.front().time - global_timer;
+        basic_lock.unlock();
+        advance_lock.unlock();
+        return next_time;
+    } else {
+        basic_lock.unlock();
+        advance_lock.unlock();
+        return std::nullopt;
+    }
+}
+
+void CoreTiming::ThreadLoop() {
     has_started = true;
     while (!shutting_down) {
         while (!paused) {
             paused_set = false;
-            basic_lock.lock();
-            global_timer = GetGlobalTimeNs().count();
-
-            while (!event_queue.empty() && event_queue.front().time <= global_timer) {
-                Event evt = std::move(event_queue.front());
-                std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
-                event_queue.pop_back();
-                basic_lock.unlock();
-
-                if (auto event_type{evt.type.lock()}) {
-                    event_type->callback(evt.userdata, global_timer - evt.time);
-                }
-
-                basic_lock.lock();
-            }
-
-            if (!event_queue.empty()) {
-                std::chrono::nanoseconds next_time =
-                    std::chrono::nanoseconds(event_queue.front().time - global_timer);
-                basic_lock.unlock();
-                event.WaitFor(next_time);
+            const auto next_time = Advance();
+            if (next_time) {
+                std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
+                event.WaitFor(next_time_ns);
             } else {
-                basic_lock.unlock();
                 wait_set = true;
                 event.Wait();
             }
-
             wait_set = false;
         }
         paused_set = true;

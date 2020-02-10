@@ -103,6 +103,9 @@ public:
     /// Returns current time in nanoseconds.
     std::chrono::nanoseconds GetGlobalTimeNs() const;
 
+    /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
+    std::optional<u64> Advance();
+
 private:
     struct Event;
 
@@ -110,7 +113,7 @@ private:
     void ClearPendingEvents();
 
     static void ThreadEntry(CoreTiming& instance);
-    void Advance();
+    void ThreadLoop();
 
     std::unique_ptr<Common::WallClock> clock;
 
@@ -128,6 +131,7 @@ private:
     std::shared_ptr<EventType> ev_lost;
     Common::Event event{};
     Common::SpinLock basic_lock{};
+    Common::SpinLock advance_lock{};
     std::unique_ptr<std::thread> timer_thread;
     std::atomic<bool> paused{};
     std::atomic<bool> paused_set{};

@@ -110,7 +110,7 @@ Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_paramete
                                                           FiberStartFunc);
 }
 
-Fiber::Fiber() : guard{}, entry_point{}, start_parameter{}, previous_fiber{} {
+Fiber::Fiber() {
     impl = std::make_unique<FiberImpl>();
 }
 

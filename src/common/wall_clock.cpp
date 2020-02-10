@@ -42,14 +42,15 @@ public:
 
     u64 GetClockCycles() override {
         std::chrono::nanoseconds time_now = GetTimeNS();
-        const u128 temporal = Common::Multiply64Into128(time_now.count(), emulated_clock_frequency);
-        return Common::Divide128On32(temporal, 1000000000).first;
+        const u128 temporary =
+            Common::Multiply64Into128(time_now.count(), emulated_clock_frequency);
+        return Common::Divide128On32(temporary, 1000000000).first;
     }
 
     u64 GetCPUCycles() override {
         std::chrono::nanoseconds time_now = GetTimeNS();
-        const u128 temporal = Common::Multiply64Into128(time_now.count(), emulated_cpu_frequency);
-        return Common::Divide128On32(temporal, 1000000000).first;
+        const u128 temporary = Common::Multiply64Into128(time_now.count(), emulated_cpu_frequency);
+        return Common::Divide128On32(temporary, 1000000000).first;
     }
 
 private:
