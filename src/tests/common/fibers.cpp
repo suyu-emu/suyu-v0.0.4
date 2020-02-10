@@ -92,7 +92,8 @@ public:
 
     void DoWork1() {
         trap2 = false;
-        while (trap.load());
+        while (trap.load())
+            ;
         for (u32 i = 0; i < 12000; i++) {
             value1 += i;
         }
@@ -105,7 +106,8 @@ public:
     }
 
     void DoWork2() {
-        while (trap2.load());
+        while (trap2.load())
+            ;
         value2 = 2000;
         trap = false;
         Fiber::YieldTo(fiber2, fiber1);
@@ -197,9 +199,12 @@ static void ThreadStart2_2(u32 id, TestControl2& test_control) {
 TEST_CASE("Fibers::InterExchange", "[common]") {
     TestControl2 test_control{};
     test_control.thread_fibers.resize(2, nullptr);
-    test_control.fiber1 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_1}, &test_control);
-    test_control.fiber2 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_2}, &test_control);
-    test_control.fiber3 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_3}, &test_control);
+    test_control.fiber1 =
+        std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_1}, &test_control);
+    test_control.fiber2 =
+        std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_2}, &test_control);
+    test_control.fiber3 =
+        std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_3}, &test_control);
     std::thread thread1(ThreadStart2_1, 0, std::ref(test_control));
     std::thread thread2(ThreadStart2_2, 1, std::ref(test_control));
     thread1.join();
@@ -291,8 +296,10 @@ static void ThreadStart3(u32 id, TestControl3& test_control) {
 TEST_CASE("Fibers::StartRace", "[common]") {
     TestControl3 test_control{};
     test_control.thread_fibers.resize(2, nullptr);
-    test_control.fiber1 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl3_1}, &test_control);
-    test_control.fiber2 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl3_2}, &test_control);
+    test_control.fiber1 =
+        std::make_shared<Fiber>(std::function<void(void*)>{WorkControl3_1}, &test_control);
+    test_control.fiber2 =
+        std::make_shared<Fiber>(std::function<void(void*)>{WorkControl3_2}, &test_control);
     std::thread thread1(ThreadStart3, 0, std::ref(test_control));
     std::thread thread2(ThreadStart3, 1, std::ref(test_control));
     thread1.join();
@@ -301,7 +308,5 @@ TEST_CASE("Fibers::StartRace", "[common]") {
     REQUIRE(test_control.value2 == 1);
     REQUIRE(test_control.value3 == 1);
 }
-
-
 
 } // namespace Common

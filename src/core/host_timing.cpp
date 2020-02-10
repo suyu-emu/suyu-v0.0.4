@@ -72,7 +72,8 @@ void CoreTiming::SyncPause(bool is_paused) {
     }
     Pause(is_paused);
     event.Set();
-    while (paused_set != is_paused);
+    while (paused_set != is_paused)
+        ;
 }
 
 bool CoreTiming::IsRunning() {
@@ -158,7 +159,8 @@ void CoreTiming::Advance() {
             }
 
             if (!event_queue.empty()) {
-                std::chrono::nanoseconds next_time = std::chrono::nanoseconds(event_queue.front().time - global_timer);
+                std::chrono::nanoseconds next_time =
+                    std::chrono::nanoseconds(event_queue.front().time - global_timer);
                 basic_lock.unlock();
                 event.WaitFor(next_time);
             } else {
@@ -181,4 +183,4 @@ std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
     return clock->GetTimeUS();
 }
 
-} // namespace Core::Timing
+} // namespace Core::HostTiming

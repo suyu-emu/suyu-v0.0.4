@@ -145,4 +145,4 @@ private:
 ///
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback);
 
-} // namespace Core::Timing
+} // namespace Core::HostTiming

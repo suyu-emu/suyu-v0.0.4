@@ -13,7 +13,6 @@ namespace Common {
 
 class WallClock {
 public:
-
     /// Returns current wall time in nanoseconds
     virtual std::chrono::nanoseconds GetTimeNS() = 0;
 
@@ -46,6 +45,7 @@ private:
     bool is_native;
 };
 
-std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency, u32 emulated_clock_frequency);
+std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency,
+                                                   u32 emulated_clock_frequency);
 
 } // namespace Common

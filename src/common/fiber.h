@@ -12,7 +12,7 @@
 
 #ifndef _MSC_VER
 namespace boost::context::detail {
-    struct transfer_t;
+struct transfer_t;
 }
 #endif
 

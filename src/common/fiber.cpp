@@ -12,7 +12,6 @@
 
 namespace Common {
 
-
 #ifdef _MSC_VER
 
 struct Fiber::FiberImpl {
@@ -27,14 +26,14 @@ void Fiber::start() {
     UNREACHABLE();
 }
 
-void __stdcall Fiber::FiberStartFunc(void* fiber_parameter)
-{
-   auto fiber = static_cast<Fiber *>(fiber_parameter);
-   fiber->start();
+void __stdcall Fiber::FiberStartFunc(void* fiber_parameter) {
+    auto fiber = static_cast<Fiber*>(fiber_parameter);
+    fiber->start();
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
-    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter}, previous_fiber{} {
+    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
+      previous_fiber{} {
     impl = std::make_unique<FiberImpl>();
     impl->handle = CreateFiber(0, &FiberStartFunc, this);
 }
@@ -99,14 +98,14 @@ void Fiber::start(boost::context::detail::transfer_t& transfer) {
     UNREACHABLE();
 }
 
-void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer)
-{
-   auto fiber = static_cast<Fiber *>(transfer.data);
-   fiber->start(transfer);
+void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer) {
+    auto fiber = static_cast<Fiber*>(transfer.data);
+    fiber->start(transfer);
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
-    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter}, previous_fiber{} {
+    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
+      previous_fiber{} {
     impl = std::make_unique<FiberImpl>();
     impl->context = boost::context::detail::make_fcontext(impl->stack.data(), impl->stack.size(),
                                                           FiberStartFunc);

@@ -58,7 +58,8 @@ private:
 
 #ifdef ARCHITECTURE_x86_64
 
-std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency, u32 emulated_clock_frequency) {
+std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency,
+                                                   u32 emulated_clock_frequency) {
     const auto& caps = GetCPUCaps();
     u64 rtsc_frequency = 0;
     if (caps.invariant_tsc) {
@@ -70,15 +71,18 @@ std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency, u
         }
     }
     if (rtsc_frequency == 0) {
-        return std::make_unique<StandardWallClock>(emulated_cpu_frequency, emulated_clock_frequency);
+        return std::make_unique<StandardWallClock>(emulated_cpu_frequency,
+                                                   emulated_clock_frequency);
     } else {
-        return std::make_unique<X64::NativeClock>(emulated_cpu_frequency, emulated_clock_frequency, rtsc_frequency);
+        return std::make_unique<X64::NativeClock>(emulated_cpu_frequency, emulated_clock_frequency,
+                                                  rtsc_frequency);
     }
 }
 
 #else
 
-std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency, u32 emulated_clock_frequency) {
+std::unique_ptr<WallClock> CreateBestMatchingClock(u32 emulated_cpu_frequency,
+                                                   u32 emulated_clock_frequency) {
     return std::make_unique<StandardWallClock>(emulated_cpu_frequency, emulated_clock_frequency);
 }
 
