@@ -76,11 +76,11 @@ void CoreTiming::SyncPause(bool is_paused) {
         ;
 }
 
-bool CoreTiming::IsRunning() {
+bool CoreTiming::IsRunning() const {
     return !paused_set;
 }
 
-bool CoreTiming::HasPendingEvents() {
+bool CoreTiming::HasPendingEvents() const {
     return !(wait_set && event_queue.empty());
 }
 

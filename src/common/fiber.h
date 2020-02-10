@@ -67,10 +67,10 @@ private:
 
     struct FiberImpl;
 
-    SpinLock guard;
-    std::function<void(void*)> entry_point;
-    void* start_parameter;
-    std::shared_ptr<Fiber> previous_fiber;
+    SpinLock guard{};
+    std::function<void(void*)> entry_point{};
+    void* start_parameter{};
+    std::shared_ptr<Fiber> previous_fiber{};
     std::unique_ptr<FiberImpl> impl;
     bool is_thread_fiber{};
 };

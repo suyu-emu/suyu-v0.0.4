@@ -34,7 +34,7 @@ public:
 };
 
 static void WorkControl1(void* control) {
-    TestControl1* test_control = static_cast<TestControl1*>(control);
+    auto* test_control = static_cast<TestControl1*>(control);
     test_control->DoWork();
 }
 
@@ -70,8 +70,8 @@ static void ThreadStart1(u32 id, TestControl1& test_control) {
 TEST_CASE("Fibers::Setup", "[common]") {
     constexpr u32 num_threads = 7;
     TestControl1 test_control{};
-    test_control.thread_fibers.resize(num_threads, nullptr);
-    test_control.work_fibers.resize(num_threads, nullptr);
+    test_control.thread_fibers.resize(num_threads);
+    test_control.work_fibers.resize(num_threads);
     test_control.items.resize(num_threads, 0);
     test_control.results.resize(num_threads, 0);
     std::vector<std::thread> threads;
@@ -153,17 +153,17 @@ public:
 };
 
 static void WorkControl2_1(void* control) {
-    TestControl2* test_control = static_cast<TestControl2*>(control);
+    auto* test_control = static_cast<TestControl2*>(control);
     test_control->DoWork1();
 }
 
 static void WorkControl2_2(void* control) {
-    TestControl2* test_control = static_cast<TestControl2*>(control);
+    auto* test_control = static_cast<TestControl2*>(control);
     test_control->DoWork2();
 }
 
 static void WorkControl2_3(void* control) {
-    TestControl2* test_control = static_cast<TestControl2*>(control);
+    auto* test_control = static_cast<TestControl2*>(control);
     test_control->DoWork3();
 }
 
@@ -198,7 +198,7 @@ static void ThreadStart2_2(u32 id, TestControl2& test_control) {
  */
 TEST_CASE("Fibers::InterExchange", "[common]") {
     TestControl2 test_control{};
-    test_control.thread_fibers.resize(2, nullptr);
+    test_control.thread_fibers.resize(2);
     test_control.fiber1 =
         std::make_shared<Fiber>(std::function<void(void*)>{WorkControl2_1}, &test_control);
     test_control.fiber2 =
@@ -261,12 +261,12 @@ public:
 };
 
 static void WorkControl3_1(void* control) {
-    TestControl3* test_control = static_cast<TestControl3*>(control);
+    auto* test_control = static_cast<TestControl3*>(control);
     test_control->DoWork1();
 }
 
 static void WorkControl3_2(void* control) {
-    TestControl3* test_control = static_cast<TestControl3*>(control);
+    auto* test_control = static_cast<TestControl3*>(control);
     test_control->DoWork2();
 }
 
@@ -295,7 +295,7 @@ static void ThreadStart3(u32 id, TestControl3& test_control) {
  */
 TEST_CASE("Fibers::StartRace", "[common]") {
     TestControl3 test_control{};
-    test_control.thread_fibers.resize(2, nullptr);
+    test_control.thread_fibers.resize(2);
     test_control.fiber1 =
         std::make_shared<Fiber>(std::function<void(void*)>{WorkControl3_1}, &test_control);
     test_control.fiber2 =

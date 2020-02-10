@@ -50,13 +50,13 @@ struct ScopeInit final {
 TEST_CASE("HostTiming[BasicOrder]", "[core]") {
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
-    std::vector<std::shared_ptr<Core::HostTiming::EventType>> events;
-    events.resize(5);
-    events[0] = Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
-    events[1] = Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
-    events[2] = Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
-    events[3] = Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
-    events[4] = Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
+    std::vector<std::shared_ptr<Core::HostTiming::EventType>> events{
+        Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>),
+        Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>),
+        Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>),
+        Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>),
+        Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>),
+    };
 
     expected_callback = 0;
 
@@ -100,13 +100,13 @@ u64 TestTimerSpeed(Core::HostTiming::CoreTiming& core_timing) {
 TEST_CASE("HostTiming[BasicOrderNoPausing]", "[core]") {
     ScopeInit guard;
     auto& core_timing = guard.core_timing;
-    std::vector<std::shared_ptr<Core::HostTiming::EventType>> events;
-    events.resize(5);
-    events[0] = Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>);
-    events[1] = Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>);
-    events[2] = Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>);
-    events[3] = Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>);
-    events[4] = Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>);
+    std::vector<std::shared_ptr<Core::HostTiming::EventType>> events{
+        Core::HostTiming::CreateEvent("callbackA", HostCallbackTemplate<0>),
+        Core::HostTiming::CreateEvent("callbackB", HostCallbackTemplate<1>),
+        Core::HostTiming::CreateEvent("callbackC", HostCallbackTemplate<2>),
+        Core::HostTiming::CreateEvent("callbackD", HostCallbackTemplate<3>),
+        Core::HostTiming::CreateEvent("callbackE", HostCallbackTemplate<4>),
+    };
 
     core_timing.SyncPause(true);
     core_timing.SyncPause(false);

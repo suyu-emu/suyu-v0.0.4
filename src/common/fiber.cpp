@@ -32,13 +32,12 @@ void __stdcall Fiber::FiberStartFunc(void* fiber_parameter) {
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
-    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
-      previous_fiber{} {
+    : entry_point{std::move(entry_point_func)}, start_parameter{start_parameter} {
     impl = std::make_unique<FiberImpl>();
     impl->handle = CreateFiber(0, &FiberStartFunc, this);
 }
 
-Fiber::Fiber() : guard{}, entry_point{}, start_parameter{}, previous_fiber{} {
+Fiber::Fiber() {
     impl = std::make_unique<FiberImpl>();
 }
 

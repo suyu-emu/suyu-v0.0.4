@@ -72,15 +72,15 @@ public:
     void SyncPause(bool is_paused);
 
     /// Checks if core timing is running.
-    bool IsRunning();
+    bool IsRunning() const;
 
     /// Checks if the timer thread has started.
-    bool HasStarted() {
+    bool HasStarted() const {
         return has_started;
     }
 
     /// Checks if there are any pending time events.
-    bool HasPendingEvents();
+    bool HasPendingEvents() const;
 
     /// Schedules an event in core timing
     void ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,

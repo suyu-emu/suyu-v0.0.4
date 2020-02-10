@@ -35,8 +35,9 @@ void thread_pause() {
 namespace Common {
 
 void SpinLock::lock() {
-    while (lck.test_and_set(std::memory_order_acquire))
+    while (lck.test_and_set(std::memory_order_acquire)) {
         thread_pause();
+    }
 }
 
 void SpinLock::unlock() {
