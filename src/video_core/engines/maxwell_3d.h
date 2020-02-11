@@ -862,7 +862,11 @@ public:
 
                 float point_size;
 
-                INSERT_UNION_PADDING_WORDS(0x7);
+                INSERT_UNION_PADDING_WORDS(0x1);
+
+                u32 point_sprite_enable;
+
+                INSERT_UNION_PADDING_WORDS(0x5);
 
                 u32 zeta_enable;
 
@@ -1494,6 +1498,7 @@ ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(vb_base_instance, 0x50E);
 ASSERT_REG_POSITION(clip_distance_enabled, 0x544);
 ASSERT_REG_POSITION(point_size, 0x546);
+ASSERT_REG_POSITION(point_sprite_enable, 0x548);
 ASSERT_REG_POSITION(zeta_enable, 0x54E);
 ASSERT_REG_POSITION(multisample_control, 0x54F);
 ASSERT_REG_POSITION(condition, 0x554);
