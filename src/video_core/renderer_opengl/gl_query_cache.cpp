@@ -31,15 +31,16 @@ constexpr GLenum GetTarget(VideoCore::QueryType type) {
 } // Anonymous namespace
 
 QueryCache::QueryCache(Core::System& system, RasterizerOpenGL& gl_rasterizer)
-    : VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream,
-                                  HostCounter>{system, static_cast<VideoCore::RasterizerInterface&>(
-                                                           gl_rasterizer)},
+    : VideoCommon::QueryCacheBase<
+          QueryCache, CachedQuery, CounterStream, HostCounter,
+          std::vector<OGLQuery>>{system,
+                                 static_cast<VideoCore::RasterizerInterface&>(gl_rasterizer)},
       gl_rasterizer{gl_rasterizer} {}
 
 QueryCache::~QueryCache() = default;
 
 OGLQuery QueryCache::AllocateQuery(VideoCore::QueryType type) {
-    auto& reserve = queries_reserve[static_cast<std::size_t>(type)];
+    auto& reserve = query_pools[static_cast<std::size_t>(type)];
     OGLQuery query;
     if (reserve.empty()) {
         query.Create(GetTarget(type));
@@ -52,7 +53,7 @@ OGLQuery QueryCache::AllocateQuery(VideoCore::QueryType type) {
 }
 
 void QueryCache::Reserve(VideoCore::QueryType type, OGLQuery&& query) {
-    queries_reserve[static_cast<std::size_t>(type)].push_back(std::move(query));
+    query_pools[static_cast<std::size_t>(type)].push_back(std::move(query));
 }
 
 bool QueryCache::AnyCommandQueued() const noexcept {

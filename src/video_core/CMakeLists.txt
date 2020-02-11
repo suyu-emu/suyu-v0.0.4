@@ -180,6 +180,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_pipeline_cache.cpp
         renderer_vulkan/vk_pipeline_cache.h
+        renderer_vulkan/vk_query_cache.cpp
+        renderer_vulkan/vk_query_cache.h
         renderer_vulkan/vk_rasterizer.cpp
         renderer_vulkan/vk_rasterizer.h
         renderer_vulkan/vk_renderpass_cache.cpp

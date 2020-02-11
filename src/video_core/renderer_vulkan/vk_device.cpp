@@ -104,6 +104,7 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
     features.depthBiasClamp = true;
     features.geometryShader = true;
     features.tessellationShader = true;
+    features.occlusionQueryPrecise = true;
     features.fragmentStoresAndAtomics = true;
     features.shaderImageGatherExtended = true;
     features.shaderStorageImageWriteWithoutFormat = true;
@@ -116,6 +117,10 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
     vk::PhysicalDevice8BitStorageFeaturesKHR bit8_storage;
     bit8_storage.uniformAndStorageBuffer8BitAccess = true;
     SetNext(next, bit8_storage);
+
+    vk::PhysicalDeviceHostQueryResetFeaturesEXT host_query_reset;
+    host_query_reset.hostQueryReset = true;
+    SetNext(next, host_query_reset);
 
     vk::PhysicalDeviceFloat16Int8FeaturesKHR float16_int8;
     if (is_float16_supported) {
@@ -273,6 +278,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
         VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,
         VK_EXT_SHADER_SUBGROUP_BALLOT_EXTENSION_NAME,
         VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME,
+        VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
     };
     std::bitset<required_extensions.size()> available_extensions{};
 
@@ -340,6 +346,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
         std::make_pair(features.depthBiasClamp, "depthBiasClamp"),
         std::make_pair(features.geometryShader, "geometryShader"),
         std::make_pair(features.tessellationShader, "tessellationShader"),
+        std::make_pair(features.occlusionQueryPrecise, "occlusionQueryPrecise"),
         std::make_pair(features.fragmentStoresAndAtomics, "fragmentStoresAndAtomics"),
         std::make_pair(features.shaderImageGatherExtended, "shaderImageGatherExtended"),
         std::make_pair(features.shaderStorageImageWriteWithoutFormat,
@@ -376,7 +383,7 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
         }
     };
 
-    extensions.reserve(13);
+    extensions.reserve(14);
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     extensions.push_back(VK_KHR_16BIT_STORAGE_EXTENSION_NAME);
     extensions.push_back(VK_KHR_8BIT_STORAGE_EXTENSION_NAME);
@@ -384,6 +391,7 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
     extensions.push_back(VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME);
     extensions.push_back(VK_EXT_SHADER_SUBGROUP_BALLOT_EXTENSION_NAME);
     extensions.push_back(VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME);
+    extensions.push_back(VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME);
 
     [[maybe_unused]] const bool nsight =
         std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");

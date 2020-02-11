@@ -6,11 +6,7 @@
 
 #include <array>
 #include <memory>
-#include <optional>
-#include <unordered_map>
 #include <vector>
-
-#include <glad/glad.h>
 
 #include "common/common_types.h"
 #include "video_core/query_cache.h"
@@ -30,8 +26,8 @@ class RasterizerOpenGL;
 
 using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 
-class QueryCache final
-    : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
+class QueryCache final : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream,
+                                                            HostCounter, std::vector<OGLQuery>> {
 public:
     explicit QueryCache(Core::System& system, RasterizerOpenGL& rasterizer);
     ~QueryCache();
@@ -44,7 +40,6 @@ public:
 
 private:
     RasterizerOpenGL& gl_rasterizer;
-    std::array<std::vector<OGLQuery>, VideoCore::NumQueryTypes> queries_reserve;
 };
 
 class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
@@ -59,7 +54,7 @@ private:
     u64 BlockingQuery() const override;
 
     QueryCache& cache;
-    VideoCore::QueryType type;
+    const VideoCore::QueryType type;
     OGLQuery query;
 };
 

@@ -1,0 +1,104 @@
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <utility>
+#include <vector>
+
+#include "common/common_types.h"
+#include "video_core/query_cache.h"
+#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/vk_resource_manager.h"
+
+namespace VideoCore {
+class RasterizerInterface;
+}
+
+namespace Vulkan {
+
+class CachedQuery;
+class HostCounter;
+class VKDevice;
+class VKQueryCache;
+class VKScheduler;
+
+using CounterStream = VideoCommon::CounterStreamBase<VKQueryCache, HostCounter>;
+
+class QueryPool final : public VKFencedPool {
+public:
+    explicit QueryPool();
+    ~QueryPool() override;
+
+    void Initialize(const VKDevice& device, VideoCore::QueryType type);
+
+    std::pair<vk::QueryPool, std::uint32_t> Commit(VKFence& fence);
+
+    void Reserve(std::pair<vk::QueryPool, std::uint32_t> query);
+
+protected:
+    void Allocate(std::size_t begin, std::size_t end) override;
+
+private:
+    static constexpr std::size_t GROW_STEP = 512;
+
+    const VKDevice* device = nullptr;
+    VideoCore::QueryType type = {};
+
+    std::vector<UniqueQueryPool> pools;
+    std::vector<bool> usage;
+};
+
+class VKQueryCache final
+    : public VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter,
+                                         QueryPool> {
+public:
+    explicit VKQueryCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                          const VKDevice& device, VKScheduler& scheduler);
+    ~VKQueryCache();
+
+    std::pair<vk::QueryPool, std::uint32_t> AllocateQuery(VideoCore::QueryType type);
+
+    void Reserve(VideoCore::QueryType type, std::pair<vk::QueryPool, std::uint32_t> query);
+
+    const VKDevice& Device() const noexcept {
+        return device;
+    }
+
+    VKScheduler& Scheduler() const noexcept {
+        return scheduler;
+    }
+
+private:
+    const VKDevice& device;
+    VKScheduler& scheduler;
+};
+
+class HostCounter final : public VideoCommon::HostCounterBase<VKQueryCache, HostCounter> {
+public:
+    explicit HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
+                         VideoCore::QueryType type);
+    ~HostCounter();
+
+    void EndQuery();
+
+private:
+    u64 BlockingQuery() const override;
+
+    VKQueryCache& cache;
+    const VideoCore::QueryType type;
+    const std::pair<vk::QueryPool, std::uint32_t> query;
+    const u64 ticks;
+};
+
+class CachedQuery : public VideoCommon::CachedQueryBase<HostCounter> {
+public:
+    explicit CachedQuery(VKQueryCache&, VideoCore::QueryType, VAddr cpu_addr, u8* host_ptr)
+        : VideoCommon::CachedQueryBase<HostCounter>{cpu_addr, host_ptr} {}
+};
+
+} // namespace Vulkan

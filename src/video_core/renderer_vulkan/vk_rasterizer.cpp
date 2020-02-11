@@ -289,7 +289,9 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
                     staging_pool),
       pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue),
       buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
-      sampler_cache(device) {}
+      sampler_cache(device), query_cache(system, *this, device, scheduler) {
+    scheduler.SetQueryCache(query_cache);
+}
 
 RasterizerVulkan::~RasterizerVulkan() = default;
 
@@ -307,6 +309,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 
     FlushWork();
+
+    query_cache.UpdateCounters();
 
     const auto& gpu = system.GPU().Maxwell3D();
     GraphicsPipelineCacheKey key{GetFixedPipelineState(gpu.regs)};
@@ -361,6 +365,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
 void RasterizerVulkan::Clear() {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
+
+    query_cache.UpdateCounters();
 
     const auto& gpu = system.GPU().Maxwell3D();
     if (!system.GPU().Maxwell3D().ShouldExecute()) {
@@ -429,6 +435,8 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     sampled_views.clear();
     image_views.clear();
 
+    query_cache.UpdateCounters();
+
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     const ComputePipelineCacheKey key{
         code_addr,
@@ -471,17 +479,28 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     });
 }
 
+void RasterizerVulkan::ResetCounter(VideoCore::QueryType type) {
+    query_cache.ResetCounter(type);
+}
+
+void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
+                             std::optional<u64> timestamp) {
+    query_cache.Query(gpu_addr, type, timestamp);
+}
+
 void RasterizerVulkan::FlushAll() {}
 
 void RasterizerVulkan::FlushRegion(CacheAddr addr, u64 size) {
     texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(addr, size);
+    query_cache.FlushRegion(addr, size);
 }
 
 void RasterizerVulkan::InvalidateRegion(CacheAddr addr, u64 size) {
     texture_cache.InvalidateRegion(addr, size);
     pipeline_cache.InvalidateRegion(addr, size);
     buffer_cache.InvalidateRegion(addr, size);
+    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerVulkan::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {

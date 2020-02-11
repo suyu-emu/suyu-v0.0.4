@@ -88,7 +88,8 @@ private:
     std::shared_ptr<HostCounter> last;
 };
 
-template <class QueryCache, class CachedQuery, class CounterStream, class HostCounter>
+template <class QueryCache, class CachedQuery, class CounterStream, class HostCounter,
+          class QueryPool>
 class QueryCacheBase {
 public:
     explicit QueryCacheBase(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
@@ -127,13 +128,23 @@ public:
 
     /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
     void UpdateCounters() {
+        std::unique_lock lock{mutex};
         const auto& regs = system.GPU().Maxwell3D().regs;
         Stream(VideoCore::QueryType::SamplesPassed).Update(regs.samplecnt_enable);
     }
 
     /// Resets a counter to zero. It doesn't disable the query after resetting.
     void ResetCounter(VideoCore::QueryType type) {
+        std::unique_lock lock{mutex};
         Stream(type).Reset();
+    }
+
+    /// Disable all active streams. Expected to be called at the end of a command buffer.
+    void DisableStreams() {
+        std::unique_lock lock{mutex};
+        for (auto& stream : streams) {
+            stream.Update(false);
+        }
     }
 
     /// Returns a new host counter.
@@ -147,6 +158,9 @@ public:
     CounterStream& Stream(VideoCore::QueryType type) {
         return streams[static_cast<std::size_t>(type)];
     }
+
+protected:
+    std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 
 private:
     /// Flushes a memory range to guest memory and removes it from the cache.
@@ -213,8 +227,16 @@ private:
 template <class QueryCache, class HostCounter>
 class HostCounterBase {
 public:
-    explicit HostCounterBase(std::shared_ptr<HostCounter> dependency)
-        : dependency{std::move(dependency)} {}
+    explicit HostCounterBase(std::shared_ptr<HostCounter> dependency_)
+        : dependency{std::move(dependency_)}, depth{dependency ? (dependency->Depth() + 1) : 0} {
+        // Avoid nesting too many dependencies to avoid a stack overflow when these are deleted.
+        static constexpr u64 depth_threshold = 96;
+        if (depth > depth_threshold) {
+            depth = 0;
+            base_result = dependency->Query();
+            dependency = nullptr;
+        }
+    }
 
     /// Returns the current value of the query.
     u64 Query() {
@@ -222,9 +244,10 @@ public:
             return *result;
         }
 
-        u64 value = BlockingQuery();
+        u64 value = BlockingQuery() + base_result;
         if (dependency) {
             value += dependency->Query();
+            dependency = nullptr;
         }
 
         return *(result = value);
@@ -235,6 +258,10 @@ public:
         return result.has_value();
     }
 
+    u64 Depth() const noexcept {
+        return depth;
+    }
+
 protected:
     /// Returns the value of query from the backend API blocking as needed.
     virtual u64 BlockingQuery() const = 0;
@@ -242,6 +269,8 @@ protected:
 private:
     std::shared_ptr<HostCounter> dependency; ///< Counter to add to this value.
     std::optional<u64> result;               ///< Filled with the already returned value.
+    u64 depth;                               ///< Number of nested dependencies.
+    u64 base_result = 0;                     ///< Equivalent to nested dependencies value.
 };
 
 template <class HostCounter>
