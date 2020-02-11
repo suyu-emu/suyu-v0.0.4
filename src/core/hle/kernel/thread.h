@@ -146,6 +146,7 @@ public:
 
     bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
+    bool IsSignaled() const override;
 
     /**
      * Gets the thread's current priority

@@ -48,6 +48,8 @@ public:
 
     void Acquire(Thread* thread) override;
 
+    bool IsSignaled() const override;
+
 private:
     static ResultVal<std::shared_ptr<ClientSession>> Create(KernelCore& kernel,
                                                             std::shared_ptr<Session> parent,

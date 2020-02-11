@@ -10,6 +10,7 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/thread.h"
 
@@ -17,6 +18,10 @@ namespace Kernel {
 
 SynchronizationObject::SynchronizationObject(KernelCore& kernel) : Object{kernel} {}
 SynchronizationObject::~SynchronizationObject() = default;
+
+void SynchronizationObject::Signal() {
+    kernel.Synchronization().SignalObject(*this);
+}
 
 void SynchronizationObject::AddWaitingThread(std::shared_ptr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);

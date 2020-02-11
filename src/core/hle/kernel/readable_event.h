@@ -46,12 +46,10 @@ public:
     ///      then ERR_INVALID_STATE will be returned.
     ResultCode Reset();
 
+    void Signal() override;
+
 private:
     explicit ReadableEvent(KernelCore& kernel);
-
-    void Signal();
-
-    bool signaled{};
 
     std::string name; ///< Name of event (optional)
 };

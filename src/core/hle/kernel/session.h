@@ -39,6 +39,8 @@ public:
 
     bool ShouldWait(const Thread* thread) const override;
 
+    bool IsSignaled() const override;
+
     void Acquire(Thread* thread) override;
 
     std::shared_ptr<ClientSession> Client() {

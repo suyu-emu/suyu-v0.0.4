@@ -31,6 +31,11 @@ void ClientSession::Acquire(Thread* thread) {
     UNIMPLEMENTED();
 }
 
+bool ClientSession::IsSignaled() const {
+    UNIMPLEMENTED();
+    return true;
+}
+
 ResultVal<std::shared_ptr<ClientSession>> ClientSession::Create(KernelCore& kernel,
                                                                 std::shared_ptr<Session> parent,
                                                                 std::string name) {

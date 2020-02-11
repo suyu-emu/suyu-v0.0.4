@@ -31,6 +31,10 @@ bool Thread::ShouldWait(const Thread* thread) const {
     return status != ThreadStatus::Dead;
 }
 
+bool Thread::IsSignaled() const {
+    return status == ThreadStatus::Dead;
+}
+
 void Thread::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 }
@@ -45,7 +49,7 @@ void Thread::Stop() {
     kernel.ThreadWakeupCallbackHandleTable().Close(callback_handle);
     callback_handle = 0;
     SetStatus(ThreadStatus::Dead);
-    WakeupAllWaitingThreads();
+    Signal();
 
     // Clean up any dangling references in objects that this thread was waiting for
     for (auto& wait_object : wait_objects) {

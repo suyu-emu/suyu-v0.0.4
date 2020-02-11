@@ -39,6 +39,10 @@ void ServerPort::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 }
 
+bool ServerPort::IsSignaled() const {
+    return !pending_sessions.empty();
+}
+
 ServerPort::PortPair ServerPort::CreatePortPair(KernelCore& kernel, u32 max_sessions,
                                                 std::string name) {
     std::shared_ptr<ServerPort> server_port = std::make_shared<ServerPort>(kernel);

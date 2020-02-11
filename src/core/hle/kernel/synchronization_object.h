@@ -30,6 +30,13 @@ public:
     /// Acquire/lock the object for the specified thread if it is available
     virtual void Acquire(Thread* thread) = 0;
 
+    /// Signal this object
+    virtual void Signal();
+
+    virtual bool IsSignaled() const {
+        return is_signaled;
+    }
+
     /**
      * Add a thread to wait on this object
      * @param thread Pointer to thread to add
@@ -59,6 +66,9 @@ public:
 
     /// Get a const reference to the waiting threads list for debug use
     const std::vector<std::shared_ptr<Thread>>& GetWaitingThreads() const;
+
+protected:
+    bool is_signaled{}; // Tells if this sync object is signalled;
 
 private:
     /// Threads waiting for this object to become available

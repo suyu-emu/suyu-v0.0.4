@@ -22,7 +22,6 @@ EventPair WritableEvent::CreateEventPair(KernelCore& kernel, std::string name) {
     writable_event->name = name + ":Writable";
     writable_event->readable = readable_event;
     readable_event->name = name + ":Readable";
-    readable_event->signaled = false;
 
     return {std::move(readable_event), std::move(writable_event)};
 }
@@ -40,7 +39,7 @@ void WritableEvent::Clear() {
 }
 
 bool WritableEvent::IsSignaled() const {
-    return readable->signaled;
+    return readable->IsSignaled();
 }
 
 } // namespace Kernel

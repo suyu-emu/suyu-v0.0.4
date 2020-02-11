@@ -32,6 +32,7 @@
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_wrap.h"
+#include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
@@ -433,23 +434,6 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
     return ERR_INVALID_HANDLE;
 }
 
-/// Default thread wakeup callback for WaitSynchronization
-static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                        std::shared_ptr<SynchronizationObject> object,
-                                        std::size_t index) {
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
-
-    if (reason == ThreadWakeupReason::Timeout) {
-        thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
-        return true;
-    }
-
-    ASSERT(reason == ThreadWakeupReason::Signal);
-    thread->SetWaitSynchronizationResult(RESULT_SUCCESS);
-    thread->SetWaitSynchronizationOutput(static_cast<u32>(index));
-    return true;
-};
-
 /// Wait for the given handles to synchronize, timeout after the specified nanoseconds
 static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr handles_address,
                                       u64 handle_count, s64 nano_seconds) {
@@ -473,10 +457,10 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     }
 
     auto* const thread = system.CurrentScheduler().GetCurrentThread();
-
+    auto& kernel = system.Kernel();
     using ObjectPtr = Thread::ThreadSynchronizationObjects::value_type;
     Thread::ThreadSynchronizationObjects objects(handle_count);
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
     for (u64 i = 0; i < handle_count; ++i) {
         const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
@@ -489,47 +473,10 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
 
         objects[i] = object;
     }
-
-    // Find the first object that is acquirable in the provided list of objects
-    auto itr = std::find_if(objects.begin(), objects.end(), [thread](const ObjectPtr& object) {
-        return !object->ShouldWait(thread);
-    });
-
-    if (itr != objects.end()) {
-        // We found a ready object, acquire it and set the result value
-        SynchronizationObject* object = itr->get();
-        object->Acquire(thread);
-        *index = static_cast<s32>(std::distance(objects.begin(), itr));
-        return RESULT_SUCCESS;
-    }
-
-    // No objects were ready to be acquired, prepare to suspend the thread.
-
-    // If a timeout value of 0 was provided, just return the Timeout error code instead of
-    // suspending the thread.
-    if (nano_seconds == 0) {
-        return RESULT_TIMEOUT;
-    }
-
-    if (thread->IsSyncCancelled()) {
-        thread->SetSyncCancelled(false);
-        return ERR_SYNCHRONIZATION_CANCELED;
-    }
-
-    for (auto& object : objects) {
-        object->AddWaitingThread(SharedFrom(thread));
-    }
-
-    thread->SetSynchronizationObjects(std::move(objects));
-    thread->SetStatus(ThreadStatus::WaitSynch);
-
-    // Create an event to wake the thread up after the specified nanosecond delay has passed
-    thread->WakeAfterDelay(nano_seconds);
-    thread->SetWakeupCallback(DefaultThreadWakeupCallback);
-
-    system.PrepareReschedule(thread->GetProcessorID());
-
-    return RESULT_TIMEOUT;
+    auto& synchronization = kernel.Synchronization();
+    auto [result, handle_result] = synchronization.WaitFor(objects, nano_seconds);
+    *index = handle_result;
+    return result;
 }
 
 /// Resumes a thread waiting on WaitSynchronization

@@ -73,6 +73,8 @@ public:
         return parent.get();
     }
 
+    bool IsSignaled() const override;
+
     /**
      * Sets the HLE handler for the session. This handler will be called to service IPC requests
      * instead of the regular IPC machinery. (The regular IPC machinery is currently not

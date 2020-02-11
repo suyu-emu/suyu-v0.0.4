@@ -29,6 +29,7 @@ class HandleTable;
 class PhysicalCore;
 class Process;
 class ResourceLimit;
+class Synchronization;
 class Thread;
 
 /// Represents a single instance of the kernel.
@@ -91,6 +92,12 @@ public:
 
     /// Gets the an instance of the respective physical CPU core.
     const Kernel::PhysicalCore& PhysicalCore(std::size_t id) const;
+
+    /// Gets the an instance of the Synchronization Interface.
+    Kernel::Synchronization& Synchronization();
+
+    /// Gets the an instance of the Synchronization Interface.
+    const Kernel::Synchronization& Synchronization() const;
 
     /// Stops execution of 'id' core, in order to reschedule a new thread.
     void PrepareReschedule(std::size_t id);

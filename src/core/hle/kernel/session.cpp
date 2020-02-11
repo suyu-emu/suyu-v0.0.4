@@ -29,6 +29,11 @@ bool Session::ShouldWait(const Thread* thread) const {
     return {};
 }
 
+bool Session::IsSignaled() const {
+    UNIMPLEMENTED();
+    return true;
+}
+
 void Session::Acquire(Thread* thread) {
     UNIMPLEMENTED();
 }

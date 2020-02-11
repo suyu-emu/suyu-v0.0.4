@@ -82,6 +82,8 @@ public:
     bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
 
+    bool IsSignaled() const override;
+
 private:
     /// ServerSessions waiting to be accepted by the port
     std::vector<std::shared_ptr<ServerSession>> pending_sessions;

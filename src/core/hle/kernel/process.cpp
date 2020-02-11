@@ -357,7 +357,7 @@ void Process::ChangeStatus(ProcessStatus new_status) {
 
     status = new_status;
     is_signaled = true;
-    WakeupAllWaitingThreads();
+    Signal();
 }
 
 void Process::AllocateMainThreadStack(u64 stack_size) {

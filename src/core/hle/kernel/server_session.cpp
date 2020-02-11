@@ -50,6 +50,16 @@ bool ServerSession::ShouldWait(const Thread* thread) const {
     return pending_requesting_threads.empty() || currently_handling != nullptr;
 }
 
+bool ServerSession::IsSignaled() const {
+    // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
+    if (!parent->Client()) {
+        return true;
+    }
+
+    // Wait if we have no pending requests, or if we're currently handling a request.
+    return !(pending_requesting_threads.empty() || currently_handling != nullptr);
+}
+
 void ServerSession::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
     // We are now handling a request, pop it from the stack.

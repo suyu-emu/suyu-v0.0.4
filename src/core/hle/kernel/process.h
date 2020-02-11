@@ -359,10 +359,6 @@ private:
     /// specified by metadata provided to the process during loading.
     bool is_64bit_process = true;
 
-    /// Whether or not this process is signaled. This occurs
-    /// upon the process changing to a different state.
-    bool is_signaled = false;
-
     /// Total running time for the process in ticks.
     u64 total_process_running_time_ticks = 0;
 
