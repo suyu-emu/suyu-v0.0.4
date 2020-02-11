@@ -15,8 +15,8 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/vm_manager.h"
-#include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -60,7 +60,7 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public WaitObject {
+class Process final : public SynchronizationObject {
 public:
     explicit Process(Core::System& system);
     ~Process() override;

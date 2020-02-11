@@ -54,10 +54,10 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     if (thread->GetStatus() == ThreadStatus::WaitSynch ||
         thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
         // Remove the thread from each of its waiting objects' waitlists
-        for (const auto& object : thread->GetWaitObjects()) {
+        for (const auto& object : thread->GetSynchronizationObjects()) {
             object->RemoveWaitingThread(thread);
         }
-        thread->ClearWaitObjects();
+        thread->ClearSynchronizationObjects();
 
         // Invoke the wakeup callback before clearing the wait objects
         if (thread->HasWakeupCallback()) {

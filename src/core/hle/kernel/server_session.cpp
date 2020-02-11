@@ -24,7 +24,7 @@
 
 namespace Kernel {
 
-ServerSession::ServerSession(KernelCore& kernel) : WaitObject{kernel} {}
+ServerSession::ServerSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
 ServerSession::~ServerSession() = default;
 
 ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kernel,

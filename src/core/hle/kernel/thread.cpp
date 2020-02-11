@@ -35,7 +35,7 @@ void Thread::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
 }
 
-Thread::Thread(KernelCore& kernel) : WaitObject{kernel} {}
+Thread::Thread(KernelCore& kernel) : SynchronizationObject{kernel} {}
 Thread::~Thread() = default;
 
 void Thread::Stop() {
@@ -215,7 +215,7 @@ void Thread::SetWaitSynchronizationOutput(s32 output) {
     context.cpu_registers[1] = output;
 }
 
-s32 Thread::GetWaitObjectIndex(std::shared_ptr<WaitObject> object) const {
+s32 Thread::GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const {
     ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
     const auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
     return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
@@ -336,14 +336,16 @@ void Thread::ChangeCore(u32 core, u64 mask) {
     SetCoreAndAffinityMask(core, mask);
 }
 
-bool Thread::AllWaitObjectsReady() const {
-    return std::none_of(
-        wait_objects.begin(), wait_objects.end(),
-        [this](const std::shared_ptr<WaitObject>& object) { return object->ShouldWait(this); });
+bool Thread::AllSynchronizationObjectsReady() const {
+    return std::none_of(wait_objects.begin(), wait_objects.end(),
+                        [this](const std::shared_ptr<SynchronizationObject>& object) {
+                            return object->ShouldWait(this);
+                        });
 }
 
 bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                  std::shared_ptr<WaitObject> object, std::size_t index) {
+                                  std::shared_ptr<SynchronizationObject> object,
+                                  std::size_t index) {
     ASSERT(wakeup_callback);
     return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }

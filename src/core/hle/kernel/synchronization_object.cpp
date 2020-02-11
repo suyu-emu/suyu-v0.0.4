@@ -10,20 +10,21 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 
-WaitObject::WaitObject(KernelCore& kernel) : Object{kernel} {}
-WaitObject::~WaitObject() = default;
+SynchronizationObject::SynchronizationObject(KernelCore& kernel) : Object{kernel} {}
+SynchronizationObject::~SynchronizationObject() = default;
 
-void WaitObject::AddWaitingThread(std::shared_ptr<Thread> thread) {
+void SynchronizationObject::AddWaitingThread(std::shared_ptr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
     if (itr == waiting_threads.end())
         waiting_threads.push_back(std::move(thread));
 }
 
-void WaitObject::RemoveWaitingThread(std::shared_ptr<Thread> thread) {
+void SynchronizationObject::RemoveWaitingThread(std::shared_ptr<Thread> thread) {
     auto itr = std::find(waiting_threads.begin(), waiting_threads.end(), thread);
     // If a thread passed multiple handles to the same object,
     // the kernel might attempt to remove the thread from the object's
@@ -32,7 +33,7 @@ void WaitObject::RemoveWaitingThread(std::shared_ptr<Thread> thread) {
         waiting_threads.erase(itr);
 }
 
-std::shared_ptr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
+std::shared_ptr<Thread> SynchronizationObject::GetHighestPriorityReadyThread() const {
     Thread* candidate = nullptr;
     u32 candidate_priority = THREADPRIO_LOWEST + 1;
 
@@ -57,7 +58,7 @@ std::shared_ptr<Thread> WaitObject::GetHighestPriorityReadyThread() const {
     return SharedFrom(candidate);
 }
 
-void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
+void SynchronizationObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
     ASSERT(!ShouldWait(thread.get()));
 
     if (!thread) {
@@ -65,7 +66,7 @@ void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
     }
 
     if (thread->IsSleepingOnWait()) {
-        for (const auto& object : thread->GetWaitObjects()) {
+        for (const auto& object : thread->GetSynchronizationObjects()) {
             ASSERT(!object->ShouldWait(thread.get()));
             object->Acquire(thread.get());
         }
@@ -73,9 +74,9 @@ void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
         Acquire(thread.get());
     }
 
-    const std::size_t index = thread->GetWaitObjectIndex(SharedFrom(this));
+    const std::size_t index = thread->GetSynchronizationObjectIndex(SharedFrom(this));
 
-    thread->ClearWaitObjects();
+    thread->ClearSynchronizationObjects();
 
     thread->CancelWakeupTimer();
 
@@ -90,13 +91,13 @@ void WaitObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
     }
 }
 
-void WaitObject::WakeupAllWaitingThreads() {
+void SynchronizationObject::WakeupAllWaitingThreads() {
     while (auto thread = GetHighestPriorityReadyThread()) {
         WakeupWaitingThread(thread);
     }
 }
 
-const std::vector<std::shared_ptr<Thread>>& WaitObject::GetWaitingThreads() const {
+const std::vector<std::shared_ptr<Thread>>& SynchronizationObject::GetWaitingThreads() const {
     return waiting_threads;
 }
 

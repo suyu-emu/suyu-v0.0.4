@@ -13,7 +13,7 @@
 
 namespace Kernel {
 
-ServerPort::ServerPort(KernelCore& kernel) : WaitObject{kernel} {}
+ServerPort::ServerPort(KernelCore& kernel) : SynchronizationObject{kernel} {}
 ServerPort::~ServerPort() = default;
 
 ResultVal<std::shared_ptr<ServerSession>> ServerPort::Accept() {

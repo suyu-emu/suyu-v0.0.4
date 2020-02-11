@@ -47,15 +47,15 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const std::string& reason, u64 timeout, WakeupCallback&& callback,
     std::shared_ptr<WritableEvent> writable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->SetWakeupCallback([context = *this, callback](ThreadWakeupReason reason,
-                                                          std::shared_ptr<Thread> thread,
-                                                          std::shared_ptr<WaitObject> object,
-                                                          std::size_t index) mutable -> bool {
-        ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
-        callback(thread, context, reason);
-        context.WriteToOutgoingCommandBuffer(*thread);
-        return true;
-    });
+    thread->SetWakeupCallback(
+        [context = *this, callback](ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                                    std::shared_ptr<SynchronizationObject> object,
+                                    std::size_t index) mutable -> bool {
+            ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
+            callback(thread, context, reason);
+            context.WriteToOutgoingCommandBuffer(*thread);
+            return true;
+        });
 
     auto& kernel = Core::System::GetInstance().Kernel();
     if (!writable_event) {
@@ -67,7 +67,7 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const auto readable_event{writable_event->GetReadableEvent()};
     writable_event->Clear();
     thread->SetStatus(ThreadStatus::WaitHLEEvent);
-    thread->SetWaitObjects({readable_event});
+    thread->SetSynchronizationObjects({readable_event});
     readable_event->AddWaitingThread(thread);
 
     if (timeout > 0) {

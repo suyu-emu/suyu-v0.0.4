@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-ClientSession::ClientSession(KernelCore& kernel) : WaitObject{kernel} {}
+ClientSession::ClientSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
 
 ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by

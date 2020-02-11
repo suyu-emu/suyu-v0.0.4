@@ -9,7 +9,7 @@
 
 namespace Kernel {
 
-Session::Session(KernelCore& kernel) : WaitObject{kernel} {}
+Session::Session(KernelCore& kernel) : SynchronizationObject{kernel} {}
 Session::~Session() = default;
 
 Session::SessionPair Session::Create(KernelCore& kernel, std::string name) {

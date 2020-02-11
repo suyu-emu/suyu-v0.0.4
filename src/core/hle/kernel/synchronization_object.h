@@ -15,10 +15,10 @@ class KernelCore;
 class Thread;
 
 /// Class that represents a Kernel object that a thread can be waiting on
-class WaitObject : public Object {
+class SynchronizationObject : public Object {
 public:
-    explicit WaitObject(KernelCore& kernel);
-    ~WaitObject() override;
+    explicit SynchronizationObject(KernelCore& kernel);
+    ~SynchronizationObject() override;
 
     /**
      * Check if the specified thread should wait until the object is available
@@ -65,11 +65,12 @@ private:
     std::vector<std::shared_ptr<Thread>> waiting_threads;
 };
 
-// Specialization of DynamicObjectCast for WaitObjects
+// Specialization of DynamicObjectCast for SynchronizationObjects
 template <>
-inline std::shared_ptr<WaitObject> DynamicObjectCast<WaitObject>(std::shared_ptr<Object> object) {
+inline std::shared_ptr<SynchronizationObject> DynamicObjectCast<SynchronizationObject>(
+    std::shared_ptr<Object> object) {
     if (object != nullptr && object->IsWaitable()) {
-        return std::static_pointer_cast<WaitObject>(object);
+        return std::static_pointer_cast<SynchronizationObject>(object);
     }
     return nullptr;
 }

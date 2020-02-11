@@ -435,7 +435,8 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
 
 /// Default thread wakeup callback for WaitSynchronization
 static bool DefaultThreadWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                        std::shared_ptr<WaitObject> object, std::size_t index) {
+                                        std::shared_ptr<SynchronizationObject> object,
+                                        std::size_t index) {
     ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
 
     if (reason == ThreadWakeupReason::Timeout) {
@@ -473,13 +474,13 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
 
     auto* const thread = system.CurrentScheduler().GetCurrentThread();
 
-    using ObjectPtr = Thread::ThreadWaitObjects::value_type;
-    Thread::ThreadWaitObjects objects(handle_count);
+    using ObjectPtr = Thread::ThreadSynchronizationObjects::value_type;
+    Thread::ThreadSynchronizationObjects objects(handle_count);
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
 
     for (u64 i = 0; i < handle_count; ++i) {
         const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-        const auto object = handle_table.Get<WaitObject>(handle);
+        const auto object = handle_table.Get<SynchronizationObject>(handle);
 
         if (object == nullptr) {
             LOG_ERROR(Kernel_SVC, "Object is a nullptr");
@@ -496,7 +497,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
 
     if (itr != objects.end()) {
         // We found a ready object, acquire it and set the result value
-        WaitObject* object = itr->get();
+        SynchronizationObject* object = itr->get();
         object->Acquire(thread);
         *index = static_cast<s32>(std::distance(objects.begin(), itr));
         return RESULT_SUCCESS;
@@ -519,7 +520,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
         object->AddWaitingThread(SharedFrom(thread));
     }
 
-    thread->SetWaitObjects(std::move(objects));
+    thread->SetSynchronizationObjects(std::move(objects));
     thread->SetStatus(ThreadStatus::WaitSynch);
 
     // Create an event to wake the thread up after the specified nanosecond delay has passed
