@@ -13,6 +13,7 @@
 #include <glad/glad.h>
 
 #include "common/common_types.h"
+#include "video_core/query_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
@@ -24,134 +25,57 @@ namespace OpenGL {
 
 class CachedQuery;
 class HostCounter;
-class RasterizerOpenGL;
 class QueryCache;
+class RasterizerOpenGL;
 
-class CounterStream final {
-public:
-    explicit CounterStream(QueryCache& cache, VideoCore::QueryType type);
-    ~CounterStream();
+using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 
-    void Update(bool enabled, bool any_command_queued);
-
-    void Reset(bool any_command_queued);
-
-    std::shared_ptr<HostCounter> GetCurrent(bool any_command_queued);
-
-    bool IsEnabled() const {
-        return current != nullptr;
-    }
-
-private:
-    void Enable();
-
-    void Disable(bool any_command_queued);
-
-    void EndQuery(bool any_command_queued);
-
-    QueryCache& cache;
-
-    std::shared_ptr<HostCounter> current;
-    std::shared_ptr<HostCounter> last;
-    VideoCore::QueryType type;
-    GLenum target;
-};
-
-class QueryCache final {
+class QueryCache final
+    : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
     explicit QueryCache(Core::System& system, RasterizerOpenGL& rasterizer);
     ~QueryCache();
 
-    void InvalidateRegion(CacheAddr addr, std::size_t size);
-
-    void FlushRegion(CacheAddr addr, std::size_t size);
-
-    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp);
-
-    void UpdateCounters();
-
-    void ResetCounter(VideoCore::QueryType type);
+    OGLQuery AllocateQuery(VideoCore::QueryType type);
 
     void Reserve(VideoCore::QueryType type, OGLQuery&& query);
 
-    std::shared_ptr<HostCounter> GetHostCounter(std::shared_ptr<HostCounter> dependency,
-                                                VideoCore::QueryType type);
+    bool AnyCommandQueued() const noexcept;
 
 private:
-    CachedQuery& Register(CachedQuery&& cached_query);
-
-    CachedQuery* TryGet(CacheAddr addr);
-
-    void Flush(CachedQuery& cached_query);
-
-    CounterStream& GetStream(VideoCore::QueryType type);
-
-    Core::System& system;
-    RasterizerOpenGL& rasterizer;
-
-    std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
-
-    std::array<CounterStream, VideoCore::NumQueryTypes> streams;
-    std::array<std::vector<OGLQuery>, VideoCore::NumQueryTypes> reserved_queries;
+    RasterizerOpenGL& gl_rasterizer;
+    std::array<std::vector<OGLQuery>, VideoCore::NumQueryTypes> queries_reserve;
 };
 
-class HostCounter final {
+class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
 public:
     explicit HostCounter(QueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         VideoCore::QueryType type, OGLQuery&& query);
+                         VideoCore::QueryType type);
     ~HostCounter();
 
-    /// Returns the current value of the query.
-    u64 Query();
-
-    /// Returns true when querying this counter will potentially wait for OpenGL.
-    bool WaitPending() const noexcept;
+    void EndQuery();
 
 private:
+    u64 BlockingQuery() const override;
+
     QueryCache& cache;
     VideoCore::QueryType type;
-
-    std::shared_ptr<HostCounter> dependency; ///< Counter queued before this one.
-    OGLQuery query;                          ///< OpenGL query.
-    std::optional<u64> result;               ///< Added values of the counter.
+    OGLQuery query;
 };
 
-class CachedQuery final {
+class CachedQuery final : public VideoCommon::CachedQueryBase<HostCounter> {
 public:
-    explicit CachedQuery(VideoCore::QueryType type, VAddr cpu_addr, u8* host_ptr);
-    CachedQuery(CachedQuery&&) noexcept;
-    CachedQuery(const CachedQuery&) = delete;
-    ~CachedQuery();
+    explicit CachedQuery(QueryCache& cache, VideoCore::QueryType type, VAddr cpu_addr,
+                         u8* host_ptr);
+    CachedQuery(CachedQuery&& rhs) noexcept;
 
-    CachedQuery& operator=(CachedQuery&&) noexcept;
+    CachedQuery& operator=(CachedQuery&& rhs) noexcept;
 
-    /// Writes the counter value to host memory.
-    void Flush();
-
-    /// Updates the counter this cached query registered in guest memory will write when requested.
-    void SetCounter(std::shared_ptr<HostCounter> counter, std::optional<u64> timestamp);
-
-    /// Returns true when a flushing this query will potentially wait for OpenGL.
-    bool WaitPending() const noexcept;
-
-    /// Returns the query type.
-    VideoCore::QueryType GetType() const noexcept;
-
-    /// Returns the guest CPU address for this query.
-    VAddr GetCpuAddr() const noexcept;
-
-    /// Returns the cache address for this query.
-    CacheAddr GetCacheAddr() const noexcept;
-
-    /// Returns the number of cached bytes.
-    u64 GetSizeInBytes() const noexcept;
+    void Flush() override;
 
 private:
-    VideoCore::QueryType type;            ///< Abstracted query type (e.g. samples passed).
-    VAddr cpu_addr;                       ///< Guest CPU address.
-    u8* host_ptr;                         ///< Writable host pointer.
-    std::shared_ptr<HostCounter> counter; ///< Host counter to query, owns the dependency tree.
-    std::optional<u64> timestamp;         ///< Timestamp to flush to guest memory.
+    QueryCache* cache;
+    VideoCore::QueryType type;
 };
 
 } // namespace OpenGL

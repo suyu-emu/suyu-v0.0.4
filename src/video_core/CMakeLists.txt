@@ -37,6 +37,7 @@ add_library(video_core STATIC
     memory_manager.h
     morton.cpp
     morton.h
+    query_cache.h
     rasterizer_accelerated.cpp
     rasterizer_accelerated.h
     rasterizer_cache.cpp
