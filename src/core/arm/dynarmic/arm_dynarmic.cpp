@@ -14,6 +14,7 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
@@ -153,7 +154,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit(Common::PageTable& pag
     config.tpidr_el0 = &cb->tpidr_el0;
     config.dczid_el0 = 4;
     config.ctr_el0 = 0x8444c004;
-    config.cntfrq_el0 = Timing::CNTFREQ;
+    config.cntfrq_el0 = Hardware::CNTFREQ;
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;

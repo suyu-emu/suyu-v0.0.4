@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include "core/hardware_properties.h"
 
 namespace Core {
 
@@ -39,9 +40,7 @@ public:
     void RunLoop(bool tight_loop);
 
 private:
-    static constexpr std::size_t NUM_CPU_CORES = 4;
-
-    std::array<std::unique_ptr<CoreManager>, NUM_CPU_CORES> core_managers;
+    std::array<std::unique_ptr<CoreManager>, Hardware::NUM_CPU_CORES> core_managers;
     std::size_t active_core{}; ///< Active core, only used in single thread mode
 
     System& system;

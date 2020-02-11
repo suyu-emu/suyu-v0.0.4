@@ -10,6 +10,7 @@
 
 #include "common/common_types.h"
 #include "common/multi_level_queue.h"
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/thread.h"
 
 namespace Core {
@@ -23,8 +24,6 @@ class Process;
 
 class GlobalScheduler final {
 public:
-    static constexpr u32 NUM_CPU_CORES = 4;
-
     explicit GlobalScheduler(Core::System& system);
     ~GlobalScheduler();
 
@@ -125,7 +124,7 @@ public:
     void PreemptThreads();
 
     u32 CpuCoresCount() const {
-        return NUM_CPU_CORES;
+        return Core::Hardware::NUM_CPU_CORES;
     }
 
     void SetReselectionPending() {
@@ -149,13 +148,15 @@ private:
     bool AskForReselectionOrMarkRedundant(Thread* current_thread, const Thread* winner);
 
     static constexpr u32 min_regular_priority = 2;
-    std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> scheduled_queue;
-    std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, NUM_CPU_CORES> suggested_queue;
+    std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, Core::Hardware::NUM_CPU_CORES>
+        scheduled_queue;
+    std::array<Common::MultiLevelQueue<Thread*, THREADPRIO_COUNT>, Core::Hardware::NUM_CPU_CORES>
+        suggested_queue;
     std::atomic<bool> is_reselection_pending{false};
 
     // The priority levels at which the global scheduler preempts threads every 10 ms. They are
     // ordered from Core 0 to Core 3.
-    std::array<u32, NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
+    std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<std::shared_ptr<Thread>> thread_list;

@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/thread.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
@@ -215,7 +216,7 @@ void CoreTiming::Idle() {
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    return std::chrono::microseconds{GetTicks() * 1000000 / BASE_CLOCK_RATE};
+    return std::chrono::microseconds{GetTicks() * 1000000 / Hardware::BASE_CLOCK_RATE};
 }
 
 s64 CoreTiming::GetDowncount() const {

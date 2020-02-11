@@ -7,13 +7,14 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/memory.h"
 #include "core/tools/freezer.h"
 
 namespace Tools {
 namespace {
 
-constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 60);
+constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 60);
 
 u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
