@@ -228,15 +228,14 @@ void AddressArbiter::RemoveThread(std::shared_ptr<Thread> thread) {
     UNREACHABLE();
 }
 
-std::vector<std::shared_ptr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr address) {
-    std::vector<std::shared_ptr<Thread>> result;
-    std::list<std::shared_ptr<Thread>>& thread_list = arb_threads[address];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        std::shared_ptr<Thread> current_thread = *it;
-        result.push_back(std::move(current_thread));
-        ++it;
+std::vector<std::shared_ptr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(
+    VAddr address) const {
+    const auto iter = arb_threads.find(address);
+    if (iter == arb_threads.cend()) {
+        return {};
     }
-    return result;
+
+    const std::list<std::shared_ptr<Thread>>& thread_list = iter->second;
+    return {thread_list.cbegin(), thread_list.cend()};
 }
 } // namespace Kernel

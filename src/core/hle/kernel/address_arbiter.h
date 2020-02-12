@@ -86,7 +86,7 @@ private:
     void RemoveThread(std::shared_ptr<Thread> thread);
 
     // Gets the threads waiting on an address.
-    std::vector<std::shared_ptr<Thread>> GetThreadsWaitingOnAddress(VAddr address);
+    std::vector<std::shared_ptr<Thread>> GetThreadsWaitingOnAddress(VAddr address) const;
 
     /// List of threads waiting for a address arbiter
     std::unordered_map<VAddr, std::list<std::shared_ptr<Thread>>> arb_threads;
