@@ -123,7 +123,7 @@ bool NullBackend::Clear(u64 title_id) {
 }
 
 void NullBackend::SetPassphrase(u64 title_id, const Passphrase& passphrase) {
-    LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase = {}", title_id,
+    LOG_DEBUG(Service_BCAT, "called, title_id={:016X}, passphrase={}", title_id,
               Common::HexToString(passphrase));
 }
 
