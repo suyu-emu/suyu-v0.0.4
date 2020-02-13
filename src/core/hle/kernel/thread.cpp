@@ -474,7 +474,7 @@ void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
     if (GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
         return;
     }
-    auto& scheduler = Core::System::GetInstance().GlobalScheduler();
+    auto& scheduler = kernel.GlobalScheduler();
     if (processor_id >= 0) {
         scheduler.Unschedule(old_priority, static_cast<u32>(processor_id), this);
     }
@@ -506,7 +506,7 @@ void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
 }
 
 void Thread::AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core) {
-    auto& scheduler = Core::System::GetInstance().GlobalScheduler();
+    auto& scheduler = kernel.GlobalScheduler();
     if (GetSchedulingStatus() != ThreadSchedStatus::Runnable ||
         current_priority >= THREADPRIO_COUNT) {
         return;
