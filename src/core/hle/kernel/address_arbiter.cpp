@@ -201,42 +201,39 @@ void AddressArbiter::HandleWakeupThread(std::shared_ptr<Thread> thread) {
 void AddressArbiter::InsertThread(std::shared_ptr<Thread> thread) {
     const VAddr arb_addr = thread->GetArbiterWaitAddress();
     std::list<std::shared_ptr<Thread>>& thread_list = arb_threads[arb_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread>& current_thread = *it;
-        if (current_thread->GetPriority() >= thread->GetPriority()) {
-            thread_list.insert(it, thread);
-            return;
-        }
-        ++it;
+
+    const auto iter =
+        std::find_if(thread_list.cbegin(), thread_list.cend(), [&thread](const auto& entry) {
+            return entry->GetPriority() >= thread->GetPriority();
+        });
+
+    if (iter == thread_list.cend()) {
+        thread_list.push_back(std::move(thread));
+    } else {
+        thread_list.insert(iter, std::move(thread));
     }
-    thread_list.push_back(std::move(thread));
 }
 
 void AddressArbiter::RemoveThread(std::shared_ptr<Thread> thread) {
     const VAddr arb_addr = thread->GetArbiterWaitAddress();
     std::list<std::shared_ptr<Thread>>& thread_list = arb_threads[arb_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread>& current_thread = *it;
-        if (current_thread.get() == thread.get()) {
-            thread_list.erase(it);
-            return;
-        }
-        ++it;
-    }
-    UNREACHABLE();
+
+    const auto iter = std::find_if(thread_list.cbegin(), thread_list.cend(),
+                                   [&thread](const auto& entry) { return thread == entry; });
+
+    ASSERT(iter != thread_list.cend());
+
+    thread_list.erase(iter);
 }
 
-std::vector<std::shared_ptr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(VAddr address) {
-    std::vector<std::shared_ptr<Thread>> result;
-    std::list<std::shared_ptr<Thread>>& thread_list = arb_threads[address];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        std::shared_ptr<Thread> current_thread = *it;
-        result.push_back(std::move(current_thread));
-        ++it;
+std::vector<std::shared_ptr<Thread>> AddressArbiter::GetThreadsWaitingOnAddress(
+    VAddr address) const {
+    const auto iter = arb_threads.find(address);
+    if (iter == arb_threads.cend()) {
+        return {};
     }
-    return result;
+
+    const std::list<std::shared_ptr<Thread>>& thread_list = iter->second;
+    return {thread_list.cbegin(), thread_list.cend()};
 }
 } // namespace Kernel
