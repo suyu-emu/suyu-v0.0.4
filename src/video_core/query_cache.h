@@ -9,6 +9,7 @@
 #include <cstring>
 #include <iterator>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <unordered_map>
 #include <vector>
@@ -98,10 +99,12 @@ public:
                                                       VideoCore::QueryType::SamplesPassed}}} {}
 
     void InvalidateRegion(CacheAddr addr, std::size_t size) {
+        std::unique_lock lock{mutex};
         FlushAndRemoveRegion(addr, size);
     }
 
     void FlushRegion(CacheAddr addr, std::size_t size) {
+        std::unique_lock lock{mutex};
         FlushAndRemoveRegion(addr, size);
     }
 
@@ -112,6 +115,7 @@ public:
      * @param timestamp Timestamp, when empty the flushed query is assumed to be short.
      */
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) {
+        std::unique_lock lock{mutex};
         auto& memory_manager = system.GPU().MemoryManager();
         const auto host_ptr = memory_manager.GetPointer(gpu_addr);
 
@@ -218,6 +222,8 @@ private:
 
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
+
+    std::recursive_mutex mutex;
 
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 
