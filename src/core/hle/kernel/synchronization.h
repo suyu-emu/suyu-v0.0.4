@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 #include "core/hle/kernel/object.h"
 #include "core/hle/result.h"
@@ -16,15 +17,24 @@ class System;
 
 namespace Kernel {
 
-class KernelCore;
 class SynchronizationObject;
 
+/**
+ * The 'Synchronization' class is an interface for handling synchronization methods
+ * used by Synchronization objects and synchronization SVCs. This centralizes processing of
+ * such
+ */
 class Synchronization {
 public:
-    Synchronization(Core::System& system);
+    explicit Synchronization(Core::System& system);
 
+    /// Signals a synchronization object, waking up all its waiting threads
     void SignalObject(SynchronizationObject& obj) const;
 
+    /// Tries to see if waiting for any of the sync_objects is necessary, if not
+    /// it returns Success and the handle index of the signaled sync object. In
+    /// case not, the current thread will be locked and wait for nano_seconds or
+    /// for a synchronization object to signal.
     std::pair<ResultCode, Handle> WaitFor(
         std::vector<std::shared_ptr<SynchronizationObject>>& sync_objects, s64 nano_seconds);
 

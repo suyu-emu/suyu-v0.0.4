@@ -57,7 +57,7 @@ bool ServerSession::IsSignaled() const {
     }
 
     // Wait if we have no pending requests, or if we're currently handling a request.
-    return !(pending_requesting_threads.empty() || currently_handling != nullptr);
+    return !pending_requesting_threads.empty() && currently_handling == nullptr;
 }
 
 void ServerSession::Acquire(Thread* thread) {

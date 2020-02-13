@@ -474,7 +474,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
         objects[i] = object;
     }
     auto& synchronization = kernel.Synchronization();
-    auto [result, handle_result] = synchronization.WaitFor(objects, nano_seconds);
+    const auto [result, handle_result] = synchronization.WaitFor(objects, nano_seconds);
     *index = handle_result;
     return result;
 }
