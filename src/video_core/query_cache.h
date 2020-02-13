@@ -172,7 +172,7 @@ private:
         const u64 addr_begin = static_cast<u64>(addr);
         const u64 addr_end = addr_begin + static_cast<u64>(size);
         const auto in_range = [addr_begin, addr_end](CachedQuery& query) {
-            const u64 cache_begin = query.CacheAddr();
+            const u64 cache_begin = query.GetCacheAddr();
             const u64 cache_end = cache_begin + query.SizeInBytes();
             return cache_begin < addr_end && addr_begin < cache_end;
         };
@@ -212,8 +212,9 @@ private:
             return nullptr;
         }
         auto& contents = it->second;
-        const auto found = std::find_if(std::begin(contents), std::end(contents),
-                                        [addr](auto& query) { return query.CacheAddr() == addr; });
+        const auto found =
+            std::find_if(std::begin(contents), std::end(contents),
+                         [addr](auto& query) { return query.GetCacheAddr() == addr; });
         return found != std::end(contents) ? &*found : nullptr;
     }
 
@@ -326,7 +327,7 @@ public:
         return cpu_addr;
     }
 
-    CacheAddr CacheAddr() const noexcept {
+    CacheAddr GetCacheAddr() const noexcept {
         return ToCacheAddr(host_ptr);
     }
 
