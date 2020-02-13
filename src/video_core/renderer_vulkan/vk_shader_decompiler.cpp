@@ -275,12 +275,14 @@ public:
         AddCapability(spv::Capability::ImageGatherExtended);
         AddCapability(spv::Capability::SampledBuffer);
         AddCapability(spv::Capability::StorageImageWriteWithoutFormat);
+        AddCapability(spv::Capability::DrawParameters);
         AddCapability(spv::Capability::SubgroupBallotKHR);
         AddCapability(spv::Capability::SubgroupVoteKHR);
         AddExtension("SPV_KHR_shader_ballot");
         AddExtension("SPV_KHR_subgroup_vote");
         AddExtension("SPV_KHR_storage_buffer_storage_class");
         AddExtension("SPV_KHR_variable_pointers");
+        AddExtension("SPV_KHR_shader_draw_parameters");
 
         if (ir.UsesViewportIndex()) {
             AddCapability(spv::Capability::MultiViewport);
@@ -492,9 +494,11 @@ private:
         interfaces.push_back(AddGlobalVariable(Name(out_vertex, "out_vertex")));
 
         // Declare input attributes
-        vertex_index = DeclareInputBuiltIn(spv::BuiltIn::VertexIndex, t_in_uint, "vertex_index");
+        vertex_index = DeclareInputBuiltIn(spv::BuiltIn::VertexIndex, t_in_int, "vertex_index");
         instance_index =
-            DeclareInputBuiltIn(spv::BuiltIn::InstanceIndex, t_in_uint, "instance_index");
+            DeclareInputBuiltIn(spv::BuiltIn::InstanceIndex, t_in_int, "instance_index");
+        base_vertex = DeclareInputBuiltIn(spv::BuiltIn::BaseVertex, t_in_int, "base_vertex");
+        base_instance = DeclareInputBuiltIn(spv::BuiltIn::BaseInstance, t_in_int, "base_instance");
     }
 
     void DeclareTessControl() {
@@ -1068,9 +1072,12 @@ private:
                     return {OpLoad(t_float, AccessElement(t_in_float, tess_coord, element)),
                             Type::Float};
                 case 2:
-                    return {OpLoad(t_uint, instance_index), Type::Uint};
+                    return {
+                        OpISub(t_int, OpLoad(t_int, instance_index), OpLoad(t_int, base_instance)),
+                        Type::Int};
                 case 3:
-                    return {OpLoad(t_uint, vertex_index), Type::Uint};
+                    return {OpISub(t_int, OpLoad(t_int, vertex_index), OpLoad(t_int, base_vertex)),
+                            Type::Int};
                 }
                 UNIMPLEMENTED_MSG("Unmanaged TessCoordInstanceIDVertexID element={}", element);
                 return {Constant(t_uint, 0U), Type::Uint};
@@ -2542,6 +2549,8 @@ private:
 
     Id instance_index{};
     Id vertex_index{};
+    Id base_instance{};
+    Id base_vertex{};
     std::array<Id, Maxwell::NumRenderTargets> frag_colors{};
     Id frag_depth{};
     Id frag_coord{};
