@@ -123,15 +123,17 @@ bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     return true;
 }
 
-// This values were reversed engineered by fincs from NVN
-// The gpu clock is reported in units of 385/625 nanoseconds
-constexpr u64 gpu_ticks_num = 384;
-constexpr u64 gpu_ticks_den = 625;
-
 u64 GPU::GetTicks() const {
+    // This values were reversed engineered by fincs from NVN
+    // The gpu clock is reported in units of 385/625 nanoseconds
+    constexpr u64 gpu_ticks_num = 384;
+    constexpr u64 gpu_ticks_den = 625;
+
     const u64 cpu_ticks = system.CoreTiming().GetTicks();
     const u64 nanoseconds = Core::Timing::CyclesToNs(cpu_ticks).count();
-    return (nanoseconds * gpu_ticks_num) / gpu_ticks_den;
+    const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
+    const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
+    return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
 }
 
 void GPU::FlushCommands() {

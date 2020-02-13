@@ -531,10 +531,7 @@ void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
         // Write the 128-bit result structure in long mode. Note: We emulate an infinitely fast
         // GPU, this command may actually take a while to complete in real hardware due to GPU
         // wait queues.
-        LongQueryResult query_result{};
-        query_result.value = payload;
-        // TODO(Subv): Generate a real GPU timestamp and write it here instead of CoreTiming
-        query_result.timestamp = system.GPU().GetTicks();
+        LongQueryResult query_result{payload, system.GPU().GetTicks()};
         memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
     } else {
         memory_manager.Write<u32>(sequence_address, static_cast<u32>(payload));
@@ -548,7 +545,7 @@ void Maxwell3D::ProcessQueryGet() {
 
     switch (regs.query.query_get.operation) {
     case Regs::QueryOperation::Release: {
-        u64 result = regs.query.query_sequence;
+        const u64 result = regs.query.query_sequence;
         StampQueryResult(result, regs.query.query_get.short_query == 0);
         break;
     }
