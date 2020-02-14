@@ -10,7 +10,7 @@
 #include <vector>
 
 #include "common/threadsafe_queue.h"
-#include "core/hle/kernel/wait_object.h"
+#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Memory {
@@ -41,7 +41,7 @@ class Thread;
  * After the server replies to the request, the response is marshalled back to the caller's
  * TLS buffer and control is transferred back to it.
  */
-class ServerSession final : public WaitObject {
+class ServerSession final : public SynchronizationObject {
 public:
     explicit ServerSession(KernelCore& kernel);
     ~ServerSession() override;
@@ -72,6 +72,8 @@ public:
     const Session* GetParent() const {
         return parent.get();
     }
+
+    bool IsSignaled() const override;
 
     /**
      * Sets the HLE handler for the session. This handler will be called to service IPC requests

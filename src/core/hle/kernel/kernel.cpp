@@ -23,6 +23,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/scheduler.h"
+#include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
@@ -54,10 +55,10 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     if (thread->GetStatus() == ThreadStatus::WaitSynch ||
         thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
         // Remove the thread from each of its waiting objects' waitlists
-        for (const auto& object : thread->GetWaitObjects()) {
+        for (const auto& object : thread->GetSynchronizationObjects()) {
             object->RemoveWaitingThread(thread);
         }
-        thread->ClearWaitObjects();
+        thread->ClearSynchronizationObjects();
 
         // Invoke the wakeup callback before clearing the wait objects
         if (thread->HasWakeupCallback()) {
@@ -96,7 +97,8 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
 }
 
 struct KernelCore::Impl {
-    explicit Impl(Core::System& system) : system{system}, global_scheduler{system} {}
+    explicit Impl(Core::System& system)
+        : system{system}, global_scheduler{system}, synchronization{system} {}
 
     void Initialize(KernelCore& kernel) {
         Shutdown();
@@ -191,6 +193,7 @@ struct KernelCore::Impl {
     std::vector<std::shared_ptr<Process>> process_list;
     Process* current_process = nullptr;
     Kernel::GlobalScheduler global_scheduler;
+    Kernel::Synchronization synchronization;
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
 
@@ -268,6 +271,14 @@ Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
 
 const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
     return impl->cores[id];
+}
+
+Kernel::Synchronization& KernelCore::Synchronization() {
+    return impl->synchronization;
+}
+
+const Kernel::Synchronization& KernelCore::Synchronization() const {
+    return impl->synchronization;
 }
 
 Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {

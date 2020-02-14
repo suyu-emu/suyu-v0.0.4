@@ -337,7 +337,7 @@ void Process::LoadModule(CodeSet module_, VAddr base_addr) {
 }
 
 Process::Process(Core::System& system)
-    : WaitObject{system.Kernel()}, vm_manager{system},
+    : SynchronizationObject{system.Kernel()}, vm_manager{system},
       address_arbiter{system}, mutex{system}, system{system} {}
 
 Process::~Process() = default;
@@ -357,7 +357,7 @@ void Process::ChangeStatus(ProcessStatus new_status) {
 
     status = new_status;
     is_signaled = true;
-    WakeupAllWaitingThreads();
+    Signal();
 }
 
 void Process::AllocateMainThreadStack(u64 stack_size) {

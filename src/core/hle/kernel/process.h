@@ -15,8 +15,8 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process_capability.h"
+#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/vm_manager.h"
-#include "core/hle/kernel/wait_object.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -60,7 +60,7 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public WaitObject {
+class Process final : public SynchronizationObject {
 public:
     explicit Process(Core::System& system);
     ~Process() override;
@@ -358,10 +358,6 @@ private:
     /// By default, we currently assume this is true, unless otherwise
     /// specified by metadata provided to the process during loading.
     bool is_64bit_process = true;
-
-    /// Whether or not this process is signaled. This occurs
-    /// upon the process changing to a different state.
-    bool is_signaled = false;
 
     /// Total running time for the process in ticks.
     u64 total_process_running_time_ticks = 0;

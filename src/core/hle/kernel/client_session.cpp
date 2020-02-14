@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-ClientSession::ClientSession(KernelCore& kernel) : WaitObject{kernel} {}
+ClientSession::ClientSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
 
 ClientSession::~ClientSession() {
     // This destructor will be called automatically when the last ClientSession handle is closed by
@@ -29,6 +29,11 @@ bool ClientSession::ShouldWait(const Thread* thread) const {
 
 void ClientSession::Acquire(Thread* thread) {
     UNIMPLEMENTED();
+}
+
+bool ClientSession::IsSignaled() const {
+    UNIMPLEMENTED();
+    return true;
 }
 
 ResultVal<std::shared_ptr<ClientSession>> ClientSession::Create(KernelCore& kernel,

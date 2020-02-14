@@ -6,6 +6,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -233,7 +234,7 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
     if (current_time_point.clock_source_id == context.steady_time_point.clock_source_id) {
         const auto ticks{Clock::TimeSpanType::FromTicks(
             Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-            Core::Timing::CNTFREQ)};
+            Core::Hardware::CNTFREQ)};
         const s64 base_time_point{context.offset + current_time_point.time_point -
                                   ticks.ToSeconds()};
         IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};

@@ -5,6 +5,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/hle/service/time/tick_based_steady_clock_core.h"
 
 namespace Service::Time::Clock {
@@ -12,7 +13,7 @@ namespace Service::Time::Clock {
 SteadyClockTimePoint TickBasedSteadyClockCore::GetTimePoint(Core::System& system) {
     const TimeSpanType ticks_time_span{TimeSpanType::FromTicks(
         Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-        Core::Timing::CNTFREQ)};
+        Core::Hardware::CNTFREQ)};
 
     return {ticks_time_span.ToSeconds(), GetClockSourceId()};
 }

@@ -11,30 +11,30 @@
 
 namespace Kernel {
 
-ReadableEvent::ReadableEvent(KernelCore& kernel) : WaitObject{kernel} {}
+ReadableEvent::ReadableEvent(KernelCore& kernel) : SynchronizationObject{kernel} {}
 ReadableEvent::~ReadableEvent() = default;
 
 bool ReadableEvent::ShouldWait(const Thread* thread) const {
-    return !signaled;
+    return !is_signaled;
 }
 
 void ReadableEvent::Acquire(Thread* thread) {
-    ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
+    ASSERT_MSG(IsSignaled(), "object unavailable!");
 }
 
 void ReadableEvent::Signal() {
-    if (!signaled) {
-        signaled = true;
-        WakeupAllWaitingThreads();
+    if (!is_signaled) {
+        is_signaled = true;
+        SynchronizationObject::Signal();
     };
 }
 
 void ReadableEvent::Clear() {
-    signaled = false;
+    is_signaled = false;
 }
 
 ResultCode ReadableEvent::Reset() {
-    if (!signaled) {
+    if (!is_signaled) {
         return ERR_INVALID_STATE;
     }
 

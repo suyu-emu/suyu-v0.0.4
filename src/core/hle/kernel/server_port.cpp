@@ -13,7 +13,7 @@
 
 namespace Kernel {
 
-ServerPort::ServerPort(KernelCore& kernel) : WaitObject{kernel} {}
+ServerPort::ServerPort(KernelCore& kernel) : SynchronizationObject{kernel} {}
 ServerPort::~ServerPort() = default;
 
 ResultVal<std::shared_ptr<ServerSession>> ServerPort::Accept() {
@@ -37,6 +37,10 @@ bool ServerPort::ShouldWait(const Thread* thread) const {
 
 void ServerPort::Acquire(Thread* thread) {
     ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
+}
+
+bool ServerPort::IsSignaled() const {
+    return !pending_sessions.empty();
 }
 
 ServerPort::PortPair ServerPort::CreatePortPair(KernelCore& kernel, u32 max_sessions,

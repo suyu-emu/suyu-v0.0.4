@@ -5,6 +5,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/steady_clock_core.h"
 #include "core/hle/service/time/time_sharedmemory.h"
@@ -31,7 +32,7 @@ void SharedMemory::SetupStandardSteadyClock(Core::System& system,
                                             Clock::TimeSpanType current_time_point) {
     const Clock::TimeSpanType ticks_time_span{Clock::TimeSpanType::FromTicks(
         Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-        Core::Timing::CNTFREQ)};
+        Core::Hardware::CNTFREQ)};
     const Clock::SteadyClockContext context{
         static_cast<u64>(current_time_point.nanoseconds - ticks_time_span.nanoseconds),
         clock_source_id};

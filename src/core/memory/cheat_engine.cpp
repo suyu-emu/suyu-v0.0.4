@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -17,7 +18,7 @@
 
 namespace Memory {
 
-constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(Core::Timing::BASE_CLOCK_RATE / 12);
+constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 12);
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 StandardVmCallbacks::StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata)

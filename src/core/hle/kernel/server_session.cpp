@@ -24,7 +24,7 @@
 
 namespace Kernel {
 
-ServerSession::ServerSession(KernelCore& kernel) : WaitObject{kernel} {}
+ServerSession::ServerSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
 ServerSession::~ServerSession() = default;
 
 ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kernel,
@@ -48,6 +48,16 @@ bool ServerSession::ShouldWait(const Thread* thread) const {
 
     // Wait if we have no pending requests, or if we're currently handling a request.
     return pending_requesting_threads.empty() || currently_handling != nullptr;
+}
+
+bool ServerSession::IsSignaled() const {
+    // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
+    if (!parent->Client()) {
+        return true;
+    }
+
+    // Wait if we have no pending requests, or if we're currently handling a request.
+    return !pending_requesting_threads.empty() && currently_handling == nullptr;
 }
 
 void ServerSession::Acquire(Thread* thread) {

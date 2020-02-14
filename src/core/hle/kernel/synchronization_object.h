@@ -15,10 +15,10 @@ class KernelCore;
 class Thread;
 
 /// Class that represents a Kernel object that a thread can be waiting on
-class WaitObject : public Object {
+class SynchronizationObject : public Object {
 public:
-    explicit WaitObject(KernelCore& kernel);
-    ~WaitObject() override;
+    explicit SynchronizationObject(KernelCore& kernel);
+    ~SynchronizationObject() override;
 
     /**
      * Check if the specified thread should wait until the object is available
@@ -29,6 +29,13 @@ public:
 
     /// Acquire/lock the object for the specified thread if it is available
     virtual void Acquire(Thread* thread) = 0;
+
+    /// Signal this object
+    virtual void Signal();
+
+    virtual bool IsSignaled() const {
+        return is_signaled;
+    }
 
     /**
      * Add a thread to wait on this object
@@ -60,16 +67,20 @@ public:
     /// Get a const reference to the waiting threads list for debug use
     const std::vector<std::shared_ptr<Thread>>& GetWaitingThreads() const;
 
+protected:
+    bool is_signaled{}; // Tells if this sync object is signalled;
+
 private:
     /// Threads waiting for this object to become available
     std::vector<std::shared_ptr<Thread>> waiting_threads;
 };
 
-// Specialization of DynamicObjectCast for WaitObjects
+// Specialization of DynamicObjectCast for SynchronizationObjects
 template <>
-inline std::shared_ptr<WaitObject> DynamicObjectCast<WaitObject>(std::shared_ptr<Object> object) {
+inline std::shared_ptr<SynchronizationObject> DynamicObjectCast<SynchronizationObject>(
+    std::shared_ptr<Object> object) {
     if (object != nullptr && object->IsWaitable()) {
-        return std::static_pointer_cast<WaitObject>(object);
+        return std::static_pointer_cast<SynchronizationObject>(object);
     }
     return nullptr;
 }

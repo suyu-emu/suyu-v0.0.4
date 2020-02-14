@@ -10,7 +10,7 @@
 #include <vector>
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/wait_object.h"
+#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
@@ -20,7 +20,7 @@ class KernelCore;
 class ServerSession;
 class SessionRequestHandler;
 
-class ServerPort final : public WaitObject {
+class ServerPort final : public SynchronizationObject {
 public:
     explicit ServerPort(KernelCore& kernel);
     ~ServerPort() override;
@@ -81,6 +81,8 @@ public:
 
     bool ShouldWait(const Thread* thread) const override;
     void Acquire(Thread* thread) override;
+
+    bool IsSignaled() const override;
 
 private:
     /// ServerSessions waiting to be accepted by the port
