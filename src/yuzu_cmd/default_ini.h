@@ -123,7 +123,7 @@ use_shader_jit =
 resolution_factor =
 
 # Aspect ratio
-# 0: Default (16:9), 1: Force 21:9, 2: Stretch to Window
+# 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
 aspect_ratio =
 
 # Whether to enable V-Sync (caps the framerate at 60FPS) or not.

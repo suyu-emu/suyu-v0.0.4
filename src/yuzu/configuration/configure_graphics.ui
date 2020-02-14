@@ -156,6 +156,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Force 4:3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Force 21:9</string>
              </property>
             </item>
