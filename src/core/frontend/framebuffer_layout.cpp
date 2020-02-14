@@ -30,17 +30,17 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
     const auto window_aspect_ratio = static_cast<float>(height) / width;
     float emulation_aspect_ratio;
 
-    switch (Settings::values.aspect_ratio) {
-    case 0: // 16:9 (Default)
+    switch (static_cast<Aspect>(Settings::values.aspect_ratio)) {
+    case Aspect::AspectDefault:
         emulation_aspect_ratio = static_cast<float>(ScreenUndocked::Height) / ScreenUndocked::Width;
         break;
-    case 1: // 21:9
+    case Aspect::Aspect21by9:
         emulation_aspect_ratio = 9.f / 21;
         break;
-    case 2: // Stretch to Window
+    case Aspect::AspectStretch:
         emulation_aspect_ratio = window_aspect_ratio;
         break;
-    default: // 16:9
+    default:
         emulation_aspect_ratio = static_cast<float>(ScreenUndocked::Height) / ScreenUndocked::Width;
     }
 

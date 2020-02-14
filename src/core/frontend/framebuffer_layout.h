@@ -18,6 +18,12 @@ enum ScreenDocked : u32 {
     HeightDocked = 1080,
 };
 
+enum class Aspect {
+    AspectDefault,
+    Aspect21by9,
+    AspectStretch,
+};
+
 /// Describes the layout of the window framebuffer
 struct FramebufferLayout {
     u32 width{ScreenUndocked::Width};
