@@ -63,8 +63,10 @@ public:
     explicit CachedQuery(QueryCache& cache, VideoCore::QueryType type, VAddr cpu_addr,
                          u8* host_ptr);
     CachedQuery(CachedQuery&& rhs) noexcept;
+    CachedQuery(const CachedQuery&) = delete;
 
     CachedQuery& operator=(CachedQuery&& rhs) noexcept;
+    CachedQuery& operator=(const CachedQuery&) = delete;
 
     void Flush() override;
 

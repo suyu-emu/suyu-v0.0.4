@@ -62,7 +62,7 @@ public:
 
     /// Returns true when the counter stream is enabled.
     bool IsEnabled() const {
-        return static_cast<bool>(current);
+        return current != nullptr;
     }
 
 private:
@@ -163,6 +163,11 @@ public:
         return streams[static_cast<std::size_t>(type)];
     }
 
+    /// Returns the counter stream of the specified type.
+    const CounterStream& Stream(VideoCore::QueryType type) const {
+        return streams[static_cast<std::size_t>(type)];
+    }
+
 protected:
     std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 
@@ -219,7 +224,7 @@ private:
     }
 
     static constexpr std::uintptr_t PAGE_SIZE = 4096;
-    static constexpr int PAGE_SHIFT = 12;
+    static constexpr unsigned PAGE_SHIFT = 12;
 
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
@@ -237,13 +242,14 @@ public:
     explicit HostCounterBase(std::shared_ptr<HostCounter> dependency_)
         : dependency{std::move(dependency_)}, depth{dependency ? (dependency->Depth() + 1) : 0} {
         // Avoid nesting too many dependencies to avoid a stack overflow when these are deleted.
-        static constexpr u64 depth_threshold = 96;
+        constexpr u64 depth_threshold = 96;
         if (depth > depth_threshold) {
             depth = 0;
             base_result = dependency->Query();
             dependency = nullptr;
         }
     }
+    virtual ~HostCounterBase() = default;
 
     /// Returns the current value of the query.
     u64 Query() {
@@ -257,7 +263,8 @@ public:
             dependency = nullptr;
         }
 
-        return *(result = value);
+        result = value;
+        return *result;
     }
 
     /// Returns true when flushing this query will potentially wait.
@@ -285,20 +292,13 @@ class CachedQueryBase {
 public:
     explicit CachedQueryBase(VAddr cpu_addr, u8* host_ptr)
         : cpu_addr{cpu_addr}, host_ptr{host_ptr} {}
+    virtual ~CachedQueryBase() = default;
 
-    CachedQueryBase(CachedQueryBase&& rhs) noexcept
-        : cpu_addr{rhs.cpu_addr}, host_ptr{rhs.host_ptr}, counter{std::move(rhs.counter)},
-          timestamp{rhs.timestamp} {}
-
+    CachedQueryBase(CachedQueryBase&&) noexcept = default;
     CachedQueryBase(const CachedQueryBase&) = delete;
 
-    CachedQueryBase& operator=(CachedQueryBase&& rhs) noexcept {
-        cpu_addr = rhs.cpu_addr;
-        host_ptr = rhs.host_ptr;
-        counter = std::move(rhs.counter);
-        timestamp = rhs.timestamp;
-        return *this;
-    }
+    CachedQueryBase& operator=(CachedQueryBase&&) noexcept = default;
+    CachedQueryBase& operator=(const CachedQueryBase&) = delete;
 
     /// Flushes the query to guest memory.
     virtual void Flush() {
@@ -335,7 +335,7 @@ public:
         return SizeInBytes(timestamp.has_value());
     }
 
-    static u64 SizeInBytes(bool with_timestamp) {
+    static constexpr u64 SizeInBytes(bool with_timestamp) noexcept {
         return with_timestamp ? LARGE_QUERY_SIZE : SMALL_QUERY_SIZE;
     }
 
