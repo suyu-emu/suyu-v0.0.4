@@ -29,6 +29,7 @@ class HandleTable;
 class PhysicalCore;
 class Process;
 class ResourceLimit;
+class Scheduler;
 class Synchronization;
 class Thread;
 
@@ -86,6 +87,12 @@ public:
 
     /// Gets the sole instance of the global scheduler
     const Kernel::GlobalScheduler& GlobalScheduler() const;
+
+    /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
+    Kernel::Scheduler& Scheduler(std::size_t id);
+
+    /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
+    const Kernel::Scheduler& Scheduler(std::size_t id) const;
 
     /// Gets the an instance of the respective physical CPU core.
     Kernel::PhysicalCore& PhysicalCore(std::size_t id);

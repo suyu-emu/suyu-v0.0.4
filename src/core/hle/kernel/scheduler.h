@@ -20,11 +20,12 @@ class System;
 
 namespace Kernel {
 
+class KernelCore;
 class Process;
 
 class GlobalScheduler final {
 public:
-    explicit GlobalScheduler(Core::System& system);
+    explicit GlobalScheduler(KernelCore& kernel);
     ~GlobalScheduler();
 
     /// Adds a new thread to the scheduler
@@ -160,7 +161,7 @@ private:
 
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<std::shared_ptr<Thread>> thread_list;
-    Core::System& system;
+    KernelCore& kernel;
 };
 
 class Scheduler final {

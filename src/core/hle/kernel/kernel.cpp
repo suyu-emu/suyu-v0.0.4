@@ -97,8 +97,8 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
 }
 
 struct KernelCore::Impl {
-    explicit Impl(Core::System& system)
-        : system{system}, global_scheduler{system}, synchronization{system} {}
+    explicit Impl(Core::System& system, KernelCore& kernel)
+        : system{system}, global_scheduler{kernel}, synchronization{system} {}
 
     void Initialize(KernelCore& kernel) {
         Shutdown();
@@ -215,7 +215,7 @@ struct KernelCore::Impl {
     Core::System& system;
 };
 
-KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system)} {}
+KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
 KernelCore::~KernelCore() {
     Shutdown();
 }
@@ -263,6 +263,14 @@ Kernel::GlobalScheduler& KernelCore::GlobalScheduler() {
 
 const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
     return impl->global_scheduler;
+}
+
+Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) {
+    return impl->cores[id].Scheduler();
+}
+
+const Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) const {
+    return impl->cores[id].Scheduler();
 }
 
 Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {

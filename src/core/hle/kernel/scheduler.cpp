@@ -21,7 +21,7 @@
 
 namespace Kernel {
 
-GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {}
+GlobalScheduler::GlobalScheduler(KernelCore& kernel) : kernel{kernel} {}
 
 GlobalScheduler::~GlobalScheduler() = default;
 
@@ -35,7 +35,7 @@ void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
 }
 
 void GlobalScheduler::UnloadThread(std::size_t core) {
-    Scheduler& sched = system.Scheduler(core);
+    Scheduler& sched = kernel.Scheduler(core);
     sched.UnloadThread();
 }
 
@@ -50,7 +50,7 @@ void GlobalScheduler::SelectThread(std::size_t core) {
         sched.is_context_switch_pending = sched.selected_thread != sched.current_thread;
         std::atomic_thread_fence(std::memory_order_seq_cst);
     };
-    Scheduler& sched = system.Scheduler(core);
+    Scheduler& sched = kernel.Scheduler(core);
     Thread* current_thread = nullptr;
     // Step 1: Get top thread in schedule queue.
     current_thread = scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
