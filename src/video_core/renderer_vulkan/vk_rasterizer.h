@@ -104,8 +104,7 @@ public:
                               VKScheduler& scheduler);
     ~RasterizerVulkan() override;
 
-    bool DrawBatch(bool is_indexed) override;
-    bool DrawMultiBatch(bool is_indexed) override;
+    void Draw(bool is_indexed, bool is_instanced) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
     void FlushAll() override;
@@ -139,8 +138,6 @@ private:
     using Texceptions = std::bitset<Maxwell::NumRenderTargets + 1>;
 
     static constexpr std::size_t ZETA_TEXCEPTION_INDEX = 8;
-
-    void Draw(bool is_indexed, bool is_instanced);
 
     void FlushWork();
 
