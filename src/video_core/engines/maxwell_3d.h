@@ -71,12 +71,11 @@ public:
         static constexpr std::size_t MaxConstBuffers = 18;
         static constexpr std::size_t MaxConstBufferSize = 0x10000;
 
-        enum class QueryMode : u32 {
-            Write = 0,
-            Sync = 1,
-            // TODO(Subv): It is currently unknown what the difference between method 2 and method 0
-            // is.
-            Write2 = 2,
+        enum class QueryOperation : u32 {
+            Release = 0,
+            Acquire = 1,
+            Counter = 2,
+            Trap = 3,
         };
 
         enum class QueryUnit : u32 {
@@ -1081,7 +1080,7 @@ public:
                     u32 query_sequence;
                     union {
                         u32 raw;
-                        BitField<0, 2, QueryMode> mode;
+                        BitField<0, 2, QueryOperation> operation;
                         BitField<4, 1, u32> fence;
                         BitField<12, 4, QueryUnit> unit;
                         BitField<16, 1, QuerySyncCondition> sync_cond;
@@ -1412,6 +1411,9 @@ private:
 
     /// Handles a write to the QUERY_GET register.
     void ProcessQueryGet();
+
+    // Writes the query result accordingly
+    void StampQueryResult(u64 payload, bool long_query);
 
     // Handles Conditional Rendering
     void ProcessQueryCondition();

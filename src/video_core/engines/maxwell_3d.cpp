@@ -9,6 +9,7 @@
 #include "core/core_timing.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/textures/texture.h"
@@ -519,61 +520,63 @@ void Maxwell3D::ProcessFirmwareCall4() {
     regs.reg_array[0xd00] = 1;
 }
 
-void Maxwell3D::ProcessQueryGet() {
-    const GPUVAddr sequence_address{regs.query.QueryAddress()};
-    // Since the sequence address is given as a GPU VAddr, we have to convert it to an application
-    // VAddr before writing.
-
-    // TODO(Subv): Support the other query units.
-    ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
-               "Units other than CROP are unimplemented");
-
-    u64 result = 0;
-
-    // TODO(Subv): Support the other query variables
-    switch (regs.query.query_get.select) {
-    case Regs::QuerySelect::Zero:
-        // This seems to actually write the query sequence to the query address.
-        result = regs.query.query_sequence;
-        break;
-    default:
-        result = 1;
-        UNIMPLEMENTED_MSG("Unimplemented query select type {}",
-                          static_cast<u32>(regs.query.query_get.select.Value()));
-    }
-
-    // TODO(Subv): Research and implement how query sync conditions work.
-
+void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
     struct LongQueryResult {
         u64_le value;
         u64_le timestamp;
     };
     static_assert(sizeof(LongQueryResult) == 16, "LongQueryResult has wrong size");
+    const GPUVAddr sequence_address{regs.query.QueryAddress()};
+    if (long_query) {
+        // Write the 128-bit result structure in long mode. Note: We emulate an infinitely fast
+        // GPU, this command may actually take a while to complete in real hardware due to GPU
+        // wait queues.
+        LongQueryResult query_result{payload, system.GPU().GetTicks()};
+        memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
+    } else {
+        memory_manager.Write<u32>(sequence_address, static_cast<u32>(payload));
+    }
+}
 
-    switch (regs.query.query_get.mode) {
-    case Regs::QueryMode::Write:
-    case Regs::QueryMode::Write2: {
-        u32 sequence = regs.query.query_sequence;
-        if (regs.query.query_get.short_query) {
-            // Write the current query sequence to the sequence address.
-            // TODO(Subv): Find out what happens if you use a long query type but mark it as a short
-            // query.
-            memory_manager.Write<u32>(sequence_address, sequence);
-        } else {
-            // Write the 128-bit result structure in long mode. Note: We emulate an infinitely fast
-            // GPU, this command may actually take a while to complete in real hardware due to GPU
-            // wait queues.
-            LongQueryResult query_result{};
-            query_result.value = result;
-            // TODO(Subv): Generate a real GPU timestamp and write it here instead of CoreTiming
-            query_result.timestamp = system.CoreTiming().GetTicks();
-            memory_manager.WriteBlock(sequence_address, &query_result, sizeof(query_result));
-        }
+void Maxwell3D::ProcessQueryGet() {
+    // TODO(Subv): Support the other query units.
+    ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
+               "Units other than CROP are unimplemented");
+
+    switch (regs.query.query_get.operation) {
+    case Regs::QueryOperation::Release: {
+        const u64 result = regs.query.query_sequence;
+        StampQueryResult(result, regs.query.query_get.short_query == 0);
         break;
     }
-    default:
-        UNIMPLEMENTED_MSG("Query mode {} not implemented",
-                          static_cast<u32>(regs.query.query_get.mode.Value()));
+    case Regs::QueryOperation::Acquire: {
+        // Todo(Blinkhawk): Under this operation, the GPU waits for the CPU
+        // to write a value that matches the current payload.
+        UNIMPLEMENTED_MSG("Unimplemented query operation ACQUIRE");
+        break;
+    }
+    case Regs::QueryOperation::Counter: {
+        u64 result{};
+        switch (regs.query.query_get.select) {
+        case Regs::QuerySelect::Zero:
+            result = 0;
+            break;
+        default:
+            result = 1;
+            UNIMPLEMENTED_MSG("Unimplemented query select type {}",
+                              static_cast<u32>(regs.query.query_get.select.Value()));
+        }
+        StampQueryResult(result, regs.query.query_get.short_query == 0);
+        break;
+    }
+    case Regs::QueryOperation::Trap: {
+        UNIMPLEMENTED_MSG("Unimplemented query operation TRAP");
+        break;
+    }
+    default: {
+        UNIMPLEMENTED_MSG("Unknown query operation");
+        break;
+    }
     }
 }
 
