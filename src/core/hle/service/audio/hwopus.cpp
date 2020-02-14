@@ -170,8 +170,10 @@ public:
             {3, nullptr, "SetContextForMultiStream"},
             {4, &IHardwareOpusDecoderManager::DecodeInterleavedWithPerfOld, "DecodeInterleavedWithPerfOld"},
             {5, nullptr, "DecodeInterleavedForMultiStreamWithPerfOld"},
-            {6, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleaved"},
-            {7, nullptr, "DecodeInterleavedForMultiStream"},
+            {6, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleavedWithPerfAndResetOld"},
+            {7, nullptr, "DecodeInterleavedForMultiStreamWithPerfAndResetOld"},
+            {8, &IHardwareOpusDecoderManager::DecodeInterleaved, "DecodeInterleaved"},
+            {9, nullptr, "DecodeInterleavedForMultiStream"},
         };
         // clang-format on
 
