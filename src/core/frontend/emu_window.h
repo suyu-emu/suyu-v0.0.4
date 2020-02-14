@@ -12,6 +12,45 @@
 
 namespace Core::Frontend {
 
+struct Frame;
+/**
+ * For smooth Vsync rendering, we want to always present the latest frame that the core generates,
+ * but also make sure that rendering happens at the pace that the frontend dictates. This is a
+ * helper class that the renderer can define to sync frames between the render thread and the
+ * presentation thread
+ */
+class TextureMailbox {
+public:
+    virtual ~TextureMailbox() = default;
+
+    /**
+     * Recreate the render objects attached to this frame with the new specified width/height
+     */
+    virtual void ReloadRenderFrame(Frontend::Frame* frame, u32 width, u32 height) = 0;
+
+    /**
+     * Recreate the presentation objects attached to this frame with the new specified width/height
+     */
+    virtual void ReloadPresentFrame(Frontend::Frame* frame, u32 width, u32 height) = 0;
+
+    /**
+     * Render thread calls this to get an available frame to present
+     */
+    virtual Frontend::Frame* GetRenderFrame() = 0;
+
+    /**
+     * Render thread calls this after draw commands are done to add to the presentation mailbox
+     */
+    virtual void ReleaseRenderFrame(Frame* frame) = 0;
+
+    /**
+     * Presentation thread calls this to get the latest frame available to present. If there is no
+     * frame available after timeout, returns the previous frame. If there is no previous frame it
+     * returns nullptr
+     */
+    virtual Frontend::Frame* TryGetPresentFrame(int timeout_ms) = 0;
+};
+
 /**
  * Represents a graphics context that can be used for background computation or drawing. If the
  * graphics backend doesn't require the context, then the implementation of these methods can be
@@ -131,6 +170,8 @@ public:
      * Read from the current settings to determine which layout to use.
      */
     void UpdateCurrentFramebufferLayout(unsigned width, unsigned height);
+
+    std::unique_ptr<TextureMailbox> mailbox;
 
 protected:
     EmuWindow();
