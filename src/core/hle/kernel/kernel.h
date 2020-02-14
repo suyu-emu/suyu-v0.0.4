@@ -33,6 +33,7 @@ class ResourceLimit;
 class Scheduler;
 class Synchronization;
 class Thread;
+class TimeManager;
 
 /// Represents a single instance of the kernel.
 class KernelCore {
@@ -106,6 +107,12 @@ public:
 
     /// Gets the an instance of the Synchronization Interface.
     const Kernel::Synchronization& Synchronization() const;
+
+    /// Gets the an instance of the TimeManager Interface.
+    Kernel::TimeManager& TimeManager();
+
+    /// Gets the an instance of the TimeManager Interface.
+    const Kernel::TimeManager& TimeManager() const;
 
     /// Stops execution of 'id' core, in order to reschedule a new thread.
     void PrepareReschedule(std::size_t id);

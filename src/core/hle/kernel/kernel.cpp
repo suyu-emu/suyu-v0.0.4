@@ -27,6 +27,7 @@
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/time_manager.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -100,7 +101,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
-        : system{system}, global_scheduler{kernel}, synchronization{system} {}
+        : system{system}, global_scheduler{kernel}, synchronization{system}, time_manager{system} {}
 
     void Initialize(KernelCore& kernel) {
         Shutdown();
@@ -238,6 +239,7 @@ struct KernelCore::Impl {
     Process* current_process = nullptr;
     Kernel::GlobalScheduler global_scheduler;
     Kernel::Synchronization synchronization;
+    Kernel::TimeManager time_manager;
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
 
@@ -335,6 +337,14 @@ Kernel::Synchronization& KernelCore::Synchronization() {
 
 const Kernel::Synchronization& KernelCore::Synchronization() const {
     return impl->synchronization;
+}
+
+Kernel::TimeManager& KernelCore::TimeManager() {
+    return impl->time_manager;
+}
+
+const Kernel::TimeManager& KernelCore::TimeManager() const {
+    return impl->time_manager;
 }
 
 Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() {
