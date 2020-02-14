@@ -1677,11 +1677,11 @@ union Instruction {
     } xmad;
 
     union {
-        BitField<20, 14, u64> offset;
+        BitField<20, 14, u64> shifted_offset;
         BitField<34, 5, u64> index;
 
         u64 GetOffset() const {
-            return offset * 4;
+            return shifted_offset * 4;
         }
     } cbuf34;
 

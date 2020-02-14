@@ -166,13 +166,13 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         const auto [op_rhs, test] = [&]() -> std::pair<Node, Node> {
             switch (opcode->get().GetId()) {
             case OpCode::Id::ICMP_CR:
-                return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset),
+                return {GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset()),
                         GetRegister(instr.gpr39)};
             case OpCode::Id::ICMP_R:
                 return {GetRegister(instr.gpr20), GetRegister(instr.gpr39)};
             case OpCode::Id::ICMP_RC:
                 return {GetRegister(instr.gpr39),
-                        GetConstBuffer(instr.cbuf34.index, instr.cbuf34.offset)};
+                        GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset())};
             case OpCode::Id::ICMP_IMM:
                 return {Immediate(instr.alu.GetSignedImm20_20()), GetRegister(instr.gpr39)};
             default:
