@@ -97,6 +97,7 @@ void ConfigureGraphics::SetConfiguration() {
     ui->api->setCurrentIndex(static_cast<int>(Settings::values.renderer_backend));
     ui->resolution_factor_combobox->setCurrentIndex(
         static_cast<int>(FromResolutionFactor(Settings::values.resolution_factor)));
+    ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache);
     ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
@@ -114,6 +115,7 @@ void ConfigureGraphics::ApplyConfiguration() {
     Settings::values.vulkan_device = vulkan_device;
     Settings::values.resolution_factor =
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
+    Settings::values.aspect_ratio = ui->aspect_ratio_combobox->currentIndex();
     Settings::values.use_disk_shader_cache = ui->use_disk_shader_cache->isChecked();
     Settings::values.use_accurate_gpu_emulation = ui->use_accurate_gpu_emulation->isChecked();
     Settings::values.use_asynchronous_gpu_emulation =
