@@ -6,6 +6,8 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <thread>
+#include <unordered_map>
 #include <utility>
 
 #include "common/assert.h"
@@ -44,7 +46,7 @@ static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_
     std::lock_guard lock{HLE::g_hle_lock};
 
     std::shared_ptr<Thread> thread =
-        system.Kernel().RetrieveThreadFromWakeupCallbackHandleTable(proper_handle);
+        system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
     if (thread == nullptr) {
         LOG_CRITICAL(Kernel, "Callback fired for invalid thread {:08X}", proper_handle);
         return;
@@ -120,7 +122,7 @@ struct KernelCore::Impl {
 
         system_resource_limit = nullptr;
 
-        thread_wakeup_callback_handle_table.Clear();
+        global_handle_table.Clear();
         thread_wakeup_event_type = nullptr;
         preemption_event = nullptr;
 
@@ -138,8 +140,8 @@ struct KernelCore::Impl {
 
     void InitializePhysicalCores() {
         exclusive_monitor =
-            Core::MakeExclusiveMonitor(system.Memory(), global_scheduler.CpuCoresCount());
-        for (std::size_t i = 0; i < global_scheduler.CpuCoresCount(); i++) {
+            Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             cores.emplace_back(system, i, *exclusive_monitor);
         }
     }
@@ -184,6 +186,48 @@ struct KernelCore::Impl {
         system.Memory().SetCurrentPageTable(*process);
     }
 
+    void RegisterCoreThread(std::size_t core_id) {
+        const std::thread::id this_id = std::this_thread::get_id();
+        const auto it = host_thread_ids.find(this_id);
+        ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+        ASSERT(it == host_thread_ids.end());
+        ASSERT(!registered_core_threads[core_id]);
+        host_thread_ids[this_id] = static_cast<u32>(core_id);
+        registered_core_threads.set(core_id);
+    }
+
+    void RegisterHostThread() {
+        const std::thread::id this_id = std::this_thread::get_id();
+        const auto it = host_thread_ids.find(this_id);
+        ASSERT(it == host_thread_ids.end());
+        host_thread_ids[this_id] = registered_thread_ids++;
+    }
+
+    u32 GetCurrentHostThreadId() const {
+        const std::thread::id this_id = std::this_thread::get_id();
+        const auto it = host_thread_ids.find(this_id);
+        if (it == host_thread_ids.end()) {
+            return Core::INVALID_HOST_THREAD_ID;
+        }
+        return it->second;
+    }
+
+    Core::EmuThreadHandle GetCurrentEmuThreadId() const {
+        Core::EmuThreadHandle result = Core::EmuThreadHandle::InvalidHandle();
+        result.host_handle = GetCurrentHostThreadId();
+        if (result.host_handle >= Core::Hardware::NUM_CPU_CORES) {
+            return result;
+        }
+        const Kernel::Scheduler& sched = cores[result.host_handle].Scheduler();
+        const Kernel::Thread* current = sched.GetCurrentThread();
+        if (current != nullptr) {
+            result.guest_handle = current->GetGlobalHandle();
+        } else {
+            result.guest_handle = InvalidHandle;
+        }
+        return result;
+    }
+
     std::atomic<u32> next_object_id{0};
     std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
     std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
@@ -202,7 +246,7 @@ struct KernelCore::Impl {
 
     // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
     // allowing us to simply use a pool index or similar.
-    Kernel::HandleTable thread_wakeup_callback_handle_table;
+    Kernel::HandleTable global_handle_table;
 
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.
@@ -210,6 +254,11 @@ struct KernelCore::Impl {
 
     std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::vector<Kernel::PhysicalCore> cores;
+
+    // 0-3 Ids represent core threads, >3 represent others
+    std::unordered_map<std::thread::id, u32> host_thread_ids;
+    u32 registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
+    std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads{};
 
     // System context
     Core::System& system;
@@ -232,9 +281,8 @@ std::shared_ptr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
     return impl->system_resource_limit;
 }
 
-std::shared_ptr<Thread> KernelCore::RetrieveThreadFromWakeupCallbackHandleTable(
-    Handle handle) const {
-    return impl->thread_wakeup_callback_handle_table.Get<Thread>(handle);
+std::shared_ptr<Thread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
+    return impl->global_handle_table.Get<Thread>(handle);
 }
 
 void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {
@@ -346,12 +394,28 @@ const std::shared_ptr<Core::Timing::EventType>& KernelCore::ThreadWakeupCallback
     return impl->thread_wakeup_event_type;
 }
 
-Kernel::HandleTable& KernelCore::ThreadWakeupCallbackHandleTable() {
-    return impl->thread_wakeup_callback_handle_table;
+Kernel::HandleTable& KernelCore::GlobalHandleTable() {
+    return impl->global_handle_table;
 }
 
-const Kernel::HandleTable& KernelCore::ThreadWakeupCallbackHandleTable() const {
-    return impl->thread_wakeup_callback_handle_table;
+const Kernel::HandleTable& KernelCore::GlobalHandleTable() const {
+    return impl->global_handle_table;
+}
+
+void KernelCore::RegisterCoreThread(std::size_t core_id) {
+    impl->RegisterCoreThread(core_id);
+}
+
+void KernelCore::RegisterHostThread() {
+    impl->RegisterHostThread();
+}
+
+u32 KernelCore::GetCurrentHostThreadId() const {
+    return impl->GetCurrentHostThreadId();
+}
+
+Core::EmuThreadHandle KernelCore::GetCurrentEmuThreadId() const {
+    return impl->GetCurrentEmuThreadId();
 }
 
 } // namespace Kernel

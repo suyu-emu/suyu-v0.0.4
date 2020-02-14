@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
@@ -65,7 +66,7 @@ public:
     std::shared_ptr<ResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    std::shared_ptr<Thread> RetrieveThreadFromWakeupCallbackHandleTable(Handle handle) const;
+    std::shared_ptr<Thread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(std::shared_ptr<Process> process);
@@ -127,6 +128,18 @@ public:
     /// Determines whether or not the given port is a valid named port.
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
+    /// Gets the current host_thread/guest_thread handle.
+    Core::EmuThreadHandle GetCurrentEmuThreadId() const;
+
+    /// Gets the current host_thread handle.
+    u32 GetCurrentHostThreadId() const;
+
+    /// Register the current thread as a CPU Core Thread.
+    void RegisterCoreThread(std::size_t core_id);
+
+    /// Register the current thread as a non CPU core thread.
+    void RegisterHostThread();
+
 private:
     friend class Object;
     friend class Process;
@@ -147,11 +160,11 @@ private:
     /// Retrieves the event type used for thread wakeup callbacks.
     const std::shared_ptr<Core::Timing::EventType>& ThreadWakeupCallbackEventType() const;
 
-    /// Provides a reference to the thread wakeup callback handle table.
-    Kernel::HandleTable& ThreadWakeupCallbackHandleTable();
+    /// Provides a reference to the global handle table.
+    Kernel::HandleTable& GlobalHandleTable();
 
-    /// Provides a const reference to the thread wakeup callback handle table.
-    const Kernel::HandleTable& ThreadWakeupCallbackHandleTable() const;
+    /// Provides a const reference to the global handle table.
+    const Kernel::HandleTable& GlobalHandleTable() const;
 
     struct Impl;
     std::unique_ptr<Impl> impl;

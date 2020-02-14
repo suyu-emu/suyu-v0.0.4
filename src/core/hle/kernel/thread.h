@@ -453,6 +453,10 @@ public:
         is_sync_cancelled = value;
     }
 
+    Handle GetGlobalHandle() const {
+        return global_handle;
+    }
+
 private:
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void SetCurrentPriority(u32 new_priority);
@@ -514,7 +518,7 @@ private:
     VAddr arb_wait_address{0};
 
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
-    Handle callback_handle = 0;
+    Handle global_handle = 0;
 
     /// Callback that will be invoked when the thread is resumed from a waiting state. If the thread
     /// was waiting via WaitSynchronization then the object will be the last object that became
