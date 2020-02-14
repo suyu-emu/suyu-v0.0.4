@@ -188,6 +188,7 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
              Settings::values.use_accurate_gpu_emulation);
     AddField(field_type, "Renderer_UseAsynchronousGpuEmulation",
              Settings::values.use_asynchronous_gpu_emulation);
+    AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync);
     AddField(field_type, "System_UseDockedMode", Settings::values.use_docked_mode);
 }
 
