@@ -19,9 +19,9 @@ enum ScreenDocked : u32 {
 };
 
 enum class Aspect {
-    AspectDefault,
+    Default,
     Aspect21by9,
-    AspectStretch,
+    StretchToWindow,
 };
 
 /// Describes the layout of the window framebuffer
@@ -53,5 +53,13 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height);
  * @param res_scale resolution scale factor
  */
 FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale);
+
+/**
+ * Convenience method to determine emulation aspect ratio
+ * @param aspect Represents the index of aspect ratio in Settings::values.aspect_ratio
+ * @param window_aspect_ratio Current window aspect ratio
+ * @return Emulation render window aspect ratio
+ */
+float EmulationAspectRatio(Aspect aspect, float window_aspect_ratio);
 
 } // namespace Layout
