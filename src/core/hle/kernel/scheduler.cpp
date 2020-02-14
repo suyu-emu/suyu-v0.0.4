@@ -18,6 +18,7 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
+#include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
 
@@ -356,6 +357,29 @@ void GlobalScheduler::Shutdown() {
     thread_list.clear();
 }
 
+void GlobalScheduler::Lock() {
+    Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadId();
+    if (current_thread == current_owner) {
+        ++scope_lock;
+    } else {
+        inner_lock.lock();
+        current_owner = current_thread;
+        scope_lock = 1;
+    }
+}
+
+void GlobalScheduler::Unlock() {
+    if (--scope_lock == 0) {
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            SelectThread(i);
+        }
+        current_owner = Core::EmuThreadHandle::InvalidHandle();
+        scope_lock = 1;
+        inner_lock.unlock();
+        // TODO(Blinkhawk): Setup the interrupts and change context on current core.
+    }
+}
+
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id)
     : system(system), cpu_core(cpu_core), core_id(core_id) {}
 
@@ -483,6 +507,30 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
 void Scheduler::Shutdown() {
     current_thread = nullptr;
     selected_thread = nullptr;
+}
+
+SchedulerLock::SchedulerLock(KernelCore& kernel) : kernel{kernel} {
+    auto& global_scheduler = kernel.GlobalScheduler();
+    global_scheduler.Lock();
+}
+
+SchedulerLock::~SchedulerLock() {
+    auto& global_scheduler = kernel.GlobalScheduler();
+    global_scheduler.Unlock();
+}
+
+SchedulerLockAndSleep::SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle,
+                                             Thread* time_task, s64 nanoseconds)
+    : SchedulerLock{kernel}, event_handle{event_handle}, time_task{time_task}, nanoseconds{
+                                                                                   nanoseconds} {
+    event_handle = InvalidHandle;
+}
+
+SchedulerLockAndSleep::~SchedulerLockAndSleep() {
+    if (!sleep_cancelled) {
+        auto& time_manager = kernel.TimeManager();
+        time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
+    }
 }
 
 } // namespace Kernel
