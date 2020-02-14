@@ -158,6 +158,8 @@ public:
         GLenum depth_mode = GL_NEGATIVE_ONE_TO_ONE;
     } clip_control;
 
+    GLuint renderbuffer{}; // GL_RENDERBUFFER_BINDING
+
     OpenGLState();
 
     /// Get the currently active OpenGL state
@@ -196,6 +198,7 @@ public:
     void ApplyPolygonOffset();
     void ApplyAlphaTest();
     void ApplyClipControl();
+    void ApplyRenderBuffer();
 
     /// Resets any references to the given resource
     OpenGLState& UnbindTexture(GLuint handle);
@@ -204,6 +207,7 @@ public:
     OpenGLState& ResetPipeline(GLuint handle);
     OpenGLState& ResetVertexArray(GLuint handle);
     OpenGLState& ResetFramebuffer(GLuint handle);
+    OpenGLState& ResetRenderbuffer(GLuint handle);
 
     /// Viewport does not affects glClearBuffer so emulate viewport using scissor test
     void EmulateViewportWithScissor();
