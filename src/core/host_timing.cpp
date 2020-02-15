@@ -36,7 +36,8 @@ struct CoreTiming::Event {
 };
 
 CoreTiming::CoreTiming() {
-    clock = Common::CreateBestMatchingClock(Core::Timing::BASE_CLOCK_RATE, Core::Timing::CNTFREQ);
+    clock =
+        Common::CreateBestMatchingClock(Core::Hardware::BASE_CLOCK_RATE, Core::Hardware::CNTFREQ);
 }
 
 CoreTiming::~CoreTiming() = default;
@@ -108,6 +109,14 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
     basic_lock.unlock();
+}
+
+void CoreTiming::AddTicks(std::size_t core_index, u64 ticks) {
+    ticks_count[core_index] += ticks;
+}
+
+void CoreTiming::ResetTicks(std::size_t core_index) {
+    ticks_count[core_index] = 0;
 }
 
 u64 CoreTiming::GetCPUTicks() const {

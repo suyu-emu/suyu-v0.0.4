@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -18,6 +19,7 @@
 #include "common/thread.h"
 #include "common/threadsafe_queue.h"
 #include "common/wall_clock.h"
+#include "core/hardware_properties.h"
 
 namespace Core::HostTiming {
 
@@ -91,6 +93,11 @@ public:
     /// We only permit one event of each type in the queue at a time.
     void RemoveEvent(const std::shared_ptr<EventType>& event_type);
 
+
+    void AddTicks(std::size_t core_index, u64 ticks);
+
+    void ResetTicks(std::size_t core_index);
+
     /// Returns current time in emulated CPU cycles
     u64 GetCPUTicks() const;
 
@@ -138,6 +145,8 @@ private:
     std::atomic<bool> wait_set{};
     std::atomic<bool> shutting_down{};
     std::atomic<bool> has_started{};
+
+    std::array<std::atomic<u64>, Core::Hardware::NUM_CPU_CORES> ticks_count{};
 };
 
 /// Creates a core timing event with the given name and callback.
