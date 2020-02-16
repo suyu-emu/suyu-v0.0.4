@@ -40,7 +40,7 @@ static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::Graphic
         } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
             renderer.Rasterizer().FlushRegion(data->addr, data->size);
         } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
-            renderer.Rasterizer().InvalidateRegion(data->addr, data->size);
+            renderer.Rasterizer().OnCPUWrite(data->addr, data->size);
         } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
             return;
         } else {
@@ -82,12 +82,12 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
-    system.Renderer().Rasterizer().InvalidateRegion(addr, size);
+    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
 }
 
 void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
-    InvalidateRegion(addr, size);
+    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
 }
 
 void ThreadManager::WaitIdle() const {

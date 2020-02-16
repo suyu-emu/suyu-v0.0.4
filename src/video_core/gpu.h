@@ -156,6 +156,7 @@ public:
     void CallMethod(const MethodCall& method_call);
 
     void FlushCommands();
+    void SyncGuestHost();
 
     /// Returns a reference to the Maxwell3D GPU engine.
     Engines::Maxwell3D& Maxwell3D();

@@ -58,6 +58,12 @@ public:
     /// Notify rasterizer that any caches of the specified region should be invalidated
     virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
 
+    /// Notify rasterizer that any caches of the specified region are desync with guest
+    virtual void OnCPUWrite(VAddr addr, u64 size) = 0;
+
+    /// Sync memory between guest and host.
+    virtual void SyncGuestHost() = 0;
+
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     /// and invalidated
     virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;

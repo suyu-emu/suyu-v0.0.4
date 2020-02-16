@@ -142,6 +142,9 @@ void GPU::FlushCommands() {
     renderer->Rasterizer().FlushCommands();
 }
 
+void GPU::SyncGuestHost() {
+    renderer->Rasterizer().SyncGuestHost();
+}
 // Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
 // their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.
 // So the values you see in docs might be multiplied by 4.

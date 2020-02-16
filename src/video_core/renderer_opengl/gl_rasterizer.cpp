@@ -660,6 +660,22 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     query_cache.InvalidateRegion(addr, size);
 }
 
+void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
+    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    if (!addr || !size) {
+        return;
+    }
+    texture_cache.OnCPUWrite(addr, size);
+    shader_cache.InvalidateRegion(addr, size);
+    buffer_cache.InvalidateRegion(addr, size);
+}
+
+void RasterizerOpenGL::SyncGuestHost() {
+    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    texture_cache.SyncGuestHost();
+    // buffer_cache.SyncGuestHost();
+}
+
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size);

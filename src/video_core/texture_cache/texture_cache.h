@@ -63,7 +63,7 @@ public:
         }
     }
 
-    void OnCPUWrite(CacheAddr addr, std::size_t size) {
+    void OnCPUWrite(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
         for (const auto& surface : GetSurfacesInRegion(addr, size)) {
@@ -549,7 +549,7 @@ private:
         }
         const auto& final_params = new_surface->GetSurfaceParams();
         if (cr_params.type != final_params.type) {
-            if (Settings::values.use_accurate_gpu_emulation) {
+            if (Settings::IsGPULevelExtreme()) {
                 BufferCopy(current_surface, new_surface);
             }
         } else {

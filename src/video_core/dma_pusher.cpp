@@ -32,6 +32,7 @@ void DmaPusher::DispatchCalls() {
         }
     }
     gpu.FlushCommands();
+    gpu.SyncGuestHost();
 }
 
 bool DmaPusher::Step() {

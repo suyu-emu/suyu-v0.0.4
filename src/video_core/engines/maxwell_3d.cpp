@@ -403,9 +403,13 @@ void Maxwell3D::ProcessQueryGet() {
                "Units other than CROP are unimplemented");
 
     switch (regs.query.query_get.operation) {
-    case Regs::QueryOperation::Release:
-        StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
+    case Regs::QueryOperation::Release: {
+        rasterizer.FlushCommands();
+        rasterizer.SyncGuestHost();
+        const u64 result = regs.query.query_sequence;
+        StampQueryResult(result, regs.query.query_get.short_query == 0);
         break;
+    }
     case Regs::QueryOperation::Acquire:
         // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
         // matches the current payload.
