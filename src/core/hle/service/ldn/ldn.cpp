@@ -129,11 +129,19 @@ public:
             {304, nullptr, "Disconnect"},
             {400, nullptr, "Initialize"},
             {401, nullptr, "Finalize"},
-            {402, nullptr, "SetOperationMode"},
+            {402, &IUserLocalCommunicationService::Initialize2, "Initialize2"}, // 7.0.0+
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+    void Initialize2(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_LDN, "(STUBBED) called");
+        // Result success seem make this services start network and continue.
+        // If we just pass result error then it will stop and maybe try again and again.
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
     }
 };
 
