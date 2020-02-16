@@ -397,6 +397,14 @@ void Maxwell3D::StampQueryResult(u64 payload, bool long_query) {
     }
 }
 
+void Maxwell3D::ReleaseFences() {
+    for (const auto pair : delay_fences) {
+        const auto [addr, payload] = pair;
+        memory_manager.Write<u32>(addr, static_cast<u32>(payload));
+    }
+    delay_fences.clear();
+}
+
 void Maxwell3D::ProcessQueryGet() {
     // TODO(Subv): Support the other query units.
     ASSERT_MSG(regs.query.query_get.unit == Regs::QueryUnit::Crop,
@@ -407,7 +415,7 @@ void Maxwell3D::ProcessQueryGet() {
         rasterizer.FlushCommands();
         rasterizer.SyncGuestHost();
         const u64 result = regs.query.query_sequence;
-        StampQueryResult(result, regs.query.query_get.short_query == 0);
+        delay_fences.emplace_back(regs.query.QueryAddress(), result);
         break;
     }
     case Regs::QueryOperation::Acquire:
