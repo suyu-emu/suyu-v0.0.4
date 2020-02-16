@@ -44,6 +44,8 @@ u32 nvhost_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std::ve
         return GetWaitbase(input, output);
     case IoctlCommand::IocChannelSetTimeoutCommand:
         return ChannelSetTimeout(input, output);
+    case IoctlCommand::IocChannelSetTimeslice:
+        return ChannelSetTimeslice(input, output);
     default:
         break;
     }
@@ -224,6 +226,16 @@ u32 nvhost_gpu::ChannelSetTimeout(const std::vector<u8>& input, std::vector<u8>&
     IoctlChannelSetTimeout params{};
     std::memcpy(&params, input.data(), sizeof(IoctlChannelSetTimeout));
     LOG_INFO(Service_NVDRV, "called, timeout=0x{:X}", params.timeout);
+
+    return 0;
+}
+
+u32 nvhost_gpu::ChannelSetTimeslice(const std::vector<u8>& input, std::vector<u8>& output) {
+    IoctlSetTimeslice params{};
+    std::memcpy(&params, input.data(), sizeof(IoctlSetTimeslice));
+    LOG_INFO(Service_NVDRV, "called, timeslice=0x{:X}", params.timeslice);
+
+    channel_timeslice = params.timeslice;
 
     return 0;
 }
