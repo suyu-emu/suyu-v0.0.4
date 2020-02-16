@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -62,6 +63,30 @@ public:
         }
     }
 
+    void OnCPUWrite(CacheAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        for (const auto& surface : GetSurfacesInRegion(addr, size)) {
+            if (surface->IsMemoryMarked()) {
+                Unmark(surface);
+                surface->SetSyncPending(true);
+                marked_for_unregister.emplace_back(surface);
+            }
+        }
+    }
+
+    void SyncGuestHost() {
+        std::lock_guard lock{mutex};
+
+        for (const auto& surface : marked_for_unregister) {
+            if (surface->IsRegistered()) {
+                surface->SetSyncPending(false);
+                Unregister(surface);
+            }
+        }
+        marked_for_unregister.clear();
+    }
+
     /**
      * Guarantees that rendertargets don't unregister themselves if the
      * collide. Protection is currently only done on 3D slices.
@@ -85,7 +110,9 @@ public:
             return a->GetModificationTick() < b->GetModificationTick();
         });
         for (const auto& surface : surfaces) {
+            mutex.unlock();
             FlushSurface(surface);
+            mutex.lock();
         }
     }
 
@@ -345,7 +372,18 @@ protected:
         surface->SetCpuAddr(*cpu_addr);
         RegisterInnerCache(surface);
         surface->MarkAsRegistered(true);
+        surface->SetMemoryMarked(true);
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
+    }
+
+    void Unmark(TSurface surface) {
+        if (!surface->IsMemoryMarked()) {
+            return;
+        }
+        const std::size_t size = surface->GetSizeInBytes();
+        const VAddr cpu_addr = surface->GetCpuAddr();
+        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+        surface->SetMemoryMarked(false);
     }
 
     void Unregister(TSurface surface) {
@@ -355,9 +393,11 @@ protected:
         if (!guard_render_targets && surface->IsRenderTarget()) {
             ManageRenderTargetUnregister(surface);
         }
-        const std::size_t size = surface->GetSizeInBytes();
-        const VAddr cpu_addr = surface->GetCpuAddr();
-        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+        Unmark(surface);
+        if (surface->IsSyncPending()) {
+            marked_for_unregister.remove(surface);
+            surface->SetSyncPending(false);
+        }
         UnregisterInnerCache(surface);
         surface->MarkAsRegistered(false);
         ReserveSurface(surface->GetSurfaceParams(), surface);
@@ -1149,6 +1189,8 @@ private:
     /// for invalid texture calls.
     std::unordered_map<u32, TSurface> invalid_cache;
     std::vector<u8> invalid_memory;
+
+    std::list<TSurface> marked_for_unregister;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;
