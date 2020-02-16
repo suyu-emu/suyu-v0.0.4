@@ -277,6 +277,10 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
             SwizzleFunc(MortonSwizzleMode::LinearToMorton, host_ptr, params,
                         staging_buffer.data() + host_offset, level);
         }
+    } else if (params.IsBuffer()) {
+        // Buffers don't have pitch or any fancy layout property. We can just memcpy them to guest
+        // memory.
+        std::memcpy(host_ptr, staging_buffer.data(), guest_memory_size);
     } else {
         ASSERT(params.target == SurfaceTarget::Texture2D);
         ASSERT(params.num_levels == 1);
