@@ -55,6 +55,7 @@ struct FramebufferCacheKey {
     vk::RenderPass renderpass{};
     u32 width = 0;
     u32 height = 0;
+    u32 layers = 0;
     ImageViewsPack views;
 
     std::size_t Hash() const noexcept {
@@ -65,12 +66,17 @@ struct FramebufferCacheKey {
         }
         boost::hash_combine(hash, width);
         boost::hash_combine(hash, height);
+        boost::hash_combine(hash, layers);
         return hash;
     }
 
     bool operator==(const FramebufferCacheKey& rhs) const noexcept {
-        return std::tie(renderpass, views, width, height) ==
-               std::tie(rhs.renderpass, rhs.views, rhs.width, rhs.height);
+        return std::tie(renderpass, views, width, height, layers) ==
+               std::tie(rhs.renderpass, rhs.views, rhs.width, rhs.height, rhs.layers);
+    }
+
+    bool operator!=(const FramebufferCacheKey& rhs) const noexcept {
+        return !operator==(rhs);
     }
 };
 

@@ -84,18 +84,15 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
     if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
         switch (params.pixel_format) {
         case PixelFormat::R16U:
-        case PixelFormat::R16F: {
+        case PixelFormat::R16F:
             params.pixel_format = PixelFormat::Z16;
             break;
-        }
-        case PixelFormat::R32F: {
+        case PixelFormat::R32F:
             params.pixel_format = PixelFormat::Z32F;
             break;
-        }
-        default: {
+        default:
             UNIMPLEMENTED_MSG("Unimplemented shadow convert format: {}",
                               static_cast<u32>(params.pixel_format));
-        }
         }
         params.type = GetFormatType(params.pixel_format);
     }
@@ -168,27 +165,29 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
     return params;
 }
 
-SurfaceParams SurfaceParams::CreateForDepthBuffer(
-    Core::System& system, u32 zeta_width, u32 zeta_height, Tegra::DepthFormat format,
-    u32 block_width, u32 block_height, u32 block_depth,
-    Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type) {
+SurfaceParams SurfaceParams::CreateForDepthBuffer(Core::System& system) {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    regs.zeta_width, regs.zeta_height, regs.zeta.format, regs.zeta.memory_layout.type;
     SurfaceParams params;
-    params.is_tiled = type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
+    params.is_tiled = regs.zeta.memory_layout.type ==
+                      Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
     params.srgb_conversion = false;
-    params.block_width = std::min(block_width, 5U);
-    params.block_height = std::min(block_height, 5U);
-    params.block_depth = std::min(block_depth, 5U);
+    params.block_width = std::min(regs.zeta.memory_layout.block_width.Value(), 5U);
+    params.block_height = std::min(regs.zeta.memory_layout.block_height.Value(), 5U);
+    params.block_depth = std::min(regs.zeta.memory_layout.block_depth.Value(), 5U);
     params.tile_width_spacing = 1;
-    params.pixel_format = PixelFormatFromDepthFormat(format);
+    params.pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
     params.type = GetFormatType(params.pixel_format);
-    params.width = zeta_width;
-    params.height = zeta_height;
-    params.target = SurfaceTarget::Texture2D;
-    params.depth = 1;
+    params.width = regs.zeta_width;
+    params.height = regs.zeta_height;
     params.pitch = 0;
     params.num_levels = 1;
     params.emulated_levels = 1;
-    params.is_layered = false;
+
+    const bool is_layered = regs.zeta_layers > 1 && params.block_depth == 0;
+    params.is_layered = is_layered;
+    params.target = is_layered ? SurfaceTarget::Texture2DArray : SurfaceTarget::Texture2D;
+    params.depth = is_layered ? regs.zeta_layers.Value() : 1U;
     return params;
 }
 
@@ -214,11 +213,13 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
         params.width = params.pitch / bpp;
     }
     params.height = config.height;
-    params.depth = 1;
-    params.target = SurfaceTarget::Texture2D;
     params.num_levels = 1;
     params.emulated_levels = 1;
-    params.is_layered = false;
+
+    const bool is_layered = config.layers > 1 && params.block_depth == 0;
+    params.is_layered = is_layered;
+    params.depth = is_layered ? config.layers.Value() : 1;
+    params.target = is_layered ? SurfaceTarget::Texture2DArray : SurfaceTarget::Texture2D;
     return params;
 }
 

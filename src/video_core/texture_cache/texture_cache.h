@@ -160,10 +160,7 @@ public:
             SetEmptyDepthBuffer();
             return {};
         }
-        const auto depth_params{SurfaceParams::CreateForDepthBuffer(
-            system, regs.zeta_width, regs.zeta_height, regs.zeta.format,
-            regs.zeta.memory_layout.block_width, regs.zeta.memory_layout.block_height,
-            regs.zeta.memory_layout.block_depth, regs.zeta.memory_layout.type)};
+        const auto depth_params{SurfaceParams::CreateForDepthBuffer(system)};
         auto surface_view = GetSurface(gpu_addr, cache_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
             depth_buffer.target->MarkAsRenderTarget(false, NO_RT);
