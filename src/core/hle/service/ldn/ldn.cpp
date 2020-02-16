@@ -129,7 +129,7 @@ public:
             {304, nullptr, "Disconnect"},
             {400, nullptr, "Initialize"},
             {401, nullptr, "Finalize"},
-            {402, nullptr, "SetOperationMode"},
+            {402, nullptr, "Initialize2"},
         };
         // clang-format on
 
