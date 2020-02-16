@@ -46,6 +46,22 @@ public:
         return is_registered;
     }
 
+    void SetMemoryMarked(bool is_memory_marked_) {
+        is_memory_marked = is_memory_marked_;
+    }
+
+    bool IsMemoryMarked() const {
+        return is_memory_marked;
+    }
+
+    void SetSyncPending(bool is_sync_pending_) {
+        is_sync_pending = is_sync_pending_;
+    }
+
+    bool IsSyncPending() const {
+        return is_sync_pending;
+    }
+
     VAddr GetStart() const {
         return start;
     }
@@ -83,6 +99,8 @@ private:
     bool is_written{};
     bool is_modified{};
     bool is_registered{};
+    bool is_memory_marked{};
+    bool is_sync_pending{};
     u64 ticks{};
 };
 

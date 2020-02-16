@@ -667,13 +667,13 @@ void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
     }
     texture_cache.OnCPUWrite(addr, size);
     shader_cache.InvalidateRegion(addr, size);
-    buffer_cache.InvalidateRegion(addr, size);
+    buffer_cache.OnCPUWrite(addr, size);
 }
 
 void RasterizerOpenGL::SyncGuestHost() {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     texture_cache.SyncGuestHost();
-    // buffer_cache.SyncGuestHost();
+    buffer_cache.SyncGuestHost();
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
