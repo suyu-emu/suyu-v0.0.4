@@ -24,7 +24,7 @@ MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer, bool is_async)
     : system{system}, renderer{renderer}, is_async{is_async} {
     auto& rasterizer{renderer.Rasterizer()};
-    memory_manager = std::make_unique<Tegra::MemoryManager>(system);
+    memory_manager = std::make_unique<Tegra::MemoryManager>(system, rasterizer);
     dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);
     maxwell_3d = std::make_unique<Engines::Maxwell3D>(system, rasterizer, *memory_manager);
     fermi_2d = std::make_unique<Engines::Fermi2D>(rasterizer);
