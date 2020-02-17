@@ -48,6 +48,7 @@ private:
         IocAllocObjCtxCommand = 0xC0104809,
         IocChannelGetWaitbaseCommand = 0xC0080003,
         IocChannelSetTimeoutCommand = 0x40044803,
+        IocChannelSetTimeslice = 0xC004481D,
     };
 
     enum class CtxObjects : u32_le {
@@ -100,6 +101,11 @@ private:
     };
     static_assert(sizeof(IoctlChannelSetPriority) == 4,
                   "IoctlChannelSetPriority is incorrect size");
+
+    struct IoctlSetTimeslice {
+        u32_le timeslice;
+    };
+    static_assert(sizeof(IoctlSetTimeslice) == 4, "IoctlSetTimeslice is incorrect size");
 
     struct IoctlEventIdControl {
         u32_le cmd; // 0=disable, 1=enable, 2=clear
@@ -174,6 +180,7 @@ private:
     u64_le user_data{};
     IoctlZCullBind zcull_params{};
     u32_le channel_priority{};
+    u32_le channel_timeslice{};
 
     u32 SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output);
     u32 SetClientData(const std::vector<u8>& input, std::vector<u8>& output);
@@ -188,6 +195,7 @@ private:
                   const std::vector<u8>& input2, IoctlVersion version);
     u32 GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output);
     u32 ChannelSetTimeout(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 ChannelSetTimeslice(const std::vector<u8>& input, std::vector<u8>& output);
 
     std::shared_ptr<nvmap> nvmap_dev;
     u32 assigned_syncpoints{};
