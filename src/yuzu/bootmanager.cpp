@@ -25,7 +25,7 @@
 #include "common/scm_rev.h"
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
-#include "core/frontend/scope_acquire_window_context.h"
+#include "core/frontend/scope_acquire_context.h"
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
@@ -569,7 +569,7 @@ bool GRenderWindow::InitializeVulkan() {
 }
 
 bool GRenderWindow::LoadOpenGL() {
-    Core::Frontend::ScopeAcquireWindowContext acquire_context{*this};
+    Core::Frontend::ScopeAcquireContext acquire_context{*this};
     if (!gladLoadGL()) {
         QMessageBox::critical(this, tr("Error while initializing OpenGL 4.3!"),
                               tr("Your GPU may not support OpenGL 4.3, or you do not have the "

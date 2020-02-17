@@ -24,6 +24,7 @@
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
+#include "core/frontend/scope_acquire_context.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
@@ -184,6 +185,8 @@ struct System::Impl {
 
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
+        Core::Frontend::ScopeAcquireContext acquire_context{emu_window};
+
         app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);

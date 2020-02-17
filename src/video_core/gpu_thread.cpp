@@ -5,7 +5,7 @@
 #include "common/assert.h"
 #include "common/microprofile.h"
 #include "core/core.h"
-#include "core/frontend/scope_acquire_window_context.h"
+#include "core/frontend/scope_acquire_context.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/gpu.h"
 #include "video_core/gpu_thread.h"
@@ -27,7 +27,7 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
         return;
     }
 
-    Core::Frontend::ScopeAcquireWindowContext acquire_context{renderer.GetRenderWindow()};
+    Core::Frontend::ScopeAcquireContext acquire_context{renderer.GetRenderWindow()};
 
     CommandDataContainer next;
     while (state.is_running) {

@@ -8,16 +8,16 @@
 
 namespace Core::Frontend {
 
-class EmuWindow;
+class GraphicsContext;
 
 /// Helper class to acquire/release window context within a given scope
-class ScopeAcquireWindowContext : NonCopyable {
+class ScopeAcquireContext : NonCopyable {
 public:
-    explicit ScopeAcquireWindowContext(Core::Frontend::EmuWindow& window);
-    ~ScopeAcquireWindowContext();
+    explicit ScopeAcquireContext(Core::Frontend::GraphicsContext& context);
+    ~ScopeAcquireContext();
 
 private:
-    Core::Frontend::EmuWindow& emu_window;
+    Core::Frontend::GraphicsContext& context;
 };
 
 } // namespace Core::Frontend
