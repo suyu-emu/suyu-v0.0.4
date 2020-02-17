@@ -20,7 +20,6 @@
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/frontend/applets/general_frontend.h"
-#include "core/frontend/scope_acquire_window_context.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
@@ -985,11 +984,8 @@ void GMainWindow::BootGame(const QString& filename) {
         return;
 
     // Create and start the emulation thread
-    emu_thread = std::make_unique<EmuThread>(render_window);
+    emu_thread = std::make_unique<EmuThread>(*render_window);
     emit EmulationStarting(emu_thread.get());
-    if (Settings::values.renderer_backend == Settings::RendererBackend::OpenGL) {
-        render_window->moveContext();
-    }
     emu_thread->start();
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
@@ -1087,6 +1083,9 @@ void GMainWindow::ShutdownGame() {
     emulation_running = false;
 
     game_path.clear();
+
+    // When closing the game, destroy the GLWindow to clear the context after the game is closed
+    render_window->ReleaseRenderTarget();
 }
 
 void GMainWindow::StoreRecentFile(const QString& filename) {
@@ -2215,48 +2214,47 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     QWidget::closeEvent(event);
 }
 
-void GMainWindow::keyPressEvent(QKeyEvent* event) {
-    if (render_window) {
-        render_window->ForwardKeyPressEvent(event);
+static bool IsSingleFileDropEvent(const QMimeData* mime) {
+    return mime->hasUrls() && mime->urls().length() == 1;
+}
+
+void GMainWindow::AcceptDropEvent(QDropEvent* event) {
+    if (IsSingleFileDropEvent(event->mimeData())) {
+        event->setDropAction(Qt::DropAction::LinkAction);
+        event->accept();
     }
 }
 
-void GMainWindow::keyReleaseEvent(QKeyEvent* event) {
-    if (render_window) {
-        render_window->ForwardKeyReleaseEvent(event);
-    }
-}
-
-static bool IsSingleFileDropEvent(QDropEvent* event) {
-    const QMimeData* mimeData = event->mimeData();
-    return mimeData->hasUrls() && mimeData->urls().length() == 1;
-}
-
-void GMainWindow::dropEvent(QDropEvent* event) {
-    if (!IsSingleFileDropEvent(event)) {
-        return;
+bool GMainWindow::DropAction(QDropEvent* event) {
+    if (!IsSingleFileDropEvent(event->mimeData())) {
+        return false;
     }
 
     const QMimeData* mime_data = event->mimeData();
-    const QString filename = mime_data->urls().at(0).toLocalFile();
+    const QString& filename = mime_data->urls().at(0).toLocalFile();
 
     if (emulation_running && QFileInfo(filename).suffix() == QStringLiteral("bin")) {
+        // Amiibo
         LoadAmiibo(filename);
     } else {
+        // Game
         if (ConfirmChangeGame()) {
             BootGame(filename);
         }
     }
+    return true;
+}
+
+void GMainWindow::dropEvent(QDropEvent* event) {
+    DropAction(event);
 }
 
 void GMainWindow::dragEnterEvent(QDragEnterEvent* event) {
-    if (IsSingleFileDropEvent(event)) {
-        event->acceptProposedAction();
-    }
+    AcceptDropEvent(event);
 }
 
 void GMainWindow::dragMoveEvent(QDragMoveEvent* event) {
-    event->acceptProposedAction();
+    AcceptDropEvent(event);
 }
 
 bool GMainWindow::ConfirmChangeGame() {
@@ -2377,6 +2375,7 @@ int main(int argc, char* argv[]) {
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
+    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication app(argc, argv);
 
     // Qt changes the locale and causes issues in float conversion using std::to_string() when
