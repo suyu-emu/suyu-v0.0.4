@@ -1427,8 +1427,6 @@ public:
         Tables tables{};
     } dirty;
 
-    void ReleaseFences();
-
 private:
     void InitializeRegisterDefaults();
 
@@ -1468,8 +1466,6 @@ private:
     bool execute_on{true};
 
     std::array<u8, Regs::NUM_REGS> dirty_pointers{};
-
-    std::vector<std::pair<GPUVAddr, u64>> delay_fences;
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
     Texture::TICEntry GetTICEntry(u32 tic_index) const;

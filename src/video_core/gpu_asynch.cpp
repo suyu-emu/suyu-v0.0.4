@@ -52,4 +52,8 @@ void GPUAsynch::WaitIdle() const {
     gpu_thread.WaitIdle();
 }
 
+void GPUAsynch::OnCommandListEnd() {
+    gpu_thread.OnCommandListEnd();
+}
+
 } // namespace VideoCommon

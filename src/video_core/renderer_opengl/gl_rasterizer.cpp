@@ -676,6 +676,34 @@ void RasterizerOpenGL::SyncGuestHost() {
     buffer_cache.SyncGuestHost();
 }
 
+void RasterizerOpenGL::SignalFence(GPUVAddr addr, u32 value) {
+    if (!fences.empty()) {
+        const std::pair<GPUVAddr, u32>& current_fence = fences.front();
+        const auto [address, payload] = current_fence;
+        texture_cache.PopAsyncFlushes();
+        auto& gpu{system.GPU()};
+        auto& memory_manager{gpu.MemoryManager()};
+        memory_manager.Write<u32>(address, payload);
+        fences.pop_front();
+    }
+    fences.emplace_back(addr, value);
+    texture_cache.CommitAsyncFlushes();
+    FlushCommands();
+    SyncGuestHost();
+}
+
+void RasterizerOpenGL::ReleaseFences() {
+    while (!fences.empty()) {
+        const std::pair<GPUVAddr, u32>& current_fence = fences.front();
+        const auto [address, payload] = current_fence;
+        texture_cache.PopAsyncFlushes();
+        auto& gpu{system.GPU()};
+        auto& memory_manager{gpu.MemoryManager()};
+        memory_manager.Write<u32>(address, payload);
+        fences.pop_front();
+    }
+}
+
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size);

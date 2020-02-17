@@ -147,7 +147,7 @@ void GPU::SyncGuestHost() {
 }
 
 void GPU::OnCommandListEnd() {
-    maxwell_3d->ReleaseFences();
+    renderer.Rasterizer().ReleaseFences();
 }
 // Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
 // their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.

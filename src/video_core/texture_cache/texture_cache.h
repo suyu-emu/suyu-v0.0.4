@@ -238,7 +238,7 @@ public:
             surface->MarkAsRenderTarget(false, NO_RT);
             const auto& cr_params = surface->GetSurfaceParams();
             if (!cr_params.is_tiled) {
-                FlushSurface(surface);
+                AsyncFlushSurface(surface);
             }
         }
         render_targets[index].target = surface_view.first;
@@ -315,6 +315,26 @@ public:
 
     u64 Tick() {
         return ++ticks;
+    }
+
+    void CommitAsyncFlushes() {
+        commited_flushes.push_back(uncommited_flushes);
+        uncommited_flushes.reset();
+    }
+
+    void PopAsyncFlushes() {
+        if (commited_flushes.empty()) {
+            return;
+        }
+        auto& flush_list = commited_flushes.front();
+        if (!flush_list) {
+            commited_flushes.pop_front();
+            return;
+        }
+        for (TSurface& surface : *flush_list) {
+            FlushSurface(surface);
+        }
+        commited_flushes.pop_front();
     }
 
 protected:
@@ -1152,6 +1172,13 @@ private:
         TView view;
     };
 
+    void AsyncFlushSurface(TSurface& surface) {
+        if (!uncommited_flushes) {
+            uncommited_flushes = std::make_shared<std::list<TSurface>>();
+        }
+        uncommited_flushes->push_back(surface);
+    }
+
     VideoCore::RasterizerInterface& rasterizer;
 
     FormatLookupTable format_lookup_table;
@@ -1197,6 +1224,9 @@ private:
     std::vector<u8> invalid_memory;
 
     std::list<TSurface> marked_for_unregister;
+
+    std::shared_ptr<std::list<TSurface>> uncommited_flushes{};
+    std::list<std::shared_ptr<std::list<TSurface>>> commited_flushes;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;
