@@ -44,19 +44,21 @@ struct ScreenInfo {
     TextureInfo texture;
 };
 
+struct PresentationTexture {
+    u32 width = 0;
+    u32 height = 0;
+    OGLTexture texture;
+};
+
 class RendererOpenGL final : public VideoCore::RendererBase {
 public:
     explicit RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system);
     ~RendererOpenGL() override;
 
-    /// Swap buffers (render frame)
-    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
-
-    /// Initialize the renderer
     bool Init() override;
-
-    /// Shutdown the renderer
     void ShutDown() override;
+    void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+    void TryPresent(int timeout_ms) override;
 
 private:
     /// Initializes the OpenGL state and creates persistent objects.
@@ -74,10 +76,7 @@ private:
 
     void DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w, float h);
 
-    /// Updates the framerate.
-    void UpdateFramerate();
-
-    void CaptureScreenshot();
+    void RenderScreenshot();
 
     /// Loads framebuffer from emulated memory into the active OpenGL texture.
     void LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer);
@@ -86,6 +85,8 @@ private:
     /// can be 1x1 but will stretch across whatever it's rendered on.
     void LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color_b, u8 color_a,
                                     const TextureInfo& texture);
+
+    void PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer);
 
     Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
@@ -107,6 +108,9 @@ private:
     /// Used for transforming the framebuffer orientation
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
     Common::Rectangle<int> framebuffer_crop_rect;
+
+    /// Represents if the final render frame is sRGB
+    bool is_srgb{};
 };
 
 } // namespace OpenGL

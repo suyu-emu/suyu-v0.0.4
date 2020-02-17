@@ -35,14 +35,18 @@ public:
     explicit RendererBase(Core::Frontend::EmuWindow& window);
     virtual ~RendererBase();
 
-    /// Swap buffers (render frame)
-    virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
-
     /// Initialize the renderer
     virtual bool Init() = 0;
 
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
+
+    /// Finalize rendering the guest frame and draw into the presentation texture
+    virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
+
+    /// Draws the latest frame to the window waiting timeout_ms for a frame to arrive (Renderer
+    /// specific implementation)
+    virtual void TryPresent(int timeout_ms) = 0;
 
     // Getter/setter functions:
     // ------------------------
