@@ -13,9 +13,6 @@ public:
     explicit EmuWindow_SDL2_Hide();
     ~EmuWindow_SDL2_Hide();
 
-    /// Swap buffers to display the next frame
-    void SwapBuffers() override;
-
     /// Polls window events
     void PollEvents() override;
 

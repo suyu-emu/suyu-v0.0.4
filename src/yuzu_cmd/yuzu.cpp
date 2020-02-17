@@ -177,14 +177,16 @@ int main(int argc, char** argv) {
     Settings::values.use_gdbstub = use_gdbstub;
     Settings::Apply();
 
+    Core::System& system{Core::System::GetInstance()};
+
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend) {
     case Settings::RendererBackend::OpenGL:
-        emu_window = std::make_unique<EmuWindow_SDL2_GL>(fullscreen);
+        emu_window = std::make_unique<EmuWindow_SDL2_GL>(system, fullscreen);
         break;
     case Settings::RendererBackend::Vulkan:
 #ifdef HAS_VULKAN
-        emu_window = std::make_unique<EmuWindow_SDL2_VK>(fullscreen);
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(system, fullscreen);
         break;
 #else
         LOG_CRITICAL(Frontend, "Vulkan backend has not been compiled!");
@@ -192,12 +194,6 @@ int main(int argc, char** argv) {
 #endif
     }
 
-    if (!Settings::values.use_multi_core) {
-        // Single core mode must acquire OpenGL context for entire emulation session
-        emu_window->MakeCurrent();
-    }
-
-    Core::System& system{Core::System::GetInstance()};
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
@@ -234,12 +230,23 @@ int main(int argc, char** argv) {
 
     system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
-    emu_window->MakeCurrent();
     system.Renderer().Rasterizer().LoadDiskResources();
 
+    // Acquire render context for duration of the thread if this is the rendering thread
+    if (!Settings::values.use_asynchronous_gpu_emulation) {
+        emu_window->MakeCurrent();
+    }
+    SCOPE_EXIT({
+        if (!Settings::values.use_asynchronous_gpu_emulation) {
+            emu_window->DoneCurrent();
+        }
+    });
+
+    std::thread render_thread([&emu_window] { emu_window->Present(); });
     while (emu_window->IsOpen()) {
         system.RunLoop();
     }
+    render_thread.join();
 
     system.Shutdown();
 

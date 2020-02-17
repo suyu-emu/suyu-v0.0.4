@@ -10,17 +10,12 @@
 
 class EmuWindow_SDL2_GL final : public EmuWindow_SDL2 {
 public:
-    explicit EmuWindow_SDL2_GL(bool fullscreen);
+    explicit EmuWindow_SDL2_GL(Core::System& system, bool fullscreen);
     ~EmuWindow_SDL2_GL();
 
-    /// Swap buffers to display the next frame
-    void SwapBuffers() override;
-
-    /// Makes the graphics context current for the caller thread
     void MakeCurrent() override;
-
-    /// Releases the GL context from the caller thread
     void DoneCurrent() override;
+    void Present() override;
 
     /// Ignored in OpenGL
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
@@ -29,10 +24,17 @@ public:
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
 private:
+    /// Fake hidden window for the core context
+    SDL_Window* dummy_window{};
+
     /// Whether the GPU and driver supports the OpenGL extension required
     bool SupportsRequiredGLExtensions();
 
     using SDL_GLContext = void*;
+
     /// The OpenGL context associated with the window
-    SDL_GLContext gl_context;
+    SDL_GLContext window_context;
+
+    /// The OpenGL context associated with the core
+    std::unique_ptr<Core::Frontend::GraphicsContext> core_context;
 };

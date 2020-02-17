@@ -10,19 +10,12 @@
 
 class EmuWindow_SDL2_VK final : public EmuWindow_SDL2 {
 public:
-    explicit EmuWindow_SDL2_VK(bool fullscreen);
+    explicit EmuWindow_SDL2_VK(Core::System& system, bool fullscreen);
     ~EmuWindow_SDL2_VK();
 
-    /// Swap buffers to display the next frame
-    void SwapBuffers() override;
-
-    /// Makes the graphics context current for the caller thread
     void MakeCurrent() override;
-
-    /// Releases the GL context from the caller thread
     void DoneCurrent() override;
-
-    /// Retrieves Vulkan specific handlers from the window
+    void Present() override;
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                 void* surface) const override;
 
