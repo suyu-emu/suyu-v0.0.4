@@ -410,7 +410,6 @@ void Maxwell3D::ProcessQueryGet() {
             StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
         }
         break;
-    }
     case Regs::QueryOperation::Acquire:
         // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
         // matches the current payload.

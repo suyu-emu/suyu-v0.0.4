@@ -535,11 +535,36 @@ void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
     texture_cache.OnCPUWrite(addr, size);
     pipeline_cache.InvalidateRegion(addr, size);
     buffer_cache.OnCPUWrite(addr, size);
+    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerVulkan::SyncGuestHost() {
     texture_cache.SyncGuestHost();
     buffer_cache.SyncGuestHost();
+}
+
+void RasterizerVulkan::SignalFence(GPUVAddr addr, u32 value) {
+    auto& gpu{system.GPU()};
+    auto& memory_manager{gpu.MemoryManager()};
+    memory_manager.Write<u32>(addr, value);
+    /*
+    if (!gpu.IsAsync()) {
+        auto& memory_manager{gpu.MemoryManager()};
+        memory_manager.Write<u32>(addr, value);
+        return;
+    }
+    fence_manager.SignalFence(addr, value);
+    */
+}
+
+void RasterizerVulkan::ReleaseFences() {
+    /*
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.WaitPendingFences();
+    */
 }
 
 void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size) {

@@ -49,9 +49,11 @@ public:
     /// Records a GPU query and caches it
     virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
 
-    virtual void SignalFence(GPUVAddr addr, u32 value) {}
+    /// Signal a GPU based fence
+    virtual void SignalFence(GPUVAddr addr, u32 value) = 0;
 
-    virtual void ReleaseFences() {}
+    /// Release all pending fences.
+    virtual void ReleaseFences() = 0;
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;
