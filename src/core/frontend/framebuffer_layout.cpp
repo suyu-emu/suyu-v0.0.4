@@ -27,9 +27,9 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
     // so just calculate them both even if the other isn't showing.
     FramebufferLayout res{width, height};
 
-    const float emulation_aspect_ratio{static_cast<float>(ScreenUndocked::Height) /
-                                       ScreenUndocked::Width};
-    const auto window_aspect_ratio = static_cast<float>(height) / width;
+    const float window_aspect_ratio = static_cast<float>(height) / width;
+    const float emulation_aspect_ratio = EmulationAspectRatio(
+        static_cast<AspectRatio>(Settings::values.aspect_ratio), window_aspect_ratio);
 
     const Common::Rectangle<u32> screen_window_area{0, 0, width, height};
     Common::Rectangle<u32> screen = MaxRectangle(screen_window_area, emulation_aspect_ratio);
@@ -56,6 +56,21 @@ FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale) {
     }
 
     return DefaultFrameLayout(width, height);
+}
+
+float EmulationAspectRatio(AspectRatio aspect, float window_aspect_ratio) {
+    switch (aspect) {
+    case AspectRatio::Default:
+        return static_cast<float>(ScreenUndocked::Height) / ScreenUndocked::Width;
+    case AspectRatio::R4_3:
+        return 3.0f / 4.0f;
+    case AspectRatio::R21_9:
+        return 9.0f / 21.0f;
+    case AspectRatio::StretchToWindow:
+        return window_aspect_ratio;
+    default:
+        return static_cast<float>(ScreenUndocked::Height) / ScreenUndocked::Width;
+    }
 }
 
 } // namespace Layout

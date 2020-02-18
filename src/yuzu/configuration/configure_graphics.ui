@@ -139,6 +139,41 @@
          </layout>
         </item>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_6">
+          <item>
+           <widget class="QLabel" name="ar_label">
+            <property name="text">
+             <string>Aspect Ratio:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="aspect_ratio_combobox">
+            <item>
+             <property name="text">
+              <string>Default (16:9)</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Force 4:3</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Force 21:9</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Stretch to Window</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
            <widget class="QLabel" name="bg_label">

@@ -122,6 +122,10 @@ use_shader_jit =
 # factor for the Switch resolution
 resolution_factor =
 
+# Aspect ratio
+# 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
+aspect_ratio =
+
 # Whether to enable V-Sync (caps the framerate at 60FPS) or not.
 # 0 (default): Off, 1: On
 use_vsync =

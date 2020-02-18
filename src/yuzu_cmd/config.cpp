@@ -379,6 +379,8 @@ void Config::ReadValues() {
 
     Settings::values.resolution_factor =
         static_cast<float>(sdl2_config->GetReal("Renderer", "resolution_factor", 1.0));
+    Settings::values.aspect_ratio =
+        static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0));
     Settings::values.use_frame_limit = sdl2_config->GetBoolean("Renderer", "use_frame_limit", true);
     Settings::values.frame_limit =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "frame_limit", 100));
