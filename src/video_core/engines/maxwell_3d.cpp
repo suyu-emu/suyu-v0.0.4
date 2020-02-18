@@ -403,12 +403,11 @@ void Maxwell3D::ProcessQueryGet() {
                "Units other than CROP are unimplemented");
 
     switch (regs.query.query_get.operation) {
-    case Regs::QueryOperation::Release: {
-        const u64 result = regs.query.query_sequence;
+    case Regs::QueryOperation::Release:
         if (regs.query.query_get.fence == 1) {
-            rasterizer.SignalFence(regs.query.QueryAddress(), static_cast<u32>(result));
+            rasterizer.SignalFence(regs.query.QueryAddress(), regs.query.query_sequence);
         } else {
-            StampQueryResult(result, regs.query.query_get.short_query == 0);
+            StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
         }
         break;
     }

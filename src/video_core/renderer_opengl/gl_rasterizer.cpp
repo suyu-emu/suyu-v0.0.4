@@ -673,6 +673,7 @@ void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
     texture_cache.OnCPUWrite(addr, size);
     shader_cache.InvalidateRegion(addr, size);
     buffer_cache.OnCPUWrite(addr, size);
+    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerOpenGL::SyncGuestHost() {
