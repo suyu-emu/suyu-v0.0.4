@@ -6,6 +6,7 @@
 #include "common/microprofile.h"
 #include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 
@@ -139,6 +140,8 @@ void VKScheduler::SubmitExecution(vk::Semaphore semaphore) {
 }
 
 void VKScheduler::AllocateNewContext() {
+    ++ticks;
+
     std::unique_lock lock{mutex};
     current_fence = next_fence;
     next_fence = &resource_manager.CommitFence();
@@ -146,6 +149,10 @@ void VKScheduler::AllocateNewContext() {
     current_cmdbuf = resource_manager.CommitCommandBuffer(*current_fence);
     current_cmdbuf.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit},
                          device.GetDispatchLoader());
+    // Enable counters once again. These are disabled when a command buffer is finished.
+    if (query_cache) {
+        query_cache->UpdateCounters();
+    }
 }
 
 void VKScheduler::InvalidateState() {
@@ -159,6 +166,7 @@ void VKScheduler::InvalidateState() {
 }
 
 void VKScheduler::EndPendingOperations() {
+    query_cache->DisableStreams();
     EndRenderPass();
 }
 

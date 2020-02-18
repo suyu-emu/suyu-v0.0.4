@@ -266,4 +266,29 @@ public:
     GLuint handle = 0;
 };
 
+class OGLQuery : private NonCopyable {
+public:
+    OGLQuery() = default;
+
+    OGLQuery(OGLQuery&& o) noexcept : handle(std::exchange(o.handle, 0)) {}
+
+    ~OGLQuery() {
+        Release();
+    }
+
+    OGLQuery& operator=(OGLQuery&& o) noexcept {
+        Release();
+        handle = std::exchange(o.handle, 0);
+        return *this;
+    }
+
+    /// Creates a new internal OpenGL resource and stores the handle
+    void Create(GLenum target);
+
+    /// Deletes the internal OpenGL resource
+    void Release();
+
+    GLuint handle = 0;
+};
+
 } // namespace OpenGL

@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <optional>
 #include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
@@ -15,6 +16,8 @@
 #include "video_core/textures/texture.h"
 
 namespace Tegra::Engines {
+
+using VideoCore::QueryType;
 
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
@@ -400,6 +403,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         ProcessQueryCondition();
         break;
     }
+    case MAXWELL3D_REG_INDEX(counter_reset): {
+        ProcessCounterReset();
+        break;
+    }
     case MAXWELL3D_REG_INDEX(sync_info): {
         ProcessSyncPoint();
         break;
@@ -544,39 +551,27 @@ void Maxwell3D::ProcessQueryGet() {
                "Units other than CROP are unimplemented");
 
     switch (regs.query.query_get.operation) {
-    case Regs::QueryOperation::Release: {
-        const u64 result = regs.query.query_sequence;
-        StampQueryResult(result, regs.query.query_get.short_query == 0);
+    case Regs::QueryOperation::Release:
+        StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
         break;
-    }
-    case Regs::QueryOperation::Acquire: {
-        // Todo(Blinkhawk): Under this operation, the GPU waits for the CPU
-        // to write a value that matches the current payload.
+    case Regs::QueryOperation::Acquire:
+        // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
+        // matches the current payload.
         UNIMPLEMENTED_MSG("Unimplemented query operation ACQUIRE");
         break;
-    }
-    case Regs::QueryOperation::Counter: {
-        u64 result{};
-        switch (regs.query.query_get.select) {
-        case Regs::QuerySelect::Zero:
-            result = 0;
-            break;
-        default:
-            result = 1;
-            UNIMPLEMENTED_MSG("Unimplemented query select type {}",
-                              static_cast<u32>(regs.query.query_get.select.Value()));
+    case Regs::QueryOperation::Counter:
+        if (const std::optional<u64> result = GetQueryResult()) {
+            // If the query returns an empty optional it means it's cached and deferred.
+            // In this case we have a non-empty result, so we stamp it immediately.
+            StampQueryResult(*result, regs.query.query_get.short_query == 0);
         }
-        StampQueryResult(result, regs.query.query_get.short_query == 0);
         break;
-    }
-    case Regs::QueryOperation::Trap: {
+    case Regs::QueryOperation::Trap:
         UNIMPLEMENTED_MSG("Unimplemented query operation TRAP");
         break;
-    }
-    default: {
+    default:
         UNIMPLEMENTED_MSG("Unknown query operation");
         break;
-    }
     }
 }
 
@@ -593,20 +588,20 @@ void Maxwell3D::ProcessQueryCondition() {
     }
     case Regs::ConditionMode::ResNonZero: {
         Regs::QueryCompare cmp;
-        memory_manager.ReadBlockUnsafe(condition_address, &cmp, sizeof(cmp));
+        memory_manager.ReadBlock(condition_address, &cmp, sizeof(cmp));
         execute_on = cmp.initial_sequence != 0U && cmp.initial_mode != 0U;
         break;
     }
     case Regs::ConditionMode::Equal: {
         Regs::QueryCompare cmp;
-        memory_manager.ReadBlockUnsafe(condition_address, &cmp, sizeof(cmp));
+        memory_manager.ReadBlock(condition_address, &cmp, sizeof(cmp));
         execute_on =
             cmp.initial_sequence == cmp.current_sequence && cmp.initial_mode == cmp.current_mode;
         break;
     }
     case Regs::ConditionMode::NotEqual: {
         Regs::QueryCompare cmp;
-        memory_manager.ReadBlockUnsafe(condition_address, &cmp, sizeof(cmp));
+        memory_manager.ReadBlock(condition_address, &cmp, sizeof(cmp));
         execute_on =
             cmp.initial_sequence != cmp.current_sequence || cmp.initial_mode != cmp.current_mode;
         break;
@@ -616,6 +611,18 @@ void Maxwell3D::ProcessQueryCondition() {
         execute_on = true;
         break;
     }
+    }
+}
+
+void Maxwell3D::ProcessCounterReset() {
+    switch (regs.counter_reset) {
+    case Regs::CounterReset::SampleCnt:
+        rasterizer.ResetCounter(QueryType::SamplesPassed);
+        break;
+    default:
+        LOG_WARNING(Render_OpenGL, "Unimplemented counter reset={}",
+                    static_cast<int>(regs.counter_reset));
+        break;
     }
 }
 
@@ -658,6 +665,22 @@ void Maxwell3D::DrawArrays() {
         regs.index_array.count = 0;
     } else {
         regs.vertex_buffer.count = 0;
+    }
+}
+
+std::optional<u64> Maxwell3D::GetQueryResult() {
+    switch (regs.query.query_get.select) {
+    case Regs::QuerySelect::Zero:
+        return 0;
+    case Regs::QuerySelect::SamplesPassed:
+        // Deferred.
+        rasterizer.Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
+                         system.GPU().GetTicks());
+        return {};
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented query select type {}",
+                          static_cast<u32>(regs.query.query_get.select.Value()));
+        return 1;
     }
 }
 

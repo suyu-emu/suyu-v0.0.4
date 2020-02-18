@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <optional>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -407,6 +408,27 @@ public:
         enum class InvMemoryLayout : u32 {
             BlockLinear = 0,
             Linear = 1,
+        };
+
+        enum class CounterReset : u32 {
+            SampleCnt = 0x01,
+            Unk02 = 0x02,
+            Unk03 = 0x03,
+            Unk04 = 0x04,
+            EmittedPrimitives = 0x10, // Not tested
+            Unk11 = 0x11,
+            Unk12 = 0x12,
+            Unk13 = 0x13,
+            Unk15 = 0x15,
+            Unk16 = 0x16,
+            Unk17 = 0x17,
+            Unk18 = 0x18,
+            Unk1A = 0x1A,
+            Unk1B = 0x1B,
+            Unk1C = 0x1C,
+            Unk1D = 0x1D,
+            Unk1E = 0x1E,
+            GeneratedPrimitives = 0x1F,
         };
 
         struct Cull {
@@ -857,7 +879,7 @@ public:
                     BitField<7, 1, u32> c7;
                 } clip_distance_enabled;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                u32 samplecnt_enable;
 
                 float point_size;
 
@@ -865,7 +887,11 @@ public:
 
                 u32 point_sprite_enable;
 
-                INSERT_UNION_PADDING_WORDS(0x5);
+                INSERT_UNION_PADDING_WORDS(0x3);
+
+                CounterReset counter_reset;
+
+                INSERT_UNION_PADDING_WORDS(0x1);
 
                 u32 zeta_enable;
 
@@ -1412,11 +1438,14 @@ private:
     /// Handles a write to the QUERY_GET register.
     void ProcessQueryGet();
 
-    // Writes the query result accordingly
+    /// Writes the query result accordingly.
     void StampQueryResult(u64 payload, bool long_query);
 
-    // Handles Conditional Rendering
+    /// Handles conditional rendering.
     void ProcessQueryCondition();
+
+    /// Handles counter resets.
+    void ProcessCounterReset();
 
     /// Handles writes to syncing register.
     void ProcessSyncPoint();
@@ -1434,6 +1463,9 @@ private:
 
     // Handles a instance drawcall from MME
     void StepInstance(MMEDrawMode expected_mode, u32 count);
+
+    /// Returns a query's value or an empty object if the value will be deferred through a cache.
+    std::optional<u64> GetQueryResult();
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
@@ -1499,8 +1531,10 @@ ASSERT_REG_POSITION(screen_y_control, 0x4EB);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(vb_base_instance, 0x50E);
 ASSERT_REG_POSITION(clip_distance_enabled, 0x544);
+ASSERT_REG_POSITION(samplecnt_enable, 0x545);
 ASSERT_REG_POSITION(point_size, 0x546);
 ASSERT_REG_POSITION(point_sprite_enable, 0x548);
+ASSERT_REG_POSITION(counter_reset, 0x54C);
 ASSERT_REG_POSITION(zeta_enable, 0x54E);
 ASSERT_REG_POSITION(multisample_control, 0x54F);
 ASSERT_REG_POSITION(condition, 0x554);

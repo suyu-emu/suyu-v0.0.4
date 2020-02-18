@@ -37,6 +37,7 @@ add_library(video_core STATIC
     memory_manager.h
     morton.cpp
     morton.h
+    query_cache.h
     rasterizer_accelerated.cpp
     rasterizer_accelerated.h
     rasterizer_cache.cpp
@@ -74,6 +75,8 @@ add_library(video_core STATIC
     renderer_opengl/gl_stream_buffer.h
     renderer_opengl/gl_texture_cache.cpp
     renderer_opengl/gl_texture_cache.h
+    renderer_opengl/gl_query_cache.cpp
+    renderer_opengl/gl_query_cache.h
     renderer_opengl/maxwell_to_gl.h
     renderer_opengl/renderer_opengl.cpp
     renderer_opengl/renderer_opengl.h
@@ -177,6 +180,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_pipeline_cache.cpp
         renderer_vulkan/vk_pipeline_cache.h
+        renderer_vulkan/vk_query_cache.cpp
+        renderer_vulkan/vk_query_cache.h
         renderer_vulkan/vk_rasterizer.cpp
         renderer_vulkan/vk_rasterizer.h
         renderer_vulkan/vk_renderpass_cache.cpp

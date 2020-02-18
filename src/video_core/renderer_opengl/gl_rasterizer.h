@@ -24,6 +24,7 @@
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
+#include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
@@ -61,6 +62,8 @@ public:
     bool DrawMultiBatch(bool is_indexed) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
+    void ResetCounter(VideoCore::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
@@ -74,6 +77,11 @@ public:
                            u32 pixel_stride) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
+
+    /// Returns true when there are commands queued to the OpenGL server.
+    bool AnyCommandQueued() const {
+        return num_queued_commands > 0;
+    }
 
 private:
     /// Configures the color and depth framebuffer states.
@@ -180,9 +188,22 @@ private:
     /// Syncs the alpha test state to match the guest state
     void SyncAlphaTest();
 
-    /// Check for extension that are not strictly required
-    /// but are needed for correct emulation
+    /// Check for extension that are not strictly required but are needed for correct emulation
     void CheckExtensions();
+
+    std::size_t CalculateVertexArraysSize() const;
+
+    std::size_t CalculateIndexBufferSize() const;
+
+    /// Updates and returns a vertex array object representing current vertex format
+    GLuint SetupVertexFormat();
+
+    void SetupVertexBuffer(GLuint vao);
+    void SetupVertexInstances(GLuint vao);
+
+    GLintptr SetupIndexBuffer();
+
+    void SetupShaders(GLenum primitive_mode);
 
     const Device device;
     OpenGLState state;
@@ -191,6 +212,7 @@ private:
     ShaderCacheOpenGL shader_cache;
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
+    QueryCache query_cache;
 
     Core::System& system;
     ScreenInfo& screen_info;
@@ -208,19 +230,8 @@ private:
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
 
-    std::size_t CalculateVertexArraysSize() const;
-
-    std::size_t CalculateIndexBufferSize() const;
-
-    /// Updates and returns a vertex array object representing current vertex format
-    GLuint SetupVertexFormat();
-
-    void SetupVertexBuffer(GLuint vao);
-    void SetupVertexInstances(GLuint vao);
-
-    GLintptr SetupIndexBuffer();
-
-    void SetupShaders(GLenum primitive_mode);
+    /// Number of commands queued to the OpenGL driver. Reseted on flush.
+    std::size_t num_queued_commands = 0;
 };
 
 } // namespace OpenGL

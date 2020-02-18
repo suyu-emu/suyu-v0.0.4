@@ -207,4 +207,21 @@ void OGLFramebuffer::Release() {
     handle = 0;
 }
 
+void OGLQuery::Create(GLenum target) {
+    if (handle != 0)
+        return;
+
+    MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
+    glCreateQueries(target, 1, &handle);
+}
+
+void OGLQuery::Release() {
+    if (handle == 0)
+        return;
+
+    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    glDeleteQueries(1, &handle);
+    handle = 0;
+}
+
 } // namespace OpenGL

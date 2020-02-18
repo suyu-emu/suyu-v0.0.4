@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <condition_variable>
 #include <memory>
 #include <optional>
@@ -18,6 +19,7 @@ namespace Vulkan {
 
 class VKDevice;
 class VKFence;
+class VKQueryCache;
 class VKResourceManager;
 
 class VKFenceView {
@@ -67,6 +69,11 @@ public:
     /// Binds a pipeline to the current execution context.
     void BindGraphicsPipeline(vk::Pipeline pipeline);
 
+    /// Assigns the query cache.
+    void SetQueryCache(VKQueryCache& query_cache_) {
+        query_cache = &query_cache_;
+    }
+
     /// Returns true when viewports have been set in the current command buffer.
     bool TouchViewports() {
         return std::exchange(state.viewports, true);
@@ -110,6 +117,11 @@ public:
     /// Gets a reference to the current fence.
     VKFenceView GetFence() const {
         return current_fence;
+    }
+
+    /// Returns the current command buffer tick.
+    u64 Ticks() const {
+        return ticks;
     }
 
 private:
@@ -205,6 +217,8 @@ private:
 
     const VKDevice& device;
     VKResourceManager& resource_manager;
+    VKQueryCache* query_cache = nullptr;
+
     vk::CommandBuffer current_cmdbuf;
     VKFence* current_fence = nullptr;
     VKFence* next_fence = nullptr;
@@ -227,6 +241,7 @@ private:
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_reserve;
     std::mutex mutex;
     std::condition_variable cv;
+    std::atomic<u64> ticks = 0;
     bool quit = false;
 };
 

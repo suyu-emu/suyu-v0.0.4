@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <functional>
+#include <optional>
 #include "common/common_types.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/gpu.h"
@@ -16,6 +17,11 @@ class MemoryManager;
 }
 
 namespace VideoCore {
+
+enum class QueryType {
+    SamplesPassed,
+};
+constexpr std::size_t NumQueryTypes = 1;
 
 enum class LoadCallbackStage {
     Prepare,
@@ -40,6 +46,12 @@ public:
 
     /// Dispatches a compute shader invocation
     virtual void DispatchCompute(GPUVAddr code_addr) = 0;
+
+    /// Resets the counter of a query
+    virtual void ResetCounter(QueryType type) = 0;
+
+    /// Records a GPU query and caches it
+    virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;

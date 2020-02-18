@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
+#include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
@@ -96,7 +97,7 @@ struct ImageView {
     vk::ImageLayout* layout = nullptr;
 };
 
-class RasterizerVulkan : public VideoCore::RasterizerAccelerated {
+class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerVulkan(Core::System& system, Core::Frontend::EmuWindow& render_window,
                               VKScreenInfo& screen_info, const VKDevice& device,
@@ -108,6 +109,8 @@ public:
     bool DrawMultiBatch(bool is_indexed) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
+    void ResetCounter(VideoCore::QueryType type) override;
+    void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
     void FlushAll() override;
     void FlushRegion(CacheAddr addr, u64 size) override;
     void InvalidateRegion(CacheAddr addr, u64 size) override;
@@ -247,6 +250,7 @@ private:
     VKPipelineCache pipeline_cache;
     VKBufferCache buffer_cache;
     VKSamplerCache sampler_cache;
+    VKQueryCache query_cache;
 
     std::array<View, Maxwell::NumRenderTargets> color_attachments;
     View zeta_attachment;
