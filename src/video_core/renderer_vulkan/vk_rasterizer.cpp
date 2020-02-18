@@ -514,6 +514,10 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
     query_cache.FlushRegion(addr, size);
 }
 
+bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size) {
+    return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
+}
+
 void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return;

@@ -49,19 +49,17 @@ public:
     /// Records a GPU query and caches it
     virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
 
-    virtual void SignalFence(GPUVAddr addr, u32 value) {
+    virtual void SignalFence(GPUVAddr addr, u32 value) {}
 
-    }
-
-    virtual void ReleaseFences() {
-
-    }
+    virtual void ReleaseFences() {}
 
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     virtual void FlushRegion(VAddr addr, u64 size) = 0;
+
+    virtual bool MustFlushRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
     virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
