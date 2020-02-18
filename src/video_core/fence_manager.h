@@ -53,7 +53,10 @@ public:
     void WaitPendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
-            WaitFence(current_fence);
+            bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
+            if (should_wait) {
+                WaitFence(current_fence);
+            }
             texture_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
             auto& memory_manager{gpu.MemoryManager()};
@@ -80,7 +83,8 @@ private:
     void TryReleasePendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
-            if (!IsFenceSignaled(current_fence)) {
+            bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
+            if (should_wait && !IsFenceSignaled(current_fence)) {
                 return;
             }
             texture_cache.PopAsyncFlushes();

@@ -322,6 +322,17 @@ public:
         uncommited_flushes.reset();
     }
 
+    bool ShouldWaitAsyncFlushes() {
+        if (commited_flushes.empty()) {
+            return false;
+        }
+        auto& flush_list = commited_flushes.front();
+        if (!flush_list) {
+            return false;
+        }
+        return true;
+    }
+
     void PopAsyncFlushes() {
         if (commited_flushes.empty()) {
             return;
