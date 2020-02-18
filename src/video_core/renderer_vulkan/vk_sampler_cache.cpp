@@ -26,6 +26,13 @@ static std::optional<vk::BorderColor> TryConvertBorderColor(std::array<float, 4>
         if (color[0] + color[1] + color[2] > 1.35f) {
             // If color elements are brighter than roughly 0.5 average, use white border
             return vk::BorderColor::eFloatOpaqueWhite;
+        }
+        if (color[3] > 0.5f) {
+            return vk::BorderColor::eFloatOpaqueBlack;
+        }
+        return vk::BorderColor::eFloatTransparentBlack;
+            // If color elements are brighter than roughly 0.5 average, use white border
+            return vk::BorderColor::eFloatOpaqueWhite;
         } else {
             if (color[3] > 0.5f) {
                 return vk::BorderColor::eFloatOpaqueBlack;
