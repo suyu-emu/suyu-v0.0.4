@@ -682,10 +682,20 @@ void RasterizerOpenGL::SyncGuestHost() {
 }
 
 void RasterizerOpenGL::SignalFence(GPUVAddr addr, u32 value) {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        auto& memory_manager{gpu.MemoryManager()};
+        memory_manager.Write<u32>(addr, value);
+        return;
+    }
     fence_manager.SignalFence(addr, value);
 }
 
 void RasterizerOpenGL::ReleaseFences() {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        return;
+    }
     fence_manager.WaitPendingFences();
 }
 
