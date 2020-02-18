@@ -6,8 +6,8 @@
 
 #include <algorithm>
 #include <array>
-#include <queue>
 #include <memory>
+#include <queue>
 
 #include "common/assert.h"
 #include "common/common_types.h"
@@ -37,7 +37,7 @@ private:
     u32 payload;
 };
 
-template <typename TFence, typename TTextureCache>
+template <typename TFence, typename TTextureCache, typename TTBufferCache>
 class FenceManager {
 public:
     void SignalFence(GPUVAddr addr, u32 value) {
@@ -46,6 +46,7 @@ public:
         QueueFence(new_fence);
         fences.push(new_fence);
         texture_cache.CommitAsyncFlushes();
+        buffer_cache.CommitAsyncFlushes();
         rasterizer.FlushCommands();
         rasterizer.SyncGuestHost();
     }
@@ -54,10 +55,12 @@ public:
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
+            should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
             if (should_wait) {
                 WaitFence(current_fence);
             }
             texture_cache.PopAsyncFlushes();
+            buffer_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
             auto& memory_manager{gpu.MemoryManager()};
             memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
@@ -67,8 +70,9 @@ public:
 
 protected:
     FenceManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                 TTextureCache& texture_cache)
-        : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache} {}
+                 TTextureCache& texture_cache, TTBufferCache& buffer_cache)
+        : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache}, buffer_cache{
+                                                                                    buffer_cache} {}
 
     virtual TFence CreateFence(GPUVAddr addr, u32 value) = 0;
     virtual void QueueFence(TFence& fence) = 0;
@@ -78,16 +82,19 @@ protected:
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
     TTextureCache& texture_cache;
+    TTBufferCache& buffer_cache;
 
 private:
     void TryReleasePendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
+            should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
             if (should_wait && !IsFenceSignaled(current_fence)) {
                 return;
             }
             texture_cache.PopAsyncFlushes();
+            buffer_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
             auto& memory_manager{gpu.MemoryManager()};
             memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());

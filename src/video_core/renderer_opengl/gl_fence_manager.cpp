@@ -33,8 +33,8 @@ void GLInnerFence::Wait() {
 }
 
 FenceManagerOpenGL::FenceManagerOpenGL(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                               TextureCacheOpenGL& texture_cache)
-    : GenericFenceManager(system, rasterizer, texture_cache) {}
+                               TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache)
+    : GenericFenceManager(system, rasterizer, texture_cache, buffer_cache) {}
 
 Fence FenceManagerOpenGL::CreateFence(GPUVAddr addr, u32 value) {
     return std::make_shared<GLInnerFence>(addr, value);

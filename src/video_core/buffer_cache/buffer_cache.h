@@ -21,6 +21,7 @@
 #include "common/common_types.h"
 #include "core/core.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/buffer_cache/buffer_block.h"
 #include "video_core/buffer_cache/map_interval.h"
 #include "video_core/memory_manager.h"
@@ -80,6 +81,9 @@ public:
         auto map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (is_written) {
             map->MarkAsModified(true, GetModifiedTicks());
+            if (Settings::IsGPULevelHigh() && Settings::values.use_asynchronous_gpu_emulation) {
+                AsyncFlushMap(map);
+            }
             if (!map->IsWritten()) {
                 map->MarkAsWritten(true);
                 MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
@@ -191,6 +195,39 @@ public:
             }
         }
         marked_for_unregister.clear();
+    }
+
+    void CommitAsyncFlushes() {
+        commited_flushes.push_back(uncommited_flushes);
+        uncommited_flushes.reset();
+    }
+
+    bool ShouldWaitAsyncFlushes() {
+        if (commited_flushes.empty()) {
+            return false;
+        }
+        auto& flush_list = commited_flushes.front();
+        if (!flush_list) {
+            return false;
+        }
+        return true;
+    }
+
+    void PopAsyncFlushes() {
+        if (commited_flushes.empty()) {
+            return;
+        }
+        auto& flush_list = commited_flushes.front();
+        if (!flush_list) {
+            commited_flushes.pop_front();
+            return;
+        }
+        for (MapInterval& map : *flush_list) {
+            if (map->IsRegistered()) {
+                FlushMap(map);
+            }
+        }
+        commited_flushes.pop_front();
     }
 
     virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
@@ -316,6 +353,9 @@ private:
         MapInterval new_map = CreateMap(new_start, new_end, new_gpu_addr);
         if (modified_inheritance) {
             new_map->MarkAsModified(true, GetModifiedTicks());
+            if (Settings::IsGPULevelHigh() && Settings::values.use_asynchronous_gpu_emulation) {
+                AsyncFlushMap(new_map);
+            }
         }
         Register(new_map, write_inheritance);
         return new_map;
@@ -502,6 +542,13 @@ private:
         return false;
     }
 
+    void AsyncFlushMap(MapInterval& map) {
+        if (!uncommited_flushes) {
+            uncommited_flushes = std::make_shared<std::list<MapInterval>>();
+        }
+        uncommited_flushes->push_back(map);
+    }
+
     VideoCore::RasterizerInterface& rasterizer;
     Core::System& system;
 
@@ -532,6 +579,9 @@ private:
 
     std::vector<u8> staging_buffer;
     std::list<MapInterval> marked_for_unregister;
+
+    std::shared_ptr<std::list<MapInterval>> uncommited_flushes{};
+    std::list<std::shared_ptr<std::list<MapInterval>>> commited_flushes;
 
     std::recursive_mutex mutex;
 };

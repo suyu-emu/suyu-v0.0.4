@@ -9,6 +9,7 @@
 
 #include "common/common_types.h"
 #include "video_core/fence_manager.h"
+#include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 
@@ -30,12 +31,12 @@ private:
 };
 
 using Fence = std::shared_ptr<GLInnerFence>;
-using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCacheOpenGL>;
+using GenericFenceManager = VideoCommon::FenceManager<Fence, TextureCacheOpenGL, OGLBufferCache>;
 
 class FenceManagerOpenGL final : public GenericFenceManager {
 public:
     FenceManagerOpenGL(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                   TextureCacheOpenGL& texture_cache);
+                       TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache);
 
 protected:
     Fence CreateFence(GPUVAddr addr, u32 value) override;
