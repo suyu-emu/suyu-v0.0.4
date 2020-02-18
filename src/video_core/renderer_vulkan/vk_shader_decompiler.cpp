@@ -1748,8 +1748,12 @@ private:
     }
 
     Expression ImageLoad(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
+
+        const Id coords = GetCoordinates(operation, Type::Int);
+        const Id texel = OpImageRead(t_uint4, GetImage(operation), coords);
+
+        return {OpCompositeExtract(t_uint, texel, meta.element), Type::Uint};
     }
 
     Expression ImageStore(Operation operation) {
