@@ -417,7 +417,7 @@ private:
      **/
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
-        if (Settings::values.use_accurate_gpu_emulation) {
+        if (Settings::IsGPULevelExtreme()) {
             return RecycleStrategy::Flush;
         }
         // 3D Textures decision
@@ -461,7 +461,7 @@ private:
         }
         switch (PickStrategy(overlaps, params, gpu_addr, untopological)) {
         case RecycleStrategy::Ignore: {
-            return InitializeSurface(gpu_addr, params, Settings::values.use_accurate_gpu_emulation);
+            return InitializeSurface(gpu_addr, params, Settings::IsGPULevelExtreme());
         }
         case RecycleStrategy::Flush: {
             std::sort(overlaps.begin(), overlaps.end(),
@@ -598,7 +598,7 @@ private:
         if (passed_tests == 0) {
             return {};
             // In Accurate GPU all tests should pass, else we recycle
-        } else if (Settings::values.use_accurate_gpu_emulation && passed_tests != overlaps.size()) {
+        } else if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
             return {};
         }
         for (const auto& surface : overlaps) {
@@ -668,7 +668,7 @@ private:
             for (const auto& surface : overlaps) {
                 if (!surface->MatchTarget(params.target)) {
                     if (overlaps.size() == 1 && surface->GetCpuAddr() == cpu_addr) {
-                        if (Settings::values.use_accurate_gpu_emulation) {
+                        if (Settings::IsGPULevelExtreme()) {
                             return std::nullopt;
                         }
                         Unregister(surface);

@@ -136,7 +136,7 @@ void MaxwellDMA::HandleCopy() {
             write_buffer.resize(dst_size);
         }
 
-        if (Settings::values.use_accurate_gpu_emulation) {
+        if (Settings::IsGPULevelExtreme()) {
             memory_manager.ReadBlock(source, read_buffer.data(), src_size);
             memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
         } else {

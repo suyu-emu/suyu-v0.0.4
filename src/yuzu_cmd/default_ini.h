@@ -146,9 +146,9 @@ frame_limit =
 # 0 (default): Off, 1 : On
 use_disk_shader_cache =
 
-# Whether to use accurate GPU emulation
-# 0 (default): Off (fast), 1 : On (slow)
-use_accurate_gpu_emulation =
+# Which gpu accuracy level to use
+# 0 (Normal), 1 (High), 2 (Extreme)
+gpu_accuracy =
 
 # Whether to use asynchronous GPU emulation
 # 0 : Off (slow), 1 (default): On (fast)

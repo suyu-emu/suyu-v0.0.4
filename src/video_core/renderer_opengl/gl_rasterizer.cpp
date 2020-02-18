@@ -661,7 +661,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
-    if (Settings::values.use_accurate_gpu_emulation) {
+    if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size);
     }
     InvalidateRegion(addr, size);
