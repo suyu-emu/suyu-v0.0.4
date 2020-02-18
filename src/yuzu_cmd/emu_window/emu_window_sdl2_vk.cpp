@@ -160,4 +160,6 @@ bool EmuWindow_SDL2_VK::UseStandardLayers(PFN_vkGetInstanceProcAddr vkGetInstanc
            }) != layers.end();
 }
 
-void EmuWindow_SDL2_VK::Present() {}
+void EmuWindow_SDL2_VK::Present() {
+    // TODO (bunnei): ImplementMe
+}

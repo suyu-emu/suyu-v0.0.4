@@ -147,88 +147,129 @@ private:
     QOffscreenSurface* surface;
 };
 
-OpenGLWindow::OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)
-    : QWindow(parent), event_handler(event_handler),
-      context(new QOpenGLContext(shared_context->parent())) {
+class ChildRenderWindow : public QWindow {
+public:
+    ChildRenderWindow(QWindow* parent, QWidget* event_handler)
+        : QWindow{parent}, event_handler{event_handler} {}
 
-    // disable vsync for any shared contexts
-    auto format = shared_context->format();
-    format.setSwapInterval(Settings::values.use_vsync ? 1 : 0);
-    this->setFormat(format);
+    virtual ~ChildRenderWindow() = default;
 
-    context->setShareContext(shared_context);
-    context->setScreen(this->screen());
-    context->setFormat(format);
-    context->create();
+    virtual void Present() = 0;
 
-    setSurfaceType(QWindow::OpenGLSurface);
-
-    // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
-    // WA_DontShowOnScreen, WA_DeleteOnClose
-}
-
-OpenGLWindow::~OpenGLWindow() {
-    context->doneCurrent();
-}
-
-void OpenGLWindow::Present() {
-    if (!isExposed())
-        return;
-
-    context->makeCurrent(this);
-    Core::System::GetInstance().Renderer().TryPresent(100);
-    context->swapBuffers(this);
-    auto f = context->versionFunctions<QOpenGLFunctions_4_3_Core>();
-    f->glFinish();
-    QWindow::requestUpdate();
-}
-
-bool OpenGLWindow::event(QEvent* event) {
-    switch (event->type()) {
-    case QEvent::UpdateRequest:
-        Present();
-        return true;
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonRelease:
-    case QEvent::MouseButtonDblClick:
-    case QEvent::MouseMove:
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-    case QEvent::FocusIn:
-    case QEvent::FocusOut:
-    case QEvent::FocusAboutToChange:
-    case QEvent::Enter:
-    case QEvent::Leave:
-    case QEvent::Wheel:
-    case QEvent::TabletMove:
-    case QEvent::TabletPress:
-    case QEvent::TabletRelease:
-    case QEvent::TabletEnterProximity:
-    case QEvent::TabletLeaveProximity:
-    case QEvent::TouchBegin:
-    case QEvent::TouchUpdate:
-    case QEvent::TouchEnd:
-    case QEvent::InputMethodQuery:
-    case QEvent::TouchCancel:
-        return QCoreApplication::sendEvent(event_handler, event);
-    case QEvent::Drop:
-        GetMainWindow()->DropAction(static_cast<QDropEvent*>(event));
-        return true;
-    case QEvent::DragResponse:
-    case QEvent::DragEnter:
-    case QEvent::DragLeave:
-    case QEvent::DragMove:
-        GetMainWindow()->AcceptDropEvent(static_cast<QDropEvent*>(event));
-        return true;
-    default:
-        return QWindow::event(event);
+protected:
+    bool event(QEvent* event) override {
+        switch (event->type()) {
+        case QEvent::UpdateRequest:
+            Present();
+            return true;
+        case QEvent::MouseButtonPress:
+        case QEvent::MouseButtonRelease:
+        case QEvent::MouseButtonDblClick:
+        case QEvent::MouseMove:
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease:
+        case QEvent::FocusIn:
+        case QEvent::FocusOut:
+        case QEvent::FocusAboutToChange:
+        case QEvent::Enter:
+        case QEvent::Leave:
+        case QEvent::Wheel:
+        case QEvent::TabletMove:
+        case QEvent::TabletPress:
+        case QEvent::TabletRelease:
+        case QEvent::TabletEnterProximity:
+        case QEvent::TabletLeaveProximity:
+        case QEvent::TouchBegin:
+        case QEvent::TouchUpdate:
+        case QEvent::TouchEnd:
+        case QEvent::InputMethodQuery:
+        case QEvent::TouchCancel:
+            return QCoreApplication::sendEvent(event_handler, event);
+        case QEvent::Drop:
+            GetMainWindow()->DropAction(static_cast<QDropEvent*>(event));
+            return true;
+        case QEvent::DragResponse:
+        case QEvent::DragEnter:
+        case QEvent::DragLeave:
+        case QEvent::DragMove:
+            GetMainWindow()->AcceptDropEvent(static_cast<QDropEvent*>(event));
+            return true;
+        default:
+            return QWindow::event(event);
+        }
     }
-}
 
-void OpenGLWindow::exposeEvent(QExposeEvent* event) {
-    QWindow::requestUpdate();
-    QWindow::exposeEvent(event);
-}
+    void exposeEvent(QExposeEvent* event) override {
+        QWindow::requestUpdate();
+        QWindow::exposeEvent(event);
+    }
+
+private:
+    QWidget* event_handler{};
+};
+
+class OpenGLWindow final : public ChildRenderWindow {
+public:
+    OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context)
+        : ChildRenderWindow{parent, event_handler},
+          context(new QOpenGLContext(shared_context->parent())) {
+
+        // disable vsync for any shared contexts
+        auto format = shared_context->format();
+        format.setSwapInterval(Settings::values.use_vsync ? 1 : 0);
+        this->setFormat(format);
+
+        context->setShareContext(shared_context);
+        context->setScreen(this->screen());
+        context->setFormat(format);
+        context->create();
+
+        setSurfaceType(QWindow::OpenGLSurface);
+
+        // TODO: One of these flags might be interesting: WA_OpaquePaintEvent, WA_NoBackground,
+        // WA_DontShowOnScreen, WA_DeleteOnClose
+    }
+
+    ~OpenGLWindow() override {
+        context->doneCurrent();
+    }
+
+    void Present() override {
+        if (!isExposed()) {
+            return;
+        }
+
+        context->makeCurrent(this);
+        Core::System::GetInstance().Renderer().TryPresent(100);
+        context->swapBuffers(this);
+        auto f = context->versionFunctions<QOpenGLFunctions_4_3_Core>();
+        f->glFinish();
+        QWindow::requestUpdate();
+    }
+
+private:
+    QOpenGLContext* context{};
+};
+
+#ifdef HAS_VULKAN
+class VulkanWindow final : public ChildRenderWindow {
+public:
+    VulkanWindow(QWindow* parent, QWidget* event_handler, QVulkanInstance* instance)
+        : ChildRenderWindow{parent, event_handler} {
+        setSurfaceType(QSurface::SurfaceType::VulkanSurface);
+        setVulkanInstance(instance);
+    }
+
+    ~VulkanWindow() override = default;
+
+    void Present() override {
+        // TODO(bunnei): ImplementMe
+    }
+
+private:
+    QWidget* event_handler{};
+};
+#endif
 
 GRenderWindow::GRenderWindow(QWidget* parent_, EmuThread* emu_thread)
     : QWidget(parent_), emu_thread(emu_thread) {
@@ -251,11 +292,15 @@ GRenderWindow::~GRenderWindow() {
 }
 
 void GRenderWindow::MakeCurrent() {
-    core_context->MakeCurrent();
+    if (core_context) {
+        core_context->MakeCurrent();
+    }
 }
 
 void GRenderWindow::DoneCurrent() {
-    core_context->DoneCurrent();
+    if (core_context) {
+        core_context->DoneCurrent();
+    }
 }
 
 void GRenderWindow::PollEvents() {
@@ -274,7 +319,7 @@ void GRenderWindow::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* i
 #ifdef HAS_VULKAN
     const auto instance_proc_addr = vk_instance->getInstanceProcAddr("vkGetInstanceProcAddr");
     const VkInstance instance_copy = vk_instance->vkInstance();
-    const VkSurfaceKHR surface_copy = vk_instance->surfaceForWindow(child);
+    const VkSurfaceKHR surface_copy = vk_instance->surfaceForWindow(child_window);
 
     std::memcpy(get_instance_proc_addr, &instance_proc_addr, sizeof(instance_proc_addr));
     std::memcpy(instance, &instance_copy, sizeof(instance_copy));
@@ -535,7 +580,6 @@ bool GRenderWindow::InitializeOpenGL() {
     layout()->addWidget(child_widget);
 
     core_context = CreateSharedContext();
-    resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
 
     return true;
 }
@@ -565,7 +609,14 @@ bool GRenderWindow::InitializeVulkan() {
         return false;
     }
 
-    child = new GVKWidgetInternal(this, vk_instance.get());
+    GMainWindow* parent = GetMainWindow();
+    QWindow* parent_win_handle = parent ? parent->windowHandle() : nullptr;
+    child_window = new VulkanWindow(parent_win_handle, this, vk_instance.get());
+    child_window->create();
+    child_widget = createWindowContainer(child_window, this);
+    child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
+    layout()->addWidget(child_widget);
+
     return true;
 #else
     QMessageBox::critical(this, tr("Vulkan not available!"),

@@ -27,14 +27,6 @@ class QOpenGLContext;
 class QVulkanInstance;
 #endif
 
-class GWidgetInternal;
-class GGLWidgetInternal;
-class GVKWidgetInternal;
-class GMainWindow;
-class GRenderWindow;
-class QSurface;
-class QOpenGLContext;
-
 namespace VideoCore {
 enum class LoadCallbackStage;
 }
@@ -121,24 +113,6 @@ signals:
     void ErrorThrown(Core::System::ResultStatus, std::string);
 
     void LoadProgress(VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total);
-};
-
-class OpenGLWindow : public QWindow {
-    Q_OBJECT
-public:
-    explicit OpenGLWindow(QWindow* parent, QWidget* event_handler, QOpenGLContext* shared_context);
-
-    ~OpenGLWindow();
-
-    void Present();
-
-protected:
-    bool event(QEvent* event) override;
-    void exposeEvent(QExposeEvent* event) override;
-
-private:
-    QOpenGLContext* context;
-    QWidget* event_handler;
 };
 
 class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
