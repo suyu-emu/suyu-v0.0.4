@@ -101,7 +101,8 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
     : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device, state_tracker},
       shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
       screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker},
-      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
+      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE}, fence_manager{system, *this,
+                                                                             texture_cache} {
     CheckExtensions();
 }
 
@@ -677,31 +678,11 @@ void RasterizerOpenGL::SyncGuestHost() {
 }
 
 void RasterizerOpenGL::SignalFence(GPUVAddr addr, u32 value) {
-    if (!fences.empty()) {
-        const std::pair<GPUVAddr, u32>& current_fence = fences.front();
-        const auto [address, payload] = current_fence;
-        texture_cache.PopAsyncFlushes();
-        auto& gpu{system.GPU()};
-        auto& memory_manager{gpu.MemoryManager()};
-        memory_manager.Write<u32>(address, payload);
-        fences.pop_front();
-    }
-    fences.emplace_back(addr, value);
-    texture_cache.CommitAsyncFlushes();
-    FlushCommands();
-    SyncGuestHost();
+    fence_manager.SignalFence(addr, value);
 }
 
 void RasterizerOpenGL::ReleaseFences() {
-    while (!fences.empty()) {
-        const std::pair<GPUVAddr, u32>& current_fence = fences.front();
-        const auto [address, payload] = current_fence;
-        texture_cache.PopAsyncFlushes();
-        auto& gpu{system.GPU()};
-        auto& memory_manager{gpu.MemoryManager()};
-        memory_manager.Write<u32>(address, payload);
-        fences.pop_front();
-    }
+    fence_manager.WaitPendingFences();
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {

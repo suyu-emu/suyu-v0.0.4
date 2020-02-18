@@ -23,6 +23,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
+#include "video_core/renderer_opengl/gl_fence_manager.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
@@ -226,6 +227,7 @@ private:
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
     QueryCache query_cache;
+    FenceManagerOpenGL fence_manager;
 
     Core::System& system;
     ScreenInfo& screen_info;

@@ -23,6 +23,7 @@ add_library(video_core STATIC
     engines/shader_bytecode.h
     engines/shader_header.h
     engines/shader_type.h
+    fence_manager.h
     gpu.cpp
     gpu.h
     gpu_asynch.cpp
@@ -51,6 +52,8 @@ add_library(video_core STATIC
     renderer_opengl/gl_buffer_cache.h
     renderer_opengl/gl_device.cpp
     renderer_opengl/gl_device.h
+    renderer_opengl/gl_fence_manager.cpp
+    renderer_opengl/gl_fence_manager.h
     renderer_opengl/gl_framebuffer_cache.cpp
     renderer_opengl/gl_framebuffer_cache.h
     renderer_opengl/gl_rasterizer.cpp
