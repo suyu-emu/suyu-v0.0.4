@@ -287,13 +287,13 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
         analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
             Input::AnalogDirection::DOWN));
 
-    pad_state.r_stick_up.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-                                    ->GetAnalogDirectionStatus(Input::AnalogDirection::RIGHT));
-    pad_state.r_stick_left.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::LEFT));
     pad_state.r_stick_right.Assign(
         analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-            ->GetAnalogDirectionStatus(Input::AnalogDirection::UP));
+            ->GetAnalogDirectionStatus(Input::AnalogDirection::RIGHT));
+    pad_state.r_stick_left.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::LEFT));
+    pad_state.r_stick_up.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
+                                    ->GetAnalogDirectionStatus(Input::AnalogDirection::UP));
     pad_state.r_stick_down.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
                                       ->GetAnalogDirectionStatus(Input::AnalogDirection::DOWN));
 
