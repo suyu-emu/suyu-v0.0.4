@@ -71,7 +71,8 @@ public:
     void InvalidateRegion(VAddr addr, u64 size) override;
     void OnCPUWrite(VAddr addr, u64 size) override;
     void SyncGuestHost() override;
-    void SignalFence(GPUVAddr addr, u32 value) override;
+    void SignalSemaphore(GPUVAddr addr, u32 value) override;
+    void SignalSyncPoint(u32 value) override;
     void ReleaseFences() override;
     void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void FlushCommands() override;

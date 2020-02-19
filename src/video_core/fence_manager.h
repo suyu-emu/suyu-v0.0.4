@@ -22,7 +22,11 @@ namespace VideoCommon {
 
 class FenceBase {
 public:
-    FenceBase(GPUVAddr address, u32 payload) : address{address}, payload{payload} {}
+    FenceBase(u32 payload, bool is_stubbed)
+        : address{}, payload{payload}, is_semaphore{false}, is_stubbed{is_stubbed} {}
+
+    FenceBase(GPUVAddr address, u32 payload, bool is_stubbed)
+        : address{address}, payload{payload}, is_semaphore{true}, is_stubbed{is_stubbed} {}
 
     constexpr GPUVAddr GetAddress() const {
         return address;
@@ -32,22 +36,49 @@ public:
         return payload;
     }
 
+    constexpr bool IsSemaphore() const {
+        return is_semaphore;
+    }
+
 private:
     GPUVAddr address;
     u32 payload;
+    bool is_semaphore;
+
+protected:
+    bool is_stubbed;
 };
 
 template <typename TFence, typename TTextureCache, typename TTBufferCache>
 class FenceManager {
 public:
-    void SignalFence(GPUVAddr addr, u32 value) {
+    void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
+        bool should_flush = texture_cache.HasUncommitedFlushes();
+        should_flush |= buffer_cache.HasUncommitedFlushes();
         texture_cache.CommitAsyncFlushes();
         buffer_cache.CommitAsyncFlushes();
-        TFence new_fence = CreateFence(addr, value);
+        TFence new_fence = CreateFence(addr, value, !should_flush);
         fences.push(new_fence);
         QueueFence(new_fence);
-        rasterizer.FlushCommands();
+        if (should_flush) {
+            rasterizer.FlushCommands();
+        }
+        rasterizer.SyncGuestHost();
+    }
+
+    void SignalSyncPoint(u32 value) {
+        TryReleasePendingFences();
+        bool should_flush = texture_cache.HasUncommitedFlushes();
+        should_flush |= buffer_cache.HasUncommitedFlushes();
+        texture_cache.CommitAsyncFlushes();
+        buffer_cache.CommitAsyncFlushes();
+        TFence new_fence = CreateFence(value, !should_flush);
+        fences.push(new_fence);
+        QueueFence(new_fence);
+        if (should_flush) {
+            rasterizer.FlushCommands();
+        }
         rasterizer.SyncGuestHost();
     }
 
@@ -62,8 +93,12 @@ public:
             texture_cache.PopAsyncFlushes();
             buffer_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
-            auto& memory_manager{gpu.MemoryManager()};
-            memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+            if (current_fence->IsSemaphore()) {
+                auto& memory_manager{gpu.MemoryManager()};
+                memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+            } else {
+                gpu.IncrementSyncPoint(current_fence->GetPayload());
+            }
             fences.pop();
         }
     }
@@ -74,7 +109,8 @@ protected:
         : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache}, buffer_cache{
                                                                                     buffer_cache} {}
 
-    virtual TFence CreateFence(GPUVAddr addr, u32 value) = 0;
+    virtual TFence CreateFence(u32 value, bool is_stubbed) = 0;
+    virtual TFence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) = 0;
     virtual void QueueFence(TFence& fence) = 0;
     virtual bool IsFenceSignaled(TFence& fence) = 0;
     virtual void WaitFence(TFence& fence) = 0;
@@ -96,8 +132,12 @@ private:
             texture_cache.PopAsyncFlushes();
             buffer_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
-            auto& memory_manager{gpu.MemoryManager()};
-            memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+            if (current_fence->IsSemaphore()) {
+                auto& memory_manager{gpu.MemoryManager()};
+                memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+            } else {
+                gpu.IncrementSyncPoint(current_fence->GetPayload());
+            }
             fences.pop();
         }
     }

@@ -8,17 +8,26 @@
 
 namespace OpenGL {
 
-GLInnerFence::GLInnerFence(GPUVAddr address, u32 payload)
-    : VideoCommon::FenceBase(address, payload), sync_object{} {}
+GLInnerFence::GLInnerFence(u32 payload, bool is_stubbed)
+    : VideoCommon::FenceBase(payload, is_stubbed), sync_object{} {}
+
+GLInnerFence::GLInnerFence(GPUVAddr address, u32 payload, bool is_stubbed)
+    : VideoCommon::FenceBase(address, payload, is_stubbed), sync_object{} {}
 
 GLInnerFence::~GLInnerFence() = default;
 
 void GLInnerFence::Queue() {
+    if (is_stubbed) {
+        return;
+    }
     ASSERT(sync_object.handle == 0);
     sync_object.Create();
 }
 
 bool GLInnerFence::IsSignaled() const {
+    if (is_stubbed) {
+        return true;
+    }
     ASSERT(sync_object.handle != 0);
     GLsizei length;
     GLint sync_status;
@@ -27,6 +36,9 @@ bool GLInnerFence::IsSignaled() const {
 }
 
 void GLInnerFence::Wait() {
+    if (is_stubbed) {
+        return;
+    }
     ASSERT(sync_object.handle != 0);
     while (glClientWaitSync(sync_object.handle, 0, 1000) == GL_TIMEOUT_EXPIRED)
         ;
@@ -36,8 +48,12 @@ FenceManagerOpenGL::FenceManagerOpenGL(Core::System& system, VideoCore::Rasteriz
                                TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache)
     : GenericFenceManager(system, rasterizer, texture_cache, buffer_cache) {}
 
-Fence FenceManagerOpenGL::CreateFence(GPUVAddr addr, u32 value) {
-    return std::make_shared<GLInnerFence>(addr, value);
+Fence FenceManagerOpenGL::CreateFence(u32 value, bool is_stubbed) {
+    return std::make_shared<GLInnerFence>(value, is_stubbed);
+}
+
+Fence FenceManagerOpenGL::CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) {
+    return std::make_shared<GLInnerFence>(addr, value, is_stubbed);
 }
 
 void FenceManagerOpenGL::QueueFence(Fence& fence) {

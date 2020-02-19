@@ -49,8 +49,11 @@ public:
     /// Records a GPU query and caches it
     virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
 
-    /// Signal a GPU based fence
-    virtual void SignalFence(GPUVAddr addr, u32 value) = 0;
+    /// Signal a GPU based semaphore as a fence
+    virtual void SignalSemaphore(GPUVAddr addr, u32 value) = 0;
+
+    /// Signal a GPU based syncpoint as a fence
+    virtual void SignalSyncPoint(u32 value) = 0;
 
     /// Release all pending fences.
     virtual void ReleaseFences() = 0;

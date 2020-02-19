@@ -683,14 +683,23 @@ void RasterizerOpenGL::SyncGuestHost() {
     buffer_cache.SyncGuestHost();
 }
 
-void RasterizerOpenGL::SignalFence(GPUVAddr addr, u32 value) {
+void RasterizerOpenGL::SignalSemaphore(GPUVAddr addr, u32 value) {
     auto& gpu{system.GPU()};
     if (!gpu.IsAsync()) {
         auto& memory_manager{gpu.MemoryManager()};
         memory_manager.Write<u32>(addr, value);
         return;
     }
-    fence_manager.SignalFence(addr, value);
+    fence_manager.SignalSemaphore(addr, value);
+}
+
+void RasterizerOpenGL::SignalSyncPoint(u32 value) {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        gpu.IncrementSyncPoint(value);
+        return;
+    }
+    fence_manager.SignalSyncPoint(value);
 }
 
 void RasterizerOpenGL::ReleaseFences() {

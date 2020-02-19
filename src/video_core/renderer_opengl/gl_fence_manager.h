@@ -17,7 +17,8 @@ namespace OpenGL {
 
 class GLInnerFence : public VideoCommon::FenceBase {
 public:
-    GLInnerFence(GPUVAddr address, u32 payload);
+    GLInnerFence(u32 payload, bool is_stubbed);
+    GLInnerFence(GPUVAddr address, u32 payload, bool is_stubbed);
     ~GLInnerFence();
 
     void Queue();
@@ -39,7 +40,8 @@ public:
                        TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache);
 
 protected:
-    Fence CreateFence(GPUVAddr addr, u32 value) override;
+    Fence CreateFence(u32 value, bool is_stubbed) override;
+    Fence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) override;
     void QueueFence(Fence& fence) override;
     bool IsFenceSignaled(Fence& fence) override;
     void WaitFence(Fence& fence) override;
