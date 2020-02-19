@@ -89,7 +89,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
             value = SignedOperation(OperationCode::ILogicalShiftRight, input_signed,
                                     std::move(value), Immediate(offset * 8));
         }
-        
+
         value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
         value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, false, input_signed);
         value = SignedOperation(OperationCode::FCastInteger, input_signed, PRECISE, value);
