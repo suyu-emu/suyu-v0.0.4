@@ -295,16 +295,6 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
 
 RasterizerVulkan::~RasterizerVulkan() = default;
 
-bool RasterizerVulkan::DrawBatch(bool is_indexed) {
-    Draw(is_indexed, false);
-    return true;
-}
-
-bool RasterizerVulkan::DrawMultiBatch(bool is_indexed) {
-    Draw(is_indexed, true);
-    return true;
-}
-
 void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 

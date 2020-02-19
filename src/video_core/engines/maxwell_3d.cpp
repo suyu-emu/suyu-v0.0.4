@@ -489,7 +489,7 @@ void Maxwell3D::FlushMMEInlineDraw() {
 
     const bool is_indexed = mme_draw.current_mode == MMEDrawMode::Indexed;
     if (ShouldExecute()) {
-        rasterizer.DrawMultiBatch(is_indexed);
+        rasterizer.Draw(is_indexed, true);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
@@ -654,7 +654,7 @@ void Maxwell3D::DrawArrays() {
 
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
     if (ShouldExecute()) {
-        rasterizer.DrawBatch(is_indexed);
+        rasterizer.Draw(is_indexed, false);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if

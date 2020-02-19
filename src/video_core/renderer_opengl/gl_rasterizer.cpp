@@ -685,16 +685,6 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     }
 }
 
-bool RasterizerOpenGL::DrawBatch(bool is_indexed) {
-    Draw(is_indexed, false);
-    return true;
-}
-
-bool RasterizerOpenGL::DrawMultiBatch(bool is_indexed) {
-    Draw(is_indexed, true);
-    return true;
-}
-
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     if (device.HasBrokenCompute()) {
         return;

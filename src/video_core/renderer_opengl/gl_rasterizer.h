@@ -58,8 +58,7 @@ public:
                               ScreenInfo& info);
     ~RasterizerOpenGL() override;
 
-    bool DrawBatch(bool is_indexed) override;
-    bool DrawMultiBatch(bool is_indexed) override;
+    void Draw(bool is_indexed, bool is_instanced) override;
     void Clear() override;
     void DispatchCompute(GPUVAddr code_addr) override;
     void ResetCounter(VideoCore::QueryType type) override;
@@ -109,9 +108,6 @@ private:
     /// Configures a constant buffer.
     void SetupGlobalMemory(u32 binding, const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
-
-    /// Syncs all the state, shaders, render targets and textures setting before a draw call.
-    void Draw(bool is_indexed, bool is_instanced);
 
     /// Configures the current textures to use for the draw command.
     void SetupDrawTextures(std::size_t stage_index, const Shader& shader);

@@ -35,11 +35,8 @@ class RasterizerInterface {
 public:
     virtual ~RasterizerInterface() {}
 
-    /// Draw the current batch of vertex arrays
-    virtual bool DrawBatch(bool is_indexed) = 0;
-
-    /// Draw the current batch of multiple instances of vertex arrays
-    virtual bool DrawMultiBatch(bool is_indexed) = 0;
+    /// Dispatches a draw invocation
+    virtual void Draw(bool is_indexed, bool is_instanced) = 0;
 
     /// Clear the current framebuffer
     virtual void Clear() = 0;
