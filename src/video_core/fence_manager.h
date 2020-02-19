@@ -42,11 +42,11 @@ class FenceManager {
 public:
     void SignalFence(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
-        TFence new_fence = CreateFence(addr, value);
-        QueueFence(new_fence);
-        fences.push(new_fence);
         texture_cache.CommitAsyncFlushes();
         buffer_cache.CommitAsyncFlushes();
+        TFence new_fence = CreateFence(addr, value);
+        fences.push(new_fence);
+        QueueFence(new_fence);
         rasterizer.FlushCommands();
         rasterizer.SyncGuestHost();
     }
