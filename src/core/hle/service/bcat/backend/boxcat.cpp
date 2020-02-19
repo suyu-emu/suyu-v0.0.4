@@ -200,7 +200,8 @@ private:
     DownloadResult DownloadInternal(const std::string& resolved_path, u32 timeout_seconds,
                                     const std::string& content_type_name) {
         if (client == nullptr) {
-            client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT, timeout_seconds);
+            client = std::make_unique<httplib::SSLClient>(BOXCAT_HOSTNAME, PORT);
+            client->set_timeout_sec(timeout_seconds);
         }
 
         httplib::Headers headers{
@@ -448,8 +449,8 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
 
 Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
                                        std::map<std::string, EventStatus>& games) {
-    httplib::SSLClient client{BOXCAT_HOSTNAME, static_cast<int>(PORT),
-                              static_cast<int>(TIMEOUT_SECONDS)};
+    httplib::SSLClient client{BOXCAT_HOSTNAME, static_cast<int>(PORT)};
+    client.set_timeout_sec(static_cast<int>(TIMEOUT_SECONDS));
 
     httplib::Headers headers{
         {std::string("Game-Assets-API-Version"), std::string(BOXCAT_API_VERSION)},
