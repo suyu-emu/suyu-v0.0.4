@@ -274,6 +274,7 @@ public:
         AddCapability(spv::Capability::ImageBuffer);
         AddCapability(spv::Capability::ImageGatherExtended);
         AddCapability(spv::Capability::SampledBuffer);
+        AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         AddCapability(spv::Capability::StorageImageWriteWithoutFormat);
         AddCapability(spv::Capability::SubgroupBallotKHR);
         AddCapability(spv::Capability::SubgroupVoteKHR);
