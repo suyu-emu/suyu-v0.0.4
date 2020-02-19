@@ -83,7 +83,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
 
         const bool input_signed = instr.conversion.is_input_signed;
 
-        if (const u32 offset = instr.conversion.int_src.selector; offset > 0) {
+        if (const u32 offset = static_cast<u32>(instr.conversion.int_src.selector); offset > 0) {
             ASSERT(instr.conversion.src_size == Register::Size::Byte ||
                    instr.conversion.src_size == Register::Size::Short);
             value = SignedOperation(OperationCode::ILogicalShiftRight, input_signed,
