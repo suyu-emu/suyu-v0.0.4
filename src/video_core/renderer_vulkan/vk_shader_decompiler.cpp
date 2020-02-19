@@ -1749,6 +1749,10 @@ private:
     }
 
     Expression ImageLoad(Operation operation) {
+        if (!device.IsShaderStorageImageReadWithoutFormatSupported()) {
+            return {v_float_zero, Type::Float};
+        }
+
         const auto& meta{std::get<MetaImage>(operation.GetMeta())};
 
         const Id coords = GetCoordinates(operation, Type::Int);
