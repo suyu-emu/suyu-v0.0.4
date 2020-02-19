@@ -83,16 +83,13 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
 
         const bool input_signed = instr.conversion.is_input_signed;
 
-        if (instr.conversion.src_size == Register::Size::Byte) {
-            const u32 offset = static_cast<u32>(instr.conversion.int_src.selector) * 8;
-            if (offset > 0) {
-                value = SignedOperation(OperationCode::ILogicalShiftRight, input_signed,
-                                        std::move(value), Immediate(offset));
-            }
-        } else {
-            UNIMPLEMENTED_IF(instr.conversion.int_src.selector != 0);
+        if (const u32 offset = instr.conversion.int_src.selector; offset > 0) {
+            ASSERT(instr.conversion.src_size == Register::Size::Byte ||
+                   instr.conversion.src_size == Register::Size::Short);
+            value = SignedOperation(OperationCode::ILogicalShiftRight, input_signed,
+                                    std::move(value), Immediate(offset * 8));
         }
-
+        
         value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
         value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, false, input_signed);
         value = SignedOperation(OperationCode::FCastInteger, input_signed, PRECISE, value);
