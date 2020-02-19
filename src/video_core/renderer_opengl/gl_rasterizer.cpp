@@ -617,7 +617,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
 
     // Setup shaders and their used resources.
     texture_cache.GuardSamplers(true);
-    const auto primitive_mode = MaxwellToGL::PrimitiveTopology(gpu.regs.draw.topology);
+    const GLenum primitive_mode = MaxwellToGL::PrimitiveTopology(gpu.regs.draw.topology);
     SetupShaders(primitive_mode);
     texture_cache.GuardSamplers(false);
 
@@ -650,18 +650,38 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     const GLsizei num_instances =
         static_cast<GLsizei>(is_instanced ? gpu.mme_draw.instance_count : 1);
     if (is_indexed) {
-        const GLenum index_format = MaxwellToGL::IndexFormat(gpu.regs.index_array.format);
         const GLint base_vertex = static_cast<GLint>(gpu.regs.vb_element_base);
         const GLsizei num_vertices = static_cast<GLsizei>(gpu.regs.index_array.count);
-        glDrawElementsInstancedBaseVertexBaseInstance(
-            primitive_mode, num_vertices, index_format,
-            reinterpret_cast<const void*>(index_buffer_offset), num_instances, base_vertex,
-            base_instance);
+        const GLvoid* offset = reinterpret_cast<const GLvoid*>(index_buffer_offset);
+        const GLenum format = MaxwellToGL::IndexFormat(gpu.regs.index_array.format);
+        if (num_instances == 1 && base_instance == 0 && base_vertex == 0) {
+            glDrawElements(primitive_mode, num_vertices, format, offset);
+        } else if (num_instances == 1 && base_instance == 0) {
+            glDrawElementsBaseVertex(primitive_mode, num_vertices, format, offset, base_vertex);
+        } else if (base_vertex == 0 && base_instance == 0) {
+            glDrawElementsInstanced(primitive_mode, num_vertices, format, offset, num_instances);
+        } else if (base_vertex == 0) {
+            glDrawElementsInstancedBaseInstance(primitive_mode, num_vertices, format, offset,
+                                                num_instances, base_instance);
+        } else if (base_instance == 0) {
+            glDrawElementsInstancedBaseVertex(primitive_mode, num_vertices, format, offset,
+                                              num_instances, base_vertex);
+        } else {
+            glDrawElementsInstancedBaseVertexBaseInstance(primitive_mode, num_vertices, format,
+                                                          offset, num_instances, base_vertex,
+                                                          base_instance);
+        }
     } else {
         const GLint base_vertex = static_cast<GLint>(gpu.regs.vertex_buffer.first);
         const GLsizei num_vertices = static_cast<GLsizei>(gpu.regs.vertex_buffer.count);
-        glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, num_vertices, num_instances,
-                                          base_instance);
+        if (num_instances == 1 && base_instance == 0) {
+            glDrawArrays(primitive_mode, base_vertex, num_vertices);
+        } else if (base_instance == 0) {
+            glDrawArraysInstanced(primitive_mode, base_vertex, num_vertices, num_instances);
+        } else {
+            glDrawArraysInstancedBaseInstance(primitive_mode, base_vertex, num_vertices,
+                                              num_instances, base_instance);
+        }
     }
 }
 
