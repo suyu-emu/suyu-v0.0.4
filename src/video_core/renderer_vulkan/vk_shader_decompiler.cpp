@@ -274,7 +274,6 @@ public:
         AddCapability(spv::Capability::ImageBuffer);
         AddCapability(spv::Capability::ImageGatherExtended);
         AddCapability(spv::Capability::SampledBuffer);
-        AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         AddCapability(spv::Capability::StorageImageWriteWithoutFormat);
         AddCapability(spv::Capability::SubgroupBallotKHR);
         AddCapability(spv::Capability::SubgroupVoteKHR);
@@ -289,6 +288,10 @@ public:
                 AddExtension("SPV_EXT_shader_viewport_index_layer");
                 AddCapability(spv::Capability::ShaderViewportIndexLayerEXT);
             }
+        }
+        
+        if (device.IsShaderStorageImageReadWithoutFormatSupported()) {
+            AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
 
         if (device.IsFloat16Supported()) {
