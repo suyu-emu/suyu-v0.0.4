@@ -27,6 +27,7 @@
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 
 namespace Vulkan {
@@ -177,10 +178,13 @@ bool RendererVulkan::Init() {
     swapchain = std::make_unique<VKSwapchain>(surface, *device);
     swapchain->Create(framebuffer.width, framebuffer.height, false);
 
-    scheduler = std::make_unique<VKScheduler>(*device, *resource_manager);
+    state_tracker = std::make_unique<StateTracker>(system);
+
+    scheduler = std::make_unique<VKScheduler>(*device, *resource_manager, *state_tracker);
 
     rasterizer = std::make_unique<RasterizerVulkan>(system, render_window, screen_info, *device,
-                                                    *resource_manager, *memory_manager, *scheduler);
+                                                    *resource_manager, *memory_manager,
+                                                    *state_tracker, *scheduler);
 
     blit_screen = std::make_unique<VKBlitScreen>(system, render_window, *rasterizer, *device,
                                                  *resource_manager, *memory_manager, *swapchain,

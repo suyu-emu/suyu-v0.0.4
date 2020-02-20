@@ -2,6 +2,12 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <memory>
+#include <mutex>
+#include <optional>
+#include <thread>
+#include <utility>
+
 #include "common/assert.h"
 #include "common/microprofile.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -9,6 +15,7 @@
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
 
 namespace Vulkan {
 
@@ -29,9 +36,10 @@ void VKScheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
     last = nullptr;
 }
 
-VKScheduler::VKScheduler(const VKDevice& device, VKResourceManager& resource_manager)
-    : device{device}, resource_manager{resource_manager}, next_fence{
-                                                              &resource_manager.CommitFence()} {
+VKScheduler::VKScheduler(const VKDevice& device, VKResourceManager& resource_manager,
+                         StateTracker& state_tracker)
+    : device{device}, resource_manager{resource_manager}, state_tracker{state_tracker},
+      next_fence{&resource_manager.CommitFence()} {
     AcquireNewChunk();
     AllocateNewContext();
     worker_thread = std::thread(&VKScheduler::WorkerThread, this);
@@ -157,12 +165,7 @@ void VKScheduler::AllocateNewContext() {
 
 void VKScheduler::InvalidateState() {
     state.graphics_pipeline = nullptr;
-    state.viewports = false;
-    state.scissors = false;
-    state.depth_bias = false;
-    state.blend_constants = false;
-    state.depth_bounds = false;
-    state.stencil_values = false;
+    state_tracker.InvalidateCommandBufferState();
 }
 
 void VKScheduler::EndPendingOperations() {

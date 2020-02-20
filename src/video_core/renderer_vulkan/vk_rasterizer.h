@@ -96,6 +96,7 @@ struct hash<Vulkan::FramebufferCacheKey> {
 
 namespace Vulkan {
 
+class StateTracker;
 class BufferBindings;
 
 struct ImageView {
@@ -108,7 +109,7 @@ public:
     explicit RasterizerVulkan(Core::System& system, Core::Frontend::EmuWindow& render_window,
                               VKScreenInfo& screen_info, const VKDevice& device,
                               VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                              VKScheduler& scheduler);
+                              StateTracker& state_tracker, VKScheduler& scheduler);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -127,6 +128,7 @@ public:
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
+    void SetupDirtyFlags() override;
 
     /// Maximum supported size that a constbuffer can have in bytes.
     static constexpr std::size_t MaxConstbufferSize = 0x10000;
@@ -241,6 +243,7 @@ private:
     const VKDevice& device;
     VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
+    StateTracker& state_tracker;
     VKScheduler& scheduler;
 
     VKStagingBufferPool staging_pool;

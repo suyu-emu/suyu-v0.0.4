@@ -17,6 +17,7 @@
 
 namespace Vulkan {
 
+class StateTracker;
 class VKDevice;
 class VKFence;
 class VKQueryCache;
@@ -43,7 +44,8 @@ private:
 /// OpenGL-like operations on Vulkan command buffers.
 class VKScheduler {
 public:
-    explicit VKScheduler(const VKDevice& device, VKResourceManager& resource_manager);
+    explicit VKScheduler(const VKDevice& device, VKResourceManager& resource_manager,
+                         StateTracker& state_tracker);
     ~VKScheduler();
 
     /// Sends the current execution context to the GPU.
@@ -72,36 +74,6 @@ public:
     /// Assigns the query cache.
     void SetQueryCache(VKQueryCache& query_cache_) {
         query_cache = &query_cache_;
-    }
-
-    /// Returns true when viewports have been set in the current command buffer.
-    bool TouchViewports() {
-        return std::exchange(state.viewports, true);
-    }
-
-    /// Returns true when scissors have been set in the current command buffer.
-    bool TouchScissors() {
-        return std::exchange(state.scissors, true);
-    }
-
-    /// Returns true when depth bias have been set in the current command buffer.
-    bool TouchDepthBias() {
-        return std::exchange(state.depth_bias, true);
-    }
-
-    /// Returns true when blend constants have been set in the current command buffer.
-    bool TouchBlendConstants() {
-        return std::exchange(state.blend_constants, true);
-    }
-
-    /// Returns true when depth bounds have been set in the current command buffer.
-    bool TouchDepthBounds() {
-        return std::exchange(state.depth_bounds, true);
-    }
-
-    /// Returns true when stencil values have been set in the current command buffer.
-    bool TouchStencilValues() {
-        return std::exchange(state.stencil_values, true);
     }
 
     /// Send work to a separate thread.
@@ -217,6 +189,8 @@ private:
 
     const VKDevice& device;
     VKResourceManager& resource_manager;
+    StateTracker& state_tracker;
+
     VKQueryCache* query_cache = nullptr;
 
     vk::CommandBuffer current_cmdbuf;
@@ -226,12 +200,6 @@ private:
     struct State {
         std::optional<vk::RenderPassBeginInfo> renderpass;
         vk::Pipeline graphics_pipeline;
-        bool viewports = false;
-        bool scissors = false;
-        bool depth_bias = false;
-        bool blend_constants = false;
-        bool depth_bounds = false;
-        bool stencil_values = false;
     } state;
 
     std::unique_ptr<CommandChunk> chunk;

@@ -36,6 +36,7 @@
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 
@@ -277,10 +278,11 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf,
 RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWindow& renderer,
                                    VKScreenInfo& screen_info, const VKDevice& device,
                                    VKResourceManager& resource_manager,
-                                   VKMemoryManager& memory_manager, VKScheduler& scheduler)
+                                   VKMemoryManager& memory_manager, StateTracker& state_tracker,
+                                   VKScheduler& scheduler)
     : RasterizerAccelerated{system.Memory()}, system{system}, render_window{renderer},
       screen_info{screen_info}, device{device}, resource_manager{resource_manager},
-      memory_manager{memory_manager}, scheduler{scheduler},
+      memory_manager{memory_manager}, state_tracker{state_tracker}, scheduler{scheduler},
       staging_pool(device, memory_manager, scheduler), descriptor_pool(device),
       update_descriptor_queue(device, scheduler),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
@@ -545,6 +547,10 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
+void RasterizerVulkan::SetupDirtyFlags() {
+    state_tracker.Initialize();
+}
+
 void RasterizerVulkan::FlushWork() {
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
 
@@ -568,7 +574,9 @@ void RasterizerVulkan::FlushWork() {
 
 RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-    constexpr bool update_rendertargets = true;
+    auto& dirty = system.GPU().Maxwell3D().dirty.flags;
+    const bool update_rendertargets = dirty[VideoCommon::Dirty::RenderTargets];
+    dirty[VideoCommon::Dirty::RenderTargets] = false;
 
     texture_cache.GuardRenderTargets(true);
 
@@ -971,6 +979,9 @@ void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const Ima
 }
 
 void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchViewports()) {
+        return;
+    }
     const auto& regs = gpu.regs;
     const std::array viewports{
         GetViewportState(device, regs, 0),  GetViewportState(device, regs, 1),
