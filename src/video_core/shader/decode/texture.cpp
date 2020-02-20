@@ -522,68 +522,53 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
                                Node array, Node depth_compare, u32 bias_offset,
                                std::vector<Node> aoffi,
                                std::optional<Tegra::Shader::Register> bindless_reg) {
-    const auto is_array = static_cast<bool>(array);
-    const auto is_shadow = static_cast<bool>(depth_compare);
+    const bool is_array = array != nullptr;
+    const bool is_shadow = depth_compare != nullptr;
     const bool is_bindless = bindless_reg.has_value();
 
-    UNIMPLEMENTED_IF_MSG((texture_type == TextureType::Texture3D && (is_array || is_shadow)) ||
-                             (texture_type == TextureType::TextureCube && is_array && is_shadow),
-                         "This method is not supported.");
+    UNIMPLEMENTED_IF(texture_type == TextureType::TextureCube && is_array && is_shadow);
+    ASSERT_MSG(texture_type != TextureType::Texture3D || is_array || is_shadow,
+               "Illegal texture type");
 
     const SamplerInfo info{texture_type, is_array, is_shadow, false};
-    Node index_var{};
+    Node index_var;
     const Sampler* sampler = is_bindless ? GetBindlessSampler(*bindless_reg, index_var, info)
                                          : GetSampler(instr.sampler, info);
-    Node4 values;
-    if (sampler == nullptr) {
-        for (u32 element = 0; element < values.size(); ++element) {
-            values[element] = Immediate(0);
-        }
-        return values;
+    if (!sampler) {
+        return {Immediate(0), Immediate(0), Immediate(0), Immediate(0)};
     }
 
     const bool lod_needed = process_mode == TextureProcessMode::LZ ||
                             process_mode == TextureProcessMode::LL ||
                             process_mode == TextureProcessMode::LLA;
-
-    // LOD selection (either via bias or explicit textureLod) not supported in GL for
-    // sampler2DArrayShadow and samplerCubeArrayShadow.
-    const bool gl_lod_supported =
-        !((texture_type == Tegra::Shader::TextureType::Texture2D && is_array && is_shadow) ||
-          (texture_type == Tegra::Shader::TextureType::TextureCube && is_array && is_shadow));
-
-    const OperationCode read_method =
-        (lod_needed && gl_lod_supported) ? OperationCode::TextureLod : OperationCode::Texture;
-
-    UNIMPLEMENTED_IF(process_mode != TextureProcessMode::None && !gl_lod_supported);
+    const OperationCode opcode = lod_needed ? OperationCode::TextureLod : OperationCode::Texture;
 
     Node bias;
     Node lod;
-    if (process_mode != TextureProcessMode::None && gl_lod_supported) {
-        switch (process_mode) {
-        case TextureProcessMode::LZ:
-            lod = Immediate(0.0f);
-            break;
-        case TextureProcessMode::LB:
-            // If present, lod or bias are always stored in the register
-            // indexed by the gpr20 field with an offset depending on the
-            // usage of the other registers
-            bias = GetRegister(instr.gpr20.Value() + bias_offset);
-            break;
-        case TextureProcessMode::LL:
-            lod = GetRegister(instr.gpr20.Value() + bias_offset);
-            break;
-        default:
-            UNIMPLEMENTED_MSG("Unimplemented process mode={}", static_cast<u32>(process_mode));
-            break;
-        }
+    switch (process_mode) {
+    case TextureProcessMode::None:
+        break;
+    case TextureProcessMode::LZ:
+        lod = Immediate(0.0f);
+        break;
+    case TextureProcessMode::LB:
+        // If present, lod or bias are always stored in the register indexed by the gpr20 field with
+        // an offset depending on the usage of the other registers.
+        bias = GetRegister(instr.gpr20.Value() + bias_offset);
+        break;
+    case TextureProcessMode::LL:
+        lod = GetRegister(instr.gpr20.Value() + bias_offset);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented process mode={}", static_cast<u32>(process_mode));
+        break;
     }
 
+    Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
-        auto copy_coords = coords;
         MetaTexture meta{*sampler, array, depth_compare, aoffi,    {}, {}, bias,
                          lod,      {},    element,       index_var};
-        values[element] = Operation(read_method, meta, std::move(copy_coords));
+        values[element] = Operation(opcode, meta, coords);
     }
 
     return values;
