@@ -125,6 +125,28 @@ bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     return true;
 }
 
+u64 GPU::RequestFlush(CacheAddr addr, std::size_t size) {
+    std::unique_lock lck{flush_request_mutex};
+    const u64 fence = ++last_flush_fence;
+    flush_requests.emplace_back(fence, addr, size);
+    return fence;
+}
+
+void GPU::TickWork() {
+    std::unique_lock lck{flush_request_mutex};
+    while (!flush_requests.empty()) {
+        auto& request = flush_requests.front();
+        const u64 fence = request.fence;
+        const CacheAddr addr = request.addr;
+        const std::size_t size = request.size;
+        flush_requests.pop_front();
+        flush_request_mutex.unlock();
+        renderer->Rasterizer().FlushRegion(addr, size);
+        current_flush_fence.store(fence);
+        flush_request_mutex.lock();
+    }
+}
+
 u64 GPU::GetTicks() const {
     // This values were reversed engineered by fincs from NVN
     // The gpu clock is reported in units of 385/625 nanoseconds

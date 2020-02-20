@@ -15,8 +15,9 @@
 namespace VideoCommon::GPUThread {
 
 /// Runs the GPU thread
-static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
-                      Tegra::DmaPusher& dma_pusher, SynchState& state) {
+static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
+                      Core::Frontend::GraphicsContext& context, Tegra::DmaPusher& dma_pusher,
+                      SynchState& state) {
     MicroProfileOnThreadCreate("GpuThread");
 
     // Wait for first GPU command before acquiring the window context
@@ -40,6 +41,8 @@ static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::Graphic
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (const auto data = std::get_if<OnCommandListEndCommand>(&next.data)) {
             renderer.Rasterizer().ReleaseFences();
+        } else if (const auto data = std::get_if<GPUTickCommand>(&next.data)) {
+            system.GPU().TickWork();
         } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
             renderer.Rasterizer().FlushRegion(data->addr, data->size);
         } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
@@ -68,8 +71,8 @@ ThreadManager::~ThreadManager() {
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
                                 Core::Frontend::GraphicsContext& context,
                                 Tegra::DmaPusher& dma_pusher) {
-    thread = std::thread{RunThread, std::ref(renderer), std::ref(context), std::ref(dma_pusher),
-                         std::ref(state)};
+    thread = std::thread{RunThread,         std::ref(system),     std::ref(renderer),
+                         std::ref(context), std::ref(dma_pusher), std::ref(state)};
 }
 
 void ThreadManager::SubmitList(Tegra::CommandList&& entries) {
@@ -85,8 +88,10 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
         return;
     }
     if (system.Renderer().Rasterizer().MustFlushRegion(addr, size)) {
-        u64 fence = PushCommand(FlushRegionCommand(addr, size));
-        while (fence > state.signaled_fence.load(std::memory_order_relaxed)) {
+        auto& gpu = system.GPU();
+        u64 fence = gpu.RequestFlush(addr, size);
+        PushCommand(GPUTickCommand());
+        while (fence > gpu.CurrentFlushRequestFence()) {
         }
     }
 }

@@ -601,6 +601,8 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     EndTransformFeedback();
 
     ++num_queued_commands;
+
+    system.GPU().TickWork();
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
@@ -628,6 +630,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
     ++num_queued_commands;
+    system.GPU().TickWork();
 }
 
 void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
@@ -652,6 +655,9 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
 }
 
 bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size) {
+    if (!Settings::IsGPULevelExtreme()) {
+        return buffer_cache.MustFlushRegion(addr, size);
+    }
     return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
 }
 
