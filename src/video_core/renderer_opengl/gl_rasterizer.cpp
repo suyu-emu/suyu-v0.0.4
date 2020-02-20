@@ -630,7 +630,6 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     glDispatchCompute(launch_desc.grid_dim_x, launch_desc.grid_dim_y, launch_desc.grid_dim_z);
     ++num_queued_commands;
-    system.GPU().TickWork();
 }
 
 void RasterizerOpenGL::ResetCounter(VideoCore::QueryType type) {
