@@ -289,7 +289,7 @@ public:
                 AddCapability(spv::Capability::ShaderViewportIndexLayerEXT);
             }
         }
-        
+
         if (device.IsShaderStorageImageReadWithoutFormatSupported()) {
             AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
