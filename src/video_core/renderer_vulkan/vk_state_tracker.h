@@ -24,6 +24,7 @@ enum : u8 {
     DepthBias,
     BlendConstants,
     DepthBounds,
+    StencilProperties,
 };
 
 } // namespace Dirty
@@ -54,6 +55,10 @@ public:
 
     bool TouchDepthBounds() {
         return Exchange(Dirty::DepthBounds, false);
+    }
+
+    bool TouchStencilProperties() {
+        return Exchange(Dirty::StencilProperties, false);
     }
 
 private:

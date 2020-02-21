@@ -33,6 +33,7 @@ Flags MakeInvalidationFlags() {
     flags[DepthBias] = true;
     flags[BlendConstants] = true;
     flags[DepthBounds] = true;
+    flags[StencilProperties] = true;
     return flags;
 }
 
@@ -94,6 +95,17 @@ void SetupDirtyDepthBounds(Tables& tables) {
     FillBlock(tables[0], OFF(depth_bounds), NUM(depth_bounds), DepthBounds);
 }
 
+void SetupDirtyStencilProperties(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(stencil_two_side_enable)] = StencilProperties;
+    table[OFF(stencil_front_func_ref)] = StencilProperties;
+    table[OFF(stencil_front_mask)] = StencilProperties;
+    table[OFF(stencil_front_func_mask)] = StencilProperties;
+    table[OFF(stencil_back_func_ref)] = StencilProperties;
+    table[OFF(stencil_back_mask)] = StencilProperties;
+    table[OFF(stencil_back_func_mask)] = StencilProperties;
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system)
@@ -108,6 +120,7 @@ void StateTracker::Initialize() {
     SetupDirtyDepthBias(tables);
     SetupDirtyBlendConstants(tables);
     SetupDirtyDepthBounds(tables);
+    SetupDirtyStencilProperties(tables);
 
     auto& store = dirty.on_write_stores;
     store[RenderTargets] = true;

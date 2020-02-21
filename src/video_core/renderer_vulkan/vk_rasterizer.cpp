@@ -1046,6 +1046,9 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D& gpu) {
 }
 
 void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchStencilProperties()) {
+        return;
+    }
     const auto& regs = gpu.regs;
     if (regs.stencil_two_side_enable) {
         // Separate values per face
