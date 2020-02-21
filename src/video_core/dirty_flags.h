@@ -31,15 +31,15 @@ enum : u8 {
 };
 
 template <typename Integer>
-inline void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Table& table, std::size_t begin,
-                      std::size_t num, Integer dirty_index) {
+void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Table& table, std::size_t begin,
+               std::size_t num, Integer dirty_index) {
     const auto it = std::begin(table) + begin;
     std::fill(it, it + num, static_cast<u8>(dirty_index));
 }
 
 template <typename Integer1, typename Integer2>
-inline void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables, std::size_t begin,
-                      std::size_t num, Integer1 index_a, Integer2 index_b) {
+void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables, std::size_t begin,
+               std::size_t num, Integer1 index_a, Integer2 index_b) {
     FillBlock(tables[0], begin, num, index_a);
     FillBlock(tables[1], begin, num, index_b);
 }
