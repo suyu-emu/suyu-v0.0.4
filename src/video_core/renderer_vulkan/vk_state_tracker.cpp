@@ -8,6 +8,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
@@ -36,39 +37,6 @@ Flags MakeInvalidationFlags() {
     flags[DepthBounds] = true;
     flags[StencilProperties] = true;
     return flags;
-}
-
-template <typename Integer>
-void FillBlock(Table& table, std::size_t begin, std::size_t num, Integer dirty_index) {
-    const auto it = std::begin(table) + begin;
-    std::fill(it, it + num, static_cast<u8>(dirty_index));
-}
-
-template <typename Integer1, typename Integer2>
-void FillBlock(Tables& tables, std::size_t begin, std::size_t num, Integer1 index_a,
-               Integer2 index_b) {
-    FillBlock(tables[0], begin, num, index_a);
-    FillBlock(tables[1], begin, num, index_b);
-}
-
-void SetupDirtyRenderTargets(Tables& tables) {
-    static constexpr std::size_t num_per_rt = NUM(rt[0]);
-    static constexpr std::size_t begin = OFF(rt);
-    static constexpr std::size_t num = num_per_rt * Regs::NumRenderTargets;
-    for (std::size_t rt = 0; rt < Regs::NumRenderTargets; ++rt) {
-        FillBlock(tables[0], begin + rt * num_per_rt, num_per_rt, ColorBuffer0 + rt);
-    }
-    FillBlock(tables[1], begin, num, RenderTargets);
-
-    static constexpr std::array zeta_flags{ZetaBuffer, RenderTargets};
-    for (std::size_t i = 0; i < std::size(zeta_flags); ++i) {
-        const u8 flag = zeta_flags[i];
-        auto& table = tables[i];
-        table[OFF(zeta_enable)] = flag;
-        table[OFF(zeta_width)] = flag;
-        table[OFF(zeta_height)] = flag;
-        FillBlock(table, OFF(zeta), NUM(zeta), flag);
-    }
 }
 
 void SetupDirtyViewports(Tables& tables) {
@@ -123,12 +91,7 @@ void StateTracker::Initialize() {
     SetupDirtyDepthBounds(tables);
     SetupDirtyStencilProperties(tables);
 
-    auto& store = dirty.on_write_stores;
-    store[RenderTargets] = true;
-    store[ZetaBuffer] = true;
-    for (std::size_t i = 0; i < Regs::NumRenderTargets; ++i) {
-        store[ColorBuffer0 + i] = true;
-    }
+    SetupCommonOnWriteStores(dirty.on_write_stores);
 }
 
 void StateTracker::InvalidateCommandBufferState() {
