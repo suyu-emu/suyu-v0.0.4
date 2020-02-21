@@ -39,7 +39,10 @@
 #include "yuzu/bootmanager.h"
 #include "yuzu/main.h"
 
-EmuThread::EmuThread(Core::Frontend::GraphicsContext& core_context) : core_context(core_context) {}
+EmuThread::EmuThread(GRenderWindow& window)
+    : shared_context{window.CreateSharedContext()},
+      context{(Settings::values.use_asynchronous_gpu_emulation && shared_context) ? *shared_context
+                                                                                  : window} {}
 
 EmuThread::~EmuThread() = default;
 
@@ -55,15 +58,7 @@ static GMainWindow* GetMainWindow() {
 void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
 
-    // Acquire render context for duration of the thread if this is the rendering thread
-    if (!Settings::values.use_asynchronous_gpu_emulation) {
-        core_context.MakeCurrent();
-    }
-    SCOPE_EXIT({
-        if (!Settings::values.use_asynchronous_gpu_emulation) {
-            core_context.DoneCurrent();
-        }
-    });
+    Core::Frontend::ScopeAcquireContext acquire_context{context};
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 

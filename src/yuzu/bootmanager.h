@@ -17,6 +17,7 @@
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 
+class GRenderWindow;
 class QKeyEvent;
 class QScreen;
 class QTouchEvent;
@@ -35,7 +36,7 @@ class EmuThread final : public QThread {
     Q_OBJECT
 
 public:
-    explicit EmuThread(Core::Frontend::GraphicsContext& context);
+    explicit EmuThread(GRenderWindow& window);
     ~EmuThread() override;
 
     /**
@@ -89,7 +90,11 @@ private:
     std::mutex running_mutex;
     std::condition_variable running_cv;
 
-    Core::Frontend::GraphicsContext& core_context;
+    /// Only used in asynchronous GPU mode
+    std::unique_ptr<Core::Frontend::GraphicsContext> shared_context;
+
+    /// This is shared_context in asynchronous GPU mode, core_context in synchronous GPU mode
+    Core::Frontend::GraphicsContext& context;
 
 signals:
     /**
