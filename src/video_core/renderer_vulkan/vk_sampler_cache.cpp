@@ -23,7 +23,14 @@ static std::optional<vk::BorderColor> TryConvertBorderColor(std::array<float, 4>
     } else if (color == std::array<float, 4>{1, 1, 1, 1}) {
         return vk::BorderColor::eFloatOpaqueWhite;
     } else {
-        return {};
+        if (color[0] + color[1] + color[2] > 1.35f) {
+            // If color elements are brighter than roughly 0.5 average, use white border
+            return vk::BorderColor::eFloatOpaqueWhite;
+        }
+        if (color[3] > 0.5f) {
+            return vk::BorderColor::eFloatOpaqueBlack;
+        }
+        return vk::BorderColor::eFloatTransparentBlack;
     }
 }
 
@@ -37,8 +44,6 @@ UniqueSampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc)
 
     const auto border_color{tsc.GetBorderColor()};
     const auto vk_border_color{TryConvertBorderColor(border_color)};
-    UNIMPLEMENTED_IF_MSG(!vk_border_color, "Unimplemented border color {} {} {} {}",
-                         border_color[0], border_color[1], border_color[2], border_color[3]);
 
     constexpr bool unnormalized_coords{false};
 
