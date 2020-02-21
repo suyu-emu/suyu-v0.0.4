@@ -1026,6 +1026,9 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D& gpu) {
 }
 
 void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchBlendConstants()) {
+        return;
+    }
     const std::array blend_color = {gpu.regs.blend_color.r, gpu.regs.blend_color.g,
                                     gpu.regs.blend_color.b, gpu.regs.blend_color.a};
     scheduler.Record([blend_color](auto cmdbuf, auto& dld) {
