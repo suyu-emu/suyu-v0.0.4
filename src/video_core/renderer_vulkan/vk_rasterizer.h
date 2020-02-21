@@ -217,12 +217,12 @@ private:
 
     void SetupImage(const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);
 
-    void UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu);
-    void UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu);
-    void UpdateDepthBias(Tegra::Engines::Maxwell3D& gpu);
-    void UpdateBlendConstants(Tegra::Engines::Maxwell3D& gpu);
-    void UpdateDepthBounds(Tegra::Engines::Maxwell3D& gpu);
-    void UpdateStencilFaces(Tegra::Engines::Maxwell3D& gpu);
+    void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs);
 
     std::size_t CalculateGraphicsStreamBufferSize(bool is_indexed) const;
 

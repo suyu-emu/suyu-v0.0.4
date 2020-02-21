@@ -726,13 +726,13 @@ void RasterizerVulkan::SetupImageTransitions(
 }
 
 void RasterizerVulkan::UpdateDynamicStates() {
-    auto& gpu = system.GPU().Maxwell3D();
-    UpdateViewportsState(gpu);
-    UpdateScissorsState(gpu);
-    UpdateDepthBias(gpu);
-    UpdateBlendConstants(gpu);
-    UpdateDepthBounds(gpu);
-    UpdateStencilFaces(gpu);
+    auto& regs = system.GPU().Maxwell3D().regs;
+    UpdateViewportsState(regs);
+    UpdateScissorsState(regs);
+    UpdateDepthBias(regs);
+    UpdateBlendConstants(regs);
+    UpdateDepthBounds(regs);
+    UpdateStencilFaces(regs);
 }
 
 void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
@@ -978,11 +978,10 @@ void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const Ima
     image_views.push_back(ImageView{std::move(view), image_layout});
 }
 
-void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchViewports()) {
         return;
     }
-    const auto& regs = gpu.regs;
     const std::array viewports{
         GetViewportState(device, regs, 0),  GetViewportState(device, regs, 1),
         GetViewportState(device, regs, 2),  GetViewportState(device, regs, 3),
@@ -997,11 +996,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
     });
 }
 
-void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchScissors()) {
         return;
     }
-    const auto& regs = gpu.regs;
     const std::array scissors = {
         GetScissorState(regs, 0),  GetScissorState(regs, 1),  GetScissorState(regs, 2),
         GetScissorState(regs, 3),  GetScissorState(regs, 4),  GetScissorState(regs, 5),
@@ -1014,42 +1012,39 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
     });
 }
 
-void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBias()) {
         return;
     }
-    const auto& regs = gpu.regs;
     scheduler.Record([constant = regs.polygon_offset_units, clamp = regs.polygon_offset_clamp,
                       factor = regs.polygon_offset_factor](auto cmdbuf, auto& dld) {
         cmdbuf.setDepthBias(constant, clamp, factor / 2.0f, dld);
     });
 }
 
-void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchBlendConstants()) {
         return;
     }
-    const std::array blend_color = {gpu.regs.blend_color.r, gpu.regs.blend_color.g,
-                                    gpu.regs.blend_color.b, gpu.regs.blend_color.a};
+    const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
+                                    regs.blend_color.a};
     scheduler.Record([blend_color](auto cmdbuf, auto& dld) {
         cmdbuf.setBlendConstants(blend_color.data(), dld);
     });
 }
 
-void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchDepthBounds()) {
         return;
     }
-    const auto& regs = gpu.regs;
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
                          auto cmdbuf, auto& dld) { cmdbuf.setDepthBounds(min, max, dld); });
 }
 
-void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D& gpu) {
+void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
     if (!state_tracker.TouchStencilProperties()) {
         return;
     }
-    const auto& regs = gpu.regs;
     if (regs.stencil_two_side_enable) {
         // Separate values per face
         scheduler.Record(
