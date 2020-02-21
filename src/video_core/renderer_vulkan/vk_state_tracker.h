@@ -20,6 +20,7 @@ enum : u8 {
     First = VideoCommon::Dirty::LastCommonEntry,
 
     Viewports,
+    Scissors,
 };
 
 } // namespace Dirty
@@ -34,6 +35,10 @@ public:
 
     bool TouchViewports() {
         return Exchange(Dirty::Viewports, false);
+    }
+
+    bool TouchScissors() {
+        return Exchange(Dirty::Scissors, false);
     }
 
 private:

@@ -998,6 +998,9 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
 }
 
 void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchScissors()) {
+        return;
+    }
     const auto& regs = gpu.regs;
     const std::array scissors = {
         GetScissorState(regs, 0),  GetScissorState(regs, 1),  GetScissorState(regs, 2),

@@ -29,6 +29,7 @@ using Flags = std::remove_reference_t<decltype(Maxwell3D::dirty.flags)>;
 Flags MakeInvalidationFlags() {
     Flags flags{};
     flags[Viewports] = true;
+    flags[Scissors] = true;
     return flags;
 }
 
@@ -71,6 +72,10 @@ void SetupDirtyViewports(Tables& tables) {
     tables[0][OFF(viewport_transform_enabled)] = Viewports;
 }
 
+void SetupDirtyScissors(Tables& tables) {
+    FillBlock(tables[0], OFF(scissor_test), NUM(scissor_test), Scissors);
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system)
@@ -81,6 +86,7 @@ void StateTracker::Initialize() {
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
     SetupDirtyViewports(tables);
+    SetupDirtyScissors(tables);
 
     auto& store = dirty.on_write_stores;
     store[RenderTargets] = true;
