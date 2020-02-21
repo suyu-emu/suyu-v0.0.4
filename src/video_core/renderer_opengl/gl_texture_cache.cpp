@@ -518,9 +518,7 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
     UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
-    // TODO: Signal state tracker about these changes
     state_tracker.NotifyScissor0();
-    state_tracker.NotifyBlend0();
     state_tracker.NotifyFramebuffer();
     state_tracker.NotifyRasterizeEnable();
     state_tracker.NotifyFramebufferSRGB();
@@ -530,11 +528,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
     } else {
         glDisable(GL_FRAMEBUFFER_SRGB);
     }
-    // TODO(Rodrigo): Find out if rasterizer discard affects blits
-    // TODO(Rodrigo): Find out if blending affects blits
     glDisable(GL_RASTERIZER_DISCARD);
     glDisablei(GL_SCISSOR_TEST, 0);
-    glDisablei(GL_BLEND, 0);
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, src_framebuffer.handle);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_framebuffer.handle);
