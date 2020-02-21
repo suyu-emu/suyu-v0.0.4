@@ -32,6 +32,7 @@ Flags MakeInvalidationFlags() {
     flags[Scissors] = true;
     flags[DepthBias] = true;
     flags[BlendConstants] = true;
+    flags[DepthBounds] = true;
     return flags;
 }
 
@@ -89,6 +90,10 @@ void SetupDirtyBlendConstants(Tables& tables) {
     FillBlock(tables[0], OFF(blend_color), NUM(blend_color), BlendConstants);
 }
 
+void SetupDirtyDepthBounds(Tables& tables) {
+    FillBlock(tables[0], OFF(depth_bounds), NUM(depth_bounds), DepthBounds);
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system)
@@ -102,6 +107,7 @@ void StateTracker::Initialize() {
     SetupDirtyScissors(tables);
     SetupDirtyDepthBias(tables);
     SetupDirtyBlendConstants(tables);
+    SetupDirtyDepthBounds(tables);
 
     auto& store = dirty.on_write_stores;
     store[RenderTargets] = true;

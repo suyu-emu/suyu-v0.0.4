@@ -1037,6 +1037,9 @@ void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D& gpu) {
 }
 
 void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchDepthBounds()) {
+        return;
+    }
     const auto& regs = gpu.regs;
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
                          auto cmdbuf, auto& dld) { cmdbuf.setDepthBounds(min, max, dld); });

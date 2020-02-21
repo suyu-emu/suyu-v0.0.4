@@ -23,6 +23,7 @@ enum : u8 {
     Scissors,
     DepthBias,
     BlendConstants,
+    DepthBounds,
 };
 
 } // namespace Dirty
@@ -49,6 +50,10 @@ public:
 
     bool TouchBlendConstants() {
         return Exchange(Dirty::BlendConstants, false);
+    }
+
+    bool TouchDepthBounds() {
+        return Exchange(Dirty::DepthBounds, false);
     }
 
 private:
