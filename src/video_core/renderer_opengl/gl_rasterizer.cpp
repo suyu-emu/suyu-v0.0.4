@@ -459,10 +459,6 @@ void RasterizerOpenGL::Clear() {
         glDisablei(GL_SCISSOR_TEST, 0);
     }
 
-    // TODO(Rodrigo): Find out if blending affects clearing
-    state_tracker.NotifyBlend0();
-    glDisablei(GL_BLEND, 0);
-
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
 
     ConfigureClearFramebuffer(use_color, use_depth, use_stencil);
