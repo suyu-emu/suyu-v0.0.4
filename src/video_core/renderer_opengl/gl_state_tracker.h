@@ -190,6 +190,11 @@ public:
         flags[OpenGL::Dirty::ClipControl] = true;
     }
 
+    void NotifyAlphaTest() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::AlphaTest] = true;
+    }
+
 private:
     Core::System& system;
 

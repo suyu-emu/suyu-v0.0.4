@@ -591,6 +591,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     state_tracker.NotifyFramebufferSRGB();
     state_tracker.NotifyLogicOp();
     state_tracker.NotifyClipControl();
+    state_tracker.NotifyAlphaTest();
 
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);
@@ -608,6 +609,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glDisable(GL_STENCIL_TEST);
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_RASTERIZER_DISCARD);
+    glDisable(GL_ALPHA_TEST);
     glDisablei(GL_BLEND, 0);
     glDisablei(GL_SCISSOR_TEST, 0);
     glCullFace(GL_BACK);
