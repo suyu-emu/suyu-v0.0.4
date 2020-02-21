@@ -293,52 +293,52 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
 
 void ShaderIR::WriteLop3Instruction(NodeBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
                                     Node imm_lut, bool sets_cc) {
-    const Node lop3_fast = [&](Node na, Node nb, Node nc, Node ttbl) {
+    const Node lop3_fast = [&](const Node na, const Node nb, const Node nc, const Node ttbl) {
         Node value = Immediate(0);
-        ImmediateNode imm = std::get<ImmediateNode>(*ttbl);
+        const ImmediateNode imm = std::get<ImmediateNode>(*ttbl);
         if (imm.GetValue() & 0x01) {
-            Node a = Operation(OperationCode::IBitwiseNot, na);
-            Node b = Operation(OperationCode::IBitwiseNot, nb);
-            Node c = Operation(OperationCode::IBitwiseNot, nc);
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, b);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x02) {
-            Node a = Operation(OperationCode::IBitwiseNot, na);
-            Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, b);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x04) {
-            Node a = Operation(OperationCode::IBitwiseNot, na);
-            Node c = Operation(OperationCode::IBitwiseNot, nc);
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, nb);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x08) {
-            Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, nb);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x10) {
-            Node b = Operation(OperationCode::IBitwiseNot, nb);
-            Node c = Operation(OperationCode::IBitwiseNot, nc);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, b);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x20) {
-            Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, b);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
             value = Operation(OperationCode::IBitwiseOr, value, r);
         }
         if (imm.GetValue() & 0x40) {
-            Node c = Operation(OperationCode::IBitwiseNot, nc);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
             Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, nb);
             r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
             value = Operation(OperationCode::IBitwiseOr, value, r);
