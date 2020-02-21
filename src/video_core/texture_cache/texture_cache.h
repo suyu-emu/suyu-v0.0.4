@@ -721,7 +721,6 @@ private:
     std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const CacheAddr cache_addr,
                                           const SurfaceParams& params, bool preserve_contents,
                                           bool is_render) {
-
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
         // matches at certain level we are pretty much done.
@@ -733,14 +732,18 @@ private:
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
             }
+
             const auto struct_result = current_surface->MatchesStructure(params);
-            if (struct_result != MatchStructureResult::None &&
-                (params.target != SurfaceTarget::Texture3D ||
-                 current_surface->MatchTarget(params.target))) {
-                if (struct_result == MatchStructureResult::FullMatch) {
-                    return ManageStructuralMatch(current_surface, params, is_render);
-                } else {
-                    return RebuildSurface(current_surface, params, is_render);
+            if (struct_result != MatchStructureResult::None) {
+                const auto& old_params = current_surface->GetSurfaceParams();
+                const bool not_3d = params.target != SurfaceTarget::Texture3D &&
+                                    old_params.target != SurfaceTarget::Texture3D;
+                if (not_3d || current_surface->MatchTarget(params.target)) {
+                    if (struct_result == MatchStructureResult::FullMatch) {
+                        return ManageStructuralMatch(current_surface, params, is_render);
+                    } else {
+                        return RebuildSurface(current_surface, params, is_render);
+                    }
                 }
             }
         }
