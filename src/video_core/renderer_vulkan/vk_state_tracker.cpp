@@ -30,6 +30,7 @@ Flags MakeInvalidationFlags() {
     Flags flags{};
     flags[Viewports] = true;
     flags[Scissors] = true;
+    flags[DepthBias] = true;
     return flags;
 }
 
@@ -76,6 +77,13 @@ void SetupDirtyScissors(Tables& tables) {
     FillBlock(tables[0], OFF(scissor_test), NUM(scissor_test), Scissors);
 }
 
+void SetupDirtyDepthBias(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(polygon_offset_units)] = DepthBias;
+    table[OFF(polygon_offset_clamp)] = DepthBias;
+    table[OFF(polygon_offset_factor)] = DepthBias;
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system)
@@ -87,6 +95,7 @@ void StateTracker::Initialize() {
     SetupDirtyRenderTargets(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
+    SetupDirtyDepthBias(tables);
 
     auto& store = dirty.on_write_stores;
     store[RenderTargets] = true;

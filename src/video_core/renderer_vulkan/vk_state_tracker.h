@@ -21,6 +21,7 @@ enum : u8 {
 
     Viewports,
     Scissors,
+    DepthBias,
 };
 
 } // namespace Dirty
@@ -39,6 +40,10 @@ public:
 
     bool TouchScissors() {
         return Exchange(Dirty::Scissors, false);
+    }
+
+    bool TouchDepthBias() {
+        return Exchange(Dirty::DepthBias, false);
     }
 
 private:

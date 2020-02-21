@@ -1015,6 +1015,9 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
 }
 
 void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D& gpu) {
+    if (!state_tracker.TouchDepthBias()) {
+        return;
+    }
     const auto& regs = gpu.regs;
     scheduler.Record([constant = regs.polygon_offset_units, clamp = regs.polygon_offset_clamp,
                       factor = regs.polygon_offset_factor](auto cmdbuf, auto& dld) {
