@@ -292,6 +292,10 @@ public:
             }
         }
 
+        if (device.IsShaderStorageImageReadWithoutFormatSupported()) {
+            AddCapability(spv::Capability::StorageImageReadWithoutFormat);
+        }
+
         if (device.IsFloat16Supported()) {
             AddCapability(spv::Capability::Float16);
         }
@@ -1755,8 +1759,16 @@ private:
     }
 
     Expression ImageLoad(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        if (!device.IsShaderStorageImageReadWithoutFormatSupported()) {
+            return {v_float_zero, Type::Float};
+        }
+
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
+
+        const Id coords = GetCoordinates(operation, Type::Int);
+        const Id texel = OpImageRead(t_uint4, GetImage(operation), coords);
+
+        return {OpCompositeExtract(t_uint, texel, meta.element), Type::Uint};
     }
 
     Expression ImageStore(Operation operation) {

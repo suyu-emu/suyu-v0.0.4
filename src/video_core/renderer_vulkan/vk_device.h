@@ -122,6 +122,11 @@ public:
         return properties.limits.maxPushConstantsSize;
     }
 
+    /// Returns true if Shader storage Image Read Without Format supported.
+    bool IsShaderStorageImageReadWithoutFormatSupported() const {
+        return is_shader_storage_img_read_without_format_supported;
+    }
+
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
         return is_optimal_astc_supported;
@@ -227,6 +232,8 @@ private:
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
     bool nv_device_diagnostic_checkpoints{};   ///< Support for VK_NV_device_diagnostic_checkpoints.
+    bool is_shader_storage_img_read_without_format_supported{}; ///< Support for shader storage
+                                                                ///< image read without format
 
     // Telemetry parameters
     std::string vendor_name;                      ///< Device's driver name.
