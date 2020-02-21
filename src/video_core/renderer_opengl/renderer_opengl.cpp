@@ -379,7 +379,8 @@ void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebu
         // If framebuffer is provided, reload it from memory to a texture
         if (screen_info.texture.width != static_cast<GLsizei>(framebuffer->width) ||
             screen_info.texture.height != static_cast<GLsizei>(framebuffer->height) ||
-            screen_info.texture.pixel_format != framebuffer->pixel_format) {
+            screen_info.texture.pixel_format != framebuffer->pixel_format ||
+            gl_framebuffer_data.empty()) {
             // Reallocate texture if the framebuffer size has changed.
             // This is expected to not happen very often and hence should not be a
             // performance problem.
