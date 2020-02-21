@@ -1291,10 +1291,14 @@ public:
         u32 gl_end_count{};
     } mme_draw;
 
-    struct {
-        std::bitset<std::numeric_limits<u8>::max()> flags;
-        std::bitset<std::numeric_limits<u8>::max()> on_write_stores;
-        std::array<std::array<u8, Regs::NUM_REGS>, 2> tables{};
+    struct DirtyState {
+        using Flags = std::bitset<std::numeric_limits<u8>::max()>;
+        using Table = std::array<u8, Regs::NUM_REGS>;
+        using Tables = std::array<Table, 2>;
+
+        Flags flags;
+        Flags on_write_stores;
+        Tables tables{};
     } dirty;
 
 private:

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <type_traits> // REMOVE ME
-#include <utility>
+#include <cstddef>
+#include <limits>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -25,7 +25,10 @@ enum : u8 {
     BlendConstants,
     DepthBounds,
     StencilProperties,
+
+    Last
 };
+static_assert(Last <= std::numeric_limits<u8>::max());
 
 } // namespace Dirty
 
@@ -62,8 +65,6 @@ public:
     }
 
 private:
-    using Flags = std::remove_reference_t<decltype(Tegra::Engines::Maxwell3D::dirty.flags)>;
-
     bool Exchange(std::size_t id, bool new_value) const noexcept {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         const bool is_dirty = flags[id];
@@ -72,7 +73,7 @@ private:
     }
 
     Core::System& system;
-    Flags invalidation_flags;
+    Tegra::Engines::Maxwell3D::DirtyState::Flags invalidation_flags;
 };
 
 } // namespace Vulkan

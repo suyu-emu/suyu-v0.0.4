@@ -2,7 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <type_traits>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -21,10 +23,9 @@ using namespace Dirty;
 using namespace VideoCommon::Dirty;
 using Tegra::Engines::Maxwell3D;
 using Regs = Maxwell3D::Regs;
-using Dirty = std::remove_reference_t<decltype(Maxwell3D::dirty)>;
-using Tables = std::remove_reference_t<decltype(Maxwell3D::dirty.tables)>;
-using Table = std::remove_reference_t<decltype(Maxwell3D::dirty.tables[0])>;
-using Flags = std::remove_reference_t<decltype(Maxwell3D::dirty.flags)>;
+using Tables = Maxwell3D::DirtyState::Tables;
+using Table = Maxwell3D::DirtyState::Table;
+using Flags = Maxwell3D::DirtyState::Flags;
 
 Flags MakeInvalidationFlags() {
     Flags flags{};

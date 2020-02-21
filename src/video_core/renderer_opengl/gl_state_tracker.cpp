@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <type_traits>
 
 #include "common/common_types.h"
 #include "core/core.h"
@@ -24,9 +23,8 @@ using namespace Dirty;
 using namespace VideoCommon::Dirty;
 using Tegra::Engines::Maxwell3D;
 using Regs = Maxwell3D::Regs;
-using Dirty = std::remove_reference_t<decltype(Maxwell3D::dirty)>;
-using Tables = std::remove_reference_t<decltype(Maxwell3D::dirty.tables)>;
-using Table = std::remove_reference_t<decltype(Maxwell3D::dirty.tables[0])>;
+using Tables = Maxwell3D::DirtyState::Tables;
+using Table = Maxwell3D::DirtyState::Table;
 
 template <typename Integer>
 void FillBlock(Table& table, std::size_t begin, std::size_t num, Integer dirty_index) {
