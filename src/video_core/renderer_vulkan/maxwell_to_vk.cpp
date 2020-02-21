@@ -164,7 +164,7 @@ struct FormatTuple {
     {vk::Format::eUndefined, {}},                                // ASTC_2D_5X4
     {vk::Format::eUndefined, {}},                                // BGRA8_SRGB
     {vk::Format::eBc1RgbaSrgbBlock, {}},                         // DXT1_SRGB
-    {vk::Format::eUndefined, {}},                                // DXT23_SRGB
+    {vk::Format::eBc2SrgbBlock, {}},                             // DXT23_SRGB
     {vk::Format::eBc3SrgbBlock, {}},                             // DXT45_SRGB
     {vk::Format::eBc7SrgbBlock, {}},                             // BC7U_SRGB
     {vk::Format::eR4G4B4A4UnormPack16, Attachable},              // R4G4B4A4U
@@ -363,6 +363,8 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
             return vk::Format::eR8G8B8A8Uint;
         case Maxwell::VertexAttribute::Size::Size_32:
             return vk::Format::eR32Uint;
+        case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
+            return vk::Format::eR32G32B32A32Uint;
         default:
             break;
         }

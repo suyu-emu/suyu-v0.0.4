@@ -538,6 +538,7 @@ std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperti
                                         vk::Format::eBc6HUfloatBlock,
                                         vk::Format::eBc6HSfloatBlock,
                                         vk::Format::eBc1RgbaSrgbBlock,
+                                        vk::Format::eBc2SrgbBlock,
                                         vk::Format::eBc3SrgbBlock,
                                         vk::Format::eBc7SrgbBlock,
                                         vk::Format::eAstc4x4SrgbBlock,
