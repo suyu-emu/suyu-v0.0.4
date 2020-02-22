@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/assert.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -34,9 +35,10 @@ void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 
 }
 
 void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
-    if (event_handle != InvalidHandle) {
-        system.CoreTiming().UnscheduleEvent(time_manager_event_type, event_handle);
+    if (event_handle == InvalidHandle) {
+        return;
     }
+    system.CoreTiming().UnscheduleEvent(time_manager_event_type, event_handle);
 }
 
 } // namespace Kernel

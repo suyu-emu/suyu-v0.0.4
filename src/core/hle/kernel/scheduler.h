@@ -171,7 +171,7 @@ private:
 
     /// Scheduler lock mechanisms.
     std::mutex inner_lock{}; // TODO(Blinkhawk): Replace for a SpinLock
-    std::atomic<std::size_t> scope_lock{};
+    std::atomic<s64> scope_lock{};
     Core::EmuThreadHandle current_owner{Core::EmuThreadHandle::InvalidHandle()};
 
     /// Lists all thread ids that aren't deleted/etc.
@@ -245,7 +245,7 @@ private:
 
 class SchedulerLock {
 public:
-    SchedulerLock(KernelCore& kernel);
+    explicit SchedulerLock(KernelCore& kernel);
     ~SchedulerLock();
 
 protected:
@@ -254,8 +254,8 @@ protected:
 
 class SchedulerLockAndSleep : public SchedulerLock {
 public:
-    SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* time_task,
-                          s64 nanoseconds);
+    explicit SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* time_task,
+                                   s64 nanoseconds);
     ~SchedulerLockAndSleep();
 
     void CancelSleep() {

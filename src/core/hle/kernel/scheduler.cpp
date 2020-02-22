@@ -358,26 +358,29 @@ void GlobalScheduler::Shutdown() {
 }
 
 void GlobalScheduler::Lock() {
-    Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadId();
+    Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadID();
     if (current_thread == current_owner) {
         ++scope_lock;
     } else {
         inner_lock.lock();
         current_owner = current_thread;
+        ASSERT(current_owner != Core::EmuThreadHandle::InvalidHandle());
         scope_lock = 1;
     }
 }
 
 void GlobalScheduler::Unlock() {
-    if (--scope_lock == 0) {
-        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            SelectThread(i);
-        }
-        current_owner = Core::EmuThreadHandle::InvalidHandle();
-        scope_lock = 1;
-        inner_lock.unlock();
-        // TODO(Blinkhawk): Setup the interrupts and change context on current core.
+    if (--scope_lock != 0) {
+        ASSERT(scope_lock > 0);
+        return;
     }
+    for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        SelectThread(i);
+    }
+    current_owner = Core::EmuThreadHandle::InvalidHandle();
+    scope_lock = 1;
+    inner_lock.unlock();
+    // TODO(Blinkhawk): Setup the interrupts and change context on current core.
 }
 
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id)

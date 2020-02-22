@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <bitset>
 #include <functional>
 #include <memory>
 #include <mutex>
@@ -17,6 +18,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
@@ -188,6 +190,7 @@ struct KernelCore::Impl {
     }
 
     void RegisterCoreThread(std::size_t core_id) {
+        std::unique_lock lock{register_thread_mutex};
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
@@ -198,13 +201,14 @@ struct KernelCore::Impl {
     }
 
     void RegisterHostThread() {
+        std::unique_lock lock{register_thread_mutex};
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
         ASSERT(it == host_thread_ids.end());
         host_thread_ids[this_id] = registered_thread_ids++;
     }
 
-    u32 GetCurrentHostThreadId() const {
+    u32 GetCurrentHostThreadID() const {
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
         if (it == host_thread_ids.end()) {
@@ -213,9 +217,9 @@ struct KernelCore::Impl {
         return it->second;
     }
 
-    Core::EmuThreadHandle GetCurrentEmuThreadId() const {
+    Core::EmuThreadHandle GetCurrentEmuThreadID() const {
         Core::EmuThreadHandle result = Core::EmuThreadHandle::InvalidHandle();
-        result.host_handle = GetCurrentHostThreadId();
+        result.host_handle = GetCurrentHostThreadID();
         if (result.host_handle >= Core::Hardware::NUM_CPU_CORES) {
             return result;
         }
@@ -246,8 +250,8 @@ struct KernelCore::Impl {
     std::shared_ptr<Core::Timing::EventType> thread_wakeup_event_type;
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
-    // TODO(yuriks): This can be removed if Thread objects are explicitly pooled in the future,
-    // allowing us to simply use a pool index or similar.
+    // This is the kernel's handle table or supervisor handle table which
+    // stores all the objects in place.
     Kernel::HandleTable global_handle_table;
 
     /// Map of named ports managed by the kernel, which can be retrieved using
@@ -257,10 +261,11 @@ struct KernelCore::Impl {
     std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::vector<Kernel::PhysicalCore> cores;
 
-    // 0-3 Ids represent core threads, >3 represent others
+    // 0-3 IDs represent core threads, >3 represent others
     std::unordered_map<std::thread::id, u32> host_thread_ids;
     u32 registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
-    std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads{};
+    std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads;
+    std::mutex register_thread_mutex;
 
     // System context
     Core::System& system;
@@ -420,12 +425,12 @@ void KernelCore::RegisterHostThread() {
     impl->RegisterHostThread();
 }
 
-u32 KernelCore::GetCurrentHostThreadId() const {
-    return impl->GetCurrentHostThreadId();
+u32 KernelCore::GetCurrentHostThreadID() const {
+    return impl->GetCurrentHostThreadID();
 }
 
-Core::EmuThreadHandle KernelCore::GetCurrentEmuThreadId() const {
-    return impl->GetCurrentEmuThreadId();
+Core::EmuThreadHandle KernelCore::GetCurrentEmuThreadID() const {
+    return impl->GetCurrentEmuThreadID();
 }
 
 } // namespace Kernel

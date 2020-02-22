@@ -8,10 +8,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "core/hardware_properties.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
+struct EmuThreadHandle;
 class ExclusiveMonitor;
 class System;
 } // namespace Core
@@ -136,10 +136,10 @@ public:
     bool IsValidNamedPort(NamedPortTable::const_iterator port) const;
 
     /// Gets the current host_thread/guest_thread handle.
-    Core::EmuThreadHandle GetCurrentEmuThreadId() const;
+    Core::EmuThreadHandle GetCurrentEmuThreadID() const;
 
     /// Gets the current host_thread handle.
-    u32 GetCurrentHostThreadId() const;
+    u32 GetCurrentHostThreadID() const;
 
     /// Register the current thread as a CPU Core Thread.
     void RegisterCoreThread(std::size_t core_id);

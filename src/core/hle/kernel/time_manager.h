@@ -20,12 +20,19 @@ namespace Kernel {
 
 class Thread;
 
+/**
+ * The `TimeManager` takes care of scheduling time events on threads and executes their TimeUp
+ * method when the event is triggered.
+ */
 class TimeManager {
 public:
-    TimeManager(Core::System& system);
+    explicit TimeManager(Core::System& system);
 
+    /// Schedule a time event on `timetask` thread that will expire in 'nanoseconds'
+    /// returns a non-invalid handle in `event_handle` if correctly scheduled
     void ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 nanoseconds);
 
+    /// Unschedule an existing time event
     void UnscheduleTimeEvent(Handle event_handle);
 
 private:
