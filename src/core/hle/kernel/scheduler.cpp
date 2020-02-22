@@ -530,10 +530,11 @@ SchedulerLockAndSleep::SchedulerLockAndSleep(KernelCore& kernel, Handle& event_h
 }
 
 SchedulerLockAndSleep::~SchedulerLockAndSleep() {
-    if (!sleep_cancelled) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
+    if (sleep_cancelled) {
+        return;
     }
+    auto& time_manager = kernel.TimeManager();
+    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
 }
 
 } // namespace Kernel
