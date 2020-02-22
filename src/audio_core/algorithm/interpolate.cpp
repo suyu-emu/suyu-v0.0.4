@@ -5,8 +5,8 @@
 #define _USE_MATH_DEFINES
 
 #include <algorithm>
+#include <climits>
 #include <cmath>
-#include <limits>
 #include <vector>
 #include "audio_core/algorithm/interpolate.h"
 #include "common/common_types.h"
