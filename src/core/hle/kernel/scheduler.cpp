@@ -513,13 +513,11 @@ void Scheduler::Shutdown() {
 }
 
 SchedulerLock::SchedulerLock(KernelCore& kernel) : kernel{kernel} {
-    auto& global_scheduler = kernel.GlobalScheduler();
-    global_scheduler.Lock();
+    kernel.GlobalScheduler().Lock();
 }
 
 SchedulerLock::~SchedulerLock() {
-    auto& global_scheduler = kernel.GlobalScheduler();
-    global_scheduler.Unlock();
+    kernel.GlobalScheduler().Unlock();
 }
 
 SchedulerLockAndSleep::SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle,
