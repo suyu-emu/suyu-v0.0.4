@@ -6,19 +6,12 @@
 
 #include <array>
 #include <vector>
-#include "audio_core/algorithm/filter.h"
 #include "common/common_types.h"
 
 namespace AudioCore {
 
 struct InterpolationState {
-    static constexpr std::size_t lanczos_taps = 4;
-    static constexpr std::size_t history_size = lanczos_taps * 2 - 1;
-
-    double current_ratio = 0.0;
-    CascadingFilter nyquist;
-    std::array<std::array<s16, 2>, history_size> history = {};
-    double position = 0;
+    int fraction = 0;
 };
 
 /// Interpolates input signal to produce output signal.
