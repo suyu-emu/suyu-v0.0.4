@@ -2211,16 +2211,14 @@ private:
         switch (specialization.attribute_types.at(location)) {
         case Maxwell::VertexAttribute::Type::SignedNorm:
         case Maxwell::VertexAttribute::Type::UnsignedNorm:
+        case Maxwell::VertexAttribute::Type::UnsignedScaled:
+        case Maxwell::VertexAttribute::Type::SignedScaled:
         case Maxwell::VertexAttribute::Type::Float:
             return {Type::Float, t_in_float, t_in_float4};
         case Maxwell::VertexAttribute::Type::SignedInt:
             return {Type::Int, t_in_int, t_in_int4};
         case Maxwell::VertexAttribute::Type::UnsignedInt:
             return {Type::Uint, t_in_uint, t_in_uint4};
-        case Maxwell::VertexAttribute::Type::UnsignedScaled:
-        case Maxwell::VertexAttribute::Type::SignedScaled:
-            UNIMPLEMENTED();
-            return {Type::Float, t_in_float, t_in_float4};
         default:
             UNREACHABLE();
             return {Type::Float, t_in_float, t_in_float4};
