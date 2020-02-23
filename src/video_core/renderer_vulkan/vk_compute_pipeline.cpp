@@ -73,7 +73,7 @@ UniqueDescriptorUpdateTemplate VKComputePipeline::CreateDescriptorUpdateTemplate
     std::vector<vk::DescriptorUpdateTemplateEntry> template_entries;
     u32 binding = 0;
     u32 offset = 0;
-    FillDescriptorUpdateTemplateEntries(device, entries, binding, offset, template_entries);
+    FillDescriptorUpdateTemplateEntries(entries, binding, offset, template_entries);
     if (template_entries.empty()) {
         // If the shader doesn't use descriptor sets, skip template creation.
         return UniqueDescriptorUpdateTemplate{};

@@ -69,8 +69,9 @@ struct TexelBuffer {
 
 struct SampledImage {
     Id image_type{};
-    Id sampled_image_type{};
-    Id sampler{};
+    Id sampler_type{};
+    Id sampler_pointer_type{};
+    Id variable{};
 };
 
 struct StorageImage {
@@ -833,16 +834,20 @@ private:
             constexpr int sampled = 1;
             constexpr auto format = spv::ImageFormat::Unknown;
             const Id image_type = TypeImage(t_float, dim, depth, arrayed, ms, sampled, format);
-            const Id sampled_image_type = TypeSampledImage(image_type);
-            const Id pointer_type =
-                TypePointer(spv::StorageClass::UniformConstant, sampled_image_type);
+            const Id sampler_type = TypeSampledImage(image_type);
+            const Id sampler_pointer_type =
+                TypePointer(spv::StorageClass::UniformConstant, sampler_type);
+            const Id type = sampler.IsIndexed()
+                                ? TypeArray(sampler_type, Constant(t_uint, sampler.Size()))
+                                : sampler_type;
+            const Id pointer_type = TypePointer(spv::StorageClass::UniformConstant, type);
             const Id id = OpVariable(pointer_type, spv::StorageClass::UniformConstant);
             AddGlobalVariable(Name(id, fmt::format("sampler_{}", sampler.GetIndex())));
             Decorate(id, spv::Decoration::Binding, binding++);
             Decorate(id, spv::Decoration::DescriptorSet, DESCRIPTOR_SET);
 
-            sampled_images.emplace(sampler.GetIndex(),
-                                   SampledImage{image_type, sampled_image_type, id});
+            sampled_images.emplace(sampler.GetIndex(), SampledImage{image_type, sampler_type,
+                                                                    sampler_pointer_type, id});
         }
         return binding;
     }
@@ -1525,7 +1530,12 @@ private:
         ASSERT(!meta.sampler.IsBuffer());
 
         const auto& entry = sampled_images.at(meta.sampler.GetIndex());
-        return OpLoad(entry.sampled_image_type, entry.sampler);
+        Id sampler = entry.variable;
+        if (meta.sampler.IsIndexed()) {
+            const Id index = AsInt(Visit(meta.index));
+            sampler = OpAccessChain(entry.sampler_pointer_type, sampler, index);
+        }
+        return OpLoad(entry.sampler_type, sampler);
     }
 
     Id GetTextureImage(Operation operation) {

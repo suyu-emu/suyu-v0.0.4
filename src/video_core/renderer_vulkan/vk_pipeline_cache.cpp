@@ -36,6 +36,13 @@ using Tegra::Engines::ShaderType;
 
 namespace {
 
+// C++20's using enum
+constexpr auto eUniformBuffer = vk::DescriptorType::eUniformBuffer;
+constexpr auto eStorageBuffer = vk::DescriptorType::eStorageBuffer;
+constexpr auto eUniformTexelBuffer = vk::DescriptorType::eUniformTexelBuffer;
+constexpr auto eCombinedImageSampler = vk::DescriptorType::eCombinedImageSampler;
+constexpr auto eStorageImage = vk::DescriptorType::eStorageImage;
+
 constexpr VideoCommon::Shader::CompilerSettings compiler_settings{
     VideoCommon::Shader::CompileDepth::FullDecompile};
 
@@ -119,23 +126,32 @@ ShaderType GetShaderType(Maxwell::ShaderProgram program) {
     }
 }
 
+template <vk::DescriptorType descriptor_type, class Container>
+void AddBindings(std::vector<vk::DescriptorSetLayoutBinding>& bindings, u32& binding,
+                 vk::ShaderStageFlags stage_flags, const Container& container) {
+    const u32 num_entries = static_cast<u32>(std::size(container));
+    for (std::size_t i = 0; i < num_entries; ++i) {
+        u32 count = 1;
+        if constexpr (descriptor_type == eCombinedImageSampler) {
+            // Combined image samplers can be arrayed.
+            count = container[i].Size();
+        }
+        bindings.emplace_back(binding++, descriptor_type, count, stage_flags, nullptr);
+    }
+}
+
 u32 FillDescriptorLayout(const ShaderEntries& entries,
                          std::vector<vk::DescriptorSetLayoutBinding>& bindings,
                          Maxwell::ShaderProgram program_type, u32 base_binding) {
     const ShaderType stage = GetStageFromProgram(program_type);
-    const vk::ShaderStageFlags stage_flags = MaxwellToVK::ShaderStage(stage);
+    const vk::ShaderStageFlags flags = MaxwellToVK::ShaderStage(stage);
 
     u32 binding = base_binding;
-    const auto AddBindings = [&](vk::DescriptorType descriptor_type, std::size_t num_entries) {
-        for (std::size_t i = 0; i < num_entries; ++i) {
-            bindings.emplace_back(binding++, descriptor_type, 1, stage_flags, nullptr);
-        }
-    };
-    AddBindings(vk::DescriptorType::eUniformBuffer, entries.const_buffers.size());
-    AddBindings(vk::DescriptorType::eStorageBuffer, entries.global_buffers.size());
-    AddBindings(vk::DescriptorType::eUniformTexelBuffer, entries.texel_buffers.size());
-    AddBindings(vk::DescriptorType::eCombinedImageSampler, entries.samplers.size());
-    AddBindings(vk::DescriptorType::eStorageImage, entries.images.size());
+    AddBindings<eUniformBuffer>(bindings, binding, flags, entries.const_buffers);
+    AddBindings<eStorageBuffer>(bindings, binding, flags, entries.global_buffers);
+    AddBindings<eUniformTexelBuffer>(bindings, binding, flags, entries.texel_buffers);
+    AddBindings<eCombinedImageSampler>(bindings, binding, flags, entries.samplers);
+    AddBindings<eStorageImage>(bindings, binding, flags, entries.images);
     return binding;
 }
 
@@ -361,32 +377,45 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     return {std::move(program), std::move(bindings)};
 }
 
-void FillDescriptorUpdateTemplateEntries(
-    const VKDevice& device, const ShaderEntries& entries, u32& binding, u32& offset,
-    std::vector<vk::DescriptorUpdateTemplateEntry>& template_entries) {
-    static constexpr auto entry_size = static_cast<u32>(sizeof(DescriptorUpdateEntry));
-    const auto AddEntry = [&](vk::DescriptorType descriptor_type, std::size_t count_) {
-        const u32 count = static_cast<u32>(count_);
-        if (descriptor_type == vk::DescriptorType::eUniformTexelBuffer &&
-            device.GetDriverID() == vk::DriverIdKHR::eNvidiaProprietary) {
-            // Nvidia has a bug where updating multiple uniform texels at once causes the driver to
-            // crash.
-            for (u32 i = 0; i < count; ++i) {
-                template_entries.emplace_back(binding + i, 0, 1, descriptor_type,
-                                              offset + i * entry_size, entry_size);
-            }
-        } else if (count != 0) {
-            template_entries.emplace_back(binding, 0, count, descriptor_type, offset, entry_size);
-        }
-        offset += count * entry_size;
-        binding += count;
-    };
+template <vk::DescriptorType descriptor_type, class Container>
+void AddEntry(std::vector<vk::DescriptorUpdateTemplateEntry>& template_entries, u32& binding,
+              u32& offset, const Container& container) {
+    static constexpr u32 entry_size = static_cast<u32>(sizeof(DescriptorUpdateEntry));
+    const u32 count = static_cast<u32>(std::size(container));
 
-    AddEntry(vk::DescriptorType::eUniformBuffer, entries.const_buffers.size());
-    AddEntry(vk::DescriptorType::eStorageBuffer, entries.global_buffers.size());
-    AddEntry(vk::DescriptorType::eUniformTexelBuffer, entries.texel_buffers.size());
-    AddEntry(vk::DescriptorType::eCombinedImageSampler, entries.samplers.size());
-    AddEntry(vk::DescriptorType::eStorageImage, entries.images.size());
+    if constexpr (descriptor_type == eCombinedImageSampler) {
+        for (u32 i = 0; i < count; ++i) {
+            const u32 num_samplers = container[i].Size();
+            template_entries.emplace_back(binding, 0, num_samplers, descriptor_type, offset,
+                                          entry_size);
+            ++binding;
+            offset += num_samplers * entry_size;
+        }
+        return;
+    }
+
+    if constexpr (descriptor_type == eUniformTexelBuffer) {
+        // Nvidia has a bug where updating multiple uniform texels at once causes the driver to
+        // crash.
+        for (u32 i = 0; i < count; ++i) {
+            template_entries.emplace_back(binding + i, 0, 1, descriptor_type,
+                                          offset + i * entry_size, entry_size);
+        }
+    } else if (count > 0) {
+        template_entries.emplace_back(binding, 0, count, descriptor_type, offset, entry_size);
+    }
+    offset += count * entry_size;
+    binding += count;
+}
+
+void FillDescriptorUpdateTemplateEntries(
+    const ShaderEntries& entries, u32& binding, u32& offset,
+    std::vector<vk::DescriptorUpdateTemplateEntry>& template_entries) {
+    AddEntry<eUniformBuffer>(template_entries, offset, binding, entries.const_buffers);
+    AddEntry<eStorageBuffer>(template_entries, offset, binding, entries.global_buffers);
+    AddEntry<eUniformTexelBuffer>(template_entries, offset, binding, entries.texel_buffers);
+    AddEntry<eCombinedImageSampler>(template_entries, offset, binding, entries.samplers);
+    AddEntry<eStorageImage>(template_entries, offset, binding, entries.images);
 }
 
 } // namespace Vulkan
