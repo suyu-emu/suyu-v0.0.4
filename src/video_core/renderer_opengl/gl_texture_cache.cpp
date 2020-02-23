@@ -260,6 +260,13 @@ CachedSurface::~CachedSurface() = default;
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     MICROPROFILE_SCOPE(OpenGL_Texture_Download);
 
+    if (params.IsBuffer()) {
+        glGetNamedBufferSubData(texture_buffer.handle, 0,
+                                static_cast<GLsizeiptr>(params.GetHostSizeInBytes()),
+                                staging_buffer.data());
+        return;
+    }
+
     SCOPE_EXIT({ glPixelStorei(GL_PACK_ROW_LENGTH, 0); });
 
     for (u32 level = 0; level < params.emulated_levels; ++level) {
