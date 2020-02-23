@@ -86,6 +86,7 @@ struct AttributeType {
 
 struct VertexIndices {
     std::optional<u32> position;
+    std::optional<u32> layer;
     std::optional<u32> viewport;
     std::optional<u32> point_size;
     std::optional<u32> clip_distances;
@@ -284,9 +285,11 @@ public:
         AddExtension("SPV_KHR_variable_pointers");
         AddExtension("SPV_KHR_shader_draw_parameters");
 
-        if (ir.UsesViewportIndex()) {
-            AddCapability(spv::Capability::MultiViewport);
-            if (device.IsExtShaderViewportIndexLayerSupported()) {
+        if (ir.UsesLayer() || ir.UsesViewportIndex()) {
+            if (ir.UsesViewportIndex()) {
+                AddCapability(spv::Capability::MultiViewport);
+            }
+            if (stage != ShaderType::Geometry && device.IsExtShaderViewportIndexLayerSupported()) {
                 AddExtension("SPV_EXT_shader_viewport_index_layer");
                 AddCapability(spv::Capability::ShaderViewportIndexLayerEXT);
             }
@@ -928,13 +931,22 @@ private:
         VertexIndices indices;
         indices.position = AddBuiltIn(t_float4, spv::BuiltIn::Position, "position");
 
+        if (ir.UsesLayer()) {
+            if (stage != ShaderType::Vertex || device.IsExtShaderViewportIndexLayerSupported()) {
+                indices.layer = AddBuiltIn(t_int, spv::BuiltIn::Layer, "layer");
+            } else {
+                LOG_ERROR(
+                    Render_Vulkan,
+                    "Shader requires Layer but it's not supported on this stage with this device.");
+            }
+        }
+
         if (ir.UsesViewportIndex()) {
             if (stage != ShaderType::Vertex || device.IsExtShaderViewportIndexLayerSupported()) {
                 indices.viewport = AddBuiltIn(t_int, spv::BuiltIn::ViewportIndex, "viewport_index");
             } else {
-                LOG_ERROR(Render_Vulkan,
-                          "Shader requires ViewportIndex but it's not supported on this "
-                          "stage with this device.");
+                LOG_ERROR(Render_Vulkan, "Shader requires ViewportIndex but it's not supported on "
+                                         "this stage with this device.");
             }
         }
 
@@ -1296,6 +1308,13 @@ private:
                 }
                 case Attribute::Index::LayerViewportPointSize:
                     switch (element) {
+                    case 1: {
+                        if (!out_indices.layer) {
+                            return {};
+                        }
+                        const u32 index = out_indices.layer.value();
+                        return {AccessElement(t_out_int, out_vertex, index), Type::Int};
+                    }
                     case 2: {
                         if (!out_indices.viewport) {
                             return {};
@@ -1364,6 +1383,11 @@ private:
 
         } else {
             UNIMPLEMENTED();
+        }
+
+        if (!target.id) {
+            // On failure we return a nullptr target.id, skip these stores.
+            return {};
         }
 
         OpStore(target.id, As(Visit(src), target.type));
