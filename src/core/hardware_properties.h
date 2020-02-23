@@ -20,6 +20,8 @@ constexpr u32 NUM_CPU_CORES = 4;            // Number of CPU Cores
 
 } // namespace Hardware
 
+constexpr u32 INVALID_HOST_THREAD_ID = 0xFFFFFFFF;
+
 struct EmuThreadHandle {
     u32 host_handle;
     u32 guest_handle;

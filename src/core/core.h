@@ -360,6 +360,12 @@ public:
 
     const CurrentBuildProcessID& GetCurrentProcessBuildID() const;
 
+    /// Register a host thread as an emulated CPU Core.
+    void RegisterCoreThread(std::size_t id);
+
+    /// Register a host thread as an auxiliary thread.
+    void RegisterHostThread();
+
 private:
     System();
 

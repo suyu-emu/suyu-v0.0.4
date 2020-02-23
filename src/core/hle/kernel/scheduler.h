@@ -6,6 +6,7 @@
 
 #include <atomic>
 #include <memory>
+#include <mutex>
 #include <vector>
 
 #include "common/common_types.h"
@@ -20,11 +21,13 @@ class System;
 
 namespace Kernel {
 
+class KernelCore;
 class Process;
+class SchedulerLock;
 
 class GlobalScheduler final {
 public:
-    explicit GlobalScheduler(Core::System& system);
+    explicit GlobalScheduler(KernelCore& kernel);
     ~GlobalScheduler();
 
     /// Adds a new thread to the scheduler
@@ -138,6 +141,14 @@ public:
     void Shutdown();
 
 private:
+    friend class SchedulerLock;
+
+    /// Lock the scheduler to the current thread.
+    void Lock();
+
+    /// Unlocks the scheduler, reselects threads, interrupts cores for rescheduling
+    /// and reschedules current core if needed.
+    void Unlock();
     /**
      * Transfers a thread into an specific core. If the destination_core is -1
      * it will be unscheduled from its source code and added into its suggested
@@ -158,9 +169,14 @@ private:
     // ordered from Core 0 to Core 3.
     std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
+    /// Scheduler lock mechanisms.
+    std::mutex inner_lock{}; // TODO(Blinkhawk): Replace for a SpinLock
+    std::atomic<s64> scope_lock{};
+    Core::EmuThreadHandle current_owner{Core::EmuThreadHandle::InvalidHandle()};
+
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<std::shared_ptr<Thread>> thread_list;
-    Core::System& system;
+    KernelCore& kernel;
 };
 
 class Scheduler final {
@@ -225,6 +241,32 @@ private:
     const std::size_t core_id;
 
     bool is_context_switch_pending = false;
+};
+
+class SchedulerLock {
+public:
+    explicit SchedulerLock(KernelCore& kernel);
+    ~SchedulerLock();
+
+protected:
+    KernelCore& kernel;
+};
+
+class SchedulerLockAndSleep : public SchedulerLock {
+public:
+    explicit SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* time_task,
+                                   s64 nanoseconds);
+    ~SchedulerLockAndSleep();
+
+    void CancelSleep() {
+        sleep_cancelled = true;
+    }
+
+private:
+    Handle& event_handle;
+    Thread* time_task;
+    s64 nanoseconds;
+    bool sleep_cancelled{};
 };
 
 } // namespace Kernel

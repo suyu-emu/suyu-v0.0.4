@@ -46,9 +46,9 @@ Thread::~Thread() = default;
 void Thread::Stop() {
     // Cancel any outstanding wakeup events for this thread
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                             callback_handle);
-    kernel.ThreadWakeupCallbackHandleTable().Close(callback_handle);
-    callback_handle = 0;
+                                                             global_handle);
+    kernel.GlobalHandleTable().Close(global_handle);
+    global_handle = 0;
     SetStatus(ThreadStatus::Dead);
     Signal();
 
@@ -73,12 +73,12 @@ void Thread::WakeAfterDelay(s64 nanoseconds) {
     // thread-safe version of ScheduleEvent.
     const s64 cycles = Core::Timing::nsToCycles(std::chrono::nanoseconds{nanoseconds});
     Core::System::GetInstance().CoreTiming().ScheduleEvent(
-        cycles, kernel.ThreadWakeupCallbackEventType(), callback_handle);
+        cycles, kernel.ThreadWakeupCallbackEventType(), global_handle);
 }
 
 void Thread::CancelWakeupTimer() {
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                             callback_handle);
+                                                             global_handle);
 }
 
 void Thread::ResumeFromWait() {
@@ -190,7 +190,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
     thread->condvar_wait_address = 0;
     thread->wait_handle = 0;
     thread->name = std::move(name);
-    thread->callback_handle = kernel.ThreadWakeupCallbackHandleTable().Create(thread).Unwrap();
+    thread->global_handle = kernel.GlobalHandleTable().Create(thread).Unwrap();
     thread->owner_process = &owner_process;
     auto& scheduler = kernel.GlobalScheduler();
     scheduler.AddThread(thread);

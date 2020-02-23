@@ -18,10 +18,11 @@
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
+#include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
 
-GlobalScheduler::GlobalScheduler(Core::System& system) : system{system} {}
+GlobalScheduler::GlobalScheduler(KernelCore& kernel) : kernel{kernel} {}
 
 GlobalScheduler::~GlobalScheduler() = default;
 
@@ -35,7 +36,7 @@ void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
 }
 
 void GlobalScheduler::UnloadThread(std::size_t core) {
-    Scheduler& sched = system.Scheduler(core);
+    Scheduler& sched = kernel.Scheduler(core);
     sched.UnloadThread();
 }
 
@@ -50,7 +51,7 @@ void GlobalScheduler::SelectThread(std::size_t core) {
         sched.is_context_switch_pending = sched.selected_thread != sched.current_thread;
         std::atomic_thread_fence(std::memory_order_seq_cst);
     };
-    Scheduler& sched = system.Scheduler(core);
+    Scheduler& sched = kernel.Scheduler(core);
     Thread* current_thread = nullptr;
     // Step 1: Get top thread in schedule queue.
     current_thread = scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
@@ -356,6 +357,32 @@ void GlobalScheduler::Shutdown() {
     thread_list.clear();
 }
 
+void GlobalScheduler::Lock() {
+    Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadID();
+    if (current_thread == current_owner) {
+        ++scope_lock;
+    } else {
+        inner_lock.lock();
+        current_owner = current_thread;
+        ASSERT(current_owner != Core::EmuThreadHandle::InvalidHandle());
+        scope_lock = 1;
+    }
+}
+
+void GlobalScheduler::Unlock() {
+    if (--scope_lock != 0) {
+        ASSERT(scope_lock > 0);
+        return;
+    }
+    for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+        SelectThread(i);
+    }
+    current_owner = Core::EmuThreadHandle::InvalidHandle();
+    scope_lock = 1;
+    inner_lock.unlock();
+    // TODO(Blinkhawk): Setup the interrupts and change context on current core.
+}
+
 Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id)
     : system(system), cpu_core(cpu_core), core_id(core_id) {}
 
@@ -483,6 +510,29 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
 void Scheduler::Shutdown() {
     current_thread = nullptr;
     selected_thread = nullptr;
+}
+
+SchedulerLock::SchedulerLock(KernelCore& kernel) : kernel{kernel} {
+    kernel.GlobalScheduler().Lock();
+}
+
+SchedulerLock::~SchedulerLock() {
+    kernel.GlobalScheduler().Unlock();
+}
+
+SchedulerLockAndSleep::SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle,
+                                             Thread* time_task, s64 nanoseconds)
+    : SchedulerLock{kernel}, event_handle{event_handle}, time_task{time_task}, nanoseconds{
+                                                                                   nanoseconds} {
+    event_handle = InvalidHandle;
+}
+
+SchedulerLockAndSleep::~SchedulerLockAndSleep() {
+    if (sleep_cancelled) {
+        return;
+    }
+    auto& time_manager = kernel.TimeManager();
+    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
 }
 
 } // namespace Kernel

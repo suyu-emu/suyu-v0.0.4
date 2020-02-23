@@ -187,6 +187,8 @@ add_library(core STATIC
     hle/kernel/synchronization.h
     hle/kernel/thread.cpp
     hle/kernel/thread.h
+    hle/kernel/time_manager.cpp
+    hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp
     hle/kernel/transfer_memory.h
     hle/kernel/vm_manager.cpp

@@ -707,4 +707,12 @@ const Service::SM::ServiceManager& System::ServiceManager() const {
     return *impl->service_manager;
 }
 
+void System::RegisterCoreThread(std::size_t id) {
+    impl->kernel.RegisterCoreThread(id);
+}
+
+void System::RegisterHostThread() {
+    impl->kernel.RegisterHostThread();
+}
+
 } // namespace Core
