@@ -166,7 +166,7 @@ struct System::Impl {
         service_manager = std::make_shared<Service::SM::ServiceManager>();
 
         Service::Init(service_manager, system);
-        GDBStub::Init();
+        GDBStub::DeferStart();
 
         renderer = VideoCore::CreateRenderer(emu_window, system);
         if (!renderer->Init()) {
