@@ -179,10 +179,11 @@ Tegra::Engines::ConstBufferEngineInterface& CachedShader::GetEngine(
 VKPipelineCache::VKPipelineCache(Core::System& system, RasterizerVulkan& rasterizer,
                                  const VKDevice& device, VKScheduler& scheduler,
                                  VKDescriptorPool& descriptor_pool,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue)
+                                 VKUpdateDescriptorQueue& update_descriptor_queue,
+                                 VKRenderPassCache& renderpass_cache)
     : RasterizerCache{rasterizer}, system{system}, device{device}, scheduler{scheduler},
       descriptor_pool{descriptor_pool}, update_descriptor_queue{update_descriptor_queue},
-      renderpass_cache(device) {}
+      renderpass_cache{renderpass_cache} {}
 
 VKPipelineCache::~VKPipelineCache() = default;
 
