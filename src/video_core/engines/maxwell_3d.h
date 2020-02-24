@@ -524,6 +524,12 @@ public:
             FractionalEven = 2,
         };
 
+        enum class PolygonMode : u32 {
+            Point = 0x1b00,
+            Line = 0x1b01,
+            Fill = 0x1b02,
+        };
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
@@ -705,7 +711,12 @@ public:
 
                 s32 clear_stencil;
 
-                INSERT_UNION_PADDING_WORDS(0x7);
+                INSERT_UNION_PADDING_WORDS(0x2);
+
+                PolygonMode polygon_mode_front;
+                PolygonMode polygon_mode_back;
+
+                INSERT_UNION_PADDING_WORDS(0x3);
 
                 u32 polygon_offset_point_enable;
                 u32 polygon_offset_line_enable;
@@ -764,7 +775,11 @@ public:
                     BitField<12, 4, u32> viewport;
                 } clear_flags;
 
-                INSERT_UNION_PADDING_WORDS(0x19);
+                INSERT_UNION_PADDING_WORDS(0x10);
+
+                u32 fill_rectangle;
+
+                INSERT_UNION_PADDING_WORDS(0x8);
 
                 std::array<VertexAttribute, NumVertexAttributes> vertex_attrib_format;
 
@@ -1422,6 +1437,8 @@ ASSERT_REG_POSITION(depth_mode, 0x35F);
 ASSERT_REG_POSITION(clear_color[0], 0x360);
 ASSERT_REG_POSITION(clear_depth, 0x364);
 ASSERT_REG_POSITION(clear_stencil, 0x368);
+ASSERT_REG_POSITION(polygon_mode_front, 0x36B);
+ASSERT_REG_POSITION(polygon_mode_back, 0x36C);
 ASSERT_REG_POSITION(polygon_offset_point_enable, 0x370);
 ASSERT_REG_POSITION(polygon_offset_line_enable, 0x371);
 ASSERT_REG_POSITION(polygon_offset_fill_enable, 0x372);
@@ -1435,6 +1452,7 @@ ASSERT_REG_POSITION(rt_separate_frag_data, 0x3EB);
 ASSERT_REG_POSITION(depth_bounds, 0x3E7);
 ASSERT_REG_POSITION(zeta, 0x3F8);
 ASSERT_REG_POSITION(clear_flags, 0x43E);
+ASSERT_REG_POSITION(fill_rectangle, 0x44F);
 ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
 ASSERT_REG_POSITION(rt_control, 0x487);
 ASSERT_REG_POSITION(zeta_width, 0x48a);

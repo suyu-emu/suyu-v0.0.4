@@ -94,6 +94,15 @@ void SetupDirtyShaders(Tables& tables) {
               Shaders);
 }
 
+void SetupDirtyPolygonModes(Tables& tables) {
+    tables[0][OFF(polygon_mode_front)] = PolygonModeFront;
+    tables[0][OFF(polygon_mode_back)] = PolygonModeBack;
+
+    tables[1][OFF(polygon_mode_front)] = PolygonModes;
+    tables[1][OFF(polygon_mode_back)] = PolygonModes;
+    tables[0][OFF(fill_rectangle)] = PolygonModes;
+}
+
 void SetupDirtyDepthTest(Tables& tables) {
     auto& table = tables[0];
     table[OFF(depth_test_enable)] = DepthTest;
@@ -211,6 +220,7 @@ void StateTracker::Initialize() {
     SetupDirtyVertexArrays(tables);
     SetupDirtyVertexFormat(tables);
     SetupDirtyShaders(tables);
+    SetupDirtyPolygonModes(tables);
     SetupDirtyDepthTest(tables);
     SetupDirtyStencilTest(tables);
     SetupDirtyAlphaTest(tables);
