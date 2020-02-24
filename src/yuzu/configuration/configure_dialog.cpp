@@ -41,6 +41,7 @@ void ConfigureDialog::ApplyConfiguration() {
     ui->inputTab->ApplyConfiguration();
     ui->hotkeysTab->ApplyConfiguration(registry);
     ui->graphicsTab->ApplyConfiguration();
+    ui->graphicsAdvancedTab->ApplyConfiguration();
     ui->audioTab->ApplyConfiguration();
     ui->debugTab->ApplyConfiguration();
     ui->webTab->ApplyConfiguration();
@@ -76,7 +77,7 @@ void ConfigureDialog::PopulateSelectionList() {
     const std::array<std::pair<QString, QList<QWidget*>>, 5> items{
         {{tr("General"), {ui->generalTab, ui->webTab, ui->debugTab, ui->uiTab}},
          {tr("System"), {ui->systemTab, ui->profileManagerTab, ui->serviceTab, ui->filesystemTab}},
-         {tr("Graphics"), {ui->graphicsTab}},
+         {tr("Graphics"), {ui->graphicsTab, ui->graphicsAdvancedTab}},
          {tr("Audio"), {ui->audioTab}},
          {tr("Controls"), {ui->inputTab, ui->hotkeysTab}}},
     };
@@ -105,6 +106,7 @@ void ConfigureDialog::UpdateVisibleTabs() {
         {ui->inputTab, tr("Input")},
         {ui->hotkeysTab, tr("Hotkeys")},
         {ui->graphicsTab, tr("Graphics")},
+        {ui->graphicsAdvancedTab, tr("Advanced")},
         {ui->audioTab, tr("Audio")},
         {ui->debugTab, tr("Debug")},
         {ui->webTab, tr("Web")},

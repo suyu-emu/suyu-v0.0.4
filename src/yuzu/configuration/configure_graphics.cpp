@@ -100,13 +100,8 @@ void ConfigureGraphics::SetConfiguration() {
     ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache);
-    ui->use_accurate_gpu_emulation->setChecked(Settings::values.use_accurate_gpu_emulation);
     ui->use_asynchronous_gpu_emulation->setEnabled(runtime_lock);
     ui->use_asynchronous_gpu_emulation->setChecked(Settings::values.use_asynchronous_gpu_emulation);
-    ui->use_vsync->setEnabled(runtime_lock);
-    ui->use_vsync->setChecked(Settings::values.use_vsync);
-    ui->force_30fps_mode->setEnabled(runtime_lock);
-    ui->force_30fps_mode->setChecked(Settings::values.force_30fps_mode);
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red, Settings::values.bg_green,
                                                  Settings::values.bg_blue));
     UpdateDeviceComboBox();
@@ -119,11 +114,8 @@ void ConfigureGraphics::ApplyConfiguration() {
         ToResolutionFactor(static_cast<Resolution>(ui->resolution_factor_combobox->currentIndex()));
     Settings::values.aspect_ratio = ui->aspect_ratio_combobox->currentIndex();
     Settings::values.use_disk_shader_cache = ui->use_disk_shader_cache->isChecked();
-    Settings::values.use_accurate_gpu_emulation = ui->use_accurate_gpu_emulation->isChecked();
     Settings::values.use_asynchronous_gpu_emulation =
         ui->use_asynchronous_gpu_emulation->isChecked();
-    Settings::values.use_vsync = ui->use_vsync->isChecked();
-    Settings::values.force_30fps_mode = ui->force_30fps_mode->isChecked();
     Settings::values.bg_red = static_cast<float>(bg_color.redF());
     Settings::values.bg_green = static_cast<float>(bg_color.greenF());
     Settings::values.bg_blue = static_cast<float>(bg_color.blueF());

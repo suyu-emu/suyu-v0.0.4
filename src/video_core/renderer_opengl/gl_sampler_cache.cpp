@@ -38,7 +38,7 @@ OGLSampler SamplerCacheOpenGL::CreateSampler(const Tegra::Texture::TSCEntry& tsc
         glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY, tsc.GetMaxAnisotropy());
     } else if (GLAD_GL_EXT_texture_filter_anisotropic) {
         glSamplerParameterf(sampler_id, GL_TEXTURE_MAX_ANISOTROPY_EXT, tsc.GetMaxAnisotropy());
-    } else if (tsc.GetMaxAnisotropy() != 1) {
+    } else {
         LOG_WARNING(Render_OpenGL, "Anisotropy not supported by host GPU driver");
     }
 

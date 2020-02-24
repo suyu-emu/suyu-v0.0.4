@@ -8,6 +8,7 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "core/settings.h"
 
 namespace Tegra::Texture {
 
@@ -294,6 +295,14 @@ enum class TextureMipmapFilter : u32 {
     Linear = 3,
 };
 
+enum class Anisotropy {
+    Default,
+    Filter2x,
+    Filter4x,
+    Filter8x,
+    Filter16x,
+};
+
 struct TSCEntry {
     union {
         struct {
@@ -328,7 +337,20 @@ struct TSCEntry {
     };
 
     float GetMaxAnisotropy() const {
-        return static_cast<float>(1U << max_anisotropy);
+        switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
+        case Anisotropy::Default:
+            return static_cast<float>(1U << max_anisotropy);
+        case Anisotropy::Filter2x:
+            return static_cast<float>(2U << max_anisotropy);
+        case Anisotropy::Filter4x:
+            return static_cast<float>(4U << max_anisotropy);
+        case Anisotropy::Filter8x:
+            return static_cast<float>(8U << max_anisotropy);
+        case Anisotropy::Filter16x:
+            return static_cast<float>(16U << max_anisotropy);
+        default:
+            return static_cast<float>(1U << max_anisotropy);
+        }
     }
 
     float GetMinLod() const {

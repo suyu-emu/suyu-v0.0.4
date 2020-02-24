@@ -430,6 +430,7 @@ struct Values {
 
     float resolution_factor;
     int aspect_ratio;
+    int max_anisotropy;
     bool use_frame_limit;
     u16 frame_limit;
     bool use_disk_shader_cache;
