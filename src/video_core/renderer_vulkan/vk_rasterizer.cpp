@@ -611,33 +611,34 @@ bool RasterizerVulkan::WalkAttachmentOverlaps(const CachedSurfaceView& attachmen
 std::tuple<vk::Framebuffer, vk::Extent2D> RasterizerVulkan::ConfigureFramebuffers(
     vk::RenderPass renderpass) {
     FramebufferCacheKey key{renderpass, std::numeric_limits<u32>::max(),
-                            std::numeric_limits<u32>::max()};
+                            std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
 
-    const auto MarkAsModifiedAndPush = [&](const View& view) {
-        if (view == nullptr) {
+    const auto try_push = [&](const View& view) {
+        if (!view) {
             return false;
         }
         key.views.push_back(view->GetHandle());
         key.width = std::min(key.width, view->GetWidth());
         key.height = std::min(key.height, view->GetHeight());
+        key.layers = std::min(key.layers, view->GetNumLayers());
         return true;
     };
 
     for (std::size_t index = 0; index < std::size(color_attachments); ++index) {
-        if (MarkAsModifiedAndPush(color_attachments[index])) {
+        if (try_push(color_attachments[index])) {
             texture_cache.MarkColorBufferInUse(index);
         }
     }
-    if (MarkAsModifiedAndPush(zeta_attachment)) {
+    if (try_push(zeta_attachment)) {
         texture_cache.MarkDepthBufferInUse();
     }
 
     const auto [fbentry, is_cache_miss] = framebuffer_cache.try_emplace(key);
     auto& framebuffer = fbentry->second;
     if (is_cache_miss) {
-        const vk::FramebufferCreateInfo framebuffer_ci({}, key.renderpass,
-                                                       static_cast<u32>(key.views.size()),
-                                                       key.views.data(), key.width, key.height, 1);
+        const vk::FramebufferCreateInfo framebuffer_ci(
+            {}, key.renderpass, static_cast<u32>(key.views.size()), key.views.data(), key.width,
+            key.height, key.layers);
         const auto dev = device.GetLogical();
         const auto& dld = device.GetDispatchLoader();
         framebuffer = dev.createFramebufferUnique(framebuffer_ci, nullptr, dld);

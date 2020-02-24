@@ -405,24 +405,36 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
 CachedSurfaceView::~CachedSurfaceView() = default;
 
 void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
-    ASSERT(params.num_layers == 1 && params.num_levels == 1);
+    ASSERT(params.num_levels == 1);
 
-    const auto& owner_params = surface.GetSurfaceParams();
+    const GLuint texture = surface.GetTexture();
+    if (params.num_layers > 1) {
+        // Layered framebuffer attachments
+        UNIMPLEMENTED_IF(params.base_layer != 0);
 
-    switch (owner_params.target) {
+        switch (params.target) {
+        case SurfaceTarget::Texture2DArray:
+            glFramebufferTexture(target, attachment, texture, params.base_level);
+            break;
+        default:
+            UNIMPLEMENTED();
+        }
+        return;
+    }
+
+    const GLenum view_target = surface.GetTarget();
+    switch (surface.GetSurfaceParams().target) {
     case SurfaceTarget::Texture1D:
-        glFramebufferTexture1D(target, attachment, surface.GetTarget(), surface.GetTexture(),
-                               params.base_level);
+        glFramebufferTexture1D(target, attachment, view_target, texture, params.base_level);
         break;
     case SurfaceTarget::Texture2D:
-        glFramebufferTexture2D(target, attachment, surface.GetTarget(), surface.GetTexture(),
-                               params.base_level);
+        glFramebufferTexture2D(target, attachment, view_target, texture, params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::TextureCubeArray:
-        glFramebufferTextureLayer(target, attachment, surface.GetTexture(), params.base_level,
+        glFramebufferTextureLayer(target, attachment, texture, params.base_level,
                                   params.base_layer);
         break;
     default:

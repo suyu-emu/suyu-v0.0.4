@@ -542,7 +542,7 @@ public:
                 BitField<12, 1, InvMemoryLayout> type;
             } memory_layout;
             union {
-                BitField<0, 16, u32> array_mode;
+                BitField<0, 16, u32> layers;
                 BitField<16, 1, u32> volume;
             };
             u32 layer_stride;
@@ -800,8 +800,12 @@ public:
 
                 u32 zeta_width;
                 u32 zeta_height;
+                union {
+                    BitField<0, 16, u32> zeta_layers;
+                    BitField<16, 1, u32> zeta_volume;
+                };
 
-                INSERT_UNION_PADDING_WORDS(0x27);
+                INSERT_UNION_PADDING_WORDS(0x26);
 
                 u32 depth_test_enable;
 
@@ -1507,6 +1511,7 @@ ASSERT_REG_POSITION(vertex_attrib_format, 0x458);
 ASSERT_REG_POSITION(rt_control, 0x487);
 ASSERT_REG_POSITION(zeta_width, 0x48a);
 ASSERT_REG_POSITION(zeta_height, 0x48b);
+ASSERT_REG_POSITION(zeta_layers, 0x48c);
 ASSERT_REG_POSITION(depth_test_enable, 0x4B3);
 ASSERT_REG_POSITION(independent_blend_enable, 0x4B9);
 ASSERT_REG_POSITION(depth_write_enabled, 0x4BA);

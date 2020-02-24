@@ -151,6 +151,10 @@ public:
         return params.GetMipHeight(base_level);
     }
 
+    u32 GetNumLayers() const {
+        return num_layers;
+    }
+
     bool IsBufferView() const {
         return buffer_view;
     }

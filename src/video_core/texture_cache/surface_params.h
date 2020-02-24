@@ -35,10 +35,7 @@ public:
                                         const VideoCommon::Shader::Image& entry);
 
     /// Creates SurfaceCachedParams for a depth buffer configuration.
-    static SurfaceParams CreateForDepthBuffer(
-        Core::System& system, u32 zeta_width, u32 zeta_height, Tegra::DepthFormat format,
-        u32 block_width, u32 block_height, u32 block_depth,
-        Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout type);
+    static SurfaceParams CreateForDepthBuffer(Core::System& system);
 
     /// Creates SurfaceCachedParams from a framebuffer configuration.
     static SurfaceParams CreateForFramebuffer(Core::System& system, std::size_t index);
