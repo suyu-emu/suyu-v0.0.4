@@ -1717,11 +1717,6 @@ void GMainWindow::OnStartGame() {
 }
 
 void GMainWindow::OnPauseGame() {
-    Core::System& system{Core::System::GetInstance()};
-    if (system.GetExitLock() && !ConfirmForceLockedExit()) {
-        return;
-    }
-
     emu_thread->SetRunning(false);
 
     ui.action_Start->setEnabled(true);
