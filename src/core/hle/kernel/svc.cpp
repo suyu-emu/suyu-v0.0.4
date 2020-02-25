@@ -2410,9 +2410,6 @@ MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 void Call(Core::System& system, u32 immediate) {
     MICROPROFILE_SCOPE(Kernel_SVC);
 
-    // Lock the global kernel mutex when we enter the kernel HLE.
-    std::lock_guard lock{HLE::g_hle_lock};
-
     const FunctionDef* info = system.CurrentProcess()->Is64BitProcess() ? GetSVCInfo64(immediate)
                                                                         : GetSVCInfo32(immediate);
     if (info) {
