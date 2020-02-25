@@ -31,12 +31,12 @@ class Process;
 class Scheduler;
 
 enum ThreadPriority : u32 {
-    THREADPRIO_HIGHEST = 0,             ///< Highest thread priority
-    THREADPRIO_MAX_CORE_MIGRATION = 2,  ///< Highest priority for a core migration
-    THREADPRIO_USERLAND_MAX = 24,       ///< Highest thread priority for userland apps
-    THREADPRIO_DEFAULT = 44,            ///< Default thread priority for userland apps
-    THREADPRIO_LOWEST = 63,             ///< Lowest thread priority
-    THREADPRIO_COUNT = 64,              ///< Total number of possible thread priorities.
+    THREADPRIO_HIGHEST = 0,            ///< Highest thread priority
+    THREADPRIO_MAX_CORE_MIGRATION = 2, ///< Highest priority for a core migration
+    THREADPRIO_USERLAND_MAX = 24,      ///< Highest thread priority for userland apps
+    THREADPRIO_DEFAULT = 44,           ///< Default thread priority for userland apps
+    THREADPRIO_LOWEST = 63,            ///< Lowest thread priority
+    THREADPRIO_COUNT = 64,             ///< Total number of possible thread priorities.
 };
 
 enum ThreadType : u32 {
@@ -129,23 +129,24 @@ public:
     using WakeupCallback =
         std::function<bool(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                            std::shared_ptr<SynchronizationObject> object, std::size_t index)>;
+    using HLECallback = std::function<bool(std::shared_ptr<Thread> thread)>;
 
-   /**
-    * Creates and returns a new thread. The new thread is immediately scheduled
-    * @param system The instance of the whole system
-    * @param name The friendly name desired for the thread
-    * @param entry_point The address at which the thread should start execution
-    * @param priority The thread's priority
-    * @param arg User data to pass to the thread
-    * @param processor_id The ID(s) of the processors on which the thread is desired to be run
-    * @param stack_top The address of the thread's stack top
-    * @param owner_process The parent process for the thread, if null, it's a kernel thread
-    * @return A shared pointer to the newly created thread
-    */
-   static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags, std::string name,
-                                                    VAddr entry_point, u32 priority, u64 arg,
-                                                    s32 processor_id, VAddr stack_top,
-                                                    Process* owner_process);
+    /**
+     * Creates and returns a new thread. The new thread is immediately scheduled
+     * @param system The instance of the whole system
+     * @param name The friendly name desired for the thread
+     * @param entry_point The address at which the thread should start execution
+     * @param priority The thread's priority
+     * @param arg User data to pass to the thread
+     * @param processor_id The ID(s) of the processors on which the thread is desired to be run
+     * @param stack_top The address of the thread's stack top
+     * @param owner_process The parent process for the thread, if null, it's a kernel thread
+     * @return A shared pointer to the newly created thread
+     */
+    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags,
+                                                     std::string name, VAddr entry_point,
+                                                     u32 priority, u64 arg, s32 processor_id,
+                                                     VAddr stack_top, Process* owner_process);
 
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
@@ -161,10 +162,10 @@ public:
      * @param thread_start_parameter The parameter which will passed to host context on init
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags, std::string name,
-                                                     VAddr entry_point, u32 priority, u64 arg,
-                                                     s32 processor_id, VAddr stack_top,
-                                                     Process* owner_process,
+    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags,
+                                                     std::string name, VAddr entry_point,
+                                                     u32 priority, u64 arg, s32 processor_id,
+                                                     VAddr stack_top, Process* owner_process,
                                                      std::function<void(void*)>&& thread_start_func,
                                                      void* thread_start_parameter);
 
@@ -447,15 +448,35 @@ public:
     }
 
     bool HasWakeupCallback() const {
-        return wakeup_callback != nullptr;
+        return hle_callback != nullptr;
+    }
+
+    bool HasHLECallback() const {
+        return hle_callback != nullptr;
     }
 
     void SetWakeupCallback(WakeupCallback callback) {
-        wakeup_callback = std::move(callback);
+        hle_callback = std::move(callback);
+    }
+
+    void SetHLECallback(WakeupCallback callback) {
+        hle_callback = std::move(callback);
+    }
+
+    void SetHLETimeEvent(Handle time_event) {
+        hle_time_event = time_event;
+    }
+
+    Handle GetHLETimeEvent() const {
+        return hle_time_event;
     }
 
     void InvalidateWakeupCallback() {
         SetWakeupCallback(nullptr);
+    }
+
+    void InvalidateHLECallback() {
+        SetHLECallback(nullptr);
     }
 
     /**
@@ -466,6 +487,8 @@ public:
      */
     bool InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                               std::shared_ptr<SynchronizationObject> object, std::size_t index);
+    bool InvokeHLECallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                           std::shared_ptr<SynchronizationObject> object, std::size_t index);
 
     u32 GetIdealCore() const {
         return ideal_core;
@@ -600,7 +623,8 @@ private:
     /// Callback that will be invoked when the thread is resumed from a waiting state. If the thread
     /// was waiting via WaitSynchronization then the object will be the last object that became
     /// available. In case of a timeout, the object will be nullptr.
-    WakeupCallback wakeup_callback;
+    WakeupCallback hle_callback;
+    Handle hle_time_event;
 
     Scheduler* scheduler = nullptr;
 

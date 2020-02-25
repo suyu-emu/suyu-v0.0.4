@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/kernel.h"
@@ -21,7 +22,9 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/server_session.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
 
@@ -46,11 +49,10 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const std::string& reason, u64 timeout, WakeupCallback&& callback,
     std::shared_ptr<WritableEvent> writable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->SetWakeupCallback(
+    thread->SetHLECallback(
         [context = *this, callback](ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                                     std::shared_ptr<SynchronizationObject> object,
                                     std::size_t index) mutable -> bool {
-            ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
             callback(thread, context, reason);
             context.WriteToOutgoingCommandBuffer(*thread);
             return true;
@@ -62,14 +64,16 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
         writable_event = pair.writable;
     }
 
-    const auto readable_event{writable_event->GetReadableEvent()};
-    writable_event->Clear();
-    thread->SetStatus(ThreadStatus::WaitHLEEvent);
-    thread->SetSynchronizationObjects({readable_event});
-    readable_event->AddWaitingThread(thread);
-
-    if (timeout > 0) {
-        thread->WakeAfterDelay(timeout);
+    {
+        Handle event_handle = InvalidHandle;
+        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
+        const auto readable_event{writable_event->GetReadableEvent()};
+        writable_event->Clear();
+        thread->SetStatus(ThreadStatus::WaitHLEEvent);
+        thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
+        readable_event->AddWaitingThread(thread);
+        lock.Release();
+        thread->SetHLETimeEvent(event_handle);
     }
 
     is_thread_waiting = true;

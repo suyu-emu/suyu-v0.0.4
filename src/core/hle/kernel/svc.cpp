@@ -38,6 +38,7 @@
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/lock.h"
@@ -318,11 +319,23 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
     auto thread = system.CurrentScheduler().GetCurrentThread();
-    thread->InvalidateWakeupCallback();
-    thread->SetStatus(ThreadStatus::WaitIPC);
-    system.PrepareReschedule(thread->GetProcessorID());
+    {
+        SchedulerLock lock(system.Kernel());
+        thread->InvalidateHLECallback();
+        thread->SetStatus(ThreadStatus::WaitIPC);
+        session->SendSyncRequest(SharedFrom(thread), system.Memory());
+    }
+    ResultCode result = thread->GetSignalingResult();
+    if (thread->HasHLECallback()) {
+        Handle event_handle = thread->GetHLETimeEvent();
+        if (event_handle != InvalidHandle) {
+            auto& time_manager = system.Kernel().TimeManager();
+            time_manager.UnscheduleTimeEvent(event_handle);
+        }
+        thread->InvokeHLECallback(ThreadWakeupReason::Timeout, SharedFrom(thread), nullptr, 0);
+    }
 
-    return session->SendSyncRequest(SharedFrom(thread), system.Memory());
+    return result;
 }
 
 static ResultCode SendSyncRequest32(Core::System& system, Handle handle) {

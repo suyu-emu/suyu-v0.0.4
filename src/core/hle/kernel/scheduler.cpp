@@ -715,4 +715,13 @@ SchedulerLockAndSleep::~SchedulerLockAndSleep() {
     time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
 }
 
+void SchedulerLockAndSleep::Release() {
+    if (sleep_cancelled) {
+        return;
+    }
+    auto& time_manager = kernel.TimeManager();
+    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
+    sleep_cancelled = true;
+}
+
 } // namespace Kernel

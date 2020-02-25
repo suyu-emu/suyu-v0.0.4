@@ -96,7 +96,7 @@ void Thread::ResumeFromWait() {
     case ThreadStatus::Ready:
         // The thread's wakeup callback must have already been cleared when the thread was first
         // awoken.
-        ASSERT(wakeup_callback == nullptr);
+        ASSERT(hle_callback == nullptr);
         // If the thread is waiting on multiple wait objects, it might be awoken more than once
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
@@ -112,7 +112,7 @@ void Thread::ResumeFromWait() {
         return;
     }
 
-    wakeup_callback = nullptr;
+    hle_callback = nullptr;
 
     if (activity == ThreadActivity::Paused) {
         SetStatus(ThreadStatus::Paused);
@@ -398,8 +398,14 @@ bool Thread::AllSynchronizationObjectsReady() const {
 bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                                   std::shared_ptr<SynchronizationObject> object,
                                   std::size_t index) {
-    ASSERT(wakeup_callback);
-    return wakeup_callback(reason, std::move(thread), std::move(object), index);
+    ASSERT(hle_callback);
+    return hle_callback(reason, std::move(thread), std::move(object), index);
+}
+
+bool Thread::InvokeHLECallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
+                               std::shared_ptr<SynchronizationObject> object, std::size_t index) {
+    ASSERT(hle_callback);
+    return hle_callback(reason, std::move(thread), std::move(object), index);
 }
 
 void Thread::SetActivity(ThreadActivity value) {

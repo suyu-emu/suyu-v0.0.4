@@ -81,8 +81,7 @@ void CpuManager::RunGuestThread() {
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
         if (!physical_core.IsInterrupted()) {
-            physical_core.Idle();
-            // physical_core.Run();
+            physical_core.Run();
         }
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
