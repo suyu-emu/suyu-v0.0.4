@@ -41,7 +41,7 @@ struct Table {
     ComponentType alpha_component;
     bool is_srgb;
 };
-constexpr std::array<Table, 74> DefinitionTable = {{
+constexpr std::array<Table, 75> DefinitionTable = {{
     {TextureFormat::A8R8G8B8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ABGR8U},
     {TextureFormat::A8R8G8B8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::ABGR8S},
     {TextureFormat::A8R8G8B8, C, UINT, UINT, UINT, UINT, PixelFormat::ABGR8UI},
@@ -89,6 +89,7 @@ constexpr std::array<Table, 74> DefinitionTable = {{
 
     {TextureFormat::R32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32F},
     {TextureFormat::R32, C, UINT, UINT, UINT, UINT, PixelFormat::R32UI},
+    {TextureFormat::R32, C, SINT, SINT, SINT, SINT, PixelFormat::R32I},
 
     {TextureFormat::E5B9G9R9_SHAREDEXP, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::E5B9G9R9F},
 
