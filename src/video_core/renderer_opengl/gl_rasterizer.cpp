@@ -496,6 +496,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     SyncPrimitiveRestart();
     SyncScissorTest();
     SyncPointState();
+    SyncLineState();
     SyncPolygonOffset();
     SyncAlphaTest();
     SyncFramebufferSRGB();
@@ -1309,6 +1310,19 @@ void RasterizerOpenGL::SyncPointState() {
     // in OpenGL).
     glPointSize(std::max(1.0f, gpu.regs.point_size));
     glDisable(GL_PROGRAM_POINT_SIZE);
+}
+
+void RasterizerOpenGL::SyncLineState() {
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::LineWidth]) {
+        return;
+    }
+    flags[Dirty::LineWidth] = false;
+
+    const auto& regs = gpu.regs;
+    oglEnable(GL_LINE_SMOOTH, regs.line_smooth_enable);
+    glLineWidth(regs.line_smooth_enable ? regs.line_width_smooth : regs.line_width_aliased);
 }
 
 void RasterizerOpenGL::SyncPolygonOffset() {

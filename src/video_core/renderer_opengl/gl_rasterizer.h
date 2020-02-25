@@ -171,6 +171,9 @@ private:
     /// Syncs the point state to match the guest state
     void SyncPointState();
 
+    /// Syncs the line state to match the guest state
+    void SyncLineState();
+
     /// Syncs the rasterizer enable state to match the guest state
     void SyncRasterizeEnable();
 

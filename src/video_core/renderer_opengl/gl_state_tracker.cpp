@@ -185,6 +185,12 @@ void SetupDirtyPointSize(Tables& tables) {
     tables[0][OFF(point_sprite_enable)] = PointSize;
 }
 
+void SetupDirtyLineWidth(Tables& tables) {
+    tables[0][OFF(line_width_smooth)] = LineWidth;
+    tables[0][OFF(line_width_aliased)] = LineWidth;
+    tables[0][OFF(line_smooth_enable)] = LineWidth;
+}
+
 void SetupDirtyClipControl(Tables& tables) {
     auto& table = tables[0];
     table[OFF(screen_y_control)] = ClipControl;
@@ -233,6 +239,7 @@ void StateTracker::Initialize() {
     SetupDirtyLogicOp(tables);
     SetupDirtyFragmentClampColor(tables);
     SetupDirtyPointSize(tables);
+    SetupDirtyLineWidth(tables);
     SetupDirtyClipControl(tables);
     SetupDirtyDepthClampEnabled(tables);
     SetupDirtyMisc(tables);

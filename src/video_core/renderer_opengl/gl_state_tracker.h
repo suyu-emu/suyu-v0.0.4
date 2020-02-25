@@ -78,6 +78,7 @@ enum : u8 {
     LogicOp,
     FragmentClampColor,
     PointSize,
+    LineWidth,
     ClipControl,
     DepthClampEnabled,
 
