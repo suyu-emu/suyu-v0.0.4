@@ -139,12 +139,13 @@ ResultCode Thread::Start() {
 }
 
 void Thread::CancelWait() {
+    SchedulerLock lock(kernel);
     if (GetSchedulingStatus() != ThreadSchedStatus::Paused) {
         is_sync_cancelled = true;
         return;
     }
     is_sync_cancelled = false;
-    SetWaitSynchronizationResult(ERR_SYNCHRONIZATION_CANCELED);
+    SetSynchronizationResults(nullptr, ERR_SYNCHRONIZATION_CANCELED);
     ResumeFromWait();
 }
 
@@ -258,13 +259,16 @@ void Thread::SetPriority(u32 priority) {
 }
 
 void Thread::SetWaitSynchronizationResult(ResultCode result) {
-    context_32.cpu_registers[0] = result.raw;
-    context_64.cpu_registers[0] = result.raw;
+    UNREACHABLE();
 }
 
 void Thread::SetWaitSynchronizationOutput(s32 output) {
-    context_32.cpu_registers[1] = output;
-    context_64.cpu_registers[1] = output;
+    UNREACHABLE();
+}
+
+void Thread::SetSynchronizationResults(SynchronizationObject* object, ResultCode result) {
+    signaling_object = object;
+    signaling_result = result;
 }
 
 s32 Thread::GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const {

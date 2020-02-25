@@ -72,42 +72,55 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
         return ERR_INVALID_ADDRESS;
     }
 
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    auto& kernel = system.Kernel();
     std::shared_ptr<Thread> current_thread =
-        SharedFrom(system.CurrentScheduler().GetCurrentThread());
-    std::shared_ptr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
-    std::shared_ptr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
+        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+    {
+        SchedulerLock lock(kernel);
+        // The mutex address must be 4-byte aligned
+        if ((address % sizeof(u32)) != 0) {
+            return ERR_INVALID_ADDRESS;
+        }
 
-    // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of another
-    // thread.
-    ASSERT(requesting_thread == current_thread);
+        const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
+        std::shared_ptr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
+        std::shared_ptr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
 
-    const u32 addr_value = system.Memory().Read32(address);
+        // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of another
+        // thread.
+        ASSERT(requesting_thread == current_thread);
 
-    // If the mutex isn't being held, just return success.
-    if (addr_value != (holding_thread_handle | Mutex::MutexHasWaitersFlag)) {
-        return RESULT_SUCCESS;
+        current_thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
+
+        const u32 addr_value = system.Memory().Read32(address);
+
+        // If the mutex isn't being held, just return success.
+        if (addr_value != (holding_thread_handle | Mutex::MutexHasWaitersFlag)) {
+            return RESULT_SUCCESS;
+        }
+
+        if (holding_thread == nullptr) {
+            return ERR_INVALID_HANDLE;
+        }
+
+        // Wait until the mutex is released
+        current_thread->SetMutexWaitAddress(address);
+        current_thread->SetWaitHandle(requesting_thread_handle);
+
+        current_thread->SetStatus(ThreadStatus::WaitMutex);
+
+        // Update the lock holder thread's priority to prevent priority inversion.
+        holding_thread->AddMutexWaiter(current_thread);
     }
 
-    if (holding_thread == nullptr) {
-        LOG_ERROR(Kernel, "Holding thread does not exist! thread_handle={:08X}",
-                  holding_thread_handle);
-        return ERR_INVALID_HANDLE;
+    {
+        SchedulerLock lock(kernel);
+        auto* owner = current_thread->GetLockOwner();
+        if (owner != nullptr) {
+            owner->RemoveMutexWaiter(current_thread);
+        }
     }
-
-    // Wait until the mutex is released
-    current_thread->SetMutexWaitAddress(address);
-    current_thread->SetWaitHandle(requesting_thread_handle);
-
-    current_thread->SetStatus(ThreadStatus::WaitMutex);
-    current_thread->InvalidateWakeupCallback();
-
-    // Update the lock holder thread's priority to prevent priority inversion.
-    holding_thread->AddMutexWaiter(current_thread);
-
-    system.PrepareReschedule();
-
-    return RESULT_SUCCESS;
+    return current_thread->GetSignalingResult();
 }
 
 ResultCode Mutex::Release(VAddr address) {

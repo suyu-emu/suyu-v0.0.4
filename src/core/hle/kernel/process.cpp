@@ -212,6 +212,7 @@ void Process::UnregisterThread(const Thread* thread) {
 }
 
 ResultCode Process::ClearSignalState() {
+    SchedulerLock lock(system.Kernel());
     if (status == ProcessStatus::Exited) {
         LOG_ERROR(Kernel, "called on a terminated process instance.");
         return ERR_INVALID_STATE;

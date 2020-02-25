@@ -259,13 +259,23 @@ public:
      * Sets the result after the thread awakens (from svcWaitSynchronization)
      * @param result Value to set to the returned result
      */
-    void SetWaitSynchronizationResult(ResultCode result);
+    void /*deprecated*/ SetWaitSynchronizationResult(ResultCode result);
 
     /**
      * Sets the output parameter value after the thread awakens (from svcWaitSynchronization)
      * @param output Value to set to the output parameter
      */
-    void SetWaitSynchronizationOutput(s32 output);
+    void /*deprecated*/ SetWaitSynchronizationOutput(s32 output);
+
+    void SetSynchronizationResults(SynchronizationObject* object, ResultCode result);
+
+    SynchronizationObject* GetSignalingObject() const {
+        return signaling_object;
+    }
+
+    ResultCode GetSignalingResult() const {
+        return signaling_result;
+    }
 
     /**
      * Retrieves the index that this particular object occupies in the list of objects
@@ -564,6 +574,9 @@ private:
     /// Objects that the thread is waiting on, in the same order as they were
     /// passed to WaitSynchronization.
     ThreadSynchronizationObjects wait_objects;
+
+    SynchronizationObject* signaling_object;
+    ResultCode signaling_result{RESULT_SUCCESS};
 
     /// List of threads that are waiting for a mutex that is held by this thread.
     MutexWaitingThreads wait_mutex_threads;

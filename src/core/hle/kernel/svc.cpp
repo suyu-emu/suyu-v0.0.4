@@ -448,7 +448,6 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     }
 
     thread->CancelWait();
-    system.PrepareReschedule(thread->GetProcessorID());
     return RESULT_SUCCESS;
 }
 
