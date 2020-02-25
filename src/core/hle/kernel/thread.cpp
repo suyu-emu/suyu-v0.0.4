@@ -56,12 +56,6 @@ void Thread::Stop() {
     SetStatus(ThreadStatus::Dead);
     Signal();
 
-    // Clean up any dangling references in objects that this thread was waiting for
-    for (auto& wait_object : wait_objects) {
-        wait_object->RemoveWaitingThread(SharedFrom(this));
-    }
-    wait_objects.clear();
-
     owner_process->UnregisterThread(this);
 
     // Mark the TLS slot in the thread's page as free.
@@ -138,6 +132,12 @@ void Thread::OnWakeUp() {
     SetStatus(ThreadStatus::Ready);
 }
 
+ResultCode Thread::Start() {
+    SchedulerLock lock(kernel);
+    SetStatus(ThreadStatus::Ready);
+    return RESULT_SUCCESS;
+}
+
 void Thread::CancelWait() {
     if (GetSchedulingStatus() != ThreadSchedStatus::Paused) {
         is_sync_cancelled = true;
@@ -188,7 +188,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
                                                   void* thread_start_parameter) {
     auto& kernel = system.Kernel();
     // Check if priority is in ranged. Lowest priority -> highest priority id.
-    if (priority > THREADPRIO_LOWEST && (type_flags & THREADTYPE_IDLE == 0)) {
+    if (priority > THREADPRIO_LOWEST && ((type_flags & THREADTYPE_IDLE) == 0)) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
         return ERR_INVALID_THREAD_PRIORITY;
     }
@@ -416,7 +416,7 @@ void Thread::SetActivity(ThreadActivity value) {
     }
 }
 
-void Thread::Sleep(s64 nanoseconds) {
+ResultCode Thread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
         SchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
@@ -427,33 +427,31 @@ void Thread::Sleep(s64 nanoseconds) {
         auto& time_manager = kernel.TimeManager();
         time_manager.UnscheduleTimeEvent(event_handle);
     }
+    return RESULT_SUCCESS;
 }
 
-bool Thread::YieldSimple() {
-    bool result{};
+ResultCode Thread::YieldSimple() {
     {
         SchedulerLock lock(kernel);
-        result = kernel.GlobalScheduler().YieldThread(this);
+        kernel.GlobalScheduler().YieldThread(this);
     }
-    return result;
+    return RESULT_SUCCESS;
 }
 
-bool Thread::YieldAndBalanceLoad() {
-    bool result{};
+ResultCode Thread::YieldAndBalanceLoad() {
     {
         SchedulerLock lock(kernel);
-        result = kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
+        kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
     }
-    return result;
+    return RESULT_SUCCESS;
 }
 
-bool Thread::YieldAndWaitForLoadBalancing() {
-    bool result{};
+ResultCode Thread::YieldAndWaitForLoadBalancing() {
     {
         SchedulerLock lock(kernel);
-        result = kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
+        kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
     }
-    return result;
+    return RESULT_SUCCESS;
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {

@@ -236,6 +236,8 @@ public:
 
     void OnWakeUp();
 
+    ResultCode Start();
+
     /// Cancels a waiting operation that this thread may or may not be within.
     ///
     /// When the thread is within a waiting state, this will set the thread's
@@ -470,16 +472,16 @@ public:
     void SetActivity(ThreadActivity value);
 
     /// Sleeps this thread for the given amount of nanoseconds.
-    void Sleep(s64 nanoseconds);
+    ResultCode Sleep(s64 nanoseconds);
 
     /// Yields this thread without rebalancing loads.
-    bool YieldSimple();
+    ResultCode YieldSimple();
 
     /// Yields this thread and does a load rebalancing.
-    bool YieldAndBalanceLoad();
+    ResultCode YieldAndBalanceLoad();
 
     /// Yields this thread and if the core is left idle, loads are rebalanced
-    bool YieldAndWaitForLoadBalancing();
+    ResultCode YieldAndWaitForLoadBalancing();
 
     void IncrementYieldCount() {
         yield_count++;
@@ -602,6 +604,8 @@ private:
     u32 scheduling_state = 0;
     bool is_running = false;
     bool is_sync_cancelled = false;
+
+    bool will_be_terminated{};
 
     std::string name;
 };
