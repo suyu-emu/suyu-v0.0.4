@@ -136,6 +136,7 @@ private:
 
     std::shared_ptr<EventType> ev_lost;
     Common::Event event{};
+    Common::Event pause_event{};
     Common::SpinLock basic_lock{};
     Common::SpinLock advance_lock{};
     std::unique_ptr<std::thread> timer_thread;

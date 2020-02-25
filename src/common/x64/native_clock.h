@@ -26,6 +26,8 @@ public:
 
     u64 GetCPUCycles() override;
 
+    void Pause(bool is_paused) override;
+
 private:
     u64 GetRTSC();
 

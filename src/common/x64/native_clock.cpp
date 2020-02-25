@@ -65,6 +65,13 @@ u64 NativeClock::GetRTSC() {
     return accumulated_ticks;
 }
 
+void NativeClock::Pause(bool is_paused) {
+    if (!is_paused) {
+        _mm_mfence();
+        last_measure = __rdtsc();
+    }
+}
+
 std::chrono::nanoseconds NativeClock::GetTimeNS() {
     const u64 rtsc_value = GetRTSC();
     return std::chrono::nanoseconds{MultiplyAndDivide64(rtsc_value, 1000000000, rtsc_frequency)};

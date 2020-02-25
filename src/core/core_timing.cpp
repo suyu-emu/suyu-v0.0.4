@@ -77,6 +77,9 @@ void CoreTiming::SyncPause(bool is_paused) {
         return;
     }
     Pause(is_paused);
+    if (!is_paused) {
+        pause_event.Set();
+    }
     event.Set();
     while (paused_set != is_paused)
         ;
@@ -197,6 +200,9 @@ void CoreTiming::ThreadLoop() {
             wait_set = false;
         }
         paused_set = true;
+        clock->Pause(true);
+        pause_event.Wait();
+        clock->Pause(false);
     }
 }
 

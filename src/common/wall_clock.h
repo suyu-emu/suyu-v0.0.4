@@ -28,6 +28,8 @@ public:
     /// Returns current wall time in emulated cpu cycles
     virtual u64 GetCPUCycles() = 0;
 
+    virtual void Pause(bool is_paused) = 0;
+
     /// Tells if the wall clock, uses the host CPU's hardware clock
     bool IsNative() const {
         return is_native;
