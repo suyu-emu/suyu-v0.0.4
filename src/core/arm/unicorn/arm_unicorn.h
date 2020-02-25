@@ -11,6 +11,7 @@
 
 namespace Core {
 
+class CPUInterruptHandler;
 class System;
 
 class ARM_Unicorn final : public ARM_Interface {
@@ -20,7 +21,7 @@ public:
         AArch64, // 64-bit ARM
     };
 
-    explicit ARM_Unicorn(System& system, Arch architecture);
+    explicit ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler, Arch architecture);
     ~ARM_Unicorn() override;
 
     void SetPC(u64 pc) override;

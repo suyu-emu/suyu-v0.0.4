@@ -114,9 +114,9 @@ void ARM_Dynarmic_32::Step() {
     jit->Step();
 }
 
-ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, ExclusiveMonitor& exclusive_monitor,
-                                 std::size_t core_index)
-    : ARM_Interface{system}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
+ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, CPUInterruptHandler& interrupt_handler,
+                                 ExclusiveMonitor& exclusive_monitor, std::size_t core_index)
+    : ARM_Interface{system, interrupt_handler}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
       cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 

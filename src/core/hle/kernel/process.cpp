@@ -30,14 +30,15 @@ namespace {
 /**
  * Sets up the primary application thread
  *
+ * @param system The system instance to create the main thread under.
  * @param owner_process The parent process for the main thread
- * @param kernel The kernel instance to create the main thread under.
  * @param priority The priority to give the main thread
  */
-void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority, VAddr stack_top) {
+void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
-    auto thread_res = Thread::Create(kernel, "main", entry_point, priority, 0,
-                                     owner_process.GetIdealCore(), stack_top, owner_process);
+    ThreadType type = THREADTYPE_USER;
+    auto thread_res = Thread::Create(system, type, "main", entry_point, priority, 0,
+                                     owner_process.GetIdealCore(), stack_top, &owner_process);
 
     std::shared_ptr<Thread> thread = std::move(thread_res).Unwrap();
 
@@ -48,8 +49,12 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority, V
     thread->GetContext32().cpu_registers[1] = thread_handle;
     thread->GetContext64().cpu_registers[1] = thread_handle;
 
+    auto& kernel = system.Kernel();
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
-    thread->ResumeFromWait();
+    {
+        SchedulerLock lock{kernel};
+        thread->SetStatus(ThreadStatus::Ready);
+    }
 }
 } // Anonymous namespace
 
@@ -294,7 +299,7 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 
     ChangeStatus(ProcessStatus::Running);
 
-    SetupMainThread(*this, kernel, main_thread_priority, main_thread_stack_top);
+    SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
     resource_limit->Reserve(ResourceType::Threads, 1);
     resource_limit->Reserve(ResourceType::PhysicalMemory, main_thread_stack_size);
 }

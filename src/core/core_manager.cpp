@@ -34,7 +34,6 @@ void CoreManager::RunLoop(bool tight_loop) {
     // instead advance to the next event and try to yield to the next thread
     if (Kernel::GetCurrentThread() == nullptr) {
         LOG_TRACE(Core, "Core-{} idling", core_index);
-        core_timing.Idle();
     } else {
         if (tight_loop) {
             physical_core.Run();
@@ -42,7 +41,6 @@ void CoreManager::RunLoop(bool tight_loop) {
             physical_core.Step();
         }
     }
-    core_timing.Advance();
 
     Reschedule();
 }
@@ -59,7 +57,7 @@ void CoreManager::Reschedule() {
     // Lock the global kernel mutex when we manipulate the HLE state
     std::lock_guard lock(HLE::g_hle_lock);
 
-    global_scheduler.SelectThread(core_index);
+    // global_scheduler.SelectThread(core_index);
 
     physical_core.Scheduler().TryDoContextSwitch();
 }

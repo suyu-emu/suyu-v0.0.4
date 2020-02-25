@@ -328,7 +328,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             const auto& last_entry =
                 main_controller->npad[main_controller->common.last_entry_index];
 
-            main_controller->common.timestamp = core_timing.GetTicks();
+            main_controller->common.timestamp = core_timing.GetCPUTicks();
             main_controller->common.last_entry_index =
                 (main_controller->common.last_entry_index + 1) % 17;
 

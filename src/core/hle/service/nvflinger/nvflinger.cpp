@@ -27,8 +27,8 @@
 
 namespace Service::NVFlinger {
 
-constexpr s64 frame_ticks = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 60);
-constexpr s64 frame_ticks_30fps = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 30);
+constexpr s64 frame_ticks = static_cast<s64>(1000000000 / 60);
+constexpr s64 frame_ticks_30fps = static_cast<s64>(1000000000 / 30);
 
 NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(0, "Default", system);
@@ -39,11 +39,10 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
 
     // Schedule the screen composition events
     composition_event =
-        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 cycles_late) {
+        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 ns_late) {
             Compose();
-            const auto ticks =
-                Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();
-            this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - cycles_late),
+            const auto ticks = GetNextTicks();
+            this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - ns_late),
                                                     composition_event);
         });
 
@@ -223,7 +222,7 @@ void NVFlinger::Compose() {
 
 s64 NVFlinger::GetNextTicks() const {
     constexpr s64 max_hertz = 120LL;
-    return (Core::Hardware::BASE_CLOCK_RATE * (1LL << swap_interval)) / max_hertz;
+    return (1000000000 * (1LL << swap_interval)) / max_hertz;
 }
 
 } // namespace Service::NVFlinger

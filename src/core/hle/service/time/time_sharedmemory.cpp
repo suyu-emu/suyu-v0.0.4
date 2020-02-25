@@ -30,8 +30,7 @@ void SharedMemory::SetupStandardSteadyClock(Core::System& system,
                                             const Common::UUID& clock_source_id,
                                             Clock::TimeSpanType current_time_point) {
     const Clock::TimeSpanType ticks_time_span{Clock::TimeSpanType::FromTicks(
-        Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-        Core::Hardware::CNTFREQ)};
+        system.CoreTiming().GetClockTicks(), Core::Hardware::CNTFREQ)};
     const Clock::SteadyClockContext context{
         static_cast<u64>(current_time_point.nanoseconds - ticks_time_span.nanoseconds),
         clock_source_id};

@@ -9,23 +9,42 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
+namespace Common {
+class Fiber;
+}
+
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 
+class GlobalScheduler;
 class KernelCore;
 class Process;
 class Scheduler;
 
 enum ThreadPriority : u32 {
-    THREADPRIO_HIGHEST = 0,       ///< Highest thread priority
-    THREADPRIO_USERLAND_MAX = 24, ///< Highest thread priority for userland apps
-    THREADPRIO_DEFAULT = 44,      ///< Default thread priority for userland apps
-    THREADPRIO_LOWEST = 63,       ///< Lowest thread priority
-    THREADPRIO_COUNT = 64,        ///< Total number of possible thread priorities.
+    THREADPRIO_HIGHEST = 0,             ///< Highest thread priority
+    THREADPRIO_MAX_CORE_MIGRATION = 2,  ///< Highest priority for a core migration
+    THREADPRIO_USERLAND_MAX = 24,       ///< Highest thread priority for userland apps
+    THREADPRIO_DEFAULT = 44,            ///< Default thread priority for userland apps
+    THREADPRIO_LOWEST = 63,             ///< Lowest thread priority
+    THREADPRIO_COUNT = 64,              ///< Total number of possible thread priorities.
+};
+
+enum ThreadType : u32 {
+    THREADTYPE_USER = 0x1,
+    THREADTYPE_KERNEL = 0x2,
+    THREADTYPE_HLE = 0x4,
+    THREADTYPE_IDLE = 0x8,
+    THREADTYPE_SUSPEND = 0x10,
 };
 
 enum ThreadProcessorId : s32 {
@@ -111,22 +130,43 @@ public:
         std::function<bool(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                            std::shared_ptr<SynchronizationObject> object, std::size_t index)>;
 
+   /**
+    * Creates and returns a new thread. The new thread is immediately scheduled
+    * @param system The instance of the whole system
+    * @param name The friendly name desired for the thread
+    * @param entry_point The address at which the thread should start execution
+    * @param priority The thread's priority
+    * @param arg User data to pass to the thread
+    * @param processor_id The ID(s) of the processors on which the thread is desired to be run
+    * @param stack_top The address of the thread's stack top
+    * @param owner_process The parent process for the thread, if null, it's a kernel thread
+    * @return A shared pointer to the newly created thread
+    */
+   static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags, std::string name,
+                                                    VAddr entry_point, u32 priority, u64 arg,
+                                                    s32 processor_id, VAddr stack_top,
+                                                    Process* owner_process);
+
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
-     * @param kernel The kernel instance this thread will be created under.
+     * @param system The instance of the whole system
      * @param name The friendly name desired for the thread
      * @param entry_point The address at which the thread should start execution
      * @param priority The thread's priority
      * @param arg User data to pass to the thread
      * @param processor_id The ID(s) of the processors on which the thread is desired to be run
      * @param stack_top The address of the thread's stack top
-     * @param owner_process The parent process for the thread
+     * @param owner_process The parent process for the thread, if null, it's a kernel thread
+     * @param thread_start_func The function where the host context will start.
+     * @param thread_start_parameter The parameter which will passed to host context on init
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<std::shared_ptr<Thread>> Create(KernelCore& kernel, std::string name,
+    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags, std::string name,
                                                      VAddr entry_point, u32 priority, u64 arg,
                                                      s32 processor_id, VAddr stack_top,
-                                                     Process& owner_process);
+                                                     Process* owner_process,
+                                                     std::function<void(void*)>&& thread_start_func,
+                                                     void* thread_start_parameter);
 
     std::string GetName() const override {
         return name;
@@ -192,7 +232,9 @@ public:
     }
 
     /// Resumes a thread from waiting
-    void ResumeFromWait();
+    void /* deprecated */ ResumeFromWait();
+
+    void OnWakeUp();
 
     /// Cancels a waiting operation that this thread may or may not be within.
     ///
@@ -206,10 +248,10 @@ public:
      * Schedules an event to wake up the specified thread after the specified delay
      * @param nanoseconds The time this thread will be allowed to sleep for
      */
-    void WakeAfterDelay(s64 nanoseconds);
+    void /* deprecated */ WakeAfterDelay(s64 nanoseconds);
 
     /// Cancel any outstanding wakeup events for this thread
-    void CancelWakeupTimer();
+    void /* deprecated */ CancelWakeupTimer();
 
     /**
      * Sets the result after the thread awakens (from svcWaitSynchronization)
@@ -289,6 +331,12 @@ public:
     const ThreadContext64& GetContext64() const {
         return context_64;
     }
+
+    bool IsHLEThread() const {
+        return (type & THREADTYPE_HLE) != 0;
+    }
+
+    std::shared_ptr<Common::Fiber> GetHostContext() const;
 
     ThreadStatus GetStatus() const {
         return status;
@@ -467,16 +515,19 @@ public:
     }
 
 private:
+    friend class GlobalScheduler;
+    friend class Scheduler;
+
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void SetCurrentPriority(u32 new_priority);
     ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
 
-    void AdjustSchedulingOnStatus(u32 old_flags);
-    void AdjustSchedulingOnPriority(u32 old_priority);
     void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
 
     ThreadContext32 context_32{};
     ThreadContext64 context_64{};
+    Common::SpinLock context_guard{};
+    std::shared_ptr<Common::Fiber> host_context{};
 
     u64 thread_id = 0;
 
@@ -484,6 +535,8 @@ private:
 
     VAddr entry_point = 0;
     VAddr stack_top = 0;
+
+    ThreadType type;
 
     /// Nominal thread priority, as set by the emulated application.
     /// The nominal priority is the thread priority without priority

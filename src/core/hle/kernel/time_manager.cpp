@@ -19,7 +19,7 @@ TimeManager::TimeManager(Core::System& system) : system{system} {
             Handle proper_handle = static_cast<Handle>(thread_handle);
             std::shared_ptr<Thread> thread =
                 this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
-            thread->ResumeFromWait();
+            thread->OnWakeUp();
         });
 }
 

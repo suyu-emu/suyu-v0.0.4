@@ -863,9 +863,9 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         if (same_thread && info_sub_id == 0xFFFFFFFFFFFFFFFF) {
             const u64 thread_ticks = current_thread->GetTotalCPUTimeTicks();
 
-            out_ticks = thread_ticks + (core_timing.GetTicks() - prev_ctx_ticks);
+            out_ticks = thread_ticks + (core_timing.GetCPUTicks() - prev_ctx_ticks);
         } else if (same_thread && info_sub_id == system.CurrentCoreIndex()) {
-            out_ticks = core_timing.GetTicks() - prev_ctx_ticks;
+            out_ticks = core_timing.GetCPUTicks() - prev_ctx_ticks;
         }
 
         *result = out_ticks;
@@ -1428,9 +1428,10 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
 
     ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Threads, 1));
 
+    ThreadType type = THREADTYPE_USER;
     CASCADE_RESULT(std::shared_ptr<Thread> thread,
-                   Thread::Create(kernel, "", entry_point, priority, arg, processor_id, stack_top,
-                                  *current_process));
+                   Thread::Create(system, type, "", entry_point, priority, arg, processor_id, stack_top,
+                                  current_process));
 
     const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
     if (new_thread_handle.Failed()) {
@@ -1512,13 +1513,6 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
         }
     } else {
         current_thread->Sleep(nanoseconds);
-    }
-
-    if (is_redundant) {
-        // If it's redundant, the core is pretty much idle. Some games keep idling
-        // a core while it's doing nothing, we advance timing to avoid costly continuous
-        // calls.
-        system.CoreTiming().AddTicks(2000);
     }
     system.PrepareReschedule(current_thread->GetProcessorID());
 }
@@ -1725,10 +1719,7 @@ static u64 GetSystemTick(Core::System& system) {
     auto& core_timing = system.CoreTiming();
 
     // Returns the value of cntpct_el0 (https://switchbrew.org/wiki/SVC#svcGetSystemTick)
-    const u64 result{Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks())};
-
-    // Advance time to defeat dumb games that busy-wait for the frame to end.
-    core_timing.AddTicks(400);
+    const u64 result{system.CoreTiming().GetClockTicks()};
 
     return result;
 }

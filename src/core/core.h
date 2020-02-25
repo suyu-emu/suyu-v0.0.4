@@ -90,7 +90,7 @@ class InterruptManager;
 namespace Core {
 
 class ARM_Interface;
-class CoreManager;
+class CpuManager;
 class DeviceMemory;
 class ExclusiveMonitor;
 class FrameLimiter;
@@ -136,16 +136,18 @@ public:
     };
 
     /**
-     * Run the core CPU loop
-     * This function runs the core for the specified number of CPU instructions before trying to
-     * update hardware. This is much faster than SingleStep (and should be equivalent), as the CPU
-     * is not required to do a full dispatch with each instruction. NOTE: the number of instructions
-     * requested is not guaranteed to run, as this will be interrupted preemptively if a hardware
-     * update is requested (e.g. on a thread switch).
-     * @param tight_loop If false, the CPU single-steps.
-     * @return Result status, indicating whether or not the operation succeeded.
+     * Run the OS and Application
+     * This function will start emulation and run the competent devices
      */
-    ResultStatus RunLoop(bool tight_loop = true);
+    ResultStatus Run();
+
+    /**
+     * Pause the OS and Application
+     * This function will pause emulation and stop the competent devices
+     */
+    ResultStatus Pause();
+
+
 
     /**
      * Step the CPU one instruction
@@ -215,11 +217,9 @@ public:
     /// Gets a const reference to an ARM interface from the CPU core with the specified index
     const ARM_Interface& ArmInterface(std::size_t core_index) const;
 
-    /// Gets a CPU interface to the CPU core with the specified index
-    CoreManager& GetCoreManager(std::size_t core_index);
+    CpuManager& GetCpuManager();
 
-    /// Gets a CPU interface to the CPU core with the specified index
-    const CoreManager& GetCoreManager(std::size_t core_index) const;
+    const CpuManager& GetCpuManager() const;
 
     /// Gets a reference to the exclusive monitor
     ExclusiveMonitor& Monitor();
@@ -372,12 +372,6 @@ public:
 
 private:
     System();
-
-    /// Returns the currently running CPU core
-    CoreManager& CurrentCoreManager();
-
-    /// Returns the currently running CPU core
-    const CoreManager& CurrentCoreManager() const;
 
     /**
      * Initialize the emulated system.

@@ -7,6 +7,8 @@ endif()
 add_library(core STATIC
     arm/arm_interface.h
     arm/arm_interface.cpp
+    arm/cpu_interrupt_handler.cpp
+    arm/cpu_interrupt_handler.h
     arm/exclusive_monitor.cpp
     arm/exclusive_monitor.h
     arm/unicorn/arm_unicorn.cpp
@@ -547,8 +549,6 @@ add_library(core STATIC
     hle/service/vi/vi_u.h
     hle/service/wlan/wlan.cpp
     hle/service/wlan/wlan.h
-    host_timing.cpp
-    host_timing.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/elf.cpp

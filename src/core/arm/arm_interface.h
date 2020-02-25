@@ -18,11 +18,13 @@ enum class VMAPermission : u8;
 
 namespace Core {
 class System;
+class CPUInterruptHandler;
 
 /// Generic ARMv8 CPU interface
 class ARM_Interface : NonCopyable {
 public:
-    explicit ARM_Interface(System& system_) : system{system_} {}
+    explicit ARM_Interface(System& system_, CPUInterruptHandler& interrupt_handler)
+        : system{system_}, interrupt_handler{interrupt_handler} {}
     virtual ~ARM_Interface() = default;
 
     struct ThreadContext32 {
@@ -175,6 +177,7 @@ public:
 protected:
     /// System context that this ARM interface is running under.
     System& system;
+    CPUInterruptHandler& interrupt_handler;
 };
 
 } // namespace Core

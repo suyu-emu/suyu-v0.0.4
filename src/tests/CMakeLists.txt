@@ -8,7 +8,6 @@ add_executable(tests
     core/arm/arm_test_common.cpp
     core/arm/arm_test_common.h
     core/core_timing.cpp
-    core/host_timing.cpp
     tests.cpp
 )
 

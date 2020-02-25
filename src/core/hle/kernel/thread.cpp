@@ -9,12 +9,14 @@
 
 #include "common/assert.h"
 #include "common/common_types.h"
+#include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/thread_queue_list.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
@@ -23,6 +25,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
 
@@ -44,6 +47,7 @@ Thread::Thread(KernelCore& kernel) : SynchronizationObject{kernel} {}
 Thread::~Thread() = default;
 
 void Thread::Stop() {
+    SchedulerLock lock(kernel);
     // Cancel any outstanding wakeup events for this thread
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
                                                              global_handle);
@@ -71,9 +75,8 @@ void Thread::WakeAfterDelay(s64 nanoseconds) {
 
     // This function might be called from any thread so we have to be cautious and use the
     // thread-safe version of ScheduleEvent.
-    const s64 cycles = Core::Timing::nsToCycles(std::chrono::nanoseconds{nanoseconds});
     Core::System::GetInstance().CoreTiming().ScheduleEvent(
-        cycles, kernel.ThreadWakeupCallbackEventType(), global_handle);
+        nanoseconds, kernel.ThreadWakeupCallbackEventType(), global_handle);
 }
 
 void Thread::CancelWakeupTimer() {
@@ -125,6 +128,16 @@ void Thread::ResumeFromWait() {
     SetStatus(ThreadStatus::Ready);
 }
 
+void Thread::OnWakeUp() {
+    SchedulerLock lock(kernel);
+    if (activity == ThreadActivity::Paused) {
+        SetStatus(ThreadStatus::Paused);
+        return;
+    }
+
+    SetStatus(ThreadStatus::Ready);
+}
+
 void Thread::CancelWait() {
     if (GetSchedulingStatus() != ThreadSchedStatus::Paused) {
         is_sync_cancelled = true;
@@ -153,12 +166,29 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
     context.fpcr = 0;
 }
 
-ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::string name,
-                                                  VAddr entry_point, u32 priority, u64 arg,
-                                                  s32 processor_id, VAddr stack_top,
-                                                  Process& owner_process) {
+std::shared_ptr<Common::Fiber> Thread::GetHostContext() const {
+    return host_context;
+}
+
+ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadType type_flags,
+                                                  std::string name, VAddr entry_point, u32 priority,
+                                                  u64 arg, s32 processor_id, VAddr stack_top,
+                                                  Process* owner_process) {
+    std::function<void(void*)> init_func = system.GetCpuManager().GetGuestThreadStartFunc();
+    void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
+    return Create(system, type_flags, name, entry_point, priority, arg, processor_id, stack_top,
+                  owner_process, std::move(init_func), init_func_parameter);
+}
+
+ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadType type_flags,
+                                                  std::string name, VAddr entry_point, u32 priority,
+                                                  u64 arg, s32 processor_id, VAddr stack_top,
+                                                  Process* owner_process,
+                                                  std::function<void(void*)>&& thread_start_func,
+                                                  void* thread_start_parameter) {
+    auto& kernel = system.Kernel();
     // Check if priority is in ranged. Lowest priority -> highest priority id.
-    if (priority > THREADPRIO_LOWEST) {
+    if (priority > THREADPRIO_LOWEST && (type_flags & THREADTYPE_IDLE == 0)) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
         return ERR_INVALID_THREAD_PRIORITY;
     }
@@ -168,11 +198,12 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
         return ERR_INVALID_PROCESSOR_ID;
     }
 
-    auto& system = Core::System::GetInstance();
-    if (!system.Memory().IsValidVirtualAddress(owner_process, entry_point)) {
-        LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
-        // TODO (bunnei): Find the correct error code to use here
-        return RESULT_UNKNOWN;
+    if (owner_process) {
+        if (!system.Memory().IsValidVirtualAddress(*owner_process, entry_point)) {
+            LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
+            // TODO (bunnei): Find the correct error code to use here
+            return RESULT_UNKNOWN;
+        }
     }
 
     std::shared_ptr<Thread> thread = std::make_shared<Thread>(kernel);
@@ -183,7 +214,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
     thread->stack_top = stack_top;
     thread->tpidr_el0 = 0;
     thread->nominal_priority = thread->current_priority = priority;
-    thread->last_running_ticks = system.CoreTiming().GetTicks();
+    thread->last_running_ticks = 0;
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
     thread->affinity_mask = 1ULL << processor_id;
@@ -193,16 +224,27 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
     thread->wait_handle = 0;
     thread->name = std::move(name);
     thread->global_handle = kernel.GlobalHandleTable().Create(thread).Unwrap();
-    thread->owner_process = &owner_process;
-    auto& scheduler = kernel.GlobalScheduler();
-    scheduler.AddThread(thread);
-    thread->tls_address = thread->owner_process->CreateTLSRegion();
-
-    thread->owner_process->RegisterThread(thread.get());
-
-    ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
-                         static_cast<u32>(entry_point), static_cast<u32>(arg));
-    ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
+    thread->owner_process = owner_process;
+    thread->type = type_flags;
+    if ((type_flags & THREADTYPE_IDLE) == 0) {
+        auto& scheduler = kernel.GlobalScheduler();
+        scheduler.AddThread(thread);
+    }
+    if (owner_process) {
+        thread->tls_address = thread->owner_process->CreateTLSRegion();
+        thread->owner_process->RegisterThread(thread.get());
+    } else {
+        thread->tls_address = 0;
+    }
+    // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
+    // to initialize the context
+    if ((type_flags & THREADTYPE_HLE) == 0) {
+        ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
+                             static_cast<u32>(entry_point), static_cast<u32>(arg));
+        ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
+    }
+    thread->host_context =
+        std::make_shared<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
 
     return MakeResult<std::shared_ptr<Thread>>(std::move(thread));
 }
@@ -258,7 +300,7 @@ void Thread::SetStatus(ThreadStatus new_status) {
     }
 
     if (status == ThreadStatus::Running) {
-        last_running_ticks = Core::System::GetInstance().CoreTiming().GetTicks();
+        last_running_ticks = Core::System::GetInstance().CoreTiming().GetCPUTicks();
     }
 
     status = new_status;
@@ -375,38 +417,55 @@ void Thread::SetActivity(ThreadActivity value) {
 }
 
 void Thread::Sleep(s64 nanoseconds) {
-    // Sleep current thread and check for next thread to schedule
-    SetStatus(ThreadStatus::WaitSleep);
+    Handle event_handle{};
+    {
+        SchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
+        SetStatus(ThreadStatus::WaitSleep);
+    }
 
-    // Create an event to wake the thread up after the specified nanosecond delay has passed
-    WakeAfterDelay(nanoseconds);
+    if (event_handle != InvalidHandle) {
+        auto& time_manager = kernel.TimeManager();
+        time_manager.UnscheduleTimeEvent(event_handle);
+    }
 }
 
 bool Thread::YieldSimple() {
-    auto& scheduler = kernel.GlobalScheduler();
-    return scheduler.YieldThread(this);
+    bool result{};
+    {
+        SchedulerLock lock(kernel);
+        result = kernel.GlobalScheduler().YieldThread(this);
+    }
+    return result;
 }
 
 bool Thread::YieldAndBalanceLoad() {
-    auto& scheduler = kernel.GlobalScheduler();
-    return scheduler.YieldThreadAndBalanceLoad(this);
+    bool result{};
+    {
+        SchedulerLock lock(kernel);
+        result = kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
+    }
+    return result;
 }
 
 bool Thread::YieldAndWaitForLoadBalancing() {
-    auto& scheduler = kernel.GlobalScheduler();
-    return scheduler.YieldThreadAndWaitForLoadBalancing(this);
+    bool result{};
+    {
+        SchedulerLock lock(kernel);
+        result = kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
+    }
+    return result;
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
     const u32 old_flags = scheduling_state;
     scheduling_state = (scheduling_state & static_cast<u32>(ThreadSchedMasks::HighMask)) |
                        static_cast<u32>(new_status);
-    AdjustSchedulingOnStatus(old_flags);
+    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_flags);
 }
 
 void Thread::SetCurrentPriority(u32 new_priority) {
     const u32 old_priority = std::exchange(current_priority, new_priority);
-    AdjustSchedulingOnPriority(old_priority);
+    kernel.GlobalScheduler().AdjustSchedulingOnPriority(this, old_priority);
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
@@ -443,109 +502,10 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
                     processor_id = ideal_core;
                 }
             }
-            AdjustSchedulingOnAffinity(old_affinity_mask, old_core);
+            kernel.GlobalScheduler().AdjustSchedulingOnAffinity(this, old_affinity_mask, old_core);
         }
     }
     return RESULT_SUCCESS;
-}
-
-void Thread::AdjustSchedulingOnStatus(u32 old_flags) {
-    if (old_flags == scheduling_state) {
-        return;
-    }
-
-    auto& scheduler = kernel.GlobalScheduler();
-    if (static_cast<ThreadSchedStatus>(old_flags & static_cast<u32>(ThreadSchedMasks::LowMask)) ==
-        ThreadSchedStatus::Runnable) {
-        // In this case the thread was running, now it's pausing/exitting
-        if (processor_id >= 0) {
-            scheduler.Unschedule(current_priority, static_cast<u32>(processor_id), this);
-        }
-
-        for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-            if (core != static_cast<u32>(processor_id) && ((affinity_mask >> core) & 1) != 0) {
-                scheduler.Unsuggest(current_priority, core, this);
-            }
-        }
-    } else if (GetSchedulingStatus() == ThreadSchedStatus::Runnable) {
-        // The thread is now set to running from being stopped
-        if (processor_id >= 0) {
-            scheduler.Schedule(current_priority, static_cast<u32>(processor_id), this);
-        }
-
-        for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-            if (core != static_cast<u32>(processor_id) && ((affinity_mask >> core) & 1) != 0) {
-                scheduler.Suggest(current_priority, core, this);
-            }
-        }
-    }
-
-    scheduler.SetReselectionPending();
-}
-
-void Thread::AdjustSchedulingOnPriority(u32 old_priority) {
-    if (GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
-        return;
-    }
-    auto& scheduler = kernel.GlobalScheduler();
-    if (processor_id >= 0) {
-        scheduler.Unschedule(old_priority, static_cast<u32>(processor_id), this);
-    }
-
-    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        if (core != static_cast<u32>(processor_id) && ((affinity_mask >> core) & 1) != 0) {
-            scheduler.Unsuggest(old_priority, core, this);
-        }
-    }
-
-    // Add thread to the new priority queues.
-    Thread* current_thread = GetCurrentThread();
-
-    if (processor_id >= 0) {
-        if (current_thread == this) {
-            scheduler.SchedulePrepend(current_priority, static_cast<u32>(processor_id), this);
-        } else {
-            scheduler.Schedule(current_priority, static_cast<u32>(processor_id), this);
-        }
-    }
-
-    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        if (core != static_cast<u32>(processor_id) && ((affinity_mask >> core) & 1) != 0) {
-            scheduler.Suggest(current_priority, core, this);
-        }
-    }
-
-    scheduler.SetReselectionPending();
-}
-
-void Thread::AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core) {
-    auto& scheduler = kernel.GlobalScheduler();
-    if (GetSchedulingStatus() != ThreadSchedStatus::Runnable ||
-        current_priority >= THREADPRIO_COUNT) {
-        return;
-    }
-
-    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        if (((old_affinity_mask >> core) & 1) != 0) {
-            if (core == static_cast<u32>(old_core)) {
-                scheduler.Unschedule(current_priority, core, this);
-            } else {
-                scheduler.Unsuggest(current_priority, core, this);
-            }
-        }
-    }
-
-    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        if (((affinity_mask >> core) & 1) != 0) {
-            if (core == static_cast<u32>(processor_id)) {
-                scheduler.Schedule(current_priority, core, this);
-            } else {
-                scheduler.Suggest(current_priority, core, this);
-            }
-        }
-    }
-
-    scheduler.SetReselectionPending();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

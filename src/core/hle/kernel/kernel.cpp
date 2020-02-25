@@ -13,11 +13,13 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/thread.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/cpu_manager.h"
 #include "core/device_memory.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
@@ -117,7 +119,9 @@ struct KernelCore::Impl {
         InitializeSystemResourceLimit(kernel);
         InitializeMemoryLayout();
         InitializeThreads();
-        InitializePreemption();
+        InitializePreemption(kernel);
+        InitializeSchedulers();
+        InitializeSuspendThreads();
     }
 
     void Shutdown() {
@@ -155,6 +159,12 @@ struct KernelCore::Impl {
         }
     }
 
+    void InitializeSchedulers() {
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            cores[i].Scheduler().Initialize();
+        }
+    }
+
     // Creates the default system resource limit
     void InitializeSystemResourceLimit(KernelCore& kernel) {
         system_resource_limit = ResourceLimit::Create(kernel);
@@ -178,16 +188,33 @@ struct KernelCore::Impl {
             Core::Timing::CreateEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
-    void InitializePreemption() {
-        preemption_event =
-            Core::Timing::CreateEvent("PreemptionCallback", [this](u64 userdata, s64 cycles_late) {
-                global_scheduler.PreemptThreads();
+    void InitializePreemption(KernelCore& kernel) {
+        preemption_event = Core::Timing::CreateEvent(
+            "PreemptionCallback", [this, &kernel](u64 userdata, s64 cycles_late) {
+                {
+                    SchedulerLock lock(kernel);
+                    global_scheduler.PreemptThreads();
+                }
                 s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
             });
 
         s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
+    }
+
+    void InitializeSuspendThreads() {
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            std::string name = "Suspend Thread Id:" + std::to_string(i);
+            std::function<void(void*)> init_func =
+                system.GetCpuManager().GetSuspendThreadStartFunc();
+            void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
+            ThreadType type =
+                static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_SUSPEND);
+            auto thread_res = Thread::Create(system, type, name, 0, 0, 0, static_cast<u32>(i), 0,
+                                             nullptr, std::move(init_func), init_func_parameter);
+            suspend_threads[i] = std::move(thread_res).Unwrap();
+        }
     }
 
     void MakeCurrentProcess(Process* process) {
@@ -201,7 +228,10 @@ struct KernelCore::Impl {
             core.SetIs64Bit(process->Is64BitProcess());
         }
 
-        system.Memory().SetCurrentPageTable(*process);
+        u32 core_id = GetCurrentHostThreadID();
+        if (core_id < Core::Hardware::NUM_CPU_CORES) {
+            system.Memory().SetCurrentPageTable(*process, core_id);
+        }
     }
 
     void RegisterCoreThread(std::size_t core_id) {
@@ -219,7 +249,9 @@ struct KernelCore::Impl {
         std::unique_lock lock{register_thread_mutex};
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
-        ASSERT(it == host_thread_ids.end());
+        if (it != host_thread_ids.end()) {
+            return;
+        }
         host_thread_ids[this_id] = registered_thread_ids++;
     }
 
@@ -343,6 +375,8 @@ struct KernelCore::Impl {
     std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
 
+    std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+
     // System context
     Core::System& system;
 };
@@ -410,6 +444,26 @@ Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
 
 const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
     return impl->cores[id];
+}
+
+Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return impl->cores[core_id];
+}
+
+const Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() const {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return impl->cores[core_id];
+}
+
+Kernel::Scheduler& KernelCore::CurrentScheduler() {
+    return CurrentPhysicalCore().Scheduler();
+}
+
+const Kernel::Scheduler& KernelCore::CurrentScheduler() const {
+    return CurrentPhysicalCore().Scheduler();
 }
 
 Kernel::Synchronization& KernelCore::Synchronization() {
@@ -555,6 +609,22 @@ Kernel::SharedMemory& KernelCore::GetTimeSharedMem() {
 
 const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
     return *impl->time_shared_mem;
+}
+
+void KernelCore::Suspend(bool in_suspention) {
+    const bool should_suspend = exception_exited || in_suspention;
+    {
+        SchedulerLock lock(*this);
+        ThreadStatus status = should_suspend ? ThreadStatus::Ready : ThreadStatus::WaitSleep;
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            impl->suspend_threads[i]->SetStatus(status);
+        }
+    }
+}
+
+void KernelCore::ExceptionalExit() {
+    exception_exited = true;
+    Suspend(true);
 }
 
 } // namespace Kernel

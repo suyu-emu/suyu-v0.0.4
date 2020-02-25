@@ -64,7 +64,7 @@ public:
      *
      * @param process The process to use the page table of.
      */
-    void SetCurrentPageTable(Kernel::Process& process);
+    void SetCurrentPageTable(Kernel::Process& process, u32 core_id);
 
     /**
      * Maps an allocated buffer onto a region of the emulated process address space.

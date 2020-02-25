@@ -70,6 +70,12 @@ void SetCurrentThreadName(const char* name) {
 }
 #endif
 
+#if defined(_WIN32)
+void SetCurrentThreadName(const char* name) {
+    // Do Nothing on MingW
+}
+#endif
+
 #endif
 
 } // namespace Common

@@ -98,7 +98,7 @@ void IRS::GetImageTransferProcessorState(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 5};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw<u64>(system.CoreTiming().GetTicks());
+    rb.PushRaw<u64>(system.CoreTiming().GetCPUTicks());
     rb.PushRaw<u32>(0);
 }
 
