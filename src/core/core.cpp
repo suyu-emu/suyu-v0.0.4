@@ -467,6 +467,14 @@ const Kernel::Scheduler& System::CurrentScheduler() const {
     return impl->CurrentPhysicalCore().Scheduler();
 }
 
+Kernel::PhysicalCore& System::CurrentPhysicalCore() {
+    return impl->CurrentPhysicalCore();
+}
+
+const Kernel::PhysicalCore& System::CurrentPhysicalCore() const {
+    return impl->CurrentPhysicalCore();
+}
+
 Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
     return impl->GetPhysicalCore(core_index).Scheduler();
 }

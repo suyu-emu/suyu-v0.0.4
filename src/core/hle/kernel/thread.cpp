@@ -250,6 +250,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
 }
 
 void Thread::SetPriority(u32 priority) {
+    SchedulerLock lock(kernel);
     ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
                "Invalid priority value.");
     nominal_priority = priority;
@@ -383,10 +384,6 @@ void Thread::UpdatePriority() {
     lock_owner->UpdatePriority();
 }
 
-void Thread::ChangeCore(u32 core, u64 mask) {
-    SetCoreAndAffinityMask(core, mask);
-}
-
 bool Thread::AllSynchronizationObjectsReady() const {
     return std::none_of(wait_objects.begin(), wait_objects.end(),
                         [this](const std::shared_ptr<SynchronizationObject>& object) {
@@ -467,6 +464,7 @@ void Thread::SetCurrentPriority(u32 new_priority) {
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
+    SchedulerLock lock(kernel);
     const auto HighestSetCore = [](u64 mask, u32 max_cores) {
         for (s32 core = static_cast<s32>(max_cores - 1); core >= 0; core--) {
             if (((mask >> core) & 1) != 0) {

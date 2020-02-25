@@ -27,6 +27,7 @@ class VfsFilesystem;
 namespace Kernel {
 class GlobalScheduler;
 class KernelCore;
+class PhysicalCore;
 class Process;
 class Scheduler;
 } // namespace Kernel
@@ -210,6 +211,12 @@ public:
 
     /// Gets the scheduler for the CPU core that is currently running
     const Kernel::Scheduler& CurrentScheduler() const;
+
+    /// Gets the physical core for the CPU core that is currently running
+    Kernel::PhysicalCore& CurrentPhysicalCore();
+
+    /// Gets the physical core for the CPU core that is currently running
+    const Kernel::PhysicalCore& CurrentPhysicalCore() const;
 
     /// Gets a reference to an ARM interface for the CPU core with the specified index
     ARM_Interface& ArmInterface(std::size_t core_index);

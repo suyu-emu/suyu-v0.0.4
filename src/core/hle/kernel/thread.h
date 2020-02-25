@@ -221,7 +221,7 @@ public:
     void UpdatePriority();
 
     /// Changes the core that the thread is running or scheduled to run on.
-    void ChangeCore(u32 core, u64 mask);
+    ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
 
     /**
      * Gets the thread's thread ID
@@ -522,7 +522,6 @@ private:
 
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void SetCurrentPriority(u32 new_priority);
-    ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
 
     void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
 
