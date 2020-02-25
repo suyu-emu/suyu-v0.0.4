@@ -925,6 +925,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         nullptr,                                     // E-Commerce
     });
 
+    system.RegisterHostThread();
+
     const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
 
     const auto drd_callout =

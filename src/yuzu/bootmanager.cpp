@@ -44,7 +44,9 @@ EmuThread::EmuThread() = default;
 EmuThread::~EmuThread() = default;
 
 void EmuThread::run() {
-    MicroProfileOnThreadCreate("EmuThread");
+    std::string name = "yuzu:EmuControlThread";
+    MicroProfileOnThreadCreate(name.c_str());
+    Common::SetCurrentThreadName(name.c_str());
 
     // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
     // execution.

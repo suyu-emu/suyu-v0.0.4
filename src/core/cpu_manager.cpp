@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/fiber.h"
+#include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
@@ -36,6 +37,7 @@ void CpuManager::Shutdown() {
     Pause(false);
     for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         core_data[core].host_thread->join();
+        core_data[core].host_thread.reset();
     }
 }
 
@@ -80,7 +82,7 @@ void CpuManager::RunGuestThread() {
         auto& physical_core = kernel.CurrentPhysicalCore();
         if (!physical_core.IsInterrupted()) {
             physical_core.Idle();
-            //physical_core.Run();
+            // physical_core.Run();
         }
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
@@ -159,6 +161,7 @@ void CpuManager::RunThread(std::size_t core) {
     /// Initialization
     system.RegisterCoreThread(core);
     std::string name = "yuzu:CoreHostThread_" + std::to_string(core);
+    MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
     auto& data = core_data[core];
     data.enter_barrier = std::make_unique<Common::Event>();

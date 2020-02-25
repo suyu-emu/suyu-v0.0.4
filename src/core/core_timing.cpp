@@ -2,14 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/core_timing.h"
-
 #include <algorithm>
 #include <mutex>
 #include <string>
 #include <tuple>
 
 #include "common/assert.h"
+#include "common/microprofile.h"
+#include "core/core_timing.h"
 #include "core/core_timing_util.h"
 
 namespace Core::Timing {
@@ -44,6 +44,7 @@ CoreTiming::~CoreTiming() = default;
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
     std::string name = "yuzu:HostTiming";
+    MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
     instance.on_thread_init();
     instance.ThreadLoop();
