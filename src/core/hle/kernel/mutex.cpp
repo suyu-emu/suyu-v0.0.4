@@ -84,10 +84,11 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
 
         const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
         std::shared_ptr<Thread> holding_thread = handle_table.Get<Thread>(holding_thread_handle);
-        std::shared_ptr<Thread> requesting_thread = handle_table.Get<Thread>(requesting_thread_handle);
+        std::shared_ptr<Thread> requesting_thread =
+            handle_table.Get<Thread>(requesting_thread_handle);
 
-        // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of another
-        // thread.
+        // TODO(Subv): It is currently unknown if it is possible to lock a mutex in behalf of
+        // another thread.
         ASSERT(requesting_thread == current_thread);
 
         current_thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
@@ -123,47 +124,47 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     return current_thread->GetSignalingResult();
 }
 
-ResultCode Mutex::Release(VAddr address) {
-    // The mutex address must be 4-byte aligned
-    if ((address % sizeof(u32)) != 0) {
-        LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
-        return ERR_INVALID_ADDRESS;
-    }
+std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thread> owner,
+                                                             VAddr address) {
+     // The mutex address must be 4-byte aligned
+     if ((address % sizeof(u32)) != 0) {
+         LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
+         return {ERR_INVALID_ADDRESS, nullptr};
+     }
 
-    std::shared_ptr<Thread> current_thread =
-        SharedFrom(system.CurrentScheduler().GetCurrentThread());
-    auto [thread, num_waiters] = GetHighestPriorityMutexWaitingThread(current_thread, address);
-
-    // There are no more threads waiting for the mutex, release it completely.
-    if (thread == nullptr) {
+    auto [new_owner, num_waiters] = GetHighestPriorityMutexWaitingThread(owner, address);
+    if (new_owner == nullptr) {
         system.Memory().Write32(address, 0);
-        return RESULT_SUCCESS;
+        return {RESULT_SUCCESS, nullptr};
     }
-
     // Transfer the ownership of the mutex from the previous owner to the new one.
-    TransferMutexOwnership(address, current_thread, thread);
-
-    u32 mutex_value = thread->GetWaitHandle();
-
+    TransferMutexOwnership(address, owner, new_owner);
+    u32 mutex_value = new_owner->GetWaitHandle();
     if (num_waiters >= 2) {
         // Notify the guest that there are still some threads waiting for the mutex
         mutex_value |= Mutex::MutexHasWaitersFlag;
     }
-
-    // Grant the mutex to the next waiting thread and resume it.
+    new_owner->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
+    new_owner->ResumeFromWait();
+    new_owner->SetLockOwner(nullptr);
     system.Memory().Write32(address, mutex_value);
-
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitMutex);
-    thread->ResumeFromWait();
-
-    thread->SetLockOwner(nullptr);
-    thread->SetCondVarWaitAddress(0);
-    thread->SetMutexWaitAddress(0);
-    thread->SetWaitHandle(0);
-    thread->SetWaitSynchronizationResult(RESULT_SUCCESS);
-
-    system.PrepareReschedule();
-
-    return RESULT_SUCCESS;
+    return {RESULT_SUCCESS, new_owner};
 }
+
+ResultCode Mutex::Release(VAddr address) {
+    auto& kernel = system.Kernel();
+    SchedulerLock lock(kernel);
+
+    std::shared_ptr<Thread> current_thread =
+        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+
+    auto [result, new_owner] = Unlock(current_thread, address);
+
+    if (result != RESULT_SUCCESS && new_owner != nullptr) {
+        new_owner->SetSynchronizationResults(nullptr, result);
+    }
+
+    return result;
+}
+
 } // namespace Kernel

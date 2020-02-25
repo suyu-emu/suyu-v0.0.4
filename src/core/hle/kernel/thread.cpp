@@ -80,7 +80,7 @@ void Thread::CancelWakeupTimer() {
 
 void Thread::ResumeFromWait() {
     ASSERT_MSG(wait_objects.empty(), "Thread is waking up while waiting for objects");
-
+    SchedulerLock lock(kernel);
     switch (status) {
     case ThreadStatus::Paused:
     case ThreadStatus::WaitSynch:
