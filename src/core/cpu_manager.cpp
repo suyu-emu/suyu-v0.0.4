@@ -78,10 +78,10 @@ void CpuManager::RunGuestThread() {
     }
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
-        LOG_CRITICAL(Core_ARM, "Running Guest Thread");
-        physical_core.Idle();
-        LOG_CRITICAL(Core_ARM, "Leaving Guest Thread");
-        // physical_core.Run();
+        if (!physical_core.IsInterrupted()) {
+            physical_core.Idle();
+            //physical_core.Run();
+        }
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
     }
@@ -91,7 +91,6 @@ void CpuManager::RunIdleThread() {
     auto& kernel = system.Kernel();
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
-        LOG_CRITICAL(Core_ARM, "Running Idle Thread");
         physical_core.Idle();
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
@@ -99,7 +98,6 @@ void CpuManager::RunIdleThread() {
 }
 
 void CpuManager::RunSuspendThread() {
-    LOG_CRITICAL(Core_ARM, "Suspending Thread Entered");
     auto& kernel = system.Kernel();
     {
         auto& sched = kernel.CurrentScheduler();
@@ -109,9 +107,7 @@ void CpuManager::RunSuspendThread() {
         auto core = kernel.GetCurrentHostThreadID();
         auto& scheduler = kernel.CurrentScheduler();
         Kernel::Thread* current_thread = scheduler.GetCurrentThread();
-        LOG_CRITICAL(Core_ARM, "Suspending Core {}", core);
         Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[core].host_context);
-        LOG_CRITICAL(Core_ARM, "Unsuspending Core {}", core);
         ASSERT(scheduler.ContextSwitchPending());
         ASSERT(core == kernel.GetCurrentHostThreadID());
         scheduler.TryDoContextSwitch();
