@@ -293,44 +293,66 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
 
 void ShaderIR::WriteLop3Instruction(NodeBlock& bb, Register dest, Node op_a, Node op_b, Node op_c,
                                     Node imm_lut, bool sets_cc) {
-    constexpr u32 lop_iterations = 32;
-    const Node one = Immediate(1);
-    const Node two = Immediate(2);
-
-    Node value;
-    for (u32 i = 0; i < lop_iterations; ++i) {
-        const Node shift_amount = Immediate(i);
-
-        const Node a = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_c, shift_amount);
-        const Node pack_0 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, one);
-
-        const Node b = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_b, shift_amount);
-        const Node c = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, b, one);
-        const Node pack_1 = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, c, one);
-
-        const Node d = Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, op_a, shift_amount);
-        const Node e = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, d, one);
-        const Node pack_2 = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, e, two);
-
-        const Node pack_01 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, pack_0, pack_1);
-        const Node pack_012 = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, pack_01, pack_2);
-
-        const Node shifted_bit =
-            Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, imm_lut, pack_012);
-        const Node bit = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, shifted_bit, one);
-
-        const Node right =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, bit, shift_amount);
-
-        if (i > 0) {
-            value = Operation(OperationCode::IBitwiseOr, NO_PRECISE, value, right);
-        } else {
-            value = right;
+    const Node lop3_fast = [&](const Node na, const Node nb, const Node nc, const Node ttbl) {
+        Node value = Immediate(0);
+        const ImmediateNode imm = std::get<ImmediateNode>(*ttbl);
+        if (imm.GetValue() & 0x01) {
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, b);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
         }
-    }
+        if (imm.GetValue() & 0x02) {
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, b);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x04) {
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, nb);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x08) {
+            const Node a = Operation(OperationCode::IBitwiseNot, na);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, a, nb);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x10) {
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, b);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x20) {
+            const Node b = Operation(OperationCode::IBitwiseNot, nb);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, b);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x40) {
+            const Node c = Operation(OperationCode::IBitwiseNot, nc);
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, nb);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, c);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        if (imm.GetValue() & 0x80) {
+            Node r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, na, nb);
+            r = Operation(OperationCode::IBitwiseAnd, NO_PRECISE, r, nc);
+            value = Operation(OperationCode::IBitwiseOr, value, r);
+        }
+        return value;
+    }(op_a, op_b, op_c, imm_lut);
 
-    SetInternalFlagsFromInteger(bb, value, sets_cc);
-    SetRegister(bb, dest, value);
+    SetInternalFlagsFromInteger(bb, lop3_fast, sets_cc);
+    SetRegister(bb, dest, lop3_fast);
 }
 
 } // namespace VideoCommon::Shader
