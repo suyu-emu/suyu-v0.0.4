@@ -132,7 +132,7 @@ public:
     u64 tpidr_el0 = 0;
 };
 
-std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit(Common::PageTable& page_table,
+std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit(Common::PageTable& page_table,
                                                           std::size_t address_space_bits) const {
     Dynarmic::A64::UserConfig config;
 
@@ -159,7 +159,7 @@ std::unique_ptr<Dynarmic::A64::Jit> ARM_Dynarmic::MakeJit(Common::PageTable& pag
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
 
-    return std::make_unique<Dynarmic::A64::Jit>(config);
+    return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
 MICROPROFILE_DEFINE(ARM_Jit_Dynarmic, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
@@ -267,7 +267,14 @@ void ARM_Dynarmic::ClearExclusiveState() {
 
 void ARM_Dynarmic::PageTableChanged(Common::PageTable& page_table,
                                     std::size_t new_address_space_size_in_bits) {
+    auto key = std::make_pair(&page_table, new_address_space_size_in_bits);
+    auto iter = jit_cache.find(key);
+    if (iter != jit_cache.end()) {
+        jit = iter->second;
+        return;
+    }
     jit = MakeJit(page_table, new_address_space_size_in_bits);
+    jit_cache.emplace(key, jit);
 }
 
 DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count)
