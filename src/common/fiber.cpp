@@ -81,7 +81,7 @@ std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
 }
 
 #else
-constexpr std::size_t default_stack_size = 1024 * 1024; // 4MB
+constexpr std::size_t default_stack_size = 1024 * 1024; // 1MB
 
 struct Fiber::FiberImpl {
     alignas(64) std::array<u8, default_stack_size> stack;
@@ -106,10 +106,10 @@ Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_paramete
     : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
       previous_fiber{} {
     impl = std::make_unique<FiberImpl>();
-    void* stack_start =
-        static_cast<void*>(static_cast<std::uintptr_t>(impl->stack.data()) + default_stack_size);
+    u8* stack_limit = impl->stack.data();
+    u8* stack_base = stack_limit + default_stack_size;
     impl->context =
-        boost::context::detail::make_fcontext(stack_start, impl->stack.size(), FiberStartFunc);
+        boost::context::detail::make_fcontext(stack_base, impl->stack.size(), FiberStartFunc);
 }
 
 Fiber::Fiber() {
