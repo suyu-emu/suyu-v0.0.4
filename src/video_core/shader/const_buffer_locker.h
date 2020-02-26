@@ -26,7 +26,8 @@ using BindlessSamplerMap =
  */
 class ConstBufferLocker {
 public:
-    explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage);
+    explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
+                               VideoCore::GuestDriverProfile stored_guest_driver_profile);
 
     explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
                                Tegra::Engines::ConstBufferEngineInterface& engine);
@@ -83,15 +84,13 @@ public:
     }
 
     /// Obtains access to the guest driver's profile.
-    VideoCore::GuestDriverProfile* AccessGuestDriverProfile() const {
-        if (engine) {
-            return &engine->AccessGuestDriverProfile();
-        }
-        return nullptr;
+    VideoCore::GuestDriverProfile& AccessGuestDriverProfile() {
+        return engine ? engine->AccessGuestDriverProfile() : stored_guest_driver_profile;
     }
 
 private:
     const Tegra::Engines::ShaderType stage;
+    VideoCore::GuestDriverProfile stored_guest_driver_profile;
     Tegra::Engines::ConstBufferEngineInterface* engine = nullptr;
     KeyMap keys;
     BoundSamplerMap bound_samplers;

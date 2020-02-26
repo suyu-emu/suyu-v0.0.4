@@ -94,13 +94,10 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, cons
             }
             auto [gpr, base_offset] = *pair;
             const auto offset_inm = std::get_if<ImmediateNode>(&*base_offset);
-            auto gpu_driver = locker.AccessGuestDriverProfile();
-            if (gpu_driver == nullptr) {
-                return {};
-            }
+            const auto& gpu_driver = locker.AccessGuestDriverProfile();
             const u32 bindless_cv = NewCustomVariable();
-            const Node op = Operation(OperationCode::UDiv, NO_PRECISE, gpr,
-                                      Immediate(gpu_driver->GetTextureHandlerSize()));
+            const Node op =
+                Operation(OperationCode::UDiv, gpr, Immediate(gpu_driver.GetTextureHandlerSize()));
 
             const Node cv_node = GetCustomVariable(bindless_cv);
             Node amend_op = Operation(OperationCode::Assign, cv_node, std::move(op));

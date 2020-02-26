@@ -98,7 +98,7 @@ private:
 
     /// Configures a constant buffer.
     void SetupConstBuffer(u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
-                          const GLShader::ConstBufferEntry& entry);
+                          const ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
     void SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader);
@@ -107,7 +107,7 @@ private:
     void SetupComputeGlobalMemory(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupGlobalMemory(u32 binding, const GLShader::GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
+    void SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
 
     /// Configures the current textures to use for the draw command.
@@ -118,7 +118,7 @@ private:
 
     /// Configures a texture.
     void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
-                      const GLShader::SamplerEntry& entry);
+                      const SamplerEntry& entry);
 
     /// Configures images in a graphics shader.
     void SetupDrawImages(std::size_t stage_index, const Shader& shader);
@@ -127,8 +127,7 @@ private:
     void SetupComputeImages(const Shader& shader);
 
     /// Configures an image.
-    void SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic,
-                    const GLShader::ImageEntry& entry);
+    void SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport();

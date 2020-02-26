@@ -14,8 +14,9 @@ namespace VideoCommon::Shader {
 
 using Tegra::Engines::SamplerDescriptor;
 
-ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage)
-    : stage{shader_stage} {}
+ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
+                                     VideoCore::GuestDriverProfile stored_guest_driver_profile)
+    : stage{shader_stage}, stored_guest_driver_profile{stored_guest_driver_profile} {}
 
 ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
                                      Tegra::Engines::ConstBufferEngineInterface& engine)
@@ -97,7 +98,7 @@ void ConstBufferLocker::SetBoundBuffer(u32 buffer) {
 
 bool ConstBufferLocker::IsConsistent() const {
     if (!engine) {
-        return false;
+        return true;
     }
     return std::all_of(keys.begin(), keys.end(),
                        [this](const auto& pair) {

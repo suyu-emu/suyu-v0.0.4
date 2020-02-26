@@ -34,13 +34,9 @@ constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
     return (absolute_offset % SchedPeriod) == 0;
 }
 
-void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
+void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile& gpu_driver,
                               const std::list<Sampler>& used_samplers) {
-    if (gpu_driver == nullptr) {
-        LOG_CRITICAL(HW_GPU, "GPU driver profile has not been created yet");
-        return;
-    }
-    if (gpu_driver->TextureHandlerSizeKnown() || used_samplers.size() <= 1) {
+    if (gpu_driver.IsTextureHandlerSizeKnown() || used_samplers.size() <= 1) {
         return;
     }
     u32 count{};
@@ -53,17 +49,13 @@ void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile* gpu_driver,
         bound_offsets.emplace_back(sampler.GetOffset());
     }
     if (count > 1) {
-        gpu_driver->DeduceTextureHandlerSize(std::move(bound_offsets));
+        gpu_driver.DeduceTextureHandlerSize(std::move(bound_offsets));
     }
 }
 
 std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
-                                        VideoCore::GuestDriverProfile* gpu_driver,
+                                        VideoCore::GuestDriverProfile& gpu_driver,
                                         const std::list<Sampler>& used_samplers) {
-    if (gpu_driver == nullptr) {
-        LOG_CRITICAL(HW_GPU, "GPU Driver profile has not been created yet");
-        return std::nullopt;
-    }
     const u32 base_offset = sampler_to_deduce.GetOffset();
     u32 max_offset{std::numeric_limits<u32>::max()};
     for (const auto& sampler : used_samplers) {
@@ -77,7 +69,7 @@ std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
     if (max_offset == std::numeric_limits<u32>::max()) {
         return std::nullopt;
     }
-    return ((max_offset - base_offset) * 4) / gpu_driver->GetTextureHandlerSize();
+    return ((max_offset - base_offset) * 4) / gpu_driver.GetTextureHandlerSize();
 }
 
 } // Anonymous namespace

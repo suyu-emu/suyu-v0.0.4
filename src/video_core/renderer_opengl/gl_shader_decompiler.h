@@ -6,6 +6,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
@@ -18,10 +19,8 @@ class ShaderIR;
 }
 
 namespace OpenGL {
-class Device;
-}
 
-namespace OpenGL::GLShader {
+class Device;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using SamplerEntry = VideoCommon::Shader::Sampler;
@@ -78,11 +77,9 @@ struct ShaderEntries {
     std::size_t shader_length{};
 };
 
-ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir);
+ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir);
 
-std::string GetCommonDeclarations();
+std::string DecompileShader(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
+                            Tegra::Engines::ShaderType stage, std::string_view suffix = {});
 
-std::string Decompile(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
-                      Tegra::Engines::ShaderType stage, const std::string& suffix);
-
-} // namespace OpenGL::GLShader
+} // namespace OpenGL

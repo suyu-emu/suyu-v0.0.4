@@ -24,7 +24,7 @@
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 
-namespace OpenGL::GLShader {
+namespace OpenGL {
 
 namespace {
 
@@ -55,6 +55,25 @@ using TextureIR = std::variant<TextureOffset, TextureDerivates, TextureArgument>
 
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(Maxwell::MaxConstBufferSize) / (4 * sizeof(float));
+
+std::string_view CommonDeclarations = R"(#define ftoi floatBitsToInt
+#define ftou floatBitsToUint
+#define itof intBitsToFloat
+#define utof uintBitsToFloat
+
+bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {{
+    bvec2 is_nan1 = isnan(pair1);
+    bvec2 is_nan2 = isnan(pair2);
+    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || is_nan2.y);
+}}
+
+const float fswzadd_modifiers_a[] = float[4](-1.0f,  1.0f, -1.0f,  0.0f );
+const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
+
+layout (std140, binding = {}) uniform vs_config {{
+    float y_direction;
+}};
+)";
 
 class ShaderWriter final {
 public:
@@ -270,8 +289,13 @@ const char* GetImageTypeDeclaration(Tegra::Shader::ImageType image_type) {
 }
 
 /// Generates code to use for a swizzle operation.
-constexpr const char* GetSwizzle(u32 element) {
+constexpr const char* GetSwizzle(std::size_t element) {
     constexpr std::array swizzle = {".x", ".y", ".z", ".w"};
+    return swizzle.at(element);
+}
+
+constexpr const char* GetColorSwizzle(std::size_t element) {
+    constexpr std::array swizzle = {".r", ".g", ".b", ".a"};
     return swizzle.at(element);
 }
 
@@ -344,8 +368,47 @@ std::string FlowStackTopName(MetaStackClass stack) {
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderType stage,
-                            std::string suffix)
+                            std::string_view suffix)
         : device{device}, ir{ir}, stage{stage}, suffix{suffix}, header{ir.GetHeader()} {}
+
+    void Decompile() {
+        DeclareHeader();
+        DeclareVertex();
+        DeclareGeometry();
+        DeclareFragment();
+        DeclareRegisters();
+        DeclareCustomVariables();
+        DeclarePredicates();
+        DeclareLocalMemory();
+        DeclareInternalFlags();
+        DeclareInputAttributes();
+        DeclareOutputAttributes();
+        DeclareConstantBuffers();
+        DeclareGlobalMemory();
+        DeclareSamplers();
+        DeclareImages();
+        DeclarePhysicalAttributeReader();
+
+        code.AddLine("void main() {{");
+        ++code.scope;
+
+        if (ir.IsDecompiled()) {
+            DecompileAST();
+        } else {
+            DecompileBranchMode();
+        }
+
+        --code.scope;
+        code.AddLine("}}");
+    }
+
+    std::string GetResult() {
+        return code.GetResult();
+    }
+
+private:
+    friend class ASTDecompiler;
+    friend class ExprDecompiler;
 
     void DecompileBranchMode() {
         // VM's program counter
@@ -387,42 +450,32 @@ public:
 
     void DecompileAST();
 
-    void Decompile() {
-        DeclareVertex();
-        DeclareGeometry();
-        DeclareRegisters();
-        DeclareCustomVariables();
-        DeclarePredicates();
-        DeclareLocalMemory();
-        DeclareInternalFlags();
-        DeclareInputAttributes();
-        DeclareOutputAttributes();
-        DeclareConstantBuffers();
-        DeclareGlobalMemory();
-        DeclareSamplers();
-        DeclareImages();
-        DeclarePhysicalAttributeReader();
-
-        code.AddLine("void execute_{}() {{", suffix);
-        ++code.scope;
-
-        if (ir.IsDecompiled()) {
-            DecompileAST();
-        } else {
-            DecompileBranchMode();
+    void DeclareHeader() {
+        code.AddLine("#version 450 compatibility");
+        code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
+        if (device.HasShaderBallot()) {
+            code.AddLine("#extension GL_ARB_shader_ballot : require");
         }
+        if (device.HasVertexViewportLayer()) {
+            code.AddLine("#extension GL_ARB_shader_viewport_layer_array : require");
+        }
+        if (device.HasImageLoadFormatted()) {
+            code.AddLine("#extension GL_EXT_shader_image_load_formatted : require");
+        }
+        if (device.HasWarpIntrinsics()) {
+            code.AddLine("#extension GL_NV_gpu_shader5 : require");
+            code.AddLine("#extension GL_NV_shader_thread_group : require");
+            code.AddLine("#extension GL_NV_shader_thread_shuffle : require");
+        }
+        // This pragma stops Nvidia's driver from over optimizing math (probably using fp16
+        // operations) on places where we don't want to.
+        // Thanks to Ryujinx for finding this workaround.
+        code.AddLine("#pragma optionNV(fastmath off)");
 
-        --code.scope;
-        code.AddLine("}}");
+        code.AddNewLine();
+
+        code.AddLine(CommonDeclarations, EmulationUniformBlockBinding);
     }
-
-    std::string GetResult() {
-        return code.GetResult();
-    }
-
-private:
-    friend class ASTDecompiler;
-    friend class ExprDecompiler;
 
     void DeclareVertex() {
         if (!IsVertexShader(stage))
@@ -448,6 +501,24 @@ private:
         code.AddLine("}} gl_in[];");
 
         DeclareVertexRedeclarations();
+    }
+
+    void DeclareFragment() {
+        if (stage != ShaderType::Fragment) {
+            return;
+        }
+
+        bool any = false;
+        for (u32 render_target = 0; render_target < Maxwell::NumRenderTargets; ++render_target) {
+            if (!IsRenderTargetEnabled(render_target)) {
+                continue;
+            }
+            code.AddLine("layout (location = {}) out vec4 frag_color{};", render_target, render_target);
+            any = true;
+        }
+        if (any) {
+            code.AddNewLine();
+        }
     }
 
     void DeclareVertexRedeclarations() {
@@ -1945,7 +2016,7 @@ private:
             // TODO(Subv): Figure out how dual-source blending is configured in the Switch.
             for (u32 component = 0; component < 4; ++component) {
                 if (header.ps.IsColorComponentOutputEnabled(render_target, component)) {
-                    code.AddLine("FragColor{}[{}] = {};", render_target, component,
+                    code.AddLine("frag_color{}{} = {};", render_target, GetColorSwizzle(component),
                                  SafeGetRegister(current_reg).AsFloat());
                     ++current_reg;
                 }
@@ -2298,7 +2369,11 @@ private:
     }
 
     std::string GetLocalMemory() const {
-        return "lmem_" + suffix;
+        if (suffix.empty()) {
+            return "lmem";
+        } else {
+            return "lmem_" + std::string{suffix};
+        }
     }
 
     std::string GetInternalFlag(InternalFlag flag) const {
@@ -2307,7 +2382,11 @@ private:
         const auto index = static_cast<u32>(flag);
         ASSERT(index < static_cast<u32>(InternalFlag::Amount));
 
-        return fmt::format("{}_{}", InternalFlagNames[index], suffix);
+        if (suffix.empty()) {
+            return InternalFlagNames[index];
+        } else {
+            return fmt::format("{}_{}", InternalFlagNames[index], suffix);
+        }
     }
 
     std::string GetSampler(const Sampler& sampler) const {
@@ -2319,7 +2398,11 @@ private:
     }
 
     std::string GetDeclarationWithSuffix(u32 index, std::string_view name) const {
-        return fmt::format("{}_{}_{}", name, index, suffix);
+        if (suffix.empty()) {
+            return fmt::format("{}{}", name, index);
+        } else {
+            return fmt::format("{}{}_{}", name, index, suffix);
+        }
     }
 
     u32 GetNumPhysicalInputAttributes() const {
@@ -2334,17 +2417,26 @@ private:
         return std::min<u32>(device.GetMaxVaryings(), Maxwell::NumVaryings);
     }
 
+    bool IsRenderTargetEnabled(u32 render_target) const {
+        for (u32 component = 0; component < 4; ++component) {
+            if (header.ps.IsColorComponentOutputEnabled(render_target, component)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     const Device& device;
     const ShaderIR& ir;
     const ShaderType stage;
-    const std::string suffix;
+    const std::string_view suffix;
     const Header header;
 
     ShaderWriter code;
 };
 
-std::string GetFlowVariable(u32 i) {
-    return fmt::format("flow_var_{}", i);
+std::string GetFlowVariable(u32 index) {
+    return fmt::format("flow_var{}", index);
 }
 
 class ExprDecompiler {
@@ -2531,7 +2623,7 @@ void GLSLDecompiler::DecompileAST() {
 
 } // Anonymous namespace
 
-ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir) {
+ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir) {
     ShaderEntries entries;
     for (const auto& cbuf : ir.GetConstantBuffers()) {
         entries.const_buffers.emplace_back(cbuf.second.GetMaxOffset(), cbuf.second.IsIndirect(),
@@ -2555,28 +2647,11 @@ ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir) {
     return entries;
 }
 
-std::string GetCommonDeclarations() {
-    return R"(#define ftoi floatBitsToInt
-#define ftou floatBitsToUint
-#define itof intBitsToFloat
-#define utof uintBitsToFloat
-
-bvec2 HalfFloatNanComparison(bvec2 comparison, vec2 pair1, vec2 pair2) {
-    bvec2 is_nan1 = isnan(pair1);
-    bvec2 is_nan2 = isnan(pair2);
-    return bvec2(comparison.x || is_nan1.x || is_nan2.x, comparison.y || is_nan1.y || is_nan2.y);
-}
-
-const float fswzadd_modifiers_a[] = float[4](-1.0f,  1.0f, -1.0f,  0.0f );
-const float fswzadd_modifiers_b[] = float[4](-1.0f, -1.0f,  1.0f, -1.0f );
-)";
-}
-
-std::string Decompile(const Device& device, const ShaderIR& ir, ShaderType stage,
-                      const std::string& suffix) {
+std::string DecompileShader(const Device& device, const ShaderIR& ir, ShaderType stage,
+                            std::string_view suffix) {
     GLSLDecompiler decompiler(device, ir, stage, suffix);
     decompiler.Decompile();
     return decompiler.GetResult();
 }
 
-} // namespace OpenGL::GLShader
+} // namespace OpenGL

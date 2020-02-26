@@ -65,8 +65,6 @@ add_library(video_core STATIC
     renderer_opengl/gl_shader_decompiler.h
     renderer_opengl/gl_shader_disk_cache.cpp
     renderer_opengl/gl_shader_disk_cache.h
-    renderer_opengl/gl_shader_gen.cpp
-    renderer_opengl/gl_shader_gen.h
     renderer_opengl/gl_shader_manager.cpp
     renderer_opengl/gl_shader_manager.h
     renderer_opengl/gl_shader_util.cpp

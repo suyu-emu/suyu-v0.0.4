@@ -57,8 +57,6 @@ set(HASH_FILES
     "${VIDEO_CORE}/renderer_opengl/gl_shader_decompiler.h"
     "${VIDEO_CORE}/renderer_opengl/gl_shader_disk_cache.cpp"
     "${VIDEO_CORE}/renderer_opengl/gl_shader_disk_cache.h"
-    "${VIDEO_CORE}/renderer_opengl/gl_shader_gen.cpp"
-    "${VIDEO_CORE}/renderer_opengl/gl_shader_gen.h"
     "${VIDEO_CORE}/shader/decode/arithmetic.cpp"
     "${VIDEO_CORE}/shader/decode/arithmetic_half.cpp"
     "${VIDEO_CORE}/shader/decode/arithmetic_half_immediate.cpp"
