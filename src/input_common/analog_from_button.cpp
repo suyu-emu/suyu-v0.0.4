@@ -34,6 +34,20 @@ public:
                                y * coef * (x == 0 ? 1.0f : SQRT_HALF));
     }
 
+    bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
+        switch (direction) {
+        case Input::AnalogDirection::RIGHT:
+            return right->GetStatus();
+        case Input::AnalogDirection::LEFT:
+            return left->GetStatus();
+        case Input::AnalogDirection::UP:
+            return up->GetStatus();
+        case Input::AnalogDirection::DOWN:
+            return down->GetStatus();
+        }
+        return false;
+    }
+
 private:
     Button up;
     Button down;
