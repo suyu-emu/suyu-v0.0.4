@@ -81,10 +81,10 @@ std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
 }
 
 #else
-constexpr std::size_t default_stack_size = 1024 * 1024 * 4; // 4MB
+constexpr std::size_t default_stack_size = 1024 * 1024; // 4MB
 
-struct alignas(64) Fiber::FiberImpl {
-    std::array<u8, default_stack_size> stack;
+struct Fiber::FiberImpl {
+    alignas(64) std::array<u8, default_stack_size> stack;
     boost::context::detail::fcontext_t context;
 };
 
@@ -106,8 +106,10 @@ Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_paramete
     : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
       previous_fiber{} {
     impl = std::make_unique<FiberImpl>();
-    impl->context = boost::context::detail::make_fcontext(impl->stack.data(), impl->stack.size(),
-                                                          FiberStartFunc);
+    void* stack_start =
+        static_cast<void*>(static_cast<std::uintptr_t>(impl->stack.data()) + default_stack_size);
+    impl->context =
+        boost::context::detail::make_fcontext(stack_start, impl->stack.size(), FiberStartFunc);
 }
 
 Fiber::Fiber() {
@@ -136,7 +138,7 @@ void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
     to->previous_fiber = from;
-    auto transfer = boost::context::detail::jump_fcontext(to->impl->context, nullptr);
+    auto transfer = boost::context::detail::jump_fcontext(to->impl->context, to.get());
     auto previous_fiber = from->previous_fiber;
     ASSERT(previous_fiber != nullptr);
     previous_fiber->impl->context = transfer.fctx;
