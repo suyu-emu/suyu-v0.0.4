@@ -50,6 +50,8 @@ struct PresentationTexture {
     OGLTexture texture;
 };
 
+class FrameMailbox;
+
 class RendererOpenGL final : public VideoCore::RendererBase {
 public:
     explicit RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system);
@@ -111,6 +113,9 @@ private:
 
     /// Represents if the final render frame is sRGB
     bool is_srgb{};
+
+    /// Frame presentation mailbox
+    std::unique_ptr<FrameMailbox> frame_mailbox;
 };
 
 } // namespace OpenGL

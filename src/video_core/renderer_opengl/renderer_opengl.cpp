@@ -22,12 +22,17 @@
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 
-namespace Core::Frontend {
+namespace OpenGL {
+
+// If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
+// to wait on available presentation frames. There doesn't seem to be much of a downside to a larger
+// number but 9 swap textures at 60FPS presentation allows for 800% speed so thats probably fine
+constexpr std::size_t SWAP_CHAIN_SIZE = 9;
 
 struct Frame {
     u32 width{};                      /// Width of the frame (to detect resize)
     u32 height{};                     /// Height of the frame
-    bool color_reloaded = false;      /// Texture attachment was recreated (ie: resized)
+    bool color_reloaded{};            /// Texture attachment was recreated (ie: resized)
     OpenGL::OGLRenderbuffer color{};  /// Buffer shared between the render/present FBO
     OpenGL::OGLFramebuffer render{};  /// FBO created on the render thread
     OpenGL::OGLFramebuffer present{}; /// FBO created on the present thread
@@ -36,40 +41,37 @@ struct Frame {
     bool is_srgb{};                   /// Framebuffer is sRGB or RGB
 };
 
-} // namespace Core::Frontend
-
-namespace OpenGL {
-
-// If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
-// to wait on available presentation frames. There doesn't seem to be much of a downside to a larger
-// number but 9 swap textures at 60FPS presentation allows for 800% speed so thats probably fine
-constexpr std::size_t SWAP_CHAIN_SIZE = 9;
-
-class OGLTextureMailbox : public Core::Frontend::TextureMailbox {
+/**
+ * For smooth Vsync rendering, we want to always present the latest frame that the core generates,
+ * but also make sure that rendering happens at the pace that the frontend dictates. This is a
+ * helper class that the renderer uses to sync frames between the render thread and the presentation
+ * thread
+ */
+class FrameMailbox {
 public:
     std::mutex swap_chain_lock;
     std::condition_variable present_cv;
-    std::array<Core::Frontend::Frame, SWAP_CHAIN_SIZE> swap_chain{};
-    std::queue<Core::Frontend::Frame*> free_queue;
-    std::deque<Core::Frontend::Frame*> present_queue;
-    Core::Frontend::Frame* previous_frame{};
+    std::array<Frame, SWAP_CHAIN_SIZE> swap_chain{};
+    std::queue<Frame*> free_queue;
+    std::deque<Frame*> present_queue;
+    Frame* previous_frame{};
 
-    OGLTextureMailbox() {
+    FrameMailbox() {
         for (auto& frame : swap_chain) {
             free_queue.push(&frame);
         }
     }
 
-    ~OGLTextureMailbox() override {
+    ~FrameMailbox() {
         // lock the mutex and clear out the present and free_queues and notify any people who are
         // blocked to prevent deadlock on shutdown
         std::scoped_lock lock(swap_chain_lock);
-        std::queue<Core::Frontend::Frame*>().swap(free_queue);
+        std::queue<Frame*>().swap(free_queue);
         present_queue.clear();
         present_cv.notify_all();
     }
 
-    void ReloadPresentFrame(Core::Frontend::Frame* frame, u32 height, u32 width) override {
+    void ReloadPresentFrame(Frame* frame, u32 height, u32 width) {
         frame->present.Release();
         frame->present.Create();
         GLint previous_draw_fbo{};
@@ -84,7 +86,7 @@ public:
         frame->color_reloaded = false;
     }
 
-    void ReloadRenderFrame(Core::Frontend::Frame* frame, u32 width, u32 height) override {
+    void ReloadRenderFrame(Frame* frame, u32 width, u32 height) {
         OpenGLState prev_state = OpenGLState::GetCurState();
         OpenGLState state = OpenGLState::GetCurState();
 
@@ -103,7 +105,7 @@ public:
         state.Apply();
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
                                   frame->color.handle);
-        if (!glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG_CRITICAL(Render_OpenGL, "Failed to recreate render FBO!");
         }
         prev_state.Apply();
@@ -112,7 +114,7 @@ public:
         frame->color_reloaded = true;
     }
 
-    Core::Frontend::Frame* GetRenderFrame() override {
+    Frame* GetRenderFrame() {
         std::unique_lock<std::mutex> lock(swap_chain_lock);
 
         // If theres no free frames, we will reuse the oldest render frame
@@ -122,18 +124,18 @@ public:
             return frame;
         }
 
-        Core::Frontend::Frame* frame = free_queue.front();
+        Frame* frame = free_queue.front();
         free_queue.pop();
         return frame;
     }
 
-    void ReleaseRenderFrame(Core::Frontend::Frame* frame) override {
+    void ReleaseRenderFrame(Frame* frame) {
         std::unique_lock<std::mutex> lock(swap_chain_lock);
         present_queue.push_front(frame);
         present_cv.notify_one();
     }
 
-    Core::Frontend::Frame* TryGetPresentFrame(int timeout_ms) override {
+    Frame* TryGetPresentFrame(int timeout_ms) {
         std::unique_lock<std::mutex> lock(swap_chain_lock);
         // wait for new entries in the present_queue
         present_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms),
@@ -149,7 +151,7 @@ public:
         }
 
         // the newest entries are pushed to the front of the queue
-        Core::Frontend::Frame* frame = present_queue.front();
+        Frame* frame = present_queue.front();
         present_queue.pop_front();
         // remove all old entries from the present queue and move them back to the free_queue
         for (auto f : present_queue) {
@@ -295,9 +297,8 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
 } // Anonymous namespace
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system)
-    : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system} {
-    emu_window.mailbox = std::make_unique<OGLTextureMailbox>();
-}
+    : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system},
+      frame_mailbox{std::make_unique<FrameMailbox>()} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
@@ -319,11 +320,11 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     PrepareRendertarget(framebuffer);
     RenderScreenshot();
 
-    Core::Frontend::Frame* frame;
+    Frame* frame;
     {
         MICROPROFILE_SCOPE(OpenGL_WaitPresent);
 
-        frame = render_window.mailbox->GetRenderFrame();
+        frame = frame_mailbox->GetRenderFrame();
 
         // Clean up sync objects before drawing
 
@@ -356,7 +357,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
             is_srgb != frame->is_srgb) {
             LOG_DEBUG(Render_OpenGL, "Reloading render frame");
             is_srgb = frame->is_srgb = screen_info.display_srgb;
-            render_window.mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
+            frame_mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
         }
         state.draw.draw_framebuffer = frame->render.handle;
         state.Apply();
@@ -364,7 +365,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         // Create a fence for the frontend to wait on and swap this frame to OffTex
         frame->render_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
         glFlush();
-        render_window.mailbox->ReleaseRenderFrame(frame);
+        frame_mailbox->ReleaseRenderFrame(frame);
         m_current_frame++;
         rasterizer->TickFrame();
     }
@@ -615,7 +616,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
 void RendererOpenGL::TryPresent(int timeout_ms) {
     const auto& layout = render_window.GetFramebufferLayout();
-    auto frame = render_window.mailbox->TryGetPresentFrame(timeout_ms);
+    auto frame = frame_mailbox->TryGetPresentFrame(timeout_ms);
     if (!frame) {
         LOG_DEBUG(Render_OpenGL, "TryGetPresentFrame returned no frame to present");
         return;
@@ -628,7 +629,7 @@ void RendererOpenGL::TryPresent(int timeout_ms) {
     // Recreate the presentation FBO if the color attachment was changed
     if (frame->color_reloaded) {
         LOG_DEBUG(Render_OpenGL, "Reloading present frame");
-        render_window.mailbox->ReloadPresentFrame(frame, layout.width, layout.height);
+        frame_mailbox->ReloadPresentFrame(frame, layout.width, layout.height);
     }
     glWaitSync(frame->render_fence, 0, GL_TIMEOUT_IGNORED);
     // INTEL workaround.
