@@ -65,7 +65,7 @@ public:
     ~FrameMailbox() {
         // lock the mutex and clear out the present and free_queues and notify any people who are
         // blocked to prevent deadlock on shutdown
-        std::scoped_lock lock(swap_chain_lock);
+        std::scoped_lock lock{swap_chain_lock};
         std::queue<Frame*>().swap(free_queue);
         present_queue.clear();
         present_cv.notify_all();
@@ -115,7 +115,7 @@ public:
     }
 
     Frame* GetRenderFrame() {
-        std::unique_lock<std::mutex> lock(swap_chain_lock);
+        std::unique_lock lock{swap_chain_lock};
 
         // If theres no free frames, we will reuse the oldest render frame
         if (free_queue.empty()) {
@@ -130,13 +130,13 @@ public:
     }
 
     void ReleaseRenderFrame(Frame* frame) {
-        std::unique_lock<std::mutex> lock(swap_chain_lock);
+        std::unique_lock lock{swap_chain_lock};
         present_queue.push_front(frame);
         present_cv.notify_one();
     }
 
     Frame* TryGetPresentFrame(int timeout_ms) {
-        std::unique_lock<std::mutex> lock(swap_chain_lock);
+        std::unique_lock lock{swap_chain_lock};
         // wait for new entries in the present_queue
         present_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms),
                             [&] { return !present_queue.empty(); });
