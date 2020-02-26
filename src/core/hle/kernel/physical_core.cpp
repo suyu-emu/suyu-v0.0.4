@@ -45,6 +45,9 @@ PhysicalCore::~PhysicalCore() = default;
 
 void PhysicalCore::Run() {
     arm_interface->Run();
+}
+
+void PhysicalCore::ClearExclusive() {
     arm_interface->ClearExclusiveState();
 }
 

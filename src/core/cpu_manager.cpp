@@ -80,9 +80,10 @@ void CpuManager::RunGuestThread() {
     }
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
-        if (!physical_core.IsInterrupted()) {
+        while (!physical_core.IsInterrupted()) {
             physical_core.Run();
         }
+        physical_core.ClearExclusive();
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
     }

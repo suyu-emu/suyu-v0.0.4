@@ -38,6 +38,8 @@ public:
 
     /// Execute current jit state
     void Run();
+    /// Clear Exclusive state.
+    void ClearExclusive();
     /// Set this core in IdleState.
     void Idle();
     /// Execute a single instruction in current jit.
