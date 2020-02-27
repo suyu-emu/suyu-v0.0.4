@@ -36,10 +36,12 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(2, "Edid", system);
     displays.emplace_back(3, "Internal", system);
     displays.emplace_back(4, "Null", system);
+    guard = std::make_shared<std::mutex>();
 
     // Schedule the screen composition events
     composition_event =
         Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 ns_late) {
+            Lock();
             Compose();
             const auto ticks = GetNextTicks();
             this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - ns_late),
