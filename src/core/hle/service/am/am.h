@@ -182,6 +182,7 @@ private:
     void GetOperationMode(Kernel::HLERequestContext& ctx);
     void GetPerformanceMode(Kernel::HLERequestContext& ctx);
     void GetBootMode(Kernel::HLERequestContext& ctx);
+    void SetLcdBacklighOffEnabled(Kernel::HLERequestContext& ctx);
     void GetDefaultDisplayResolution(Kernel::HLERequestContext& ctx);
     void SetCpuBoostMode(Kernel::HLERequestContext& ctx);
 

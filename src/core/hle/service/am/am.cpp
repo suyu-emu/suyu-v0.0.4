@@ -607,7 +607,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system,
         {40, nullptr, "GetCradleFwVersion"},
         {50, nullptr, "IsVrModeEnabled"},
         {51, nullptr, "SetVrModeEnabled"},
-        {52, nullptr, "SwitchLcdBacklight"},
+        {52, &ICommonStateGetter::SetLcdBacklighOffEnabled, "SetLcdBacklighOffEnabled"},
         {53, nullptr, "BeginVrModeEx"},
         {54, nullptr, "EndVrModeEx"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
@@ -636,7 +636,6 @@ void ICommonStateGetter::GetBootMode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-
     rb.Push<u8>(static_cast<u8>(Service::PM::SystemBootMode::Normal)); // Normal boot mode
 }
 
@@ -660,6 +659,7 @@ void ICommonStateGetter::ReceiveMessage(Kernel::HLERequestContext& ctx) {
         rb.PushEnum<AppletMessageQueue::AppletMessage>(message);
         return;
     }
+
     rb.Push(RESULT_SUCCESS);
     rb.PushEnum<AppletMessageQueue::AppletMessage>(message);
 }
@@ -670,6 +670,17 @@ void ICommonStateGetter::GetCurrentFocusState(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(static_cast<u8>(FocusState::InFocus));
+}
+
+void ICommonStateGetter::SetLcdBacklighOffEnabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_lcd_backlight_off_enabled = rp.Pop<bool>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called. is_lcd_backlight_off_enabled={}",
+                is_lcd_backlight_off_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 void ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent(Kernel::HLERequestContext& ctx) {
