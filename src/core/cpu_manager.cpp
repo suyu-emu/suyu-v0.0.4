@@ -79,12 +79,13 @@ void CpuManager::RunGuestThread() {
         sched.OnThreadStart();
     }
     while (true) {
-        auto& physical_core = kernel.CurrentPhysicalCore();
-        while (!physical_core.IsInterrupted()) {
-            physical_core.Run();
+        auto* physical_core = &kernel.CurrentPhysicalCore();
+        while (!physical_core->IsInterrupted()) {
+            physical_core->Run();
+            physical_core = &kernel.CurrentPhysicalCore();
         }
-        physical_core.ClearExclusive();
-        auto& scheduler = physical_core.Scheduler();
+        physical_core->ClearExclusive();
+        auto& scheduler = physical_core->Scheduler();
         scheduler.TryDoContextSwitch();
     }
 }
