@@ -1541,33 +1541,50 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         return ERR_INVALID_ADDRESS;
     }
 
-    UNIMPLEMENTED();
-
     ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
-
+    auto& kernel = system.Kernel();
+    Handle event_handle;
+    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
     auto* const current_process = system.Kernel().CurrentProcess();
-    const auto& handle_table = current_process->GetHandleTable();
-    std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
-    ASSERT(thread);
+    {
+        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, nano_seconds);
+        const auto& handle_table = current_process->GetHandleTable();
+        std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+        ASSERT(thread);
 
-    const auto release_result = current_process->GetMutex().Release(mutex_addr);
-    if (release_result.IsError()) {
-        return release_result;
+        current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
+
+        const auto release_result = current_process->GetMutex().Release(mutex_addr);
+        if (release_result.IsError()) {
+            lock.CancelSleep();
+            return release_result;
+        }
+
+        if (nano_seconds == 0) {
+            lock.CancelSleep();
+            return RESULT_TIMEOUT;
+        }
+
+        current_thread->SetCondVarWaitAddress(condition_variable_addr);
+        current_thread->SetMutexWaitAddress(mutex_addr);
+        current_thread->SetWaitHandle(thread_handle);
+        current_thread->SetStatus(ThreadStatus::WaitCondVar);
+        current_process->InsertConditionVariableThread(SharedFrom(current_thread));
     }
 
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
-    current_thread->SetCondVarWaitAddress(condition_variable_addr);
-    current_thread->SetMutexWaitAddress(mutex_addr);
-    current_thread->SetWaitHandle(thread_handle);
-    current_thread->SetStatus(ThreadStatus::WaitCondVar);
-    current_thread->InvalidateWakeupCallback();
-    current_process->InsertConditionVariableThread(SharedFrom(current_thread));
+    if (event_handle != InvalidHandle) {
+        auto& time_manager = kernel.TimeManager();
+        time_manager.UnscheduleTimeEvent(event_handle);
+    }
 
-    current_thread->WakeAfterDelay(nano_seconds);
+    {
+        SchedulerLock lock(kernel);
 
+        current_process->RemoveConditionVariableThread(SharedFrom(current_thread));
+    }
     // Note: Deliberately don't attempt to inherit the lock owner's priority.
 
-    return RESULT_SUCCESS;
+    return current_thread->GetSignalingResult();
 }
 
 /// Signal process wide key
@@ -1577,10 +1594,10 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
 
     ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
 
-    UNIMPLEMENTED();
-
     // Retrieve a list of all threads that are waiting for this condition variable.
-    auto* const current_process = system.Kernel().CurrentProcess();
+    auto& kernel = system.Kernel();
+    SchedulerLock lock(kernel);
+    auto* const current_process = kernel.CurrentProcess();
     std::vector<std::shared_ptr<Thread>> waiting_threads =
         current_process->GetConditionVariableThreads(condition_variable_addr);
 
@@ -1589,9 +1606,17 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
     std::size_t last = waiting_threads.size();
     if (target > 0)
         last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
-
+    auto& time_manager = kernel.TimeManager();
     for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
+
+        if (thread->GetStatus() != ThreadStatus::WaitCondVar) {
+            last++;
+            last = std::min(waiting_threads.size(), last);
+            continue;
+        }
+
+        time_manager.CancelTimeEvent(thread.get());
 
         ASSERT(thread->GetCondVarWaitAddress() == condition_variable_addr);
 
@@ -1630,17 +1655,13 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
             }
 
             thread->SetLockOwner(nullptr);
-            thread->SetMutexWaitAddress(0);
-            thread->SetWaitHandle(0);
-            thread->SetWaitSynchronizationResult(RESULT_SUCCESS);
+            thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
         } else {
             // The mutex is already owned by some other thread, make this thread wait on it.
             const Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
             const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
             auto owner = handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
-            ASSERT(thread->GetStatus() == ThreadStatus::WaitCondVar);
-            thread->InvalidateWakeupCallback();
             thread->SetStatus(ThreadStatus::WaitMutex);
 
             owner->AddMutexWaiter(thread);

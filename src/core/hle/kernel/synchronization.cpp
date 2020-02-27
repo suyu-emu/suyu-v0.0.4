@@ -17,12 +17,15 @@ namespace Kernel {
 Synchronization::Synchronization(Core::System& system) : system{system} {}
 
 void Synchronization::SignalObject(SynchronizationObject& obj) const {
-    SchedulerLock lock(system.Kernel());
+    auto& kernel = system.Kernel();
+    SchedulerLock lock(kernel);
+    auto& time_manager = kernel.TimeManager();
     if (obj.IsSignaled()) {
         for (auto thread : obj.GetWaitingThreads()) {
             if (thread->GetSchedulingStatus() == ThreadSchedStatus::Paused) {
                 thread->SetSynchronizationResults(&obj, RESULT_SUCCESS);
                 thread->ResumeFromWait();
+                time_manager.CancelTimeEvent(thread.get());
             }
         }
     }
@@ -79,6 +82,9 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
         SchedulerLock lock(kernel);
         ResultCode signaling_result = thread->GetSignalingResult();
         SynchronizationObject* signaling_object = thread->GetSignalingObject();
+        for (auto& obj : sync_objects) {
+            obj->RemoveWaitingThread(SharedFrom(thread));
+        }
         if (signaling_result == RESULT_SUCCESS) {
             const auto itr = std::find_if(
                 sync_objects.begin(), sync_objects.end(),

@@ -49,12 +49,12 @@ Thread::~Thread() = default;
 void Thread::Stop() {
     SchedulerLock lock(kernel);
     // Cancel any outstanding wakeup events for this thread
+    Signal();
     Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
                                                              global_handle);
     kernel.GlobalHandleTable().Close(global_handle);
     global_handle = 0;
     SetStatus(ThreadStatus::Dead);
-    Signal();
 
     owner_process->UnregisterThread(this);
 

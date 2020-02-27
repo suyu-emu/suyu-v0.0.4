@@ -102,6 +102,10 @@ void SynchronizationObject::WakeupAllWaitingThreads() {
     }
 }
 
+void SynchronizationObject::ClearWaitingThreads() {
+    waiting_threads.clear();
+}
+
 const std::vector<std::shared_ptr<Thread>>& SynchronizationObject::GetWaitingThreads() const {
     return waiting_threads;
 }

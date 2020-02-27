@@ -68,6 +68,8 @@ public:
     /// Get a const reference to the waiting threads list for debug use
     const std::vector<std::shared_ptr<Thread>>& GetWaitingThreads() const;
 
+    void ClearWaitingThreads();
+
 protected:
     bool is_signaled{}; // Tells if this sync object is signalled;
 

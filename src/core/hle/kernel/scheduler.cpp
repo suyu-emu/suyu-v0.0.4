@@ -632,7 +632,7 @@ void Scheduler::SwitchContext() {
             cpu_core.SaveContext(previous_thread->GetContext64());
             // Save the TPIDR_EL0 system register in case it was modified.
             previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
-
+            cpu_core.ClearExclusiveState();
         }
         if (previous_thread->GetStatus() == ThreadStatus::Running) {
             previous_thread->SetStatus(ThreadStatus::Ready);
