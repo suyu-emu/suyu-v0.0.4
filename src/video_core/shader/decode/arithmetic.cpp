@@ -53,28 +53,23 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
 
         op_b = GetOperandAbsNegFloat(op_b, false, instr.fmul.negate_b);
 
-        // TODO(Rodrigo): Should precise be used when there's a postfactor?
-        Node value = Operation(OperationCode::FMul, PRECISE, op_a, op_b);
+        static constexpr std::array FmulPostFactor = {
+            1.000f, // None
+            0.500f, // Divide 2
+            0.250f, // Divide 4
+            0.125f, // Divide 8
+            8.000f, // Mul 8
+            4.000f, // Mul 4
+            2.000f, // Mul 2
+        };
 
         if (instr.fmul.postfactor != 0) {
-            auto postfactor = static_cast<s32>(instr.fmul.postfactor);
-
-            // Postfactor encoded as 3-bit 1's complement in instruction, interpreted with below
-            // logic.
-            if (postfactor >= 4) {
-                postfactor = 7 - postfactor;
-            } else {
-                postfactor = 0 - postfactor;
-            }
-
-            if (postfactor > 0) {
-                value = Operation(OperationCode::FMul, NO_PRECISE, value,
-                                  Immediate(static_cast<f32>(1 << postfactor)));
-            } else {
-                value = Operation(OperationCode::FDiv, NO_PRECISE, value,
-                                  Immediate(static_cast<f32>(1 << -postfactor)));
-            }
+            op_a = Operation(OperationCode::FMul, NO_PRECISE, op_a,
+                             Immediate(FmulPostFactor[instr.fmul.postfactor]));
         }
+
+        // TODO(Rodrigo): Should precise be used when there's a postfactor?
+        Node value = Operation(OperationCode::FMul, PRECISE, op_a, op_b);
 
         value = GetSaturatedFloat(value, instr.alu.saturate_d);
 
