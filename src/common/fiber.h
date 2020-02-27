@@ -46,6 +46,10 @@ public:
     static void YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to);
     static std::shared_ptr<Fiber> ThreadToFiber();
 
+    void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start_parameter);
+
+    void Rewind();
+
     /// Only call from main thread's fiber
     void Exit();
 
@@ -58,8 +62,10 @@ private:
     Fiber();
 
 #if defined(_WIN32) || defined(WIN32)
+    void onRewind();
     void start();
     static void FiberStartFunc(void* fiber_parameter);
+    static void RewindStartFunc(void* fiber_parameter);
 #else
     void start(boost::context::detail::transfer_t& transfer);
     static void FiberStartFunc(boost::context::detail::transfer_t transfer);
@@ -69,6 +75,8 @@ private:
 
     SpinLock guard{};
     std::function<void(void*)> entry_point{};
+    std::function<void(void*)> rewind_point{};
+    void* rewind_parameter{};
     void* start_parameter{};
     std::shared_ptr<Fiber> previous_fiber{};
     std::unique_ptr<FiberImpl> impl;

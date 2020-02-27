@@ -309,4 +309,50 @@ TEST_CASE("Fibers::StartRace", "[common]") {
     REQUIRE(test_control.value3 == 1);
 }
 
+class TestControl4;
+
+static void WorkControl4(void* control);
+
+class TestControl4 {
+public:
+    TestControl4() {
+        fiber1 = std::make_shared<Fiber>(std::function<void(void*)>{WorkControl4}, this);
+        goal_reached = false;
+        rewinded = false;
+    }
+
+    void Execute() {
+        thread_fiber = Fiber::ThreadToFiber();
+        Fiber::YieldTo(thread_fiber, fiber1);
+        thread_fiber->Exit();
+    }
+
+    void DoWork() {
+        fiber1->SetRewindPoint(std::function<void(void*)>{WorkControl4}, this);
+        if (rewinded) {
+            goal_reached = true;
+            Fiber::YieldTo(fiber1, thread_fiber);
+        }
+        rewinded = true;
+        fiber1->Rewind();
+    }
+
+    std::shared_ptr<Common::Fiber> fiber1;
+    std::shared_ptr<Common::Fiber> thread_fiber;
+    bool goal_reached;
+    bool rewinded;
+};
+
+static void WorkControl4(void* control) {
+    auto* test_control = static_cast<TestControl4*>(control);
+    test_control->DoWork();
+}
+
+TEST_CASE("Fibers::Rewind", "[common]") {
+    TestControl4 test_control{};
+    test_control.Execute();
+    REQUIRE(test_control.goal_reached);
+    REQUIRE(test_control.rewinded);
+}
+
 } // namespace Common
