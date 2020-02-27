@@ -581,6 +581,7 @@ void Scheduler::SwitchContextStep2() {
 
     if (new_thread) {
         new_thread->context_guard.lock();
+        cpu_core.Lock();
         ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
                    "Thread must be assigned to this core.");
         ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
@@ -601,6 +602,7 @@ void Scheduler::SwitchContextStep2() {
             cpu_core.LoadContext(new_thread->GetContext64());
             cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
             cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
+            cpu_core.ClearExclusiveState();
         }
     } else {
         current_thread = nullptr;
@@ -639,6 +641,7 @@ void Scheduler::SwitchContext() {
         }
         previous_thread->SetIsRunning(false);
         previous_thread->context_guard.unlock();
+        cpu_core.Unlock();
     }
 
     std::shared_ptr<Common::Fiber> old_context;

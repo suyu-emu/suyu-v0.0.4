@@ -42,10 +42,12 @@ public:
 
 private:
     static void GuestThreadFunction(void* cpu_manager);
+    static void GuestRewindFunction(void* cpu_manager);
     static void IdleThreadFunction(void* cpu_manager);
     static void SuspendThreadFunction(void* cpu_manager);
 
     void RunGuestThread();
+    void RunGuestLoop();
     void RunIdleThread();
     void RunSuspendThread();
 

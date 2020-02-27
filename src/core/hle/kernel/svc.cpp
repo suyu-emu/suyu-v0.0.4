@@ -10,6 +10,7 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
+#include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/string_util.h"
@@ -2468,7 +2469,10 @@ void Call(Core::System& system, u32 immediate) {
     }
     auto& physical_core_2 = system.CurrentPhysicalCore();
     if (physical_core.CoreIndex() != physical_core_2.CoreIndex()) {
-        physical_core.Stop();
+        LOG_CRITICAL(Kernel_SVC, "Rewinding");
+        auto* thread = physical_core_2.Scheduler().GetCurrentThread();
+        auto* host_context = thread->GetHostContext().get();
+        host_context->Rewind();
     }
 }
 

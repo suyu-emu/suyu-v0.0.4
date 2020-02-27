@@ -6,6 +6,7 @@
 
 #include <array>
 #include <vector>
+#include <mutex>
 #include "common/common_types.h"
 
 namespace Common {
@@ -164,6 +165,14 @@ public:
         std::string name;
     };
 
+    void Lock() {
+        guard.lock();
+    }
+
+    void Unlock() {
+        guard.unlock();
+    }
+
     std::vector<BacktraceEntry> GetBacktrace() const;
 
     /// fp (= r29) points to the last frame record.
@@ -178,6 +187,7 @@ protected:
     /// System context that this ARM interface is running under.
     System& system;
     CPUInterruptHandler& interrupt_handler;
+    std::mutex guard;
 };
 
 } // namespace Core

@@ -46,6 +46,11 @@ void CpuManager::GuestThreadFunction(void* cpu_manager_) {
     cpu_manager->RunGuestThread();
 }
 
+void CpuManager::GuestRewindFunction(void* cpu_manager_) {
+    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
+    cpu_manager->RunGuestLoop();
+}
+
 void CpuManager::IdleThreadFunction(void* cpu_manager_) {
     CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
     cpu_manager->RunIdleThread();
@@ -78,14 +83,22 @@ void CpuManager::RunGuestThread() {
         auto& sched = kernel.CurrentScheduler();
         sched.OnThreadStart();
     }
+    RunGuestLoop();
+}
+
+void CpuManager::RunGuestLoop() {
+    auto& kernel = system.Kernel();
+    auto* thread = kernel.CurrentScheduler().GetCurrentThread();
+    auto host_context = thread->GetHostContext();
+    host_context->SetRewindPoint(std::function<void(void*)>(GuestRewindFunction), this);
+    host_context.reset();
     while (true) {
-        auto* physical_core = &kernel.CurrentPhysicalCore();
-        while (!physical_core->IsInterrupted()) {
-            physical_core->Run();
-            physical_core = &kernel.CurrentPhysicalCore();
+        auto& physical_core = kernel.CurrentPhysicalCore();
+        while (!physical_core.IsInterrupted()) {
+            physical_core.Run();
         }
-        physical_core->ClearExclusive();
-        auto& scheduler = physical_core->Scheduler();
+        physical_core.ClearExclusive();
+        auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
     }
 }
