@@ -1657,6 +1657,7 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
                 update_val = thread->GetWaitHandle();
             }
         } while (!monitor.ExclusiveWrite32(current_core, mutex_address, update_val));
+        monitor.ClearExclusive();
         if (mutex_val == 0) {
             // We were able to acquire the mutex, resume this thread.
             ASSERT(thread->GetStatus() == ThreadStatus::WaitCondVar);

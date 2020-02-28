@@ -182,6 +182,7 @@ private:
     std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Scheduler lock mechanisms.
+    bool is_locked{};
     std::mutex inner_lock{}; // TODO(Blinkhawk): Replace for a SpinLock
     std::atomic<s64> scope_lock{};
     Core::EmuThreadHandle current_owner{Core::EmuThreadHandle::InvalidHandle()};

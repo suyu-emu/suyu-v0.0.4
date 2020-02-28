@@ -44,6 +44,7 @@ void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
 }
 
 u32 GlobalScheduler::SelectThreads() {
+    ASSERT(is_locked);
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
         sched.guard.lock();
         if (thread != sched.selected_thread.get()) {
@@ -136,6 +137,7 @@ u32 GlobalScheduler::SelectThreads() {
 }
 
 bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should use critical section, etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
@@ -149,6 +151,7 @@ bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
 }
 
 bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
@@ -197,6 +200,7 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
 }
 
 bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
     Thread* winner = nullptr;
@@ -237,6 +241,7 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
 }
 
 void GlobalScheduler::PreemptThreads() {
+    ASSERT(is_locked);
     for (std::size_t core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
         const u32 priority = preemption_priorities[core_id];
 
@@ -339,33 +344,40 @@ void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
 }
 
 void GlobalScheduler::Suggest(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     suggested_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::Unsuggest(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     suggested_queue[core].remove(thread, priority);
 }
 
 void GlobalScheduler::Schedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::SchedulePrepend(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority, false);
 }
 
 void GlobalScheduler::Reschedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     scheduled_queue[core].remove(thread, priority);
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::Unschedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     scheduled_queue[core].remove(thread, priority);
 }
 
 void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread* thread) {
+    ASSERT(is_locked);
     const bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
     const s32 source_core = thread->GetProcessorID();
     if (source_core == destination_core || !schedulable) {
@@ -399,6 +411,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
     if (old_flags == thread->scheduling_state) {
         return;
     }
+    ASSERT(is_locked);
 
     if (static_cast<ThreadSchedStatus>(old_flags & static_cast<u32>(ThreadSchedMasks::LowMask)) ==
         ThreadSchedStatus::Runnable) {
@@ -434,6 +447,7 @@ void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priorit
     if (thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
         return;
     }
+    ASSERT(is_locked);
     if (thread->processor_id >= 0) {
         Unschedule(old_priority, static_cast<u32>(thread->processor_id), thread);
     }
@@ -472,6 +486,7 @@ void GlobalScheduler::AdjustSchedulingOnAffinity(Thread* thread, u64 old_affinit
         thread->current_priority >= THREADPRIO_COUNT) {
         return;
     }
+    ASSERT(is_locked);
 
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         if (((old_affinity_mask >> core) & 1) != 0) {
@@ -507,10 +522,12 @@ void GlobalScheduler::Shutdown() {
 
 void GlobalScheduler::Lock() {
     Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadID();
+    ASSERT(!current_thread.IsInvalid());
     if (current_thread == current_owner) {
         ++scope_lock;
     } else {
         inner_lock.lock();
+        is_locked = true;
         current_owner = current_thread;
         ASSERT(current_owner != Core::EmuThreadHandle::InvalidHandle());
         scope_lock = 1;
@@ -526,6 +543,7 @@ void GlobalScheduler::Unlock() {
     Core::EmuThreadHandle leaving_thread = current_owner;
     current_owner = Core::EmuThreadHandle::InvalidHandle();
     scope_lock = 1;
+    is_locked = false;
     inner_lock.unlock();
     EnableInterruptAndSchedule(cores_pending_reschedule, leaving_thread);
 }
