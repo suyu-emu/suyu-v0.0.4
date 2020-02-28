@@ -8,13 +8,14 @@
 #include <climits>
 #include <cmath>
 #include <vector>
+
 #include "audio_core/algorithm/interpolate.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 
 namespace AudioCore {
 
-constexpr std::array<s16, 512> curve_lut0 = {
+constexpr std::array<s16, 512> curve_lut0{
     6600,  19426, 6722,  3,     6479,  19424, 6845,  9,     6359,  19419, 6968,  15,    6239,
     19412, 7093,  22,    6121,  19403, 7219,  28,    6004,  19391, 7345,  34,    5888,  19377,
     7472,  41,    5773,  19361, 7600,  48,    5659,  19342, 7728,  55,    5546,  19321, 7857,
@@ -56,7 +57,7 @@ constexpr std::array<s16, 512> curve_lut0 = {
     19403, 6121,  22,    7093,  19412, 6239,  15,    6968,  19419, 6359,  9,     6845,  19424,
     6479,  3,     6722,  19426, 6600};
 
-constexpr std::array<s16, 512> curve_lut1 = {
+constexpr std::array<s16, 512> curve_lut1{
     -68,   32639, 69,    -5,    -200,  32630, 212,   -15,   -328,  32613, 359,   -26,   -450,
     32586, 512,   -36,   -568,  32551, 669,   -47,   -680,  32507, 832,   -58,   -788,  32454,
     1000,  -69,   -891,  32393, 1174,  -80,   -990,  32323, 1352,  -92,   -1084, 32244, 1536,
@@ -98,7 +99,7 @@ constexpr std::array<s16, 512> curve_lut1 = {
     32551, -568,  -36,   512,   32586, -450,  -26,   359,   32613, -328,  -15,   212,   32630,
     -200,  -5,    69,    32639, -68};
 
-constexpr std::array<s16, 512> curve_lut2 = {
+constexpr std::array<s16, 512> curve_lut2{
     3195,  26287, 3329,  -32,   3064,  26281, 3467,  -34,   2936,  26270, 3608,  -38,   2811,
     26253, 3751,  -42,   2688,  26230, 3897,  -46,   2568,  26202, 4046,  -50,   2451,  26169,
     4199,  -54,   2338,  26130, 4354,  -58,   2227,  26085, 4512,  -63,   2120,  26035, 4673,
@@ -146,10 +147,10 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
 
     if (ratio <= 0) {
         LOG_CRITICAL(Audio, "Nonsensical interpolation ratio {}", ratio);
-        ratio = 1.0;
+        return input;
     }
 
-    const int step = static_cast<int>(ratio * 0x8000);
+    const s32 step{static_cast<s32>(ratio * 0x8000)};
     const std::array<s16, 512>& lut = [step] {
         if (step > 0xaaaa) {
             return curve_lut0;
@@ -160,28 +161,37 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
         return curve_lut2;
     }();
 
-    std::vector<s16> output(static_cast<std::size_t>(input.size() / ratio));
-    int in_offset = 0;
-    for (std::size_t out_offset = 0; out_offset < output.size(); out_offset += 2) {
-        const int lut_index = (state.fraction >> 8) * 4;
+    const std::size_t num_frames{input.size() / 2};
 
-        const int l = input[(in_offset + 0) * 2 + 0] * lut[lut_index + 0] +
-                      input[(in_offset + 1) * 2 + 0] * lut[lut_index + 1] +
-                      input[(in_offset + 2) * 2 + 0] * lut[lut_index + 2] +
-                      input[(in_offset + 3) * 2 + 0] * lut[lut_index + 3];
+    std::vector<s16> output;
+    output.reserve(static_cast<std::size_t>(input.size() / ratio + InterpolationState::taps));
 
-        const int r = input[(in_offset + 0) * 2 + 1] * lut[lut_index + 0] +
-                      input[(in_offset + 1) * 2 + 1] * lut[lut_index + 1] +
-                      input[(in_offset + 2) * 2 + 1] * lut[lut_index + 2] +
-                      input[(in_offset + 3) * 2 + 1] * lut[lut_index + 3];
+    for (std::size_t frame{}; frame < num_frames; ++frame) {
+        const std::size_t lut_index{(state.fraction >> 8) * InterpolationState::taps};
 
-        const int new_offset = state.fraction + step;
+        std::rotate(state.history.begin(), state.history.end() - 1, state.history.end());
+        state.history[0][0] = input[frame * 2 + 0];
+        state.history[0][1] = input[frame * 2 + 1];
 
-        in_offset += new_offset >> 15;
-        state.fraction = new_offset & 0x7fff;
+        while (state.position <= 1.0) {
+            const s32 left{state.history[0][0] * lut[lut_index + 0] +
+                           state.history[1][0] * lut[lut_index + 1] +
+                           state.history[2][0] * lut[lut_index + 2] +
+                           state.history[3][0] * lut[lut_index + 3]};
+            const s32 right{state.history[0][1] * lut[lut_index + 0] +
+                            state.history[1][1] * lut[lut_index + 1] +
+                            state.history[2][1] * lut[lut_index + 2] +
+                            state.history[3][1] * lut[lut_index + 3]};
+            const s32 new_offset{state.fraction + step};
 
-        output[out_offset + 0] = static_cast<s16>(std::clamp(l >> 15, SHRT_MIN, SHRT_MAX));
-        output[out_offset + 1] = static_cast<s16>(std::clamp(r >> 15, SHRT_MIN, SHRT_MAX));
+            state.fraction = new_offset & 0x7fff;
+
+            output.emplace_back(static_cast<s16>(std::clamp(left >> 15, SHRT_MIN, SHRT_MAX)));
+            output.emplace_back(static_cast<s16>(std::clamp(right >> 15, SHRT_MIN, SHRT_MAX)));
+
+            state.position += ratio;
+        }
+        state.position -= 1.0;
     }
 
     return output;

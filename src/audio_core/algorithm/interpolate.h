@@ -6,12 +6,17 @@
 
 #include <array>
 #include <vector>
+
 #include "common/common_types.h"
 
 namespace AudioCore {
 
 struct InterpolationState {
-    int fraction = 0;
+    static constexpr std::size_t taps{4};
+    static constexpr std::size_t history_size{taps * 2 - 1};
+    std::array<std::array<s16, 2>, history_size> history{};
+    double position{};
+    s32 fraction{};
 };
 
 /// Interpolates input signal to produce output signal.
