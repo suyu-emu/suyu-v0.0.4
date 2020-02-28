@@ -353,9 +353,9 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
         // Recreate the frame if the size of the window has changed
         if (layout.width != frame->width || layout.height != frame->height ||
-            is_srgb != frame->is_srgb) {
+            screen_info.display_srgb != frame->is_srgb) {
             LOG_DEBUG(Render_OpenGL, "Reloading render frame");
-            is_srgb = frame->is_srgb = screen_info.display_srgb;
+            frame->is_srgb = screen_info.display_srgb;
             frame_mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
         }
         state.draw.draw_framebuffer = frame->render.handle;
