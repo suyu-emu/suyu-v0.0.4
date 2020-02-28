@@ -423,6 +423,13 @@ void OpenGLState::ApplyClipControl() {
     }
 }
 
+void OpenGLState::ApplyRenderBuffer() {
+    if (cur_state.renderbuffer != renderbuffer) {
+        cur_state.renderbuffer = renderbuffer;
+        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer);
+    }
+}
+
 void OpenGLState::ApplyTextures() {
     const std::size_t size = std::size(textures);
     for (std::size_t i = 0; i < size; ++i) {
@@ -478,6 +485,7 @@ void OpenGLState::Apply() {
     ApplyPolygonOffset();
     ApplyAlphaTest();
     ApplyClipControl();
+    ApplyRenderBuffer();
 }
 
 void OpenGLState::EmulateViewportWithScissor() {
@@ -547,6 +555,13 @@ OpenGLState& OpenGLState::ResetFramebuffer(GLuint handle) {
     }
     if (draw.draw_framebuffer == handle) {
         draw.draw_framebuffer = 0;
+    }
+    return *this;
+}
+
+OpenGLState& OpenGLState::ResetRenderbuffer(GLuint handle) {
+    if (renderbuffer == handle) {
+        renderbuffer = 0;
     }
     return *this;
 }

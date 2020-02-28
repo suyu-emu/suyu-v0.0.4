@@ -11,11 +11,13 @@
 #include <QImage>
 #include <QThread>
 #include <QWidget>
+#include <QWindow>
 
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 
+class GRenderWindow;
 class QKeyEvent;
 class QScreen;
 class QTouchEvent;
@@ -26,14 +28,6 @@ class QOpenGLContext;
 class QVulkanInstance;
 #endif
 
-class GWidgetInternal;
-class GGLWidgetInternal;
-class GVKWidgetInternal;
-class GMainWindow;
-class GRenderWindow;
-class QSurface;
-class QOpenGLContext;
-
 namespace VideoCore {
 enum class LoadCallbackStage;
 }
@@ -42,7 +36,7 @@ class EmuThread final : public QThread {
     Q_OBJECT
 
 public:
-    explicit EmuThread(GRenderWindow* render_window);
+    explicit EmuThread(GRenderWindow& window);
     ~EmuThread() override;
 
     /**
@@ -96,7 +90,11 @@ private:
     std::mutex running_mutex;
     std::condition_variable running_cv;
 
-    GRenderWindow* render_window;
+    /// Only used in asynchronous GPU mode
+    std::unique_ptr<Core::Frontend::GraphicsContext> shared_context;
+
+    /// This is shared_context in asynchronous GPU mode, core_context in synchronous GPU mode
+    Core::Frontend::GraphicsContext& context;
 
 signals:
     /**
@@ -126,11 +124,10 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    GRenderWindow(GMainWindow* parent, EmuThread* emu_thread);
+    GRenderWindow(QWidget* parent, EmuThread* emu_thread);
     ~GRenderWindow() override;
 
-    // EmuWindow implementation
-    void SwapBuffers() override;
+    // EmuWindow implementation.
     void MakeCurrent() override;
     void DoneCurrent() override;
     void PollEvents() override;
@@ -139,30 +136,36 @@ public:
                                 void* surface) const override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
-    void ForwardKeyPressEvent(QKeyEvent* event);
-    void ForwardKeyReleaseEvent(QKeyEvent* event);
-
     void BackupGeometry();
     void RestoreGeometry();
     void restoreGeometry(const QByteArray& geometry); // overridden
     QByteArray saveGeometry();                        // overridden
 
-    qreal GetWindowPixelRatio() const;
-    std::pair<u32, u32> ScaleTouch(QPointF pos) const;
+    qreal windowPixelRatio() const;
 
     void closeEvent(QCloseEvent* event) override;
+
+    void resizeEvent(QResizeEvent* event) override;
+
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
+
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+
     bool event(QEvent* event) override;
+
     void focusOutEvent(QFocusEvent* event) override;
 
-    void OnClientAreaResized(u32 width, u32 height);
-
     bool InitRenderTarget();
+
+    /// Destroy the previous run's child_widget which should also destroy the child_window
+    void ReleaseRenderTarget();
 
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
 public slots:
-    void moveContext(); // overridden
-
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
     void OnFramebufferSizeChanged();
@@ -173,6 +176,7 @@ signals:
     void FirstFrameDisplayed();
 
 private:
+    std::pair<u32, u32> ScaleTouch(QPointF pos) const;
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
@@ -184,15 +188,9 @@ private:
     bool LoadOpenGL();
     QStringList GetUnsupportedGLExtensions() const;
 
-    QWidget* container = nullptr;
-    GWidgetInternal* child = nullptr;
-
     EmuThread* emu_thread;
-    // Context that backs the GGLWidgetInternal (and will be used by core to render)
-    std::unique_ptr<QOpenGLContext> context;
-    // Context that will be shared between all newly created contexts. This should never be made
-    // current
-    std::unique_ptr<QOpenGLContext> shared_context;
+
+    std::unique_ptr<GraphicsContext> core_context;
 
 #ifdef HAS_VULKAN
     std::unique_ptr<QVulkanInstance> vk_instance;
@@ -202,6 +200,15 @@ private:
     QImage screenshot_image;
 
     QByteArray geometry;
+
+    /// Native window handle that backs this presentation widget
+    QWindow* child_window = nullptr;
+
+    /// In order to embed the window into GRenderWindow, you need to use createWindowContainer to
+    /// put the child_window into a widget then add it to the layout. This child_widget can be
+    /// parented to GRenderWindow and use Qt's lifetime system
+    QWidget* child_widget = nullptr;
+
     bool first_frame = false;
 
 protected:

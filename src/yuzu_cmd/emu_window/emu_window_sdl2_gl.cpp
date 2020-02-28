@@ -13,24 +13,25 @@
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "common/string_util.h"
+#include "core/core.h"
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
+#include "video_core/renderer_base.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
 
 class SDLGLContext : public Core::Frontend::GraphicsContext {
 public:
     explicit SDLGLContext() {
         // create a hidden window to make the shared context against
-        window = SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, // x position
-                                  SDL_WINDOWPOS_UNDEFINED,     // y position
-                                  Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height,
-                                  SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
+        window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
+                                  SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
         context = SDL_GL_CreateContext(window);
     }
 
     ~SDLGLContext() {
+        DoneCurrent();
         SDL_GL_DeleteContext(context);
         SDL_DestroyWindow(window);
     }
@@ -42,8 +43,6 @@ public:
     void DoneCurrent() override {
         SDL_GL_MakeCurrent(window, nullptr);
     }
-
-    void SwapBuffers() override {}
 
 private:
     SDL_Window* window;
@@ -80,7 +79,8 @@ bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
     return unsupported_ext.empty();
 }
 
-EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(bool fullscreen) : EmuWindow_SDL2(fullscreen) {
+EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(Core::System& system, bool fullscreen)
+    : EmuWindow_SDL2{system, fullscreen} {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -90,6 +90,7 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(bool fullscreen) : EmuWindow_SDL2(fullscree
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+    SDL_GL_SetSwapInterval(0);
 
     std::string window_title = fmt::format("yuzu {} | {}-{}", Common::g_build_fullname,
                                            Common::g_scm_branch, Common::g_scm_desc);
@@ -105,13 +106,22 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(bool fullscreen) : EmuWindow_SDL2(fullscree
         exit(1);
     }
 
+    dummy_window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0,
+                                    SDL_WINDOW_HIDDEN | SDL_WINDOW_OPENGL);
+
     if (fullscreen) {
         Fullscreen();
     }
-    gl_context = SDL_GL_CreateContext(render_window);
 
-    if (gl_context == nullptr) {
-        LOG_CRITICAL(Frontend, "Failed to create SDL2 GL context! {}", SDL_GetError());
+    window_context = SDL_GL_CreateContext(render_window);
+    core_context = CreateSharedContext();
+
+    if (window_context == nullptr) {
+        LOG_CRITICAL(Frontend, "Failed to create SDL2 GL context: {}", SDL_GetError());
+        exit(1);
+    }
+    if (core_context == nullptr) {
+        LOG_CRITICAL(Frontend, "Failed to create shared SDL2 GL context: {}", SDL_GetError());
         exit(1);
     }
 
@@ -128,28 +138,22 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(bool fullscreen) : EmuWindow_SDL2(fullscree
     OnResize();
     OnMinimalClientAreaChangeRequest(GetActiveConfig().min_client_area_size);
     SDL_PumpEvents();
-    SDL_GL_SetSwapInterval(false);
     LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", Common::g_build_fullname, Common::g_scm_branch,
              Common::g_scm_desc);
     Settings::LogSettings();
-
-    DoneCurrent();
 }
 
 EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
-    SDL_GL_DeleteContext(gl_context);
-}
-
-void EmuWindow_SDL2_GL::SwapBuffers() {
-    SDL_GL_SwapWindow(render_window);
+    core_context.reset();
+    SDL_GL_DeleteContext(window_context);
 }
 
 void EmuWindow_SDL2_GL::MakeCurrent() {
-    SDL_GL_MakeCurrent(render_window, gl_context);
+    core_context->MakeCurrent();
 }
 
 void EmuWindow_SDL2_GL::DoneCurrent() {
-    SDL_GL_MakeCurrent(render_window, nullptr);
+    core_context->DoneCurrent();
 }
 
 void EmuWindow_SDL2_GL::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
@@ -160,4 +164,14 @@ void EmuWindow_SDL2_GL::RetrieveVulkanHandlers(void* get_instance_proc_addr, voi
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {
     return std::make_unique<SDLGLContext>();
+}
+
+void EmuWindow_SDL2_GL::Present() {
+    SDL_GL_MakeCurrent(render_window, window_context);
+    SDL_GL_SetSwapInterval(Settings::values.use_vsync ? 1 : 0);
+    while (IsOpen()) {
+        system.Renderer().TryPresent(100);
+        SDL_GL_SwapWindow(render_window);
+    }
+    SDL_GL_MakeCurrent(render_window, nullptr);
 }

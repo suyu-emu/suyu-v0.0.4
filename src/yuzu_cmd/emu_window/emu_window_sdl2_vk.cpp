@@ -15,7 +15,8 @@
 #include "core/settings.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 
-EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(bool fullscreen) : EmuWindow_SDL2(fullscreen) {
+EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(Core::System& system, bool fullscreen)
+    : EmuWindow_SDL2{system, fullscreen} {
     if (SDL_Vulkan_LoadLibrary(nullptr) != 0) {
         LOG_CRITICAL(Frontend, "SDL failed to load the Vulkan library: {}", SDL_GetError());
         exit(EXIT_FAILURE);
@@ -110,8 +111,6 @@ EmuWindow_SDL2_VK::~EmuWindow_SDL2_VK() {
     vkDestroyInstance(vk_instance, nullptr);
 }
 
-void EmuWindow_SDL2_VK::SwapBuffers() {}
-
 void EmuWindow_SDL2_VK::MakeCurrent() {
     // Unused on Vulkan
 }
@@ -159,4 +158,8 @@ bool EmuWindow_SDL2_VK::UseStandardLayers(PFN_vkGetInstanceProcAddr vkGetInstanc
     return std::find_if(layers.begin(), layers.end(), [&](const auto& layer) {
                return layer.layerName == std::string("VK_LAYER_LUNARG_standard_validation");
            }) != layers.end();
+}
+
+void EmuWindow_SDL2_VK::Present() {
+    // TODO (bunnei): ImplementMe
 }

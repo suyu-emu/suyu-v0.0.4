@@ -10,9 +10,13 @@
 
 struct SDL_Window;
 
+namespace Core {
+class System;
+}
+
 class EmuWindow_SDL2 : public Core::Frontend::EmuWindow {
 public:
-    explicit EmuWindow_SDL2(bool fullscreen);
+    explicit EmuWindow_SDL2(Core::System& system, bool fullscreen);
     ~EmuWindow_SDL2();
 
     /// Polls window events
@@ -23,6 +27,9 @@ public:
 
     /// Returns if window is shown (not minimized)
     bool IsShown() const override;
+
+    /// Presents the next frame
+    virtual void Present() = 0;
 
 protected:
     /// Called by PollEvents when a key is pressed or released.
@@ -55,6 +62,9 @@ protected:
     /// Called when a configuration change affects the minimal size of the window
     void OnMinimalClientAreaChangeRequest(std::pair<unsigned, unsigned> minimal_size) override;
 
+    /// Instance of the system, used to access renderer for the presentation thread
+    Core::System& system;
+
     /// Is the window still open?
     bool is_open = true;
 
@@ -62,7 +72,7 @@ protected:
     bool is_shown = true;
 
     /// Internal SDL2 render window
-    SDL_Window* render_window;
+    SDL_Window* render_window{};
 
     /// Keeps track of how often to update the title bar during gameplay
     u32 last_time = 0;

@@ -435,6 +435,7 @@ struct Values {
     bool use_disk_shader_cache;
     bool use_accurate_gpu_emulation;
     bool use_asynchronous_gpu_emulation;
+    bool use_vsync;
     bool force_30fps_mode;
 
     float bg_red;

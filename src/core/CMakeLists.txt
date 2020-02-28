@@ -131,8 +131,8 @@ add_library(core STATIC
     frontend/framebuffer_layout.cpp
     frontend/framebuffer_layout.h
     frontend/input.h
-    frontend/scope_acquire_window_context.cpp
-    frontend/scope_acquire_window_context.h
+    frontend/scope_acquire_context.cpp
+    frontend/scope_acquire_context.h
     gdbstub/gdbstub.cpp
     gdbstub/gdbstub.h
     hardware_interrupt_manager.cpp
