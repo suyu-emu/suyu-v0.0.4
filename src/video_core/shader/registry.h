@@ -20,21 +20,21 @@ using BindlessSamplerMap =
     std::unordered_map<std::pair<u32, u32>, Tegra::Engines::SamplerDescriptor, Common::PairHash>;
 
 /**
- * The ConstBufferLocker is a class use to interface the 3D and compute engines with the shader
- * compiler. with it, the shader can obtain required data from GPU state and store it for disk
- * shader compilation.
+ * The Registry is a class use to interface the 3D and compute engines with the shader compiler.
+ * With it, the shader can obtain required data from GPU state and store it for disk shader
+ * compilation.
  */
-class ConstBufferLocker {
+class Registry {
 public:
-    explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                               VideoCore::GuestDriverProfile stored_guest_driver_profile);
+    explicit Registry(Tegra::Engines::ShaderType shader_stage,
+                      VideoCore::GuestDriverProfile stored_guest_driver_profile);
 
-    explicit ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                               Tegra::Engines::ConstBufferEngineInterface& engine);
+    explicit Registry(Tegra::Engines::ShaderType shader_stage,
+                      Tegra::Engines::ConstBufferEngineInterface& engine);
 
-    ~ConstBufferLocker();
+    ~Registry();
 
-    /// Retrieves a key from the locker, if it's registered, it will give the registered value, if
+    /// Retrieves a key from the registry, if it's registered, it will give the registered value, if
     /// not it will obtain it from maxwell3d and register it.
     std::optional<u32> ObtainKey(u32 buffer, u32 offset);
 
@@ -53,15 +53,15 @@ public:
     /// Inserts a bindless sampler key.
     void InsertBindlessSampler(u32 buffer, u32 offset, Tegra::Engines::SamplerDescriptor sampler);
 
-    /// Set the bound buffer for this locker.
+    /// Set the bound buffer for this registry.
     void SetBoundBuffer(u32 buffer);
 
-    /// Checks keys and samplers against engine's current const buffers. Returns true if they are
-    /// the same value, false otherwise;
+    /// Checks keys and samplers against engine's current const buffers.
+    /// Returns true if they are the same value, false otherwise.
     bool IsConsistent() const;
 
-    /// Returns true if the keys are equal to the other ones in the locker.
-    bool HasEqualKeys(const ConstBufferLocker& rhs) const;
+    /// Returns true if the keys are equal to the other ones in the registry.
+    bool HasEqualKeys(const Registry& rhs) const;
 
     /// Gives an getter to the const buffer keys in the database.
     const KeyMap& GetKeys() const {

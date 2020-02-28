@@ -12,6 +12,7 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/compiler_settings.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -111,6 +112,6 @@ struct ShaderCharacteristics {
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 start_address,
                                                 const CompilerSettings& settings,
-                                                ConstBufferLocker& locker);
+                                                Registry& registry);
 
 } // namespace VideoCommon::Shader

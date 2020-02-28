@@ -141,7 +141,7 @@ void ShaderIR::Decode() {
     std::memcpy(&header, program_code.data(), sizeof(Tegra::Shader::Header));
 
     decompiled = false;
-    auto info = ScanFlow(program_code, main_offset, settings, locker);
+    auto info = ScanFlow(program_code, main_offset, settings, registry);
     auto& shader_info = *info;
     coverage_begin = shader_info.start;
     coverage_end = shader_info.end;
@@ -356,7 +356,7 @@ u32 ShaderIR::DecodeInstr(NodeBlock& bb, u32 pc) {
 
 void ShaderIR::PostDecode() {
     // Deduce texture handler size if needed
-    auto gpu_driver = locker.AccessGuestDriverProfile();
+    auto gpu_driver = registry.AccessGuestDriverProfile();
     DeduceTextureHandlerSize(gpu_driver, used_samplers);
     // Deduce Indexed Samplers
     if (!uses_indexed_samplers) {

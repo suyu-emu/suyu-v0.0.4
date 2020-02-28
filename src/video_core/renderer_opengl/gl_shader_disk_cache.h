@@ -19,7 +19,7 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs_vector.h"
 #include "video_core/engines/shader_type.h"
-#include "video_core/shader/const_buffer_locker.h"
+#include "video_core/shader/registry.h"
 
 namespace Core {
 class System;

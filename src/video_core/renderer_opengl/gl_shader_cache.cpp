@@ -28,13 +28,14 @@
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/utils.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace OpenGL {
 
 using Tegra::Engines::ShaderType;
-using VideoCommon::Shader::ConstBufferLocker;
 using VideoCommon::Shader::ProgramCode;
+using VideoCommon::Shader::Registry;
 using VideoCommon::Shader::ShaderIR;
 
 namespace {
@@ -163,22 +164,22 @@ std::string MakeShaderID(u64 unique_identifier, ShaderType shader_type) {
     return fmt::format("{}{:016X}", GetShaderTypeName(shader_type), unique_identifier);
 }
 
-std::shared_ptr<ConstBufferLocker> MakeLocker(const ShaderDiskCacheEntry& entry) {
+std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
     const VideoCore::GuestDriverProfile guest_profile{entry.texture_handler_size};
-    auto locker = std::make_shared<ConstBufferLocker>(entry.type, guest_profile);
-    locker->SetBoundBuffer(entry.bound_buffer);
+    auto registry = std::make_shared<Registry>(entry.type, guest_profile);
+    registry->SetBoundBuffer(entry.bound_buffer);
     for (const auto& [address, value] : entry.keys) {
         const auto [buffer, offset] = address;
-        locker->InsertKey(buffer, offset, value);
+        registry->InsertKey(buffer, offset, value);
     }
     for (const auto& [offset, sampler] : entry.bound_samplers) {
-        locker->InsertBoundSampler(offset, sampler);
+        registry->InsertBoundSampler(offset, sampler);
     }
     for (const auto& [key, sampler] : entry.bindless_samplers) {
         const auto [buffer, offset] = key;
-        locker->InsertBindlessSampler(buffer, offset, sampler);
+        registry->InsertBindlessSampler(buffer, offset, sampler);
     }
-    return locker;
+    return registry;
 }
 
 std::shared_ptr<OGLProgram> BuildShader(const Device& device, ShaderType shader_type,
@@ -211,15 +212,15 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 } // Anonymous namespace
 
 CachedShader::CachedShader(const u8* host_ptr, VAddr cpu_addr, std::size_t size_in_bytes,
-                           std::shared_ptr<VideoCommon::Shader::ConstBufferLocker> locker,
+                           std::shared_ptr<VideoCommon::Shader::Registry> registry,
                            ShaderEntries entries, std::shared_ptr<OGLProgram> program)
-    : RasterizerCacheObject{host_ptr}, locker{std::move(locker)}, entries{std::move(entries)},
+    : RasterizerCacheObject{host_ptr}, registry{std::move(registry)}, entries{std::move(entries)},
       cpu_addr{cpu_addr}, size_in_bytes{size_in_bytes}, program{std::move(program)} {}
 
 CachedShader::~CachedShader() = default;
 
 GLuint CachedShader::GetHandle() const {
-    if (!locker->IsConsistent()) {
+    if (!registry->IsConsistent()) {
         std::abort();
     }
     return program->handle;
@@ -231,8 +232,8 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     const auto shader_type = GetShaderType(program_type);
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-    auto locker = std::make_shared<ConstBufferLocker>(shader_type, params.system.GPU().Maxwell3D());
-    const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *locker);
+    auto registry = std::make_shared<Registry>(shader_type, params.system.GPU().Maxwell3D());
+    const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
     // TODO(Rodrigo): Handle VertexA shaders
     // std::optional<ShaderIR> ir_b;
     // if (!code_b.empty()) {
@@ -245,46 +246,46 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     entry.code = std::move(code);
     entry.code_b = std::move(code_b);
     entry.unique_identifier = params.unique_identifier;
-    entry.bound_buffer = locker->GetBoundBuffer();
-    entry.keys = locker->GetKeys();
-    entry.bound_samplers = locker->GetBoundSamplers();
-    entry.bindless_samplers = locker->GetBindlessSamplers();
+    entry.bound_buffer = registry->GetBoundBuffer();
+    entry.keys = registry->GetKeys();
+    entry.bound_samplers = registry->GetBoundSamplers();
+    entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
     return std::shared_ptr<CachedShader>(new CachedShader(params.host_ptr, params.cpu_addr,
-                                                          size_in_bytes, std::move(locker),
+                                                          size_in_bytes, std::move(registry),
                                                           MakeEntries(ir), std::move(program)));
 }
 
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode code) {
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-    auto locker = std::make_shared<ConstBufferLocker>(Tegra::Engines::ShaderType::Compute,
-                                                      params.system.GPU().KeplerCompute());
-    const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *locker);
+    auto registry =
+        std::make_shared<Registry>(ShaderType::Compute, params.system.GPU().KeplerCompute());
+    const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
     auto program = BuildShader(params.device, ShaderType::Compute, params.unique_identifier, ir);
 
     ShaderDiskCacheEntry entry;
     entry.type = ShaderType::Compute;
     entry.code = std::move(code);
     entry.unique_identifier = params.unique_identifier;
-    entry.bound_buffer = locker->GetBoundBuffer();
-    entry.keys = locker->GetKeys();
-    entry.bound_samplers = locker->GetBoundSamplers();
-    entry.bindless_samplers = locker->GetBindlessSamplers();
+    entry.bound_buffer = registry->GetBoundBuffer();
+    entry.keys = registry->GetKeys();
+    entry.bound_samplers = registry->GetBoundSamplers();
+    entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
     return std::shared_ptr<CachedShader>(new CachedShader(params.host_ptr, params.cpu_addr,
-                                                          size_in_bytes, std::move(locker),
+                                                          size_in_bytes, std::move(registry),
                                                           MakeEntries(ir), std::move(program)));
 }
 
 Shader CachedShader::CreateFromCache(const ShaderParameters& params,
                                      const PrecompiledShader& precompiled_shader,
                                      std::size_t size_in_bytes) {
-    return std::shared_ptr<CachedShader>(
-        new CachedShader(params.host_ptr, params.cpu_addr, size_in_bytes, precompiled_shader.locker,
-                         precompiled_shader.entries, precompiled_shader.program));
+    return std::shared_ptr<CachedShader>(new CachedShader(
+        params.host_ptr, params.cpu_addr, size_in_bytes, precompiled_shader.registry,
+        precompiled_shader.entries, precompiled_shader.program));
 }
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
@@ -336,8 +337,8 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
 
             const bool is_compute = entry.type == ShaderType::Compute;
             const u32 main_offset = is_compute ? KERNEL_MAIN_OFFSET : STAGE_MAIN_OFFSET;
-            auto locker = MakeLocker(entry);
-            const ShaderIR ir(entry.code, main_offset, COMPILER_SETTINGS, *locker);
+            auto registry = MakeRegistry(entry);
+            const ShaderIR ir(entry.code, main_offset, COMPILER_SETTINGS, *registry);
 
             std::shared_ptr<OGLProgram> program;
             if (precompiled_entry) {
@@ -354,7 +355,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
 
             PrecompiledShader shader;
             shader.program = std::move(program);
-            shader.locker = std::move(locker);
+            shader.registry = std::move(registry);
             shader.entries = MakeEntries(ir);
 
             std::scoped_lock lock{mutex};

@@ -22,7 +22,7 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
-#include "video_core/shader/const_buffer_locker.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace Core {
@@ -45,7 +45,7 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct PrecompiledShader {
     std::shared_ptr<OGLProgram> program;
-    std::shared_ptr<VideoCommon::Shader::ConstBufferLocker> locker;
+    std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
 };
 
@@ -91,10 +91,10 @@ public:
 
 private:
     explicit CachedShader(const u8* host_ptr, VAddr cpu_addr, std::size_t size_in_bytes,
-                          std::shared_ptr<VideoCommon::Shader::ConstBufferLocker> locker,
+                          std::shared_ptr<VideoCommon::Shader::Registry> registry,
                           ShaderEntries entries, std::shared_ptr<OGLProgram> program);
 
-    std::shared_ptr<VideoCommon::Shader::ConstBufferLocker> locker;
+    std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
     VAddr cpu_addr = 0;
     std::size_t size_in_bytes = 0;

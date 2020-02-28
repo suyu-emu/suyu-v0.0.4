@@ -18,8 +18,8 @@
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/compiler_settings.h"
-#include "video_core/shader/const_buffer_locker.h"
 #include "video_core/shader/node.h"
+#include "video_core/shader/registry.h"
 
 namespace VideoCommon::Shader {
 
@@ -69,7 +69,7 @@ struct GlobalMemoryUsage {
 class ShaderIR final {
 public:
     explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                      ConstBufferLocker& locker);
+                      Registry& registry);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -414,7 +414,7 @@ private:
     const ProgramCode& program_code;
     const u32 main_offset;
     const CompilerSettings settings;
-    ConstBufferLocker& locker;
+    Registry& registry;
 
     bool decompiled{};
     bool disable_flow_stack{};

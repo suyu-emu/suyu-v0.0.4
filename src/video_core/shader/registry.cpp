@@ -8,23 +8,23 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
-#include "video_core/shader/const_buffer_locker.h"
+#include "video_core/shader/registry.h"
 
 namespace VideoCommon::Shader {
 
 using Tegra::Engines::SamplerDescriptor;
 
-ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                                     VideoCore::GuestDriverProfile stored_guest_driver_profile)
+Registry::Registry(Tegra::Engines::ShaderType shader_stage,
+                   VideoCore::GuestDriverProfile stored_guest_driver_profile)
     : stage{shader_stage}, stored_guest_driver_profile{stored_guest_driver_profile} {}
 
-ConstBufferLocker::ConstBufferLocker(Tegra::Engines::ShaderType shader_stage,
-                                     Tegra::Engines::ConstBufferEngineInterface& engine)
+Registry::Registry(Tegra::Engines::ShaderType shader_stage,
+                   Tegra::Engines::ConstBufferEngineInterface& engine)
     : stage{shader_stage}, engine{&engine} {}
 
-ConstBufferLocker::~ConstBufferLocker() = default;
+Registry::~Registry() = default;
 
-std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {
+std::optional<u32> Registry::ObtainKey(u32 buffer, u32 offset) {
     const std::pair<u32, u32> key = {buffer, offset};
     const auto iter = keys.find(key);
     if (iter != keys.end()) {
@@ -38,7 +38,7 @@ std::optional<u32> ConstBufferLocker::ObtainKey(u32 buffer, u32 offset) {
     return value;
 }
 
-std::optional<SamplerDescriptor> ConstBufferLocker::ObtainBoundSampler(u32 offset) {
+std::optional<SamplerDescriptor> Registry::ObtainBoundSampler(u32 offset) {
     const u32 key = offset;
     const auto iter = bound_samplers.find(key);
     if (iter != bound_samplers.end()) {
@@ -52,8 +52,8 @@ std::optional<SamplerDescriptor> ConstBufferLocker::ObtainBoundSampler(u32 offse
     return value;
 }
 
-std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBindlessSampler(
-    u32 buffer, u32 offset) {
+std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer,
+                                                                                 u32 offset) {
     const std::pair key = {buffer, offset};
     const auto iter = bindless_samplers.find(key);
     if (iter != bindless_samplers.end()) {
@@ -67,7 +67,7 @@ std::optional<Tegra::Engines::SamplerDescriptor> ConstBufferLocker::ObtainBindle
     return value;
 }
 
-std::optional<u32> ConstBufferLocker::ObtainBoundBuffer() {
+std::optional<u32> Registry::ObtainBoundBuffer() {
     if (bound_buffer_saved) {
         return bound_buffer;
     }
@@ -79,24 +79,24 @@ std::optional<u32> ConstBufferLocker::ObtainBoundBuffer() {
     return bound_buffer;
 }
 
-void ConstBufferLocker::InsertKey(u32 buffer, u32 offset, u32 value) {
+void Registry::InsertKey(u32 buffer, u32 offset, u32 value) {
     keys.insert_or_assign({buffer, offset}, value);
 }
 
-void ConstBufferLocker::InsertBoundSampler(u32 offset, SamplerDescriptor sampler) {
+void Registry::InsertBoundSampler(u32 offset, SamplerDescriptor sampler) {
     bound_samplers.insert_or_assign(offset, sampler);
 }
 
-void ConstBufferLocker::InsertBindlessSampler(u32 buffer, u32 offset, SamplerDescriptor sampler) {
+void Registry::InsertBindlessSampler(u32 buffer, u32 offset, SamplerDescriptor sampler) {
     bindless_samplers.insert_or_assign({buffer, offset}, sampler);
 }
 
-void ConstBufferLocker::SetBoundBuffer(u32 buffer) {
+void Registry::SetBoundBuffer(u32 buffer) {
     bound_buffer_saved = true;
     bound_buffer = buffer;
 }
 
-bool ConstBufferLocker::IsConsistent() const {
+bool Registry::IsConsistent() const {
     if (!engine) {
         return true;
     }
@@ -119,7 +119,7 @@ bool ConstBufferLocker::IsConsistent() const {
                        });
 }
 
-bool ConstBufferLocker::HasEqualKeys(const ConstBufferLocker& rhs) const {
+bool Registry::HasEqualKeys(const Registry& rhs) const {
     return std::tie(keys, bound_samplers, bindless_samplers) ==
            std::tie(rhs.keys, rhs.bound_samplers, rhs.bindless_samplers);
 }

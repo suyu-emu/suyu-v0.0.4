@@ -116,8 +116,6 @@ add_library(video_core STATIC
     shader/ast.h
     shader/compiler_settings.cpp
     shader/compiler_settings.h
-    shader/const_buffer_locker.cpp
-    shader/const_buffer_locker.h
     shader/control_flow.cpp
     shader/control_flow.h
     shader/decode.cpp
@@ -126,6 +124,8 @@ add_library(video_core STATIC
     shader/node_helper.cpp
     shader/node_helper.h
     shader/node.h
+    shader/registry.cpp
+    shader/registry.h
     shader/shader_ir.cpp
     shader/shader_ir.h
     shader/track.cpp

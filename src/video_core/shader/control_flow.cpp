@@ -13,6 +13,7 @@
 #include "common/common_types.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/control_flow.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -64,11 +65,11 @@ struct BlockInfo {
 };
 
 struct CFGRebuildState {
-    explicit CFGRebuildState(const ProgramCode& program_code, u32 start, ConstBufferLocker& locker)
-        : program_code{program_code}, locker{locker}, start{start} {}
+    explicit CFGRebuildState(const ProgramCode& program_code, u32 start, Registry& registry)
+        : program_code{program_code}, registry{registry}, start{start} {}
 
     const ProgramCode& program_code;
-    ConstBufferLocker& locker;
+    Registry& registry;
     u32 start{};
     std::vector<BlockInfo> block_info;
     std::list<u32> inspect_queries;
@@ -438,7 +439,7 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
             const s32 pc_target = offset + result.relative_position;
             std::vector<CaseBranch> branches;
             for (u32 i = 0; i < result.entries; i++) {
-                auto key = state.locker.ObtainKey(result.buffer, result.offset + i * 4);
+                auto key = state.registry.ObtainKey(result.buffer, result.offset + i * 4);
                 if (!key) {
                     return {ParseResult::AbnormalFlow, parse_info};
                 }
@@ -656,14 +657,14 @@ void DecompileShader(CFGRebuildState& state) {
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 start_address,
                                                 const CompilerSettings& settings,
-                                                ConstBufferLocker& locker) {
+                                                Registry& registry) {
     auto result_out = std::make_unique<ShaderCharacteristics>();
     if (settings.depth == CompileDepth::BruteForce) {
         result_out->settings.depth = CompileDepth::BruteForce;
         return result_out;
     }
 
-    CFGRebuildState state{program_code, start_address, locker};
+    CFGRebuildState state{program_code, start_address, registry};
     // Inspect Code and generate blocks
     state.labels.clear();
     state.labels.emplace(start_address);
