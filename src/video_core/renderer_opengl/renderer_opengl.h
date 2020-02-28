@@ -111,9 +111,6 @@ private:
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
     Common::Rectangle<int> framebuffer_crop_rect;
 
-    /// Represents if the final render frame is sRGB
-    bool is_srgb{};
-
     /// Frame presentation mailbox
     std::unique_ptr<FrameMailbox> frame_mailbox;
 };
