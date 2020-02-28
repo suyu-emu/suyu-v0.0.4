@@ -25,9 +25,8 @@
 namespace OpenGL {
 
 // If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
-// to wait on available presentation frames. There doesn't seem to be much of a downside to a larger
-// number but 9 swap textures at 60FPS presentation allows for 800% speed so thats probably fine
-constexpr std::size_t SWAP_CHAIN_SIZE = 9;
+// to wait on available presentation frames.
+constexpr std::size_t SWAP_CHAIN_SIZE = 3;
 
 struct Frame {
     u32 width{};                      /// Width of the frame (to detect resize)
