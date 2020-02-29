@@ -10,7 +10,7 @@
 #include "core/arm/cpu_interrupt_handler.h"
 
 namespace Common {
-    class SpinLock;
+class SpinLock;
 }
 
 namespace Kernel {
@@ -27,7 +27,9 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor);
+    PhysicalCore(Core::System& system, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor,
+                 Core::CPUInterruptHandler& interrupt_handler, Core::ARM_Interface& arm_interface32,
+                 Core::ARM_Interface& arm_interface64);
     ~PhysicalCore();
 
     PhysicalCore(const PhysicalCore&) = delete;
@@ -92,10 +94,10 @@ public:
     void SetIs64Bit(bool is_64_bit);
 
 private:
-    Core::CPUInterruptHandler interrupt_handler;
+    Core::CPUInterruptHandler& interrupt_handler;
     std::size_t core_index;
-    std::unique_ptr<Core::ARM_Interface> arm_interface_32;
-    std::unique_ptr<Core::ARM_Interface> arm_interface_64;
+    Core::ARM_Interface& arm_interface_32;
+    Core::ARM_Interface& arm_interface_64;
     std::unique_ptr<Kernel::Scheduler> scheduler;
     Core::ARM_Interface* arm_interface{};
     std::unique_ptr<Common::SpinLock> guard;

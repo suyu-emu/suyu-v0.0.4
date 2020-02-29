@@ -63,8 +63,9 @@ static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int si
     return false;
 }
 
-ARM_Unicorn::ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler, Arch architecture)
-    : ARM_Interface{system, interrupt_handler} {
+ARM_Unicorn::ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler, Arch architecture,
+                         std::size_t core_index)
+    : ARM_Interface{system, interrupt_handler}, core_index{core_index} {
     const auto arch = architecture == Arch::AArch32 ? UC_ARCH_ARM : UC_ARCH_ARM64;
     CHECKED(uc_open(arch, UC_MODE_ARM, &uc));
 
@@ -163,7 +164,7 @@ void ARM_Unicorn::Run() {
         ExecuteInstructions(std::max(4000000U, 0U));
     } else {
         while (true) {
-            if (interrupt_handler.IsInterrupted()) {
+            if (interrupt_handlers[core_index].IsInterrupted()) {
                 return;
             }
             ExecuteInstructions(10);

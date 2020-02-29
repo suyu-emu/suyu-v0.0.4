@@ -21,21 +21,12 @@
 namespace Kernel {
 
 PhysicalCore::PhysicalCore(Core::System& system, std::size_t id,
-                           Core::ExclusiveMonitor& exclusive_monitor)
-    : interrupt_handler{}, core_index{id} {
-#ifdef ARCHITECTURE_x86_64
-    arm_interface_32 = std::make_unique<Core::ARM_Dynarmic_32>(system, interrupt_handler,
-                                                               exclusive_monitor, core_index);
-    arm_interface_64 = std::make_unique<Core::ARM_Dynarmic_64>(system, interrupt_handler,
-                                                               exclusive_monitor, core_index);
-#else
-    using Core::ARM_Unicorn;
-    arm_interface_32 =
-        std::make_unique<ARM_Unicorn>(system, interrupt_handler, ARM_Unicorn::Arch::AArch32);
-    arm_interface_64 =
-        std::make_unique<ARM_Unicorn>(system, interrupt_handler, ARM_Unicorn::Arch::AArch64);
-    LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
-#endif
+                           Core::ExclusiveMonitor& exclusive_monitor,
+                           Core::CPUInterruptHandler& interrupt_handler,
+                           Core::ARM_Interface& arm_interface32,
+                           Core::ARM_Interface& arm_interface64)
+    : interrupt_handler{interrupt_handler}, core_index{id}, arm_interface_32{arm_interface32},
+      arm_interface_64{arm_interface64} {
 
     scheduler = std::make_unique<Kernel::Scheduler>(system, core_index);
     guard = std::make_unique<Common::SpinLock>();
@@ -69,9 +60,9 @@ void PhysicalCore::Shutdown() {
 
 void PhysicalCore::SetIs64Bit(bool is_64_bit) {
     if (is_64_bit) {
-        arm_interface = arm_interface_64.get();
+        arm_interface = &arm_interface_64;
     } else {
-        arm_interface = arm_interface_32.get();
+        arm_interface = &arm_interface_32;
     }
 }
 

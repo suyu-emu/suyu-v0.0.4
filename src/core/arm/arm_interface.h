@@ -7,6 +7,7 @@
 #include <array>
 #include <vector>
 #include "common/common_types.h"
+#include "core/hardware_properties.h"
 
 namespace Common {
 struct PageTable;
@@ -20,11 +21,13 @@ namespace Core {
 class System;
 class CPUInterruptHandler;
 
+using CPUInterrupts = std::array<CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>;
+
 /// Generic ARMv8 CPU interface
 class ARM_Interface : NonCopyable {
 public:
-    explicit ARM_Interface(System& system_, CPUInterruptHandler& interrupt_handler)
-        : system{system_}, interrupt_handler{interrupt_handler} {}
+    explicit ARM_Interface(System& system_, CPUInterrupts& interrupt_handlers)
+        : system{system_}, interrupt_handlers{interrupt_handlers} {}
     virtual ~ARM_Interface() = default;
 
     struct ThreadContext32 {
@@ -180,7 +183,7 @@ public:
 protected:
     /// System context that this ARM interface is running under.
     System& system;
-    CPUInterruptHandler& interrupt_handler;
+    CPUInterrupts& interrupt_handlers;
 };
 
 } // namespace Core

@@ -76,7 +76,7 @@ public:
     }
 
     u64 GetTicksRemaining() override {
-        if (!parent.interrupt_handler.IsInterrupted()) {
+        if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
             return std::max<s64>(ticks, 0);
         }
         return 0ULL;
@@ -111,9 +111,9 @@ void ARM_Dynarmic_32::Step() {
     jit->Step();
 }
 
-ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, CPUInterruptHandler& interrupt_handler,
+ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, CPUInterrupts& interrupt_handlers,
                                  ExclusiveMonitor& exclusive_monitor, std::size_t core_index)
-    : ARM_Interface{system, interrupt_handler}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
+    : ARM_Interface{system, interrupt_handlers}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
       cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 

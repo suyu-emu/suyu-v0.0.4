@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <atomic>
 #include <bitset>
 #include <functional>
@@ -16,7 +17,9 @@
 #include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/arm/arm_interface.h"
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/exclusive_monitor.h"
+#include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -41,6 +44,11 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
+
+#ifdef ARCHITECTURE_x86_64
+#include "core/arm/dynarmic/arm_dynarmic_32.h"
+#include "core/arm/dynarmic/arm_dynarmic_64.h"
+#endif
 
 MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
@@ -178,7 +186,20 @@ struct KernelCore::Impl {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            cores.emplace_back(system, i, *exclusive_monitor);
+#ifdef ARCHITECTURE_x86_64
+            arm_interfaces_32[i] =
+                std::make_unique<Core::ARM_Dynarmic_32>(system, interrupts, *exclusive_monitor, i);
+            arm_interfaces_64[i] =
+                std::make_unique<Core::ARM_Dynarmic_64>(system, interrupts, *exclusive_monitor, i);
+#else
+            arm_interfaces_32[i] = std::make_shared<Core::ARM_Unicorn>(
+                system, interrupts, ARM_Unicorn::Arch::AArch32, i);
+            arm_interfaces_64[i] = std::make_shared<Core::ARM_Unicorn>(
+                system, interrupts, ARM_Unicorn::Arch::AArch64, i);
+            LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
+#endif
+            cores.emplace_back(system, i, *exclusive_monitor, interrupts[i], *arm_interfaces_32[i],
+                               *arm_interfaces_64[i]);
         }
     }
 
@@ -407,6 +428,11 @@ struct KernelCore::Impl {
     std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+    std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
+    std::array<std::unique_ptr<Core::ARM_Interface>, Core::Hardware::NUM_CPU_CORES>
+        arm_interfaces_32{};
+    std::array<std::unique_ptr<Core::ARM_Interface>, Core::Hardware::NUM_CPU_CORES>
+        arm_interfaces_64{};
 
     bool is_multicore{};
     std::thread::id single_core_thread_id{};
