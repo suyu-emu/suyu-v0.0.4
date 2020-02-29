@@ -6,21 +6,55 @@
 #include <tuple>
 
 #include "common/common_types.h"
+#include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/shader/registry.h"
 
 namespace VideoCommon::Shader {
 
+using Tegra::Engines::ConstBufferEngineInterface;
 using Tegra::Engines::SamplerDescriptor;
+using Tegra::Engines::ShaderType;
 
-Registry::Registry(Tegra::Engines::ShaderType shader_stage,
-                   VideoCore::GuestDriverProfile stored_guest_driver_profile)
-    : stage{shader_stage}, stored_guest_driver_profile{stored_guest_driver_profile} {}
+namespace {
+
+GraphicsInfo MakeGraphicsInfo(ShaderType shader_stage, ConstBufferEngineInterface& engine) {
+    if (shader_stage == ShaderType::Compute) {
+        return {};
+    }
+    auto& graphics = static_cast<Tegra::Engines::Maxwell3D&>(engine);
+
+    GraphicsInfo info;
+    info.primitive_topology = graphics.regs.draw.topology;
+    return info;
+}
+
+ComputeInfo MakeComputeInfo(ShaderType shader_stage, ConstBufferEngineInterface& engine) {
+    if (shader_stage != ShaderType::Compute) {
+        return {};
+    }
+    auto& compute = static_cast<Tegra::Engines::KeplerCompute&>(engine);
+    const auto& launch = compute.launch_description;
+
+    ComputeInfo info;
+    info.workgroup_size = {launch.block_dim_x, launch.block_dim_y, launch.block_dim_z};
+    info.local_memory_size_in_words = launch.local_pos_alloc;
+    info.shared_memory_size_in_words = launch.shared_alloc;
+    return info;
+}
+
+} // Anonymous namespace
+
+Registry::Registry(Tegra::Engines::ShaderType shader_stage, const SerializedRegistryInfo& info)
+    : stage{shader_stage}, stored_guest_driver_profile{info.guest_driver_profile},
+      bound_buffer{info.bound_buffer}, graphics_info{info.graphics}, compute_info{info.compute} {}
 
 Registry::Registry(Tegra::Engines::ShaderType shader_stage,
                    Tegra::Engines::ConstBufferEngineInterface& engine)
-    : stage{shader_stage}, engine{&engine} {}
+    : stage{shader_stage}, engine{&engine}, bound_buffer{engine.GetBoundBuffer()},
+      graphics_info{MakeGraphicsInfo(shader_stage, engine)}, compute_info{MakeComputeInfo(
+                                                                 shader_stage, engine)} {}
 
 Registry::~Registry() = default;
 
@@ -67,18 +101,6 @@ std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainBindlessSampler
     return value;
 }
 
-std::optional<u32> Registry::ObtainBoundBuffer() {
-    if (bound_buffer_saved) {
-        return bound_buffer;
-    }
-    if (!engine) {
-        return std::nullopt;
-    }
-    bound_buffer_saved = true;
-    bound_buffer = engine->GetBoundBuffer();
-    return bound_buffer;
-}
-
 void Registry::InsertKey(u32 buffer, u32 offset, u32 value) {
     keys.insert_or_assign({buffer, offset}, value);
 }
@@ -89,11 +111,6 @@ void Registry::InsertBoundSampler(u32 offset, SamplerDescriptor sampler) {
 
 void Registry::InsertBindlessSampler(u32 buffer, u32 offset, SamplerDescriptor sampler) {
     bindless_samplers.insert_or_assign({buffer, offset}, sampler);
-}
-
-void Registry::SetBoundBuffer(u32 buffer) {
-    bound_buffer_saved = true;
-    bound_buffer = buffer;
 }
 
 bool Registry::IsConsistent() const {

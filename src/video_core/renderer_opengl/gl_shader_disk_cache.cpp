@@ -48,7 +48,7 @@ struct BindlessSamplerKey {
     Tegra::Engines::SamplerDescriptor sampler;
 };
 
-constexpr u32 NativeVersion = 16;
+constexpr u32 NativeVersion = 17;
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
@@ -83,15 +83,16 @@ bool ShaderDiskCacheEntry::Load(FileUtil::IOFile& file) {
         return false;
     }
 
-    bool is_texture_handler_size_known;
+    u8 is_texture_handler_size_known;
     u32 texture_handler_size_value;
     u32 num_keys;
     u32 num_bound_samplers;
     u32 num_bindless_samplers;
     if (file.ReadArray(&unique_identifier, 1) != 1 || file.ReadArray(&bound_buffer, 1) != 1 ||
         file.ReadArray(&is_texture_handler_size_known, 1) != 1 ||
-        file.ReadArray(&texture_handler_size_value, 1) != 1 || file.ReadArray(&num_keys, 1) != 1 ||
-        file.ReadArray(&num_bound_samplers, 1) != 1 ||
+        file.ReadArray(&texture_handler_size_value, 1) != 1 ||
+        file.ReadArray(&graphics_info, 1) != 1 || file.ReadArray(&compute_info, 1) != 1 ||
+        file.ReadArray(&num_keys, 1) != 1 || file.ReadArray(&num_bound_samplers, 1) != 1 ||
         file.ReadArray(&num_bindless_samplers, 1) != 1) {
         return false;
     }
@@ -136,8 +137,9 @@ bool ShaderDiskCacheEntry::Save(FileUtil::IOFile& file) const {
     }
 
     if (file.WriteObject(unique_identifier) != 1 || file.WriteObject(bound_buffer) != 1 ||
-        file.WriteObject(texture_handler_size.has_value()) != 1 ||
+        file.WriteObject(static_cast<u8>(texture_handler_size.has_value())) != 1 ||
         file.WriteObject(texture_handler_size.value_or(0)) != 1 ||
+        file.WriteObject(graphics_info) != 1 || file.WriteObject(compute_info) != 1 ||
         file.WriteObject(static_cast<u32>(keys.size())) != 1 ||
         file.WriteObject(static_cast<u32>(bound_samplers.size())) != 1 ||
         file.WriteObject(static_cast<u32>(bindless_samplers.size())) != 1) {

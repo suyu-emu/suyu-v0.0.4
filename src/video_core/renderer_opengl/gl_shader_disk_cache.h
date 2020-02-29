@@ -51,8 +51,10 @@ struct ShaderDiskCacheEntry {
     ProgramCode code_b;
 
     u64 unique_identifier = 0;
-    u32 bound_buffer = 0;
     std::optional<u32> texture_handler_size;
+    u32 bound_buffer = 0;
+    VideoCommon::Shader::GraphicsInfo graphics_info;
+    VideoCommon::Shader::ComputeInfo compute_info;
     VideoCommon::Shader::KeyMap keys;
     VideoCommon::Shader::BoundSamplerMap bound_samplers;
     VideoCommon::Shader::BindlessSamplerMap bindless_samplers;

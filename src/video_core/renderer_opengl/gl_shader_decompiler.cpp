@@ -36,6 +36,7 @@ using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::Register;
+using VideoCommon::Shader::Registry;
 
 using namespace std::string_literals;
 using namespace VideoCommon::Shader;
@@ -288,6 +289,30 @@ const char* GetImageTypeDeclaration(Tegra::Shader::ImageType image_type) {
     }
 }
 
+/// Describes primitive behavior on geometry shaders
+std::pair<const char*, u32> GetPrimitiveDescription(Maxwell::PrimitiveTopology topology) {
+    switch (topology) {
+    case Maxwell::PrimitiveTopology::Points:
+        return {"points", 1};
+    case Maxwell::PrimitiveTopology::Lines:
+    case Maxwell::PrimitiveTopology::LineStrip:
+        return {"lines", 2};
+    case Maxwell::PrimitiveTopology::LinesAdjacency:
+    case Maxwell::PrimitiveTopology::LineStripAdjacency:
+        return {"lines_adjacency", 4};
+    case Maxwell::PrimitiveTopology::Triangles:
+    case Maxwell::PrimitiveTopology::TriangleStrip:
+    case Maxwell::PrimitiveTopology::TriangleFan:
+        return {"triangles", 3};
+    case Maxwell::PrimitiveTopology::TrianglesAdjacency:
+    case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
+        return {"triangles_adjacency", 6};
+    default:
+        UNIMPLEMENTED_MSG("topology={}", static_cast<int>(topology));
+        return {"points", 1};
+    }
+}
+
 /// Generates code to use for a swizzle operation.
 constexpr const char* GetSwizzle(std::size_t element) {
     constexpr std::array swizzle = {".x", ".y", ".z", ".w"};
@@ -367,15 +392,17 @@ std::string FlowStackTopName(MetaStackClass stack) {
 
 class GLSLDecompiler final {
 public:
-    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, ShaderType stage,
-                            std::string_view suffix)
-        : device{device}, ir{ir}, stage{stage}, suffix{suffix}, header{ir.GetHeader()} {}
+    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
+                            ShaderType stage, std::string_view suffix)
+        : device{device}, ir{ir}, registry{registry}, stage{stage}, suffix{suffix},
+          header{ir.GetHeader()} {}
 
     void Decompile() {
         DeclareHeader();
         DeclareVertex();
         DeclareGeometry();
         DeclareFragment();
+        DeclareCompute();
         DeclareRegisters();
         DeclareCustomVariables();
         DeclarePredicates();
@@ -489,9 +516,15 @@ private:
             return;
         }
 
+        const auto& info = registry.GetGraphicsInfo();
+        const auto input_topology = info.primitive_topology;
+        const auto [glsl_topology, max_vertices] = GetPrimitiveDescription(input_topology);
+        max_input_vertices = max_vertices;
+        code.AddLine("layout ({}) in;", glsl_topology);
+
         const auto topology = GetTopologyName(header.common3.output_topology);
-        const auto max_vertices = header.common4.max_output_vertices.Value();
-        code.AddLine("layout ({}, max_vertices = {}) out;", topology, max_vertices);
+        const auto max_output_vertices = header.common4.max_output_vertices.Value();
+        code.AddLine("layout ({}, max_vertices = {}) out;", topology, max_output_vertices);
         code.AddNewLine();
 
         code.AddLine("in gl_PerVertex {{");
@@ -513,12 +546,27 @@ private:
             if (!IsRenderTargetEnabled(render_target)) {
                 continue;
             }
-            code.AddLine("layout (location = {}) out vec4 frag_color{};", render_target, render_target);
+            code.AddLine("layout (location = {}) out vec4 frag_color{};", render_target,
+                         render_target);
             any = true;
         }
         if (any) {
             code.AddNewLine();
         }
+    }
+
+    void DeclareCompute() {
+        if (stage != ShaderType::Compute) {
+            return;
+        }
+        const auto& info = registry.GetComputeInfo();
+        if (const u32 size = info.shared_memory_size_in_words; size > 0) {
+            code.AddLine("shared uint smem[];", size);
+            code.AddNewLine();
+        }
+        code.AddLine("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;",
+                     info.workgroup_size[0], info.workgroup_size[1], info.workgroup_size[2]);
+        code.AddNewLine();
     }
 
     void DeclareVertexRedeclarations() {
@@ -596,18 +644,16 @@ private:
     }
 
     void DeclareLocalMemory() {
+        u64 local_memory_size = 0;
         if (stage == ShaderType::Compute) {
-            code.AddLine("#ifdef LOCAL_MEMORY_SIZE");
-            code.AddLine("uint {}[LOCAL_MEMORY_SIZE];", GetLocalMemory());
-            code.AddLine("#endif");
-            return;
+            local_memory_size = registry.GetComputeInfo().local_memory_size_in_words * 4ULL;
+        } else {
+            local_memory_size = header.GetLocalMemorySize();
         }
-
-        const u64 local_memory_size = header.GetLocalMemorySize();
         if (local_memory_size == 0) {
             return;
         }
-        const auto element_count = Common::AlignUp(local_memory_size, 4) / 4;
+        const u64 element_count = Common::AlignUp(local_memory_size, 4) / 4;
         code.AddLine("uint {}[{}];", GetLocalMemory(), element_count);
         code.AddNewLine();
     }
@@ -996,7 +1042,8 @@ private:
                 // TODO(Rodrigo): Guard geometry inputs against out of bound reads. Some games
                 // set an 0x80000000 index for those and the shader fails to build. Find out why
                 // this happens and what's its intent.
-                return fmt::format("gs_{}[{} % MAX_VERTEX_INPUT]", name, Visit(buffer).AsUint());
+                return fmt::format("gs_{}[{} % {}]", name, Visit(buffer).AsUint(),
+                                   max_input_vertices.value());
             }
             return std::string(name);
         };
@@ -2428,11 +2475,14 @@ private:
 
     const Device& device;
     const ShaderIR& ir;
+    const Registry& registry;
     const ShaderType stage;
     const std::string_view suffix;
     const Header header;
 
     ShaderWriter code;
+
+    std::optional<u32> max_input_vertices;
 };
 
 std::string GetFlowVariable(u32 index) {
@@ -2647,9 +2697,9 @@ ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir) {
     return entries;
 }
 
-std::string DecompileShader(const Device& device, const ShaderIR& ir, ShaderType stage,
-                            std::string_view suffix) {
-    GLSLDecompiler decompiler(device, ir, stage, suffix);
+std::string DecompileShader(const Device& device, const ShaderIR& ir, const Registry& registry,
+                            ShaderType stage, std::string_view suffix) {
+    GLSLDecompiler decompiler(device, ir, registry, stage, suffix);
     decompiler.Decompile();
     return decompiler.GetResult();
 }

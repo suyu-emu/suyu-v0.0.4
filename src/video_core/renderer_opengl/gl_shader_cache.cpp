@@ -166,8 +166,9 @@ std::string MakeShaderID(u64 unique_identifier, ShaderType shader_type) {
 
 std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
     const VideoCore::GuestDriverProfile guest_profile{entry.texture_handler_size};
-    auto registry = std::make_shared<Registry>(entry.type, guest_profile);
-    registry->SetBoundBuffer(entry.bound_buffer);
+    const VideoCommon::Shader::SerializedRegistryInfo info{guest_profile, entry.bound_buffer,
+                                                           entry.graphics_info, entry.compute_info};
+    const auto registry = std::make_shared<Registry>(entry.type, info);
     for (const auto& [address, value] : entry.keys) {
         const auto [buffer, offset] = address;
         registry->InsertKey(buffer, offset, value);
@@ -184,9 +185,9 @@ std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
 
 std::shared_ptr<OGLProgram> BuildShader(const Device& device, ShaderType shader_type,
                                         u64 unique_identifier, const ShaderIR& ir,
-                                        bool hint_retrievable = false) {
+                                        const Registry& registry, bool hint_retrievable = false) {
     LOG_INFO(Render_OpenGL, "{}", MakeShaderID(unique_identifier, shader_type));
-    const std::string glsl = DecompileShader(device, ir, shader_type);
+    const std::string glsl = DecompileShader(device, ir, registry, shader_type);
     OGLShader shader;
     shader.Create(glsl.c_str(), GetGLShaderType(shader_type));
 
@@ -239,7 +240,7 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     // if (!code_b.empty()) {
     //     ir_b.emplace(code_b, STAGE_MAIN_OFFSET);
     // }
-    auto program = BuildShader(params.device, shader_type, params.unique_identifier, ir);
+    auto program = BuildShader(params.device, shader_type, params.unique_identifier, ir, *registry);
 
     ShaderDiskCacheEntry entry;
     entry.type = shader_type;
@@ -247,6 +248,7 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     entry.code_b = std::move(code_b);
     entry.unique_identifier = params.unique_identifier;
     entry.bound_buffer = registry->GetBoundBuffer();
+    entry.graphics_info = registry->GetGraphicsInfo();
     entry.keys = registry->GetKeys();
     entry.bound_samplers = registry->GetBoundSamplers();
     entry.bindless_samplers = registry->GetBindlessSamplers();
@@ -260,16 +262,18 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode code) {
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-    auto registry =
-        std::make_shared<Registry>(ShaderType::Compute, params.system.GPU().KeplerCompute());
+    auto& engine = params.system.GPU().KeplerCompute();
+    auto registry = std::make_shared<Registry>(ShaderType::Compute, engine);
     const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
-    auto program = BuildShader(params.device, ShaderType::Compute, params.unique_identifier, ir);
+    const u64 uid = params.unique_identifier;
+    auto program = BuildShader(params.device, ShaderType::Compute, uid, ir, *registry);
 
     ShaderDiskCacheEntry entry;
     entry.type = ShaderType::Compute;
     entry.code = std::move(code);
-    entry.unique_identifier = params.unique_identifier;
+    entry.unique_identifier = uid;
     entry.bound_buffer = registry->GetBoundBuffer();
+    entry.compute_info = registry->GetComputeInfo();
     entry.keys = registry->GetKeys();
     entry.bound_samplers = registry->GetBoundSamplers();
     entry.bindless_samplers = registry->GetBindlessSamplers();
@@ -331,8 +335,8 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
                 return;
             }
             const auto& entry = (*transferable)[i];
-            const u64 unique_identifier = entry.unique_identifier;
-            const auto it = find_precompiled(unique_identifier);
+            const u64 uid = entry.unique_identifier;
+            const auto it = find_precompiled(uid);
             const auto precompiled_entry = it != gl_cache.end() ? &*it : nullptr;
 
             const bool is_compute = entry.type == ShaderType::Compute;
@@ -350,7 +354,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             }
             if (!program) {
                 // Otherwise compile it from GLSL
-                program = BuildShader(device, entry.type, unique_identifier, ir, true);
+                program = BuildShader(device, entry.type, uid, ir, *registry, true);
             }
 
             PrecompiledShader shader;

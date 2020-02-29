@@ -81,14 +81,11 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, cons
                 MakeTrackSampler<BindlessSamplerNode>(cbuf->GetIndex(), immediate->GetValue());
             return {tracked, track};
         } else if (const auto operation = std::get_if<OperationNode>(&*offset)) {
-            const auto bound_buffer = registry.ObtainBoundBuffer();
-            if (!bound_buffer) {
+            const u32 bound_buffer = registry.GetBoundBuffer();
+            if (bound_buffer != cbuf->GetIndex()) {
                 return {};
             }
-            if (*bound_buffer != cbuf->GetIndex()) {
-                return {};
-            }
-            auto pair = DecoupleIndirectRead(*operation);
+            const auto pair = DecoupleIndirectRead(*operation);
             if (!pair) {
                 return {};
             }

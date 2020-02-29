@@ -4,11 +4,16 @@
 
 #pragma once
 
+#include <array>
 #include <optional>
+#include <type_traits>
 #include <unordered_map>
+#include <utility>
+
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/guest_driver.h"
 
@@ -19,6 +24,25 @@ using BoundSamplerMap = std::unordered_map<u32, Tegra::Engines::SamplerDescripto
 using BindlessSamplerMap =
     std::unordered_map<std::pair<u32, u32>, Tegra::Engines::SamplerDescriptor, Common::PairHash>;
 
+struct GraphicsInfo {
+    Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology primitive_topology{};
+};
+static_assert(std::is_trivially_copyable_v<GraphicsInfo>);
+
+struct ComputeInfo {
+    std::array<u32, 3> workgroup_size{};
+    u32 shared_memory_size_in_words = 0;
+    u32 local_memory_size_in_words = 0;
+};
+static_assert(std::is_trivially_copyable_v<ComputeInfo>);
+
+struct SerializedRegistryInfo {
+    VideoCore::GuestDriverProfile guest_driver_profile;
+    u32 bound_buffer = 0;
+    GraphicsInfo graphics;
+    ComputeInfo compute;
+};
+
 /**
  * The Registry is a class use to interface the 3D and compute engines with the shader compiler.
  * With it, the shader can obtain required data from GPU state and store it for disk shader
@@ -26,8 +50,7 @@ using BindlessSamplerMap =
  */
 class Registry {
 public:
-    explicit Registry(Tegra::Engines::ShaderType shader_stage,
-                      VideoCore::GuestDriverProfile stored_guest_driver_profile);
+    explicit Registry(Tegra::Engines::ShaderType shader_stage, const SerializedRegistryInfo& info);
 
     explicit Registry(Tegra::Engines::ShaderType shader_stage,
                       Tegra::Engines::ConstBufferEngineInterface& engine);
@@ -42,8 +65,6 @@ public:
 
     std::optional<Tegra::Engines::SamplerDescriptor> ObtainBindlessSampler(u32 buffer, u32 offset);
 
-    std::optional<u32> ObtainBoundBuffer();
-
     /// Inserts a key.
     void InsertKey(u32 buffer, u32 offset, u32 value);
 
@@ -52,9 +73,6 @@ public:
 
     /// Inserts a bindless sampler key.
     void InsertBindlessSampler(u32 buffer, u32 offset, Tegra::Engines::SamplerDescriptor sampler);
-
-    /// Set the bound buffer for this registry.
-    void SetBoundBuffer(u32 buffer);
 
     /// Checks keys and samplers against engine's current const buffers.
     /// Returns true if they are the same value, false otherwise.
@@ -83,6 +101,18 @@ public:
         return bound_buffer;
     }
 
+    /// Returns compute information from this shader
+    const GraphicsInfo& GetGraphicsInfo() const {
+        ASSERT(stage != Tegra::Engines::ShaderType::Compute);
+        return graphics_info;
+    }
+
+    /// Returns compute information from this shader
+    const ComputeInfo& GetComputeInfo() const {
+        ASSERT(stage == Tegra::Engines::ShaderType::Compute);
+        return compute_info;
+    }
+
     /// Obtains access to the guest driver's profile.
     VideoCore::GuestDriverProfile& AccessGuestDriverProfile() {
         return engine ? engine->AccessGuestDriverProfile() : stored_guest_driver_profile;
@@ -95,8 +125,9 @@ private:
     KeyMap keys;
     BoundSamplerMap bound_samplers;
     BindlessSamplerMap bindless_samplers;
-    bool bound_buffer_saved{};
-    u32 bound_buffer{};
+    u32 bound_buffer;
+    GraphicsInfo graphics_info;
+    ComputeInfo compute_info;
 };
 
 } // namespace VideoCommon::Shader

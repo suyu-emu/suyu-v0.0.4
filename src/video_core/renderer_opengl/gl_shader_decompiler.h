@@ -12,11 +12,8 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
-
-namespace VideoCommon::Shader {
-class ShaderIR;
-}
 
 namespace OpenGL {
 
@@ -80,6 +77,7 @@ struct ShaderEntries {
 ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir);
 
 std::string DecompileShader(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
+                            const VideoCommon::Shader::Registry& registry,
                             Tegra::Engines::ShaderType stage, std::string_view suffix = {});
 
 } // namespace OpenGL
