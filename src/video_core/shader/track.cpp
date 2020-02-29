@@ -157,10 +157,10 @@ std::tuple<Node, u32, u32> ShaderIR::TrackCbuf(Node tracked, const NodeBlock& co
         if (gpr->GetIndex() == Tegra::Shader::Register::ZeroIndex) {
             return {};
         }
-        // Reduce the cursor in one to avoid infinite loops when the instruction sets the same
-        // register that it uses as operand
         s64 current_cursor = cursor;
         while (current_cursor > 0) {
+            // Reduce the cursor in one to avoid infinite loops when the instruction sets the same
+            // register that it uses as operand
             const auto [source, new_cursor] = TrackRegister(gpr, code, current_cursor - 1);
             current_cursor = new_cursor;
             if (!source) {
