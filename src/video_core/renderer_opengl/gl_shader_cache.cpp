@@ -221,9 +221,7 @@ CachedShader::CachedShader(const u8* host_ptr, VAddr cpu_addr, std::size_t size_
 CachedShader::~CachedShader() = default;
 
 GLuint CachedShader::GetHandle() const {
-    if (!registry->IsConsistent()) {
-        std::abort();
-    }
+    DEBUG_ASSERT(registry->IsConsistent());
     return program->handle;
 }
 
