@@ -638,7 +638,7 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
 
     const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
     const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
-    SamplerDescriptor result = SamplerDescriptor::FromTicTexture(tex_info.tic.texture_type.Value());
+    SamplerDescriptor result = SamplerDescriptor::FromTIC(tex_info.tic);
     result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
     return result;
 }

@@ -16,11 +16,12 @@ namespace Tegra::Engines {
 
 struct SamplerDescriptor {
     union {
-        BitField<0, 20, Tegra::Shader::TextureType> texture_type;
-        BitField<20, 1, u32> is_array;
-        BitField<21, 1, u32> is_buffer;
-        BitField<22, 1, u32> is_shadow;
-        u32 raw{};
+        u32 raw = 0;
+        BitField<0, 2, Tegra::Shader::TextureType> texture_type;
+        BitField<2, 3, Tegra::Texture::ComponentType> component_type;
+        BitField<5, 1, u32> is_array;
+        BitField<6, 1, u32> is_buffer;
+        BitField<7, 1, u32> is_shadow;
     };
 
     bool operator==(const SamplerDescriptor& rhs) const noexcept {
@@ -31,68 +32,48 @@ struct SamplerDescriptor {
         return !operator==(rhs);
     }
 
-    static SamplerDescriptor FromTicTexture(Tegra::Texture::TextureType tic_texture_type) {
+    static SamplerDescriptor FromTIC(const Tegra::Texture::TICEntry& tic) {
+        using Tegra::Shader::TextureType;
         SamplerDescriptor result;
-        switch (tic_texture_type) {
+
+        // This is going to be used to determine the shading language type.
+        // Because of that we don't care about all component types on color textures.
+        result.component_type.Assign(tic.r_type.Value());
+
+        switch (tic.texture_type.Value()) {
         case Tegra::Texture::TextureType::Texture1D:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::Texture1D);
             return result;
         case Tegra::Texture::TextureType::Texture2D:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::Texture2D);
             return result;
         case Tegra::Texture::TextureType::Texture3D:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture3D);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::Texture3D);
             return result;
         case Tegra::Texture::TextureType::TextureCubemap:
-            result.texture_type.Assign(Tegra::Shader::TextureType::TextureCube);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::TextureCube);
             return result;
         case Tegra::Texture::TextureType::Texture1DArray:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
+            result.texture_type.Assign(TextureType::Texture1D);
             result.is_array.Assign(1);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
             return result;
         case Tegra::Texture::TextureType::Texture2DArray:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
+            result.texture_type.Assign(TextureType::Texture2D);
             result.is_array.Assign(1);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
             return result;
         case Tegra::Texture::TextureType::Texture1DBuffer:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture1D);
-            result.is_array.Assign(0);
+            result.texture_type.Assign(TextureType::Texture1D);
             result.is_buffer.Assign(1);
-            result.is_shadow.Assign(0);
             return result;
         case Tegra::Texture::TextureType::Texture2DNoMipmap:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::Texture2D);
             return result;
         case Tegra::Texture::TextureType::TextureCubeArray:
-            result.texture_type.Assign(Tegra::Shader::TextureType::TextureCube);
+            result.texture_type.Assign(TextureType::TextureCube);
             result.is_array.Assign(1);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
             return result;
         default:
-            result.texture_type.Assign(Tegra::Shader::TextureType::Texture2D);
-            result.is_array.Assign(0);
-            result.is_buffer.Assign(0);
-            result.is_shadow.Assign(0);
+            result.texture_type.Assign(TextureType::Texture2D);
             return result;
         }
     }
