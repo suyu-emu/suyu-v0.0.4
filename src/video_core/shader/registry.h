@@ -26,15 +26,19 @@ using BindlessSamplerMap =
 
 struct GraphicsInfo {
     Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology primitive_topology{};
+    Tegra::Engines::Maxwell3D::Regs::TessellationPrimitive tessellation_primitive{};
+    Tegra::Engines::Maxwell3D::Regs::TessellationSpacing tessellation_spacing{};
+    bool tessellation_clockwise = false;
 };
-static_assert(std::is_trivially_copyable_v<GraphicsInfo>);
+static_assert(std::is_trivially_copyable_v<GraphicsInfo> &&
+              std::is_standard_layout_v<GraphicsInfo>);
 
 struct ComputeInfo {
     std::array<u32, 3> workgroup_size{};
     u32 shared_memory_size_in_words = 0;
     u32 local_memory_size_in_words = 0;
 };
-static_assert(std::is_trivially_copyable_v<ComputeInfo>);
+static_assert(std::is_trivially_copyable_v<ComputeInfo> && std::is_standard_layout_v<ComputeInfo>);
 
 struct SerializedRegistryInfo {
     VideoCore::GuestDriverProfile guest_driver_profile;

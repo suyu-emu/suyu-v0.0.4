@@ -27,6 +27,9 @@ GraphicsInfo MakeGraphicsInfo(ShaderType shader_stage, ConstBufferEngineInterfac
 
     GraphicsInfo info;
     info.primitive_topology = graphics.regs.draw.topology;
+    info.tessellation_primitive = graphics.regs.tess_mode.prim;
+    info.tessellation_spacing = graphics.regs.tess_mode.spacing;
+    info.tessellation_clockwise = graphics.regs.tess_mode.cw;
     return info;
 }
 
