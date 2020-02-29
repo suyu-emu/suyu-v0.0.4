@@ -478,7 +478,7 @@ private:
     void DecompileAST();
 
     void DeclareHeader() {
-        code.AddLine("#version 450 compatibility");
+        code.AddLine("#version 430 core");
         code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
         if (device.HasShaderBallot()) {
             code.AddLine("#extension GL_ARB_shader_ballot : require");
