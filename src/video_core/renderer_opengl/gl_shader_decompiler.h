@@ -78,6 +78,7 @@ ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir);
 
 std::string DecompileShader(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
                             const VideoCommon::Shader::Registry& registry,
-                            Tegra::Engines::ShaderType stage, std::string_view suffix = {});
+                            Tegra::Engines::ShaderType stage, std::string_view identifier,
+                            std::string_view suffix = {});
 
 } // namespace OpenGL

@@ -393,9 +393,9 @@ std::string FlowStackTopName(MetaStackClass stack) {
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
-                            ShaderType stage, std::string_view suffix)
-        : device{device}, ir{ir}, registry{registry}, stage{stage}, suffix{suffix},
-          header{ir.GetHeader()} {}
+                            ShaderType stage, std::string_view identifier, std::string_view suffix)
+        : device{device}, ir{ir}, registry{registry}, stage{stage},
+          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()} {}
 
     void Decompile() {
         DeclareHeader();
@@ -478,6 +478,9 @@ private:
     void DecompileAST();
 
     void DeclareHeader() {
+        if (!identifier.empty()) {
+            code.AddLine("// {}", identifier);
+        }
         code.AddLine("#version 430 core");
         code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
         if (device.HasShaderBallot()) {
@@ -2477,6 +2480,7 @@ private:
     const ShaderIR& ir;
     const Registry& registry;
     const ShaderType stage;
+    const std::string_view identifier;
     const std::string_view suffix;
     const Header header;
 
@@ -2698,8 +2702,9 @@ ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir) {
 }
 
 std::string DecompileShader(const Device& device, const ShaderIR& ir, const Registry& registry,
-                            ShaderType stage, std::string_view suffix) {
-    GLSLDecompiler decompiler(device, ir, registry, stage, suffix);
+                            ShaderType stage, std::string_view identifier,
+                            std::string_view suffix) {
+    GLSLDecompiler decompiler(device, ir, registry, stage, identifier, suffix);
     decompiler.Decompile();
     return decompiler.GetResult();
 }

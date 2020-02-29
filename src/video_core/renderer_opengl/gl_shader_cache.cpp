@@ -186,8 +186,10 @@ std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
 std::shared_ptr<OGLProgram> BuildShader(const Device& device, ShaderType shader_type,
                                         u64 unique_identifier, const ShaderIR& ir,
                                         const Registry& registry, bool hint_retrievable = false) {
-    LOG_INFO(Render_OpenGL, "{}", MakeShaderID(unique_identifier, shader_type));
-    const std::string glsl = DecompileShader(device, ir, registry, shader_type);
+    const std::string shader_id = MakeShaderID(unique_identifier, shader_type);
+    LOG_INFO(Render_OpenGL, "{}", shader_id);
+
+    const std::string glsl = DecompileShader(device, ir, registry, shader_type, shader_id);
     OGLShader shader;
     shader.Create(glsl.c_str(), GetGLShaderType(shader_type));
 
