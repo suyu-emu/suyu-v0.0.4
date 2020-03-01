@@ -119,14 +119,6 @@ struct System::Impl {
         : kernel{system}, fs_controller{system}, memory{system},
           cpu_manager{system}, reporter{system}, applet_manager{system} {}
 
-    Kernel::PhysicalCore& CurrentPhysicalCore() {
-        return kernel.CurrentPhysicalCore();
-    }
-
-    Kernel::PhysicalCore& GetPhysicalCore(std::size_t index) {
-        return kernel.PhysicalCore(index);
-    }
-
     ResultStatus Run() {
         status = ResultStatus::Success;
 
@@ -443,7 +435,7 @@ bool System::IsPoweredOn() const {
 }
 
 void System::PrepareReschedule() {
-    impl->CurrentPhysicalCore().Stop();
+    //impl->CurrentPhysicalCore().Stop();
 }
 
 void System::PrepareReschedule(const u32 core_index) {
@@ -463,11 +455,11 @@ const TelemetrySession& System::TelemetrySession() const {
 }
 
 ARM_Interface& System::CurrentArmInterface() {
-    return impl->CurrentPhysicalCore().ArmInterface();
+    return impl->kernel.CurrentScheduler().GetCurrentThread()->ArmInterface();
 }
 
 const ARM_Interface& System::CurrentArmInterface() const {
-    return impl->CurrentPhysicalCore().ArmInterface();
+    return impl->kernel.CurrentScheduler().GetCurrentThread()->ArmInterface();
 }
 
 std::size_t System::CurrentCoreIndex() const {
@@ -477,27 +469,27 @@ std::size_t System::CurrentCoreIndex() const {
 }
 
 Kernel::Scheduler& System::CurrentScheduler() {
-    return impl->CurrentPhysicalCore().Scheduler();
+    return impl->kernel.CurrentScheduler();
 }
 
 const Kernel::Scheduler& System::CurrentScheduler() const {
-    return impl->CurrentPhysicalCore().Scheduler();
+    return impl->kernel.CurrentScheduler();
 }
 
 Kernel::PhysicalCore& System::CurrentPhysicalCore() {
-    return impl->CurrentPhysicalCore();
+    return impl->kernel.CurrentPhysicalCore();
 }
 
 const Kernel::PhysicalCore& System::CurrentPhysicalCore() const {
-    return impl->CurrentPhysicalCore();
+    return impl->kernel.CurrentPhysicalCore();
 }
 
 Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
-    return impl->GetPhysicalCore(core_index).Scheduler();
+    return impl->kernel.Scheduler(core_index);
 }
 
 const Kernel::Scheduler& System::Scheduler(std::size_t core_index) const {
-    return impl->GetPhysicalCore(core_index).Scheduler();
+    return impl->kernel.Scheduler(core_index);
 }
 
 /// Gets the global scheduler
@@ -527,11 +519,15 @@ const Kernel::Process* System::CurrentProcess() const {
 }
 
 ARM_Interface& System::ArmInterface(std::size_t core_index) {
-    return impl->GetPhysicalCore(core_index).ArmInterface();
+    auto* thread = impl->kernel.Scheduler(core_index).GetCurrentThread();
+    ASSERT(thread && !thread->IsHLEThread());
+    return thread->ArmInterface();
 }
 
 const ARM_Interface& System::ArmInterface(std::size_t core_index) const {
-    return impl->GetPhysicalCore(core_index).ArmInterface();
+    auto* thread = impl->kernel.Scheduler(core_index).GetCurrentThread();
+    ASSERT(thread && !thread->IsHLEThread());
+    return thread->ArmInterface();
 }
 
 ExclusiveMonitor& System::Monitor() {

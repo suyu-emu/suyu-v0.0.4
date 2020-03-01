@@ -21,6 +21,7 @@ class Fiber;
 }
 
 namespace Core {
+class ARM_Interface;
 class System;
 } // namespace Core
 
@@ -270,6 +271,10 @@ public:
     void /*deprecated*/ SetWaitSynchronizationOutput(s32 output);
 
     void SetSynchronizationResults(SynchronizationObject* object, ResultCode result);
+
+    Core::ARM_Interface& ArmInterface();
+
+    const Core::ARM_Interface& ArmInterface() const;
 
     SynchronizationObject* GetSignalingObject() const {
         return signaling_object;
@@ -617,9 +622,10 @@ private:
 
     void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
 
+    Common::SpinLock context_guard{};
     ThreadContext32 context_32{};
     ThreadContext64 context_64{};
-    Common::SpinLock context_guard{};
+    std::unique_ptr<Core::ARM_Interface> arm_interface{};
     std::shared_ptr<Common::Fiber> host_context{};
 
     u64 thread_id = 0;

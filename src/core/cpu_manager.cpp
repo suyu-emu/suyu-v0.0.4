@@ -129,18 +129,17 @@ void CpuManager::MultiCoreRunGuestThread() {
 void CpuManager::MultiCoreRunGuestLoop() {
     auto& kernel = system.Kernel();
     auto* thread = kernel.CurrentScheduler().GetCurrentThread();
-    auto host_context = thread->GetHostContext();
-    host_context->SetRewindPoint(std::function<void(void*)>(GuestRewindFunction), this);
-    host_context.reset();
     while (true) {
-        auto& physical_core = kernel.CurrentPhysicalCore();
+        auto* physical_core = &kernel.CurrentPhysicalCore();
+        auto& arm_interface = thread->ArmInterface();
         system.EnterDynarmicProfile();
-        while (!physical_core.IsInterrupted()) {
-            physical_core.Run();
+        while (!physical_core->IsInterrupted()) {
+            arm_interface.Run();
+            physical_core = &kernel.CurrentPhysicalCore();
         }
         system.ExitDynarmicProfile();
-        physical_core.ClearExclusive();
-        auto& scheduler = physical_core.Scheduler();
+        arm_interface.ClearExclusiveState();
+        auto& scheduler = kernel.CurrentScheduler();
         scheduler.TryDoContextSwitch();
     }
 }
@@ -150,7 +149,7 @@ void CpuManager::MultiCoreRunIdleThread() {
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
         physical_core.Idle();
-        auto& scheduler = physical_core.Scheduler();
+        auto& scheduler = kernel.CurrentScheduler();
         scheduler.TryDoContextSwitch();
     }
 }
@@ -229,14 +228,13 @@ void CpuManager::SingleCoreRunGuestThread() {
 void CpuManager::SingleCoreRunGuestLoop() {
     auto& kernel = system.Kernel();
     auto* thread = kernel.CurrentScheduler().GetCurrentThread();
-    auto host_context = thread->GetHostContext();
-    host_context->SetRewindPoint(std::function<void(void*)>(GuestRewindFunction), this);
-    host_context.reset();
     while (true) {
-        auto& physical_core = kernel.CurrentPhysicalCore();
+        auto* physical_core = &kernel.CurrentPhysicalCore();
+        auto& arm_interface = thread->ArmInterface();
         system.EnterDynarmicProfile();
-        while (!physical_core.IsInterrupted()) {
-            physical_core.Run();
+        while (!physical_core->IsInterrupted()) {
+            arm_interface.Run();
+            physical_core = &kernel.CurrentPhysicalCore();
             preemption_count++;
             if (preemption_count % max_cycle_runs == 0) {
                 break;
@@ -246,7 +244,7 @@ void CpuManager::SingleCoreRunGuestLoop() {
         thread->SetPhantomMode(true);
         system.CoreTiming().Advance();
         thread->SetPhantomMode(false);
-        physical_core.ClearExclusive();
+        arm_interface.ClearExclusiveState();
         PreemptSingleCore();
         auto& scheduler = kernel.Scheduler(current_core);
         scheduler.TryDoContextSwitch();

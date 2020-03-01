@@ -20,50 +20,21 @@
 
 namespace Kernel {
 
-PhysicalCore::PhysicalCore(Core::System& system, std::size_t id,
-                           Core::ExclusiveMonitor& exclusive_monitor,
-                           Core::CPUInterruptHandler& interrupt_handler,
-                           Core::ARM_Interface& arm_interface32,
-                           Core::ARM_Interface& arm_interface64)
-    : interrupt_handler{interrupt_handler}, core_index{id}, arm_interface_32{arm_interface32},
-      arm_interface_64{arm_interface64} {
+PhysicalCore::PhysicalCore(Core::System& system, std::size_t id, Kernel::Scheduler& scheduler,
+                           Core::CPUInterruptHandler& interrupt_handler)
+    : interrupt_handler{interrupt_handler}, core_index{id}, scheduler{scheduler} {
 
-    scheduler = std::make_unique<Kernel::Scheduler>(system, core_index);
     guard = std::make_unique<Common::SpinLock>();
 }
 
 PhysicalCore::~PhysicalCore() = default;
 
-void PhysicalCore::Run() {
-    arm_interface->Run();
-}
-
-void PhysicalCore::ClearExclusive() {
-    arm_interface->ClearExclusiveState();
-}
-
-void PhysicalCore::Step() {
-    arm_interface->Step();
-}
-
 void PhysicalCore::Idle() {
     interrupt_handler.AwaitInterrupt();
 }
 
-void PhysicalCore::Stop() {
-    arm_interface->PrepareReschedule();
-}
-
 void PhysicalCore::Shutdown() {
-    scheduler->Shutdown();
-}
-
-void PhysicalCore::SetIs64Bit(bool is_64_bit) {
-    if (is_64_bit) {
-        arm_interface = &arm_interface_64;
-    } else {
-        arm_interface = &arm_interface_32;
-    }
+    scheduler.Shutdown();
 }
 
 void PhysicalCore::Interrupt() {

@@ -10,7 +10,7 @@
 #include "core/arm/cpu_interrupt_handler.h"
 
 namespace Common {
-class SpinLock;
+    class SpinLock;
 }
 
 namespace Kernel {
@@ -27,9 +27,9 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, std::size_t id, Core::ExclusiveMonitor& exclusive_monitor,
-                 Core::CPUInterruptHandler& interrupt_handler, Core::ARM_Interface& arm_interface32,
-                 Core::ARM_Interface& arm_interface64);
+    PhysicalCore(Core::System& system, std::size_t id,
+                               Kernel::Scheduler& scheduler,
+                               Core::CPUInterruptHandler& interrupt_handler);
     ~PhysicalCore();
 
     PhysicalCore(const PhysicalCore&) = delete;
@@ -38,17 +38,7 @@ public:
     PhysicalCore(PhysicalCore&&) = default;
     PhysicalCore& operator=(PhysicalCore&&) = default;
 
-    /// Execute current jit state
-    void Run();
-    /// Clear Exclusive state.
-    void ClearExclusive();
-    /// Set this core in IdleState.
     void Idle();
-    /// Execute a single instruction in current jit.
-    void Step();
-    /// Stop JIT execution/exit
-    void Stop();
-
     /// Interrupt this physical core.
     void Interrupt();
 
@@ -63,14 +53,6 @@ public:
     // Shutdown this physical core.
     void Shutdown();
 
-    Core::ARM_Interface& ArmInterface() {
-        return *arm_interface;
-    }
-
-    const Core::ARM_Interface& ArmInterface() const {
-        return *arm_interface;
-    }
-
     bool IsMainCore() const {
         return core_index == 0;
     }
@@ -84,22 +66,17 @@ public:
     }
 
     Kernel::Scheduler& Scheduler() {
-        return *scheduler;
+        return scheduler;
     }
 
     const Kernel::Scheduler& Scheduler() const {
-        return *scheduler;
+        return scheduler;
     }
-
-    void SetIs64Bit(bool is_64_bit);
 
 private:
     Core::CPUInterruptHandler& interrupt_handler;
     std::size_t core_index;
-    Core::ARM_Interface& arm_interface_32;
-    Core::ARM_Interface& arm_interface_64;
-    std::unique_ptr<Kernel::Scheduler> scheduler;
-    Core::ARM_Interface* arm_interface{};
+    Kernel::Scheduler& scheduler;
     std::unique_ptr<Common::SpinLock> guard;
 };
 

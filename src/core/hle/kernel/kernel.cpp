@@ -19,7 +19,6 @@
 #include "core/arm/arm_interface.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/exclusive_monitor.h"
-#include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -44,11 +43,6 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
-
-#ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
-#endif
 
 MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
@@ -186,20 +180,8 @@ struct KernelCore::Impl {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-#ifdef ARCHITECTURE_x86_64
-            arm_interfaces_32[i] =
-                std::make_unique<Core::ARM_Dynarmic_32>(system, interrupts, *exclusive_monitor, i);
-            arm_interfaces_64[i] =
-                std::make_unique<Core::ARM_Dynarmic_64>(system, interrupts, *exclusive_monitor, i);
-#else
-            arm_interfaces_32[i] = std::make_shared<Core::ARM_Unicorn>(
-                system, interrupts, ARM_Unicorn::Arch::AArch32, i);
-            arm_interfaces_64[i] = std::make_shared<Core::ARM_Unicorn>(
-                system, interrupts, ARM_Unicorn::Arch::AArch64, i);
-            LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
-#endif
-            cores.emplace_back(system, i, *exclusive_monitor, interrupts[i], *arm_interfaces_32[i],
-                               *arm_interfaces_64[i]);
+            schedulers[i] = std::make_unique<Kernel::Scheduler>(system, i);
+            cores.emplace_back(system, i, *schedulers[i], interrupts[i]);
         }
     }
 
@@ -266,10 +248,6 @@ struct KernelCore::Impl {
 
         if (process == nullptr) {
             return;
-        }
-
-        for (auto& core : cores) {
-            core.SetIs64Bit(process->Is64BitProcess());
         }
 
         u32 core_id = GetCurrentHostThreadID();
@@ -429,10 +407,7 @@ struct KernelCore::Impl {
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
-    std::array<std::unique_ptr<Core::ARM_Interface>, Core::Hardware::NUM_CPU_CORES>
-        arm_interfaces_32{};
-    std::array<std::unique_ptr<Core::ARM_Interface>, Core::Hardware::NUM_CPU_CORES>
-        arm_interfaces_64{};
+    std::array<std::unique_ptr<Kernel::Scheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
     bool is_multicore{};
     std::thread::id single_core_thread_id{};
@@ -497,11 +472,11 @@ const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
 }
 
 Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) {
-    return impl->cores[id].Scheduler();
+    return *impl->schedulers[id];
 }
 
 const Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) const {
-    return impl->cores[id].Scheduler();
+    return *impl->schedulers[id];
 }
 
 Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
@@ -525,11 +500,23 @@ const Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() const {
 }
 
 Kernel::Scheduler& KernelCore::CurrentScheduler() {
-    return CurrentPhysicalCore().Scheduler();
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return *impl->schedulers[core_id];
 }
 
 const Kernel::Scheduler& KernelCore::CurrentScheduler() const {
-    return CurrentPhysicalCore().Scheduler();
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return *impl->schedulers[core_id];
+}
+
+std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts() {
+    return impl->interrupts;
+}
+
+const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts() const {
+    return impl->interrupts;
 }
 
 Kernel::Synchronization& KernelCore::Synchronization() {
@@ -557,15 +544,11 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
-    for (std::size_t i = 0; i < impl->global_scheduler.CpuCoresCount(); i++) {
-        PhysicalCore(i).ArmInterface().ClearInstructionCache();
-    }
+    //TODO: Reimplement, this
 }
 
 void KernelCore::PrepareReschedule(std::size_t id) {
-    if (id < impl->global_scheduler.CpuCoresCount()) {
-        impl->cores[id].Stop();
-    }
+    // TODO: Reimplement, this
 }
 
 void KernelCore::AddNamedPort(std::string name, std::shared_ptr<ClientPort> port) {

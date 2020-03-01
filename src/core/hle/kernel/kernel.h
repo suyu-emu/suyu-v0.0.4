@@ -4,15 +4,17 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/memory/memory_types.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
-struct EmuThreadHandle;
+class CPUInterruptHandler;
 class ExclusiveMonitor;
 class System;
 } // namespace Core
@@ -143,6 +145,10 @@ public:
     Core::ExclusiveMonitor& GetExclusiveMonitor();
 
     const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
+
+    std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts();
+
+    const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts() const;
 
     void InvalidateAllInstructionCaches();
 
