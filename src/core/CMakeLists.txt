@@ -597,6 +597,8 @@ if (ARCHITECTURE_x86_64)
     target_sources(core PRIVATE
         arm/dynarmic/arm_dynarmic.cpp
         arm/dynarmic/arm_dynarmic.h
+        arm/dynarmic/arm_dynarmic_cp15.cpp
+        arm/dynarmic/arm_dynarmic_cp15.h
     )
     target_link_libraries(core PRIVATE dynarmic)
 endif()
