@@ -57,7 +57,7 @@ using TextureIR = std::variant<TextureOffset, TextureDerivates, TextureArgument>
 constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
     static_cast<u32>(Maxwell::MaxConstBufferSize) / (4 * sizeof(float));
 
-std::string_view CommonDeclarations = R"(#define ftoi floatBitsToInt
+constexpr std::string_view CommonDeclarations = R"(#define ftoi floatBitsToInt
 #define ftou floatBitsToUint
 #define itof intBitsToFloat
 #define utof uintBitsToFloat

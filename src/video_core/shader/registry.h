@@ -85,6 +85,12 @@ public:
     /// Returns true if the keys are equal to the other ones in the registry.
     bool HasEqualKeys(const Registry& rhs) const;
 
+    /// Returns graphics information from this shader
+    const GraphicsInfo& GetGraphicsInfo() const;
+
+    /// Returns compute information from this shader
+    const ComputeInfo& GetComputeInfo() const;
+
     /// Gives an getter to the const buffer keys in the database.
     const KeyMap& GetKeys() const {
         return keys;
@@ -103,18 +109,6 @@ public:
     /// Gets bound buffer used on this shader
     u32 GetBoundBuffer() const {
         return bound_buffer;
-    }
-
-    /// Returns compute information from this shader
-    const GraphicsInfo& GetGraphicsInfo() const {
-        ASSERT(stage != Tegra::Engines::ShaderType::Compute);
-        return graphics_info;
-    }
-
-    /// Returns compute information from this shader
-    const ComputeInfo& GetComputeInfo() const {
-        ASSERT(stage == Tegra::Engines::ShaderType::Compute);
-        return compute_info;
     }
 
     /// Obtains access to the guest driver's profile.

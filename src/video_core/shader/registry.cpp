@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <tuple>
 
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -142,6 +143,16 @@ bool Registry::IsConsistent() const {
 bool Registry::HasEqualKeys(const Registry& rhs) const {
     return std::tie(keys, bound_samplers, bindless_samplers) ==
            std::tie(rhs.keys, rhs.bound_samplers, rhs.bindless_samplers);
+}
+
+const GraphicsInfo& Registry::GetGraphicsInfo() const {
+    ASSERT(stage != Tegra::Engines::ShaderType::Compute);
+    return graphics_info;
+}
+
+const ComputeInfo& Registry::GetComputeInfo() const {
+    ASSERT(stage == Tegra::Engines::ShaderType::Compute);
+    return compute_info;
 }
 
 } // namespace VideoCommon::Shader
