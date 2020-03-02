@@ -25,9 +25,15 @@ using BindlessSamplerMap =
     std::unordered_map<std::pair<u32, u32>, Tegra::Engines::SamplerDescriptor, Common::PairHash>;
 
 struct GraphicsInfo {
-    Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology primitive_topology{};
-    Tegra::Engines::Maxwell3D::Regs::TessellationPrimitive tessellation_primitive{};
-    Tegra::Engines::Maxwell3D::Regs::TessellationSpacing tessellation_spacing{};
+    using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+
+    std::array<Maxwell::TransformFeedbackLayout, Maxwell::NumTransformFeedbackBuffers>
+        tfb_layouts{};
+    std::array<std::array<u8, 128>, Maxwell::NumTransformFeedbackBuffers> tfb_varying_locs{};
+    Maxwell::PrimitiveTopology primitive_topology{};
+    Maxwell::TessellationPrimitive tessellation_primitive{};
+    Maxwell::TessellationSpacing tessellation_spacing{};
+    bool tfb_enabled = false;
     bool tessellation_clockwise = false;
 };
 static_assert(std::is_trivially_copyable_v<GraphicsInfo> &&

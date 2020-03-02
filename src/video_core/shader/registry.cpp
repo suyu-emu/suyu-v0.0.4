@@ -27,9 +27,12 @@ GraphicsInfo MakeGraphicsInfo(ShaderType shader_stage, ConstBufferEngineInterfac
     auto& graphics = static_cast<Tegra::Engines::Maxwell3D&>(engine);
 
     GraphicsInfo info;
+    info.tfb_layouts = graphics.regs.tfb_layouts;
+    info.tfb_varying_locs = graphics.regs.tfb_varying_locs;
     info.primitive_topology = graphics.regs.draw.topology;
     info.tessellation_primitive = graphics.regs.tess_mode.prim;
     info.tessellation_spacing = graphics.regs.tess_mode.spacing;
+    info.tfb_enabled = graphics.regs.tfb_enabled;
     info.tessellation_clockwise = graphics.regs.tess_mode.cw;
     return info;
 }

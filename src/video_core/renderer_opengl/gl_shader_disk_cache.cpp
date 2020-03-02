@@ -48,7 +48,7 @@ struct BindlessSamplerKey {
     Tegra::Engines::SamplerDescriptor sampler;
 };
 
-constexpr u32 NativeVersion = 19;
+constexpr u32 NativeVersion = 20;
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
