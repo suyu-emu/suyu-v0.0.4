@@ -15,6 +15,10 @@ static inline u64 Param(const Core::System& system, int n) {
     return system.CurrentArmInterface().GetReg(n);
 }
 
+static inline u32 Param32(const Core::System& system, int n) {
+    return static_cast<u32>(system.CurrentArmInterface().GetReg(n));
+}
+
 /**
  * HLE a function return from the current ARM userland process
  * @param system System context
@@ -24,40 +28,44 @@ static inline void FuncReturn(Core::System& system, u64 result) {
     system.CurrentArmInterface().SetReg(0, result);
 }
 
+static inline void FuncReturn32(Core::System& system, u32 result) {
+    system.CurrentArmInterface().SetReg(0, (u64)result);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Function wrappers that return type ResultCode
 
 template <ResultCode func(Core::System&, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0)).raw);
 }
 
 template <ResultCode func(Core::System&, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), Param(system, 1)).raw);
 }
 
 template <ResultCode func(Core::System&, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0))).raw);
 }
 
 template <ResultCode func(Core::System&, u32, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(
         system,
         func(system, static_cast<u32>(Param(system, 0)), static_cast<u32>(Param(system, 1))).raw);
 }
 
 template <ResultCode func(Core::System&, u32, u64, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1),
                             Param(system, 2), Param(system, 3))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u32*)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param = 0;
     const u32 retval = func(system, &param).raw;
     system.CurrentArmInterface().SetReg(1, param);
@@ -65,7 +73,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, static_cast<u32>(Param(system, 1))).raw;
     system.CurrentArmInterface().SetReg(1, param_1);
@@ -73,7 +81,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u32*)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     u32 param_2 = 0;
     const u32 retval = func(system, &param_1, &param_2).raw;
@@ -86,7 +94,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1)).raw;
     system.CurrentArmInterface().SetReg(1, param_1);
@@ -94,7 +102,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval =
         func(system, &param_1, Param(system, 1), static_cast<u32>(Param(system, 2))).raw;
@@ -104,7 +112,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64*, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u64 param_1 = 0;
     const u32 retval = func(system, &param_1, static_cast<u32>(Param(system, 1))).raw;
 
@@ -113,12 +121,12 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1))).raw);
 }
 
 template <ResultCode func(Core::System&, u64*, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u64 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1)).raw;
 
@@ -127,7 +135,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64*, u32, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u64 param_1 = 0;
     const u32 retval = func(system, &param_1, static_cast<u32>(Param(system, 1)),
                             static_cast<u32>(Param(system, 2)))
@@ -138,19 +146,19 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1)).raw);
 }
 
 template <ResultCode func(Core::System&, u32, u32, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)),
                             static_cast<u32>(Param(system, 1)), Param(system, 2))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u32, u32*, u64*)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     u64 param_2 = 0;
     const ResultCode retval = func(system, static_cast<u32>(Param(system, 2)), &param_1, &param_2);
@@ -161,54 +169,54 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64, u64, u32, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), Param(system, 1),
                             static_cast<u32>(Param(system, 2)), static_cast<u32>(Param(system, 3)))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u64, u64, u32, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), Param(system, 1),
                             static_cast<u32>(Param(system, 2)), Param(system, 3))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u32, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1),
                             static_cast<u32>(Param(system, 2)))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u64, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), Param(system, 1), Param(system, 2)).raw);
 }
 
 template <ResultCode func(Core::System&, u64, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(
         system,
         func(system, Param(system, 0), Param(system, 1), static_cast<u32>(Param(system, 2))).raw);
 }
 
 template <ResultCode func(Core::System&, u32, u64, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, static_cast<u32>(Param(system, 0)), Param(system, 1),
                             Param(system, 2), static_cast<u32>(Param(system, 3)))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u32, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(
         system,
         func(system, static_cast<u32>(Param(system, 0)), Param(system, 1), Param(system, 2)).raw);
 }
 
 template <ResultCode func(Core::System&, u32*, u64, u64, s64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), static_cast<u32>(Param(system, 2)),
                             static_cast<s64>(Param(system, 3)))
@@ -219,14 +227,14 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64, u64, u32, s64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), Param(system, 1),
                             static_cast<u32>(Param(system, 2)), static_cast<s64>(Param(system, 3)))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u64*, u64, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u64 param_1 = 0;
     const u32 retval =
         func(system, &param_1, Param(system, 1), Param(system, 2), Param(system, 3)).raw;
@@ -236,7 +244,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u64, u64, u64, u32, s32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), Param(system, 2), Param(system, 3),
                             static_cast<u32>(Param(system, 4)), static_cast<s32>(Param(system, 5)))
@@ -247,7 +255,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u32*, u64, u64, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), Param(system, 2),
                             static_cast<u32>(Param(system, 3)))
@@ -258,7 +266,7 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, Handle*, u64, u32, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     u32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), static_cast<u32>(Param(system, 2)),
                             static_cast<u32>(Param(system, 3)))
@@ -269,14 +277,14 @@ void SvcWrap(Core::System& system) {
 }
 
 template <ResultCode func(Core::System&, u64, u32, s32, s64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1)),
                             static_cast<s32>(Param(system, 2)), static_cast<s64>(Param(system, 3)))
                            .raw);
 }
 
 template <ResultCode func(Core::System&, u64, u32, s32, s32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1)),
                             static_cast<s32>(Param(system, 2)), static_cast<s32>(Param(system, 3)))
                            .raw);
@@ -286,7 +294,7 @@ void SvcWrap(Core::System& system) {
 // Function wrappers that return type u32
 
 template <u32 func(Core::System&)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system));
 }
 
@@ -294,7 +302,7 @@ void SvcWrap(Core::System& system) {
 // Function wrappers that return type u64
 
 template <u64 func(Core::System&)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     FuncReturn(system, func(system));
 }
 
@@ -302,44 +310,110 @@ void SvcWrap(Core::System& system) {
 /// Function wrappers that return type void
 
 template <void func(Core::System&)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system);
 }
 
 template <void func(Core::System&, u32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, static_cast<u32>(Param(system, 0)));
 }
 
 template <void func(Core::System&, u32, u64, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, static_cast<u32>(Param(system, 0)), Param(system, 1), Param(system, 2),
          Param(system, 3));
 }
 
 template <void func(Core::System&, s64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, static_cast<s64>(Param(system, 0)));
 }
 
 template <void func(Core::System&, u64, s32)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, Param(system, 0), static_cast<s32>(Param(system, 1)));
 }
 
 template <void func(Core::System&, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, Param(system, 0), Param(system, 1));
 }
 
 template <void func(Core::System&, u64, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, Param(system, 0), Param(system, 1), Param(system, 2));
 }
 
 template <void func(Core::System&, u32, u64, u64)>
-void SvcWrap(Core::System& system) {
+void SvcWrap64(Core::System& system) {
     func(system, static_cast<u32>(Param(system, 0)), Param(system, 1), Param(system, 2));
+}
+
+// Used by QueryMemory32
+template <ResultCode func(Core::System&, u32, u32, u32)>
+void SvcWrap32(Core::System& system) {
+    FuncReturn32(system,
+                 func(system, Param32(system, 0), Param32(system, 1), Param32(system, 2)).raw);
+}
+
+// Used by GetInfo32
+template <ResultCode func(Core::System&, u32*, u32*, u32, u32, u32, u32)>
+void SvcWrap32(Core::System& system) {
+    u32 param_1 = 0;
+    u32 param_2 = 0;
+
+    const u32 retval = func(system, &param_1, &param_2, Param32(system, 0), Param32(system, 1),
+                            Param32(system, 2), Param32(system, 3))
+                           .raw;
+
+    system.CurrentArmInterface().SetReg(1, param_1);
+    system.CurrentArmInterface().SetReg(2, param_2);
+    FuncReturn(system, retval);
+}
+
+// Used by GetThreadPriority32, ConnectToNamedPort32
+template <ResultCode func(Core::System&, u32*, u32)>
+void SvcWrap32(Core::System& system) {
+    u32 param_1 = 0;
+    const u32 retval = func(system, &param_1, Param32(system, 1)).raw;
+    system.CurrentArmInterface().SetReg(1, param_1);
+    FuncReturn(system, retval);
+}
+
+// Used by GetThreadId32
+template <ResultCode func(Core::System&, u32*, u32*, u32)>
+void SvcWrap32(Core::System& system) {
+    u32 param_1 = 0;
+    u32 param_2 = 0;
+
+    const u32 retval = func(system, &param_1, &param_2, Param32(system, 1)).raw;
+    system.CurrentArmInterface().SetReg(1, param_1);
+    system.CurrentArmInterface().SetReg(2, param_2);
+    FuncReturn(system, retval);
+}
+
+// Used by SignalProcessWideKey32
+template <void func(Core::System&, u32, s32)>
+void SvcWrap32(Core::System& system) {
+    func(system, static_cast<u32>(Param(system, 0)), static_cast<s32>(Param(system, 1)));
+}
+
+// Used by SendSyncRequest32
+template <ResultCode func(Core::System&, u32)>
+void SvcWrap32(Core::System& system) {
+    FuncReturn(system, func(system, static_cast<u32>(Param(system, 0))).raw);
+}
+
+// Used by WaitSynchronization32
+template <ResultCode func(Core::System&, u32, u32, s32, u32, Handle*)>
+void SvcWrap32(Core::System& system) {
+    u32 param_1 = 0;
+    const u32 retval = func(system, Param32(system, 0), Param32(system, 1), Param32(system, 2),
+                            Param32(system, 3), &param_1)
+                           .raw;
+    system.CurrentArmInterface().SetReg(1, param_1);
+    FuncReturn(system, retval);
 }
 
 } // namespace Kernel
