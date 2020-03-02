@@ -186,6 +186,10 @@ struct KernelCore::Impl {
             return;
         }
 
+        for (auto& core : cores) {
+            core.SetIs64Bit(process->Is64BitProcess());
+        }
+
         system.Memory().SetCurrentPageTable(*process);
     }
 

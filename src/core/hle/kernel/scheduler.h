@@ -181,7 +181,7 @@ private:
 
 class Scheduler final {
 public:
-    explicit Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id);
+    explicit Scheduler(Core::System& system, std::size_t core_id);
     ~Scheduler();
 
     /// Returns whether there are any threads that are ready to run.
@@ -235,7 +235,6 @@ private:
     std::shared_ptr<Thread> selected_thread = nullptr;
 
     Core::System& system;
-    Core::ARM_Interface& cpu_core;
     u64 last_context_switch_time = 0;
     u64 idle_selection_count = 0;
     const std::size_t core_id;

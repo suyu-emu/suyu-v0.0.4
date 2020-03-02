@@ -102,7 +102,8 @@ public:
 
     using MutexWaitingThreads = std::vector<std::shared_ptr<Thread>>;
 
-    using ThreadContext = Core::ARM_Interface::ThreadContext;
+    using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
+    using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
 
     using ThreadSynchronizationObjects = std::vector<std::shared_ptr<SynchronizationObject>>;
 
@@ -273,12 +274,20 @@ public:
         return status == ThreadStatus::WaitSynch;
     }
 
-    ThreadContext& GetContext() {
-        return context;
+    ThreadContext32& GetContext32() {
+        return context_32;
     }
 
-    const ThreadContext& GetContext() const {
-        return context;
+    const ThreadContext32& GetContext32() const {
+        return context_32;
+    }
+
+    ThreadContext64& GetContext64() {
+        return context_64;
+    }
+
+    const ThreadContext64& GetContext64() const {
+        return context_64;
     }
 
     ThreadStatus GetStatus() const {
@@ -466,7 +475,8 @@ private:
     void AdjustSchedulingOnPriority(u32 old_priority);
     void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
 
-    Core::ARM_Interface::ThreadContext context{};
+    ThreadContext32 context_32{};
+    ThreadContext64 context_64{};
 
     u64 thread_id = 0;
 

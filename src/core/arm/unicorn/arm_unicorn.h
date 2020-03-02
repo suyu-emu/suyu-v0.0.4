@@ -30,8 +30,6 @@ public:
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;
     u64 GetTPIDR_EL0() const override;
-    void SaveContext(ThreadContext& ctx) override;
-    void LoadContext(const ThreadContext& ctx) override;
     void PrepareReschedule() override;
     void ClearExclusiveState() override;
     void ExecuteInstructions(std::size_t num_instructions);
@@ -40,6 +38,11 @@ public:
     void ClearInstructionCache() override;
     void PageTableChanged(Common::PageTable&, std::size_t) override {}
     void RecordBreak(GDBStub::BreakpointAddress bkpt);
+
+    void SaveContext(ThreadContext32& ctx) override {}
+    void SaveContext(ThreadContext64& ctx) override;
+    void LoadContext(const ThreadContext32& ctx) override {}
+    void LoadContext(const ThreadContext64& ctx) override;
 
 private:
     static void InterruptHook(uc_engine* uc, u32 int_no, void* user_data);

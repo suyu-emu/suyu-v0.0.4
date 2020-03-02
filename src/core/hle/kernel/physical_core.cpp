@@ -5,7 +5,8 @@
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic.h"
+#include "core/arm/dynarmic/arm_dynarmic_32.h"
+#include "core/arm/dynarmic/arm_dynarmic_64.h"
 #endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
@@ -20,13 +21,17 @@ PhysicalCore::PhysicalCore(Core::System& system, std::size_t id,
                            Core::ExclusiveMonitor& exclusive_monitor)
     : core_index{id} {
 #ifdef ARCHITECTURE_x86_64
-    arm_interface = std::make_unique<Core::ARM_Dynarmic>(system, exclusive_monitor, core_index);
+    arm_interface_32 =
+        std::make_unique<Core::ARM_Dynarmic_32>(system, exclusive_monitor, core_index);
+    arm_interface_64 =
+        std::make_unique<Core::ARM_Dynarmic_64>(system, exclusive_monitor, core_index);
+
 #else
     arm_interface = std::make_shared<Core::ARM_Unicorn>(system);
     LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
 
-    scheduler = std::make_unique<Kernel::Scheduler>(system, *arm_interface, core_index);
+    scheduler = std::make_unique<Kernel::Scheduler>(system, core_index);
 }
 
 PhysicalCore::~PhysicalCore() = default;
@@ -46,6 +51,14 @@ void PhysicalCore::Stop() {
 
 void PhysicalCore::Shutdown() {
     scheduler->Shutdown();
+}
+
+void PhysicalCore::SetIs64Bit(bool is_64_bit) {
+    if (is_64_bit) {
+        arm_interface = arm_interface_64.get();
+    } else {
+        arm_interface = arm_interface_32.get();
+    }
 }
 
 } // namespace Kernel

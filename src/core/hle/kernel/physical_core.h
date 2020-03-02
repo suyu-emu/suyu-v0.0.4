@@ -68,10 +68,14 @@ public:
         return *scheduler;
     }
 
+    void SetIs64Bit(bool is_64_bit);
+
 private:
     std::size_t core_index;
-    std::unique_ptr<Core::ARM_Interface> arm_interface;
+    std::unique_ptr<Core::ARM_Interface> arm_interface_32;
+    std::unique_ptr<Core::ARM_Interface> arm_interface_64;
     std::unique_ptr<Kernel::Scheduler> scheduler;
+    Core::ARM_Interface* arm_interface{};
 };
 
 } // namespace Kernel

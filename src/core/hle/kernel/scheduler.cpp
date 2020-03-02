@@ -383,8 +383,8 @@ void GlobalScheduler::Unlock() {
     // TODO(Blinkhawk): Setup the interrupts and change context on current core.
 }
 
-Scheduler::Scheduler(Core::System& system, Core::ARM_Interface& cpu_core, std::size_t core_id)
-    : system(system), cpu_core(cpu_core), core_id(core_id) {}
+Scheduler::Scheduler(Core::System& system, std::size_t core_id)
+    : system{system}, core_id{core_id} {}
 
 Scheduler::~Scheduler() = default;
 
@@ -422,9 +422,10 @@ void Scheduler::UnloadThread() {
 
     // Save context for previous thread
     if (previous_thread) {
-        cpu_core.SaveContext(previous_thread->GetContext());
+        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext32());
+        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext64());
         // Save the TPIDR_EL0 system register in case it was modified.
-        previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+        previous_thread->SetTPIDR_EL0(system.ArmInterface(core_id).GetTPIDR_EL0());
 
         if (previous_thread->GetStatus() == ThreadStatus::Running) {
             // This is only the case when a reschedule is triggered without the current thread
@@ -451,9 +452,10 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
-        cpu_core.SaveContext(previous_thread->GetContext());
+        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext32());
+        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext64());
         // Save the TPIDR_EL0 system register in case it was modified.
-        previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+        previous_thread->SetTPIDR_EL0(system.ArmInterface(core_id).GetTPIDR_EL0());
 
         if (previous_thread->GetStatus() == ThreadStatus::Running) {
             // This is only the case when a reschedule is triggered without the current thread
@@ -481,9 +483,10 @@ void Scheduler::SwitchContext() {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
 
-        cpu_core.LoadContext(new_thread->GetContext());
-        cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
-        cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
+        system.ArmInterface(core_id).LoadContext(new_thread->GetContext32());
+        system.ArmInterface(core_id).LoadContext(new_thread->GetContext64());
+        system.ArmInterface(core_id).SetTlsAddress(new_thread->GetTLSAddress());
+        system.ArmInterface(core_id).SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
     } else {
         current_thread = nullptr;
         // Note: We do not reset the current process and current page table when idling because
