@@ -634,6 +634,11 @@ public:
             u32 address_low;
             s32 buffer_size;
             s32 buffer_offset;
+
+            GPUVAddr Address() const {
+                return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
+                                             address_low);
+            }
         };
         static_assert(sizeof(TransformFeedbackBinding) == 32);
 
@@ -650,6 +655,10 @@ public:
                 return true;
             }
             return shader_config[index].enable != 0;
+        }
+
+        bool IsShaderConfigEnabled(Regs::ShaderProgram type) const {
+            return IsShaderConfigEnabled(static_cast<std::size_t>(type));
         }
 
         union {

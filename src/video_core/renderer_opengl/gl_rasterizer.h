@@ -168,9 +168,6 @@ private:
     /// Syncs the scissor test state to match the guest state
     void SyncScissorTest();
 
-    /// Syncs the transform feedback state to match the guest state
-    void SyncTransformFeedback();
-
     /// Syncs the point state to match the guest state
     void SyncPointState();
 
@@ -191,6 +188,12 @@ private:
 
     /// Syncs the framebuffer sRGB state to match the guest state
     void SyncFramebufferSRGB();
+
+    /// Begin a transform feedback
+    void BeginTransformFeedback(GLenum primitive_mode);
+
+    /// End a transform feedback
+    void EndTransformFeedback();
 
     /// Check for extension that are not strictly required but are needed for correct emulation
     void CheckExtensions();
@@ -228,6 +231,11 @@ private:
     VertexArrayPushBuffer vertex_array_pushbuffer{state_tracker};
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
+
+    std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
+        transform_feedback_buffers;
+    std::bitset<Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
+        enabled_transform_feedback_buffers;
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;
