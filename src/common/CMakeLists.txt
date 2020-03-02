@@ -83,6 +83,8 @@ add_custom_command(OUTPUT scm_rev.cpp
       "${VIDEO_CORE}/shader/shader_ir.cpp"
       "${VIDEO_CORE}/shader/shader_ir.h"
       "${VIDEO_CORE}/shader/track.cpp"
+      "${VIDEO_CORE}/shader/transform_feedback.cpp"
+      "${VIDEO_CORE}/shader/transform_feedback.h"
       # and also check that the scm_rev files haven't changed
       "${CMAKE_CURRENT_SOURCE_DIR}/scm_rev.cpp.in"
       "${CMAKE_CURRENT_SOURCE_DIR}/scm_rev.h"
