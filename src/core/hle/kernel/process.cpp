@@ -22,6 +22,7 @@
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/settings.h"
 
@@ -345,6 +346,7 @@ static auto FindTLSPageWithAvailableSlots(std::vector<TLSPage>& tls_pages) {
 }
 
 VAddr Process::CreateTLSRegion() {
+    SchedulerLock lock(system.Kernel());
     if (auto tls_page_iter{FindTLSPageWithAvailableSlots(tls_pages)};
         tls_page_iter != tls_pages.cend()) {
         return *tls_page_iter->ReserveSlot();
@@ -375,6 +377,7 @@ VAddr Process::CreateTLSRegion() {
 }
 
 void Process::FreeTLSRegion(VAddr tls_address) {
+    SchedulerLock lock(system.Kernel());
     const VAddr aligned_address = Common::AlignDown(tls_address, Core::Memory::PAGE_SIZE);
     auto iter =
         std::find_if(tls_pages.begin(), tls_pages.end(), [aligned_address](const auto& page) {
@@ -389,6 +392,7 @@ void Process::FreeTLSRegion(VAddr tls_address) {
 }
 
 void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
+    std::lock_guard lock{HLE::g_hle_lock};
     const auto ReprotectSegment = [&](const CodeSet::Segment& segment,
                                       Memory::MemoryPermission permission) {
         page_table->SetCodeMemoryPermission(segment.addr + base_addr, segment.size, permission);
