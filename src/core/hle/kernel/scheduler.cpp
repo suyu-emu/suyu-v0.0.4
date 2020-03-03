@@ -47,13 +47,13 @@ u32 GlobalScheduler::SelectThreads() {
     ASSERT(is_locked);
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
         sched.guard.lock();
-        if (thread != sched.selected_thread.get()) {
+        if (thread != sched.selected_thread_set.get()) {
             if (thread == nullptr) {
                 ++sched.idle_selection_count;
             }
-            sched.selected_thread = SharedFrom(thread);
+            sched.selected_thread_set = SharedFrom(thread);
         }
-        const bool reschedule_pending = sched.selected_thread != sched.current_thread;
+        const bool reschedule_pending = sched.selected_thread_set != sched.current_thread;
         sched.is_context_switch_pending = reschedule_pending;
         std::atomic_thread_fence(std::memory_order_seq_cst);
         sched.guard.unlock();
@@ -118,6 +118,8 @@ u32 GlobalScheduler::SelectThreads() {
                                        suggested);
                         top_threads[candidate_core] = next;
                         break;
+                    } else {
+                        suggested = nullptr;
                     }
                 }
             }
@@ -590,7 +592,7 @@ void Scheduler::OnThreadStart() {
 }
 
 void Scheduler::SwitchContextStep2() {
-    Thread* previous_thread = current_thread.get();
+    Thread* previous_thread = current_thread_prev.get();
     Thread* new_thread = selected_thread.get();
 
     // Load context of new thread
@@ -606,8 +608,6 @@ void Scheduler::SwitchContextStep2() {
                    "Thread must be ready to become running.");
 
         // Cancel any outstanding wakeup events for this thread
-        current_thread = SharedFrom(new_thread);
-        new_thread->SetStatus(ThreadStatus::Running);
         new_thread->SetIsRunning(true);
 
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
@@ -622,21 +622,21 @@ void Scheduler::SwitchContextStep2() {
             cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
             cpu_core.ClearExclusiveState();
         }
-    } else {
-        current_thread = nullptr;
-        // Note: We do not reset the current process and current page table when idling because
-        // technically we haven't changed processes, our threads are just paused.
     }
-    guard.unlock();
+
+    TryDoContextSwitch();
 }
 
 void Scheduler::SwitchContext() {
-    Thread* previous_thread = current_thread.get();
+    current_thread_prev = current_thread;
+    selected_thread = selected_thread_set;
+    Thread* previous_thread = current_thread_prev.get();
     Thread* new_thread = selected_thread.get();
+    current_thread = selected_thread;
 
     is_context_switch_pending = false;
+    guard.unlock();
     if (new_thread == previous_thread) {
-        guard.unlock();
         return;
     }
 

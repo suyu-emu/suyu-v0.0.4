@@ -154,7 +154,7 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
     basic_lock.unlock();
 }
 
-std::optional<u64> CoreTiming::Advance() {
+std::optional<s64> CoreTiming::Advance() {
     advance_lock.lock();
     basic_lock.lock();
     global_timer = GetGlobalTimeNs().count();
@@ -170,10 +170,11 @@ std::optional<u64> CoreTiming::Advance() {
         }
 
         basic_lock.lock();
+        global_timer = GetGlobalTimeNs().count();
     }
 
     if (!event_queue.empty()) {
-        const u64 next_time = event_queue.front().time - global_timer;
+        const s64 next_time = event_queue.front().time - global_timer;
         basic_lock.unlock();
         advance_lock.unlock();
         return next_time;
@@ -191,8 +192,10 @@ void CoreTiming::ThreadLoop() {
             paused_set = false;
             const auto next_time = Advance();
             if (next_time) {
-                std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
-                event.WaitFor(next_time_ns);
+                if (*next_time > 0) {
+                    std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
+                    event.WaitFor(next_time_ns);
+                }
             } else {
                 wait_set = true;
                 event.Wait();

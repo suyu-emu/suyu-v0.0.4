@@ -316,7 +316,6 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-    std::lock_guard lock{HLE::g_hle_lock};
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
     if (!session) {

@@ -110,7 +110,7 @@ public:
     std::chrono::nanoseconds GetGlobalTimeNs() const;
 
     /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
-    std::optional<u64> Advance();
+    std::optional<s64> Advance();
 
 private:
     struct Event;

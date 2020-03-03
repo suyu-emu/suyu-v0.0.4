@@ -249,6 +249,8 @@ private:
 
     std::shared_ptr<Thread> current_thread = nullptr;
     std::shared_ptr<Thread> selected_thread = nullptr;
+    std::shared_ptr<Thread> current_thread_prev = nullptr;
+    std::shared_ptr<Thread> selected_thread_set = nullptr;
     std::shared_ptr<Thread> idle_thread = nullptr;
 
     Core::System& system;
