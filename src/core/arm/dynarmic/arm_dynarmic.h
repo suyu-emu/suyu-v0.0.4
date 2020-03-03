@@ -5,9 +5,12 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
+
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/exclusive_monitor.h>
 #include "common/common_types.h"
+#include "common/hash.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
@@ -21,6 +24,10 @@ namespace Core {
 class ARM_Dynarmic_Callbacks;
 class DynarmicExclusiveMonitor;
 class System;
+
+using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
+using JitCacheType =
+    std::unordered_map<JitCacheKey, std::shared_ptr<Dynarmic::A64::Jit>, Common::PairHash>;
 
 class ARM_Dynarmic final : public ARM_Interface {
 public:
@@ -53,12 +60,13 @@ public:
                           std::size_t new_address_space_size_in_bits) override;
 
 private:
-    std::unique_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable& page_table,
+    std::shared_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable& page_table,
                                                 std::size_t address_space_bits) const;
 
     friend class ARM_Dynarmic_Callbacks;
     std::unique_ptr<ARM_Dynarmic_Callbacks> cb;
-    std::unique_ptr<Dynarmic::A64::Jit> jit;
+    JitCacheType jit_cache;
+    std::shared_ptr<Dynarmic::A64::Jit> jit;
     ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
