@@ -21,7 +21,7 @@ class Fiber;
 
 namespace Core {
 class System;
-}
+} // namespace Core
 
 namespace Kernel {
 
@@ -386,18 +386,18 @@ public:
     }
 
     const ThreadSynchronizationObjects& GetSynchronizationObjects() const {
-        return wait_objects;
+        return *wait_objects;
     }
 
-    void SetSynchronizationObjects(ThreadSynchronizationObjects objects) {
-        wait_objects = std::move(objects);
+    void SetSynchronizationObjects(ThreadSynchronizationObjects* objects) {
+        wait_objects = objects;
     }
 
     void ClearSynchronizationObjects() {
-        for (const auto& waiting_object : wait_objects) {
+        for (const auto& waiting_object : *wait_objects) {
             waiting_object->RemoveWaitingThread(SharedFrom(this));
         }
-        wait_objects.clear();
+        wait_objects->clear();
     }
 
     /// Determines whether all the objects this thread is waiting on are ready.
@@ -595,7 +595,7 @@ private:
 
     /// Objects that the thread is waiting on, in the same order as they were
     /// passed to WaitSynchronization.
-    ThreadSynchronizationObjects wait_objects;
+    ThreadSynchronizationObjects* wait_objects;
 
     SynchronizationObject* signaling_object;
     ResultCode signaling_result{RESULT_SUCCESS};

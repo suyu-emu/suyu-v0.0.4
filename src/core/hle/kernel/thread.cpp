@@ -50,11 +50,11 @@ void Thread::Stop() {
     {
         SchedulerLock lock(kernel);
         // Cancel any outstanding wakeup events for this thread
-        Signal();
         Core::System::GetInstance().CoreTiming().UnscheduleEvent(
             kernel.ThreadWakeupCallbackEventType(), global_handle);
-        kernel.GlobalHandleTable().Close(global_handle);
         SetStatus(ThreadStatus::Dead);
+        Signal();
+        kernel.GlobalHandleTable().Close(global_handle);
 
         owner_process->UnregisterThread(this);
 
@@ -81,7 +81,6 @@ void Thread::CancelWakeupTimer() {
 }
 
 void Thread::ResumeFromWait() {
-    ASSERT_MSG(wait_objects.empty(), "Thread is waking up while waiting for objects");
     SchedulerLock lock(kernel);
     switch (status) {
     case ThreadStatus::Paused:
@@ -219,7 +218,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
     thread->affinity_mask = 1ULL << processor_id;
-    thread->wait_objects.clear();
+    thread->wait_objects = nullptr;
     thread->mutex_wait_address = 0;
     thread->condvar_wait_address = 0;
     thread->wait_handle = 0;
@@ -272,9 +271,9 @@ void Thread::SetSynchronizationResults(SynchronizationObject* object, ResultCode
 }
 
 s32 Thread::GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const {
-    ASSERT_MSG(!wait_objects.empty(), "Thread is not waiting for anything");
-    const auto match = std::find(wait_objects.rbegin(), wait_objects.rend(), object);
-    return static_cast<s32>(std::distance(match, wait_objects.rend()) - 1);
+    ASSERT_MSG(!wait_objects->empty(), "Thread is not waiting for anything");
+    const auto match = std::find(wait_objects->rbegin(), wait_objects->rend(), object);
+    return static_cast<s32>(std::distance(match, wait_objects->rend()) - 1);
 }
 
 VAddr Thread::GetCommandBufferAddress() const {
@@ -389,7 +388,7 @@ void Thread::UpdatePriority() {
 }
 
 bool Thread::AllSynchronizationObjectsReady() const {
-    return std::none_of(wait_objects.begin(), wait_objects.end(),
+    return std::none_of(wait_objects->begin(), wait_objects->end(),
                         [this](const std::shared_ptr<SynchronizationObject>& object) {
                             return object->ShouldWait(this);
                         });

@@ -70,6 +70,8 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
         for (auto& object : sync_objects) {
             object->AddWaitingThread(SharedFrom(thread));
         }
+
+        thread->SetSynchronizationObjects(&sync_objects);
         thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         thread->SetStatus(ThreadStatus::WaitSynch);
     }
@@ -83,6 +85,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
         SchedulerLock lock(kernel);
         ResultCode signaling_result = thread->GetSignalingResult();
         SynchronizationObject* signaling_object = thread->GetSignalingObject();
+        thread->SetSynchronizationObjects(nullptr);
         for (auto& obj : sync_objects) {
             obj->RemoveWaitingThread(SharedFrom(thread));
         }
