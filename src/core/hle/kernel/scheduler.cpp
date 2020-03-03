@@ -103,6 +103,7 @@ u32 GlobalScheduler::SelectThreads() {
                     TransferToCore(suggested->GetPriority(), static_cast<s32>(core_id), suggested);
                     break;
                 }
+                suggested = nullptr;
                 migration_candidates[num_candidates++] = suggested_core_id;
             }
             // Step 3: Select a suggested thread from another core
