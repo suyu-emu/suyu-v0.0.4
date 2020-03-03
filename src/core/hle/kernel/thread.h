@@ -448,7 +448,7 @@ public:
     }
 
     bool HasWakeupCallback() const {
-        return hle_callback != nullptr;
+        return wakeup_callback != nullptr;
     }
 
     bool HasHLECallback() const {
@@ -456,10 +456,10 @@ public:
     }
 
     void SetWakeupCallback(WakeupCallback callback) {
-        hle_callback = std::move(callback);
+        wakeup_callback = std::move(callback);
     }
 
-    void SetHLECallback(WakeupCallback callback) {
+    void SetHLECallback(HLECallback callback) {
         hle_callback = std::move(callback);
     }
 
@@ -487,8 +487,7 @@ public:
      */
     bool InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                               std::shared_ptr<SynchronizationObject> object, std::size_t index);
-    bool InvokeHLECallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                           std::shared_ptr<SynchronizationObject> object, std::size_t index);
+    bool InvokeHLECallback(std::shared_ptr<Thread> thread);
 
     u32 GetIdealCore() const {
         return ideal_core;
@@ -622,8 +621,11 @@ private:
 
     /// Callback that will be invoked when the thread is resumed from a waiting state. If the thread
     /// was waiting via WaitSynchronization then the object will be the last object that became
-    /// available. In case of a timeout, the object will be nullptr.
-    WakeupCallback hle_callback;
+    /// available. In case of a timeout, the object will be nullptr. DEPRECATED
+    WakeupCallback wakeup_callback;
+
+    /// Callback for HLE Events
+    HLECallback hle_callback;
     Handle hle_time_event;
 
     Scheduler* scheduler = nullptr;

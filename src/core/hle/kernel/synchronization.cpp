@@ -28,6 +28,7 @@ void Synchronization::SignalObject(SynchronizationObject& obj) const {
                 time_manager.CancelTimeEvent(thread.get());
             }
         }
+        obj.ClearWaitingThreads();
     }
 }
 

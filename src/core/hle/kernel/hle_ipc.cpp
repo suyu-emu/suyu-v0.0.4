@@ -21,8 +21,8 @@
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/scheduler.h"
+#include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/writable_event.h"
@@ -49,14 +49,6 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const std::string& reason, u64 timeout, WakeupCallback&& callback,
     std::shared_ptr<WritableEvent> writable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->SetHLECallback(
-        [context = *this, callback](ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                    std::shared_ptr<SynchronizationObject> object,
-                                    std::size_t index) mutable -> bool {
-            callback(thread, context, reason);
-            context.WriteToOutgoingCommandBuffer(*thread);
-            return true;
-        });
 
     if (!writable_event) {
         // Create event if not provided
@@ -67,6 +59,15 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     {
         Handle event_handle = InvalidHandle;
         SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
+        thread->SetHLECallback(
+            [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
+                ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT
+                                                ? ThreadWakeupReason::Timeout
+                                                : ThreadWakeupReason::Signal;
+                callback(thread, context, reason);
+                context.WriteToOutgoingCommandBuffer(*thread);
+                return true;
+            });
         const auto readable_event{writable_event->GetReadableEvent()};
         writable_event->Clear();
         thread->SetStatus(ThreadStatus::WaitHLEEvent);

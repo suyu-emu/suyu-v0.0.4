@@ -47,19 +47,21 @@ Thread::Thread(KernelCore& kernel) : SynchronizationObject{kernel} {}
 Thread::~Thread() = default;
 
 void Thread::Stop() {
-    SchedulerLock lock(kernel);
-    // Cancel any outstanding wakeup events for this thread
-    Signal();
-    Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                             global_handle);
-    kernel.GlobalHandleTable().Close(global_handle);
+    {
+        SchedulerLock lock(kernel);
+        // Cancel any outstanding wakeup events for this thread
+        Signal();
+        Core::System::GetInstance().CoreTiming().UnscheduleEvent(
+            kernel.ThreadWakeupCallbackEventType(), global_handle);
+        kernel.GlobalHandleTable().Close(global_handle);
+        SetStatus(ThreadStatus::Dead);
+
+        owner_process->UnregisterThread(this);
+
+        // Mark the TLS slot in the thread's page as free.
+        owner_process->FreeTLSRegion(tls_address);
+    }
     global_handle = 0;
-    SetStatus(ThreadStatus::Dead);
-
-    owner_process->UnregisterThread(this);
-
-    // Mark the TLS slot in the thread's page as free.
-    owner_process->FreeTLSRegion(tls_address);
 }
 
 void Thread::WakeAfterDelay(s64 nanoseconds) {
@@ -111,8 +113,6 @@ void Thread::ResumeFromWait() {
                          GetObjectId());
         return;
     }
-
-    hle_callback = nullptr;
 
     if (activity == ThreadActivity::Paused) {
         SetStatus(ThreadStatus::Paused);
@@ -398,14 +398,13 @@ bool Thread::AllSynchronizationObjectsReady() const {
 bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
                                   std::shared_ptr<SynchronizationObject> object,
                                   std::size_t index) {
-    ASSERT(hle_callback);
-    return hle_callback(reason, std::move(thread), std::move(object), index);
+    ASSERT(wakeup_callback);
+    return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }
 
-bool Thread::InvokeHLECallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                               std::shared_ptr<SynchronizationObject> object, std::size_t index) {
+bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {
     ASSERT(hle_callback);
-    return hle_callback(reason, std::move(thread), std::move(object), index);
+    return hle_callback(std::move(thread));
 }
 
 void Thread::SetActivity(ThreadActivity value) {
