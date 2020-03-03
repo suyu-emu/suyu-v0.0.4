@@ -1691,7 +1691,6 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, 
     LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, timeout={}", address,
               type, value, timeout);
 
-    UNIMPLEMENTED();
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Core::Memory::IsKernelVirtualAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
@@ -1716,8 +1715,6 @@ static ResultCode SignalToAddress(Core::System& system, VAddr address, u32 type,
                                   s32 num_to_wake) {
     LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, num_to_wake=0x{:X}",
               address, type, value, num_to_wake);
-
-    UNIMPLEMENTED();
 
     // If the passed address is a kernel virtual address, return invalid memory state.
     if (Core::Memory::IsKernelVirtualAddress(address)) {

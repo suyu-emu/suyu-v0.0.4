@@ -548,6 +548,14 @@ public:
         return global_handle;
     }
 
+    bool IsWaitingForArbitration() const {
+        return waiting_for_arbitration;
+    }
+
+    void WaitForArbitration(bool set) {
+        waiting_for_arbitration = set;
+    }
+
 private:
     friend class GlobalScheduler;
     friend class Scheduler;
@@ -615,6 +623,7 @@ private:
 
     /// If waiting for an AddressArbiter, this is the address being waited on.
     VAddr arb_wait_address{0};
+    bool waiting_for_arbitration{};
 
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
     Handle global_handle = 0;
