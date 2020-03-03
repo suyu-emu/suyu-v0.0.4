@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/shader/transform_feedback.h"
 
 namespace Vulkan {
 
@@ -266,9 +267,10 @@ bool IsPrecise(Operation operand) {
 class SPIRVDecompiler final : public Sirit::Module {
 public:
     explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
-                             const Specialization& specialization)
+                             const Registry& registry, const Specialization& specialization)
         : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()},
-          specialization{specialization} {
+          registry{registry}, specialization{specialization},
+          transform_feedback{BuildTransformFeedback(registry.GetGraphicsInfo())} {
         AddCapability(spv::Capability::Shader);
         AddCapability(spv::Capability::UniformAndStorageBuffer16BitAccess);
         AddCapability(spv::Capability::ImageQuery);
@@ -318,25 +320,29 @@ public:
             AddExecutionMode(main, spv::ExecutionMode::OutputVertices,
                              header.common2.threads_per_input_primitive);
             break;
-        case ShaderType::TesselationEval:
+        case ShaderType::TesselationEval: {
+            const auto& info = registry.GetGraphicsInfo();
             AddCapability(spv::Capability::Tessellation);
             AddEntryPoint(spv::ExecutionModel::TessellationEvaluation, main, "main", interfaces);
-            AddExecutionMode(main, GetExecutionMode(specialization.tessellation.primitive));
-            AddExecutionMode(main, GetExecutionMode(specialization.tessellation.spacing));
-            AddExecutionMode(main, specialization.tessellation.clockwise
+            AddExecutionMode(main, GetExecutionMode(info.tessellation_primitive));
+            AddExecutionMode(main, GetExecutionMode(info.tessellation_spacing));
+            AddExecutionMode(main, info.tessellation_clockwise
                                        ? spv::ExecutionMode::VertexOrderCw
                                        : spv::ExecutionMode::VertexOrderCcw);
             break;
-        case ShaderType::Geometry:
+        }
+        case ShaderType::Geometry: {
+            const auto& info = registry.GetGraphicsInfo();
             AddCapability(spv::Capability::Geometry);
             AddEntryPoint(spv::ExecutionModel::Geometry, main, "main", interfaces);
-            AddExecutionMode(main, GetExecutionMode(specialization.primitive_topology));
+            AddExecutionMode(main, GetExecutionMode(info.primitive_topology));
             AddExecutionMode(main, GetExecutionMode(header.common3.output_topology));
             AddExecutionMode(main, spv::ExecutionMode::OutputVertices,
                              header.common4.max_output_vertices);
             // TODO(Rodrigo): Where can we get this info from?
             AddExecutionMode(main, spv::ExecutionMode::Invocations, 1U);
             break;
+        }
         case ShaderType::Fragment:
             AddEntryPoint(spv::ExecutionModel::Fragment, main, "main", interfaces);
             AddExecutionMode(main, spv::ExecutionMode::OriginUpperLeft);
@@ -545,7 +551,8 @@ private:
         if (stage != ShaderType::Geometry) {
             return;
         }
-        const u32 num_input = GetNumPrimitiveTopologyVertices(specialization.primitive_topology);
+        const auto& info = registry.GetGraphicsInfo();
+        const u32 num_input = GetNumPrimitiveTopologyVertices(info.primitive_topology);
         DeclareInputVertexArray(num_input);
         DeclareOutputVertex();
     }
@@ -898,7 +905,7 @@ private:
     u32 GetNumInputVertices() const {
         switch (stage) {
         case ShaderType::Geometry:
-            return GetNumPrimitiveTopologyVertices(specialization.primitive_topology);
+            return GetNumPrimitiveTopologyVertices(registry.GetGraphicsInfo().primitive_topology);
         case ShaderType::TesselationControl:
         case ShaderType::TesselationEval:
             return NumInputPatches;
@@ -2495,7 +2502,9 @@ private:
     const ShaderIR& ir;
     const ShaderType stage;
     const Tegra::Shader::Header header;
+    const Registry& registry;
     const Specialization& specialization;
+    const std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     const Id t_void = Name(TypeVoid(), "void");
 
@@ -2870,8 +2879,9 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
 }
 
 std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           ShaderType stage, const Specialization& specialization) {
-    return SPIRVDecompiler(device, ir, stage, specialization).Assemble();
+                           ShaderType stage, const VideoCommon::Shader::Registry& registry,
+                           const Specialization& specialization) {
+    return SPIRVDecompiler(device, ir, stage, registry, specialization).Assemble();
 }
 
 } // namespace Vulkan

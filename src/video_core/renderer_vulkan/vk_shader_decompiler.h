@@ -15,6 +15,7 @@
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace Vulkan {
@@ -91,17 +92,9 @@ struct Specialization final {
     u32 shared_memory_size{};
 
     // Graphics specific
-    Maxwell::PrimitiveTopology primitive_topology{};
     std::optional<float> point_size{};
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
     bool ndc_minus_one_to_one{};
-
-    // Tessellation specific
-    struct {
-        Maxwell::TessellationPrimitive primitive{};
-        Maxwell::TessellationSpacing spacing{};
-        bool clockwise{};
-    } tessellation;
 };
 // Old gcc versions don't consider this trivially copyable.
 // static_assert(std::is_trivially_copyable_v<Specialization>);
@@ -114,6 +107,8 @@ struct SPIRVShader {
 ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir);
 
 std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           Tegra::Engines::ShaderType stage, const Specialization& specialization);
+                           Tegra::Engines::ShaderType stage,
+                           const VideoCommon::Shader::Registry& registry,
+                           const Specialization& specialization);
 
 } // namespace Vulkan

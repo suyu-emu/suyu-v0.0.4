@@ -132,6 +132,10 @@ public:
         return shader_ir;
     }
 
+    const VideoCommon::Shader::Registry& GetRegistry() const {
+        return registry;
+    }
+
     const VideoCommon::Shader::ShaderIR& GetIR() const {
         return shader_ir;
     }

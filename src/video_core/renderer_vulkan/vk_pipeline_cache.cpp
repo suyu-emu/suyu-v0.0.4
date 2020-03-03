@@ -273,9 +273,9 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
     specialization.workgroup_size = key.workgroup_size;
     specialization.shared_memory_size = key.shared_memory_size;
 
-    const SPIRVShader spirv_shader{
-        Decompile(device, shader->GetIR(), ShaderType::Compute, specialization),
-        shader->GetEntries()};
+    const SPIRVShader spirv_shader{Decompile(device, shader->GetIR(), ShaderType::Compute,
+                                             shader->GetRegistry(), specialization),
+                                   shader->GetEntries()};
     entry = std::make_unique<VKComputePipeline>(device, scheduler, descriptor_pool,
                                                 update_descriptor_queue, spirv_shader);
     return *entry;
@@ -324,8 +324,7 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     const auto& gpu = system.GPU().Maxwell3D();
 
     Specialization specialization;
-    specialization.primitive_topology = fixed_state.input_assembly.topology;
-    if (specialization.primitive_topology == Maxwell::PrimitiveTopology::Points) {
+    if (fixed_state.input_assembly.topology == Maxwell::PrimitiveTopology::Points) {
         ASSERT(fixed_state.input_assembly.point_size != 0.0f);
         specialization.point_size = fixed_state.input_assembly.point_size;
     }
@@ -333,9 +332,6 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         specialization.attribute_types[i] = fixed_state.vertex_input.attributes[i].type;
     }
     specialization.ndc_minus_one_to_one = fixed_state.rasterizer.ndc_minus_one_to_one;
-    specialization.tessellation.primitive = fixed_state.tessellation.primitive;
-    specialization.tessellation.spacing = fixed_state.tessellation.spacing;
-    specialization.tessellation.clockwise = fixed_state.tessellation.clockwise;
 
     SPIRVProgram program;
     std::vector<vk::DescriptorSetLayoutBinding> bindings;
@@ -356,8 +352,9 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         const std::size_t stage = index == 0 ? 0 : index - 1; // Stage indices are 0 - 5
         const auto program_type = GetShaderType(program_enum);
         const auto& entries = shader->GetEntries();
-        program[stage] = {Decompile(device, shader->GetIR(), program_type, specialization),
-                          entries};
+        program[stage] = {
+            Decompile(device, shader->GetIR(), program_type, shader->GetRegistry(), specialization),
+            entries};
 
         if (program_enum == Maxwell::ShaderProgram::VertexA) {
             // VertexB was combined with VertexA, so we skip the VertexB iteration
