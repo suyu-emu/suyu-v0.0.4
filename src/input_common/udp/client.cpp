@@ -32,8 +32,16 @@ public:
                     SocketCallback callback)
         : callback(std::move(callback)), timer(io_service),
           socket(io_service, udp::endpoint(udp::v4(), 0)), client_id(client_id),
-          pad_index(pad_index),
-          send_endpoint(udp::endpoint(boost::asio::ip::make_address_v4(host), port)) {}
+          pad_index(pad_index) {
+        boost::system::error_code ec{};
+        auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
+        if (ec.failed()) {
+            LOG_ERROR(Input, "Invalid IPv4 address \"{}\" provided to socket", host);
+            ipv4 = boost::asio::ip::address_v4{};
+        }
+
+        send_endpoint = {udp::endpoint(ipv4, port)};
+    }
 
     void Stop() {
         io_service.stop();
@@ -85,17 +93,18 @@ private:
     }
 
     void HandleSend(const boost::system::error_code& error) {
+        boost::system::error_code _ignored{};
         // Send a request for getting port info for the pad
         Request::PortInfo port_info{1, {pad_index, 0, 0, 0}};
         const auto port_message = Request::Create(port_info, client_id);
         std::memcpy(&send_buffer1, &port_message, PORT_INFO_SIZE);
-        socket.send_to(boost::asio::buffer(send_buffer1), send_endpoint);
+        socket.send_to(boost::asio::buffer(send_buffer1), send_endpoint, {}, _ignored);
 
         // Send a request for getting pad data for the pad
         Request::PadData pad_data{Request::PadData::Flags::Id, pad_index, EMPTY_MAC_ADDRESS};
         const auto pad_message = Request::Create(pad_data, client_id);
         std::memcpy(send_buffer2.data(), &pad_message, PAD_DATA_SIZE);
-        socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint);
+        socket.send_to(boost::asio::buffer(send_buffer2), send_endpoint, {}, _ignored);
         StartSend(timer.expiry());
     }
 
