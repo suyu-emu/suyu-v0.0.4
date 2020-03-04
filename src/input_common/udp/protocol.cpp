@@ -31,7 +31,6 @@ namespace Response {
  */
 std::optional<Type> Validate(u8* data, std::size_t size) {
     if (size < sizeof(Header)) {
-        LOG_DEBUG(Input, "Invalid UDP packet received");
         return std::nullopt;
     }
     Header header{};
