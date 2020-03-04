@@ -92,8 +92,32 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         }
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
         switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
         case Maxwell::VertexAttribute::Size::Size_8_8:
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
             return GL_UNSIGNED_BYTE;
+        case Maxwell::VertexAttribute::Size::Size_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return GL_UNSIGNED_SHORT;
+        default:
+            LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
+            return {};
+        }
+    case Maxwell::VertexAttribute::Type::SignedScaled:
+        switch (attrib.size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+            return GL_BYTE;
+        case Maxwell::VertexAttribute::Size::Size_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return GL_SHORT;
         default:
             LOG_ERROR(Render_OpenGL, "Unimplemented vertex size={}", attrib.SizeString());
             return {};
