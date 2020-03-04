@@ -84,7 +84,7 @@ touch_device=
 # from any cemuhook compatible motion program.
 
 # IPv4 address of the udp input server (Default "127.0.0.1")
-udp_input_address=
+udp_input_address=127.0.0.1
 
 # Port of the udp input server. (Default 26760)
 udp_input_port=
