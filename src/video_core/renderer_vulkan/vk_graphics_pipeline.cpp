@@ -97,8 +97,7 @@ UniqueDescriptorUpdateTemplate VKGraphicsPipeline::CreateDescriptorUpdateTemplat
     u32 offset = 0;
     for (const auto& stage : program) {
         if (stage) {
-            FillDescriptorUpdateTemplateEntries(device, stage->entries, binding, offset,
-                                                template_entries);
+            FillDescriptorUpdateTemplateEntries(stage->entries, binding, offset, template_entries);
         }
     }
     if (template_entries.empty()) {

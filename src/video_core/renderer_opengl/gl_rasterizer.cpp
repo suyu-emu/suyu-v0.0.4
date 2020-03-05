@@ -36,6 +36,7 @@ namespace OpenGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
+using Tegra::Engines::ShaderType;
 using VideoCore::Surface::PixelFormat;
 using VideoCore::Surface::SurfaceTarget;
 using VideoCore::Surface::SurfaceType;
@@ -56,8 +57,7 @@ namespace {
 
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
-                                               Tegra::Engines::ShaderType shader_type,
-                                               std::size_t index = 0) {
+                                               ShaderType shader_type, std::size_t index = 0) {
     if (entry.IsBindless()) {
         const Tegra::Texture::TextureHandle tex_handle =
             engine.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
@@ -910,15 +910,10 @@ void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& 
     const auto& maxwell3d = system.GPU().Maxwell3D();
     u32 binding = device.GetBaseBindings(stage_index).sampler;
     for (const auto& entry : shader->GetShaderEntries().samplers) {
-        const auto shader_type = static_cast<Tegra::Engines::ShaderType>(stage_index);
-        if (!entry.IsIndexed()) {
-            const auto texture = GetTextureInfo(maxwell3d, entry, shader_type);
+        const auto shader_type = static_cast<ShaderType>(stage_index);
+        for (std::size_t i = 0; i < entry.Size(); ++i) {
+            const auto texture = GetTextureInfo(maxwell3d, entry, shader_type, i);
             SetupTexture(binding++, texture, entry);
-        } else {
-            for (std::size_t i = 0; i < entry.Size(); ++i) {
-                const auto texture = GetTextureInfo(maxwell3d, entry, shader_type, i);
-                SetupTexture(binding++, texture, entry);
-            }
         }
     }
 }
@@ -928,16 +923,9 @@ void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     const auto& compute = system.GPU().KeplerCompute();
     u32 binding = 0;
     for (const auto& entry : kernel->GetShaderEntries().samplers) {
-        if (!entry.IsIndexed()) {
-            const auto texture =
-                GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute);
+        for (std::size_t i = 0; i < entry.Size(); ++i) {
+            const auto texture = GetTextureInfo(compute, entry, ShaderType::Compute, i);
             SetupTexture(binding++, texture, entry);
-        } else {
-            for (std::size_t i = 0; i < entry.Size(); ++i) {
-                const auto texture =
-                    GetTextureInfo(compute, entry, Tegra::Engines::ShaderType::Compute, i);
-                SetupTexture(binding++, texture, entry);
-            }
         }
     }
 }

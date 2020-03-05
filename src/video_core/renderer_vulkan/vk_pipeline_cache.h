@@ -194,7 +194,7 @@ private:
 };
 
 void FillDescriptorUpdateTemplateEntries(
-    const VKDevice& device, const ShaderEntries& entries, u32& binding, u32& offset,
+    const ShaderEntries& entries, u32& binding, u32& offset,
     std::vector<vk::DescriptorUpdateTemplateEntry>& template_entries);
 
 } // namespace Vulkan

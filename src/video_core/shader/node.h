@@ -299,7 +299,7 @@ private:
     u32 index{};  ///< Emulated index given for the this sampler.
     u32 offset{}; ///< Offset in the const buffer from where the sampler is being read.
     u32 buffer{}; ///< Buffer where the bindless sampler is being read (unused on bound samplers).
-    u32 size{};   ///< Size of the sampler if indexed.
+    u32 size{1};  ///< Size of the sampler.
 
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
     bool is_array{};    ///< Whether the texture is being sampled as an array texture or not.

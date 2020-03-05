@@ -105,17 +105,20 @@ void TransitionImages(const std::vector<ImageView>& views, vk::PipelineStageFlag
 
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
-                                               std::size_t stage) {
+                                               std::size_t stage, std::size_t index = 0) {
     const auto stage_type = static_cast<Tegra::Engines::ShaderType>(stage);
     if (entry.IsBindless()) {
         const Tegra::Texture::TextureHandle tex_handle =
             engine.AccessConstBuffer32(stage_type, entry.GetBuffer(), entry.GetOffset());
         return engine.GetTextureInfo(tex_handle);
     }
+    const auto& gpu_profile = engine.AccessGuestDriverProfile();
+    const u32 entry_offset = static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
+    const u32 offset = entry.GetOffset() + entry_offset;
     if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
-        return engine.GetStageTexture(stage_type, entry.GetOffset());
+        return engine.GetStageTexture(stage_type, offset);
     } else {
-        return engine.GetTexture(entry.GetOffset());
+        return engine.GetTexture(offset);
     }
 }
 
@@ -836,8 +839,10 @@ void RasterizerVulkan::SetupGraphicsTextures(const ShaderEntries& entries, std::
     MICROPROFILE_SCOPE(Vulkan_Textures);
     const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.samplers) {
-        const auto texture = GetTextureInfo(gpu, entry, stage);
-        SetupTexture(texture, entry);
+        for (std::size_t i = 0; i < entry.Size(); ++i) {
+            const auto texture = GetTextureInfo(gpu, entry, stage, i);
+            SetupTexture(texture, entry);
+        }
     }
 }
 
@@ -886,8 +891,10 @@ void RasterizerVulkan::SetupComputeTextures(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
     const auto& gpu = system.GPU().KeplerCompute();
     for (const auto& entry : entries.samplers) {
-        const auto texture = GetTextureInfo(gpu, entry, ComputeShaderIndex);
-        SetupTexture(texture, entry);
+        for (std::size_t i = 0; i < entry.Size(); ++i) {
+            const auto texture = GetTextureInfo(gpu, entry, ComputeShaderIndex, i);
+            SetupTexture(texture, entry);
+        }
     }
 }
 
