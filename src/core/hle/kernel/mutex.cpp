@@ -9,6 +9,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/arm/exclusive_monitor.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
@@ -133,8 +134,12 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
      }
 
     auto [new_owner, num_waiters] = GetHighestPriorityMutexWaitingThread(owner, address);
+    auto& monitor = system.Monitor();
+    const std::size_t current_core = system.CurrentCoreIndex();
     if (new_owner == nullptr) {
-        system.Memory().Write32(address, 0);
+        do {
+            monitor.SetExclusive(current_core, address);
+        } while (!monitor.ExclusiveWrite32(current_core, address, 0));
         return {RESULT_SUCCESS, nullptr};
     }
     // Transfer the ownership of the mutex from the previous owner to the new one.
@@ -145,9 +150,12 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
         mutex_value |= Mutex::MutexHasWaitersFlag;
     }
     new_owner->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
-    new_owner->ResumeFromWait();
     new_owner->SetLockOwner(nullptr);
-    system.Memory().Write32(address, mutex_value);
+    new_owner->ResumeFromWait();
+
+    do {
+        monitor.SetExclusive(current_core, address);
+    } while (!monitor.ExclusiveWrite32(current_core, address, mutex_value));
     return {RESULT_SUCCESS, new_owner};
 }
 
