@@ -111,7 +111,7 @@ json GetProcessorStateDataAuto(Core::System& system) {
     const auto& vm_manager{process->VMManager()};
     auto& arm{system.CurrentArmInterface()};
 
-    Core::ARM_Interface::ThreadContext context{};
+    Core::ARM_Interface::ThreadContext64 context{};
     arm.SaveContext(context);
 
     return GetProcessorStateData(process->Is64BitProcess() ? "AArch64" : "AArch32",

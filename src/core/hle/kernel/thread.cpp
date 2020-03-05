@@ -133,15 +133,16 @@ void Thread::CancelWait() {
     ResumeFromWait();
 }
 
-/**
- * Resets a thread context, making it ready to be scheduled and run by the CPU
- * @param context Thread context to reset
- * @param stack_top Address of the top of the stack
- * @param entry_point Address of entry point for execution
- * @param arg User argument for thread
- */
-static void ResetThreadContext(Core::ARM_Interface::ThreadContext& context, VAddr stack_top,
-                               VAddr entry_point, u64 arg) {
+static void ResetThreadContext32(Core::ARM_Interface::ThreadContext32& context, u32 stack_top,
+                                 u32 entry_point, u32 arg) {
+    context = {};
+    context.cpu_registers[0] = arg;
+    context.cpu_registers[15] = entry_point;
+    context.cpu_registers[13] = stack_top;
+}
+
+static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, VAddr stack_top,
+                                 VAddr entry_point, u64 arg) {
     context = {};
     context.cpu_registers[0] = arg;
     context.pc = entry_point;
@@ -198,9 +199,9 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::strin
 
     thread->owner_process->RegisterThread(thread.get());
 
-    // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
-    // to initialize the context
-    ResetThreadContext(thread->context, stack_top, entry_point, arg);
+    ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
+                         static_cast<u32>(entry_point), static_cast<u32>(arg));
+    ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
 
     return MakeResult<std::shared_ptr<Thread>>(std::move(thread));
 }
@@ -213,11 +214,13 @@ void Thread::SetPriority(u32 priority) {
 }
 
 void Thread::SetWaitSynchronizationResult(ResultCode result) {
-    context.cpu_registers[0] = result.raw;
+    context_32.cpu_registers[0] = result.raw;
+    context_64.cpu_registers[0] = result.raw;
 }
 
 void Thread::SetWaitSynchronizationOutput(s32 output) {
-    context.cpu_registers[1] = output;
+    context_32.cpu_registers[1] = output;
+    context_64.cpu_registers[1] = output;
 }
 
 s32 Thread::GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const {

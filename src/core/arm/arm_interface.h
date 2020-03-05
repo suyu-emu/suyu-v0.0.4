@@ -25,7 +25,20 @@ public:
     explicit ARM_Interface(System& system_) : system{system_} {}
     virtual ~ARM_Interface() = default;
 
-    struct ThreadContext {
+    struct ThreadContext32 {
+        std::array<u32, 16> cpu_registers;
+        u32 cpsr;
+        std::array<u8, 4> padding;
+        std::array<u64, 32> fprs;
+        u32 fpscr;
+        u32 fpexc;
+        u32 tpidr;
+    };
+    // Internally within the kernel, it expects the AArch32 version of the
+    // thread context to be 344 bytes in size.
+    static_assert(sizeof(ThreadContext32) == 0x158);
+
+    struct ThreadContext64 {
         std::array<u64, 31> cpu_registers;
         u64 sp;
         u64 pc;
@@ -38,7 +51,7 @@ public:
     };
     // Internally within the kernel, it expects the AArch64 version of the
     // thread context to be 800 bytes in size.
-    static_assert(sizeof(ThreadContext) == 0x320);
+    static_assert(sizeof(ThreadContext64) == 0x320);
 
     /// Runs the CPU until an event happens
     virtual void Run() = 0;
@@ -130,17 +143,10 @@ public:
      */
     virtual void SetTPIDR_EL0(u64 value) = 0;
 
-    /**
-     * Saves the current CPU context
-     * @param ctx Thread context to save
-     */
-    virtual void SaveContext(ThreadContext& ctx) = 0;
-
-    /**
-     * Loads a CPU context
-     * @param ctx Thread context to load
-     */
-    virtual void LoadContext(const ThreadContext& ctx) = 0;
+    virtual void SaveContext(ThreadContext32& ctx) = 0;
+    virtual void SaveContext(ThreadContext64& ctx) = 0;
+    virtual void LoadContext(const ThreadContext32& ctx) = 0;
+    virtual void LoadContext(const ThreadContext64& ctx) = 0;
 
     /// Clears the exclusive monitor's state.
     virtual void ClearExclusiveState() = 0;

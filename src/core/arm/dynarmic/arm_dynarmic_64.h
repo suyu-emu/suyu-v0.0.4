@@ -21,18 +21,14 @@ class Memory;
 
 namespace Core {
 
-class ARM_Dynarmic_Callbacks;
+class DynarmicCallbacks64;
 class DynarmicExclusiveMonitor;
 class System;
 
-using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
-using JitCacheType =
-    std::unordered_map<JitCacheKey, std::shared_ptr<Dynarmic::A64::Jit>, Common::PairHash>;
-
-class ARM_Dynarmic final : public ARM_Interface {
+class ARM_Dynarmic_64 final : public ARM_Interface {
 public:
-    ARM_Dynarmic(System& system, ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
-    ~ARM_Dynarmic() override;
+    ARM_Dynarmic_64(System& system, ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
+    ~ARM_Dynarmic_64() override;
 
     void SetPC(u64 pc) override;
     u64 GetPC() const override;
@@ -49,8 +45,10 @@ public:
     void SetTPIDR_EL0(u64 value) override;
     u64 GetTPIDR_EL0() const override;
 
-    void SaveContext(ThreadContext& ctx) override;
-    void LoadContext(const ThreadContext& ctx) override;
+    void SaveContext(ThreadContext32& ctx) override {}
+    void SaveContext(ThreadContext64& ctx) override;
+    void LoadContext(const ThreadContext32& ctx) override {}
+    void LoadContext(const ThreadContext64& ctx) override;
 
     void PrepareReschedule() override;
     void ClearExclusiveState() override;
@@ -63,8 +61,12 @@ private:
     std::shared_ptr<Dynarmic::A64::Jit> MakeJit(Common::PageTable& page_table,
                                                 std::size_t address_space_bits) const;
 
-    friend class ARM_Dynarmic_Callbacks;
-    std::unique_ptr<ARM_Dynarmic_Callbacks> cb;
+    using JitCacheKey = std::pair<Common::PageTable*, std::size_t>;
+    using JitCacheType =
+        std::unordered_map<JitCacheKey, std::shared_ptr<Dynarmic::A64::Jit>, Common::PairHash>;
+
+    friend class DynarmicCallbacks64;
+    std::unique_ptr<DynarmicCallbacks64> cb;
     JitCacheType jit_cache;
     std::shared_ptr<Dynarmic::A64::Jit> jit;
     ARM_Unicorn inner_unicorn;
@@ -75,7 +77,7 @@ private:
 
 class DynarmicExclusiveMonitor final : public ExclusiveMonitor {
 public:
-    explicit DynarmicExclusiveMonitor(Memory::Memory& memory_, std::size_t core_count);
+    explicit DynarmicExclusiveMonitor(Memory::Memory& memory, std::size_t core_count);
     ~DynarmicExclusiveMonitor() override;
 
     void SetExclusive(std::size_t core_index, VAddr addr) override;
@@ -88,7 +90,7 @@ public:
     bool ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) override;
 
 private:
-    friend class ARM_Dynarmic;
+    friend class ARM_Dynarmic_64;
     Dynarmic::A64::ExclusiveMonitor monitor;
     Memory::Memory& memory;
 };

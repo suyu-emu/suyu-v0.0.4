@@ -187,6 +187,13 @@ static ResultCode SetHeapSize(Core::System& system, VAddr* heap_addr, u64 heap_s
     return RESULT_SUCCESS;
 }
 
+static ResultCode SetHeapSize32(Core::System& system, u32* heap_addr, u32 heap_size) {
+    VAddr temp_heap_addr{};
+    const ResultCode result{SetHeapSize(system, &temp_heap_addr, heap_size)};
+    *heap_addr = static_cast<u32>(temp_heap_addr);
+    return result;
+}
+
 static ResultCode SetMemoryPermission(Core::System& system, VAddr addr, u64 size, u32 prot) {
     LOG_TRACE(Kernel_SVC, "called, addr=0x{:X}, size=0x{:X}, prot=0x{:X}", addr, size, prot);
 
@@ -371,6 +378,12 @@ static ResultCode ConnectToNamedPort(Core::System& system, Handle* out_handle,
     return RESULT_SUCCESS;
 }
 
+static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
+                                       u32 port_name_address) {
+
+    return ConnectToNamedPort(system, out_handle, port_name_address);
+}
+
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
@@ -390,6 +403,10 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     return session->SendSyncRequest(SharedFrom(thread), system.Memory());
 }
 
+static ResultCode SendSyncRequest32(Core::System& system, Handle handle) {
+    return SendSyncRequest(system, handle);
+}
+
 /// Get the ID for the specified thread.
 static ResultCode GetThreadId(Core::System& system, u64* thread_id, Handle thread_handle) {
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
@@ -403,6 +420,17 @@ static ResultCode GetThreadId(Core::System& system, u64* thread_id, Handle threa
 
     *thread_id = thread->GetThreadID();
     return RESULT_SUCCESS;
+}
+
+static ResultCode GetThreadId32(Core::System& system, u32* thread_id_low, u32* thread_id_high,
+                                Handle thread_handle) {
+    u64 thread_id{};
+    const ResultCode result{GetThreadId(system, &thread_id, thread_handle)};
+
+    *thread_id_low = static_cast<u32>(thread_id >> 32);
+    *thread_id_high = static_cast<u32>(thread_id & std::numeric_limits<u32>::max());
+
+    return result;
 }
 
 /// Gets the ID of the specified process or a specified thread's owning process.
@@ -477,6 +505,12 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     const auto [result, handle_result] = synchronization.WaitFor(objects, nano_seconds);
     *index = handle_result;
     return result;
+}
+
+static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u32 handles_address,
+                                        s32 handle_count, u32 timeout_high, Handle* index) {
+    const s64 nano_seconds{(static_cast<s64>(timeout_high) << 32) | static_cast<s64>(timeout_low)};
+    return WaitSynchronization(system, index, handles_address, handle_count, nano_seconds);
 }
 
 /// Resumes a thread waiting on WaitSynchronization
@@ -917,6 +951,18 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     }
 }
 
+static ResultCode GetInfo32(Core::System& system, u32* result_low, u32* result_high, u32 sub_id_low,
+                            u32 info_id, u32 handle, u32 sub_id_high) {
+    const u64 sub_id{static_cast<u64>(sub_id_low | (static_cast<u64>(sub_id_high) << 32))};
+    u64 res_value{};
+
+    const ResultCode result{GetInfo(system, &res_value, info_id, handle, sub_id)};
+    *result_high = static_cast<u32>(res_value >> 32);
+    *result_low = static_cast<u32>(res_value & std::numeric_limits<u32>::max());
+
+    return result;
+}
+
 /// Maps memory at a desired address
 static ResultCode MapPhysicalMemory(Core::System& system, VAddr addr, u64 size) {
     LOG_DEBUG(Kernel_SVC, "called, addr=0x{:016X}, size=0x{:X}", addr, size);
@@ -1058,7 +1104,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
         return ERR_BUSY;
     }
 
-    Core::ARM_Interface::ThreadContext ctx = thread->GetContext();
+    Core::ARM_Interface::ThreadContext64 ctx = thread->GetContext64();
     // Mask away mode bits, interrupt bits, IL bit, and other reserved bits.
     ctx.pstate &= 0xFF0FFE20;
 
@@ -1086,6 +1132,10 @@ static ResultCode GetThreadPriority(Core::System& system, u32* priority, Handle 
 
     *priority = thread->GetPriority();
     return RESULT_SUCCESS;
+}
+
+static ResultCode GetThreadPriority32(Core::System& system, u32* priority, Handle handle) {
+    return GetThreadPriority(system, priority, handle);
 }
 
 /// Sets the priority for the specified thread
@@ -1257,6 +1307,11 @@ static ResultCode QueryMemory(Core::System& system, VAddr memory_info_address,
 
     return QueryProcessMemory(system, memory_info_address, page_info_address, CurrentProcess,
                               query_address);
+}
+
+static ResultCode QueryMemory32(Core::System& system, u32 memory_info_address,
+                                u32 page_info_address, u32 query_address) {
+    return QueryMemory(system, memory_info_address, page_info_address, query_address);
 }
 
 static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst_address,
@@ -1675,6 +1730,10 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
     }
 }
 
+static void SignalProcessWideKey32(Core::System& system, u32 condition_variable_addr, s32 target) {
+    SignalProcessWideKey(system, condition_variable_addr, target);
+}
+
 // Wait for an address (via Address Arbiter)
 static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, s32 value,
                                  s64 timeout) {
@@ -1758,6 +1817,10 @@ static ResultCode CloseHandle(Core::System& system, Handle handle) {
 
     auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
     return handle_table.Close(handle);
+}
+
+static ResultCode CloseHandle32(Core::System& system, Handle handle) {
+    return CloseHandle(system, handle);
 }
 
 /// Clears the signaled state of an event or process.
@@ -2317,69 +2380,196 @@ struct FunctionDef {
 };
 } // namespace
 
-static const FunctionDef SVC_Table[] = {
+static const FunctionDef SVC_Table_32[] = {
     {0x00, nullptr, "Unknown"},
-    {0x01, SvcWrap<SetHeapSize>, "SetHeapSize"},
-    {0x02, SvcWrap<SetMemoryPermission>, "SetMemoryPermission"},
-    {0x03, SvcWrap<SetMemoryAttribute>, "SetMemoryAttribute"},
-    {0x04, SvcWrap<MapMemory>, "MapMemory"},
-    {0x05, SvcWrap<UnmapMemory>, "UnmapMemory"},
-    {0x06, SvcWrap<QueryMemory>, "QueryMemory"},
-    {0x07, SvcWrap<ExitProcess>, "ExitProcess"},
-    {0x08, SvcWrap<CreateThread>, "CreateThread"},
-    {0x09, SvcWrap<StartThread>, "StartThread"},
-    {0x0A, SvcWrap<ExitThread>, "ExitThread"},
-    {0x0B, SvcWrap<SleepThread>, "SleepThread"},
-    {0x0C, SvcWrap<GetThreadPriority>, "GetThreadPriority"},
-    {0x0D, SvcWrap<SetThreadPriority>, "SetThreadPriority"},
-    {0x0E, SvcWrap<GetThreadCoreMask>, "GetThreadCoreMask"},
-    {0x0F, SvcWrap<SetThreadCoreMask>, "SetThreadCoreMask"},
-    {0x10, SvcWrap<GetCurrentProcessorNumber>, "GetCurrentProcessorNumber"},
-    {0x11, SvcWrap<SignalEvent>, "SignalEvent"},
-    {0x12, SvcWrap<ClearEvent>, "ClearEvent"},
-    {0x13, SvcWrap<MapSharedMemory>, "MapSharedMemory"},
-    {0x14, SvcWrap<UnmapSharedMemory>, "UnmapSharedMemory"},
-    {0x15, SvcWrap<CreateTransferMemory>, "CreateTransferMemory"},
-    {0x16, SvcWrap<CloseHandle>, "CloseHandle"},
-    {0x17, SvcWrap<ResetSignal>, "ResetSignal"},
-    {0x18, SvcWrap<WaitSynchronization>, "WaitSynchronization"},
-    {0x19, SvcWrap<CancelSynchronization>, "CancelSynchronization"},
-    {0x1A, SvcWrap<ArbitrateLock>, "ArbitrateLock"},
-    {0x1B, SvcWrap<ArbitrateUnlock>, "ArbitrateUnlock"},
-    {0x1C, SvcWrap<WaitProcessWideKeyAtomic>, "WaitProcessWideKeyAtomic"},
-    {0x1D, SvcWrap<SignalProcessWideKey>, "SignalProcessWideKey"},
-    {0x1E, SvcWrap<GetSystemTick>, "GetSystemTick"},
-    {0x1F, SvcWrap<ConnectToNamedPort>, "ConnectToNamedPort"},
+    {0x01, SvcWrap32<SetHeapSize32>, "SetHeapSize32"},
+    {0x02, nullptr, "Unknown"},
+    {0x03, nullptr, "SetMemoryAttribute32"},
+    {0x04, nullptr, "MapMemory32"},
+    {0x05, nullptr, "UnmapMemory32"},
+    {0x06, SvcWrap32<QueryMemory32>, "QueryMemory32"},
+    {0x07, nullptr, "ExitProcess32"},
+    {0x08, nullptr, "CreateThread32"},
+    {0x09, nullptr, "StartThread32"},
+    {0x0a, nullptr, "ExitThread32"},
+    {0x0b, nullptr, "SleepThread32"},
+    {0x0c, SvcWrap32<GetThreadPriority32>, "GetThreadPriority32"},
+    {0x0d, nullptr, "SetThreadPriority32"},
+    {0x0e, nullptr, "GetThreadCoreMask32"},
+    {0x0f, nullptr, "SetThreadCoreMask32"},
+    {0x10, nullptr, "GetCurrentProcessorNumber32"},
+    {0x11, nullptr, "SignalEvent32"},
+    {0x12, nullptr, "ClearEvent32"},
+    {0x13, nullptr, "MapSharedMemory32"},
+    {0x14, nullptr, "UnmapSharedMemory32"},
+    {0x15, nullptr, "CreateTransferMemory32"},
+    {0x16, SvcWrap32<CloseHandle32>, "CloseHandle32"},
+    {0x17, nullptr, "ResetSignal32"},
+    {0x18, SvcWrap32<WaitSynchronization32>, "WaitSynchronization32"},
+    {0x19, nullptr, "CancelSynchronization32"},
+    {0x1a, nullptr, "ArbitrateLock32"},
+    {0x1b, nullptr, "ArbitrateUnlock32"},
+    {0x1c, nullptr, "WaitProcessWideKeyAtomic32"},
+    {0x1d, SvcWrap32<SignalProcessWideKey32>, "SignalProcessWideKey32"},
+    {0x1e, nullptr, "GetSystemTick32"},
+    {0x1f, SvcWrap32<ConnectToNamedPort32>, "ConnectToNamedPort32"},
+    {0x20, nullptr, "Unknown"},
+    {0x21, SvcWrap32<SendSyncRequest32>, "SendSyncRequest32"},
+    {0x22, nullptr, "SendSyncRequestWithUserBuffer32"},
+    {0x23, nullptr, "Unknown"},
+    {0x24, nullptr, "GetProcessId32"},
+    {0x25, SvcWrap32<GetThreadId32>, "GetThreadId32"},
+    {0x26, nullptr, "Break32"},
+    {0x27, nullptr, "OutputDebugString32"},
+    {0x28, nullptr, "Unknown"},
+    {0x29, SvcWrap32<GetInfo32>, "GetInfo32"},
+    {0x2a, nullptr, "Unknown"},
+    {0x2b, nullptr, "Unknown"},
+    {0x2c, nullptr, "MapPhysicalMemory32"},
+    {0x2d, nullptr, "UnmapPhysicalMemory32"},
+    {0x2e, nullptr, "Unknown"},
+    {0x2f, nullptr, "Unknown"},
+    {0x30, nullptr, "Unknown"},
+    {0x31, nullptr, "Unknown"},
+    {0x32, nullptr, "SetThreadActivity32"},
+    {0x33, nullptr, "GetThreadContext32"},
+    {0x34, nullptr, "WaitForAddress32"},
+    {0x35, nullptr, "SignalToAddress32"},
+    {0x36, nullptr, "Unknown"},
+    {0x37, nullptr, "Unknown"},
+    {0x38, nullptr, "Unknown"},
+    {0x39, nullptr, "Unknown"},
+    {0x3a, nullptr, "Unknown"},
+    {0x3b, nullptr, "Unknown"},
+    {0x3c, nullptr, "Unknown"},
+    {0x3d, nullptr, "Unknown"},
+    {0x3e, nullptr, "Unknown"},
+    {0x3f, nullptr, "Unknown"},
+    {0x40, nullptr, "CreateSession32"},
+    {0x41, nullptr, "AcceptSession32"},
+    {0x42, nullptr, "Unknown"},
+    {0x43, nullptr, "ReplyAndReceive32"},
+    {0x44, nullptr, "Unknown"},
+    {0x45, nullptr, "CreateEvent32"},
+    {0x46, nullptr, "Unknown"},
+    {0x47, nullptr, "Unknown"},
+    {0x48, nullptr, "Unknown"},
+    {0x49, nullptr, "Unknown"},
+    {0x4a, nullptr, "Unknown"},
+    {0x4b, nullptr, "Unknown"},
+    {0x4c, nullptr, "Unknown"},
+    {0x4d, nullptr, "Unknown"},
+    {0x4e, nullptr, "Unknown"},
+    {0x4f, nullptr, "Unknown"},
+    {0x50, nullptr, "Unknown"},
+    {0x51, nullptr, "Unknown"},
+    {0x52, nullptr, "Unknown"},
+    {0x53, nullptr, "Unknown"},
+    {0x54, nullptr, "Unknown"},
+    {0x55, nullptr, "Unknown"},
+    {0x56, nullptr, "Unknown"},
+    {0x57, nullptr, "Unknown"},
+    {0x58, nullptr, "Unknown"},
+    {0x59, nullptr, "Unknown"},
+    {0x5a, nullptr, "Unknown"},
+    {0x5b, nullptr, "Unknown"},
+    {0x5c, nullptr, "Unknown"},
+    {0x5d, nullptr, "Unknown"},
+    {0x5e, nullptr, "Unknown"},
+    {0x5F, nullptr, "FlushProcessDataCache32"},
+    {0x60, nullptr, "Unknown"},
+    {0x61, nullptr, "Unknown"},
+    {0x62, nullptr, "Unknown"},
+    {0x63, nullptr, "Unknown"},
+    {0x64, nullptr, "Unknown"},
+    {0x65, nullptr, "GetProcessList32"},
+    {0x66, nullptr, "Unknown"},
+    {0x67, nullptr, "Unknown"},
+    {0x68, nullptr, "Unknown"},
+    {0x69, nullptr, "Unknown"},
+    {0x6A, nullptr, "Unknown"},
+    {0x6B, nullptr, "Unknown"},
+    {0x6C, nullptr, "Unknown"},
+    {0x6D, nullptr, "Unknown"},
+    {0x6E, nullptr, "Unknown"},
+    {0x6f, nullptr, "GetSystemInfo32"},
+    {0x70, nullptr, "CreatePort32"},
+    {0x71, nullptr, "ManageNamedPort32"},
+    {0x72, nullptr, "ConnectToPort32"},
+    {0x73, nullptr, "SetProcessMemoryPermission32"},
+    {0x74, nullptr, "Unknown"},
+    {0x75, nullptr, "Unknown"},
+    {0x76, nullptr, "Unknown"},
+    {0x77, nullptr, "MapProcessCodeMemory32"},
+    {0x78, nullptr, "UnmapProcessCodeMemory32"},
+    {0x79, nullptr, "Unknown"},
+    {0x7A, nullptr, "Unknown"},
+    {0x7B, nullptr, "TerminateProcess32"},
+};
+
+static const FunctionDef SVC_Table_64[] = {
+    {0x00, nullptr, "Unknown"},
+    {0x01, SvcWrap64<SetHeapSize>, "SetHeapSize"},
+    {0x02, SvcWrap64<SetMemoryPermission>, "SetMemoryPermission"},
+    {0x03, SvcWrap64<SetMemoryAttribute>, "SetMemoryAttribute"},
+    {0x04, SvcWrap64<MapMemory>, "MapMemory"},
+    {0x05, SvcWrap64<UnmapMemory>, "UnmapMemory"},
+    {0x06, SvcWrap64<QueryMemory>, "QueryMemory"},
+    {0x07, SvcWrap64<ExitProcess>, "ExitProcess"},
+    {0x08, SvcWrap64<CreateThread>, "CreateThread"},
+    {0x09, SvcWrap64<StartThread>, "StartThread"},
+    {0x0A, SvcWrap64<ExitThread>, "ExitThread"},
+    {0x0B, SvcWrap64<SleepThread>, "SleepThread"},
+    {0x0C, SvcWrap64<GetThreadPriority>, "GetThreadPriority"},
+    {0x0D, SvcWrap64<SetThreadPriority>, "SetThreadPriority"},
+    {0x0E, SvcWrap64<GetThreadCoreMask>, "GetThreadCoreMask"},
+    {0x0F, SvcWrap64<SetThreadCoreMask>, "SetThreadCoreMask"},
+    {0x10, SvcWrap64<GetCurrentProcessorNumber>, "GetCurrentProcessorNumber"},
+    {0x11, SvcWrap64<SignalEvent>, "SignalEvent"},
+    {0x12, SvcWrap64<ClearEvent>, "ClearEvent"},
+    {0x13, SvcWrap64<MapSharedMemory>, "MapSharedMemory"},
+    {0x14, SvcWrap64<UnmapSharedMemory>, "UnmapSharedMemory"},
+    {0x15, SvcWrap64<CreateTransferMemory>, "CreateTransferMemory"},
+    {0x16, SvcWrap64<CloseHandle>, "CloseHandle"},
+    {0x17, SvcWrap64<ResetSignal>, "ResetSignal"},
+    {0x18, SvcWrap64<WaitSynchronization>, "WaitSynchronization"},
+    {0x19, SvcWrap64<CancelSynchronization>, "CancelSynchronization"},
+    {0x1A, SvcWrap64<ArbitrateLock>, "ArbitrateLock"},
+    {0x1B, SvcWrap64<ArbitrateUnlock>, "ArbitrateUnlock"},
+    {0x1C, SvcWrap64<WaitProcessWideKeyAtomic>, "WaitProcessWideKeyAtomic"},
+    {0x1D, SvcWrap64<SignalProcessWideKey>, "SignalProcessWideKey"},
+    {0x1E, SvcWrap64<GetSystemTick>, "GetSystemTick"},
+    {0x1F, SvcWrap64<ConnectToNamedPort>, "ConnectToNamedPort"},
     {0x20, nullptr, "SendSyncRequestLight"},
-    {0x21, SvcWrap<SendSyncRequest>, "SendSyncRequest"},
+    {0x21, SvcWrap64<SendSyncRequest>, "SendSyncRequest"},
     {0x22, nullptr, "SendSyncRequestWithUserBuffer"},
     {0x23, nullptr, "SendAsyncRequestWithUserBuffer"},
-    {0x24, SvcWrap<GetProcessId>, "GetProcessId"},
-    {0x25, SvcWrap<GetThreadId>, "GetThreadId"},
-    {0x26, SvcWrap<Break>, "Break"},
-    {0x27, SvcWrap<OutputDebugString>, "OutputDebugString"},
+    {0x24, SvcWrap64<GetProcessId>, "GetProcessId"},
+    {0x25, SvcWrap64<GetThreadId>, "GetThreadId"},
+    {0x26, SvcWrap64<Break>, "Break"},
+    {0x27, SvcWrap64<OutputDebugString>, "OutputDebugString"},
     {0x28, nullptr, "ReturnFromException"},
-    {0x29, SvcWrap<GetInfo>, "GetInfo"},
+    {0x29, SvcWrap64<GetInfo>, "GetInfo"},
     {0x2A, nullptr, "FlushEntireDataCache"},
     {0x2B, nullptr, "FlushDataCache"},
-    {0x2C, SvcWrap<MapPhysicalMemory>, "MapPhysicalMemory"},
-    {0x2D, SvcWrap<UnmapPhysicalMemory>, "UnmapPhysicalMemory"},
+    {0x2C, SvcWrap64<MapPhysicalMemory>, "MapPhysicalMemory"},
+    {0x2D, SvcWrap64<UnmapPhysicalMemory>, "UnmapPhysicalMemory"},
     {0x2E, nullptr, "GetFutureThreadInfo"},
     {0x2F, nullptr, "GetLastThreadInfo"},
-    {0x30, SvcWrap<GetResourceLimitLimitValue>, "GetResourceLimitLimitValue"},
-    {0x31, SvcWrap<GetResourceLimitCurrentValue>, "GetResourceLimitCurrentValue"},
-    {0x32, SvcWrap<SetThreadActivity>, "SetThreadActivity"},
-    {0x33, SvcWrap<GetThreadContext>, "GetThreadContext"},
-    {0x34, SvcWrap<WaitForAddress>, "WaitForAddress"},
-    {0x35, SvcWrap<SignalToAddress>, "SignalToAddress"},
+    {0x30, SvcWrap64<GetResourceLimitLimitValue>, "GetResourceLimitLimitValue"},
+    {0x31, SvcWrap64<GetResourceLimitCurrentValue>, "GetResourceLimitCurrentValue"},
+    {0x32, SvcWrap64<SetThreadActivity>, "SetThreadActivity"},
+    {0x33, SvcWrap64<GetThreadContext>, "GetThreadContext"},
+    {0x34, SvcWrap64<WaitForAddress>, "WaitForAddress"},
+    {0x35, SvcWrap64<SignalToAddress>, "SignalToAddress"},
     {0x36, nullptr, "SynchronizePreemptionState"},
     {0x37, nullptr, "Unknown"},
     {0x38, nullptr, "Unknown"},
     {0x39, nullptr, "Unknown"},
     {0x3A, nullptr, "Unknown"},
     {0x3B, nullptr, "Unknown"},
-    {0x3C, SvcWrap<KernelDebug>, "KernelDebug"},
-    {0x3D, SvcWrap<ChangeKernelTraceState>, "ChangeKernelTraceState"},
+    {0x3C, SvcWrap64<KernelDebug>, "KernelDebug"},
+    {0x3D, SvcWrap64<ChangeKernelTraceState>, "ChangeKernelTraceState"},
     {0x3E, nullptr, "Unknown"},
     {0x3F, nullptr, "Unknown"},
     {0x40, nullptr, "CreateSession"},
@@ -2387,7 +2577,7 @@ static const FunctionDef SVC_Table[] = {
     {0x42, nullptr, "ReplyAndReceiveLight"},
     {0x43, nullptr, "ReplyAndReceive"},
     {0x44, nullptr, "ReplyAndReceiveWithUserBuffer"},
-    {0x45, SvcWrap<CreateEvent>, "CreateEvent"},
+    {0x45, SvcWrap64<CreateEvent>, "CreateEvent"},
     {0x46, nullptr, "Unknown"},
     {0x47, nullptr, "Unknown"},
     {0x48, nullptr, "MapPhysicalMemoryUnsafe"},
@@ -2398,9 +2588,9 @@ static const FunctionDef SVC_Table[] = {
     {0x4D, nullptr, "SleepSystem"},
     {0x4E, nullptr, "ReadWriteRegister"},
     {0x4F, nullptr, "SetProcessActivity"},
-    {0x50, SvcWrap<CreateSharedMemory>, "CreateSharedMemory"},
-    {0x51, SvcWrap<MapTransferMemory>, "MapTransferMemory"},
-    {0x52, SvcWrap<UnmapTransferMemory>, "UnmapTransferMemory"},
+    {0x50, SvcWrap64<CreateSharedMemory>, "CreateSharedMemory"},
+    {0x51, SvcWrap64<MapTransferMemory>, "MapTransferMemory"},
+    {0x52, SvcWrap64<UnmapTransferMemory>, "UnmapTransferMemory"},
     {0x53, nullptr, "CreateInterruptEvent"},
     {0x54, nullptr, "QueryPhysicalAddress"},
     {0x55, nullptr, "QueryIoMapping"},
@@ -2419,8 +2609,8 @@ static const FunctionDef SVC_Table[] = {
     {0x62, nullptr, "TerminateDebugProcess"},
     {0x63, nullptr, "GetDebugEvent"},
     {0x64, nullptr, "ContinueDebugEvent"},
-    {0x65, SvcWrap<GetProcessList>, "GetProcessList"},
-    {0x66, SvcWrap<GetThreadList>, "GetThreadList"},
+    {0x65, SvcWrap64<GetProcessList>, "GetProcessList"},
+    {0x66, SvcWrap64<GetThreadList>, "GetThreadList"},
     {0x67, nullptr, "GetDebugThreadContext"},
     {0x68, nullptr, "SetDebugThreadContext"},
     {0x69, nullptr, "QueryDebugProcessMemory"},
@@ -2436,24 +2626,32 @@ static const FunctionDef SVC_Table[] = {
     {0x73, nullptr, "SetProcessMemoryPermission"},
     {0x74, nullptr, "MapProcessMemory"},
     {0x75, nullptr, "UnmapProcessMemory"},
-    {0x76, SvcWrap<QueryProcessMemory>, "QueryProcessMemory"},
-    {0x77, SvcWrap<MapProcessCodeMemory>, "MapProcessCodeMemory"},
-    {0x78, SvcWrap<UnmapProcessCodeMemory>, "UnmapProcessCodeMemory"},
+    {0x76, SvcWrap64<QueryProcessMemory>, "QueryProcessMemory"},
+    {0x77, SvcWrap64<MapProcessCodeMemory>, "MapProcessCodeMemory"},
+    {0x78, SvcWrap64<UnmapProcessCodeMemory>, "UnmapProcessCodeMemory"},
     {0x79, nullptr, "CreateProcess"},
     {0x7A, nullptr, "StartProcess"},
     {0x7B, nullptr, "TerminateProcess"},
-    {0x7C, SvcWrap<GetProcessInfo>, "GetProcessInfo"},
-    {0x7D, SvcWrap<CreateResourceLimit>, "CreateResourceLimit"},
-    {0x7E, SvcWrap<SetResourceLimitLimitValue>, "SetResourceLimitLimitValue"},
+    {0x7C, SvcWrap64<GetProcessInfo>, "GetProcessInfo"},
+    {0x7D, SvcWrap64<CreateResourceLimit>, "CreateResourceLimit"},
+    {0x7E, SvcWrap64<SetResourceLimitLimitValue>, "SetResourceLimitLimitValue"},
     {0x7F, nullptr, "CallSecureMonitor"},
 };
 
-static const FunctionDef* GetSVCInfo(u32 func_num) {
-    if (func_num >= std::size(SVC_Table)) {
+static const FunctionDef* GetSVCInfo32(u32 func_num) {
+    if (func_num >= std::size(SVC_Table_32)) {
         LOG_ERROR(Kernel_SVC, "Unknown svc=0x{:02X}", func_num);
         return nullptr;
     }
-    return &SVC_Table[func_num];
+    return &SVC_Table_32[func_num];
+}
+
+static const FunctionDef* GetSVCInfo64(u32 func_num) {
+    if (func_num >= std::size(SVC_Table_64)) {
+        LOG_ERROR(Kernel_SVC, "Unknown svc=0x{:02X}", func_num);
+        return nullptr;
+    }
+    return &SVC_Table_64[func_num];
 }
 
 MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
@@ -2464,7 +2662,8 @@ void CallSVC(Core::System& system, u32 immediate) {
     // Lock the global kernel mutex when we enter the kernel HLE.
     std::lock_guard lock{HLE::g_hle_lock};
 
-    const FunctionDef* info = GetSVCInfo(immediate);
+    const FunctionDef* info = system.CurrentProcess()->Is64BitProcess() ? GetSVCInfo64(immediate)
+                                                                        : GetSVCInfo32(immediate);
     if (info) {
         if (info->func) {
             info->func(system);

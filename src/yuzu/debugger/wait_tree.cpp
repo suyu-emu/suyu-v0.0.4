@@ -116,7 +116,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
 
     constexpr std::size_t BaseRegister = 29;
     auto& memory = Core::System::GetInstance().Memory();
-    u64 base_pointer = thread.GetContext().cpu_registers[BaseRegister];
+    u64 base_pointer = thread.GetContext64().cpu_registers[BaseRegister];
 
     while (base_pointer != 0) {
         const u64 lr = memory.Read64(base_pointer + sizeof(u64));
@@ -240,7 +240,7 @@ QString WaitTreeThread::GetText() const {
         break;
     }
 
-    const auto& context = thread.GetContext();
+    const auto& context = thread.GetContext64();
     const QString pc_info = tr(" PC = 0x%1 LR = 0x%2")
                                 .arg(context.pc, 8, 16, QLatin1Char{'0'})
                                 .arg(context.cpu_registers[30], 8, 16, QLatin1Char{'0'});

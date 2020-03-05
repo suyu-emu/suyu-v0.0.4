@@ -6,9 +6,6 @@
 #include <mutex>
 
 #include "common/logging/log.h"
-#ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic.h"
-#endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
