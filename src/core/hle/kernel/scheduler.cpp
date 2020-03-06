@@ -606,10 +606,8 @@ void Scheduler::SwitchContextStep2() {
         auto& cpu_core = system.ArmInterface(core_id);
         new_thread->context_guard.lock();
         cpu_core.Lock();
-        ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
-                   "Thread must be assigned to this core.");
-        ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
-                   "Thread must be ready to become running.");
+        ASSERT_MSG(new_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
+                   "Thread must be runnable.");
 
         // Cancel any outstanding wakeup events for this thread
         new_thread->SetIsRunning(true);
