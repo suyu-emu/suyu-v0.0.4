@@ -777,7 +777,8 @@ private:
         }
 
         const VaryingTFB& tfb = it->second;
-        return fmt::format("xfb_buffer = {}, xfb_offset = {}", tfb.buffer, tfb.offset);
+        return fmt::format("xfb_buffer = {}, xfb_offset = {}, xfb_stride = {}", tfb.buffer,
+                           tfb.offset, tfb.stride);
     }
 
     void DeclareOutputAttribute(Attribute::Index index) {

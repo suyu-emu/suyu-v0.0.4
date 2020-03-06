@@ -13,6 +13,7 @@ namespace VideoCommon::Shader {
 
 struct VaryingTFB {
     std::size_t buffer;
+    std::size_t stride;
     std::size_t offset;
     std::size_t components;
 };

@@ -87,6 +87,7 @@ std::unordered_map<u8, VaryingTFB> BuildTransformFeedback(const GraphicsInfo& in
 
             VaryingTFB varying;
             varying.buffer = layout.stream;
+            varying.stride = layout.stride;
             varying.offset = offset * sizeof(u32);
             varying.components = 1;
 
