@@ -28,7 +28,10 @@ namespace Common {
  * to implement such patterns. This fiber class is 'threadsafe' only one fiber
  * can be running at a time and threads will be locked while trying to yield to
  * a running fiber until it yields. WARNING exchanging two running fibers between
- * threads will cause a deadlock.
+ * threads will cause a deadlock. In order to prevent a deadlock, each thread should
+ * have an intermediary fiber, you switch to the intermediary fiber of the current
+ * thread and then from it switch to the expected fiber. This way you can exchange
+ * 2 fibers within 2 different threads.
  */
 class Fiber {
 public:
