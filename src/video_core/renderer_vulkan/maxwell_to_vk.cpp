@@ -120,7 +120,7 @@ struct FormatTuple {
     {vk::Format::eA8B8G8R8UintPack32, Attachable | Storage},     // ABGR8UI
     {vk::Format::eB5G6R5UnormPack16, {}},                        // B5G6R5U
     {vk::Format::eA2B10G10R10UnormPack32, Attachable | Storage}, // A2B10G10R10U
-    {vk::Format::eA1R5G5B5UnormPack16, Attachable | Storage},    // A1B5G5R5U (flipped with swizzle)
+    {vk::Format::eA1R5G5B5UnormPack16, Attachable},              // A1B5G5R5U (flipped with swizzle)
     {vk::Format::eR8Unorm, Attachable | Storage},                // R8U
     {vk::Format::eR8Uint, Attachable | Storage},                 // R8UI
     {vk::Format::eR16G16B16A16Sfloat, Attachable | Storage},     // RGBA16F
