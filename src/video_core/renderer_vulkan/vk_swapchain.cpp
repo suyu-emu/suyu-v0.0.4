@@ -141,11 +141,6 @@ void VKSwapchain::CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities
 
     const vk::SurfaceFormatKHR surface_format{ChooseSwapSurfaceFormat(formats, srgb)};
     const vk::PresentModeKHR present_mode{ChooseSwapPresentMode(present_modes)};
-    extent = ChooseSwapExtent(capabilities, width, height);
-
-    current_width = extent.width;
-    current_height = extent.height;
-    current_srgb = srgb;
 
     u32 requested_image_count{capabilities.minImageCount + 1};
     if (capabilities.maxImageCount > 0 && requested_image_count > capabilities.maxImageCount) {
@@ -153,10 +148,9 @@ void VKSwapchain::CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities
     }
 
     vk::SwapchainCreateInfoKHR swapchain_ci(
-        {}, surface, requested_image_count, surface_format.format, surface_format.colorSpace,
-        extent, 1, vk::ImageUsageFlagBits::eColorAttachment, {}, {}, {},
-        capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, present_mode, false,
-        {});
+        {}, surface, requested_image_count, surface_format.format, surface_format.colorSpace, {}, 1,
+        vk::ImageUsageFlagBits::eColorAttachment, {}, {}, {}, capabilities.currentTransform,
+        vk::CompositeAlphaFlagBitsKHR::eOpaque, present_mode, false, {});
 
     const u32 graphics_family{device.GetGraphicsFamily()};
     const u32 present_family{device.GetPresentFamily()};
@@ -169,8 +163,17 @@ void VKSwapchain::CreateSwapchain(const vk::SurfaceCapabilitiesKHR& capabilities
         swapchain_ci.imageSharingMode = vk::SharingMode::eExclusive;
     }
 
+    // Request the size again to reduce the possibility of a TOCTOU race condition.
+    const auto updated_capabilities = physical_device.getSurfaceCapabilitiesKHR(surface, dld);
+    swapchain_ci.imageExtent = ChooseSwapExtent(updated_capabilities, width, height);
+    // Don't add code within this and the swapchain creation.
     const auto dev{device.GetLogical()};
     swapchain = dev.createSwapchainKHRUnique(swapchain_ci, nullptr, dld);
+
+    extent = swapchain_ci.imageExtent;
+    current_width = extent.width;
+    current_height = extent.height;
+    current_srgb = srgb;
 
     images = dev.getSwapchainImagesKHR(*swapchain, dld);
     image_count = static_cast<u32>(images.size());
