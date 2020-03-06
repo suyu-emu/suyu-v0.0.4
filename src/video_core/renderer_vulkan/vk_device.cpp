@@ -107,8 +107,7 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
     features.occlusionQueryPrecise = true;
     features.fragmentStoresAndAtomics = true;
     features.shaderImageGatherExtended = true;
-    features.shaderStorageImageReadWithoutFormat =
-        is_shader_storage_img_read_without_format_supported;
+    features.shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported;
     features.shaderStorageImageWriteWithoutFormat = true;
     features.textureCompressionASTC_LDR = is_optimal_astc_supported;
 
@@ -467,8 +466,7 @@ void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceK
 
 void VKDevice::SetupFeatures(const vk::DispatchLoaderDynamic& dldi) {
     const auto supported_features{physical.getFeatures(dldi)};
-    is_shader_storage_img_read_without_format_supported =
-        supported_features.shaderStorageImageReadWithoutFormat;
+    is_formatless_image_load_supported = supported_features.shaderStorageImageReadWithoutFormat;
     is_optimal_astc_supported = IsOptimalAstcSupported(supported_features, dldi);
 }
 

@@ -298,7 +298,7 @@ public:
             }
         }
 
-        if (device.IsShaderStorageImageReadWithoutFormatSupported()) {
+        if (device.IsFormatlessImageLoadSupported()) {
             AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
 
@@ -1800,7 +1800,7 @@ private:
     }
 
     Expression ImageLoad(Operation operation) {
-        if (!device.IsShaderStorageImageReadWithoutFormatSupported()) {
+        if (!device.IsFormatlessImageLoadSupported()) {
             return {v_float_zero, Type::Float};
         }
 

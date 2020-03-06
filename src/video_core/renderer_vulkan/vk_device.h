@@ -122,11 +122,6 @@ public:
         return properties.limits.maxPushConstantsSize;
     }
 
-    /// Returns true if Shader storage Image Read Without Format supported.
-    bool IsShaderStorageImageReadWithoutFormatSupported() const {
-        return is_shader_storage_img_read_without_format_supported;
-    }
-
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
         return is_optimal_astc_supported;
@@ -145,6 +140,11 @@ public:
     /// Returns true if the device can be forced to use the guest warp size.
     bool IsGuestWarpSizeSupported(vk::ShaderStageFlagBits stage) const {
         return (guest_warp_stages & stage) != vk::ShaderStageFlags{};
+    }
+
+    /// Returns true if formatless image load is supported.
+    bool IsFormatlessImageLoadSupported() const {
+        return is_formatless_image_load_supported;
     }
 
     /// Returns true if the device supports VK_EXT_scalar_block_layout.
@@ -214,26 +214,25 @@ private:
     static std::unordered_map<vk::Format, vk::FormatProperties> GetFormatProperties(
         const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical);
 
-    const vk::PhysicalDevice physical;         ///< Physical device.
-    vk::DispatchLoaderDynamic dld;             ///< Device function pointers.
-    vk::PhysicalDeviceProperties properties;   ///< Device properties.
-    UniqueDevice logical;                      ///< Logical device.
-    vk::Queue graphics_queue;                  ///< Main graphics queue.
-    vk::Queue present_queue;                   ///< Main present queue.
-    u32 graphics_family{};                     ///< Main graphics queue family index.
-    u32 present_family{};                      ///< Main present queue family index.
-    vk::DriverIdKHR driver_id{};               ///< Driver ID.
-    vk::ShaderStageFlags guest_warp_stages{};  ///< Stages where the guest warp size can be forced.
-    bool is_optimal_astc_supported{};          ///< Support for native ASTC.
-    bool is_float16_supported{};               ///< Support for float16 arithmetics.
-    bool is_warp_potentially_bigger{};         ///< Host warp size can be bigger than guest.
+    const vk::PhysicalDevice physical;        ///< Physical device.
+    vk::DispatchLoaderDynamic dld;            ///< Device function pointers.
+    vk::PhysicalDeviceProperties properties;  ///< Device properties.
+    UniqueDevice logical;                     ///< Logical device.
+    vk::Queue graphics_queue;                 ///< Main graphics queue.
+    vk::Queue present_queue;                  ///< Main present queue.
+    u32 graphics_family{};                    ///< Main graphics queue family index.
+    u32 present_family{};                     ///< Main present queue family index.
+    vk::DriverIdKHR driver_id{};              ///< Driver ID.
+    vk::ShaderStageFlags guest_warp_stages{}; ///< Stages where the guest warp size can be forced.ed
+    bool is_optimal_astc_supported{};         ///< Support for native ASTC.
+    bool is_float16_supported{};              ///< Support for float16 arithmetics.
+    bool is_warp_potentially_bigger{};        ///< Host warp size can be bigger than guest.
+    bool is_formatless_image_load_supported{}; ///< Support for shader image read without format.
     bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
     bool nv_device_diagnostic_checkpoints{};   ///< Support for VK_NV_device_diagnostic_checkpoints.
-    bool is_shader_storage_img_read_without_format_supported{}; ///< Support for shader storage
-                                                                ///< image read without format
 
     // Telemetry parameters
     std::string vendor_name;                      ///< Device's driver name.
