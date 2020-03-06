@@ -5,7 +5,9 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #include <fmt/format.h>
@@ -92,6 +94,12 @@ struct VertexIndices {
     std::optional<u32> viewport;
     std::optional<u32> point_size;
     std::optional<u32> clip_distances;
+};
+
+struct GenericVaryingDescription {
+    Id id = nullptr;
+    u32 first_element = 0;
+    bool is_scalar = false;
 };
 
 spv::Dim GetSamplerDim(const Sampler& sampler) {
@@ -288,6 +296,15 @@ public:
         AddExtension("SPV_KHR_variable_pointers");
         AddExtension("SPV_KHR_shader_draw_parameters");
 
+        if (!transform_feedback.empty()) {
+            if (device.IsExtTransformFeedbackSupported()) {
+                AddCapability(spv::Capability::TransformFeedback);
+            } else {
+                LOG_ERROR(Render_Vulkan, "Shader requires transform feedbacks but these are not "
+                                         "supported on this device");
+            }
+        }
+
         if (ir.UsesLayer() || ir.UsesViewportIndex()) {
             if (ir.UsesViewportIndex()) {
                 AddCapability(spv::Capability::MultiViewport);
@@ -406,7 +423,7 @@ private:
             // Clear Position to avoid reading trash on the Z conversion.
             const auto position_index = out_indices.position.value();
             const Id position = AccessElement(t_out_float4, out_vertex, position_index);
-            OpStore(position, v_varying_default);
+            OpStore(position, ConstantNull(t_float4));
 
             if (specialization.point_size) {
                 const u32 point_size_index = out_indices.point_size.value();
@@ -749,13 +766,35 @@ private:
     }
 
     void DeclareOutputAttributes() {
+        if (stage == ShaderType::Compute || stage == ShaderType::Fragment) {
+            return;
+        }
+
+        UNIMPLEMENTED_IF(registry.GetGraphicsInfo().tfb_enabled && stage != ShaderType::Vertex);
         for (const auto index : ir.GetOutputAttributes()) {
             if (!IsGenericAttribute(index)) {
                 continue;
             }
-            const u32 location = GetGenericAttributeLocation(index);
-            Id type = t_float4;
-            Id varying_default = v_varying_default;
+            DeclareOutputAttribute(index);
+        }
+    }
+
+    void DeclareOutputAttribute(Attribute::Index index) {
+        static constexpr std::string_view swizzle = "xyzw";
+
+        const u32 location = GetGenericAttributeLocation(index);
+        u8 element = 0;
+        while (element < 4) {
+            const std::size_t remainder = 4 - element;
+
+            std::size_t num_components = remainder;
+            const std::optional tfb = GetTransformFeedbackInfo(index, element);
+            if (tfb) {
+                num_components = tfb->components;
+            }
+
+            Id type = GetTypeVectorDefinitionLut(Type::Float).at(num_components - 1);
+            Id varying_default = ConstantNull(type);
             if (IsOutputAttributeArray()) {
                 const u32 num = GetNumOutputVertices();
                 type = TypeArray(type, Constant(t_uint, num));
@@ -767,13 +806,45 @@ private:
             }
             type = TypePointer(spv::StorageClass::Output, type);
 
+            std::string name = fmt::format("out_attr{}", location);
+            if (num_components < 4 || element > 0) {
+                name = fmt::format("{}_{}", name, swizzle.substr(element, num_components));
+            }
+
             const Id id = OpVariable(type, spv::StorageClass::Output, varying_default);
-            Name(AddGlobalVariable(id), fmt::format("out_attr{}", location));
-            output_attributes.emplace(index, id);
+            Name(AddGlobalVariable(id), name);
+
+            GenericVaryingDescription description;
+            description.id = id;
+            description.first_element = element;
+            description.is_scalar = num_components == 1;
+            for (u32 i = 0; i < num_components; ++i) {
+                const u8 offset = static_cast<u8>(static_cast<u32>(index) * 4 + element + i);
+                output_attributes.emplace(offset, description);
+            }
             interfaces.push_back(id);
 
             Decorate(id, spv::Decoration::Location, location);
+            if (element > 0) {
+                Decorate(id, spv::Decoration::Component, static_cast<u32>(element));
+            }
+            if (tfb && device.IsExtTransformFeedbackSupported()) {
+                Decorate(id, spv::Decoration::XfbBuffer, static_cast<u32>(tfb->buffer));
+                Decorate(id, spv::Decoration::XfbStride, static_cast<u32>(tfb->stride));
+                Decorate(id, spv::Decoration::Offset, static_cast<u32>(tfb->offset));
+            }
+
+            element += static_cast<u8>(num_components);
         }
+    }
+
+    std::optional<VaryingTFB> GetTransformFeedbackInfo(Attribute::Index index, u8 element = 0) {
+        const u8 location = static_cast<u8>(index) * 4 + element;
+        const auto it = transform_feedback.find(location);
+        if (it == transform_feedback.end()) {
+            return {};
+        }
+        return it->second;
     }
 
     u32 DeclareConstantBuffers(u32 binding) {
@@ -1353,8 +1424,14 @@ private:
                 }
                 default:
                     if (IsGenericAttribute(attribute)) {
-                        const Id composite = output_attributes.at(attribute);
-                        return {ArrayPass(t_out_float, composite, {element}), Type::Float};
+                        const u8 offset = static_cast<u8>(static_cast<u8>(attribute) * 4 + element);
+                        const GenericVaryingDescription description = output_attributes.at(offset);
+                        const Id composite = description.id;
+                        std::vector<u32> indices;
+                        if (!description.is_scalar) {
+                            indices.push_back(element - description.first_element);
+                        }
+                        return {ArrayPass(t_out_float, composite, indices), Type::Float};
                     }
                     UNIMPLEMENTED_MSG("Unhandled output attribute: {}",
                                       static_cast<u32>(attribute));
@@ -2265,11 +2342,11 @@ private:
     std::array<Id, 4> GetTypeVectorDefinitionLut(Type type) const {
         switch (type) {
         case Type::Float:
-            return {nullptr, t_float2, t_float3, t_float4};
+            return {t_float, t_float2, t_float3, t_float4};
         case Type::Int:
-            return {nullptr, t_int2, t_int3, t_int4};
+            return {t_int, t_int2, t_int3, t_int4};
         case Type::Uint:
-            return {nullptr, t_uint2, t_uint3, t_uint4};
+            return {t_uint, t_uint2, t_uint3, t_uint4};
         default:
             UNIMPLEMENTED();
             return {};
@@ -2573,10 +2650,6 @@ private:
     const Id v_float_zero = Constant(t_float, 0.0f);
     const Id v_float_one = Constant(t_float, 1.0f);
 
-    // Nvidia uses these defaults for varyings (e.g. position and generic attributes)
-    const Id v_varying_default =
-        ConstantComposite(t_float4, v_float_zero, v_float_zero, v_float_zero, v_float_one);
-
     const Id v_true = ConstantTrue(t_bool);
     const Id v_false = ConstantFalse(t_bool);
 
@@ -2593,7 +2666,7 @@ private:
     Id shared_memory{};
     std::array<Id, INTERNAL_FLAGS_COUNT> internal_flags{};
     std::map<Attribute::Index, Id> input_attributes;
-    std::map<Attribute::Index, Id> output_attributes;
+    std::unordered_map<u8, GenericVaryingDescription> output_attributes;
     std::map<u32, Id> constant_buffers;
     std::map<GlobalMemoryBase, Id> global_buffers;
     std::map<u32, TexelBuffer> texel_buffers;
