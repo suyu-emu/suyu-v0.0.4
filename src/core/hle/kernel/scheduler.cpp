@@ -552,8 +552,7 @@ void GlobalScheduler::Unlock() {
     EnableInterruptAndSchedule(cores_pending_reschedule, leaving_thread);
 }
 
-Scheduler::Scheduler(Core::System& system, std::size_t core_id)
-    : system(system), core_id(core_id) {
+Scheduler::Scheduler(Core::System& system, std::size_t core_id) : system(system), core_id(core_id) {
     switch_fiber = std::make_shared<Common::Fiber>(std::function<void(void*)>(OnSwitch), this);
 }
 
@@ -604,6 +603,7 @@ void Scheduler::SwitchContextStep2() {
         previous_thread != nullptr ? previous_thread->GetOwnerProcess() : nullptr;
 
     if (new_thread) {
+        auto& cpu_core = system.ArmInterface(core_id);
         new_thread->context_guard.lock();
         cpu_core.Lock();
         ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
@@ -619,7 +619,6 @@ void Scheduler::SwitchContextStep2() {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
         if (!new_thread->IsHLEThread()) {
-            auto& cpu_core = system.ArmInterface(core_id);
             cpu_core.LoadContext(new_thread->GetContext32());
             cpu_core.LoadContext(new_thread->GetContext64());
             cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
@@ -651,8 +650,8 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
+        auto& cpu_core = system.ArmInterface(core_id);
         if (!previous_thread->IsHLEThread()) {
-            auto& cpu_core = system.ArmInterface(core_id);
             cpu_core.SaveContext(previous_thread->GetContext32());
             cpu_core.SaveContext(previous_thread->GetContext64());
             // Save the TPIDR_EL0 system register in case it was modified.

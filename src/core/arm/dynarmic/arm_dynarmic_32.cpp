@@ -8,6 +8,7 @@
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
 #include "common/microprofile.h"
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
@@ -72,20 +73,13 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
-        // rough approximation of the amount of executed ticks in the system, it may be thrown off
-        // if not all cores are doing a similar amount of work. Instead of doing this, we should
-        // device a way so that timing is consistent across all cores without increasing the ticks 4
-        // times.
-        u64 amortized_ticks = (ticks - num_interpreted_instructions) / Core::NUM_CPU_CORES;
-        // Always execute at least one tick.
-        amortized_ticks = std::max<u64>(amortized_ticks, 1);
-
-        parent.system.CoreTiming().AddTicks(amortized_ticks);
-        num_interpreted_instructions = 0;
+        /// We are using host timing, NOP
     }
     u64 GetTicksRemaining() override {
-        return std::max(parent.system.CoreTiming().GetDowncount(), {});
+        if (!parent.interrupt_handler.IsInterrupted()) {
+            return 1000ULL;
+        }
+        return 0ULL;
     }
 
     ARM_Dynarmic_32& parent;
