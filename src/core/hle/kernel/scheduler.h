@@ -15,6 +15,10 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/thread.h"
 
+namespace Common {
+    class Fiber;
+}
+
 namespace Core {
 class ARM_Interface;
 class System;
@@ -247,11 +251,16 @@ private:
      */
     void UpdateLastContextSwitchTime(Thread* thread, Process* process);
 
+    static void OnSwitch(void* this_scheduler);
+    void SwitchToCurrent();
+
     std::shared_ptr<Thread> current_thread = nullptr;
     std::shared_ptr<Thread> selected_thread = nullptr;
     std::shared_ptr<Thread> current_thread_prev = nullptr;
     std::shared_ptr<Thread> selected_thread_set = nullptr;
     std::shared_ptr<Thread> idle_thread = nullptr;
+
+    std::shared_ptr<Common::Fiber> switch_fiber = nullptr;
 
     Core::System& system;
     u64 last_context_switch_time = 0;

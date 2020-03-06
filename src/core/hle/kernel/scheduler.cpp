@@ -53,7 +53,8 @@ u32 GlobalScheduler::SelectThreads() {
             }
             sched.selected_thread_set = SharedFrom(thread);
         }
-        const bool reschedule_pending = sched.selected_thread_set != sched.current_thread;
+        const bool reschedule_pending =
+            sched.is_context_switch_pending || (sched.selected_thread_set != sched.current_thread);
         sched.is_context_switch_pending = reschedule_pending;
         std::atomic_thread_fence(std::memory_order_seq_cst);
         sched.guard.unlock();
@@ -552,7 +553,9 @@ void GlobalScheduler::Unlock() {
 }
 
 Scheduler::Scheduler(Core::System& system, std::size_t core_id)
-    : system{system}, core_id{core_id} {}
+    : system(system), core_id(core_id) {
+    switch_fiber = std::make_shared<Common::Fiber>(std::function<void(void*)>(OnSwitch), this);
+}
 
 Scheduler::~Scheduler() = default;
 
@@ -636,8 +639,9 @@ void Scheduler::SwitchContext() {
     current_thread = selected_thread;
 
     is_context_switch_pending = false;
-    guard.unlock();
+
     if (new_thread == previous_thread) {
+        guard.unlock();
         return;
     }
 
@@ -669,18 +673,29 @@ void Scheduler::SwitchContext() {
     } else {
         old_context = idle_thread->GetHostContext();
     }
+    guard.unlock();
 
-    std::shared_ptr<Common::Fiber> next_context;
-    if (new_thread != nullptr) {
-        next_context = new_thread->GetHostContext();
-    } else {
-        next_context = idle_thread->GetHostContext();
-    }
-
-    Common::Fiber::YieldTo(old_context, next_context);
+    Common::Fiber::YieldTo(old_context, switch_fiber);
     /// When a thread wakes up, the scheduler may have changed to other in another core.
     auto& next_scheduler = system.Kernel().CurrentScheduler();
     next_scheduler.SwitchContextStep2();
+}
+
+void Scheduler::OnSwitch(void* this_scheduler) {
+    Scheduler* sched = static_cast<Scheduler*>(this_scheduler);
+    sched->SwitchToCurrent();
+}
+
+void Scheduler::SwitchToCurrent() {
+    while (true) {
+        std::shared_ptr<Common::Fiber> next_context;
+        if (current_thread != nullptr) {
+            next_context = current_thread->GetHostContext();
+        } else {
+            next_context = idle_thread->GetHostContext();
+        }
+        Common::Fiber::YieldTo(switch_fiber, next_context);
+    }
 }
 
 void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
