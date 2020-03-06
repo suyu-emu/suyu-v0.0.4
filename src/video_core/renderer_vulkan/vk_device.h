@@ -167,6 +167,11 @@ public:
         return ext_shader_viewport_index_layer;
     }
 
+    /// Returns true if the device supports VK_EXT_transform_feedback.
+    bool IsExtTransformFeedbackSupported() const {
+        return ext_transform_feedback;
+    }
+
     /// Returns true if the device supports VK_NV_device_diagnostic_checkpoints.
     bool IsNvDeviceDiagnosticCheckpoints() const {
         return nv_device_diagnostic_checkpoints;
@@ -232,6 +237,7 @@ private:
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
+    bool ext_transform_feedback{};             ///< Support for VK_EXT_transform_feedback.
     bool nv_device_diagnostic_checkpoints{};   ///< Support for VK_NV_device_diagnostic_checkpoints.
 
     // Telemetry parameters
