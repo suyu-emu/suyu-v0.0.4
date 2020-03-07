@@ -463,9 +463,7 @@ void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priorit
     }
 
     if (thread->processor_id >= 0) {
-        // TODO(Blinkhawk): compare it with current thread running on current core, instead of
-        // checking running
-        if (thread->IsRunning()) {
+        if (thread == kernel.CurrentScheduler().GetCurrentThread()) {
             SchedulePrepend(thread->current_priority, static_cast<u32>(thread->processor_id),
                             thread);
         } else {
@@ -602,8 +600,6 @@ void Scheduler::SwitchContextStep2() {
         previous_thread != nullptr ? previous_thread->GetOwnerProcess() : nullptr;
 
     if (new_thread) {
-        auto& cpu_core = system.ArmInterface(core_id);
-        cpu_core.Lock();
         ASSERT_MSG(new_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
                    "Thread must be runnable.");
 
@@ -615,6 +611,7 @@ void Scheduler::SwitchContextStep2() {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
         if (!new_thread->IsHLEThread()) {
+            auto& cpu_core = system.ArmInterface(core_id);
             cpu_core.LoadContext(new_thread->GetContext32());
             cpu_core.LoadContext(new_thread->GetContext64());
             cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
@@ -646,8 +643,8 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
-        auto& cpu_core = system.ArmInterface(core_id);
         if (!previous_thread->IsHLEThread()) {
+            auto& cpu_core = system.ArmInterface(core_id);
             cpu_core.SaveContext(previous_thread->GetContext32());
             cpu_core.SaveContext(previous_thread->GetContext64());
             // Save the TPIDR_EL0 system register in case it was modified.
@@ -659,7 +656,6 @@ void Scheduler::SwitchContext() {
         }
         previous_thread->SetIsRunning(false);
         previous_thread->context_guard.unlock();
-        cpu_core.Unlock();
     }
 
     std::shared_ptr<Common::Fiber> old_context;
