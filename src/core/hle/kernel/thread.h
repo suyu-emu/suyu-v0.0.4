@@ -610,6 +610,10 @@ public:
         is_phantom_mode = phantom;
     }
 
+    bool HasExited() const {
+        return has_exited;
+    }
+
 private:
     friend class GlobalScheduler;
     friend class Scheduler;
@@ -714,6 +718,7 @@ private:
 
     bool will_be_terminated = false;
     bool is_phantom_mode = false;
+    bool has_exited = false;
 
     bool was_running = false;
 

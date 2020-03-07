@@ -724,7 +724,7 @@ void Scheduler::SwitchContext() {
         previous_thread->SetContinuousOnSVC(false);
         previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         previous_thread->SetIsRunning(false);
-        if (!previous_thread->IsHLEThread()) {
+        if (!previous_thread->IsHLEThread() && !previous_thread->HasExited()) {
             Core::ARM_Interface& cpu_core = previous_thread->ArmInterface();
             cpu_core.SaveContext(previous_thread->GetContext32());
             cpu_core.SaveContext(previous_thread->GetContext64());

@@ -69,6 +69,8 @@ void Thread::Stop() {
             // Mark the TLS slot in the thread's page as free.
             owner_process->FreeTLSRegion(tls_address);
         }
+        arm_interface.reset();
+        has_exited = true;
     }
     global_handle = 0;
 }
