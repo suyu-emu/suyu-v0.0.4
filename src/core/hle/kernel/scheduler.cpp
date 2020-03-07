@@ -604,7 +604,6 @@ void Scheduler::SwitchContextStep2() {
 
     if (new_thread) {
         auto& cpu_core = system.ArmInterface(core_id);
-        new_thread->context_guard.lock();
         cpu_core.Lock();
         ASSERT_MSG(new_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
                    "Thread must be runnable.");
@@ -685,13 +684,24 @@ void Scheduler::OnSwitch(void* this_scheduler) {
 
 void Scheduler::SwitchToCurrent() {
     while (true) {
-        std::shared_ptr<Common::Fiber> next_context;
-        if (current_thread != nullptr) {
-            next_context = current_thread->GetHostContext();
-        } else {
-            next_context = idle_thread->GetHostContext();
+        guard.lock();
+        selected_thread = selected_thread_set;
+        current_thread = selected_thread;
+        guard.unlock();
+        while (!is_context_switch_pending) {
+            current_thread->context_guard.lock();
+            if (current_thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
+                current_thread->context_guard.unlock();
+                break;
+            }
+            std::shared_ptr<Common::Fiber> next_context;
+            if (current_thread != nullptr) {
+                next_context = current_thread->GetHostContext();
+            } else {
+                next_context = idle_thread->GetHostContext();
+            }
+            Common::Fiber::YieldTo(switch_fiber, next_context);
         }
-        Common::Fiber::YieldTo(switch_fiber, next_context);
     }
 }
 
