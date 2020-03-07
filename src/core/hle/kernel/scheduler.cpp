@@ -689,10 +689,12 @@ void Scheduler::SwitchToCurrent() {
         current_thread = selected_thread;
         guard.unlock();
         while (!is_context_switch_pending) {
-            current_thread->context_guard.lock();
-            if (current_thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
-                current_thread->context_guard.unlock();
-                break;
+            if (current_thread != nullptr) {
+                current_thread->context_guard.lock();
+                if (current_thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
+                    current_thread->context_guard.unlock();
+                    break;
+                }
             }
             std::shared_ptr<Common::Fiber> next_context;
             if (current_thread != nullptr) {
