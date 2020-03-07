@@ -74,7 +74,9 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
         thread->SetSynchronizationObjects(&sync_objects);
         thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         thread->SetStatus(ThreadStatus::WaitSynch);
+        thread->SetWaitingSync(true);
     }
+    thread->SetWaitingSync(false);
 
     if (event_handle != InvalidHandle) {
         auto& time_manager = kernel.TimeManager();

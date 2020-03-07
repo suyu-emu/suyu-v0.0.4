@@ -139,13 +139,14 @@ ResultCode Thread::Start() {
 
 void Thread::CancelWait() {
     SchedulerLock lock(kernel);
-    if (GetSchedulingStatus() != ThreadSchedStatus::Paused) {
+    if (GetSchedulingStatus() != ThreadSchedStatus::Paused || !is_waiting_on_sync) {
         is_sync_cancelled = true;
         return;
     }
+    //TODO(Blinkhawk): Implement cancel of server session
     is_sync_cancelled = false;
     SetSynchronizationResults(nullptr, ERR_SYNCHRONIZATION_CANCELED);
-    ResumeFromWait();
+    SetStatus(ThreadStatus::Ready);
 }
 
 static void ResetThreadContext32(Core::ARM_Interface::ThreadContext32& context, u32 stack_top,

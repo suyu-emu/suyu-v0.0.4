@@ -556,6 +556,14 @@ public:
         waiting_for_arbitration = set;
     }
 
+    bool IsWaitingSync() const {
+        return is_waiting_on_sync;
+    }
+
+    void SetWaitingSync(bool is_waiting) {
+        is_waiting_on_sync = is_waiting;
+    }
+
 private:
     friend class GlobalScheduler;
     friend class Scheduler;
@@ -650,6 +658,7 @@ private:
 
     u32 scheduling_state = 0;
     bool is_running = false;
+    bool is_waiting_on_sync = false;
     bool is_sync_cancelled = false;
 
     bool will_be_terminated{};
