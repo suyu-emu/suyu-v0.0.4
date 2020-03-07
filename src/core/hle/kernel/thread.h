@@ -497,11 +497,7 @@ public:
         return affinity_mask;
     }
 
-    ThreadActivity GetActivity() const {
-        return activity;
-    }
-
-    void SetActivity(ThreadActivity value);
+    ResultCode SetActivity(ThreadActivity value);
 
     /// Sleeps this thread for the given amount of nanoseconds.
     ResultCode Sleep(s64 nanoseconds);
@@ -564,11 +560,22 @@ public:
         is_waiting_on_sync = is_waiting;
     }
 
+    bool IsPendingTermination() const {
+        return will_be_terminated || GetSchedulingStatus() == ThreadSchedStatus::Exited;
+    }
+
+    bool IsPaused() const {
+        return pausing_state != 0;
+    }
+
 private:
     friend class GlobalScheduler;
     friend class Scheduler;
 
     void SetSchedulingStatus(ThreadSchedStatus new_status);
+    void AddSchedulingFlag(ThreadSchedFlags flag);
+    void RemoveSchedulingFlag(ThreadSchedFlags flag);
+
     void SetCurrentPriority(u32 new_priority);
 
     void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
@@ -650,18 +657,17 @@ private:
     u32 ideal_core{0xFFFFFFFF};
     u64 affinity_mask{0x1};
 
-    ThreadActivity activity = ThreadActivity::Normal;
-
     s32 ideal_core_override = -1;
     u64 affinity_mask_override = 0x1;
     u32 affinity_override_count = 0;
 
     u32 scheduling_state = 0;
+    u32 pausing_state = 0;
     bool is_running = false;
     bool is_waiting_on_sync = false;
     bool is_sync_cancelled = false;
 
-    bool will_be_terminated{};
+    bool will_be_terminated = false;
 
     std::string name;
 };

@@ -417,8 +417,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
     }
     ASSERT(is_locked);
 
-    if (static_cast<ThreadSchedStatus>(old_flags & static_cast<u32>(ThreadSchedMasks::LowMask)) ==
-        ThreadSchedStatus::Runnable) {
+    if (old_flags == static_cast<u32>(ThreadSchedStatus::Runnable)) {
         // In this case the thread was running, now it's pausing/exitting
         if (thread->processor_id >= 0) {
             Unschedule(thread->current_priority, static_cast<u32>(thread->processor_id), thread);
@@ -430,7 +429,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
                 Unsuggest(thread->current_priority, core, thread);
             }
         }
-    } else if (thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable) {
+    } else if (thread->scheduling_state == static_cast<u32>(ThreadSchedStatus::Runnable)) {
         // The thread is now set to running from being stopped
         if (thread->processor_id >= 0) {
             Schedule(thread->current_priority, static_cast<u32>(thread->processor_id), thread);
@@ -448,7 +447,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
 }
 
 void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priority) {
-    if (thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
+    if (thread->scheduling_state != static_cast<u32>(ThreadSchedStatus::Runnable)) {
         return;
     }
     ASSERT(is_locked);
@@ -486,7 +485,7 @@ void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priorit
 
 void GlobalScheduler::AdjustSchedulingOnAffinity(Thread* thread, u64 old_affinity_mask,
                                                  s32 old_core) {
-    if (thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable ||
+    if (thread->scheduling_state != static_cast<u32>(ThreadSchedStatus::Runnable) ||
         thread->current_priority >= THREADPRIO_COUNT) {
         return;
     }

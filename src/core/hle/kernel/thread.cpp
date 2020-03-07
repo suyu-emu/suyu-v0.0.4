@@ -113,20 +113,11 @@ void Thread::ResumeFromWait() {
         return;
     }
 
-    if (activity == ThreadActivity::Paused) {
-        SetStatus(ThreadStatus::Paused);
-        return;
-    }
-
     SetStatus(ThreadStatus::Ready);
 }
 
 void Thread::OnWakeUp() {
     SchedulerLock lock(kernel);
-    if (activity == ThreadActivity::Paused) {
-        SetStatus(ThreadStatus::Paused);
-        return;
-    }
 
     SetStatus(ThreadStatus::Ready);
 }
@@ -143,7 +134,7 @@ void Thread::CancelWait() {
         is_sync_cancelled = true;
         return;
     }
-    //TODO(Blinkhawk): Implement cancel of server session
+    // TODO(Blinkhawk): Implement cancel of server session
     is_sync_cancelled = false;
     SetSynchronizationResults(nullptr, ERR_SYNCHRONIZATION_CANCELED);
     SetStatus(ThreadStatus::Ready);
@@ -407,19 +398,31 @@ bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {
     return hle_callback(std::move(thread));
 }
 
-void Thread::SetActivity(ThreadActivity value) {
-    activity = value;
+ResultCode Thread::SetActivity(ThreadActivity value) {
+    SchedulerLock lock(kernel);
+
+    auto sched_status = GetSchedulingStatus();
+
+    if (sched_status != ThreadSchedStatus::Runnable && sched_status != ThreadSchedStatus::Paused) {
+        return ERR_INVALID_STATE;
+    }
+
+    if (IsPendingTermination()) {
+        return RESULT_SUCCESS;
+    }
 
     if (value == ThreadActivity::Paused) {
-        // Set status if not waiting
-        if (status == ThreadStatus::Ready || status == ThreadStatus::Running) {
-            SetStatus(ThreadStatus::Paused);
-            kernel.PrepareReschedule(processor_id);
+        if (pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag) != 0) {
+            return ERR_INVALID_STATE;
         }
-    } else if (status == ThreadStatus::Paused) {
-        // Ready to reschedule
-        ResumeFromWait();
+        AddSchedulingFlag(ThreadSchedFlags::ThreadPauseFlag);
+    } else {
+        if (pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag) == 0) {
+            return ERR_INVALID_STATE;
+        }
+        RemoveSchedulingFlag(ThreadSchedFlags::ThreadPauseFlag);
     }
+    return RESULT_SUCCESS;
 }
 
 ResultCode Thread::Sleep(s64 nanoseconds) {
@@ -460,11 +463,27 @@ ResultCode Thread::YieldAndWaitForLoadBalancing() {
     return RESULT_SUCCESS;
 }
 
+void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
+    const u32 old_state = scheduling_state;
+    pausing_state |= static_cast<u32>(flag);
+    const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
+    scheduling_state = base_scheduling | pausing_state;
+    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+}
+
+void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
+    const u32 old_state = scheduling_state;
+    pausing_state &= ~static_cast<u32>(flag);
+    const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
+    scheduling_state = base_scheduling | pausing_state;
+    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+}
+
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
-    const u32 old_flags = scheduling_state;
+    const u32 old_state = scheduling_state;
     scheduling_state = (scheduling_state & static_cast<u32>(ThreadSchedMasks::HighMask)) |
                        static_cast<u32>(new_status);
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_flags);
+    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
 }
 
 void Thread::SetCurrentPriority(u32 new_priority) {

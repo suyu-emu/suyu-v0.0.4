@@ -1012,7 +1012,6 @@ static ResultCode UnmapPhysicalMemory(Core::System& system, VAddr addr, u64 size
 /// Sets the thread activity
 static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 activity) {
     LOG_DEBUG(Kernel_SVC, "called, handle=0x{:08X}, activity=0x{:08X}", handle, activity);
-    UNIMPLEMENTED();
     if (activity > static_cast<u32>(ThreadActivity::Paused)) {
         return ERR_INVALID_ENUM_VALUE;
     }
@@ -1039,9 +1038,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 act
         return ERR_BUSY;
     }
 
-    thread->SetActivity(static_cast<ThreadActivity>(activity));
-
-    return RESULT_SUCCESS;
+    return thread->SetActivity(static_cast<ThreadActivity>(activity));
 }
 
 /// Gets the thread context
