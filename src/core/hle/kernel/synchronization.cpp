@@ -59,7 +59,10 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
             return {RESULT_TIMEOUT, InvalidHandle};
         }
 
-        /// TODO(Blinkhawk): Check for termination pending
+        if (thread->IsPendingTermination()) {
+            lock.CancelSleep();
+            return {ERR_THREAD_TERMINATING, InvalidHandle};
+        }
 
         if (thread->IsSyncCancelled()) {
             thread->SetSyncCancelled(false);
