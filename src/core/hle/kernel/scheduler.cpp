@@ -687,9 +687,10 @@ void Scheduler::SwitchToCurrent() {
         guard.lock();
         selected_thread = selected_thread_set;
         current_thread = selected_thread;
+        is_context_switch_pending = false;
         guard.unlock();
         while (!is_context_switch_pending) {
-            if (current_thread != nullptr) {
+            if (current_thread != nullptr && !current_thread->IsHLEThread()) {
                 current_thread->context_guard.lock();
                 if (current_thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
                     current_thread->context_guard.unlock();
