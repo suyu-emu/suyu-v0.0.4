@@ -10,6 +10,7 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/arm/exclusive_monitor.h"
+#include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
@@ -138,7 +139,7 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
     const std::size_t current_core = system.CurrentCoreIndex();
     if (new_owner == nullptr) {
         do {
-            monitor.SetExclusive(current_core, address);
+            monitor.SetExclusive32(current_core, address);
         } while (!monitor.ExclusiveWrite32(current_core, address, 0));
         return {RESULT_SUCCESS, nullptr};
     }
@@ -154,7 +155,7 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
     new_owner->ResumeFromWait();
 
     do {
-        monitor.SetExclusive(current_core, address);
+        monitor.SetExclusive32(current_core, address);
     } while (!monitor.ExclusiveWrite32(current_core, address, mutex_value));
     return {RESULT_SUCCESS, new_owner};
 }

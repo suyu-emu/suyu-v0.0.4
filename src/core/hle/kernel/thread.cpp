@@ -412,12 +412,12 @@ ResultCode Thread::SetActivity(ThreadActivity value) {
     }
 
     if (value == ThreadActivity::Paused) {
-        if (pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag) != 0) {
+        if ((pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag)) != 0) {
             return ERR_INVALID_STATE;
         }
         AddSchedulingFlag(ThreadSchedFlags::ThreadPauseFlag);
     } else {
-        if (pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag) == 0) {
+        if ((pausing_state & static_cast<u32>(ThreadSchedFlags::ThreadPauseFlag)) == 0) {
             return ERR_INVALID_STATE;
         }
         RemoveSchedulingFlag(ThreadSchedFlags::ThreadPauseFlag);

@@ -82,7 +82,11 @@ public:
     explicit DynarmicExclusiveMonitor(Memory::Memory& memory, std::size_t core_count);
     ~DynarmicExclusiveMonitor() override;
 
-    void SetExclusive(std::size_t core_index, VAddr addr) override;
+    void SetExclusive8(std::size_t core_index, VAddr addr) override;
+    void SetExclusive16(std::size_t core_index, VAddr addr) override;
+    void SetExclusive32(std::size_t core_index, VAddr addr) override;
+    void SetExclusive64(std::size_t core_index, VAddr addr) override;
+    void SetExclusive128(std::size_t core_index, VAddr addr) override;
     void ClearExclusive() override;
 
     bool ExclusiveWrite8(std::size_t core_index, VAddr vaddr, u8 value) override;

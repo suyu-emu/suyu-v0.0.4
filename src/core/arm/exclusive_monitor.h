@@ -18,7 +18,11 @@ class ExclusiveMonitor {
 public:
     virtual ~ExclusiveMonitor();
 
-    virtual void SetExclusive(std::size_t core_index, VAddr addr) = 0;
+    virtual void SetExclusive8(std::size_t core_index, VAddr addr) = 0;
+    virtual void SetExclusive16(std::size_t core_index, VAddr addr) = 0;
+    virtual void SetExclusive32(std::size_t core_index, VAddr addr) = 0;
+    virtual void SetExclusive64(std::size_t core_index, VAddr addr) = 0;
+    virtual void SetExclusive128(std::size_t core_index, VAddr addr) = 0;
     virtual void ClearExclusive() = 0;
 
     virtual bool ExclusiveWrite8(std::size_t core_index, VAddr vaddr, u8 value) = 0;

@@ -90,7 +90,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
     auto& monitor = system.Monitor();
     u32 current_value;
     do {
-        monitor.SetExclusive(current_core, address);
+        monitor.SetExclusive32(current_core, address);
         current_value = memory.Read32(address);
 
         if (current_value != value) {
@@ -120,7 +120,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
     auto& monitor = system.Monitor();
     s32 updated_value;
     do {
-        monitor.SetExclusive(current_core, address);
+        monitor.SetExclusive32(current_core, address);
         updated_value = memory.Read32(address);
 
         if (updated_value != value) {
@@ -191,7 +191,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
         do {
-            monitor.SetExclusive(current_core, address);
+            monitor.SetExclusive32(current_core, address);
             current_value = static_cast<s32>(memory.Read32(address));
             if (should_decrement) {
                 decrement_value = current_value - 1;

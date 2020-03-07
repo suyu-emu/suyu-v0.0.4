@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "common/assert.h"
+#include "common/atomic_ops.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
@@ -174,6 +175,22 @@ struct Memory::Impl {
             Write32(addr, static_cast<u32>(data));
             Write32(addr + sizeof(u32), static_cast<u32>(data >> 32));
         }
+    }
+
+    bool WriteExclusive8(const VAddr addr, const u8 data, const u8 expected) {
+        return WriteExclusive<u8>(addr, data, expected);
+    }
+
+    bool WriteExclusive16(const VAddr addr, const u16 data, const u16 expected) {
+        return WriteExclusive<u16_le>(addr, data, expected);
+    }
+
+    bool WriteExclusive32(const VAddr addr, const u32 data, const u32 expected) {
+        return WriteExclusive<u32_le>(addr, data, expected);
+    }
+
+    bool WriteExclusive64(const VAddr addr, const u64 data, const u64 expected) {
+        return WriteExclusive<u64_le>(addr, data, expected);
     }
 
     std::string ReadCString(VAddr vaddr, std::size_t max_length) {
@@ -679,6 +696,67 @@ struct Memory::Impl {
         }
     }
 
+    template <typename T>
+    bool WriteExclusive(const VAddr vaddr, const T data, const T expected) {
+        u8* page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            // NOTE: Avoid adding any extra logic to this fast-path block
+            T volatile* pointer = reinterpret_cast<T volatile*>(&page_pointer[vaddr]);
+            return Common::AtomicCompareAndSwap(pointer, data, expected);
+        }
+
+        const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+        switch (type) {
+        case Common::PageType::Unmapped:
+            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
+                      static_cast<u32>(data), vaddr);
+            return true;
+        case Common::PageType::Memory:
+            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+            break;
+        case Common::PageType::RasterizerCachedMemory: {
+            u8* host_ptr{GetPointerFromVMA(vaddr)};
+            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
+            T volatile* pointer = reinterpret_cast<T volatile*>(&host_ptr);
+            return Common::AtomicCompareAndSwap(pointer, data, expected);
+            break;
+        }
+        default:
+            UNREACHABLE();
+        }
+        return true;
+    }
+
+    bool WriteExclusive128(const VAddr vaddr, const u128 data, const u128 expected) {
+        u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
+        if (page_pointer != nullptr) {
+            // NOTE: Avoid adding any extra logic to this fast-path block
+            u64 volatile* pointer = reinterpret_cast<u64 volatile*>(&page_pointer[vaddr]);
+            return Common::AtomicCompareAndSwap(pointer, data, expected);
+        }
+
+        const Common::PageType type = current_page_table->attributes[vaddr >> PAGE_BITS];
+        switch (type) {
+        case Common::PageType::Unmapped:
+            LOG_ERROR(HW_Memory, "Unmapped Write{} 0x{:08X} @ 0x{:016X}{:016X}", sizeof(data) * 8,
+                      static_cast<u64>(data[1]), static_cast<u64>(data[0]), vaddr);
+            return true;
+        case Common::PageType::Memory:
+            ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
+            break;
+        case Common::PageType::RasterizerCachedMemory: {
+            u8* host_ptr{GetPointerFromVMA(vaddr)};
+            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(u128));
+            u64 volatile* pointer = reinterpret_cast<u64 volatile*>(&host_ptr);
+            return Common::AtomicCompareAndSwap(pointer, data, expected);
+            break;
+        }
+        default:
+            UNREACHABLE();
+        }
+        return true;
+    }
+
     Common::PageTable* current_page_table = nullptr;
     Core::System& system;
 };
@@ -759,6 +837,26 @@ void Memory::Write32(VAddr addr, u32 data) {
 
 void Memory::Write64(VAddr addr, u64 data) {
     impl->Write64(addr, data);
+}
+
+bool Memory::WriteExclusive8(VAddr addr, u8 data, u8 expected) {
+    return impl->WriteExclusive8(addr, data, expected);
+}
+
+bool Memory::WriteExclusive16(VAddr addr, u16 data, u16 expected) {
+    return impl->WriteExclusive16(addr, data, expected);
+}
+
+bool Memory::WriteExclusive32(VAddr addr, u32 data, u32 expected) {
+    return impl->WriteExclusive32(addr, data, expected);
+}
+
+bool Memory::WriteExclusive64(VAddr addr, u64 data, u64 expected) {
+    return impl->WriteExclusive64(addr, data, expected);
+}
+
+bool Memory::WriteExclusive128(VAddr addr, u128 data, u128 expected) {
+    return impl->WriteExclusive128(addr, data, expected);
 }
 
 std::string Memory::ReadCString(VAddr vaddr, std::size_t max_length) {
