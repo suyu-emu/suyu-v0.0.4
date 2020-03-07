@@ -208,7 +208,11 @@ QString WaitTreeThread::GetText() const {
         status = tr("running");
         break;
     case Kernel::ThreadStatus::Ready:
-        status = tr("ready");
+        if (!thread.IsPaused()) {
+            status = tr("ready");
+        } else {
+            status = tr("paused");
+        }
         break;
     case Kernel::ThreadStatus::Paused:
         status = tr("paused");
@@ -256,7 +260,11 @@ QColor WaitTreeThread::GetColor() const {
     case Kernel::ThreadStatus::Running:
         return QColor(Qt::GlobalColor::darkGreen);
     case Kernel::ThreadStatus::Ready:
-        return QColor(Qt::GlobalColor::darkBlue);
+        if (!thread.IsPaused()) {
+            return QColor(Qt::GlobalColor::darkBlue);
+        } else {
+            return QColor(Qt::GlobalColor::lightGray);
+        }
     case Kernel::ThreadStatus::Paused:
         return QColor(Qt::GlobalColor::lightGray);
     case Kernel::ThreadStatus::WaitHLEEvent:
