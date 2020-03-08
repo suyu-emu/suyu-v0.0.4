@@ -32,8 +32,9 @@ void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 
     event_handle = timetask->GetGlobalHandle();
     if (nanoseconds > 0) {
         ASSERT(timetask);
-        const s64 cycles = Core::Timing::nsToCycles(std::chrono::nanoseconds{nanoseconds});
-        system.CoreTiming().ScheduleEvent(cycles, time_manager_event_type, event_handle);
+        ASSERT(timetask->GetStatus() != ThreadStatus::Ready);
+        ASSERT(timetask->GetStatus() != ThreadStatus::WaitMutex);
+        system.CoreTiming().ScheduleEvent(nanoseconds, time_manager_event_type, event_handle);
     } else {
         event_handle = InvalidHandle;
     }

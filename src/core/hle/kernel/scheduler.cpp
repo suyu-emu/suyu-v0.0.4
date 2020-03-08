@@ -93,7 +93,7 @@ u32 GlobalScheduler::SelectThreads() {
                 iter++;
                 s32 suggested_core_id = suggested->GetProcessorID();
                 Thread* top_thread =
-                    suggested_core_id > 0 ? top_threads[suggested_core_id] : nullptr;
+                    suggested_core_id >= 0 ? top_threads[suggested_core_id] : nullptr;
                 if (top_thread != suggested) {
                     if (top_thread != nullptr &&
                         top_thread->GetPriority() < THREADPRIO_MAX_CORE_MIGRATION) {
