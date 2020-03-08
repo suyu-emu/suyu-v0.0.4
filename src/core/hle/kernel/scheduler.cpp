@@ -147,9 +147,11 @@ bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    const Thread* const winner = scheduled_queue[core_id].front(priority);
-    ASSERT_MSG(yielding_thread == winner, "Thread yielding without being in front");
-    scheduled_queue[core_id].yield(priority);
+    Reschedule(priority, core_id, yielding_thread);
+    const Thread* const winner = scheduled_queue[core_id].front();
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
+    }
 
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
@@ -162,9 +164,7 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
-               "Thread yielding without being in front");
-    scheduled_queue[core_id].yield(priority);
+    Reschedule(priority, core_id, yielding_thread);
 
     std::array<Thread*, Core::Hardware::NUM_CPU_CORES> current_threads;
     for (std::size_t i = 0; i < current_threads.size(); i++) {
@@ -198,6 +198,10 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
         }
     } else {
         winner = next_thread;
+    }
+
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
     }
 
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
@@ -239,6 +243,12 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         } else {
             winner = yielding_thread;
         }
+    } else {
+        winner = scheduled_queue[i].front();
+    }
+
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
     }
 
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
@@ -687,7 +697,11 @@ void Scheduler::SwitchToCurrent() {
         while (!is_context_switch_pending) {
             if (current_thread != nullptr && !current_thread->IsHLEThread()) {
                 current_thread->context_guard.lock();
-                if (current_thread->GetSchedulingStatus() != ThreadSchedStatus::Runnable) {
+                if (!current_thread->IsRunnable()) {
+                    current_thread->context_guard.unlock();
+                    break;
+                }
+                if (current_thread->GetProcessorID() != core_id) {
                     current_thread->context_guard.unlock();
                     break;
                 }

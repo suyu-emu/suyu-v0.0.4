@@ -524,6 +524,10 @@ public:
                                               static_cast<u32>(ThreadSchedMasks::LowMask));
     }
 
+    bool IsRunnable() const {
+        return scheduling_state == static_cast<u32>(ThreadSchedStatus::Runnable);
+    }
+
     bool IsRunning() const {
         return is_running;
     }
