@@ -337,20 +337,22 @@ struct TSCEntry {
     };
 
     float GetMaxAnisotropy() const {
-        switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
-        case Anisotropy::Default:
-            return static_cast<float>(1U << max_anisotropy);
-        case Anisotropy::Filter2x:
-            return static_cast<float>(2U << max_anisotropy);
-        case Anisotropy::Filter4x:
-            return static_cast<float>(4U << max_anisotropy);
-        case Anisotropy::Filter8x:
-            return static_cast<float>(8U << max_anisotropy);
-        case Anisotropy::Filter16x:
-            return static_cast<float>(16U << max_anisotropy);
-        default:
-            return static_cast<float>(1U << max_anisotropy);
-        }
+        const u32 min_value = [] {
+            switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
+            default:
+            case Anisotropy::Default:
+                return 1U;
+            case Anisotropy::Filter2x:
+                return 2U;
+            case Anisotropy::Filter4x:
+                return 4U;
+            case Anisotropy::Filter8x:
+                return 8U;
+            case Anisotropy::Filter16x:
+                return 16U;
+            }
+        }();
+        return static_cast<float>(std::max(1U << max_anisotropy, min_value));
     }
 
     float GetMinLod() const {
