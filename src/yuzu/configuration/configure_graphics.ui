@@ -85,30 +85,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="use_vsync">
-          <property name="toolTip">
-           <string>VSync prevents the screen from tearing, but some graphics cards have lower performance with VSync enabled. Keep it enabled if you don't notice a performance difference.</string>
-          </property>
-          <property name="text">
-           <string>Use VSync (OpenGL only)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="use_accurate_gpu_emulation">
-          <property name="text">
-           <string>Use accurate GPU emulation (slow)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="force_30fps_mode">
-          <property name="text">
-           <string>Force 30 FPS mode</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="label">

@@ -631,6 +631,7 @@ void Config::ReadRendererValues() {
     Settings::values.resolution_factor =
         ReadSetting(QStringLiteral("resolution_factor"), 1.0).toFloat();
     Settings::values.aspect_ratio = ReadSetting(QStringLiteral("aspect_ratio"), 0).toInt();
+    Settings::values.max_anisotropy = ReadSetting(QStringLiteral("max_anisotropy"), 0).toInt();
     Settings::values.use_frame_limit =
         ReadSetting(QStringLiteral("use_frame_limit"), true).toBool();
     Settings::values.frame_limit = ReadSetting(QStringLiteral("frame_limit"), 100).toInt();
@@ -1067,6 +1068,7 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("resolution_factor"),
                  static_cast<double>(Settings::values.resolution_factor), 1.0);
     WriteSetting(QStringLiteral("aspect_ratio"), Settings::values.aspect_ratio, 0);
+    WriteSetting(QStringLiteral("max_anisotropy"), Settings::values.max_anisotropy, 0);
     WriteSetting(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);
     WriteSetting(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
     WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,

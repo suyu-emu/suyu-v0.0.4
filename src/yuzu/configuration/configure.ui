@@ -83,6 +83,11 @@
          <string>Graphics</string>
         </attribute>
        </widget>
+       <widget class="ConfigureGraphicsAdvanced" name="graphicsAdvancedTab">
+        <attribute name="title">
+         <string>GraphicsAdvanced</string>
+        </attribute>
+       </widget>
        <widget class="ConfigureAudio" name="audioTab">
         <attribute name="title">
          <string>Audio</string>
@@ -157,6 +162,12 @@
    <class>ConfigureGraphics</class>
    <extends>QWidget</extends>
    <header>configuration/configure_graphics.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureGraphicsAdvanced</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_graphics_advanced.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
