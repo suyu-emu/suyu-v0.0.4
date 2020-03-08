@@ -133,6 +133,7 @@ u32 GlobalScheduler::SelectThreads() {
     u32 cores_needing_context_switch{};
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         Scheduler& sched = kernel.Scheduler(core);
+        ASSERT(top_threads[core] == nullptr || top_threads[core]->GetProcessorID() == core);
         if (update_thread(top_threads[core], sched)) {
             cores_needing_context_switch |= (1ul << core);
         }
@@ -244,7 +245,7 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
             winner = yielding_thread;
         }
     } else {
-        winner = scheduled_queue[i].front();
+        winner = scheduled_queue[core_id].front();
     }
 
     if (kernel.GetCurrentHostThreadID() != core_id) {

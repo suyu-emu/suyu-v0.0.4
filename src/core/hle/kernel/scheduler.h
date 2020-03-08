@@ -16,7 +16,7 @@
 #include "core/hle/kernel/thread.h"
 
 namespace Common {
-    class Fiber;
+class Fiber;
 }
 
 namespace Core {
@@ -133,7 +133,8 @@ private:
     /// and reschedules current core if needed.
     void Unlock();
 
-    void EnableInterruptAndSchedule(u32 cores_pending_reschedule, Core::EmuThreadHandle global_thread);
+    void EnableInterruptAndSchedule(u32 cores_pending_reschedule,
+                                    Core::EmuThreadHandle global_thread);
 
     /**
      * Add a thread to the suggested queue of a cpu core. Suggested threads may be

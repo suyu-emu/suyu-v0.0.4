@@ -42,7 +42,6 @@ private:
     Core::System& system;
     std::shared_ptr<Core::Timing::EventType> time_manager_event_type;
     std::unordered_map<Handle, bool> cancelled_events;
-    std::unordered_map<Handle, bool> event_fired;
 };
 
 } // namespace Kernel

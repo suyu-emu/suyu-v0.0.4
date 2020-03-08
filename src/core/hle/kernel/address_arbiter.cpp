@@ -34,19 +34,9 @@ void AddressArbiter::WakeThreads(const std::vector<std::shared_ptr<Thread>>& wai
 
     // Signal the waiting threads.
     for (std::size_t i = 0; i < last; i++) {
-        if (waiting_threads[i]->GetStatus() != ThreadStatus::WaitArb) {
-            last++;
-            last = std::min(waiting_threads.size(), last);
-            continue;
-        }
-
-        time_manager.CancelTimeEvent(waiting_threads[i].get());
-
-        ASSERT(waiting_threads[i]->GetStatus() == ThreadStatus::WaitArb);
         waiting_threads[i]->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
         RemoveThread(waiting_threads[i]);
         waiting_threads[i]->WaitForArbitration(false);
-        waiting_threads[i]->SetArbiterWaitAddress(0);
         waiting_threads[i]->ResumeFromWait();
     }
 }
@@ -172,19 +162,24 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
     {
         SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
+        if (current_thread->IsPendingTermination()) {
+            lock.CancelSleep();
+            return ERR_THREAD_TERMINATING;
+        }
+
         // Ensure that we can read the address.
         if (!memory.IsValidVirtualAddress(address)) {
             lock.CancelSleep();
             return ERR_INVALID_ADDRESS_STATE;
         }
 
-        /// TODO(Blinkhawk): Check termination pending.
-
         s32 current_value = static_cast<s32>(memory.Read32(address));
         if (current_value >= value) {
             lock.CancelSleep();
             return ERR_INVALID_STATE;
         }
+
+        current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
 
         s32 decrement_value;
 
@@ -207,7 +202,6 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
             return RESULT_TIMEOUT;
         }
 
-        current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         current_thread->SetArbiterWaitAddress(address);
         InsertThread(SharedFrom(current_thread));
         current_thread->SetStatus(ThreadStatus::WaitArb);
@@ -239,13 +233,16 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
     {
         SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
+        if (current_thread->IsPendingTermination()) {
+            lock.CancelSleep();
+            return ERR_THREAD_TERMINATING;
+        }
+
         // Ensure that we can read the address.
         if (!memory.IsValidVirtualAddress(address)) {
             lock.CancelSleep();
             return ERR_INVALID_ADDRESS_STATE;
         }
-
-        /// TODO(Blinkhawk): Check termination pending.
 
         s32 current_value = static_cast<s32>(memory.Read32(address));
         if (current_value != value) {

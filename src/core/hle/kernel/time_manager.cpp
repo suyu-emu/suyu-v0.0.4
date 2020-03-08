@@ -22,7 +22,6 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
             if (cancelled_events[proper_handle]) {
                 return;
             }
-            event_fired[proper_handle] = true;
             std::shared_ptr<Thread> thread =
                 this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
             thread->OnWakeUp();
@@ -39,7 +38,6 @@ void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 
         event_handle = InvalidHandle;
     }
     cancelled_events[event_handle] = false;
-    event_fired[event_handle] = false;
 }
 
 void TimeManager::UnscheduleTimeEvent(Handle event_handle) {

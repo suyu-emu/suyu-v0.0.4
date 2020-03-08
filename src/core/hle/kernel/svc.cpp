@@ -1562,6 +1562,11 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
 
         current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
 
+        if (thread->IsPendingTermination()) {
+            lock.CancelSleep();
+            return ERR_THREAD_TERMINATING;
+        }
+
         const auto release_result = current_process->GetMutex().Release(mutex_addr);
         if (release_result.IsError()) {
             lock.CancelSleep();
@@ -1587,6 +1592,11 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
 
     {
         SchedulerLock lock(kernel);
+
+        auto* owner = current_thread->GetLockOwner();
+        if (owner != nullptr) {
+            owner->RemoveMutexWaiter(SharedFrom(current_thread));
+        }
 
         current_process->RemoveConditionVariableThread(SharedFrom(current_thread));
     }
@@ -1618,19 +1628,10 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
     for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
 
-        if (thread->GetStatus() != ThreadStatus::WaitCondVar) {
-            last++;
-            last = std::min(waiting_threads.size(), last);
-            continue;
-        }
-
-        time_manager.CancelTimeEvent(thread.get());
-
         ASSERT(thread->GetCondVarWaitAddress() == condition_variable_addr);
 
         // liberate Cond Var Thread.
         current_process->RemoveConditionVariableThread(thread);
-        thread->SetCondVarWaitAddress(0);
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
@@ -1655,9 +1656,6 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
         monitor.ClearExclusive();
         if (mutex_val == 0) {
             // We were able to acquire the mutex, resume this thread.
-            ASSERT(thread->GetStatus() == ThreadStatus::WaitCondVar);
-            thread->ResumeFromWait();
-
             auto* const lock_owner = thread->GetLockOwner();
             if (lock_owner != nullptr) {
                 lock_owner->RemoveMutexWaiter(thread);
@@ -1665,13 +1663,16 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
 
             thread->SetLockOwner(nullptr);
             thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
+            thread->ResumeFromWait();
         } else {
             // The mutex is already owned by some other thread, make this thread wait on it.
             const Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
             const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
             auto owner = handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
-            thread->SetStatus(ThreadStatus::WaitMutex);
+            if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
+                thread->SetStatus(ThreadStatus::WaitMutex);
+            }
 
             owner->AddMutexWaiter(thread);
         }

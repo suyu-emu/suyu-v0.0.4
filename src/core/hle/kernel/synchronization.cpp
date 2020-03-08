@@ -23,9 +23,10 @@ void Synchronization::SignalObject(SynchronizationObject& obj) const {
     if (obj.IsSignaled()) {
         for (auto thread : obj.GetWaitingThreads()) {
             if (thread->GetSchedulingStatus() == ThreadSchedStatus::Paused) {
+                ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
+                ASSERT(thread->IsWaitingSync());
                 thread->SetSynchronizationResults(&obj, RESULT_SUCCESS);
                 thread->ResumeFromWait();
-                time_manager.CancelTimeEvent(thread.get());
             }
         }
         obj.ClearWaitingThreads();
@@ -91,10 +92,11 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
         ResultCode signaling_result = thread->GetSignalingResult();
         SynchronizationObject* signaling_object = thread->GetSignalingObject();
         thread->SetSynchronizationObjects(nullptr);
+        auto shared_thread = SharedFrom(thread);
         for (auto& obj : sync_objects) {
-            obj->RemoveWaitingThread(SharedFrom(thread));
+            obj->RemoveWaitingThread(shared_thread);
         }
-        if (signaling_result == RESULT_SUCCESS) {
+        if (signaling_object != nullptr) {
             const auto itr = std::find_if(
                 sync_objects.begin(), sync_objects.end(),
                 [signaling_object](const std::shared_ptr<SynchronizationObject>& object) {
@@ -103,7 +105,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
             ASSERT(itr != sync_objects.end());
             signaling_object->Acquire(thread);
             const u32 index = static_cast<s32>(std::distance(sync_objects.begin(), itr));
-            return {RESULT_SUCCESS, index};
+            return {signaling_result, index};
         }
         return {signaling_result, -1};
     }
