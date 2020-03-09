@@ -23,8 +23,10 @@ void Synchronization::SignalObject(SynchronizationObject& obj) const {
     if (obj.IsSignaled()) {
         for (auto thread : obj.GetWaitingThreads()) {
             if (thread->GetSchedulingStatus() == ThreadSchedStatus::Paused) {
-                ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
-                ASSERT(thread->IsWaitingSync());
+                if (thread->GetStatus() != ThreadStatus::WaitHLEEvent) {
+                    ASSERT(thread->GetStatus() == ThreadStatus::WaitSynch);
+                    ASSERT(thread->IsWaitingSync());
+                }
                 thread->SetSynchronizationResults(&obj, RESULT_SUCCESS);
                 thread->ResumeFromWait();
             }
