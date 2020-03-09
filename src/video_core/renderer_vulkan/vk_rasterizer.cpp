@@ -36,6 +36,7 @@
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 
@@ -280,10 +281,11 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf,
 RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWindow& renderer,
                                    VKScreenInfo& screen_info, const VKDevice& device,
                                    VKResourceManager& resource_manager,
-                                   VKMemoryManager& memory_manager, VKScheduler& scheduler)
+                                   VKMemoryManager& memory_manager, StateTracker& state_tracker,
+                                   VKScheduler& scheduler)
     : RasterizerAccelerated{system.Memory()}, system{system}, render_window{renderer},
       screen_info{screen_info}, device{device}, resource_manager{resource_manager},
-      memory_manager{memory_manager}, scheduler{scheduler},
+      memory_manager{memory_manager}, state_tracker{state_tracker}, scheduler{scheduler},
       staging_pool(device, memory_manager, scheduler), descriptor_pool(device),
       update_descriptor_queue(device, scheduler),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
@@ -548,6 +550,10 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
+void RasterizerVulkan::SetupDirtyFlags() {
+    state_tracker.Initialize();
+}
+
 void RasterizerVulkan::FlushWork() {
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
 
@@ -571,9 +577,9 @@ void RasterizerVulkan::FlushWork() {
 
 RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-    auto& dirty = system.GPU().Maxwell3D().dirty;
-    const bool update_rendertargets = dirty.render_settings;
-    dirty.render_settings = false;
+    auto& dirty = system.GPU().Maxwell3D().dirty.flags;
+    const bool update_rendertargets = dirty[VideoCommon::Dirty::RenderTargets];
+    dirty[VideoCommon::Dirty::RenderTargets] = false;
 
     texture_cache.GuardRenderTargets(true);
 
@@ -723,13 +729,13 @@ void RasterizerVulkan::SetupImageTransitions(
 }
 
 void RasterizerVulkan::UpdateDynamicStates() {
-    auto& gpu = system.GPU().Maxwell3D();
-    UpdateViewportsState(gpu);
-    UpdateScissorsState(gpu);
-    UpdateDepthBias(gpu);
-    UpdateBlendConstants(gpu);
-    UpdateDepthBounds(gpu);
-    UpdateStencilFaces(gpu);
+    auto& regs = system.GPU().Maxwell3D().regs;
+    UpdateViewportsState(regs);
+    UpdateScissorsState(regs);
+    UpdateDepthBias(regs);
+    UpdateBlendConstants(regs);
+    UpdateDepthBounds(regs);
+    UpdateStencilFaces(regs);
 }
 
 void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
@@ -979,12 +985,10 @@ void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const Ima
     image_views.push_back(ImageView{std::move(view), image_layout});
 }
 
-void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.viewport_transform && scheduler.TouchViewports()) {
+void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchViewports()) {
         return;
     }
-    gpu.dirty.viewport_transform = false;
-    const auto& regs = gpu.regs;
     const std::array viewports{
         GetViewportState(device, regs, 0),  GetViewportState(device, regs, 1),
         GetViewportState(device, regs, 2),  GetViewportState(device, regs, 3),
@@ -999,12 +1003,10 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D& gpu) {
     });
 }
 
-void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.scissor_test && scheduler.TouchScissors()) {
+void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchScissors()) {
         return;
     }
-    gpu.dirty.scissor_test = false;
-    const auto& regs = gpu.regs;
     const std::array scissors = {
         GetScissorState(regs, 0),  GetScissorState(regs, 1),  GetScissorState(regs, 2),
         GetScissorState(regs, 3),  GetScissorState(regs, 4),  GetScissorState(regs, 5),
@@ -1017,46 +1019,39 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D& gpu) {
     });
 }
 
-void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.polygon_offset && scheduler.TouchDepthBias()) {
+void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthBias()) {
         return;
     }
-    gpu.dirty.polygon_offset = false;
-    const auto& regs = gpu.regs;
     scheduler.Record([constant = regs.polygon_offset_units, clamp = regs.polygon_offset_clamp,
                       factor = regs.polygon_offset_factor](auto cmdbuf, auto& dld) {
         cmdbuf.setDepthBias(constant, clamp, factor / 2.0f, dld);
     });
 }
 
-void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.blend_state && scheduler.TouchBlendConstants()) {
+void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchBlendConstants()) {
         return;
     }
-    gpu.dirty.blend_state = false;
-    const std::array blend_color = {gpu.regs.blend_color.r, gpu.regs.blend_color.g,
-                                    gpu.regs.blend_color.b, gpu.regs.blend_color.a};
+    const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
+                                    regs.blend_color.a};
     scheduler.Record([blend_color](auto cmdbuf, auto& dld) {
         cmdbuf.setBlendConstants(blend_color.data(), dld);
     });
 }
 
-void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.depth_bounds_values && scheduler.TouchDepthBounds()) {
+void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchDepthBounds()) {
         return;
     }
-    gpu.dirty.depth_bounds_values = false;
-    const auto& regs = gpu.regs;
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
                          auto cmdbuf, auto& dld) { cmdbuf.setDepthBounds(min, max, dld); });
 }
 
-void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D& gpu) {
-    if (!gpu.dirty.stencil_test && scheduler.TouchStencilValues()) {
+void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
+    if (!state_tracker.TouchStencilProperties()) {
         return;
     }
-    gpu.dirty.stencil_test = false;
-    const auto& regs = gpu.regs;
     if (regs.stencil_two_side_enable) {
         // Separate values per face
         scheduler.Record(

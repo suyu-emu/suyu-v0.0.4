@@ -425,24 +425,24 @@ inline GLenum StencilOp(Maxwell::StencilOp stencil) {
     return GL_KEEP;
 }
 
-inline GLenum FrontFace(Maxwell::Cull::FrontFace front_face) {
+inline GLenum FrontFace(Maxwell::FrontFace front_face) {
     switch (front_face) {
-    case Maxwell::Cull::FrontFace::ClockWise:
+    case Maxwell::FrontFace::ClockWise:
         return GL_CW;
-    case Maxwell::Cull::FrontFace::CounterClockWise:
+    case Maxwell::FrontFace::CounterClockWise:
         return GL_CCW;
     }
     LOG_ERROR(Render_OpenGL, "Unimplemented front face cull={}", static_cast<u32>(front_face));
     return GL_CCW;
 }
 
-inline GLenum CullFace(Maxwell::Cull::CullFace cull_face) {
+inline GLenum CullFace(Maxwell::CullFace cull_face) {
     switch (cull_face) {
-    case Maxwell::Cull::CullFace::Front:
+    case Maxwell::CullFace::Front:
         return GL_FRONT;
-    case Maxwell::Cull::CullFace::Back:
+    case Maxwell::CullFace::Back:
         return GL_BACK;
-    case Maxwell::Cull::CullFace::FrontAndBack:
+    case Maxwell::CullFace::FrontAndBack:
         return GL_FRONT_AND_BACK;
     }
     LOG_ERROR(Render_OpenGL, "Unimplemented cull face={}", static_cast<u32>(cull_face));

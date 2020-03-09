@@ -26,7 +26,8 @@ Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& raste
                      MemoryManager& memory_manager)
     : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
       macro_interpreter{*this}, upload_state{memory_manager, regs.upload} {
-    InitDirtySettings();
+    dirty.flags.flip();
+
     InitializeRegisterDefaults();
 }
 
@@ -75,8 +76,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.stencil_back_mask = 0xFFFFFFFF;
 
     regs.depth_test_func = Regs::ComparisonOp::Always;
-    regs.cull.front_face = Regs::Cull::FrontFace::CounterClockWise;
-    regs.cull.cull_face = Regs::Cull::CullFace::Back;
+    regs.front_face = Regs::FrontFace::CounterClockWise;
+    regs.cull_face = Regs::CullFace::Back;
 
     // TODO(Rodrigo): Most games do not set a point size. I think this is a case of a
     // register carrying a default value. Assume it's OpenGL's default (1).
@@ -95,170 +96,12 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
     regs.framebuffer_srgb = 1;
-    regs.cull.front_face = Maxwell3D::Regs::Cull::FrontFace::ClockWise;
+    regs.front_face = Maxwell3D::Regs::FrontFace::ClockWise;
 
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_end_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(vertex_buffer.count)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(index_array.count)] = true;
-}
-
-#define DIRTY_REGS_POS(field_name) static_cast<u8>(offsetof(Maxwell3D::DirtyRegs, field_name))
-
-void Maxwell3D::InitDirtySettings() {
-    const auto set_block = [this](std::size_t start, std::size_t range, u8 position) {
-        const auto start_itr = dirty_pointers.begin() + start;
-        const auto end_itr = start_itr + range;
-        std::fill(start_itr, end_itr, position);
-    };
-    dirty.regs.fill(true);
-
-    // Init Render Targets
-    constexpr u32 registers_per_rt = sizeof(regs.rt[0]) / sizeof(u32);
-    constexpr u32 rt_start_reg = MAXWELL3D_REG_INDEX(rt);
-    constexpr u32 rt_end_reg = rt_start_reg + registers_per_rt * 8;
-    u8 rt_dirty_reg = DIRTY_REGS_POS(render_target);
-    for (u32 rt_reg = rt_start_reg; rt_reg < rt_end_reg; rt_reg += registers_per_rt) {
-        set_block(rt_reg, registers_per_rt, rt_dirty_reg);
-        ++rt_dirty_reg;
-    }
-    constexpr u32 depth_buffer_flag = DIRTY_REGS_POS(depth_buffer);
-    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_enable)] = depth_buffer_flag;
-    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_width)] = depth_buffer_flag;
-    dirty_pointers[MAXWELL3D_REG_INDEX(zeta_height)] = depth_buffer_flag;
-    constexpr u32 registers_in_zeta = sizeof(regs.zeta) / sizeof(u32);
-    constexpr u32 zeta_reg = MAXWELL3D_REG_INDEX(zeta);
-    set_block(zeta_reg, registers_in_zeta, depth_buffer_flag);
-
-    // Init Vertex Arrays
-    constexpr u32 vertex_array_start = MAXWELL3D_REG_INDEX(vertex_array);
-    constexpr u32 vertex_array_size = sizeof(regs.vertex_array[0]) / sizeof(u32);
-    constexpr u32 vertex_array_end = vertex_array_start + vertex_array_size * Regs::NumVertexArrays;
-    u8 va_dirty_reg = DIRTY_REGS_POS(vertex_array);
-    u8 vi_dirty_reg = DIRTY_REGS_POS(vertex_instance);
-    for (u32 vertex_reg = vertex_array_start; vertex_reg < vertex_array_end;
-         vertex_reg += vertex_array_size) {
-        set_block(vertex_reg, 3, va_dirty_reg);
-        // The divisor concerns vertex array instances
-        dirty_pointers[static_cast<std::size_t>(vertex_reg) + 3] = vi_dirty_reg;
-        ++va_dirty_reg;
-        ++vi_dirty_reg;
-    }
-    constexpr u32 vertex_limit_start = MAXWELL3D_REG_INDEX(vertex_array_limit);
-    constexpr u32 vertex_limit_size = sizeof(regs.vertex_array_limit[0]) / sizeof(u32);
-    constexpr u32 vertex_limit_end = vertex_limit_start + vertex_limit_size * Regs::NumVertexArrays;
-    va_dirty_reg = DIRTY_REGS_POS(vertex_array);
-    for (u32 vertex_reg = vertex_limit_start; vertex_reg < vertex_limit_end;
-         vertex_reg += vertex_limit_size) {
-        set_block(vertex_reg, vertex_limit_size, va_dirty_reg);
-        va_dirty_reg++;
-    }
-    constexpr u32 vertex_instance_start = MAXWELL3D_REG_INDEX(instanced_arrays);
-    constexpr u32 vertex_instance_size =
-        sizeof(regs.instanced_arrays.is_instanced[0]) / sizeof(u32);
-    constexpr u32 vertex_instance_end =
-        vertex_instance_start + vertex_instance_size * Regs::NumVertexArrays;
-    vi_dirty_reg = DIRTY_REGS_POS(vertex_instance);
-    for (u32 vertex_reg = vertex_instance_start; vertex_reg < vertex_instance_end;
-         vertex_reg += vertex_instance_size) {
-        set_block(vertex_reg, vertex_instance_size, vi_dirty_reg);
-        vi_dirty_reg++;
-    }
-    set_block(MAXWELL3D_REG_INDEX(vertex_attrib_format), regs.vertex_attrib_format.size(),
-              DIRTY_REGS_POS(vertex_attrib_format));
-
-    // Init Shaders
-    constexpr u32 shader_registers_count =
-        sizeof(regs.shader_config[0]) * Regs::MaxShaderProgram / sizeof(u32);
-    set_block(MAXWELL3D_REG_INDEX(shader_config[0]), shader_registers_count,
-              DIRTY_REGS_POS(shaders));
-
-    // State
-
-    // Viewport
-    constexpr u8 viewport_dirty_reg = DIRTY_REGS_POS(viewport);
-    constexpr u32 viewport_start = MAXWELL3D_REG_INDEX(viewports);
-    constexpr u32 viewport_size = sizeof(regs.viewports) / sizeof(u32);
-    set_block(viewport_start, viewport_size, viewport_dirty_reg);
-    constexpr u32 view_volume_start = MAXWELL3D_REG_INDEX(view_volume_clip_control);
-    constexpr u32 view_volume_size = sizeof(regs.view_volume_clip_control) / sizeof(u32);
-    set_block(view_volume_start, view_volume_size, viewport_dirty_reg);
-
-    // Viewport transformation
-    constexpr u32 viewport_trans_start = MAXWELL3D_REG_INDEX(viewport_transform);
-    constexpr u32 viewport_trans_size = sizeof(regs.viewport_transform) / sizeof(u32);
-    set_block(viewport_trans_start, viewport_trans_size, DIRTY_REGS_POS(viewport_transform));
-
-    // Cullmode
-    constexpr u32 cull_mode_start = MAXWELL3D_REG_INDEX(cull);
-    constexpr u32 cull_mode_size = sizeof(regs.cull) / sizeof(u32);
-    set_block(cull_mode_start, cull_mode_size, DIRTY_REGS_POS(cull_mode));
-
-    // Screen y control
-    dirty_pointers[MAXWELL3D_REG_INDEX(screen_y_control)] = DIRTY_REGS_POS(screen_y_control);
-
-    // Primitive Restart
-    constexpr u32 primitive_restart_start = MAXWELL3D_REG_INDEX(primitive_restart);
-    constexpr u32 primitive_restart_size = sizeof(regs.primitive_restart) / sizeof(u32);
-    set_block(primitive_restart_start, primitive_restart_size, DIRTY_REGS_POS(primitive_restart));
-
-    // Depth Test
-    constexpr u8 depth_test_dirty_reg = DIRTY_REGS_POS(depth_test);
-    dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_enable)] = depth_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(depth_write_enabled)] = depth_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(depth_test_func)] = depth_test_dirty_reg;
-
-    // Stencil Test
-    constexpr u32 stencil_test_dirty_reg = DIRTY_REGS_POS(stencil_test);
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_enable)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_func)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_ref)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_func_mask)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_fail)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_zfail)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_op_zpass)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_front_mask)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_two_side_enable)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_func)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_ref)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_func_mask)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_fail)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_zfail)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_op_zpass)] = stencil_test_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(stencil_back_mask)] = stencil_test_dirty_reg;
-
-    // Color Mask
-    constexpr u8 color_mask_dirty_reg = DIRTY_REGS_POS(color_mask);
-    dirty_pointers[MAXWELL3D_REG_INDEX(color_mask_common)] = color_mask_dirty_reg;
-    set_block(MAXWELL3D_REG_INDEX(color_mask), sizeof(regs.color_mask) / sizeof(u32),
-              color_mask_dirty_reg);
-    // Blend State
-    constexpr u8 blend_state_dirty_reg = DIRTY_REGS_POS(blend_state);
-    set_block(MAXWELL3D_REG_INDEX(blend_color), sizeof(regs.blend_color) / sizeof(u32),
-              blend_state_dirty_reg);
-    dirty_pointers[MAXWELL3D_REG_INDEX(independent_blend_enable)] = blend_state_dirty_reg;
-    set_block(MAXWELL3D_REG_INDEX(blend), sizeof(regs.blend) / sizeof(u32), blend_state_dirty_reg);
-    set_block(MAXWELL3D_REG_INDEX(independent_blend), sizeof(regs.independent_blend) / sizeof(u32),
-              blend_state_dirty_reg);
-
-    // Scissor State
-    constexpr u8 scissor_test_dirty_reg = DIRTY_REGS_POS(scissor_test);
-    set_block(MAXWELL3D_REG_INDEX(scissor_test), sizeof(regs.scissor_test) / sizeof(u32),
-              scissor_test_dirty_reg);
-
-    // Polygon Offset
-    constexpr u8 polygon_offset_dirty_reg = DIRTY_REGS_POS(polygon_offset);
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_fill_enable)] = polygon_offset_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_line_enable)] = polygon_offset_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_point_enable)] = polygon_offset_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_units)] = polygon_offset_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_factor)] = polygon_offset_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(polygon_offset_clamp)] = polygon_offset_dirty_reg;
-
-    // Depth bounds
-    constexpr u8 depth_bounds_values_dirty_reg = DIRTY_REGS_POS(depth_bounds_values);
-    dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[0])] = depth_bounds_values_dirty_reg;
-    dirty_pointers[MAXWELL3D_REG_INDEX(depth_bounds[1])] = depth_bounds_values_dirty_reg;
 }
 
 void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u32* parameters) {
@@ -319,19 +162,9 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
 
     if (regs.reg_array[method] != method_call.argument) {
         regs.reg_array[method] = method_call.argument;
-        const std::size_t dirty_reg = dirty_pointers[method];
-        if (dirty_reg) {
-            dirty.regs[dirty_reg] = true;
-            if (dirty_reg >= DIRTY_REGS_POS(vertex_array) &&
-                dirty_reg < DIRTY_REGS_POS(vertex_array_buffers)) {
-                dirty.vertex_array_buffers = true;
-            } else if (dirty_reg >= DIRTY_REGS_POS(vertex_instance) &&
-                       dirty_reg < DIRTY_REGS_POS(vertex_instances)) {
-                dirty.vertex_instances = true;
-            } else if (dirty_reg >= DIRTY_REGS_POS(render_target) &&
-                       dirty_reg < DIRTY_REGS_POS(render_settings)) {
-                dirty.render_settings = true;
-            }
+
+        for (const auto& table : dirty.tables) {
+            dirty.flags[table[method]] = true;
         }
     }
 
@@ -419,7 +252,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(method_call.argument, is_last_call);
         if (is_last_call) {
-            dirty.OnMemoryWrite();
+            OnMemoryWrite();
         }
         break;
     }
@@ -727,7 +560,7 @@ void Maxwell3D::FinishCBData() {
 
     const u32 id = cb_data_state.id;
     memory_manager.WriteBlock(address, cb_data_state.buffer[id].data(), size);
-    dirty.OnMemoryWrite();
+    OnMemoryWrite();
 
     cb_data_state.id = null_cb_data;
     cb_data_state.current = null_cb_data;

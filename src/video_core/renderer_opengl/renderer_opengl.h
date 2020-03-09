@@ -10,7 +10,8 @@
 #include "common/math_util.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
+#include "video_core/renderer_opengl/gl_shader_manager.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 
 namespace Core {
 class System;
@@ -76,8 +77,6 @@ private:
     /// Draws the emulated screens to the emulator window.
     void DrawScreen(const Layout::FramebufferLayout& layout);
 
-    void DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w, float h);
-
     void RenderScreenshot();
 
     /// Loads framebuffer from emulated memory into the active OpenGL texture.
@@ -93,16 +92,19 @@ private:
     Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
 
-    OpenGLState state;
+    StateTracker state_tracker{system};
 
     // OpenGL object IDs
-    OGLVertexArray vertex_array;
     OGLBuffer vertex_buffer;
-    OGLProgram shader;
+    OGLProgram vertex_program;
+    OGLProgram fragment_program;
     OGLFramebuffer screenshot_framebuffer;
 
     /// Display information for Switch screen
     ScreenInfo screen_info;
+
+    /// Global dummy shader pipeline
+    GLShader::ProgramManager program_manager;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

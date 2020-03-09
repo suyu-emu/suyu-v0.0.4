@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <vector>
+
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/declarations.h"
 
@@ -15,6 +17,7 @@ class System;
 
 namespace Vulkan {
 
+class StateTracker;
 class VKBlitScreen;
 class VKDevice;
 class VKFence;
@@ -61,6 +64,7 @@ private:
     std::unique_ptr<VKSwapchain> swapchain;
     std::unique_ptr<VKMemoryManager> memory_manager;
     std::unique_ptr<VKResourceManager> resource_manager;
+    std::unique_ptr<StateTracker> state_tracker;
     std::unique_ptr<VKScheduler> scheduler;
     std::unique_ptr<VKBlitScreen> blit_screen;
 };

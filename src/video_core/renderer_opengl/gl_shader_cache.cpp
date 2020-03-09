@@ -22,6 +22,7 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -623,7 +624,7 @@ bool ShaderCacheOpenGL::GenerateUnspecializedShaders(
 }
 
 Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
-    if (!system.GPU().Maxwell3D().dirty.shaders) {
+    if (!system.GPU().Maxwell3D().dirty.flags[Dirty::Shaders]) {
         return last_shaders[static_cast<std::size_t>(program)];
     }
 

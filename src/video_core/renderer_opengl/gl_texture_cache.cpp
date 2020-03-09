@@ -10,7 +10,7 @@
 #include "core/core.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/texture_cache/surface_base.h"
@@ -397,6 +397,7 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
                                      const bool is_proxy)
     : VideoCommon::ViewBase(params), surface{surface}, is_proxy{is_proxy} {
     target = GetTextureTarget(params.target);
+    format = GetFormatTuple(surface.GetSurfaceParams().pixel_format).internal_format;
     if (!is_proxy) {
         texture_view = CreateTextureView();
     }
@@ -467,25 +468,20 @@ void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_sou
 }
 
 OGLTextureView CachedSurfaceView::CreateTextureView() const {
-    const auto& owner_params = surface.GetSurfaceParams();
     OGLTextureView texture_view;
     texture_view.Create();
 
-    const GLuint handle{texture_view.handle};
-    const FormatTuple& tuple{GetFormatTuple(owner_params.pixel_format)};
-
-    glTextureView(handle, target, surface.texture.handle, tuple.internal_format, params.base_level,
+    glTextureView(texture_view.handle, target, surface.texture.handle, format, params.base_level,
                   params.num_levels, params.base_layer, params.num_layers);
-
-    ApplyTextureDefaults(owner_params, handle);
+    ApplyTextureDefaults(surface.GetSurfaceParams(), texture_view.handle);
 
     return texture_view;
 }
 
 TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
                                        VideoCore::RasterizerInterface& rasterizer,
-                                       const Device& device)
-    : TextureCacheBase{system, rasterizer} {
+                                       const Device& device, StateTracker& state_tracker)
+    : TextureCacheBase{system, rasterizer}, state_tracker{state_tracker} {
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }
@@ -519,25 +515,26 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
                                    const Tegra::Engines::Fermi2D::Config& copy_config) {
     const auto& src_params{src_view->GetSurfaceParams()};
     const auto& dst_params{dst_view->GetSurfaceParams()};
-
-    OpenGLState prev_state{OpenGLState::GetCurState()};
-    SCOPE_EXIT({
-        prev_state.AllDirty();
-        prev_state.Apply();
-    });
-
-    OpenGLState state;
-    state.draw.read_framebuffer = src_framebuffer.handle;
-    state.draw.draw_framebuffer = dst_framebuffer.handle;
-    state.framebuffer_srgb.enabled = dst_params.srgb_conversion;
-    state.AllDirty();
-    state.Apply();
-
-    u32 buffers{};
-
     UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
     UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
 
+    state_tracker.NotifyScissor0();
+    state_tracker.NotifyFramebuffer();
+    state_tracker.NotifyRasterizeEnable();
+    state_tracker.NotifyFramebufferSRGB();
+
+    if (dst_params.srgb_conversion) {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    } else {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
+    glDisable(GL_RASTERIZER_DISCARD);
+    glDisablei(GL_SCISSOR_TEST, 0);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, src_framebuffer.handle);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dst_framebuffer.handle);
+
+    GLenum buffers = 0;
     if (src_params.type == SurfaceType::ColorTexture) {
         src_view->Attach(GL_COLOR_ATTACHMENT0, GL_READ_FRAMEBUFFER);
         glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, 0,

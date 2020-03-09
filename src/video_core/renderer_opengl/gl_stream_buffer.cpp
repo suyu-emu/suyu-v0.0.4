@@ -7,7 +7,6 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/microprofile.h"
-#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
 MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",

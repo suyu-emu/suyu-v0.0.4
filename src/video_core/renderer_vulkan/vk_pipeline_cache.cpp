@@ -188,11 +188,6 @@ VKPipelineCache::~VKPipelineCache() = default;
 
 std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
     const auto& gpu = system.GPU().Maxwell3D();
-    auto& dirty = system.GPU().Maxwell3D().dirty.shaders;
-    if (!dirty) {
-        return last_shaders;
-    }
-    dirty = false;
 
     std::array<Shader, Maxwell::MaxShaderProgram> shaders;
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {

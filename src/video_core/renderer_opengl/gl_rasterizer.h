@@ -30,7 +30,7 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
+#include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
 #include "video_core/renderer_opengl/utils.h"
 #include "video_core/textures/texture.h"
@@ -55,7 +55,8 @@ struct DrawParameters;
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                              ScreenInfo& info);
+                              ScreenInfo& info, GLShader::ProgramManager& program_manager,
+                              StateTracker& state_tracker);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -76,6 +77,7 @@ public:
                            u32 pixel_stride) override;
     void LoadDiskResources(const std::atomic_bool& stop_loading,
                            const VideoCore::DiskResourceLoadCallback& callback) override;
+    void SetupDirtyFlags() override;
 
     /// Returns true when there are commands queued to the OpenGL server.
     bool AnyCommandQueued() const {
@@ -86,8 +88,7 @@ private:
     /// Configures the color and depth framebuffer states.
     void ConfigureFramebuffers();
 
-    void ConfigureClearFramebuffer(OpenGLState& current_state, bool using_color_fb,
-                                   bool using_depth_fb, bool using_stencil_fb);
+    void ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb, bool using_stencil_fb);
 
     /// Configures the current constbuffers to use for the draw command.
     void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
@@ -130,11 +131,13 @@ private:
                     const GLShader::ImageEntry& entry);
 
     /// Syncs the viewport and depth range to match the guest state
-    void SyncViewport(OpenGLState& current_state);
+    void SyncViewport();
+
+    /// Syncs the depth clamp state
+    void SyncDepthClamp();
 
     /// Syncs the clip enabled status to match the guest state
-    void SyncClipEnabled(
-        const std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances>& clip_mask);
+    void SyncClipEnabled(u32 clip_mask);
 
     /// Syncs the clip coefficients to match the guest state
     void SyncClipCoef();
@@ -164,7 +167,7 @@ private:
     void SyncMultiSampleState();
 
     /// Syncs the scissor test state to match the guest state
-    void SyncScissorTest(OpenGLState& current_state);
+    void SyncScissorTest();
 
     /// Syncs the transform feedback state to match the guest state
     void SyncTransformFeedback();
@@ -173,7 +176,7 @@ private:
     void SyncPointState();
 
     /// Syncs the rasterizer enable state to match the guest state
-    void SyncRasterizeEnable(OpenGLState& current_state);
+    void SyncRasterizeEnable();
 
     /// Syncs Color Mask
     void SyncColorMask();
@@ -184,6 +187,9 @@ private:
     /// Syncs the alpha test state to match the guest state
     void SyncAlphaTest();
 
+    /// Syncs the framebuffer sRGB state to match the guest state
+    void SyncFramebufferSRGB();
+
     /// Check for extension that are not strictly required but are needed for correct emulation
     void CheckExtensions();
 
@@ -191,18 +197,17 @@ private:
 
     std::size_t CalculateIndexBufferSize() const;
 
-    /// Updates and returns a vertex array object representing current vertex format
-    GLuint SetupVertexFormat();
+    /// Updates the current vertex format
+    void SetupVertexFormat();
 
-    void SetupVertexBuffer(GLuint vao);
-    void SetupVertexInstances(GLuint vao);
+    void SetupVertexBuffer();
+    void SetupVertexInstances();
 
     GLintptr SetupIndexBuffer();
 
     void SetupShaders(GLenum primitive_mode);
 
     const Device device;
-    OpenGLState state;
 
     TextureCacheOpenGL texture_cache;
     ShaderCacheOpenGL shader_cache;
@@ -212,22 +217,20 @@ private:
 
     Core::System& system;
     ScreenInfo& screen_info;
-
-    std::unique_ptr<GLShader::ProgramManager> shader_program_manager;
-    std::map<std::array<Tegra::Engines::Maxwell3D::Regs::VertexAttribute,
-                        Tegra::Engines::Maxwell3D::Regs::NumVertexAttributes>,
-             OGLVertexArray>
-        vertex_array_cache;
+    GLShader::ProgramManager& program_manager;
+    StateTracker& state_tracker;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
 
-    VertexArrayPushBuffer vertex_array_pushbuffer;
+    VertexArrayPushBuffer vertex_array_pushbuffer{state_tracker};
     BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
     BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;
+
+    u32 last_clip_distance_mask = 0;
 };
 
 } // namespace OpenGL

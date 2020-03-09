@@ -9,7 +9,6 @@
 #include <glad/glad.h>
 
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_state.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 
 namespace OpenGL::GLShader {
@@ -29,25 +28,26 @@ static_assert(sizeof(MaxwellUniformData) < 16384,
 
 class ProgramManager {
 public:
-    explicit ProgramManager();
     ~ProgramManager();
 
-    void ApplyTo(OpenGLState& state);
+    void Create();
 
-    void UseProgrammableVertexShader(GLuint program) {
+    void Update();
+
+    void UseVertexShader(GLuint program) {
         current_state.vertex_shader = program;
     }
 
-    void UseProgrammableGeometryShader(GLuint program) {
+    void UseGeometryShader(GLuint program) {
         current_state.geometry_shader = program;
     }
 
-    void UseProgrammableFragmentShader(GLuint program) {
+    void UseFragmentShader(GLuint program) {
         current_state.fragment_shader = program;
     }
 
-    void UseTrivialGeometryShader() {
-        current_state.geometry_shader = 0;
+    GLuint GetHandle() const {
+        return pipeline.handle;
     }
 
     void UseTrivialFragmentShader() {
@@ -69,8 +69,6 @@ private:
         GLuint fragment_shader{};
         GLuint geometry_shader{};
     };
-
-    void UpdatePipeline();
 
     OGLPipeline pipeline;
     PipelineState current_state;

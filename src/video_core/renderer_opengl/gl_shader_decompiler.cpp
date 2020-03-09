@@ -2547,7 +2547,10 @@ ShaderEntries GetEntries(const VideoCommon::Shader::ShaderIR& ir) {
     for (const auto& image : ir.GetImages()) {
         entries.images.emplace_back(image);
     }
-    entries.clip_distances = ir.GetClipDistances();
+    const auto clip_distances = ir.GetClipDistances();
+    for (std::size_t i = 0; i < std::size(clip_distances); ++i) {
+        entries.clip_distances = (clip_distances[i] ? 1U : 0U) << i;
+    }
     entries.shader_length = ir.GetLength();
     return entries;
 }

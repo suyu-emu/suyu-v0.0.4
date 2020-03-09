@@ -112,19 +112,18 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
     const auto& clip = regs.view_volume_clip_control;
     const bool depth_clamp_enabled = clip.depth_clamp_near == 1 || clip.depth_clamp_far == 1;
 
-    Maxwell::Cull::FrontFace front_face = regs.cull.front_face;
+    Maxwell::FrontFace front_face = regs.front_face;
     if (regs.screen_y_control.triangle_rast_flip != 0 &&
         regs.viewport_transform[0].scale_y > 0.0f) {
-        if (front_face == Maxwell::Cull::FrontFace::CounterClockWise)
-            front_face = Maxwell::Cull::FrontFace::ClockWise;
-        else if (front_face == Maxwell::Cull::FrontFace::ClockWise)
-            front_face = Maxwell::Cull::FrontFace::CounterClockWise;
+        if (front_face == Maxwell::FrontFace::CounterClockWise)
+            front_face = Maxwell::FrontFace::ClockWise;
+        else if (front_face == Maxwell::FrontFace::ClockWise)
+            front_face = Maxwell::FrontFace::CounterClockWise;
     }
 
     const bool gl_ndc = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
-    return FixedPipelineState::Rasterizer(regs.cull.enabled, depth_bias_enabled,
-                                          depth_clamp_enabled, gl_ndc, regs.cull.cull_face,
-                                          front_face);
+    return FixedPipelineState::Rasterizer(regs.cull_test_enabled, depth_bias_enabled,
+                                          depth_clamp_enabled, gl_ndc, regs.cull_face, front_face);
 }
 
 } // Anonymous namespace

@@ -586,24 +586,24 @@ vk::BlendFactor BlendFactor(Maxwell::Blend::Factor factor) {
     return {};
 }
 
-vk::FrontFace FrontFace(Maxwell::Cull::FrontFace front_face) {
+vk::FrontFace FrontFace(Maxwell::FrontFace front_face) {
     switch (front_face) {
-    case Maxwell::Cull::FrontFace::ClockWise:
+    case Maxwell::FrontFace::ClockWise:
         return vk::FrontFace::eClockwise;
-    case Maxwell::Cull::FrontFace::CounterClockWise:
+    case Maxwell::FrontFace::CounterClockWise:
         return vk::FrontFace::eCounterClockwise;
     }
     UNIMPLEMENTED_MSG("Unimplemented front face={}", static_cast<u32>(front_face));
     return {};
 }
 
-vk::CullModeFlags CullFace(Maxwell::Cull::CullFace cull_face) {
+vk::CullModeFlags CullFace(Maxwell::CullFace cull_face) {
     switch (cull_face) {
-    case Maxwell::Cull::CullFace::Front:
+    case Maxwell::CullFace::Front:
         return vk::CullModeFlagBits::eFront;
-    case Maxwell::Cull::CullFace::Back:
+    case Maxwell::CullFace::Back:
         return vk::CullModeFlagBits::eBack;
-    case Maxwell::Cull::CullFace::FrontAndBack:
+    case Maxwell::CullFace::FrontAndBack:
         return vk::CullModeFlagBits::eFrontAndBack;
     }
     UNIMPLEMENTED_MSG("Unimplemented cull face={}", static_cast<u32>(cull_face));

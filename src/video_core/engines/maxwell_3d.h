@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <limits>
 #include <optional>
 #include <type_traits>
 #include <unordered_map>
@@ -431,21 +432,15 @@ public:
             GeneratedPrimitives = 0x1F,
         };
 
-        struct Cull {
-            enum class FrontFace : u32 {
-                ClockWise = 0x0900,
-                CounterClockWise = 0x0901,
-            };
+        enum class FrontFace : u32 {
+            ClockWise = 0x0900,
+            CounterClockWise = 0x0901,
+        };
 
-            enum class CullFace : u32 {
-                Front = 0x0404,
-                Back = 0x0405,
-                FrontAndBack = 0x0408,
-            };
-
-            u32 enabled;
-            FrontFace front_face;
-            CullFace cull_face;
+        enum class CullFace : u32 {
+            Front = 0x0404,
+            Back = 0x0405,
+            FrontAndBack = 0x0408,
         };
 
         struct Blend {
@@ -574,7 +569,7 @@ public:
             f32 translate_z;
             INSERT_UNION_PADDING_WORDS(2);
 
-            Common::Rectangle<s32> GetRect() const {
+            Common::Rectangle<f32> GetRect() const {
                 return {
                     GetX(),               // left
                     GetY() + GetHeight(), // top
@@ -583,20 +578,20 @@ public:
                 };
             };
 
-            s32 GetX() const {
-                return static_cast<s32>(std::max(0.0f, translate_x - std::fabs(scale_x)));
+            f32 GetX() const {
+                return std::max(0.0f, translate_x - std::fabs(scale_x));
             }
 
-            s32 GetY() const {
-                return static_cast<s32>(std::max(0.0f, translate_y - std::fabs(scale_y)));
+            f32 GetY() const {
+                return std::max(0.0f, translate_y - std::fabs(scale_y));
             }
 
-            s32 GetWidth() const {
-                return static_cast<s32>(translate_x + std::fabs(scale_x)) - GetX();
+            f32 GetWidth() const {
+                return translate_x + std::fabs(scale_x) - GetX();
             }
 
-            s32 GetHeight() const {
-                return static_cast<s32>(translate_y + std::fabs(scale_y)) - GetY();
+            f32 GetHeight() const {
+                return translate_y + std::fabs(scale_y) - GetY();
             }
         };
 
@@ -872,16 +867,7 @@ public:
 
                 INSERT_UNION_PADDING_WORDS(0x35);
 
-                union {
-                    BitField<0, 1, u32> c0;
-                    BitField<1, 1, u32> c1;
-                    BitField<2, 1, u32> c2;
-                    BitField<3, 1, u32> c3;
-                    BitField<4, 1, u32> c4;
-                    BitField<5, 1, u32> c5;
-                    BitField<6, 1, u32> c6;
-                    BitField<7, 1, u32> c7;
-                } clip_distance_enabled;
+                u32 clip_distance_enabled;
 
                 u32 samplecnt_enable;
 
@@ -1060,7 +1046,9 @@ public:
 
                 INSERT_UNION_PADDING_WORDS(1);
 
-                Cull cull;
+                u32 cull_test_enabled;
+                FrontFace front_face;
+                CullFace cull_face;
 
                 u32 pixel_center_integer;
 
@@ -1238,79 +1226,6 @@ public:
 
     State state{};
 
-    struct DirtyRegs {
-        static constexpr std::size_t NUM_REGS = 256;
-        static_assert(NUM_REGS - 1 <= std::numeric_limits<u8>::max());
-
-        union {
-            struct {
-                bool null_dirty;
-
-                // Vertex Attributes
-                bool vertex_attrib_format;
-
-                // Vertex Arrays
-                std::array<bool, 32> vertex_array;
-
-                bool vertex_array_buffers;
-
-                // Vertex Instances
-                std::array<bool, 32> vertex_instance;
-
-                bool vertex_instances;
-
-                // Render Targets
-                std::array<bool, 8> render_target;
-                bool depth_buffer;
-
-                bool render_settings;
-
-                // Shaders
-                bool shaders;
-
-                // Rasterizer State
-                bool viewport;
-                bool clip_coefficient;
-                bool cull_mode;
-                bool primitive_restart;
-                bool depth_test;
-                bool stencil_test;
-                bool blend_state;
-                bool scissor_test;
-                bool transform_feedback;
-                bool color_mask;
-                bool polygon_offset;
-                bool depth_bounds_values;
-
-                // Complementary
-                bool viewport_transform;
-                bool screen_y_control;
-
-                bool memory_general;
-            };
-            std::array<bool, NUM_REGS> regs;
-        };
-
-        void ResetVertexArrays() {
-            vertex_array.fill(true);
-            vertex_array_buffers = true;
-        }
-
-        void ResetRenderTargets() {
-            depth_buffer = true;
-            render_target.fill(true);
-            render_settings = true;
-        }
-
-        void OnMemoryWrite() {
-            shaders = true;
-            memory_general = true;
-            ResetRenderTargets();
-            ResetVertexArrays();
-        }
-
-    } dirty{};
-
     /// Reads a register value located at the input method address
     u32 GetRegisterValue(u32 method) const;
 
@@ -1356,6 +1271,11 @@ public:
         return execute_on;
     }
 
+    /// Notify a memory write has happened.
+    void OnMemoryWrite() {
+        dirty.flags |= dirty.on_write_stores;
+    }
+
     enum class MMEDrawMode : u32 {
         Undefined,
         Array,
@@ -1370,6 +1290,16 @@ public:
         bool gl_begin_consume{};
         u32 gl_end_count{};
     } mme_draw;
+
+    struct DirtyState {
+        using Flags = std::bitset<std::numeric_limits<u8>::max()>;
+        using Table = std::array<u8, Regs::NUM_REGS>;
+        using Tables = std::array<Table, 2>;
+
+        Flags flags;
+        Flags on_write_stores;
+        Tables tables{};
+    } dirty;
 
 private:
     void InitializeRegisterDefaults();
@@ -1416,8 +1346,6 @@ private:
 
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
-
-    void InitDirtySettings();
 
     /**
      * Call a macro on this engine.
@@ -1561,7 +1489,9 @@ ASSERT_REG_POSITION(index_array, 0x5F2);
 ASSERT_REG_POSITION(polygon_offset_clamp, 0x61F);
 ASSERT_REG_POSITION(instanced_arrays, 0x620);
 ASSERT_REG_POSITION(vp_point_size, 0x644);
-ASSERT_REG_POSITION(cull, 0x646);
+ASSERT_REG_POSITION(cull_test_enabled, 0x646);
+ASSERT_REG_POSITION(front_face, 0x647);
+ASSERT_REG_POSITION(cull_face, 0x648);
 ASSERT_REG_POSITION(pixel_center_integer, 0x649);
 ASSERT_REG_POSITION(viewport_transform_enabled, 0x64B);
 ASSERT_REG_POSITION(view_volume_clip_control, 0x64F);

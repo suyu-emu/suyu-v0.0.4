@@ -2,6 +2,8 @@ add_library(video_core STATIC
     buffer_cache/buffer_block.h
     buffer_cache/buffer_cache.h
     buffer_cache/map_interval.h
+    dirty_flags.cpp
+    dirty_flags.h
     dma_pusher.cpp
     dma_pusher.h
     engines/const_buffer_engine_interface.h
@@ -69,8 +71,8 @@ add_library(video_core STATIC
     renderer_opengl/gl_shader_manager.h
     renderer_opengl/gl_shader_util.cpp
     renderer_opengl/gl_shader_util.h
-    renderer_opengl/gl_state.cpp
-    renderer_opengl/gl_state.h
+    renderer_opengl/gl_state_tracker.cpp
+    renderer_opengl/gl_state_tracker.h
     renderer_opengl/gl_stream_buffer.cpp
     renderer_opengl/gl_stream_buffer.h
     renderer_opengl/gl_texture_cache.cpp
@@ -198,6 +200,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_shader_util.h
         renderer_vulkan/vk_staging_buffer_pool.cpp
         renderer_vulkan/vk_staging_buffer_pool.h
+        renderer_vulkan/vk_state_tracker.cpp
+        renderer_vulkan/vk_state_tracker.h
         renderer_vulkan/vk_stream_buffer.cpp
         renderer_vulkan/vk_stream_buffer.h
         renderer_vulkan/vk_swapchain.cpp

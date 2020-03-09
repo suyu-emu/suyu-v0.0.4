@@ -20,6 +20,7 @@
 #include "core/telemetry_session.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
+#include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
 
 namespace OpenGL {
@@ -86,28 +87,22 @@ public:
     }
 
     void ReloadRenderFrame(Frame* frame, u32 width, u32 height) {
-        OpenGLState prev_state = OpenGLState::GetCurState();
-        OpenGLState state = OpenGLState::GetCurState();
-
         // Recreate the color texture attachment
         frame->color.Release();
         frame->color.Create();
-        state.renderbuffer = frame->color.handle;
-        state.Apply();
-        glRenderbufferStorage(GL_RENDERBUFFER, frame->is_srgb ? GL_SRGB8 : GL_RGB8, width, height);
+        const GLenum internal_format = frame->is_srgb ? GL_SRGB8 : GL_RGB8;
+        glNamedRenderbufferStorage(frame->color.handle, internal_format, width, height);
 
         // Recreate the FBO for the render target
         frame->render.Release();
         frame->render.Create();
-        state.draw.read_framebuffer = frame->render.handle;
-        state.draw.draw_framebuffer = frame->render.handle;
-        state.Apply();
+        glBindFramebuffer(GL_FRAMEBUFFER, frame->render.handle);
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
                                   frame->color.handle);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
             LOG_CRITICAL(Render_OpenGL, "Failed to recreate render FBO!");
         }
-        prev_state.Apply();
+
         frame->width = width;
         frame->height = height;
         frame->color_reloaded = true;
@@ -164,8 +159,12 @@ public:
 
 namespace {
 
-constexpr char vertex_shader[] = R"(
+constexpr char VERTEX_SHADER[] = R"(
 #version 430 core
+
+out gl_PerVertex {
+    vec4 gl_Position;
+};
 
 layout (location = 0) in vec2 vert_position;
 layout (location = 1) in vec2 vert_tex_coord;
@@ -187,7 +186,7 @@ void main() {
 }
 )";
 
-constexpr char fragment_shader[] = R"(
+constexpr char FRAGMENT_SHADER[] = R"(
 #version 430 core
 
 layout (location = 0) in vec2 frag_tex_coord;
@@ -196,7 +195,7 @@ layout (location = 0) out vec4 color;
 layout (binding = 0) uniform sampler2D color_texture;
 
 void main() {
-    color = texture(color_texture, frag_tex_coord);
+    color = vec4(texture(color_texture, frag_tex_coord).rgb, 1.0f);
 }
 )";
 
@@ -205,8 +204,8 @@ constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
 
 struct ScreenRectVertex {
-    constexpr ScreenRectVertex(GLfloat x, GLfloat y, GLfloat u, GLfloat v)
-        : position{{x, y}}, tex_coord{{u, v}} {}
+    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
+        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
 
     std::array<GLfloat, 2> position;
     std::array<GLfloat, 2> tex_coord;
@@ -311,11 +310,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         return;
     }
 
-    // Maintain the rasterizer's state as a priority
-    OpenGLState prev_state = OpenGLState::GetCurState();
-    state.AllDirty();
-    state.Apply();
-
     PrepareRendertarget(framebuffer);
     RenderScreenshot();
 
@@ -358,8 +352,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
             frame->is_srgb = screen_info.display_srgb;
             frame_mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
         }
-        state.draw.draw_framebuffer = frame->render.handle;
-        state.Apply();
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame->render.handle);
         DrawScreen(layout);
         // Create a fence for the frontend to wait on and swap this frame to OffTex
         frame->render_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
@@ -368,10 +361,6 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         m_current_frame++;
         rasterizer->TickFrame();
     }
-
-    // Restore the rasterizer state
-    prev_state.AllDirty();
-    prev_state.Apply();
 }
 
 void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer) {
@@ -442,31 +431,25 @@ void RendererOpenGL::InitOpenGLObjects() {
     glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
                  0.0f);
 
-    // Link shaders and get variable locations
-    shader.CreateFromSource(vertex_shader, nullptr, fragment_shader);
-    state.draw.shader_program = shader.handle;
-    state.AllDirty();
-    state.Apply();
+    // Create shader programs
+    OGLShader vertex_shader;
+    vertex_shader.Create(VERTEX_SHADER, GL_VERTEX_SHADER);
+
+    OGLShader fragment_shader;
+    fragment_shader.Create(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
+
+    vertex_program.Create(true, false, vertex_shader.handle);
+    fragment_program.Create(true, false, fragment_shader.handle);
+
+    // Create program pipeline
+    program_manager.Create();
+    glBindProgramPipeline(program_manager.GetHandle());
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
 
-    // Generate VAO
-    vertex_array.Create();
-    state.draw.vertex_array = vertex_array.handle;
-
     // Attach vertex data to VAO
     glNamedBufferData(vertex_buffer.handle, sizeof(ScreenRectVertex) * 4, nullptr, GL_STREAM_DRAW);
-    glVertexArrayAttribFormat(vertex_array.handle, PositionLocation, 2, GL_FLOAT, GL_FALSE,
-                              offsetof(ScreenRectVertex, position));
-    glVertexArrayAttribFormat(vertex_array.handle, TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
-                              offsetof(ScreenRectVertex, tex_coord));
-    glVertexArrayAttribBinding(vertex_array.handle, PositionLocation, 0);
-    glVertexArrayAttribBinding(vertex_array.handle, TexCoordLocation, 0);
-    glEnableVertexArrayAttrib(vertex_array.handle, PositionLocation);
-    glEnableVertexArrayAttrib(vertex_array.handle, TexCoordLocation);
-    glVertexArrayVertexBuffer(vertex_array.handle, 0, vertex_buffer.handle, 0,
-                              sizeof(ScreenRectVertex));
 
     // Allocate textures for the screen
     screen_info.texture.resource.Create(GL_TEXTURE_2D);
@@ -499,7 +482,8 @@ void RendererOpenGL::CreateRasterizer() {
     if (rasterizer) {
         return;
     }
-    rasterizer = std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info);
+    rasterizer = std::make_unique<RasterizerOpenGL>(system, emu_window, screen_info,
+                                                    program_manager, state_tracker);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -538,8 +522,19 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
     glTextureStorage2D(texture.resource.handle, 1, internal_format, texture.width, texture.height);
 }
 
-void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x, float y, float w,
-                                         float h) {
+void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
+    if (renderer_settings.set_background_color) {
+        // Update background color before drawing
+        glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
+                     0.0f);
+    }
+
+    // Set projection matrix
+    const std::array ortho_matrix =
+        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
+    glProgramUniformMatrix3x2fv(vertex_program.handle, ModelViewMatrixLocation, 1, GL_FALSE,
+                                std::data(ortho_matrix));
+
     const auto& texcoords = screen_info.display_texcoords;
     auto left = texcoords.left;
     auto right = texcoords.right;
@@ -571,46 +566,77 @@ void RendererOpenGL::DrawScreenTriangles(const ScreenInfo& screen_info, float x,
                   static_cast<f32>(screen_info.texture.height);
     }
 
-    const std::array vertices = {
-        ScreenRectVertex(x, y, texcoords.top * scale_u, left * scale_v),
-        ScreenRectVertex(x + w, y, texcoords.bottom * scale_u, left * scale_v),
-        ScreenRectVertex(x, y + h, texcoords.top * scale_u, right * scale_v),
-        ScreenRectVertex(x + w, y + h, texcoords.bottom * scale_u, right * scale_v),
-    };
-
-    state.textures[0] = screen_info.display_texture;
-    state.framebuffer_srgb.enabled = screen_info.display_srgb;
-    state.AllDirty();
-    state.Apply();
-    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    // Restore default state
-    state.framebuffer_srgb.enabled = false;
-    state.textures[0] = 0;
-    state.AllDirty();
-    state.Apply();
-}
-
-void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
-    if (renderer_settings.set_background_color) {
-        // Update background color before drawing
-        glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
-                     0.0f);
-    }
-
     const auto& screen = layout.screen;
+    const std::array vertices = {
+        ScreenRectVertex(screen.left, screen.top, texcoords.top * scale_u, left * scale_v),
+        ScreenRectVertex(screen.right, screen.top, texcoords.bottom * scale_u, left * scale_v),
+        ScreenRectVertex(screen.left, screen.bottom, texcoords.top * scale_u, right * scale_v),
+        ScreenRectVertex(screen.right, screen.bottom, texcoords.bottom * scale_u, right * scale_v),
+    };
+    glNamedBufferSubData(vertex_buffer.handle, 0, sizeof(vertices), std::data(vertices));
 
-    glViewport(0, 0, layout.width, layout.height);
+    // TODO: Signal state tracker about these changes
+    state_tracker.NotifyScreenDrawVertexArray();
+    state_tracker.NotifyViewport0();
+    state_tracker.NotifyScissor0();
+    state_tracker.NotifyColorMask0();
+    state_tracker.NotifyBlend0();
+    state_tracker.NotifyFramebuffer();
+    state_tracker.NotifyFrontFace();
+    state_tracker.NotifyCullTest();
+    state_tracker.NotifyDepthTest();
+    state_tracker.NotifyStencilTest();
+    state_tracker.NotifyPolygonOffset();
+    state_tracker.NotifyRasterizeEnable();
+    state_tracker.NotifyFramebufferSRGB();
+    state_tracker.NotifyLogicOp();
+    state_tracker.NotifyClipControl();
+    state_tracker.NotifyAlphaTest();
+
+    program_manager.UseVertexShader(vertex_program.handle);
+    program_manager.UseGeometryShader(0);
+    program_manager.UseFragmentShader(fragment_program.handle);
+    program_manager.Update();
+
+    glEnable(GL_CULL_FACE);
+    if (screen_info.display_srgb) {
+        glEnable(GL_FRAMEBUFFER_SRGB);
+    } else {
+        glDisable(GL_FRAMEBUFFER_SRGB);
+    }
+    glDisable(GL_COLOR_LOGIC_OP);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_RASTERIZER_DISCARD);
+    glDisable(GL_ALPHA_TEST);
+    glDisablei(GL_BLEND, 0);
+    glDisablei(GL_SCISSOR_TEST, 0);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
+    glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
+    glViewportIndexedf(0, 0.0f, 0.0f, static_cast<GLfloat>(layout.width),
+                       static_cast<GLfloat>(layout.height));
+    glDepthRangeIndexed(0, 0.0, 0.0);
+
+    glEnableVertexAttribArray(PositionLocation);
+    glEnableVertexAttribArray(TexCoordLocation);
+    glVertexAttribDivisor(PositionLocation, 0);
+    glVertexAttribDivisor(TexCoordLocation, 0);
+    glVertexAttribFormat(PositionLocation, 2, GL_FLOAT, GL_FALSE,
+                         offsetof(ScreenRectVertex, position));
+    glVertexAttribFormat(TexCoordLocation, 2, GL_FLOAT, GL_FALSE,
+                         offsetof(ScreenRectVertex, tex_coord));
+    glVertexAttribBinding(PositionLocation, 0);
+    glVertexAttribBinding(TexCoordLocation, 0);
+    glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
+
+    glBindTextureUnit(0, screen_info.display_texture);
+    glBindSampler(0, 0);
+
     glClear(GL_COLOR_BUFFER_BIT);
-
-    // Set projection matrix
-    const std::array ortho_matrix =
-        MakeOrthographicMatrix(static_cast<float>(layout.width), static_cast<float>(layout.height));
-    glUniformMatrix3x2fv(ModelViewMatrixLocation, 1, GL_FALSE, ortho_matrix.data());
-
-    DrawScreenTriangles(screen_info, static_cast<float>(screen.left),
-                        static_cast<float>(screen.top), static_cast<float>(screen.GetWidth()),
-                        static_cast<float>(screen.GetHeight()));
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void RendererOpenGL::TryPresent(int timeout_ms) {
@@ -653,13 +679,14 @@ void RendererOpenGL::RenderScreenshot() {
         return;
     }
 
+    GLint old_read_fb;
+    GLint old_draw_fb;
+    glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &old_read_fb);
+    glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &old_draw_fb);
+
     // Draw the current frame to the screenshot framebuffer
     screenshot_framebuffer.Create();
-    GLuint old_read_fb = state.draw.read_framebuffer;
-    GLuint old_draw_fb = state.draw.draw_framebuffer;
-    state.draw.read_framebuffer = state.draw.draw_framebuffer = screenshot_framebuffer.handle;
-    state.AllDirty();
-    state.Apply();
+    glBindFramebuffer(GL_FRAMEBUFFER, screenshot_framebuffer.handle);
 
     Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
 
@@ -676,11 +703,10 @@ void RendererOpenGL::RenderScreenshot() {
                  renderer_settings.screenshot_bits);
 
     screenshot_framebuffer.Release();
-    state.draw.read_framebuffer = old_read_fb;
-    state.draw.draw_framebuffer = old_draw_fb;
-    state.AllDirty();
-    state.Apply();
     glDeleteRenderbuffers(1, &renderbuffer);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, old_read_fb);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, old_draw_fb);
 
     renderer_settings.screenshot_complete_callback();
     renderer_settings.screenshot_requested = false;
