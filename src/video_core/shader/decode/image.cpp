@@ -53,7 +53,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 
     switch (opcode->get().GetId()) {
     case OpCode::Id::SULD: {
-        UNIMPLEMENTED_IF(instr.suldst.mode != Tegra::Shader::SurfaceDataMode::P);
         UNIMPLEMENTED_IF(instr.suldst.out_of_bounds_store !=
                          Tegra::Shader::OutOfBoundsStore::Ignore);
 
@@ -62,17 +61,34 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                                               : GetBindlessImage(instr.gpr39, type)};
         image.MarkRead();
 
-        u32 indexer = 0;
-        for (u32 element = 0; element < 4; ++element) {
-            if (!instr.suldst.IsComponentEnabled(element)) {
-                continue;
+        if (instr.suldst.mode == Tegra::Shader::SurfaceDataMode::P) {
+            u32 indexer = 0;
+            for (u32 element = 0; element < 4; ++element) {
+                if (!instr.suldst.IsComponentEnabled(element)) {
+                    continue;
+                }
+                MetaImage meta{image, {}, element};
+                Node value = Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+                SetTemporary(bb, indexer++, std::move(value));
             }
-            MetaImage meta{image, {}, element};
-            Node value = Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
-            SetTemporary(bb, indexer++, std::move(value));
-        }
-        for (u32 i = 0; i < indexer; ++i) {
-            SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+            for (u32 i = 0; i < indexer; ++i) {
+                SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+            }
+        } else if (instr.suldst.mode == Tegra::Shader::SurfaceDataMode::D_BA) {
+            UNIMPLEMENTED_IF(instr.suldst.GetStoreDataLayout() != StoreType::Bits32);
+
+            switch (instr.suldst.GetStoreDataLayout()) {
+            case StoreType::Bits32: {
+                MetaImage meta{image, {}, {}};
+                Node value = Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+                SetTemporary(bb, 0, std::move(value));
+                SetRegister(bb, instr.gpr0.Value(), GetTemporary(0));
+                break;
+            }
+            default:
+                UNREACHABLE();
+                break;
+            }
         }
         break;
     }
