@@ -23,6 +23,11 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 ConfigureGeneral::~ConfigureGeneral() = default;
 
 void ConfigureGeneral::SetConfiguration() {
+    const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
+
+    ui->use_multi_core->setEnabled(runtime_lock);
+    ui->use_multi_core->setChecked(Settings::values.use_multi_core);
+
     ui->toggle_check_exit->setChecked(UISettings::values.confirm_before_closing);
     ui->toggle_user_on_boot->setChecked(UISettings::values.select_user_on_boot);
     ui->toggle_background_pause->setChecked(UISettings::values.pause_when_in_background);
@@ -41,6 +46,7 @@ void ConfigureGeneral::ApplyConfiguration() {
 
     Settings::values.use_frame_limit = ui->toggle_frame_limit->isChecked();
     Settings::values.frame_limit = ui->frame_limit->value();
+    Settings::values.use_multi_core = ui->use_multi_core->isChecked();
 }
 
 void ConfigureGeneral::changeEvent(QEvent* event) {

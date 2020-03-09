@@ -113,6 +113,10 @@ struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
         : global_scheduler{kernel}, synchronization{system}, time_manager{system}, system{system} {}
 
+    void SetMulticore(bool is_multicore) {
+        this->is_multicore = is_multicore;
+    }
+
     void Initialize(KernelCore& kernel) {
         Shutdown();
 
@@ -237,6 +241,9 @@ struct KernelCore::Impl {
 
     void RegisterCoreThread(std::size_t core_id) {
         std::unique_lock lock{register_thread_mutex};
+        if (!is_multicore) {
+            single_core_thread_id = std::this_thread::get_id();
+        }
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
@@ -258,6 +265,11 @@ struct KernelCore::Impl {
 
     u32 GetCurrentHostThreadID() const {
         const std::thread::id this_id = std::this_thread::get_id();
+        if (!is_multicore) {
+            if (single_core_thread_id == this_id) {
+                return static_cast<u32>(system.GetCpuManager().CurrentCore());
+            }
+        }
         const auto it = host_thread_ids.find(this_id);
         if (it == host_thread_ids.end()) {
             return Core::INVALID_HOST_THREAD_ID;
@@ -378,6 +390,9 @@ struct KernelCore::Impl {
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
 
+    bool is_multicore{};
+    std::thread::id single_core_thread_id{};
+
     // System context
     Core::System& system;
 };
@@ -385,6 +400,10 @@ struct KernelCore::Impl {
 KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
 KernelCore::~KernelCore() {
     Shutdown();
+}
+
+void KernelCore::SetMulticore(bool is_multicore) {
+    impl->SetMulticore(is_multicore);
 }
 
 void KernelCore::Initialize() {

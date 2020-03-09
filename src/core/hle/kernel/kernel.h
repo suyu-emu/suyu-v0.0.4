@@ -65,6 +65,9 @@ public:
     KernelCore(KernelCore&&) = delete;
     KernelCore& operator=(KernelCore&&) = delete;
 
+    /// Sets if emulation is multicore or single core, must be set before Initialize
+    void SetMulticore(bool is_multicore);
+
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 

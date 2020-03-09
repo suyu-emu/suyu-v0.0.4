@@ -26,9 +26,13 @@ void CpuManager::ThreadStart(CpuManager& cpu_manager, std::size_t core) {
 
 void CpuManager::Initialize() {
     running_mode = true;
-    for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        core_data[core].host_thread =
-            std::make_unique<std::thread>(ThreadStart, std::ref(*this), core);
+    if (is_multicore) {
+        for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+            core_data[core].host_thread =
+                std::make_unique<std::thread>(ThreadStart, std::ref(*this), core);
+        }
+    } else {
+        core_data[0].host_thread = std::make_unique<std::thread>(ThreadStart, std::ref(*this), 0);
     }
 }
 
@@ -39,26 +43,6 @@ void CpuManager::Shutdown() {
         core_data[core].host_thread->join();
         core_data[core].host_thread.reset();
     }
-}
-
-void CpuManager::GuestThreadFunction(void* cpu_manager_) {
-    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
-    cpu_manager->RunGuestThread();
-}
-
-void CpuManager::GuestRewindFunction(void* cpu_manager_) {
-    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
-    cpu_manager->RunGuestLoop();
-}
-
-void CpuManager::IdleThreadFunction(void* cpu_manager_) {
-    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
-    cpu_manager->RunIdleThread();
-}
-
-void CpuManager::SuspendThreadFunction(void* cpu_manager_) {
-    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
-    cpu_manager->RunSuspendThread();
 }
 
 std::function<void(void*)> CpuManager::GetGuestThreadStartFunc() {
@@ -73,20 +57,60 @@ std::function<void(void*)> CpuManager::GetSuspendThreadStartFunc() {
     return std::function<void(void*)>(SuspendThreadFunction);
 }
 
+void CpuManager::GuestThreadFunction(void* cpu_manager_) {
+    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
+    if (cpu_manager->is_multicore) {
+        cpu_manager->MultiCoreRunGuestThread();
+    } else {
+        cpu_manager->SingleCoreRunGuestThread();
+    }
+}
+
+void CpuManager::GuestRewindFunction(void* cpu_manager_) {
+    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
+    if (cpu_manager->is_multicore) {
+        cpu_manager->MultiCoreRunGuestLoop();
+    } else {
+        cpu_manager->SingleCoreRunGuestLoop();
+    }
+}
+
+void CpuManager::IdleThreadFunction(void* cpu_manager_) {
+    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
+    if (cpu_manager->is_multicore) {
+        cpu_manager->MultiCoreRunIdleThread();
+    } else {
+        cpu_manager->SingleCoreRunIdleThread();
+    }
+}
+
+void CpuManager::SuspendThreadFunction(void* cpu_manager_) {
+    CpuManager* cpu_manager = static_cast<CpuManager*>(cpu_manager_);
+    if (cpu_manager->is_multicore) {
+        cpu_manager->MultiCoreRunSuspendThread();
+    } else {
+        cpu_manager->SingleCoreRunSuspendThread();
+    }
+}
+
 void* CpuManager::GetStartFuncParamater() {
     return static_cast<void*>(this);
 }
 
-void CpuManager::RunGuestThread() {
+///////////////////////////////////////////////////////////////////////////////
+///                             MultiCore                                   ///
+///////////////////////////////////////////////////////////////////////////////
+
+void CpuManager::MultiCoreRunGuestThread() {
     auto& kernel = system.Kernel();
     {
         auto& sched = kernel.CurrentScheduler();
         sched.OnThreadStart();
     }
-    RunGuestLoop();
+    MultiCoreRunGuestLoop();
 }
 
-void CpuManager::RunGuestLoop() {
+void CpuManager::MultiCoreRunGuestLoop() {
     auto& kernel = system.Kernel();
     auto* thread = kernel.CurrentScheduler().GetCurrentThread();
     auto host_context = thread->GetHostContext();
@@ -103,7 +127,7 @@ void CpuManager::RunGuestLoop() {
     }
 }
 
-void CpuManager::RunIdleThread() {
+void CpuManager::MultiCoreRunIdleThread() {
     auto& kernel = system.Kernel();
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
@@ -113,7 +137,7 @@ void CpuManager::RunIdleThread() {
     }
 }
 
-void CpuManager::RunSuspendThread() {
+void CpuManager::MultiCoreRunSuspendThread() {
     auto& kernel = system.Kernel();
     {
         auto& sched = kernel.CurrentScheduler();
@@ -130,7 +154,7 @@ void CpuManager::RunSuspendThread() {
     }
 }
 
-void CpuManager::Pause(bool paused) {
+void CpuManager::MultiCorePause(bool paused) {
     if (!paused) {
         bool all_not_barrier = false;
         while (!all_not_barrier) {
@@ -171,10 +195,120 @@ void CpuManager::Pause(bool paused) {
     paused_state = paused;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+///                             SingleCore                                   ///
+///////////////////////////////////////////////////////////////////////////////
+
+void CpuManager::SingleCoreRunGuestThread() {
+    auto& kernel = system.Kernel();
+    {
+        auto& sched = kernel.CurrentScheduler();
+        sched.OnThreadStart();
+    }
+    SingleCoreRunGuestLoop();
+}
+
+void CpuManager::SingleCoreRunGuestLoop() {
+    auto& kernel = system.Kernel();
+    auto* thread = kernel.CurrentScheduler().GetCurrentThread();
+    auto host_context = thread->GetHostContext();
+    host_context->SetRewindPoint(std::function<void(void*)>(GuestRewindFunction), this);
+    host_context.reset();
+    while (true) {
+        auto& physical_core = kernel.CurrentPhysicalCore();
+        while (!physical_core.IsInterrupted()) {
+            physical_core.Run();
+            preemption_count++;
+            if (preemption_count % max_cycle_runs == 0) {
+                break;
+            }
+        }
+        physical_core.ClearExclusive();
+        PreemptSingleCore();
+        auto& scheduler = physical_core.Scheduler();
+        scheduler.TryDoContextSwitch();
+    }
+}
+
+void CpuManager::SingleCoreRunIdleThread() {
+    auto& kernel = system.Kernel();
+    while (true) {
+        auto& physical_core = kernel.CurrentPhysicalCore();
+        PreemptSingleCore();
+        auto& scheduler = physical_core.Scheduler();
+        scheduler.TryDoContextSwitch();
+    }
+}
+
+void CpuManager::SingleCoreRunSuspendThread() {
+    auto& kernel = system.Kernel();
+    {
+        auto& sched = kernel.CurrentScheduler();
+        sched.OnThreadStart();
+    }
+    while (true) {
+        auto core = kernel.GetCurrentHostThreadID();
+        auto& scheduler = kernel.CurrentScheduler();
+        Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+        Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[0].host_context);
+        ASSERT(scheduler.ContextSwitchPending());
+        ASSERT(core == kernel.GetCurrentHostThreadID());
+        scheduler.TryDoContextSwitch();
+    }
+}
+
+void CpuManager::PreemptSingleCore() {
+    preemption_count = 0;
+    std::size_t old_core = current_core;
+    current_core = (current_core + 1) % Core::Hardware::NUM_CPU_CORES;
+    auto& scheduler = system.Kernel().Scheduler(old_core);
+    Kernel::Thread* current_thread = system.Kernel().Scheduler(old_core).GetCurrentThread();
+    Kernel::Thread* next_thread = system.Kernel().Scheduler(current_core).GetCurrentThread();
+    Common::Fiber::YieldTo(current_thread->GetHostContext(), next_thread->GetHostContext());
+}
+
+void CpuManager::SingleCorePause(bool paused) {
+    if (!paused) {
+        bool all_not_barrier = false;
+        while (!all_not_barrier) {
+            all_not_barrier = !core_data[0].is_running.load() && core_data[0].initialized.load();
+        }
+        core_data[0].enter_barrier->Set();
+        if (paused_state.load()) {
+            bool all_barrier = false;
+            while (!all_barrier) {
+                all_barrier = core_data[0].is_paused.load() && core_data[0].initialized.load();
+            }
+            core_data[0].exit_barrier->Set();
+        }
+    } else {
+        /// Wait until all cores are paused.
+        bool all_barrier = false;
+        while (!all_barrier) {
+            all_barrier = core_data[0].is_paused.load() && core_data[0].initialized.load();
+        }
+        /// Don't release the barrier
+    }
+    paused_state = paused;
+}
+
+void CpuManager::Pause(bool paused) {
+    if (is_multicore) {
+        MultiCorePause(paused);
+    } else {
+        SingleCorePause(paused);
+    }
+}
+
 void CpuManager::RunThread(std::size_t core) {
     /// Initialization
     system.RegisterCoreThread(core);
-    std::string name = "yuzu:CoreHostThread_" + std::to_string(core);
+    std::string name;
+    if (is_multicore) {
+        name = "yuzu:CoreCPUThread_" + std::to_string(core);
+    } else {
+        name = "yuzu:CPUThread";
+    }
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
     auto& data = core_data[core];

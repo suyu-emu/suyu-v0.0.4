@@ -715,8 +715,8 @@ struct Memory::Impl {
             ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
             break;
         case Common::PageType::RasterizerCachedMemory: {
-            u8* host_ptr{GetPointerFromVMA(vaddr)};
-            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
+            u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
+            system.GPU().InvalidateRegion(vaddr, sizeof(T));
             T volatile* pointer = reinterpret_cast<T volatile*>(&host_ptr);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
             break;
@@ -745,8 +745,8 @@ struct Memory::Impl {
             ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", vaddr);
             break;
         case Common::PageType::RasterizerCachedMemory: {
-            u8* host_ptr{GetPointerFromVMA(vaddr)};
-            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(u128));
+            u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
+            system.GPU().InvalidateRegion(vaddr, sizeof(u128));
             u64 volatile* pointer = reinterpret_cast<u64 volatile*>(&host_ptr);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
             break;

@@ -149,6 +149,9 @@ struct System::Impl {
 
         device_memory = std::make_unique<Core::DeviceMemory>(system);
 
+        kernel.SetMulticore(Settings::values.use_multi_core);
+        cpu_manager.SetMulticore(Settings::values.use_multi_core);
+
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
         kernel.Initialize();
         cpu_manager.Initialize();
