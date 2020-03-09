@@ -295,10 +295,6 @@ void Thread::SetStatus(ThreadStatus new_status) {
         break;
     }
 
-    if (status == ThreadStatus::Running) {
-        last_running_ticks = Core::System::GetInstance().CoreTiming().GetCPUTicks();
-    }
-
     status = new_status;
 }
 

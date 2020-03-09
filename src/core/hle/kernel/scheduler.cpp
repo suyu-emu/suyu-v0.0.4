@@ -616,6 +616,7 @@ void Scheduler::SwitchContextStep2() {
 
         // Cancel any outstanding wakeup events for this thread
         new_thread->SetIsRunning(true);
+        new_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
 
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (previous_process != thread_owner_process && thread_owner_process != nullptr) {
@@ -654,6 +655,7 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
+        previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         if (!previous_thread->IsHLEThread()) {
             auto& cpu_core = system.ArmInterface(core_id);
             cpu_core.SaveContext(previous_thread->GetContext32());
