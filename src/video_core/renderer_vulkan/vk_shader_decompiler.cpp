@@ -839,7 +839,7 @@ private:
     }
 
     std::optional<VaryingTFB> GetTransformFeedbackInfo(Attribute::Index index, u8 element = 0) {
-        const u8 location = static_cast<u8>(index) * 4 + element;
+        const u8 location = static_cast<u8>(static_cast<u32>(index) * 4 + element);
         const auto it = transform_feedback.find(location);
         if (it == transform_feedback.end()) {
             return {};
