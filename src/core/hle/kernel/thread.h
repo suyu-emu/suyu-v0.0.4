@@ -573,6 +573,14 @@ public:
         return pausing_state != 0;
     }
 
+    bool IsContinuousOnSVC() const {
+        return is_continuous_on_svc;
+    }
+
+    void SetContinuousOnSVC(bool is_continuous) {
+        is_continuous_on_svc = is_continuous;
+    }
+
 private:
     friend class GlobalScheduler;
     friend class Scheduler;
@@ -671,6 +679,8 @@ private:
     bool is_running = false;
     bool is_waiting_on_sync = false;
     bool is_sync_cancelled = false;
+
+    bool is_continuous_on_svc = false;
 
     bool will_be_terminated = false;
 

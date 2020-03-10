@@ -605,6 +605,7 @@ void Scheduler::OnThreadStart() {
 void Scheduler::Unload() {
     Thread* thread = current_thread.get();
     if (thread) {
+        thread->SetContinuousOnSVC(false);
         thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         thread->SetIsRunning(false);
         if (!thread->IsHLEThread()) {
@@ -697,6 +698,7 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
+        previous_thread->SetContinuousOnSVC(false);
         previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         if (!previous_thread->IsHLEThread()) {
             auto& cpu_core = system.ArmInterface(core_id);

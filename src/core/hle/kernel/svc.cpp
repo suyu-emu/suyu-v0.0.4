@@ -2459,7 +2459,8 @@ MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 void Call(Core::System& system, u32 immediate) {
     MICROPROFILE_SCOPE(Kernel_SVC);
 
-    auto& physical_core = system.CurrentPhysicalCore();
+    auto* thread = system.CurrentScheduler().GetCurrentThread();
+    thread->SetContinuousOnSVC(true);
 
     const FunctionDef* info = system.CurrentProcess()->Is64BitProcess() ? GetSVCInfo64(immediate)
                                                                         : GetSVCInfo32(immediate);
@@ -2472,10 +2473,8 @@ void Call(Core::System& system, u32 immediate) {
     } else {
         LOG_CRITICAL(Kernel_SVC, "Unknown SVC function 0x{:X}", immediate);
     }
-    auto& physical_core_2 = system.CurrentPhysicalCore();
-    if (physical_core.CoreIndex() != physical_core_2.CoreIndex()) {
-        LOG_CRITICAL(Kernel_SVC, "Rewinding");
-        auto* thread = physical_core_2.Scheduler().GetCurrentThread();
+
+    if (!thread->IsContinuousOnSVC()) {
         auto* host_context = thread->GetHostContext().get();
         host_context->Rewind();
     }
