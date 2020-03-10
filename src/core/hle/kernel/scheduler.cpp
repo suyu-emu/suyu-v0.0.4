@@ -625,8 +625,8 @@ void Scheduler::Unload() {
         thread->SetContinuousOnSVC(false);
         thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         thread->SetIsRunning(false);
-        if (!thread->IsHLEThread()) {
-            auto& cpu_core = system.ArmInterface(core_id);
+        if (!thread->IsHLEThread() && !thread->HasExited()) {
+            Core::ARM_Interface& cpu_core = thread->ArmInterface();
             cpu_core.SaveContext(thread->GetContext32());
             cpu_core.SaveContext(thread->GetContext64());
             // Save the TPIDR_EL0 system register in case it was modified.
@@ -653,11 +653,12 @@ void Scheduler::Reload() {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
         if (!thread->IsHLEThread()) {
-            auto& cpu_core = system.ArmInterface(core_id);
+            Core::ARM_Interface& cpu_core = thread->ArmInterface();
             cpu_core.LoadContext(thread->GetContext32());
             cpu_core.LoadContext(thread->GetContext64());
             cpu_core.SetTlsAddress(thread->GetTLSAddress());
             cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+            cpu_core.ChangeProcessorId(this->core_id);
             cpu_core.ClearExclusiveState();
         }
     }

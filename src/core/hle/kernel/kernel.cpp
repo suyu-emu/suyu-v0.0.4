@@ -149,6 +149,7 @@ struct KernelCore::Impl {
 
         for (std::size_t i = 0; i < cores.size(); i++) {
             cores[i].Shutdown();
+            schedulers[i].reset();
         }
         cores.clear();
 
