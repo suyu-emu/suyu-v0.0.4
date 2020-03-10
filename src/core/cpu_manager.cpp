@@ -225,7 +225,7 @@ void CpuManager::SingleCoreRunGuestLoop() {
         }
         physical_core.ClearExclusive();
         PreemptSingleCore();
-        auto& scheduler = physical_core.Scheduler();
+        auto& scheduler = kernel.Scheduler(current_core);
         scheduler.TryDoContextSwitch();
     }
 }
@@ -260,11 +260,15 @@ void CpuManager::SingleCoreRunSuspendThread() {
 void CpuManager::PreemptSingleCore() {
     preemption_count = 0;
     std::size_t old_core = current_core;
-    current_core = (current_core + 1) % Core::Hardware::NUM_CPU_CORES;
+    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
     auto& scheduler = system.Kernel().Scheduler(old_core);
-    Kernel::Thread* current_thread = system.Kernel().Scheduler(old_core).GetCurrentThread();
-    Kernel::Thread* next_thread = system.Kernel().Scheduler(current_core).GetCurrentThread();
-    Common::Fiber::YieldTo(current_thread->GetHostContext(), next_thread->GetHostContext());
+    Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+    scheduler.Unload();
+    auto& next_scheduler = system.Kernel().Scheduler(current_core);
+    Common::Fiber::YieldTo(current_thread->GetHostContext(), next_scheduler.ControlContext());
+    /// May have changed scheduler
+    auto& current_scheduler = system.Kernel().Scheduler(current_core);
+    current_scheduler.Reload();
 }
 
 void CpuManager::SingleCorePause(bool paused) {

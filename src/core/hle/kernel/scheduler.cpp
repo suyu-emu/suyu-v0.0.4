@@ -602,6 +602,48 @@ void Scheduler::OnThreadStart() {
     SwitchContextStep2();
 }
 
+void Scheduler::Unload() {
+    Thread* thread = current_thread.get();
+    if (thread) {
+        thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+        thread->SetIsRunning(false);
+        if (!thread->IsHLEThread()) {
+            auto& cpu_core = system.ArmInterface(core_id);
+            cpu_core.SaveContext(thread->GetContext32());
+            cpu_core.SaveContext(thread->GetContext64());
+            // Save the TPIDR_EL0 system register in case it was modified.
+            thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+            cpu_core.ClearExclusiveState();
+        }
+        thread->context_guard.unlock();
+    }
+}
+
+void Scheduler::Reload() {
+    Thread* thread = current_thread.get();
+    if (thread) {
+        ASSERT_MSG(thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
+                   "Thread must be runnable.");
+
+        // Cancel any outstanding wakeup events for this thread
+        thread->SetIsRunning(true);
+        thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+
+        auto* const thread_owner_process = thread->GetOwnerProcess();
+        if (thread_owner_process != nullptr) {
+            system.Kernel().MakeCurrentProcess(thread_owner_process);
+        }
+        if (!thread->IsHLEThread()) {
+            auto& cpu_core = system.ArmInterface(core_id);
+            cpu_core.LoadContext(thread->GetContext32());
+            cpu_core.LoadContext(thread->GetContext64());
+            cpu_core.SetTlsAddress(thread->GetTLSAddress());
+            cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+            cpu_core.ClearExclusiveState();
+        }
+    }
+}
+
 void Scheduler::SwitchContextStep2() {
     Thread* previous_thread = current_thread_prev.get();
     Thread* new_thread = selected_thread.get();

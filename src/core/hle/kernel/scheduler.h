@@ -210,6 +210,12 @@ public:
     /// Reschedules to the next available thread (call after current thread is suspended)
     void TryDoContextSwitch();
 
+    /// The next two are for SingleCore Only.
+    /// Unload current thread before preempting core.
+    void Unload();
+    /// Reload current thread after core preemption.
+    void Reload();
+
     /// Gets the current running thread
     Thread* GetCurrentThread() const;
 
@@ -229,6 +235,10 @@ public:
     void Shutdown();
 
     void OnThreadStart();
+
+    std::shared_ptr<Common::Fiber> ControlContext() {
+        return switch_fiber;
+    }
 
 private:
     friend class GlobalScheduler;

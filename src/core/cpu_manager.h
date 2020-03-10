@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <thread>
@@ -45,7 +46,7 @@ public:
     void* GetStartFuncParamater();
 
     std::size_t CurrentCore() const {
-        return current_core;
+        return current_core.load();
     }
 
 private:
@@ -88,7 +89,7 @@ private:
     std::array<CoreData, Core::Hardware::NUM_CPU_CORES> core_data{};
 
     bool is_multicore{};
-    std::size_t current_core{};
+    std::atomic<std::size_t> current_core{};
     std::size_t preemption_count{};
     static constexpr std::size_t max_cycle_runs = 5;
 
