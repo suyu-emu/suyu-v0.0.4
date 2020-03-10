@@ -435,28 +435,31 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     return RESULT_SUCCESS;
 }
 
-ResultCode Thread::YieldSimple() {
+std::pair<ResultCode, bool> Thread::YieldSimple() {
+    bool is_redundant = false;
     {
         SchedulerLock lock(kernel);
-        kernel.GlobalScheduler().YieldThread(this);
+        is_redundant = kernel.GlobalScheduler().YieldThread(this);
     }
-    return RESULT_SUCCESS;
+    return {RESULT_SUCCESS, is_redundant};
 }
 
-ResultCode Thread::YieldAndBalanceLoad() {
+std::pair<ResultCode, bool> Thread::YieldAndBalanceLoad() {
+    bool is_redundant = false;
     {
         SchedulerLock lock(kernel);
-        kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
+        is_redundant = kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
     }
-    return RESULT_SUCCESS;
+    return {RESULT_SUCCESS, is_redundant};
 }
 
-ResultCode Thread::YieldAndWaitForLoadBalancing() {
+std::pair<ResultCode, bool> Thread::YieldAndWaitForLoadBalancing() {
+    bool is_redundant = false;
     {
         SchedulerLock lock(kernel);
-        kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
+        is_redundant = kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
     }
-    return RESULT_SUCCESS;
+    return {RESULT_SUCCESS, is_redundant};
 }
 
 void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {

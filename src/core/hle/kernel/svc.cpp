@@ -19,6 +19,7 @@
 #include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/cpu_manager.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -1509,20 +1510,30 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
 
     if (nanoseconds <= 0) {
         switch (static_cast<SleepType>(nanoseconds)) {
-        case SleepType::YieldWithoutLoadBalancing:
-            current_thread->YieldSimple();
+        case SleepType::YieldWithoutLoadBalancing: {
+            auto pair = current_thread->YieldSimple();
+            is_redundant = pair.second;
             break;
-        case SleepType::YieldWithLoadBalancing:
-            current_thread->YieldAndBalanceLoad();
+        }
+        case SleepType::YieldWithLoadBalancing: {
+            auto pair = current_thread->YieldAndBalanceLoad();
+            is_redundant = pair.second;
             break;
-        case SleepType::YieldAndWaitForLoadBalancing:
-            current_thread->YieldAndWaitForLoadBalancing();
+        }
+        case SleepType::YieldAndWaitForLoadBalancing: {
+            auto pair = current_thread->YieldAndWaitForLoadBalancing();
+            is_redundant = pair.second;
             break;
+        }
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
         }
     } else {
         current_thread->Sleep(nanoseconds);
+    }
+
+    if (is_redundant && !system.Kernel().IsMulticore()) {
+        system.GetCpuManager().PreemptSingleCore();
     }
 }
 

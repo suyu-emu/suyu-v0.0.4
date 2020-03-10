@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "common/common_types.h"
@@ -503,13 +504,13 @@ public:
     ResultCode Sleep(s64 nanoseconds);
 
     /// Yields this thread without rebalancing loads.
-    ResultCode YieldSimple();
+    std::pair<ResultCode, bool> YieldSimple();
 
     /// Yields this thread and does a load rebalancing.
-    ResultCode YieldAndBalanceLoad();
+    std::pair<ResultCode, bool> YieldAndBalanceLoad();
 
     /// Yields this thread and if the core is left idle, loads are rebalanced
-    ResultCode YieldAndWaitForLoadBalancing();
+    std::pair<ResultCode, bool> YieldAndWaitForLoadBalancing();
 
     void IncrementYieldCount() {
         yield_count++;

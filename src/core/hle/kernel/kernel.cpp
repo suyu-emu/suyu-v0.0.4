@@ -642,6 +642,10 @@ void KernelCore::Suspend(bool in_suspention) {
     }
 }
 
+bool KernelCore::IsMulticore() const {
+    return impl->is_multicore;
+}
+
 void KernelCore::ExceptionalExit() {
     exception_exited = true;
     Suspend(true);

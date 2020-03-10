@@ -212,6 +212,8 @@ public:
     /// Exceptional exit the OS.
     void ExceptionalExit();
 
+    bool IsMulticore() const;
+
 private:
     friend class Object;
     friend class Process;

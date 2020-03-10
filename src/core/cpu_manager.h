@@ -45,6 +45,8 @@ public:
     std::function<void(void*)> GetSuspendThreadStartFunc();
     void* GetStartFuncParamater();
 
+    void PreemptSingleCore();
+
     std::size_t CurrentCore() const {
         return current_core.load();
     }
@@ -70,8 +72,6 @@ private:
     static void ThreadStart(CpuManager& cpu_manager, std::size_t core);
 
     void RunThread(std::size_t core);
-
-    void PreemptSingleCore();
 
     struct CoreData {
         std::shared_ptr<Common::Fiber> host_context;
