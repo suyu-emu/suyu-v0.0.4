@@ -80,10 +80,34 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 
             switch (instr.suldst.GetStoreDataLayout()) {
             case StoreType::Bits32: {
-                MetaImage meta{image, {}, {}};
-                Node value = Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
-                SetTemporary(bb, 0, std::move(value));
-                SetRegister(bb, instr.gpr0.Value(), GetTemporary(0));
+                Node value{};
+                for (s32 i = 3; i >= 0; i--) {
+                    MetaImage meta{image, {}, i};
+                    Node element_value =
+                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+
+                    const Node comp = GetPredicateComparisonFloat(PredCondition::GreaterEqual,
+                                                                  element_value, Immediate(1.0f));
+                    const Node mul =
+                        Operation(OperationCode::Select, comp, Immediate(1.f), Immediate(255.f));
+
+                    Node element = Operation(OperationCode::FMul, NO_PRECISE, element_value, mul);
+                    element = SignedOperation(OperationCode::ICastFloat, true, NO_PRECISE,
+                                              std::move(element));
+                    element = Operation(OperationCode::ULogicalShiftLeft, std::move(element),
+                                        Immediate(8 * i));
+                    if (i == 3) {
+                        //(namkazt) for now i'm force it to 0 at alpha component if color is in
+                        // range (0-255)
+                        value = Operation(OperationCode::Select, comp, Immediate(0),
+                                          std::move(element));
+                    } else {
+                        value = Operation(OperationCode::UBitwiseOr, value,
+                                          Operation(OperationCode::Select, comp,
+                                                    std::move(element_value), std::move(element)));
+                    }
+                }
+                SetRegister(bb, instr.gpr0.Value(), std::move(value));
                 break;
             }
             default:
