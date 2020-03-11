@@ -28,11 +28,16 @@ static_assert(sizeof(MaxwellUniformData) < 16384,
 
 class ProgramManager {
 public:
+    explicit ProgramManager();
     ~ProgramManager();
 
     void Create();
 
-    void Update();
+    /// Updates the graphics pipeline and binds it.
+    void BindGraphicsPipeline();
+
+    /// Binds a compute shader.
+    void BindComputeShader(GLuint program);
 
     void UseVertexShader(GLuint program) {
         current_state.vertex_shader = program;
@@ -46,33 +51,27 @@ public:
         current_state.fragment_shader = program;
     }
 
-    GLuint GetHandle() const {
-        return pipeline.handle;
-    }
-
-    void UseTrivialFragmentShader() {
-        current_state.fragment_shader = 0;
-    }
-
 private:
     struct PipelineState {
-        bool operator==(const PipelineState& rhs) const {
+        bool operator==(const PipelineState& rhs) const noexcept {
             return vertex_shader == rhs.vertex_shader && fragment_shader == rhs.fragment_shader &&
                    geometry_shader == rhs.geometry_shader;
         }
 
-        bool operator!=(const PipelineState& rhs) const {
+        bool operator!=(const PipelineState& rhs) const noexcept {
             return !operator==(rhs);
         }
 
-        GLuint vertex_shader{};
-        GLuint fragment_shader{};
-        GLuint geometry_shader{};
+        GLuint vertex_shader = 0;
+        GLuint fragment_shader = 0;
+        GLuint geometry_shader = 0;
     };
 
-    OGLPipeline pipeline;
+    OGLPipeline graphics_pipeline;
+    OGLPipeline compute_pipeline;
     PipelineState current_state;
     PipelineState old_state;
+    bool is_graphics_bound = true;
 };
 
 } // namespace OpenGL::GLShader

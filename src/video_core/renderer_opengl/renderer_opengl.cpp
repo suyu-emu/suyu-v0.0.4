@@ -443,7 +443,6 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Create program pipeline
     program_manager.Create();
-    glBindProgramPipeline(program_manager.GetHandle());
 
     // Generate VBO handle for drawing
     vertex_buffer.Create();
@@ -596,7 +595,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     program_manager.UseVertexShader(vertex_program.handle);
     program_manager.UseGeometryShader(0);
     program_manager.UseFragmentShader(fragment_program.handle);
-    program_manager.Update();
+    program_manager.BindGraphicsPipeline();
 
     glEnable(GL_CULL_FACE);
     if (screen_info.display_srgb) {
