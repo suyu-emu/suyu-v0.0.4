@@ -19,6 +19,7 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::StoreType;
+using Tegra::Shader::PredCondition;
 
 namespace {
 std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
