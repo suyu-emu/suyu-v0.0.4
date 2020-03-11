@@ -565,7 +565,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
-    program_manager.Update();
+    program_manager.BindGraphicsPipeline();
 
     if (texture_cache.TextureBarrier()) {
         glTextureBarrier();
@@ -627,8 +627,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     const ProgramVariant variant(launch_desc.block_dim_x, launch_desc.block_dim_y,
                                  launch_desc.block_dim_z, launch_desc.shared_alloc,
                                  launch_desc.local_pos_alloc);
-    glUseProgramStages(program_manager.GetHandle(), GL_COMPUTE_SHADER_BIT,
-                       kernel->GetHandle(variant));
+    program_manager.BindComputeShader(kernel->GetHandle(variant));
 
     const std::size_t buffer_size =
         Tegra::Engines::KeplerCompute::NumConstBuffers *
