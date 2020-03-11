@@ -628,12 +628,13 @@ public:
             float depth_range_far;
         };
 
-        struct alignas(32) TransformFeedbackBinding {
+        struct TransformFeedbackBinding {
             u32 buffer_enable;
             u32 address_high;
             u32 address_low;
             s32 buffer_size;
             s32 buffer_offset;
+            INSERT_UNION_PADDING_WORDS(3);
 
             GPUVAddr Address() const {
                 return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
@@ -642,10 +643,11 @@ public:
         };
         static_assert(sizeof(TransformFeedbackBinding) == 32);
 
-        struct alignas(16) TransformFeedbackLayout {
+        struct TransformFeedbackLayout {
             u32 stream;
             u32 varying_count;
             u32 stride;
+            INSERT_UNION_PADDING_WORDS(1);
         };
         static_assert(sizeof(TransformFeedbackLayout) == 16);
 
