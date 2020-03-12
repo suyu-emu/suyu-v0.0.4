@@ -39,9 +39,14 @@ void CpuManager::Initialize() {
 void CpuManager::Shutdown() {
     running_mode = false;
     Pause(false);
-    for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        core_data[core].host_thread->join();
-        core_data[core].host_thread.reset();
+    if (is_multicore) {
+        for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+            core_data[core].host_thread->join();
+            core_data[core].host_thread.reset();
+        }
+    } else {
+        core_data[0].host_thread->join();
+        core_data[0].host_thread.reset();
     }
 }
 
