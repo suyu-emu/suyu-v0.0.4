@@ -543,18 +543,8 @@ private:
         if (stage != ShaderType::Fragment) {
             return;
         }
-
-        bool any = false;
-        for (u32 render_target = 0; render_target < Maxwell::NumRenderTargets; ++render_target) {
-            if (!IsRenderTargetEnabled(render_target)) {
-                continue;
-            }
-            code.AddLine("layout (location = {}) out vec4 frag_color{};", render_target,
-                         render_target);
-            any = true;
-        }
-        if (any) {
-            code.AddNewLine();
+        for (u32 rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
+            code.AddLine("layout (location = {}) out vec4 frag_color{};", rt, rt);
         }
     }
 
