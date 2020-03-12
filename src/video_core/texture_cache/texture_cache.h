@@ -104,6 +104,11 @@ public:
         if (!cache_addr) {
             return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
+
+        if (!IsTypeCompatible(tic.texture_type, entry)) {
+            return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
+        }
+
         const auto params{SurfaceParams::CreateForTexture(format_lookup_table, tic, entry)};
         const auto [surface, view] = GetSurface(gpu_addr, cache_addr, params, true, false);
         if (guard_samplers) {
@@ -914,13 +919,15 @@ private:
         params.width = 1;
         params.height = 1;
         params.depth = 1;
+        if (target == SurfaceTarget::TextureCubemap || target == SurfaceTarget::TextureCubeArray) {
+            params.depth = 6;
+        }
         params.pitch = 4;
         params.num_levels = 1;
         params.emulated_levels = 1;
-        params.pixel_format = VideoCore::Surface::PixelFormat::RGBA16F;
+        params.pixel_format = VideoCore::Surface::PixelFormat::R8U;
         params.type = VideoCore::Surface::SurfaceType::ColorTexture;
         auto surface = CreateSurface(0ULL, params);
-        invalid_memory.clear();
         invalid_memory.resize(surface->GetHostSizeInBytes(), 0U);
         surface->UploadTexture(invalid_memory);
         surface->MarkAsModified(false, Tick());
@@ -1080,6 +1087,36 @@ private:
 
     constexpr PixelFormat GetSiblingFormat(PixelFormat format) const {
         return siblings_table[static_cast<std::size_t>(format)];
+    }
+
+    /// Returns true the shader sampler entry is compatible with the TIC texture type.
+    static bool IsTypeCompatible(Tegra::Texture::TextureType tic_type,
+                                 const VideoCommon::Shader::Sampler& entry) {
+        const auto shader_type = entry.GetType();
+        switch (tic_type) {
+        case Tegra::Texture::TextureType::Texture1D:
+        case Tegra::Texture::TextureType::Texture1DArray:
+            return shader_type == Tegra::Shader::TextureType::Texture1D;
+        case Tegra::Texture::TextureType::Texture1DBuffer:
+            // TODO(Rodrigo): Assume as valid for now
+            return true;
+        case Tegra::Texture::TextureType::Texture2D:
+        case Tegra::Texture::TextureType::Texture2DNoMipmap:
+            return shader_type == Tegra::Shader::TextureType::Texture2D;
+        case Tegra::Texture::TextureType::Texture2DArray:
+            return shader_type == Tegra::Shader::TextureType::Texture2D ||
+                   shader_type == Tegra::Shader::TextureType::TextureCube;
+        case Tegra::Texture::TextureType::Texture3D:
+            return shader_type == Tegra::Shader::TextureType::Texture3D;
+        case Tegra::Texture::TextureType::TextureCubeArray:
+        case Tegra::Texture::TextureType::TextureCubemap:
+            if (shader_type == Tegra::Shader::TextureType::TextureCube) {
+                return true;
+            }
+            return shader_type == Tegra::Shader::TextureType::Texture2D && entry.IsArray();
+        }
+        UNREACHABLE();
+        return true;
     }
 
     struct FramebufferTargetInfo {
