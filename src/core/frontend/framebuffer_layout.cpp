@@ -48,8 +48,8 @@ FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale) {
     u32 width, height;
 
     if (Settings::values.use_docked_mode) {
-        width = ScreenDocked::WidthDocked * res_scale;
-        height = ScreenDocked::HeightDocked * res_scale;
+        width = ScreenDocked::Width * res_scale;
+        height = ScreenDocked::Height * res_scale;
     } else {
         width = ScreenUndocked::Width * res_scale;
         height = ScreenUndocked::Height * res_scale;
