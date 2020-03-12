@@ -191,8 +191,6 @@ void NVFlinger::Compose() {
         // Search for a queued buffer and acquire it
         auto buffer = buffer_queue.AcquireBuffer();
 
-        MicroProfileFlip();
-
         if (!buffer) {
             continue;
         }
@@ -205,6 +203,8 @@ void NVFlinger::Compose() {
             const auto& fence = multi_fence.fences[fence_id];
             gpu.WaitFence(fence.id, fence.value);
         }
+
+        MicroProfileFlip();
 
         // Now send the buffer to the GPU for drawing.
         // TODO(Subv): Support more than just disp0. The display device selection is probably based
