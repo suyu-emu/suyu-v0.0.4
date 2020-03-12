@@ -119,6 +119,7 @@ struct KernelCore::Impl {
 
     void Initialize(KernelCore& kernel) {
         Shutdown();
+        RegisterHostThread();
 
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
@@ -134,6 +135,19 @@ struct KernelCore::Impl {
         next_kernel_process_id = Process::InitialKIPIDMin;
         next_user_process_id = Process::ProcessIDMin;
         next_thread_id = 1;
+
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            if (suspend_threads[i]) {
+                suspend_threads[i].reset();
+            }
+        }
+
+        for (std::size_t i = 0; i < cores.size(); i++) {
+            cores[i].Shutdown();
+        }
+        cores.clear();
+
+        registered_core_threads.reset();
 
         process_list.clear();
         current_process = nullptr;
@@ -154,6 +168,7 @@ struct KernelCore::Impl {
         cores.clear();
 
         exclusive_monitor.reset();
+        host_thread_ids.clear();
     }
 
     void InitializePhysicalCores() {

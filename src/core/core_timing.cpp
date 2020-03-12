@@ -61,6 +61,7 @@ void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
 void CoreTiming::Shutdown() {
     paused = true;
     shutting_down = true;
+    pause_event.Set();
     event.Set();
     timer_thread->join();
     ClearPendingEvents();

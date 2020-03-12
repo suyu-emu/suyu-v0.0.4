@@ -56,10 +56,12 @@ void Thread::Stop() {
         Signal();
         kernel.GlobalHandleTable().Close(global_handle);
 
-        owner_process->UnregisterThread(this);
+        if (owner_process) {
+            owner_process->UnregisterThread(this);
 
-        // Mark the TLS slot in the thread's page as free.
-        owner_process->FreeTLSRegion(tls_address);
+            // Mark the TLS slot in the thread's page as free.
+            owner_process->FreeTLSRegion(tls_address);
+        }
     }
     global_handle = 0;
 }

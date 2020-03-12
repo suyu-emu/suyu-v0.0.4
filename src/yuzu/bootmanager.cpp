@@ -89,8 +89,10 @@ void EmuThread::run() {
             }
             running_guard = false;
 
-            was_active = true;
-            emit DebugModeEntered();
+            if (!stop_run) {
+                was_active = true;
+                emit DebugModeEntered();
+            }
         } else if (exec_step) {
             UNIMPLEMENTED();
         } else {
