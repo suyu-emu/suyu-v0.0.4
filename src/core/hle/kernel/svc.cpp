@@ -2454,10 +2454,10 @@ static const FunctionDef* GetSVCInfo64(u32 func_num) {
     return &SVC_Table_64[func_num];
 }
 
-MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
-
 void Call(Core::System& system, u32 immediate) {
-    MICROPROFILE_SCOPE(Kernel_SVC);
+    system.ExitDynarmicProfile();
+    auto& kernel = system.Kernel();
+    kernel.EnterSVCProfile();
 
     auto* thread = system.CurrentScheduler().GetCurrentThread();
     thread->SetContinuousOnSVC(true);
@@ -2474,10 +2474,14 @@ void Call(Core::System& system, u32 immediate) {
         LOG_CRITICAL(Kernel_SVC, "Unknown SVC function 0x{:X}", immediate);
     }
 
+    kernel.ExitSVCProfile();
+
     if (!thread->IsContinuousOnSVC()) {
         auto* host_context = thread->GetHostContext().get();
         host_context->Rewind();
     }
+
+    system.EnterDynarmicProfile();
 }
 
 } // namespace Kernel::Svc

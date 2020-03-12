@@ -350,6 +350,22 @@ public:
         return (type & THREADTYPE_HLE) != 0;
     }
 
+    bool IsSuspendThread() const {
+        return (type & THREADTYPE_SUSPEND) != 0;
+    }
+
+    bool IsIdleThread() const {
+        return (type & THREADTYPE_IDLE) != 0;
+    }
+
+    bool WasRunning() const {
+        return was_running;
+    }
+
+    void SetWasRunning(bool value) {
+        was_running = value;
+    }
+
     std::shared_ptr<Common::Fiber> GetHostContext() const;
 
     ThreadStatus GetStatus() const {
@@ -683,6 +699,8 @@ private:
     bool is_continuous_on_svc = false;
 
     bool will_be_terminated = false;
+
+    bool was_running = false;
 
     std::string name;
 };

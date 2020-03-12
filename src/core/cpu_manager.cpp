@@ -118,9 +118,11 @@ void CpuManager::MultiCoreRunGuestLoop() {
     host_context.reset();
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
+        system.EnterDynarmicProfile();
         while (!physical_core.IsInterrupted()) {
             physical_core.Run();
         }
+        system.ExitDynarmicProfile();
         physical_core.ClearExclusive();
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
@@ -216,6 +218,7 @@ void CpuManager::SingleCoreRunGuestLoop() {
     host_context.reset();
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
+        system.EnterDynarmicProfile();
         while (!physical_core.IsInterrupted()) {
             physical_core.Run();
             preemption_count++;
@@ -224,6 +227,7 @@ void CpuManager::SingleCoreRunGuestLoop() {
             }
         }
         physical_core.ClearExclusive();
+        system.ExitDynarmicProfile();
         PreemptSingleCore();
         auto& scheduler = kernel.Scheduler(current_core);
         scheduler.TryDoContextSwitch();

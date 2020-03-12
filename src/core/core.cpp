@@ -8,6 +8,7 @@
 
 #include "common/file_util.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
@@ -49,6 +50,8 @@
 #include "core/tools/freezer.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
+
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
 
 namespace Core {
 
@@ -391,6 +394,8 @@ struct System::Impl {
 
     std::unique_ptr<Core::PerfStats> perf_stats;
     Core::FrameLimiter frame_limiter;
+
+    std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -734,6 +739,16 @@ void System::RegisterCoreThread(std::size_t id) {
 
 void System::RegisterHostThread() {
     impl->kernel.RegisterHostThread();
+}
+
+void System::EnterDynarmicProfile() {
+    std::size_t core = impl->kernel.GetCurrentHostThreadID();
+    impl->dynarmic_ticks[core] = MicroProfileEnter(MICROPROFILE_TOKEN(ARM_Jit_Dynarmic));
+}
+
+void System::ExitDynarmicProfile() {
+    std::size_t core = impl->kernel.GetCurrentHostThreadID();
+    MicroProfileLeave(MICROPROFILE_TOKEN(ARM_Jit_Dynarmic), impl->dynarmic_ticks[core]);
 }
 
 } // namespace Core

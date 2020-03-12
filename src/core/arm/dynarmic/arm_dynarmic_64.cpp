@@ -7,7 +7,6 @@
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/config.h>
 #include "common/logging/log.h"
-#include "common/microprofile.h"
 #include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
@@ -181,11 +180,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_64, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
+
 
 void ARM_Dynarmic_64::Run() {
-    MICROPROFILE_SCOPE(ARM_Jit_Dynarmic_64);
-
     jit->Run();
 }
 

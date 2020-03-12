@@ -13,6 +13,7 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
 #include "common/thread.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
@@ -40,6 +41,8 @@
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
+
+MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
 namespace Kernel {
 
@@ -408,6 +411,8 @@ struct KernelCore::Impl {
     bool is_multicore{};
     std::thread::id single_core_thread_id{};
 
+    std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
+
     // System context
     Core::System& system;
 };
@@ -664,6 +669,16 @@ bool KernelCore::IsMulticore() const {
 void KernelCore::ExceptionalExit() {
     exception_exited = true;
     Suspend(true);
+}
+
+void KernelCore::EnterSVCProfile() {
+    std::size_t core = impl->GetCurrentHostThreadID();
+    impl->svc_ticks[core] = MicroProfileEnter(MICROPROFILE_TOKEN(Kernel_SVC));
+}
+
+void KernelCore::ExitSVCProfile() {
+    std::size_t core = impl->GetCurrentHostThreadID();
+    MicroProfileLeave(MICROPROFILE_TOKEN(Kernel_SVC), impl->svc_ticks[core]);
 }
 
 } // namespace Kernel

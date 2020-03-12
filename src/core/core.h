@@ -377,6 +377,12 @@ public:
     /// Register a host thread as an auxiliary thread.
     void RegisterHostThread();
 
+    /// Enter Dynarmic Microprofile
+    void EnterDynarmicProfile();
+
+    /// Exit Dynarmic Microprofile
+    void ExitDynarmicProfile();
+
 private:
     System();
 

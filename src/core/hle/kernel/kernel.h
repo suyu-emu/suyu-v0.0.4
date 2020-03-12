@@ -214,6 +214,10 @@ public:
 
     bool IsMulticore() const;
 
+    void EnterSVCProfile();
+
+    void ExitSVCProfile();
+
 private:
     friend class Object;
     friend class Process;

@@ -7,7 +7,6 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
-#include "common/microprofile.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
@@ -97,10 +96,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_32, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
-
 void ARM_Dynarmic_32::Run() {
-    MICROPROFILE_SCOPE(ARM_Jit_Dynarmic_32);
     jit->Run();
 }
 

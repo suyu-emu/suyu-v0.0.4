@@ -354,7 +354,9 @@ void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
     }
     if (must_context_switch) {
         auto& core_scheduler = kernel.CurrentScheduler();
+        kernel.ExitSVCProfile();
         core_scheduler.TryDoContextSwitch();
+        kernel.EnterSVCProfile();
     }
 }
 
@@ -628,6 +630,7 @@ void Scheduler::Reload() {
 
         // Cancel any outstanding wakeup events for this thread
         thread->SetIsRunning(true);
+        thread->SetWasRunning(false);
         thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
 
         auto* const thread_owner_process = thread->GetOwnerProcess();
@@ -660,6 +663,7 @@ void Scheduler::SwitchContextStep2() {
         // Cancel any outstanding wakeup events for this thread
         new_thread->SetIsRunning(true);
         new_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+        new_thread->SetWasRunning(false);
 
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (previous_process != thread_owner_process && thread_owner_process != nullptr) {
@@ -698,6 +702,9 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
+        if (new_thread != nullptr && new_thread->IsSuspendThread()) {
+            previous_thread->SetWasRunning(true);
+        }
         previous_thread->SetContinuousOnSVC(false);
         previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         if (!previous_thread->IsHLEThread()) {
