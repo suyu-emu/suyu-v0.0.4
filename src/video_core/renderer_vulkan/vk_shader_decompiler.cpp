@@ -423,7 +423,7 @@ private:
             // Clear Position to avoid reading trash on the Z conversion.
             const auto position_index = out_indices.position.value();
             const Id position = AccessElement(t_out_float4, out_vertex, position_index);
-            OpStore(position, ConstantNull(t_float4));
+            OpStore(position, v_varying_default);
 
             if (specialization.point_size) {
                 const u32 point_size_index = out_indices.point_size.value();
@@ -794,7 +794,7 @@ private:
             }
 
             Id type = GetTypeVectorDefinitionLut(Type::Float).at(num_components - 1);
-            Id varying_default = ConstantNull(type);
+            Id varying_default = v_varying_default;
             if (IsOutputAttributeArray()) {
                 const u32 num = GetNumOutputVertices();
                 type = TypeArray(type, Constant(t_uint, num));
@@ -2649,6 +2649,10 @@ private:
 
     const Id v_float_zero = Constant(t_float, 0.0f);
     const Id v_float_one = Constant(t_float, 1.0f);
+
+    // Nvidia uses these defaults for varyings (e.g. position and generic attributes)
+    const Id v_varying_default =
+        ConstantComposite(t_float4, v_float_zero, v_float_zero, v_float_zero, v_float_one);
 
     const Id v_true = ConstantTrue(t_bool);
     const Id v_false = ConstantFalse(t_bool);
