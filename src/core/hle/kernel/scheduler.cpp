@@ -144,6 +144,11 @@ u32 GlobalScheduler::SelectThreads() {
 bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
     ASSERT(is_locked);
     // Note: caller should use critical section, etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
 
@@ -161,6 +166,11 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
 
@@ -212,6 +222,11 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
     ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     Thread* winner = nullptr;
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
 
