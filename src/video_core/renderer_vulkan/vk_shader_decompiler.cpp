@@ -277,8 +277,11 @@ public:
     explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
                              const Registry& registry, const Specialization& specialization)
         : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()},
-          registry{registry}, specialization{specialization},
-          transform_feedback{BuildTransformFeedback(registry.GetGraphicsInfo())} {
+          registry{registry}, specialization{specialization} {
+        if (stage != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+        }
+
         AddCapability(spv::Capability::Shader);
         AddCapability(spv::Capability::UniformAndStorageBuffer16BitAccess);
         AddCapability(spv::Capability::ImageQuery);
@@ -2581,7 +2584,7 @@ private:
     const Tegra::Shader::Header header;
     const Registry& registry;
     const Specialization& specialization;
-    const std::unordered_map<u8, VaryingTFB> transform_feedback;
+    std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     const Id t_void = Name(TypeVoid(), "void");
 

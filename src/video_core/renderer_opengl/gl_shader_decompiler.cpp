@@ -408,8 +408,11 @@ public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
                             ShaderType stage, std::string_view identifier, std::string_view suffix)
         : device{device}, ir{ir}, registry{registry}, stage{stage},
-          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()},
-          transform_feedback{BuildTransformFeedback(registry.GetGraphicsInfo())} {}
+          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()} {
+        if (stage != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+        }
+    }
 
     void Decompile() {
         DeclareHeader();
@@ -2553,7 +2556,7 @@ private:
     const std::string_view identifier;
     const std::string_view suffix;
     const Header header;
-    const std::unordered_map<u8, VaryingTFB> transform_feedback;
+    std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     ShaderWriter code;
 
