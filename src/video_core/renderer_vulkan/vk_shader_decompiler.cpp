@@ -1941,7 +1941,11 @@ private:
         return {};
     }
 
-    Expression AtomicAdd(Operation operation) {
+    template <Id (Module::*func)(Id, Id, Id, Id, Id), Type result_type,
+              Type value_type = result_type>
+    Expression Atomic(Operation operation) {
+        const Id type_def = GetTypeDefinition(result_type);
+
         Id pointer;
         if (const auto smem = std::get_if<SmemNode>(&*operation[0])) {
             pointer = GetSharedMemoryPointer(*smem);
@@ -1949,14 +1953,15 @@ private:
             pointer = GetGlobalMemoryPointer(*gmem);
         } else {
             UNREACHABLE();
-            return {Constant(t_uint, 0), Type::Uint};
+            return {Constant(type_def, 0), result_type};
         }
 
-        const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
-        const Id semantics = Constant(t_uint, 0U);
+        const Id value = As(Visit(operation[1]), value_type);
 
-        const Id value = AsUint(Visit(operation[1]));
-        return {OpAtomicIAdd(t_uint, pointer, scope, semantics, value), Type::Uint};
+        const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
+        const Id semantics = Constant(type_def, 0);
+
+        return {(this->*func)(type_def, pointer, scope, semantics, value), result_type};
     }
 
     Expression Branch(Operation operation) {
@@ -2545,7 +2550,21 @@ private:
         &SPIRVDecompiler::AtomicImageXor,
         &SPIRVDecompiler::AtomicImageExchange,
 
-        &SPIRVDecompiler::AtomicAdd,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMin, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMax, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor, Type::Uint>,
+
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMin, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMax, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor, Type::Int>,
 
         &SPIRVDecompiler::Branch,
         &SPIRVDecompiler::BranchIndirect,
