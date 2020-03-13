@@ -59,6 +59,10 @@ enum : u8 {
     Shaders,
     ClipDistances,
 
+    PolygonModes,
+    PolygonModeFront,
+    PolygonModeBack,
+
     ColorMask,
     FrontFace,
     CullTest,
@@ -109,6 +113,13 @@ public:
         flags[OpenGL::Dirty::VertexInstances] = true;
         flags[OpenGL::Dirty::VertexInstance0 + 0] = true;
         flags[OpenGL::Dirty::VertexInstance0 + 1] = true;
+    }
+
+    void NotifyPolygonModes() {
+        auto& flags = system.GPU().Maxwell3D().dirty.flags;
+        flags[OpenGL::Dirty::PolygonModes] = true;
+        flags[OpenGL::Dirty::PolygonModeFront] = true;
+        flags[OpenGL::Dirty::PolygonModeBack] = true;
     }
 
     void NotifyViewport0() {

@@ -576,6 +576,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
 
     // TODO: Signal state tracker about these changes
     state_tracker.NotifyScreenDrawVertexArray();
+    state_tracker.NotifyPolygonModes();
     state_tracker.NotifyViewport0();
     state_tracker.NotifyScissor0();
     state_tracker.NotifyColorMask0();
@@ -611,6 +612,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glDisable(GL_ALPHA_TEST);
     glDisablei(GL_BLEND, 0);
     glDisablei(GL_SCISSOR_TEST, 0);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glCullFace(GL_BACK);
     glFrontFace(GL_CW);
     glColorMaski(0, GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
