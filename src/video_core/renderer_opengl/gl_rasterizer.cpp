@@ -484,6 +484,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
 
     SyncViewport();
     SyncRasterizeEnable();
+    SyncPolygonModes();
     SyncColorMask();
     SyncFragmentColorClampState();
     SyncMultiSampleState();
@@ -562,7 +563,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     bind_ubo_pushbuffer.Bind();
     bind_ssbo_pushbuffer.Bind();
 
-    program_manager.Update();
+    program_manager.BindGraphicsPipeline();
 
     if (texture_cache.TextureBarrier()) {
         glTextureBarrier();
@@ -619,7 +620,7 @@ void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
     auto kernel = shader_cache.GetComputeKernel(code_addr);
     SetupComputeTextures(kernel);
     SetupComputeImages(kernel);
-    glUseProgramStages(program_manager.GetHandle(), GL_COMPUTE_SHADER_BIT, kernel->GetHandle());
+    program_manager.BindComputeShader(kernel->GetHandle());
 
     const std::size_t buffer_size =
         Tegra::Engines::KeplerCompute::NumConstBuffers *
@@ -1087,6 +1088,45 @@ void RasterizerOpenGL::SyncRasterizeEnable() {
     flags[Dirty::RasterizeEnable] = false;
 
     oglEnable(GL_RASTERIZER_DISCARD, gpu.regs.rasterize_enable == 0);
+}
+
+void RasterizerOpenGL::SyncPolygonModes() {
+    auto& gpu = system.GPU().Maxwell3D();
+    auto& flags = gpu.dirty.flags;
+    if (!flags[Dirty::PolygonModes]) {
+        return;
+    }
+    flags[Dirty::PolygonModes] = false;
+
+    if (gpu.regs.fill_rectangle) {
+        if (!GLAD_GL_NV_fill_rectangle) {
+            LOG_ERROR(Render_OpenGL, "GL_NV_fill_rectangle used and not supported");
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            return;
+        }
+
+        flags[Dirty::PolygonModeFront] = true;
+        flags[Dirty::PolygonModeBack] = true;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL_RECTANGLE_NV);
+        return;
+    }
+
+    if (gpu.regs.polygon_mode_front == gpu.regs.polygon_mode_back) {
+        flags[Dirty::PolygonModeFront] = false;
+        flags[Dirty::PolygonModeBack] = false;
+        glPolygonMode(GL_FRONT_AND_BACK, MaxwellToGL::PolygonMode(gpu.regs.polygon_mode_front));
+        return;
+    }
+
+    if (flags[Dirty::PolygonModeFront]) {
+        flags[Dirty::PolygonModeFront] = false;
+        glPolygonMode(GL_FRONT, MaxwellToGL::PolygonMode(gpu.regs.polygon_mode_front));
+    }
+
+    if (flags[Dirty::PolygonModeBack]) {
+        flags[Dirty::PolygonModeBack] = false;
+        glPolygonMode(GL_BACK, MaxwellToGL::PolygonMode(gpu.regs.polygon_mode_back));
+    }
 }
 
 void RasterizerOpenGL::SyncColorMask() {

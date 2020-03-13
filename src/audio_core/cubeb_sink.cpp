@@ -8,6 +8,7 @@
 #include "audio_core/cubeb_sink.h"
 #include "audio_core/stream.h"
 #include "audio_core/time_stretch.h"
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/ring_buffer.h"
 #include "core/settings.h"
@@ -65,12 +66,25 @@ public:
     void EnqueueSamples(u32 source_num_channels, const std::vector<s16>& samples) override {
         if (source_num_channels > num_channels) {
             // Downsample 6 channels to 2
+            ASSERT_MSG(source_num_channels == 6, "Channel count must be 6");
+
             std::vector<s16> buf;
             buf.reserve(samples.size() * num_channels / source_num_channels);
             for (std::size_t i = 0; i < samples.size(); i += source_num_channels) {
-                for (std::size_t ch = 0; ch < num_channels; ch++) {
-                    buf.push_back(samples[i + ch]);
-                }
+                // Downmixing implementation taken from the ATSC standard
+                const s16 left{samples[i + 0]};
+                const s16 right{samples[i + 1]};
+                const s16 center{samples[i + 2]};
+                const s16 surround_left{samples[i + 4]};
+                const s16 surround_right{samples[i + 5]};
+                // Not used in the ATSC reference implementation
+                [[maybe_unused]] const s16 low_frequency_effects { samples[i + 3] };
+
+                constexpr s32 clev{707}; // center mixing level coefficient
+                constexpr s32 slev{707}; // surround mixing level coefficient
+
+                buf.push_back(left + (clev * center / 1000) + (slev * surround_left / 1000));
+                buf.push_back(right + (clev * center / 1000) + (slev * surround_right / 1000));
             }
             queue.Push(buf);
             return;

@@ -488,5 +488,18 @@ inline GLenum LogicOp(Maxwell::LogicOperation operation) {
     return GL_COPY;
 }
 
+inline GLenum PolygonMode(Maxwell::PolygonMode polygon_mode) {
+    switch (polygon_mode) {
+    case Maxwell::PolygonMode::Point:
+        return GL_POINT;
+    case Maxwell::PolygonMode::Line:
+        return GL_LINE;
+    case Maxwell::PolygonMode::Fill:
+        return GL_FILL;
+    }
+    UNREACHABLE_MSG("Invalid polygon mode={}", static_cast<int>(polygon_mode));
+    return GL_FILL;
+}
+
 } // namespace MaxwellToGL
 } // namespace OpenGL

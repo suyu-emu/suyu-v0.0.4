@@ -854,7 +854,7 @@ void RasterizerVulkan::SetupGraphicsTextures(const ShaderEntries& entries, std::
 
 void RasterizerVulkan::SetupGraphicsImages(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Images);
-    const auto& gpu = system.GPU().KeplerCompute();
+    const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.images) {
         const auto tic = GetTextureInfo(gpu, entry, stage).tic;
         SetupImage(tic, entry);
@@ -915,6 +915,13 @@ void RasterizerVulkan::SetupComputeImages(const ShaderEntries& entries) {
 
 void RasterizerVulkan::SetupConstBuffer(const ConstBufferEntry& entry,
                                         const Tegra::Engines::ConstBufferInfo& buffer) {
+    if (!buffer.enabled) {
+        // Set values to zero to unbind buffers
+        update_descriptor_queue.AddBuffer(buffer_cache.GetEmptyBuffer(sizeof(float)), 0,
+                                          sizeof(float));
+        return;
+    }
+
     // Align the size to avoid bad std140 interactions
     const std::size_t size =
         Common::AlignUp(CalculateConstBufferSize(entry, buffer), 4 * sizeof(float));

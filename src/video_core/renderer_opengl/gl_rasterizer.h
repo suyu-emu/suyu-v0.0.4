@@ -177,6 +177,9 @@ private:
     /// Syncs the rasterizer enable state to match the guest state
     void SyncRasterizeEnable();
 
+    /// Syncs polygon modes to match the guest state
+    void SyncPolygonModes();
+
     /// Syncs Color Mask
     void SyncColorMask();
 

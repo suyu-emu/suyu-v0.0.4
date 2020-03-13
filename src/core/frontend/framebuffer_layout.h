@@ -8,15 +8,15 @@
 
 namespace Layout {
 
-enum ScreenUndocked : u32 {
-    Width = 1280,
-    Height = 720,
-};
+namespace ScreenUndocked {
+constexpr u32 Width = 1280;
+constexpr u32 Height = 720;
+} // namespace ScreenUndocked
 
-enum ScreenDocked : u32 {
-    WidthDocked = 1920,
-    HeightDocked = 1080,
-};
+namespace ScreenDocked {
+constexpr u32 Width = 1920;
+constexpr u32 Height = 1080;
+} // namespace ScreenDocked
 
 enum class AspectRatio {
     Default,
