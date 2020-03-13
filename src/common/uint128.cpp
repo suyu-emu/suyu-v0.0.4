@@ -19,7 +19,11 @@ u64 MultiplyAndDivide64(u64 a, u64 b, u64 d) {
     u128 r{};
     r[0] = _umul128(a, b, &r[1]);
     u64 remainder;
+#if _MSC_VER < 1923
+    return udiv128(r[1], r[0], d, &remainder);
+#else
     return _udiv128(r[1], r[0], d, &remainder);
+#endif
 }
 
 #else
