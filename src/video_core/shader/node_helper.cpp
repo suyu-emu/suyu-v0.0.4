@@ -68,6 +68,8 @@ OperationCode SignedToUnsignedCode(OperationCode operation_code, bool is_signed)
         return OperationCode::UBitwiseXor;
     case OperationCode::IBitwiseNot:
         return OperationCode::UBitwiseNot;
+    case OperationCode::IBitfieldExtract:
+        return OperationCode::UBitfieldExtract;
     case OperationCode::IBitfieldInsert:
         return OperationCode::UBitfieldInsert;
     case OperationCode::IBitCount:
