@@ -363,10 +363,13 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::ATOM: {
-        UNIMPLEMENTED_IF_MSG(instr.atom.operation != GlobalAtomicOp::Add, "operation={}",
-                             static_cast<int>(instr.atom.operation.Value()));
-        UNIMPLEMENTED_IF_MSG(instr.atom.type != GlobalAtomicType::S32, "type={}",
-                             static_cast<int>(instr.atom.type.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.atom.operation == GlobalAtomicOp::Inc ||
+                                 instr.atom.operation == GlobalAtomicOp::Dec ||
+                                 instr.atom.operation == GlobalAtomicOp::SafeAdd,
+                             "operation={}", static_cast<int>(instr.atom.operation.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.atom.type == GlobalAtomicType::S64 ||
+                                 instr.atom.type == GlobalAtomicType::U64,
+                             "type={}", static_cast<int>(instr.atom.type.Value()));
 
         const auto [real_address, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, true, true);
@@ -375,9 +378,39 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             break;
         }
 
+        const bool is_signed =
+            instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-        Node value =
-            Operation(OperationCode::AtomicIAdd, std::move(gmem), GetRegister(instr.gpr20));
+        Node data = GetRegister(instr.gpr20);
+
+        Node value = [&]() {
+            switch (instr.atoms.operation) {
+            case AtomicOp::Add:
+                return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::Min:
+                return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::Max:
+                return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::And:
+                return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::Or:
+                return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::Xor:
+                return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(gmem),
+                                       std::move(data));
+            case AtomicOp::Exch:
+                return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(gmem),
+                                       std::move(data));
+            default:
+                UNREACHABLE();
+                return Immediate(0);
+            }
+        }();
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
