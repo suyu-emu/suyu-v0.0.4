@@ -376,16 +376,20 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
 
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-        Node value = Operation(OperationCode::AtomicAdd, std::move(gmem), GetRegister(instr.gpr20));
+        Node value =
+            Operation(OperationCode::AtomicIAdd, std::move(gmem), GetRegister(instr.gpr20));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::ATOMS: {
-        UNIMPLEMENTED_IF_MSG(instr.atoms.operation != AtomicOp::Add, "operation={}",
-                             static_cast<int>(instr.atoms.operation.Value()));
-        UNIMPLEMENTED_IF_MSG(instr.atoms.type != AtomicType::U32, "type={}",
-                             static_cast<int>(instr.atoms.type.Value()));
-
+        UNIMPLEMENTED_IF_MSG(instr.atoms.operation == AtomicOp::Inc ||
+                                 instr.atoms.operation == AtomicOp::Dec,
+                             "operation={}", static_cast<int>(instr.atoms.operation.Value()));
+        UNIMPLEMENTED_IF_MSG(instr.atoms.type == AtomicType::S64 ||
+                                 instr.atoms.type == AtomicType::U64,
+                             "type={}", static_cast<int>(instr.atoms.type.Value()));
+        const bool is_signed =
+            instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         const s32 offset = instr.atoms.GetImmediateOffset();
         Node address = GetRegister(instr.gpr8);
         address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
@@ -393,7 +397,35 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         Node memory = GetSharedMemory(std::move(address));
         Node data = GetRegister(instr.gpr20);
 
-        Node value = Operation(OperationCode::AtomicAdd, std::move(memory), std::move(data));
+        Node value = [&]() {
+            switch (instr.atoms.operation) {
+            case AtomicOp::Add:
+                return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::Min:
+                return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::Max:
+                return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::And:
+                return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::Or:
+                return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::Xor:
+                return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(memory),
+                                       std::move(data));
+            case AtomicOp::Exch:
+                return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(memory),
+                                       std::move(data));
+            default:
+                UNREACHABLE();
+                return Immediate(0);
+            }
+        }();
+
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
@@ -427,9 +459,9 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& 
 
     const auto [base_address, index, offset] =
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT_OR_EXECUTE_MSG(base_address != nullptr,
-                          { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
-                          "Global memory tracking failed");
+    ASSERT_OR_EXECUTE_MSG(
+        base_address != nullptr, { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
+        "Global memory tracking failed");
 
     bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
