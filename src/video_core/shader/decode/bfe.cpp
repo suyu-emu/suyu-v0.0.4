@@ -17,32 +17,34 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED_IF(instr.bfe.negate_b);
-
     Node op_a = GetRegister(instr.gpr8);
-    op_a = GetOperandAbsNegInteger(op_a, false, instr.bfe.negate_a, false);
+    Node op_b = [&] {
+        switch (opcode->get().GetId()) {
+        case OpCode::Id::BFE_R:
+            return GetRegister(instr.gpr20);
+        case OpCode::Id::BFE_C:
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+        case OpCode::Id::BFE_IMM:
+            return Immediate(instr.alu.GetSignedImm20_20());
+        default:
+            UNREACHABLE();
+            return Immediate(0);
+        }
+    }();
 
-    switch (opcode->get().GetId()) {
-    case OpCode::Id::BFE_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in BFE is not implemented");
+    UNIMPLEMENTED_IF_MSG(instr.bfe.rd_cc, "Condition codes in BFE is not implemented");
+    UNIMPLEMENTED_IF_MSG(instr.bfe.brev, "BREV in BFE is not implemented");
 
-        const Node inner_shift_imm = Immediate(static_cast<u32>(instr.bfe.GetLeftShiftValue()));
-        const Node outer_shift_imm =
-            Immediate(static_cast<u32>(instr.bfe.GetLeftShiftValue() + instr.bfe.shift_position));
+    const bool is_signed = instr.bfe.is_signed;
 
-        const Node inner_shift =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, op_a, inner_shift_imm);
-        const Node outer_shift =
-            Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, inner_shift, outer_shift_imm);
+    const auto start_position = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
+                                                Immediate(0), Immediate(8));
+    const auto bits = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
+                                      Immediate(8), Immediate(8));
 
-        SetInternalFlagsFromInteger(bb, outer_shift, instr.generates_cc);
-        SetRegister(bb, instr.gpr0, outer_shift);
-        break;
-    }
-    default:
-        UNIMPLEMENTED_MSG("Unhandled BFE instruction: {}", opcode->get().GetName());
-    }
+    auto result =
+        SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_a, start_position, bits);
+    SetRegister(bb, instr.gpr0, result);
 
     return pc;
 }
