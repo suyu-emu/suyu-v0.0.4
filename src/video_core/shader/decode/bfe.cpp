@@ -36,6 +36,9 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
 
     const bool is_signed = instr.bfe.is_signed;
 
+    // using reverse parallel method in
+    // https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
+    // note for later if possible to implement faster method.
     if (instr.bfe.brev) {
         const auto swap = [&](u32 s, u32 mask) {
             Node v1 =
