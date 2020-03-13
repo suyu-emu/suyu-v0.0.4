@@ -44,14 +44,18 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
             Node v1 =
                 SignedOperation(OperationCode::ILogicalShiftRight, is_signed, op_a, Immediate(s));
             if (mask != 0) {
-                v1 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v1), Immediate(mask));
+                v1 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v1),
+                                     Immediate(mask));
             }
             Node v2 = op_a;
             if (mask != 0) {
-                v2 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v2), Immediate(mask));
+                v2 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v2),
+                                     Immediate(mask));
             }
-            v2 = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, std::move(v2), Immediate(s));
-            return SignedOperation(OperationCode::IBitwiseOr, is_signed, std::move(v1), std::move(v2));
+            v2 = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, std::move(v2),
+                                 Immediate(s));
+            return SignedOperation(OperationCode::IBitwiseOr, is_signed, std::move(v1),
+                                   std::move(v2));
         };
         op_a = swap(1, 0x55555555U);
         op_a = swap(2, 0x33333333U);
