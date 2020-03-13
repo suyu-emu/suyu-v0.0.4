@@ -100,8 +100,7 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
                                                               op_a, Immediate(0));
             const Node comp_b = GetPredicateComparisonInteger(PredCondition::Equal, is_signed_b,
                                                               op_b, Immediate(0));
-            const Node comp =
-                Operation(OperationCode::LogicalOr, std::move(comp_a), std::move(comp_b));
+            const Node comp = Operation(OperationCode::LogicalOr, comp_a, comp_b);
 
             const Node comp_minus_a = GetPredicateComparisonInteger(
                 PredCondition::NotEqual, is_signed_a,
@@ -120,9 +119,10 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
                 original_c);
             new_c = Operation(
                 OperationCode::Select, comp_minus_b,
-                SignedOperation(OperationCode::IAdd, is_signed_c, new_c, Immediate(-65536)), new_c);
+                SignedOperation(OperationCode::IAdd, is_signed_c, new_c, Immediate(-65536)),
+                std::move(new_c));
 
-            return Operation(OperationCode::Select, comp, original_c, new_c);
+            return Operation(OperationCode::Select, comp, original_c, std::move(new_c));
         }
         default:
             UNREACHABLE();
@@ -134,18 +134,19 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     op_c = GetTemporary(1);
 
     // TODO(Rodrigo): Use an appropiate sign for this operation
-    Node sum = Operation(OperationCode::IAdd, product, op_c);
+    Node sum = SignedOperation(OperationCode::IAdd, is_signed_a, product, std::move(op_c));
     SetTemporary(bb, 2, sum);
     sum = GetTemporary(2);
     if (is_merge) {
-        const Node a = BitfieldExtract(sum, 0, 16);
-        const Node b =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, original_b, Immediate(16));
-        sum = Operation(OperationCode::IBitwiseOr, NO_PRECISE, a, b);
+        const Node a = SignedOperation(OperationCode::IBitfieldExtract, is_signed_a, std::move(sum),
+                                       Immediate(0), Immediate(16));
+        const Node b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b, original_b,
+                                       Immediate(16));
+        sum = SignedOperation(OperationCode::IBitwiseOr, is_signed_a, a, b);
     }
 
     SetInternalFlagsFromInteger(bb, sum, instr.generates_cc);
-    SetRegister(bb, instr.gpr0, sum);
+    SetRegister(bb, instr.gpr0, std::move(sum));
 
     return pc;
 }
