@@ -915,6 +915,13 @@ void RasterizerVulkan::SetupComputeImages(const ShaderEntries& entries) {
 
 void RasterizerVulkan::SetupConstBuffer(const ConstBufferEntry& entry,
                                         const Tegra::Engines::ConstBufferInfo& buffer) {
+    if (!buffer.enabled) {
+        // Set values to zero to unbind buffers
+        update_descriptor_queue.AddBuffer(buffer_cache.GetEmptyBuffer(sizeof(float)), 0,
+                                          sizeof(float));
+        return;
+    }
+
     // Align the size to avoid bad std140 interactions
     const std::size_t size =
         Common::AlignUp(CalculateConstBufferSize(entry, buffer), 4 * sizeof(float));

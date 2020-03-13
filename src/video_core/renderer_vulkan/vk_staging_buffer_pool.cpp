@@ -73,7 +73,8 @@ VKBuffer* VKStagingBufferPool::TryGetReservedBuffer(std::size_t size, bool host_
 VKBuffer& VKStagingBufferPool::CreateStagingBuffer(std::size_t size, bool host_visible) {
     const auto usage =
         vk::BufferUsageFlagBits::eTransferSrc | vk::BufferUsageFlagBits::eTransferDst |
-        vk::BufferUsageFlagBits::eStorageBuffer | vk::BufferUsageFlagBits::eIndexBuffer;
+        vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
+        vk::BufferUsageFlagBits::eIndexBuffer;
     const u32 log2 = Common::Log2Ceil64(size);
     const vk::BufferCreateInfo buffer_ci({}, 1ULL << log2, usage, vk::SharingMode::eExclusive, 0,
                                          nullptr);
