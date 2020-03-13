@@ -11,6 +11,7 @@
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/node_helper.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -24,8 +25,8 @@ using Tegra::Shader::PredOperation;
 using Tegra::Shader::Register;
 
 ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                   ConstBufferLocker& locker)
-    : program_code{program_code}, main_offset{main_offset}, settings{settings}, locker{locker} {
+                   Registry& registry)
+    : program_code{program_code}, main_offset{main_offset}, settings{settings}, registry{registry} {
     Decode();
     PostDecode();
 }

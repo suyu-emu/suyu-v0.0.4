@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <optional>
 #include <vector>
 
 #include "common/common_types.h"
@@ -17,25 +18,29 @@ namespace VideoCore {
  */
 class GuestDriverProfile {
 public:
-    void DeduceTextureHandlerSize(std::vector<u32>&& bound_offsets);
+    explicit GuestDriverProfile() = default;
+    explicit GuestDriverProfile(std::optional<u32> texture_handler_size)
+        : texture_handler_size{texture_handler_size} {}
+
+    void DeduceTextureHandlerSize(std::vector<u32> bound_offsets);
 
     u32 GetTextureHandlerSize() const {
-        return texture_handler_size;
+        return texture_handler_size.value_or(default_texture_handler_size);
     }
 
-    bool TextureHandlerSizeKnown() const {
-        return texture_handler_size_deduced;
+    bool IsTextureHandlerSizeKnown() const {
+        return texture_handler_size.has_value();
     }
 
 private:
     // Minimum size of texture handler any driver can use.
     static constexpr u32 min_texture_handler_size = 4;
-    // This goes with Vulkan and OpenGL standards but Nvidia GPUs can easily
-    // use 4 bytes instead. Thus, certain drivers may squish the size.
+
+    // This goes with Vulkan and OpenGL standards but Nvidia GPUs can easily use 4 bytes instead.
+    // Thus, certain drivers may squish the size.
     static constexpr u32 default_texture_handler_size = 8;
 
-    u32 texture_handler_size = default_texture_handler_size;
-    bool texture_handler_size_deduced = false;
+    std::optional<u32> texture_handler_size = default_texture_handler_size;
 };
 
 } // namespace VideoCore

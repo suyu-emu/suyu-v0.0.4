@@ -4,13 +4,15 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
 
+#include "common/common_types.h"
 #include "video_core/guest_driver.h"
 
 namespace VideoCore {
 
-void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32>&& bound_offsets) {
-    if (texture_handler_size_deduced) {
+void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32> bound_offsets) {
+    if (texture_handler_size) {
         return;
     }
     const std::size_t size = bound_offsets.size();
@@ -29,7 +31,6 @@ void GuestDriverProfile::DeduceTextureHandlerSize(std::vector<u32>&& bound_offse
     if (min_val > 2) {
         return;
     }
-    texture_handler_size_deduced = true;
     texture_handler_size = min_texture_handler_size * min_val;
 }
 

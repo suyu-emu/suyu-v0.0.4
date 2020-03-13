@@ -81,26 +81,20 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, cons
                 MakeTrackSampler<BindlessSamplerNode>(cbuf->GetIndex(), immediate->GetValue());
             return {tracked, track};
         } else if (const auto operation = std::get_if<OperationNode>(&*offset)) {
-            auto bound_buffer = locker.ObtainBoundBuffer();
-            if (!bound_buffer) {
+            const u32 bound_buffer = registry.GetBoundBuffer();
+            if (bound_buffer != cbuf->GetIndex()) {
                 return {};
             }
-            if (*bound_buffer != cbuf->GetIndex()) {
-                return {};
-            }
-            auto pair = DecoupleIndirectRead(*operation);
+            const auto pair = DecoupleIndirectRead(*operation);
             if (!pair) {
                 return {};
             }
             auto [gpr, base_offset] = *pair;
             const auto offset_inm = std::get_if<ImmediateNode>(&*base_offset);
-            auto gpu_driver = locker.AccessGuestDriverProfile();
-            if (gpu_driver == nullptr) {
-                return {};
-            }
+            const auto& gpu_driver = registry.AccessGuestDriverProfile();
             const u32 bindless_cv = NewCustomVariable();
-            const Node op = Operation(OperationCode::UDiv, NO_PRECISE, gpr,
-                                      Immediate(gpu_driver->GetTextureHandlerSize()));
+            const Node op =
+                Operation(OperationCode::UDiv, gpr, Immediate(gpu_driver.GetTextureHandlerSize()));
 
             const Node cv_node = GetCustomVariable(bindless_cv);
             Node amend_op = Operation(OperationCode::Assign, cv_node, std::move(op));

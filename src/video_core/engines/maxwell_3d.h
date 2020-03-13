@@ -67,6 +67,7 @@ public:
         static constexpr std::size_t NumVaryings = 31;
         static constexpr std::size_t NumImages = 8; // TODO(Rodrigo): Investigate this number
         static constexpr std::size_t NumClipDistances = 8;
+        static constexpr std::size_t NumTransformFeedbackBuffers = 4;
         static constexpr std::size_t MaxShaderProgram = 6;
         static constexpr std::size_t MaxShaderStage = 5;
         // Maximum number of const buffers per shader stage.
@@ -627,6 +628,22 @@ public:
             float depth_range_far;
         };
 
+        struct alignas(32) TransformFeedbackBinding {
+            u32 buffer_enable;
+            u32 address_high;
+            u32 address_low;
+            s32 buffer_size;
+            s32 buffer_offset;
+        };
+        static_assert(sizeof(TransformFeedbackBinding) == 32);
+
+        struct alignas(16) TransformFeedbackLayout {
+            u32 stream;
+            u32 varying_count;
+            u32 stride;
+        };
+        static_assert(sizeof(TransformFeedbackLayout) == 16);
+
         bool IsShaderConfigEnabled(std::size_t index) const {
             // The VertexB is always enabled.
             if (index == static_cast<std::size_t>(Regs::ShaderProgram::VertexB)) {
@@ -683,7 +700,13 @@ public:
 
                 u32 rasterize_enable;
 
-                INSERT_UNION_PADDING_WORDS(0xF1);
+                std::array<TransformFeedbackBinding, NumTransformFeedbackBuffers> tfb_bindings;
+
+                INSERT_UNION_PADDING_WORDS(0xC0);
+
+                std::array<TransformFeedbackLayout, NumTransformFeedbackBuffers> tfb_layouts;
+
+                INSERT_UNION_PADDING_WORDS(0x1);
 
                 u32 tfb_enabled;
 
@@ -1202,7 +1225,11 @@ public:
 
                 u32 tex_cb_index;
 
-                INSERT_UNION_PADDING_WORDS(0x395);
+                INSERT_UNION_PADDING_WORDS(0x7D);
+
+                std::array<std::array<u8, 128>, NumTransformFeedbackBuffers> tfb_varying_locs;
+
+                INSERT_UNION_PADDING_WORDS(0x298);
 
                 struct {
                     /// Compressed address of a buffer that holds information about bound SSBOs.
@@ -1428,6 +1455,8 @@ ASSERT_REG_POSITION(tess_mode, 0xC8);
 ASSERT_REG_POSITION(tess_level_outer, 0xC9);
 ASSERT_REG_POSITION(tess_level_inner, 0xCD);
 ASSERT_REG_POSITION(rasterize_enable, 0xDF);
+ASSERT_REG_POSITION(tfb_bindings, 0xE0);
+ASSERT_REG_POSITION(tfb_layouts, 0x1C0);
 ASSERT_REG_POSITION(tfb_enabled, 0x1D1);
 ASSERT_REG_POSITION(rt, 0x200);
 ASSERT_REG_POSITION(viewport_transform, 0x280);
@@ -1526,6 +1555,7 @@ ASSERT_REG_POSITION(firmware, 0x8C0);
 ASSERT_REG_POSITION(const_buffer, 0x8E0);
 ASSERT_REG_POSITION(cb_bind[0], 0x904);
 ASSERT_REG_POSITION(tex_cb_index, 0x982);
+ASSERT_REG_POSITION(tfb_varying_locs, 0xA00);
 ASSERT_REG_POSITION(ssbo_info, 0xD18);
 ASSERT_REG_POSITION(tex_info_buffers.address[0], 0xD2A);
 ASSERT_REG_POSITION(tex_info_buffers.size[0], 0xD2F);

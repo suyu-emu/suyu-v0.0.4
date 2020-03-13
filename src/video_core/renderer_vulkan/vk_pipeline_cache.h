@@ -25,7 +25,7 @@
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
-#include "video_core/shader/const_buffer_locker.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/surface.h"
 
@@ -147,7 +147,7 @@ private:
     GPUVAddr gpu_addr{};
     VAddr cpu_addr{};
     ProgramCode program_code;
-    VideoCommon::Shader::ConstBufferLocker locker;
+    VideoCommon::Shader::Registry registry;
     VideoCommon::Shader::ShaderIR shader_ir;
     ShaderEntries entries;
 };

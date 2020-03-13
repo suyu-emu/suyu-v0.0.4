@@ -25,7 +25,6 @@ constexpr std::size_t NumQueryTypes = 1;
 
 enum class LoadCallbackStage {
     Prepare,
-    Decompile,
     Build,
     Complete,
 };

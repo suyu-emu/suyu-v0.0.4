@@ -161,8 +161,8 @@ CachedShader::CachedShader(Core::System& system, Tegra::Engines::ShaderType stag
                            GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
                            ProgramCode program_code, u32 main_offset)
     : RasterizerCacheObject{host_ptr}, gpu_addr{gpu_addr}, cpu_addr{cpu_addr},
-      program_code{std::move(program_code)}, locker{stage, GetEngine(system, stage)},
-      shader_ir{this->program_code, main_offset, compiler_settings, locker},
+      program_code{std::move(program_code)}, registry{stage, GetEngine(system, stage)},
+      shader_ir{this->program_code, main_offset, compiler_settings, registry},
       entries{GenerateShaderEntries(shader_ir)} {}
 
 CachedShader::~CachedShader() = default;

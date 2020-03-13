@@ -12,6 +12,7 @@
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/node_helper.h"
+#include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace VideoCommon::Shader {
@@ -359,8 +360,8 @@ ShaderIR::SamplerInfo ShaderIR::GetSamplerInfo(std::optional<SamplerInfo> sample
     if (sampler_info) {
         return *sampler_info;
     }
-    const auto sampler =
-        buffer ? locker.ObtainBindlessSampler(*buffer, offset) : locker.ObtainBoundSampler(offset);
+    const auto sampler = buffer ? registry.ObtainBindlessSampler(*buffer, offset)
+                                : registry.ObtainBoundSampler(offset);
     if (!sampler) {
         LOG_WARNING(HW_GPU, "Unknown sampler info");
         return SamplerInfo{TextureType::Texture2D, false, false, false};
