@@ -33,17 +33,36 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
     }();
 
     UNIMPLEMENTED_IF_MSG(instr.bfe.rd_cc, "Condition codes in BFE is not implemented");
-    UNIMPLEMENTED_IF_MSG(instr.bfe.brev, "BREV in BFE is not implemented");
 
     const bool is_signed = instr.bfe.is_signed;
 
-    const auto start_position = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
-                                                Immediate(0), Immediate(8));
+    if (instr.bfe.brev) {
+        const auto swap = [&](u32 s, u32 mask) {
+            Node v1 =
+                SignedOperation(OperationCode::ILogicalShiftRight, is_signed, op_a, Immediate(s));
+            if (mask != 0) {
+                v1 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, v1, Immediate(mask));
+            }
+            Node v2 = op_a;
+            if (mask != 0) {
+                v2 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, op_a, Immediate(mask));
+            }
+            v2 = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, v2, Immediate(s));
+            return SignedOperation(OperationCode::IBitwiseOr, is_signed, v1, v2);
+        };
+        op_a = swap(1, 0x55555555U);
+        op_a = swap(2, 0x33333333U);
+        op_a = swap(4, 0x0F0F0F0FU);
+        op_a = swap(8, 0x00FF00FFU);
+        op_a = swap(16, 0);
+    }
+
+    const auto offset = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
+                                        Immediate(0), Immediate(8));
     const auto bits = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
                                       Immediate(8), Immediate(8));
-
-    auto result =
-        SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_a, start_position, bits);
+    const auto result =
+        SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_a, offset, bits);
     SetRegister(bb, instr.gpr0, result);
 
     return pc;
