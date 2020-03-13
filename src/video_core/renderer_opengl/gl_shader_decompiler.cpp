@@ -554,7 +554,7 @@ private:
         }
         const auto& info = registry.GetComputeInfo();
         if (const u32 size = info.shared_memory_size_in_words; size > 0) {
-            code.AddLine("shared uint smem[];", size);
+            code.AddLine("shared uint smem[{}];", size);
             code.AddNewLine();
         }
         code.AddLine("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;",
