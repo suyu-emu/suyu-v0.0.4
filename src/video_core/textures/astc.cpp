@@ -162,8 +162,8 @@ enum class IntegerEncoding { JustBits, Qus32, Trit };
 
 class IntegerEncodedValue {
 private:
-    const IntegerEncoding m_Encoding;
-    const u32 m_NumBits;
+    IntegerEncoding m_Encoding;
+    u32 m_NumBits;
     u32 m_BitValue;
     union {
         u32 m_Qus32Value;
@@ -171,13 +171,6 @@ private:
     };
 
 public:
-    // Jank, but we're not doing any heavy lifting in this class, so it's
-    // probably OK. It allows us to use these in std::vectors...
-    IntegerEncodedValue& operator=(const IntegerEncodedValue& other) {
-        new (this) IntegerEncodedValue(other);
-        return *this;
-    }
-
     IntegerEncodedValue(IntegerEncoding encoding, u32 numBits)
         : m_Encoding(encoding), m_NumBits(numBits) {}
 
