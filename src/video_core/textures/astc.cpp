@@ -811,6 +811,8 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
 
     // We now have enough to decode our s32eger sequence.
     std::vector<IntegerEncodedValue> decodedColorValues;
+    decodedColorValues.reserve(32);
+
     InputBitStream colorStream(data);
     DecodeIntegerSequence(decodedColorValues, colorStream, range, nValues);
 
