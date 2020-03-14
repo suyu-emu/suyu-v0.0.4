@@ -144,11 +144,11 @@ private:
     const IntType& m_Bits;
 };
 
-enum EIntegerEncoding { eIntegerEncoding_JustBits, eIntegerEncoding_Quint, eIntegerEncoding_Trit };
+enum class IntegerEncoding { JustBits, Quint, Trit };
 
 class IntegerEncodedValue {
 private:
-    const EIntegerEncoding m_Encoding;
+    const IntegerEncoding m_Encoding;
     const uint32_t m_NumBits;
     uint32_t m_BitValue;
     union {
@@ -164,10 +164,10 @@ public:
         return *this;
     }
 
-    IntegerEncodedValue(EIntegerEncoding encoding, uint32_t numBits)
+    IntegerEncodedValue(IntegerEncoding encoding, uint32_t numBits)
         : m_Encoding(encoding), m_NumBits(numBits) {}
 
-    EIntegerEncoding GetEncoding() const {
+    IntegerEncoding GetEncoding() const {
         return m_Encoding;
     }
     uint32_t BaseBitLength() const {
@@ -202,9 +202,9 @@ public:
     // Returns the number of bits required to encode nVals values.
     uint32_t GetBitLength(uint32_t nVals) const {
         uint32_t totalBits = m_NumBits * nVals;
-        if (m_Encoding == eIntegerEncoding_Trit) {
+        if (m_Encoding == IntegerEncoding::Trit) {
             totalBits += (nVals * 8 + 4) / 5;
-        } else if (m_Encoding == eIntegerEncoding_Quint) {
+        } else if (m_Encoding == IntegerEncoding::Quint) {
             totalBits += (nVals * 7 + 2) / 3;
         }
         return totalBits;
@@ -227,24 +227,24 @@ public:
 
             // Is maxVal a power of two?
             if (!(check & (check - 1))) {
-                return IntegerEncodedValue(eIntegerEncoding_JustBits, Popcnt(maxVal));
+                return IntegerEncodedValue(IntegerEncoding::JustBits, Popcnt(maxVal));
             }
 
             // Is maxVal of the type 3*2^n - 1?
             if ((check % 3 == 0) && !((check / 3) & ((check / 3) - 1))) {
-                return IntegerEncodedValue(eIntegerEncoding_Trit, Popcnt(check / 3 - 1));
+                return IntegerEncodedValue(IntegerEncoding::Trit, Popcnt(check / 3 - 1));
             }
 
             // Is maxVal of the type 5*2^n - 1?
             if ((check % 5 == 0) && !((check / 5) & ((check / 5) - 1))) {
-                return IntegerEncodedValue(eIntegerEncoding_Quint, Popcnt(check / 5 - 1));
+                return IntegerEncodedValue(IntegerEncoding::Quint, Popcnt(check / 5 - 1));
             }
 
             // Apparently it can't be represented with a bounded integer sequence...
             // just iterate.
             maxVal--;
         }
-        return IntegerEncodedValue(eIntegerEncoding_JustBits, 0);
+        return IntegerEncodedValue(IntegerEncoding::JustBits, 0);
     }
 
     // Fills result with the values that are encoded in the given
@@ -259,17 +259,17 @@ public:
         uint32_t nValsDecoded = 0;
         while (nValsDecoded < nValues) {
             switch (val.GetEncoding()) {
-            case eIntegerEncoding_Quint:
+            case IntegerEncoding::Quint:
                 DecodeQuintBlock(bits, result, val.BaseBitLength());
                 nValsDecoded += 3;
                 break;
 
-            case eIntegerEncoding_Trit:
+            case IntegerEncoding::Trit:
                 DecodeTritBlock(bits, result, val.BaseBitLength());
                 nValsDecoded += 5;
                 break;
 
-            case eIntegerEncoding_JustBits:
+            case IntegerEncoding::JustBits:
                 val.SetBitValue(bits.ReadBits(val.BaseBitLength()));
                 result.push_back(val);
                 nValsDecoded++;
@@ -332,7 +332,7 @@ private:
         }
 
         for (uint32_t i = 0; i < 5; i++) {
-            IntegerEncodedValue val(eIntegerEncoding_Trit, nBitsPerValue);
+            IntegerEncodedValue val(IntegerEncoding::Trit, nBitsPerValue);
             val.SetBitValue(m[i]);
             val.SetTritValue(t[i]);
             result.push_back(val);
@@ -380,7 +380,7 @@ private:
         }
 
         for (uint32_t i = 0; i < 3; i++) {
-            IntegerEncodedValue val(eIntegerEncoding_Quint, nBitsPerValue);
+            IntegerEncodedValue val(IntegerEncoding::Quint, nBitsPerValue);
             val.m_BitValue = m[i];
             val.m_QuintValue = q[i];
             result.push_back(val);
@@ -859,12 +859,12 @@ static void DecodeColorValues(uint32_t* out, uint8_t* data, const uint32_t* mode
 
         switch (val.GetEncoding()) {
         // Replicate bits
-        case eIntegerEncoding_JustBits:
+        case IntegerEncoding::JustBits:
             out[outIdx++] = Replicate(bitval, bitlen, 8);
             break;
 
         // Use algorithm in C.2.13
-        case eIntegerEncoding_Trit: {
+        case IntegerEncoding::Trit: {
 
             D = val.GetTritValue();
 
@@ -912,10 +912,10 @@ static void DecodeColorValues(uint32_t* out, uint8_t* data, const uint32_t* mode
                 assert(!"Unsupported trit encoding for color values!");
                 break;
             } // switch(bitlen)
-        }     // case eIntegerEncoding_Trit
+        }     // case IntegerEncoding::Trit
         break;
 
-        case eIntegerEncoding_Quint: {
+        case IntegerEncoding::Quint: {
 
             D = val.GetQuintValue();
 
@@ -956,11 +956,11 @@ static void DecodeColorValues(uint32_t* out, uint8_t* data, const uint32_t* mode
                 assert(!"Unsupported quint encoding for color values!");
                 break;
             } // switch(bitlen)
-        }     // case eIntegerEncoding_Quint
+        }     // case IntegerEncoding::Quint
         break;
         } // switch(val.GetEncoding())
 
-        if (val.GetEncoding() != eIntegerEncoding_JustBits) {
+        if (val.GetEncoding() != IntegerEncoding::JustBits) {
             uint32_t T = D * C + B;
             T ^= A;
             T = (A & 0x80) | (T >> 2);
@@ -983,11 +983,11 @@ static uint32_t UnquantizeTexelWeight(const IntegerEncodedValue& val) {
 
     uint32_t result = 0;
     switch (val.GetEncoding()) {
-    case eIntegerEncoding_JustBits:
+    case IntegerEncoding::JustBits:
         result = Replicate(bitval, bitlen, 6);
         break;
 
-    case eIntegerEncoding_Trit: {
+    case IntegerEncoding::Trit: {
         D = val.GetTritValue();
         assert(D < 3);
 
@@ -1019,7 +1019,7 @@ static uint32_t UnquantizeTexelWeight(const IntegerEncodedValue& val) {
         }
     } break;
 
-    case eIntegerEncoding_Quint: {
+    case IntegerEncoding::Quint: {
         D = val.GetQuintValue();
         assert(D < 5);
 
@@ -1046,7 +1046,7 @@ static uint32_t UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     } break;
     }
 
-    if (val.GetEncoding() != eIntegerEncoding_JustBits && bitlen > 0) {
+    if (val.GetEncoding() != IntegerEncoding::JustBits && bitlen > 0) {
         // Decode the value...
         result = D * C + B;
         result ^= A;
