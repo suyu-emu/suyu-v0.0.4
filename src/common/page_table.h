@@ -76,9 +76,20 @@ struct PageTable {
      */
     std::vector<PageType> attributes;
 
-    std::vector<u64> backing_addr;
-
     const std::size_t page_size_in_bits{};
+};
+
+/**
+ * A more advanced Page Table with the ability to save a backing address when using it
+ * depends on another MMU.
+ */
+struct BackingPageTable : PageTable {
+    explicit BackingPageTable(std::size_t page_size_in_bits);
+    ~BackingPageTable();
+
+    void Resize(std::size_t address_space_width_in_bits);
+
+    std::vector<u64> backing_addr;
 };
 
 } // namespace Common
