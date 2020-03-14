@@ -162,16 +162,17 @@ enum class IntegerEncoding { JustBits, Qus32, Trit };
 
 class IntegerEncodedValue {
 private:
-    IntegerEncoding m_Encoding;
-    u32 m_NumBits;
-    u32 m_BitValue;
+    IntegerEncoding m_Encoding{};
+    u32 m_NumBits = 0;
+    u32 m_BitValue = 0;
     union {
-        u32 m_Qus32Value;
+        u32 m_Qus32Value = 0;
         u32 m_TritValue;
     };
 
 public:
-    IntegerEncodedValue(IntegerEncoding encoding, u32 numBits)
+    constexpr IntegerEncodedValue() = default;
+    constexpr IntegerEncodedValue(IntegerEncoding encoding, u32 numBits)
         : m_Encoding(encoding), m_NumBits(numBits) {}
 
     IntegerEncoding GetEncoding() const {
