@@ -90,8 +90,6 @@ void StateTracker::Initialize() {
     SetupDirtyBlendConstants(tables);
     SetupDirtyDepthBounds(tables);
     SetupDirtyStencilProperties(tables);
-
-    SetupCommonOnWriteStores(dirty.on_write_stores);
 }
 
 void StateTracker::InvalidateCommandBufferState() {
