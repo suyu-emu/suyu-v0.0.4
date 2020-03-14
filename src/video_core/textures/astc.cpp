@@ -1538,6 +1538,8 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
     memset(texelWeightData + clearByteStart, 0, 16 - clearByteStart);
 
     std::vector<IntegerEncodedValue> texelWeightValues;
+    texelWeightValues.reserve(64);
+
     InputBitStream weightStream(texelWeightData);
 
     DecodeIntegerSequence(texelWeightValues, weightStream, weightParams.m_MaxWeight,
