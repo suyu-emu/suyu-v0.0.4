@@ -68,7 +68,7 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
                                         Immediate(0), Immediate(8));
     const auto bits = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
                                       Immediate(8), Immediate(8));
-    const auto result =
+    auto result =
         SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_a, offset, bits);
     SetRegister(bb, instr.gpr0, std::move(result));
 
