@@ -161,6 +161,8 @@ private:
 enum class IntegerEncoding { JustBits, Qus32, Trit };
 
 struct IntegerEncodedValue {
+    constexpr IntegerEncodedValue() = default;
+
     constexpr IntegerEncodedValue(IntegerEncoding encoding_, u32 num_bits_)
         : encoding{encoding_}, num_bits{num_bits_} {}
 
@@ -179,8 +181,8 @@ struct IntegerEncodedValue {
         return totalBits;
     }
 
-    IntegerEncoding encoding;
-    u32 num_bits;
+    IntegerEncoding encoding{};
+    u32 num_bits = 0;
     u32 bit_value = 0;
     union {
         u32 qus32_value = 0;
@@ -296,7 +298,7 @@ static void DecodeQus32Block(InputBitStream& bits, std::vector<IntegerEncodedVal
 
 // Returns a new instance of this struct that corresponds to the
 // can take no more than maxval values
-static IntegerEncodedValue CreateEncoding(u32 maxVal) {
+static constexpr IntegerEncodedValue CreateEncoding(u32 maxVal) {
     while (maxVal > 0) {
         u32 check = maxVal + 1;
 
@@ -322,13 +324,23 @@ static IntegerEncodedValue CreateEncoding(u32 maxVal) {
     return IntegerEncodedValue(IntegerEncoding::JustBits, 0);
 }
 
+static constexpr std::array<IntegerEncodedValue, 256> MakeEncodedValues() {
+    std::array<IntegerEncodedValue, 256> encodings{};
+    for (std::size_t i = 0; i < encodings.size(); ++i) {
+        encodings[i] = CreateEncoding(static_cast<u32>(i));
+    }
+    return encodings;
+}
+
+static constexpr std::array EncodingsValues = MakeEncodedValues();
+
 // Fills result with the values that are encoded in the given
 // bitstream. We must know beforehand what the maximum possible
 // value is, and how many values we're decoding.
 static void DecodeIntegerSequence(std::vector<IntegerEncodedValue>& result, InputBitStream& bits,
                                   u32 maxRange, u32 nValues) {
     // Determine encoding parameters
-    IntegerEncodedValue val = CreateEncoding(maxRange);
+    IntegerEncodedValue val = EncodingsValues[maxRange];
 
     // Start decoding
     u32 nValsDecoded = 0;
@@ -371,7 +383,7 @@ struct TexelWeightParams {
             nIdxs *= 2;
         }
 
-        return CreateEncoding(m_MaxWeight).GetBitLength(nIdxs);
+        return EncodingsValues[m_MaxWeight].GetBitLength(nIdxs);
     }
 
     u32 GetNumWeightValues() const {
@@ -780,12 +792,12 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
     // figure out the max value for each of them...
     u32 range = 256;
     while (--range > 0) {
-        IntegerEncodedValue val = CreateEncoding(range);
+        IntegerEncodedValue val = EncodingsValues[range];
         u32 bitLength = val.GetBitLength(nValues);
         if (bitLength <= nBitsForColorData) {
             // Find the smallest possible range that matches the given encoding
             while (--range > 0) {
-                IntegerEncodedValue newval = CreateEncoding(range);
+                IntegerEncodedValue newval = EncodingsValues[range];
                 if (!newval.MatchesEncoding(val)) {
                     break;
                 }
