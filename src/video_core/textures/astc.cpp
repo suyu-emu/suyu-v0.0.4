@@ -323,7 +323,7 @@ static constexpr IntegerEncodedValue CreateEncoding(u32 maxVal) {
             return IntegerEncodedValue(IntegerEncoding::Qus32, Popcnt(check / 5 - 1));
         }
 
-        // Apparently it can't be represented with a bounded s32eger sequence...
+        // Apparently it can't be represented with a bounded integer sequence...
         // just iterate.
         maxVal--;
     }
@@ -755,7 +755,7 @@ public:
     }
 
     // Take all of the components, transform them to their 8-bit variants,
-    // and then pack each channel s32o an R8G8B8A8 32-bit s32eger. We assume
+    // and then pack each channel into an R8G8B8A8 32-bit integer. We assume
     // that the architecture is little-endian, so the alpha channel will end
     // up in the most-significant byte.
     u32 Pack() const {
@@ -815,7 +815,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
         }
     }
 
-    // We now have enough to decode our s32eger sequence.
+    // We now have enough to decode our integer sequence.
     std::vector<IntegerEncodedValue> decodedColorValues;
     decodedColorValues.reserve(32);
 
