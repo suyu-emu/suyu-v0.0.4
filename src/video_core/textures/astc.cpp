@@ -25,6 +25,19 @@
 
 #include "video_core/textures/astc.h"
 
+namespace {
+
+/// Count the number of bits set in a number.
+constexpr u32 Popcnt(u32 n) {
+    u32 c = 0;
+    for (; n; c++) {
+        n &= n - 1;
+    }
+    return c;
+}
+
+} // Anonymous namespace
+
 class InputBitStream {
 public:
     explicit InputBitStream(const unsigned char* ptr, int start_offset = 0)
@@ -210,15 +223,6 @@ public:
             totalBits += (nVals * 7 + 2) / 3;
         }
         return totalBits;
-    }
-
-    // Count the number of bits set in a number.
-    static inline u32 Popcnt(u32 n) {
-        u32 c;
-        for (c = 0; n; c++) {
-            n &= n - 1;
-        }
-        return c;
     }
 
     // Returns a new instance of this struct that corresponds to the
