@@ -35,7 +35,6 @@ using VideoCore::MortonSwizzleMode;
 
 using Tegra::Texture::SwizzleSource;
 using VideoCore::Surface::PixelFormat;
-using VideoCore::Surface::SurfaceCompression;
 using VideoCore::Surface::SurfaceTarget;
 
 namespace {
@@ -96,9 +95,10 @@ vk::ImageViewType GetImageViewType(SurfaceTarget target) {
     return {};
 }
 
-UniqueBuffer CreateBuffer(const VKDevice& device, const SurfaceParams& params) {
+UniqueBuffer CreateBuffer(const VKDevice& device, const SurfaceParams& params,
+                          std::size_t host_memory_size) {
     // TODO(Rodrigo): Move texture buffer creation to the buffer cache
-    const vk::BufferCreateInfo buffer_ci({}, params.GetHostSizeInBytes(),
+    const vk::BufferCreateInfo buffer_ci({}, host_memory_size,
                                          vk::BufferUsageFlagBits::eUniformTexelBuffer |
                                              vk::BufferUsageFlagBits::eTransferSrc |
                                              vk::BufferUsageFlagBits::eTransferDst,
@@ -110,12 +110,13 @@ UniqueBuffer CreateBuffer(const VKDevice& device, const SurfaceParams& params) {
 
 vk::BufferViewCreateInfo GenerateBufferViewCreateInfo(const VKDevice& device,
                                                       const SurfaceParams& params,
-                                                      vk::Buffer buffer) {
+                                                      vk::Buffer buffer,
+                                                      std::size_t host_memory_size) {
     ASSERT(params.IsBuffer());
 
     const auto format =
         MaxwellToVK::SurfaceFormat(device, FormatType::Buffer, params.pixel_format).format;
-    return vk::BufferViewCreateInfo({}, buffer, format, 0, params.GetHostSizeInBytes());
+    return vk::BufferViewCreateInfo({}, buffer, format, 0, host_memory_size);
 }
 
 vk::ImageCreateInfo GenerateImageCreateInfo(const VKDevice& device, const SurfaceParams& params) {
@@ -169,14 +170,15 @@ CachedSurface::CachedSurface(Core::System& system, const VKDevice& device,
                              VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
                              VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
                              GPUVAddr gpu_addr, const SurfaceParams& params)
-    : SurfaceBase<View>{gpu_addr, params}, system{system}, device{device},
-      resource_manager{resource_manager}, memory_manager{memory_manager}, scheduler{scheduler},
-      staging_pool{staging_pool} {
+    : SurfaceBase<View>{gpu_addr, params, device.IsOptimalAstcSupported()}, system{system},
+      device{device}, resource_manager{resource_manager},
+      memory_manager{memory_manager}, scheduler{scheduler}, staging_pool{staging_pool} {
     if (params.IsBuffer()) {
-        buffer = CreateBuffer(device, params);
+        buffer = CreateBuffer(device, params, host_memory_size);
         commit = memory_manager.Commit(*buffer, false);
 
-        const auto buffer_view_ci = GenerateBufferViewCreateInfo(device, params, *buffer);
+        const auto buffer_view_ci =
+            GenerateBufferViewCreateInfo(device, params, *buffer, host_memory_size);
         format = buffer_view_ci.format;
 
         const auto dev = device.GetLogical();
@@ -255,7 +257,7 @@ void CachedSurface::UploadBuffer(const std::vector<u8>& staging_buffer) {
     std::memcpy(src_buffer.commit->Map(host_memory_size), staging_buffer.data(), host_memory_size);
 
     scheduler.Record([src_buffer = *src_buffer.handle, dst_buffer = *buffer,
-                      size = params.GetHostSizeInBytes()](auto cmdbuf, auto& dld) {
+                      size = host_memory_size](auto cmdbuf, auto& dld) {
         const vk::BufferCopy copy(0, 0, size);
         cmdbuf.copyBuffer(src_buffer, dst_buffer, {copy}, dld);
 
@@ -299,10 +301,7 @@ void CachedSurface::UploadImage(const std::vector<u8>& staging_buffer) {
 
 vk::BufferImageCopy CachedSurface::GetBufferImageCopy(u32 level) const {
     const u32 vk_depth = params.target == SurfaceTarget::Texture3D ? params.GetMipDepth(level) : 1;
-    const auto compression_type = params.GetCompressionType();
-    const std::size_t mip_offset = compression_type == SurfaceCompression::Converted
-                                       ? params.GetConvertedMipmapOffset(level)
-                                       : params.GetHostMipmapLevelOffset(level);
+    const std::size_t mip_offset = params.GetHostMipmapLevelOffset(level, is_converted);
 
     return vk::BufferImageCopy(
         mip_offset, 0, 0,
@@ -390,8 +389,9 @@ VKTextureCache::VKTextureCache(Core::System& system, VideoCore::RasterizerInterf
                                const VKDevice& device, VKResourceManager& resource_manager,
                                VKMemoryManager& memory_manager, VKScheduler& scheduler,
                                VKStagingBufferPool& staging_pool)
-    : TextureCache(system, rasterizer), device{device}, resource_manager{resource_manager},
-      memory_manager{memory_manager}, scheduler{scheduler}, staging_pool{staging_pool} {}
+    : TextureCache(system, rasterizer, device.IsOptimalAstcSupported()), device{device},
+      resource_manager{resource_manager}, memory_manager{memory_manager}, scheduler{scheduler},
+      staging_pool{staging_pool} {}
 
 VKTextureCache::~VKTextureCache() = default;
 

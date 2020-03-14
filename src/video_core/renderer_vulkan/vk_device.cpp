@@ -237,8 +237,6 @@ void VKDevice::ReportLoss() const {
 
 bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
                                       const vk::DispatchLoaderDynamic& dldi) const {
-    // Disable for now to avoid converting ASTC twice.
-    return false;
     static constexpr std::array astc_formats = {
         vk::Format::eAstc4x4SrgbBlock,    vk::Format::eAstc8x8SrgbBlock,
         vk::Format::eAstc8x5SrgbBlock,    vk::Format::eAstc5x4SrgbBlock,

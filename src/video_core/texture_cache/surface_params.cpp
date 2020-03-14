@@ -309,28 +309,26 @@ std::size_t SurfaceParams::GetGuestMipmapLevelOffset(u32 level) const {
     return offset;
 }
 
-std::size_t SurfaceParams::GetHostMipmapLevelOffset(u32 level) const {
+std::size_t SurfaceParams::GetHostMipmapLevelOffset(u32 level, bool is_converted) const {
     std::size_t offset = 0;
-    for (u32 i = 0; i < level; i++) {
-        offset += GetInnerMipmapMemorySize(i, true, false) * GetNumLayers();
-    }
-    return offset;
-}
-
-std::size_t SurfaceParams::GetConvertedMipmapOffset(u32 level) const {
-    std::size_t offset = 0;
-    for (u32 i = 0; i < level; i++) {
-        offset += GetConvertedMipmapSize(i);
+    if (is_converted) {
+        for (u32 i = 0; i < level; ++i) {
+            offset += GetConvertedMipmapSize(i) * GetNumLayers();
+        }
+    } else {
+        for (u32 i = 0; i < level; ++i) {
+            offset += GetInnerMipmapMemorySize(i, true, false) * GetNumLayers();
+        }
     }
     return offset;
 }
 
 std::size_t SurfaceParams::GetConvertedMipmapSize(u32 level) const {
     constexpr std::size_t rgba8_bpp = 4ULL;
-    const std::size_t width_t = GetMipWidth(level);
-    const std::size_t height_t = GetMipHeight(level);
-    const std::size_t depth_t = is_layered ? depth : GetMipDepth(level);
-    return width_t * height_t * depth_t * rgba8_bpp;
+    const std::size_t mip_width = GetMipWidth(level);
+    const std::size_t mip_height = GetMipHeight(level);
+    const std::size_t mip_depth = is_layered ? 1 : GetMipDepth(level);
+    return mip_width * mip_height * mip_depth * rgba8_bpp;
 }
 
 std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) const {

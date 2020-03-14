@@ -20,8 +20,6 @@ namespace VideoCommon {
 
 class FormatLookupTable;
 
-using VideoCore::Surface::SurfaceCompression;
-
 class SurfaceParams {
 public:
     /// Creates SurfaceCachedParams from a texture configuration.
@@ -67,16 +65,14 @@ public:
         return GetInnerMemorySize(false, false, false);
     }
 
-    std::size_t GetHostSizeInBytes() const {
-        std::size_t host_size_in_bytes;
-        if (GetCompressionType() == SurfaceCompression::Converted) {
-            // ASTC is uncompressed in software, in emulated as RGBA8
-            host_size_in_bytes = 0;
-            for (u32 level = 0; level < num_levels; ++level) {
-                host_size_in_bytes += GetConvertedMipmapSize(level);
-            }
-        } else {
-            host_size_in_bytes = GetInnerMemorySize(true, false, false);
+    std::size_t GetHostSizeInBytes(bool is_converted) const {
+        if (!is_converted) {
+            return GetInnerMemorySize(true, false, false);
+        }
+        // ASTC is uncompressed in software, in emulated as RGBA8
+        std::size_t host_size_in_bytes = 0;
+        for (u32 level = 0; level < num_levels; ++level) {
+            host_size_in_bytes += GetConvertedMipmapSize(level) * GetNumLayers();
         }
         return host_size_in_bytes;
     }
@@ -107,9 +103,8 @@ public:
     u32 GetMipBlockDepth(u32 level) const;
 
     /// Returns the best possible row/pitch alignment for the surface.
-    u32 GetRowAlignment(u32 level) const {
-        const u32 bpp =
-            GetCompressionType() == SurfaceCompression::Converted ? 4 : GetBytesPerPixel();
+    u32 GetRowAlignment(u32 level, bool is_converted) const {
+        const u32 bpp = is_converted ? 4 : GetBytesPerPixel();
         return 1U << Common::CountTrailingZeroes32(GetMipWidth(level) * bpp);
     }
 
@@ -117,11 +112,7 @@ public:
     std::size_t GetGuestMipmapLevelOffset(u32 level) const;
 
     /// Returns the offset in bytes in host memory (linear) of a given mipmap level.
-    std::size_t GetHostMipmapLevelOffset(u32 level) const;
-
-    /// Returns the offset in bytes in host memory (linear) of a given mipmap level
-    /// for a texture that is converted in host gpu.
-    std::size_t GetConvertedMipmapOffset(u32 level) const;
+    std::size_t GetHostMipmapLevelOffset(u32 level, bool is_converted) const;
 
     /// Returns the size in bytes in guest memory of a given mipmap level.
     std::size_t GetGuestMipmapSize(u32 level) const {
@@ -194,11 +185,6 @@ public:
     bool IsPixelFormatZeta() const {
         return pixel_format >= VideoCore::Surface::PixelFormat::MaxColorFormat &&
                pixel_format < VideoCore::Surface::PixelFormat::MaxDepthStencilFormat;
-    }
-
-    /// Returns how the compression should be handled for this texture.
-    SurfaceCompression GetCompressionType() const {
-        return VideoCore::Surface::GetFormatCompressionType(pixel_format);
     }
 
     /// Returns is the surface is a TextureBuffer type of surface.
