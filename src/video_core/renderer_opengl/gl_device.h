@@ -84,6 +84,10 @@ public:
         return has_fast_buffer_sub_data;
     }
 
+    bool HasDebugTool() const {
+        return has_debug_tool;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -102,6 +106,7 @@ private:
     bool has_precise_bug{};
     bool has_broken_compute{};
     bool has_fast_buffer_sub_data{};
+    bool has_debug_tool{};
 };
 
 } // namespace OpenGL
