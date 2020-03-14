@@ -102,6 +102,8 @@ set(HASH_FILES
     "${VIDEO_CORE}/shader/shader_ir.cpp"
     "${VIDEO_CORE}/shader/shader_ir.h"
     "${VIDEO_CORE}/shader/track.cpp"
+    "${VIDEO_CORE}/shader/transform_feedback.cpp"
+    "${VIDEO_CORE}/shader/transform_feedback.h"
 )
 set(COMBINED "")
 foreach (F IN LISTS HASH_FILES)

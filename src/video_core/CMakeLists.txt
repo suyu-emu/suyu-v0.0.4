@@ -129,6 +129,8 @@ add_library(video_core STATIC
     shader/shader_ir.cpp
     shader/shader_ir.h
     shader/track.cpp
+    shader/transform_feedback.cpp
+    shader/transform_feedback.h
     surface.cpp
     surface.h
     texture_cache/format_lookup_table.cpp

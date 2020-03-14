@@ -5,7 +5,9 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 
 #include <fmt/format.h>
@@ -24,6 +26,7 @@
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/shader/transform_feedback.h"
 
 namespace Vulkan {
 
@@ -91,6 +94,12 @@ struct VertexIndices {
     std::optional<u32> viewport;
     std::optional<u32> point_size;
     std::optional<u32> clip_distances;
+};
+
+struct GenericVaryingDescription {
+    Id id = nullptr;
+    u32 first_element = 0;
+    bool is_scalar = false;
 };
 
 spv::Dim GetSamplerDim(const Sampler& sampler) {
@@ -266,9 +275,13 @@ bool IsPrecise(Operation operand) {
 class SPIRVDecompiler final : public Sirit::Module {
 public:
     explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
-                             const Specialization& specialization)
+                             const Registry& registry, const Specialization& specialization)
         : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()},
-          specialization{specialization} {
+          registry{registry}, specialization{specialization} {
+        if (stage != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+        }
+
         AddCapability(spv::Capability::Shader);
         AddCapability(spv::Capability::UniformAndStorageBuffer16BitAccess);
         AddCapability(spv::Capability::ImageQuery);
@@ -286,6 +299,15 @@ public:
         AddExtension("SPV_KHR_variable_pointers");
         AddExtension("SPV_KHR_shader_draw_parameters");
 
+        if (!transform_feedback.empty()) {
+            if (device.IsExtTransformFeedbackSupported()) {
+                AddCapability(spv::Capability::TransformFeedback);
+            } else {
+                LOG_ERROR(Render_Vulkan, "Shader requires transform feedbacks but these are not "
+                                         "supported on this device");
+            }
+        }
+
         if (ir.UsesLayer() || ir.UsesViewportIndex()) {
             if (ir.UsesViewportIndex()) {
                 AddCapability(spv::Capability::MultiViewport);
@@ -296,7 +318,7 @@ public:
             }
         }
 
-        if (device.IsShaderStorageImageReadWithoutFormatSupported()) {
+        if (device.IsFormatlessImageLoadSupported()) {
             AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
 
@@ -318,25 +340,29 @@ public:
             AddExecutionMode(main, spv::ExecutionMode::OutputVertices,
                              header.common2.threads_per_input_primitive);
             break;
-        case ShaderType::TesselationEval:
+        case ShaderType::TesselationEval: {
+            const auto& info = registry.GetGraphicsInfo();
             AddCapability(spv::Capability::Tessellation);
             AddEntryPoint(spv::ExecutionModel::TessellationEvaluation, main, "main", interfaces);
-            AddExecutionMode(main, GetExecutionMode(specialization.tessellation.primitive));
-            AddExecutionMode(main, GetExecutionMode(specialization.tessellation.spacing));
-            AddExecutionMode(main, specialization.tessellation.clockwise
+            AddExecutionMode(main, GetExecutionMode(info.tessellation_primitive));
+            AddExecutionMode(main, GetExecutionMode(info.tessellation_spacing));
+            AddExecutionMode(main, info.tessellation_clockwise
                                        ? spv::ExecutionMode::VertexOrderCw
                                        : spv::ExecutionMode::VertexOrderCcw);
             break;
-        case ShaderType::Geometry:
+        }
+        case ShaderType::Geometry: {
+            const auto& info = registry.GetGraphicsInfo();
             AddCapability(spv::Capability::Geometry);
             AddEntryPoint(spv::ExecutionModel::Geometry, main, "main", interfaces);
-            AddExecutionMode(main, GetExecutionMode(specialization.primitive_topology));
+            AddExecutionMode(main, GetExecutionMode(info.primitive_topology));
             AddExecutionMode(main, GetExecutionMode(header.common3.output_topology));
             AddExecutionMode(main, spv::ExecutionMode::OutputVertices,
                              header.common4.max_output_vertices);
             // TODO(Rodrigo): Where can we get this info from?
             AddExecutionMode(main, spv::ExecutionMode::Invocations, 1U);
             break;
+        }
         case ShaderType::Fragment:
             AddEntryPoint(spv::ExecutionModel::Fragment, main, "main", interfaces);
             AddExecutionMode(main, spv::ExecutionMode::OriginUpperLeft);
@@ -545,7 +571,8 @@ private:
         if (stage != ShaderType::Geometry) {
             return;
         }
-        const u32 num_input = GetNumPrimitiveTopologyVertices(specialization.primitive_topology);
+        const auto& info = registry.GetGraphicsInfo();
+        const u32 num_input = GetNumPrimitiveTopologyVertices(info.primitive_topology);
         DeclareInputVertexArray(num_input);
         DeclareOutputVertex();
     }
@@ -742,12 +769,34 @@ private:
     }
 
     void DeclareOutputAttributes() {
+        if (stage == ShaderType::Compute || stage == ShaderType::Fragment) {
+            return;
+        }
+
+        UNIMPLEMENTED_IF(registry.GetGraphicsInfo().tfb_enabled && stage != ShaderType::Vertex);
         for (const auto index : ir.GetOutputAttributes()) {
             if (!IsGenericAttribute(index)) {
                 continue;
             }
-            const u32 location = GetGenericAttributeLocation(index);
-            Id type = t_float4;
+            DeclareOutputAttribute(index);
+        }
+    }
+
+    void DeclareOutputAttribute(Attribute::Index index) {
+        static constexpr std::string_view swizzle = "xyzw";
+
+        const u32 location = GetGenericAttributeLocation(index);
+        u8 element = 0;
+        while (element < 4) {
+            const std::size_t remainder = 4 - element;
+
+            std::size_t num_components = remainder;
+            const std::optional tfb = GetTransformFeedbackInfo(index, element);
+            if (tfb) {
+                num_components = tfb->components;
+            }
+
+            Id type = GetTypeVectorDefinitionLut(Type::Float).at(num_components - 1);
             Id varying_default = v_varying_default;
             if (IsOutputAttributeArray()) {
                 const u32 num = GetNumOutputVertices();
@@ -760,13 +809,45 @@ private:
             }
             type = TypePointer(spv::StorageClass::Output, type);
 
+            std::string name = fmt::format("out_attr{}", location);
+            if (num_components < 4 || element > 0) {
+                name = fmt::format("{}_{}", name, swizzle.substr(element, num_components));
+            }
+
             const Id id = OpVariable(type, spv::StorageClass::Output, varying_default);
-            Name(AddGlobalVariable(id), fmt::format("out_attr{}", location));
-            output_attributes.emplace(index, id);
+            Name(AddGlobalVariable(id), name);
+
+            GenericVaryingDescription description;
+            description.id = id;
+            description.first_element = element;
+            description.is_scalar = num_components == 1;
+            for (u32 i = 0; i < num_components; ++i) {
+                const u8 offset = static_cast<u8>(static_cast<u32>(index) * 4 + element + i);
+                output_attributes.emplace(offset, description);
+            }
             interfaces.push_back(id);
 
             Decorate(id, spv::Decoration::Location, location);
+            if (element > 0) {
+                Decorate(id, spv::Decoration::Component, static_cast<u32>(element));
+            }
+            if (tfb && device.IsExtTransformFeedbackSupported()) {
+                Decorate(id, spv::Decoration::XfbBuffer, static_cast<u32>(tfb->buffer));
+                Decorate(id, spv::Decoration::XfbStride, static_cast<u32>(tfb->stride));
+                Decorate(id, spv::Decoration::Offset, static_cast<u32>(tfb->offset));
+            }
+
+            element += static_cast<u8>(num_components);
         }
+    }
+
+    std::optional<VaryingTFB> GetTransformFeedbackInfo(Attribute::Index index, u8 element = 0) {
+        const u8 location = static_cast<u8>(static_cast<u32>(index) * 4 + element);
+        const auto it = transform_feedback.find(location);
+        if (it == transform_feedback.end()) {
+            return {};
+        }
+        return it->second;
     }
 
     u32 DeclareConstantBuffers(u32 binding) {
@@ -898,7 +979,7 @@ private:
     u32 GetNumInputVertices() const {
         switch (stage) {
         case ShaderType::Geometry:
-            return GetNumPrimitiveTopologyVertices(specialization.primitive_topology);
+            return GetNumPrimitiveTopologyVertices(registry.GetGraphicsInfo().primitive_topology);
         case ShaderType::TesselationControl:
         case ShaderType::TesselationEval:
             return NumInputPatches;
@@ -1346,8 +1427,14 @@ private:
                 }
                 default:
                     if (IsGenericAttribute(attribute)) {
-                        const Id composite = output_attributes.at(attribute);
-                        return {ArrayPass(t_out_float, composite, {element}), Type::Float};
+                        const u8 offset = static_cast<u8>(static_cast<u8>(attribute) * 4 + element);
+                        const GenericVaryingDescription description = output_attributes.at(offset);
+                        const Id composite = description.id;
+                        std::vector<u32> indices;
+                        if (!description.is_scalar) {
+                            indices.push_back(element - description.first_element);
+                        }
+                        return {ArrayPass(t_out_float, composite, indices), Type::Float};
                     }
                     UNIMPLEMENTED_MSG("Unhandled output attribute: {}",
                                       static_cast<u32>(attribute));
@@ -1793,7 +1880,7 @@ private:
     }
 
     Expression ImageLoad(Operation operation) {
-        if (!device.IsShaderStorageImageReadWithoutFormatSupported()) {
+        if (!device.IsFormatlessImageLoadSupported()) {
             return {v_float_zero, Type::Float};
         }
 
@@ -2258,11 +2345,11 @@ private:
     std::array<Id, 4> GetTypeVectorDefinitionLut(Type type) const {
         switch (type) {
         case Type::Float:
-            return {nullptr, t_float2, t_float3, t_float4};
+            return {t_float, t_float2, t_float3, t_float4};
         case Type::Int:
-            return {nullptr, t_int2, t_int3, t_int4};
+            return {t_int, t_int2, t_int3, t_int4};
         case Type::Uint:
-            return {nullptr, t_uint2, t_uint3, t_uint4};
+            return {t_uint, t_uint2, t_uint3, t_uint4};
         default:
             UNIMPLEMENTED();
             return {};
@@ -2495,7 +2582,9 @@ private:
     const ShaderIR& ir;
     const ShaderType stage;
     const Tegra::Shader::Header header;
+    const Registry& registry;
     const Specialization& specialization;
+    std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     const Id t_void = Name(TypeVoid(), "void");
 
@@ -2584,7 +2673,7 @@ private:
     Id shared_memory{};
     std::array<Id, INTERNAL_FLAGS_COUNT> internal_flags{};
     std::map<Attribute::Index, Id> input_attributes;
-    std::map<Attribute::Index, Id> output_attributes;
+    std::unordered_map<u8, GenericVaryingDescription> output_attributes;
     std::map<u32, Id> constant_buffers;
     std::map<GlobalMemoryBase, Id> global_buffers;
     std::map<u32, TexelBuffer> texel_buffers;
@@ -2870,8 +2959,9 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
 }
 
 std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
-                           ShaderType stage, const Specialization& specialization) {
-    return SPIRVDecompiler(device, ir, stage, specialization).Assemble();
+                           ShaderType stage, const VideoCommon::Shader::Registry& registry,
+                           const Specialization& specialization) {
+    return SPIRVDecompiler(device, ir, stage, registry, specialization).Assemble();
 }
 
 } // namespace Vulkan

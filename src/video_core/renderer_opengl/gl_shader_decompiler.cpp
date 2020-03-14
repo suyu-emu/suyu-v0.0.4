@@ -23,6 +23,7 @@
 #include "video_core/shader/ast.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/shader/transform_feedback.h"
 
 namespace OpenGL {
 
@@ -36,6 +37,7 @@ using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::Register;
+using VideoCommon::Shader::BuildTransformFeedback;
 using VideoCommon::Shader::Registry;
 
 using namespace std::string_literals;
@@ -48,6 +50,11 @@ class ASTDecompiler;
 class ExprDecompiler;
 
 enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
+
+constexpr std::array FLOAT_TYPES{"float", "vec2", "vec3", "vec4"};
+
+constexpr std::string_view INPUT_ATTRIBUTE_NAME = "in_attr";
+constexpr std::string_view OUTPUT_ATTRIBUTE_NAME = "out_attr";
 
 struct TextureOffset {};
 struct TextureDerivates {};
@@ -390,12 +397,22 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return stage == ShaderType::Vertex;
 }
 
+struct GenericVaryingDescription {
+    std::string name;
+    u8 first_element = 0;
+    bool is_scalar = false;
+};
+
 class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
                             ShaderType stage, std::string_view identifier, std::string_view suffix)
         : device{device}, ir{ir}, registry{registry}, stage{stage},
-          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()} {}
+          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()} {
+        if (stage != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+        }
+    }
 
     void Decompile() {
         DeclareHeader();
@@ -403,17 +420,17 @@ public:
         DeclareGeometry();
         DeclareFragment();
         DeclareCompute();
-        DeclareRegisters();
-        DeclareCustomVariables();
-        DeclarePredicates();
-        DeclareLocalMemory();
-        DeclareInternalFlags();
         DeclareInputAttributes();
         DeclareOutputAttributes();
-        DeclareConstantBuffers();
-        DeclareGlobalMemory();
-        DeclareSamplers();
         DeclareImages();
+        DeclareSamplers();
+        DeclareGlobalMemory();
+        DeclareConstantBuffers();
+        DeclareLocalMemory();
+        DeclareRegisters();
+        DeclarePredicates();
+        DeclareInternalFlags();
+        DeclareCustomVariables();
         DeclarePhysicalAttributeReader();
 
         code.AddLine("void main() {{");
@@ -485,7 +502,7 @@ private:
         if (!identifier.empty()) {
             code.AddLine("// {}", identifier);
         }
-        code.AddLine("#version 430 core");
+        code.AddLine("#version 440 core");
         code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
         if (device.HasShaderBallot()) {
             code.AddLine("#extension GL_ARB_shader_ballot : require");
@@ -570,7 +587,13 @@ private:
         code.AddLine("out gl_PerVertex {{");
         ++code.scope;
 
-        code.AddLine("vec4 gl_Position;");
+        auto pos_xfb = GetTransformFeedbackDecoration(Attribute::Index::Position);
+        if (!pos_xfb.empty()) {
+            pos_xfb = fmt::format("layout ({}) ", pos_xfb);
+        }
+        const char* pos_type =
+            FLOAT_TYPES.at(GetNumComponents(Attribute::Index::Position).value_or(4) - 1);
+        code.AddLine("{}{} gl_Position;", pos_xfb, pos_type);
 
         for (const auto attribute : ir.GetOutputAttributes()) {
             if (attribute == Attribute::Index::ClipDistances0123 ||
@@ -703,7 +726,7 @@ private:
     void DeclareInputAttribute(Attribute::Index index, bool skip_unused) {
         const u32 location{GetGenericAttributeIndex(index)};
 
-        std::string name{GetInputAttribute(index)};
+        std::string name{GetGenericInputAttribute(index)};
         if (stage == ShaderType::Geometry) {
             name = "gs_" + name + "[]";
         }
@@ -740,9 +763,59 @@ private:
         }
     }
 
+    std::optional<std::size_t> GetNumComponents(Attribute::Index index, u8 element = 0) const {
+        const u8 location = static_cast<u8>(static_cast<u32>(index) * 4 + element);
+        const auto it = transform_feedback.find(location);
+        if (it == transform_feedback.end()) {
+            return {};
+        }
+        return it->second.components;
+    }
+
+    std::string GetTransformFeedbackDecoration(Attribute::Index index, u8 element = 0) const {
+        const u8 location = static_cast<u8>(static_cast<u32>(index) * 4 + element);
+        const auto it = transform_feedback.find(location);
+        if (it == transform_feedback.end()) {
+            return {};
+        }
+
+        const VaryingTFB& tfb = it->second;
+        return fmt::format("xfb_buffer = {}, xfb_offset = {}, xfb_stride = {}", tfb.buffer,
+                           tfb.offset, tfb.stride);
+    }
+
     void DeclareOutputAttribute(Attribute::Index index) {
-        const u32 location{GetGenericAttributeIndex(index)};
-        code.AddLine("layout (location = {}) out vec4 {};", location, GetOutputAttribute(index));
+        static constexpr std::string_view swizzle = "xyzw";
+        u8 element = 0;
+        while (element < 4) {
+            auto xfb = GetTransformFeedbackDecoration(index, element);
+            if (!xfb.empty()) {
+                xfb = fmt::format(", {}", xfb);
+            }
+            const std::size_t remainder = 4 - element;
+            const std::size_t num_components = GetNumComponents(index, element).value_or(remainder);
+            const char* const type = FLOAT_TYPES.at(num_components - 1);
+
+            const u32 location = GetGenericAttributeIndex(index);
+
+            GenericVaryingDescription description;
+            description.first_element = static_cast<u8>(element);
+            description.is_scalar = num_components == 1;
+            description.name = AppendSuffix(location, OUTPUT_ATTRIBUTE_NAME);
+            if (element != 0 || num_components != 4) {
+                const std::string_view name_swizzle = swizzle.substr(element, num_components);
+                description.name = fmt::format("{}_{}", description.name, name_swizzle);
+            }
+            for (std::size_t i = 0; i < num_components; ++i) {
+                const u8 offset = static_cast<u8>(location * 4 + element + i);
+                varying_description.insert({offset, description});
+            }
+
+            code.AddLine("layout (location = {}, component = {}{}) out {} {};", location, element,
+                         xfb, type, description.name);
+
+            element = static_cast<u8>(static_cast<std::size_t>(element) + num_components);
+        }
     }
 
     void DeclareConstantBuffers() {
@@ -1095,7 +1168,7 @@ private:
             return {"0", Type::Int};
         default:
             if (IsGenericAttribute(attribute)) {
-                return {GeometryPass(GetInputAttribute(attribute)) + GetSwizzle(element),
+                return {GeometryPass(GetGenericInputAttribute(attribute)) + GetSwizzle(element),
                         Type::Float};
             }
             break;
@@ -1164,8 +1237,7 @@ private:
             return {{fmt::format("gl_ClipDistance[{}]", abuf->GetElement() + 4), Type::Float}};
         default:
             if (IsGenericAttribute(attribute)) {
-                return {
-                    {GetOutputAttribute(attribute) + GetSwizzle(abuf->GetElement()), Type::Float}};
+                return {{GetGenericOutputAttribute(attribute, abuf->GetElement()), Type::Float}};
             }
             UNIMPLEMENTED_MSG("Unhandled output attribute: {}", static_cast<u32>(attribute));
             return {};
@@ -2376,27 +2448,34 @@ private:
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
     std::string GetRegister(u32 index) const {
-        return GetDeclarationWithSuffix(index, "gpr");
+        return AppendSuffix(index, "gpr");
     }
 
     std::string GetCustomVariable(u32 index) const {
-        return GetDeclarationWithSuffix(index, "custom_var");
+        return AppendSuffix(index, "custom_var");
     }
 
     std::string GetPredicate(Tegra::Shader::Pred pred) const {
-        return GetDeclarationWithSuffix(static_cast<u32>(pred), "pred");
+        return AppendSuffix(static_cast<u32>(pred), "pred");
     }
 
-    std::string GetInputAttribute(Attribute::Index attribute) const {
-        return GetDeclarationWithSuffix(GetGenericAttributeIndex(attribute), "input_attr");
+    std::string GetGenericInputAttribute(Attribute::Index attribute) const {
+        return AppendSuffix(GetGenericAttributeIndex(attribute), INPUT_ATTRIBUTE_NAME);
     }
 
-    std::string GetOutputAttribute(Attribute::Index attribute) const {
-        return GetDeclarationWithSuffix(GetGenericAttributeIndex(attribute), "output_attr");
+    std::unordered_map<u8, GenericVaryingDescription> varying_description;
+
+    std::string GetGenericOutputAttribute(Attribute::Index attribute, std::size_t element) const {
+        const u8 offset = static_cast<u8>(GetGenericAttributeIndex(attribute) * 4 + element);
+        const auto& description = varying_description.at(offset);
+        if (description.is_scalar) {
+            return description.name;
+        }
+        return fmt::format("{}[{}]", description.name, element - description.first_element);
     }
 
     std::string GetConstBuffer(u32 index) const {
-        return GetDeclarationWithSuffix(index, "cbuf");
+        return AppendSuffix(index, "cbuf");
     }
 
     std::string GetGlobalMemory(const GlobalMemoryBase& descriptor) const {
@@ -2409,7 +2488,7 @@ private:
     }
 
     std::string GetConstBufferBlock(u32 index) const {
-        return GetDeclarationWithSuffix(index, "cbuf_block");
+        return AppendSuffix(index, "cbuf_block");
     }
 
     std::string GetLocalMemory() const {
@@ -2434,14 +2513,14 @@ private:
     }
 
     std::string GetSampler(const Sampler& sampler) const {
-        return GetDeclarationWithSuffix(static_cast<u32>(sampler.GetIndex()), "sampler");
+        return AppendSuffix(static_cast<u32>(sampler.GetIndex()), "sampler");
     }
 
     std::string GetImage(const Image& image) const {
-        return GetDeclarationWithSuffix(static_cast<u32>(image.GetIndex()), "image");
+        return AppendSuffix(static_cast<u32>(image.GetIndex()), "image");
     }
 
-    std::string GetDeclarationWithSuffix(u32 index, std::string_view name) const {
+    std::string AppendSuffix(u32 index, std::string_view name) const {
         if (suffix.empty()) {
             return fmt::format("{}{}", name, index);
         } else {
@@ -2477,6 +2556,7 @@ private:
     const std::string_view identifier;
     const std::string_view suffix;
     const Header header;
+    std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     ShaderWriter code;
 

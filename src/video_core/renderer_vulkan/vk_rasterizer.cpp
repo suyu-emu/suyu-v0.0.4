@@ -347,6 +347,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
             [&pipeline](auto cmdbuf, auto& dld) { cmdbuf.setCheckpointNV(&pipeline, dld); });
     }
 
+    BeginTransformFeedback();
+
     const auto pipeline_layout = pipeline.GetLayout();
     const auto descriptor_set = pipeline.CommitDescriptorSet();
     scheduler.Record([pipeline_layout, descriptor_set, draw_params](auto cmdbuf, auto& dld) {
@@ -356,6 +358,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
         }
         draw_params.Draw(cmdbuf, dld);
     });
+
+    EndTransformFeedback();
 }
 
 void RasterizerVulkan::Clear() {
@@ -736,6 +740,44 @@ void RasterizerVulkan::UpdateDynamicStates() {
     UpdateBlendConstants(regs);
     UpdateDepthBounds(regs);
     UpdateStencilFaces(regs);
+}
+
+void RasterizerVulkan::BeginTransformFeedback() {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    if (regs.tfb_enabled == 0) {
+        return;
+    }
+
+    UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationControl) ||
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationEval) ||
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::Geometry));
+
+    UNIMPLEMENTED_IF(regs.tfb_bindings[1].buffer_enable);
+    UNIMPLEMENTED_IF(regs.tfb_bindings[2].buffer_enable);
+    UNIMPLEMENTED_IF(regs.tfb_bindings[3].buffer_enable);
+
+    const auto& binding = regs.tfb_bindings[0];
+    UNIMPLEMENTED_IF(binding.buffer_enable == 0);
+    UNIMPLEMENTED_IF(binding.buffer_offset != 0);
+
+    const GPUVAddr gpu_addr = binding.Address();
+    const std::size_t size = binding.buffer_size;
+    const auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
+
+    scheduler.Record([buffer = *buffer, offset = offset, size](auto cmdbuf, auto& dld) {
+        cmdbuf.bindTransformFeedbackBuffersEXT(0, {buffer}, {offset}, {size}, dld);
+        cmdbuf.beginTransformFeedbackEXT(0, {}, {}, dld);
+    });
+}
+
+void RasterizerVulkan::EndTransformFeedback() {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    if (regs.tfb_enabled == 0) {
+        return;
+    }
+
+    scheduler.Record(
+        [](auto cmdbuf, auto& dld) { cmdbuf.endTransformFeedbackEXT(0, {}, {}, dld); });
 }
 
 void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,

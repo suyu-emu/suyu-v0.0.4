@@ -496,7 +496,6 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     SyncCullMode();
     SyncPrimitiveRestart();
     SyncScissorTest();
-    SyncTransformFeedback();
     SyncPointState();
     SyncPolygonOffset();
     SyncAlphaTest();
@@ -569,7 +568,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
         glTextureBarrier();
     }
 
-    ++num_queued_commands;
+    BeginTransformFeedback(primitive_mode);
 
     const GLuint base_instance = static_cast<GLuint>(gpu.regs.vb_base_instance);
     const GLsizei num_instances =
@@ -608,6 +607,10 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
                                               num_instances, base_instance);
         }
     }
+
+    EndTransformFeedback();
+
+    ++num_queued_commands;
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
@@ -1290,11 +1293,6 @@ void RasterizerOpenGL::SyncScissorTest() {
     }
 }
 
-void RasterizerOpenGL::SyncTransformFeedback() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    UNIMPLEMENTED_IF_MSG(regs.tfb_enabled != 0, "Transform feedbacks are not implemented");
-}
-
 void RasterizerOpenGL::SyncPointState() {
     auto& gpu = system.GPU().Maxwell3D();
     auto& flags = gpu.dirty.flags;
@@ -1368,6 +1366,64 @@ void RasterizerOpenGL::SyncFramebufferSRGB() {
     flags[Dirty::FramebufferSRGB] = false;
 
     oglEnable(GL_FRAMEBUFFER_SRGB, gpu.regs.framebuffer_srgb);
+}
+
+void RasterizerOpenGL::BeginTransformFeedback(GLenum primitive_mode) {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    if (regs.tfb_enabled == 0) {
+        return;
+    }
+
+    UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationControl) ||
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationEval) ||
+                     regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::Geometry));
+
+    for (std::size_t index = 0; index < Maxwell::NumTransformFeedbackBuffers; ++index) {
+        const auto& binding = regs.tfb_bindings[index];
+        if (!binding.buffer_enable) {
+            if (enabled_transform_feedback_buffers[index]) {
+                glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, static_cast<GLuint>(index), 0, 0,
+                                  0);
+            }
+            enabled_transform_feedback_buffers[index] = false;
+            continue;
+        }
+        enabled_transform_feedback_buffers[index] = true;
+
+        auto& tfb_buffer = transform_feedback_buffers[index];
+        tfb_buffer.Create();
+
+        const GLuint handle = tfb_buffer.handle;
+        const std::size_t size = binding.buffer_size;
+        glNamedBufferData(handle, static_cast<GLsizeiptr>(size), nullptr, GL_STREAM_COPY);
+        glBindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, static_cast<GLuint>(index), handle, 0,
+                          static_cast<GLsizeiptr>(size));
+    }
+
+    glBeginTransformFeedback(GL_POINTS);
+}
+
+void RasterizerOpenGL::EndTransformFeedback() {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    if (regs.tfb_enabled == 0) {
+        return;
+    }
+
+    glEndTransformFeedback();
+
+    for (std::size_t index = 0; index < Maxwell::NumTransformFeedbackBuffers; ++index) {
+        const auto& binding = regs.tfb_bindings[index];
+        if (!binding.buffer_enable) {
+            continue;
+        }
+        UNIMPLEMENTED_IF(binding.buffer_offset != 0);
+
+        const GLuint handle = transform_feedback_buffers[index].handle;
+        const GPUVAddr gpu_addr = binding.Address();
+        const std::size_t size = binding.buffer_size;
+        const auto [dest_buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
+        glCopyNamedBufferSubData(handle, *dest_buffer, 0, offset, static_cast<GLsizeiptr>(size));
+    }
 }
 
 } // namespace OpenGL

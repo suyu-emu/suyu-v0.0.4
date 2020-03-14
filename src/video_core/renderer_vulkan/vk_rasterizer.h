@@ -169,6 +169,10 @@ private:
 
     void UpdateDynamicStates();
 
+    void BeginTransformFeedback();
+
+    void EndTransformFeedback();
+
     bool WalkAttachmentOverlaps(const CachedSurfaceView& attachment);
 
     void SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,

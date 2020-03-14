@@ -107,8 +107,7 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
     features.occlusionQueryPrecise = true;
     features.fragmentStoresAndAtomics = true;
     features.shaderImageGatherExtended = true;
-    features.shaderStorageImageReadWithoutFormat =
-        is_shader_storage_img_read_without_format_supported;
+    features.shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported;
     features.shaderStorageImageWriteWithoutFormat = true;
     features.textureCompressionASTC_LDR = is_optimal_astc_supported;
 
@@ -146,6 +145,15 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
         SetNext(next, index_type_uint8);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support uint8 indexes");
+    }
+
+    vk::PhysicalDeviceTransformFeedbackFeaturesEXT transform_feedback;
+    if (ext_transform_feedback) {
+        transform_feedback.transformFeedback = true;
+        transform_feedback.geometryStreams = true;
+        SetNext(next, transform_feedback);
+    } else {
+        LOG_INFO(Render_Vulkan, "Device doesn't support transform feedbacks");
     }
 
     if (!ext_depth_range_unrestricted) {
@@ -385,7 +393,7 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
         }
     };
 
-    extensions.reserve(14);
+    extensions.reserve(15);
     extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     extensions.push_back(VK_KHR_16BIT_STORAGE_EXTENSION_NAME);
     extensions.push_back(VK_KHR_8BIT_STORAGE_EXTENSION_NAME);
@@ -397,18 +405,22 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
 
     [[maybe_unused]] const bool nsight =
         std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
-    bool khr_shader_float16_int8{};
-    bool ext_subgroup_size_control{};
+    bool has_khr_shader_float16_int8{};
+    bool has_ext_subgroup_size_control{};
+    bool has_ext_transform_feedback{};
     for (const auto& extension : physical.enumerateDeviceExtensionProperties(nullptr, dldi)) {
         Test(extension, khr_uniform_buffer_standard_layout,
              VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME, true);
-        Test(extension, khr_shader_float16_int8, VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME, false);
+        Test(extension, has_khr_shader_float16_int8, VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME,
+             false);
         Test(extension, ext_depth_range_unrestricted,
              VK_EXT_DEPTH_RANGE_UNRESTRICTED_EXTENSION_NAME, true);
         Test(extension, ext_index_type_uint8, VK_EXT_INDEX_TYPE_UINT8_EXTENSION_NAME, true);
         Test(extension, ext_shader_viewport_index_layer,
              VK_EXT_SHADER_VIEWPORT_INDEX_LAYER_EXTENSION_NAME, true);
-        Test(extension, ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
+        Test(extension, has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
+             false);
+        Test(extension, has_ext_transform_feedback, VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME,
              false);
         if (Settings::values.renderer_debug) {
             Test(extension, nv_device_diagnostic_checkpoints,
@@ -416,13 +428,13 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
         }
     }
 
-    if (khr_shader_float16_int8) {
+    if (has_khr_shader_float16_int8) {
         is_float16_supported =
             GetFeatures<vk::PhysicalDeviceFloat16Int8FeaturesKHR>(physical, dldi).shaderFloat16;
         extensions.push_back(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
     }
 
-    if (ext_subgroup_size_control) {
+    if (has_ext_subgroup_size_control) {
         const auto features =
             GetFeatures<vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT>(physical, dldi);
         const auto properties =
@@ -437,6 +449,20 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
         }
     } else {
         is_warp_potentially_bigger = true;
+    }
+
+    if (has_ext_transform_feedback) {
+        const auto features =
+            GetFeatures<vk::PhysicalDeviceTransformFeedbackFeaturesEXT>(physical, dldi);
+        const auto properties =
+            GetProperties<vk::PhysicalDeviceTransformFeedbackPropertiesEXT>(physical, dldi);
+
+        if (features.transformFeedback && features.geometryStreams &&
+            properties.maxTransformFeedbackStreams >= 4 && properties.maxTransformFeedbackBuffers &&
+            properties.transformFeedbackQueries && properties.transformFeedbackDraw) {
+            extensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
+            ext_transform_feedback = true;
+        }
     }
 
     return extensions;
@@ -467,8 +493,7 @@ void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceK
 
 void VKDevice::SetupFeatures(const vk::DispatchLoaderDynamic& dldi) {
     const auto supported_features{physical.getFeatures(dldi)};
-    is_shader_storage_img_read_without_format_supported =
-        supported_features.shaderStorageImageReadWithoutFormat;
+    is_formatless_image_load_supported = supported_features.shaderStorageImageReadWithoutFormat;
     is_optimal_astc_supported = IsOptimalAstcSupported(supported_features, dldi);
 }
 
