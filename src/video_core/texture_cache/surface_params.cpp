@@ -113,8 +113,10 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
         params.height = tic.Height();
         params.depth = tic.Depth();
         params.pitch = params.is_tiled ? 0 : tic.Pitch();
-        if (params.target == SurfaceTarget::TextureCubemap ||
-            params.target == SurfaceTarget::TextureCubeArray) {
+        if (params.target == SurfaceTarget::Texture2D && params.depth > 1) {
+            params.depth = 1;
+        } else if (params.target == SurfaceTarget::TextureCubemap ||
+                   params.target == SurfaceTarget::TextureCubeArray) {
             params.depth *= 6;
         }
         params.num_levels = tic.max_mip_level + 1;
