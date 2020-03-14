@@ -39,18 +39,15 @@ constexpr u32 Popcnt(u32 n) {
 
 class InputBitStream {
 public:
-    explicit InputBitStream(const u8* ptr, s32 start_offset = 0)
+    explicit InputBitStream(const u8* ptr, std::size_t start_offset = 0)
         : m_CurByte(ptr), m_NextBit(start_offset % 8) {}
 
-    ~InputBitStream() = default;
-
-    s32 GetBitsRead() const {
+    std::size_t GetBitsRead() const {
         return m_BitsRead;
     }
 
-    s32 ReadBit() {
-
-        s32 bit = *m_CurByte >> m_NextBit++;
+    u32 ReadBit() {
+        u32 bit = *m_CurByte >> m_NextBit++;
         while (m_NextBit >= 8) {
             m_NextBit -= 8;
             m_CurByte++;
@@ -60,9 +57,18 @@ public:
         return bit & 1;
     }
 
-    u32 ReadBits(u32 nBits) {
+    u32 ReadBits(std::size_t nBits) {
         u32 ret = 0;
-        for (u32 i = 0; i < nBits; i++) {
+        for (std::size_t i = 0; i < nBits; ++i) {
+            ret |= (ReadBit() & 1) << i;
+        }
+        return ret;
+    }
+
+    template <std::size_t nBits>
+    u32 ReadBits() {
+        u32 ret = 0;
+        for (std::size_t i = 0; i < nBits; ++i) {
             ret |= (ReadBit() & 1) << i;
         }
         return ret;
@@ -70,8 +76,8 @@ public:
 
 private:
     const u8* m_CurByte;
-    s32 m_NextBit = 0;
-    s32 m_BitsRead = 0;
+    std::size_t m_NextBit = 0;
+    std::size_t m_BitsRead = 0;
 };
 
 class OutputBitStream {
@@ -200,13 +206,13 @@ static void DecodeTritBlock(InputBitStream& bits, std::vector<IntegerEncodedValu
     // Read the trit encoded block according to
     // table C.2.14
     m[0] = bits.ReadBits(nBitsPerValue);
-    T = bits.ReadBits(2);
+    T = bits.ReadBits<2>();
     m[1] = bits.ReadBits(nBitsPerValue);
-    T |= bits.ReadBits(2) << 2;
+    T |= bits.ReadBits<2>() << 2;
     m[2] = bits.ReadBits(nBitsPerValue);
     T |= bits.ReadBit() << 4;
     m[3] = bits.ReadBits(nBitsPerValue);
-    T |= bits.ReadBits(2) << 5;
+    T |= bits.ReadBits<2>() << 5;
     m[4] = bits.ReadBits(nBitsPerValue);
     T |= bits.ReadBit() << 7;
 
@@ -259,11 +265,11 @@ static void DecodeQus32Block(InputBitStream& bits, std::vector<IntegerEncodedVal
     // Read the trit encoded block according to
     // table C.2.15
     m[0] = bits.ReadBits(nBitsPerValue);
-    Q = bits.ReadBits(3);
+    Q = bits.ReadBits<3>();
     m[1] = bits.ReadBits(nBitsPerValue);
-    Q |= bits.ReadBits(2) << 3;
+    Q |= bits.ReadBits<2>() << 3;
     m[2] = bits.ReadBits(nBitsPerValue);
-    Q |= bits.ReadBits(2) << 5;
+    Q |= bits.ReadBits<2>() << 5;
 
     Bits<u32> Qb(Q);
     if (Qb(1, 2) == 3 && Qb(5, 6) == 0) {
@@ -399,7 +405,7 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
     TexelWeightParams params;
 
     // Read the entire block mode all at once
-    u16 modeBits = static_cast<u16>(strm.ReadBits(11));
+    u16 modeBits = static_cast<u16>(strm.ReadBits<11>());
 
     // Does this match the void extent block mode?
     if ((modeBits & 0x01FF) == 0x1FC) {
@@ -598,14 +604,14 @@ static void FillVoidExtentLDR(InputBitStream& strm, u32* const outBuf, u32 block
                               u32 blockHeight) {
     // Don't actually care about the void extent, just read the bits...
     for (s32 i = 0; i < 4; ++i) {
-        strm.ReadBits(13);
+        strm.ReadBits<13>();
     }
 
     // Decode the RGBA components and renormalize them to the range [0, 255]
-    u16 r = static_cast<u16>(strm.ReadBits(16));
-    u16 g = static_cast<u16>(strm.ReadBits(16));
-    u16 b = static_cast<u16>(strm.ReadBits(16));
-    u16 a = static_cast<u16>(strm.ReadBits(16));
+    u16 r = static_cast<u16>(strm.ReadBits<16>());
+    u16 g = static_cast<u16>(strm.ReadBits<16>());
+    u16 b = static_cast<u16>(strm.ReadBits<16>());
+    u16 a = static_cast<u16>(strm.ReadBits<16>());
 
     u32 rgba = (r >> 8) | (g & 0xFF00) | (static_cast<u32>(b) & 0xFF00) << 8 |
                (static_cast<u32>(a) & 0xFF00) << 16;
@@ -1390,7 +1396,7 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
     }
 
     // Read num partitions
-    u32 nPartitions = strm.ReadBits(2) + 1;
+    u32 nPartitions = strm.ReadBits<2>() + 1;
     assert(nPartitions <= 4);
 
     if (nPartitions == 4 && weightParams.m_bDualPlane) {
@@ -1415,17 +1421,17 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
     // Read extra config data...
     u32 baseCEM = 0;
     if (nPartitions == 1) {
-        colorEndpos32Mode[0] = strm.ReadBits(4);
+        colorEndpos32Mode[0] = strm.ReadBits<4>();
         partitionIndex = 0;
     } else {
-        partitionIndex = strm.ReadBits(10);
-        baseCEM = strm.ReadBits(6);
+        partitionIndex = strm.ReadBits<10>();
+        baseCEM = strm.ReadBits<6>();
     }
     u32 baseMode = (baseCEM & 3);
 
     // Remaining bits are color endpos32 data...
     u32 nWeightBits = weightParams.GetPackedBitSize();
-    s32 remainingBits = 128 - nWeightBits - strm.GetBitsRead();
+    s32 remainingBits = 128 - nWeightBits - static_cast<s32>(strm.GetBitsRead());
 
     // Consider extra bits prior to texel data...
     u32 extraCEMbits = 0;
