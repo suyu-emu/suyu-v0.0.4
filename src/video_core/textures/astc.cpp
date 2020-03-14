@@ -628,7 +628,7 @@ static void FillError(u32* outBuf, u32 blockWidth, u32 blockHeight) {
 // Replicates low numBits such that [(toBit - 1):(toBit - 1 - fromBit)]
 // is the same as [(numBits - 1):0] and repeats all the way down.
 template <typename IntType>
-static IntType Replicate(const IntType& val, u32 numBits, u32 toBit) {
+static IntType Replicate(IntType val, u32 numBits, u32 toBit) {
     if (numBits == 0)
         return 0;
     if (toBit == 0)
