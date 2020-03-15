@@ -1653,10 +1653,8 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
         u32 update_val = 0;
         const VAddr mutex_address = thread->GetMutexWaitAddress();
         do {
-            monitor.SetExclusive32(current_core, mutex_address);
-
             // If the mutex is not yet acquired, acquire it.
-            mutex_val = memory.Read32(mutex_address);
+            mutex_val = monitor.ExclusiveRead32(current_core, mutex_address);
 
             if (mutex_val != 0) {
                 update_val = mutex_val | Mutex::MutexHasWaitersFlag;

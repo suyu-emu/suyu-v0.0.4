@@ -180,8 +180,6 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
-
-
 void ARM_Dynarmic_64::Run() {
     jit->Run();
 }
@@ -297,24 +295,24 @@ DynarmicExclusiveMonitor::DynarmicExclusiveMonitor(Memory::Memory& memory, std::
 
 DynarmicExclusiveMonitor::~DynarmicExclusiveMonitor() = default;
 
-void DynarmicExclusiveMonitor::SetExclusive8(std::size_t core_index, VAddr addr) {
-    monitor.Mark<u8>(core_index, addr, 1, [&]() -> u8 { return memory.Read8(addr); });
+u8 DynarmicExclusiveMonitor::ExclusiveRead8(std::size_t core_index, VAddr addr) {
+    return monitor.ReadAndMark<u8>(core_index, addr, [&]() -> u8 { return memory.Read8(addr); });
 }
 
-void DynarmicExclusiveMonitor::SetExclusive16(std::size_t core_index, VAddr addr) {
-    monitor.Mark<u16>(core_index, addr, 2, [&]() -> u16 { return memory.Read16(addr); });
+u16 DynarmicExclusiveMonitor::ExclusiveRead16(std::size_t core_index, VAddr addr) {
+    return monitor.ReadAndMark<u16>(core_index, addr, [&]() -> u16 { return memory.Read16(addr); });
 }
 
-void DynarmicExclusiveMonitor::SetExclusive32(std::size_t core_index, VAddr addr) {
-    monitor.Mark<u32>(core_index, addr, 4, [&]() -> u32 { return memory.Read32(addr); });
+u32 DynarmicExclusiveMonitor::ExclusiveRead32(std::size_t core_index, VAddr addr) {
+    return monitor.ReadAndMark<u32>(core_index, addr, [&]() -> u32 { return memory.Read32(addr); });
 }
 
-void DynarmicExclusiveMonitor::SetExclusive64(std::size_t core_index, VAddr addr) {
-    monitor.Mark<u64>(core_index, addr, 8, [&]() -> u64 { return memory.Read64(addr); });
+u64 DynarmicExclusiveMonitor::ExclusiveRead64(std::size_t core_index, VAddr addr) {
+    return monitor.ReadAndMark<u64>(core_index, addr, [&]() -> u64 { return memory.Read64(addr); });
 }
 
-void DynarmicExclusiveMonitor::SetExclusive128(std::size_t core_index, VAddr addr) {
-    monitor.Mark<u128>(core_index, addr, 16, [&]() -> u128 {
+u128 DynarmicExclusiveMonitor::ExclusiveRead128(std::size_t core_index, VAddr addr) {
+    return monitor.ReadAndMark<u128>(core_index, addr, [&]() -> u128 {
         u128 result;
         result[0] = memory.Read64(addr);
         result[1] = memory.Read64(addr + 8);
