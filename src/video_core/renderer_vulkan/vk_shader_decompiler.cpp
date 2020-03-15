@@ -837,7 +837,7 @@ private:
                 Decorate(id, spv::Decoration::Offset, static_cast<u32>(tfb->offset));
             }
 
-            element += static_cast<u8>(num_components);
+            element = static_cast<u8>(static_cast<std::size_t>(element) + num_components);
         }
     }
 
