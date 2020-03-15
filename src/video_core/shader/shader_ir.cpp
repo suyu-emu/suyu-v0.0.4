@@ -106,7 +106,8 @@ Node ShaderIR::GetPhysicalInputAttribute(Tegra::Shader::Register physical_addres
 }
 
 Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buffer) {
-    if (index == Attribute::Index::LayerViewportPointSize) {
+    switch (index) {
+    case Attribute::Index::LayerViewportPointSize:
         switch (element) {
         case 0:
             UNIMPLEMENTED();
@@ -121,8 +122,8 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
             uses_point_size = true;
             break;
         }
-    }
-    if (index == Attribute::Index::TessCoordInstanceIDVertexID) {
+        break;
+    case Attribute::Index::TessCoordInstanceIDVertexID:
         switch (element) {
         case 2:
             uses_instance_id = true;
@@ -130,18 +131,17 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
         case 3:
             uses_vertex_id = true;
             break;
-        default:
-            break;
         }
-    }
-    if (index == Attribute::Index::ClipDistances0123 ||
-        index == Attribute::Index::ClipDistances4567) {
+        break;
+    case Attribute::Index::ClipDistances0123:
+    case Attribute::Index::ClipDistances4567: {
         const auto clip_index =
             static_cast<u32>((index == Attribute::Index::ClipDistances4567 ? 1 : 0) + element);
         used_clip_distances.at(clip_index) = true;
+        break;
+    }
     }
     used_output_attributes.insert(index);
-
     return MakeNode<AbufNode>(index, static_cast<u32>(element), std::move(buffer));
 }
 
