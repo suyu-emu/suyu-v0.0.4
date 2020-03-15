@@ -399,8 +399,8 @@ void RasterizerVulkan::Clear() {
     scissor_extent.width = std::min(scissor_extent.width, render_area.width);
     scissor_extent.height = std::min(scissor_extent.height, render_area.height);
 
-    // TODO(Rodrigo): Implement layer clears
-    const vk::ClearRect clear_rect({scissor_offset, scissor_extent}, 0, 1);
+    const u32 layer = regs.clear_buffers.layer;
+    const vk::ClearRect clear_rect({scissor_offset, scissor_extent}, layer, 1);
 
     if (use_color) {
         const std::array clear_color = {regs.clear_color[0], regs.clear_color[1],
