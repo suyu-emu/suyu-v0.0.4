@@ -135,8 +135,7 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
         break;
     case Attribute::Index::ClipDistances0123:
     case Attribute::Index::ClipDistances4567: {
-        const auto clip_index =
-            static_cast<u32>((index == Attribute::Index::ClipDistances4567 ? 1 : 0) + element);
+        const u64 clip_index = (index == Attribute::Index::ClipDistances4567 ? 4 : 0) + element;
         used_clip_distances.at(clip_index) = true;
         break;
     }
