@@ -56,7 +56,7 @@ public:
     std::deque<Frame*> present_queue;
     Frame* previous_frame{};
 
-    FrameMailbox() {
+    FrameMailbox() : has_debug_tool{Device().HasDebugTool()} {
         for (auto& frame : swap_chain) {
             free_queue.push(&frame);
         }
@@ -127,9 +127,13 @@ public:
         std::unique_lock lock{swap_chain_lock};
         present_queue.push_front(frame);
         present_cv.notify_one();
+
+        DebugNotifyNextFrame();
     }
 
     Frame* TryGetPresentFrame(int timeout_ms) {
+        DebugWaitForNextFrame();
+
         std::unique_lock lock{swap_chain_lock};
         // wait for new entries in the present_queue
         present_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms),
@@ -154,6 +158,33 @@ public:
         present_queue.clear();
         previous_frame = frame;
         return frame;
+    }
+
+private:
+    std::mutex debug_synch_mutex;
+    std::condition_variable debug_synch_condition;
+    std::atomic_int frame_for_debug{};
+    const bool has_debug_tool; // When true, using a GPU debugger, so keep frames in lock-step
+
+    /// Signal that a new frame is available (called from GPU thread)
+    void DebugNotifyNextFrame() {
+        if (!has_debug_tool) {
+            return;
+        }
+        frame_for_debug++;
+        std::lock_guard lock{debug_synch_mutex};
+        debug_synch_condition.notify_one();
+    }
+
+    /// Wait for a new frame to be available (called from presentation thread)
+    void DebugWaitForNextFrame() {
+        if (!has_debug_tool) {
+            return;
+        }
+        const int last_frame = frame_for_debug;
+        std::unique_lock lock{debug_synch_mutex};
+        debug_synch_condition.wait(lock,
+                                   [this, last_frame] { return frame_for_debug > last_frame; });
     }
 };
 
