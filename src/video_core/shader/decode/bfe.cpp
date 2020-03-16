@@ -17,32 +17,59 @@ u32 ShaderIR::DecodeBfe(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    UNIMPLEMENTED_IF(instr.bfe.negate_b);
-
     Node op_a = GetRegister(instr.gpr8);
-    op_a = GetOperandAbsNegInteger(op_a, false, instr.bfe.negate_a, false);
+    Node op_b = [&] {
+        switch (opcode->get().GetId()) {
+        case OpCode::Id::BFE_R:
+            return GetRegister(instr.gpr20);
+        case OpCode::Id::BFE_C:
+            return GetConstBuffer(instr.cbuf34.index, instr.cbuf34.GetOffset());
+        case OpCode::Id::BFE_IMM:
+            return Immediate(instr.alu.GetSignedImm20_20());
+        default:
+            UNREACHABLE();
+            return Immediate(0);
+        }
+    }();
 
-    switch (opcode->get().GetId()) {
-    case OpCode::Id::BFE_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.generates_cc,
-                             "Condition codes generation in BFE is not implemented");
+    UNIMPLEMENTED_IF_MSG(instr.bfe.rd_cc, "Condition codes in BFE is not implemented");
 
-        const Node inner_shift_imm = Immediate(static_cast<u32>(instr.bfe.GetLeftShiftValue()));
-        const Node outer_shift_imm =
-            Immediate(static_cast<u32>(instr.bfe.GetLeftShiftValue() + instr.bfe.shift_position));
+    const bool is_signed = instr.bfe.is_signed;
 
-        const Node inner_shift =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, op_a, inner_shift_imm);
-        const Node outer_shift =
-            Operation(OperationCode::ILogicalShiftRight, NO_PRECISE, inner_shift, outer_shift_imm);
-
-        SetInternalFlagsFromInteger(bb, outer_shift, instr.generates_cc);
-        SetRegister(bb, instr.gpr0, outer_shift);
-        break;
+    // using reverse parallel method in
+    // https://graphics.stanford.edu/~seander/bithacks.html#ReverseParallel
+    // note for later if possible to implement faster method.
+    if (instr.bfe.brev) {
+        const auto swap = [&](u32 s, u32 mask) {
+            Node v1 =
+                SignedOperation(OperationCode::ILogicalShiftRight, is_signed, op_a, Immediate(s));
+            if (mask != 0) {
+                v1 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v1),
+                                     Immediate(mask));
+            }
+            Node v2 = op_a;
+            if (mask != 0) {
+                v2 = SignedOperation(OperationCode::IBitwiseAnd, is_signed, std::move(v2),
+                                     Immediate(mask));
+            }
+            v2 = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed, std::move(v2),
+                                 Immediate(s));
+            return SignedOperation(OperationCode::IBitwiseOr, is_signed, std::move(v1),
+                                   std::move(v2));
+        };
+        op_a = swap(1, 0x55555555U);
+        op_a = swap(2, 0x33333333U);
+        op_a = swap(4, 0x0F0F0F0FU);
+        op_a = swap(8, 0x00FF00FFU);
+        op_a = swap(16, 0);
     }
-    default:
-        UNIMPLEMENTED_MSG("Unhandled BFE instruction: {}", opcode->get().GetName());
-    }
+
+    const auto offset = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
+                                        Immediate(0), Immediate(8));
+    const auto bits = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_b,
+                                      Immediate(8), Immediate(8));
+    auto result = SignedOperation(OperationCode::IBitfieldExtract, is_signed, op_a, offset, bits);
+    SetRegister(bb, instr.gpr0, std::move(result));
 
     return pc;
 }

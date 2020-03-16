@@ -911,14 +911,9 @@ union Instruction {
     } fadd32i;
 
     union {
-        BitField<20, 8, u64> shift_position;
-        BitField<28, 8, u64> shift_length;
-        BitField<48, 1, u64> negate_b;
-        BitField<49, 1, u64> negate_a;
-
-        u64 GetLeftShiftValue() const {
-            return 32 - (shift_position + shift_length);
-        }
+        BitField<40, 1, u64> brev;
+        BitField<47, 1, u64> rd_cc;
+        BitField<48, 1, u64> is_signed;
     } bfe;
 
     union {
