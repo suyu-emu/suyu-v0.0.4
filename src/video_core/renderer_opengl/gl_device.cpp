@@ -157,7 +157,6 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_precise_bug = TestPreciseBug();
     has_broken_compute = is_intel_proprietary;
     has_fast_buffer_sub_data = is_nvidia;
-    has_debug_tool = HasExtension(extensions, "GL_EXT_debug_tool");
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);

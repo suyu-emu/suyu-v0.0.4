@@ -5,8 +5,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
+
 #include <glad/glad.h>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -24,6 +27,24 @@
 #include "video_core/renderer_opengl/renderer_opengl.h"
 
 namespace OpenGL {
+
+/// Returns true if any debug tool is attached
+bool HasDebugTool() {
+    const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
+    if (nsight) {
+        return true;
+    }
+
+    GLint num_extensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+    for (GLuint index = 0; index < static_cast<GLuint>(num_extensions); ++index) {
+        const auto name = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, index));
+        if (!std::strcmp(name, "GL_EXT_debug_tool")) {
+            return true;
+        }
+    }
+    return false;
+}
 
 // If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
 // to wait on available presentation frames.
@@ -56,7 +77,7 @@ public:
     std::deque<Frame*> present_queue;
     Frame* previous_frame{};
 
-    FrameMailbox() : has_debug_tool{Device().HasDebugTool()} {
+    FrameMailbox() : has_debug_tool{HasDebugTool()} {
         for (auto& frame : swap_chain) {
             free_queue.push(&frame);
         }
