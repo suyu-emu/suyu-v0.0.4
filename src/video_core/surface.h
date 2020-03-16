@@ -25,82 +25,83 @@ enum class PixelFormat {
     R8UI = 7,
     RGBA16F = 8,
     RGBA16U = 9,
-    RGBA16UI = 10,
-    R11FG11FB10F = 11,
-    RGBA32UI = 12,
-    DXT1 = 13,
-    DXT23 = 14,
-    DXT45 = 15,
-    DXN1 = 16, // This is also known as BC4
-    DXN2UNORM = 17,
-    DXN2SNORM = 18,
-    BC7U = 19,
-    BC6H_UF16 = 20,
-    BC6H_SF16 = 21,
-    ASTC_2D_4X4 = 22,
-    BGRA8 = 23,
-    RGBA32F = 24,
-    RG32F = 25,
-    R32F = 26,
-    R16F = 27,
-    R16U = 28,
-    R16S = 29,
-    R16UI = 30,
-    R16I = 31,
-    RG16 = 32,
-    RG16F = 33,
-    RG16UI = 34,
-    RG16I = 35,
-    RG16S = 36,
-    RGB32F = 37,
-    RGBA8_SRGB = 38,
-    RG8U = 39,
-    RG8S = 40,
-    RG32UI = 41,
-    RGBX16F = 42,
-    R32UI = 43,
-    R32I = 44,
-    ASTC_2D_8X8 = 45,
-    ASTC_2D_8X5 = 46,
-    ASTC_2D_5X4 = 47,
-    BGRA8_SRGB = 48,
-    DXT1_SRGB = 49,
-    DXT23_SRGB = 50,
-    DXT45_SRGB = 51,
-    BC7U_SRGB = 52,
-    R4G4B4A4U = 53,
-    ASTC_2D_4X4_SRGB = 54,
-    ASTC_2D_8X8_SRGB = 55,
-    ASTC_2D_8X5_SRGB = 56,
-    ASTC_2D_5X4_SRGB = 57,
-    ASTC_2D_5X5 = 58,
-    ASTC_2D_5X5_SRGB = 59,
-    ASTC_2D_10X8 = 60,
-    ASTC_2D_10X8_SRGB = 61,
-    ASTC_2D_6X6 = 62,
-    ASTC_2D_6X6_SRGB = 63,
-    ASTC_2D_10X10 = 64,
-    ASTC_2D_10X10_SRGB = 65,
-    ASTC_2D_12X12 = 66,
-    ASTC_2D_12X12_SRGB = 67,
-    ASTC_2D_8X6 = 68,
-    ASTC_2D_8X6_SRGB = 69,
-    ASTC_2D_6X5 = 70,
-    ASTC_2D_6X5_SRGB = 71,
-    E5B9G9R9F = 72,
+    RGBA16S = 10,
+    RGBA16UI = 11,
+    R11FG11FB10F = 12,
+    RGBA32UI = 13,
+    DXT1 = 14,
+    DXT23 = 15,
+    DXT45 = 16,
+    DXN1 = 17, // This is also known as BC4
+    DXN2UNORM = 18,
+    DXN2SNORM = 19,
+    BC7U = 20,
+    BC6H_UF16 = 21,
+    BC6H_SF16 = 22,
+    ASTC_2D_4X4 = 23,
+    BGRA8 = 24,
+    RGBA32F = 25,
+    RG32F = 26,
+    R32F = 27,
+    R16F = 28,
+    R16U = 29,
+    R16S = 30,
+    R16UI = 31,
+    R16I = 32,
+    RG16 = 33,
+    RG16F = 34,
+    RG16UI = 35,
+    RG16I = 36,
+    RG16S = 37,
+    RGB32F = 38,
+    RGBA8_SRGB = 39,
+    RG8U = 40,
+    RG8S = 41,
+    RG32UI = 42,
+    RGBX16F = 43,
+    R32UI = 44,
+    R32I = 45,
+    ASTC_2D_8X8 = 46,
+    ASTC_2D_8X5 = 47,
+    ASTC_2D_5X4 = 48,
+    BGRA8_SRGB = 49,
+    DXT1_SRGB = 50,
+    DXT23_SRGB = 51,
+    DXT45_SRGB = 52,
+    BC7U_SRGB = 53,
+    R4G4B4A4U = 54,
+    ASTC_2D_4X4_SRGB = 55,
+    ASTC_2D_8X8_SRGB = 56,
+    ASTC_2D_8X5_SRGB = 57,
+    ASTC_2D_5X4_SRGB = 58,
+    ASTC_2D_5X5 = 59,
+    ASTC_2D_5X5_SRGB = 60,
+    ASTC_2D_10X8 = 61,
+    ASTC_2D_10X8_SRGB = 62,
+    ASTC_2D_6X6 = 63,
+    ASTC_2D_6X6_SRGB = 64,
+    ASTC_2D_10X10 = 65,
+    ASTC_2D_10X10_SRGB = 66,
+    ASTC_2D_12X12 = 67,
+    ASTC_2D_12X12_SRGB = 68,
+    ASTC_2D_8X6 = 69,
+    ASTC_2D_8X6_SRGB = 70,
+    ASTC_2D_6X5 = 71,
+    ASTC_2D_6X5_SRGB = 72,
+    E5B9G9R9F = 73,
 
     MaxColorFormat,
 
     // Depth formats
-    Z32F = 73,
-    Z16 = 74,
+    Z32F = 74,
+    Z16 = 75,
 
     MaxDepthFormat,
 
     // DepthStencil formats
-    Z24S8 = 75,
-    S8Z24 = 76,
-    Z32FS8 = 77,
+    Z24S8 = 76,
+    S8Z24 = 77,
+    Z32FS8 = 78,
 
     MaxDepthStencilFormat,
 
@@ -138,6 +139,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     0, // R8UI
     0, // RGBA16F
     0, // RGBA16U
+    0, // RGBA16S
     0, // RGBA16UI
     0, // R11FG11FB10F
     0, // RGBA32UI
@@ -235,6 +237,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     1,  // R8UI
     1,  // RGBA16F
     1,  // RGBA16U
+    1,  // RGBA16S
     1,  // RGBA16UI
     1,  // R11FG11FB10F
     1,  // RGBA32UI
@@ -324,6 +327,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     1,  // R8UI
     1,  // RGBA16F
     1,  // RGBA16U
+    1,  // RGBA16S
     1,  // RGBA16UI
     1,  // R11FG11FB10F
     1,  // RGBA32UI
@@ -413,6 +417,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     8,   // R8UI
     64,  // RGBA16F
     64,  // RGBA16U
+    64,  // RGBA16S
     64,  // RGBA16UI
     32,  // R11FG11FB10F
     128, // RGBA32UI
@@ -517,6 +522,7 @@ constexpr std::array<SurfaceCompression, MaxPixelFormat> compression_type_table 
     SurfaceCompression::None,       // R8UI
     SurfaceCompression::None,       // RGBA16F
     SurfaceCompression::None,       // RGBA16U
+    SurfaceCompression::None,       // RGBA16S
     SurfaceCompression::None,       // RGBA16UI
     SurfaceCompression::None,       // R11FG11FB10F
     SurfaceCompression::None,       // RGBA32UI

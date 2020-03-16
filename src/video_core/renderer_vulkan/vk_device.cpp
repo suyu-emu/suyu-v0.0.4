@@ -535,6 +535,7 @@ std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperti
                                         vk::Format::eR32G32Sfloat,
                                         vk::Format::eR32G32Uint,
                                         vk::Format::eR16G16B16A16Uint,
+                                        vk::Format::eR16G16B16A16Snorm,
                                         vk::Format::eR16G16B16A16Unorm,
                                         vk::Format::eR16G16Unorm,
                                         vk::Format::eR16G16Snorm,

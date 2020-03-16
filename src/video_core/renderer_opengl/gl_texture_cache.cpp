@@ -53,6 +53,7 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
     {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE, false},                             // R8UI
     {GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT, false},                                    // RGBA16F
     {GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT, false},                                 // RGBA16U
+    {GL_RGBA16_SNORM, GL_RGBA, GL_SHORT, false},                                    // RGBA16S
     {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT, false},                       // RGBA16UI
     {GL_R11F_G11F_B10F, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV, false},            // R11FG11FB10F
     {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT, false},                         // RGBA32UI
