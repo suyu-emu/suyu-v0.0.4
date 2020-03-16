@@ -1151,7 +1151,7 @@ std::size_t RasterizerVulkan::CalculateVertexArraysSize() const {
         // This implementation assumes that all attributes are used in the shader.
         const GPUVAddr start{regs.vertex_array[index].StartAddress()};
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
-        DEBUG_ASSERT(end > start);
+        DEBUG_ASSERT(end >= start);
 
         size += (end - start + 1) * regs.vertex_array[index].enable;
     }
