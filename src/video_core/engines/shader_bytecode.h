@@ -82,6 +82,10 @@ union Attribute {
         Position = 7,
         Attribute_0 = 8,
         Attribute_31 = 39,
+        FrontColor = 40,
+        FrontSecondaryColor = 41,
+        BackColor = 42,
+        BackSecondaryColor = 43,
         ClipDistances0123 = 44,
         ClipDistances4567 = 45,
         PointCoord = 46,
@@ -89,6 +93,8 @@ union Attribute {
         // shader, and a tuple of (TessCoord.x, TessCoord.y, TessCoord.z, ~) when inside a Tess Eval
         // shader.
         TessCoordInstanceIDVertexID = 47,
+        TexCoord_0 = 48,
+        TexCoord_7 = 55,
         // This attribute contains a tuple of (Unk, Unk, Unk, gl_FrontFacing) when inside a fragment
         // shader. It is unknown what the other values contain.
         FrontFacing = 63,
