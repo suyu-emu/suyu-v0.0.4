@@ -331,6 +331,8 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
             return vk::Format::eR16G16B16Unorm;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
             return vk::Format::eR16G16B16A16Unorm;
+        case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
+            return vk::Format::eA2B10G10R10UnormPack32;
         default:
             break;
         }
