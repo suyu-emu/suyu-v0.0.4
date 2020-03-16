@@ -9,6 +9,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
+#include "core/frontend/emu_window.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
@@ -21,7 +22,17 @@ CpuManager::CpuManager(System& system) : system{system} {}
 CpuManager::~CpuManager() = default;
 
 void CpuManager::ThreadStart(CpuManager& cpu_manager, std::size_t core) {
+    if (!cpu_manager.is_async_gpu && !cpu_manager.is_multicore) {
+        cpu_manager.render_window->MakeCurrent();
+    }
     cpu_manager.RunThread(core);
+    if (!cpu_manager.is_async_gpu && !cpu_manager.is_multicore) {
+        cpu_manager.render_window->DoneCurrent();
+    }
+}
+
+void CpuManager::SetRenderWindow(Core::Frontend::EmuWindow& render_window) {
+    this->render_window = &render_window;
 }
 
 void CpuManager::Initialize() {

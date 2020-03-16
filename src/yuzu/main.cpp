@@ -534,14 +534,34 @@ void GMainWindow::InitializeWidgets() {
         if (emulation_running) {
             return;
         }
-        Settings::values.use_asynchronous_gpu_emulation =
-            !Settings::values.use_asynchronous_gpu_emulation;
+        bool is_async = !Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        Settings::values.use_asynchronous_gpu_emulation = is_async;
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
         Settings::Apply();
     });
     async_status_button->setText(tr("ASYNC"));
     async_status_button->setCheckable(true);
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+
+    // Setup Multicore button
+    multicore_status_button = new QPushButton();
+    multicore_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    multicore_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(multicore_status_button, &QPushButton::clicked, [&] {
+        if (emulation_running) {
+            return;
+        }
+        Settings::values.use_multi_core = !Settings::values.use_multi_core;
+        bool is_async = Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        Settings::values.use_asynchronous_gpu_emulation = is_async;
+        async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+        multicore_status_button->setChecked(Settings::values.use_multi_core);
+        Settings::Apply();
+    });
+    multicore_status_button->setText(tr("MULTICORE"));
+    multicore_status_button->setCheckable(true);
+    multicore_status_button->setChecked(Settings::values.use_multi_core);
+    statusBar()->insertPermanentWidget(0, multicore_status_button);
     statusBar()->insertPermanentWidget(0, async_status_button);
 
     // Setup Renderer API button
@@ -1043,6 +1063,7 @@ void GMainWindow::BootGame(const QString& filename) {
     }
     status_bar_update_timer.start(2000);
     async_status_button->setDisabled(true);
+    multicore_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
 
     if (UISettings::values.hide_mouse) {
@@ -1130,6 +1151,7 @@ void GMainWindow::ShutdownGame() {
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
     async_status_button->setEnabled(true);
+    multicore_status_button->setEnabled(true);
 #ifdef HAS_VULKAN
     renderer_status_button->setEnabled(true);
 #endif
@@ -1935,7 +1957,10 @@ void GMainWindow::OnConfigure() {
     }
 
     dock_status_button->setChecked(Settings::values.use_docked_mode);
+    multicore_status_button->setChecked(Settings::values.use_multi_core);
+    Settings::values.use_asynchronous_gpu_emulation = Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+
 #ifdef HAS_VULKAN
     renderer_status_button->setChecked(Settings::values.renderer_backend ==
                                        Settings::RendererBackend::Vulkan);

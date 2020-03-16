@@ -16,6 +16,10 @@ class Event;
 class Fiber;
 } // namespace Common
 
+namespace Core::Frontend {
+class EmuWindow;
+} // namespace Core::Frontend
+
 namespace Core {
 
 class System;
@@ -35,6 +39,12 @@ public:
     void SetMulticore(bool is_multicore) {
         this->is_multicore = is_multicore;
     }
+
+    /// Sets if emulation is using an asynchronous GPU.
+    void SetAsyncGpu(bool is_async_gpu) {
+        this->is_async_gpu = is_async_gpu;
+    }
+
     void Initialize();
     void Shutdown();
 
@@ -50,6 +60,8 @@ public:
     std::size_t CurrentCore() const {
         return current_core.load();
     }
+
+    void SetRenderWindow(Core::Frontend::EmuWindow& render_window);
 
 private:
     static void GuestThreadFunction(void* cpu_manager);
@@ -88,10 +100,12 @@ private:
 
     std::array<CoreData, Core::Hardware::NUM_CPU_CORES> core_data{};
 
+    bool is_async_gpu{};
     bool is_multicore{};
     std::atomic<std::size_t> current_core{};
     std::size_t preemption_count{};
     static constexpr std::size_t max_cycle_runs = 5;
+    Core::Frontend::EmuWindow* render_window;
 
     System& system;
 };

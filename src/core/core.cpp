@@ -152,8 +152,12 @@ struct System::Impl {
 
         device_memory = std::make_unique<Core::DeviceMemory>(system);
 
-        kernel.SetMulticore(Settings::values.use_multi_core);
-        cpu_manager.SetMulticore(Settings::values.use_multi_core);
+        is_multicore = Settings::values.use_multi_core;
+        is_async_gpu = is_multicore || Settings::values.use_asynchronous_gpu_emulation;
+
+        kernel.SetMulticore(is_multicore);
+        cpu_manager.SetMulticore(is_multicore);
+        cpu_manager.SetAsyncGpu(is_async_gpu);
 
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
         kernel.Initialize();
@@ -394,6 +398,9 @@ struct System::Impl {
 
     std::unique_ptr<Core::PerfStats> perf_stats;
     Core::FrameLimiter frame_limiter;
+
+    bool is_multicore{};
+    bool is_async_gpu{};
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
 };

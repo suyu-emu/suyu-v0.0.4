@@ -54,7 +54,7 @@
           <item>
            <widget class="QCheckBox" name="use_multi_core">
             <property name="text">
-             <string>Emulate CPU in Multiple Cores</string>
+             <string>Multicore CPU Emulation</string>
             </property>
            </widget>
           </item>
