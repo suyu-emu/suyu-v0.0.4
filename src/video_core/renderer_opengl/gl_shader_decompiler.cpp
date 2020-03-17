@@ -2009,16 +2009,19 @@ private:
         expr += GetSampler(meta->sampler);
         expr += ", ";
 
-        expr += constructors.at(operation.GetOperandsCount() - 1);
+        expr += constructors.at(operation.GetOperandsCount() + (meta->array ? 1 : 0) - 1);
         expr += '(';
         for (std::size_t i = 0; i < count; ++i) {
-            expr += VisitOperand(operation, i).AsInt();
-            const std::size_t next = i + 1;
-            if (next == count)
-                expr += ')';
-            else if (next < count)
+            if (i > 0) {
                 expr += ", ";
+            }
+            expr += VisitOperand(operation, i).AsInt();
         }
+        if (meta->array) {
+            expr += ", ";
+            expr += Visit(meta->array).AsInt();
+        }
+        expr += ')';
 
         if (meta->lod && !meta->sampler.IsBuffer()) {
             expr += ", ";
