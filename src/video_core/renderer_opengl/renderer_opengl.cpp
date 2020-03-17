@@ -5,8 +5,11 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
+#include <cstring>
 #include <memory>
+
 #include <glad/glad.h>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -25,6 +28,8 @@
 
 namespace OpenGL {
 
+namespace {
+
 // If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
 // to wait on available presentation frames.
 constexpr std::size_t SWAP_CHAIN_SIZE = 3;
@@ -41,6 +46,159 @@ struct Frame {
     bool is_srgb{};                   /// Framebuffer is sRGB or RGB
 };
 
+constexpr char VERTEX_SHADER[] = R"(
+#version 430 core
+
+out gl_PerVertex {
+    vec4 gl_Position;
+};
+
+layout (location = 0) in vec2 vert_position;
+layout (location = 1) in vec2 vert_tex_coord;
+layout (location = 0) out vec2 frag_tex_coord;
+
+// This is a truncated 3x3 matrix for 2D transformations:
+// The upper-left 2x2 submatrix performs scaling/rotation/mirroring.
+// The third column performs translation.
+// The third row could be used for projection, which we don't need in 2D. It hence is assumed to
+// implicitly be [0, 0, 1]
+layout (location = 0) uniform mat3x2 modelview_matrix;
+
+void main() {
+    // Multiply input position by the rotscale part of the matrix and then manually translate by
+    // the last column. This is equivalent to using a full 3x3 matrix and expanding the vector
+    // to `vec3(vert_position.xy, 1.0)`
+    gl_Position = vec4(mat2(modelview_matrix) * vert_position + modelview_matrix[2], 0.0, 1.0);
+    frag_tex_coord = vert_tex_coord;
+}
+)";
+
+constexpr char FRAGMENT_SHADER[] = R"(
+#version 430 core
+
+layout (location = 0) in vec2 frag_tex_coord;
+layout (location = 0) out vec4 color;
+
+layout (binding = 0) uniform sampler2D color_texture;
+
+void main() {
+    color = vec4(texture(color_texture, frag_tex_coord).rgb, 1.0f);
+}
+)";
+
+constexpr GLint PositionLocation = 0;
+constexpr GLint TexCoordLocation = 1;
+constexpr GLint ModelViewMatrixLocation = 0;
+
+struct ScreenRectVertex {
+    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
+        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
+
+    std::array<GLfloat, 2> position;
+    std::array<GLfloat, 2> tex_coord;
+};
+
+/// Returns true if any debug tool is attached
+bool HasDebugTool() {
+    const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
+    if (nsight) {
+        return true;
+    }
+
+    GLint num_extensions;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+    for (GLuint index = 0; index < static_cast<GLuint>(num_extensions); ++index) {
+        const auto name = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, index));
+        if (!std::strcmp(name, "GL_EXT_debug_tool")) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Defines a 1:1 pixel ortographic projection matrix with (0,0) on the top-left
+ * corner and (width, height) on the lower-bottom.
+ *
+ * The projection part of the matrix is trivial, hence these operations are represented
+ * by a 3x2 matrix.
+ */
+std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
+    std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
+
+    // clang-format off
+    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
+    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
+    // Last matrix row is implicitly assumed to be [0, 0, 1].
+    // clang-format on
+
+    return matrix;
+}
+
+const char* GetSource(GLenum source) {
+    switch (source) {
+    case GL_DEBUG_SOURCE_API:
+        return "API";
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+        return "WINDOW_SYSTEM";
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+        return "SHADER_COMPILER";
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+        return "THIRD_PARTY";
+    case GL_DEBUG_SOURCE_APPLICATION:
+        return "APPLICATION";
+    case GL_DEBUG_SOURCE_OTHER:
+        return "OTHER";
+    default:
+        UNREACHABLE();
+        return "Unknown source";
+    }
+}
+
+const char* GetType(GLenum type) {
+    switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+        return "ERROR";
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        return "DEPRECATED_BEHAVIOR";
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        return "UNDEFINED_BEHAVIOR";
+    case GL_DEBUG_TYPE_PORTABILITY:
+        return "PORTABILITY";
+    case GL_DEBUG_TYPE_PERFORMANCE:
+        return "PERFORMANCE";
+    case GL_DEBUG_TYPE_OTHER:
+        return "OTHER";
+    case GL_DEBUG_TYPE_MARKER:
+        return "MARKER";
+    default:
+        UNREACHABLE();
+        return "Unknown type";
+    }
+}
+
+void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                           const GLchar* message, const void* user_param) {
+    const char format[] = "{} {} {}: {}";
+    const char* const str_source = GetSource(source);
+    const char* const str_type = GetType(type);
+
+    switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+    case GL_DEBUG_SEVERITY_LOW:
+        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
+        break;
+    }
+}
+
+} // Anonymous namespace
+
 /**
  * For smooth Vsync rendering, we want to always present the latest frame that the core generates,
  * but also make sure that rendering happens at the pace that the frontend dictates. This is a
@@ -56,7 +214,7 @@ public:
     std::deque<Frame*> present_queue;
     Frame* previous_frame{};
 
-    FrameMailbox() : has_debug_tool{Device().HasDebugTool()} {
+    FrameMailbox() : has_debug_tool{HasDebugTool()} {
         for (auto& frame : swap_chain) {
             free_queue.push(&frame);
         }
@@ -187,143 +345,6 @@ private:
                                    [this, last_frame] { return frame_for_debug > last_frame; });
     }
 };
-
-namespace {
-
-constexpr char VERTEX_SHADER[] = R"(
-#version 430 core
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
-
-layout (location = 0) in vec2 vert_position;
-layout (location = 1) in vec2 vert_tex_coord;
-layout (location = 0) out vec2 frag_tex_coord;
-
-// This is a truncated 3x3 matrix for 2D transformations:
-// The upper-left 2x2 submatrix performs scaling/rotation/mirroring.
-// The third column performs translation.
-// The third row could be used for projection, which we don't need in 2D. It hence is assumed to
-// implicitly be [0, 0, 1]
-layout (location = 0) uniform mat3x2 modelview_matrix;
-
-void main() {
-    // Multiply input position by the rotscale part of the matrix and then manually translate by
-    // the last column. This is equivalent to using a full 3x3 matrix and expanding the vector
-    // to `vec3(vert_position.xy, 1.0)`
-    gl_Position = vec4(mat2(modelview_matrix) * vert_position + modelview_matrix[2], 0.0, 1.0);
-    frag_tex_coord = vert_tex_coord;
-}
-)";
-
-constexpr char FRAGMENT_SHADER[] = R"(
-#version 430 core
-
-layout (location = 0) in vec2 frag_tex_coord;
-layout (location = 0) out vec4 color;
-
-layout (binding = 0) uniform sampler2D color_texture;
-
-void main() {
-    color = vec4(texture(color_texture, frag_tex_coord).rgb, 1.0f);
-}
-)";
-
-constexpr GLint PositionLocation = 0;
-constexpr GLint TexCoordLocation = 1;
-constexpr GLint ModelViewMatrixLocation = 0;
-
-struct ScreenRectVertex {
-    constexpr ScreenRectVertex(u32 x, u32 y, GLfloat u, GLfloat v)
-        : position{{static_cast<GLfloat>(x), static_cast<GLfloat>(y)}}, tex_coord{{u, v}} {}
-
-    std::array<GLfloat, 2> position;
-    std::array<GLfloat, 2> tex_coord;
-};
-
-/**
- * Defines a 1:1 pixel ortographic projection matrix with (0,0) on the top-left
- * corner and (width, height) on the lower-bottom.
- *
- * The projection part of the matrix is trivial, hence these operations are represented
- * by a 3x2 matrix.
- */
-std::array<GLfloat, 3 * 2> MakeOrthographicMatrix(float width, float height) {
-    std::array<GLfloat, 3 * 2> matrix; // Laid out in column-major order
-
-    // clang-format off
-    matrix[0] = 2.f / width; matrix[2] =  0.f;          matrix[4] = -1.f;
-    matrix[1] = 0.f;         matrix[3] = -2.f / height; matrix[5] =  1.f;
-    // Last matrix row is implicitly assumed to be [0, 0, 1].
-    // clang-format on
-
-    return matrix;
-}
-
-const char* GetSource(GLenum source) {
-    switch (source) {
-    case GL_DEBUG_SOURCE_API:
-        return "API";
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-        return "WINDOW_SYSTEM";
-    case GL_DEBUG_SOURCE_SHADER_COMPILER:
-        return "SHADER_COMPILER";
-    case GL_DEBUG_SOURCE_THIRD_PARTY:
-        return "THIRD_PARTY";
-    case GL_DEBUG_SOURCE_APPLICATION:
-        return "APPLICATION";
-    case GL_DEBUG_SOURCE_OTHER:
-        return "OTHER";
-    default:
-        UNREACHABLE();
-        return "Unknown source";
-    }
-}
-
-const char* GetType(GLenum type) {
-    switch (type) {
-    case GL_DEBUG_TYPE_ERROR:
-        return "ERROR";
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-        return "DEPRECATED_BEHAVIOR";
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-        return "UNDEFINED_BEHAVIOR";
-    case GL_DEBUG_TYPE_PORTABILITY:
-        return "PORTABILITY";
-    case GL_DEBUG_TYPE_PERFORMANCE:
-        return "PERFORMANCE";
-    case GL_DEBUG_TYPE_OTHER:
-        return "OTHER";
-    case GL_DEBUG_TYPE_MARKER:
-        return "MARKER";
-    default:
-        UNREACHABLE();
-        return "Unknown type";
-    }
-}
-
-void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-                           const GLchar* message, const void* user_param) {
-    const char format[] = "{} {} {}: {}";
-    const char* const str_source = GetSource(source);
-    const char* const str_type = GetType(type);
-
-    switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-        LOG_CRITICAL(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-        LOG_WARNING(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-    case GL_DEBUG_SEVERITY_LOW:
-        LOG_DEBUG(Render_OpenGL, format, str_source, str_type, id, message);
-        break;
-    }
-}
-
-} // Anonymous namespace
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system)
     : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system},
