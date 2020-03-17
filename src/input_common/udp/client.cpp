@@ -35,7 +35,7 @@ public:
           pad_index(pad_index) {
         boost::system::error_code ec{};
         auto ipv4 = boost::asio::ip::make_address_v4(host, ec);
-        if (ec.failed()) {
+        if (ec.value() != boost::system::errc::success) {
             LOG_ERROR(Input, "Invalid IPv4 address \"{}\" provided to socket", host);
             ipv4 = boost::asio::ip::address_v4{};
         }
