@@ -238,7 +238,6 @@ void StateTracker::Initialize() {
     SetupDirtyMisc(tables);
 
     auto& store = dirty.on_write_stores;
-    SetupCommonOnWriteStores(store);
     store[VertexBuffers] = true;
     for (std::size_t i = 0; i < Regs::NumVertexArrays; ++i) {
         store[VertexBuffer0 + i] = true;

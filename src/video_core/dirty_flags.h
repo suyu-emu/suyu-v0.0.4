@@ -44,8 +44,6 @@ void FillBlock(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables, std::size_
     FillBlock(tables[1], begin, num, index_b);
 }
 
-void SetupCommonOnWriteStores(Tegra::Engines::Maxwell3D::DirtyState::Flags& store);
-
 void SetupDirtyRenderTargets(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables);
 
 } // namespace VideoCommon::Dirty

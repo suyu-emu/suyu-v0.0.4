@@ -15,14 +15,6 @@ namespace VideoCommon::Dirty {
 
 using Tegra::Engines::Maxwell3D;
 
-void SetupCommonOnWriteStores(Tegra::Engines::Maxwell3D::DirtyState::Flags& store) {
-    store[RenderTargets] = true;
-    store[ZetaBuffer] = true;
-    for (std::size_t i = 0; i < Maxwell3D::Regs::NumRenderTargets; ++i) {
-        store[ColorBuffer0 + i] = true;
-    }
-}
-
 void SetupDirtyRenderTargets(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables) {
     static constexpr std::size_t num_per_rt = NUM(rt[0]);
     static constexpr std::size_t begin = OFF(rt);
