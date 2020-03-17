@@ -367,6 +367,10 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
             return vk::Format::eR8G8B8A8Uint;
         case Maxwell::VertexAttribute::Size::Size_32:
             return vk::Format::eR32Uint;
+        case Maxwell::VertexAttribute::Size::Size_32_32:
+            return vk::Format::eR32G32Uint;
+        case Maxwell::VertexAttribute::Size::Size_32_32_32:
+            return vk::Format::eR32G32B32Uint;
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
             return vk::Format::eR32G32B32A32Uint;
         default:
