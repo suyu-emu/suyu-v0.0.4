@@ -9,6 +9,7 @@
 #include <fmt/format.h>
 
 #include "common/assert.h"
+#include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/telemetry.h"
 #include "core/core.h"
@@ -51,6 +52,45 @@ VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity_,
         LOG_DEBUG(Render_Vulkan, "{}", message);
     }
     return VK_FALSE;
+}
+
+Common::DynamicLibrary OpenVulkanLibrary() {
+    Common::DynamicLibrary library;
+#ifdef __APPLE__
+    // Check if a path to a specific Vulkan library has been specified.
+    char* libvulkan_env = getenv("LIBVULKAN_PATH");
+    if (!libvulkan_env || !library.Open(libvulkan_env)) {
+        // Use the libvulkan.dylib from the application bundle.
+        std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+        library.Open(filename.c_str());
+    }
+#else
+    std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+    if (!library.Open(filename.c_str())) {
+        // Android devices may not have libvulkan.so.1, only libvulkan.so.
+        filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+        library.Open(filename.c_str());
+    }
+#endif
+    return library;
+}
+
+UniqueInstance CreateInstance(Common::DynamicLibrary& library, vk::DispatchLoaderDynamic& dld) {
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+    if (!library.GetSymbol("vkGetInstanceProcAddr", &vkGetInstanceProcAddr)) {
+        return UniqueInstance{};
+    }
+    dld.init(vkGetInstanceProcAddr);
+
+    const vk::ApplicationInfo application_info("yuzu", VK_MAKE_VERSION(0, 1, 0), "yuzu",
+                                               VK_MAKE_VERSION(0, 1, 0), VK_API_VERSION_1_1);
+    const vk::InstanceCreateInfo instance_ci({}, &application_info, 0, nullptr, 0, nullptr);
+    vk::Instance unsafe_instance;
+    if (vk::createInstance(&instance_ci, nullptr, &unsafe_instance, dld) != vk::Result::eSuccess) {
+        return UniqueInstance{};
+    }
+    dld.init(unsafe_instance, vkGetInstanceProcAddr);
+    return UniqueInstance(unsafe_instance, {nullptr, dld});
 }
 
 std::string GetReadableVersion(u32 version) {
@@ -274,6 +314,35 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);
     telemetry_session.AddField(field, "GPU_Vulkan_Version", api_version);
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
+}
+
+std::vector<std::string> RendererVulkan::EnumerateDevices() {
+    Common::DynamicLibrary library = OpenVulkanLibrary();
+    if (!library.IsOpen()) {
+        return {};
+    }
+    vk::DispatchLoaderDynamic dld;
+    UniqueInstance instance = CreateInstance(library, dld);
+    if (!instance) {
+        return {};
+    }
+
+    u32 num_devices;
+    if (instance->enumeratePhysicalDevices(&num_devices, nullptr, dld) != vk::Result::eSuccess) {
+        return {};
+    }
+    std::vector<vk::PhysicalDevice> devices(num_devices);
+    if (instance->enumeratePhysicalDevices(&num_devices, devices.data(), dld) !=
+        vk::Result::eSuccess) {
+        return {};
+    }
+
+    std::vector<std::string> names;
+    names.reserve(num_devices);
+    for (auto& device : devices) {
+        names.push_back(device.getProperties(dld).deviceName);
+    }
+    return names;
 }
 
 } // namespace Vulkan

@@ -39,6 +39,7 @@ using UniqueFence = UniqueHandle<vk::Fence>;
 using UniqueFramebuffer = UniqueHandle<vk::Framebuffer>;
 using UniqueImage = UniqueHandle<vk::Image>;
 using UniqueImageView = UniqueHandle<vk::ImageView>;
+using UniqueInstance = UniqueHandle<vk::Instance>;
 using UniqueIndirectCommandsLayoutNVX = UniqueHandle<vk::IndirectCommandsLayoutNVX>;
 using UniqueObjectTableNVX = UniqueHandle<vk::ObjectTableNVX>;
 using UniquePipeline = UniqueHandle<vk::Pipeline>;

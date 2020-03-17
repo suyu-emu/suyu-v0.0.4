@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "video_core/renderer_base.h"
@@ -43,6 +44,8 @@ public:
     void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
     bool TryPresent(int timeout_ms) override;
+
+    static std::vector<std::string> EnumerateDevices();
 
 private:
     std::optional<vk::DebugUtilsMessengerEXT> CreateDebugCallback(
