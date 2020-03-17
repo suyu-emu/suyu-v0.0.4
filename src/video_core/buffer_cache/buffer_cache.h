@@ -19,6 +19,7 @@
 
 #include "common/alignment.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/core.h"
 #include "core/memory.h"
 #include "core/settings.h"

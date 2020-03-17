@@ -299,7 +299,9 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue,
                      renderpass_cache),
       buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
-      sampler_cache(device), query_cache(system, *this, device, scheduler) {
+      sampler_cache(device),
+      fence_manager(system, *this, device, scheduler, texture_cache, buffer_cache, query_cache),
+      query_cache(system, *this, device, scheduler) {
     scheduler.SetQueryCache(query_cache);
 }
 
@@ -547,38 +549,28 @@ void RasterizerVulkan::SyncGuestHost() {
 
 void RasterizerVulkan::SignalSemaphore(GPUVAddr addr, u32 value) {
     auto& gpu{system.GPU()};
-    auto& memory_manager{gpu.MemoryManager()};
-    memory_manager.Write<u32>(addr, value);
-    /*
     if (!gpu.IsAsync()) {
-        auto& memory_manager{gpu.MemoryManager()};
-        memory_manager.Write<u32>(addr, value);
+        gpu.MemoryManager().Write<u32>(addr, value);
         return;
     }
     fence_manager.SignalSemaphore(addr, value);
-    */
 }
 
 void RasterizerVulkan::SignalSyncPoint(u32 value) {
     auto& gpu{system.GPU()};
-    gpu.IncrementSyncPoint(value);
-    /*
     if (!gpu.IsAsync()) {
         gpu.IncrementSyncPoint(value);
         return;
     }
     fence_manager.SignalSyncPoint(value);
-    */
 }
 
 void RasterizerVulkan::ReleaseFences() {
-    /*
     auto& gpu{system.GPU()};
     if (!gpu.IsAsync()) {
         return;
     }
     fence_manager.WaitPendingFences();
-    */
 }
 
 void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size) {

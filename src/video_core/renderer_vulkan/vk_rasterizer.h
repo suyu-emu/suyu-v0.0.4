@@ -21,6 +21,7 @@
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
+#include "video_core/renderer_vulkan/vk_fence_manager.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
@@ -267,6 +268,7 @@ private:
     VKPipelineCache pipeline_cache;
     VKBufferCache buffer_cache;
     VKSamplerCache sampler_cache;
+    VKFenceManager fence_manager;
     VKQueryCache query_cache;
 
     std::array<View, Maxwell::NumRenderTargets> color_attachments;
