@@ -698,6 +698,8 @@ void Config::ReadSystemValues() {
         Settings::values.custom_rtc = std::nullopt;
     }
 
+    Settings::values.sound_index = ReadSetting(QStringLiteral("sound_index"), 1).toInt();
+
     qt_config->endGroup();
 }
 
@@ -1124,6 +1126,8 @@ void Config::SaveSystemValues() {
                  QVariant::fromValue<long long>(
                      Settings::values.custom_rtc.value_or(std::chrono::seconds{}).count()),
                  0);
+
+    WriteSetting(QStringLiteral("sound_index"), Settings::values.sound_index, 1);
 
     qt_config->endGroup();
 }

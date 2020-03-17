@@ -56,6 +56,7 @@ void ConfigureSystem::SetConfiguration() {
     enabled = !Core::System::GetInstance().IsPoweredOn();
 
     ui->combo_language->setCurrentIndex(Settings::values.language_index);
+    ui->combo_sound->setCurrentIndex(Settings::values.sound_index);
 
     ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.has_value());
     ui->rng_seed_edit->setEnabled(Settings::values.rng_seed.has_value());
@@ -81,6 +82,7 @@ void ConfigureSystem::ApplyConfiguration() {
     }
 
     Settings::values.language_index = ui->combo_language->currentIndex();
+    Settings::values.sound_index = ui->combo_sound->currentIndex();
 
     if (ui->rng_seed_checkbox->isChecked()) {
         Settings::values.rng_seed = ui->rng_seed_edit->text().toULongLong(nullptr, 16);

@@ -387,6 +387,7 @@ struct Values {
 
     s32 current_user;
     s32 language_index;
+    s32 sound_index;
 
     // Controls
     std::array<PlayerInput, 10> players;
