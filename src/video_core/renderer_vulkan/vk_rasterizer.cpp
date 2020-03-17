@@ -287,12 +287,13 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       screen_info{screen_info}, device{device}, resource_manager{resource_manager},
       memory_manager{memory_manager}, state_tracker{state_tracker}, scheduler{scheduler},
       staging_pool(device, memory_manager, scheduler), descriptor_pool(device),
-      update_descriptor_queue(device, scheduler),
+      update_descriptor_queue(device, scheduler), renderpass_cache(device),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       uint8_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       texture_cache(system, *this, device, resource_manager, memory_manager, scheduler,
                     staging_pool),
-      pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue),
+      pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue,
+                     renderpass_cache),
       buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
       sampler_cache(device), query_cache(system, *this, device, scheduler) {
     scheduler.SetQueryCache(query_cache);
@@ -365,12 +366,15 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 void RasterizerVulkan::Clear() {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
 
-    query_cache.UpdateCounters();
-
     const auto& gpu = system.GPU().Maxwell3D();
     if (!system.GPU().Maxwell3D().ShouldExecute()) {
         return;
     }
+
+    sampled_views.clear();
+    image_views.clear();
+
+    query_cache.UpdateCounters();
 
     const auto& regs = gpu.regs;
     const bool use_color = regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
@@ -380,52 +384,54 @@ void RasterizerVulkan::Clear() {
     if (!use_color && !use_depth && !use_stencil) {
         return;
     }
-    // Clearing images requires to be out of a renderpass
-    scheduler.RequestOutsideRenderPassOperationContext();
 
-    // TODO(Rodrigo): Implement clears rendering a quad or using beginning a renderpass.
+    [[maybe_unused]] const auto texceptions = UpdateAttachments();
+    DEBUG_ASSERT(texceptions.none());
+    SetupImageTransitions(0, color_attachments, zeta_attachment);
+
+    const vk::RenderPass renderpass = renderpass_cache.GetRenderPass(GetRenderPassParams(0));
+    const auto [framebuffer, render_area] = ConfigureFramebuffers(renderpass);
+    scheduler.RequestRenderpass({renderpass, framebuffer, {{0, 0}, render_area}, 0, nullptr});
+
+    const auto& scissor = regs.scissor_test[0];
+    const vk::Offset2D scissor_offset(scissor.min_x, scissor.min_y);
+    vk::Extent2D scissor_extent{scissor.max_x - scissor.min_x, scissor.max_y - scissor.min_y};
+    scissor_extent.width = std::min(scissor_extent.width, render_area.width);
+    scissor_extent.height = std::min(scissor_extent.height, render_area.height);
+
+    const u32 layer = regs.clear_buffers.layer;
+    const vk::ClearRect clear_rect({scissor_offset, scissor_extent}, layer, 1);
 
     if (use_color) {
-        View color_view;
-        {
-            MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-            color_view = texture_cache.GetColorBufferSurface(regs.clear_buffers.RT.Value(), false);
-        }
-
-        color_view->Transition(vk::ImageLayout::eTransferDstOptimal,
-                               vk::PipelineStageFlagBits::eTransfer,
-                               vk::AccessFlagBits::eTransferWrite);
-
         const std::array clear_color = {regs.clear_color[0], regs.clear_color[1],
                                         regs.clear_color[2], regs.clear_color[3]};
-        const vk::ClearColorValue clear(clear_color);
-        scheduler.Record([image = color_view->GetImage(),
-                          subresource = color_view->GetImageSubresourceRange(),
-                          clear](auto cmdbuf, auto& dld) {
-            cmdbuf.clearColorImage(image, vk::ImageLayout::eTransferDstOptimal, clear, subresource,
-                                   dld);
+        const vk::ClearValue clear_value{clear_color};
+        const u32 color_attachment = regs.clear_buffers.RT;
+        scheduler.Record([color_attachment, clear_value, clear_rect](auto cmdbuf, auto& dld) {
+            const vk::ClearAttachment attachment(vk::ImageAspectFlagBits::eColor, color_attachment,
+                                                 clear_value);
+            cmdbuf.clearAttachments(1, &attachment, 1, &clear_rect, dld);
         });
     }
-    if (use_depth || use_stencil) {
-        View zeta_surface;
-        {
-            MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-            zeta_surface = texture_cache.GetDepthBufferSurface(false);
-        }
 
-        zeta_surface->Transition(vk::ImageLayout::eTransferDstOptimal,
-                                 vk::PipelineStageFlagBits::eTransfer,
-                                 vk::AccessFlagBits::eTransferWrite);
-
-        const vk::ClearDepthStencilValue clear(regs.clear_depth,
-                                               static_cast<u32>(regs.clear_stencil));
-        scheduler.Record([image = zeta_surface->GetImage(),
-                          subresource = zeta_surface->GetImageSubresourceRange(),
-                          clear](auto cmdbuf, auto& dld) {
-            cmdbuf.clearDepthStencilImage(image, vk::ImageLayout::eTransferDstOptimal, clear,
-                                          subresource, dld);
-        });
+    if (!use_depth && !use_stencil) {
+        return;
     }
+    vk::ImageAspectFlags aspect_flags;
+    if (use_depth) {
+        aspect_flags |= vk::ImageAspectFlagBits::eDepth;
+    }
+    if (use_stencil) {
+        aspect_flags |= vk::ImageAspectFlagBits::eStencil;
+    }
+
+    scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
+                      clear_rect, aspect_flags](auto cmdbuf, auto& dld) {
+        const vk::ClearDepthStencilValue clear_zeta(clear_depth, clear_stencil);
+        const vk::ClearValue clear_value{clear_zeta};
+        const vk::ClearAttachment attachment(aspect_flags, 0, clear_value);
+        cmdbuf.clearAttachments(1, &attachment, 1, &clear_rect, dld);
+    });
 }
 
 void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {

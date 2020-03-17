@@ -161,7 +161,8 @@ public:
     explicit VKPipelineCache(Core::System& system, RasterizerVulkan& rasterizer,
                              const VKDevice& device, VKScheduler& scheduler,
                              VKDescriptorPool& descriptor_pool,
-                             VKUpdateDescriptorQueue& update_descriptor_queue);
+                             VKUpdateDescriptorQueue& update_descriptor_queue,
+                             VKRenderPassCache& renderpass_cache);
     ~VKPipelineCache();
 
     std::array<Shader, Maxwell::MaxShaderProgram> GetShaders();
@@ -184,8 +185,7 @@ private:
     VKScheduler& scheduler;
     VKDescriptorPool& descriptor_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
-
-    VKRenderPassCache renderpass_cache;
+    VKRenderPassCache& renderpass_cache;
 
     std::array<Shader, Maxwell::MaxShaderProgram> last_shaders;
 

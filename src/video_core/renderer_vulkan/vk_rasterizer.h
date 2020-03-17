@@ -253,6 +253,7 @@ private:
     VKStagingBufferPool staging_pool;
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
+    VKRenderPassCache renderpass_cache;
     QuadArrayPass quad_array_pass;
     Uint8Pass uint8_pass;
 
