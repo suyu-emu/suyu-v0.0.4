@@ -639,14 +639,6 @@ private:
             code.AddLine("float gl_PointSize;");
         }
 
-        if (ir.UsesInstanceId()) {
-            code.AddLine("int gl_InstanceID;");
-        }
-
-        if (ir.UsesVertexId()) {
-            code.AddLine("int gl_VertexID;");
-        }
-
         if (ir.UsesLegacyVaryings()) {
             code.AddLine("vec4 gl_TexCoord[8];");
             code.AddLine("vec4 gl_FrontColor;");
