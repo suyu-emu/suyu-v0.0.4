@@ -548,8 +548,6 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
     // Verify that the cached surface is the same size and format as the requested framebuffer
     const auto& params{surface->GetSurfaceParams()};
-    const auto& pixel_format{
-        VideoCore::Surface::PixelFormatFromGPUPixelFormat(config.pixel_format)};
     ASSERT_MSG(params.width == config.width, "Framebuffer width is different");
     ASSERT_MSG(params.height == config.height, "Framebuffer height is different");
 
