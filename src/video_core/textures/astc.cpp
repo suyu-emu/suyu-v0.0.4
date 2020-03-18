@@ -577,7 +577,7 @@ static TexelWeightParams DecodeBlockInfo(InputBitStream& strm) {
     }
 
     default:
-        assert(!"Don't know this layout...");
+        assert(false && "Don't know this layout...");
         params.m_bError = true;
         break;
     }
@@ -713,7 +713,7 @@ public:
             }
         }
 
-        assert(!"We shouldn't get here.");
+        assert(false && "We shouldn't get here.");
         return 0;
     }
 
@@ -893,7 +893,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
             } break;
 
             default:
-                assert(!"Unsupported trit encoding for color values!");
+                assert(false && "Unsupported trit encoding for color values!");
                 break;
             } // switch(bitlen)
         }     // case IntegerEncoding::Trit
@@ -937,7 +937,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
             } break;
 
             default:
-                assert(!"Unsupported qus32 encoding for color values!");
+                assert(false && "Unsupported quint encoding for color values!");
                 break;
             } // switch(bitlen)
         }     // case IntegerEncoding::Qus32
@@ -998,7 +998,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
         } break;
 
         default:
-            assert(!"Invalid trit encoding for texel weight");
+            assert(false && "Invalid trit encoding for texel weight");
             break;
         }
     } break;
@@ -1024,7 +1024,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
         } break;
 
         default:
-            assert(!"Invalid qus32 encoding for texel weight");
+            assert(false && "Invalid quint encoding for texel weight");
             break;
         }
     } break;
@@ -1352,7 +1352,7 @@ static void ComputeEndpos32s(Pixel& ep1, Pixel& ep2, const u32*& colorValues,
     } break;
 
     default:
-        assert(!"Unsupported color endpos32 mode (is it HDR?)");
+        assert(false && "Unsupported color endpoint mode (is it HDR?)");
         break;
     }
 
@@ -1367,7 +1367,7 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
 
     // Was there an error?
     if (weightParams.m_bError) {
-        assert(!"Invalid block mode");
+        assert(false && "Invalid block mode");
         FillError(outBuf, blockWidth, blockHeight);
         return;
     }
@@ -1378,19 +1378,19 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
     }
 
     if (weightParams.m_bVoidExtentHDR) {
-        assert(!"HDR void extent blocks are unsupported!");
+        assert(false && "HDR void extent blocks are unsupported!");
         FillError(outBuf, blockWidth, blockHeight);
         return;
     }
 
     if (weightParams.m_Width > blockWidth) {
-        assert(!"Texel weight grid width should be smaller than block width");
+        assert(false && "Texel weight grid width should be smaller than block width");
         FillError(outBuf, blockWidth, blockHeight);
         return;
     }
 
     if (weightParams.m_Height > blockHeight) {
-        assert(!"Texel weight grid height should be smaller than block height");
+        assert(false && "Texel weight grid height should be smaller than block height");
         FillError(outBuf, blockWidth, blockHeight);
         return;
     }
@@ -1400,7 +1400,7 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
     assert(nPartitions <= 4);
 
     if (nPartitions == 4 && weightParams.m_bDualPlane) {
-        assert(!"Dual plane mode is incompatible with four partition blocks");
+        assert(false && "Dual plane mode is incompatible with four partition blocks");
         FillError(outBuf, blockWidth, blockHeight);
         return;
     }
