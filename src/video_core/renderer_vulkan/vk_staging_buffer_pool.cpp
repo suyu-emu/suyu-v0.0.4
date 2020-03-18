@@ -100,7 +100,6 @@ void VKStagingBufferPool::ReleaseCache(bool host_visible) {
 }
 
 u64 VKStagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, std::size_t log2) {
-    static constexpr u64 epochs_to_destroy = 180;
     static constexpr std::size_t deletions_per_tick = 16;
 
     auto& staging = cache[log2];
@@ -108,6 +107,7 @@ u64 VKStagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, std::size_t lo
     const std::size_t old_size = entries.size();
 
     const auto is_deleteable = [this](const auto& entry) {
+        static constexpr u64 epochs_to_destroy = 180;
         return entry.last_epoch + epochs_to_destroy < epoch && !entry.watch.IsUsed();
     };
     const std::size_t begin_offset = staging.delete_index;
