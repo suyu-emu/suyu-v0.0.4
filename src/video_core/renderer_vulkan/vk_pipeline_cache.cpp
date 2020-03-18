@@ -192,7 +192,6 @@ std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
 
     std::array<Shader, Maxwell::MaxShaderProgram> shaders;
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
-        const auto& shader_config = gpu.regs.shader_config[index];
         const auto program{static_cast<Maxwell::ShaderProgram>(index)};
 
         // Skip stages that are not enabled
