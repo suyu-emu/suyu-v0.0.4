@@ -93,10 +93,6 @@ void oglEnable(GLenum cap, bool state) {
     (state ? glEnable : glDisable)(cap);
 }
 
-void oglEnablei(GLenum cap, bool state, GLuint index) {
-    (state ? glEnablei : glDisablei)(cap, index);
-}
-
 } // Anonymous namespace
 
 RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
@@ -478,7 +474,6 @@ void RasterizerOpenGL::Clear() {
 void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(OpenGL_Drawing);
     auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
 
     query_cache.UpdateCounters();
 
@@ -529,7 +524,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     // Upload vertex and index data.
     SetupVertexBuffer();
     SetupVertexInstances();
-    GLintptr index_buffer_offset;
+    GLintptr index_buffer_offset = 0;
     if (is_indexed) {
         index_buffer_offset = SetupIndexBuffer();
     }
@@ -555,7 +550,7 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     ConfigureFramebuffers();
 
     // Signal the buffer cache that we are not going to upload more things.
-    const bool invalidate = buffer_cache.Unmap();
+    buffer_cache.Unmap();
 
     // Now that we are no longer uploading data, we can safely bind the buffers to OpenGL.
     vertex_array_pushbuffer.Bind();
