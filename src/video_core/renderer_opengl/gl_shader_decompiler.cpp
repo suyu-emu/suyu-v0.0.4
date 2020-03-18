@@ -393,10 +393,6 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return fmt::format("{}_flow_stack_top", GetFlowStackPrefix(stack));
 }
 
-[[deprecated]] constexpr bool IsVertexShader(ShaderType stage) {
-    return stage == ShaderType::Vertex;
-}
-
 struct GenericVaryingDescription {
     std::string name;
     u8 first_element = 0;
@@ -529,8 +525,9 @@ private:
     }
 
     void DeclareVertex() {
-        if (!IsVertexShader(stage))
+        if (stage != ShaderType::Vertex) {
             return;
+        }
 
         DeclareVertexRedeclarations();
     }
@@ -602,14 +599,14 @@ private:
                 break;
             }
         }
-        if (!IsVertexShader(stage) || device.HasVertexViewportLayer()) {
+        if (stage != ShaderType::Vertex || device.HasVertexViewportLayer()) {
             if (ir.UsesLayer()) {
                 code.AddLine("int gl_Layer;");
             }
             if (ir.UsesViewportIndex()) {
                 code.AddLine("int gl_ViewportIndex;");
             }
-        } else if ((ir.UsesLayer() || ir.UsesViewportIndex()) && IsVertexShader(stage) &&
+        } else if ((ir.UsesLayer() || ir.UsesViewportIndex()) && stage == ShaderType::Vertex &&
                    !device.HasVertexViewportLayer()) {
             LOG_ERROR(
                 Render_OpenGL,
@@ -1147,7 +1144,7 @@ private:
             // TODO(Subv): Find out what the values are for the first two elements when inside a
             // vertex shader, and what's the value of the fourth element when inside a Tess Eval
             // shader.
-            ASSERT(IsVertexShader(stage));
+            ASSERT(stage == ShaderType::Vertex);
             switch (element) {
             case 2:
                 // Config pack's first value is instance_id.
@@ -1218,12 +1215,12 @@ private:
                 UNIMPLEMENTED();
                 return {};
             case 1:
-                if (IsVertexShader(stage) && !device.HasVertexViewportLayer()) {
+                if (stage == ShaderType::Vertex && !device.HasVertexViewportLayer()) {
                     return {};
                 }
                 return {{"gl_Layer", Type::Int}};
             case 2:
-                if (IsVertexShader(stage) && !device.HasVertexViewportLayer()) {
+                if (stage == ShaderType::Vertex && !device.HasVertexViewportLayer()) {
                     return {};
                 }
                 return {{"gl_ViewportIndex", Type::Int}};
@@ -2532,7 +2529,7 @@ private:
     }
 
     u32 GetNumPhysicalInputAttributes() const {
-        return IsVertexShader(stage) ? GetNumPhysicalAttributes() : GetNumPhysicalVaryings();
+        return stage == ShaderType::Vertex ? GetNumPhysicalAttributes() : GetNumPhysicalVaryings();
     }
 
     u32 GetNumPhysicalAttributes() const {
