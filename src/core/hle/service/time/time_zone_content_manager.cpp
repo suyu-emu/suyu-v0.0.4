@@ -53,7 +53,7 @@ static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
         return {};
     }
 
-    std::vector<char> raw_data(binary_list->GetSize());
+    std::vector<char> raw_data(binary_list->GetSize() + 1);
     binary_list->ReadBytes<char>(raw_data.data(), binary_list->GetSize());
 
     std::stringstream data_stream{raw_data.data()};
