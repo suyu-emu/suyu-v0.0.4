@@ -12,6 +12,7 @@ namespace VideoCommon::Shader {
 
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::PredCondition;
 
 u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
@@ -63,15 +64,18 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
         }
     }();
 
-    op_a = BitfieldExtract(op_a, instr.xmad.high_a ? 16 : 0, 16);
+    op_a = SignedOperation(OperationCode::IBitfieldExtract, is_signed_a, std::move(op_a),
+                           instr.xmad.high_a ? Immediate(16) : Immediate(0), Immediate(16));
 
     const Node original_b = op_b;
-    op_b = BitfieldExtract(op_b, is_high_b ? 16 : 0, 16);
+    op_b = SignedOperation(OperationCode::IBitfieldExtract, is_signed_b, std::move(op_b),
+                           is_high_b ? Immediate(16) : Immediate(0), Immediate(16));
 
-    // TODO(Rodrigo): Use an appropiate sign for this operation
-    Node product = Operation(OperationCode::IMul, NO_PRECISE, op_a, op_b);
+    // we already check sign_a and sign_b is difference or not before so just use one in here.
+    Node product = SignedOperation(OperationCode::IMul, is_signed_a, op_a, op_b);
     if (is_psl) {
-        product = Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, product, Immediate(16));
+        product =
+            SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_a, product, Immediate(16));
     }
     SetTemporary(bb, 0, product);
     product = GetTemporary(0);
@@ -88,12 +92,40 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
             return BitfieldExtract(original_c, 16, 16);
         case Tegra::Shader::XmadMode::CBcc: {
             const Node shifted_b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b,
-                                                   NO_PRECISE, original_b, Immediate(16));
-            return SignedOperation(OperationCode::IAdd, is_signed_c, NO_PRECISE, original_c,
-                                   shifted_b);
+                                                   original_b, Immediate(16));
+            return SignedOperation(OperationCode::IAdd, is_signed_c, original_c, shifted_b);
+        }
+        case Tegra::Shader::XmadMode::CSfu: {
+            const Node comp_a = GetPredicateComparisonInteger(PredCondition::Equal, is_signed_a,
+                                                              op_a, Immediate(0));
+            const Node comp_b = GetPredicateComparisonInteger(PredCondition::Equal, is_signed_b,
+                                                              op_b, Immediate(0));
+            const Node comp = Operation(OperationCode::LogicalOr, comp_a, comp_b);
+
+            const Node comp_minus_a = GetPredicateComparisonInteger(
+                PredCondition::NotEqual, is_signed_a,
+                SignedOperation(OperationCode::IBitwiseAnd, is_signed_a, op_a,
+                                Immediate(0x80000000)),
+                Immediate(0));
+            const Node comp_minus_b = GetPredicateComparisonInteger(
+                PredCondition::NotEqual, is_signed_b,
+                SignedOperation(OperationCode::IBitwiseAnd, is_signed_b, op_b,
+                                Immediate(0x80000000)),
+                Immediate(0));
+
+            Node new_c = Operation(
+                OperationCode::Select, comp_minus_a,
+                SignedOperation(OperationCode::IAdd, is_signed_c, original_c, Immediate(-65536)),
+                original_c);
+            new_c = Operation(
+                OperationCode::Select, comp_minus_b,
+                SignedOperation(OperationCode::IAdd, is_signed_c, new_c, Immediate(-65536)),
+                std::move(new_c));
+
+            return Operation(OperationCode::Select, comp, original_c, std::move(new_c));
         }
         default:
-            UNIMPLEMENTED_MSG("Unhandled XMAD mode: {}", static_cast<u32>(instr.xmad.mode.Value()));
+            UNREACHABLE();
             return Immediate(0);
         }
     }();
@@ -102,18 +134,19 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     op_c = GetTemporary(1);
 
     // TODO(Rodrigo): Use an appropiate sign for this operation
-    Node sum = Operation(OperationCode::IAdd, product, op_c);
+    Node sum = SignedOperation(OperationCode::IAdd, is_signed_a, product, std::move(op_c));
     SetTemporary(bb, 2, sum);
     sum = GetTemporary(2);
     if (is_merge) {
-        const Node a = BitfieldExtract(sum, 0, 16);
-        const Node b =
-            Operation(OperationCode::ILogicalShiftLeft, NO_PRECISE, original_b, Immediate(16));
-        sum = Operation(OperationCode::IBitwiseOr, NO_PRECISE, a, b);
+        const Node a = SignedOperation(OperationCode::IBitfieldExtract, is_signed_a, std::move(sum),
+                                       Immediate(0), Immediate(16));
+        const Node b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b, original_b,
+                                       Immediate(16));
+        sum = SignedOperation(OperationCode::IBitwiseOr, is_signed_a, a, b);
     }
 
     SetInternalFlagsFromInteger(bb, sum, instr.generates_cc);
-    SetRegister(bb, instr.gpr0, sum);
+    SetRegister(bb, instr.gpr0, std::move(sum));
 
     return pc;
 }
