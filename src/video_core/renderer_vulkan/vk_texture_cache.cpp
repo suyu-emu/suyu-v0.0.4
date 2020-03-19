@@ -52,6 +52,9 @@ vk::ImageType SurfaceTargetToImage(SurfaceTarget target) {
         return vk::ImageType::e2D;
     case SurfaceTarget::Texture3D:
         return vk::ImageType::e3D;
+    case SurfaceTarget::TextureBuffer:
+        UNREACHABLE();
+        return {};
     }
     UNREACHABLE_MSG("Unknown texture target={}", static_cast<u32>(target));
     return {};
@@ -273,7 +276,6 @@ void CachedSurface::UploadImage(const std::vector<u8>& staging_buffer) {
 
     for (u32 level = 0; level < params.num_levels; ++level) {
         vk::BufferImageCopy copy = GetBufferImageCopy(level);
-        const auto& dld = device.GetDispatchLoader();
         if (image->GetAspectMask() ==
             (vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil)) {
             vk::BufferImageCopy depth = copy;
@@ -422,7 +424,6 @@ void VKTextureCache::ImageCopy(Surface& src_surface, Surface& dst_surface,
         dst_base_layer, num_layers, copy_params.dest_level, 1, vk::PipelineStageFlagBits::eTransfer,
         vk::AccessFlagBits::eTransferWrite, vk::ImageLayout::eTransferDstOptimal);
 
-    const auto& dld{device.GetDispatchLoader()};
     const vk::ImageSubresourceLayers src_subresource(
         src_surface->GetAspectMask(), copy_params.source_level, copy_params.source_z, num_layers);
     const vk::ImageSubresourceLayers dst_subresource(
@@ -458,7 +459,6 @@ void VKTextureCache::ImageBlit(View& src_view, View& dst_view,
                              dst_view->GetImageSubresourceLayers(), {dst_top_left, dst_bot_right});
     const bool is_linear = copy_config.filter == Tegra::Engines::Fermi2D::Filter::Linear;
 
-    const auto& dld{device.GetDispatchLoader()};
     scheduler.Record([src_image = src_view->GetImage(), dst_image = dst_view->GetImage(), blit,
                       is_linear](auto cmdbuf, auto& dld) {
         cmdbuf.blitImage(src_image, vk::ImageLayout::eTransferSrcOptimal, dst_image,

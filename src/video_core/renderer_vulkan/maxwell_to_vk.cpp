@@ -257,6 +257,8 @@ vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
         return vk::ShaderStageFlagBits::eGeometry;
     case Tegra::Engines::ShaderType::Fragment:
         return vk::ShaderStageFlagBits::eFragment;
+    case Tegra::Engines::ShaderType::Compute:
+        return vk::ShaderStageFlagBits::eCompute;
     }
     UNIMPLEMENTED_MSG("Unimplemented shader stage={}", static_cast<u32>(stage));
     return {};
