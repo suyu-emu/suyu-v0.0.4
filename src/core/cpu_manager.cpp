@@ -242,8 +242,11 @@ void CpuManager::SingleCoreRunGuestLoop() {
                 break;
             }
         }
-        physical_core.ClearExclusive();
         system.ExitDynarmicProfile();
+        thread->SetPhantomMode(true);
+        system.CoreTiming().Advance();
+        thread->SetPhantomMode(false);
+        physical_core.ClearExclusive();
         PreemptSingleCore();
         auto& scheduler = kernel.Scheduler(current_core);
         scheduler.TryDoContextSwitch();
@@ -255,6 +258,7 @@ void CpuManager::SingleCoreRunIdleThread() {
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
         PreemptSingleCore();
+        idle_count++;
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
     }
@@ -280,15 +284,24 @@ void CpuManager::SingleCoreRunSuspendThread() {
 void CpuManager::PreemptSingleCore() {
     preemption_count = 0;
     std::size_t old_core = current_core;
-    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
     auto& scheduler = system.Kernel().Scheduler(old_core);
     Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+    if (idle_count >= 4) {
+        current_thread->SetPhantomMode(true);
+        system.CoreTiming().Advance();
+        current_thread->SetPhantomMode(false);
+    }
+    current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
     scheduler.Unload();
     auto& next_scheduler = system.Kernel().Scheduler(current_core);
     Common::Fiber::YieldTo(current_thread->GetHostContext(), next_scheduler.ControlContext());
     /// May have changed scheduler
     auto& current_scheduler = system.Kernel().Scheduler(current_core);
     current_scheduler.Reload();
+    auto* currrent_thread2 = current_scheduler.GetCurrentThread();
+    if (!currrent_thread2->IsIdleThread()) {
+        idle_count = 0;
+    }
 }
 
 void CpuManager::SingleCorePause(bool paused) {

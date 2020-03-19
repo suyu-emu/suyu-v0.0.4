@@ -55,7 +55,9 @@ void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
     event_fifo_id = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
-    timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
+    if (is_multicore) {
+        timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
+    }
 }
 
 void CoreTiming::Shutdown() {
@@ -63,7 +65,9 @@ void CoreTiming::Shutdown() {
     shutting_down = true;
     pause_event.Set();
     event.Set();
-    timer_thread->join();
+    if (timer_thread) {
+        timer_thread->join();
+    }
     ClearPendingEvents();
     timer_thread.reset();
     has_started = false;
@@ -78,12 +82,14 @@ void CoreTiming::SyncPause(bool is_paused) {
         return;
     }
     Pause(is_paused);
-    if (!is_paused) {
-        pause_event.Set();
+    if (timer_thread) {
+        if (!is_paused) {
+            pause_event.Set();
+        }
+        event.Set();
+        while (paused_set != is_paused)
+            ;
     }
-    event.Set();
-    while (paused_set != is_paused)
-        ;
 }
 
 bool CoreTiming::IsRunning() const {

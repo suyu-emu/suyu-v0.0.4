@@ -67,6 +67,11 @@ public:
     /// Tears down all timing related functionality.
     void Shutdown();
 
+    /// Sets if emulation is multicore or single core, must be set before Initialize
+    void SetMulticore(bool is_multicore) {
+        this->is_multicore = is_multicore;
+    }
+
     /// Pauses/Unpauses the execution of the timer thread.
     void Pause(bool is_paused);
 
@@ -146,6 +151,8 @@ private:
     std::atomic<bool> shutting_down{};
     std::atomic<bool> has_started{};
     std::function<void(void)> on_thread_init{};
+
+    bool is_multicore{};
 
     std::array<std::atomic<u64>, Core::Hardware::NUM_CPU_CORES> ticks_count{};
 };

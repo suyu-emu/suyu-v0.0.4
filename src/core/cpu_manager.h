@@ -104,6 +104,7 @@ private:
     bool is_multicore{};
     std::atomic<std::size_t> current_core{};
     std::size_t preemption_count{};
+    std::size_t idle_count{};
     static constexpr std::size_t max_cycle_runs = 5;
     Core::Frontend::EmuWindow* render_window;
 

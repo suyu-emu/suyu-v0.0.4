@@ -303,7 +303,7 @@ struct KernelCore::Impl {
         }
         const Kernel::Scheduler& sched = cores[result.host_handle].Scheduler();
         const Kernel::Thread* current = sched.GetCurrentThread();
-        if (current != nullptr) {
+        if (current != nullptr && !current->IsPhantomMode()) {
             result.guest_handle = current->GetGlobalHandle();
         } else {
             result.guest_handle = InvalidHandle;
