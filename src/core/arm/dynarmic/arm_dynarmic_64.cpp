@@ -124,22 +124,29 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        /// We are using host timing, NOP
+        this->ticks -= ticks;
     }
+
     u64 GetTicksRemaining() override {
         if (!parent.interrupt_handler.IsInterrupted()) {
-            return 1000ULL;
+            return std::max<s64>(ticks, 0);
         }
         return 0ULL;
     }
+
     u64 GetCNTPCT() override {
         return parent.system.CoreTiming().GetClockTicks();
+    }
+
+    void ResetTicks() {
+        ticks = 1000LL;
     }
 
     ARM_Dynarmic_64& parent;
     std::size_t num_interpreted_instructions = 0;
     u64 tpidrro_el0 = 0;
     u64 tpidr_el0 = 0;
+    s64 ticks{};
 };
 
 std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& page_table,
@@ -181,6 +188,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
 }
 
 void ARM_Dynarmic_64::Run() {
+    cb->ResetTicks();
     jit->Run();
 }
 

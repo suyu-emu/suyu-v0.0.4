@@ -342,7 +342,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         thread->InvokeHLECallback(SharedFrom(thread));
     }
 
-    return RESULT_SUCCESS;
+    return thread->GetSignalingResult();
 }
 
 static ResultCode SendSyncRequest32(Core::System& system, Handle handle) {
