@@ -164,6 +164,9 @@ public:
         std::string name;
     };
 
+    static std::vector<BacktraceEntry> GetBacktraceFromContext(System& system,
+                                                               const ThreadContext64& ctx);
+
     std::vector<BacktraceEntry> GetBacktrace() const;
 
     /// fp (= r29) points to the last frame record.
