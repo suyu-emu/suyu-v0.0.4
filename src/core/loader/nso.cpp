@@ -97,13 +97,12 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         if (nso_header.IsSegmentCompressed(i)) {
             data = DecompressSegment(data, nso_header.segments[i]);
         }
-        program_image.resize(nso_header.segments[i].location +
-                             PageAlignSize(static_cast<u32>(data.size())));
+        program_image.resize(nso_header.segments[i].location + static_cast<u32>(data.size()));
         std::memcpy(program_image.data() + nso_header.segments[i].location, data.data(),
                     data.size());
         codeset.segments[i].addr = nso_header.segments[i].location;
         codeset.segments[i].offset = nso_header.segments[i].location;
-        codeset.segments[i].size = PageAlignSize(static_cast<u32>(data.size()));
+        codeset.segments[i].size = nso_header.segments[i].size;
     }
 
     if (should_pass_arguments) {
@@ -123,23 +122,14 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                     arg_data.size());
     }
 
-    // MOD header pointer is at .text offset + 4
-    u32 module_offset;
-    std::memcpy(&module_offset, program_image.data() + 4, sizeof(u32));
-
-    // Read MOD header
-    MODHeader mod_header{};
-    // Default .bss to size in segment header if MOD0 section doesn't exist
-    u32 bss_size{PageAlignSize(nso_header.segments[2].bss_size)};
-    std::memcpy(&mod_header, program_image.data() + module_offset, sizeof(MODHeader));
-    const bool has_mod_header{mod_header.magic == Common::MakeMagic('M', 'O', 'D', '0')};
-    if (has_mod_header) {
-        // Resize program image to include .bss section and page align each section
-        bss_size = PageAlignSize(mod_header.bss_end_offset - mod_header.bss_start_offset);
-    }
-    codeset.DataSegment().size += bss_size;
-    const u32 image_size{PageAlignSize(static_cast<u32>(program_image.size()) + bss_size)};
+    codeset.DataSegment().size += nso_header.segments[2].bss_size;
+    const u32 image_size{
+        PageAlignSize(static_cast<u32>(program_image.size()) + nso_header.segments[2].bss_size)};
     program_image.resize(image_size);
+
+    for (std::size_t i = 0; i < nso_header.segments.size(); ++i) {
+        codeset.segments[i].size = PageAlignSize(codeset.segments[i].size);
+    }
 
     // Apply patches if necessary
     if (pm && (pm->HasNSOPatch(nso_header.build_id) || Settings::values.dump_nso)) {
