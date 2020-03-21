@@ -55,6 +55,38 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 // Defined in Misc.cpp.
 std::string GetLastErrorMsg();
 
+#define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
+    constexpr type operator|(type a, type b) noexcept {                                            \
+        using T = std::underlying_type_t<type>;                                                    \
+        return static_cast<type>(static_cast<T>(a) | static_cast<T>(b));                           \
+    }                                                                                              \
+    constexpr type operator&(type a, type b) noexcept {                                            \
+        using T = std::underlying_type_t<type>;                                                    \
+        return static_cast<type>(static_cast<T>(a) & static_cast<T>(b));                           \
+    }                                                                                              \
+    constexpr type& operator|=(type& a, type b) noexcept {                                         \
+        using T = std::underlying_type_t<type>;                                                    \
+        a = static_cast<type>(static_cast<T>(a) | static_cast<T>(b));                              \
+        return a;                                                                                  \
+    }                                                                                              \
+    constexpr type& operator&=(type& a, type b) noexcept {                                         \
+        using T = std::underlying_type_t<type>;                                                    \
+        a = static_cast<type>(static_cast<T>(a) & static_cast<T>(b));                              \
+        return a;                                                                                  \
+    }                                                                                              \
+    constexpr type operator~(type key) noexcept {                                                  \
+        using T = std::underlying_type_t<type>;                                                    \
+        return static_cast<type>(~static_cast<T>(key));                                            \
+    }                                                                                              \
+    constexpr bool True(type key) noexcept {                                                       \
+        using T = std::underlying_type_t<type>;                                                    \
+        return static_cast<T>(key) != 0;                                                           \
+    }                                                                                              \
+    constexpr bool False(type key) noexcept {                                                      \
+        using T = std::underlying_type_t<type>;                                                    \
+        return static_cast<T>(key) == 0;                                                           \
+    }
+
 namespace Common {
 
 constexpr u32 MakeMagic(char a, char b, char c, char d) {
