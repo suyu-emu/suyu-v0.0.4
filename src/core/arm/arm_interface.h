@@ -26,28 +26,28 @@ public:
     virtual ~ARM_Interface() = default;
 
     struct ThreadContext32 {
-        std::array<u32, 16> cpu_registers;
-        u32 cpsr;
-        std::array<u8, 4> padding;
-        std::array<u64, 32> fprs;
-        u32 fpscr;
-        u32 fpexc;
-        u32 tpidr;
+        std::array<u32, 16> cpu_registers{};
+        u32 cpsr{};
+        std::array<u8, 4> padding{};
+        std::array<u64, 32> fprs{};
+        u32 fpscr{};
+        u32 fpexc{};
+        u32 tpidr{};
     };
     // Internally within the kernel, it expects the AArch32 version of the
     // thread context to be 344 bytes in size.
     static_assert(sizeof(ThreadContext32) == 0x158);
 
     struct ThreadContext64 {
-        std::array<u64, 31> cpu_registers;
-        u64 sp;
-        u64 pc;
-        u32 pstate;
-        std::array<u8, 4> padding;
-        std::array<u128, 32> vector_registers;
-        u32 fpcr;
-        u32 fpsr;
-        u64 tpidr;
+        std::array<u64, 31> cpu_registers{};
+        u64 sp{};
+        u64 pc{};
+        u32 pstate{};
+        std::array<u8, 4> padding{};
+        std::array<u128, 32> vector_registers{};
+        u32 fpcr{};
+        u32 fpsr{};
+        u64 tpidr{};
     };
     // Internally within the kernel, it expects the AArch64 version of the
     // thread context to be 800 bytes in size.
