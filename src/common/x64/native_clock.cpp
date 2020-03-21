@@ -62,7 +62,8 @@ u64 NativeClock::GetRTSC() {
     }
     accumulated_ticks += diff;
     rtsc_serialize.unlock();
-    return accumulated_ticks;
+    /// The clock cannot be more precise than the guest timer, remove the lower bits
+    return accumulated_ticks & inaccuracy_mask;
 }
 
 void NativeClock::Pause(bool is_paused) {

@@ -31,6 +31,11 @@ public:
 private:
     u64 GetRTSC();
 
+    /// value used to reduce the native clocks accuracy as some apss rely on
+    /// undefined behavior where the level of accuracy in the clock shouldn't
+    /// be higher.
+    static constexpr u64 inaccuracy_mask = ~(0x100 - 1);
+
     SpinLock rtsc_serialize{};
     u64 last_measure{};
     u64 accumulated_ticks{};

@@ -184,6 +184,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
         config.enable_fast_dispatch = false;
     }
 
+    // CNTPCT uses wall clock.
+    config.wall_clock_cntpct = true;
+
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
