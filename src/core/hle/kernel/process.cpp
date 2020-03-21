@@ -42,6 +42,8 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
 
     // Register 1 must be a handle to the main thread
     const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
+    thread->GetContext32().cpu_registers[0] = 0;
+    thread->GetContext64().cpu_registers[0] = 0;
     thread->GetContext32().cpu_registers[1] = thread_handle;
     thread->GetContext64().cpu_registers[1] = thread_handle;
 
