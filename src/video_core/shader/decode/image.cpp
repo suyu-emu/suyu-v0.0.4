@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#pragma optimize("", off)
-
 #include <algorithm>
 #include <vector>
 #include <fmt/format.h>
@@ -323,6 +321,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             switch (instr.suldst.GetStoreDataLayout()) {
             case StoreType::Bits32: {
                 u32 shifted_counter = 0;
+                // value should be RGBA format
                 Node value = Immediate(0);
                 for (u32 element = 0; element < 4; ++element) {
                     if (!IsComponentEnabled(comp_mask, element)) {
@@ -334,6 +333,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     MetaImage meta{image, {}, element};
                     const Node original_value =
                         Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+
                     Node converted_value = [&] {
                         switch (component_type) {
                         case ComponentType::SNORM: {
@@ -346,7 +346,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                         case ComponentType::UNORM: {
                             // range [0.0, 1.0]
                             auto cnv_value =
-                                Operation(OperationCode::FMul, original_value, Immediate(255.f));
+                                Operation(OperationCode::FMul, original_value, Immediate(256.f));
                             is_signed = false;
                             return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
