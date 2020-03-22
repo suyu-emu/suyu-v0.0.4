@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#pragma optimize("", off)
+
 #include <algorithm>
 #include <vector>
 #include <fmt/format.h>
@@ -340,7 +342,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                                                        original_value, Immediate(128.f));
                             return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
                                                    std::move(cnv_value));
-                            return cnv_value;
                         }
                         case ComponentType::UNORM: {
                             // range [0.0, 1.0]
@@ -349,7 +350,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                             is_signed = false;
                             return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
                                                    std::move(cnv_value));
-                            return cnv_value;
                         }
                         case ComponentType::SINT: // range [-128,128]
                             return original_value;
@@ -357,12 +357,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                             is_signed = false;
                             return original_value;
                         case ComponentType::FLOAT:
-                            if (component_size == 8) {
-                                auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
-                                                           original_value, Immediate(255.f));
-                                return SignedOperation(OperationCode::ICastFloat, is_signed,
-                                                       NO_PRECISE, std::move(cnv_value));
-                            }
                             return original_value;
                         default:
                             UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
@@ -379,12 +373,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     }
 
                     // add value into result
-                    if (element == 0) {
-                        value = original_value;
-                    } else {
-                        value =
-                            Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
-                    }
+                    value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
                     break;
                 }
                 SetRegister(bb, instr.gpr0.Value(), std::move(value));
