@@ -338,17 +338,17 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                         switch (component_type) {
                         case ComponentType::SNORM: {
                             // range [-1.0, 1.0]
-                            auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
-                                                       original_value, Immediate(128.f));
-                            return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
+                            auto cnv_value =
+                                Operation(OperationCode::FMul, original_value, Immediate(128.f));
+                            return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
                         }
                         case ComponentType::UNORM: {
                             // range [0.0, 1.0]
-                            auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
-                                                       original_value, Immediate(255.f));
+                            auto cnv_value =
+                                Operation(OperationCode::FMul, original_value, Immediate(255.f));
                             is_signed = false;
-                            return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
+                            return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
                         }
                         case ComponentType::SINT: // range [-128,128]
@@ -374,10 +374,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 
                     // add value into result
                     value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
-                    break;
                 }
                 SetRegister(bb, instr.gpr0.Value(), std::move(value));
-
                 break;
             }
             default:
