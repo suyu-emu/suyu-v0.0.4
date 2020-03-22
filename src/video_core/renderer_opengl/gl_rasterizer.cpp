@@ -933,13 +933,15 @@ void RasterizerOpenGL::SyncViewport() {
             }
             flags[Dirty::Viewport0 + i] = false;
 
-            const Common::Rectangle<f32> rect{regs.viewport_transform[i].GetRect()};
+            const auto& src = regs.viewport_transform[i];
+            const Common::Rectangle<f32> rect{src.GetRect()};
             glViewportIndexedf(static_cast<GLuint>(i), rect.left, rect.bottom, rect.GetWidth(),
                                rect.GetHeight());
 
-            const auto& src = regs.viewports[i];
-            glDepthRangeIndexed(static_cast<GLuint>(i), static_cast<GLdouble>(src.depth_range_near),
-                                static_cast<GLdouble>(src.depth_range_far));
+            const GLdouble reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
+            const GLdouble near_depth = src.translate_z - src.scale_z * reduce_z;
+            const GLdouble far_depth = src.translate_z + src.scale_z;
+            glDepthRangeIndexed(static_cast<GLuint>(i), near_depth, far_depth);
         }
     }
 }
