@@ -1276,7 +1276,9 @@ public:
             };
             std::array<u32, NUM_REGS> reg_array;
         };
-    } regs{};
+    };
+
+    Regs regs{};
 
     /// Store temporary hw register values, used by some calls to restore state after a operation
     Regs shadow_state;
