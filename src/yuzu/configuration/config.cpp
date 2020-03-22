@@ -682,6 +682,8 @@ void Config::ReadSystemValues() {
 
     Settings::values.language_index = ReadSetting(QStringLiteral("language_index"), 1).toInt();
 
+    Settings::values.region_index = ReadSetting(QStringLiteral("region_index"), 1).toInt();
+
     const auto rng_seed_enabled = ReadSetting(QStringLiteral("rng_seed_enabled"), false).toBool();
     if (rng_seed_enabled) {
         Settings::values.rng_seed = ReadSetting(QStringLiteral("rng_seed"), 0).toULongLong();
@@ -1116,6 +1118,7 @@ void Config::SaveSystemValues() {
     WriteSetting(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
     WriteSetting(QStringLiteral("current_user"), Settings::values.current_user, 0);
     WriteSetting(QStringLiteral("language_index"), Settings::values.language_index, 1);
+    WriteSetting(QStringLiteral("region_index"), Settings::values.region_index, 1);
 
     WriteSetting(QStringLiteral("rng_seed_enabled"), Settings::values.rng_seed.has_value(), false);
     WriteSetting(QStringLiteral("rng_seed"), Settings::values.rng_seed.value_or(0), 0);

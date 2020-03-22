@@ -36,5 +36,6 @@ private:
     bool enabled = false;
 
     int language_index = 0;
+    int region_index = 0;
     int sound_index = 0;
 };

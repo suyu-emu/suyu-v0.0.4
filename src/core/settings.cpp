@@ -86,6 +86,7 @@ void LogSettings() {
     LogSetting("System_RngSeed", Settings::values.rng_seed.value_or(0));
     LogSetting("System_CurrentUser", Settings::values.current_user);
     LogSetting("System_LanguageIndex", Settings::values.language_index);
+    LogSetting("System_RegionIndex", Settings::values.region_index);
     LogSetting("Core_UseMultiCore", Settings::values.use_multi_core);
     LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor);
     LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
