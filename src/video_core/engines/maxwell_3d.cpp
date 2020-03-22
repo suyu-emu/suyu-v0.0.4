@@ -161,8 +161,8 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
                "Invalid Maxwell3D register, increase the size of the Regs structure");
 
     // Keep track of the register value in shadow_state when requested.
-    if (regs.shadow_ram_control == Regs::ShadowRamControl::Track ||
-        regs.shadow_ram_control == Regs::ShadowRamControl::TrackWithFilter) {
+    if (shadow_state.shadow_ram_control == Regs::ShadowRamControl::Track ||
+        shadow_state.shadow_ram_control == Regs::ShadowRamControl::TrackWithFilter) {
         shadow_state.reg_array[method] = method_call.argument;
     }
 
