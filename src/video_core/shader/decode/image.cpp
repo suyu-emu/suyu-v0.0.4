@@ -29,22 +29,97 @@ using Tegra::Texture::TICEntry;
 
 namespace {
 ComponentType GetComponentType(TICEntry tic, std::size_t component) {
-    constexpr u8 R = 0b0001;
-    constexpr u8 G = 0b0010;
-    constexpr u8 B = 0b0100;
-    constexpr u8 A = 0b1000;
-    if (R & component) {
-        return tic.r_type;
+    const TextureFormat format{tic.format};
+    switch (format) {
+    case TextureFormat::R16_G16_B16_A16:
+    case TextureFormat::R32_G32_B32_A32:
+    case TextureFormat::R32_G32_B32:
+    case TextureFormat::R32_G32:
+    case TextureFormat::R16_G16:
+    case TextureFormat::R32:
+    case TextureFormat::R16:
+    case TextureFormat::R8:
+    case TextureFormat::R1:
+        if (0 == component) {
+            return tic.r_type;
+        }
+        if (1 == component) {
+            return tic.g_type;
+        }
+        if (2 == component) {
+            return tic.b_type;
+        }
+        if (3 == component) {
+            return tic.a_type;
+        }
+        break;
+    case TextureFormat::A8R8G8B8:
+        if (0 == component) {
+            return tic.a_type;
+        }
+        if (1 == component) {
+            return tic.r_type;
+        }
+        if (2 == component) {
+            return tic.g_type;
+        }
+        if (3 == component) {
+            return tic.b_type;
+        }
+        break;
+    case TextureFormat::A2B10G10R10:
+    case TextureFormat::A4B4G4R4:
+    case TextureFormat::A5B5G5R1:
+    case TextureFormat::A1B5G5R5:
+        if (0 == component) {
+            return tic.a_type;
+        }
+        if (1 == component) {
+            return tic.b_type;
+        }
+        if (2 == component) {
+            return tic.g_type;
+        }
+        if (3 == component) {
+            return tic.r_type;
+        }
+        break;
+    case TextureFormat::R32_B24G8:
+        if (0 == component) {
+            return tic.r_type;
+        }
+        if (1 == component) {
+            return tic.b_type;
+        }
+        if (2 == component) {
+            return tic.g_type;
+        }
+        break;
+    case TextureFormat::B5G6R5:
+    case TextureFormat::B6G5R5:
+        if (0 == component) {
+            return tic.b_type;
+        }
+        if (1 == component) {
+            return tic.g_type;
+        }
+        if (2 == component) {
+            return tic.r_type;
+        }
+        break;
+    case TextureFormat::G8R24:
+    case TextureFormat::G24R8:
+    case TextureFormat::G8R8:
+    case TextureFormat::G4R4:
+        if (0 == component) {
+            return tic.g_type;
+        }
+        if (1 == component) {
+            return tic.r_type;
+        }
+        break;
     }
-    if (G & component) {
-        return tic.g_type;
-    }
-    if (B & component) {
-        return tic.b_type;
-    }
-    if (A & component) {
-        return tic.a_type;
-    }
+    UNIMPLEMENTED_MSG("texture format not implement={}", format);
     return ComponentType::FLOAT;
 }
 
@@ -298,9 +373,9 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     shifted_counter += component_size;
                     const auto shifted = 32 - shifted_counter;
                     if (shifted > 0) {
-                        /* converted_value =
-                             SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
-                                             std::move(converted_value), Immediate(shifted));*/
+                        converted_value =
+                            SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
+                                            std::move(converted_value), Immediate(shifted));
                     }
 
                     // add value into result
