@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#pragma optimize("", off)
+
 #include <algorithm>
 #include <vector>
 #include <fmt/format.h>
@@ -10,9 +12,12 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
+#include "core/core.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/textures/texture.h"
 
 namespace VideoCommon::Shader {
 
@@ -20,8 +25,162 @@ using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 using Tegra::Shader::PredCondition;
 using Tegra::Shader::StoreType;
+using Tegra::Texture::ComponentType;
+using Tegra::Texture::TextureFormat;
+using Tegra::Texture::TICEntry;
 
 namespace {
+ComponentType GetComponentType(TICEntry tic, std::size_t component) {
+    constexpr u8 R = 0b0001;
+    constexpr u8 G = 0b0010;
+    constexpr u8 B = 0b0100;
+    constexpr u8 A = 0b1000;
+    if (R & component) {
+        return tic.r_type;
+    }
+    if (G & component) {
+        return tic.g_type;
+    }
+    if (B & component) {
+        return tic.b_type;
+    }
+    if (A & component) {
+        return tic.a_type;
+    }
+    return ComponentType::FLOAT;
+}
+
+bool IsComponentEnabled(std::size_t component_mask, std::size_t component) {
+    constexpr u8 R = 0b0001;
+    constexpr u8 G = 0b0010;
+    constexpr u8 B = 0b0100;
+    constexpr u8 A = 0b1000;
+    constexpr std::array<u8, 16> mask = {
+        0,   (R),     (G),     (R | G),     (B),     (R | B),     (G | B),     (R | G | B),
+        (A), (R | A), (G | A), (R | G | A), (B | A), (R | B | A), (G | B | A), (R | G | B | A)};
+    return std::bitset<4>{mask.at(component_mask)}.test(component);
+}
+
+u32 GetComponentSize(TextureFormat format, std::size_t component) {
+    switch (format) {
+    case TextureFormat::R32_G32_B32_A32:
+        return 32;
+    case TextureFormat::R16_G16_B16_A16:
+        return 16;
+    case TextureFormat::R32_G32_B32:
+        return (0 == component || 1 == component || 2 == component) ? 32 : 0;
+    case TextureFormat::R32_G32:
+        return (0 == component || 1 == component) ? 32 : 0;
+    case TextureFormat::R16_G16:
+        return (0 == component || 1 == component) ? 16 : 0;
+    case TextureFormat::R32:
+        return (0 == component) ? 32 : 0;
+    case TextureFormat::R16:
+        return (0 == component) ? 16 : 0;
+    case TextureFormat::R8:
+        return (0 == component) ? 8 : 0;
+    case TextureFormat::R1:
+        return (0 == component) ? 1 : 0;
+    case TextureFormat::A8R8G8B8:
+        return 8;
+    case TextureFormat::A2B10G10R10:
+        return (3 == component || 2 == component || 1 == component) ? 10 : 2;
+    case TextureFormat::A4B4G4R4:
+        return 4;
+    case TextureFormat::A5B5G5R1:
+        return (0 == component || 1 == component || 2 == component) ? 5 : 1;
+    case TextureFormat::A1B5G5R5:
+        return (1 == component || 2 == component || 3 == component) ? 5 : 1;
+    case TextureFormat::R32_B24G8:
+        if (0 == component) {
+            return 32;
+        }
+        if (1 == component) {
+            return 24;
+        }
+        if (2 == component) {
+            return 8;
+        }
+        return 0;
+    case TextureFormat::B5G6R5:
+        if (0 == component || 2 == component) {
+            return 5;
+        }
+        if (1 == component) {
+            return 6;
+        }
+        return 0;
+    case TextureFormat::B6G5R5:
+        if (1 == component || 2 == component) {
+            return 5;
+        }
+        if (0 == component) {
+            return 6;
+        }
+        return 0;
+    case TextureFormat::G8R24:
+        if (0 == component) {
+            return 8;
+        }
+        if (1 == component) {
+            return 24;
+        }
+        return 0;
+    case TextureFormat::G24R8:
+        if (0 == component) {
+            return 8;
+        }
+        if (1 == component) {
+            return 24;
+        }
+        return 0;
+    case TextureFormat::G8R8:
+        return (0 == component || 1 == component) ? 8 : 0;
+    case TextureFormat::G4R4:
+        return (0 == component || 1 == component) ? 4 : 0;
+    default:
+        UNIMPLEMENTED_MSG("texture format not implement={}", format);
+        return 0;
+    }
+}
+
+std::size_t GetImageComponentMask(TextureFormat format) {
+    constexpr u8 R = 0b0001;
+    constexpr u8 G = 0b0010;
+    constexpr u8 B = 0b0100;
+    constexpr u8 A = 0b1000;
+    switch (format) {
+    case TextureFormat::R32_G32_B32_A32:
+    case TextureFormat::R16_G16_B16_A16:
+    case TextureFormat::A8R8G8B8:
+    case TextureFormat::A2B10G10R10:
+    case TextureFormat::A4B4G4R4:
+    case TextureFormat::A5B5G5R1:
+    case TextureFormat::A1B5G5R5:
+        return std::size_t{R | G | B | A};
+    case TextureFormat::R32_G32_B32:
+    case TextureFormat::R32_B24G8:
+    case TextureFormat::B5G6R5:
+    case TextureFormat::B6G5R5:
+        return std::size_t{R | G | B};
+    case TextureFormat::R32_G32:
+    case TextureFormat::R16_G16:
+    case TextureFormat::G8R24:
+    case TextureFormat::G24R8:
+    case TextureFormat::G8R8:
+    case TextureFormat::G4R4:
+        return std::size_t{R | G};
+    case TextureFormat::R32:
+    case TextureFormat::R16:
+    case TextureFormat::R8:
+    case TextureFormat::R1:
+        return std::size_t{R};
+    default:
+        UNIMPLEMENTED_MSG("texture format not implement={}", format);
+        return std::size_t{R | G | B | A};
+    }
+}
+
 std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
     switch (image_type) {
     case Tegra::Shader::ImageType::Texture1D:
@@ -79,36 +238,84 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
         } else if (instr.suldst.mode == Tegra::Shader::SurfaceDataMode::D_BA) {
             UNIMPLEMENTED_IF(instr.suldst.GetStoreDataLayout() != StoreType::Bits32);
 
+            const auto maxwell3d = &Core::System::GetInstance().GPU().Maxwell3D();
+            const auto tex_info = maxwell3d->GetStageTexture(shader_stage, image.GetOffset());
+
+            const auto comp_mask = GetImageComponentMask(tex_info.tic.format);
+            // TODO(namkazt): let's suppose image format is same as store type. we check on it
+            // later.
+
             switch (instr.suldst.GetStoreDataLayout()) {
             case StoreType::Bits32: {
-                Node value{};
-                for (s32 i = 3; i >= 0; i--) {
-                    MetaImage meta{image, {}, i};
-                    Node element_value =
-                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
-
-                    const Node comp = GetPredicateComparisonFloat(PredCondition::GreaterEqual,
-                                                                  element_value, Immediate(1.0f));
-                    const Node mul =
-                        Operation(OperationCode::Select, comp, Immediate(1.f), Immediate(255.f));
-
-                    Node element = Operation(OperationCode::FMul, NO_PRECISE, element_value, mul);
-                    element = SignedOperation(OperationCode::ICastFloat, true, NO_PRECISE,
-                                              std::move(element));
-                    element = Operation(OperationCode::ULogicalShiftLeft, std::move(element),
-                                        Immediate(8 * i));
-                    if (i == 3) {
-                        //(namkazt) for now i'm force it to 0 at alpha component if color is in
-                        // range (0-255)
-                        value = Operation(OperationCode::Select, comp, Immediate(0),
-                                          std::move(element));
-                    } else {
-                        value = Operation(OperationCode::UBitwiseOr, value,
-                                          Operation(OperationCode::Select, comp,
-                                                    std::move(element_value), std::move(element)));
+                u32 shifted_counter = 0;
+                Node value = Immediate(0);
+                for (u32 element = 0; element < 4; ++element) {
+                    if (!IsComponentEnabled(comp_mask, element)) {
+                        continue;
                     }
+                    const auto component_type = GetComponentType(tex_info.tic, element);
+                    const auto component_size = GetComponentSize(tex_info.tic.format, element);
+                    bool is_signed = true;
+                    MetaImage meta{image, {}, element};
+                    const Node original_value =
+                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
+                    Node converted_value = [&] {
+                        switch (component_type) {
+                        case ComponentType::SNORM: {
+                            // range [-1.0, 1.0]
+                            auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
+                                                       original_value, Immediate(128.f));
+                            return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
+                                                   std::move(cnv_value));
+                            return cnv_value;
+                        }
+                        case ComponentType::UNORM: {
+                            // range [0.0, 1.0]
+                            auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
+                                                       original_value, Immediate(255.f));
+                            is_signed = false;
+                            return SignedOperation(OperationCode::ICastFloat, is_signed, NO_PRECISE,
+                                                   std::move(cnv_value));
+                            return cnv_value;
+                        }
+                        case ComponentType::SINT: // range [-128,128]
+                            return original_value;
+                        case ComponentType::UINT: // range [0, 255]
+                            is_signed = false;
+                            return original_value;
+                        case ComponentType::FLOAT:
+                            if (component_size == 8) {
+                                auto cnv_value = Operation(OperationCode::FMul, NO_PRECISE,
+                                                           original_value, Immediate(255.f));
+                                return SignedOperation(OperationCode::ICastFloat, is_signed,
+                                                       NO_PRECISE, std::move(cnv_value));
+                            }
+                            return original_value;
+                        default:
+                            UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
+                            return original_value;
+                        }
+                    }();
+                    // shift element to correct position
+                    shifted_counter += component_size;
+                    const auto shifted = 32 - shifted_counter;
+                    if (shifted > 0) {
+                        /* converted_value =
+                             SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
+                                             std::move(converted_value), Immediate(shifted));*/
+                    }
+
+                    // add value into result
+                    if (element == 0) {
+                        value = original_value;
+                    } else {
+                        value =
+                            Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
+                    }
+                    break;
                 }
                 SetRegister(bb, instr.gpr0.Value(), std::move(value));
+
                 break;
             }
             default:
