@@ -98,6 +98,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.framebuffer_srgb = 1;
     regs.front_face = Maxwell3D::Regs::FrontFace::ClockWise;
 
+    shadow_state = regs;
+
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_end_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)] = true;
     mme_inline[MAXWELL3D_REG_INDEX(vertex_buffer.count)] = true;
