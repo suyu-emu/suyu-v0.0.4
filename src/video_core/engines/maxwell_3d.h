@@ -532,9 +532,13 @@ public:
         };
 
         enum class ShadowRamControl : u32 {
+            // write value to shadow ram
             Track = 0,
+            // write value to shadow ram ( with validation ??? )
             TrackWithFilter = 1,
+            // only write to real hw register
             Passthrough = 2,
+            // write value from shadow ram to real hw register
             Replay = 3,
         };
 

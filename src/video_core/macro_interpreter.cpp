@@ -328,7 +328,7 @@ void MacroInterpreter::SetMethodAddress(u32 address) {
 }
 
 void MacroInterpreter::Send(u32 value) {
-    // Use the tracked value in shadow_regs when requested.
+    // Use the tracked value in shadow_state when requested.
     if (method_address.address < Engines::Maxwell3D::Regs::NUM_REGS &&
         maxwell3d.shadow_state.shadow_ram_control ==
             Engines::Maxwell3D::Regs::ShadowRamControl::Replay) {
