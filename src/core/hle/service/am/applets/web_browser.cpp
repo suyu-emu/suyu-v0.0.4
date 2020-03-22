@@ -254,6 +254,12 @@ void WebBrowser::Execute() {
 
     if (status != RESULT_SUCCESS) {
         complete = true;
+
+        // This is a workaround in order not to softlock yuzu when an error happens during the
+        // webapplet init. In order to avoid an svcBreak, the status is set to RESULT_SUCCESS
+        Finalize();
+        status = RESULT_SUCCESS;
+
         return;
     }
 
