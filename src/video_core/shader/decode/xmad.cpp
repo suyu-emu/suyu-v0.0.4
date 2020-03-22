@@ -31,7 +31,7 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     const bool is_signed_b = instr.xmad.sign_b == 1;
     const bool is_signed_c = is_signed_a;
 
-    auto [is_merge, is_psl, is_high_b, mode, op_b,
+    auto [is_merge, is_psl, is_high_b, mode, op_b_binding,
           op_c] = [&]() -> std::tuple<bool, bool, bool, Tegra::Shader::XmadMode, Node, Node> {
         switch (opcode->get().GetId()) {
         case OpCode::Id::XMAD_CR:
@@ -67,9 +67,10 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     op_a = SignedOperation(OperationCode::IBitfieldExtract, is_signed_a, std::move(op_a),
                            instr.xmad.high_a ? Immediate(16) : Immediate(0), Immediate(16));
 
-    const Node original_b = op_b;
-    op_b = SignedOperation(OperationCode::IBitfieldExtract, is_signed_b, std::move(op_b),
-                           is_high_b ? Immediate(16) : Immediate(0), Immediate(16));
+    const Node original_b = op_b_binding;
+    const Node op_b =
+        SignedOperation(OperationCode::IBitfieldExtract, is_signed_b, std::move(op_b_binding),
+                        is_high_b ? Immediate(16) : Immediate(0), Immediate(16));
 
     // we already check sign_a and sign_b is difference or not before so just use one in here.
     Node product = SignedOperation(OperationCode::IMul, is_signed_a, op_a, op_b);
