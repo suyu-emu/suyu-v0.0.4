@@ -234,7 +234,7 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
     auto registry = std::make_shared<Registry>(shader_type, params.system.GPU().Maxwell3D());
-    const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
+    const ShaderIR ir(code, shader_type, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
     // TODO(Rodrigo): Handle VertexA shaders
     // std::optional<ShaderIR> ir_b;
     // if (!code_b.empty()) {
@@ -264,7 +264,7 @@ Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, Prog
 
     auto& engine = params.system.GPU().KeplerCompute();
     auto registry = std::make_shared<Registry>(ShaderType::Compute, engine);
-    const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
+    const ShaderIR ir(code, ShaderType::Compute, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
     const u64 uid = params.unique_identifier;
     auto program = BuildShader(params.device, ShaderType::Compute, uid, ir, *registry);
 
@@ -341,7 +341,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             const bool is_compute = entry.type == ShaderType::Compute;
             const u32 main_offset = is_compute ? KERNEL_MAIN_OFFSET : STAGE_MAIN_OFFSET;
             auto registry = MakeRegistry(entry);
-            const ShaderIR ir(entry.code, main_offset, COMPILER_SETTINGS, *registry);
+            const ShaderIR ir(entry.code, entry.type, main_offset, COMPILER_SETTINGS, *registry);
 
             std::shared_ptr<OGLProgram> program;
             if (precompiled_entry) {

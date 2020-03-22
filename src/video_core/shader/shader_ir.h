@@ -68,8 +68,8 @@ struct GlobalMemoryUsage {
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                      Registry& registry);
+    explicit ShaderIR(const ProgramCode& program_code, Tegra::Engines::ShaderType shader_stage,
+                      u32 main_offset, CompilerSettings settings, Registry& registry);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {
@@ -419,6 +419,7 @@ private:
     u32 NewCustomVariable();
 
     const ProgramCode& program_code;
+    const Tegra::Engines::ShaderType shader_stage;
     const u32 main_offset;
     const CompilerSettings settings;
     Registry& registry;

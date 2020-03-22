@@ -24,9 +24,10 @@ using Tegra::Shader::PredCondition;
 using Tegra::Shader::PredOperation;
 using Tegra::Shader::Register;
 
-ShaderIR::ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                   Registry& registry)
-    : program_code{program_code}, main_offset{main_offset}, settings{settings}, registry{registry} {
+ShaderIR::ShaderIR(const ProgramCode& program_code, Tegra::Engines::ShaderType shader_stage,
+                   u32 main_offset, CompilerSettings settings, Registry& registry)
+    : program_code{program_code}, shader_stage{shader_stage},
+      main_offset{main_offset}, settings{settings}, registry{registry} {
     Decode();
     PostDecode();
 }
