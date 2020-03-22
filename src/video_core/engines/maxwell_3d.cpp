@@ -162,14 +162,17 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid Maxwell3D register, increase the size of the Regs structure");
 
+    u32 arg = method_call.argument;
     // Keep track of the register value in shadow_state when requested.
     if (shadow_state.shadow_ram_control == Regs::ShadowRamControl::Track ||
         shadow_state.shadow_ram_control == Regs::ShadowRamControl::TrackWithFilter) {
-        shadow_state.reg_array[method] = method_call.argument;
+        shadow_state.reg_array[method] = arg;
+    } else if (shadow_state.shadow_ram_control == Regs::ShadowRamControl::Replay) {
+        arg = shadow_state.reg_array[method];
     }
 
-    if (regs.reg_array[method] != method_call.argument) {
-        regs.reg_array[method] = method_call.argument;
+    if (regs.reg_array[method] != arg) {
+        regs.reg_array[method] = arg;
 
         for (const auto& table : dirty.tables) {
             dirty.flags[table[method]] = true;
@@ -182,11 +185,11 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         break;
     }
     case MAXWELL3D_REG_INDEX(macros.data): {
-        ProcessMacroUpload(method_call.argument);
+        ProcessMacroUpload(arg);
         break;
     }
     case MAXWELL3D_REG_INDEX(macros.bind): {
-        ProcessMacroBind(method_call.argument);
+        ProcessMacroBind(arg);
         break;
     }
     case MAXWELL3D_REG_INDEX(firmware[4]): {
@@ -262,7 +265,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     }
     case MAXWELL3D_REG_INDEX(data_upload): {
         const bool is_last_call = method_call.IsLastCall();
-        upload_state.ProcessData(method_call.argument, is_last_call);
+        upload_state.ProcessData(arg, is_last_call);
         if (is_last_call) {
             OnMemoryWrite();
         }
