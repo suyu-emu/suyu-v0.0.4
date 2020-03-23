@@ -44,7 +44,7 @@ void Controller::QueryPointerBufferSize(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u16>(0x500);
+    rb.Push<u16>(0x1000);
 }
 
 Controller::Controller() : ServiceFramework("IpcController") {
