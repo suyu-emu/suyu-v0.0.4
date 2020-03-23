@@ -531,6 +531,17 @@ public:
             Fill = 0x1b02,
         };
 
+        enum class ShadowRamControl : u32 {
+            // write value to shadow ram
+            Track = 0,
+            // write value to shadow ram ( with validation ??? )
+            TrackWithFilter = 1,
+            // only write to real hw register
+            Passthrough = 2,
+            // write value from shadow ram to real hw register
+            Replay = 3,
+        };
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
@@ -674,7 +685,9 @@ public:
                     u32 bind;
                 } macros;
 
-                INSERT_UNION_PADDING_WORDS(0x17);
+                ShadowRamControl shadow_ram_control;
+
+                INSERT_UNION_PADDING_WORDS(0x16);
 
                 Upload::Registers upload;
                 struct {
@@ -1263,7 +1276,12 @@ public:
             };
             std::array<u32, NUM_REGS> reg_array;
         };
-    } regs{};
+    };
+
+    Regs regs{};
+
+    /// Store temporary hw register values, used by some calls to restore state after a operation
+    Regs shadow_state;
 
     static_assert(sizeof(Regs) == Regs::NUM_REGS * sizeof(u32), "Maxwell3D Regs has wrong size");
     static_assert(std::is_trivially_copyable_v<Regs>, "Maxwell3D Regs must be trivially copyable");
@@ -1458,6 +1476,7 @@ private:
                   "Field " #field_name " has invalid position")
 
 ASSERT_REG_POSITION(macros, 0x45);
+ASSERT_REG_POSITION(shadow_ram_control, 0x49);
 ASSERT_REG_POSITION(upload, 0x60);
 ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
