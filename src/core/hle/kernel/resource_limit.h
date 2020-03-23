@@ -51,6 +51,11 @@ public:
         return HANDLE_TYPE;
     }
 
+    bool Reserve(ResourceType resource, s64 amount);
+    bool Reserve(ResourceType resource, s64 amount, u64 timeout);
+    void Release(ResourceType resource, u64 amount);
+    void Release(ResourceType resource, u64 used_amount, u64 available_amount);
+
     /**
      * Gets the current value for the specified resource.
      * @param resource Requested resource type
@@ -91,10 +96,9 @@ private:
     using ResourceArray =
         std::array<s64, static_cast<std::size_t>(ResourceType::ResourceTypeCount)>;
 
-    /// Maximum values a resource type may reach.
-    ResourceArray limits{};
-    /// Current resource limit values.
-    ResourceArray values{};
+    ResourceArray limit{};
+    ResourceArray current{};
+    ResourceArray available{};
 };
 
 } // namespace Kernel
