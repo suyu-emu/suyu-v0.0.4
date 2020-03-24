@@ -2,7 +2,7 @@ yuzu emulator
 =============
 [![Travis CI Build Status](https://travis-ci.com/yuzu-emu/yuzu.svg?branch=master)](https://travis-ci.com/yuzu-emu/yuzu)
 [![Azure Mainline CI Build Status](https://dev.azure.com/yuzu-emu/yuzu/_apis/build/status/yuzu%20mainline?branchName=master)](https://dev.azure.com/yuzu-emu/yuzu/)
-[![Discord](https://img.shields.io/discord/398318088170242053?color=%237289DA&label=Pythonista&logo=discord&logoColor=white)](https://discord.gg/XQV6dn9)
+[![Discord](https://img.shields.io/discord/398318088170242053?color=%237289DA&label=yuzu&logo=discord&logoColor=white)](https://discord.gg/XQV6dn9)
 
 yuzu is an experimental open-source emulator for the Nintendo Switch from the creators of [Citra](https://citra-emu.org/).
 
