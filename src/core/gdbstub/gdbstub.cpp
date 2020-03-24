@@ -141,6 +141,7 @@ constexpr char target_xml[] =
 )";
 
 int gdbserver_socket = -1;
+bool defer_start = false;
 
 u8 command_buffer[GDB_BUFFER_SIZE];
 u32 command_length;
@@ -1166,6 +1167,9 @@ static void RemoveBreakpoint() {
 
 void HandlePacket() {
     if (!IsConnected()) {
+        if (defer_start) {
+            ToggleServer(true);
+        }
         return;
     }
 
@@ -1256,6 +1260,10 @@ void ToggleServer(bool status) {
     }
 }
 
+void DeferStart() {
+    defer_start = true;
+}
+
 static void Init(u16 port) {
     if (!server_enabled) {
         // Set the halt loop to false in case the user enabled the gdbstub mid-execution.
@@ -1341,6 +1349,7 @@ void Shutdown() {
     if (!server_enabled) {
         return;
     }
+    defer_start = false;
 
     LOG_INFO(Debug_GDBStub, "Stopping GDB ...");
     if (gdbserver_socket != -1) {
