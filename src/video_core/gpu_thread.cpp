@@ -5,7 +5,7 @@
 #include "common/assert.h"
 #include "common/microprofile.h"
 #include "core/core.h"
-#include "core/frontend/scope_acquire_context.h"
+#include "core/frontend/emu_window.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/gpu.h"
 #include "video_core/gpu_thread.h"
@@ -14,8 +14,8 @@
 namespace VideoCommon::GPUThread {
 
 /// Runs the GPU thread
-static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_pusher,
-                      SynchState& state) {
+static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
+                      Tegra::DmaPusher& dma_pusher, SynchState& state) {
     MicroProfileOnThreadCreate("GpuThread");
 
     // Wait for first GPU command before acquiring the window context
@@ -27,7 +27,7 @@ static void RunThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_p
         return;
     }
 
-    Core::Frontend::ScopeAcquireContext acquire_context{renderer.GetRenderWindow()};
+    auto current_context = context.Acquire();
 
     CommandDataContainer next;
     while (state.is_running) {
@@ -62,8 +62,11 @@ ThreadManager::~ThreadManager() {
     thread.join();
 }
 
-void ThreadManager::StartThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_pusher) {
-    thread = std::thread{RunThread, std::ref(renderer), std::ref(dma_pusher), std::ref(state)};
+void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
+                                Core::Frontend::GraphicsContext& context,
+                                Tegra::DmaPusher& dma_pusher) {
+    thread = std::thread{RunThread, std::ref(renderer), std::ref(context), std::ref(dma_pusher),
+                         std::ref(state)};
 }
 
 void ThreadManager::SubmitList(Tegra::CommandList&& entries) {

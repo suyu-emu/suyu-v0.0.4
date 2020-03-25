@@ -111,14 +111,6 @@ EmuWindow_SDL2_VK::~EmuWindow_SDL2_VK() {
     vkDestroyInstance(vk_instance, nullptr);
 }
 
-void EmuWindow_SDL2_VK::MakeCurrent() {
-    // Unused on Vulkan
-}
-
-void EmuWindow_SDL2_VK::DoneCurrent() {
-    // Unused on Vulkan
-}
-
 void EmuWindow_SDL2_VK::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                                void* surface) const {
     const auto instance_proc_addr = vkGetInstanceProcAddr;

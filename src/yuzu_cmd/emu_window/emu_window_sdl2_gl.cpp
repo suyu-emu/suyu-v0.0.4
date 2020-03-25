@@ -148,14 +148,6 @@ EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
     SDL_GL_DeleteContext(window_context);
 }
 
-void EmuWindow_SDL2_GL::MakeCurrent() {
-    core_context->MakeCurrent();
-}
-
-void EmuWindow_SDL2_GL::DoneCurrent() {
-    core_context->DoneCurrent();
-}
-
 void EmuWindow_SDL2_GL::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                                void* surface) const {
     // Should not have been called from OpenGL

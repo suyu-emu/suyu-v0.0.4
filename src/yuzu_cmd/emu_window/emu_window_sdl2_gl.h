@@ -13,8 +13,6 @@ public:
     explicit EmuWindow_SDL2_GL(Core::System& system, bool fullscreen);
     ~EmuWindow_SDL2_GL();
 
-    void MakeCurrent() override;
-    void DoneCurrent() override;
     void Present() override;
 
     /// Ignored in OpenGL

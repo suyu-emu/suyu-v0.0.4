@@ -232,15 +232,8 @@ int main(int argc, char** argv) {
 
     system.Renderer().Rasterizer().LoadDiskResources();
 
-    // Acquire render context for duration of the thread if this is the rendering thread
-    if (!Settings::values.use_asynchronous_gpu_emulation) {
-        emu_window->MakeCurrent();
-    }
-    SCOPE_EXIT({
-        if (!Settings::values.use_asynchronous_gpu_emulation) {
-            emu_window->DoneCurrent();
-        }
-    });
+    // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
+    system.GPU().Start();
 
     std::thread render_thread([&emu_window] { emu_window->Present(); });
     while (emu_window->IsOpen()) {

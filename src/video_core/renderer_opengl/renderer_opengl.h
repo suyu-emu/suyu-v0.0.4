@@ -55,13 +55,14 @@ class FrameMailbox;
 
 class RendererOpenGL final : public VideoCore::RendererBase {
 public:
-    explicit RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system);
+    explicit RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system,
+                            Core::Frontend::GraphicsContext& context);
     ~RendererOpenGL() override;
 
     bool Init() override;
     void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
-    void TryPresent(int timeout_ms) override;
+    bool TryPresent(int timeout_ms) override;
 
 private:
     /// Initializes the OpenGL state and creates persistent objects.
@@ -89,8 +90,11 @@ private:
 
     void PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer);
 
+    bool Present(int timeout_ms);
+
     Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
+    Core::Frontend::GraphicsContext& context;
 
     StateTracker state_tracker{system};
 
@@ -115,6 +119,8 @@ private:
 
     /// Frame presentation mailbox
     std::unique_ptr<FrameMailbox> frame_mailbox;
+
+    bool has_debug_tool = false;
 };
 
 } // namespace OpenGL

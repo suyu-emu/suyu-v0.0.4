@@ -7,6 +7,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/frontend/emu_window.h"
 #include "core/memory.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_compute.h"
@@ -16,14 +17,15 @@
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
+#include "video_core/video_core.h"
 
 namespace Tegra {
 
 MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
-GPU::GPU(Core::System& system, VideoCore::RendererBase& renderer, bool is_async)
-    : system{system}, renderer{renderer}, is_async{is_async} {
-    auto& rasterizer{renderer.Rasterizer()};
+GPU::GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer_, bool is_async)
+    : system{system}, renderer{std::move(renderer_)}, is_async{is_async} {
+    auto& rasterizer{renderer->Rasterizer()};
     memory_manager = std::make_unique<Tegra::MemoryManager>(system, rasterizer);
     dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);
     maxwell_3d = std::make_unique<Engines::Maxwell3D>(system, rasterizer, *memory_manager);
@@ -137,7 +139,7 @@ u64 GPU::GetTicks() const {
 }
 
 void GPU::FlushCommands() {
-    renderer.Rasterizer().FlushCommands();
+    renderer->Rasterizer().FlushCommands();
 }
 
 // Note that, traditionally, methods are treated as 4-byte addressable locations, and hence

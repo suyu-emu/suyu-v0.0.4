@@ -13,8 +13,6 @@ public:
     explicit EmuWindow_SDL2_VK(Core::System& system, bool fullscreen);
     ~EmuWindow_SDL2_VK();
 
-    void MakeCurrent() override;
-    void DoneCurrent() override;
     void Present() override;
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                 void* surface) const override;

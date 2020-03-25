@@ -7,23 +7,20 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-
+#include <thread>
 #include <QImage>
 #include <QThread>
 #include <QWidget>
 #include <QWindow>
-
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
 
 class GRenderWindow;
+class GMainWindow;
 class QKeyEvent;
-class QScreen;
 class QTouchEvent;
 class QStringList;
-class QSurface;
-class QOpenGLContext;
 #ifdef HAS_VULKAN
 class QVulkanInstance;
 #endif
@@ -36,7 +33,7 @@ class EmuThread final : public QThread {
     Q_OBJECT
 
 public:
-    explicit EmuThread(GRenderWindow& window);
+    explicit EmuThread();
     ~EmuThread() override;
 
     /**
@@ -87,14 +84,8 @@ private:
     bool exec_step = false;
     bool running = false;
     std::atomic_bool stop_run{false};
-    std::mutex running_mutex;
-    std::condition_variable running_cv;
-
-    /// Only used in asynchronous GPU mode
-    std::unique_ptr<Core::Frontend::GraphicsContext> shared_context;
-
-    /// This is shared_context in asynchronous GPU mode, core_context in synchronous GPU mode
-    Core::Frontend::GraphicsContext& context;
+    std::mutex running_mutex = {};
+    std::condition_variable running_cv = {};
 
 signals:
     /**
@@ -124,12 +115,10 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    GRenderWindow(QWidget* parent, EmuThread* emu_thread);
+    GRenderWindow(GMainWindow* parent, EmuThread* emu_thread);
     ~GRenderWindow() override;
 
     // EmuWindow implementation.
-    void MakeCurrent() override;
-    void DoneCurrent() override;
     void PollEvents() override;
     bool IsShown() const override;
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
@@ -165,6 +154,8 @@ public:
 
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
+    std::pair<u32, u32> ScaleTouch(const QPointF pos) const;
+
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
@@ -176,7 +167,6 @@ signals:
     void FirstFrameDisplayed();
 
 private:
-    std::pair<u32, u32> ScaleTouch(QPointF pos) const;
     void TouchBeginEvent(const QTouchEvent* event);
     void TouchUpdateEvent(const QTouchEvent* event);
     void TouchEndEvent();
@@ -190,7 +180,10 @@ private:
 
     EmuThread* emu_thread;
 
-    std::unique_ptr<GraphicsContext> core_context;
+    // Main context that will be shared with all other contexts that are requested.
+    // If this is used in a shared context setting, then this should not be used directly, but
+    // should instead be shared from
+    std::shared_ptr<Core::Frontend::GraphicsContext> main_context;
 
 #ifdef HAS_VULKAN
     std::unique_ptr<QVulkanInstance> vk_instance;
@@ -201,12 +194,6 @@ private:
 
     QByteArray geometry;
 
-    /// Native window handle that backs this presentation widget
-    QWindow* child_window = nullptr;
-
-    /// In order to embed the window into GRenderWindow, you need to use createWindowContainer to
-    /// put the child_window into a widget then add it to the layout. This child_widget can be
-    /// parented to GRenderWindow and use Qt's lifetime system
     QWidget* child_widget = nullptr;
 
     bool first_frame = false;

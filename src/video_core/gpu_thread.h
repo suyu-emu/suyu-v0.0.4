@@ -10,7 +10,6 @@
 #include <optional>
 #include <thread>
 #include <variant>
-
 #include "common/threadsafe_queue.h"
 #include "video_core/gpu.h"
 
@@ -20,6 +19,9 @@ class DmaPusher;
 } // namespace Tegra
 
 namespace Core {
+namespace Frontend {
+class GraphicsContext;
+}
 class System;
 } // namespace Core
 
@@ -99,7 +101,8 @@ public:
     ~ThreadManager();
 
     /// Creates and starts the GPU thread.
-    void StartThread(VideoCore::RendererBase& renderer, Tegra::DmaPusher& dma_pusher);
+    void StartThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
+                     Tegra::DmaPusher& dma_pusher);
 
     /// Push GPU command entries to be processed
     void SubmitList(Tegra::CommandList&& entries);
