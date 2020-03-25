@@ -7,7 +7,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <memory>
+
 #include <glad/glad.h>
+
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -313,8 +315,8 @@ public:
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system,
                                Core::Frontend::GraphicsContext& context)
-    : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system}, frame_mailbox{},
-      has_debug_tool{HasDebugTool()}, context{context} {}
+    : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system},
+      frame_mailbox{}, context{context}, has_debug_tool{HasDebugTool()} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
 

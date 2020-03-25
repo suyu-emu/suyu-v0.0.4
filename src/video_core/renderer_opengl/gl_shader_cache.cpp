@@ -305,6 +305,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
     }
 
     const std::vector gl_cache = disk_cache.LoadPrecompiled();
+    const auto supported_formats = GetSupportedFormats();
 
     // Track if precompiled cache was altered during loading to know if we have to
     // serialize the virtual precompiled cache file back to the hard drive
@@ -327,7 +328,6 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
     const auto worker = [&](Core::Frontend::GraphicsContext* context, std::size_t begin,
                             std::size_t end) {
         const auto scope = context->Acquire();
-        const auto supported_formats = GetSupportedFormats();
 
         for (std::size_t i = begin; i < end; ++i) {
             if (stop_loading) {

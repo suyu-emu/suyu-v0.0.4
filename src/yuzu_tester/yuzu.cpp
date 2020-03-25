@@ -164,11 +164,6 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<EmuWindow_SDL2_Hide> emu_window{std::make_unique<EmuWindow_SDL2_Hide>()};
 
-    if (!Settings::values.use_multi_core) {
-        // Single core mode must acquire OpenGL context for entire emulation session
-        emu_window->MakeCurrent();
-    }
-
     bool finished = false;
     int return_value = 0;
     const auto callback = [&finished,
@@ -257,6 +252,7 @@ int main(int argc, char** argv) {
 
     system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDLHideTester");
 
+    system.GPU().Start();
     system.Renderer().Rasterizer().LoadDiskResources();
 
     while (!finished) {

@@ -30,7 +30,7 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(Core::Frontend::EmuWindo
         return nullptr;
     }
 }
-} // namespace
+} // Anonymous namespace
 
 namespace VideoCore {
 
@@ -39,7 +39,7 @@ std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Cor
     const auto scope = context->Acquire();
     auto renderer = CreateRenderer(emu_window, system, *context);
     if (!renderer->Init()) {
-        return {};
+        return nullptr;
     }
 
     if (Settings::values.use_asynchronous_gpu_emulation) {

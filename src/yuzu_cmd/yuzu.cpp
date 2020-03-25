@@ -230,10 +230,10 @@ int main(int argc, char** argv) {
 
     system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
-    system.Renderer().Rasterizer().LoadDiskResources();
-
     // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
     system.GPU().Start();
+
+    system.Renderer().Rasterizer().LoadDiskResources();
 
     std::thread render_thread([&emu_window] { emu_window->Present(); });
     while (emu_window->IsOpen()) {

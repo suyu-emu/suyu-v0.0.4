@@ -30,7 +30,7 @@ public:
 
     class Scoped {
     public:
-        Scoped(GraphicsContext& context_) : context(context_) {
+        explicit Scoped(GraphicsContext& context_) : context(context_) {
             context.MakeCurrent();
         }
         ~Scoped() {

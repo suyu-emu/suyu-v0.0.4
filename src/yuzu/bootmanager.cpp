@@ -42,6 +42,10 @@ EmuThread::~EmuThread() = default;
 void EmuThread::run() {
     MicroProfileOnThreadCreate("EmuThread");
 
+    // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
+    // execution.
+    Core::System::GetInstance().GPU().Start();
+
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
     Core::System::GetInstance().Renderer().Rasterizer().LoadDiskResources(
@@ -50,10 +54,6 @@ void EmuThread::run() {
         });
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
-
-    // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
-    // execution.
-    Core::System::GetInstance().GPU().Start();
 
     // Holds whether the cpu was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
@@ -152,7 +152,7 @@ public:
         if (is_current) {
             return;
         }
-        context->makeCurrent(surface);
+        is_current = context->makeCurrent(surface);
     }
 
     void DoneCurrent() override {
@@ -160,7 +160,11 @@ public:
         is_current = false;
     }
 
-    QOpenGLContext* GetShareContext() const {
+    QOpenGLContext* GetShareContext() {
+        return context.get();
+    }
+
+    const QOpenGLContext* GetShareContext() const {
         return context.get();
     }
 
@@ -177,68 +181,20 @@ class DummyContext : public Core::Frontend::GraphicsContext {};
 
 class RenderWidget : public QWidget {
 public:
-    RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
+    explicit RenderWidget(GRenderWindow* parent) : QWidget(parent), render_window(parent) {
         setAttribute(Qt::WA_NativeWindow);
         setAttribute(Qt::WA_PaintOnScreen);
     }
 
     virtual ~RenderWidget() = default;
 
+    /// Called on the UI thread when this Widget is ready to draw
+    /// Dervied classes can override this to draw the latest frame.
     virtual void Present() {}
 
     void paintEvent(QPaintEvent* event) override {
         Present();
         update();
-    }
-
-    void resizeEvent(QResizeEvent* ev) override {
-        render_window->resize(ev->size());
-        render_window->OnFramebufferSizeChanged();
-    }
-
-    void keyPressEvent(QKeyEvent* event) override {
-        InputCommon::GetKeyboard()->PressKey(event->key());
-    }
-
-    void keyReleaseEvent(QKeyEvent* event) override {
-        InputCommon::GetKeyboard()->ReleaseKey(event->key());
-    }
-
-    void mousePressEvent(QMouseEvent* event) override {
-        if (event->source() == Qt::MouseEventSynthesizedBySystem)
-            return; // touch input is handled in TouchBeginEvent
-
-        const auto pos{event->pos()};
-        if (event->button() == Qt::LeftButton) {
-            const auto [x, y] = render_window->ScaleTouch(pos);
-            render_window->TouchPressed(x, y);
-        } else if (event->button() == Qt::RightButton) {
-            InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
-        }
-    }
-
-    void mouseMoveEvent(QMouseEvent* event) override {
-        if (event->source() == Qt::MouseEventSynthesizedBySystem)
-            return; // touch input is handled in TouchUpdateEvent
-
-        const auto pos{event->pos()};
-        const auto [x, y] = render_window->ScaleTouch(pos);
-        render_window->TouchMoved(x, y);
-        InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
-    }
-
-    void mouseReleaseEvent(QMouseEvent* event) override {
-        if (event->source() == Qt::MouseEventSynthesizedBySystem)
-            return; // touch input is handled in TouchEndEvent
-
-        if (event->button() == Qt::LeftButton)
-            render_window->TouchReleased();
-        else if (event->button() == Qt::RightButton)
-            InputCommon::GetMotionEmu()->EndTilt();
-    }
-
-    std::pair<unsigned, unsigned> GetSize() const {
-        return std::make_pair(width(), height());
     }
 
     QPaintEngine* paintEngine() const override {
@@ -276,6 +232,7 @@ private:
     std::unique_ptr<Core::Frontend::GraphicsContext> context{};
 };
 
+#ifdef HAS_VULKAN
 class VulkanRenderWidget : public RenderWidget {
 public:
     explicit VulkanRenderWidget(GRenderWindow* parent, QVulkanInstance* instance)
@@ -284,6 +241,7 @@ public:
         windowHandle()->setVulkanInstance(instance);
     }
 };
+#endif
 
 GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread)
     : QWidget(parent_), emu_thread(emu_thread) {
@@ -358,7 +316,7 @@ qreal GRenderWindow::windowPixelRatio() const {
     return devicePixelRatio();
 }
 
-std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF pos) const {
+std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF& pos) const {
     const qreal pixel_ratio = windowPixelRatio();
     return {static_cast<u32>(std::max(std::round(pos.x() * pixel_ratio), qreal{0.0})),
             static_cast<u32>(std::max(std::round(pos.y() * pixel_ratio), qreal{0.0}))};
@@ -378,8 +336,10 @@ void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchBeginEvent
+    // touch input is handled in TouchBeginEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
 
     auto pos = event->pos();
     if (event->button() == Qt::LeftButton) {
@@ -391,8 +351,10 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchUpdateEvent
+    // touch input is handled in TouchUpdateEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
 
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
@@ -401,13 +363,16 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (event->source() == Qt::MouseEventSynthesizedBySystem)
-        return; // touch input is handled in TouchEndEvent
+    // touch input is handled in TouchEndEvent
+    if (event->source() == Qt::MouseEventSynthesizedBySystem) {
+        return;
+    }
 
-    if (event->button() == Qt::LeftButton)
+    if (event->button() == Qt::LeftButton) {
         this->TouchReleased();
-    else if (event->button() == Qt::RightButton)
+    } else if (event->button() == Qt::RightButton) {
         InputCommon::GetMotionEmu()->EndTilt();
+    }
 }
 
 void GRenderWindow::TouchBeginEvent(const QTouchEvent* event) {

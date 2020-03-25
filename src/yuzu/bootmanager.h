@@ -7,11 +7,12 @@
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
-#include <thread>
+
 #include <QImage>
 #include <QThread>
 #include <QWidget>
 #include <QWindow>
+
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
@@ -84,8 +85,8 @@ private:
     bool exec_step = false;
     bool running = false;
     std::atomic_bool stop_run{false};
-    std::mutex running_mutex = {};
-    std::condition_variable running_cv = {};
+    std::mutex running_mutex;
+    std::condition_variable running_cv;
 
 signals:
     /**
@@ -154,7 +155,7 @@ public:
 
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
-    std::pair<u32, u32> ScaleTouch(const QPointF pos) const;
+    std::pair<u32, u32> ScaleTouch(const QPointF& pos) const;
 
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);

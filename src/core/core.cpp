@@ -169,6 +169,9 @@ struct System::Impl {
 
         interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
         gpu_core = VideoCore::CreateGPU(emu_window, system);
+        if (!gpu_core) {
+            return ResultStatus::ErrorVideoCore;
+        }
         gpu_core->Renderer().Rasterizer().SetupDirtyFlags();
 
         is_powered_on = true;
@@ -181,7 +184,6 @@ struct System::Impl {
 
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
-
         app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
