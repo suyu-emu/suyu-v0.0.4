@@ -137,6 +137,10 @@ public:
         return uses_vertex_id;
     }
 
+    bool UsesLegacyVaryings() const {
+        return uses_legacy_varyings;
+    }
+
     bool UsesWarps() const {
         return uses_warps;
     }
@@ -343,6 +347,9 @@ private:
     /// Inserts a sequence of bits from a node
     Node BitfieldInsert(Node base, Node insert, u32 offset, u32 bits);
 
+    /// Marks the usage of a input or output attribute.
+    void MarkAttributeUsage(Tegra::Shader::Attribute::Index index, u64 element);
+
     void WriteTexInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                   const Node4& components);
 
@@ -443,6 +450,7 @@ private:
     bool uses_physical_attributes{}; // Shader uses AL2P or physical attribute read/writes
     bool uses_instance_id{};
     bool uses_vertex_id{};
+    bool uses_legacy_varyings{};
     bool uses_warps{};
     bool uses_indexed_samplers{};
 

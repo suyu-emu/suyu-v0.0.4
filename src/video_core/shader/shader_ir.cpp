@@ -96,6 +96,7 @@ Node ShaderIR::GetPredicate(bool immediate) {
 }
 
 Node ShaderIR::GetInputAttribute(Attribute::Index index, u64 element, Node buffer) {
+    MarkAttributeUsage(index, element);
     used_input_attributes.emplace(index);
     return MakeNode<AbufNode>(index, static_cast<u32>(element), std::move(buffer));
 }
@@ -106,42 +107,8 @@ Node ShaderIR::GetPhysicalInputAttribute(Tegra::Shader::Register physical_addres
 }
 
 Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buffer) {
-    if (index == Attribute::Index::LayerViewportPointSize) {
-        switch (element) {
-        case 0:
-            UNIMPLEMENTED();
-            break;
-        case 1:
-            uses_layer = true;
-            break;
-        case 2:
-            uses_viewport_index = true;
-            break;
-        case 3:
-            uses_point_size = true;
-            break;
-        }
-    }
-    if (index == Attribute::Index::TessCoordInstanceIDVertexID) {
-        switch (element) {
-        case 2:
-            uses_instance_id = true;
-            break;
-        case 3:
-            uses_vertex_id = true;
-            break;
-        default:
-            break;
-        }
-    }
-    if (index == Attribute::Index::ClipDistances0123 ||
-        index == Attribute::Index::ClipDistances4567) {
-        const auto clip_index =
-            static_cast<u32>((index == Attribute::Index::ClipDistances4567 ? 1 : 0) + element);
-        used_clip_distances.at(clip_index) = true;
-    }
+    MarkAttributeUsage(index, element);
     used_output_attributes.insert(index);
-
     return MakeNode<AbufNode>(index, static_cast<u32>(element), std::move(buffer));
 }
 
@@ -450,6 +417,54 @@ Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
 Node ShaderIR::BitfieldInsert(Node base, Node insert, u32 offset, u32 bits) {
     return Operation(OperationCode::UBitfieldInsert, NO_PRECISE, base, insert, Immediate(offset),
                      Immediate(bits));
+}
+
+void ShaderIR::MarkAttributeUsage(Attribute::Index index, u64 element) {
+    switch (index) {
+    case Attribute::Index::LayerViewportPointSize:
+        switch (element) {
+        case 0:
+            UNIMPLEMENTED();
+            break;
+        case 1:
+            uses_layer = true;
+            break;
+        case 2:
+            uses_viewport_index = true;
+            break;
+        case 3:
+            uses_point_size = true;
+            break;
+        }
+        break;
+    case Attribute::Index::TessCoordInstanceIDVertexID:
+        switch (element) {
+        case 2:
+            uses_instance_id = true;
+            break;
+        case 3:
+            uses_vertex_id = true;
+            break;
+        }
+        break;
+    case Attribute::Index::ClipDistances0123:
+    case Attribute::Index::ClipDistances4567: {
+        const u64 clip_index = (index == Attribute::Index::ClipDistances4567 ? 4 : 0) + element;
+        used_clip_distances.at(clip_index) = true;
+        break;
+    }
+    case Attribute::Index::FrontColor:
+    case Attribute::Index::FrontSecondaryColor:
+    case Attribute::Index::BackColor:
+    case Attribute::Index::BackSecondaryColor:
+        uses_legacy_varyings = true;
+        break;
+    default:
+        if (index >= Attribute::Index::TexCoord_0 && index <= Attribute::Index::TexCoord_7) {
+            uses_legacy_varyings = true;
+        }
+        break;
+    }
 }
 
 std::size_t ShaderIR::DeclareAmend(Node new_amend) {

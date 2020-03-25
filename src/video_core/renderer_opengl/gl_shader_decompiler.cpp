@@ -366,8 +366,17 @@ constexpr bool IsGenericAttribute(Attribute::Index index) {
     return index >= Attribute::Index::Attribute_0 && index <= Attribute::Index::Attribute_31;
 }
 
+constexpr bool IsLegacyTexCoord(Attribute::Index index) {
+    return static_cast<int>(index) >= static_cast<int>(Attribute::Index::TexCoord_0) &&
+           static_cast<int>(index) <= static_cast<int>(Attribute::Index::TexCoord_7);
+}
+
 constexpr Attribute::Index ToGenericAttribute(u64 value) {
     return static_cast<Attribute::Index>(value + static_cast<u64>(Attribute::Index::Attribute_0));
+}
+
+constexpr int GetLegacyTexCoordIndex(Attribute::Index index) {
+    return static_cast<int>(index) - static_cast<int>(Attribute::Index::TexCoord_0);
 }
 
 u32 GetGenericAttributeIndex(Attribute::Index index) {
@@ -498,7 +507,7 @@ private:
         if (!identifier.empty()) {
             code.AddLine("// {}", identifier);
         }
-        code.AddLine("#version 440 core");
+        code.AddLine("#version 440 {}", ir.UsesLegacyVaryings() ? "compatibility" : "core");
         code.AddLine("#extension GL_ARB_separate_shader_objects : enable");
         if (device.HasShaderBallot()) {
             code.AddLine("#extension GL_ARB_shader_ballot : require");
@@ -561,6 +570,16 @@ private:
         if (stage != ShaderType::Fragment) {
             return;
         }
+        if (ir.UsesLegacyVaryings()) {
+            code.AddLine("in gl_PerFragment {{");
+            ++code.scope;
+            code.AddLine("vec4 gl_TexCoord[8];");
+            code.AddLine("vec4 gl_Color;");
+            code.AddLine("vec4 gl_SecondaryColor;");
+            --code.scope;
+            code.AddLine("}};");
+        }
+
         for (u32 rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
             code.AddLine("layout (location = {}) out vec4 frag_color{};", rt, rt);
         }
@@ -617,12 +636,12 @@ private:
             code.AddLine("float gl_PointSize;");
         }
 
-        if (ir.UsesInstanceId()) {
-            code.AddLine("int gl_InstanceID;");
-        }
-
-        if (ir.UsesVertexId()) {
-            code.AddLine("int gl_VertexID;");
+        if (ir.UsesLegacyVaryings()) {
+            code.AddLine("vec4 gl_TexCoord[8];");
+            code.AddLine("vec4 gl_FrontColor;");
+            code.AddLine("vec4 gl_FrontSecondaryColor;");
+            code.AddLine("vec4 gl_BackColor;");
+            code.AddLine("vec4 gl_BackSecondaryColor;");
         }
 
         --code.scope;
@@ -1128,6 +1147,10 @@ private:
             default:
                 UNREACHABLE();
             }
+        case Attribute::Index::FrontColor:
+            return {"gl_Color"s + GetSwizzle(element), Type::Float};
+        case Attribute::Index::FrontSecondaryColor:
+            return {"gl_SecondaryColor"s + GetSwizzle(element), Type::Float};
         case Attribute::Index::PointCoord:
             switch (element) {
             case 0:
@@ -1168,6 +1191,12 @@ private:
                 return {GeometryPass(GetGenericInputAttribute(attribute)) + GetSwizzle(element),
                         Type::Float};
             }
+            if (IsLegacyTexCoord(attribute)) {
+                UNIMPLEMENTED_IF(stage == ShaderType::Geometry);
+                return {fmt::format("gl_TexCoord[{}]{}", GetLegacyTexCoordIndex(attribute),
+                                    GetSwizzle(element)),
+                        Type::Float};
+            }
             break;
         }
         UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
@@ -1206,11 +1235,12 @@ private:
     }
 
     std::optional<Expression> GetOutputAttribute(const AbufNode* abuf) {
+        const u32 element = abuf->GetElement();
         switch (const auto attribute = abuf->GetIndex()) {
         case Attribute::Index::Position:
-            return {{"gl_Position"s + GetSwizzle(abuf->GetElement()), Type::Float}};
+            return {{"gl_Position"s + GetSwizzle(element), Type::Float}};
         case Attribute::Index::LayerViewportPointSize:
-            switch (abuf->GetElement()) {
+            switch (element) {
             case 0:
                 UNIMPLEMENTED();
                 return {};
@@ -1228,13 +1258,26 @@ private:
                 return {{"gl_PointSize", Type::Float}};
             }
             return {};
+        case Attribute::Index::FrontColor:
+            return {{"gl_FrontColor"s + GetSwizzle(element), Type::Float}};
+        case Attribute::Index::FrontSecondaryColor:
+            return {{"gl_FrontSecondaryColor"s + GetSwizzle(element), Type::Float}};
+        case Attribute::Index::BackColor:
+            return {{"gl_BackColor"s + GetSwizzle(element), Type::Float}};
+        case Attribute::Index::BackSecondaryColor:
+            return {{"gl_BackSecondaryColor"s + GetSwizzle(element), Type::Float}};
         case Attribute::Index::ClipDistances0123:
-            return {{fmt::format("gl_ClipDistance[{}]", abuf->GetElement()), Type::Float}};
+            return {{fmt::format("gl_ClipDistance[{}]", element), Type::Float}};
         case Attribute::Index::ClipDistances4567:
-            return {{fmt::format("gl_ClipDistance[{}]", abuf->GetElement() + 4), Type::Float}};
+            return {{fmt::format("gl_ClipDistance[{}]", element + 4), Type::Float}};
         default:
             if (IsGenericAttribute(attribute)) {
-                return {{GetGenericOutputAttribute(attribute, abuf->GetElement()), Type::Float}};
+                return {{GetGenericOutputAttribute(attribute, element), Type::Float}};
+            }
+            if (IsLegacyTexCoord(attribute)) {
+                return {{fmt::format("gl_TexCoord[{}]{}", GetLegacyTexCoordIndex(attribute),
+                                     GetSwizzle(element)),
+                         Type::Float}};
             }
             UNIMPLEMENTED_MSG("Unhandled output attribute: {}", static_cast<u32>(attribute));
             return {};
