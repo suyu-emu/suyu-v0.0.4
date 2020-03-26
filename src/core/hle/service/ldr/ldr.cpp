@@ -342,17 +342,27 @@ public:
             return;
         }
 
-        ASSERT(
-            vm_manager
-                .MirrorMemory(*map_address, nro_address, nro_size, Kernel::MemoryState::ModuleCode)
-                .IsSuccess());
+        // Mark text and read-only region as ModuleCode
+        ASSERT(vm_manager
+                   .MirrorMemory(*map_address, nro_address, header.text_size + header.ro_size,
+                                 Kernel::MemoryState::ModuleCode)
+                   .IsSuccess());
+        // Mark read/write region as ModuleCodeData, which is necessary if this region is used for
+        // TransferMemory (e.g. Final Fantasy VIII Remastered does this)
+        ASSERT(vm_manager
+                   .MirrorMemory(*map_address + header.rw_offset, nro_address + header.rw_offset,
+                                 header.rw_size, Kernel::MemoryState::ModuleCodeData)
+                   .IsSuccess());
+        // Revoke permissions from the old memory region
         ASSERT(vm_manager.ReprotectRange(nro_address, nro_size, Kernel::VMAPermission::None)
                    .IsSuccess());
 
         if (bss_size > 0) {
+            // Mark BSS region as ModuleCodeData, which is necessary if this region is used for
+            // TransferMemory (e.g. Final Fantasy VIII Remastered does this)
             ASSERT(vm_manager
                        .MirrorMemory(*map_address + nro_size, bss_address, bss_size,
-                                     Kernel::MemoryState::ModuleCode)
+                                     Kernel::MemoryState::ModuleCodeData)
                        .IsSuccess());
             ASSERT(vm_manager.ReprotectRange(bss_address, bss_size, Kernel::VMAPermission::None)
                        .IsSuccess());
