@@ -6,9 +6,9 @@ function(copy_yuzu_Qt5_deps target_dir)
     set(Qt5_STYLES_DIR "${Qt5_DIR}/../../../plugins/styles/")
     set(Qt5_IMAGEFORMATS_DIR "${Qt5_DIR}/../../../plugins/imageformats/")
     set(Qt5_RESOURCES_DIR "${Qt5_DIR}/../../../resources/")
-    set(PLATFORMS ${DLL_DEST}platforms/)
-    set(STYLES ${DLL_DEST}styles/)
-    set(IMAGEFORMATS ${DLL_DEST}imageformats/)
+    set(PLATFORMS ${DLL_DEST}plugins/platforms/)
+    set(STYLES ${DLL_DEST}plugins/styles/)
+    set(IMAGEFORMATS ${DLL_DEST}plugins/imageformats/)
     windows_copy_files(${target_dir} ${Qt5_DLL_DIR} ${DLL_DEST}
         icudt*.dll
         icuin*.dll
@@ -42,11 +42,15 @@ function(copy_yuzu_Qt5_deps target_dir)
             icudtl.dat
         )
     endif ()
-
     windows_copy_files(yuzu ${Qt5_PLATFORMS_DIR} ${PLATFORMS} qwindows$<$<CONFIG:Debug>:d>.*)
     windows_copy_files(yuzu ${Qt5_STYLES_DIR} ${STYLES} qwindowsvistastyle$<$<CONFIG:Debug>:d>.*)
     windows_copy_files(yuzu ${Qt5_IMAGEFORMATS_DIR} ${IMAGEFORMATS}
         qjpeg$<$<CONFIG:Debug>:d>.*
         qgif$<$<CONFIG:Debug>:d>.*
         )
+    # Create an empty qt.conf file. Qt will detect that this file exists, and use the folder that its in as the root folder.
+    # This way it'll look for plugins in the root/plugins/ folder
+    add_custom_command(TARGET yuzu POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E touch ${DLL_DEST}qt.conf
+    )
 endfunction(copy_yuzu_Qt5_deps)
