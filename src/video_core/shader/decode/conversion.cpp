@@ -138,18 +138,23 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
 
         value = GetOperandAbsNegFloat(value, instr.conversion.abs_a, instr.conversion.negate_a);
 
-        value = [&]() {
+        value = [&] {
+            if (instr.conversion.src_size != instr.conversion.dst_size) {
+                // Rounding operations only matter when the source and destination conversion size
+                // is the same.
+                return value;
+            }
             switch (instr.conversion.f2f.GetRoundingMode()) {
             case Tegra::Shader::F2fRoundingOp::None:
                 return value;
             case Tegra::Shader::F2fRoundingOp::Round:
-                return Operation(OperationCode::FRoundEven, PRECISE, value);
+                return Operation(OperationCode::FRoundEven, value);
             case Tegra::Shader::F2fRoundingOp::Floor:
-                return Operation(OperationCode::FFloor, PRECISE, value);
+                return Operation(OperationCode::FFloor, value);
             case Tegra::Shader::F2fRoundingOp::Ceil:
-                return Operation(OperationCode::FCeil, PRECISE, value);
+                return Operation(OperationCode::FCeil, value);
             case Tegra::Shader::F2fRoundingOp::Trunc:
-                return Operation(OperationCode::FTrunc, PRECISE, value);
+                return Operation(OperationCode::FTrunc, value);
             default:
                 UNIMPLEMENTED_MSG("Unimplemented F2F rounding mode {}",
                                   static_cast<u32>(instr.conversion.f2f.rounding.Value()));
