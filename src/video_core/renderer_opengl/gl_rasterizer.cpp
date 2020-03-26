@@ -444,6 +444,7 @@ void RasterizerOpenGL::Clear() {
     }
 
     SyncRasterizeEnable();
+    SyncStencilTestState();
 
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
