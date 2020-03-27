@@ -266,7 +266,7 @@ void ARM_Unicorn::InterruptHook(uc_engine* uc, u32 int_no, void* user_data) {
 
     switch (ec) {
     case 0x15: // SVC
-        Kernel::CallSVC(arm_instance->system, iss);
+        Kernel::Svc::Call(arm_instance->system, iss);
         break;
     }
 }

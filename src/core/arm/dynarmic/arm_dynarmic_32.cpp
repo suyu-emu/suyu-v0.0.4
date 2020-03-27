@@ -67,7 +67,7 @@ public:
     }
 
     void CallSVC(u32 swi) override {
-        Kernel::CallSVC(parent.system, swi);
+        Kernel::Svc::Call(parent.system, swi);
     }
 
     void AddTicks(u64 ticks) override {

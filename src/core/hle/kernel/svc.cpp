@@ -42,7 +42,7 @@
 #include "core/memory.h"
 #include "core/reporter.h"
 
-namespace Kernel {
+namespace Kernel::Svc {
 namespace {
 
 // Checks if address + size is greater than the given address
@@ -2656,7 +2656,7 @@ static const FunctionDef* GetSVCInfo64(u32 func_num) {
 
 MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
-void CallSVC(Core::System& system, u32 immediate) {
+void Call(Core::System& system, u32 immediate) {
     MICROPROFILE_SCOPE(Kernel_SVC);
 
     // Lock the global kernel mutex when we enter the kernel HLE.
@@ -2675,4 +2675,4 @@ void CallSVC(Core::System& system, u32 immediate) {
     }
 }
 
-} // namespace Kernel
+} // namespace Kernel::Svc
