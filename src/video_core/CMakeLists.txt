@@ -210,6 +210,7 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_texture_cache.h
         renderer_vulkan/vk_update_descriptor.cpp
         renderer_vulkan/vk_update_descriptor.h
+        renderer_vulkan/wrapper.cpp
         renderer_vulkan/wrapper.h
     )
 

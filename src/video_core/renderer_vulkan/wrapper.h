@@ -80,4 +80,7 @@ private:
     std::size_t num = 0;
 };
 
+/// Converts a VkResult enum into a rodata string
+const char* ToString(VkResult) noexcept;
+
 } // namespace Vulkan::vk
