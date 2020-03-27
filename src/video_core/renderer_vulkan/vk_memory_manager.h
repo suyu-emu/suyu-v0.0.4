@@ -8,7 +8,7 @@
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -32,13 +32,13 @@ public:
      *                     memory. When passing false, it will try to allocate device local memory.
      * @returns A memory commit.
      */
-    VKMemoryCommit Commit(const vk::MemoryRequirements& reqs, bool host_visible);
+    VKMemoryCommit Commit(const VkMemoryRequirements& reqs, bool host_visible);
 
     /// Commits memory required by the buffer and binds it.
-    VKMemoryCommit Commit(vk::Buffer buffer, bool host_visible);
+    VKMemoryCommit Commit(const vk::Buffer& buffer, bool host_visible);
 
     /// Commits memory required by the image and binds it.
-    VKMemoryCommit Commit(vk::Image image, bool host_visible);
+    VKMemoryCommit Commit(const vk::Image& image, bool host_visible);
 
     /// Returns true if the memory allocations are done always in host visible and coherent memory.
     bool IsMemoryUnified() const {
@@ -47,18 +47,18 @@ public:
 
 private:
     /// Allocates a chunk of memory.
-    bool AllocMemory(vk::MemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
+    bool AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
 
     /// Tries to allocate a memory commit.
-    VKMemoryCommit TryAllocCommit(const vk::MemoryRequirements& requirements,
-                                  vk::MemoryPropertyFlags wanted_properties);
+    VKMemoryCommit TryAllocCommit(const VkMemoryRequirements& requirements,
+                                  VkMemoryPropertyFlags wanted_properties);
 
     /// Returns true if the device uses an unified memory model.
-    static bool GetMemoryUnified(const vk::PhysicalDeviceMemoryProperties& properties);
+    static bool GetMemoryUnified(const VkPhysicalDeviceMemoryProperties& properties);
 
-    const VKDevice& device;                              ///< Device handler.
-    const vk::PhysicalDeviceMemoryProperties properties; ///< Physical device properties.
-    const bool is_memory_unified;                        ///< True if memory model is unified.
+    const VKDevice& device;                            ///< Device handler.
+    const VkPhysicalDeviceMemoryProperties properties; ///< Physical device properties.
+    const bool is_memory_unified;                      ///< True if memory model is unified.
     std::vector<std::unique_ptr<VKMemoryAllocation>> allocations; ///< Current allocations.
 };
 
@@ -68,7 +68,7 @@ class VKMemoryCommitImpl final {
 
 public:
     explicit VKMemoryCommitImpl(const VKDevice& device, VKMemoryAllocation* allocation,
-                                vk::DeviceMemory memory, u64 begin, u64 end);
+                                const vk::DeviceMemory& memory, u64 begin, u64 end);
     ~VKMemoryCommitImpl();
 
     /// Maps a memory region and returns a pointer to it.
@@ -80,13 +80,13 @@ public:
     MemoryMap Map() const;
 
     /// Returns the Vulkan memory handler.
-    vk::DeviceMemory GetMemory() const {
-        return memory;
+    VkDeviceMemory GetMemory() const {
+        return *memory;
     }
 
     /// Returns the start position of the commit relative to the allocation.
-    vk::DeviceSize GetOffset() const {
-        return static_cast<vk::DeviceSize>(interval.first);
+    VkDeviceSize GetOffset() const {
+        return static_cast<VkDeviceSize>(interval.first);
     }
 
 private:
@@ -94,8 +94,8 @@ private:
     void Unmap() const;
 
     const VKDevice& device;           ///< Vulkan device.
+    const vk::DeviceMemory& memory;   ///< Vulkan device memory handler.
     std::pair<u64, u64> interval{};   ///< Interval where the commit exists.
-    vk::DeviceMemory memory;          ///< Vulkan device memory handler.
     VKMemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.
 };
 

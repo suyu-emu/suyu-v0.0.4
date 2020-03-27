@@ -7,10 +7,10 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -27,8 +27,8 @@ void VKUpdateDescriptorQueue::Acquire() {
     entries.clear();
 }
 
-void VKUpdateDescriptorQueue::Send(vk::DescriptorUpdateTemplate update_template,
-                                   vk::DescriptorSet set) {
+void VKUpdateDescriptorQueue::Send(VkDescriptorUpdateTemplateKHR update_template,
+                                   VkDescriptorSet set) {
     if (payload.size() + entries.size() >= payload.max_size()) {
         LOG_WARNING(Render_Vulkan, "Payload overflow, waiting for worker thread");
         scheduler.WaitWorker();
@@ -37,21 +37,21 @@ void VKUpdateDescriptorQueue::Send(vk::DescriptorUpdateTemplate update_template,
 
     const auto payload_start = payload.data() + payload.size();
     for (const auto& entry : entries) {
-        if (const auto image = std::get_if<vk::DescriptorImageInfo>(&entry)) {
+        if (const auto image = std::get_if<VkDescriptorImageInfo>(&entry)) {
             payload.push_back(*image);
         } else if (const auto buffer = std::get_if<Buffer>(&entry)) {
             payload.emplace_back(*buffer->buffer, buffer->offset, buffer->size);
-        } else if (const auto texel = std::get_if<vk::BufferView>(&entry)) {
+        } else if (const auto texel = std::get_if<VkBufferView>(&entry)) {
             payload.push_back(*texel);
         } else {
             UNREACHABLE();
         }
     }
 
-    scheduler.Record([dev = device.GetLogical(), payload_start, set,
-                      update_template]([[maybe_unused]] auto cmdbuf, auto& dld) {
-        dev.updateDescriptorSetWithTemplate(set, update_template, payload_start, dld);
-    });
+    scheduler.Record(
+        [payload_start, set, update_template, logical = &device.GetLogical()](vk::CommandBuffer) {
+            logical->UpdateDescriptorSet(set, update_template, payload_start);
+        });
 }
 
 } // namespace Vulkan

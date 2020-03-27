@@ -2,11 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+#include <cstring>
 #include <vector>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/microprofile.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
@@ -16,6 +18,7 @@
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -23,21 +26,26 @@ MICROPROFILE_DECLARE(Vulkan_PipelineCache);
 
 namespace {
 
-vk::StencilOpState GetStencilFaceState(const FixedPipelineState::StencilFace& face) {
-    return vk::StencilOpState(MaxwellToVK::StencilOp(face.action_stencil_fail),
-                              MaxwellToVK::StencilOp(face.action_depth_pass),
-                              MaxwellToVK::StencilOp(face.action_depth_fail),
-                              MaxwellToVK::ComparisonOp(face.test_func), 0, 0, 0);
+VkStencilOpState GetStencilFaceState(const FixedPipelineState::StencilFace& face) {
+    VkStencilOpState state;
+    state.failOp = MaxwellToVK::StencilOp(face.action_stencil_fail);
+    state.passOp = MaxwellToVK::StencilOp(face.action_depth_pass);
+    state.depthFailOp = MaxwellToVK::StencilOp(face.action_depth_fail);
+    state.compareOp = MaxwellToVK::ComparisonOp(face.test_func);
+    state.compareMask = 0;
+    state.writeMask = 0;
+    state.reference = 0;
+    return state;
 }
 
-bool SupportsPrimitiveRestart(vk::PrimitiveTopology topology) {
+bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
     static constexpr std::array unsupported_topologies = {
-        vk::PrimitiveTopology::ePointList,
-        vk::PrimitiveTopology::eLineList,
-        vk::PrimitiveTopology::eTriangleList,
-        vk::PrimitiveTopology::eLineListWithAdjacency,
-        vk::PrimitiveTopology::eTriangleListWithAdjacency,
-        vk::PrimitiveTopology::ePatchList};
+        VK_PRIMITIVE_TOPOLOGY_POINT_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY,
+        VK_PRIMITIVE_TOPOLOGY_PATCH_LIST};
     return std::find(std::begin(unsupported_topologies), std::end(unsupported_topologies),
                      topology) == std::end(unsupported_topologies);
 }
@@ -49,7 +57,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& sche
                                        VKUpdateDescriptorQueue& update_descriptor_queue,
                                        VKRenderPassCache& renderpass_cache,
                                        const GraphicsPipelineCacheKey& key,
-                                       const std::vector<vk::DescriptorSetLayoutBinding>& bindings,
+                                       vk::Span<VkDescriptorSetLayoutBinding> bindings,
                                        const SPIRVProgram& program)
     : device{device}, scheduler{scheduler}, fixed_state{key.fixed_state}, hash{key.Hash()},
       descriptor_set_layout{CreateDescriptorSetLayout(bindings)},
@@ -63,7 +71,7 @@ VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& sche
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 
-vk::DescriptorSet VKGraphicsPipeline::CommitDescriptorSet() {
+VkDescriptorSet VKGraphicsPipeline::CommitDescriptorSet() {
     if (!descriptor_template) {
         return {};
     }
@@ -72,27 +80,32 @@ vk::DescriptorSet VKGraphicsPipeline::CommitDescriptorSet() {
     return set;
 }
 
-UniqueDescriptorSetLayout VKGraphicsPipeline::CreateDescriptorSetLayout(
-    const std::vector<vk::DescriptorSetLayoutBinding>& bindings) const {
-    const vk::DescriptorSetLayoutCreateInfo descriptor_set_layout_ci(
-        {}, static_cast<u32>(bindings.size()), bindings.data());
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createDescriptorSetLayoutUnique(descriptor_set_layout_ci, nullptr, dld);
+vk::DescriptorSetLayout VKGraphicsPipeline::CreateDescriptorSetLayout(
+    vk::Span<VkDescriptorSetLayoutBinding> bindings) const {
+    VkDescriptorSetLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.bindingCount = bindings.size();
+    ci.pBindings = bindings.data();
+    return device.GetLogical().CreateDescriptorSetLayout(ci);
 }
 
-UniquePipelineLayout VKGraphicsPipeline::CreatePipelineLayout() const {
-    const vk::PipelineLayoutCreateInfo pipeline_layout_ci({}, 1, &*descriptor_set_layout, 0,
-                                                          nullptr);
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createPipelineLayoutUnique(pipeline_layout_ci, nullptr, dld);
+vk::PipelineLayout VKGraphicsPipeline::CreatePipelineLayout() const {
+    VkPipelineLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.setLayoutCount = 1;
+    ci.pSetLayouts = descriptor_set_layout.address();
+    ci.pushConstantRangeCount = 0;
+    ci.pPushConstantRanges = nullptr;
+    return device.GetLogical().CreatePipelineLayout(ci);
 }
 
-UniqueDescriptorUpdateTemplate VKGraphicsPipeline::CreateDescriptorUpdateTemplate(
+vk::DescriptorUpdateTemplateKHR VKGraphicsPipeline::CreateDescriptorUpdateTemplate(
     const SPIRVProgram& program) const {
-    std::vector<vk::DescriptorUpdateTemplateEntry> template_entries;
+    std::vector<VkDescriptorUpdateTemplateEntry> template_entries;
     u32 binding = 0;
     u32 offset = 0;
     for (const auto& stage : program) {
@@ -102,38 +115,47 @@ UniqueDescriptorUpdateTemplate VKGraphicsPipeline::CreateDescriptorUpdateTemplat
     }
     if (template_entries.empty()) {
         // If the shader doesn't use descriptor sets, skip template creation.
-        return UniqueDescriptorUpdateTemplate{};
+        return {};
     }
 
-    const vk::DescriptorUpdateTemplateCreateInfo template_ci(
-        {}, static_cast<u32>(template_entries.size()), template_entries.data(),
-        vk::DescriptorUpdateTemplateType::eDescriptorSet, *descriptor_set_layout,
-        vk::PipelineBindPoint::eGraphics, *layout, DESCRIPTOR_SET);
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createDescriptorUpdateTemplateUnique(template_ci, nullptr, dld);
+    VkDescriptorUpdateTemplateCreateInfoKHR ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.descriptorUpdateEntryCount = static_cast<u32>(template_entries.size());
+    ci.pDescriptorUpdateEntries = template_entries.data();
+    ci.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR;
+    ci.descriptorSetLayout = *descriptor_set_layout;
+    ci.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    ci.pipelineLayout = *layout;
+    ci.set = DESCRIPTOR_SET;
+    return device.GetLogical().CreateDescriptorUpdateTemplateKHR(ci);
 }
 
-std::vector<UniqueShaderModule> VKGraphicsPipeline::CreateShaderModules(
+std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
     const SPIRVProgram& program) const {
-    std::vector<UniqueShaderModule> modules;
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
+    VkShaderModuleCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+
+    std::vector<vk::ShaderModule> modules;
+    modules.reserve(Maxwell::MaxShaderStage);
     for (std::size_t i = 0; i < Maxwell::MaxShaderStage; ++i) {
         const auto& stage = program[i];
         if (!stage) {
             continue;
         }
-        const vk::ShaderModuleCreateInfo module_ci({}, stage->code.size() * sizeof(u32),
-                                                   stage->code.data());
-        modules.emplace_back(dev.createShaderModuleUnique(module_ci, nullptr, dld));
+
+        ci.codeSize = stage->code.size() * sizeof(u32);
+        ci.pCode = stage->code.data();
+        modules.push_back(device.GetLogical().CreateShaderModule(ci));
     }
     return modules;
 }
 
-UniquePipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
-                                                  const SPIRVProgram& program) const {
+vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
+                                                const SPIRVProgram& program) const {
     const auto& vi = fixed_state.vertex_input;
     const auto& ia = fixed_state.input_assembly;
     const auto& ds = fixed_state.depth_stencil;
@@ -141,19 +163,26 @@ UniquePipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& render
     const auto& ts = fixed_state.tessellation;
     const auto& rs = fixed_state.rasterizer;
 
-    std::vector<vk::VertexInputBindingDescription> vertex_bindings;
-    std::vector<vk::VertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
+    std::vector<VkVertexInputBindingDescription> vertex_bindings;
+    std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
     for (std::size_t i = 0; i < vi.num_bindings; ++i) {
         const auto& binding = vi.bindings[i];
         const bool instanced = binding.divisor != 0;
-        const auto rate = instanced ? vk::VertexInputRate::eInstance : vk::VertexInputRate::eVertex;
-        vertex_bindings.emplace_back(binding.index, binding.stride, rate);
+        const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
+
+        auto& vertex_binding = vertex_bindings.emplace_back();
+        vertex_binding.binding = binding.index;
+        vertex_binding.stride = binding.stride;
+        vertex_binding.inputRate = rate;
+
         if (instanced) {
-            vertex_binding_divisors.emplace_back(binding.index, binding.divisor);
+            auto& binding_divisor = vertex_binding_divisors.emplace_back();
+            binding_divisor.binding = binding.index;
+            binding_divisor.divisor = binding.divisor;
         }
     }
 
-    std::vector<vk::VertexInputAttributeDescription> vertex_attributes;
+    std::vector<VkVertexInputAttributeDescription> vertex_attributes;
     const auto& input_attributes = program[0]->entries.attributes;
     for (std::size_t i = 0; i < vi.num_attributes; ++i) {
         const auto& attribute = vi.attributes[i];
@@ -161,109 +190,194 @@ UniquePipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& render
             // Skip attributes not used by the vertex shaders.
             continue;
         }
-        vertex_attributes.emplace_back(attribute.index, attribute.buffer,
-                                       MaxwellToVK::VertexFormat(attribute.type, attribute.size),
-                                       attribute.offset);
+        auto& vertex_attribute = vertex_attributes.emplace_back();
+        vertex_attribute.location = attribute.index;
+        vertex_attribute.binding = attribute.buffer;
+        vertex_attribute.format = MaxwellToVK::VertexFormat(attribute.type, attribute.size);
+        vertex_attribute.offset = attribute.offset;
     }
 
-    vk::PipelineVertexInputStateCreateInfo vertex_input_ci(
-        {}, static_cast<u32>(vertex_bindings.size()), vertex_bindings.data(),
-        static_cast<u32>(vertex_attributes.size()), vertex_attributes.data());
+    VkPipelineVertexInputStateCreateInfo vertex_input_ci;
+    vertex_input_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_ci.pNext = nullptr;
+    vertex_input_ci.flags = 0;
+    vertex_input_ci.vertexBindingDescriptionCount = static_cast<u32>(vertex_bindings.size());
+    vertex_input_ci.pVertexBindingDescriptions = vertex_bindings.data();
+    vertex_input_ci.vertexAttributeDescriptionCount = static_cast<u32>(vertex_attributes.size());
+    vertex_input_ci.pVertexAttributeDescriptions = vertex_attributes.data();
 
-    const vk::PipelineVertexInputDivisorStateCreateInfoEXT vertex_input_divisor_ci(
-        static_cast<u32>(vertex_binding_divisors.size()), vertex_binding_divisors.data());
+    VkPipelineVertexInputDivisorStateCreateInfoEXT input_divisor_ci;
+    input_divisor_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_DIVISOR_STATE_CREATE_INFO_EXT;
+    input_divisor_ci.pNext = nullptr;
+    input_divisor_ci.vertexBindingDivisorCount = static_cast<u32>(vertex_binding_divisors.size());
+    input_divisor_ci.pVertexBindingDivisors = vertex_binding_divisors.data();
     if (!vertex_binding_divisors.empty()) {
-        vertex_input_ci.pNext = &vertex_input_divisor_ci;
+        vertex_input_ci.pNext = &input_divisor_ci;
     }
 
-    const auto primitive_topology = MaxwellToVK::PrimitiveTopology(device, ia.topology);
-    const vk::PipelineInputAssemblyStateCreateInfo input_assembly_ci(
-        {}, primitive_topology,
-        ia.primitive_restart_enable && SupportsPrimitiveRestart(primitive_topology));
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_ci;
+    input_assembly_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    input_assembly_ci.pNext = nullptr;
+    input_assembly_ci.flags = 0;
+    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, ia.topology);
+    input_assembly_ci.primitiveRestartEnable =
+        ia.primitive_restart_enable && SupportsPrimitiveRestart(input_assembly_ci.topology);
 
-    const vk::PipelineTessellationStateCreateInfo tessellation_ci({}, ts.patch_control_points);
+    VkPipelineTessellationStateCreateInfo tessellation_ci;
+    tessellation_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+    tessellation_ci.pNext = nullptr;
+    tessellation_ci.flags = 0;
+    tessellation_ci.patchControlPoints = ts.patch_control_points;
 
-    const vk::PipelineViewportStateCreateInfo viewport_ci({}, Maxwell::NumViewports, nullptr,
-                                                          Maxwell::NumViewports, nullptr);
+    VkPipelineViewportStateCreateInfo viewport_ci;
+    viewport_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewport_ci.pNext = nullptr;
+    viewport_ci.flags = 0;
+    viewport_ci.viewportCount = Maxwell::NumViewports;
+    viewport_ci.pViewports = nullptr;
+    viewport_ci.scissorCount = Maxwell::NumViewports;
+    viewport_ci.pScissors = nullptr;
 
-    // TODO(Rodrigo): Find out what's the default register value for front face
-    const vk::PipelineRasterizationStateCreateInfo rasterizer_ci(
-        {}, rs.depth_clamp_enable, false, vk::PolygonMode::eFill,
-        rs.cull_enable ? MaxwellToVK::CullFace(rs.cull_face) : vk::CullModeFlagBits::eNone,
-        MaxwellToVK::FrontFace(rs.front_face), rs.depth_bias_enable, 0.0f, 0.0f, 0.0f, 1.0f);
+    VkPipelineRasterizationStateCreateInfo rasterization_ci;
+    rasterization_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterization_ci.pNext = nullptr;
+    rasterization_ci.flags = 0;
+    rasterization_ci.depthClampEnable = rs.depth_clamp_enable;
+    rasterization_ci.rasterizerDiscardEnable = VK_FALSE;
+    rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterization_ci.cullMode =
+        rs.cull_enable ? MaxwellToVK::CullFace(rs.cull_face) : VK_CULL_MODE_NONE;
+    rasterization_ci.frontFace = MaxwellToVK::FrontFace(rs.front_face);
+    rasterization_ci.depthBiasEnable = rs.depth_bias_enable;
+    rasterization_ci.depthBiasConstantFactor = 0.0f;
+    rasterization_ci.depthBiasClamp = 0.0f;
+    rasterization_ci.depthBiasSlopeFactor = 0.0f;
+    rasterization_ci.lineWidth = 1.0f;
 
-    const vk::PipelineMultisampleStateCreateInfo multisampling_ci(
-        {}, vk::SampleCountFlagBits::e1, false, 0.0f, nullptr, false, false);
+    VkPipelineMultisampleStateCreateInfo multisample_ci;
+    multisample_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisample_ci.pNext = nullptr;
+    multisample_ci.flags = 0;
+    multisample_ci.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisample_ci.sampleShadingEnable = VK_FALSE;
+    multisample_ci.minSampleShading = 0.0f;
+    multisample_ci.pSampleMask = nullptr;
+    multisample_ci.alphaToCoverageEnable = VK_FALSE;
+    multisample_ci.alphaToOneEnable = VK_FALSE;
 
-    const vk::CompareOp depth_test_compare = ds.depth_test_enable
-                                                 ? MaxwellToVK::ComparisonOp(ds.depth_test_function)
-                                                 : vk::CompareOp::eAlways;
+    VkPipelineDepthStencilStateCreateInfo depth_stencil_ci;
+    depth_stencil_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_stencil_ci.pNext = nullptr;
+    depth_stencil_ci.flags = 0;
+    depth_stencil_ci.depthTestEnable = ds.depth_test_enable;
+    depth_stencil_ci.depthWriteEnable = ds.depth_write_enable;
+    depth_stencil_ci.depthCompareOp = ds.depth_test_enable
+                                          ? MaxwellToVK::ComparisonOp(ds.depth_test_function)
+                                          : VK_COMPARE_OP_ALWAYS;
+    depth_stencil_ci.depthBoundsTestEnable = ds.depth_bounds_enable;
+    depth_stencil_ci.stencilTestEnable = ds.stencil_enable;
+    depth_stencil_ci.front = GetStencilFaceState(ds.front_stencil);
+    depth_stencil_ci.back = GetStencilFaceState(ds.back_stencil);
+    depth_stencil_ci.minDepthBounds = 0.0f;
+    depth_stencil_ci.maxDepthBounds = 0.0f;
 
-    const vk::PipelineDepthStencilStateCreateInfo depth_stencil_ci(
-        {}, ds.depth_test_enable, ds.depth_write_enable, depth_test_compare, ds.depth_bounds_enable,
-        ds.stencil_enable, GetStencilFaceState(ds.front_stencil),
-        GetStencilFaceState(ds.back_stencil), 0.0f, 0.0f);
-
-    std::array<vk::PipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
+    std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
     const std::size_t num_attachments =
         std::min(cd.attachments_count, renderpass_params.color_attachments.size());
     for (std::size_t i = 0; i < num_attachments; ++i) {
-        constexpr std::array component_table{
-            vk::ColorComponentFlagBits::eR, vk::ColorComponentFlagBits::eG,
-            vk::ColorComponentFlagBits::eB, vk::ColorComponentFlagBits::eA};
+        static constexpr std::array component_table = {
+            VK_COLOR_COMPONENT_R_BIT, VK_COLOR_COMPONENT_G_BIT, VK_COLOR_COMPONENT_B_BIT,
+            VK_COLOR_COMPONENT_A_BIT};
         const auto& blend = cd.attachments[i];
 
-        vk::ColorComponentFlags color_components{};
+        VkColorComponentFlags color_components = 0;
         for (std::size_t j = 0; j < component_table.size(); ++j) {
-            if (blend.components[j])
+            if (blend.components[j]) {
                 color_components |= component_table[j];
+            }
         }
 
-        cb_attachments[i] = vk::PipelineColorBlendAttachmentState(
-            blend.enable, MaxwellToVK::BlendFactor(blend.src_rgb_func),
-            MaxwellToVK::BlendFactor(blend.dst_rgb_func),
-            MaxwellToVK::BlendEquation(blend.rgb_equation),
-            MaxwellToVK::BlendFactor(blend.src_a_func), MaxwellToVK::BlendFactor(blend.dst_a_func),
-            MaxwellToVK::BlendEquation(blend.a_equation), color_components);
+        VkPipelineColorBlendAttachmentState& attachment = cb_attachments[i];
+        attachment.blendEnable = blend.enable;
+        attachment.srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.src_rgb_func);
+        attachment.dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.dst_rgb_func);
+        attachment.colorBlendOp = MaxwellToVK::BlendEquation(blend.rgb_equation);
+        attachment.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.src_a_func);
+        attachment.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.dst_a_func);
+        attachment.alphaBlendOp = MaxwellToVK::BlendEquation(blend.a_equation);
+        attachment.colorWriteMask = color_components;
     }
-    const vk::PipelineColorBlendStateCreateInfo color_blending_ci({}, false, vk::LogicOp::eCopy,
-                                                                  static_cast<u32>(num_attachments),
-                                                                  cb_attachments.data(), {});
 
-    constexpr std::array dynamic_states = {
-        vk::DynamicState::eViewport,         vk::DynamicState::eScissor,
-        vk::DynamicState::eDepthBias,        vk::DynamicState::eBlendConstants,
-        vk::DynamicState::eDepthBounds,      vk::DynamicState::eStencilCompareMask,
-        vk::DynamicState::eStencilWriteMask, vk::DynamicState::eStencilReference};
-    const vk::PipelineDynamicStateCreateInfo dynamic_state_ci(
-        {}, static_cast<u32>(dynamic_states.size()), dynamic_states.data());
+    VkPipelineColorBlendStateCreateInfo color_blend_ci;
+    color_blend_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    color_blend_ci.pNext = nullptr;
+    color_blend_ci.flags = 0;
+    color_blend_ci.logicOpEnable = VK_FALSE;
+    color_blend_ci.logicOp = VK_LOGIC_OP_COPY;
+    color_blend_ci.attachmentCount = static_cast<u32>(num_attachments);
+    color_blend_ci.pAttachments = cb_attachments.data();
+    std::memset(color_blend_ci.blendConstants, 0, sizeof(color_blend_ci.blendConstants));
 
-    vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci;
+    static constexpr std::array dynamic_states = {
+        VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
+        VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+        VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
+        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE};
+
+    VkPipelineDynamicStateCreateInfo dynamic_state_ci;
+    dynamic_state_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic_state_ci.pNext = nullptr;
+    dynamic_state_ci.flags = 0;
+    dynamic_state_ci.dynamicStateCount = static_cast<u32>(dynamic_states.size());
+    dynamic_state_ci.pDynamicStates = dynamic_states.data();
+
+    VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci;
+    subgroup_size_ci.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT;
+    subgroup_size_ci.pNext = nullptr;
     subgroup_size_ci.requiredSubgroupSize = GuestWarpSize;
 
-    std::vector<vk::PipelineShaderStageCreateInfo> shader_stages;
+    std::vector<VkPipelineShaderStageCreateInfo> shader_stages;
     std::size_t module_index = 0;
     for (std::size_t stage = 0; stage < Maxwell::MaxShaderStage; ++stage) {
         if (!program[stage]) {
             continue;
         }
-        const auto stage_enum = static_cast<Tegra::Engines::ShaderType>(stage);
-        const auto vk_stage = MaxwellToVK::ShaderStage(stage_enum);
-        auto& stage_ci = shader_stages.emplace_back(vk::PipelineShaderStageCreateFlags{}, vk_stage,
-                                                    *modules[module_index++], "main", nullptr);
-        if (program[stage]->entries.uses_warps && device.IsGuestWarpSizeSupported(vk_stage)) {
+        VkPipelineShaderStageCreateInfo& stage_ci = shader_stages.emplace_back();
+        stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        stage_ci.pNext = nullptr;
+        stage_ci.flags = 0;
+        stage_ci.stage = MaxwellToVK::ShaderStage(static_cast<Tegra::Engines::ShaderType>(stage));
+        stage_ci.module = *modules[module_index++];
+        stage_ci.pName = "main";
+        stage_ci.pSpecializationInfo = nullptr;
+
+        if (program[stage]->entries.uses_warps && device.IsGuestWarpSizeSupported(stage_ci.stage)) {
             stage_ci.pNext = &subgroup_size_ci;
         }
     }
 
-    const vk::GraphicsPipelineCreateInfo create_info(
-        {}, static_cast<u32>(shader_stages.size()), shader_stages.data(), &vertex_input_ci,
-        &input_assembly_ci, &tessellation_ci, &viewport_ci, &rasterizer_ci, &multisampling_ci,
-        &depth_stencil_ci, &color_blending_ci, &dynamic_state_ci, *layout, renderpass, 0, {}, 0);
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createGraphicsPipelineUnique(nullptr, create_info, nullptr, dld);
+    VkGraphicsPipelineCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.stageCount = static_cast<u32>(shader_stages.size());
+    ci.pStages = shader_stages.data();
+    ci.pVertexInputState = &vertex_input_ci;
+    ci.pInputAssemblyState = &input_assembly_ci;
+    ci.pTessellationState = &tessellation_ci;
+    ci.pViewportState = &viewport_ci;
+    ci.pRasterizationState = &rasterization_ci;
+    ci.pMultisampleState = &multisample_ci;
+    ci.pDepthStencilState = &depth_stencil_ci;
+    ci.pColorBlendState = &color_blend_ci;
+    ci.pDynamicState = &dynamic_state_ci;
+    ci.layout = *layout;
+    ci.renderPass = renderpass;
+    ci.subpass = 0;
+    ci.basePipelineHandle = nullptr;
+    ci.basePipelineIndex = 0;
+    return device.GetLogical().CreateGraphicsPipeline(ci);
 }
 
 } // namespace Vulkan

@@ -12,7 +12,7 @@
 #include "common/dynamic_library.h"
 
 #include "video_core/renderer_base.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
 class System;
@@ -61,14 +61,14 @@ private:
     Core::System& system;
 
     Common::DynamicLibrary library;
-    vk::DispatchLoaderDynamic dld;
+    vk::InstanceDispatch dld;
 
-    UniqueInstance instance;
-    UniqueSurfaceKHR surface;
+    vk::Instance instance;
+    vk::SurfaceKHR surface;
 
     VKScreenInfo screen_info;
 
-    UniqueDebugUtilsMessengerEXT debug_callback;
+    vk::DebugCallback debug_callback;
     std::unique_ptr<VKDevice> device;
     std::unique_ptr<VKSwapchain> swapchain;
     std::unique_ptr<VKMemoryManager> memory_manager;

@@ -8,8 +8,9 @@
 #include <string_view>
 #include <unordered_map>
 #include <vector>
+
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -22,12 +23,12 @@ const u32 GuestWarpSize = 32;
 /// Handles data specific to a physical device.
 class VKDevice final {
 public:
-    explicit VKDevice(const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical,
-                      vk::SurfaceKHR surface);
+    explicit VKDevice(VkInstance instance, vk::PhysicalDevice physical, VkSurfaceKHR surface,
+                      const vk::InstanceDispatch& dld);
     ~VKDevice();
 
     /// Initializes the device. Returns true on success.
-    bool Create(vk::Instance instance);
+    bool Create();
 
     /**
      * Returns a format supported by the device for the passed requeriments.
@@ -36,20 +37,20 @@ public:
      * @param format_type Format type usage.
      * @returns A format supported by the device.
      */
-    vk::Format GetSupportedFormat(vk::Format wanted_format, vk::FormatFeatureFlags wanted_usage,
-                                  FormatType format_type) const;
+    VkFormat GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
+                                FormatType format_type) const;
 
     /// Reports a device loss.
     void ReportLoss() const;
 
     /// Returns the dispatch loader with direct function pointers of the device.
-    const vk::DispatchLoaderDynamic& GetDispatchLoader() const {
+    const vk::DeviceDispatch& GetDispatchLoader() const {
         return dld;
     }
 
     /// Returns the logical device.
-    vk::Device GetLogical() const {
-        return logical.get();
+    const vk::Device& GetLogical() const {
+        return logical;
     }
 
     /// Returns the physical device.
@@ -79,7 +80,7 @@ public:
 
     /// Returns true if the device is integrated with the host CPU.
     bool IsIntegrated() const {
-        return properties.deviceType == vk::PhysicalDeviceType::eIntegratedGpu;
+        return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
     }
 
     /// Returns the current Vulkan API version provided in Vulkan-formatted version numbers.
@@ -98,27 +99,27 @@ public:
     }
 
     /// Returns the driver ID.
-    vk::DriverIdKHR GetDriverID() const {
+    VkDriverIdKHR GetDriverID() const {
         return driver_id;
     }
 
     /// Returns uniform buffer alignment requeriment.
-    vk::DeviceSize GetUniformBufferAlignment() const {
+    VkDeviceSize GetUniformBufferAlignment() const {
         return properties.limits.minUniformBufferOffsetAlignment;
     }
 
     /// Returns storage alignment requeriment.
-    vk::DeviceSize GetStorageBufferAlignment() const {
+    VkDeviceSize GetStorageBufferAlignment() const {
         return properties.limits.minStorageBufferOffsetAlignment;
     }
 
     /// Returns the maximum range for storage buffers.
-    vk::DeviceSize GetMaxStorageBufferRange() const {
+    VkDeviceSize GetMaxStorageBufferRange() const {
         return properties.limits.maxStorageBufferRange;
     }
 
     /// Returns the maximum size for push constants.
-    vk::DeviceSize GetMaxPushConstantsSize() const {
+    VkDeviceSize GetMaxPushConstantsSize() const {
         return properties.limits.maxPushConstantsSize;
     }
 
@@ -138,8 +139,8 @@ public:
     }
 
     /// Returns true if the device can be forced to use the guest warp size.
-    bool IsGuestWarpSizeSupported(vk::ShaderStageFlagBits stage) const {
-        return (guest_warp_stages & stage) != vk::ShaderStageFlags{};
+    bool IsGuestWarpSizeSupported(VkShaderStageFlagBits stage) const {
+        return guest_warp_stages & stage;
     }
 
     /// Returns true if formatless image load is supported.
@@ -188,15 +189,14 @@ public:
     }
 
     /// Checks if the physical device is suitable.
-    static bool IsSuitable(vk::PhysicalDevice physical, vk::SurfaceKHR surface,
-                           const vk::DispatchLoaderDynamic& dld);
+    static bool IsSuitable(vk::PhysicalDevice physical, VkSurfaceKHR surface);
 
 private:
     /// Loads extensions into a vector and stores available ones in this object.
     std::vector<const char*> LoadExtensions();
 
     /// Sets up queue families.
-    void SetupFamilies(vk::SurfaceKHR surface);
+    void SetupFamilies(VkSurfaceKHR surface);
 
     /// Sets up device features.
     void SetupFeatures();
@@ -205,32 +205,28 @@ private:
     void CollectTelemetryParameters();
 
     /// Returns a list of queue initialization descriptors.
-    std::vector<vk::DeviceQueueCreateInfo> GetDeviceQueueCreateInfos() const;
+    std::vector<VkDeviceQueueCreateInfo> GetDeviceQueueCreateInfos() const;
 
     /// Returns true if ASTC textures are natively supported.
-    bool IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features) const;
+    bool IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const;
 
     /// Returns true if a format is supported.
-    bool IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlags wanted_usage,
+    bool IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                            FormatType format_type) const;
 
-    /// Returns the device properties for Vulkan formats.
-    static std::unordered_map<vk::Format, vk::FormatProperties> GetFormatProperties(
-        const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical);
-
-    vk::DispatchLoaderDynamic dld;            ///< Device function pointers.
-    vk::PhysicalDevice physical;              ///< Physical device.
-    vk::PhysicalDeviceProperties properties;  ///< Device properties.
-    UniqueDevice logical;                     ///< Logical device.
-    vk::Queue graphics_queue;                 ///< Main graphics queue.
-    vk::Queue present_queue;                  ///< Main present queue.
-    u32 graphics_family{};                    ///< Main graphics queue family index.
-    u32 present_family{};                     ///< Main present queue family index.
-    vk::DriverIdKHR driver_id{};              ///< Driver ID.
-    vk::ShaderStageFlags guest_warp_stages{}; ///< Stages where the guest warp size can be forced.ed
-    bool is_optimal_astc_supported{};         ///< Support for native ASTC.
-    bool is_float16_supported{};              ///< Support for float16 arithmetics.
-    bool is_warp_potentially_bigger{};        ///< Host warp size can be bigger than guest.
+    vk::DeviceDispatch dld;                 ///< Device function pointers.
+    vk::PhysicalDevice physical;            ///< Physical device.
+    VkPhysicalDeviceProperties properties;  ///< Device properties.
+    vk::Device logical;                     ///< Logical device.
+    vk::Queue graphics_queue;               ///< Main graphics queue.
+    vk::Queue present_queue;                ///< Main present queue.
+    u32 graphics_family{};                  ///< Main graphics queue family index.
+    u32 present_family{};                   ///< Main present queue family index.
+    VkDriverIdKHR driver_id{};              ///< Driver ID.
+    VkShaderStageFlags guest_warp_stages{}; ///< Stages where the guest warp size can be forced.ed
+    bool is_optimal_astc_supported{};       ///< Support for native ASTC.
+    bool is_float16_supported{};            ///< Support for float16 arithmetics.
+    bool is_warp_potentially_bigger{};      ///< Host warp size can be bigger than guest.
     bool is_formatless_image_load_supported{}; ///< Support for shader image read without format.
     bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
@@ -244,7 +240,7 @@ private:
     std::vector<std::string> reported_extensions; ///< Reported Vulkan extensions.
 
     /// Format properties dictionary.
-    std::unordered_map<vk::Format, vk::FormatProperties> format_properties;
+    std::unordered_map<VkFormat, VkFormatProperties> format_properties;
 };
 
 } // namespace Vulkan

@@ -7,9 +7,9 @@
 #include <memory>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -25,42 +25,42 @@ public:
                                const SPIRVShader& shader);
     ~VKComputePipeline();
 
-    vk::DescriptorSet CommitDescriptorSet();
+    VkDescriptorSet CommitDescriptorSet();
 
-    vk::Pipeline GetHandle() const {
+    VkPipeline GetHandle() const {
         return *pipeline;
     }
 
-    vk::PipelineLayout GetLayout() const {
+    VkPipelineLayout GetLayout() const {
         return *layout;
     }
 
-    const ShaderEntries& GetEntries() {
+    const ShaderEntries& GetEntries() const {
         return entries;
     }
 
 private:
-    UniqueDescriptorSetLayout CreateDescriptorSetLayout() const;
+    vk::DescriptorSetLayout CreateDescriptorSetLayout() const;
 
-    UniquePipelineLayout CreatePipelineLayout() const;
+    vk::PipelineLayout CreatePipelineLayout() const;
 
-    UniqueDescriptorUpdateTemplate CreateDescriptorUpdateTemplate() const;
+    vk::DescriptorUpdateTemplateKHR CreateDescriptorUpdateTemplate() const;
 
-    UniqueShaderModule CreateShaderModule(const std::vector<u32>& code) const;
+    vk::ShaderModule CreateShaderModule(const std::vector<u32>& code) const;
 
-    UniquePipeline CreatePipeline() const;
+    vk::Pipeline CreatePipeline() const;
 
     const VKDevice& device;
     VKScheduler& scheduler;
     ShaderEntries entries;
 
-    UniqueDescriptorSetLayout descriptor_set_layout;
+    vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;
     VKUpdateDescriptorQueue& update_descriptor_queue;
-    UniquePipelineLayout layout;
-    UniqueDescriptorUpdateTemplate descriptor_template;
-    UniqueShaderModule shader_module;
-    UniquePipeline pipeline;
+    vk::PipelineLayout layout;
+    vk::DescriptorUpdateTemplateKHR descriptor_template;
+    vk::ShaderModule shader_module;
+    vk::Pipeline pipeline;
 };
 
 } // namespace Vulkan

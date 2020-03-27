@@ -10,13 +10,13 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -114,6 +114,35 @@ constexpr u8 quad_array[] = {
     0xf9, 0x00, 0x02, 0x00, 0x4c, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x4b, 0x00, 0x00, 0x00,
     0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
 
+VkDescriptorSetLayoutBinding BuildQuadArrayPassDescriptorSetLayoutBinding() {
+    VkDescriptorSetLayoutBinding binding;
+    binding.binding = 0;
+    binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    binding.descriptorCount = 1;
+    binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    binding.pImmutableSamplers = nullptr;
+    return binding;
+}
+
+VkDescriptorUpdateTemplateEntryKHR BuildQuadArrayPassDescriptorUpdateTemplateEntry() {
+    VkDescriptorUpdateTemplateEntryKHR entry;
+    entry.dstBinding = 0;
+    entry.dstArrayElement = 0;
+    entry.descriptorCount = 1;
+    entry.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    entry.offset = 0;
+    entry.stride = sizeof(DescriptorUpdateEntry);
+    return entry;
+}
+
+VkPushConstantRange BuildQuadArrayPassPushConstantRange() {
+    VkPushConstantRange range;
+    range.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    range.offset = 0;
+    range.size = sizeof(u32);
+    return range;
+}
+
 // Uint8 SPIR-V module. Generated from the "shaders/" directory.
 constexpr u8 uint8_pass[] = {
     0x03, 0x02, 0x23, 0x07, 0x00, 0x00, 0x01, 0x00, 0x07, 0x00, 0x08, 0x00, 0x2f, 0x00, 0x00, 0x00,
@@ -191,53 +220,111 @@ constexpr u8 uint8_pass[] = {
     0xf9, 0x00, 0x02, 0x00, 0x1d, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x1d, 0x00, 0x00, 0x00,
     0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
 
+std::array<VkDescriptorSetLayoutBinding, 2> BuildUint8PassDescriptorSetBindings() {
+    std::array<VkDescriptorSetLayoutBinding, 2> bindings;
+    bindings[0].binding = 0;
+    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    bindings[0].descriptorCount = 1;
+    bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    bindings[0].pImmutableSamplers = nullptr;
+    bindings[1].binding = 1;
+    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    bindings[1].descriptorCount = 1;
+    bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+    bindings[1].pImmutableSamplers = nullptr;
+    return bindings;
+}
+
+VkDescriptorUpdateTemplateEntryKHR BuildUint8PassDescriptorUpdateTemplateEntry() {
+    VkDescriptorUpdateTemplateEntryKHR entry;
+    entry.dstBinding = 0;
+    entry.dstArrayElement = 0;
+    entry.descriptorCount = 2;
+    entry.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+    entry.offset = 0;
+    entry.stride = sizeof(DescriptorUpdateEntry);
+    return entry;
+}
+
 } // Anonymous namespace
 
 VKComputePass::VKComputePass(const VKDevice& device, VKDescriptorPool& descriptor_pool,
-                             const std::vector<vk::DescriptorSetLayoutBinding>& bindings,
-                             const std::vector<vk::DescriptorUpdateTemplateEntry>& templates,
-                             const std::vector<vk::PushConstantRange> push_constants,
-                             std::size_t code_size, const u8* code) {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
+                             vk::Span<VkDescriptorSetLayoutBinding> bindings,
+                             vk::Span<VkDescriptorUpdateTemplateEntryKHR> templates,
+                             vk::Span<VkPushConstantRange> push_constants, std::size_t code_size,
+                             const u8* code) {
+    VkDescriptorSetLayoutCreateInfo descriptor_layout_ci;
+    descriptor_layout_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptor_layout_ci.pNext = nullptr;
+    descriptor_layout_ci.flags = 0;
+    descriptor_layout_ci.bindingCount = bindings.size();
+    descriptor_layout_ci.pBindings = bindings.data();
+    descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(descriptor_layout_ci);
 
-    const vk::DescriptorSetLayoutCreateInfo descriptor_layout_ci(
-        {}, static_cast<u32>(bindings.size()), bindings.data());
-    descriptor_set_layout = dev.createDescriptorSetLayoutUnique(descriptor_layout_ci, nullptr, dld);
-
-    const vk::PipelineLayoutCreateInfo pipeline_layout_ci({}, 1, &*descriptor_set_layout,
-                                                          static_cast<u32>(push_constants.size()),
-                                                          push_constants.data());
-    layout = dev.createPipelineLayoutUnique(pipeline_layout_ci, nullptr, dld);
+    VkPipelineLayoutCreateInfo pipeline_layout_ci;
+    pipeline_layout_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipeline_layout_ci.pNext = nullptr;
+    pipeline_layout_ci.flags = 0;
+    pipeline_layout_ci.setLayoutCount = 1;
+    pipeline_layout_ci.pSetLayouts = descriptor_set_layout.address();
+    pipeline_layout_ci.pushConstantRangeCount = push_constants.size();
+    pipeline_layout_ci.pPushConstantRanges = push_constants.data();
+    layout = device.GetLogical().CreatePipelineLayout(pipeline_layout_ci);
 
     if (!templates.empty()) {
-        const vk::DescriptorUpdateTemplateCreateInfo template_ci(
-            {}, static_cast<u32>(templates.size()), templates.data(),
-            vk::DescriptorUpdateTemplateType::eDescriptorSet, *descriptor_set_layout,
-            vk::PipelineBindPoint::eGraphics, *layout, 0);
-        descriptor_template = dev.createDescriptorUpdateTemplateUnique(template_ci, nullptr, dld);
+        VkDescriptorUpdateTemplateCreateInfoKHR template_ci;
+        template_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
+        template_ci.pNext = nullptr;
+        template_ci.flags = 0;
+        template_ci.descriptorUpdateEntryCount = templates.size();
+        template_ci.pDescriptorUpdateEntries = templates.data();
+        template_ci.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR;
+        template_ci.descriptorSetLayout = *descriptor_set_layout;
+        template_ci.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        template_ci.pipelineLayout = *layout;
+        template_ci.set = 0;
+        descriptor_template = device.GetLogical().CreateDescriptorUpdateTemplateKHR(template_ci);
 
         descriptor_allocator.emplace(descriptor_pool, *descriptor_set_layout);
     }
 
     auto code_copy = std::make_unique<u32[]>(code_size / sizeof(u32) + 1);
     std::memcpy(code_copy.get(), code, code_size);
-    const vk::ShaderModuleCreateInfo module_ci({}, code_size, code_copy.get());
-    module = dev.createShaderModuleUnique(module_ci, nullptr, dld);
 
-    const vk::PipelineShaderStageCreateInfo stage_ci({}, vk::ShaderStageFlagBits::eCompute, *module,
-                                                     "main", nullptr);
+    VkShaderModuleCreateInfo module_ci;
+    module_ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    module_ci.pNext = nullptr;
+    module_ci.flags = 0;
+    module_ci.codeSize = code_size;
+    module_ci.pCode = code_copy.get();
+    module = device.GetLogical().CreateShaderModule(module_ci);
 
-    const vk::ComputePipelineCreateInfo pipeline_ci({}, stage_ci, *layout, nullptr, 0);
-    pipeline = dev.createComputePipelineUnique(nullptr, pipeline_ci, nullptr, dld);
+    VkComputePipelineCreateInfo pipeline_ci;
+    pipeline_ci.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    pipeline_ci.pNext = nullptr;
+    pipeline_ci.flags = 0;
+    pipeline_ci.layout = *layout;
+    pipeline_ci.basePipelineHandle = nullptr;
+    pipeline_ci.basePipelineIndex = 0;
+
+    VkPipelineShaderStageCreateInfo& stage_ci = pipeline_ci.stage;
+    stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage_ci.pNext = nullptr;
+    stage_ci.flags = 0;
+    stage_ci.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    stage_ci.module = *module;
+    stage_ci.pName = "main";
+    stage_ci.pSpecializationInfo = nullptr;
+
+    pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci);
 }
 
 VKComputePass::~VKComputePass() = default;
 
-vk::DescriptorSet VKComputePass::CommitDescriptorSet(
-    VKUpdateDescriptorQueue& update_descriptor_queue, VKFence& fence) {
+VkDescriptorSet VKComputePass::CommitDescriptorSet(VKUpdateDescriptorQueue& update_descriptor_queue,
+                                                   VKFence& fence) {
     if (!descriptor_template) {
-        return {};
+        return nullptr;
     }
     const auto set = descriptor_allocator->Commit(fence);
     update_descriptor_queue.Send(*descriptor_template, set);
@@ -248,25 +335,21 @@ QuadArrayPass::QuadArrayPass(const VKDevice& device, VKScheduler& scheduler,
                              VKDescriptorPool& descriptor_pool,
                              VKStagingBufferPool& staging_buffer_pool,
                              VKUpdateDescriptorQueue& update_descriptor_queue)
-    : VKComputePass(device, descriptor_pool,
-                    {vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1,
-                                                    vk::ShaderStageFlagBits::eCompute, nullptr)},
-                    {vk::DescriptorUpdateTemplateEntry(0, 0, 1, vk::DescriptorType::eStorageBuffer,
-                                                       0, sizeof(DescriptorUpdateEntry))},
-                    {vk::PushConstantRange(vk::ShaderStageFlagBits::eCompute, 0, sizeof(u32))},
-                    std::size(quad_array), quad_array),
+    : VKComputePass(device, descriptor_pool, BuildQuadArrayPassDescriptorSetLayoutBinding(),
+                    BuildQuadArrayPassDescriptorUpdateTemplateEntry(),
+                    BuildQuadArrayPassPushConstantRange(), std::size(quad_array), quad_array),
       scheduler{scheduler}, staging_buffer_pool{staging_buffer_pool},
       update_descriptor_queue{update_descriptor_queue} {}
 
 QuadArrayPass::~QuadArrayPass() = default;
 
-std::pair<const vk::Buffer&, vk::DeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 first) {
+std::pair<const VkBuffer*, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 first) {
     const u32 num_triangle_vertices = num_vertices * 6 / 4;
     const std::size_t staging_size = num_triangle_vertices * sizeof(u32);
     auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
 
     update_descriptor_queue.Acquire();
-    update_descriptor_queue.AddBuffer(&*buffer.handle, 0, staging_size);
+    update_descriptor_queue.AddBuffer(buffer.handle.address(), 0, staging_size);
     const auto set = CommitDescriptorSet(update_descriptor_queue, scheduler.GetFence());
 
     scheduler.RequestOutsideRenderPassOperationContext();
@@ -274,66 +357,72 @@ std::pair<const vk::Buffer&, vk::DeviceSize> QuadArrayPass::Assemble(u32 num_ver
     ASSERT(num_vertices % 4 == 0);
     const u32 num_quads = num_vertices / 4;
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, num_quads,
-                      first, set](auto cmdbuf, auto& dld) {
+                      first, set](vk::CommandBuffer cmdbuf) {
         constexpr u32 dispatch_size = 1024;
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline, dld);
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, layout, 0, {set}, {}, dld);
-        cmdbuf.pushConstants(layout, vk::ShaderStageFlagBits::eCompute, 0, sizeof(first), &first,
-                             dld);
-        cmdbuf.dispatch(Common::AlignUp(num_quads, dispatch_size) / dispatch_size, 1, 1, dld);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
+        cmdbuf.PushConstants(layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(first), &first);
+        cmdbuf.Dispatch(Common::AlignUp(num_quads, dispatch_size) / dispatch_size, 1, 1);
 
-        const vk::BufferMemoryBarrier barrier(
-            vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eVertexAttributeRead,
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, buffer, 0,
-            static_cast<vk::DeviceSize>(num_quads) * 6 * sizeof(u32));
-        cmdbuf.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-                               vk::PipelineStageFlagBits::eVertexInput, {}, {}, {barrier}, {}, dld);
+        VkBufferMemoryBarrier barrier;
+        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        barrier.pNext = nullptr;
+        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.buffer = buffer;
+        barrier.offset = 0;
+        barrier.size = static_cast<VkDeviceSize>(num_quads) * 6 * sizeof(u32);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, {barrier}, {});
     });
-    return {*buffer.handle, 0};
+    return {buffer.handle.address(), 0};
 }
 
 Uint8Pass::Uint8Pass(const VKDevice& device, VKScheduler& scheduler,
                      VKDescriptorPool& descriptor_pool, VKStagingBufferPool& staging_buffer_pool,
                      VKUpdateDescriptorQueue& update_descriptor_queue)
-    : VKComputePass(device, descriptor_pool,
-                    {vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eStorageBuffer, 1,
-                                                    vk::ShaderStageFlagBits::eCompute, nullptr),
-                     vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eStorageBuffer, 1,
-                                                    vk::ShaderStageFlagBits::eCompute, nullptr)},
-                    {vk::DescriptorUpdateTemplateEntry(0, 0, 2, vk::DescriptorType::eStorageBuffer,
-                                                       0, sizeof(DescriptorUpdateEntry))},
-                    {}, std::size(uint8_pass), uint8_pass),
+    : VKComputePass(device, descriptor_pool, BuildUint8PassDescriptorSetBindings(),
+                    BuildUint8PassDescriptorUpdateTemplateEntry(), {}, std::size(uint8_pass),
+                    uint8_pass),
       scheduler{scheduler}, staging_buffer_pool{staging_buffer_pool},
       update_descriptor_queue{update_descriptor_queue} {}
 
 Uint8Pass::~Uint8Pass() = default;
 
-std::pair<const vk::Buffer*, u64> Uint8Pass::Assemble(u32 num_vertices, vk::Buffer src_buffer,
-                                                      u64 src_offset) {
+std::pair<const VkBuffer*, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
+                                                    u64 src_offset) {
     const auto staging_size = static_cast<u32>(num_vertices * sizeof(u16));
     auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(&src_buffer, src_offset, num_vertices);
-    update_descriptor_queue.AddBuffer(&*buffer.handle, 0, staging_size);
+    update_descriptor_queue.AddBuffer(buffer.handle.address(), 0, staging_size);
     const auto set = CommitDescriptorSet(update_descriptor_queue, scheduler.GetFence());
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, set,
-                      num_vertices](auto cmdbuf, auto& dld) {
+                      num_vertices](vk::CommandBuffer cmdbuf) {
         constexpr u32 dispatch_size = 1024;
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline, dld);
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, layout, 0, {set}, {}, dld);
-        cmdbuf.dispatch(Common::AlignUp(num_vertices, dispatch_size) / dispatch_size, 1, 1, dld);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, 0, set, {});
+        cmdbuf.Dispatch(Common::AlignUp(num_vertices, dispatch_size) / dispatch_size, 1, 1);
 
-        const vk::BufferMemoryBarrier barrier(
-            vk::AccessFlagBits::eShaderWrite, vk::AccessFlagBits::eVertexAttributeRead,
-            VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, buffer, 0,
-            static_cast<vk::DeviceSize>(num_vertices) * sizeof(u16));
-        cmdbuf.pipelineBarrier(vk::PipelineStageFlagBits::eComputeShader,
-                               vk::PipelineStageFlagBits::eVertexInput, {}, {}, {barrier}, {}, dld);
+        VkBufferMemoryBarrier barrier;
+        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
+        barrier.pNext = nullptr;
+        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.buffer = buffer;
+        barrier.offset = 0;
+        barrier.size = static_cast<VkDeviceSize>(num_vertices * sizeof(u16));
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                               VK_PIPELINE_STAGE_VERTEX_INPUT_BIT, 0, {}, barrier, {});
     });
-    return {&*buffer.handle, 0};
+    return {buffer.handle.address(), 0};
 }
 
 } // namespace Vulkan

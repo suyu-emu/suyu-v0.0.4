@@ -6,10 +6,10 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -17,19 +17,18 @@ namespace Vulkan {
 constexpr std::size_t SETS_GROW_RATE = 0x20;
 
 DescriptorAllocator::DescriptorAllocator(VKDescriptorPool& descriptor_pool,
-                                         vk::DescriptorSetLayout layout)
+                                         VkDescriptorSetLayout layout)
     : VKFencedPool{SETS_GROW_RATE}, descriptor_pool{descriptor_pool}, layout{layout} {}
 
 DescriptorAllocator::~DescriptorAllocator() = default;
 
-vk::DescriptorSet DescriptorAllocator::Commit(VKFence& fence) {
-    return *descriptors[CommitResource(fence)];
+VkDescriptorSet DescriptorAllocator::Commit(VKFence& fence) {
+    const std::size_t index = CommitResource(fence);
+    return descriptors_allocations[index / SETS_GROW_RATE][index % SETS_GROW_RATE];
 }
 
 void DescriptorAllocator::Allocate(std::size_t begin, std::size_t end) {
-    auto new_sets = descriptor_pool.AllocateDescriptors(layout, end - begin);
-    descriptors.insert(descriptors.end(), std::make_move_iterator(new_sets.begin()),
-                       std::make_move_iterator(new_sets.end()));
+    descriptors_allocations.push_back(descriptor_pool.AllocateDescriptors(layout, end - begin));
 }
 
 VKDescriptorPool::VKDescriptorPool(const VKDevice& device)
@@ -37,53 +36,50 @@ VKDescriptorPool::VKDescriptorPool(const VKDevice& device)
 
 VKDescriptorPool::~VKDescriptorPool() = default;
 
-vk::DescriptorPool VKDescriptorPool::AllocateNewPool() {
+vk::DescriptorPool* VKDescriptorPool::AllocateNewPool() {
     static constexpr u32 num_sets = 0x20000;
-    static constexpr vk::DescriptorPoolSize pool_sizes[] = {
-        {vk::DescriptorType::eUniformBuffer, num_sets * 90},
-        {vk::DescriptorType::eStorageBuffer, num_sets * 60},
-        {vk::DescriptorType::eUniformTexelBuffer, num_sets * 64},
-        {vk::DescriptorType::eCombinedImageSampler, num_sets * 64},
-        {vk::DescriptorType::eStorageImage, num_sets * 40}};
+    static constexpr VkDescriptorPoolSize pool_sizes[] = {
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, num_sets * 90},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, num_sets * 60},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, num_sets * 64},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, num_sets * 64},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, num_sets * 40}};
 
-    const vk::DescriptorPoolCreateInfo create_info(
-        vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet, num_sets,
-        static_cast<u32>(std::size(pool_sizes)), std::data(pool_sizes));
-    const auto dev = device.GetLogical();
-    return *pools.emplace_back(
-        dev.createDescriptorPoolUnique(create_info, nullptr, device.GetDispatchLoader()));
+    VkDescriptorPoolCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    ci.maxSets = num_sets;
+    ci.poolSizeCount = static_cast<u32>(std::size(pool_sizes));
+    ci.pPoolSizes = std::data(pool_sizes);
+    return &pools.emplace_back(device.GetLogical().CreateDescriptorPool(ci));
 }
 
-std::vector<UniqueDescriptorSet> VKDescriptorPool::AllocateDescriptors(
-    vk::DescriptorSetLayout layout, std::size_t count) {
-    std::vector layout_copies(count, layout);
-    vk::DescriptorSetAllocateInfo allocate_info(active_pool, static_cast<u32>(count),
-                                                layout_copies.data());
+vk::DescriptorSets VKDescriptorPool::AllocateDescriptors(VkDescriptorSetLayout layout,
+                                                         std::size_t count) {
+    const std::vector layout_copies(count, layout);
+    VkDescriptorSetAllocateInfo ai;
+    ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    ai.pNext = nullptr;
+    ai.descriptorPool = **active_pool;
+    ai.descriptorSetCount = static_cast<u32>(count);
+    ai.pSetLayouts = layout_copies.data();
 
-    std::vector<vk::DescriptorSet> sets(count);
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    switch (const auto result = dev.allocateDescriptorSets(&allocate_info, sets.data(), dld)) {
-    case vk::Result::eSuccess:
-        break;
-    case vk::Result::eErrorOutOfPoolMemory:
-        active_pool = AllocateNewPool();
-        allocate_info.descriptorPool = active_pool;
-        if (dev.allocateDescriptorSets(&allocate_info, sets.data(), dld) == vk::Result::eSuccess) {
-            break;
-        }
-        [[fallthrough]];
-    default:
-        vk::throwResultException(result, "vk::Device::allocateDescriptorSetsUnique");
+    vk::DescriptorSets sets = active_pool->Allocate(ai);
+    if (!sets.IsOutOfPoolMemory()) {
+        return sets;
     }
 
-    vk::PoolFree deleter(dev, active_pool, dld);
-    std::vector<UniqueDescriptorSet> unique_sets;
-    unique_sets.reserve(count);
-    for (const auto set : sets) {
-        unique_sets.push_back(UniqueDescriptorSet{set, deleter});
+    // Our current pool is out of memory. Allocate a new one and retry
+    active_pool = AllocateNewPool();
+    ai.descriptorPool = **active_pool;
+    sets = active_pool->Allocate(ai);
+    if (!sets.IsOutOfPoolMemory()) {
+        return sets;
     }
-    return unique_sets;
+
+    // After allocating a new pool, we are out of memory again. We can't handle this from here.
+    throw vk::Exception(VK_ERROR_OUT_OF_POOL_MEMORY);
 }
 
 } // namespace Vulkan

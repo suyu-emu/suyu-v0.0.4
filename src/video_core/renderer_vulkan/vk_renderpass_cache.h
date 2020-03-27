@@ -12,7 +12,7 @@
 #include <boost/functional/hash.hpp>
 
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
 
 namespace Vulkan {
@@ -85,13 +85,13 @@ public:
     explicit VKRenderPassCache(const VKDevice& device);
     ~VKRenderPassCache();
 
-    vk::RenderPass GetRenderPass(const RenderPassParams& params);
+    VkRenderPass GetRenderPass(const RenderPassParams& params);
 
 private:
-    UniqueRenderPass CreateRenderPass(const RenderPassParams& params) const;
+    vk::RenderPass CreateRenderPass(const RenderPassParams& params) const;
 
     const VKDevice& device;
-    std::unordered_map<RenderPassParams, UniqueRenderPass> cache;
+    std::unordered_map<RenderPassParams, vk::RenderPass> cache;
 };
 
 } // namespace Vulkan

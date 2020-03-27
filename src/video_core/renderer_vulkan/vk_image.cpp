@@ -6,22 +6,21 @@
 #include <vector>
 
 #include "common/assert.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_image.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
-VKImage::VKImage(const VKDevice& device, VKScheduler& scheduler,
-                 const vk::ImageCreateInfo& image_ci, vk::ImageAspectFlags aspect_mask)
+VKImage::VKImage(const VKDevice& device, VKScheduler& scheduler, const VkImageCreateInfo& image_ci,
+                 VkImageAspectFlags aspect_mask)
     : device{device}, scheduler{scheduler}, format{image_ci.format}, aspect_mask{aspect_mask},
       image_num_layers{image_ci.arrayLayers}, image_num_levels{image_ci.mipLevels} {
     UNIMPLEMENTED_IF_MSG(image_ci.queueFamilyIndexCount != 0,
                          "Queue family tracking is not implemented");
 
-    const auto dev = device.GetLogical();
-    image = dev.createImageUnique(image_ci, nullptr, device.GetDispatchLoader());
+    image = device.GetLogical().CreateImage(image_ci);
 
     const u32 num_ranges = image_num_layers * image_num_levels;
     barriers.resize(num_ranges);
@@ -31,8 +30,8 @@ VKImage::VKImage(const VKDevice& device, VKScheduler& scheduler,
 VKImage::~VKImage() = default;
 
 void VKImage::Transition(u32 base_layer, u32 num_layers, u32 base_level, u32 num_levels,
-                         vk::PipelineStageFlags new_stage_mask, vk::AccessFlags new_access,
-                         vk::ImageLayout new_layout) {
+                         VkPipelineStageFlags new_stage_mask, VkAccessFlags new_access,
+                         VkImageLayout new_layout) {
     if (!HasChanged(base_layer, num_layers, base_level, num_levels, new_access, new_layout)) {
         return;
     }
@@ -43,9 +42,21 @@ void VKImage::Transition(u32 base_layer, u32 num_layers, u32 base_level, u32 num
             const u32 layer = base_layer + layer_it;
             const u32 level = base_level + level_it;
             auto& state = GetSubrangeState(layer, level);
-            barriers[cursor] = vk::ImageMemoryBarrier(
-                state.access, new_access, state.layout, new_layout, VK_QUEUE_FAMILY_IGNORED,
-                VK_QUEUE_FAMILY_IGNORED, *image, {aspect_mask, level, 1, layer, 1});
+            auto& barrier = barriers[cursor];
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.pNext = nullptr;
+            barrier.srcAccessMask = state.access;
+            barrier.dstAccessMask = new_access;
+            barrier.oldLayout = state.layout;
+            barrier.newLayout = new_layout;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = *image;
+            barrier.subresourceRange.aspectMask = aspect_mask;
+            barrier.subresourceRange.baseMipLevel = level;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.baseArrayLayer = layer;
+            barrier.subresourceRange.layerCount = 1;
             state.access = new_access;
             state.layout = new_layout;
         }
@@ -53,16 +64,16 @@ void VKImage::Transition(u32 base_layer, u32 num_layers, u32 base_level, u32 num
 
     scheduler.RequestOutsideRenderPassOperationContext();
 
-    scheduler.Record([barriers = barriers, cursor](auto cmdbuf, auto& dld) {
+    scheduler.Record([barriers = barriers, cursor](vk::CommandBuffer cmdbuf) {
         // TODO(Rodrigo): Implement a way to use the latest stage across subresources.
-        constexpr auto stage_stub = vk::PipelineStageFlagBits::eAllCommands;
-        cmdbuf.pipelineBarrier(stage_stub, stage_stub, {}, 0, nullptr, 0, nullptr,
-                               static_cast<u32>(cursor), barriers.data(), dld);
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_ALL_COMMANDS_BIT,
+                               VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, {}, {},
+                               vk::Span(barriers.data(), cursor));
     });
 }
 
 bool VKImage::HasChanged(u32 base_layer, u32 num_layers, u32 base_level, u32 num_levels,
-                         vk::AccessFlags new_access, vk::ImageLayout new_layout) noexcept {
+                         VkAccessFlags new_access, VkImageLayout new_layout) noexcept {
     const bool is_full_range = base_layer == 0 && num_layers == image_num_layers &&
                                base_level == 0 && num_levels == image_num_levels;
     if (!is_full_range) {
@@ -91,11 +102,21 @@ bool VKImage::HasChanged(u32 base_layer, u32 num_layers, u32 base_level, u32 num
 
 void VKImage::CreatePresentView() {
     // Image type has to be 2D to be presented.
-    const vk::ImageViewCreateInfo image_view_ci({}, *image, vk::ImageViewType::e2D, format, {},
-                                                {aspect_mask, 0, 1, 0, 1});
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    present_view = dev.createImageViewUnique(image_view_ci, nullptr, dld);
+    VkImageViewCreateInfo image_view_ci;
+    image_view_ci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    image_view_ci.pNext = nullptr;
+    image_view_ci.flags = 0;
+    image_view_ci.image = *image;
+    image_view_ci.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    image_view_ci.format = format;
+    image_view_ci.components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
+                                VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
+    image_view_ci.subresourceRange.aspectMask = aspect_mask;
+    image_view_ci.subresourceRange.baseMipLevel = 0;
+    image_view_ci.subresourceRange.levelCount = 1;
+    image_view_ci.subresourceRange.baseArrayLayer = 0;
+    image_view_ci.subresourceRange.layerCount = 1;
+    present_view = device.GetLogical().CreateImageView(image_view_ci);
 }
 
 VKImage::SubrangeState& VKImage::GetSubrangeState(u32 layer, u32 level) noexcept {

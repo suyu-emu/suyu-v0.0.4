@@ -8,8 +8,8 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -17,21 +17,21 @@ class VKDescriptorPool;
 
 class DescriptorAllocator final : public VKFencedPool {
 public:
-    explicit DescriptorAllocator(VKDescriptorPool& descriptor_pool, vk::DescriptorSetLayout layout);
+    explicit DescriptorAllocator(VKDescriptorPool& descriptor_pool, VkDescriptorSetLayout layout);
     ~DescriptorAllocator() override;
 
     DescriptorAllocator(const DescriptorAllocator&) = delete;
 
-    vk::DescriptorSet Commit(VKFence& fence);
+    VkDescriptorSet Commit(VKFence& fence);
 
 protected:
     void Allocate(std::size_t begin, std::size_t end) override;
 
 private:
     VKDescriptorPool& descriptor_pool;
-    const vk::DescriptorSetLayout layout;
+    const VkDescriptorSetLayout layout;
 
-    std::vector<UniqueDescriptorSet> descriptors;
+    std::vector<vk::DescriptorSets> descriptors_allocations;
 };
 
 class VKDescriptorPool final {
@@ -42,15 +42,14 @@ public:
     ~VKDescriptorPool();
 
 private:
-    vk::DescriptorPool AllocateNewPool();
+    vk::DescriptorPool* AllocateNewPool();
 
-    std::vector<UniqueDescriptorSet> AllocateDescriptors(vk::DescriptorSetLayout layout,
-                                                         std::size_t count);
+    vk::DescriptorSets AllocateDescriptors(VkDescriptorSetLayout layout, std::size_t count);
 
     const VKDevice& device;
 
-    std::vector<UniqueDescriptorPool> pools;
-    vk::DescriptorPool active_pool;
+    std::vector<vk::DescriptorPool> pools;
+    vk::DescriptorPool* active_pool;
 };
 
 } // namespace Vulkan

@@ -24,7 +24,6 @@
 #include "core/settings.h"
 #include "core/telemetry_session.h"
 #include "video_core/gpu.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_device.h"
@@ -34,8 +33,9 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
-// Include these late to avoid changing Vulkan-Hpp's dynamic dispatcher size
+// Include these late to avoid polluting previous headers
 #ifdef _WIN32
 #include <windows.h>
 // ensure include order
@@ -54,20 +54,19 @@ namespace {
 
 using Core::Frontend::WindowSystemType;
 
-VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity_,
+VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                        VkDebugUtilsMessageTypeFlagsEXT type,
                        const VkDebugUtilsMessengerCallbackDataEXT* data,
                        [[maybe_unused]] void* user_data) {
-    const auto severity{static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(severity_)};
     const char* message{data->pMessage};
 
-    if (severity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
+    if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         LOG_CRITICAL(Render_Vulkan, "{}", message);
-    } else if (severity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning) {
+    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
         LOG_WARNING(Render_Vulkan, "{}", message);
-    } else if (severity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo) {
+    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
         LOG_INFO(Render_Vulkan, "{}", message);
-    } else if (severity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose) {
+    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
         LOG_DEBUG(Render_Vulkan, "{}", message);
     }
     return VK_FALSE;
@@ -94,22 +93,24 @@ Common::DynamicLibrary OpenVulkanLibrary() {
     return library;
 }
 
-UniqueInstance CreateInstance(Common::DynamicLibrary& library, vk::DispatchLoaderDynamic& dld,
-                              WindowSystemType window_type = WindowSystemType::Headless,
-                              bool enable_layers = false) {
+vk::Instance CreateInstance(Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
+                            WindowSystemType window_type = WindowSystemType::Headless,
+                            bool enable_layers = false) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
-        return UniqueInstance{};
+        return {};
     }
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
-    if (!library.GetSymbol("vkGetInstanceProcAddr", &vkGetInstanceProcAddr)) {
+    if (!library.GetSymbol("vkGetInstanceProcAddr", &dld.vkGetInstanceProcAddr)) {
         LOG_ERROR(Render_Vulkan, "vkGetInstanceProcAddr not present in Vulkan");
-        return UniqueInstance{};
+        return {};
     }
-    dld.init(vkGetInstanceProcAddr);
+    if (!vk::Load(dld)) {
+        LOG_ERROR(Render_Vulkan, "Failed to load Vulkan function pointers");
+        return {};
+    }
 
     std::vector<const char*> extensions;
-    extensions.reserve(4);
+    extensions.reserve(6);
     switch (window_type) {
     case Core::Frontend::WindowSystemType::Headless:
         break;
@@ -136,45 +137,39 @@ UniqueInstance CreateInstance(Common::DynamicLibrary& library, vk::DispatchLoade
     if (enable_layers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
+    extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
-    u32 num_properties;
-    if (vk::enumerateInstanceExtensionProperties(nullptr, &num_properties, nullptr, dld) !=
-        vk::Result::eSuccess) {
-        LOG_ERROR(Render_Vulkan, "Failed to query number of extension properties");
-        return UniqueInstance{};
-    }
-    std::vector<vk::ExtensionProperties> properties(num_properties);
-    if (vk::enumerateInstanceExtensionProperties(nullptr, &num_properties, properties.data(),
-                                                 dld) != vk::Result::eSuccess) {
+    const std::optional properties = vk::EnumerateInstanceExtensionProperties(dld);
+    if (!properties) {
         LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
-        return UniqueInstance{};
+        return {};
     }
 
     for (const char* extension : extensions) {
         const auto it =
-            std::find_if(properties.begin(), properties.end(), [extension](const auto& prop) {
+            std::find_if(properties->begin(), properties->end(), [extension](const auto& prop) {
                 return !std::strcmp(extension, prop.extensionName);
             });
-        if (it == properties.end()) {
+        if (it == properties->end()) {
             LOG_ERROR(Render_Vulkan, "Required instance extension {} is not available", extension);
-            return UniqueInstance{};
+            return {};
         }
     }
 
-    const vk::ApplicationInfo application_info("yuzu Emulator", VK_MAKE_VERSION(0, 1, 0),
-                                               "yuzu Emulator", VK_MAKE_VERSION(0, 1, 0),
-                                               VK_API_VERSION_1_1);
-    const std::array layers = {"VK_LAYER_LUNARG_standard_validation"};
-    const vk::InstanceCreateInfo instance_ci(
-        {}, &application_info, enable_layers ? static_cast<u32>(layers.size()) : 0, layers.data(),
-        static_cast<u32>(extensions.size()), extensions.data());
-    vk::Instance unsafe_instance;
-    if (vk::createInstance(&instance_ci, nullptr, &unsafe_instance, dld) != vk::Result::eSuccess) {
-        LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
-        return UniqueInstance{};
+    static constexpr std::array layers_data{"VK_LAYER_LUNARG_standard_validation"};
+    vk::Span<const char*> layers = layers_data;
+    if (!enable_layers) {
+        layers = {};
     }
-    dld.init(unsafe_instance);
-    return UniqueInstance(unsafe_instance, {nullptr, dld});
+    vk::Instance instance = vk::Instance::Create(layers, extensions, dld);
+    if (!instance) {
+        LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
+        return {};
+    }
+    if (!vk::Load(*instance, dld)) {
+        LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
+    }
+    return instance;
 }
 
 std::string GetReadableVersion(u32 version) {
@@ -187,14 +182,14 @@ std::string GetDriverVersion(const VKDevice& device) {
     // https://github.com/SaschaWillems/vulkan.gpuinfo.org/blob/5dddea46ea1120b0df14eef8f15ff8e318e35462/functions.php#L308-L314
     const u32 version = device.GetDriverVersion();
 
-    if (device.GetDriverID() == vk::DriverIdKHR::eNvidiaProprietary) {
+    if (device.GetDriverID() == VK_DRIVER_ID_NVIDIA_PROPRIETARY_KHR) {
         const u32 major = (version >> 22) & 0x3ff;
         const u32 minor = (version >> 14) & 0x0ff;
         const u32 secondary = (version >> 6) & 0x0ff;
         const u32 tertiary = version & 0x003f;
         return fmt::format("{}.{}.{}.{}", major, minor, secondary, tertiary);
     }
-    if (device.GetDriverID() == vk::DriverIdKHR::eIntelProprietaryWindows) {
+    if (device.GetDriverID() == VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS_KHR) {
         const u32 major = version >> 14;
         const u32 minor = version & 0x3fff;
         return fmt::format("{}.{}", major, minor);
@@ -307,10 +302,8 @@ void RendererVulkan::ShutDown() {
     if (!device) {
         return;
     }
-    const auto dev = device->GetLogical();
-    const auto& dld = device->GetDispatchLoader();
-    if (dev && dld.vkDeviceWaitIdle) {
-        dev.waitIdle(dld);
+    if (const auto& dev = device->GetLogical()) {
+        dev.WaitIdle();
     }
 
     rasterizer.reset();
@@ -326,23 +319,11 @@ bool RendererVulkan::CreateDebugCallback() {
     if (!Settings::values.renderer_debug) {
         return true;
     }
-    const vk::DebugUtilsMessengerCreateInfoEXT callback_ci(
-        {},
-        vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose,
-        vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
-            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-        &DebugCallback, nullptr);
-    vk::DebugUtilsMessengerEXT unsafe_callback;
-    if (instance->createDebugUtilsMessengerEXT(&callback_ci, nullptr, &unsafe_callback, dld) !=
-        vk::Result::eSuccess) {
+    debug_callback = instance.TryCreateDebugCallback(DebugCallback);
+    if (!debug_callback) {
         LOG_ERROR(Render_Vulkan, "Failed to create debug callback");
         return false;
     }
-    debug_callback = UniqueDebugUtilsMessengerEXT(unsafe_callback, {*instance, nullptr, dld});
     return true;
 }
 
@@ -357,8 +338,8 @@ bool RendererVulkan::CreateSurface() {
                                                    nullptr, 0, nullptr, hWnd};
         const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
             dld.vkGetInstanceProcAddr(*instance, "vkCreateWin32SurfaceKHR"));
-        if (!vkCreateWin32SurfaceKHR || vkCreateWin32SurfaceKHR(instance.get(), &win32_ci, nullptr,
-                                                                &unsafe_surface) != VK_SUCCESS) {
+        if (!vkCreateWin32SurfaceKHR ||
+            vkCreateWin32SurfaceKHR(*instance, &win32_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Win32 surface");
             return false;
         }
@@ -372,8 +353,8 @@ bool RendererVulkan::CreateSurface() {
             reinterpret_cast<Window>(window_info.render_surface)};
         const auto vkCreateXlibSurfaceKHR = reinterpret_cast<PFN_vkCreateXlibSurfaceKHR>(
             dld.vkGetInstanceProcAddr(*instance, "vkCreateXlibSurfaceKHR"));
-        if (!vkCreateXlibSurfaceKHR || vkCreateXlibSurfaceKHR(instance.get(), &xlib_ci, nullptr,
-                                                              &unsafe_surface) != VK_SUCCESS) {
+        if (!vkCreateXlibSurfaceKHR ||
+            vkCreateXlibSurfaceKHR(*instance, &xlib_ci, nullptr, &unsafe_surface) != VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Xlib surface");
             return false;
         }
@@ -386,7 +367,7 @@ bool RendererVulkan::CreateSurface() {
         const auto vkCreateWaylandSurfaceKHR = reinterpret_cast<PFN_vkCreateWaylandSurfaceKHR>(
             dld.vkGetInstanceProcAddr(*instance, "vkCreateWaylandSurfaceKHR"));
         if (!vkCreateWaylandSurfaceKHR ||
-            vkCreateWaylandSurfaceKHR(instance.get(), &wayland_ci, nullptr, &unsafe_surface) !=
+            vkCreateWaylandSurfaceKHR(*instance, &wayland_ci, nullptr, &unsafe_surface) !=
                 VK_SUCCESS) {
             LOG_ERROR(Render_Vulkan, "Failed to initialize Wayland surface");
             return false;
@@ -398,26 +379,30 @@ bool RendererVulkan::CreateSurface() {
         return false;
     }
 
-    surface = UniqueSurfaceKHR(unsafe_surface, {*instance, nullptr, dld});
+    surface = vk::SurfaceKHR(unsafe_surface, *instance, dld);
     return true;
 }
 
 bool RendererVulkan::PickDevices() {
-    const auto devices = instance->enumeratePhysicalDevices(dld);
+    const auto devices = instance.EnumeratePhysicalDevices();
+    if (!devices) {
+        LOG_ERROR(Render_Vulkan, "Failed to enumerate physical devices");
+        return false;
+    }
 
     const s32 device_index = Settings::values.vulkan_device;
-    if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
+    if (device_index < 0 || device_index >= static_cast<s32>(devices->size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
         return false;
     }
-    const vk::PhysicalDevice physical_device = devices[static_cast<std::size_t>(device_index)];
-
-    if (!VKDevice::IsSuitable(physical_device, *surface, dld)) {
+    const vk::PhysicalDevice physical_device((*devices)[static_cast<std::size_t>(device_index)],
+                                             dld);
+    if (!VKDevice::IsSuitable(physical_device, *surface)) {
         return false;
     }
 
-    device = std::make_unique<VKDevice>(dld, physical_device, *surface);
-    return device->Create(*instance);
+    device = std::make_unique<VKDevice>(*instance, physical_device, *surface, dld);
+    return device->Create();
 }
 
 void RendererVulkan::Report() const {
@@ -444,30 +429,22 @@ void RendererVulkan::Report() const {
 }
 
 std::vector<std::string> RendererVulkan::EnumerateDevices() {
-    // Avoid putting DispatchLoaderDynamic, it's too large
-    auto dld_memory = std::make_unique<vk::DispatchLoaderDynamic>();
-    auto& dld = *dld_memory;
-
+    vk::InstanceDispatch dld;
     Common::DynamicLibrary library = OpenVulkanLibrary();
-    UniqueInstance instance = CreateInstance(library, dld);
+    vk::Instance instance = CreateInstance(library, dld);
     if (!instance) {
         return {};
     }
 
-    u32 num_devices;
-    if (instance->enumeratePhysicalDevices(&num_devices, nullptr, dld) != vk::Result::eSuccess) {
-        return {};
-    }
-    std::vector<vk::PhysicalDevice> devices(num_devices);
-    if (instance->enumeratePhysicalDevices(&num_devices, devices.data(), dld) !=
-        vk::Result::eSuccess) {
+    const std::optional physical_devices = instance.EnumeratePhysicalDevices();
+    if (!physical_devices) {
         return {};
     }
 
     std::vector<std::string> names;
-    names.reserve(num_devices);
-    for (auto& device : devices) {
-        names.push_back(device.getProperties(dld).deviceName);
+    names.reserve(physical_devices->size());
+    for (const auto& device : *physical_devices) {
+        names.push_back(vk::PhysicalDevice(device, dld).GetProperties().deviceName);
     }
     return names;
 }

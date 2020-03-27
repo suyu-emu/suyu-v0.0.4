@@ -6,8 +6,8 @@
 
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
 #include "video_core/textures/texture.h"
 
@@ -18,46 +18,45 @@ using PixelFormat = VideoCore::Surface::PixelFormat;
 
 namespace Sampler {
 
-vk::Filter Filter(Tegra::Texture::TextureFilter filter);
+VkFilter Filter(Tegra::Texture::TextureFilter filter);
 
-vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter);
+VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter);
 
-vk::SamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
-                                Tegra::Texture::TextureFilter filter);
+VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
+                              Tegra::Texture::TextureFilter filter);
 
-vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func);
+VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func);
 
 } // namespace Sampler
 
 struct FormatInfo {
-    vk::Format format;
+    VkFormat format;
     bool attachable;
     bool storage;
 };
 
 FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format);
 
-vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
+VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage);
 
-vk::PrimitiveTopology PrimitiveTopology(const VKDevice& device,
-                                        Maxwell::PrimitiveTopology topology);
+VkPrimitiveTopology PrimitiveTopology(const VKDevice& device, Maxwell::PrimitiveTopology topology);
 
-vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size);
+VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size);
 
-vk::CompareOp ComparisonOp(Maxwell::ComparisonOp comparison);
+VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison);
 
-vk::IndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format);
+VkIndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format);
 
-vk::StencilOp StencilOp(Maxwell::StencilOp stencil_op);
+VkStencilOp StencilOp(Maxwell::StencilOp stencil_op);
 
-vk::BlendOp BlendEquation(Maxwell::Blend::Equation equation);
+VkBlendOp BlendEquation(Maxwell::Blend::Equation equation);
 
-vk::BlendFactor BlendFactor(Maxwell::Blend::Factor factor);
+VkBlendFactor BlendFactor(Maxwell::Blend::Factor factor);
 
-vk::FrontFace FrontFace(Maxwell::FrontFace front_face);
+VkFrontFace FrontFace(Maxwell::FrontFace front_face);
 
-vk::CullModeFlags CullFace(Maxwell::CullFace cull_face);
+VkCullModeFlags CullFace(Maxwell::CullFace cull_face);
 
-vk::ComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
+VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
 } // namespace Vulkan::MaxwellToVK

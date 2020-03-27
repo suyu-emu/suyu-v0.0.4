@@ -7,7 +7,7 @@
 #include <cstddef>
 #include <memory>
 #include <vector>
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -42,7 +42,7 @@ class VKFence {
     friend class VKResourceManager;
 
 public:
-    explicit VKFence(const VKDevice& device, UniqueFence handle);
+    explicit VKFence(const VKDevice& device);
     ~VKFence();
 
     /**
@@ -69,7 +69,7 @@ public:
     void RedirectProtection(VKResource* old_resource, VKResource* new_resource) noexcept;
 
     /// Retreives the fence.
-    operator vk::Fence() const {
+    operator VkFence() const {
         return *handle;
     }
 
@@ -87,7 +87,7 @@ private:
     bool Tick(bool gpu_wait, bool owner_wait);
 
     const VKDevice& device;                       ///< Device handler
-    UniqueFence handle;                           ///< Vulkan fence
+    vk::Fence handle;                             ///< Vulkan fence
     std::vector<VKResource*> protected_resources; ///< List of resources protected by this fence
     bool is_owned = false; ///< The fence has been commited but not released yet.
     bool is_used = false;  ///< The fence has been commited but it has not been checked to be free.
@@ -181,7 +181,7 @@ public:
     VKFence& CommitFence();
 
     /// Commits an unused command buffer and protects it with a fence.
-    vk::CommandBuffer CommitCommandBuffer(VKFence& fence);
+    VkCommandBuffer CommitCommandBuffer(VKFence& fence);
 
 private:
     /// Allocates new fences.

@@ -11,12 +11,12 @@
 #include <vector>
 
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -39,52 +39,52 @@ public:
                                 VKUpdateDescriptorQueue& update_descriptor_queue,
                                 VKRenderPassCache& renderpass_cache,
                                 const GraphicsPipelineCacheKey& key,
-                                const std::vector<vk::DescriptorSetLayoutBinding>& bindings,
+                                vk::Span<VkDescriptorSetLayoutBinding> bindings,
                                 const SPIRVProgram& program);
     ~VKGraphicsPipeline();
 
-    vk::DescriptorSet CommitDescriptorSet();
+    VkDescriptorSet CommitDescriptorSet();
 
-    vk::Pipeline GetHandle() const {
+    VkPipeline GetHandle() const {
         return *pipeline;
     }
 
-    vk::PipelineLayout GetLayout() const {
+    VkPipelineLayout GetLayout() const {
         return *layout;
     }
 
-    vk::RenderPass GetRenderPass() const {
+    VkRenderPass GetRenderPass() const {
         return renderpass;
     }
 
 private:
-    UniqueDescriptorSetLayout CreateDescriptorSetLayout(
-        const std::vector<vk::DescriptorSetLayoutBinding>& bindings) const;
+    vk::DescriptorSetLayout CreateDescriptorSetLayout(
+        vk::Span<VkDescriptorSetLayoutBinding> bindings) const;
 
-    UniquePipelineLayout CreatePipelineLayout() const;
+    vk::PipelineLayout CreatePipelineLayout() const;
 
-    UniqueDescriptorUpdateTemplate CreateDescriptorUpdateTemplate(
+    vk::DescriptorUpdateTemplateKHR CreateDescriptorUpdateTemplate(
         const SPIRVProgram& program) const;
 
-    std::vector<UniqueShaderModule> CreateShaderModules(const SPIRVProgram& program) const;
+    std::vector<vk::ShaderModule> CreateShaderModules(const SPIRVProgram& program) const;
 
-    UniquePipeline CreatePipeline(const RenderPassParams& renderpass_params,
-                                  const SPIRVProgram& program) const;
+    vk::Pipeline CreatePipeline(const RenderPassParams& renderpass_params,
+                                const SPIRVProgram& program) const;
 
     const VKDevice& device;
     VKScheduler& scheduler;
     const FixedPipelineState fixed_state;
     const u64 hash;
 
-    UniqueDescriptorSetLayout descriptor_set_layout;
+    vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;
     VKUpdateDescriptorQueue& update_descriptor_queue;
-    UniquePipelineLayout layout;
-    UniqueDescriptorUpdateTemplate descriptor_template;
-    std::vector<UniqueShaderModule> modules;
+    vk::PipelineLayout layout;
+    vk::DescriptorUpdateTemplateKHR descriptor_template;
+    std::vector<vk::ShaderModule> modules;
 
-    vk::RenderPass renderpass;
-    UniquePipeline pipeline;
+    VkRenderPass renderpass;
+    vk::Pipeline pipeline;
 };
 
 } // namespace Vulkan

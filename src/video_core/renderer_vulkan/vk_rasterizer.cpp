@@ -19,7 +19,6 @@
 #include "core/memory.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
@@ -39,6 +38,7 @@
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -60,32 +60,39 @@ namespace {
 
 constexpr auto ComputeShaderIndex = static_cast<std::size_t>(Tegra::Engines::ShaderType::Compute);
 
-vk::Viewport GetViewportState(const VKDevice& device, const Maxwell& regs, std::size_t index) {
-    const auto& viewport = regs.viewport_transform[index];
-    const float x = viewport.translate_x - viewport.scale_x;
-    const float y = viewport.translate_y - viewport.scale_y;
-    const float width = viewport.scale_x * 2.0f;
-    const float height = viewport.scale_y * 2.0f;
+VkViewport GetViewportState(const VKDevice& device, const Maxwell& regs, std::size_t index) {
+    const auto& src = regs.viewport_transform[index];
+    VkViewport viewport;
+    viewport.x = src.translate_x - src.scale_x;
+    viewport.y = src.translate_y - src.scale_y;
+    viewport.width = src.scale_x * 2.0f;
+    viewport.height = src.scale_y * 2.0f;
 
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
-    float near = viewport.translate_z - viewport.scale_z * reduce_z;
-    float far = viewport.translate_z + viewport.scale_z;
+    viewport.minDepth = src.translate_z - src.scale_z * reduce_z;
+    viewport.maxDepth = src.translate_z + src.scale_z;
     if (!device.IsExtDepthRangeUnrestrictedSupported()) {
-        near = std::clamp(near, 0.0f, 1.0f);
-        far = std::clamp(far, 0.0f, 1.0f);
+        viewport.minDepth = std::clamp(viewport.minDepth, 0.0f, 1.0f);
+        viewport.maxDepth = std::clamp(viewport.maxDepth, 0.0f, 1.0f);
     }
-
-    return vk::Viewport(x, y, width != 0 ? width : 1.0f, height != 0 ? height : 1.0f, near, far);
+    return viewport;
 }
 
-constexpr vk::Rect2D GetScissorState(const Maxwell& regs, std::size_t index) {
-    const auto& scissor = regs.scissor_test[index];
-    if (!scissor.enable) {
-        return {{0, 0}, {INT32_MAX, INT32_MAX}};
+VkRect2D GetScissorState(const Maxwell& regs, std::size_t index) {
+    const auto& src = regs.scissor_test[index];
+    VkRect2D scissor;
+    if (src.enable) {
+        scissor.offset.x = static_cast<s32>(src.min_x);
+        scissor.offset.y = static_cast<s32>(src.min_y);
+        scissor.extent.width = src.max_x - src.min_x;
+        scissor.extent.height = src.max_y - src.min_y;
+    } else {
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
+        scissor.extent.width = std::numeric_limits<s32>::max();
+        scissor.extent.height = std::numeric_limits<s32>::max();
     }
-    const u32 width = scissor.max_x - scissor.min_x;
-    const u32 height = scissor.max_y - scissor.min_y;
-    return {{static_cast<s32>(scissor.min_x), static_cast<s32>(scissor.min_y)}, {width, height}};
+    return scissor;
 }
 
 std::array<GPUVAddr, Maxwell::MaxShaderProgram> GetShaderAddresses(
@@ -97,8 +104,8 @@ std::array<GPUVAddr, Maxwell::MaxShaderProgram> GetShaderAddresses(
     return addresses;
 }
 
-void TransitionImages(const std::vector<ImageView>& views, vk::PipelineStageFlags pipeline_stage,
-                      vk::AccessFlags access) {
+void TransitionImages(const std::vector<ImageView>& views, VkPipelineStageFlags pipeline_stage,
+                      VkAccessFlags access) {
     for (auto& [view, layout] : views) {
         view->Transition(*layout, pipeline_stage, access);
     }
@@ -127,13 +134,13 @@ Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry
 
 class BufferBindings final {
 public:
-    void AddVertexBinding(const vk::Buffer* buffer, vk::DeviceSize offset) {
+    void AddVertexBinding(const VkBuffer* buffer, VkDeviceSize offset) {
         vertex.buffer_ptrs[vertex.num_buffers] = buffer;
         vertex.offsets[vertex.num_buffers] = offset;
         ++vertex.num_buffers;
     }
 
-    void SetIndexBinding(const vk::Buffer* buffer, vk::DeviceSize offset, vk::IndexType type) {
+    void SetIndexBinding(const VkBuffer* buffer, VkDeviceSize offset, VkIndexType type) {
         index.buffer = buffer;
         index.offset = offset;
         index.type = type;
@@ -217,14 +224,14 @@ private:
     // Some of these fields are intentionally left uninitialized to avoid initializing them twice.
     struct {
         std::size_t num_buffers = 0;
-        std::array<const vk::Buffer*, Maxwell::NumVertexArrays> buffer_ptrs;
-        std::array<vk::DeviceSize, Maxwell::NumVertexArrays> offsets;
+        std::array<const VkBuffer*, Maxwell::NumVertexArrays> buffer_ptrs;
+        std::array<VkDeviceSize, Maxwell::NumVertexArrays> offsets;
     } vertex;
 
     struct {
-        const vk::Buffer* buffer = nullptr;
-        vk::DeviceSize offset;
-        vk::IndexType type;
+        const VkBuffer* buffer = nullptr;
+        VkDeviceSize offset;
+        VkIndexType type;
     } index;
 
     template <std::size_t N>
@@ -243,38 +250,35 @@ private:
             return;
         }
 
-        std::array<vk::Buffer, N> buffers;
+        std::array<VkBuffer, N> buffers;
         std::transform(vertex.buffer_ptrs.begin(), vertex.buffer_ptrs.begin() + N, buffers.begin(),
                        [](const auto ptr) { return *ptr; });
 
-        std::array<vk::DeviceSize, N> offsets;
+        std::array<VkDeviceSize, N> offsets;
         std::copy(vertex.offsets.begin(), vertex.offsets.begin() + N, offsets.begin());
 
         if constexpr (is_indexed) {
             // Indexed draw
             scheduler.Record([buffers, offsets, index_buffer = *index.buffer,
                               index_offset = index.offset,
-                              index_type = index.type](auto cmdbuf, auto& dld) {
-                cmdbuf.bindIndexBuffer(index_buffer, index_offset, index_type, dld);
-                cmdbuf.bindVertexBuffers(0, static_cast<u32>(N), buffers.data(), offsets.data(),
-                                         dld);
+                              index_type = index.type](vk::CommandBuffer cmdbuf) {
+                cmdbuf.BindIndexBuffer(index_buffer, index_offset, index_type);
+                cmdbuf.BindVertexBuffers(0, static_cast<u32>(N), buffers.data(), offsets.data());
             });
         } else {
             // Array draw
-            scheduler.Record([buffers, offsets](auto cmdbuf, auto& dld) {
-                cmdbuf.bindVertexBuffers(0, static_cast<u32>(N), buffers.data(), offsets.data(),
-                                         dld);
+            scheduler.Record([buffers, offsets](vk::CommandBuffer cmdbuf) {
+                cmdbuf.BindVertexBuffers(0, static_cast<u32>(N), buffers.data(), offsets.data());
             });
         }
     }
 };
 
-void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf,
-                                            const vk::DispatchLoaderDynamic& dld) const {
+void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
     if (is_indexed) {
-        cmdbuf.drawIndexed(num_vertices, num_instances, 0, base_vertex, base_instance, dld);
+        cmdbuf.DrawIndexed(num_vertices, num_instances, 0, base_vertex, base_instance);
     } else {
-        cmdbuf.draw(num_vertices, num_instances, base_vertex, base_instance, dld);
+        cmdbuf.Draw(num_vertices, num_instances, base_vertex, base_instance);
     }
 }
 
@@ -337,7 +341,7 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     const auto renderpass = pipeline.GetRenderPass();
     const auto [framebuffer, render_area] = ConfigureFramebuffers(renderpass);
-    scheduler.RequestRenderpass({renderpass, framebuffer, {{0, 0}, render_area}, 0, nullptr});
+    scheduler.RequestRenderpass(renderpass, framebuffer, render_area);
 
     UpdateDynamicStates();
 
@@ -345,19 +349,19 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     if (device.IsNvDeviceDiagnosticCheckpoints()) {
         scheduler.Record(
-            [&pipeline](auto cmdbuf, auto& dld) { cmdbuf.setCheckpointNV(&pipeline, dld); });
+            [&pipeline](vk::CommandBuffer cmdbuf) { cmdbuf.SetCheckpointNV(&pipeline); });
     }
 
     BeginTransformFeedback();
 
     const auto pipeline_layout = pipeline.GetLayout();
     const auto descriptor_set = pipeline.CommitDescriptorSet();
-    scheduler.Record([pipeline_layout, descriptor_set, draw_params](auto cmdbuf, auto& dld) {
+    scheduler.Record([pipeline_layout, descriptor_set, draw_params](vk::CommandBuffer cmdbuf) {
         if (descriptor_set) {
-            cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, pipeline_layout,
-                                      DESCRIPTOR_SET, 1, &descriptor_set, 0, nullptr, dld);
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout,
+                                      DESCRIPTOR_SET, descriptor_set, {});
         }
-        draw_params.Draw(cmdbuf, dld);
+        draw_params.Draw(cmdbuf);
     });
 
     EndTransformFeedback();
@@ -389,48 +393,54 @@ void RasterizerVulkan::Clear() {
     DEBUG_ASSERT(texceptions.none());
     SetupImageTransitions(0, color_attachments, zeta_attachment);
 
-    const vk::RenderPass renderpass = renderpass_cache.GetRenderPass(GetRenderPassParams(0));
+    const VkRenderPass renderpass = renderpass_cache.GetRenderPass(GetRenderPassParams(0));
     const auto [framebuffer, render_area] = ConfigureFramebuffers(renderpass);
-    scheduler.RequestRenderpass({renderpass, framebuffer, {{0, 0}, render_area}, 0, nullptr});
+    scheduler.RequestRenderpass(renderpass, framebuffer, render_area);
 
-    const auto& scissor = regs.scissor_test[0];
-    const vk::Offset2D scissor_offset(scissor.min_x, scissor.min_y);
-    vk::Extent2D scissor_extent{scissor.max_x - scissor.min_x, scissor.max_y - scissor.min_y};
-    scissor_extent.width = std::min(scissor_extent.width, render_area.width);
-    scissor_extent.height = std::min(scissor_extent.height, render_area.height);
-
-    const u32 layer = regs.clear_buffers.layer;
-    const vk::ClearRect clear_rect({scissor_offset, scissor_extent}, layer, 1);
+    VkClearRect clear_rect;
+    clear_rect.baseArrayLayer = regs.clear_buffers.layer;
+    clear_rect.layerCount = 1;
+    clear_rect.rect = GetScissorState(regs, 0);
+    clear_rect.rect.extent.width = std::min(clear_rect.rect.extent.width, render_area.width);
+    clear_rect.rect.extent.height = std::min(clear_rect.rect.extent.height, render_area.height);
 
     if (use_color) {
-        const std::array clear_color = {regs.clear_color[0], regs.clear_color[1],
-                                        regs.clear_color[2], regs.clear_color[3]};
-        const vk::ClearValue clear_value{clear_color};
+        VkClearValue clear_value;
+        std::memcpy(clear_value.color.float32, regs.clear_color, sizeof(regs.clear_color));
+
         const u32 color_attachment = regs.clear_buffers.RT;
-        scheduler.Record([color_attachment, clear_value, clear_rect](auto cmdbuf, auto& dld) {
-            const vk::ClearAttachment attachment(vk::ImageAspectFlagBits::eColor, color_attachment,
-                                                 clear_value);
-            cmdbuf.clearAttachments(1, &attachment, 1, &clear_rect, dld);
+        scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
+            VkClearAttachment attachment;
+            attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            attachment.colorAttachment = color_attachment;
+            attachment.clearValue = clear_value;
+            cmdbuf.ClearAttachments(attachment, clear_rect);
         });
     }
 
     if (!use_depth && !use_stencil) {
         return;
     }
-    vk::ImageAspectFlags aspect_flags;
+    VkImageAspectFlags aspect_flags = 0;
     if (use_depth) {
-        aspect_flags |= vk::ImageAspectFlagBits::eDepth;
+        aspect_flags |= VK_IMAGE_ASPECT_DEPTH_BIT;
     }
     if (use_stencil) {
-        aspect_flags |= vk::ImageAspectFlagBits::eStencil;
+        aspect_flags |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
 
     scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
-                      clear_rect, aspect_flags](auto cmdbuf, auto& dld) {
-        const vk::ClearDepthStencilValue clear_zeta(clear_depth, clear_stencil);
-        const vk::ClearValue clear_value{clear_zeta};
-        const vk::ClearAttachment attachment(aspect_flags, 0, clear_value);
-        cmdbuf.clearAttachments(1, &attachment, 1, &clear_rect, dld);
+                      clear_rect, aspect_flags](vk::CommandBuffer cmdbuf) {
+        VkClearValue clear_value;
+        clear_value.depthStencil.depth = clear_depth;
+        clear_value.depthStencil.stencil = clear_stencil;
+
+        VkClearAttachment attachment;
+        attachment.aspectMask = aspect_flags;
+        attachment.colorAttachment = 0;
+        attachment.clearValue.depthStencil.depth = clear_depth;
+        attachment.clearValue.depthStencil.stencil = clear_stencil;
+        cmdbuf.ClearAttachments(attachment, clear_rect);
     });
 }
 
@@ -463,24 +473,24 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
 
     buffer_cache.Unmap();
 
-    TransitionImages(sampled_views, vk::PipelineStageFlagBits::eComputeShader,
-                     vk::AccessFlagBits::eShaderRead);
-    TransitionImages(image_views, vk::PipelineStageFlagBits::eComputeShader,
-                     vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite);
+    TransitionImages(sampled_views, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                     VK_ACCESS_SHADER_READ_BIT);
+    TransitionImages(image_views, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                     VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
 
     if (device.IsNvDeviceDiagnosticCheckpoints()) {
         scheduler.Record(
-            [&pipeline](auto cmdbuf, auto& dld) { cmdbuf.setCheckpointNV(nullptr, dld); });
+            [&pipeline](vk::CommandBuffer cmdbuf) { cmdbuf.SetCheckpointNV(nullptr); });
     }
 
     scheduler.Record([grid_x = launch_desc.grid_dim_x, grid_y = launch_desc.grid_dim_y,
                       grid_z = launch_desc.grid_dim_z, pipeline_handle = pipeline.GetHandle(),
                       layout = pipeline.GetLayout(),
-                      descriptor_set = pipeline.CommitDescriptorSet()](auto cmdbuf, auto& dld) {
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eCompute, pipeline_handle, dld);
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eCompute, layout, DESCRIPTOR_SET, 1,
-                                  &descriptor_set, 0, nullptr, dld);
-        cmdbuf.dispatch(grid_x, grid_y, grid_z, dld);
+                      descriptor_set = pipeline.CommitDescriptorSet()](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_handle);
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, layout, DESCRIPTOR_SET,
+                                  descriptor_set, {});
+        cmdbuf.Dispatch(grid_x, grid_y, grid_z);
     });
 }
 
@@ -625,13 +635,13 @@ bool RasterizerVulkan::WalkAttachmentOverlaps(const CachedSurfaceView& attachmen
             continue;
         }
         overlap = true;
-        *layout = vk::ImageLayout::eGeneral;
+        *layout = VK_IMAGE_LAYOUT_GENERAL;
     }
     return overlap;
 }
 
-std::tuple<vk::Framebuffer, vk::Extent2D> RasterizerVulkan::ConfigureFramebuffers(
-    vk::RenderPass renderpass) {
+std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
+    VkRenderPass renderpass) {
     FramebufferCacheKey key{renderpass, std::numeric_limits<u32>::max(),
                             std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
 
@@ -658,15 +668,20 @@ std::tuple<vk::Framebuffer, vk::Extent2D> RasterizerVulkan::ConfigureFramebuffer
     const auto [fbentry, is_cache_miss] = framebuffer_cache.try_emplace(key);
     auto& framebuffer = fbentry->second;
     if (is_cache_miss) {
-        const vk::FramebufferCreateInfo framebuffer_ci(
-            {}, key.renderpass, static_cast<u32>(key.views.size()), key.views.data(), key.width,
-            key.height, key.layers);
-        const auto dev = device.GetLogical();
-        const auto& dld = device.GetDispatchLoader();
-        framebuffer = dev.createFramebufferUnique(framebuffer_ci, nullptr, dld);
+        VkFramebufferCreateInfo framebuffer_ci;
+        framebuffer_ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_ci.pNext = nullptr;
+        framebuffer_ci.flags = 0;
+        framebuffer_ci.renderPass = key.renderpass;
+        framebuffer_ci.attachmentCount = static_cast<u32>(key.views.size());
+        framebuffer_ci.pAttachments = key.views.data();
+        framebuffer_ci.width = key.width;
+        framebuffer_ci.height = key.height;
+        framebuffer_ci.layers = key.layers;
+        framebuffer = device.GetLogical().CreateFramebuffer(framebuffer_ci);
     }
 
-    return {*framebuffer, vk::Extent2D{key.width, key.height}};
+    return {*framebuffer, VkExtent2D{key.width, key.height}};
 }
 
 RasterizerVulkan::DrawParameters RasterizerVulkan::SetupGeometry(FixedPipelineState& fixed_state,
@@ -714,10 +729,9 @@ void RasterizerVulkan::SetupShaderDescriptors(
 void RasterizerVulkan::SetupImageTransitions(
     Texceptions texceptions, const std::array<View, Maxwell::NumRenderTargets>& color_attachments,
     const View& zeta_attachment) {
-    TransitionImages(sampled_views, vk::PipelineStageFlagBits::eAllGraphics,
-                     vk::AccessFlagBits::eShaderRead);
-    TransitionImages(image_views, vk::PipelineStageFlagBits::eAllGraphics,
-                     vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eShaderWrite);
+    TransitionImages(sampled_views, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_ACCESS_SHADER_READ_BIT);
+    TransitionImages(image_views, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+                     VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
 
     for (std::size_t rt = 0; rt < std::size(color_attachments); ++rt) {
         const auto color_attachment = color_attachments[rt];
@@ -725,19 +739,19 @@ void RasterizerVulkan::SetupImageTransitions(
             continue;
         }
         const auto image_layout =
-            texceptions[rt] ? vk::ImageLayout::eGeneral : vk::ImageLayout::eColorAttachmentOptimal;
-        color_attachment->Transition(
-            image_layout, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-            vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite);
+            texceptions[rt] ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        color_attachment->Transition(image_layout, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                                     VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                         VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
     }
 
     if (zeta_attachment != nullptr) {
         const auto image_layout = texceptions[ZETA_TEXCEPTION_INDEX]
-                                      ? vk::ImageLayout::eGeneral
-                                      : vk::ImageLayout::eDepthStencilAttachmentOptimal;
-        zeta_attachment->Transition(image_layout, vk::PipelineStageFlagBits::eLateFragmentTests,
-                                    vk::AccessFlagBits::eDepthStencilAttachmentRead |
-                                        vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+                                      ? VK_IMAGE_LAYOUT_GENERAL
+                                      : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        zeta_attachment->Transition(image_layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
     }
 }
 
@@ -773,9 +787,9 @@ void RasterizerVulkan::BeginTransformFeedback() {
     const std::size_t size = binding.buffer_size;
     const auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
 
-    scheduler.Record([buffer = *buffer, offset = offset, size](auto cmdbuf, auto& dld) {
-        cmdbuf.bindTransformFeedbackBuffersEXT(0, {buffer}, {offset}, {size}, dld);
-        cmdbuf.beginTransformFeedbackEXT(0, {}, {}, dld);
+    scheduler.Record([buffer = *buffer, offset = offset, size](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindTransformFeedbackBuffersEXT(0, 1, &buffer, &offset, &size);
+        cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
     });
 }
 
@@ -786,7 +800,7 @@ void RasterizerVulkan::EndTransformFeedback() {
     }
 
     scheduler.Record(
-        [](auto cmdbuf, auto& dld) { cmdbuf.endTransformFeedbackEXT(0, {}, {}, dld); });
+        [](vk::CommandBuffer cmdbuf) { cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr); });
 }
 
 void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
@@ -837,7 +851,7 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
         } else {
             const auto [buffer, offset] =
                 quad_array_pass.Assemble(params.num_vertices, params.base_vertex);
-            buffer_bindings.SetIndexBinding(&buffer, offset, vk::IndexType::eUint32);
+            buffer_bindings.SetIndexBinding(buffer, offset, VK_INDEX_TYPE_UINT32);
             params.base_vertex = 0;
             params.num_vertices = params.num_vertices * 6 / 4;
             params.is_indexed = true;
@@ -1022,7 +1036,7 @@ void RasterizerVulkan::SetupTexture(const Tegra::Texture::FullTextureInfo& textu
     update_descriptor_queue.AddSampledImage(sampler, image_view);
 
     const auto image_layout = update_descriptor_queue.GetLastImageLayout();
-    *image_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    *image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     sampled_views.push_back(ImageView{std::move(view), image_layout});
 }
 
@@ -1039,7 +1053,7 @@ void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const Ima
     update_descriptor_queue.AddImage(image_view);
 
     const auto image_layout = update_descriptor_queue.GetLastImageLayout();
-    *image_layout = vk::ImageLayout::eGeneral;
+    *image_layout = VK_IMAGE_LAYOUT_GENERAL;
     image_views.push_back(ImageView{std::move(view), image_layout});
 }
 
@@ -1056,9 +1070,7 @@ void RasterizerVulkan::UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& reg
         GetViewportState(device, regs, 10), GetViewportState(device, regs, 11),
         GetViewportState(device, regs, 12), GetViewportState(device, regs, 13),
         GetViewportState(device, regs, 14), GetViewportState(device, regs, 15)};
-    scheduler.Record([viewports](auto cmdbuf, auto& dld) {
-        cmdbuf.setViewport(0, static_cast<u32>(viewports.size()), viewports.data(), dld);
-    });
+    scheduler.Record([viewports](vk::CommandBuffer cmdbuf) { cmdbuf.SetViewport(0, viewports); });
 }
 
 void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1072,9 +1084,7 @@ void RasterizerVulkan::UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs
         GetScissorState(regs, 9),  GetScissorState(regs, 10), GetScissorState(regs, 11),
         GetScissorState(regs, 12), GetScissorState(regs, 13), GetScissorState(regs, 14),
         GetScissorState(regs, 15)};
-    scheduler.Record([scissors](auto cmdbuf, auto& dld) {
-        cmdbuf.setScissor(0, static_cast<u32>(scissors.size()), scissors.data(), dld);
-    });
+    scheduler.Record([scissors](vk::CommandBuffer cmdbuf) { cmdbuf.SetScissor(0, scissors); });
 }
 
 void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1082,8 +1092,8 @@ void RasterizerVulkan::UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs) {
         return;
     }
     scheduler.Record([constant = regs.polygon_offset_units, clamp = regs.polygon_offset_clamp,
-                      factor = regs.polygon_offset_factor](auto cmdbuf, auto& dld) {
-        cmdbuf.setDepthBias(constant, clamp, factor / 2.0f, dld);
+                      factor = regs.polygon_offset_factor](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetDepthBias(constant, clamp, factor / 2.0f);
     });
 }
 
@@ -1093,9 +1103,8 @@ void RasterizerVulkan::UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& reg
     }
     const std::array blend_color = {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b,
                                     regs.blend_color.a};
-    scheduler.Record([blend_color](auto cmdbuf, auto& dld) {
-        cmdbuf.setBlendConstants(blend_color.data(), dld);
-    });
+    scheduler.Record(
+        [blend_color](vk::CommandBuffer cmdbuf) { cmdbuf.SetBlendConstants(blend_color.data()); });
 }
 
 void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1103,7 +1112,7 @@ void RasterizerVulkan::UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs) 
         return;
     }
     scheduler.Record([min = regs.depth_bounds[0], max = regs.depth_bounds[1]](
-                         auto cmdbuf, auto& dld) { cmdbuf.setDepthBounds(min, max, dld); });
+                         vk::CommandBuffer cmdbuf) { cmdbuf.SetDepthBounds(min, max); });
 }
 
 void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs) {
@@ -1116,24 +1125,24 @@ void RasterizerVulkan::UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs)
             [front_ref = regs.stencil_front_func_ref, front_write_mask = regs.stencil_front_mask,
              front_test_mask = regs.stencil_front_func_mask, back_ref = regs.stencil_back_func_ref,
              back_write_mask = regs.stencil_back_mask,
-             back_test_mask = regs.stencil_back_func_mask](auto cmdbuf, auto& dld) {
+             back_test_mask = regs.stencil_back_func_mask](vk::CommandBuffer cmdbuf) {
                 // Front face
-                cmdbuf.setStencilReference(vk::StencilFaceFlagBits::eFront, front_ref, dld);
-                cmdbuf.setStencilWriteMask(vk::StencilFaceFlagBits::eFront, front_write_mask, dld);
-                cmdbuf.setStencilCompareMask(vk::StencilFaceFlagBits::eFront, front_test_mask, dld);
+                cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_BIT, front_ref);
+                cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_BIT, front_write_mask);
+                cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_BIT, front_test_mask);
 
                 // Back face
-                cmdbuf.setStencilReference(vk::StencilFaceFlagBits::eBack, back_ref, dld);
-                cmdbuf.setStencilWriteMask(vk::StencilFaceFlagBits::eBack, back_write_mask, dld);
-                cmdbuf.setStencilCompareMask(vk::StencilFaceFlagBits::eBack, back_test_mask, dld);
+                cmdbuf.SetStencilReference(VK_STENCIL_FACE_BACK_BIT, back_ref);
+                cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_BACK_BIT, back_write_mask);
+                cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_BACK_BIT, back_test_mask);
             });
     } else {
         // Front face defines both faces
         scheduler.Record([ref = regs.stencil_back_func_ref, write_mask = regs.stencil_back_mask,
-                          test_mask = regs.stencil_back_func_mask](auto cmdbuf, auto& dld) {
-            cmdbuf.setStencilReference(vk::StencilFaceFlagBits::eFrontAndBack, ref, dld);
-            cmdbuf.setStencilWriteMask(vk::StencilFaceFlagBits::eFrontAndBack, write_mask, dld);
-            cmdbuf.setStencilCompareMask(vk::StencilFaceFlagBits::eFrontAndBack, test_mask, dld);
+                          test_mask = regs.stencil_back_func_mask](vk::CommandBuffer cmdbuf) {
+            cmdbuf.SetStencilReference(VK_STENCIL_FACE_FRONT_AND_BACK, ref);
+            cmdbuf.SetStencilWriteMask(VK_STENCIL_FACE_FRONT_AND_BACK, write_mask);
+            cmdbuf.SetStencilCompareMask(VK_STENCIL_FACE_FRONT_AND_BACK, test_mask);
         });
     }
 }

@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -21,7 +21,7 @@ class VKScheduler;
 class VKStreamBuffer final {
 public:
     explicit VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler,
-                            vk::BufferUsageFlags usage);
+                            VkBufferUsageFlags usage);
     ~VKStreamBuffer();
 
     /**
@@ -35,7 +35,7 @@ public:
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
     void Unmap(u64 size);
 
-    vk::Buffer GetHandle() const {
+    VkBuffer GetHandle() const {
         return *buffer;
     }
 
@@ -46,20 +46,18 @@ private:
     };
 
     /// Creates Vulkan buffer handles committing the required the required memory.
-    void CreateBuffers(vk::BufferUsageFlags usage);
+    void CreateBuffers(VkBufferUsageFlags usage);
 
     /// Increases the amount of watches available.
     void ReserveWatches(std::vector<Watch>& watches, std::size_t grow_size);
 
     void WaitPendingOperations(u64 requested_upper_bound);
 
-    const VKDevice& device;                      ///< Vulkan device manager.
-    VKScheduler& scheduler;                      ///< Command scheduler.
-    const vk::AccessFlags access;                ///< Access usage of this stream buffer.
-    const vk::PipelineStageFlags pipeline_stage; ///< Pipeline usage of this stream buffer.
+    const VKDevice& device; ///< Vulkan device manager.
+    VKScheduler& scheduler; ///< Command scheduler.
 
-    UniqueBuffer buffer;       ///< Mapped buffer.
-    UniqueDeviceMemory memory; ///< Memory allocation.
+    vk::Buffer buffer;       ///< Mapped buffer.
+    vk::DeviceMemory memory; ///< Memory allocation.
 
     u64 offset{};      ///< Buffer iterator.
     u64 mapped_size{}; ///< Size reserved for the current copy.

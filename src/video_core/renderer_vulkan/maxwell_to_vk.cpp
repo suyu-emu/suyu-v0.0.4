@@ -2,13 +2,15 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <iterator>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
 
 namespace Vulkan::MaxwellToVK {
@@ -17,88 +19,89 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 namespace Sampler {
 
-vk::Filter Filter(Tegra::Texture::TextureFilter filter) {
+VkFilter Filter(Tegra::Texture::TextureFilter filter) {
     switch (filter) {
     case Tegra::Texture::TextureFilter::Linear:
-        return vk::Filter::eLinear;
+        return VK_FILTER_LINEAR;
     case Tegra::Texture::TextureFilter::Nearest:
-        return vk::Filter::eNearest;
+        return VK_FILTER_NEAREST;
     }
     UNIMPLEMENTED_MSG("Unimplemented sampler filter={}", static_cast<u32>(filter));
     return {};
 }
 
-vk::SamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter) {
+VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter) {
     switch (mipmap_filter) {
     case Tegra::Texture::TextureMipmapFilter::None:
         // TODO(Rodrigo): None seems to be mapped to OpenGL's mag and min filters without mipmapping
         // (e.g. GL_NEAREST and GL_LINEAR). Vulkan doesn't have such a thing, find out if we have to
         // use an image view with a single mipmap level to emulate this.
-        return vk::SamplerMipmapMode::eLinear;
+        return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        ;
     case Tegra::Texture::TextureMipmapFilter::Linear:
-        return vk::SamplerMipmapMode::eLinear;
+        return VK_SAMPLER_MIPMAP_MODE_LINEAR;
     case Tegra::Texture::TextureMipmapFilter::Nearest:
-        return vk::SamplerMipmapMode::eNearest;
+        return VK_SAMPLER_MIPMAP_MODE_NEAREST;
     }
     UNIMPLEMENTED_MSG("Unimplemented sampler mipmap mode={}", static_cast<u32>(mipmap_filter));
     return {};
 }
 
-vk::SamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
-                                Tegra::Texture::TextureFilter filter) {
+VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
+                              Tegra::Texture::TextureFilter filter) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
-        return vk::SamplerAddressMode::eRepeat;
+        return VK_SAMPLER_ADDRESS_MODE_REPEAT;
     case Tegra::Texture::WrapMode::Mirror:
-        return vk::SamplerAddressMode::eMirroredRepeat;
+        return VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
     case Tegra::Texture::WrapMode::ClampToEdge:
-        return vk::SamplerAddressMode::eClampToEdge;
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::Border:
-        return vk::SamplerAddressMode::eClampToBorder;
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     case Tegra::Texture::WrapMode::Clamp:
-        if (device.GetDriverID() == vk::DriverIdKHR::eNvidiaProprietary) {
+        if (device.GetDriverID() == VK_DRIVER_ID_NVIDIA_PROPRIETARY_KHR) {
             // Nvidia's Vulkan driver defaults to GL_CLAMP on invalid enumerations, we can hack this
             // by sending an invalid enumeration.
-            return static_cast<vk::SamplerAddressMode>(0xcafe);
+            return static_cast<VkSamplerAddressMode>(0xcafe);
         }
         // TODO(Rodrigo): Emulate GL_CLAMP properly on other vendors
         switch (filter) {
         case Tegra::Texture::TextureFilter::Nearest:
-            return vk::SamplerAddressMode::eClampToEdge;
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
         case Tegra::Texture::TextureFilter::Linear:
-            return vk::SamplerAddressMode::eClampToBorder;
+            return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
         }
         UNREACHABLE();
-        return vk::SamplerAddressMode::eClampToEdge;
+        return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::MirrorOnceClampToEdge:
-        return vk::SamplerAddressMode::eMirrorClampToEdge;
+        return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
         UNIMPLEMENTED();
-        return vk::SamplerAddressMode::eMirrorClampToEdge;
+        return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
     default:
         UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
         return {};
     }
 }
 
-vk::CompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func) {
+VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func) {
     switch (depth_compare_func) {
     case Tegra::Texture::DepthCompareFunc::Never:
-        return vk::CompareOp::eNever;
+        return VK_COMPARE_OP_NEVER;
     case Tegra::Texture::DepthCompareFunc::Less:
-        return vk::CompareOp::eLess;
+        return VK_COMPARE_OP_LESS;
     case Tegra::Texture::DepthCompareFunc::LessEqual:
-        return vk::CompareOp::eLessOrEqual;
+        return VK_COMPARE_OP_LESS_OR_EQUAL;
     case Tegra::Texture::DepthCompareFunc::Equal:
-        return vk::CompareOp::eEqual;
+        return VK_COMPARE_OP_EQUAL;
     case Tegra::Texture::DepthCompareFunc::NotEqual:
-        return vk::CompareOp::eNotEqual;
+        return VK_COMPARE_OP_NOT_EQUAL;
     case Tegra::Texture::DepthCompareFunc::Greater:
-        return vk::CompareOp::eGreater;
+        return VK_COMPARE_OP_GREATER;
     case Tegra::Texture::DepthCompareFunc::GreaterEqual:
-        return vk::CompareOp::eGreaterOrEqual;
+        return VK_COMPARE_OP_GREATER_OR_EQUAL;
     case Tegra::Texture::DepthCompareFunc::Always:
-        return vk::CompareOp::eAlways;
+        return VK_COMPARE_OP_ALWAYS;
     }
     UNIMPLEMENTED_MSG("Unimplemented sampler depth compare function={}",
                       static_cast<u32>(depth_compare_func));
@@ -112,92 +115,92 @@ namespace {
 enum : u32 { Attachable = 1, Storage = 2 };
 
 struct FormatTuple {
-    vk::Format format; ///< Vulkan format
-    int usage;         ///< Describes image format usage
+    VkFormat format; ///< Vulkan format
+    int usage = 0;   ///< Describes image format usage
 } constexpr tex_format_tuples[] = {
-    {vk::Format::eA8B8G8R8UnormPack32, Attachable | Storage},    // ABGR8U
-    {vk::Format::eA8B8G8R8SnormPack32, Attachable | Storage},    // ABGR8S
-    {vk::Format::eA8B8G8R8UintPack32, Attachable | Storage},     // ABGR8UI
-    {vk::Format::eB5G6R5UnormPack16, {}},                        // B5G6R5U
-    {vk::Format::eA2B10G10R10UnormPack32, Attachable | Storage}, // A2B10G10R10U
-    {vk::Format::eA1R5G5B5UnormPack16, Attachable},              // A1B5G5R5U (flipped with swizzle)
-    {vk::Format::eR8Unorm, Attachable | Storage},                // R8U
-    {vk::Format::eR8Uint, Attachable | Storage},                 // R8UI
-    {vk::Format::eR16G16B16A16Sfloat, Attachable | Storage},     // RGBA16F
-    {vk::Format::eR16G16B16A16Unorm, Attachable | Storage},      // RGBA16U
-    {vk::Format::eR16G16B16A16Snorm, Attachable | Storage},      // RGBA16S
-    {vk::Format::eR16G16B16A16Uint, Attachable | Storage},       // RGBA16UI
-    {vk::Format::eB10G11R11UfloatPack32, Attachable | Storage},  // R11FG11FB10F
-    {vk::Format::eR32G32B32A32Uint, Attachable | Storage},       // RGBA32UI
-    {vk::Format::eBc1RgbaUnormBlock, {}},                        // DXT1
-    {vk::Format::eBc2UnormBlock, {}},                            // DXT23
-    {vk::Format::eBc3UnormBlock, {}},                            // DXT45
-    {vk::Format::eBc4UnormBlock, {}},                            // DXN1
-    {vk::Format::eBc5UnormBlock, {}},                            // DXN2UNORM
-    {vk::Format::eBc5SnormBlock, {}},                            // DXN2SNORM
-    {vk::Format::eBc7UnormBlock, {}},                            // BC7U
-    {vk::Format::eBc6HUfloatBlock, {}},                          // BC6H_UF16
-    {vk::Format::eBc6HSfloatBlock, {}},                          // BC6H_SF16
-    {vk::Format::eAstc4x4UnormBlock, {}},                        // ASTC_2D_4X4
-    {vk::Format::eB8G8R8A8Unorm, {}},                            // BGRA8
-    {vk::Format::eR32G32B32A32Sfloat, Attachable | Storage},     // RGBA32F
-    {vk::Format::eR32G32Sfloat, Attachable | Storage},           // RG32F
-    {vk::Format::eR32Sfloat, Attachable | Storage},              // R32F
-    {vk::Format::eR16Sfloat, Attachable | Storage},              // R16F
-    {vk::Format::eR16Unorm, Attachable | Storage},               // R16U
-    {vk::Format::eUndefined, {}},                                // R16S
-    {vk::Format::eUndefined, {}},                                // R16UI
-    {vk::Format::eUndefined, {}},                                // R16I
-    {vk::Format::eR16G16Unorm, Attachable | Storage},            // RG16
-    {vk::Format::eR16G16Sfloat, Attachable | Storage},           // RG16F
-    {vk::Format::eUndefined, {}},                                // RG16UI
-    {vk::Format::eUndefined, {}},                                // RG16I
-    {vk::Format::eR16G16Snorm, Attachable | Storage},            // RG16S
-    {vk::Format::eUndefined, {}},                                // RGB32F
-    {vk::Format::eR8G8B8A8Srgb, Attachable},                     // RGBA8_SRGB
-    {vk::Format::eR8G8Unorm, Attachable | Storage},              // RG8U
-    {vk::Format::eR8G8Snorm, Attachable | Storage},              // RG8S
-    {vk::Format::eR32G32Uint, Attachable | Storage},             // RG32UI
-    {vk::Format::eUndefined, {}},                                // RGBX16F
-    {vk::Format::eR32Uint, Attachable | Storage},                // R32UI
-    {vk::Format::eR32Sint, Attachable | Storage},                // R32I
-    {vk::Format::eAstc8x8UnormBlock, {}},                        // ASTC_2D_8X8
-    {vk::Format::eUndefined, {}},                                // ASTC_2D_8X5
-    {vk::Format::eUndefined, {}},                                // ASTC_2D_5X4
-    {vk::Format::eUndefined, {}},                                // BGRA8_SRGB
-    {vk::Format::eBc1RgbaSrgbBlock, {}},                         // DXT1_SRGB
-    {vk::Format::eBc2SrgbBlock, {}},                             // DXT23_SRGB
-    {vk::Format::eBc3SrgbBlock, {}},                             // DXT45_SRGB
-    {vk::Format::eBc7SrgbBlock, {}},                             // BC7U_SRGB
-    {vk::Format::eR4G4B4A4UnormPack16, Attachable},              // R4G4B4A4U
-    {vk::Format::eAstc4x4SrgbBlock, {}},                         // ASTC_2D_4X4_SRGB
-    {vk::Format::eAstc8x8SrgbBlock, {}},                         // ASTC_2D_8X8_SRGB
-    {vk::Format::eAstc8x5SrgbBlock, {}},                         // ASTC_2D_8X5_SRGB
-    {vk::Format::eAstc5x4SrgbBlock, {}},                         // ASTC_2D_5X4_SRGB
-    {vk::Format::eAstc5x5UnormBlock, {}},                        // ASTC_2D_5X5
-    {vk::Format::eAstc5x5SrgbBlock, {}},                         // ASTC_2D_5X5_SRGB
-    {vk::Format::eAstc10x8UnormBlock, {}},                       // ASTC_2D_10X8
-    {vk::Format::eAstc10x8SrgbBlock, {}},                        // ASTC_2D_10X8_SRGB
-    {vk::Format::eAstc6x6UnormBlock, {}},                        // ASTC_2D_6X6
-    {vk::Format::eAstc6x6SrgbBlock, {}},                         // ASTC_2D_6X6_SRGB
-    {vk::Format::eAstc10x10UnormBlock, {}},                      // ASTC_2D_10X10
-    {vk::Format::eAstc10x10SrgbBlock, {}},                       // ASTC_2D_10X10_SRGB
-    {vk::Format::eAstc12x12UnormBlock, {}},                      // ASTC_2D_12X12
-    {vk::Format::eAstc12x12SrgbBlock, {}},                       // ASTC_2D_12X12_SRGB
-    {vk::Format::eAstc8x6UnormBlock, {}},                        // ASTC_2D_8X6
-    {vk::Format::eAstc8x6SrgbBlock, {}},                         // ASTC_2D_8X6_SRGB
-    {vk::Format::eAstc6x5UnormBlock, {}},                        // ASTC_2D_6X5
-    {vk::Format::eAstc6x5SrgbBlock, {}},                         // ASTC_2D_6X5_SRGB
-    {vk::Format::eE5B9G9R9UfloatPack32, {}},                     // E5B9G9R9F
+    {VK_FORMAT_A8B8G8R8_UNORM_PACK32, Attachable | Storage},    // ABGR8U
+    {VK_FORMAT_A8B8G8R8_SNORM_PACK32, Attachable | Storage},    // ABGR8S
+    {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // ABGR8UI
+    {VK_FORMAT_B5G6R5_UNORM_PACK16},                            // B5G6R5U
+    {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10U
+    {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1B5G5R5U (flipped with swizzle)
+    {VK_FORMAT_R8_UNORM, Attachable | Storage},                 // R8U
+    {VK_FORMAT_R8_UINT, Attachable | Storage},                  // R8UI
+    {VK_FORMAT_R16G16B16A16_SFLOAT, Attachable | Storage},      // RGBA16F
+    {VK_FORMAT_R16G16B16A16_UNORM, Attachable | Storage},       // RGBA16U
+    {VK_FORMAT_R16G16B16A16_SNORM, Attachable | Storage},       // RGBA16S
+    {VK_FORMAT_R16G16B16A16_UINT, Attachable | Storage},        // RGBA16UI
+    {VK_FORMAT_B10G11R11_UFLOAT_PACK32, Attachable | Storage},  // R11FG11FB10F
+    {VK_FORMAT_R32G32B32A32_UINT, Attachable | Storage},        // RGBA32UI
+    {VK_FORMAT_BC1_RGBA_UNORM_BLOCK},                           // DXT1
+    {VK_FORMAT_BC2_UNORM_BLOCK},                                // DXT23
+    {VK_FORMAT_BC3_UNORM_BLOCK},                                // DXT45
+    {VK_FORMAT_BC4_UNORM_BLOCK},                                // DXN1
+    {VK_FORMAT_BC5_UNORM_BLOCK},                                // DXN2UNORM
+    {VK_FORMAT_BC5_SNORM_BLOCK},                                // DXN2SNORM
+    {VK_FORMAT_BC7_UNORM_BLOCK},                                // BC7U
+    {VK_FORMAT_BC6H_UFLOAT_BLOCK},                              // BC6H_UF16
+    {VK_FORMAT_BC6H_SFLOAT_BLOCK},                              // BC6H_SF16
+    {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},                           // ASTC_2D_4X4
+    {VK_FORMAT_B8G8R8A8_UNORM},                                 // BGRA8
+    {VK_FORMAT_R32G32B32A32_SFLOAT, Attachable | Storage},      // RGBA32F
+    {VK_FORMAT_R32G32_SFLOAT, Attachable | Storage},            // RG32F
+    {VK_FORMAT_R32_SFLOAT, Attachable | Storage},               // R32F
+    {VK_FORMAT_R16_SFLOAT, Attachable | Storage},               // R16F
+    {VK_FORMAT_R16_UNORM, Attachable | Storage},                // R16U
+    {VK_FORMAT_UNDEFINED},                                      // R16S
+    {VK_FORMAT_UNDEFINED},                                      // R16UI
+    {VK_FORMAT_UNDEFINED},                                      // R16I
+    {VK_FORMAT_R16G16_UNORM, Attachable | Storage},             // RG16
+    {VK_FORMAT_R16G16_SFLOAT, Attachable | Storage},            // RG16F
+    {VK_FORMAT_UNDEFINED},                                      // RG16UI
+    {VK_FORMAT_UNDEFINED},                                      // RG16I
+    {VK_FORMAT_R16G16_SNORM, Attachable | Storage},             // RG16S
+    {VK_FORMAT_UNDEFINED},                                      // RGB32F
+    {VK_FORMAT_R8G8B8A8_SRGB, Attachable},                      // RGBA8_SRGB
+    {VK_FORMAT_R8G8_UNORM, Attachable | Storage},               // RG8U
+    {VK_FORMAT_R8G8_SNORM, Attachable | Storage},               // RG8S
+    {VK_FORMAT_R32G32_UINT, Attachable | Storage},              // RG32UI
+    {VK_FORMAT_UNDEFINED},                                      // RGBX16F
+    {VK_FORMAT_R32_UINT, Attachable | Storage},                 // R32UI
+    {VK_FORMAT_R32_SINT, Attachable | Storage},                 // R32I
+    {VK_FORMAT_ASTC_8x8_UNORM_BLOCK},                           // ASTC_2D_8X8
+    {VK_FORMAT_UNDEFINED},                                      // ASTC_2D_8X5
+    {VK_FORMAT_UNDEFINED},                                      // ASTC_2D_5X4
+    {VK_FORMAT_UNDEFINED},                                      // BGRA8_SRGB
+    {VK_FORMAT_BC1_RGBA_SRGB_BLOCK},                            // DXT1_SRGB
+    {VK_FORMAT_BC2_SRGB_BLOCK},                                 // DXT23_SRGB
+    {VK_FORMAT_BC3_SRGB_BLOCK},                                 // DXT45_SRGB
+    {VK_FORMAT_BC7_SRGB_BLOCK},                                 // BC7U_SRGB
+    {VK_FORMAT_R4G4B4A4_UNORM_PACK16, Attachable},              // R4G4B4A4U
+    {VK_FORMAT_ASTC_4x4_SRGB_BLOCK},                            // ASTC_2D_4X4_SRGB
+    {VK_FORMAT_ASTC_8x8_SRGB_BLOCK},                            // ASTC_2D_8X8_SRGB
+    {VK_FORMAT_ASTC_8x5_SRGB_BLOCK},                            // ASTC_2D_8X5_SRGB
+    {VK_FORMAT_ASTC_5x4_SRGB_BLOCK},                            // ASTC_2D_5X4_SRGB
+    {VK_FORMAT_ASTC_5x5_UNORM_BLOCK},                           // ASTC_2D_5X5
+    {VK_FORMAT_ASTC_5x5_SRGB_BLOCK},                            // ASTC_2D_5X5_SRGB
+    {VK_FORMAT_ASTC_10x8_UNORM_BLOCK},                          // ASTC_2D_10X8
+    {VK_FORMAT_ASTC_10x8_SRGB_BLOCK},                           // ASTC_2D_10X8_SRGB
+    {VK_FORMAT_ASTC_6x6_UNORM_BLOCK},                           // ASTC_2D_6X6
+    {VK_FORMAT_ASTC_6x6_SRGB_BLOCK},                            // ASTC_2D_6X6_SRGB
+    {VK_FORMAT_ASTC_10x10_UNORM_BLOCK},                         // ASTC_2D_10X10
+    {VK_FORMAT_ASTC_10x10_SRGB_BLOCK},                          // ASTC_2D_10X10_SRGB
+    {VK_FORMAT_ASTC_12x12_UNORM_BLOCK},                         // ASTC_2D_12X12
+    {VK_FORMAT_ASTC_12x12_SRGB_BLOCK},                          // ASTC_2D_12X12_SRGB
+    {VK_FORMAT_ASTC_8x6_UNORM_BLOCK},                           // ASTC_2D_8X6
+    {VK_FORMAT_ASTC_8x6_SRGB_BLOCK},                            // ASTC_2D_8X6_SRGB
+    {VK_FORMAT_ASTC_6x5_UNORM_BLOCK},                           // ASTC_2D_6X5
+    {VK_FORMAT_ASTC_6x5_SRGB_BLOCK},                            // ASTC_2D_6X5_SRGB
+    {VK_FORMAT_E5B9G9R9_UFLOAT_PACK32},                         // E5B9G9R9F
 
     // Depth formats
-    {vk::Format::eD32Sfloat, Attachable}, // Z32F
-    {vk::Format::eD16Unorm, Attachable},  // Z16
+    {VK_FORMAT_D32_SFLOAT, Attachable}, // Z32F
+    {VK_FORMAT_D16_UNORM, Attachable},  // Z16
 
     // DepthStencil formats
-    {vk::Format::eD24UnormS8Uint, Attachable},  // Z24S8
-    {vk::Format::eD24UnormS8Uint, Attachable},  // S8Z24 (emulated)
-    {vk::Format::eD32SfloatS8Uint, Attachable}, // Z32FS8
+    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // Z24S8
+    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // S8Z24 (emulated)
+    {VK_FORMAT_D32_SFLOAT_S8_UINT, Attachable}, // Z32FS8
 };
 static_assert(std::size(tex_format_tuples) == VideoCore::Surface::MaxPixelFormat);
 
@@ -212,106 +215,106 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
     ASSERT(static_cast<std::size_t>(pixel_format) < std::size(tex_format_tuples));
 
     auto tuple = tex_format_tuples[static_cast<std::size_t>(pixel_format)];
-    if (tuple.format == vk::Format::eUndefined) {
+    if (tuple.format == VK_FORMAT_UNDEFINED) {
         UNIMPLEMENTED_MSG("Unimplemented texture format with pixel format={}",
                           static_cast<u32>(pixel_format));
-        return {vk::Format::eA8B8G8R8UnormPack32, true, true};
+        return {VK_FORMAT_A8B8G8R8_UNORM_PACK32, true, true};
     }
 
     // Use ABGR8 on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
         tuple.format = VideoCore::Surface::IsPixelFormatSRGB(pixel_format)
-                           ? vk::Format::eA8B8G8R8SrgbPack32
-                           : vk::Format::eA8B8G8R8UnormPack32;
+                           ? VK_FORMAT_A8B8G8R8_SRGB_PACK32
+                           : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
     }
     const bool attachable = tuple.usage & Attachable;
     const bool storage = tuple.usage & Storage;
 
-    vk::FormatFeatureFlags usage;
+    VkFormatFeatureFlags usage;
     if (format_type == FormatType::Buffer) {
-        usage = vk::FormatFeatureFlagBits::eStorageTexelBuffer |
-                vk::FormatFeatureFlagBits::eUniformTexelBuffer;
+        usage =
+            VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT | VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
     } else {
-        usage = vk::FormatFeatureFlagBits::eSampledImage | vk::FormatFeatureFlagBits::eTransferDst |
-                vk::FormatFeatureFlagBits::eTransferSrc;
+        usage = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
+                VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
         if (attachable) {
-            usage |= IsZetaFormat(pixel_format) ? vk::FormatFeatureFlagBits::eDepthStencilAttachment
-                                                : vk::FormatFeatureFlagBits::eColorAttachment;
+            usage |= IsZetaFormat(pixel_format) ? VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+                                                : VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT;
         }
         if (storage) {
-            usage |= vk::FormatFeatureFlagBits::eStorageImage;
+            usage |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
         }
     }
     return {device.GetSupportedFormat(tuple.format, usage, format_type), attachable, storage};
 }
 
-vk::ShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
+VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     switch (stage) {
     case Tegra::Engines::ShaderType::Vertex:
-        return vk::ShaderStageFlagBits::eVertex;
+        return VK_SHADER_STAGE_VERTEX_BIT;
     case Tegra::Engines::ShaderType::TesselationControl:
-        return vk::ShaderStageFlagBits::eTessellationControl;
+        return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
     case Tegra::Engines::ShaderType::TesselationEval:
-        return vk::ShaderStageFlagBits::eTessellationEvaluation;
+        return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
     case Tegra::Engines::ShaderType::Geometry:
-        return vk::ShaderStageFlagBits::eGeometry;
+        return VK_SHADER_STAGE_GEOMETRY_BIT;
     case Tegra::Engines::ShaderType::Fragment:
-        return vk::ShaderStageFlagBits::eFragment;
+        return VK_SHADER_STAGE_FRAGMENT_BIT;
     case Tegra::Engines::ShaderType::Compute:
-        return vk::ShaderStageFlagBits::eCompute;
+        return VK_SHADER_STAGE_COMPUTE_BIT;
     }
     UNIMPLEMENTED_MSG("Unimplemented shader stage={}", static_cast<u32>(stage));
     return {};
 }
 
-vk::PrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
-                                        Maxwell::PrimitiveTopology topology) {
+VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
+                                      Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
-        return vk::PrimitiveTopology::ePointList;
+        return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
     case Maxwell::PrimitiveTopology::Lines:
-        return vk::PrimitiveTopology::eLineList;
+        return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
     case Maxwell::PrimitiveTopology::LineStrip:
-        return vk::PrimitiveTopology::eLineStrip;
+        return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
     case Maxwell::PrimitiveTopology::Triangles:
-        return vk::PrimitiveTopology::eTriangleList;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case Maxwell::PrimitiveTopology::TriangleStrip:
-        return vk::PrimitiveTopology::eTriangleStrip;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
     case Maxwell::PrimitiveTopology::TriangleFan:
-        return vk::PrimitiveTopology::eTriangleFan;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
     case Maxwell::PrimitiveTopology::Quads:
         // TODO(Rodrigo): Use VK_PRIMITIVE_TOPOLOGY_QUAD_LIST_EXT whenever it releases
-        return vk::PrimitiveTopology::eTriangleList;
+        return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case Maxwell::PrimitiveTopology::Patches:
-        return vk::PrimitiveTopology::ePatchList;
+        return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
     default:
         UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
         return {};
     }
 }
 
-vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
+VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
     switch (type) {
     case Maxwell::VertexAttribute::Type::SignedNorm:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Snorm;
+            return VK_FORMAT_R8_SNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Snorm;
+            return VK_FORMAT_R8G8_SNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Snorm;
+            return VK_FORMAT_R8G8B8_SNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Snorm;
+            return VK_FORMAT_R8G8B8A8_SNORM;
         case Maxwell::VertexAttribute::Size::Size_16:
-            return vk::Format::eR16Snorm;
+            return VK_FORMAT_R16_SNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16:
-            return vk::Format::eR16G16Snorm;
+            return VK_FORMAT_R16G16_SNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return vk::Format::eR16G16B16Snorm;
+            return VK_FORMAT_R16G16B16_SNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Snorm;
+            return VK_FORMAT_R16G16B16A16_SNORM;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return vk::Format::eA2B10G10R10SnormPack32;
+            return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
         default:
             break;
         }
@@ -319,23 +322,23 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
     case Maxwell::VertexAttribute::Type::UnsignedNorm:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Unorm;
+            return VK_FORMAT_R8_UNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Unorm;
+            return VK_FORMAT_R8G8_UNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Unorm;
+            return VK_FORMAT_R8G8B8_UNORM;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Unorm;
+            return VK_FORMAT_R8G8B8A8_UNORM;
         case Maxwell::VertexAttribute::Size::Size_16:
-            return vk::Format::eR16Unorm;
+            return VK_FORMAT_R16_UNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16:
-            return vk::Format::eR16G16Unorm;
+            return VK_FORMAT_R16G16_UNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return vk::Format::eR16G16B16Unorm;
+            return VK_FORMAT_R16G16B16_UNORM;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Unorm;
+            return VK_FORMAT_R16G16B16A16_UNORM;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
-            return vk::Format::eA2B10G10R10UnormPack32;
+            return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
         default:
             break;
         }
@@ -343,59 +346,59 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
     case Maxwell::VertexAttribute::Type::SignedInt:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Sint;
+            return VK_FORMAT_R16G16B16A16_SINT;
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Sint;
+            return VK_FORMAT_R8_SINT;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Sint;
+            return VK_FORMAT_R8G8_SINT;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Sint;
+            return VK_FORMAT_R8G8B8_SINT;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Sint;
+            return VK_FORMAT_R8G8B8A8_SINT;
         case Maxwell::VertexAttribute::Size::Size_32:
-            return vk::Format::eR32Sint;
+            return VK_FORMAT_R32_SINT;
         default:
             break;
         }
     case Maxwell::VertexAttribute::Type::UnsignedInt:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Uint;
+            return VK_FORMAT_R8_UINT;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Uint;
+            return VK_FORMAT_R8G8_UINT;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Uint;
+            return VK_FORMAT_R8G8B8_UINT;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Uint;
+            return VK_FORMAT_R8G8B8A8_UINT;
         case Maxwell::VertexAttribute::Size::Size_32:
-            return vk::Format::eR32Uint;
+            return VK_FORMAT_R32_UINT;
         case Maxwell::VertexAttribute::Size::Size_32_32:
-            return vk::Format::eR32G32Uint;
+            return VK_FORMAT_R32G32_UINT;
         case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return vk::Format::eR32G32B32Uint;
+            return VK_FORMAT_R32G32B32_UINT;
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return vk::Format::eR32G32B32A32Uint;
+            return VK_FORMAT_R32G32B32A32_UINT;
         default:
             break;
         }
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Uscaled;
+            return VK_FORMAT_R8_USCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Uscaled;
+            return VK_FORMAT_R8G8_USCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Uscaled;
+            return VK_FORMAT_R8G8B8_USCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Uscaled;
+            return VK_FORMAT_R8G8B8A8_USCALED;
         case Maxwell::VertexAttribute::Size::Size_16:
-            return vk::Format::eR16Uscaled;
+            return VK_FORMAT_R16_USCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16:
-            return vk::Format::eR16G16Uscaled;
+            return VK_FORMAT_R16G16_USCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return vk::Format::eR16G16B16Uscaled;
+            return VK_FORMAT_R16G16B16_USCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Uscaled;
+            return VK_FORMAT_R16G16B16A16_USCALED;
         default:
             break;
         }
@@ -403,21 +406,21 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
     case Maxwell::VertexAttribute::Type::SignedScaled:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
-            return vk::Format::eR8Sscaled;
+            return VK_FORMAT_R8_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8:
-            return vk::Format::eR8G8Sscaled;
+            return VK_FORMAT_R8G8_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8_8:
-            return vk::Format::eR8G8B8Sscaled;
+            return VK_FORMAT_R8G8B8_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return vk::Format::eR8G8B8A8Sscaled;
+            return VK_FORMAT_R8G8B8A8_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_16:
-            return vk::Format::eR16Sscaled;
+            return VK_FORMAT_R16_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16:
-            return vk::Format::eR16G16Sscaled;
+            return VK_FORMAT_R16G16_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return vk::Format::eR16G16B16Sscaled;
+            return VK_FORMAT_R16G16B16_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Sscaled;
+            return VK_FORMAT_R16G16B16A16_SSCALED;
         default:
             break;
         }
@@ -425,21 +428,21 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
     case Maxwell::VertexAttribute::Type::Float:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_32:
-            return vk::Format::eR32Sfloat;
+            return VK_FORMAT_R32_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_32_32:
-            return vk::Format::eR32G32Sfloat;
+            return VK_FORMAT_R32G32_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_32_32_32:
-            return vk::Format::eR32G32B32Sfloat;
+            return VK_FORMAT_R32G32B32_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
-            return vk::Format::eR32G32B32A32Sfloat;
+            return VK_FORMAT_R32G32B32A32_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_16:
-            return vk::Format::eR16Sfloat;
+            return VK_FORMAT_R16_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_16_16:
-            return vk::Format::eR16G16Sfloat;
+            return VK_FORMAT_R16G16_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_16_16_16:
-            return vk::Format::eR16G16B16Sfloat;
+            return VK_FORMAT_R16G16B16_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return vk::Format::eR16G16B16A16Sfloat;
+            return VK_FORMAT_R16G16B16A16_SFLOAT;
         default:
             break;
         }
@@ -450,210 +453,210 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
     return {};
 }
 
-vk::CompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
+VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     switch (comparison) {
     case Maxwell::ComparisonOp::Never:
     case Maxwell::ComparisonOp::NeverOld:
-        return vk::CompareOp::eNever;
+        return VK_COMPARE_OP_NEVER;
     case Maxwell::ComparisonOp::Less:
     case Maxwell::ComparisonOp::LessOld:
-        return vk::CompareOp::eLess;
+        return VK_COMPARE_OP_LESS;
     case Maxwell::ComparisonOp::Equal:
     case Maxwell::ComparisonOp::EqualOld:
-        return vk::CompareOp::eEqual;
+        return VK_COMPARE_OP_EQUAL;
     case Maxwell::ComparisonOp::LessEqual:
     case Maxwell::ComparisonOp::LessEqualOld:
-        return vk::CompareOp::eLessOrEqual;
+        return VK_COMPARE_OP_LESS_OR_EQUAL;
     case Maxwell::ComparisonOp::Greater:
     case Maxwell::ComparisonOp::GreaterOld:
-        return vk::CompareOp::eGreater;
+        return VK_COMPARE_OP_GREATER;
     case Maxwell::ComparisonOp::NotEqual:
     case Maxwell::ComparisonOp::NotEqualOld:
-        return vk::CompareOp::eNotEqual;
+        return VK_COMPARE_OP_NOT_EQUAL;
     case Maxwell::ComparisonOp::GreaterEqual:
     case Maxwell::ComparisonOp::GreaterEqualOld:
-        return vk::CompareOp::eGreaterOrEqual;
+        return VK_COMPARE_OP_GREATER_OR_EQUAL;
     case Maxwell::ComparisonOp::Always:
     case Maxwell::ComparisonOp::AlwaysOld:
-        return vk::CompareOp::eAlways;
+        return VK_COMPARE_OP_ALWAYS;
     }
     UNIMPLEMENTED_MSG("Unimplemented comparison op={}", static_cast<u32>(comparison));
     return {};
 }
 
-vk::IndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format) {
+VkIndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format) {
     switch (index_format) {
     case Maxwell::IndexFormat::UnsignedByte:
         if (!device.IsExtIndexTypeUint8Supported()) {
             UNIMPLEMENTED_MSG("Native uint8 indices are not supported on this device");
-            return vk::IndexType::eUint16;
+            return VK_INDEX_TYPE_UINT16;
         }
-        return vk::IndexType::eUint8EXT;
+        return VK_INDEX_TYPE_UINT8_EXT;
     case Maxwell::IndexFormat::UnsignedShort:
-        return vk::IndexType::eUint16;
+        return VK_INDEX_TYPE_UINT16;
     case Maxwell::IndexFormat::UnsignedInt:
-        return vk::IndexType::eUint32;
+        return VK_INDEX_TYPE_UINT32;
     }
     UNIMPLEMENTED_MSG("Unimplemented index_format={}", static_cast<u32>(index_format));
     return {};
 }
 
-vk::StencilOp StencilOp(Maxwell::StencilOp stencil_op) {
+VkStencilOp StencilOp(Maxwell::StencilOp stencil_op) {
     switch (stencil_op) {
     case Maxwell::StencilOp::Keep:
     case Maxwell::StencilOp::KeepOGL:
-        return vk::StencilOp::eKeep;
+        return VK_STENCIL_OP_KEEP;
     case Maxwell::StencilOp::Zero:
     case Maxwell::StencilOp::ZeroOGL:
-        return vk::StencilOp::eZero;
+        return VK_STENCIL_OP_ZERO;
     case Maxwell::StencilOp::Replace:
     case Maxwell::StencilOp::ReplaceOGL:
-        return vk::StencilOp::eReplace;
+        return VK_STENCIL_OP_REPLACE;
     case Maxwell::StencilOp::Incr:
     case Maxwell::StencilOp::IncrOGL:
-        return vk::StencilOp::eIncrementAndClamp;
+        return VK_STENCIL_OP_INCREMENT_AND_CLAMP;
     case Maxwell::StencilOp::Decr:
     case Maxwell::StencilOp::DecrOGL:
-        return vk::StencilOp::eDecrementAndClamp;
+        return VK_STENCIL_OP_DECREMENT_AND_CLAMP;
     case Maxwell::StencilOp::Invert:
     case Maxwell::StencilOp::InvertOGL:
-        return vk::StencilOp::eInvert;
+        return VK_STENCIL_OP_INVERT;
     case Maxwell::StencilOp::IncrWrap:
     case Maxwell::StencilOp::IncrWrapOGL:
-        return vk::StencilOp::eIncrementAndWrap;
+        return VK_STENCIL_OP_INCREMENT_AND_WRAP;
     case Maxwell::StencilOp::DecrWrap:
     case Maxwell::StencilOp::DecrWrapOGL:
-        return vk::StencilOp::eDecrementAndWrap;
+        return VK_STENCIL_OP_DECREMENT_AND_WRAP;
     }
     UNIMPLEMENTED_MSG("Unimplemented stencil op={}", static_cast<u32>(stencil_op));
     return {};
 }
 
-vk::BlendOp BlendEquation(Maxwell::Blend::Equation equation) {
+VkBlendOp BlendEquation(Maxwell::Blend::Equation equation) {
     switch (equation) {
     case Maxwell::Blend::Equation::Add:
     case Maxwell::Blend::Equation::AddGL:
-        return vk::BlendOp::eAdd;
+        return VK_BLEND_OP_ADD;
     case Maxwell::Blend::Equation::Subtract:
     case Maxwell::Blend::Equation::SubtractGL:
-        return vk::BlendOp::eSubtract;
+        return VK_BLEND_OP_SUBTRACT;
     case Maxwell::Blend::Equation::ReverseSubtract:
     case Maxwell::Blend::Equation::ReverseSubtractGL:
-        return vk::BlendOp::eReverseSubtract;
+        return VK_BLEND_OP_REVERSE_SUBTRACT;
     case Maxwell::Blend::Equation::Min:
     case Maxwell::Blend::Equation::MinGL:
-        return vk::BlendOp::eMin;
+        return VK_BLEND_OP_MIN;
     case Maxwell::Blend::Equation::Max:
     case Maxwell::Blend::Equation::MaxGL:
-        return vk::BlendOp::eMax;
+        return VK_BLEND_OP_MAX;
     }
     UNIMPLEMENTED_MSG("Unimplemented blend equation={}", static_cast<u32>(equation));
     return {};
 }
 
-vk::BlendFactor BlendFactor(Maxwell::Blend::Factor factor) {
+VkBlendFactor BlendFactor(Maxwell::Blend::Factor factor) {
     switch (factor) {
     case Maxwell::Blend::Factor::Zero:
     case Maxwell::Blend::Factor::ZeroGL:
-        return vk::BlendFactor::eZero;
+        return VK_BLEND_FACTOR_ZERO;
     case Maxwell::Blend::Factor::One:
     case Maxwell::Blend::Factor::OneGL:
-        return vk::BlendFactor::eOne;
+        return VK_BLEND_FACTOR_ONE;
     case Maxwell::Blend::Factor::SourceColor:
     case Maxwell::Blend::Factor::SourceColorGL:
-        return vk::BlendFactor::eSrcColor;
+        return VK_BLEND_FACTOR_SRC_COLOR;
     case Maxwell::Blend::Factor::OneMinusSourceColor:
     case Maxwell::Blend::Factor::OneMinusSourceColorGL:
-        return vk::BlendFactor::eOneMinusSrcColor;
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC_COLOR;
     case Maxwell::Blend::Factor::SourceAlpha:
     case Maxwell::Blend::Factor::SourceAlphaGL:
-        return vk::BlendFactor::eSrcAlpha;
+        return VK_BLEND_FACTOR_SRC_ALPHA;
     case Maxwell::Blend::Factor::OneMinusSourceAlpha:
     case Maxwell::Blend::Factor::OneMinusSourceAlphaGL:
-        return vk::BlendFactor::eOneMinusSrcAlpha;
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     case Maxwell::Blend::Factor::DestAlpha:
     case Maxwell::Blend::Factor::DestAlphaGL:
-        return vk::BlendFactor::eDstAlpha;
+        return VK_BLEND_FACTOR_DST_ALPHA;
     case Maxwell::Blend::Factor::OneMinusDestAlpha:
     case Maxwell::Blend::Factor::OneMinusDestAlphaGL:
-        return vk::BlendFactor::eOneMinusDstAlpha;
+        return VK_BLEND_FACTOR_ONE_MINUS_DST_ALPHA;
     case Maxwell::Blend::Factor::DestColor:
     case Maxwell::Blend::Factor::DestColorGL:
-        return vk::BlendFactor::eDstColor;
+        return VK_BLEND_FACTOR_DST_COLOR;
     case Maxwell::Blend::Factor::OneMinusDestColor:
     case Maxwell::Blend::Factor::OneMinusDestColorGL:
-        return vk::BlendFactor::eOneMinusDstColor;
+        return VK_BLEND_FACTOR_ONE_MINUS_DST_COLOR;
     case Maxwell::Blend::Factor::SourceAlphaSaturate:
     case Maxwell::Blend::Factor::SourceAlphaSaturateGL:
-        return vk::BlendFactor::eSrcAlphaSaturate;
+        return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
     case Maxwell::Blend::Factor::Source1Color:
     case Maxwell::Blend::Factor::Source1ColorGL:
-        return vk::BlendFactor::eSrc1Color;
+        return VK_BLEND_FACTOR_SRC1_COLOR;
     case Maxwell::Blend::Factor::OneMinusSource1Color:
     case Maxwell::Blend::Factor::OneMinusSource1ColorGL:
-        return vk::BlendFactor::eOneMinusSrc1Color;
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
     case Maxwell::Blend::Factor::Source1Alpha:
     case Maxwell::Blend::Factor::Source1AlphaGL:
-        return vk::BlendFactor::eSrc1Alpha;
+        return VK_BLEND_FACTOR_SRC1_ALPHA;
     case Maxwell::Blend::Factor::OneMinusSource1Alpha:
     case Maxwell::Blend::Factor::OneMinusSource1AlphaGL:
-        return vk::BlendFactor::eOneMinusSrc1Alpha;
+        return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
     case Maxwell::Blend::Factor::ConstantColor:
     case Maxwell::Blend::Factor::ConstantColorGL:
-        return vk::BlendFactor::eConstantColor;
+        return VK_BLEND_FACTOR_CONSTANT_COLOR;
     case Maxwell::Blend::Factor::OneMinusConstantColor:
     case Maxwell::Blend::Factor::OneMinusConstantColorGL:
-        return vk::BlendFactor::eOneMinusConstantColor;
+        return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_COLOR;
     case Maxwell::Blend::Factor::ConstantAlpha:
     case Maxwell::Blend::Factor::ConstantAlphaGL:
-        return vk::BlendFactor::eConstantAlpha;
+        return VK_BLEND_FACTOR_CONSTANT_ALPHA;
     case Maxwell::Blend::Factor::OneMinusConstantAlpha:
     case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
-        return vk::BlendFactor::eOneMinusConstantAlpha;
+        return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
     }
     UNIMPLEMENTED_MSG("Unimplemented blend factor={}", static_cast<u32>(factor));
     return {};
 }
 
-vk::FrontFace FrontFace(Maxwell::FrontFace front_face) {
+VkFrontFace FrontFace(Maxwell::FrontFace front_face) {
     switch (front_face) {
     case Maxwell::FrontFace::ClockWise:
-        return vk::FrontFace::eClockwise;
+        return VK_FRONT_FACE_CLOCKWISE;
     case Maxwell::FrontFace::CounterClockWise:
-        return vk::FrontFace::eCounterClockwise;
+        return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     }
     UNIMPLEMENTED_MSG("Unimplemented front face={}", static_cast<u32>(front_face));
     return {};
 }
 
-vk::CullModeFlags CullFace(Maxwell::CullFace cull_face) {
+VkCullModeFlags CullFace(Maxwell::CullFace cull_face) {
     switch (cull_face) {
     case Maxwell::CullFace::Front:
-        return vk::CullModeFlagBits::eFront;
+        return VK_CULL_MODE_FRONT_BIT;
     case Maxwell::CullFace::Back:
-        return vk::CullModeFlagBits::eBack;
+        return VK_CULL_MODE_BACK_BIT;
     case Maxwell::CullFace::FrontAndBack:
-        return vk::CullModeFlagBits::eFrontAndBack;
+        return VK_CULL_MODE_FRONT_AND_BACK;
     }
     UNIMPLEMENTED_MSG("Unimplemented cull face={}", static_cast<u32>(cull_face));
     return {};
 }
 
-vk::ComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle) {
+VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle) {
     switch (swizzle) {
     case Tegra::Texture::SwizzleSource::Zero:
-        return vk::ComponentSwizzle::eZero;
+        return VK_COMPONENT_SWIZZLE_ZERO;
     case Tegra::Texture::SwizzleSource::R:
-        return vk::ComponentSwizzle::eR;
+        return VK_COMPONENT_SWIZZLE_R;
     case Tegra::Texture::SwizzleSource::G:
-        return vk::ComponentSwizzle::eG;
+        return VK_COMPONENT_SWIZZLE_G;
     case Tegra::Texture::SwizzleSource::B:
-        return vk::ComponentSwizzle::eB;
+        return VK_COMPONENT_SWIZZLE_B;
     case Tegra::Texture::SwizzleSource::A:
-        return vk::ComponentSwizzle::eA;
+        return VK_COMPONENT_SWIZZLE_A;
     case Tegra::Texture::SwizzleSource::OneInt:
     case Tegra::Texture::SwizzleSource::OneFloat:
-        return vk::ComponentSwizzle::eOne;
+        return VK_COMPONENT_SWIZZLE_ONE;
     }
     UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", static_cast<u32>(swizzle));
     return {};

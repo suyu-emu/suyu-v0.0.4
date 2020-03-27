@@ -11,9 +11,9 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -30,17 +30,11 @@ u64 GetAllocationChunkSize(u64 required_size) {
 class VKMemoryAllocation final {
 public:
     explicit VKMemoryAllocation(const VKDevice& device, vk::DeviceMemory memory,
-                                vk::MemoryPropertyFlags properties, u64 allocation_size, u32 type)
-        : device{device}, memory{memory}, properties{properties}, allocation_size{allocation_size},
-          shifted_type{ShiftType(type)} {}
+                                VkMemoryPropertyFlags properties, u64 allocation_size, u32 type)
+        : device{device}, memory{std::move(memory)}, properties{properties},
+          allocation_size{allocation_size}, shifted_type{ShiftType(type)} {}
 
-    ~VKMemoryAllocation() {
-        const auto dev = device.GetLogical();
-        const auto& dld = device.GetDispatchLoader();
-        dev.free(memory, nullptr, dld);
-    }
-
-    VKMemoryCommit Commit(vk::DeviceSize commit_size, vk::DeviceSize alignment) {
+    VKMemoryCommit Commit(VkDeviceSize commit_size, VkDeviceSize alignment) {
         auto found = TryFindFreeSection(free_iterator, allocation_size,
                                         static_cast<u64>(commit_size), static_cast<u64>(alignment));
         if (!found) {
@@ -73,9 +67,8 @@ public:
     }
 
     /// Returns whether this allocation is compatible with the arguments.
-    bool IsCompatible(vk::MemoryPropertyFlags wanted_properties, u32 type_mask) const {
-        return (wanted_properties & properties) != vk::MemoryPropertyFlagBits(0) &&
-               (type_mask & shifted_type) != 0;
+    bool IsCompatible(VkMemoryPropertyFlags wanted_properties, u32 type_mask) const {
+        return (wanted_properties & properties) && (type_mask & shifted_type) != 0;
     }
 
 private:
@@ -111,11 +104,11 @@ private:
         return std::nullopt;
     }
 
-    const VKDevice& device;                   ///< Vulkan device.
-    const vk::DeviceMemory memory;            ///< Vulkan memory allocation handler.
-    const vk::MemoryPropertyFlags properties; ///< Vulkan properties.
-    const u64 allocation_size;                ///< Size of this allocation.
-    const u32 shifted_type;                   ///< Stored Vulkan type of this allocation, shifted.
+    const VKDevice& device;                 ///< Vulkan device.
+    const vk::DeviceMemory memory;          ///< Vulkan memory allocation handler.
+    const VkMemoryPropertyFlags properties; ///< Vulkan properties.
+    const u64 allocation_size;              ///< Size of this allocation.
+    const u32 shifted_type;                 ///< Stored Vulkan type of this allocation, shifted.
 
     /// Hints where the next free region is likely going to be.
     u64 free_iterator{};
@@ -125,22 +118,20 @@ private:
 };
 
 VKMemoryManager::VKMemoryManager(const VKDevice& device)
-    : device{device}, properties{device.GetPhysical().getMemoryProperties(
-                          device.GetDispatchLoader())},
+    : device{device}, properties{device.GetPhysical().GetMemoryProperties()},
       is_memory_unified{GetMemoryUnified(properties)} {}
 
 VKMemoryManager::~VKMemoryManager() = default;
 
-VKMemoryCommit VKMemoryManager::Commit(const vk::MemoryRequirements& requirements,
+VKMemoryCommit VKMemoryManager::Commit(const VkMemoryRequirements& requirements,
                                        bool host_visible) {
     const u64 chunk_size = GetAllocationChunkSize(requirements.size);
 
     // When a host visible commit is asked, search for host visible and coherent, otherwise search
     // for a fast device local type.
-    const vk::MemoryPropertyFlags wanted_properties =
-        host_visible
-            ? vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent
-            : vk::MemoryPropertyFlagBits::eDeviceLocal;
+    const VkMemoryPropertyFlags wanted_properties =
+        host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+                     : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
     if (auto commit = TryAllocCommit(requirements, wanted_properties)) {
         return commit;
@@ -161,23 +152,19 @@ VKMemoryCommit VKMemoryManager::Commit(const vk::MemoryRequirements& requirement
     return commit;
 }
 
-VKMemoryCommit VKMemoryManager::Commit(vk::Buffer buffer, bool host_visible) {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    auto commit = Commit(dev.getBufferMemoryRequirements(buffer, dld), host_visible);
-    dev.bindBufferMemory(buffer, commit->GetMemory(), commit->GetOffset(), dld);
+VKMemoryCommit VKMemoryManager::Commit(const vk::Buffer& buffer, bool host_visible) {
+    auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), host_visible);
+    buffer.BindMemory(commit->GetMemory(), commit->GetOffset());
     return commit;
 }
 
-VKMemoryCommit VKMemoryManager::Commit(vk::Image image, bool host_visible) {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    auto commit = Commit(dev.getImageMemoryRequirements(image, dld), host_visible);
-    dev.bindImageMemory(image, commit->GetMemory(), commit->GetOffset(), dld);
+VKMemoryCommit VKMemoryManager::Commit(const vk::Image& image, bool host_visible) {
+    auto commit = Commit(device.GetLogical().GetImageMemoryRequirements(*image), host_visible);
+    image.BindMemory(commit->GetMemory(), commit->GetOffset());
     return commit;
 }
 
-bool VKMemoryManager::AllocMemory(vk::MemoryPropertyFlags wanted_properties, u32 type_mask,
+bool VKMemoryManager::AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask,
                                   u64 size) {
     const u32 type = [&] {
         for (u32 type_index = 0; type_index < properties.memoryTypeCount; ++type_index) {
@@ -191,24 +178,26 @@ bool VKMemoryManager::AllocMemory(vk::MemoryPropertyFlags wanted_properties, u32
         return 0U;
     }();
 
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-
     // Try to allocate found type.
-    const vk::MemoryAllocateInfo memory_ai(size, type);
-    vk::DeviceMemory memory;
-    if (const auto res = dev.allocateMemory(&memory_ai, nullptr, &memory, dld);
-        res != vk::Result::eSuccess) {
-        LOG_CRITICAL(Render_Vulkan, "Device allocation failed with code {}!", vk::to_string(res));
+    VkMemoryAllocateInfo memory_ai;
+    memory_ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memory_ai.pNext = nullptr;
+    memory_ai.allocationSize = size;
+    memory_ai.memoryTypeIndex = type;
+
+    vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory(memory_ai);
+    if (!memory) {
+        LOG_CRITICAL(Render_Vulkan, "Device allocation failed!");
         return false;
     }
-    allocations.push_back(
-        std::make_unique<VKMemoryAllocation>(device, memory, wanted_properties, size, type));
+
+    allocations.push_back(std::make_unique<VKMemoryAllocation>(device, std::move(memory),
+                                                               wanted_properties, size, type));
     return true;
 }
 
-VKMemoryCommit VKMemoryManager::TryAllocCommit(const vk::MemoryRequirements& requirements,
-                                               vk::MemoryPropertyFlags wanted_properties) {
+VKMemoryCommit VKMemoryManager::TryAllocCommit(const VkMemoryRequirements& requirements,
+                                               VkMemoryPropertyFlags wanted_properties) {
     for (auto& allocation : allocations) {
         if (!allocation->IsCompatible(wanted_properties, requirements.memoryTypeBits)) {
             continue;
@@ -220,10 +209,9 @@ VKMemoryCommit VKMemoryManager::TryAllocCommit(const vk::MemoryRequirements& req
     return {};
 }
 
-/*static*/ bool VKMemoryManager::GetMemoryUnified(
-    const vk::PhysicalDeviceMemoryProperties& properties) {
+bool VKMemoryManager::GetMemoryUnified(const VkPhysicalDeviceMemoryProperties& properties) {
     for (u32 heap_index = 0; heap_index < properties.memoryHeapCount; ++heap_index) {
-        if (!(properties.memoryHeaps[heap_index].flags & vk::MemoryHeapFlagBits::eDeviceLocal)) {
+        if (!(properties.memoryHeaps[heap_index].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)) {
             // Memory is considered unified when heaps are device local only.
             return false;
         }
@@ -232,23 +220,19 @@ VKMemoryCommit VKMemoryManager::TryAllocCommit(const vk::MemoryRequirements& req
 }
 
 VKMemoryCommitImpl::VKMemoryCommitImpl(const VKDevice& device, VKMemoryAllocation* allocation,
-                                       vk::DeviceMemory memory, u64 begin, u64 end)
-    : device{device}, interval{begin, end}, memory{memory}, allocation{allocation} {}
+                                       const vk::DeviceMemory& memory, u64 begin, u64 end)
+    : device{device}, memory{memory}, interval{begin, end}, allocation{allocation} {}
 
 VKMemoryCommitImpl::~VKMemoryCommitImpl() {
     allocation->Free(this);
 }
 
 MemoryMap VKMemoryCommitImpl::Map(u64 size, u64 offset_) const {
-    const auto dev = device.GetLogical();
-    const auto address = reinterpret_cast<u8*>(
-        dev.mapMemory(memory, interval.first + offset_, size, {}, device.GetDispatchLoader()));
-    return MemoryMap{this, address};
+    return MemoryMap{this, memory.Map(interval.first + offset_, size)};
 }
 
 void VKMemoryCommitImpl::Unmap() const {
-    const auto dev = device.GetLogical();
-    dev.unmapMemory(memory, device.GetDispatchLoader());
+    memory.Unmap();
 }
 
 MemoryMap VKMemoryCommitImpl::Map() const {
