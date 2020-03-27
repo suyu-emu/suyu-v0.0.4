@@ -31,6 +31,7 @@
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
