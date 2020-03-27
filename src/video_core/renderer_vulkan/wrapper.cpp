@@ -14,6 +14,10 @@
 
 namespace Vulkan::vk {
 
+const char* Exception::what() const noexcept {
+    return ToString(result);
+}
+
 const char* ToString(VkResult result) noexcept {
     switch (result) {
     case VkResult::VK_SUCCESS:

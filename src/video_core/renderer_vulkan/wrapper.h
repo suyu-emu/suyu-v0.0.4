@@ -80,7 +80,37 @@ private:
     std::size_t num = 0;
 };
 
+/// Vulkan exception generated from a VkResult.
+class Exception final : public std::exception {
+public:
+    /// Construct the exception with a result.
+    /// @pre result != VK_SUCCESS
+    explicit Exception(VkResult result_) : result{result_} {}
+    virtual ~Exception() = default;
+
+    const char* what() const noexcept override;
+
+private:
+    VkResult result;
+};
+
 /// Converts a VkResult enum into a rodata string
 const char* ToString(VkResult) noexcept;
+
+/// Throws a Vulkan exception if result is not success.
+inline void Check(VkResult result) {
+    if (result != VK_SUCCESS) {
+        throw Exception(result);
+    }
+}
+
+/// Throws a Vulkan exception if result is an error.
+/// @return result
+inline VkResult Filter(VkResult result) {
+    if (result < 0) {
+        throw Exception(result);
+    }
+    return result;
+}
 
 } // namespace Vulkan::vk
