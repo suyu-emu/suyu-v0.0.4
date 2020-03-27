@@ -14,6 +14,152 @@
 
 namespace Vulkan::vk {
 
+namespace {
+
+template <typename T>
+bool Proc(T& result, const InstanceDispatch& dld, const char* proc_name,
+          VkInstance instance = nullptr) noexcept {
+    result = reinterpret_cast<T>(dld.vkGetInstanceProcAddr(instance, proc_name));
+    return result != nullptr;
+}
+
+template <typename T>
+void Proc(T& result, const DeviceDispatch& dld, const char* proc_name, VkDevice device) noexcept {
+    result = reinterpret_cast<T>(dld.vkGetDeviceProcAddr(device, proc_name));
+}
+
+void Load(VkDevice device, DeviceDispatch& dld) noexcept {
+#define X(name) Proc(dld.name, dld, #name, device)
+    X(vkAcquireNextImageKHR);
+    X(vkAllocateCommandBuffers);
+    X(vkAllocateDescriptorSets);
+    X(vkAllocateMemory);
+    X(vkBeginCommandBuffer);
+    X(vkBindBufferMemory);
+    X(vkBindImageMemory);
+    X(vkCmdBeginQuery);
+    X(vkCmdBeginRenderPass);
+    X(vkCmdBeginTransformFeedbackEXT);
+    X(vkCmdBindDescriptorSets);
+    X(vkCmdBindIndexBuffer);
+    X(vkCmdBindPipeline);
+    X(vkCmdBindTransformFeedbackBuffersEXT);
+    X(vkCmdBindVertexBuffers);
+    X(vkCmdBlitImage);
+    X(vkCmdClearAttachments);
+    X(vkCmdCopyBuffer);
+    X(vkCmdCopyBufferToImage);
+    X(vkCmdCopyImage);
+    X(vkCmdCopyImageToBuffer);
+    X(vkCmdDispatch);
+    X(vkCmdDraw);
+    X(vkCmdDrawIndexed);
+    X(vkCmdEndQuery);
+    X(vkCmdEndRenderPass);
+    X(vkCmdEndTransformFeedbackEXT);
+    X(vkCmdFillBuffer);
+    X(vkCmdPipelineBarrier);
+    X(vkCmdPushConstants);
+    X(vkCmdSetBlendConstants);
+    X(vkCmdSetCheckpointNV);
+    X(vkCmdSetDepthBias);
+    X(vkCmdSetDepthBounds);
+    X(vkCmdSetScissor);
+    X(vkCmdSetStencilCompareMask);
+    X(vkCmdSetStencilReference);
+    X(vkCmdSetStencilWriteMask);
+    X(vkCmdSetViewport);
+    X(vkCreateBuffer);
+    X(vkCreateBufferView);
+    X(vkCreateCommandPool);
+    X(vkCreateComputePipelines);
+    X(vkCreateDescriptorPool);
+    X(vkCreateDescriptorSetLayout);
+    X(vkCreateDescriptorUpdateTemplateKHR);
+    X(vkCreateFence);
+    X(vkCreateFramebuffer);
+    X(vkCreateGraphicsPipelines);
+    X(vkCreateImage);
+    X(vkCreateImageView);
+    X(vkCreatePipelineLayout);
+    X(vkCreateQueryPool);
+    X(vkCreateRenderPass);
+    X(vkCreateSampler);
+    X(vkCreateSemaphore);
+    X(vkCreateShaderModule);
+    X(vkCreateSwapchainKHR);
+    X(vkDestroyBuffer);
+    X(vkDestroyBufferView);
+    X(vkDestroyCommandPool);
+    X(vkDestroyDescriptorPool);
+    X(vkDestroyDescriptorSetLayout);
+    X(vkDestroyDescriptorUpdateTemplateKHR);
+    X(vkDestroyFence);
+    X(vkDestroyFramebuffer);
+    X(vkDestroyImage);
+    X(vkDestroyImageView);
+    X(vkDestroyPipeline);
+    X(vkDestroyPipelineLayout);
+    X(vkDestroyQueryPool);
+    X(vkDestroyRenderPass);
+    X(vkDestroySampler);
+    X(vkDestroySemaphore);
+    X(vkDestroyShaderModule);
+    X(vkDestroySwapchainKHR);
+    X(vkDeviceWaitIdle);
+    X(vkEndCommandBuffer);
+    X(vkFreeCommandBuffers);
+    X(vkFreeDescriptorSets);
+    X(vkFreeMemory);
+    X(vkGetBufferMemoryRequirements);
+    X(vkGetDeviceQueue);
+    X(vkGetFenceStatus);
+    X(vkGetImageMemoryRequirements);
+    X(vkGetQueryPoolResults);
+    X(vkGetQueueCheckpointDataNV);
+    X(vkMapMemory);
+    X(vkQueueSubmit);
+    X(vkResetFences);
+    X(vkResetQueryPoolEXT);
+    X(vkUnmapMemory);
+    X(vkUpdateDescriptorSetWithTemplateKHR);
+    X(vkUpdateDescriptorSets);
+    X(vkWaitForFences);
+#undef X
+}
+
+} // Anonymous namespace
+
+bool Load(InstanceDispatch& dld) noexcept {
+#define X(name) Proc(dld.name, dld, #name)
+    return X(vkCreateInstance) && X(vkEnumerateInstanceExtensionProperties);
+#undef X
+}
+
+bool Load(VkInstance instance, InstanceDispatch& dld) noexcept {
+#define X(name) Proc(dld.name, dld, #name, instance)
+    // These functions may fail to load depending on the enabled extensions.
+    // Don't return a failure on these.
+    X(vkCreateDebugUtilsMessengerEXT);
+    X(vkDestroyDebugUtilsMessengerEXT);
+    X(vkDestroySurfaceKHR);
+    X(vkGetPhysicalDeviceFeatures2KHR);
+    X(vkGetPhysicalDeviceProperties2KHR);
+    X(vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
+    X(vkGetPhysicalDeviceSurfaceFormatsKHR);
+    X(vkGetPhysicalDeviceSurfacePresentModesKHR);
+    X(vkGetPhysicalDeviceSurfaceSupportKHR);
+    X(vkGetSwapchainImagesKHR);
+    X(vkQueuePresentKHR);
+
+    return X(vkCreateDevice) && X(vkDestroyDevice) && X(vkDestroyDevice) &&
+           X(vkEnumerateDeviceExtensionProperties) && X(vkEnumeratePhysicalDevices) &&
+           X(vkGetDeviceProcAddr) && X(vkGetPhysicalDeviceFormatProperties) &&
+           X(vkGetPhysicalDeviceMemoryProperties) && X(vkGetPhysicalDeviceProperties) &&
+           X(vkGetPhysicalDeviceQueueFamilyProperties);
+#undef X
+}
+
 const char* Exception::what() const noexcept {
     return ToString(result);
 }
