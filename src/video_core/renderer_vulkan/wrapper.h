@@ -503,4 +503,22 @@ private:
     const DeviceDispatch* dld = nullptr;
 };
 
+using BufferView = Handle<VkBufferView, VkDevice, DeviceDispatch>;
+using DebugCallback = Handle<VkDebugUtilsMessengerEXT, VkInstance, InstanceDispatch>;
+using DescriptorSetLayout = Handle<VkDescriptorSetLayout, VkDevice, DeviceDispatch>;
+using DescriptorUpdateTemplateKHR = Handle<VkDescriptorUpdateTemplateKHR, VkDevice, DeviceDispatch>;
+using Framebuffer = Handle<VkFramebuffer, VkDevice, DeviceDispatch>;
+using ImageView = Handle<VkImageView, VkDevice, DeviceDispatch>;
+using Pipeline = Handle<VkPipeline, VkDevice, DeviceDispatch>;
+using PipelineLayout = Handle<VkPipelineLayout, VkDevice, DeviceDispatch>;
+using QueryPool = Handle<VkQueryPool, VkDevice, DeviceDispatch>;
+using RenderPass = Handle<VkRenderPass, VkDevice, DeviceDispatch>;
+using Sampler = Handle<VkSampler, VkDevice, DeviceDispatch>;
+using Semaphore = Handle<VkSemaphore, VkDevice, DeviceDispatch>;
+using ShaderModule = Handle<VkShaderModule, VkDevice, DeviceDispatch>;
+using SurfaceKHR = Handle<VkSurfaceKHR, VkInstance, InstanceDispatch>;
+
+using DescriptorSets = PoolAllocations<VkDescriptorSet, VkDescriptorPool>;
+using CommandBuffers = PoolAllocations<VkCommandBuffer, VkCommandPool>;
+
 } // namespace Vulkan::vk
