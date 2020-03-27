@@ -18,10 +18,14 @@ struct SamplerDescriptor {
     union {
         u32 raw = 0;
         BitField<0, 2, Tegra::Shader::TextureType> texture_type;
-        BitField<2, 3, Tegra::Texture::ComponentType> component_type;
+        BitField<2, 3, Tegra::Texture::ComponentType> r_type;
         BitField<5, 1, u32> is_array;
         BitField<6, 1, u32> is_buffer;
         BitField<7, 1, u32> is_shadow;
+        BitField<8, 3, Tegra::Texture::ComponentType> g_type;
+        BitField<11, 3, Tegra::Texture::ComponentType> b_type;
+        BitField<14, 3, Tegra::Texture::ComponentType> a_type;
+        BitField<17, 7, Tegra::Texture::TextureFormat> format;
     };
 
     bool operator==(const SamplerDescriptor& rhs) const noexcept {
@@ -36,9 +40,11 @@ struct SamplerDescriptor {
         using Tegra::Shader::TextureType;
         SamplerDescriptor result;
 
-        // This is going to be used to determine the shading language type.
-        // Because of that we don't care about all component types on color textures.
-        result.component_type.Assign(tic.r_type.Value());
+        result.format.Assign(tic.format.Value());
+        result.r_type.Assign(tic.r_type.Value());
+        result.g_type.Assign(tic.g_type.Value());
+        result.b_type.Assign(tic.b_type.Value());
+        result.a_type.Assign(tic.a_type.Value());
 
         switch (tic.texture_type.Value()) {
         case Tegra::Texture::TextureType::Texture1D:
