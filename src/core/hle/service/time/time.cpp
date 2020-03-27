@@ -308,6 +308,35 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
     ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
 }
 
+void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    IPC::RequestParser rp{ctx};
+    const auto snapshot_a = rp.PopRaw<Clock::ClockSnapshot>();
+    const auto snapshot_b = rp.PopRaw<Clock::ClockSnapshot>();
+
+    Clock::TimeSpanType time_span_type{};
+    s64 span{};
+    if (const ResultCode result{snapshot_a.steady_clock_time_point.GetSpanBetween(
+            snapshot_b.steady_clock_time_point, span)};
+        result != RESULT_SUCCESS) {
+        if (snapshot_a.network_time && snapshot_b.network_time) {
+            time_span_type =
+                Clock::TimeSpanType::FromSeconds(snapshot_b.network_time - snapshot_a.network_time);
+        } else {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(ERROR_TIME_NOT_FOUND);
+            return;
+        }
+    } else {
+        time_span_type = Clock::TimeSpanType::FromSeconds(span);
+    }
+
+    IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushRaw(time_span_type.nanoseconds);
+}
+
 void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 1};
