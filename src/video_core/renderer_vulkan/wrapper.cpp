@@ -234,4 +234,109 @@ const char* ToString(VkResult result) noexcept {
     return "Unknown";
 }
 
+void Destroy(VkInstance instance, const InstanceDispatch& dld) noexcept {
+    dld.vkDestroyInstance(instance, nullptr);
+}
+
+void Destroy(VkDevice device, const InstanceDispatch& dld) noexcept {
+    dld.vkDestroyDevice(device, nullptr);
+}
+
+void Destroy(VkDevice device, VkBuffer handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyBuffer(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkBufferView handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyBufferView(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkCommandPool handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyCommandPool(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkDescriptorPool handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyDescriptorPool(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkDescriptorSetLayout handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyDescriptorSetLayout(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkDescriptorUpdateTemplateKHR handle,
+             const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyDescriptorUpdateTemplateKHR(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkDeviceMemory handle, const DeviceDispatch& dld) noexcept {
+    dld.vkFreeMemory(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkFence handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyFence(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkFramebuffer handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyFramebuffer(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkImage handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyImage(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkImageView handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyImageView(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkPipeline handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyPipeline(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkPipelineLayout handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyPipelineLayout(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkQueryPool handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyQueryPool(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkRenderPass handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyRenderPass(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkSampler handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroySampler(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkSwapchainKHR handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroySwapchainKHR(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkSemaphore handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroySemaphore(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkShaderModule handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyShaderModule(device, handle, nullptr);
+}
+
+void Destroy(VkInstance instance, VkDebugUtilsMessengerEXT handle,
+             const InstanceDispatch& dld) noexcept {
+    dld.vkDestroyDebugUtilsMessengerEXT(instance, handle, nullptr);
+}
+
+void Destroy(VkInstance instance, VkSurfaceKHR handle, const InstanceDispatch& dld) noexcept {
+    dld.vkDestroySurfaceKHR(instance, handle, nullptr);
+}
+
+VkResult Free(VkDevice device, VkDescriptorPool handle, Span<VkDescriptorSet> sets,
+              const DeviceDispatch& dld) noexcept {
+    return dld.vkFreeDescriptorSets(device, handle, sets.size(), sets.data());
+}
+
+VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffers,
+              const DeviceDispatch& dld) noexcept {
+    dld.vkFreeCommandBuffers(device, handle, buffers.size(), buffers.data());
+    return VK_SUCCESS;
+}
+
 } // namespace Vulkan::vk

@@ -250,4 +250,32 @@ bool Load(InstanceDispatch&) noexcept;
 /// @return True on success, false on error.
 bool Load(VkInstance, InstanceDispatch&) noexcept;
 
+void Destroy(VkInstance, const InstanceDispatch&) noexcept;
+void Destroy(VkDevice, const InstanceDispatch&) noexcept;
+
+void Destroy(VkDevice, VkBuffer, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkBufferView, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkCommandPool, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkDescriptorPool, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkDescriptorSetLayout, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkDescriptorUpdateTemplateKHR, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkDeviceMemory, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkFence, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkFramebuffer, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkImage, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkImageView, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkPipeline, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkPipelineLayout, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkQueryPool, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkRenderPass, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkSampler, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkSwapchainKHR, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkSemaphore, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkShaderModule, const DeviceDispatch&) noexcept;
+void Destroy(VkInstance, VkDebugUtilsMessengerEXT, const InstanceDispatch&) noexcept;
+void Destroy(VkInstance, VkSurfaceKHR, const InstanceDispatch&) noexcept;
+
+VkResult Free(VkDevice, VkDescriptorPool, Span<VkDescriptorSet>, const DeviceDispatch&) noexcept;
+VkResult Free(VkDevice, VkCommandPool, Span<VkCommandBuffer>, const DeviceDispatch&) noexcept;
+
 } // namespace Vulkan::vk
