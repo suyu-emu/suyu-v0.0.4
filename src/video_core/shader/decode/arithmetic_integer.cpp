@@ -272,8 +272,8 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
                              "Unhandled LEA Predicate");
 
         Node shifted_c = Operation(OperationCode::ILogicalShiftLeft, Immediate(1), std::move(op_c));
-        Node mul_bc = Operation(OperationCode::IMul, std::move(op_b), std::move(shifted_c));
-        Node value = Operation(OperationCode::IAdd, std::move(op_a), std::move(mul_bc));
+        Node mul_bc = Operation(OperationCode::IMul, std::move(op_a), std::move(shifted_c));
+        Node value = Operation(OperationCode::IAdd, std::move(op_b), std::move(mul_bc));
         SetRegister(bb, instr.gpr0, std::move(value));
 
         break;
