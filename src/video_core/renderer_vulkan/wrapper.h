@@ -278,4 +278,148 @@ void Destroy(VkInstance, VkSurfaceKHR, const InstanceDispatch&) noexcept;
 VkResult Free(VkDevice, VkDescriptorPool, Span<VkDescriptorSet>, const DeviceDispatch&) noexcept;
 VkResult Free(VkDevice, VkCommandPool, Span<VkCommandBuffer>, const DeviceDispatch&) noexcept;
 
+template <typename Type, typename OwnerType, typename Dispatch>
+class Handle;
+
+/// Handle with an owning type.
+/// Analogue to std::unique_ptr.
+template <typename Type, typename OwnerType, typename Dispatch>
+class Handle {
+public:
+    /// Construct a handle and hold it's ownership.
+    explicit Handle(Type handle_, OwnerType owner_, const Dispatch& dld_) noexcept
+        : handle{handle_}, owner{owner_}, dld{&dld_} {}
+
+    /// Construct an empty handle.
+    Handle() = default;
+
+    /// Copying Vulkan objects is not supported and will never be.
+    Handle(const Handle&) = delete;
+    Handle& operator=(const Handle&) = delete;
+
+    /// Construct a handle transfering the ownership from another handle.
+    Handle(Handle&& rhs) noexcept
+        : handle{std::exchange(rhs.handle, nullptr)}, owner{rhs.owner}, dld{rhs.dld} {}
+
+    /// Assign the current handle transfering the ownership from another handle.
+    /// Destroys any previously held object.
+    Handle& operator=(Handle&& rhs) noexcept {
+        Release();
+        handle = std::exchange(rhs.handle, nullptr);
+        owner = rhs.owner;
+        dld = rhs.dld;
+        return *this;
+    }
+
+    /// Destroys the current handle if it existed.
+    ~Handle() noexcept {
+        Release();
+    }
+
+    /// Destroys any held object.
+    void reset() noexcept {
+        Release();
+        handle = nullptr;
+    }
+
+    /// Returns the address of the held object.
+    /// Intended for Vulkan structures that expect a pointer to an array.
+    const Type* address() const noexcept {
+        return &handle;
+    }
+
+    /// Returns the held Vulkan handle.
+    Type operator*() const noexcept {
+        return handle;
+    }
+
+    /// Returns true when there's a held object.
+    operator bool() const noexcept {
+        return handle != nullptr;
+    }
+
+protected:
+    Type handle = nullptr;
+    OwnerType owner = nullptr;
+    const Dispatch* dld = nullptr;
+
+private:
+    /// Destroys the held object if it exists.
+    void Release() noexcept {
+        if (handle) {
+            Destroy(owner, handle, *dld);
+        }
+    }
+};
+
+/// Dummy type used to specify a handle has no owner.
+struct NoOwner {};
+
+/// Handle without an owning type.
+/// Analogue to std::unique_ptr
+template <typename Type, typename Dispatch>
+class Handle<Type, NoOwner, Dispatch> {
+public:
+    /// Construct a handle and hold it's ownership.
+    explicit Handle(Type handle_, const Dispatch& dld_) noexcept : handle{handle_}, dld{&dld_} {}
+
+    /// Construct an empty handle.
+    Handle() noexcept = default;
+
+    /// Copying Vulkan objects is not supported and will never be.
+    Handle(const Handle&) = delete;
+    Handle& operator=(const Handle&) = delete;
+
+    /// Construct a handle transfering ownership from another handle.
+    Handle(Handle&& rhs) noexcept : handle{std::exchange(rhs.handle, nullptr)}, dld{rhs.dld} {}
+
+    /// Assign the current handle transfering the ownership from another handle.
+    /// Destroys any previously held object.
+    Handle& operator=(Handle&& rhs) noexcept {
+        Release();
+        handle = std::exchange(rhs.handle, nullptr);
+        dld = rhs.dld;
+        return *this;
+    }
+
+    /// Destroys the current handle if it existed.
+    ~Handle() noexcept {
+        Release();
+    }
+
+    /// Destroys any held object.
+    void reset() noexcept {
+        Release();
+        handle = nullptr;
+    }
+
+    /// Returns the address of the held object.
+    /// Intended for Vulkan structures that expect a pointer to an array.
+    const Type* address() const noexcept {
+        return &handle;
+    }
+
+    /// Returns the held Vulkan handle.
+    Type operator*() const noexcept {
+        return handle;
+    }
+
+    /// Returns true when there's a held object.
+    operator bool() const noexcept {
+        return handle != nullptr;
+    }
+
+protected:
+    Type handle = nullptr;
+    const Dispatch* dld = nullptr;
+
+private:
+    /// Destroys the held object if it exists.
+    void Release() noexcept {
+        if (handle) {
+            Destroy(handle, *dld);
+        }
+    }
+};
+
 } // namespace Vulkan::vk
