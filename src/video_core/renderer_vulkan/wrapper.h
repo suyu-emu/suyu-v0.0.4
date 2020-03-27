@@ -422,4 +422,85 @@ private:
     }
 };
 
+/// Array of a pool allocation.
+/// Analogue to std::vector
+template <typename AllocationType, typename PoolType>
+class PoolAllocations {
+public:
+    /// Construct an empty allocation.
+    PoolAllocations() = default;
+
+    /// Construct an allocation. Errors are reported through IsOutOfPoolMemory().
+    explicit PoolAllocations(std::unique_ptr<AllocationType[]> allocations, std::size_t num,
+                             VkDevice device, PoolType pool, const DeviceDispatch& dld) noexcept
+        : allocations{std::move(allocations)}, num{num}, device{device}, pool{pool}, dld{&dld} {}
+
+    /// Copying Vulkan allocations is not supported and will never be.
+    PoolAllocations(const PoolAllocations&) = delete;
+    PoolAllocations& operator=(const PoolAllocations&) = delete;
+
+    /// Construct an allocation transfering ownership from another allocation.
+    PoolAllocations(PoolAllocations&& rhs) noexcept
+        : allocations{std::move(rhs.allocations)}, num{rhs.num}, device{rhs.device}, pool{rhs.pool},
+          dld{rhs.dld} {}
+
+    /// Assign an allocation transfering ownership from another allocation.
+    /// Releases any previously held allocation.
+    PoolAllocations& operator=(PoolAllocations&& rhs) noexcept {
+        Release();
+        allocations = std::move(rhs.allocations);
+        num = rhs.num;
+        device = rhs.device;
+        pool = rhs.pool;
+        dld = rhs.dld;
+        return *this;
+    }
+
+    /// Destroys any held allocation.
+    ~PoolAllocations() {
+        Release();
+    }
+
+    /// Returns the number of allocations.
+    std::size_t size() const noexcept {
+        return num;
+    }
+
+    /// Returns a pointer to the array of allocations.
+    AllocationType const* data() const noexcept {
+        return allocations.get();
+    }
+
+    /// Returns the allocation in the specified index.
+    /// @pre index < size()
+    AllocationType operator[](std::size_t index) const noexcept {
+        return allocations[index];
+    }
+
+    /// True when a pool fails to construct.
+    bool IsOutOfPoolMemory() const noexcept {
+        return !device;
+    }
+
+private:
+    /// Destroys the held allocations if they exist.
+    void Release() noexcept {
+        if (!allocations) {
+            return;
+        }
+        const Span<AllocationType> span(allocations.get(), num);
+        const VkResult result = Free(device, pool, span, *dld);
+        // There's no way to report errors from a destructor.
+        if (result != VK_SUCCESS) {
+            std::terminate();
+        }
+    }
+
+    std::unique_ptr<AllocationType[]> allocations;
+    std::size_t num = 0;
+    VkDevice device = nullptr;
+    PoolType pool = nullptr;
+    const DeviceDispatch* dld = nullptr;
+};
+
 } // namespace Vulkan::vk
