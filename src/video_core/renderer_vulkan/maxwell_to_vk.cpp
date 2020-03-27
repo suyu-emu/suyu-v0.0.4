@@ -401,6 +401,26 @@ vk::Format VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttr
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedScaled:
+        switch (size) {
+        case Maxwell::VertexAttribute::Size::Size_8:
+            return vk::Format::eR8Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_8_8:
+            return vk::Format::eR8G8Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8:
+            return vk::Format::eR8G8B8Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
+            return vk::Format::eR8G8B8A8Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_16:
+            return vk::Format::eR16Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+            return vk::Format::eR16G16Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+            return vk::Format::eR16G16B16Sscaled;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return vk::Format::eR16G16B16A16Sscaled;
+        default:
+            break;
+        }
         break;
     case Maxwell::VertexAttribute::Type::Float:
         switch (size) {
