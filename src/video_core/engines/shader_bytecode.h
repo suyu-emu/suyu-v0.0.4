@@ -2178,7 +2178,7 @@ private:
             INST("0011011-11111---", Id::SHF_LEFT_IMM, Type::Shift, "SHF_LEFT_IMM"),
             INST("0100110011100---", Id::I2I_C, Type::Conversion, "I2I_C"),
             INST("0101110011100---", Id::I2I_R, Type::Conversion, "I2I_R"),
-            INST("0011101-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
+            INST("0011100-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
             INST("0100110010111---", Id::I2F_C, Type::Conversion, "I2F_C"),
             INST("0101110010111---", Id::I2F_R, Type::Conversion, "I2F_R"),
             INST("0011100-10111---", Id::I2F_IMM, Type::Conversion, "I2F_IMM"),
