@@ -246,19 +246,23 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
 #ifdef ARCHITECTURE_x86_64
         if (owner_process && !owner_process->Is64BitProcess()) {
             thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_32>(
-                system, kernel.Interrupts(), kernel.GetExclusiveMonitor(), processor_id);
+                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
+                processor_id);
         } else {
             thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_64>(
-                system, kernel.Interrupts(), kernel.GetExclusiveMonitor(), processor_id);
+                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
+                processor_id);
         }
 
 #else
         if (owner_process && !owner_process->Is64BitProcess()) {
             thread->arm_interface = std::make_shared<Core::ARM_Unicorn>(
-                system, kernel.Interrupts(), ARM_Unicorn::Arch::AArch32, processor_id);
+                system, kernel.Interrupts(), kernel.IsMulticore(), ARM_Unicorn::Arch::AArch32,
+                processor_id);
         } else {
             thread->arm_interface = std::make_shared<Core::ARM_Unicorn>(
-                system, kernel.Interrupts(), ARM_Unicorn::Arch::AArch64, processor_id);
+                system, kernel.Interrupts(), kernel.IsMulticore(), ARM_Unicorn::Arch::AArch64,
+                processor_id);
         }
         LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif

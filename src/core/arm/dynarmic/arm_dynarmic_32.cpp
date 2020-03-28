@@ -72,23 +72,35 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        this->ticks -= ticks;
+        if (parent.uses_wall_clock) {
+            return;
+        }
+        // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
+        // rough approximation of the amount of executed ticks in the system, it may be thrown off
+        // if not all cores are doing a similar amount of work. Instead of doing this, we should
+        // device a way so that timing is consistent across all cores without increasing the ticks 4
+        // times.
+        u64 amortized_ticks =
+            (ticks - num_interpreted_instructions) / Core::Hardware::NUM_CPU_CORES;
+        // Always execute at least one tick.
+        amortized_ticks = std::max<u64>(amortized_ticks, 1);
+
+        parent.system.CoreTiming().AddTicks(amortized_ticks);
+        num_interpreted_instructions = 0;
     }
 
     u64 GetTicksRemaining() override {
-        if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
-            return std::max<s64>(ticks, 0);
+        if (parent.uses_wall_clock) {
+            if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
+                return std::max<s64>(1000U, 0);
+            }
+            return 0ULL;
         }
-        return 0ULL;
-    }
-
-    void ResetTicks() {
-        ticks = 1000LL;
+        return std::max(parent.system.CoreTiming().GetDowncount(), 0LL);
     }
 
     ARM_Dynarmic_32& parent;
     std::size_t num_interpreted_instructions{};
-    s64 ticks{};
 };
 
 std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& page_table,
@@ -103,7 +115,6 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
 }
 
 void ARM_Dynarmic_32::Run() {
-    cb->ResetTicks();
     jit->Run();
 }
 
@@ -112,8 +123,10 @@ void ARM_Dynarmic_32::Step() {
 }
 
 ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, CPUInterrupts& interrupt_handlers,
-                                 ExclusiveMonitor& exclusive_monitor, std::size_t core_index)
-    : ARM_Interface{system, interrupt_handlers}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
+                                 bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
+                                 std::size_t core_index)
+    : ARM_Interface{system, interrupt_handlers, uses_wall_clock},
+      cb(std::make_unique<DynarmicCallbacks32>(*this)),
       cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 

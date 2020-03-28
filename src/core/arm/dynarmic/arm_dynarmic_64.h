@@ -28,7 +28,7 @@ class System;
 
 class ARM_Dynarmic_64 final : public ARM_Interface {
 public:
-    ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handlers,
+    ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handlers, bool uses_wall_clock,
                     ExclusiveMonitor& exclusive_monitor, std::size_t core_index);
     ~ARM_Dynarmic_64() override;
 

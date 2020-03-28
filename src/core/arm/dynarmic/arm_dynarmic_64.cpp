@@ -124,29 +124,41 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
-        this->ticks -= ticks;
+        if (parent.uses_wall_clock) {
+            return;
+        }
+        // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
+        // rough approximation of the amount of executed ticks in the system, it may be thrown off
+        // if not all cores are doing a similar amount of work. Instead of doing this, we should
+        // device a way so that timing is consistent across all cores without increasing the ticks 4
+        // times.
+        u64 amortized_ticks =
+            (ticks - num_interpreted_instructions) / Core::Hardware::NUM_CPU_CORES;
+        // Always execute at least one tick.
+        amortized_ticks = std::max<u64>(amortized_ticks, 1);
+
+        parent.system.CoreTiming().AddTicks(amortized_ticks);
+        num_interpreted_instructions = 0;
     }
 
     u64 GetTicksRemaining() override {
-        if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
-            return std::max<s64>(ticks, 0);
+        if (parent.uses_wall_clock) {
+            if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
+                return std::max<s64>(1000U, 0);
+            }
+            return 0ULL;
         }
-        return 0ULL;
+        return std::max(parent.system.CoreTiming().GetDowncount(), 0LL);
     }
 
     u64 GetCNTPCT() override {
         return parent.system.CoreTiming().GetClockTicks();
     }
 
-    void ResetTicks() {
-        ticks = 1000LL;
-    }
-
     ARM_Dynarmic_64& parent;
     std::size_t num_interpreted_instructions = 0;
     u64 tpidrro_el0 = 0;
     u64 tpidr_el0 = 0;
-    s64 ticks{};
 };
 
 std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& page_table,
@@ -185,13 +197,12 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     }
 
     // CNTPCT uses wall clock.
-    config.wall_clock_cntpct = true;
+    config.wall_clock_cntpct = uses_wall_clock;
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }
 
 void ARM_Dynarmic_64::Run() {
-    cb->ResetTicks();
     jit->Run();
 }
 
@@ -200,9 +211,11 @@ void ARM_Dynarmic_64::Step() {
 }
 
 ARM_Dynarmic_64::ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handlers,
-                                 ExclusiveMonitor& exclusive_monitor, std::size_t core_index)
-    : ARM_Interface{system, interrupt_handler},
+                                 bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
+                                 std::size_t core_index)
+    : ARM_Interface{system, interrupt_handler, uses_wall_clock},
       cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system, interrupt_handler,
+                                                                      uses_wall_clock,
                                                                       ARM_Unicorn::Arch::AArch64,
                                                                       core_index},
       core_index{core_index}, exclusive_monitor{

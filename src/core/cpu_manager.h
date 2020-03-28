@@ -55,7 +55,7 @@ public:
     std::function<void(void*)> GetSuspendThreadStartFunc();
     void* GetStartFuncParamater();
 
-    void PreemptSingleCore();
+    void PreemptSingleCore(bool from_running_enviroment = true);
 
     std::size_t CurrentCore() const {
         return current_core.load();

@@ -20,8 +20,8 @@ public:
         AArch64, // 64-bit ARM
     };
 
-    explicit ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler, Arch architecture,
-                         std::size_t core_index);
+    explicit ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler,
+                         bool uses_wall_clock, Arch architecture, std::size_t core_index);
     ~ARM_Unicorn() override;
 
     void SetPC(u64 pc) override;

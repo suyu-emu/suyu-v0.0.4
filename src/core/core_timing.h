@@ -98,9 +98,15 @@ public:
     /// We only permit one event of each type in the queue at a time.
     void RemoveEvent(const std::shared_ptr<EventType>& event_type);
 
-    void AddTicks(std::size_t core_index, u64 ticks);
+    void AddTicks(u64 ticks);
 
-    void ResetTicks(std::size_t core_index);
+    void ResetTicks();
+
+    void Idle();
+
+    s64 GetDowncount() const {
+        return downcount;
+    }
 
     /// Returns current time in emulated CPU cycles
     u64 GetCPUTicks() const;
@@ -154,7 +160,9 @@ private:
 
     bool is_multicore{};
 
-    std::array<std::atomic<u64>, Core::Hardware::NUM_CPU_CORES> ticks_count{};
+    /// Cycle timing
+    u64 ticks{};
+    s64 downcount{};
 };
 
 /// Creates a core timing event with the given name and callback.

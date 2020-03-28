@@ -232,13 +232,10 @@ void CpuManager::SingleCoreRunGuestLoop() {
         auto* physical_core = &kernel.CurrentPhysicalCore();
         auto& arm_interface = thread->ArmInterface();
         system.EnterDynarmicProfile();
-        while (!physical_core->IsInterrupted()) {
+        if (!physical_core->IsInterrupted()) {
+            system.CoreTiming().ResetTicks();
             arm_interface.Run();
             physical_core = &kernel.CurrentPhysicalCore();
-            preemption_count++;
-            if (preemption_count % max_cycle_runs == 0) {
-                break;
-            }
         }
         system.ExitDynarmicProfile();
         thread->SetPhantomMode(true);
@@ -255,7 +252,7 @@ void CpuManager::SingleCoreRunIdleThread() {
     auto& kernel = system.Kernel();
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
-        PreemptSingleCore();
+        PreemptSingleCore(false);
         idle_count++;
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
@@ -279,12 +276,15 @@ void CpuManager::SingleCoreRunSuspendThread() {
     }
 }
 
-void CpuManager::PreemptSingleCore() {
-    preemption_count = 0;
+void CpuManager::PreemptSingleCore(bool from_running_enviroment) {
     std::size_t old_core = current_core;
     auto& scheduler = system.Kernel().Scheduler(old_core);
     Kernel::Thread* current_thread = scheduler.GetCurrentThread();
-    if (idle_count >= 4) {
+    if (idle_count >= 4 || from_running_enviroment) {
+        if (!from_running_enviroment) {
+            system.CoreTiming().Idle();
+            idle_count = 0;
+        }
         current_thread->SetPhantomMode(true);
         system.CoreTiming().Advance();
         current_thread->SetPhantomMode(false);

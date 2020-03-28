@@ -1534,6 +1534,7 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
 
     if (is_redundant && !system.Kernel().IsMulticore()) {
         system.Kernel().ExitSVCProfile();
+        system.CoreTiming().AddTicks(1000U);
         system.GetCpuManager().PreemptSingleCore();
         system.Kernel().EnterSVCProfile();
     }
@@ -1761,6 +1762,10 @@ static u64 GetSystemTick(Core::System& system) {
 
     // Returns the value of cntpct_el0 (https://switchbrew.org/wiki/SVC#svcGetSystemTick)
     const u64 result{system.CoreTiming().GetClockTicks()};
+
+    if (!system.Kernel().IsMulticore()) {
+        core_timing.AddTicks(400U);
+    }
 
     return result;
 }

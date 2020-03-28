@@ -14,6 +14,8 @@
 
 namespace Core::Timing {
 
+constexpr u64 MAX_SLICE_LENGTH = 4000;
+
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
     return std::make_shared<EventType>(std::move(callback), std::move(name));
 }
@@ -53,6 +55,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
 void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
+    ticks = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
     if (is_multicore) {
@@ -126,20 +129,36 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
     basic_lock.unlock();
 }
 
-void CoreTiming::AddTicks(std::size_t core_index, u64 ticks) {
-    ticks_count[core_index] += ticks;
+void CoreTiming::AddTicks(u64 ticks) {
+    this->ticks += ticks;
+    downcount -= ticks;
 }
 
-void CoreTiming::ResetTicks(std::size_t core_index) {
-    ticks_count[core_index] = 0;
+void CoreTiming::Idle() {
+    if (!event_queue.empty()) {
+        u64 next_event_time = event_queue.front().time;
+        ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        return;
+    }
+    ticks += 1000U;
+}
+
+void CoreTiming::ResetTicks() {
+    downcount = MAX_SLICE_LENGTH;
 }
 
 u64 CoreTiming::GetCPUTicks() const {
-    return clock->GetCPUCycles();
+    if (is_multicore) {
+        return clock->GetCPUCycles();
+    }
+    return ticks;
 }
 
 u64 CoreTiming::GetClockTicks() const {
-    return clock->GetClockCycles();
+    if (is_multicore) {
+        return clock->GetClockCycles();
+    }
+    return CpuCyclesToClockCycles(ticks);
 }
 
 void CoreTiming::ClearPendingEvents() {
@@ -217,11 +236,17 @@ void CoreTiming::ThreadLoop() {
 }
 
 std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
-    return clock->GetTimeNS();
+    if (is_multicore) {
+        return clock->GetTimeNS();
+    }
+    return CyclesToNs(ticks);
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    return clock->GetTimeUS();
+    if (is_multicore) {
+        return clock->GetTimeUS();
+    }
+    return CyclesToUs(ticks);
 }
 
 } // namespace Core::Timing
