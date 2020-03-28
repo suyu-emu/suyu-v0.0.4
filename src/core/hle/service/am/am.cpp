@@ -52,6 +52,11 @@ enum class LaunchParameterKind : u32 {
     AccountPreselectedUser = 2,
 };
 
+enum class VrMode : u8 {
+    Disabled = 0,
+    Enabled = 1,
+};
+
 constexpr u32 LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC = 0xC79497CA;
 
 struct LaunchParameterAccountPreselectedUser {
@@ -605,11 +610,11 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system,
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
         {31, nullptr, "GetReaderLockAccessorEx"},
         {40, nullptr, "GetCradleFwVersion"},
-        {50, nullptr, "IsVrModeEnabled"},
-        {51, nullptr, "SetVrModeEnabled"},
+        {50, &ICommonStateGetter::IsVrModeEnabled, "IsVrModeEnabled"},
+        {51, &ICommonStateGetter::SetVrModeEnabled, "SetVrModeEnabled"},
         {52, &ICommonStateGetter::SetLcdBacklighOffEnabled, "SetLcdBacklighOffEnabled"},
         {53, nullptr, "BeginVrModeEx"},
-        {54, nullptr, "EndVrModeEx"},
+        {54, &ICommonStateGetter::EndVrModeEx, "EndVrModeEx"},
         {55, nullptr, "IsInControllerFirmwareUpdateSection"},
         {60, &ICommonStateGetter::GetDefaultDisplayResolution, "GetDefaultDisplayResolution"},
         {61, &ICommonStateGetter::GetDefaultDisplayResolutionChangeEvent, "GetDefaultDisplayResolutionChangeEvent"},
@@ -672,12 +677,43 @@ void ICommonStateGetter::GetCurrentFocusState(Kernel::HLERequestContext& ctx) {
     rb.Push(static_cast<u8>(FocusState::InFocus));
 }
 
+void ICommonStateGetter::IsVrModeEnabled(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(VrMode::Disabled);
+}
+
+void ICommonStateGetter::SetVrModeEnabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto is_vr_mode_enabled = rp.Pop<bool>();
+
+    LOG_WARNING(Service_AM, "(STUBBED) called. is_vr_mode_enabled={}", is_vr_mode_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    if (!is_vr_mode_enabled) {
+        rb.Push(RESULT_SUCCESS);
+    } else {
+        // TODO: Find better error code for this
+        UNIMPLEMENTED_MSG("is_vr_mode_enabled={}", is_vr_mode_enabled);
+        rb.Push(RESULT_UNKNOWN);
+    }
+}
+
 void ICommonStateGetter::SetLcdBacklighOffEnabled(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto is_lcd_backlight_off_enabled = rp.Pop<bool>();
 
     LOG_WARNING(Service_AM, "(STUBBED) called. is_lcd_backlight_off_enabled={}",
                 is_lcd_backlight_off_enabled);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void ICommonStateGetter::EndVrModeEx(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
