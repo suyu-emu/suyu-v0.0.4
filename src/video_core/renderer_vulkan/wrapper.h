@@ -28,6 +28,16 @@ namespace Vulkan::vk {
 template <typename T>
 class Span {
 public:
+    using value_type = T;
+    using size_type = u32;
+    using difference_type = std::ptrdiff_t;
+    using reference = const T&;
+    using const_reference = const T&;
+    using pointer = const T*;
+    using const_pointer = const T*;
+    using iterator = const T*;
+    using const_iterator = const T*;
+
     /// Construct an empty span.
     constexpr Span() noexcept = default;
 
@@ -50,6 +60,7 @@ public:
     }
 
     /// Returns the number of elements in the span.
+    /// @note Returns a 32 bits integer because most Vulkan functions expect this type.
     constexpr u32 size() const noexcept {
         return static_cast<u32>(num);
     }
@@ -72,6 +83,16 @@ public:
 
     /// Returns an iterator to the end of the span.
     constexpr const T* end() const noexcept {
+        return ptr + num;
+    }
+
+    /// Returns an iterator to the beginning of the span.
+    constexpr const T* cbegin() const noexcept {
+        return ptr;
+    }
+
+    /// Returns an iterator to the end of the span.
+    constexpr const T* cend() const noexcept {
         return ptr + num;
     }
 
@@ -325,7 +346,7 @@ public:
     /// Returns the address of the held object.
     /// Intended for Vulkan structures that expect a pointer to an array.
     const Type* address() const noexcept {
-        return &handle;
+        return std::addressof(handle);
     }
 
     /// Returns the held Vulkan handle.
@@ -334,7 +355,7 @@ public:
     }
 
     /// Returns true when there's a held object.
-    operator bool() const noexcept {
+    explicit operator bool() const noexcept {
         return handle != nullptr;
     }
 
@@ -396,7 +417,7 @@ public:
     /// Returns the address of the held object.
     /// Intended for Vulkan structures that expect a pointer to an array.
     const Type* address() const noexcept {
-        return &handle;
+        return std::addressof(handle);
     }
 
     /// Returns the held Vulkan handle.
