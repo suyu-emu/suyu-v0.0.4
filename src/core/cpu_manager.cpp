@@ -253,6 +253,7 @@ void CpuManager::SingleCoreRunIdleThread() {
     while (true) {
         auto& physical_core = kernel.CurrentPhysicalCore();
         PreemptSingleCore(false);
+        system.CoreTiming().AddTicks(1000U);
         idle_count++;
         auto& scheduler = physical_core.Scheduler();
         scheduler.TryDoContextSwitch();
