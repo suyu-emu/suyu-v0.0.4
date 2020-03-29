@@ -839,94 +839,6 @@
         <bool>false</bool>
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
-        <item row="3" column="0">
-         <layout class="QVBoxLayout" name="buttonShoulderButtonsSLVerticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="buttonShoulderButtonsSLHorizontalLayout">
-            <item>
-             <widget class="QLabel" name="labelSL">
-              <property name="text">
-               <string>SL:</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonSL">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="2" column="1">
-         <layout class="QVBoxLayout" name="buttonShoulderButtonsZRVerticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="buttonShoulderButtonsZRHorizontalLayout">
-            <item>
-             <widget class="QLabel" name="labelZR">
-              <property name="text">
-               <string>ZR:</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonZR">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="3" column="1">
-         <layout class="QVBoxLayout" name="buttonShoulderButtonsSRVerticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="buttonShoulderButtonsSRHorizontalLayout">
-            <item>
-             <widget class="QLabel" name="labelSR">
-              <property name="text">
-               <string>SR:</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonSR">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="1">
-         <layout class="QVBoxLayout" name="buttonShoulderButtonsZLVerticalLayout">
-          <item>
-           <layout class="QHBoxLayout" name="buttonShoulderButtonsZLHorizontalLayout">
-            <item>
-             <widget class="QLabel" name="labelZL">
-              <property name="text">
-               <string>ZL:</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="QPushButton" name="buttonZL">
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
         <item row="0" column="0">
          <layout class="QVBoxLayout" name="buttonShoulderButtonsLVerticalLayout">
           <item>
@@ -949,7 +861,7 @@
           </item>
          </layout>
         </item>
-        <item row="2" column="0">
+        <item row="0" column="1">
          <layout class="QVBoxLayout" name="buttonShoulderButtonsRVerticalLayout">
           <item>
            <layout class="QHBoxLayout" name="buttonShoulderButtonsRHorizontalLayout">
@@ -964,6 +876,94 @@
           </item>
           <item>
            <widget class="QPushButton" name="buttonR">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <layout class="QVBoxLayout" name="buttonShoulderButtonsZLVerticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="buttonShoulderButtonsZLHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelZL">
+              <property name="text">
+               <string>ZL:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonZL">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="1">
+         <layout class="QVBoxLayout" name="buttonShoulderButtonsZRVerticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="buttonShoulderButtonsZRHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelZR">
+              <property name="text">
+               <string>ZR:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonZR">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="0">
+         <layout class="QVBoxLayout" name="buttonShoulderButtonsSLVerticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="buttonShoulderButtonsSLHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelSL">
+              <property name="text">
+               <string>SL:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonSL">
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item row="2" column="1">
+         <layout class="QVBoxLayout" name="buttonShoulderButtonsSRVerticalLayout">
+          <item>
+           <layout class="QHBoxLayout" name="buttonShoulderButtonsSRHorizontalLayout">
+            <item>
+             <widget class="QLabel" name="labelSR">
+              <property name="text">
+               <string>SR:</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QPushButton" name="buttonSR">
             <property name="text">
              <string/>
             </property>
