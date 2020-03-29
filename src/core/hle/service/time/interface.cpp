@@ -30,7 +30,7 @@ Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* nam
         {400, &Time::GetClockSnapshot, "GetClockSnapshot"},
         {401, &Time::GetClockSnapshotFromSystemClockContext, "GetClockSnapshotFromSystemClockContext"},
         {500, nullptr, "CalculateStandardUserSystemClockDifferenceByUser"},
-        {501, nullptr, "CalculateSpanBetween"},
+        {501, &Time::CalculateSpanBetween, "CalculateSpanBetween"},
     };
     // clang-format on
 
