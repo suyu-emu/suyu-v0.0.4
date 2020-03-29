@@ -189,7 +189,7 @@ struct UpdateDataHeader {
     UpdateDataHeader() {}
 
     explicit UpdateDataHeader(const AudioRendererParameter& config) {
-        revision = Common::MakeMagic('R', 'E', 'V', '4'); // 5.1.0 Revision
+        revision = Common::MakeMagic('R', 'E', 'V', '8'); // 9.2.0 Revision
         behavior_size = 0xb0;
         memory_pools_size = (config.effect_count + (config.voice_count * 4)) * 0x10;
         voices_size = config.voice_count * 0x10;
