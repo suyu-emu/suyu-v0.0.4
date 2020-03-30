@@ -37,16 +37,24 @@ public:
     }
 
     void MakeCurrent() override {
-        SDL_GL_MakeCurrent(window, context);
+        if (is_current) {
+            return;
+        }
+        is_current = SDL_GL_MakeCurrent(window, context) == 0;
     }
 
     void DoneCurrent() override {
+        if (!is_current) {
+            return;
+        }
         SDL_GL_MakeCurrent(window, nullptr);
+        is_current = false;
     }
 
 private:
     SDL_Window* window;
     SDL_GLContext context;
+    bool is_current = false;
 };
 
 bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {

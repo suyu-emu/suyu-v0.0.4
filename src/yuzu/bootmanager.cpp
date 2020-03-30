@@ -141,7 +141,7 @@ public:
     }
 
     ~OpenGLSharedContext() {
-        context->doneCurrent();
+        DoneCurrent();
     }
 
     void SwapBuffers() override {
@@ -156,6 +156,9 @@ public:
     }
 
     void DoneCurrent() override {
+        if (!is_current) {
+            return;
+        }
         context->doneCurrent();
         is_current = false;
     }
