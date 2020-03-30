@@ -444,6 +444,7 @@ void RasterizerOpenGL::Clear() {
     }
 
     SyncRasterizeEnable();
+    SyncStencilTestState();
 
     if (regs.clear_flags.scissor) {
         SyncScissorTest();
@@ -1052,12 +1053,8 @@ void RasterizerOpenGL::SyncStencilTestState() {
     flags[Dirty::StencilTest] = false;
 
     const auto& regs = gpu.regs;
-    if (!regs.stencil_enable) {
-        glDisable(GL_STENCIL_TEST);
-        return;
-    }
+    oglEnable(GL_STENCIL_TEST, regs.stencil_enable);
 
-    glEnable(GL_STENCIL_TEST);
     glStencilFuncSeparate(GL_FRONT, MaxwellToGL::ComparisonOp(regs.stencil_front_func_func),
                           regs.stencil_front_func_ref, regs.stencil_front_func_mask);
     glStencilOpSeparate(GL_FRONT, MaxwellToGL::StencilOp(regs.stencil_front_op_fail),
