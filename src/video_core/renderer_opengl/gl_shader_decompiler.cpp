@@ -2114,6 +2114,10 @@ private:
 
     template <const std::string_view& opname, Type type>
     Expression Atomic(Operation operation) {
+        if ((opname == Func::Min || opname == Func::Max) && type == Type::Int) {
+            UNIMPLEMENTED_MSG("Unimplemented Min & Max for atomic operations");
+            return {};
+        }
         return {fmt::format("atomic{}({}, {})", opname, Visit(operation[0]).GetCode(),
                             Visit(operation[1]).As(type)),
                 type};
