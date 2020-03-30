@@ -231,18 +231,6 @@ enum class AtomicOp : u64 {
     Or = 6,
     Xor = 7,
     Exch = 8,
-};
-
-enum class GlobalAtomicOp : u64 {
-    Add = 0,
-    Min = 1,
-    Max = 2,
-    Inc = 3,
-    Dec = 4,
-    And = 5,
-    Or = 6,
-    Xor = 7,
-    Exch = 8,
     SafeAdd = 10,
 };
 
@@ -1001,7 +989,7 @@ union Instruction {
     } stg;
 
     union {
-        BitField<52, 4, GlobalAtomicOp> operation;
+        BitField<52, 4, AtomicOp> operation;
         BitField<49, 3, GlobalAtomicType> type;
         BitField<28, 20, s64> offset;
     } atom;
