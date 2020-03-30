@@ -113,8 +113,19 @@ u64 HostCounter::BlockingQuery() const {
     if (ticks >= cache.Scheduler().Ticks()) {
         cache.Scheduler().Flush();
     }
-    return cache.Device().GetLogical().GetQueryResult<u64>(
-        query.first, query.second, VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+    u64 data;
+    const VkResult result = cache.Device().GetLogical().GetQueryResults(
+        query.first, query.second, 1, sizeof(data), &data, sizeof(data),
+        VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT);
+    switch (result) {
+    case VK_SUCCESS:
+        return data;
+    case VK_ERROR_DEVICE_LOST:
+        cache.Device().ReportLoss();
+        [[fallthrough]];
+    default:
+        throw vk::Exception(result);
+    }
 }
 
 } // namespace Vulkan

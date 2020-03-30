@@ -166,7 +166,15 @@ void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
     submit_info.pCommandBuffers = current_cmdbuf.address();
     submit_info.signalSemaphoreCount = semaphore ? 1 : 0;
     submit_info.pSignalSemaphores = &semaphore;
-    device.GetGraphicsQueue().Submit(submit_info, *current_fence);
+    switch (const VkResult result = device.GetGraphicsQueue().Submit(submit_info, *current_fence)) {
+    case VK_SUCCESS:
+        break;
+    case VK_ERROR_DEVICE_LOST:
+        device.ReportLoss();
+        [[fallthrough]];
+    default:
+        vk::Check(result);
+    }
 }
 
 void VKScheduler::AllocateNewContext() {
