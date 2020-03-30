@@ -86,6 +86,20 @@ OperationCode SignedToUnsignedCode(OperationCode operation_code, bool is_signed)
         return OperationCode::LogicalUNotEqual;
     case OperationCode::LogicalIGreaterEqual:
         return OperationCode::LogicalUGreaterEqual;
+    case OperationCode::AtomicIExchange:
+        return OperationCode::AtomicUExchange;
+    case OperationCode::AtomicIAdd:
+        return OperationCode::AtomicUAdd;
+    case OperationCode::AtomicIMin:
+        return OperationCode::AtomicUMin;
+    case OperationCode::AtomicIMax:
+        return OperationCode::AtomicUMax;
+    case OperationCode::AtomicIAnd:
+        return OperationCode::AtomicUAnd;
+    case OperationCode::AtomicIOr:
+        return OperationCode::AtomicUOr;
+    case OperationCode::AtomicIXor:
+        return OperationCode::AtomicUXor;
     case OperationCode::INegate:
         UNREACHABLE_MSG("Can't negate an unsigned integer");
         return {};

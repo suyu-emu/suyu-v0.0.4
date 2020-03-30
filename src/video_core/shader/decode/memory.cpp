@@ -19,7 +19,6 @@ namespace VideoCommon::Shader {
 using Tegra::Shader::AtomicOp;
 using Tegra::Shader::AtomicType;
 using Tegra::Shader::Attribute;
-using Tegra::Shader::GlobalAtomicOp;
 using Tegra::Shader::GlobalAtomicType;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
@@ -27,6 +26,34 @@ using Tegra::Shader::Register;
 using Tegra::Shader::StoreType;
 
 namespace {
+
+Node getAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
+    switch (op) {
+    case AtomicOp::Add:
+        return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::Min:
+        return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::Max:
+        return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::And:
+        return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::Or:
+        return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::Xor:
+        return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(memory),
+                               std::move(data));
+    case AtomicOp::Exch:
+        return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(memory),
+                               std::move(data));
+    default:
+        return Immediate(0);
+    }
+}
 
 bool IsUnaligned(Tegra::Shader::UniformType uniform_type) {
     return uniform_type == Tegra::Shader::UniformType::UnsignedByte ||
@@ -363,9 +390,9 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::ATOM: {
-        UNIMPLEMENTED_IF_MSG(instr.atom.operation == GlobalAtomicOp::Inc ||
-                                 instr.atom.operation == GlobalAtomicOp::Dec ||
-                                 instr.atom.operation == GlobalAtomicOp::SafeAdd,
+        UNIMPLEMENTED_IF_MSG(instr.atom.operation == AtomicOp::Inc ||
+                                 instr.atom.operation == AtomicOp::Dec ||
+                                 instr.atom.operation == AtomicOp::SafeAdd,
                              "operation={}", static_cast<int>(instr.atom.operation.Value()));
         UNIMPLEMENTED_IF_MSG(instr.atom.type == GlobalAtomicType::S64 ||
                                  instr.atom.type == GlobalAtomicType::U64,
@@ -381,36 +408,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         const bool is_signed =
             instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-        Node data = GetRegister(instr.gpr20);
-
-        Node value = [&]() {
-            switch (instr.atoms.operation) {
-            case AtomicOp::Add:
-                return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::Min:
-                return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::Max:
-                return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::And:
-                return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::Or:
-                return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::Xor:
-                return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(gmem),
-                                       std::move(data));
-            case AtomicOp::Exch:
-                return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(gmem),
-                                       std::move(data));
-            default:
-                UNREACHABLE();
-                return Immediate(0);
-            }
-        }();
+        Node value = getAtomOperation(static_cast<AtomicOp>(instr.atom.operation), is_signed, gmem,
+                                      GetRegister(instr.gpr20));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
@@ -426,39 +425,9 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         const s32 offset = instr.atoms.GetImmediateOffset();
         Node address = GetRegister(instr.gpr8);
         address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
-
-        Node memory = GetSharedMemory(std::move(address));
-        Node data = GetRegister(instr.gpr20);
-
-        Node value = [&]() {
-            switch (instr.atoms.operation) {
-            case AtomicOp::Add:
-                return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::Min:
-                return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::Max:
-                return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::And:
-                return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::Or:
-                return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::Xor:
-                return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(memory),
-                                       std::move(data));
-            case AtomicOp::Exch:
-                return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(memory),
-                                       std::move(data));
-            default:
-                UNREACHABLE();
-                return Immediate(0);
-            }
-        }();
-
+        Node value =
+            getAtomOperation(static_cast<AtomicOp>(instr.atoms.operation), is_signed,
+                             GetSharedMemory(std::move(address)), GetRegister(instr.gpr20));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
@@ -492,9 +461,9 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& 
 
     const auto [base_address, index, offset] =
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT_OR_EXECUTE_MSG(base_address != nullptr,
-                          { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
-                          "Global memory tracking failed");
+    ASSERT_OR_EXECUTE_MSG(
+        base_address != nullptr, { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
+        "Global memory tracking failed");
 
     bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
