@@ -61,7 +61,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdPipelineBarrier);
     X(vkCmdPushConstants);
     X(vkCmdSetBlendConstants);
-    X(vkCmdSetCheckpointNV);
     X(vkCmdSetDepthBias);
     X(vkCmdSetDepthBounds);
     X(vkCmdSetScissor);
@@ -116,7 +115,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetFenceStatus);
     X(vkGetImageMemoryRequirements);
     X(vkGetQueryPoolResults);
-    X(vkGetQueueCheckpointDataNV);
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
@@ -407,17 +405,6 @@ DebugCallback Instance::TryCreateDebugCallback(
         return {};
     }
     return DebugCallback(messenger, handle, *dld);
-}
-
-std::vector<VkCheckpointDataNV> Queue::GetCheckpointDataNV(const DeviceDispatch& dld) const {
-    if (!dld.vkGetQueueCheckpointDataNV) {
-        return {};
-    }
-    u32 num;
-    dld.vkGetQueueCheckpointDataNV(queue, &num, nullptr);
-    std::vector<VkCheckpointDataNV> checkpoints(num);
-    dld.vkGetQueueCheckpointDataNV(queue, &num, checkpoints.data());
-    return checkpoints;
 }
 
 void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {

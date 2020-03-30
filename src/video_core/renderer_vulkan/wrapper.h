@@ -197,7 +197,6 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
     PFN_vkCmdPushConstants vkCmdPushConstants;
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
-    PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
     PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds;
     PFN_vkCmdSetScissor vkCmdSetScissor;
@@ -252,7 +251,6 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkGetFenceStatus vkGetFenceStatus;
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
-    PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
     PFN_vkMapMemory vkMapMemory;
     PFN_vkQueueSubmit vkQueueSubmit;
     PFN_vkResetFences vkResetFences;
@@ -907,10 +905,6 @@ public:
     void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, u32 offset, u32 size,
                        const void* values) const noexcept {
         dld->vkCmdPushConstants(handle, layout, flags, offset, size, values);
-    }
-
-    void SetCheckpointNV(const void* checkpoint_marker) const noexcept {
-        dld->vkCmdSetCheckpointNV(handle, checkpoint_marker);
     }
 
     void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {

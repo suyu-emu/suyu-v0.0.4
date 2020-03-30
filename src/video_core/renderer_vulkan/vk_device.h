@@ -173,11 +173,6 @@ public:
         return ext_transform_feedback;
     }
 
-    /// Returns true if the device supports VK_NV_device_diagnostic_checkpoints.
-    bool IsNvDeviceDiagnosticCheckpoints() const {
-        return nv_device_diagnostic_checkpoints;
-    }
-
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return vendor_name;
