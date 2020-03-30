@@ -653,8 +653,7 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
 
 public:
     static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
-                         Span<const char*> enabled_extensions,
-                         const VkPhysicalDeviceFeatures2& enabled_features,
+                         Span<const char*> enabled_extensions, const void* next,
                          DeviceDispatch& dld) noexcept;
 
     Queue GetQueue(u32 family_index) const noexcept;

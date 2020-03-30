@@ -456,12 +456,11 @@ std::vector<VkImage> SwapchainKHR::GetImages() const {
 }
 
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
-                      Span<const char*> enabled_extensions,
-                      const VkPhysicalDeviceFeatures2& enabled_features,
+                      Span<const char*> enabled_extensions, const void* next,
                       DeviceDispatch& dld) noexcept {
     VkDeviceCreateInfo ci;
     ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    ci.pNext = &enabled_features;
+    ci.pNext = next;
     ci.flags = 0;
     ci.queueCreateInfoCount = queues_ci.size();
     ci.pQueueCreateInfos = queues_ci.data();

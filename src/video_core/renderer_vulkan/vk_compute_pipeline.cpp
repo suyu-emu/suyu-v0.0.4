@@ -105,6 +105,8 @@ vk::DescriptorUpdateTemplateKHR VKComputePipeline::CreateDescriptorUpdateTemplat
 }
 
 vk::ShaderModule VKComputePipeline::CreateShaderModule(const std::vector<u32>& code) const {
+    device.SaveShader(code);
+
     VkShaderModuleCreateInfo ci;
     ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     ci.pNext = nullptr;
