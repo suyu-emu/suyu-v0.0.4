@@ -615,6 +615,23 @@ public:
     }
 };
 
+class Fence : public Handle<VkFence, VkDevice, DeviceDispatch> {
+    using Handle<VkFence, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    VkResult Wait(u64 timeout = std::numeric_limits<u64>::max()) const noexcept {
+        return dld->vkWaitForFences(owner, 1, &handle, true, timeout);
+    }
+
+    VkResult GetStatus() const noexcept {
+        return dld->vkGetFenceStatus(owner, handle);
+    }
+
+    void Reset() const {
+        Check(dld->vkResetFences(owner, 1, &handle));
+    }
+};
+
 class DescriptorPool : public Handle<VkDescriptorPool, VkDevice, DeviceDispatch> {
     using Handle<VkDescriptorPool, VkDevice, DeviceDispatch>::Handle;
 
