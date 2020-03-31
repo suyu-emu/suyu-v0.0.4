@@ -333,13 +333,21 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         thread->SetStatus(ThreadStatus::WaitIPC);
         session->SendSyncRequest(SharedFrom(thread), system.Memory());
     }
+
     if (thread->HasHLECallback()) {
         Handle event_handle = thread->GetHLETimeEvent();
         if (event_handle != InvalidHandle) {
             auto& time_manager = system.Kernel().TimeManager();
             time_manager.UnscheduleTimeEvent(event_handle);
         }
-        thread->InvokeHLECallback(SharedFrom(thread));
+
+        {
+            SchedulerLock lock(system.Kernel());
+            auto* sync_object = thread->GetHLESyncObject();
+            sync_object->RemoveWaitingThread(SharedFrom(thread));
+
+            thread->InvokeHLECallback(SharedFrom(thread));
+        }
     }
 
     return thread->GetSignalingResult();

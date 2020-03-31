@@ -70,6 +70,7 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
             });
         const auto readable_event{writable_event->GetReadableEvent()};
         writable_event->Clear();
+        thread->SetHLESyncObject(readable_event.get());
         thread->SetStatus(ThreadStatus::WaitHLEEvent);
         thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         readable_event->AddWaitingThread(thread);

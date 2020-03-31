@@ -489,8 +489,16 @@ public:
         hle_time_event = time_event;
     }
 
+    void SetHLESyncObject(SynchronizationObject* object) {
+        hle_object = object;
+    }
+
     Handle GetHLETimeEvent() const {
         return hle_time_event;
+    }
+
+    SynchronizationObject* GetHLESyncObject() const {
+        return hle_object;
     }
 
     void InvalidateWakeupCallback() {
@@ -698,6 +706,7 @@ private:
     /// Callback for HLE Events
     HLECallback hle_callback;
     Handle hle_time_event;
+    SynchronizationObject* hle_object;
 
     Scheduler* scheduler = nullptr;
 
