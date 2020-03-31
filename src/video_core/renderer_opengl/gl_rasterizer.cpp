@@ -386,11 +386,14 @@ void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using
     texture_cache.GuardRenderTargets(true);
     View color_surface;
     if (using_color_fb) {
-        color_surface = texture_cache.GetColorBufferSurface(regs.clear_buffers.RT, false);
+        const std::size_t index = regs.clear_buffers.RT;
+        color_surface = texture_cache.GetColorBufferSurface(index, true);
+        texture_cache.MarkColorBufferInUse(index);
     }
     View depth_surface;
     if (using_depth_fb || using_stencil_fb) {
-        depth_surface = texture_cache.GetDepthBufferSurface(false);
+        depth_surface = texture_cache.GetDepthBufferSurface(true);
+        texture_cache.MarkDepthBufferInUse();
     }
     texture_cache.GuardRenderTargets(false);
 
