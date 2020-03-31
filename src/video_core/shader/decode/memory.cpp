@@ -46,8 +46,7 @@ Node GetAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
             return OperationCode::AtomicIExchange;
         }
     }();
-    return SignedOperation(operation_code, is_signed, std::move(memory),
-                               std::move(data));
+    return SignedOperation(operation_code, is_signed, std::move(memory), std::move(data));
 }
 
 bool IsUnaligned(Tegra::Shader::UniformType uniform_type) {
