@@ -600,6 +600,21 @@ public:
     void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
 };
 
+class DeviceMemory : public Handle<VkDeviceMemory, VkDevice, DeviceDispatch> {
+    using Handle<VkDeviceMemory, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    u8* Map(VkDeviceSize offset, VkDeviceSize size) const {
+        void* data;
+        Check(dld->vkMapMemory(owner, handle, offset, size, 0, &data));
+        return static_cast<u8*>(data);
+    }
+
+    void Unmap() const noexcept {
+        dld->vkUnmapMemory(owner, handle);
+    }
+};
+
 class DescriptorPool : public Handle<VkDescriptorPool, VkDevice, DeviceDispatch> {
     using Handle<VkDescriptorPool, VkDevice, DeviceDispatch>::Handle;
 
