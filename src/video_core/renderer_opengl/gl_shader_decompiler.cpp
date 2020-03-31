@@ -2114,6 +2114,10 @@ private:
 
     template <const std::string_view& opname, Type type>
     Expression Atomic(Operation operation) {
+        if ((opname == Func::Min || opname == Func::Max) && type == Type::Int) {
+            UNIMPLEMENTED_MSG("Unimplemented Min & Max for atomic operations");
+            return {};
+        }
         return {fmt::format("atomic{}({}, {})", opname, Visit(operation[0]).GetCode(),
                             Visit(operation[1]).As(type)),
                 type};
@@ -2307,6 +2311,8 @@ private:
         ~Func() = delete;
 
         static constexpr std::string_view Add = "Add";
+        static constexpr std::string_view Min = "Min";
+        static constexpr std::string_view Max = "Max";
         static constexpr std::string_view And = "And";
         static constexpr std::string_view Or = "Or";
         static constexpr std::string_view Xor = "Xor";
@@ -2457,7 +2463,21 @@ private:
         &GLSLDecompiler::AtomicImage<Func::Xor>,
         &GLSLDecompiler::AtomicImage<Func::Exchange>,
 
+        &GLSLDecompiler::Atomic<Func::Exchange, Type::Uint>,
         &GLSLDecompiler::Atomic<Func::Add, Type::Uint>,
+        &GLSLDecompiler::Atomic<Func::Min, Type::Uint>,
+        &GLSLDecompiler::Atomic<Func::Max, Type::Uint>,
+        &GLSLDecompiler::Atomic<Func::And, Type::Uint>,
+        &GLSLDecompiler::Atomic<Func::Or, Type::Uint>,
+        &GLSLDecompiler::Atomic<Func::Xor, Type::Uint>,
+
+        &GLSLDecompiler::Atomic<Func::Exchange, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::Add, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::Min, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::Max, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::And, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::Or, Type::Int>,
+        &GLSLDecompiler::Atomic<Func::Xor, Type::Int>,
 
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::BranchIndirect,
