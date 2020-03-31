@@ -409,4 +409,15 @@ DebugCallback Instance::TryCreateDebugCallback(
     return DebugCallback(messenger, handle, *dld);
 }
 
+std::vector<VkCheckpointDataNV> Queue::GetCheckpointDataNV(const DeviceDispatch& dld) const {
+    if (!dld.vkGetQueueCheckpointDataNV) {
+        return {};
+    }
+    u32 num;
+    dld.vkGetQueueCheckpointDataNV(queue, &num, nullptr);
+    std::vector<VkCheckpointDataNV> checkpoints(num);
+    dld.vkGetQueueCheckpointDataNV(queue, &num, checkpoints.data());
+    return checkpoints;
+}
+
 } // namespace Vulkan::vk

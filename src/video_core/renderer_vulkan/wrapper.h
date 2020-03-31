@@ -559,4 +559,29 @@ public:
     DebugCallback TryCreateDebugCallback(PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept;
 };
 
+class Queue {
+public:
+    /// Construct an empty queue handle.
+    constexpr Queue() noexcept = default;
+
+    /// Construct a queue handle.
+    constexpr Queue(VkQueue queue, const DeviceDispatch& dld) noexcept : queue{queue}, dld{&dld} {}
+
+    /// Returns the checkpoint data.
+    /// @note Returns an empty vector when the function pointer is not present.
+    std::vector<VkCheckpointDataNV> GetCheckpointDataNV(const DeviceDispatch& dld) const;
+
+    void Submit(Span<VkSubmitInfo> submit_infos, VkFence fence) const {
+        Check(dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence));
+    }
+
+    VkResult Present(const VkPresentInfoKHR& present_info) const noexcept {
+        return dld->vkQueuePresentKHR(queue, &present_info);
+    }
+
+private:
+    VkQueue queue = nullptr;
+    const DeviceDispatch* dld = nullptr;
+};
+
 } // namespace Vulkan::vk
