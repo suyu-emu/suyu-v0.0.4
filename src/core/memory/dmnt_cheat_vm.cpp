@@ -27,7 +27,7 @@
 #include "core/memory/dmnt_cheat_types.h"
 #include "core/memory/dmnt_cheat_vm.h"
 
-namespace Memory {
+namespace Core::Memory {
 
 DmntCheatVm::DmntCheatVm(std::unique_ptr<Callbacks> callbacks) : callbacks(std::move(callbacks)) {}
 
@@ -1210,4 +1210,4 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
     }
 }
 
-} // namespace Memory
+} // namespace Core::Memory

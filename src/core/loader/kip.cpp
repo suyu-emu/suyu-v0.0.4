@@ -14,7 +14,7 @@ namespace Loader {
 
 namespace {
 constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
 }
 } // Anonymous namespace
 

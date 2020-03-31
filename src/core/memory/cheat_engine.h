@@ -20,7 +20,7 @@ class CoreTiming;
 struct EventType;
 } // namespace Core::Timing
 
-namespace Memory {
+namespace Core::Memory {
 
 class StandardVmCallbacks : public DmntCheatVm::Callbacks {
 public:
@@ -84,4 +84,4 @@ private:
     Core::System& system;
 };
 
-} // namespace Memory
+} // namespace Core::Memory

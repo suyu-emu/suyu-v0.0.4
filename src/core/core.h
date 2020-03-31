@@ -36,9 +36,10 @@ class AppLoader;
 enum class ResultStatus : u16;
 } // namespace Loader
 
-namespace Memory {
+namespace Core::Memory {
 struct CheatEntry;
-} // namespace Memory
+class Memory;
+} // namespace Core::Memory
 
 namespace Service {
 
@@ -84,10 +85,6 @@ class CoreTiming;
 
 namespace Core::Hardware {
 class InterruptManager;
-}
-
-namespace Memory {
-class Memory;
 }
 
 namespace Core {
@@ -230,10 +227,10 @@ public:
     const ExclusiveMonitor& Monitor() const;
 
     /// Gets a mutable reference to the system memory instance.
-    Memory::Memory& Memory();
+    Core::Memory::Memory& Memory();
 
     /// Gets a constant reference to the system memory instance.
-    const Memory::Memory& Memory() const;
+    const Core::Memory::Memory& Memory() const;
 
     /// Gets a mutable reference to the GPU interface
     Tegra::GPU& GPU();

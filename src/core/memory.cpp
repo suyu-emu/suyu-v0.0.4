@@ -20,7 +20,7 @@
 #include "core/memory.h"
 #include "video_core/gpu.h"
 
-namespace Memory {
+namespace Core::Memory {
 
 // Implementation class used to keep the specifics of the memory subsystem hidden
 // from outside classes. This also allows modification to the internals of the memory
@@ -845,4 +845,4 @@ bool IsKernelVirtualAddress(const VAddr vaddr) {
     return KERNEL_REGION_VADDR <= vaddr && vaddr < KERNEL_REGION_END;
 }
 
-} // namespace Memory
+} // namespace Core::Memory

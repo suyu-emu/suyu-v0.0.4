@@ -23,7 +23,7 @@ class PhysicalMemory;
 class Process;
 } // namespace Kernel
 
-namespace Memory {
+namespace Core::Memory {
 
 /**
  * Page size used by the ARM architecture. This is the smallest granularity with which memory can
@@ -503,4 +503,4 @@ private:
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);
 
-} // namespace Memory
+} // namespace Core::Memory

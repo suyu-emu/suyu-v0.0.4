@@ -539,7 +539,7 @@ static ResultCode ArbitrateLock(Core::System& system, Handle holding_thread_hand
               "requesting_current_thread_handle=0x{:08X}",
               holding_thread_handle, mutex_addr, requesting_thread_handle);
 
-    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
         LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
                   mutex_addr);
         return ERR_INVALID_ADDRESS_STATE;
@@ -559,7 +559,7 @@ static ResultCode ArbitrateLock(Core::System& system, Handle holding_thread_hand
 static ResultCode ArbitrateUnlock(Core::System& system, VAddr mutex_addr) {
     LOG_TRACE(Kernel_SVC, "called mutex_addr=0x{:X}", mutex_addr);
 
-    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
         LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
                   mutex_addr);
         return ERR_INVALID_ADDRESS_STATE;
@@ -1611,7 +1611,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         "called mutex_addr={:X}, condition_variable_addr={:X}, thread_handle=0x{:08X}, timeout={}",
         mutex_addr, condition_variable_addr, thread_handle, nano_seconds);
 
-    if (Memory::IsKernelVirtualAddress(mutex_addr)) {
+    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
         LOG_ERROR(
             Kernel_SVC,
             "Given mutex address must not be within the kernel address space. address=0x{:016X}",
@@ -1742,7 +1742,7 @@ static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, 
               type, value, timeout);
 
     // If the passed address is a kernel virtual address, return invalid memory state.
-    if (Memory::IsKernelVirtualAddress(address)) {
+    if (Core::Memory::IsKernelVirtualAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
         return ERR_INVALID_ADDRESS_STATE;
     }
@@ -1770,7 +1770,7 @@ static ResultCode SignalToAddress(Core::System& system, VAddr address, u32 type,
               address, type, value, num_to_wake);
 
     // If the passed address is a kernel virtual address, return invalid memory state.
-    if (Memory::IsKernelVirtualAddress(address)) {
+    if (Core::Memory::IsKernelVirtualAddress(address)) {
         LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
         return ERR_INVALID_ADDRESS_STATE;
     }

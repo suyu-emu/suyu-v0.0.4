@@ -346,7 +346,7 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
-    Memory::Memory memory;
+    Core::Memory::Memory memory;
     CpuManager cpu_manager;
     bool is_powered_on = false;
     bool exit_lock = false;
@@ -505,7 +505,7 @@ Memory::Memory& System::Memory() {
     return impl->memory;
 }
 
-const Memory::Memory& System::Memory() const {
+const Core::Memory::Memory& System::Memory() const {
     return impl->memory;
 }
 

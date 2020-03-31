@@ -401,7 +401,7 @@ AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process) {
     process.LoadModule(std::move(codeset), entry_point);
 
     is_loaded = true;
-    return {ResultStatus::Success, LoadParameters{48, Memory::DEFAULT_STACK_SIZE}};
+    return {ResultStatus::Success, LoadParameters{48, Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 } // namespace Loader

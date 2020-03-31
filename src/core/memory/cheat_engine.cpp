@@ -16,7 +16,7 @@
 #include "core/hle/service/sm/sm.h"
 #include "core/memory/cheat_engine.h"
 
-namespace Memory {
+namespace Core::Memory {
 
 constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 12);
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
@@ -230,4 +230,4 @@ void CheatEngine::FrameCallback(u64 userdata, s64 cycles_late) {
     core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS - cycles_late, event);
 }
 
-} // namespace Memory
+} // namespace Core::Memory

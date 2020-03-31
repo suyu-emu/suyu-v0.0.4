@@ -60,7 +60,7 @@ static_assert(sizeof(ELFSymbol) == 0x18, "ELFSymbol has incorrect size.");
 
 using Symbols = std::vector<std::pair<ELFSymbol, std::string>>;
 
-Symbols GetSymbols(VAddr text_offset, Memory::Memory& memory) {
+Symbols GetSymbols(VAddr text_offset, Core::Memory::Memory& memory) {
     const auto mod_offset = text_offset + memory.Read32(text_offset + 4);
 
     if (mod_offset < text_offset || (mod_offset & 0b11) != 0 ||

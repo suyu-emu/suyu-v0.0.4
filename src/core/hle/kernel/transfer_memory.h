@@ -11,7 +11,7 @@
 
 union ResultCode;
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 
@@ -30,12 +30,12 @@ enum class MemoryPermission : u32;
 ///
 class TransferMemory final : public Object {
 public:
-    explicit TransferMemory(KernelCore& kernel, Memory::Memory& memory);
+    explicit TransferMemory(KernelCore& kernel, Core::Memory::Memory& memory);
     ~TransferMemory() override;
 
     static constexpr HandleType HANDLE_TYPE = HandleType::TransferMemory;
 
-    static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, Memory::Memory& memory,
+    static std::shared_ptr<TransferMemory> Create(KernelCore& kernel, Core::Memory::Memory& memory,
                                                   VAddr base_address, u64 size,
                                                   MemoryPermission permissions);
 
@@ -112,7 +112,7 @@ private:
     /// Whether or not this transfer memory instance has mapped memory.
     bool is_mapped = false;
 
-    Memory::Memory& memory;
+    Core::Memory::Memory& memory;
 };
 
 } // namespace Kernel

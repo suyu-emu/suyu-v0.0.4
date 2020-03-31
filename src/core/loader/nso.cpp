@@ -47,7 +47,7 @@ std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
 }
 
 constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
 }
 } // Anonymous namespace
 
@@ -182,7 +182,7 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process) {
 
     is_loaded = true;
     return {ResultStatus::Success,
-            LoadParameters{Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE}};
+            LoadParameters{Kernel::THREADPRIO_DEFAULT, Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 ResultStatus AppLoader_NSO::ReadNSOModules(Modules& modules) {

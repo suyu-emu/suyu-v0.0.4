@@ -13,7 +13,7 @@
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 
@@ -92,7 +92,7 @@ public:
      *
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory);
+    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
 
     bool ShouldWait(const Thread* thread) const override;
 
@@ -126,7 +126,7 @@ public:
 
 private:
     /// Queues a sync request from the emulated application.
-    ResultCode QueueSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory);
+    ResultCode QueueSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
 
     /// Completes a sync request from the emulated application.
     ResultCode CompleteSyncRequest();

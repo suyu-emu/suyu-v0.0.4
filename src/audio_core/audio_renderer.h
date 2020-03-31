@@ -22,7 +22,7 @@ namespace Kernel {
 class WritableEvent;
 }
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 
@@ -221,7 +221,7 @@ static_assert(sizeof(UpdateDataHeader) == 0x40, "UpdateDataHeader has wrong size
 
 class AudioRenderer {
 public:
-    AudioRenderer(Core::Timing::CoreTiming& core_timing, Memory::Memory& memory_,
+    AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
                   AudioRendererParameter params,
                   std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
     ~AudioRenderer();
@@ -244,7 +244,7 @@ private:
     std::vector<EffectState> effects;
     std::unique_ptr<AudioOut> audio_out;
     StreamPtr stream;
-    Memory::Memory& memory;
+    Core::Memory::Memory& memory;
 };
 
 } // namespace AudioCore

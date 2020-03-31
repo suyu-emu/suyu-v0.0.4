@@ -127,7 +127,7 @@ FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
 }
 
 static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
@@ -221,7 +221,7 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process) {
 
     is_loaded = true;
     return {ResultStatus::Success,
-            LoadParameters{Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE}};
+            LoadParameters{Kernel::THREADPRIO_DEFAULT, Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 ResultStatus AppLoader_NRO::ReadIcon(std::vector<u8>& buffer) {

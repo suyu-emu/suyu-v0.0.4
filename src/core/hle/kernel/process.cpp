@@ -59,7 +59,8 @@ void SetupMainThread(Process& owner_process, KernelCore& kernel, u32 priority) {
 // (whichever page happens to have an available slot).
 class TLSPage {
 public:
-    static constexpr std::size_t num_slot_entries = Memory::PAGE_SIZE / Memory::TLS_ENTRY_SIZE;
+    static constexpr std::size_t num_slot_entries =
+        Core::Memory::PAGE_SIZE / Core::Memory::TLS_ENTRY_SIZE;
 
     explicit TLSPage(VAddr address) : base_address{address} {}
 
@@ -78,7 +79,7 @@ public:
             }
 
             is_slot_used[i] = true;
-            return base_address + (i * Memory::TLS_ENTRY_SIZE);
+            return base_address + (i * Core::Memory::TLS_ENTRY_SIZE);
         }
 
         return std::nullopt;
@@ -88,15 +89,15 @@ public:
         // Ensure that all given addresses are consistent with how TLS pages
         // are intended to be used when releasing slots.
         ASSERT(IsWithinPage(address));
-        ASSERT((address % Memory::TLS_ENTRY_SIZE) == 0);
+        ASSERT((address % Core::Memory::TLS_ENTRY_SIZE) == 0);
 
-        const std::size_t index = (address - base_address) / Memory::TLS_ENTRY_SIZE;
+        const std::size_t index = (address - base_address) / Core::Memory::TLS_ENTRY_SIZE;
         is_slot_used[index] = false;
     }
 
 private:
     bool IsWithinPage(VAddr address) const {
-        return base_address <= address && address < base_address + Memory::PAGE_SIZE;
+        return base_address <= address && address < base_address + Core::Memory::PAGE_SIZE;
     }
 
     VAddr base_address;
@@ -306,7 +307,7 @@ VAddr Process::CreateTLSRegion() {
 }
 
 void Process::FreeTLSRegion(VAddr tls_address) {
-    const VAddr aligned_address = Common::AlignDown(tls_address, Memory::PAGE_SIZE);
+    const VAddr aligned_address = Common::AlignDown(tls_address, Core::Memory::PAGE_SIZE);
     auto iter =
         std::find_if(tls_pages.begin(), tls_pages.end(), [aligned_address](const auto& page) {
             return page.GetBaseAddress() == aligned_address;

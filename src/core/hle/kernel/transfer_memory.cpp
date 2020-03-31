@@ -12,7 +12,7 @@
 
 namespace Kernel {
 
-TransferMemory::TransferMemory(KernelCore& kernel, Memory::Memory& memory)
+TransferMemory::TransferMemory(KernelCore& kernel, Core::Memory::Memory& memory)
     : Object{kernel}, memory{memory} {}
 
 TransferMemory::~TransferMemory() {
@@ -20,7 +20,8 @@ TransferMemory::~TransferMemory() {
     Reset();
 }
 
-std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel, Memory::Memory& memory,
+std::shared_ptr<TransferMemory> TransferMemory::Create(KernelCore& kernel,
+                                                       Core::Memory::Memory& memory,
                                                        VAddr base_address, u64 size,
                                                        MemoryPermission permissions) {
     std::shared_ptr<TransferMemory> transfer_memory{

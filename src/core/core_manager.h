@@ -22,7 +22,7 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 

@@ -17,7 +17,7 @@ namespace Service::LM {
 
 class ILogger final : public ServiceFramework<ILogger> {
 public:
-    explicit ILogger(Manager& manager_, Memory::Memory& memory_)
+    explicit ILogger(Manager& manager_, Core::Memory::Memory& memory_)
         : ServiceFramework("ILogger"), manager{manager_}, memory{memory_} {
         static const FunctionInfo functions[] = {
             {0, &ILogger::Log, "Log"},
@@ -75,12 +75,12 @@ private:
     }
 
     Manager& manager;
-    Memory::Memory& memory;
+    Core::Memory::Memory& memory;
 };
 
 class LM final : public ServiceFramework<LM> {
 public:
-    explicit LM(Manager& manager_, Memory::Memory& memory_)
+    explicit LM(Manager& manager_, Core::Memory::Memory& memory_)
         : ServiceFramework{"lm"}, manager{manager_}, memory{memory_} {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -101,7 +101,7 @@ private:
     }
 
     Manager& manager;
-    Memory::Memory& memory;
+    Core::Memory::Memory& memory;
 };
 
 void InstallInterfaces(Core::System& system) {

@@ -147,7 +147,7 @@ json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& s
 }
 
 template <bool read_value, typename DescriptorType>
-json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Memory::Memory& memory) {
+json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Core::Memory::Memory& memory) {
     auto buffer_out = json::array();
     for (const auto& desc : buffer) {
         auto entry = json{
@@ -167,7 +167,7 @@ json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Memor
     return buffer_out;
 }
 
-json GetHLERequestContextData(Kernel::HLERequestContext& ctx, Memory::Memory& memory) {
+json GetHLERequestContextData(Kernel::HLERequestContext& ctx, Core::Memory::Memory& memory) {
     json out;
 
     auto cmd_buf = json::array();
