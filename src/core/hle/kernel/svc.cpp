@@ -622,6 +622,7 @@ static void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
         info2, has_dumped_buffer ? std::make_optional(debug_buffer) : std::nullopt);
 
     if (!break_reason.signal_debugger) {
+        SchedulerLock lock(system.Kernel());
         LOG_CRITICAL(
             Debug_Emulated,
             "Emulated program broke execution! reason=0x{:016X}, info1=0x{:016X}, info2=0x{:016X}",
@@ -633,9 +634,8 @@ static void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
         const auto thread_processor_id = current_thread->GetProcessorID();
         system.ArmInterface(static_cast<std::size_t>(thread_processor_id)).LogBacktrace();
 
-        system.Kernel().CurrentProcess()->PrepareForTermination();
-
         // Kill the current thread
+        system.Kernel().ExceptionalExit();
         current_thread->Stop();
     }
 }

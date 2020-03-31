@@ -545,7 +545,17 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
-    //TODO: Reimplement, this
+    if (!IsMulticore()) {
+        auto& threads = GlobalScheduler().GetThreadList();
+        for (auto& thread : threads) {
+            if (!thread->IsHLEThread()) {
+                auto& arm_interface = thread->ArmInterface();
+                arm_interface.ClearInstructionCache();
+            }
+        }
+    } else {
+        UNIMPLEMENTED_MSG("Cache Invalidation unimplemented for multicore");
+    }
 }
 
 void KernelCore::PrepareReschedule(std::size_t id) {
