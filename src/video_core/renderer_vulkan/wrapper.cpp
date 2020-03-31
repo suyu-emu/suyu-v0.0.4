@@ -428,4 +428,36 @@ void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
     Check(dld->vkBindImageMemory(owner, handle, memory, offset));
 }
 
+DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) const {
+    const std::size_t num = ai.descriptorSetCount;
+    std::unique_ptr sets = std::make_unique<VkDescriptorSet[]>(num);
+    switch (const VkResult result = dld->vkAllocateDescriptorSets(owner, &ai, sets.get())) {
+    case VK_SUCCESS:
+        return DescriptorSets(std::move(sets), num, owner, handle, *dld);
+    case VK_ERROR_OUT_OF_POOL_MEMORY:
+        return {};
+    default:
+        throw Exception(result);
+    }
+}
+
+CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLevel level) const {
+    VkCommandBufferAllocateInfo ai;
+    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.pNext = nullptr;
+    ai.commandPool = handle;
+    ai.level = level;
+    ai.commandBufferCount = static_cast<u32>(num_buffers);
+
+    std::unique_ptr buffers = std::make_unique<VkCommandBuffer[]>(num_buffers);
+    switch (const VkResult result = dld->vkAllocateCommandBuffers(owner, &ai, buffers.get())) {
+    case VK_SUCCESS:
+        return CommandBuffers(std::move(buffers), num_buffers, owner, handle, *dld);
+    case VK_ERROR_OUT_OF_POOL_MEMORY:
+        return {};
+    default:
+        throw Exception(result);
+    }
+}
+
 } // namespace Vulkan::vk

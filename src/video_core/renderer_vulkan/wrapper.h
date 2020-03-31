@@ -600,4 +600,19 @@ public:
     void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
 };
 
+class DescriptorPool : public Handle<VkDescriptorPool, VkDevice, DeviceDispatch> {
+    using Handle<VkDescriptorPool, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    DescriptorSets Allocate(const VkDescriptorSetAllocateInfo& ai) const;
+};
+
+class CommandPool : public Handle<VkCommandPool, VkDevice, DeviceDispatch> {
+    using Handle<VkCommandPool, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    CommandBuffers Allocate(std::size_t num_buffers,
+                            VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY) const;
+};
+
 } // namespace Vulkan::vk
