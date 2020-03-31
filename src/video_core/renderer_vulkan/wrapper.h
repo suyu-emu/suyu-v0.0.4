@@ -542,4 +542,21 @@ using SurfaceKHR = Handle<VkSurfaceKHR, VkInstance, InstanceDispatch>;
 using DescriptorSets = PoolAllocations<VkDescriptorSet, VkDescriptorPool>;
 using CommandBuffers = PoolAllocations<VkCommandBuffer, VkCommandPool>;
 
+/// Vulkan instance owning handle.
+class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
+    using Handle<VkInstance, NoOwner, InstanceDispatch>::Handle;
+
+public:
+    /// Creates a Vulkan instance. Use "operator bool" for error handling.
+    static Instance Create(Span<const char*> layers, Span<const char*> extensions,
+                           InstanceDispatch& dld) noexcept;
+
+    /// Enumerates physical devices.
+    /// @return Physical devices and an empty handle on failure.
+    std::optional<std::vector<VkPhysicalDevice>> EnumeratePhysicalDevices();
+
+    /// Tries to create a debug callback messenger. Returns an empty handle on failure.
+    DebugCallback TryCreateDebugCallback(PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept;
+};
+
 } // namespace Vulkan::vk

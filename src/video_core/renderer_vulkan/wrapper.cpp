@@ -339,4 +339,74 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
     return VK_SUCCESS;
 }
 
+Instance Instance::Create(Span<const char*> layers, Span<const char*> extensions,
+                          InstanceDispatch& dld) noexcept {
+    VkApplicationInfo application_info;
+    application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    application_info.pNext = nullptr;
+    application_info.pApplicationName = "yuzu Emulator";
+    application_info.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
+    application_info.pEngineName = "yuzu Emulator";
+    application_info.engineVersion = VK_MAKE_VERSION(0, 1, 0);
+    application_info.apiVersion = VK_API_VERSION_1_1;
+
+    VkInstanceCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.pApplicationInfo = &application_info;
+    ci.enabledLayerCount = layers.size();
+    ci.ppEnabledLayerNames = layers.data();
+    ci.enabledExtensionCount = extensions.size();
+    ci.ppEnabledExtensionNames = extensions.data();
+
+    VkInstance instance;
+    if (dld.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
+        // Failed to create the instance.
+        return {};
+    }
+    if (!Proc(dld.vkDestroyInstance, dld, "vkDestroyInstance", instance)) {
+        // We successfully created an instance but the destroy function couldn't be loaded.
+        // This is a good moment to panic.
+        return {};
+    }
+
+    return Instance(instance, dld);
+}
+
+std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() {
+    u32 num;
+    if (dld->vkEnumeratePhysicalDevices(handle, &num, nullptr) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    std::vector<VkPhysicalDevice> physical_devices(num);
+    if (dld->vkEnumeratePhysicalDevices(handle, &num, physical_devices.data()) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    return physical_devices;
+}
+
+DebugCallback Instance::TryCreateDebugCallback(
+    PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept {
+    VkDebugUtilsMessengerCreateInfoEXT ci;
+    ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    ci.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    ci.pfnUserCallback = callback;
+    ci.pUserData = nullptr;
+
+    VkDebugUtilsMessengerEXT messenger;
+    if (dld->vkCreateDebugUtilsMessengerEXT(handle, &ci, nullptr, &messenger) != VK_SUCCESS) {
+        return {};
+    }
+    return DebugCallback(messenger, handle, *dld);
+}
+
 } // namespace Vulkan::vk
