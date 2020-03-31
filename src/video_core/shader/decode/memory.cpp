@@ -27,32 +27,27 @@ using Tegra::Shader::StoreType;
 
 namespace {
 
-Node getAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
-    switch (op) {
-    case AtomicOp::Add:
-        return SignedOperation(OperationCode::AtomicIAdd, is_signed, std::move(memory),
+Node GetAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
+    const OperationCode operation_code = [op] {
+        switch (op) {
+        case AtomicOp::Add:
+            return OperationCode::AtomicIAdd;
+        case AtomicOp::Min:
+            return OperationCode::AtomicIMin;
+        case AtomicOp::Max:
+            return OperationCode::AtomicIMax;
+        case AtomicOp::And:
+            return OperationCode::AtomicIAnd;
+        case AtomicOp::Or:
+            return OperationCode::AtomicIOr;
+        case AtomicOp::Xor:
+            return OperationCode::AtomicIXor;
+        case AtomicOp::Exch:
+            return OperationCode::AtomicIExchange;
+        }
+    }();
+    return SignedOperation(operation_code, is_signed, std::move(memory),
                                std::move(data));
-    case AtomicOp::Min:
-        return SignedOperation(OperationCode::AtomicIMin, is_signed, std::move(memory),
-                               std::move(data));
-    case AtomicOp::Max:
-        return SignedOperation(OperationCode::AtomicIMax, is_signed, std::move(memory),
-                               std::move(data));
-    case AtomicOp::And:
-        return SignedOperation(OperationCode::AtomicIAnd, is_signed, std::move(memory),
-                               std::move(data));
-    case AtomicOp::Or:
-        return SignedOperation(OperationCode::AtomicIOr, is_signed, std::move(memory),
-                               std::move(data));
-    case AtomicOp::Xor:
-        return SignedOperation(OperationCode::AtomicIXor, is_signed, std::move(memory),
-                               std::move(data));
-    case AtomicOp::Exch:
-        return SignedOperation(OperationCode::AtomicIExchange, is_signed, std::move(memory),
-                               std::move(data));
-    default:
-        return Immediate(0);
-    }
 }
 
 bool IsUnaligned(Tegra::Shader::UniformType uniform_type) {
@@ -408,7 +403,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         const bool is_signed =
             instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-        Node value = getAtomOperation(static_cast<AtomicOp>(instr.atom.operation), is_signed, gmem,
+        Node value = GetAtomOperation(static_cast<AtomicOp>(instr.atom.operation), is_signed, gmem,
                                       GetRegister(instr.gpr20));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
@@ -426,7 +421,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         Node address = GetRegister(instr.gpr8);
         address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
         Node value =
-            getAtomOperation(static_cast<AtomicOp>(instr.atoms.operation), is_signed,
+            GetAtomOperation(static_cast<AtomicOp>(instr.atoms.operation), is_signed,
                              GetSharedMemory(std::move(address)), GetRegister(instr.gpr20));
         SetRegister(bb, instr.gpr0, std::move(value));
         break;
