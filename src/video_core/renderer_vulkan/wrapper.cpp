@@ -460,4 +460,12 @@ CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLev
     }
 }
 
+std::vector<VkImage> SwapchainKHR::GetImages() const {
+    u32 num;
+    Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, nullptr));
+    std::vector<VkImage> images(num);
+    Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, images.data()));
+    return images;
+}
+
 } // namespace Vulkan::vk

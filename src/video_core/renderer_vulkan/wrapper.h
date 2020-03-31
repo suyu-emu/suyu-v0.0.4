@@ -647,4 +647,11 @@ public:
                             VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY) const;
 };
 
+class SwapchainKHR : public Handle<VkSwapchainKHR, VkDevice, DeviceDispatch> {
+    using Handle<VkSwapchainKHR, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    std::vector<VkImage> GetImages() const;
+};
+
 } // namespace Vulkan::vk
