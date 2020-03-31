@@ -584,4 +584,20 @@ private:
     const DeviceDispatch* dld = nullptr;
 };
 
+class Buffer : public Handle<VkBuffer, VkDevice, DeviceDispatch> {
+    using Handle<VkBuffer, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    /// Attaches a memory allocation.
+    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
+};
+
+class Image : public Handle<VkImage, VkDevice, DeviceDispatch> {
+    using Handle<VkImage, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    /// Attaches a memory allocation.
+    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
+};
+
 } // namespace Vulkan::vk

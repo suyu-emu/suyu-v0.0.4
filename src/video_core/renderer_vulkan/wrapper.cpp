@@ -420,4 +420,12 @@ std::vector<VkCheckpointDataNV> Queue::GetCheckpointDataNV(const DeviceDispatch&
     return checkpoints;
 }
 
+void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
+    Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
+}
+
+void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
+    Check(dld->vkBindImageMemory(owner, handle, memory, offset));
+}
+
 } // namespace Vulkan::vk
