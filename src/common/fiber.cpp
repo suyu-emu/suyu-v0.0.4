@@ -113,7 +113,11 @@ std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
 
 struct Fiber::FiberImpl {
     alignas(64) std::array<u8, default_stack_size> stack;
+    u8* stack_limit;
+    alignas(64) std::array<u8, default_stack_size> rewind_stack;
+    u8* rewind_stack_limit;
     boost::context::detail::fcontext_t context;
+    boost::context::detail::fcontext_t rewind_context;
 };
 
 void Fiber::start(boost::context::detail::transfer_t& transfer) {
@@ -125,19 +129,41 @@ void Fiber::start(boost::context::detail::transfer_t& transfer) {
     UNREACHABLE();
 }
 
+void Fiber::onRewind(boost::context::detail::transfer_t& [[maybe_unused]] transfer) {
+    ASSERT(impl->context != nullptr);
+    impl->context = impl->rewind_context;
+    impl->rewind_context = nullptr;
+    u8* tmp = impl->stack_limit;
+    impl->stack_limit = impl->rewind_stack_limit;
+    impl->rewind_stack_limit = tmp;
+    rewind_point(rewind_parameter);
+    UNREACHABLE();
+}
+
 void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer) {
     auto fiber = static_cast<Fiber*>(transfer.data);
     fiber->start(transfer);
+}
+
+void Fiber::RewindStartFunc(boost::context::detail::transfer_t transfer) {
+    auto fiber = static_cast<Fiber*>(transfer.data);
+    fiber->onRewind(transfer);
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
     : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
       previous_fiber{} {
     impl = std::make_unique<FiberImpl>();
-    u8* stack_limit = impl->stack.data();
-    u8* stack_base = stack_limit + default_stack_size;
+    impl->stack_limit = impl->stack.data();
+    impl->rewind_stack_limit = impl->rewind_stack.data();
+    u8* stack_base = impl->stack_limit + default_stack_size;
     impl->context =
         boost::context::detail::make_fcontext(stack_base, impl->stack.size(), FiberStartFunc);
+}
+
+void Fiber::SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start_parameter) {
+    rewind_point = std::move(rewind_func);
+    rewind_parameter = start_parameter;
 }
 
 Fiber::Fiber() {
@@ -159,6 +185,15 @@ void Fiber::Exit() {
         return;
     }
     guard.unlock();
+}
+
+void Fiber::Rewind() {
+    ASSERT(rewind_point);
+    ASSERT(impl->rewind_context == nullptr);
+    u8* stack_base = impl->rewind_stack_limit + default_stack_size;
+    impl->rewind_context =
+        boost::context::detail::make_fcontext(stack_base, impl->stack.size(), RewindStartFunc);
+    boost::context::detail::jump_fcontext(impl->rewind_context, this);
 }
 
 void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {

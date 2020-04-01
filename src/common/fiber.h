@@ -70,8 +70,10 @@ private:
     static void FiberStartFunc(void* fiber_parameter);
     static void RewindStartFunc(void* fiber_parameter);
 #else
+    void onRewind(boost::context::detail::transfer_t& transfer);
     void start(boost::context::detail::transfer_t& transfer);
     static void FiberStartFunc(boost::context::detail::transfer_t transfer);
+    static void RewindStartFunc(boost::context::detail::transfer_t transfer);
 #endif
 
     struct FiberImpl;
