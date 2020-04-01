@@ -789,4 +789,196 @@ private:
     const InstanceDispatch* dld = nullptr;
 };
 
+class CommandBuffer {
+public:
+    CommandBuffer() noexcept = default;
+
+    explicit CommandBuffer(VkCommandBuffer handle, const DeviceDispatch& dld) noexcept
+        : handle{handle}, dld{&dld} {}
+
+    const VkCommandBuffer* address() const noexcept {
+        return &handle;
+    }
+
+    void Begin(const VkCommandBufferBeginInfo& begin_info) const {
+        Check(dld->vkBeginCommandBuffer(handle, &begin_info));
+    }
+
+    void End() const {
+        Check(dld->vkEndCommandBuffer(handle));
+    }
+
+    void BeginRenderPass(const VkRenderPassBeginInfo& renderpass_bi,
+                         VkSubpassContents contents) const noexcept {
+        dld->vkCmdBeginRenderPass(handle, &renderpass_bi, contents);
+    }
+
+    void EndRenderPass() const noexcept {
+        dld->vkCmdEndRenderPass(handle);
+    }
+
+    void BeginQuery(VkQueryPool query_pool, u32 query, VkQueryControlFlags flags) const noexcept {
+        dld->vkCmdBeginQuery(handle, query_pool, query, flags);
+    }
+
+    void EndQuery(VkQueryPool query_pool, u32 query) const noexcept {
+        dld->vkCmdEndQuery(handle, query_pool, query);
+    }
+
+    void BindDescriptorSets(VkPipelineBindPoint bind_point, VkPipelineLayout layout, u32 first,
+                            Span<VkDescriptorSet> sets, Span<u32> dynamic_offsets) const noexcept {
+        dld->vkCmdBindDescriptorSets(handle, bind_point, layout, first, sets.size(), sets.data(),
+                                     dynamic_offsets.size(), dynamic_offsets.data());
+    }
+
+    void BindPipeline(VkPipelineBindPoint bind_point, VkPipeline pipeline) const noexcept {
+        dld->vkCmdBindPipeline(handle, bind_point, pipeline);
+    }
+
+    void BindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type) const
+        noexcept {
+        dld->vkCmdBindIndexBuffer(handle, buffer, offset, index_type);
+    }
+
+    void BindVertexBuffers(u32 first, u32 count, const VkBuffer* buffers,
+                           const VkDeviceSize* offsets) const noexcept {
+        dld->vkCmdBindVertexBuffers(handle, first, count, buffers, offsets);
+    }
+
+    void BindVertexBuffer(u32 binding, VkBuffer buffer, VkDeviceSize offset) const noexcept {
+        BindVertexBuffers(binding, 1, &buffer, &offset);
+    }
+
+    void Draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) const
+        noexcept {
+        dld->vkCmdDraw(handle, vertex_count, instance_count, first_vertex, first_instance);
+    }
+
+    void DrawIndexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset,
+                     u32 first_instance) const noexcept {
+        dld->vkCmdDrawIndexed(handle, index_count, instance_count, first_index, vertex_offset,
+                              first_instance);
+    }
+
+    void ClearAttachments(Span<VkClearAttachment> attachments, Span<VkClearRect> rects) const
+        noexcept {
+        dld->vkCmdClearAttachments(handle, attachments.size(), attachments.data(), rects.size(),
+                                   rects.data());
+    }
+
+    void BlitImage(VkImage src_image, VkImageLayout src_layout, VkImage dst_image,
+                   VkImageLayout dst_layout, Span<VkImageBlit> regions, VkFilter filter) const
+        noexcept {
+        dld->vkCmdBlitImage(handle, src_image, src_layout, dst_image, dst_layout, regions.size(),
+                            regions.data(), filter);
+    }
+
+    void Dispatch(u32 x, u32 y, u32 z) const noexcept {
+        dld->vkCmdDispatch(handle, x, y, z);
+    }
+
+    void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
+                         VkDependencyFlags dependency_flags, Span<VkMemoryBarrier> memory_barriers,
+                         Span<VkBufferMemoryBarrier> buffer_barriers,
+                         Span<VkImageMemoryBarrier> image_barriers) const noexcept {
+        dld->vkCmdPipelineBarrier(handle, src_stage_mask, dst_stage_mask, dependency_flags,
+                                  memory_barriers.size(), memory_barriers.data(),
+                                  buffer_barriers.size(), buffer_barriers.data(),
+                                  image_barriers.size(), image_barriers.data());
+    }
+
+    void CopyBufferToImage(VkBuffer src_buffer, VkImage dst_image, VkImageLayout dst_image_layout,
+                           Span<VkBufferImageCopy> regions) const noexcept {
+        dld->vkCmdCopyBufferToImage(handle, src_buffer, dst_image, dst_image_layout, regions.size(),
+                                    regions.data());
+    }
+
+    void CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer, Span<VkBufferCopy> regions) const
+        noexcept {
+        dld->vkCmdCopyBuffer(handle, src_buffer, dst_buffer, regions.size(), regions.data());
+    }
+
+    void CopyImage(VkImage src_image, VkImageLayout src_layout, VkImage dst_image,
+                   VkImageLayout dst_layout, Span<VkImageCopy> regions) const noexcept {
+        dld->vkCmdCopyImage(handle, src_image, src_layout, dst_image, dst_layout, regions.size(),
+                            regions.data());
+    }
+
+    void CopyImageToBuffer(VkImage src_image, VkImageLayout src_layout, VkBuffer dst_buffer,
+                           Span<VkBufferImageCopy> regions) const noexcept {
+        dld->vkCmdCopyImageToBuffer(handle, src_image, src_layout, dst_buffer, regions.size(),
+                                    regions.data());
+    }
+
+    void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size, u32 data) const
+        noexcept {
+        dld->vkCmdFillBuffer(handle, dst_buffer, dst_offset, size, data);
+    }
+
+    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, u32 offset, u32 size,
+                       const void* values) const noexcept {
+        dld->vkCmdPushConstants(handle, layout, flags, offset, size, values);
+    }
+
+    void SetCheckpointNV(const void* checkpoint_marker) const noexcept {
+        dld->vkCmdSetCheckpointNV(handle, checkpoint_marker);
+    }
+
+    void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {
+        dld->vkCmdSetViewport(handle, first, viewports.size(), viewports.data());
+    }
+
+    void SetScissor(u32 first, Span<VkRect2D> scissors) const noexcept {
+        dld->vkCmdSetScissor(handle, first, scissors.size(), scissors.data());
+    }
+
+    void SetBlendConstants(const float blend_constants[4]) const noexcept {
+        dld->vkCmdSetBlendConstants(handle, blend_constants);
+    }
+
+    void SetStencilCompareMask(VkStencilFaceFlags face_mask, u32 compare_mask) const noexcept {
+        dld->vkCmdSetStencilCompareMask(handle, face_mask, compare_mask);
+    }
+
+    void SetStencilReference(VkStencilFaceFlags face_mask, u32 reference) const noexcept {
+        dld->vkCmdSetStencilReference(handle, face_mask, reference);
+    }
+
+    void SetStencilWriteMask(VkStencilFaceFlags face_mask, u32 write_mask) const noexcept {
+        dld->vkCmdSetStencilWriteMask(handle, face_mask, write_mask);
+    }
+
+    void SetDepthBias(float constant_factor, float clamp, float slope_factor) const noexcept {
+        dld->vkCmdSetDepthBias(handle, constant_factor, clamp, slope_factor);
+    }
+
+    void SetDepthBounds(float min_depth_bounds, float max_depth_bounds) const noexcept {
+        dld->vkCmdSetDepthBounds(handle, min_depth_bounds, max_depth_bounds);
+    }
+
+    void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,
+                                         const VkDeviceSize* offsets,
+                                         const VkDeviceSize* sizes) const noexcept {
+        dld->vkCmdBindTransformFeedbackBuffersEXT(handle, first, count, buffers, offsets, sizes);
+    }
+
+    void BeginTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
+                                   const VkBuffer* counter_buffers,
+                                   const VkDeviceSize* counter_buffer_offsets) const noexcept {
+        dld->vkCmdBeginTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                            counter_buffers, counter_buffer_offsets);
+    }
+
+    void EndTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
+                                 const VkBuffer* counter_buffers,
+                                 const VkDeviceSize* counter_buffer_offsets) const noexcept {
+        dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                          counter_buffers, counter_buffer_offsets);
+    }
+
+private:
+    VkCommandBuffer handle;
+    const DeviceDispatch* dld;
+};
+
 } // namespace Vulkan::vk
