@@ -542,4 +542,446 @@ using SurfaceKHR = Handle<VkSurfaceKHR, VkInstance, InstanceDispatch>;
 using DescriptorSets = PoolAllocations<VkDescriptorSet, VkDescriptorPool>;
 using CommandBuffers = PoolAllocations<VkCommandBuffer, VkCommandPool>;
 
+/// Vulkan instance owning handle.
+class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
+    using Handle<VkInstance, NoOwner, InstanceDispatch>::Handle;
+
+public:
+    /// Creates a Vulkan instance. Use "operator bool" for error handling.
+    static Instance Create(Span<const char*> layers, Span<const char*> extensions,
+                           InstanceDispatch& dld) noexcept;
+
+    /// Enumerates physical devices.
+    /// @return Physical devices and an empty handle on failure.
+    std::optional<std::vector<VkPhysicalDevice>> EnumeratePhysicalDevices();
+
+    /// Tries to create a debug callback messenger. Returns an empty handle on failure.
+    DebugCallback TryCreateDebugCallback(PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept;
+};
+
+class Queue {
+public:
+    /// Construct an empty queue handle.
+    constexpr Queue() noexcept = default;
+
+    /// Construct a queue handle.
+    constexpr Queue(VkQueue queue, const DeviceDispatch& dld) noexcept : queue{queue}, dld{&dld} {}
+
+    /// Returns the checkpoint data.
+    /// @note Returns an empty vector when the function pointer is not present.
+    std::vector<VkCheckpointDataNV> GetCheckpointDataNV(const DeviceDispatch& dld) const;
+
+    void Submit(Span<VkSubmitInfo> submit_infos, VkFence fence) const {
+        Check(dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence));
+    }
+
+    VkResult Present(const VkPresentInfoKHR& present_info) const noexcept {
+        return dld->vkQueuePresentKHR(queue, &present_info);
+    }
+
+private:
+    VkQueue queue = nullptr;
+    const DeviceDispatch* dld = nullptr;
+};
+
+class Buffer : public Handle<VkBuffer, VkDevice, DeviceDispatch> {
+    using Handle<VkBuffer, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    /// Attaches a memory allocation.
+    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
+};
+
+class Image : public Handle<VkImage, VkDevice, DeviceDispatch> {
+    using Handle<VkImage, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    /// Attaches a memory allocation.
+    void BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const;
+};
+
+class DeviceMemory : public Handle<VkDeviceMemory, VkDevice, DeviceDispatch> {
+    using Handle<VkDeviceMemory, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    u8* Map(VkDeviceSize offset, VkDeviceSize size) const {
+        void* data;
+        Check(dld->vkMapMemory(owner, handle, offset, size, 0, &data));
+        return static_cast<u8*>(data);
+    }
+
+    void Unmap() const noexcept {
+        dld->vkUnmapMemory(owner, handle);
+    }
+};
+
+class Fence : public Handle<VkFence, VkDevice, DeviceDispatch> {
+    using Handle<VkFence, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    VkResult Wait(u64 timeout = std::numeric_limits<u64>::max()) const noexcept {
+        return dld->vkWaitForFences(owner, 1, &handle, true, timeout);
+    }
+
+    VkResult GetStatus() const noexcept {
+        return dld->vkGetFenceStatus(owner, handle);
+    }
+
+    void Reset() const {
+        Check(dld->vkResetFences(owner, 1, &handle));
+    }
+};
+
+class DescriptorPool : public Handle<VkDescriptorPool, VkDevice, DeviceDispatch> {
+    using Handle<VkDescriptorPool, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    DescriptorSets Allocate(const VkDescriptorSetAllocateInfo& ai) const;
+};
+
+class CommandPool : public Handle<VkCommandPool, VkDevice, DeviceDispatch> {
+    using Handle<VkCommandPool, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    CommandBuffers Allocate(std::size_t num_buffers,
+                            VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY) const;
+};
+
+class SwapchainKHR : public Handle<VkSwapchainKHR, VkDevice, DeviceDispatch> {
+    using Handle<VkSwapchainKHR, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    std::vector<VkImage> GetImages() const;
+};
+
+class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
+    using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
+
+public:
+    static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
+                         Span<const char*> enabled_extensions,
+                         const VkPhysicalDeviceFeatures2& enabled_features,
+                         DeviceDispatch& dld) noexcept;
+
+    Queue GetQueue(u32 family_index) const noexcept;
+
+    Buffer CreateBuffer(const VkBufferCreateInfo& ci) const;
+
+    BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
+
+    Image CreateImage(const VkImageCreateInfo& ci) const;
+
+    ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
+
+    Semaphore CreateSemaphore() const;
+
+    Fence CreateFence(const VkFenceCreateInfo& ci) const;
+
+    DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
+
+    RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
+
+    DescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci) const;
+
+    PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
+
+    Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci) const;
+
+    Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci) const;
+
+    Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
+
+    Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
+
+    CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
+
+    DescriptorUpdateTemplateKHR CreateDescriptorUpdateTemplateKHR(
+        const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const;
+
+    QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
+
+    ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
+
+    SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
+
+    DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
+
+    DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
+
+    VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer) const noexcept;
+
+    VkMemoryRequirements GetImageMemoryRequirements(VkImage image) const noexcept;
+
+    void UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
+                              Span<VkCopyDescriptorSet> copies) const noexcept;
+
+    void UpdateDescriptorSet(VkDescriptorSet set, VkDescriptorUpdateTemplateKHR update_template,
+                             const void* data) const noexcept {
+        dld->vkUpdateDescriptorSetWithTemplateKHR(handle, set, update_template, data);
+    }
+
+    VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, u64 timeout, VkSemaphore semaphore,
+                                 VkFence fence, u32* image_index) const noexcept {
+        return dld->vkAcquireNextImageKHR(handle, swapchain, timeout, semaphore, fence,
+                                          image_index);
+    }
+
+    VkResult WaitIdle() const noexcept {
+        return dld->vkDeviceWaitIdle(handle);
+    }
+
+    void ResetQueryPoolEXT(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkResetQueryPoolEXT(handle, query_pool, first, count);
+    }
+
+    void GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,
+                         void* data, VkDeviceSize stride, VkQueryResultFlags flags) const {
+        Check(dld->vkGetQueryPoolResults(handle, query_pool, first, count, data_size, data, stride,
+                                         flags));
+    }
+
+    template <typename T>
+    T GetQueryResult(VkQueryPool query_pool, u32 first, VkQueryResultFlags flags) const {
+        static_assert(std::is_trivially_copyable_v<T>);
+        T value;
+        GetQueryResults(query_pool, first, 1, sizeof(T), &value, sizeof(T), flags);
+        return value;
+    }
+};
+
+class PhysicalDevice {
+public:
+    constexpr PhysicalDevice() noexcept = default;
+
+    constexpr PhysicalDevice(VkPhysicalDevice physical_device, const InstanceDispatch& dld) noexcept
+        : physical_device{physical_device}, dld{&dld} {}
+
+    constexpr operator VkPhysicalDevice() const noexcept {
+        return physical_device;
+    }
+
+    VkPhysicalDeviceProperties GetProperties() const noexcept;
+
+    void GetProperties2KHR(VkPhysicalDeviceProperties2KHR&) const noexcept;
+
+    VkPhysicalDeviceFeatures GetFeatures() const noexcept;
+
+    void GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR&) const noexcept;
+
+    VkFormatProperties GetFormatProperties(VkFormat) const noexcept;
+
+    std::vector<VkExtensionProperties> EnumerateDeviceExtensionProperties() const;
+
+    std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
+
+    bool GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR) const;
+
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR) const noexcept;
+
+    std::vector<VkSurfaceFormatKHR> GetSurfaceFormatsKHR(VkSurfaceKHR) const;
+
+    std::vector<VkPresentModeKHR> GetSurfacePresentModesKHR(VkSurfaceKHR) const;
+
+    VkPhysicalDeviceMemoryProperties GetMemoryProperties() const noexcept;
+
+private:
+    VkPhysicalDevice physical_device = nullptr;
+    const InstanceDispatch* dld = nullptr;
+};
+
+class CommandBuffer {
+public:
+    CommandBuffer() noexcept = default;
+
+    explicit CommandBuffer(VkCommandBuffer handle, const DeviceDispatch& dld) noexcept
+        : handle{handle}, dld{&dld} {}
+
+    const VkCommandBuffer* address() const noexcept {
+        return &handle;
+    }
+
+    void Begin(const VkCommandBufferBeginInfo& begin_info) const {
+        Check(dld->vkBeginCommandBuffer(handle, &begin_info));
+    }
+
+    void End() const {
+        Check(dld->vkEndCommandBuffer(handle));
+    }
+
+    void BeginRenderPass(const VkRenderPassBeginInfo& renderpass_bi,
+                         VkSubpassContents contents) const noexcept {
+        dld->vkCmdBeginRenderPass(handle, &renderpass_bi, contents);
+    }
+
+    void EndRenderPass() const noexcept {
+        dld->vkCmdEndRenderPass(handle);
+    }
+
+    void BeginQuery(VkQueryPool query_pool, u32 query, VkQueryControlFlags flags) const noexcept {
+        dld->vkCmdBeginQuery(handle, query_pool, query, flags);
+    }
+
+    void EndQuery(VkQueryPool query_pool, u32 query) const noexcept {
+        dld->vkCmdEndQuery(handle, query_pool, query);
+    }
+
+    void BindDescriptorSets(VkPipelineBindPoint bind_point, VkPipelineLayout layout, u32 first,
+                            Span<VkDescriptorSet> sets, Span<u32> dynamic_offsets) const noexcept {
+        dld->vkCmdBindDescriptorSets(handle, bind_point, layout, first, sets.size(), sets.data(),
+                                     dynamic_offsets.size(), dynamic_offsets.data());
+    }
+
+    void BindPipeline(VkPipelineBindPoint bind_point, VkPipeline pipeline) const noexcept {
+        dld->vkCmdBindPipeline(handle, bind_point, pipeline);
+    }
+
+    void BindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type) const
+        noexcept {
+        dld->vkCmdBindIndexBuffer(handle, buffer, offset, index_type);
+    }
+
+    void BindVertexBuffers(u32 first, u32 count, const VkBuffer* buffers,
+                           const VkDeviceSize* offsets) const noexcept {
+        dld->vkCmdBindVertexBuffers(handle, first, count, buffers, offsets);
+    }
+
+    void BindVertexBuffer(u32 binding, VkBuffer buffer, VkDeviceSize offset) const noexcept {
+        BindVertexBuffers(binding, 1, &buffer, &offset);
+    }
+
+    void Draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) const
+        noexcept {
+        dld->vkCmdDraw(handle, vertex_count, instance_count, first_vertex, first_instance);
+    }
+
+    void DrawIndexed(u32 index_count, u32 instance_count, u32 first_index, u32 vertex_offset,
+                     u32 first_instance) const noexcept {
+        dld->vkCmdDrawIndexed(handle, index_count, instance_count, first_index, vertex_offset,
+                              first_instance);
+    }
+
+    void ClearAttachments(Span<VkClearAttachment> attachments, Span<VkClearRect> rects) const
+        noexcept {
+        dld->vkCmdClearAttachments(handle, attachments.size(), attachments.data(), rects.size(),
+                                   rects.data());
+    }
+
+    void BlitImage(VkImage src_image, VkImageLayout src_layout, VkImage dst_image,
+                   VkImageLayout dst_layout, Span<VkImageBlit> regions, VkFilter filter) const
+        noexcept {
+        dld->vkCmdBlitImage(handle, src_image, src_layout, dst_image, dst_layout, regions.size(),
+                            regions.data(), filter);
+    }
+
+    void Dispatch(u32 x, u32 y, u32 z) const noexcept {
+        dld->vkCmdDispatch(handle, x, y, z);
+    }
+
+    void PipelineBarrier(VkPipelineStageFlags src_stage_mask, VkPipelineStageFlags dst_stage_mask,
+                         VkDependencyFlags dependency_flags, Span<VkMemoryBarrier> memory_barriers,
+                         Span<VkBufferMemoryBarrier> buffer_barriers,
+                         Span<VkImageMemoryBarrier> image_barriers) const noexcept {
+        dld->vkCmdPipelineBarrier(handle, src_stage_mask, dst_stage_mask, dependency_flags,
+                                  memory_barriers.size(), memory_barriers.data(),
+                                  buffer_barriers.size(), buffer_barriers.data(),
+                                  image_barriers.size(), image_barriers.data());
+    }
+
+    void CopyBufferToImage(VkBuffer src_buffer, VkImage dst_image, VkImageLayout dst_image_layout,
+                           Span<VkBufferImageCopy> regions) const noexcept {
+        dld->vkCmdCopyBufferToImage(handle, src_buffer, dst_image, dst_image_layout, regions.size(),
+                                    regions.data());
+    }
+
+    void CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer, Span<VkBufferCopy> regions) const
+        noexcept {
+        dld->vkCmdCopyBuffer(handle, src_buffer, dst_buffer, regions.size(), regions.data());
+    }
+
+    void CopyImage(VkImage src_image, VkImageLayout src_layout, VkImage dst_image,
+                   VkImageLayout dst_layout, Span<VkImageCopy> regions) const noexcept {
+        dld->vkCmdCopyImage(handle, src_image, src_layout, dst_image, dst_layout, regions.size(),
+                            regions.data());
+    }
+
+    void CopyImageToBuffer(VkImage src_image, VkImageLayout src_layout, VkBuffer dst_buffer,
+                           Span<VkBufferImageCopy> regions) const noexcept {
+        dld->vkCmdCopyImageToBuffer(handle, src_image, src_layout, dst_buffer, regions.size(),
+                                    regions.data());
+    }
+
+    void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size, u32 data) const
+        noexcept {
+        dld->vkCmdFillBuffer(handle, dst_buffer, dst_offset, size, data);
+    }
+
+    void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, u32 offset, u32 size,
+                       const void* values) const noexcept {
+        dld->vkCmdPushConstants(handle, layout, flags, offset, size, values);
+    }
+
+    void SetCheckpointNV(const void* checkpoint_marker) const noexcept {
+        dld->vkCmdSetCheckpointNV(handle, checkpoint_marker);
+    }
+
+    void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {
+        dld->vkCmdSetViewport(handle, first, viewports.size(), viewports.data());
+    }
+
+    void SetScissor(u32 first, Span<VkRect2D> scissors) const noexcept {
+        dld->vkCmdSetScissor(handle, first, scissors.size(), scissors.data());
+    }
+
+    void SetBlendConstants(const float blend_constants[4]) const noexcept {
+        dld->vkCmdSetBlendConstants(handle, blend_constants);
+    }
+
+    void SetStencilCompareMask(VkStencilFaceFlags face_mask, u32 compare_mask) const noexcept {
+        dld->vkCmdSetStencilCompareMask(handle, face_mask, compare_mask);
+    }
+
+    void SetStencilReference(VkStencilFaceFlags face_mask, u32 reference) const noexcept {
+        dld->vkCmdSetStencilReference(handle, face_mask, reference);
+    }
+
+    void SetStencilWriteMask(VkStencilFaceFlags face_mask, u32 write_mask) const noexcept {
+        dld->vkCmdSetStencilWriteMask(handle, face_mask, write_mask);
+    }
+
+    void SetDepthBias(float constant_factor, float clamp, float slope_factor) const noexcept {
+        dld->vkCmdSetDepthBias(handle, constant_factor, clamp, slope_factor);
+    }
+
+    void SetDepthBounds(float min_depth_bounds, float max_depth_bounds) const noexcept {
+        dld->vkCmdSetDepthBounds(handle, min_depth_bounds, max_depth_bounds);
+    }
+
+    void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,
+                                         const VkDeviceSize* offsets,
+                                         const VkDeviceSize* sizes) const noexcept {
+        dld->vkCmdBindTransformFeedbackBuffersEXT(handle, first, count, buffers, offsets, sizes);
+    }
+
+    void BeginTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
+                                   const VkBuffer* counter_buffers,
+                                   const VkDeviceSize* counter_buffer_offsets) const noexcept {
+        dld->vkCmdBeginTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                            counter_buffers, counter_buffer_offsets);
+    }
+
+    void EndTransformFeedbackEXT(u32 first_counter_buffer, u32 counter_buffers_count,
+                                 const VkBuffer* counter_buffers,
+                                 const VkDeviceSize* counter_buffer_offsets) const noexcept {
+        dld->vkCmdEndTransformFeedbackEXT(handle, first_counter_buffer, counter_buffers_count,
+                                          counter_buffers, counter_buffer_offsets);
+    }
+
+private:
+    VkCommandBuffer handle;
+    const DeviceDispatch* dld;
+};
+
+std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
+    const InstanceDispatch& dld);
+
 } // namespace Vulkan::vk

@@ -339,4 +339,412 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
     return VK_SUCCESS;
 }
 
+Instance Instance::Create(Span<const char*> layers, Span<const char*> extensions,
+                          InstanceDispatch& dld) noexcept {
+    VkApplicationInfo application_info;
+    application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    application_info.pNext = nullptr;
+    application_info.pApplicationName = "yuzu Emulator";
+    application_info.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
+    application_info.pEngineName = "yuzu Emulator";
+    application_info.engineVersion = VK_MAKE_VERSION(0, 1, 0);
+    application_info.apiVersion = VK_API_VERSION_1_1;
+
+    VkInstanceCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.pApplicationInfo = &application_info;
+    ci.enabledLayerCount = layers.size();
+    ci.ppEnabledLayerNames = layers.data();
+    ci.enabledExtensionCount = extensions.size();
+    ci.ppEnabledExtensionNames = extensions.data();
+
+    VkInstance instance;
+    if (dld.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
+        // Failed to create the instance.
+        return {};
+    }
+    if (!Proc(dld.vkDestroyInstance, dld, "vkDestroyInstance", instance)) {
+        // We successfully created an instance but the destroy function couldn't be loaded.
+        // This is a good moment to panic.
+        return {};
+    }
+
+    return Instance(instance, dld);
+}
+
+std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() {
+    u32 num;
+    if (dld->vkEnumeratePhysicalDevices(handle, &num, nullptr) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    std::vector<VkPhysicalDevice> physical_devices(num);
+    if (dld->vkEnumeratePhysicalDevices(handle, &num, physical_devices.data()) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    return physical_devices;
+}
+
+DebugCallback Instance::TryCreateDebugCallback(
+    PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept {
+    VkDebugUtilsMessengerCreateInfoEXT ci;
+    ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+    ci.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    ci.pfnUserCallback = callback;
+    ci.pUserData = nullptr;
+
+    VkDebugUtilsMessengerEXT messenger;
+    if (dld->vkCreateDebugUtilsMessengerEXT(handle, &ci, nullptr, &messenger) != VK_SUCCESS) {
+        return {};
+    }
+    return DebugCallback(messenger, handle, *dld);
+}
+
+std::vector<VkCheckpointDataNV> Queue::GetCheckpointDataNV(const DeviceDispatch& dld) const {
+    if (!dld.vkGetQueueCheckpointDataNV) {
+        return {};
+    }
+    u32 num;
+    dld.vkGetQueueCheckpointDataNV(queue, &num, nullptr);
+    std::vector<VkCheckpointDataNV> checkpoints(num);
+    dld.vkGetQueueCheckpointDataNV(queue, &num, checkpoints.data());
+    return checkpoints;
+}
+
+void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
+    Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
+}
+
+void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
+    Check(dld->vkBindImageMemory(owner, handle, memory, offset));
+}
+
+DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) const {
+    const std::size_t num = ai.descriptorSetCount;
+    std::unique_ptr sets = std::make_unique<VkDescriptorSet[]>(num);
+    switch (const VkResult result = dld->vkAllocateDescriptorSets(owner, &ai, sets.get())) {
+    case VK_SUCCESS:
+        return DescriptorSets(std::move(sets), num, owner, handle, *dld);
+    case VK_ERROR_OUT_OF_POOL_MEMORY:
+        return {};
+    default:
+        throw Exception(result);
+    }
+}
+
+CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLevel level) const {
+    VkCommandBufferAllocateInfo ai;
+    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    ai.pNext = nullptr;
+    ai.commandPool = handle;
+    ai.level = level;
+    ai.commandBufferCount = static_cast<u32>(num_buffers);
+
+    std::unique_ptr buffers = std::make_unique<VkCommandBuffer[]>(num_buffers);
+    switch (const VkResult result = dld->vkAllocateCommandBuffers(owner, &ai, buffers.get())) {
+    case VK_SUCCESS:
+        return CommandBuffers(std::move(buffers), num_buffers, owner, handle, *dld);
+    case VK_ERROR_OUT_OF_POOL_MEMORY:
+        return {};
+    default:
+        throw Exception(result);
+    }
+}
+
+std::vector<VkImage> SwapchainKHR::GetImages() const {
+    u32 num;
+    Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, nullptr));
+    std::vector<VkImage> images(num);
+    Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, images.data()));
+    return images;
+}
+
+Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
+                      Span<const char*> enabled_extensions,
+                      const VkPhysicalDeviceFeatures2& enabled_features,
+                      DeviceDispatch& dld) noexcept {
+    VkDeviceCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    ci.pNext = &enabled_features;
+    ci.flags = 0;
+    ci.queueCreateInfoCount = queues_ci.size();
+    ci.pQueueCreateInfos = queues_ci.data();
+    ci.enabledLayerCount = 0;
+    ci.ppEnabledLayerNames = nullptr;
+    ci.enabledExtensionCount = enabled_extensions.size();
+    ci.ppEnabledExtensionNames = enabled_extensions.data();
+    ci.pEnabledFeatures = nullptr;
+
+    VkDevice device;
+    if (dld.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
+        return {};
+    }
+    Load(device, dld);
+    return Device(device, dld);
+}
+
+Queue Device::GetQueue(u32 family_index) const noexcept {
+    VkQueue queue;
+    dld->vkGetDeviceQueue(handle, family_index, 0, &queue);
+    return Queue(queue, *dld);
+}
+
+Buffer Device::CreateBuffer(const VkBufferCreateInfo& ci) const {
+    VkBuffer object;
+    Check(dld->vkCreateBuffer(handle, &ci, nullptr, &object));
+    return Buffer(object, handle, *dld);
+}
+
+BufferView Device::CreateBufferView(const VkBufferViewCreateInfo& ci) const {
+    VkBufferView object;
+    Check(dld->vkCreateBufferView(handle, &ci, nullptr, &object));
+    return BufferView(object, handle, *dld);
+}
+
+Image Device::CreateImage(const VkImageCreateInfo& ci) const {
+    VkImage object;
+    Check(dld->vkCreateImage(handle, &ci, nullptr, &object));
+    return Image(object, handle, *dld);
+}
+
+ImageView Device::CreateImageView(const VkImageViewCreateInfo& ci) const {
+    VkImageView object;
+    Check(dld->vkCreateImageView(handle, &ci, nullptr, &object));
+    return ImageView(object, handle, *dld);
+}
+
+Semaphore Device::CreateSemaphore() const {
+    VkSemaphoreCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+
+    VkSemaphore object;
+    Check(dld->vkCreateSemaphore(handle, &ci, nullptr, &object));
+    return Semaphore(object, handle, *dld);
+}
+
+Fence Device::CreateFence(const VkFenceCreateInfo& ci) const {
+    VkFence object;
+    Check(dld->vkCreateFence(handle, &ci, nullptr, &object));
+    return Fence(object, handle, *dld);
+}
+
+DescriptorPool Device::CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const {
+    VkDescriptorPool object;
+    Check(dld->vkCreateDescriptorPool(handle, &ci, nullptr, &object));
+    return DescriptorPool(object, handle, *dld);
+}
+
+RenderPass Device::CreateRenderPass(const VkRenderPassCreateInfo& ci) const {
+    VkRenderPass object;
+    Check(dld->vkCreateRenderPass(handle, &ci, nullptr, &object));
+    return RenderPass(object, handle, *dld);
+}
+
+DescriptorSetLayout Device::CreateDescriptorSetLayout(
+    const VkDescriptorSetLayoutCreateInfo& ci) const {
+    VkDescriptorSetLayout object;
+    Check(dld->vkCreateDescriptorSetLayout(handle, &ci, nullptr, &object));
+    return DescriptorSetLayout(object, handle, *dld);
+}
+
+PipelineLayout Device::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const {
+    VkPipelineLayout object;
+    Check(dld->vkCreatePipelineLayout(handle, &ci, nullptr, &object));
+    return PipelineLayout(object, handle, *dld);
+}
+
+Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci) const {
+    VkPipeline object;
+    Check(dld->vkCreateGraphicsPipelines(handle, nullptr, 1, &ci, nullptr, &object));
+    return Pipeline(object, handle, *dld);
+}
+
+Pipeline Device::CreateComputePipeline(const VkComputePipelineCreateInfo& ci) const {
+    VkPipeline object;
+    Check(dld->vkCreateComputePipelines(handle, nullptr, 1, &ci, nullptr, &object));
+    return Pipeline(object, handle, *dld);
+}
+
+Sampler Device::CreateSampler(const VkSamplerCreateInfo& ci) const {
+    VkSampler object;
+    Check(dld->vkCreateSampler(handle, &ci, nullptr, &object));
+    return Sampler(object, handle, *dld);
+}
+
+Framebuffer Device::CreateFramebuffer(const VkFramebufferCreateInfo& ci) const {
+    VkFramebuffer object;
+    Check(dld->vkCreateFramebuffer(handle, &ci, nullptr, &object));
+    return Framebuffer(object, handle, *dld);
+}
+
+CommandPool Device::CreateCommandPool(const VkCommandPoolCreateInfo& ci) const {
+    VkCommandPool object;
+    Check(dld->vkCreateCommandPool(handle, &ci, nullptr, &object));
+    return CommandPool(object, handle, *dld);
+}
+
+DescriptorUpdateTemplateKHR Device::CreateDescriptorUpdateTemplateKHR(
+    const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const {
+    VkDescriptorUpdateTemplateKHR object;
+    Check(dld->vkCreateDescriptorUpdateTemplateKHR(handle, &ci, nullptr, &object));
+    return DescriptorUpdateTemplateKHR(object, handle, *dld);
+}
+
+QueryPool Device::CreateQueryPool(const VkQueryPoolCreateInfo& ci) const {
+    VkQueryPool object;
+    Check(dld->vkCreateQueryPool(handle, &ci, nullptr, &object));
+    return QueryPool(object, handle, *dld);
+}
+
+ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) const {
+    VkShaderModule object;
+    Check(dld->vkCreateShaderModule(handle, &ci, nullptr, &object));
+    return ShaderModule(object, handle, *dld);
+}
+
+SwapchainKHR Device::CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const {
+    VkSwapchainKHR object;
+    Check(dld->vkCreateSwapchainKHR(handle, &ci, nullptr, &object));
+    return SwapchainKHR(object, handle, *dld);
+}
+
+DeviceMemory Device::TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept {
+    VkDeviceMemory memory;
+    if (dld->vkAllocateMemory(handle, &ai, nullptr, &memory) != VK_SUCCESS) {
+        return {};
+    }
+    return DeviceMemory(memory, handle, *dld);
+}
+
+DeviceMemory Device::AllocateMemory(const VkMemoryAllocateInfo& ai) const {
+    VkDeviceMemory memory;
+    Check(dld->vkAllocateMemory(handle, &ai, nullptr, &memory));
+    return DeviceMemory(memory, handle, *dld);
+}
+
+VkMemoryRequirements Device::GetBufferMemoryRequirements(VkBuffer buffer) const noexcept {
+    VkMemoryRequirements requirements;
+    dld->vkGetBufferMemoryRequirements(handle, buffer, &requirements);
+    return requirements;
+}
+
+VkMemoryRequirements Device::GetImageMemoryRequirements(VkImage image) const noexcept {
+    VkMemoryRequirements requirements;
+    dld->vkGetImageMemoryRequirements(handle, image, &requirements);
+    return requirements;
+}
+
+void Device::UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
+                                  Span<VkCopyDescriptorSet> copies) const noexcept {
+    dld->vkUpdateDescriptorSets(handle, writes.size(), writes.data(), copies.size(), copies.data());
+}
+
+VkPhysicalDeviceProperties PhysicalDevice::GetProperties() const noexcept {
+    VkPhysicalDeviceProperties properties;
+    dld->vkGetPhysicalDeviceProperties(physical_device, &properties);
+    return properties;
+}
+
+void PhysicalDevice::GetProperties2KHR(VkPhysicalDeviceProperties2KHR& properties) const noexcept {
+    dld->vkGetPhysicalDeviceProperties2KHR(physical_device, &properties);
+}
+
+VkPhysicalDeviceFeatures PhysicalDevice::GetFeatures() const noexcept {
+    VkPhysicalDeviceFeatures2KHR features2;
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    features2.pNext = nullptr;
+    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features2);
+    return features2.features;
+}
+
+void PhysicalDevice::GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR& features) const noexcept {
+    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features);
+}
+
+VkFormatProperties PhysicalDevice::GetFormatProperties(VkFormat format) const noexcept {
+    VkFormatProperties properties;
+    dld->vkGetPhysicalDeviceFormatProperties(physical_device, format, &properties);
+    return properties;
+}
+
+std::vector<VkExtensionProperties> PhysicalDevice::EnumerateDeviceExtensionProperties() const {
+    u32 num;
+    dld->vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &num, nullptr);
+    std::vector<VkExtensionProperties> properties(num);
+    dld->vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &num, properties.data());
+    return properties;
+}
+
+std::vector<VkQueueFamilyProperties> PhysicalDevice::GetQueueFamilyProperties() const {
+    u32 num;
+    dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, nullptr);
+    std::vector<VkQueueFamilyProperties> properties(num);
+    dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, properties.data());
+    return properties;
+}
+
+bool PhysicalDevice::GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR surface) const {
+    VkBool32 supported;
+    Check(dld->vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, queue_family_index, surface,
+                                                    &supported));
+    return supported == VK_TRUE;
+}
+
+VkSurfaceCapabilitiesKHR PhysicalDevice::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface) const
+    noexcept {
+    VkSurfaceCapabilitiesKHR capabilities;
+    Check(dld->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &capabilities));
+    return capabilities;
+}
+
+std::vector<VkSurfaceFormatKHR> PhysicalDevice::GetSurfaceFormatsKHR(VkSurfaceKHR surface) const {
+    u32 num;
+    Check(dld->vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &num, nullptr));
+    std::vector<VkSurfaceFormatKHR> formats(num);
+    Check(
+        dld->vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &num, formats.data()));
+    return formats;
+}
+
+std::vector<VkPresentModeKHR> PhysicalDevice::GetSurfacePresentModesKHR(
+    VkSurfaceKHR surface) const {
+    u32 num;
+    Check(dld->vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &num, nullptr));
+    std::vector<VkPresentModeKHR> modes(num);
+    Check(dld->vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &num,
+                                                         modes.data()));
+    return modes;
+}
+
+VkPhysicalDeviceMemoryProperties PhysicalDevice::GetMemoryProperties() const noexcept {
+    VkPhysicalDeviceMemoryProperties properties;
+    dld->vkGetPhysicalDeviceMemoryProperties(physical_device, &properties);
+    return properties;
+}
+
+std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
+    const InstanceDispatch& dld) {
+    u32 num;
+    if (dld.vkEnumerateInstanceExtensionProperties(nullptr, &num, nullptr) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    std::vector<VkExtensionProperties> properties(num);
+    if (dld.vkEnumerateInstanceExtensionProperties(nullptr, &num, properties.data()) !=
+        VK_SUCCESS) {
+        return std::nullopt;
+    }
+    return properties;
+}
+
 } // namespace Vulkan::vk
