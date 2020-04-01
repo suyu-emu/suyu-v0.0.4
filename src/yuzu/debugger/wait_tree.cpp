@@ -340,7 +340,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 
     if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynch) {
         list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetSynchronizationObjects(),
-                                                            thread.IsSleepingOnWait()));
+                                                            thread.IsWaitingSync()));
     }
 
     list.push_back(std::make_unique<WaitTreeCallstack>(thread));

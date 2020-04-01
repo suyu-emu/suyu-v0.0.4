@@ -142,7 +142,7 @@ void SM::GetService(Kernel::HLERequestContext& ctx) {
     }
 
     // Wake the threads waiting on the ServerPort
-    server_port->WakeupAllWaitingThreads();
+    server_port->Signal();
 
     LOG_DEBUG(Service_SM, "called service={} -> session={}", name, client->GetObjectId());
     IPC::ResponseBuilder rb{ctx, 2, 0, 1, IPC::ResponseBuilder::Flags::AlwaysMoveHandles};

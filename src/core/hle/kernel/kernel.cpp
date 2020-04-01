@@ -48,72 +48,6 @@ MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
 
 namespace Kernel {
 
-/**
- * Callback that will wake up the thread it was scheduled for
- * @param thread_handle The handle of the thread that's been awoken
- * @param cycles_late The number of CPU cycles that have passed since the desired wakeup time
- */
-static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_late) {
-    UNREACHABLE();
-    const auto proper_handle = static_cast<Handle>(thread_handle);
-    const auto& system = Core::System::GetInstance();
-
-    // Lock the global kernel mutex when we enter the kernel HLE.
-    std::lock_guard lock{HLE::g_hle_lock};
-
-    std::shared_ptr<Thread> thread =
-        system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
-    if (thread == nullptr) {
-        LOG_CRITICAL(Kernel, "Callback fired for invalid thread {:08X}", proper_handle);
-        return;
-    }
-
-    bool resume = true;
-
-    if (thread->GetStatus() == ThreadStatus::WaitSynch ||
-        thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
-        // Remove the thread from each of its waiting objects' waitlists
-        for (const auto& object : thread->GetSynchronizationObjects()) {
-            object->RemoveWaitingThread(thread);
-        }
-        thread->ClearSynchronizationObjects();
-
-        // Invoke the wakeup callback before clearing the wait objects
-        if (thread->HasWakeupCallback()) {
-            resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
-        }
-    } else if (thread->GetStatus() == ThreadStatus::WaitMutex ||
-               thread->GetStatus() == ThreadStatus::WaitCondVar) {
-        thread->SetMutexWaitAddress(0);
-        thread->SetWaitHandle(0);
-        if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
-            thread->GetOwnerProcess()->RemoveConditionVariableThread(thread);
-            thread->SetCondVarWaitAddress(0);
-        }
-
-        auto* const lock_owner = thread->GetLockOwner();
-        // Threads waking up by timeout from WaitProcessWideKey do not perform priority inheritance
-        // and don't have a lock owner unless SignalProcessWideKey was called first and the thread
-        // wasn't awakened due to the mutex already being acquired.
-        if (lock_owner != nullptr) {
-            lock_owner->RemoveMutexWaiter(thread);
-        }
-    }
-
-    if (thread->GetStatus() == ThreadStatus::WaitArb) {
-        auto& address_arbiter = thread->GetOwnerProcess()->GetAddressArbiter();
-        address_arbiter.HandleWakeupThread(thread);
-    }
-
-    if (resume) {
-        if (thread->GetStatus() == ThreadStatus::WaitCondVar ||
-            thread->GetStatus() == ThreadStatus::WaitArb) {
-            thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
-        }
-        thread->ResumeFromWait();
-    }
-}
-
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
         : global_scheduler{kernel}, synchronization{system}, time_manager{system}, system{system} {}
@@ -129,7 +63,6 @@ struct KernelCore::Impl {
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
         InitializeMemoryLayout();
-        InitializeThreads();
         InitializePreemption(kernel);
         InitializeSchedulers();
         InitializeSuspendThreads();
@@ -161,7 +94,6 @@ struct KernelCore::Impl {
         system_resource_limit = nullptr;
 
         global_handle_table.Clear();
-        thread_wakeup_event_type = nullptr;
         preemption_event = nullptr;
 
         global_scheduler.Shutdown();
@@ -208,11 +140,6 @@ struct KernelCore::Impl {
             !system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0x60000)) {
             UNREACHABLE();
         }
-    }
-
-    void InitializeThreads() {
-        thread_wakeup_event_type =
-            Core::Timing::CreateEvent("ThreadWakeupCallback", ThreadWakeupCallback);
     }
 
     void InitializePreemption(KernelCore& kernel) {
@@ -376,7 +303,6 @@ struct KernelCore::Impl {
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
 
-    std::shared_ptr<Core::Timing::EventType> thread_wakeup_event_type;
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
     // This is the kernel's handle table or supervisor handle table which
@@ -516,7 +442,8 @@ std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore
     return impl->interrupts;
 }
 
-const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts() const {
+const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts()
+    const {
     return impl->interrupts;
 }
 
@@ -593,10 +520,6 @@ u64 KernelCore::CreateNewKernelProcessID() {
 
 u64 KernelCore::CreateNewUserProcessID() {
     return impl->next_user_process_id++;
-}
-
-const std::shared_ptr<Core::Timing::EventType>& KernelCore::ThreadWakeupCallbackEventType() const {
-    return impl->thread_wakeup_event_type;
 }
 
 Kernel::HandleTable& KernelCore::GlobalHandleTable() {

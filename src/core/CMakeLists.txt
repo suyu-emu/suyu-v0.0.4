@@ -17,8 +17,6 @@ add_library(core STATIC
     constants.h
     core.cpp
     core.h
-    core_manager.cpp
-    core_manager.h
     core_timing.cpp
     core_timing.h
     core_timing_util.cpp

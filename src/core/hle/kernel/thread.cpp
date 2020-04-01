@@ -56,9 +56,6 @@ Thread::~Thread() = default;
 void Thread::Stop() {
     {
         SchedulerLock lock(kernel);
-        // Cancel any outstanding wakeup events for this thread
-        Core::System::GetInstance().CoreTiming().UnscheduleEvent(
-            kernel.ThreadWakeupCallbackEventType(), global_handle);
         SetStatus(ThreadStatus::Dead);
         Signal();
         kernel.GlobalHandleTable().Close(global_handle);
@@ -73,22 +70,6 @@ void Thread::Stop() {
         has_exited = true;
     }
     global_handle = 0;
-}
-
-void Thread::WakeAfterDelay(s64 nanoseconds) {
-    // Don't schedule a wakeup if the thread wants to wait forever
-    if (nanoseconds == -1)
-        return;
-
-    // This function might be called from any thread so we have to be cautious and use the
-    // thread-safe version of ScheduleEvent.
-    Core::System::GetInstance().CoreTiming().ScheduleEvent(
-        nanoseconds, kernel.ThreadWakeupCallbackEventType(), global_handle);
-}
-
-void Thread::CancelWakeupTimer() {
-    Core::System::GetInstance().CoreTiming().UnscheduleEvent(kernel.ThreadWakeupCallbackEventType(),
-                                                             global_handle);
 }
 
 void Thread::ResumeFromWait() {
@@ -284,14 +265,6 @@ void Thread::SetPriority(u32 priority) {
     UpdatePriority();
 }
 
-void Thread::SetWaitSynchronizationResult(ResultCode result) {
-    UNREACHABLE();
-}
-
-void Thread::SetWaitSynchronizationOutput(s32 output) {
-    UNREACHABLE();
-}
-
 void Thread::SetSynchronizationResults(SynchronizationObject* object, ResultCode result) {
     signaling_object = object;
     signaling_result = result;
@@ -423,13 +396,6 @@ bool Thread::AllSynchronizationObjectsReady() const {
                         [this](const std::shared_ptr<SynchronizationObject>& object) {
                             return object->ShouldWait(this);
                         });
-}
-
-bool Thread::InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                  std::shared_ptr<SynchronizationObject> object,
-                                  std::size_t index) {
-    ASSERT(wakeup_callback);
-    return wakeup_callback(reason, std::move(thread), std::move(object), index);
 }
 
 bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {

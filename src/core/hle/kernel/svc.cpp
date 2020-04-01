@@ -16,7 +16,6 @@
 #include "common/string_util.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
-#include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
@@ -1909,7 +1908,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
             return ERR_INVALID_COMBINATION;
         }
 
-        if (core < Core::NUM_CPU_CORES) {
+        if (core < Core::Hardware::NUM_CPU_CORES) {
             if ((affinity_mask & (1ULL << core)) == 0) {
                 LOG_ERROR(Kernel_SVC,
                           "Core is not enabled for the current mask, core={}, mask={:016X}", core,

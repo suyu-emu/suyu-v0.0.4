@@ -39,6 +39,7 @@ u64 callbacks_done = 0;
 
 struct ScopeInit final {
     ScopeInit() {
+        core_timing.SetMulticore(true);
         core_timing.Initialize([]() {});
     }
     ~ScopeInit() {

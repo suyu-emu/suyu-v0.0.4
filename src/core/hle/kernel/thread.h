@@ -128,9 +128,6 @@ public:
 
     using ThreadSynchronizationObjects = std::vector<std::shared_ptr<SynchronizationObject>>;
 
-    using WakeupCallback =
-        std::function<bool(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                           std::shared_ptr<SynchronizationObject> object, std::size_t index)>;
     using HLECallback = std::function<bool(std::shared_ptr<Thread> thread)>;
 
     /**
@@ -235,7 +232,7 @@ public:
     }
 
     /// Resumes a thread from waiting
-    void /* deprecated */ ResumeFromWait();
+    void ResumeFromWait();
 
     void OnWakeUp();
 
@@ -248,27 +245,6 @@ public:
     /// this thread.
     ///
     void CancelWait();
-
-    /**
-     * Schedules an event to wake up the specified thread after the specified delay
-     * @param nanoseconds The time this thread will be allowed to sleep for
-     */
-    void /* deprecated */ WakeAfterDelay(s64 nanoseconds);
-
-    /// Cancel any outstanding wakeup events for this thread
-    void /* deprecated */ CancelWakeupTimer();
-
-    /**
-     * Sets the result after the thread awakens (from svcWaitSynchronization)
-     * @param result Value to set to the returned result
-     */
-    void /*deprecated*/ SetWaitSynchronizationResult(ResultCode result);
-
-    /**
-     * Sets the output parameter value after the thread awakens (from svcWaitSynchronization)
-     * @param output Value to set to the output parameter
-     */
-    void /*deprecated*/ SetWaitSynchronizationOutput(s32 output);
 
     void SetSynchronizationResults(SynchronizationObject* object, ResultCode result);
 
@@ -329,11 +305,6 @@ public:
      * @returns VAddr of the thread's command buffer.
      */
     VAddr GetCommandBufferAddress() const;
-
-    /// Returns whether this thread is waiting on objects from a WaitSynchronization call.
-    bool IsSleepingOnWait() const {
-        return status == ThreadStatus::WaitSynch;
-    }
 
     ThreadContext32& GetContext32() {
         return context_32;
@@ -469,16 +440,8 @@ public:
         arb_wait_address = address;
     }
 
-    bool HasWakeupCallback() const {
-        return wakeup_callback != nullptr;
-    }
-
     bool HasHLECallback() const {
         return hle_callback != nullptr;
-    }
-
-    void SetWakeupCallback(WakeupCallback callback) {
-        wakeup_callback = std::move(callback);
     }
 
     void SetHLECallback(HLECallback callback) {
@@ -501,22 +464,10 @@ public:
         return hle_object;
     }
 
-    void InvalidateWakeupCallback() {
-        SetWakeupCallback(nullptr);
-    }
-
     void InvalidateHLECallback() {
         SetHLECallback(nullptr);
     }
 
-    /**
-     * Invokes the thread's wakeup callback.
-     *
-     * @pre A valid wakeup callback has been set. Violating this precondition
-     *      will cause an assertion to trigger.
-     */
-    bool InvokeWakeupCallback(ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                              std::shared_ptr<SynchronizationObject> object, std::size_t index);
     bool InvokeHLECallback(std::shared_ptr<Thread> thread);
 
     u32 GetIdealCore() const {
@@ -697,11 +648,6 @@ private:
 
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
     Handle global_handle = 0;
-
-    /// Callback that will be invoked when the thread is resumed from a waiting state. If the thread
-    /// was waiting via WaitSynchronization then the object will be the last object that became
-    /// available. In case of a timeout, the object will be nullptr. DEPRECATED
-    WakeupCallback wakeup_callback;
 
     /// Callback for HLE Events
     HLECallback hle_callback;

@@ -241,9 +241,6 @@ private:
     /// Creates a new thread ID, incrementing the internal thread ID counter.
     u64 CreateNewThreadID();
 
-    /// Retrieves the event type used for thread wakeup callbacks.
-    const std::shared_ptr<Core::Timing::EventType>& ThreadWakeupCallbackEventType() const;
-
     /// Provides a reference to the global handle table.
     Kernel::HandleTable& GlobalHandleTable();
 
