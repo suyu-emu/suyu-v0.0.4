@@ -733,4 +733,18 @@ VkPhysicalDeviceMemoryProperties PhysicalDevice::GetMemoryProperties() const noe
     return properties;
 }
 
+std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
+    const InstanceDispatch& dld) {
+    u32 num;
+    if (dld.vkEnumerateInstanceExtensionProperties(nullptr, &num, nullptr) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    std::vector<VkExtensionProperties> properties(num);
+    if (dld.vkEnumerateInstanceExtensionProperties(nullptr, &num, properties.data()) !=
+        VK_SUCCESS) {
+        return std::nullopt;
+    }
+    return properties;
+}
+
 } // namespace Vulkan::vk

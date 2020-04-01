@@ -981,4 +981,7 @@ private:
     const DeviceDispatch* dld;
 };
 
+std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
+    const InstanceDispatch& dld);
+
 } // namespace Vulkan::vk
