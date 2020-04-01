@@ -129,8 +129,7 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
 
 const FormatTuple& GetFormatTuple(PixelFormat pixel_format) {
     ASSERT(static_cast<std::size_t>(pixel_format) < tex_format_tuples.size());
-    const auto& format{tex_format_tuples[static_cast<std::size_t>(pixel_format)]};
-    return format;
+    return tex_format_tuples[static_cast<std::size_t>(pixel_format)];
 }
 
 GLenum GetTextureTarget(const SurfaceTarget& target) {
@@ -243,11 +242,17 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
 CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
                              bool is_astc_supported)
     : VideoCommon::SurfaceBase<View>(gpu_addr, params, is_astc_supported) {
-    const auto& tuple{GetFormatTuple(params.pixel_format)};
-    internal_format = tuple.internal_format;
-    format = tuple.format;
-    type = tuple.type;
-    is_compressed = !is_converted && params.IsCompressed();
+    if (is_converted) {
+        internal_format = params.srgb_conversion ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+        format = GL_RGBA;
+        type = GL_UNSIGNED_BYTE;
+    } else {
+        const auto& tuple{GetFormatTuple(params.pixel_format)};
+        internal_format = tuple.internal_format;
+        format = tuple.format;
+        type = tuple.type;
+        is_compressed = params.IsCompressed();
+    }
     target = GetTextureTarget(params.target);
     texture = CreateTexture(params, target, internal_format, texture_buffer);
     DecorateSurfaceName();
