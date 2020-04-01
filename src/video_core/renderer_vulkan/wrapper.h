@@ -749,4 +749,44 @@ public:
     }
 };
 
+class PhysicalDevice {
+public:
+    constexpr PhysicalDevice() noexcept = default;
+
+    constexpr PhysicalDevice(VkPhysicalDevice physical_device, const InstanceDispatch& dld) noexcept
+        : physical_device{physical_device}, dld{&dld} {}
+
+    constexpr operator VkPhysicalDevice() const noexcept {
+        return physical_device;
+    }
+
+    VkPhysicalDeviceProperties GetProperties() const noexcept;
+
+    void GetProperties2KHR(VkPhysicalDeviceProperties2KHR&) const noexcept;
+
+    VkPhysicalDeviceFeatures GetFeatures() const noexcept;
+
+    void GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR&) const noexcept;
+
+    VkFormatProperties GetFormatProperties(VkFormat) const noexcept;
+
+    std::vector<VkExtensionProperties> EnumerateDeviceExtensionProperties() const;
+
+    std::vector<VkQueueFamilyProperties> GetQueueFamilyProperties() const;
+
+    bool GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR) const;
+
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR) const noexcept;
+
+    std::vector<VkSurfaceFormatKHR> GetSurfaceFormatsKHR(VkSurfaceKHR) const;
+
+    std::vector<VkPresentModeKHR> GetSurfacePresentModesKHR(VkSurfaceKHR) const;
+
+    VkPhysicalDeviceMemoryProperties GetMemoryProperties() const noexcept;
+
+private:
+    VkPhysicalDevice physical_device = nullptr;
+    const InstanceDispatch* dld = nullptr;
+};
+
 } // namespace Vulkan::vk

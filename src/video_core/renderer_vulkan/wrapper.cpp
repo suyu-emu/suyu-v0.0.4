@@ -650,4 +650,87 @@ void Device::UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
     dld->vkUpdateDescriptorSets(handle, writes.size(), writes.data(), copies.size(), copies.data());
 }
 
+VkPhysicalDeviceProperties PhysicalDevice::GetProperties() const noexcept {
+    VkPhysicalDeviceProperties properties;
+    dld->vkGetPhysicalDeviceProperties(physical_device, &properties);
+    return properties;
+}
+
+void PhysicalDevice::GetProperties2KHR(VkPhysicalDeviceProperties2KHR& properties) const noexcept {
+    dld->vkGetPhysicalDeviceProperties2KHR(physical_device, &properties);
+}
+
+VkPhysicalDeviceFeatures PhysicalDevice::GetFeatures() const noexcept {
+    VkPhysicalDeviceFeatures2KHR features2;
+    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
+    features2.pNext = nullptr;
+    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features2);
+    return features2.features;
+}
+
+void PhysicalDevice::GetFeatures2KHR(VkPhysicalDeviceFeatures2KHR& features) const noexcept {
+    dld->vkGetPhysicalDeviceFeatures2KHR(physical_device, &features);
+}
+
+VkFormatProperties PhysicalDevice::GetFormatProperties(VkFormat format) const noexcept {
+    VkFormatProperties properties;
+    dld->vkGetPhysicalDeviceFormatProperties(physical_device, format, &properties);
+    return properties;
+}
+
+std::vector<VkExtensionProperties> PhysicalDevice::EnumerateDeviceExtensionProperties() const {
+    u32 num;
+    dld->vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &num, nullptr);
+    std::vector<VkExtensionProperties> properties(num);
+    dld->vkEnumerateDeviceExtensionProperties(physical_device, nullptr, &num, properties.data());
+    return properties;
+}
+
+std::vector<VkQueueFamilyProperties> PhysicalDevice::GetQueueFamilyProperties() const {
+    u32 num;
+    dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, nullptr);
+    std::vector<VkQueueFamilyProperties> properties(num);
+    dld->vkGetPhysicalDeviceQueueFamilyProperties(physical_device, &num, properties.data());
+    return properties;
+}
+
+bool PhysicalDevice::GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR surface) const {
+    VkBool32 supported;
+    Check(dld->vkGetPhysicalDeviceSurfaceSupportKHR(physical_device, queue_family_index, surface,
+                                                    &supported));
+    return supported == VK_TRUE;
+}
+
+VkSurfaceCapabilitiesKHR PhysicalDevice::GetSurfaceCapabilitiesKHR(VkSurfaceKHR surface) const
+    noexcept {
+    VkSurfaceCapabilitiesKHR capabilities;
+    Check(dld->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device, surface, &capabilities));
+    return capabilities;
+}
+
+std::vector<VkSurfaceFormatKHR> PhysicalDevice::GetSurfaceFormatsKHR(VkSurfaceKHR surface) const {
+    u32 num;
+    Check(dld->vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &num, nullptr));
+    std::vector<VkSurfaceFormatKHR> formats(num);
+    Check(
+        dld->vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &num, formats.data()));
+    return formats;
+}
+
+std::vector<VkPresentModeKHR> PhysicalDevice::GetSurfacePresentModesKHR(
+    VkSurfaceKHR surface) const {
+    u32 num;
+    Check(dld->vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &num, nullptr));
+    std::vector<VkPresentModeKHR> modes(num);
+    Check(dld->vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface, &num,
+                                                         modes.data()));
+    return modes;
+}
+
+VkPhysicalDeviceMemoryProperties PhysicalDevice::GetMemoryProperties() const noexcept {
+    VkPhysicalDeviceMemoryProperties properties;
+    dld->vkGetPhysicalDeviceMemoryProperties(physical_device, &properties);
+    return properties;
+}
+
 } // namespace Vulkan::vk
