@@ -654,4 +654,99 @@ public:
     std::vector<VkImage> GetImages() const;
 };
 
+class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
+    using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
+
+public:
+    static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
+                         Span<const char*> enabled_extensions,
+                         const VkPhysicalDeviceFeatures2& enabled_features,
+                         DeviceDispatch& dld) noexcept;
+
+    Queue GetQueue(u32 family_index) const noexcept;
+
+    Buffer CreateBuffer(const VkBufferCreateInfo& ci) const;
+
+    BufferView CreateBufferView(const VkBufferViewCreateInfo& ci) const;
+
+    Image CreateImage(const VkImageCreateInfo& ci) const;
+
+    ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
+
+    Semaphore CreateSemaphore() const;
+
+    Fence CreateFence(const VkFenceCreateInfo& ci) const;
+
+    DescriptorPool CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const;
+
+    RenderPass CreateRenderPass(const VkRenderPassCreateInfo& ci) const;
+
+    DescriptorSetLayout CreateDescriptorSetLayout(const VkDescriptorSetLayoutCreateInfo& ci) const;
+
+    PipelineLayout CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const;
+
+    Pipeline CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci) const;
+
+    Pipeline CreateComputePipeline(const VkComputePipelineCreateInfo& ci) const;
+
+    Sampler CreateSampler(const VkSamplerCreateInfo& ci) const;
+
+    Framebuffer CreateFramebuffer(const VkFramebufferCreateInfo& ci) const;
+
+    CommandPool CreateCommandPool(const VkCommandPoolCreateInfo& ci) const;
+
+    DescriptorUpdateTemplateKHR CreateDescriptorUpdateTemplateKHR(
+        const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const;
+
+    QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
+
+    ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
+
+    SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
+
+    DeviceMemory TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept;
+
+    DeviceMemory AllocateMemory(const VkMemoryAllocateInfo& ai) const;
+
+    VkMemoryRequirements GetBufferMemoryRequirements(VkBuffer buffer) const noexcept;
+
+    VkMemoryRequirements GetImageMemoryRequirements(VkImage image) const noexcept;
+
+    void UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
+                              Span<VkCopyDescriptorSet> copies) const noexcept;
+
+    void UpdateDescriptorSet(VkDescriptorSet set, VkDescriptorUpdateTemplateKHR update_template,
+                             const void* data) const noexcept {
+        dld->vkUpdateDescriptorSetWithTemplateKHR(handle, set, update_template, data);
+    }
+
+    VkResult AcquireNextImageKHR(VkSwapchainKHR swapchain, u64 timeout, VkSemaphore semaphore,
+                                 VkFence fence, u32* image_index) const noexcept {
+        return dld->vkAcquireNextImageKHR(handle, swapchain, timeout, semaphore, fence,
+                                          image_index);
+    }
+
+    VkResult WaitIdle() const noexcept {
+        return dld->vkDeviceWaitIdle(handle);
+    }
+
+    void ResetQueryPoolEXT(VkQueryPool query_pool, u32 first, u32 count) const noexcept {
+        dld->vkResetQueryPoolEXT(handle, query_pool, first, count);
+    }
+
+    void GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,
+                         void* data, VkDeviceSize stride, VkQueryResultFlags flags) const {
+        Check(dld->vkGetQueryPoolResults(handle, query_pool, first, count, data_size, data, stride,
+                                         flags));
+    }
+
+    template <typename T>
+    T GetQueryResult(VkQueryPool query_pool, u32 first, VkQueryResultFlags flags) const {
+        static_assert(std::is_trivially_copyable_v<T>);
+        T value;
+        GetQueryResults(query_pool, first, 1, sizeof(T), &value, sizeof(T), flags);
+        return value;
+    }
+};
+
 } // namespace Vulkan::vk

@@ -468,4 +468,186 @@ std::vector<VkImage> SwapchainKHR::GetImages() const {
     return images;
 }
 
+Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
+                      Span<const char*> enabled_extensions,
+                      const VkPhysicalDeviceFeatures2& enabled_features,
+                      DeviceDispatch& dld) noexcept {
+    VkDeviceCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    ci.pNext = &enabled_features;
+    ci.flags = 0;
+    ci.queueCreateInfoCount = queues_ci.size();
+    ci.pQueueCreateInfos = queues_ci.data();
+    ci.enabledLayerCount = 0;
+    ci.ppEnabledLayerNames = nullptr;
+    ci.enabledExtensionCount = enabled_extensions.size();
+    ci.ppEnabledExtensionNames = enabled_extensions.data();
+    ci.pEnabledFeatures = nullptr;
+
+    VkDevice device;
+    if (dld.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
+        return {};
+    }
+    Load(device, dld);
+    return Device(device, dld);
+}
+
+Queue Device::GetQueue(u32 family_index) const noexcept {
+    VkQueue queue;
+    dld->vkGetDeviceQueue(handle, family_index, 0, &queue);
+    return Queue(queue, *dld);
+}
+
+Buffer Device::CreateBuffer(const VkBufferCreateInfo& ci) const {
+    VkBuffer object;
+    Check(dld->vkCreateBuffer(handle, &ci, nullptr, &object));
+    return Buffer(object, handle, *dld);
+}
+
+BufferView Device::CreateBufferView(const VkBufferViewCreateInfo& ci) const {
+    VkBufferView object;
+    Check(dld->vkCreateBufferView(handle, &ci, nullptr, &object));
+    return BufferView(object, handle, *dld);
+}
+
+Image Device::CreateImage(const VkImageCreateInfo& ci) const {
+    VkImage object;
+    Check(dld->vkCreateImage(handle, &ci, nullptr, &object));
+    return Image(object, handle, *dld);
+}
+
+ImageView Device::CreateImageView(const VkImageViewCreateInfo& ci) const {
+    VkImageView object;
+    Check(dld->vkCreateImageView(handle, &ci, nullptr, &object));
+    return ImageView(object, handle, *dld);
+}
+
+Semaphore Device::CreateSemaphore() const {
+    VkSemaphoreCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+
+    VkSemaphore object;
+    Check(dld->vkCreateSemaphore(handle, &ci, nullptr, &object));
+    return Semaphore(object, handle, *dld);
+}
+
+Fence Device::CreateFence(const VkFenceCreateInfo& ci) const {
+    VkFence object;
+    Check(dld->vkCreateFence(handle, &ci, nullptr, &object));
+    return Fence(object, handle, *dld);
+}
+
+DescriptorPool Device::CreateDescriptorPool(const VkDescriptorPoolCreateInfo& ci) const {
+    VkDescriptorPool object;
+    Check(dld->vkCreateDescriptorPool(handle, &ci, nullptr, &object));
+    return DescriptorPool(object, handle, *dld);
+}
+
+RenderPass Device::CreateRenderPass(const VkRenderPassCreateInfo& ci) const {
+    VkRenderPass object;
+    Check(dld->vkCreateRenderPass(handle, &ci, nullptr, &object));
+    return RenderPass(object, handle, *dld);
+}
+
+DescriptorSetLayout Device::CreateDescriptorSetLayout(
+    const VkDescriptorSetLayoutCreateInfo& ci) const {
+    VkDescriptorSetLayout object;
+    Check(dld->vkCreateDescriptorSetLayout(handle, &ci, nullptr, &object));
+    return DescriptorSetLayout(object, handle, *dld);
+}
+
+PipelineLayout Device::CreatePipelineLayout(const VkPipelineLayoutCreateInfo& ci) const {
+    VkPipelineLayout object;
+    Check(dld->vkCreatePipelineLayout(handle, &ci, nullptr, &object));
+    return PipelineLayout(object, handle, *dld);
+}
+
+Pipeline Device::CreateGraphicsPipeline(const VkGraphicsPipelineCreateInfo& ci) const {
+    VkPipeline object;
+    Check(dld->vkCreateGraphicsPipelines(handle, nullptr, 1, &ci, nullptr, &object));
+    return Pipeline(object, handle, *dld);
+}
+
+Pipeline Device::CreateComputePipeline(const VkComputePipelineCreateInfo& ci) const {
+    VkPipeline object;
+    Check(dld->vkCreateComputePipelines(handle, nullptr, 1, &ci, nullptr, &object));
+    return Pipeline(object, handle, *dld);
+}
+
+Sampler Device::CreateSampler(const VkSamplerCreateInfo& ci) const {
+    VkSampler object;
+    Check(dld->vkCreateSampler(handle, &ci, nullptr, &object));
+    return Sampler(object, handle, *dld);
+}
+
+Framebuffer Device::CreateFramebuffer(const VkFramebufferCreateInfo& ci) const {
+    VkFramebuffer object;
+    Check(dld->vkCreateFramebuffer(handle, &ci, nullptr, &object));
+    return Framebuffer(object, handle, *dld);
+}
+
+CommandPool Device::CreateCommandPool(const VkCommandPoolCreateInfo& ci) const {
+    VkCommandPool object;
+    Check(dld->vkCreateCommandPool(handle, &ci, nullptr, &object));
+    return CommandPool(object, handle, *dld);
+}
+
+DescriptorUpdateTemplateKHR Device::CreateDescriptorUpdateTemplateKHR(
+    const VkDescriptorUpdateTemplateCreateInfoKHR& ci) const {
+    VkDescriptorUpdateTemplateKHR object;
+    Check(dld->vkCreateDescriptorUpdateTemplateKHR(handle, &ci, nullptr, &object));
+    return DescriptorUpdateTemplateKHR(object, handle, *dld);
+}
+
+QueryPool Device::CreateQueryPool(const VkQueryPoolCreateInfo& ci) const {
+    VkQueryPool object;
+    Check(dld->vkCreateQueryPool(handle, &ci, nullptr, &object));
+    return QueryPool(object, handle, *dld);
+}
+
+ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) const {
+    VkShaderModule object;
+    Check(dld->vkCreateShaderModule(handle, &ci, nullptr, &object));
+    return ShaderModule(object, handle, *dld);
+}
+
+SwapchainKHR Device::CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const {
+    VkSwapchainKHR object;
+    Check(dld->vkCreateSwapchainKHR(handle, &ci, nullptr, &object));
+    return SwapchainKHR(object, handle, *dld);
+}
+
+DeviceMemory Device::TryAllocateMemory(const VkMemoryAllocateInfo& ai) const noexcept {
+    VkDeviceMemory memory;
+    if (dld->vkAllocateMemory(handle, &ai, nullptr, &memory) != VK_SUCCESS) {
+        return {};
+    }
+    return DeviceMemory(memory, handle, *dld);
+}
+
+DeviceMemory Device::AllocateMemory(const VkMemoryAllocateInfo& ai) const {
+    VkDeviceMemory memory;
+    Check(dld->vkAllocateMemory(handle, &ai, nullptr, &memory));
+    return DeviceMemory(memory, handle, *dld);
+}
+
+VkMemoryRequirements Device::GetBufferMemoryRequirements(VkBuffer buffer) const noexcept {
+    VkMemoryRequirements requirements;
+    dld->vkGetBufferMemoryRequirements(handle, buffer, &requirements);
+    return requirements;
+}
+
+VkMemoryRequirements Device::GetImageMemoryRequirements(VkImage image) const noexcept {
+    VkMemoryRequirements requirements;
+    dld->vkGetImageMemoryRequirements(handle, image, &requirements);
+    return requirements;
+}
+
+void Device::UpdateDescriptorSets(Span<VkWriteDescriptorSet> writes,
+                                  Span<VkCopyDescriptorSet> copies) const noexcept {
+    dld->vkUpdateDescriptorSets(handle, writes.size(), writes.data(), copies.size(), copies.data());
+}
+
 } // namespace Vulkan::vk
