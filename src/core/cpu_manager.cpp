@@ -227,7 +227,6 @@ void CpuManager::SingleCoreRunGuestLoop() {
         auto& arm_interface = thread->ArmInterface();
         system.EnterDynarmicProfile();
         if (!physical_core->IsInterrupted()) {
-            system.CoreTiming().ResetTicks();
             arm_interface.Run();
             physical_core = &kernel.CurrentPhysicalCore();
         }
@@ -285,6 +284,7 @@ void CpuManager::PreemptSingleCore(bool from_running_enviroment) {
         current_thread->SetPhantomMode(false);
     }
     current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
+    system.CoreTiming().ResetTicks();
     scheduler.Unload();
     auto& next_scheduler = system.Kernel().Scheduler(current_core);
     Common::Fiber::YieldTo(current_thread->GetHostContext(), next_scheduler.ControlContext());
