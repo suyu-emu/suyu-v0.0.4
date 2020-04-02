@@ -141,8 +141,9 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     render_window.PollEvents();
 }
 
-void RendererVulkan::TryPresent(int /*timeout_ms*/) {
+bool RendererVulkan::TryPresent(int /*timeout_ms*/) {
     // TODO (bunnei): ImplementMe
+    return true;
 }
 
 bool RendererVulkan::Init() {

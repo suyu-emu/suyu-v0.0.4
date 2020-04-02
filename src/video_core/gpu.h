@@ -25,8 +25,11 @@ inline u8* FromCacheAddr(CacheAddr cache_addr) {
 }
 
 namespace Core {
-class System;
+namespace Frontend {
+class EmuWindow;
 }
+class System;
+} // namespace Core
 
 namespace VideoCore {
 class RendererBase;
@@ -129,7 +132,8 @@ class MemoryManager;
 
 class GPU {
 public:
-    explicit GPU(Core::System& system, VideoCore::RendererBase& renderer, bool is_async);
+    explicit GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer,
+                 bool is_async);
 
     virtual ~GPU();
 
@@ -173,6 +177,14 @@ public:
 
     /// Returns a reference to the GPU DMA pusher.
     Tegra::DmaPusher& DmaPusher();
+
+    VideoCore::RendererBase& Renderer() {
+        return *renderer;
+    }
+
+    const VideoCore::RendererBase& Renderer() const {
+        return *renderer;
+    }
 
     // Waits for the GPU to finish working
     virtual void WaitIdle() const = 0;
@@ -287,7 +299,7 @@ private:
 protected:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     Core::System& system;
-    VideoCore::RendererBase& renderer;
+    std::unique_ptr<VideoCore::RendererBase> renderer;
 
 private:
     std::unique_ptr<Tegra::MemoryManager> memory_manager;

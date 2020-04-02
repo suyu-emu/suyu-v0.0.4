@@ -13,19 +13,39 @@
 namespace Core::Frontend {
 
 /**
- * Represents a graphics context that can be used for background computation or drawing. If the
- * graphics backend doesn't require the context, then the implementation of these methods can be
- * stubs
+ * Represents a drawing context that supports graphics operations.
  */
 class GraphicsContext {
 public:
     virtual ~GraphicsContext();
 
+    /// Inform the driver to swap the front/back buffers and present the current image
+    virtual void SwapBuffers() {}
+
     /// Makes the graphics context current for the caller thread
-    virtual void MakeCurrent() = 0;
+    virtual void MakeCurrent() {}
 
     /// Releases (dunno if this is the "right" word) the context from the caller thread
-    virtual void DoneCurrent() = 0;
+    virtual void DoneCurrent() {}
+
+    class Scoped {
+    public:
+        explicit Scoped(GraphicsContext& context_) : context(context_) {
+            context.MakeCurrent();
+        }
+        ~Scoped() {
+            context.DoneCurrent();
+        }
+
+    private:
+        GraphicsContext& context;
+    };
+
+    /// Calls MakeCurrent on the context and calls DoneCurrent when the scope for the returned value
+    /// ends
+    Scoped Acquire() {
+        return Scoped{*this};
+    }
 };
 
 /**
@@ -46,7 +66,7 @@ public:
  * - DO NOT TREAT THIS CLASS AS A GUI TOOLKIT ABSTRACTION LAYER. That's not what it is. Please
  *   re-read the upper points again and think about it if you don't see this.
  */
-class EmuWindow : public GraphicsContext {
+class EmuWindow {
 public:
     /// Data structure to store emuwindow configuration
     struct WindowConfig {
@@ -60,17 +80,9 @@ public:
     virtual void PollEvents() = 0;
 
     /**
-     * Returns a GraphicsContext that the frontend provides that is shared with the emu window. This
-     * context can be used from other threads for background graphics computation. If the frontend
-     * is using a graphics backend that doesn't need anything specific to run on a different thread,
-     * then it can use a stubbed implemenation for GraphicsContext.
-     *
-     * If the return value is null, then the core should assume that the frontend cannot provide a
-     * Shared Context
+     * Returns a GraphicsContext that the frontend provides to be used for rendering.
      */
-    virtual std::unique_ptr<GraphicsContext> CreateSharedContext() const {
-        return nullptr;
-    }
+    virtual std::unique_ptr<GraphicsContext> CreateSharedContext() const = 0;
 
     /// Returns if window is shown (not minimized)
     virtual bool IsShown() const = 0;

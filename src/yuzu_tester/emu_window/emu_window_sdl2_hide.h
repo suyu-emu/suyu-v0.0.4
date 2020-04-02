@@ -16,12 +16,6 @@ public:
     /// Polls window events
     void PollEvents() override;
 
-    /// Makes the graphics context current for the caller thread
-    void MakeCurrent() override;
-
-    /// Releases the GL context from the caller thread
-    void DoneCurrent() override;
-
     /// Whether the screen is being shown or not.
     bool IsShown() const override;
 
@@ -29,8 +23,7 @@ public:
     void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
                                 void* surface) const override;
 
-    /// Whether the window is still open, and a close request hasn't yet been sent
-    bool IsOpen() const;
+    std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
 private:
     /// Whether the GPU and driver supports the OpenGL extension required

@@ -6,6 +6,10 @@
 
 #include "video_core/gpu.h"
 
+namespace Core::Frontend {
+class GraphicsContext;
+}
+
 namespace VideoCore {
 class RendererBase;
 } // namespace VideoCore
@@ -15,7 +19,8 @@ namespace VideoCommon {
 /// Implementation of GPU interface that runs the GPU synchronously
 class GPUSynch final : public Tegra::GPU {
 public:
-    explicit GPUSynch(Core::System& system, VideoCore::RendererBase& renderer);
+    explicit GPUSynch(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer,
+                      std::unique_ptr<Core::Frontend::GraphicsContext>&& context);
     ~GPUSynch() override;
 
     void Start() override;
@@ -29,6 +34,9 @@ public:
 protected:
     void TriggerCpuInterrupt([[maybe_unused]] u32 syncpoint_id,
                              [[maybe_unused]] u32 value) const override {}
+
+private:
+    std::unique_ptr<Core::Frontend::GraphicsContext> context;
 };
 
 } // namespace VideoCommon

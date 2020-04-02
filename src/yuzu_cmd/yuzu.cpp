@@ -230,17 +230,10 @@ int main(int argc, char** argv) {
 
     system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
 
-    system.Renderer().Rasterizer().LoadDiskResources();
+    // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
+    system.GPU().Start();
 
-    // Acquire render context for duration of the thread if this is the rendering thread
-    if (!Settings::values.use_asynchronous_gpu_emulation) {
-        emu_window->MakeCurrent();
-    }
-    SCOPE_EXIT({
-        if (!Settings::values.use_asynchronous_gpu_emulation) {
-            emu_window->DoneCurrent();
-        }
-    });
+    system.Renderer().Rasterizer().LoadDiskResources();
 
     std::thread render_thread([&emu_window] { emu_window->Present(); });
     while (emu_window->IsOpen()) {

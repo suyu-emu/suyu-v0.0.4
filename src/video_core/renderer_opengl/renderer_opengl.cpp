@@ -30,8 +30,6 @@ namespace OpenGL {
 
 namespace {
 
-// If the size of this is too small, it ends up creating a soft cap on FPS as the renderer will have
-// to wait on available presentation frames.
 constexpr std::size_t SWAP_CHAIN_SIZE = 3;
 
 struct Frame {
@@ -214,7 +212,7 @@ public:
     std::deque<Frame*> present_queue;
     Frame* previous_frame{};
 
-    FrameMailbox() : has_debug_tool{HasDebugTool()} {
+    FrameMailbox() {
         for (auto& frame : swap_chain) {
             free_queue.push(&frame);
         }
@@ -285,13 +283,9 @@ public:
         std::unique_lock lock{swap_chain_lock};
         present_queue.push_front(frame);
         present_cv.notify_one();
-
-        DebugNotifyNextFrame();
     }
 
     Frame* TryGetPresentFrame(int timeout_ms) {
-        DebugWaitForNextFrame();
-
         std::unique_lock lock{swap_chain_lock};
         // wait for new entries in the present_queue
         present_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms),
@@ -317,38 +311,12 @@ public:
         previous_frame = frame;
         return frame;
     }
-
-private:
-    std::mutex debug_synch_mutex;
-    std::condition_variable debug_synch_condition;
-    std::atomic_int frame_for_debug{};
-    const bool has_debug_tool; // When true, using a GPU debugger, so keep frames in lock-step
-
-    /// Signal that a new frame is available (called from GPU thread)
-    void DebugNotifyNextFrame() {
-        if (!has_debug_tool) {
-            return;
-        }
-        frame_for_debug++;
-        std::lock_guard lock{debug_synch_mutex};
-        debug_synch_condition.notify_one();
-    }
-
-    /// Wait for a new frame to be available (called from presentation thread)
-    void DebugWaitForNextFrame() {
-        if (!has_debug_tool) {
-            return;
-        }
-        const int last_frame = frame_for_debug;
-        std::unique_lock lock{debug_synch_mutex};
-        debug_synch_condition.wait(lock,
-                                   [this, last_frame] { return frame_for_debug > last_frame; });
-    }
 };
 
-RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system)
+RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system,
+                               Core::Frontend::GraphicsContext& context)
     : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system},
-      frame_mailbox{std::make_unique<FrameMailbox>()} {}
+      frame_mailbox{}, context{context}, has_debug_tool{HasDebugTool()} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
@@ -356,8 +324,6 @@ MICROPROFILE_DEFINE(OpenGL_RenderFrame, "OpenGL", "Render Frame", MP_RGB(128, 12
 MICROPROFILE_DEFINE(OpenGL_WaitPresent, "OpenGL", "Wait For Present", MP_RGB(128, 128, 128));
 
 void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    render_window.PollEvents();
-
     if (!framebuffer) {
         return;
     }
@@ -412,6 +378,13 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         frame_mailbox->ReleaseRenderFrame(frame);
         m_current_frame++;
         rasterizer->TickFrame();
+    }
+
+    render_window.PollEvents();
+    if (has_debug_tool) {
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        Present(0);
+        context.SwapBuffers();
     }
 }
 
@@ -480,6 +453,8 @@ void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color
 }
 
 void RendererOpenGL::InitOpenGLObjects() {
+    frame_mailbox = std::make_unique<FrameMailbox>();
+
     glClearColor(Settings::values.bg_red, Settings::values.bg_green, Settings::values.bg_blue,
                  0.0f);
 
@@ -692,12 +667,21 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void RendererOpenGL::TryPresent(int timeout_ms) {
+bool RendererOpenGL::TryPresent(int timeout_ms) {
+    if (has_debug_tool) {
+        LOG_DEBUG(Render_OpenGL,
+                  "Skipping presentation because we are presenting on the main context");
+        return false;
+    }
+    return Present(timeout_ms);
+}
+
+bool RendererOpenGL::Present(int timeout_ms) {
     const auto& layout = render_window.GetFramebufferLayout();
     auto frame = frame_mailbox->TryGetPresentFrame(timeout_ms);
     if (!frame) {
         LOG_DEBUG(Render_OpenGL, "TryGetPresentFrame returned no frame to present");
-        return;
+        return false;
     }
 
     // Clearing before a full overwrite of a fbo can signal to drivers that they can avoid a
@@ -725,6 +709,7 @@ void RendererOpenGL::TryPresent(int timeout_ms) {
     glFlush();
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    return true;
 }
 
 void RendererOpenGL::RenderScreenshot() {

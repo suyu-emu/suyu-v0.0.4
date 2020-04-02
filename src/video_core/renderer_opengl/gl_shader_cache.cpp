@@ -327,8 +327,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
 
     const auto worker = [&](Core::Frontend::GraphicsContext* context, std::size_t begin,
                             std::size_t end) {
-        context->MakeCurrent();
-        SCOPE_EXIT({ return context->DoneCurrent(); });
+        const auto scope = context->Acquire();
 
         for (std::size_t i = begin; i < end; ++i) {
             if (stop_loading) {

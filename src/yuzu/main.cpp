@@ -984,7 +984,7 @@ void GMainWindow::BootGame(const QString& filename) {
         return;
 
     // Create and start the emulation thread
-    emu_thread = std::make_unique<EmuThread>(*render_window);
+    emu_thread = std::make_unique<EmuThread>();
     emit EmulationStarting(emu_thread.get());
     emu_thread->start();
 
@@ -2378,7 +2378,6 @@ int main(int argc, char* argv[]) {
 
     // Enables the core to make the qt created contexts current on std::threads
     QCoreApplication::setAttribute(Qt::AA_DontCheckOpenGLContextThreadAffinity);
-    QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
     QApplication app(argc, argv);
 
     // Qt changes the locale and causes issues in float conversion using std::to_string() when

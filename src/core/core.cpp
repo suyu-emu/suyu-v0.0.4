@@ -24,7 +24,6 @@
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/frontend/scope_acquire_context.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
@@ -168,13 +167,12 @@ struct System::Impl {
         Service::Init(service_manager, system);
         GDBStub::DeferStart();
 
-        renderer = VideoCore::CreateRenderer(emu_window, system);
-        if (!renderer->Init()) {
+        interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
+        gpu_core = VideoCore::CreateGPU(emu_window, system);
+        if (!gpu_core) {
             return ResultStatus::ErrorVideoCore;
         }
-        interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
-        gpu_core = VideoCore::CreateGPU(system);
-        renderer->Rasterizer().SetupDirtyFlags();
+        gpu_core->Renderer().Rasterizer().SetupDirtyFlags();
 
         is_powered_on = true;
         exit_lock = false;
@@ -186,8 +184,6 @@ struct System::Impl {
 
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
-        Core::Frontend::ScopeAcquireContext acquire_context{emu_window};
-
         app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
@@ -215,10 +211,6 @@ struct System::Impl {
         }
         AddGlueRegistrationForProcess(*app_loader, *main_process);
         kernel.MakeCurrentProcess(main_process.get());
-
-        // Main process has been loaded and been made current.
-        // Begin GPU and CPU execution.
-        gpu_core->Start();
 
         // Initialize cheat engine
         if (cheat_engine) {
@@ -277,7 +269,6 @@ struct System::Impl {
         }
 
         // Shutdown emulation session
-        renderer.reset();
         GDBStub::Shutdown();
         Service::Shutdown();
         service_manager.reset();
@@ -353,7 +344,6 @@ struct System::Impl {
     Service::FileSystem::FileSystemController fs_controller;
     /// AppLoader used to load the current executing application
     std::unique_ptr<Loader::AppLoader> app_loader;
-    std::unique_ptr<VideoCore::RendererBase> renderer;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
     Memory::Memory memory;
@@ -536,11 +526,11 @@ const Core::Hardware::InterruptManager& System::InterruptManager() const {
 }
 
 VideoCore::RendererBase& System::Renderer() {
-    return *impl->renderer;
+    return impl->gpu_core->Renderer();
 }
 
 const VideoCore::RendererBase& System::Renderer() const {
-    return *impl->renderer;
+    return impl->gpu_core->Renderer();
 }
 
 Kernel::KernelCore& System::Kernel() {

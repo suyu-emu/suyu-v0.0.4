@@ -42,7 +42,7 @@ public:
     bool Init() override;
     void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
-    void TryPresent(int timeout_ms) override;
+    bool TryPresent(int timeout_ms) override;
 
 private:
     std::optional<vk::DebugUtilsMessengerEXT> CreateDebugCallback(
