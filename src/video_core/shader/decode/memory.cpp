@@ -44,6 +44,9 @@ Node GetAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
             return OperationCode::AtomicIXor;
         case AtomicOp::Exch:
             return OperationCode::AtomicIExchange;
+        default:
+            UNIMPLEMENTED_MSG("op={}", static_cast<int>(op));
+            return OperationCode::AtomicIAdd;
         }
     }();
     return SignedOperation(operation_code, is_signed, std::move(memory), std::move(data));
