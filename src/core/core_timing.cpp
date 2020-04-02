@@ -136,8 +136,11 @@ void CoreTiming::AddTicks(u64 ticks) {
 
 void CoreTiming::Idle() {
     if (!event_queue.empty()) {
-        u64 next_event_time = event_queue.front().time;
-        ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        const u64 next_event_time = event_queue.front().time;
+        const u64 next_ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        if (next_ticks > ticks) {
+            ticks = next_ticks;
+        }
         return;
     }
     ticks += 1000U;
