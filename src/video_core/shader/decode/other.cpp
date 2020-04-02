@@ -11,11 +11,16 @@
 
 namespace VideoCommon::Shader {
 
+using std::move;
 using Tegra::Shader::ConditionCode;
 using Tegra::Shader::Instruction;
+using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::OpCode;
+using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
 using Tegra::Shader::SystemVariable;
+
+using Index = Tegra::Shader::Attribute::Index;
 
 u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
@@ -213,27 +218,28 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::IPA: {
         const bool is_physical = instr.ipa.idx && instr.gpr8.Value() != 0xff;
-
         const auto attribute = instr.attribute.fmt28;
-        const Tegra::Shader::IpaMode input_mode{instr.ipa.interp_mode.Value(),
-                                                instr.ipa.sample_mode.Value()};
+        const Index index = attribute.index;
 
         Node value = is_physical ? GetPhysicalInputAttribute(instr.gpr8)
-                                 : GetInputAttribute(attribute.index, attribute.element);
-        const Tegra::Shader::Attribute::Index index = attribute.index.Value();
-        const bool is_generic = index >= Tegra::Shader::Attribute::Index::Attribute_0 &&
-                                index <= Tegra::Shader::Attribute::Index::Attribute_31;
-        if (is_generic || is_physical) {
-            // TODO(Blinkhawk): There are cases where a perspective attribute use PASS.
-            // In theory by setting them as perspective, OpenGL does the perspective correction.
-            // A way must figured to reverse the last step of it.
-            if (input_mode.interpolation_mode == Tegra::Shader::IpaInterpMode::Multiply) {
-                value = Operation(OperationCode::FMul, PRECISE, value, GetRegister(instr.gpr20));
+                                 : GetInputAttribute(index, attribute.element);
+
+        // Code taken from Ryujinx.
+        if (index >= Index::Attribute_0 && index <= Index::Attribute_31) {
+            const u32 location = static_cast<u32>(index) - static_cast<u32>(Index::Attribute_0);
+            if (header.ps.GetPixelImap(location) == PixelImap::Perspective) {
+                Node position_w = GetInputAttribute(Index::Position, 3);
+                value = Operation(OperationCode::FMul, move(value), move(position_w));
             }
         }
-        value = GetSaturatedFloat(value, instr.ipa.saturate);
 
-        SetRegister(bb, instr.gpr0, value);
+        if (instr.ipa.interp_mode == IpaInterpMode::Multiply) {
+            value = Operation(OperationCode::FMul, move(value), GetRegister(instr.gpr20));
+        }
+
+        value = GetSaturatedFloat(move(value), instr.ipa.saturate);
+
+        SetRegister(bb, instr.gpr0, move(value));
         break;
     }
     case OpCode::Id::OUT_R: {

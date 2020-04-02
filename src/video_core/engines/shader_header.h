@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <optional>
+
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -16,7 +19,7 @@ enum class OutputTopology : u32 {
     TriangleStrip = 7,
 };
 
-enum class AttributeUse : u8 {
+enum class PixelImap : u8 {
     Unused = 0,
     Constant = 1,
     Perspective = 2,
@@ -24,7 +27,7 @@ enum class AttributeUse : u8 {
 };
 
 // Documentation in:
-// http://download.nvidia.com/open-gpu-doc/Shader-Program-Header/1/Shader-Program-Header.html#ImapTexture
+// http://download.nvidia.com/open-gpu-doc/Shader-Program-Header/1/Shader-Program-Header.html
 struct Header {
     union {
         BitField<0, 5, u32> sph_type;
@@ -59,8 +62,8 @@ struct Header {
     union {
         BitField<0, 12, u32> max_output_vertices;
         BitField<12, 8, u32> store_req_start; // NOTE: not used by geometry shaders.
-        BitField<24, 4, u32> reserved;
-        BitField<12, 8, u32> store_req_end; // NOTE: not used by geometry shaders.
+        BitField<20, 4, u32> reserved;
+        BitField<24, 8, u32> store_req_end; // NOTE: not used by geometry shaders.
     } common4{};
 
     union {
@@ -93,17 +96,20 @@ struct Header {
         struct {
             INSERT_UNION_PADDING_BYTES(3); // ImapSystemValuesA
             INSERT_UNION_PADDING_BYTES(1); // ImapSystemValuesB
+
             union {
-                BitField<0, 2, AttributeUse> x;
-                BitField<2, 2, AttributeUse> y;
-                BitField<4, 2, AttributeUse> w;
-                BitField<6, 2, AttributeUse> z;
+                BitField<0, 2, PixelImap> x;
+                BitField<2, 2, PixelImap> y;
+                BitField<4, 2, PixelImap> z;
+                BitField<6, 2, PixelImap> w;
                 u8 raw;
             } imap_generic_vector[32];
+
             INSERT_UNION_PADDING_BYTES(2);  // ImapColor
             INSERT_UNION_PADDING_BYTES(2);  // ImapSystemValuesC
             INSERT_UNION_PADDING_BYTES(10); // ImapFixedFncTexture[10]
             INSERT_UNION_PADDING_BYTES(2);  // ImapReserved
+
             struct {
                 u32 target;
                 union {
@@ -112,31 +118,30 @@ struct Header {
                     BitField<2, 30, u32> reserved;
                 };
             } omap;
+
             bool IsColorComponentOutputEnabled(u32 render_target, u32 component) const {
                 const u32 bit = render_target * 4 + component;
                 return omap.target & (1 << bit);
             }
-            AttributeUse GetAttributeIndexUse(u32 attribute, u32 index) const {
-                return static_cast<AttributeUse>(
-                    (imap_generic_vector[attribute].raw >> (index * 2)) & 0x03);
-            }
-            AttributeUse GetAttributeUse(u32 attribute) const {
-                AttributeUse result = AttributeUse::Unused;
-                for (u32 i = 0; i < 4; i++) {
-                    const auto index = GetAttributeIndexUse(attribute, i);
-                    if (index == AttributeUse::Unused) {
+
+            PixelImap GetPixelImap(u32 attribute) const {
+                const auto get_index = [this, attribute](u32 index) {
+                    return static_cast<PixelImap>(
+                        (imap_generic_vector[attribute].raw >> (index * 2)) & 3);
+                };
+
+                std::optional<PixelImap> result;
+                for (u32 component = 0; component < 4; ++component) {
+                    const PixelImap index = get_index(component);
+                    if (index == PixelImap::Unused) {
                         continue;
                     }
-                    if (result == AttributeUse::Unused || result == index) {
-                        result = index;
-                        continue;
+                    if (result && result != index) {
+                        LOG_CRITICAL(HW_GPU, "Generic attribute conflict in interpolation mode");
                     }
-                    LOG_CRITICAL(HW_GPU, "Generic Attribute Conflict in Interpolation Mode");
-                    if (index == AttributeUse::Perspective) {
-                        result = index;
-                    }
+                    result = index;
                 }
-                return result;
+                return result.value_or(PixelImap::Unused);
             }
         } ps;
 
