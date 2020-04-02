@@ -19,10 +19,6 @@ public:
     /// Whether the screen is being shown or not.
     bool IsShown() const override;
 
-    /// Retrieves Vulkan specific handlers from the window
-    void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
-                                void* surface) const override;
-
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
 private:

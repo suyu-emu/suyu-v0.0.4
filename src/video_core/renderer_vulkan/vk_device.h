@@ -22,12 +22,12 @@ const u32 GuestWarpSize = 32;
 /// Handles data specific to a physical device.
 class VKDevice final {
 public:
-    explicit VKDevice(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical,
+    explicit VKDevice(const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical,
                       vk::SurfaceKHR surface);
     ~VKDevice();
 
     /// Initializes the device. Returns true on success.
-    bool Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instance);
+    bool Create(vk::Instance instance);
 
     /**
      * Returns a format supported by the device for the passed requeriments.
@@ -188,18 +188,18 @@ public:
     }
 
     /// Checks if the physical device is suitable.
-    static bool IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical,
-                           vk::SurfaceKHR surface);
+    static bool IsSuitable(vk::PhysicalDevice physical, vk::SurfaceKHR surface,
+                           const vk::DispatchLoaderDynamic& dld);
 
 private:
     /// Loads extensions into a vector and stores available ones in this object.
-    std::vector<const char*> LoadExtensions(const vk::DispatchLoaderDynamic& dldi);
+    std::vector<const char*> LoadExtensions();
 
     /// Sets up queue families.
-    void SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceKHR surface);
+    void SetupFamilies(vk::SurfaceKHR surface);
 
     /// Sets up device features.
-    void SetupFeatures(const vk::DispatchLoaderDynamic& dldi);
+    void SetupFeatures();
 
     /// Collects telemetry information from the device.
     void CollectTelemetryParameters();
@@ -208,8 +208,7 @@ private:
     std::vector<vk::DeviceQueueCreateInfo> GetDeviceQueueCreateInfos() const;
 
     /// Returns true if ASTC textures are natively supported.
-    bool IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
-                                const vk::DispatchLoaderDynamic& dldi) const;
+    bool IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features) const;
 
     /// Returns true if a format is supported.
     bool IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlags wanted_usage,
@@ -217,10 +216,10 @@ private:
 
     /// Returns the device properties for Vulkan formats.
     static std::unordered_map<vk::Format, vk::FormatProperties> GetFormatProperties(
-        const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical);
+        const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical);
 
-    const vk::PhysicalDevice physical;        ///< Physical device.
     vk::DispatchLoaderDynamic dld;            ///< Device function pointers.
+    vk::PhysicalDevice physical;              ///< Physical device.
     vk::PhysicalDeviceProperties properties;  ///< Device properties.
     UniqueDevice logical;                     ///< Logical device.
     vk::Queue graphics_queue;                 ///< Main graphics queue.

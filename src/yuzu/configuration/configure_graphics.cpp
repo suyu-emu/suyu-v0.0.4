@@ -14,6 +14,7 @@
 #include "core/settings.h"
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configure_graphics.h"
+
 #ifdef HAS_VULKAN
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #endif

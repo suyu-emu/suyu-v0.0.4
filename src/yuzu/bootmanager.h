@@ -22,9 +22,6 @@ class GMainWindow;
 class QKeyEvent;
 class QTouchEvent;
 class QStringList;
-#ifdef HAS_VULKAN
-class QVulkanInstance;
-#endif
 
 namespace VideoCore {
 enum class LoadCallbackStage;
@@ -122,8 +119,6 @@ public:
     // EmuWindow implementation.
     void PollEvents() override;
     bool IsShown() const override;
-    void RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
-                                void* surface) const override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
     void BackupGeometry();
@@ -185,10 +180,6 @@ private:
     // If this is used in a shared context setting, then this should not be used directly, but
     // should instead be shared from
     std::shared_ptr<Core::Frontend::GraphicsContext> main_context;
-
-#ifdef HAS_VULKAN
-    std::unique_ptr<QVulkanInstance> vk_instance;
-#endif
 
     /// Temporary storage of the screenshot taken
     QImage screenshot_image;

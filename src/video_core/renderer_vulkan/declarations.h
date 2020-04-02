@@ -51,6 +51,7 @@ using UniqueSampler = UniqueHandle<vk::Sampler>;
 using UniqueSamplerYcbcrConversion = UniqueHandle<vk::SamplerYcbcrConversion>;
 using UniqueSemaphore = UniqueHandle<vk::Semaphore>;
 using UniqueShaderModule = UniqueHandle<vk::ShaderModule>;
+using UniqueSurfaceKHR = UniqueHandle<vk::SurfaceKHR>;
 using UniqueSwapchainKHR = UniqueHandle<vk::SwapchainKHR>;
 using UniqueValidationCacheEXT = UniqueHandle<vk::ValidationCacheEXT>;
 using UniqueDebugReportCallbackEXT = UniqueHandle<vk::DebugReportCallbackEXT>;

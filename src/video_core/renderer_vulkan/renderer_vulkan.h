@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include "common/dynamic_library.h"
+
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_vulkan/declarations.h"
 
@@ -48,17 +50,21 @@ public:
     static std::vector<std::string> EnumerateDevices();
 
 private:
-    std::optional<vk::DebugUtilsMessengerEXT> CreateDebugCallback(
-        const vk::DispatchLoaderDynamic& dldi);
+    bool CreateDebugCallback();
 
-    bool PickDevices(const vk::DispatchLoaderDynamic& dldi);
+    bool CreateSurface();
+
+    bool PickDevices();
 
     void Report() const;
 
     Core::System& system;
 
-    vk::Instance instance;
-    vk::SurfaceKHR surface;
+    Common::DynamicLibrary library;
+    vk::DispatchLoaderDynamic dld;
+
+    UniqueInstance instance;
+    UniqueSurfaceKHR surface;
 
     VKScreenInfo screen_info;
 
