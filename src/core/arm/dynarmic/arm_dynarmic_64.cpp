@@ -301,6 +301,9 @@ void ARM_Dynarmic_64::PrepareReschedule() {
 }
 
 void ARM_Dynarmic_64::ClearInstructionCache() {
+    if (!jit) {
+        return;
+    }
     jit->ClearCache();
 }
 
