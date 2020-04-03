@@ -35,6 +35,8 @@ add_library(core STATIC
     crypto/ctr_encryption_layer.h
     crypto/xts_encryption_layer.cpp
     crypto/xts_encryption_layer.h
+    device_memory.cpp
+    device_memory.h
     file_sys/bis_factory.cpp
     file_sys/bis_factory.h
     file_sys/card_image.cpp

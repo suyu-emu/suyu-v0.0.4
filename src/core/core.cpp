@@ -14,6 +14,7 @@
 #include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
+#include "core/device_memory.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/mode.h"
@@ -113,7 +114,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 }
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, fs_controller{system}, memory{system},
+        : kernel{system}, device_memory{system}, fs_controller{system}, memory{system},
           cpu_manager{system}, reporter{system}, applet_manager{system} {}
 
     CoreManager& CurrentCoreManager() {
@@ -337,6 +338,7 @@ struct System::Impl {
 
     Timing::CoreTiming core_timing;
     Kernel::KernelCore kernel;
+    DeviceMemory device_memory;
     /// RealVfsFilesystem instance
     FileSys::VirtualFilesystem virtual_filesystem;
     /// ContentProviderUnion instance
@@ -470,6 +472,14 @@ const Kernel::GlobalScheduler& System::GlobalScheduler() const {
 
 Kernel::Process* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
+}
+
+DeviceMemory& System::GetDeviceMemory() {
+    return impl->device_memory;
+}
+
+const DeviceMemory& System::GetDeviceMemory() const {
+    return impl->device_memory;
 }
 
 const Kernel::Process* System::CurrentProcess() const {

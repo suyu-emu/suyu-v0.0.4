@@ -91,6 +91,7 @@ namespace Core {
 
 class ARM_Interface;
 class CoreManager;
+class DeviceMemory;
 class ExclusiveMonitor;
 class FrameLimiter;
 class PerfStats;
@@ -255,6 +256,12 @@ public:
 
     /// Gets the global scheduler
     const Kernel::GlobalScheduler& GlobalScheduler() const;
+
+    /// Gets the manager for the guest device memory
+    DeviceMemory& GetDeviceMemory();
+
+    /// Gets the manager for the guest device memory
+    const DeviceMemory& GetDeviceMemory() const;
 
     /// Provides a pointer to the current process
     Kernel::Process* CurrentProcess();
