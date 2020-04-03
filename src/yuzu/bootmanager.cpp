@@ -48,24 +48,29 @@ void EmuThread::run() {
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
 
+    auto& system = Core::System::GetInstance();
+
+    system.RegisterHostThread();
+
+    auto& gpu = system.GPU();
+
     // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
     // execution.
-    Core::System::GetInstance().GPU().Start();
+    gpu.Start();
+
+    gpu.ObtainContext();
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
-    Core::System::GetInstance().RegisterHostThread();
-
-    context.MakeCurrent();
-
-    Core::System::GetInstance().Renderer().Rasterizer().LoadDiskResources(
+    system.Renderer().Rasterizer().LoadDiskResources(
         stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             emit LoadProgress(stage, value, total);
         });
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
 
-    context.DoneCurrent();
+    gpu.ReleaseContext();
+
 
     // Holds whether the cpu was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
@@ -78,18 +83,18 @@ void EmuThread::run() {
             }
 
             running_guard = true;
-            Core::System::ResultStatus result = Core::System::GetInstance().Run();
+            Core::System::ResultStatus result = system.Run();
             if (result != Core::System::ResultStatus::Success) {
                 running_guard = false;
                 this->SetRunning(false);
-                emit ErrorThrown(result, Core::System::GetInstance().GetStatusDetails());
+                emit ErrorThrown(result, system.GetStatusDetails());
             }
             running_wait.Wait();
-            result = Core::System::GetInstance().Pause();
+            result = system.Pause();
             if (result != Core::System::ResultStatus::Success) {
                 running_guard = false;
                 this->SetRunning(false);
-                emit ErrorThrown(result, Core::System::GetInstance().GetStatusDetails());
+                emit ErrorThrown(result, system.GetStatusDetails());
             }
             running_guard = false;
 
@@ -106,7 +111,7 @@ void EmuThread::run() {
     }
 
     // Shutdown the core emulation
-    Core::System::GetInstance().Shutdown();
+    system.Shutdown();
 
 #if MICROPROFILE_ENABLED
     MicroProfileOnThreadExit();

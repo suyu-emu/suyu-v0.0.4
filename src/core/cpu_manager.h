@@ -16,10 +16,6 @@ class Event;
 class Fiber;
 } // namespace Common
 
-namespace Core::Frontend {
-class EmuWindow;
-} // namespace Core::Frontend
-
 namespace Core {
 
 class System;
@@ -60,8 +56,6 @@ public:
     std::size_t CurrentCore() const {
         return current_core.load();
     }
-
-    void SetRenderWindow(Core::Frontend::EmuWindow& render_window);
 
 private:
     static void GuestThreadFunction(void* cpu_manager);
@@ -106,7 +100,6 @@ private:
     std::size_t preemption_count{};
     std::size_t idle_count{};
     static constexpr std::size_t max_cycle_runs = 5;
-    Core::Frontend::EmuWindow* render_window;
 
     System& system;
 };

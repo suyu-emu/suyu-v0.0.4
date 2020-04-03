@@ -9,12 +9,12 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
-#include "core/frontend/emu_window.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
+#include "video_core/gpu.h"
 
 namespace Core {
 
@@ -23,10 +23,6 @@ CpuManager::~CpuManager() = default;
 
 void CpuManager::ThreadStart(CpuManager& cpu_manager, std::size_t core) {
     cpu_manager.RunThread(core);
-}
-
-void CpuManager::SetRenderWindow(Core::Frontend::EmuWindow& render_window) {
-    this->render_window = &render_window;
 }
 
 void CpuManager::Initialize() {
@@ -354,7 +350,7 @@ void CpuManager::RunThread(std::size_t core) {
         data.is_running = false;
         data.enter_barrier->Wait();
         if (sc_sync_first_use) {
-            render_window->MakeCurrent();
+            system.GPU().ObtainContext();
             sc_sync_first_use = false;
         }
         auto& scheduler = system.Kernel().CurrentScheduler();
@@ -365,9 +361,6 @@ void CpuManager::RunThread(std::size_t core) {
         data.is_paused = true;
         data.exit_barrier->Wait();
         data.is_paused = false;
-    }
-    if (sc_sync) {
-        render_window->DoneCurrent();
     }
     /// Time to cleanup
     data.host_context->Exit();

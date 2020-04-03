@@ -151,7 +151,6 @@ struct System::Impl {
         cpu_manager.SetMulticore(is_multicore);
         cpu_manager.SetAsyncGpu(is_async_gpu);
         core_timing.SetMulticore(is_multicore);
-        cpu_manager.SetRenderWindow(emu_window);
 
         core_timing.Initialize([&system]() { system.RegisterHostThread(); });
         kernel.Initialize();
@@ -435,7 +434,7 @@ bool System::IsPoweredOn() const {
 }
 
 void System::PrepareReschedule() {
-    //impl->CurrentPhysicalCore().Stop();
+    // impl->CurrentPhysicalCore().Stop();
 }
 
 void System::PrepareReschedule(const u32 core_index) {
