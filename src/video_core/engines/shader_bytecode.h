@@ -1759,6 +1759,7 @@ public:
         IPA,
         OUT_R, // Emit vertex/primitive
         ISBERD,
+        BAR,
         MEMBAR,
         VMAD,
         VSETP,
@@ -2065,6 +2066,7 @@ private:
             INST("11100000--------", Id::IPA, Type::Trivial, "IPA"),
             INST("1111101111100---", Id::OUT_R, Type::Trivial, "OUT_R"),
             INST("1110111111010---", Id::ISBERD, Type::Trivial, "ISBERD"),
+            INST("1111000010101---", Id::BAR, Type::Trivial, "BAR"),
             INST("1110111110011---", Id::MEMBAR, Type::Trivial, "MEMBAR"),
             INST("01011111--------", Id::VMAD, Type::Video, "VMAD"),
             INST("0101000011110---", Id::VSETP, Type::Video, "VSETP"),
