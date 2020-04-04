@@ -22,7 +22,7 @@ stages:
   - job: build
     displayName: 'windows-msvc'
     pool:
-      vmImage: vs2017-win2016
+      vmImage: windows-2019
     steps:
     - template: ./templates/sync-source.yml
       parameters:
