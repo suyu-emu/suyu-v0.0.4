@@ -79,6 +79,12 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
             case SystemVariable::InvocationInfo:
                 LOG_WARNING(HW_GPU, "S2R instruction with InvocationInfo is incomplete");
                 return Immediate(0U);
+            case SystemVariable::WscaleFactorXY:
+                UNIMPLEMENTED_MSG("S2R WscaleFactorXY is not implemented");
+                return Immediate(0U);
+            case SystemVariable::WscaleFactorZ:
+                UNIMPLEMENTED_MSG("S2R WscaleFactorZ is not implemented");
+                return Immediate(0U);
             case SystemVariable::Tid: {
                 Node value = Immediate(0);
                 value = BitfieldInsert(value, Operation(OperationCode::LocalInvocationIdX), 0, 9);
