@@ -14,68 +14,6 @@
 
 namespace OpenGL {
 
-struct VertexArrayPushBuffer::Entry {
-    GLuint binding_index{};
-    const GLuint* buffer{};
-    GLintptr offset{};
-    GLsizei stride{};
-};
-
-VertexArrayPushBuffer::VertexArrayPushBuffer(StateTracker& state_tracker)
-    : state_tracker{state_tracker} {}
-
-VertexArrayPushBuffer::~VertexArrayPushBuffer() = default;
-
-void VertexArrayPushBuffer::Setup() {
-    index_buffer = nullptr;
-    vertex_buffers.clear();
-}
-
-void VertexArrayPushBuffer::SetIndexBuffer(const GLuint* buffer) {
-    index_buffer = buffer;
-}
-
-void VertexArrayPushBuffer::SetVertexBuffer(GLuint binding_index, const GLuint* buffer,
-                                            GLintptr offset, GLsizei stride) {
-    vertex_buffers.push_back(Entry{binding_index, buffer, offset, stride});
-}
-
-void VertexArrayPushBuffer::Bind() {
-    if (index_buffer) {
-        state_tracker.BindIndexBuffer(*index_buffer);
-    }
-
-    for (const auto& entry : vertex_buffers) {
-        glBindVertexBuffer(entry.binding_index, *entry.buffer, entry.offset, entry.stride);
-    }
-}
-
-struct BindBuffersRangePushBuffer::Entry {
-    GLuint binding;
-    const GLuint* buffer;
-    GLintptr offset;
-    GLsizeiptr size;
-};
-
-BindBuffersRangePushBuffer::BindBuffersRangePushBuffer(GLenum target) : target{target} {}
-
-BindBuffersRangePushBuffer::~BindBuffersRangePushBuffer() = default;
-
-void BindBuffersRangePushBuffer::Setup() {
-    entries.clear();
-}
-
-void BindBuffersRangePushBuffer::Push(GLuint binding, const GLuint* buffer, GLintptr offset,
-                                      GLsizeiptr size) {
-    entries.push_back(Entry{binding, buffer, offset, size});
-}
-
-void BindBuffersRangePushBuffer::Bind() {
-    for (const Entry& entry : entries) {
-        glBindBufferRange(target, entry.binding, *entry.buffer, entry.offset, entry.size);
-    }
-}
-
 void LabelGLObject(GLenum identifier, GLuint handle, VAddr addr, std::string_view extra_info) {
     if (!GLAD_GL_KHR_debug) {
         // We don't need to throw an error as this is just for debugging

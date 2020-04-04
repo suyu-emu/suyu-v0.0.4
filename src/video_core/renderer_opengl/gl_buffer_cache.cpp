@@ -55,33 +55,31 @@ void OGLBufferCache::WriteBarrier() {
     glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
-const GLuint* OGLBufferCache::ToHandle(const Buffer& buffer) {
+GLuint OGLBufferCache::ToHandle(const Buffer& buffer) {
     return buffer->GetHandle();
 }
 
-const GLuint* OGLBufferCache::GetEmptyBuffer(std::size_t) {
-    static const GLuint null_buffer = 0;
-    return &null_buffer;
+GLuint OGLBufferCache::GetEmptyBuffer(std::size_t) {
+    return 0;
 }
 
 void OGLBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                      const u8* data) {
-    glNamedBufferSubData(*buffer->GetHandle(), static_cast<GLintptr>(offset),
+    glNamedBufferSubData(buffer->GetHandle(), static_cast<GLintptr>(offset),
                          static_cast<GLsizeiptr>(size), data);
 }
 
 void OGLBufferCache::DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                        u8* data) {
     MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
-    glGetNamedBufferSubData(*buffer->GetHandle(), static_cast<GLintptr>(offset),
+    glGetNamedBufferSubData(buffer->GetHandle(), static_cast<GLintptr>(offset),
                             static_cast<GLsizeiptr>(size), data);
 }
 
 void OGLBufferCache::CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
                                std::size_t dst_offset, std::size_t size) {
-    glCopyNamedBufferSubData(*src->GetHandle(), *dst->GetHandle(),
-                             static_cast<GLintptr>(src_offset), static_cast<GLintptr>(dst_offset),
-                             static_cast<GLsizeiptr>(size));
+    glCopyNamedBufferSubData(src->GetHandle(), dst->GetHandle(), static_cast<GLintptr>(src_offset),
+                             static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(size));
 }
 
 OGLBufferCache::BufferInfo OGLBufferCache::ConstBufferUpload(const void* raw_pointer,
@@ -89,7 +87,7 @@ OGLBufferCache::BufferInfo OGLBufferCache::ConstBufferUpload(const void* raw_poi
     DEBUG_ASSERT(cbuf_cursor < std::size(cbufs));
     const GLuint& cbuf = cbufs[cbuf_cursor++];
     glNamedBufferSubData(cbuf, 0, static_cast<GLsizeiptr>(size), raw_pointer);
-    return {&cbuf, 0};
+    return {cbuf, 0};
 }
 
 } // namespace OpenGL

@@ -74,18 +74,18 @@ Buffer VKBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
     return std::make_shared<CachedBufferBlock>(device, memory_manager, cpu_addr, size);
 }
 
-const VkBuffer* VKBufferCache::ToHandle(const Buffer& buffer) {
+VkBuffer VKBufferCache::ToHandle(const Buffer& buffer) {
     return buffer->GetHandle();
 }
 
-const VkBuffer* VKBufferCache::GetEmptyBuffer(std::size_t size) {
+VkBuffer VKBufferCache::GetEmptyBuffer(std::size_t size) {
     size = std::max(size, std::size_t(4));
     const auto& empty = staging_pool.GetUnusedBuffer(size, false);
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([size, buffer = *empty.handle](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, size, 0);
     });
-    return empty.handle.address();
+    return *empty.handle;
 }
 
 void VKBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
@@ -94,7 +94,7 @@ void VKBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, st
     std::memcpy(staging.commit->Map(size), data, size);
 
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([staging = *staging.handle, buffer = *buffer->GetHandle(), offset,
+    scheduler.Record([staging = *staging.handle, buffer = buffer->GetHandle(), offset,
                       size](vk::CommandBuffer cmdbuf) {
         cmdbuf.CopyBuffer(staging, buffer, VkBufferCopy{0, offset, size});
 
@@ -117,7 +117,7 @@ void VKBufferCache::DownloadBlockData(const Buffer& buffer, std::size_t offset, 
                                       u8* data) {
     const auto& staging = staging_pool.GetUnusedBuffer(size, true);
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([staging = *staging.handle, buffer = *buffer->GetHandle(), offset,
+    scheduler.Record([staging = *staging.handle, buffer = buffer->GetHandle(), offset,
                       size](vk::CommandBuffer cmdbuf) {
         VkBufferMemoryBarrier barrier;
         barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
@@ -144,7 +144,7 @@ void VKBufferCache::DownloadBlockData(const Buffer& buffer, std::size_t offset, 
 void VKBufferCache::CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
                               std::size_t dst_offset, std::size_t size) {
     scheduler.RequestOutsideRenderPassOperationContext();
-    scheduler.Record([src_buffer = *src->GetHandle(), dst_buffer = *dst->GetHandle(), src_offset,
+    scheduler.Record([src_buffer = src->GetHandle(), dst_buffer = dst->GetHandle(), src_offset,
                       dst_offset, size](vk::CommandBuffer cmdbuf) {
         cmdbuf.CopyBuffer(src_buffer, dst_buffer, VkBufferCopy{src_offset, dst_offset, size});
 

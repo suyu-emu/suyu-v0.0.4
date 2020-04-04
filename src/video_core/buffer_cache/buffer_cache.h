@@ -29,10 +29,10 @@ namespace VideoCommon {
 
 using MapInterval = std::shared_ptr<MapIntervalBase>;
 
-template <typename TBuffer, typename TBufferType, typename StreamBuffer>
+template <typename OwnerBuffer, typename BufferType, typename StreamBuffer>
 class BufferCache {
 public:
-    using BufferInfo = std::pair<const TBufferType*, u64>;
+    using BufferInfo = std::pair<BufferType, u64>;
 
     BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
                             bool is_written = false, bool use_fast_cbuf = false) {
@@ -89,9 +89,7 @@ public:
             }
         }
 
-        const u64 offset = static_cast<u64>(block->GetOffset(cpu_addr));
-
-        return {ToHandle(block), offset};
+        return {ToHandle(block), static_cast<u64>(block->GetOffset(cpu_addr))};
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
@@ -156,7 +154,7 @@ public:
         }
     }
 
-    virtual const TBufferType* GetEmptyBuffer(std::size_t size) = 0;
+    virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
 
 protected:
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
@@ -166,19 +164,19 @@ protected:
 
     ~BufferCache() = default;
 
-    virtual const TBufferType* ToHandle(const TBuffer& storage) = 0;
+    virtual BufferType ToHandle(const OwnerBuffer& storage) = 0;
 
     virtual void WriteBarrier() = 0;
 
-    virtual TBuffer CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
+    virtual OwnerBuffer CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
 
-    virtual void UploadBlockData(const TBuffer& buffer, std::size_t offset, std::size_t size,
+    virtual void UploadBlockData(const OwnerBuffer& buffer, std::size_t offset, std::size_t size,
                                  const u8* data) = 0;
 
-    virtual void DownloadBlockData(const TBuffer& buffer, std::size_t offset, std::size_t size,
+    virtual void DownloadBlockData(const OwnerBuffer& buffer, std::size_t offset, std::size_t size,
                                    u8* data) = 0;
 
-    virtual void CopyBlock(const TBuffer& src, const TBuffer& dst, std::size_t src_offset,
+    virtual void CopyBlock(const OwnerBuffer& src, const OwnerBuffer& dst, std::size_t src_offset,
                            std::size_t dst_offset, std::size_t size) = 0;
 
     virtual BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) {
@@ -221,9 +219,8 @@ private:
         return std::make_shared<MapIntervalBase>(start, end, gpu_addr);
     }
 
-    MapInterval MapAddress(const TBuffer& block, const GPUVAddr gpu_addr, const VAddr cpu_addr,
+    MapInterval MapAddress(const OwnerBuffer& block, const GPUVAddr gpu_addr, const VAddr cpu_addr,
                            const std::size_t size) {
-
         std::vector<MapInterval> overlaps = GetMapsInRange(cpu_addr, size);
         if (overlaps.empty()) {
             auto& memory_manager = system.GPU().MemoryManager();
@@ -272,7 +269,7 @@ private:
         return new_map;
     }
 
-    void UpdateBlock(const TBuffer& block, VAddr start, VAddr end,
+    void UpdateBlock(const OwnerBuffer& block, VAddr start, VAddr end,
                      std::vector<MapInterval>& overlaps) {
         const IntervalType base_interval{start, end};
         IntervalSet interval_set{};
@@ -313,7 +310,7 @@ private:
 
     void FlushMap(MapInterval map) {
         std::size_t size = map->GetEnd() - map->GetStart();
-        TBuffer block = blocks[map->GetStart() >> block_page_bits];
+        OwnerBuffer block = blocks[map->GetStart() >> block_page_bits];
         staging_buffer.resize(size);
         DownloadBlockData(block, block->GetOffset(map->GetStart()), size, staging_buffer.data());
         system.Memory().WriteBlockUnsafe(map->GetStart(), staging_buffer.data(), size);
@@ -328,7 +325,7 @@ private:
 
         buffer_ptr += size;
         buffer_offset += size;
-        return {&stream_buffer_handle, uploaded_offset};
+        return {stream_buffer_handle, uploaded_offset};
     }
 
     void AlignBuffer(std::size_t alignment) {
@@ -338,11 +335,11 @@ private:
         buffer_offset = offset_aligned;
     }
 
-    TBuffer EnlargeBlock(TBuffer buffer) {
+    OwnerBuffer EnlargeBlock(OwnerBuffer buffer) {
         const std::size_t old_size = buffer->GetSize();
         const std::size_t new_size = old_size + block_page_size;
         const VAddr cpu_addr = buffer->GetCpuAddr();
-        TBuffer new_buffer = CreateBlock(cpu_addr, new_size);
+        OwnerBuffer new_buffer = CreateBlock(cpu_addr, new_size);
         CopyBlock(buffer, new_buffer, 0, 0, old_size);
         buffer->SetEpoch(epoch);
         pending_destruction.push_back(buffer);
@@ -356,14 +353,14 @@ private:
         return new_buffer;
     }
 
-    TBuffer MergeBlocks(TBuffer first, TBuffer second) {
+    OwnerBuffer MergeBlocks(OwnerBuffer first, OwnerBuffer second) {
         const std::size_t size_1 = first->GetSize();
         const std::size_t size_2 = second->GetSize();
         const VAddr first_addr = first->GetCpuAddr();
         const VAddr second_addr = second->GetCpuAddr();
         const VAddr new_addr = std::min(first_addr, second_addr);
         const std::size_t new_size = size_1 + size_2;
-        TBuffer new_buffer = CreateBlock(new_addr, new_size);
+        OwnerBuffer new_buffer = CreateBlock(new_addr, new_size);
         CopyBlock(first, new_buffer, 0, new_buffer->GetOffset(first_addr), size_1);
         CopyBlock(second, new_buffer, 0, new_buffer->GetOffset(second_addr), size_2);
         first->SetEpoch(epoch);
@@ -380,8 +377,8 @@ private:
         return new_buffer;
     }
 
-    TBuffer GetBlock(const VAddr cpu_addr, const std::size_t size) {
-        TBuffer found{};
+    OwnerBuffer GetBlock(const VAddr cpu_addr, const std::size_t size) {
+        OwnerBuffer found;
         const VAddr cpu_addr_end = cpu_addr + size - 1;
         u64 page_start = cpu_addr >> block_page_bits;
         const u64 page_end = cpu_addr_end >> block_page_bits;
@@ -457,7 +454,7 @@ private:
     Core::System& system;
 
     std::unique_ptr<StreamBuffer> stream_buffer;
-    TBufferType stream_buffer_handle{};
+    BufferType stream_buffer_handle{};
 
     bool invalidated = false;
 
@@ -475,9 +472,9 @@ private:
 
     static constexpr u64 block_page_bits = 21;
     static constexpr u64 block_page_size = 1ULL << block_page_bits;
-    std::unordered_map<u64, TBuffer> blocks;
+    std::unordered_map<u64, OwnerBuffer> blocks;
 
-    std::list<TBuffer> pending_destruction;
+    std::list<OwnerBuffer> pending_destruction;
     u64 epoch = 0;
     u64 modified_ticks = 0;
 

@@ -18,12 +18,11 @@ class VKScheduler;
 
 class DescriptorUpdateEntry {
 public:
-    explicit DescriptorUpdateEntry() : image{} {}
+    explicit DescriptorUpdateEntry() {}
 
     DescriptorUpdateEntry(VkDescriptorImageInfo image) : image{image} {}
 
-    DescriptorUpdateEntry(VkBuffer buffer, VkDeviceSize offset, VkDeviceSize size)
-        : buffer{buffer, offset, size} {}
+    DescriptorUpdateEntry(VkDescriptorBufferInfo buffer) : buffer{buffer} {}
 
     DescriptorUpdateEntry(VkBufferView texel_buffer) : texel_buffer{texel_buffer} {}
 
@@ -54,8 +53,8 @@ public:
         entries.emplace_back(VkDescriptorImageInfo{{}, image_view, {}});
     }
 
-    void AddBuffer(const VkBuffer* buffer, u64 offset, std::size_t size) {
-        entries.push_back(Buffer{buffer, offset, size});
+    void AddBuffer(VkBuffer buffer, u64 offset, std::size_t size) {
+        entries.emplace_back(VkDescriptorBufferInfo{buffer, offset, size});
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
@@ -67,12 +66,7 @@ public:
     }
 
 private:
-    struct Buffer {
-        const VkBuffer* buffer = nullptr;
-        u64 offset = 0;
-        std::size_t size = 0;
-    };
-    using Variant = std::variant<VkDescriptorImageInfo, Buffer, VkBufferView>;
+    using Variant = std::variant<VkDescriptorImageInfo, VkDescriptorBufferInfo, VkBufferView>;
 
     const VKDevice& device;
     VKScheduler& scheduler;

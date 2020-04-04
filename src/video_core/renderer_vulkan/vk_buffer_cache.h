@@ -33,8 +33,8 @@ public:
                                VAddr cpu_addr, std::size_t size);
     ~CachedBufferBlock();
 
-    const VkBuffer* GetHandle() const {
-        return buffer.handle.address();
+    VkBuffer GetHandle() const {
+        return *buffer.handle;
     }
 
 private:
@@ -50,14 +50,14 @@ public:
                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
-    const VkBuffer* GetEmptyBuffer(std::size_t size) override;
+    VkBuffer GetEmptyBuffer(std::size_t size) override;
 
 protected:
+    VkBuffer ToHandle(const Buffer& buffer) override;
+
     void WriteBarrier() override {}
 
     Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
-
-    const VkBuffer* ToHandle(const Buffer& buffer) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;
