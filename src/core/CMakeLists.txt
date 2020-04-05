@@ -159,6 +159,8 @@ add_library(core STATIC
     hle/kernel/memory/memory_block.h
     hle/kernel/memory/memory_types.h
     hle/kernel/memory/slab_heap.h
+    hle/kernel/memory/system_control.cpp
+    hle/kernel/memory/system_control.h
     hle/kernel/mutex.cpp
     hle/kernel/mutex.h
     hle/kernel/object.cpp
