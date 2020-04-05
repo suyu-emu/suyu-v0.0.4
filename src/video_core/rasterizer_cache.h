@@ -18,21 +18,13 @@
 
 class RasterizerCacheObject {
 public:
-    explicit RasterizerCacheObject(const u8* host_ptr)
-        : host_ptr{host_ptr}, cache_addr{ToCacheAddr(host_ptr)} {}
+    explicit RasterizerCacheObject(const VAddr cpu_addr) : cpu_addr{cpu_addr} {}
 
     virtual ~RasterizerCacheObject();
 
-    CacheAddr GetCacheAddr() const {
-        return cache_addr;
+    VAddr GetCpuAddr() const {
+        return cpu_addr;
     }
-
-    const u8* GetHostPtr() const {
-        return host_ptr;
-    }
-
-    /// Gets the address of the shader in guest memory, required for cache management
-    virtual VAddr GetCpuAddr() const = 0;
 
     /// Gets the size of the shader in guest memory, required for cache management
     virtual std::size_t GetSizeInBytes() const = 0;
@@ -68,8 +60,7 @@ private:
     bool is_registered{};      ///< Whether the object is currently registered with the cache
     bool is_dirty{};           ///< Whether the object is dirty (out of sync with guest memory)
     u64 last_modified_ticks{}; ///< When the object was last modified, used for in-order flushing
-    const u8* host_ptr{};      ///< Pointer to the memory backing this cached region
-    CacheAddr cache_addr{};    ///< Cache address memory, unique from emulated virtual address space
+    VAddr cpu_addr{};          ///< Cpu address memory, unique from emulated virtual address space
 };
 
 template <class T>
@@ -80,7 +71,7 @@ public:
     explicit RasterizerCache(VideoCore::RasterizerInterface& rasterizer) : rasterizer{rasterizer} {}
 
     /// Write any cached resources overlapping the specified region back to memory
-    void FlushRegion(CacheAddr addr, std::size_t size) {
+    void FlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
         const auto& objects{GetSortedObjectsFromRegion(addr, size)};
@@ -90,7 +81,7 @@ public:
     }
 
     /// Mark the specified region as being invalidated
-    void InvalidateRegion(CacheAddr addr, u64 size) {
+    void InvalidateRegion(VAddr addr, u64 size) {
         std::lock_guard lock{mutex};
 
         const auto& objects{GetSortedObjectsFromRegion(addr, size)};
@@ -114,15 +105,8 @@ public:
 
 protected:
     /// Tries to get an object from the cache with the specified cache address
-    T TryGet(CacheAddr addr) const {
+    T TryGet(VAddr addr) const {
         const auto iter = map_cache.find(addr);
-        if (iter != map_cache.end())
-            return iter->second;
-        return nullptr;
-    }
-
-    T TryGet(const void* addr) const {
-        const auto iter = map_cache.find(ToCacheAddr(addr));
         if (iter != map_cache.end())
             return iter->second;
         return nullptr;
@@ -134,7 +118,7 @@ protected:
 
         object->SetIsRegistered(true);
         interval_cache.add({GetInterval(object), ObjectSet{object}});
-        map_cache.insert({object->GetCacheAddr(), object});
+        map_cache.insert({object->GetCpuAddr(), object});
         rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), 1);
     }
 
@@ -144,7 +128,7 @@ protected:
 
         object->SetIsRegistered(false);
         rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), -1);
-        const CacheAddr addr = object->GetCacheAddr();
+        const VAddr addr = object->GetCpuAddr();
         interval_cache.subtract({GetInterval(object), ObjectSet{object}});
         map_cache.erase(addr);
     }
@@ -173,7 +157,7 @@ protected:
 
 private:
     /// Returns a list of cached objects from the specified memory region, ordered by access time
-    std::vector<T> GetSortedObjectsFromRegion(CacheAddr addr, u64 size) {
+    std::vector<T> GetSortedObjectsFromRegion(VAddr addr, u64 size) {
         if (size == 0) {
             return {};
         }
@@ -197,13 +181,13 @@ private:
     }
 
     using ObjectSet = std::set<T>;
-    using ObjectCache = std::unordered_map<CacheAddr, T>;
-    using IntervalCache = boost::icl::interval_map<CacheAddr, ObjectSet>;
+    using ObjectCache = std::unordered_map<VAddr, T>;
+    using IntervalCache = boost::icl::interval_map<VAddr, ObjectSet>;
     using ObjectInterval = typename IntervalCache::interval_type;
 
     static auto GetInterval(const T& object) {
-        return ObjectInterval::right_open(object->GetCacheAddr(),
-                                          object->GetCacheAddr() + object->GetSizeInBytes());
+        return ObjectInterval::right_open(object->GetCpuAddr(),
+                                          object->GetCpuAddr() + object->GetSizeInBytes());
     }
 
     ObjectCache map_cache;

@@ -113,15 +113,11 @@ namespace Vulkan {
 class CachedShader final : public RasterizerCacheObject {
 public:
     explicit CachedShader(Core::System& system, Tegra::Engines::ShaderType stage, GPUVAddr gpu_addr,
-                          VAddr cpu_addr, u8* host_ptr, ProgramCode program_code, u32 main_offset);
+                          VAddr cpu_addr, ProgramCode program_code, u32 main_offset);
     ~CachedShader();
 
     GPUVAddr GetGpuAddr() const {
         return gpu_addr;
-    }
-
-    VAddr GetCpuAddr() const override {
-        return cpu_addr;
     }
 
     std::size_t GetSizeInBytes() const override {
@@ -149,7 +145,6 @@ private:
                                                                  Tegra::Engines::ShaderType stage);
 
     GPUVAddr gpu_addr{};
-    VAddr cpu_addr{};
     ProgramCode program_code;
     VideoCommon::Shader::Registry registry;
     VideoCommon::Shader::ShaderIR shader_ir;

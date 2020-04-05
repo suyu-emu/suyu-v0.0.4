@@ -65,11 +65,6 @@ public:
     /// Gets the GL program handle for the shader
     GLuint GetHandle() const;
 
-    /// Returns the guest CPU address of the shader
-    VAddr GetCpuAddr() const override {
-        return cpu_addr;
-    }
-
     /// Returns the size in bytes of the shader
     std::size_t GetSizeInBytes() const override {
         return size_in_bytes;
@@ -90,13 +85,12 @@ public:
                                   std::size_t size_in_bytes);
 
 private:
-    explicit CachedShader(const u8* host_ptr, VAddr cpu_addr, std::size_t size_in_bytes,
+    explicit CachedShader(VAddr cpu_addr, std::size_t size_in_bytes,
                           std::shared_ptr<VideoCommon::Shader::Registry> registry,
                           ShaderEntries entries, std::shared_ptr<OGLProgram> program);
 
     std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
-    VAddr cpu_addr = 0;
     std::size_t size_in_bytes = 0;
     std::shared_ptr<OGLProgram> program;
 };

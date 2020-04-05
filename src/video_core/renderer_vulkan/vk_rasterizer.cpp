@@ -509,9 +509,8 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
     if (!addr || !size) {
         return;
     }
-    CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
     texture_cache.InvalidateRegion(addr, size);
-    pipeline_cache.InvalidateRegion(cache_addr, size);
+    pipeline_cache.InvalidateRegion(addr, size);
     buffer_cache.InvalidateRegion(addr, size);
     query_cache.InvalidateRegion(addr, size);
 }
