@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "common/alignment.h"
 
 namespace Kernel {
