@@ -10,8 +10,6 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "core/core.h"
-#include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
@@ -28,8 +26,10 @@ using Tegra::Texture::TextureFormat;
 using Tegra::Texture::TICEntry;
 
 namespace {
-ComponentType GetComponentType(TICEntry tic, std::size_t component) {
-    const TextureFormat format{tic.format};
+
+
+ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor, std::size_t component) {
+    const TextureFormat format{descriptor.format};
     switch (format) {
     case TextureFormat::R16_G16_B16_A16:
     case TextureFormat::R32_G32_B32_A32:
@@ -40,82 +40,82 @@ ComponentType GetComponentType(TICEntry tic, std::size_t component) {
     case TextureFormat::R16:
     case TextureFormat::R8:
     case TextureFormat::R1:
-        if (0 == component) {
-            return tic.r_type;
+        if (component == 0) {
+            return descriptor.r_type;
         }
-        if (1 == component) {
-            return tic.g_type;
+        if (component == 1) {
+            return descriptor.g_type;
         }
-        if (2 == component) {
-            return tic.b_type;
+        if (component == 2) {
+            return descriptor.b_type;
         }
-        if (3 == component) {
-            return tic.a_type;
+        if (component == 3) {
+            return descriptor.a_type;
         }
         break;
     case TextureFormat::A8R8G8B8:
-        if (0 == component) {
-            return tic.a_type;
+        if (component == 0) {
+            return descriptor.a_type;
         }
-        if (1 == component) {
-            return tic.r_type;
+        if (component == 1) {
+            return descriptor.r_type;
         }
-        if (2 == component) {
-            return tic.g_type;
+        if (component == 2) {
+            return descriptor.g_type;
         }
-        if (3 == component) {
-            return tic.b_type;
+        if (component == 3) {
+            return descriptor.b_type;
         }
         break;
     case TextureFormat::A2B10G10R10:
     case TextureFormat::A4B4G4R4:
     case TextureFormat::A5B5G5R1:
     case TextureFormat::A1B5G5R5:
-        if (0 == component) {
-            return tic.a_type;
+        if (component == 0) {
+            return descriptor.a_type;
         }
-        if (1 == component) {
-            return tic.b_type;
+        if (component == 1) {
+            return descriptor.b_type;
         }
-        if (2 == component) {
-            return tic.g_type;
+        if (component == 2) {
+            return descriptor.g_type;
         }
-        if (3 == component) {
-            return tic.r_type;
+        if (component == 3) {
+            return descriptor.r_type;
         }
         break;
     case TextureFormat::R32_B24G8:
-        if (0 == component) {
-            return tic.r_type;
+        if (component == 0) {
+            return descriptor.r_type;
         }
-        if (1 == component) {
-            return tic.b_type;
+        if (component == 1) {
+            return descriptor.b_type;
         }
-        if (2 == component) {
-            return tic.g_type;
+        if (component == 2) {
+            return descriptor.g_type;
         }
         break;
     case TextureFormat::B5G6R5:
     case TextureFormat::B6G5R5:
-        if (0 == component) {
-            return tic.b_type;
+        if (component == 0) {
+            return descriptor.b_type;
         }
-        if (1 == component) {
-            return tic.g_type;
+        if (component == 1) {
+            return descriptor.g_type;
         }
-        if (2 == component) {
-            return tic.r_type;
+        if (component == 2) {
+            return descriptor.r_type;
         }
         break;
     case TextureFormat::G8R24:
     case TextureFormat::G24R8:
     case TextureFormat::G8R8:
     case TextureFormat::G4R4:
-        if (0 == component) {
-            return tic.g_type;
+        if (component == 0) {
+            return descriptor.g_type;
         }
-        if (1 == component) {
-            return tic.r_type;
+        if (component == 1) {
+            return descriptor.r_type;
         }
         break;
     }
@@ -141,76 +141,76 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
     case TextureFormat::R16_G16_B16_A16:
         return 16;
     case TextureFormat::R32_G32_B32:
-        return (0 == component || 1 == component || 2 == component) ? 32 : 0;
+        return (component == 0 || component == 1 || component == 2) ? 32 : 0;
     case TextureFormat::R32_G32:
-        return (0 == component || 1 == component) ? 32 : 0;
+        return (component == 0 || component == 1) ? 32 : 0;
     case TextureFormat::R16_G16:
-        return (0 == component || 1 == component) ? 16 : 0;
+        return (component == 0 || component == 1) ? 16 : 0;
     case TextureFormat::R32:
-        return (0 == component) ? 32 : 0;
+        return (component == 0) ? 32 : 0;
     case TextureFormat::R16:
-        return (0 == component) ? 16 : 0;
+        return (component == 0) ? 16 : 0;
     case TextureFormat::R8:
-        return (0 == component) ? 8 : 0;
+        return (component == 0) ? 8 : 0;
     case TextureFormat::R1:
-        return (0 == component) ? 1 : 0;
+        return (component == 0) ? 1 : 0;
     case TextureFormat::A8R8G8B8:
         return 8;
     case TextureFormat::A2B10G10R10:
-        return (3 == component || 2 == component || 1 == component) ? 10 : 2;
+        return (component == 3 || component == 2 || component == 1) ? 10 : 2;
     case TextureFormat::A4B4G4R4:
         return 4;
     case TextureFormat::A5B5G5R1:
-        return (0 == component || 1 == component || 2 == component) ? 5 : 1;
+        return (component == 0 || component == 1 || component == 2) ? 5 : 1;
     case TextureFormat::A1B5G5R5:
-        return (1 == component || 2 == component || 3 == component) ? 5 : 1;
+        return (component == 1 || component == 2 || component == 3) ? 5 : 1;
     case TextureFormat::R32_B24G8:
-        if (0 == component) {
+        if (component == 0) {
             return 32;
         }
-        if (1 == component) {
+        if (component == 1) {
             return 24;
         }
-        if (2 == component) {
+        if (component == 2) {
             return 8;
         }
         return 0;
     case TextureFormat::B5G6R5:
-        if (0 == component || 2 == component) {
+        if (component == 0 || component == 2) {
             return 5;
         }
-        if (1 == component) {
+        if (component == 1) {
             return 6;
         }
         return 0;
     case TextureFormat::B6G5R5:
-        if (1 == component || 2 == component) {
+        if (component == 1 || component == 2) {
             return 5;
         }
-        if (0 == component) {
+        if (component == 0) {
             return 6;
         }
         return 0;
     case TextureFormat::G8R24:
-        if (0 == component) {
+        if (component == 0) {
             return 8;
         }
-        if (1 == component) {
+        if (component == 1) {
             return 24;
         }
         return 0;
     case TextureFormat::G24R8:
-        if (0 == component) {
+        if (component == 0) {
             return 8;
         }
-        if (1 == component) {
+        if (component == 1) {
             return 24;
         }
         return 0;
     case TextureFormat::G8R8:
-        return (0 == component || 1 == component) ? 8 : 0;
+        return (component == 0 || component == 1) ? 8 : 0;
     case TextureFormat::G4R4:
-        return (0 == component || 1 == component) ? 4 : 0;
+        return (component == 0 || component == 1) ? 4 : 0;
     default:
         UNIMPLEMENTED_MSG("texture format not implement={}", format);
         return 0;
@@ -311,10 +311,23 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
         } else if (instr.suldst.mode == Tegra::Shader::SurfaceDataMode::D_BA) {
             UNIMPLEMENTED_IF(instr.suldst.GetStoreDataLayout() != StoreType::Bits32);
 
-            const auto maxwell3d = &Core::System::GetInstance().GPU().Maxwell3D();
-            const auto tex_info = maxwell3d->GetStageTexture(shader_stage, image.GetOffset());
+            auto descriptor = [this, instr] {
+                std::optional<Tegra::Engines::SamplerDescriptor> descriptor;
+                if (instr.suldst.is_immediate) {
+                    descriptor = registry.ObtainBoundSampler(instr.image.index.Value());
+                } else {
+                    const Node image_register = GetRegister(instr.gpr39);
+                    const auto [base_image, buffer, offset] = TrackCbuf(
+                        image_register, global_code, static_cast<s64>(global_code.size()));
+                    descriptor = registry.ObtainBindlessSampler(buffer, offset);
+                }
+                if (!descriptor) {
+                    UNREACHABLE_MSG("Failed to obtain image descriptor");
+                }
+                return *descriptor;
+            }();
 
-            const auto comp_mask = GetImageComponentMask(tex_info.tic.format);
+            const auto comp_mask = GetImageComponentMask(descriptor.format);
             // TODO(namkazt): let's suppose image format is same as store type. we check on it
             // later.
 
@@ -327,8 +340,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     if (!IsComponentEnabled(comp_mask, element)) {
                         continue;
                     }
-                    const auto component_type = GetComponentType(tex_info.tic, element);
-                    const auto component_size = GetComponentSize(tex_info.tic.format, element);
+                    const auto component_type = GetComponentType(descriptor, element);
+                    const auto component_size = GetComponentSize(descriptor.format, element);
                     bool is_signed = true;
                     MetaImage meta{image, {}, element};
                     const Node original_value =
@@ -339,20 +352,23 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                         case ComponentType::SNORM: {
                             // range [-1.0, 1.0]
                             auto cnv_value =
-                                Operation(OperationCode::FMul, original_value, Immediate(128.f));
+                                Operation(OperationCode::FAdd, original_value, Immediate(1.f));
+                            cnv_value = Operation(OperationCode::FMul, std::move(cnv_value),
+                                                  Immediate(127.f));
+                            is_signed = false;
                             return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
                         }
                         case ComponentType::UNORM: {
                             // range [0.0, 1.0]
                             auto cnv_value =
-                                Operation(OperationCode::FMul, original_value, Immediate(256.f));
+                                Operation(OperationCode::FMul, original_value, Immediate(255.f));
                             is_signed = false;
                             return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
                         }
                         case ComponentType::SINT: // range [-128,128]
-                            return original_value;
+                            return Operation(OperationCode::IAdd, original_value, Immediate(128));
                         case ComponentType::UINT: // range [0, 255]
                             is_signed = false;
                             return original_value;
@@ -364,13 +380,13 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                         }
                     }();
                     // shift element to correct position
-                    shifted_counter += component_size;
-                    const auto shifted = 32 - shifted_counter;
+                    const auto shifted = shifted_counter;
                     if (shifted > 0) {
                         converted_value =
                             SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
                                             std::move(converted_value), Immediate(shifted));
                     }
+                    shifted_counter += component_size;
 
                     // add value into result
                     value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
