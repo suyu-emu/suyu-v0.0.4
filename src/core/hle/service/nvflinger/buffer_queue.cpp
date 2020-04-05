@@ -103,6 +103,13 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
     buffer_wait_event.writable->Signal();
 }
 
+void BufferQueue::Disconnect() {
+    queue.clear();
+    queue_sequence.clear();
+    id = 1;
+    layer_id = 1;
+}
+
 u32 BufferQueue::Query(QueryType type) {
     LOG_WARNING(Service, "(STUBBED) called type={}", static_cast<u32>(type));
 
