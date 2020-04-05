@@ -117,11 +117,9 @@ public:
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) {
         std::unique_lock lock{mutex};
         auto& memory_manager = system.GPU().MemoryManager();
-        const std::optional<VAddr> cpu_addr_opt =
-            memory_manager.GpuToCpuAddress(gpu_addr);
+        const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
         ASSERT(cpu_addr_opt);
         VAddr cpu_addr = *cpu_addr_opt;
-
 
         CachedQuery* query = TryGet(cpu_addr);
         if (!query) {
@@ -221,9 +219,8 @@ private:
             return nullptr;
         }
         auto& contents = it->second;
-        const auto found =
-            std::find_if(std::begin(contents), std::end(contents),
-                         [addr](auto& query) { return query.GetCpuAddr() == addr; });
+        const auto found = std::find_if(std::begin(contents), std::end(contents),
+                                        [addr](auto& query) { return query.GetCpuAddr() == addr; });
         return found != std::end(contents) ? &*found : nullptr;
     }
 
