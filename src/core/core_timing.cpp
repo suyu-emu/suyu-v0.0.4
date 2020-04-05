@@ -48,6 +48,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
     std::string name = "yuzu:HostTiming";
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::VeryHigh);
     instance.on_thread_init();
     instance.ThreadLoop();
 }

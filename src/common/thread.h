@@ -86,6 +86,15 @@ private:
     std::size_t generation = 0; // Incremented once each time the barrier is used
 };
 
+enum class ThreadPriority : u32 {
+    Low = 0,
+    Normal = 1,
+    High = 2,
+    VeryHigh = 3,
+};
+
+void SetCurrentThreadPriority(ThreadPriority new_priority);
+
 void SetCurrentThreadName(const char* name);
 
 } // namespace Common

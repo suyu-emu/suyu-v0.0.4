@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "common/microprofile.h"
+#include "common/thread.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
@@ -133,6 +134,7 @@ void VKScheduler::BindGraphicsPipeline(VkPipeline pipeline) {
 }
 
 void VKScheduler::WorkerThread() {
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     std::unique_lock lock{mutex};
     do {
         cv.wait(lock, [this] { return !chunk_queue.Empty() || quit; });

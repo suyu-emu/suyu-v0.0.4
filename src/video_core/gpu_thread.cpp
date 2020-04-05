@@ -22,6 +22,7 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     std::string name = "yuzu:GPU";
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     system.RegisterHostThread();
 
     // Wait for first GPU command before acquiring the window context

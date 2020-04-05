@@ -337,6 +337,7 @@ void CpuManager::RunThread(std::size_t core) {
     }
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     auto& data = core_data[core];
     data.enter_barrier = std::make_unique<Common::Event>();
     data.exit_barrier = std::make_unique<Common::Event>();
