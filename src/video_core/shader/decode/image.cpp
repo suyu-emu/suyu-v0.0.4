@@ -314,7 +314,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             auto descriptor = [this, instr] {
                 std::optional<Tegra::Engines::SamplerDescriptor> descriptor;
                 if (instr.suldst.is_immediate) {
-                    descriptor = registry.ObtainBoundSampler(instr.image.index.Value());
+                    descriptor =
+                        registry.ObtainBoundSampler(static_cast<u32>(instr.image.index.Value()));
                 } else {
                     const Node image_register = GetRegister(instr.gpr39);
                     const auto [base_image, buffer, offset] = TrackCbuf(
@@ -328,8 +329,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             }();
 
             const auto comp_mask = GetImageComponentMask(descriptor.format);
-            // TODO(namkazt): let's suppose image format is same as store type. we check on it
-            // later.
 
             switch (instr.suldst.GetStoreDataLayout()) {
             case StoreType::Bits32: {
