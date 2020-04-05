@@ -35,6 +35,7 @@ void CallConfigureDialog(ConfigureInputSimple* caller, Args&&... args) {
 // - Open any dialogs
 // - Block in any way
 
+constexpr std::size_t PLAYER_0_INDEX = 0;
 constexpr std::size_t HANDHELD_INDEX = 8;
 
 void HandheldOnProfileSelect() {
@@ -53,8 +54,8 @@ void HandheldOnProfileSelect() {
 }
 
 void DualJoyconsDockedOnProfileSelect() {
-    Settings::values.players[0].connected = true;
-    Settings::values.players[0].type = Settings::ControllerType::DualJoycon;
+    Settings::values.players[PLAYER_0_INDEX].connected = true;
+    Settings::values.players[PLAYER_0_INDEX].type = Settings::ControllerType::DualJoycon;
 
     for (std::size_t player = 1; player <= HANDHELD_INDEX; ++player) {
         Settings::values.players[player].connected = false;
@@ -64,7 +65,7 @@ void DualJoyconsDockedOnProfileSelect() {
     Settings::values.keyboard_enabled = false;
     Settings::values.mouse_enabled = false;
     Settings::values.debug_pad_enabled = false;
-    Settings::values.touchscreen.enabled = false;
+    Settings::values.touchscreen.enabled = true;
 }
 
 // Name, OnProfileSelect (called when selected in drop down), OnConfigure (called when configure
@@ -78,7 +79,7 @@ constexpr std::array<InputProfile, 3> INPUT_PROFILES{{
      }},
     {QT_TR_NOOP("Single Player - Dual Joycons - Docked"), DualJoyconsDockedOnProfileSelect,
      [](ConfigureInputSimple* caller) {
-         CallConfigureDialog<ConfigureInputPlayer>(caller, 1, false);
+         CallConfigureDialog<ConfigureInputPlayer>(caller, PLAYER_0_INDEX, false);
      }},
     {QT_TR_NOOP("Custom"), [] {}, CallConfigureDialog<ConfigureInput>},
 }};
