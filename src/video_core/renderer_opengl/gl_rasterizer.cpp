@@ -656,28 +656,30 @@ void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
 
 void RasterizerOpenGL::FlushAll() {}
 
-void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (!addr || !size) {
         return;
     }
-    texture_cache.FlushRegion(addr, size);
-    buffer_cache.FlushRegion(addr, size);
-    query_cache.FlushRegion(addr, size);
+    CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
+    texture_cache.FlushRegion(cache_addr, size);
+    buffer_cache.FlushRegion(cache_addr, size);
+    query_cache.FlushRegion(cache_addr, size);
 }
 
-void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (!addr || !size) {
         return;
     }
-    texture_cache.InvalidateRegion(addr, size);
-    shader_cache.InvalidateRegion(addr, size);
-    buffer_cache.InvalidateRegion(addr, size);
-    query_cache.InvalidateRegion(addr, size);
+    CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
+    texture_cache.InvalidateRegion(cache_addr, size);
+    shader_cache.InvalidateRegion(cache_addr, size);
+    buffer_cache.InvalidateRegion(cache_addr, size);
+    query_cache.InvalidateRegion(cache_addr, size);
 }
 
-void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     if (Settings::values.use_accurate_gpu_emulation) {
         FlushRegion(addr, size);
     }

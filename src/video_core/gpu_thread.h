@@ -47,26 +47,26 @@ struct SwapBuffersCommand final {
 
 /// Command to signal to the GPU thread to flush a region
 struct FlushRegionCommand final {
-    explicit constexpr FlushRegionCommand(CacheAddr addr, u64 size) : addr{addr}, size{size} {}
+    explicit constexpr FlushRegionCommand(VAddr addr, u64 size) : addr{addr}, size{size} {}
 
-    CacheAddr addr;
+    VAddr addr;
     u64 size;
 };
 
 /// Command to signal to the GPU thread to invalidate a region
 struct InvalidateRegionCommand final {
-    explicit constexpr InvalidateRegionCommand(CacheAddr addr, u64 size) : addr{addr}, size{size} {}
+    explicit constexpr InvalidateRegionCommand(VAddr addr, u64 size) : addr{addr}, size{size} {}
 
-    CacheAddr addr;
+    VAddr addr;
     u64 size;
 };
 
 /// Command to signal to the GPU thread to flush and invalidate a region
 struct FlushAndInvalidateRegionCommand final {
-    explicit constexpr FlushAndInvalidateRegionCommand(CacheAddr addr, u64 size)
+    explicit constexpr FlushAndInvalidateRegionCommand(VAddr addr, u64 size)
         : addr{addr}, size{size} {}
 
-    CacheAddr addr;
+    VAddr addr;
     u64 size;
 };
 
@@ -111,13 +111,13 @@ public:
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer);
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    void FlushRegion(CacheAddr addr, u64 size);
+    void FlushRegion(VAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    void InvalidateRegion(CacheAddr addr, u64 size);
+    void InvalidateRegion(VAddr addr, u64 size);
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    void FlushAndInvalidateRegion(CacheAddr addr, u64 size);
+    void FlushAndInvalidateRegion(VAddr addr, u64 size);
 
     // Wait until the gpu thread is idle.
     void WaitIdle() const;

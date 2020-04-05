@@ -81,12 +81,11 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     ASSERT((gpu_addr & page_mask) == 0);
 
     const u64 aligned_size{Common::AlignUp(size, page_size)};
-    const CacheAddr cache_addr{ToCacheAddr(GetPointer(gpu_addr))};
     const auto cpu_addr = GpuToCpuAddress(gpu_addr);
     ASSERT(cpu_addr);
 
     // Flush and invalidate through the GPU interface, to be asynchronous if possible.
-    system.GPU().FlushAndInvalidateRegion(cache_addr, aligned_size);
+    system.GPU().FlushAndInvalidateRegion(*cpu_addr, aligned_size);
 
     UnmapRange(gpu_addr, aligned_size);
     ASSERT(system.CurrentProcess()
@@ -247,7 +246,7 @@ void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::s
             const u8* src_ptr{page_table.pointers[page_index] + page_offset};
             // Flush must happen on the rasterizer interface, such that memory is always synchronous
             // when it is read (even when in asynchronous GPU mode). Fixes Dead Cells title menu.
-            rasterizer.FlushRegion(ToCacheAddr(src_ptr), copy_amount);
+            rasterizer.FlushRegion(page_table.backing_addr[page_index] + page_offset, copy_amount);
             std::memcpy(dest_buffer, src_ptr, copy_amount);
             break;
         }
@@ -299,7 +298,8 @@ void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const
             u8* dest_ptr{page_table.pointers[page_index] + page_offset};
             // Invalidate must happen on the rasterizer interface, such that memory is always
             // synchronous when it is written (even when in asynchronous GPU mode).
-            rasterizer.InvalidateRegion(ToCacheAddr(dest_ptr), copy_amount);
+            rasterizer.InvalidateRegion(page_table.backing_addr[page_index] + page_offset,
+                                        copy_amount);
             std::memcpy(dest_ptr, src_buffer, copy_amount);
             break;
         }
@@ -349,7 +349,7 @@ void MemoryManager::CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, const std::
             // Flush must happen on the rasterizer interface, such that memory is always synchronous
             // when it is copied (even when in asynchronous GPU mode).
             const u8* src_ptr{page_table.pointers[page_index] + page_offset};
-            rasterizer.FlushRegion(ToCacheAddr(src_ptr), copy_amount);
+            rasterizer.FlushRegion(page_table.backing_addr[page_index] + page_offset, copy_amount);
             WriteBlock(dest_addr, src_ptr, copy_amount);
             break;
         }

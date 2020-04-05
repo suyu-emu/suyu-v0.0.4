@@ -30,15 +30,15 @@ void GPUAsynch::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     gpu_thread.SwapBuffers(framebuffer);
 }
 
-void GPUAsynch::FlushRegion(CacheAddr addr, u64 size) {
+void GPUAsynch::FlushRegion(VAddr addr, u64 size) {
     gpu_thread.FlushRegion(addr, size);
 }
 
-void GPUAsynch::InvalidateRegion(CacheAddr addr, u64 size) {
+void GPUAsynch::InvalidateRegion(VAddr addr, u64 size) {
     gpu_thread.InvalidateRegion(addr, size);
 }
 
-void GPUAsynch::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
+void GPUAsynch::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     gpu_thread.FlushAndInvalidateRegion(addr, size);
 }
 

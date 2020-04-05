@@ -270,13 +270,13 @@ public:
     virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
-    virtual void FlushRegion(CacheAddr addr, u64 size) = 0;
+    virtual void FlushRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated
-    virtual void InvalidateRegion(CacheAddr addr, u64 size) = 0;
+    virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed and invalidated
-    virtual void FlushAndInvalidateRegion(CacheAddr addr, u64 size) = 0;
+    virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;
 
 protected:
     virtual void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const = 0;

@@ -242,7 +242,7 @@ struct Memory::Impl {
             }
             case Common::PageType::RasterizerCachedMemory: {
                 const u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
-                system.GPU().FlushRegion(ToCacheAddr(host_ptr), copy_amount);
+                system.GPU().FlushRegion(current_vaddr, copy_amount);
                 std::memcpy(dest_buffer, host_ptr, copy_amount);
                 break;
             }
@@ -290,7 +290,7 @@ struct Memory::Impl {
             }
             case Common::PageType::RasterizerCachedMemory: {
                 u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
-                system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), copy_amount);
+                system.GPU().InvalidateRegion(current_vaddr, copy_amount);
                 std::memcpy(host_ptr, src_buffer, copy_amount);
                 break;
             }
@@ -337,7 +337,7 @@ struct Memory::Impl {
             }
             case Common::PageType::RasterizerCachedMemory: {
                 u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
-                system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), copy_amount);
+                system.GPU().InvalidateRegion(current_vaddr, copy_amount);
                 std::memset(host_ptr, 0, copy_amount);
                 break;
             }
@@ -384,7 +384,7 @@ struct Memory::Impl {
             }
             case Common::PageType::RasterizerCachedMemory: {
                 const u8* const host_ptr = GetPointerFromVMA(process, current_vaddr);
-                system.GPU().FlushRegion(ToCacheAddr(host_ptr), copy_amount);
+                system.GPU().FlushRegion(current_vaddr, copy_amount);
                 WriteBlock(process, dest_addr, host_ptr, copy_amount);
                 break;
             }
@@ -545,7 +545,7 @@ struct Memory::Impl {
             break;
         case Common::PageType::RasterizerCachedMemory: {
             const u8* const host_ptr = GetPointerFromVMA(vaddr);
-            system.GPU().FlushRegion(ToCacheAddr(host_ptr), sizeof(T));
+            system.GPU().FlushRegion(vaddr, sizeof(T));
             T value;
             std::memcpy(&value, host_ptr, sizeof(T));
             return value;
@@ -587,7 +587,7 @@ struct Memory::Impl {
             break;
         case Common::PageType::RasterizerCachedMemory: {
             u8* const host_ptr{GetPointerFromVMA(vaddr)};
-            system.GPU().InvalidateRegion(ToCacheAddr(host_ptr), sizeof(T));
+            system.GPU().InvalidateRegion(vaddr, sizeof(T));
             std::memcpy(host_ptr, &data, sizeof(T));
             break;
         }

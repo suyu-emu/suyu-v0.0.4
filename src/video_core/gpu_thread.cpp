@@ -77,15 +77,15 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     PushCommand(SwapBuffersCommand(framebuffer ? std::make_optional(*framebuffer) : std::nullopt));
 }
 
-void ThreadManager::FlushRegion(CacheAddr addr, u64 size) {
+void ThreadManager::FlushRegion(VAddr addr, u64 size) {
     PushCommand(FlushRegionCommand(addr, size));
 }
 
-void ThreadManager::InvalidateRegion(CacheAddr addr, u64 size) {
+void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
     system.Renderer().Rasterizer().InvalidateRegion(addr, size);
 }
 
-void ThreadManager::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
+void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
     InvalidateRegion(addr, size);
 }
