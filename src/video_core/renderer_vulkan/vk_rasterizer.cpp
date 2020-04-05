@@ -500,7 +500,7 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
         return;
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
-    texture_cache.FlushRegion(cache_addr, size);
+    texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(cache_addr, size);
     query_cache.FlushRegion(cache_addr, size);
 }
@@ -510,7 +510,7 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
         return;
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
-    texture_cache.InvalidateRegion(cache_addr, size);
+    texture_cache.InvalidateRegion(addr, size);
     pipeline_cache.InvalidateRegion(cache_addr, size);
     buffer_cache.InvalidateRegion(cache_addr, size);
     query_cache.InvalidateRegion(cache_addr, size);
@@ -548,8 +548,7 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
         return false;
     }
 
-    const u8* host_ptr{system.Memory().GetPointer(framebuffer_addr)};
-    const auto surface{texture_cache.TryFindFramebufferSurface(host_ptr)};
+    const auto surface{texture_cache.TryFindFramebufferSurface(framebuffer_addr)};
     if (!surface) {
         return false;
     }

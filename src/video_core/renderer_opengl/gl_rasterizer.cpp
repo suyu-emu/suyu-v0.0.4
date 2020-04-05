@@ -662,7 +662,7 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
         return;
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
-    texture_cache.FlushRegion(cache_addr, size);
+    texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(cache_addr, size);
     query_cache.FlushRegion(cache_addr, size);
 }
@@ -673,7 +673,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
         return;
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
-    texture_cache.InvalidateRegion(cache_addr, size);
+    texture_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(cache_addr, size);
     buffer_cache.InvalidateRegion(cache_addr, size);
     query_cache.InvalidateRegion(cache_addr, size);
@@ -718,8 +718,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
-    const auto surface{
-        texture_cache.TryFindFramebufferSurface(system.Memory().GetPointer(framebuffer_addr))};
+    const auto surface{texture_cache.TryFindFramebufferSurface(framebuffer_addr)};
     if (!surface) {
         return {};
     }
