@@ -661,10 +661,9 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     if (!addr || !size) {
         return;
     }
-    CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
     texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(addr, size);
-    query_cache.FlushRegion(cache_addr, size);
+    query_cache.FlushRegion(addr, size);
 }
 
 void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
@@ -676,7 +675,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     texture_cache.InvalidateRegion(addr, size);
     shader_cache.InvalidateRegion(cache_addr, size);
     buffer_cache.InvalidateRegion(addr, size);
-    query_cache.InvalidateRegion(cache_addr, size);
+    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
