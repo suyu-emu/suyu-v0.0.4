@@ -42,8 +42,8 @@ auto CreateStreamBuffer(const VKDevice& device, VKScheduler& scheduler) {
 } // Anonymous namespace
 
 CachedBufferBlock::CachedBufferBlock(const VKDevice& device, VKMemoryManager& memory_manager,
-                                     CacheAddr cache_addr, std::size_t size)
-    : VideoCommon::BufferBlock{cache_addr, size} {
+                                     VAddr cpu_addr, std::size_t size)
+    : VideoCommon::BufferBlock{cpu_addr, size} {
     const vk::BufferCreateInfo buffer_ci({}, static_cast<vk::DeviceSize>(size),
                                          BufferUsage | vk::BufferUsageFlagBits::eTransferSrc |
                                              vk::BufferUsageFlagBits::eTransferDst,
@@ -68,8 +68,8 @@ VKBufferCache::VKBufferCache(VideoCore::RasterizerInterface& rasterizer, Core::S
 
 VKBufferCache::~VKBufferCache() = default;
 
-Buffer VKBufferCache::CreateBlock(CacheAddr cache_addr, std::size_t size) {
-    return std::make_shared<CachedBufferBlock>(device, memory_manager, cache_addr, size);
+Buffer VKBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
+    return std::make_shared<CachedBufferBlock>(device, memory_manager, cpu_addr, size);
 }
 
 const vk::Buffer* VKBufferCache::ToHandle(const Buffer& buffer) {

@@ -294,6 +294,9 @@ public:
     void ReadBlock(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
                    std::size_t size);
 
+    void ReadBlockUnsafe(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
+                         std::size_t size);
+
     /**
      * Reads a contiguous block of bytes from the current process' address space.
      *
@@ -311,6 +314,8 @@ public:
      *       current process' address space.
      */
     void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
+
+    void ReadBlockUnsafe(VAddr src_addr, void* dest_buffer, std::size_t size);
 
     /**
      * Writes a range of bytes into a given process' address space at the specified
@@ -335,6 +340,9 @@ public:
     void WriteBlock(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
                     std::size_t size);
 
+    void WriteBlockUnsafe(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+                          std::size_t size);
+
     /**
      * Writes a range of bytes into the current process' address space at the specified
      * virtual address.
@@ -355,6 +363,8 @@ public:
      *       graphics backend may be maintaining over the course of execution.
      */
     void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
+
+    void WriteBlockUnsafe(VAddr dest_addr, const void* src_buffer, std::size_t size);
 
     /**
      * Fills the specified address range within a process' address space with zeroes.

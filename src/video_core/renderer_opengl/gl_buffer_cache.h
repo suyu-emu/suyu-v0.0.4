@@ -31,7 +31,7 @@ using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuf
 
 class CachedBufferBlock : public VideoCommon::BufferBlock {
 public:
-    explicit CachedBufferBlock(CacheAddr cache_addr, const std::size_t size);
+    explicit CachedBufferBlock(VAddr cpu_addr, const std::size_t size);
     ~CachedBufferBlock();
 
     const GLuint* GetHandle() const {
@@ -55,7 +55,7 @@ public:
     }
 
 protected:
-    Buffer CreateBlock(CacheAddr cache_addr, std::size_t size) override;
+    Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
     void WriteBarrier() override;
 

@@ -97,6 +97,11 @@ public:
     void WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer, std::size_t size);
     void CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, std::size_t size);
 
+    static bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) {
+        const std::size_t page = (gpu_addr & page_mask) + size;
+        return page <= page_size;
+    }
+
 private:
     using VMAMap = std::map<GPUVAddr, VirtualMemoryArea>;
     using VMAHandle = VMAMap::const_iterator;

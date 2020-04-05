@@ -21,8 +21,8 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 MICROPROFILE_DEFINE(OpenGL_Buffer_Download, "OpenGL", "Buffer Download", MP_RGB(192, 192, 128));
 
-CachedBufferBlock::CachedBufferBlock(CacheAddr cache_addr, const std::size_t size)
-    : VideoCommon::BufferBlock{cache_addr, size} {
+CachedBufferBlock::CachedBufferBlock(VAddr cpu_addr, const std::size_t size)
+    : VideoCommon::BufferBlock{cpu_addr, size} {
     gl_buffer.Create();
     glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size), nullptr, GL_DYNAMIC_DRAW);
 }
@@ -47,8 +47,8 @@ OGLBufferCache::~OGLBufferCache() {
     glDeleteBuffers(static_cast<GLsizei>(std::size(cbufs)), std::data(cbufs));
 }
 
-Buffer OGLBufferCache::CreateBlock(CacheAddr cache_addr, std::size_t size) {
-    return std::make_shared<CachedBufferBlock>(cache_addr, size);
+Buffer OGLBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
+    return std::make_shared<CachedBufferBlock>(cpu_addr, size);
 }
 
 void OGLBufferCache::WriteBarrier() {

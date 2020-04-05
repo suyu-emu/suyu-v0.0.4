@@ -501,7 +501,7 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
     texture_cache.FlushRegion(addr, size);
-    buffer_cache.FlushRegion(cache_addr, size);
+    buffer_cache.FlushRegion(addr, size);
     query_cache.FlushRegion(cache_addr, size);
 }
 
@@ -512,7 +512,7 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
     texture_cache.InvalidateRegion(addr, size);
     pipeline_cache.InvalidateRegion(cache_addr, size);
-    buffer_cache.InvalidateRegion(cache_addr, size);
+    buffer_cache.InvalidateRegion(addr, size);
     query_cache.InvalidateRegion(cache_addr, size);
 }
 
