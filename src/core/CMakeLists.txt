@@ -156,6 +156,7 @@ add_library(core STATIC
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
     hle/kernel/memory/address_space_info.h
+    hle/kernel/memory/memory_types.h
     hle/kernel/memory/slab_heap.h
     hle/kernel/mutex.cpp
     hle/kernel/mutex.h
