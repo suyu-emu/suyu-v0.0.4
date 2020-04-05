@@ -158,6 +158,7 @@ add_library(core STATIC
     hle/kernel/memory/address_space_info.h
     hle/kernel/memory/memory_block.h
     hle/kernel/memory/memory_types.h
+    hle/kernel/memory/page_linked_list.h
     hle/kernel/memory/slab_heap.h
     hle/kernel/memory/system_control.cpp
     hle/kernel/memory/system_control.h
