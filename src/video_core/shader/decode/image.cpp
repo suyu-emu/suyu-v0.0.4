@@ -350,25 +350,24 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     Node converted_value = [&] {
                         switch (component_type) {
                         case ComponentType::SNORM: {
+                            is_signed = true;
                             // range [-1.0, 1.0]
-                            auto cnv_value =
-                                Operation(OperationCode::FAdd, original_value, Immediate(1.f));
-                            cnv_value = Operation(OperationCode::FMul, std::move(cnv_value),
-                                                  Immediate(127.f));
-                            is_signed = false;
-                            return SignedOperation(OperationCode::ICastFloat, is_signed,
-                                                   std::move(cnv_value));
+                            auto cnv_value = Operation(OperationCode::FMul, original_value, Immediate(127.f));
+                            cnv_value = SignedOperation(OperationCode::ICastFloat, is_signed,
+                                                      std::move(cnv_value));
+                            return BitfieldExtract(std::move(cnv_value), 0, 8);
                         }
                         case ComponentType::UNORM: {
+                            is_signed = false;
                             // range [0.0, 1.0]
                             auto cnv_value =
                                 Operation(OperationCode::FMul, original_value, Immediate(255.f));
-                            is_signed = false;
                             return SignedOperation(OperationCode::ICastFloat, is_signed,
                                                    std::move(cnv_value));
                         }
-                        case ComponentType::SINT: // range [-128,128]
-                            return Operation(OperationCode::IAdd, original_value, Immediate(128));
+                        case ComponentType::SINT: // range [-128,127]
+                            is_signed = true;
+                            return original_value;
                         case ComponentType::UINT: // range [0, 255]
                             is_signed = false;
                             return original_value;
