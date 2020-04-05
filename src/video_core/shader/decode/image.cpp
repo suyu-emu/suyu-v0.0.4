@@ -27,8 +27,8 @@ using Tegra::Texture::TICEntry;
 
 namespace {
 
-
-ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor, std::size_t component) {
+ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor,
+                               std::size_t component) {
     const TextureFormat format{descriptor.format};
     switch (format) {
     case TextureFormat::R16_G16_B16_A16:
