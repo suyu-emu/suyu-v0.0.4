@@ -154,6 +154,8 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
+    hle/kernel/memory/address_space_info.cpp
+    hle/kernel/memory/address_space_info.h
     hle/kernel/mutex.cpp
     hle/kernel/mutex.h
     hle/kernel/object.cpp
