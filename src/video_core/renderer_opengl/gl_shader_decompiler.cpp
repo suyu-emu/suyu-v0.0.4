@@ -31,11 +31,11 @@ namespace {
 
 using Tegra::Engines::ShaderType;
 using Tegra::Shader::Attribute;
-using Tegra::Shader::AttributeUse;
 using Tegra::Shader::Header;
 using Tegra::Shader::IpaInterpMode;
 using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
+using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
 using VideoCommon::Shader::BuildTransformFeedback;
 using VideoCommon::Shader::Registry;
@@ -702,20 +702,19 @@ private:
         code.AddNewLine();
     }
 
-    std::string GetInputFlags(AttributeUse attribute) {
+    const char* GetInputFlags(PixelImap attribute) {
         switch (attribute) {
-        case AttributeUse::Perspective:
-            // Default, Smooth
-            return {};
-        case AttributeUse::Constant:
-            return "flat ";
-        case AttributeUse::ScreenLinear:
-            return "noperspective ";
-        default:
-        case AttributeUse::Unused:
-            UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<u32>(attribute));
-            return {};
+        case PixelImap::Perspective:
+            return "smooth";
+        case PixelImap::Constant:
+            return "flat";
+        case PixelImap::ScreenLinear:
+            return "noperspective";
+        case PixelImap::Unused:
+            break;
         }
+        UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<int>(attribute));
+        return {};
     }
 
     void DeclareInputAttributes() {
@@ -749,8 +748,8 @@ private:
 
         std::string suffix;
         if (stage == ShaderType::Fragment) {
-            const auto input_mode{header.ps.GetAttributeUse(location)};
-            if (skip_unused && input_mode == AttributeUse::Unused) {
+            const auto input_mode{header.ps.GetPixelImap(location)};
+            if (input_mode == PixelImap::Unused) {
                 return;
             }
             suffix = GetInputFlags(input_mode);
@@ -927,7 +926,7 @@ private:
                 const u32 address{generic_base + index * generic_stride + element * element_stride};
 
                 const bool declared = stage != ShaderType::Fragment ||
-                                      header.ps.GetAttributeUse(index) != AttributeUse::Unused;
+                                      header.ps.GetPixelImap(index) != PixelImap::Unused;
                 const std::string value =
                     declared ? ReadAttribute(attribute, element).AsFloat() : "0.0f";
                 code.AddLine("case 0x{:X}U: return {};", address, value);
@@ -1142,8 +1141,7 @@ private:
                                     GetSwizzle(element)),
                         Type::Float};
             case ShaderType::Fragment:
-                return {element == 3 ? "1.0f" : ("gl_FragCoord"s + GetSwizzle(element)),
-                        Type::Float};
+                return {"gl_FragCoord"s + GetSwizzle(element), Type::Float};
             default:
                 UNREACHABLE();
             }

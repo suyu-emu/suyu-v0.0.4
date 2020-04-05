@@ -35,7 +35,7 @@ namespace {
 using Sirit::Id;
 using Tegra::Engines::ShaderType;
 using Tegra::Shader::Attribute;
-using Tegra::Shader::AttributeUse;
+using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
 using namespace VideoCommon::Shader;
 
@@ -752,15 +752,15 @@ private:
             if (stage != ShaderType::Fragment) {
                 continue;
             }
-            switch (header.ps.GetAttributeUse(location)) {
-            case AttributeUse::Constant:
+            switch (header.ps.GetPixelImap(location)) {
+            case PixelImap::Constant:
                 Decorate(id, spv::Decoration::Flat);
                 break;
-            case AttributeUse::ScreenLinear:
-                Decorate(id, spv::Decoration::NoPerspective);
-                break;
-            case AttributeUse::Perspective:
+            case PixelImap::Perspective:
                 // Default
+                break;
+            case PixelImap::ScreenLinear:
+                Decorate(id, spv::Decoration::NoPerspective);
                 break;
             default:
                 UNREACHABLE_MSG("Unused attribute being fetched");
@@ -1145,9 +1145,6 @@ private:
             switch (attribute) {
             case Attribute::Index::Position: {
                 if (stage == ShaderType::Fragment) {
-                    if (element == 3) {
-                        return {Constant(t_float, 1.0f), Type::Float};
-                    }
                     return {OpLoad(t_float, AccessElement(t_in_float, frag_coord, element)),
                             Type::Float};
                 }
