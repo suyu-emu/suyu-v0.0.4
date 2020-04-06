@@ -272,7 +272,7 @@ std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
 } // Anonymous namespace
 
 Node ShaderIR::GetComponentValue(ComponentType component_type, u32 component_size,
-                                 const Node original_value, bool* is_signed) {
+                                 Node original_value, bool* is_signed) {
     switch (component_type) {
     case ComponentType::SNORM: {
         *is_signed = true;
@@ -366,38 +366,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             const auto comp_mask = GetImageComponentMask(descriptor.format);
 
             switch (instr.suldst.GetStoreDataLayout()) {
-            case StoreType::Bits32: {
-                u32 shifted_counter = 0;
-                Node value = Immediate(0);
-                for (u32 element = 0; element < 4; ++element) {
-                    if (!IsComponentEnabled(comp_mask, element)) {
-                        continue;
-                    }
-                    const auto component_type = GetComponentType(descriptor, element);
-                    const auto component_size = GetComponentSize(descriptor.format, element);
-                    bool is_signed = true;
-                    MetaImage meta{image, {}, element};
-
-                    Node converted_value = GetComponentValue(
-                        component_type, component_size,
-                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type)),
-                        &is_signed);
-
-                    // shift element to correct position
-                    const auto shifted = shifted_counter;
-                    if (shifted > 0) {
-                        converted_value =
-                            SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
-                                            std::move(converted_value), Immediate(shifted));
-                    }
-                    shifted_counter += component_size;
-
-                    // add value into result
-                    value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
-                }
-                SetRegister(bb, instr.gpr0.Value(), std::move(value));
-                break;
-            }
+            case StoreType::Bits32:
             case StoreType::Bits64: {
                 u32 indexer = 0;
                 u32 shifted_counter = 0;
@@ -432,12 +401,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     // if we shifted enough for 1 byte -> we save it into temp
                     if (shifted_counter >= 32) {
                         SetTemporary(bb, indexer++, std::move(value));
-
-                        // we only use 2 bytes for bits64
-                        if (indexer >= 2) {
-                            break;
-                        }
-
                         // reset counter and value to prepare pack next byte
                         value = Immediate(0);
                         shifted_counter = 0;
