@@ -271,37 +271,36 @@ std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
 }
 } // Anonymous namespace
 
-Node ShaderIR::GetComponentValue(ComponentType component_type, u32 component_size,
-                                 Node original_value, bool* is_signed) {
+std::pair<Node, bool> ShaderIR::GetComponentValue(ComponentType component_type, u32 component_size,
+                                                  Node original_value) {
     switch (component_type) {
     case ComponentType::SNORM: {
-        *is_signed = true;
         // range [-1.0, 1.0]
         auto cnv_value = Operation(OperationCode::FMul, original_value,
                                    Immediate(static_cast<float>(1 << component_size) / 2.f - 1.f));
-        cnv_value = SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
-        return BitfieldExtract(std::move(cnv_value), 0, component_size);
+        cnv_value = Operation(OperationCode::ICastFloat, std::move(cnv_value));
+        return {BitfieldExtract(std::move(cnv_value), 0, component_size), true};
     }
     case ComponentType::SINT:
     case ComponentType::UNORM: {
-        *is_signed = component_type == ComponentType::SINT;
+        bool is_signed = component_type == ComponentType::SINT;
         // range [0.0, 1.0]
         auto cnv_value = Operation(OperationCode::FMul, original_value,
                                    Immediate(static_cast<float>(1 << component_size) - 1.f));
-        return SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
+        return {SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value)),
+                is_signed};
     }
     case ComponentType::UINT: // range [0, (1 << component_size) - 1]
-        *is_signed = false;
-        return original_value;
+        return {original_value, false};
     case ComponentType::FLOAT:
         if (component_size == 16) {
-            return Operation(OperationCode::HCastFloat, original_value);
+            return {Operation(OperationCode::HCastFloat, original_value), true};
         } else {
-            return original_value;
+            return {original_value, true};
         }
     default:
         UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
-        return original_value;
+        return {original_value, true};
     }
 }
 
@@ -377,14 +376,11 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     }
                     const auto component_type = GetComponentType(descriptor, element);
                     const auto component_size = GetComponentSize(descriptor.format, element);
-
-                    bool is_signed = true;
                     MetaImage meta{image, {}, element};
 
-                    Node converted_value = GetComponentValue(
+                    auto [converted_value, is_signed] = GetComponentValue(
                         component_type, component_size,
-                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type)),
-                        &is_signed);
+                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type)));
 
                     // shift element to correct position
                     const auto shifted = shifted_counter;
