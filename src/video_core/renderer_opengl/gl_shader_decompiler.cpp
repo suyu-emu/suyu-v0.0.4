@@ -2119,8 +2119,14 @@ private:
             return {};
         }
         return {fmt::format("atomic{}({}, {})", opname, Visit(operation[0]).GetCode(),
-                            Visit(operation[1]).As(type)),
-                type};
+                            Visit(operation[1]).AsUint()),
+                Type::Uint};
+    }
+
+    template <const std::string_view& opname, Type type>
+    Expression Reduce(Operation operation) {
+        code.AddLine("{};", Atomic<opname, type>(operation).GetCode());
+        return {};
     }
 
     Expression Branch(Operation operation) {
@@ -2478,6 +2484,20 @@ private:
         &GLSLDecompiler::Atomic<Func::And, Type::Int>,
         &GLSLDecompiler::Atomic<Func::Or, Type::Int>,
         &GLSLDecompiler::Atomic<Func::Xor, Type::Int>,
+
+        &GLSLDecompiler::Reduce<Func::Add, Type::Uint>,
+        &GLSLDecompiler::Reduce<Func::Min, Type::Uint>,
+        &GLSLDecompiler::Reduce<Func::Max, Type::Uint>,
+        &GLSLDecompiler::Reduce<Func::And, Type::Uint>,
+        &GLSLDecompiler::Reduce<Func::Or, Type::Uint>,
+        &GLSLDecompiler::Reduce<Func::Xor, Type::Uint>,
+
+        &GLSLDecompiler::Reduce<Func::Add, Type::Int>,
+        &GLSLDecompiler::Reduce<Func::Min, Type::Int>,
+        &GLSLDecompiler::Reduce<Func::Max, Type::Int>,
+        &GLSLDecompiler::Reduce<Func::And, Type::Int>,
+        &GLSLDecompiler::Reduce<Func::Or, Type::Int>,
+        &GLSLDecompiler::Reduce<Func::Xor, Type::Int>,
 
         &GLSLDecompiler::Branch,
         &GLSLDecompiler::BranchIndirect,

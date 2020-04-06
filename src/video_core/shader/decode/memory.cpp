@@ -378,11 +378,25 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 
             if (IsUnaligned(type)) {
                 const u32 mask = GetUnalignedMask(type);
-                value = InsertUnaligned(gmem, std::move(value), real_address, mask, size);
+                value = InsertUnaligned(gmem, move(value), real_address, mask, size);
             }
 
             bb.push_back(Operation(OperationCode::Assign, gmem, value));
         }
+        break;
+    }
+    case OpCode::Id::RED: {
+        UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32);
+        UNIMPLEMENTED_IF_MSG(instr.red.operation != AtomicOp::Add);
+        const auto [real_address, base_address, descriptor] =
+            TrackGlobalMemory(bb, instr, true, true);
+        if (!real_address || !base_address) {
+            // Tracking failed, skip atomic.
+            break;
+        }
+        Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
+        Node value = GetRegister(instr.gpr0);
+        bb.push_back(Operation(OperationCode::ReduceIAdd, move(gmem), move(value)));
         break;
     }
     case OpCode::Id::ATOM: {
