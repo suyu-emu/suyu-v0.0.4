@@ -271,6 +271,40 @@ std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
 }
 } // Anonymous namespace
 
+Node ShaderIR::GetComponentValue(ComponentType component_type, u32 component_size,
+                                 const Node original_value, bool* is_signed) {
+    switch (component_type) {
+    case ComponentType::SNORM: {
+        *is_signed = true;
+        // range [-1.0, 1.0]
+        auto cnv_value = Operation(OperationCode::FMul, original_value,
+                                   Immediate((1 << component_size) / 2.f - 1.f));
+        cnv_value = SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
+        return BitfieldExtract(std::move(cnv_value), 0, component_size);
+    }
+    case ComponentType::SINT:
+    case ComponentType::UNORM: {
+        *is_signed = component_type == ComponentType::SINT;
+        // range [0.0, 1.0]
+        auto cnv_value =
+            Operation(OperationCode::FMul, original_value, Immediate((1 << component_size) - 1.f));
+        return SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
+    }
+    case ComponentType::UINT: // range [0, (1 << component_size) - 1]
+        *is_signed = false;
+        return original_value;
+    case ComponentType::FLOAT:
+        if (component_size == 16) {
+            return Operation(OperationCode::HCastFloat, original_value);
+        } else {
+            return original_value;
+        }
+    default:
+        UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
+        return original_value;
+    }
+}
+
 u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
@@ -309,7 +343,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                 SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
             }
         } else if (instr.suldst.mode == Tegra::Shader::SurfaceDataMode::D_BA) {
-            UNIMPLEMENTED_IF(instr.suldst.GetStoreDataLayout() != StoreType::Bits32);
+            UNIMPLEMENTED_IF(instr.suldst.GetStoreDataLayout() != StoreType::Bits32 &&
+                             instr.suldst.GetStoreDataLayout() != StoreType::Bits64);
 
             auto descriptor = [this, instr] {
                 std::optional<Tegra::Engines::SamplerDescriptor> descriptor;
@@ -333,7 +368,6 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             switch (instr.suldst.GetStoreDataLayout()) {
             case StoreType::Bits32: {
                 u32 shifted_counter = 0;
-                // value should be RGBA format
                 Node value = Immediate(0);
                 for (u32 element = 0; element < 4; ++element) {
                     if (!IsComponentEnabled(comp_mask, element)) {
@@ -343,39 +377,12 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     const auto component_size = GetComponentSize(descriptor.format, element);
                     bool is_signed = true;
                     MetaImage meta{image, {}, element};
-                    const Node original_value =
-                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type));
 
-                    Node converted_value = [&] {
-                        switch (component_type) {
-                        case ComponentType::SNORM: {
-                            is_signed = true;
-                            // range [-1.0, 1.0]
-                            auto cnv_value =
-                                Operation(OperationCode::FMul, original_value, Immediate(127.f));
-                            cnv_value = SignedOperation(OperationCode::ICastFloat, is_signed,
-                                                        std::move(cnv_value));
-                            return BitfieldExtract(std::move(cnv_value), 0, 8);
-                        }
-                        case ComponentType::SINT:
-                        case ComponentType::UNORM: {
-                            is_signed = false;
-                            // range [0.0, 1.0]
-                            auto cnv_value =
-                                Operation(OperationCode::FMul, original_value, Immediate(255.f));
-                            return SignedOperation(OperationCode::ICastFloat, is_signed,
-                                                   std::move(cnv_value));
-                        }
-                        case ComponentType::UINT: // range [0, 255]
-                            is_signed = false;
-                            return original_value;
-                        case ComponentType::FLOAT:
-                            return original_value;
-                        default:
-                            UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
-                            return original_value;
-                        }
-                    }();
+                    Node converted_value = GetComponentValue(
+                        component_type, component_size,
+                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type)),
+                        &is_signed);
+
                     // shift element to correct position
                     const auto shifted = shifted_counter;
                     if (shifted > 0) {
@@ -389,6 +396,56 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
                 }
                 SetRegister(bb, instr.gpr0.Value(), std::move(value));
+                break;
+            }
+            case StoreType::Bits64: {
+                u32 indexer = 0;
+                u32 shifted_counter = 0;
+                Node value = Immediate(0);
+                for (u32 element = 0; element < 4; ++element) {
+                    if (!IsComponentEnabled(comp_mask, element)) {
+                        continue;
+                    }
+                    const auto component_type = GetComponentType(descriptor, element);
+                    const auto component_size = GetComponentSize(descriptor.format, element);
+
+                    bool is_signed = true;
+                    MetaImage meta{image, {}, element};
+
+                    Node converted_value = GetComponentValue(
+                        component_type, component_size,
+                        Operation(OperationCode::ImageLoad, meta, GetCoordinates(type)),
+                        &is_signed);
+
+                    // shift element to correct position
+                    const auto shifted = shifted_counter;
+                    if (shifted > 0) {
+                        converted_value =
+                            SignedOperation(OperationCode::ILogicalShiftLeft, is_signed,
+                                            std::move(converted_value), Immediate(shifted));
+                    }
+                    shifted_counter += component_size;
+
+                    // add value into result
+                    value = Operation(OperationCode::UBitwiseOr, value, std::move(converted_value));
+
+                    // if we shifted enough for 1 byte -> we save it into temp
+                    if (shifted_counter >= 32) {
+                        SetTemporary(bb, indexer++, std::move(value));
+
+                        // we only use 2 bytes for bits64
+                        if (indexer >= 2) {
+                            break;
+                        }
+
+                        // reset counter and value to prepare pack next byte
+                        value = Immediate(0);
+                        shifted_counter = 0;
+                    }
+                }
+                for (u32 i = 0; i < indexer; ++i) {
+                    SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
+                }
                 break;
             }
             default:
