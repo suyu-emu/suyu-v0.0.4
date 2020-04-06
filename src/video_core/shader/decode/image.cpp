@@ -278,7 +278,7 @@ Node ShaderIR::GetComponentValue(ComponentType component_type, u32 component_siz
         *is_signed = true;
         // range [-1.0, 1.0]
         auto cnv_value = Operation(OperationCode::FMul, original_value,
-                                   Immediate((1 << component_size) / 2.f - 1.f));
+                                   Immediate(static_cast<float>(1 << component_size) / 2.f - 1.f));
         cnv_value = SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
         return BitfieldExtract(std::move(cnv_value), 0, component_size);
     }
@@ -286,8 +286,8 @@ Node ShaderIR::GetComponentValue(ComponentType component_type, u32 component_siz
     case ComponentType::UNORM: {
         *is_signed = component_type == ComponentType::SINT;
         // range [0.0, 1.0]
-        auto cnv_value =
-            Operation(OperationCode::FMul, original_value, Immediate((1 << component_size) - 1.f));
+        auto cnv_value = Operation(OperationCode::FMul, original_value,
+                                   Immediate(static_cast<float>(1 << component_size) - 1.f));
         return SignedOperation(OperationCode::ICastFloat, is_signed, std::move(cnv_value));
     }
     case ComponentType::UINT: // range [0, (1 << component_size) - 1]
