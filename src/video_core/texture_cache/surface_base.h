@@ -131,6 +131,10 @@ public:
         return !params.is_tiled;
     }
 
+    bool IsConverted() const {
+        return is_converted;
+    }
+
     bool MatchFormat(VideoCore::Surface::PixelFormat pixel_format) const {
         return params.pixel_format == pixel_format;
     }
@@ -160,7 +164,8 @@ public:
     }
 
 protected:
-    explicit SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params);
+    explicit SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params,
+                             bool is_astc_supported);
     ~SurfaceBaseImpl() = default;
 
     virtual void DecorateSurfaceName() = 0;
@@ -168,12 +173,13 @@ protected:
     const SurfaceParams params;
     std::size_t layer_size;
     std::size_t guest_memory_size;
-    const std::size_t host_memory_size;
+    std::size_t host_memory_size;
     GPUVAddr gpu_addr{};
     CacheAddr cache_addr{};
     CacheAddr cache_addr_end{};
     VAddr cpu_addr{};
     bool is_continuous{};
+    bool is_converted{};
 
     std::vector<std::size_t> mipmap_sizes;
     std::vector<std::size_t> mipmap_offsets;
@@ -288,8 +294,9 @@ public:
     }
 
 protected:
-    explicit SurfaceBase(const GPUVAddr gpu_addr, const SurfaceParams& params)
-        : SurfaceBaseImpl(gpu_addr, params) {}
+    explicit SurfaceBase(const GPUVAddr gpu_addr, const SurfaceParams& params,
+                         bool is_astc_supported)
+        : SurfaceBaseImpl(gpu_addr, params, is_astc_supported) {}
 
     ~SurfaceBase() = default;
 

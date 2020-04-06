@@ -289,8 +289,9 @@ public:
     }
 
 protected:
-    TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
-        : system{system}, rasterizer{rasterizer} {
+    explicit TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+                          bool is_astc_supported)
+        : system{system}, is_astc_supported{is_astc_supported}, rasterizer{rasterizer} {
         for (std::size_t i = 0; i < Tegra::Engines::Maxwell3D::Regs::NumRenderTargets; i++) {
             SetEmptyColorBuffer(i);
         }
@@ -381,6 +382,7 @@ protected:
     }
 
     Core::System& system;
+    const bool is_astc_supported;
 
 private:
     enum class RecycleStrategy : u32 {

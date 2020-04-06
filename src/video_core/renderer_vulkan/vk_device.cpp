@@ -237,18 +237,21 @@ void VKDevice::ReportLoss() const {
 
 bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
                                       const vk::DispatchLoaderDynamic& dldi) const {
-    // Disable for now to avoid converting ASTC twice.
-    return false;
     static constexpr std::array astc_formats = {
-        vk::Format::eAstc4x4SrgbBlock,    vk::Format::eAstc8x8SrgbBlock,
-        vk::Format::eAstc8x5SrgbBlock,    vk::Format::eAstc5x4SrgbBlock,
+        vk::Format::eAstc4x4UnormBlock,   vk::Format::eAstc4x4SrgbBlock,
+        vk::Format::eAstc5x4UnormBlock,   vk::Format::eAstc5x4SrgbBlock,
         vk::Format::eAstc5x5UnormBlock,   vk::Format::eAstc5x5SrgbBlock,
-        vk::Format::eAstc10x8UnormBlock,  vk::Format::eAstc10x8SrgbBlock,
+        vk::Format::eAstc6x5UnormBlock,   vk::Format::eAstc6x5SrgbBlock,
         vk::Format::eAstc6x6UnormBlock,   vk::Format::eAstc6x6SrgbBlock,
-        vk::Format::eAstc10x10UnormBlock, vk::Format::eAstc10x10SrgbBlock,
-        vk::Format::eAstc12x12UnormBlock, vk::Format::eAstc12x12SrgbBlock,
+        vk::Format::eAstc8x5UnormBlock,   vk::Format::eAstc8x5SrgbBlock,
         vk::Format::eAstc8x6UnormBlock,   vk::Format::eAstc8x6SrgbBlock,
-        vk::Format::eAstc6x5UnormBlock,   vk::Format::eAstc6x5SrgbBlock};
+        vk::Format::eAstc8x8UnormBlock,   vk::Format::eAstc8x8SrgbBlock,
+        vk::Format::eAstc10x5UnormBlock,  vk::Format::eAstc10x5SrgbBlock,
+        vk::Format::eAstc10x6UnormBlock,  vk::Format::eAstc10x6SrgbBlock,
+        vk::Format::eAstc10x8UnormBlock,  vk::Format::eAstc10x8SrgbBlock,
+        vk::Format::eAstc10x10UnormBlock, vk::Format::eAstc10x10SrgbBlock,
+        vk::Format::eAstc12x10UnormBlock, vk::Format::eAstc12x10SrgbBlock,
+        vk::Format::eAstc12x12UnormBlock, vk::Format::eAstc12x12SrgbBlock};
     if (!features.textureCompressionASTC_LDR) {
         return false;
     }
@@ -572,24 +575,34 @@ std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperti
                                         vk::Format::eBc2SrgbBlock,
                                         vk::Format::eBc3SrgbBlock,
                                         vk::Format::eBc7SrgbBlock,
+                                        vk::Format::eAstc4x4UnormBlock,
                                         vk::Format::eAstc4x4SrgbBlock,
-                                        vk::Format::eAstc8x8SrgbBlock,
-                                        vk::Format::eAstc8x5SrgbBlock,
+                                        vk::Format::eAstc5x4UnormBlock,
                                         vk::Format::eAstc5x4SrgbBlock,
                                         vk::Format::eAstc5x5UnormBlock,
                                         vk::Format::eAstc5x5SrgbBlock,
-                                        vk::Format::eAstc10x8UnormBlock,
-                                        vk::Format::eAstc10x8SrgbBlock,
-                                        vk::Format::eAstc6x6UnormBlock,
-                                        vk::Format::eAstc6x6SrgbBlock,
-                                        vk::Format::eAstc10x10UnormBlock,
-                                        vk::Format::eAstc10x10SrgbBlock,
-                                        vk::Format::eAstc12x12UnormBlock,
-                                        vk::Format::eAstc12x12SrgbBlock,
-                                        vk::Format::eAstc8x6UnormBlock,
-                                        vk::Format::eAstc8x6SrgbBlock,
                                         vk::Format::eAstc6x5UnormBlock,
                                         vk::Format::eAstc6x5SrgbBlock,
+                                        vk::Format::eAstc6x6UnormBlock,
+                                        vk::Format::eAstc6x6SrgbBlock,
+                                        vk::Format::eAstc8x5UnormBlock,
+                                        vk::Format::eAstc8x5SrgbBlock,
+                                        vk::Format::eAstc8x6UnormBlock,
+                                        vk::Format::eAstc8x6SrgbBlock,
+                                        vk::Format::eAstc8x8UnormBlock,
+                                        vk::Format::eAstc8x8SrgbBlock,
+                                        vk::Format::eAstc10x5UnormBlock,
+                                        vk::Format::eAstc10x5SrgbBlock,
+                                        vk::Format::eAstc10x6UnormBlock,
+                                        vk::Format::eAstc10x6SrgbBlock,
+                                        vk::Format::eAstc10x8UnormBlock,
+                                        vk::Format::eAstc10x8SrgbBlock,
+                                        vk::Format::eAstc10x10UnormBlock,
+                                        vk::Format::eAstc10x10SrgbBlock,
+                                        vk::Format::eAstc12x10UnormBlock,
+                                        vk::Format::eAstc12x10SrgbBlock,
+                                        vk::Format::eAstc12x12UnormBlock,
+                                        vk::Format::eAstc12x12SrgbBlock,
                                         vk::Format::eE5B9G9R9UfloatPack32};
     std::unordered_map<vk::Format, vk::FormatProperties> format_properties;
     for (const auto format : formats) {

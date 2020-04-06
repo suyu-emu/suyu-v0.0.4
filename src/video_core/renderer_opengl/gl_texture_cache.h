@@ -37,7 +37,7 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(GPUVAddr gpu_addr, const SurfaceParams& params);
+    explicit CachedSurface(GPUVAddr gpu_addr, const SurfaceParams& params, bool is_astc_supported);
     ~CachedSurface();
 
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
@@ -49,6 +49,10 @@ public:
 
     GLuint GetTexture() const {
         return texture.handle;
+    }
+
+    bool IsCompressed() const {
+        return is_compressed;
     }
 
 protected:

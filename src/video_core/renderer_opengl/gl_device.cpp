@@ -131,6 +131,31 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
     return bindings;
 }
 
+bool IsASTCSupported() {
+    static constexpr std::array formats = {
+        GL_COMPRESSED_RGBA_ASTC_4x4_KHR,           GL_COMPRESSED_RGBA_ASTC_5x4_KHR,
+        GL_COMPRESSED_RGBA_ASTC_5x5_KHR,           GL_COMPRESSED_RGBA_ASTC_6x5_KHR,
+        GL_COMPRESSED_RGBA_ASTC_6x6_KHR,           GL_COMPRESSED_RGBA_ASTC_8x5_KHR,
+        GL_COMPRESSED_RGBA_ASTC_8x6_KHR,           GL_COMPRESSED_RGBA_ASTC_8x8_KHR,
+        GL_COMPRESSED_RGBA_ASTC_10x5_KHR,          GL_COMPRESSED_RGBA_ASTC_10x6_KHR,
+        GL_COMPRESSED_RGBA_ASTC_10x8_KHR,          GL_COMPRESSED_RGBA_ASTC_10x10_KHR,
+        GL_COMPRESSED_RGBA_ASTC_12x10_KHR,         GL_COMPRESSED_RGBA_ASTC_12x12_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_4x4_KHR,   GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x4_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_5x5_KHR,   GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x5_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_6x6_KHR,   GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x5_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x6_KHR,   GL_COMPRESSED_SRGB8_ALPHA8_ASTC_8x8_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x5_KHR,  GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x6_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR,  GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,
+        GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,
+    };
+    return std::find_if_not(formats.begin(), formats.end(), [](GLenum format) {
+               GLint supported;
+               glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_SUPPORTED, 1,
+                                     &supported);
+               return supported == GL_TRUE;
+           }) == formats.end();
+}
+
 } // Anonymous namespace
 
 Device::Device() : base_bindings{BuildBaseBindings()} {
@@ -152,6 +177,7 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_shader_ballot = GLAD_GL_ARB_shader_ballot;
     has_vertex_viewport_layer = GLAD_GL_ARB_shader_viewport_layer_array;
     has_image_load_formatted = HasExtension(extensions, "GL_EXT_shader_image_load_formatted");
+    has_astc = IsASTCSupported();
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
