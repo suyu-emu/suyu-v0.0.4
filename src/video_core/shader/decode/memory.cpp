@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <utility>
 #include <vector>
+
 #include <fmt/format.h>
 
 #include "common/alignment.h"
@@ -16,6 +18,7 @@
 
 namespace VideoCommon::Shader {
 
+using std::move;
 using Tegra::Shader::AtomicOp;
 using Tegra::Shader::AtomicType;
 using Tegra::Shader::Attribute;
@@ -87,23 +90,22 @@ u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
 
 Node ExtractUnaligned(Node value, Node address, u32 mask, u32 size) {
     Node offset = Operation(OperationCode::UBitwiseAnd, address, Immediate(mask));
-    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
-    return Operation(OperationCode::UBitfieldExtract, std::move(value), std::move(offset),
-                     Immediate(size));
+    offset = Operation(OperationCode::ULogicalShiftLeft, move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldExtract, move(value), move(offset), Immediate(size));
 }
 
 Node InsertUnaligned(Node dest, Node value, Node address, u32 mask, u32 size) {
-    Node offset = Operation(OperationCode::UBitwiseAnd, std::move(address), Immediate(mask));
-    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
-    return Operation(OperationCode::UBitfieldInsert, std::move(dest), std::move(value),
-                     std::move(offset), Immediate(size));
+    Node offset = Operation(OperationCode::UBitwiseAnd, move(address), Immediate(mask));
+    offset = Operation(OperationCode::ULogicalShiftLeft, move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldInsert, move(dest), move(value), move(offset),
+                     Immediate(size));
 }
 
 Node Sign16Extend(Node value) {
     Node sign = Operation(OperationCode::UBitwiseAnd, value, Immediate(1U << 15));
-    Node is_sign = Operation(OperationCode::LogicalUEqual, std::move(sign), Immediate(1U << 15));
+    Node is_sign = Operation(OperationCode::LogicalUEqual, move(sign), Immediate(1U << 15));
     Node extend = Operation(OperationCode::Select, is_sign, Immediate(0xFFFF0000), Immediate(0));
-    return Operation(OperationCode::UBitwiseOr, std::move(value), std::move(extend));
+    return Operation(OperationCode::UBitwiseOr, move(value), move(extend));
 }
 
 } // Anonymous namespace
@@ -420,10 +422,10 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         const s32 offset = instr.atoms.GetImmediateOffset();
         Node address = GetRegister(instr.gpr8);
-        address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
+        address = Operation(OperationCode::IAdd, move(address), Immediate(offset));
         SetRegister(bb, instr.gpr0,
                     SignedOperation(GetAtomOperation(instr.atoms.operation), is_signed,
-                                    GetSharedMemory(std::move(address)), GetRegister(instr.gpr20)));
+                                    GetSharedMemory(move(address)), GetRegister(instr.gpr20)));
         break;
     }
     case OpCode::Id::AL2P: {
