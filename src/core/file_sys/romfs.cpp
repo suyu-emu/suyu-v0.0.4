@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "common/common_types.h"
+#include "common/string_util.h"
 #include "common/swap.h"
 #include "core/file_sys/fsmitm_romfsbuild.h"
 #include "core/file_sys/romfs.h"
@@ -126,7 +127,7 @@ VirtualDir ExtractRomFS(VirtualFile file, RomFSExtractionType type) {
         return out->GetSubdirectories().front();
 
     while (out->GetSubdirectories().size() == 1 && out->GetFiles().empty()) {
-        if (out->GetSubdirectories().front()->GetName() == "data" &&
+        if (Common::ToLower(out->GetSubdirectories().front()->GetName()) == "data" &&
             type == RomFSExtractionType::Truncated)
             break;
         out = out->GetSubdirectories().front();
