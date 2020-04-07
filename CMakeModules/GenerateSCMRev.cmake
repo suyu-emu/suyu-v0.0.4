@@ -20,8 +20,6 @@ get_timestamp(BUILD_DATE)
 # Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
 set(REPO_NAME "")
 set(BUILD_VERSION "0")
-set(TITLE_BAR_FORMAT_IDLE "yuzu {5} ")
-set(BUILD_ID "420")
 if (BUILD_REPOSITORY)
   # regex capture the string nightly or canary into CMAKE_MATCH_1
   string(REGEX MATCH "yuzu-emu/yuzu-?(.*)" OUTVAR ${BUILD_REPOSITORY})
