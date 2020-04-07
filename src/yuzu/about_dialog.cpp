@@ -11,13 +11,14 @@
 AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent), ui(new Ui::AboutDialog) {
     const auto build_id = std::string(Common::g_build_id);
     const auto fmt = std::string(Common::g_title_bar_format_idle);
-    const auto yuzuBuildVersion = fmt::format(fmt.empty() ? "yuzu Development Build" : fmt, std::string{}, std::string{},
-                                              std::string{}, std::string{}, std::string{}, build_id);
+    const auto yuzu_build_version =
+        fmt::format(fmt.empty() ? "yuzu Development Build" : fmt, std::string{}, std::string{},
+                    std::string{}, std::string{}, std::string{}, build_id);
 
     ui->setupUi(this);
     ui->labelLogo->setPixmap(QIcon::fromTheme(QStringLiteral("yuzu")).pixmap(200));
     ui->labelBuildInfo->setText(ui->labelBuildInfo->text().arg(
-        QString::fromStdString(yuzuBuildVersion), QString::fromUtf8(Common::g_scm_branch),
+        QString::fromStdString(yuzu_build_version), QString::fromUtf8(Common::g_scm_branch),
         QString::fromUtf8(Common::g_scm_desc), QString::fromUtf8(Common::g_build_date).left(10)));
 }
 
