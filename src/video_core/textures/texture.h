@@ -336,6 +336,8 @@ struct TSCEntry {
         std::array<u8, 0x20> raw;
     };
 
+    std::array<float, 4> GetBorderColor() const noexcept;
+
     float GetMaxAnisotropy() const {
         const u32 min_value = [] {
             switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
@@ -367,15 +369,6 @@ struct TSCEntry {
         // Sign extend the 13-bit value.
         constexpr u32 mask = 1U << (13 - 1);
         return static_cast<float>(static_cast<s32>((mip_lod_bias ^ mask) - mask)) / 256.0f;
-    }
-
-    std::array<float, 4> GetBorderColor() const {
-        if (srgb_conversion) {
-            return {static_cast<float>(srgb_border_color_r) / 255.0f,
-                    static_cast<float>(srgb_border_color_g) / 255.0f,
-                    static_cast<float>(srgb_border_color_b) / 255.0f, border_color[3]};
-        }
-        return border_color;
     }
 };
 static_assert(sizeof(TSCEntry) == 0x20, "TSCEntry has wrong size");
