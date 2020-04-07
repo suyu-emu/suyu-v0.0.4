@@ -2,6 +2,10 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <limits>
+#include <optional>
+#include <utility>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
@@ -15,9 +19,49 @@ using Tegra::Shader::OpCode;
 using Tegra::Shader::Register;
 
 namespace {
+
 constexpr OperationCode GetFloatSelector(u64 selector) {
     return selector == 0 ? OperationCode::FCastHalf0 : OperationCode::FCastHalf1;
 }
+
+constexpr u32 SizeInBits(Register::Size size) {
+    switch (size) {
+    case Register::Size::Byte:
+        return 8;
+    case Register::Size::Short:
+        return 16;
+    case Register::Size::Word:
+        return 32;
+    case Register::Size::Long:
+        return 64;
+    }
+    return 0;
+}
+
+constexpr std::optional<std::pair<s32, s32>> IntegerSaturateBounds(Register::Size src_size,
+                                                                   Register::Size dst_size,
+                                                                   bool src_signed,
+                                                                   bool dst_signed) {
+    const u32 dst_bits = SizeInBits(dst_size);
+    if (src_size == Register::Size::Word && dst_size == Register::Size::Word) {
+        if (src_signed == dst_signed) {
+            return std::nullopt;
+        }
+        return std::make_pair(0, std::numeric_limits<s32>::max());
+    }
+    if (dst_signed) {
+        // Signed destination, clamp to [-128, 127] for instance
+        return std::make_pair(-(1 << (dst_bits - 1)), (1 << (dst_bits - 1)) - 1);
+    } else {
+        // Unsigned destination
+        if (dst_bits == 32) {
+            // Avoid shifting by 32, that is undefined behavior
+            return std::make_pair(0, s32(std::numeric_limits<u32>::max()));
+        }
+        return std::make_pair(0, (1 << dst_bits) - 1);
+    }
+}
+
 } // Anonymous namespace
 
 u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
@@ -28,14 +72,13 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
     case OpCode::Id::I2I_R:
     case OpCode::Id::I2I_C:
     case OpCode::Id::I2I_IMM: {
-        UNIMPLEMENTED_IF(instr.conversion.int_src.selector != 0);
-        UNIMPLEMENTED_IF(instr.conversion.dst_size != Register::Size::Word);
-        UNIMPLEMENTED_IF(instr.alu.saturate_d);
+        const bool src_signed = instr.conversion.is_input_signed;
+        const bool dst_signed = instr.conversion.is_output_signed;
+        const Register::Size src_size = instr.conversion.src_size;
+        const Register::Size dst_size = instr.conversion.dst_size;
+        const u32 selector = static_cast<u32>(instr.conversion.int_src.selector);
 
-        const bool input_signed = instr.conversion.is_input_signed;
-        const bool output_signed = instr.conversion.is_output_signed;
-
-        Node value = [&]() {
+        Node value = [this, instr, opcode] {
             switch (opcode->get().GetId()) {
             case OpCode::Id::I2I_R:
                 return GetRegister(instr.gpr20);
@@ -48,16 +91,60 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
                 return Immediate(0);
             }
         }();
-        value = ConvertIntegerSize(value, instr.conversion.src_size, input_signed);
 
-        value = GetOperandAbsNegInteger(value, instr.conversion.abs_a, instr.conversion.negate_a,
-                                        input_signed);
-        if (input_signed != output_signed) {
-            value = SignedOperation(OperationCode::ICastUnsigned, output_signed, NO_PRECISE, value);
+        // Ensure the source selector is valid
+        switch (instr.conversion.src_size) {
+        case Register::Size::Byte:
+            break;
+        case Register::Size::Short:
+            ASSERT(selector == 0 || selector == 2);
+            break;
+        default:
+            ASSERT(selector == 0);
+            break;
+        }
+
+        if (src_size != Register::Size::Word || selector != 0) {
+            value = SignedOperation(OperationCode::IBitfieldExtract, src_signed, std::move(value),
+                                    Immediate(selector * 8), Immediate(SizeInBits(src_size)));
+        }
+
+        value = GetOperandAbsNegInteger(std::move(value), instr.conversion.abs_a,
+                                        instr.conversion.negate_a, src_signed);
+
+        if (instr.alu.saturate_d) {
+            if (src_signed && !dst_signed) {
+                Node is_negative = Operation(OperationCode::LogicalUGreaterEqual, value,
+                                             Immediate(1 << (SizeInBits(src_size) - 1)));
+                value = Operation(OperationCode::Select, std::move(is_negative), Immediate(0),
+                                  std::move(value));
+
+                // Simplify generated expressions, this can be removed without semantic impact
+                SetTemporary(bb, 0, std::move(value));
+                value = GetTemporary(0);
+
+                if (dst_size != Register::Size::Word) {
+                    const Node limit = Immediate((1 << SizeInBits(dst_size)) - 1);
+                    Node is_large =
+                        Operation(OperationCode::LogicalUGreaterThan, std::move(value), limit);
+                    value = Operation(OperationCode::Select, std::move(is_large), limit,
+                                      std::move(value));
+                }
+            } else if (const std::optional bounds =
+                           IntegerSaturateBounds(src_size, dst_size, src_signed, dst_signed)) {
+                value = SignedOperation(OperationCode::IMax, src_signed, std::move(value),
+                                        Immediate(bounds->first));
+                value = SignedOperation(OperationCode::IMin, src_signed, std::move(value),
+                                        Immediate(bounds->second));
+            }
+        } else if (dst_size != Register::Size::Word) {
+            // No saturation, we only have to mask the result
+            Node mask = Immediate((1 << SizeInBits(dst_size)) - 1);
+            value = Operation(OperationCode::UBitwiseAnd, std::move(value), std::move(mask));
         }
 
         SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
-        SetRegister(bb, instr.gpr0, value);
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::I2F_R:
