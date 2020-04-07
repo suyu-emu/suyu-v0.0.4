@@ -291,7 +291,7 @@ std::pair<Node, bool> ShaderIR::GetComponentValue(ComponentType component_type, 
                 is_signed};
     }
     case ComponentType::UINT: // range [0, (1 << component_size) - 1]
-        return {original_value, false};
+        return {std::move(original_value), false};
     case ComponentType::FLOAT:
         if (component_size == 16) {
             return {Operation(OperationCode::HCastFloat, original_value), true};
