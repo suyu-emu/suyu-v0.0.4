@@ -48,6 +48,25 @@ if (BUILD_REPOSITORY)
   endif()
 endif()
 
+# "Hack": Generate BUILD_FULLNAME from the Git desc
+if (GIT_DESC)
+  # regex capture the characters before the first "-" into CMAKE_MATCH_1
+  string(REGEX MATCH "^([a-z]*)-.*" OUTVAR ${GIT_DESC})
+  if ("${CMAKE_MATCH_COUNT}" GREATER 0)
+    # capitalize the first letter of the repo name.
+    string(SUBSTRING ${CMAKE_MATCH_1} 0 1 FIRST_LETTER)
+    string(SUBSTRING ${CMAKE_MATCH_1} 1 -1 REMAINDER)
+    string(TOUPPER ${FIRST_LETTER} FIRST_LETTER)
+    set(REPO_NAME "${FIRST_LETTER}${REMAINDER}")
+
+    # If GIT_DESC has been parsed correctly, build the BUILD_FULLNAME from the repo name and the
+    # build version
+    if(REPO_NAME)
+        set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_ID} ")
+    endif()
+  endif()
+endif()
+
 # The variable SRC_DIR must be passed into the script (since it uses the current build directory for all values of CMAKE_*_DIR)
 set(VIDEO_CORE "${SRC_DIR}/src/video_core")
 set(HASH_FILES
