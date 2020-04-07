@@ -312,6 +312,10 @@ private:
     /// Conditionally saturates a half float pair
     Node GetSaturatedHalfFloat(Node value, bool saturate = true);
 
+    /// Get image component value by type and size
+    std::pair<Node, bool> GetComponentValue(Tegra::Texture::ComponentType component_type,
+                                            u32 component_size, Node original_value);
+
     /// Returns a predicate comparing two floats
     Node GetPredicateComparisonFloat(Tegra::Shader::PredCondition condition, Node op_a, Node op_b);
     /// Returns a predicate comparing two integers
