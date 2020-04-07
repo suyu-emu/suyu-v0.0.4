@@ -141,19 +141,19 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
     case TextureFormat::R16_G16_B16_A16:
         return 16;
     case TextureFormat::R32_G32_B32:
-        return (component == 0 || component == 1 || component == 2) ? 32 : 0;
+        return component <= 2 ? 32 : 0;
     case TextureFormat::R32_G32:
-        return (component == 0 || component == 1) ? 32 : 0;
+        return component <= 1 ? 32 : 0;
     case TextureFormat::R16_G16:
-        return (component == 0 || component == 1) ? 16 : 0;
+        return component <= 1 ? 16 : 0;
     case TextureFormat::R32:
-        return (component == 0) ? 32 : 0;
+        return component == 0 ? 32 : 0;
     case TextureFormat::R16:
-        return (component == 0) ? 16 : 0;
+        return component == 0 ? 16 : 0;
     case TextureFormat::R8:
-        return (component == 0) ? 8 : 0;
+        return component == 0 ? 8 : 0;
     case TextureFormat::R1:
-        return (component == 0) ? 1 : 0;
+        return component == 0 ? 1 : 0;
     case TextureFormat::A8R8G8B8:
         return 8;
     case TextureFormat::A2B10G10R10:
@@ -296,11 +296,11 @@ std::pair<Node, bool> ShaderIR::GetComponentValue(ComponentType component_type, 
         if (component_size == 16) {
             return {Operation(OperationCode::HCastFloat, original_value), true};
         } else {
-            return {original_value, true};
+            return {std::move(original_value), true};
         }
     default:
         UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
-        return {original_value, true};
+        return {std::move(original_value), true};
     }
 }
 
