@@ -20,6 +20,8 @@ get_timestamp(BUILD_DATE)
 # Also if this is a CI build, add the build name (ie: Nightly, Canary) to the scm_rev file as well
 set(REPO_NAME "")
 set(BUILD_VERSION "0")
+set(TITLE_BAR_FORMAT_IDLE "yuzu {5} ")
+set(BUILD_ID "420")
 if (BUILD_REPOSITORY)
   # regex capture the string nightly or canary into CMAKE_MATCH_1
   string(REGEX MATCH "yuzu-emu/yuzu-?(.*)" OUTVAR ${BUILD_REPOSITORY})
@@ -44,25 +46,6 @@ if (BUILD_REPOSITORY)
       else()
         set(BUILD_FULLNAME "")
       endif()
-    endif()
-  endif()
-endif()
-
-# "Hack": Generate BUILD_FULLNAME from the Git desc
-if (GIT_DESC)
-  # regex capture the characters before the first "-" into CMAKE_MATCH_1
-  string(REGEX MATCH "^([a-z]*)-.*" OUTVAR ${GIT_DESC})
-  if ("${CMAKE_MATCH_COUNT}" GREATER 0)
-    # capitalize the first letter of the repo name.
-    string(SUBSTRING ${CMAKE_MATCH_1} 0 1 FIRST_LETTER)
-    string(SUBSTRING ${CMAKE_MATCH_1} 1 -1 REMAINDER)
-    string(TOUPPER ${FIRST_LETTER} FIRST_LETTER)
-    set(REPO_NAME "${FIRST_LETTER}${REMAINDER}")
-
-    # If GIT_DESC has been parsed correctly, build the BUILD_FULLNAME from the repo name and the
-    # build version
-    if(REPO_NAME)
-        set(BUILD_FULLNAME "${REPO_NAME} ${BUILD_ID} ")
     endif()
   endif()
 endif()
