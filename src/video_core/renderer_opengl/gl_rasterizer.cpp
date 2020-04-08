@@ -658,7 +658,7 @@ void RasterizerOpenGL::FlushAll() {}
 
 void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.FlushRegion(addr, size);
@@ -668,7 +668,7 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
 
 void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.InvalidateRegion(addr, size);

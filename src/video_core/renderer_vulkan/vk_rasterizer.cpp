@@ -496,7 +496,7 @@ void RasterizerVulkan::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
 void RasterizerVulkan::FlushAll() {}
 
 void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
@@ -506,7 +506,7 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
 }
 
 void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.InvalidateRegion(addr, size);
