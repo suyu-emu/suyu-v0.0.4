@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <limits>
 #include <memory>
 #include <sstream>
 #include <unordered_map>
@@ -530,11 +531,11 @@ void CopyDir(const std::string& source_path, const std::string& dest_path) {
 std::optional<std::string> GetCurrentDir() {
 // Get the current working directory (getcwd uses malloc)
 #ifdef _WIN32
-    wchar_t* dir;
-    if (!(dir = _wgetcwd(nullptr, 0))) {
+    wchar_t* dir = _wgetcwd(nullptr, 0);
+    if (!dir) {
 #else
-    char* dir;
-    if (!(dir = getcwd(nullptr, 0))) {
+    char* dir = getcwd(nullptr, 0);
+    if (!dir) {
 #endif
         LOG_ERROR(Common_Filesystem, "GetCurrentDirectory failed: {}", GetLastErrorMsg());
         return {};
@@ -918,19 +919,22 @@ void IOFile::Swap(IOFile& other) noexcept {
 
 bool IOFile::Open(const std::string& filename, const char openmode[], int flags) {
     Close();
+    bool m_good;
 #ifdef _WIN32
     if (flags != 0) {
         m_file = _wfsopen(Common::UTF8ToUTF16W(filename).c_str(),
                           Common::UTF8ToUTF16W(openmode).c_str(), flags);
+        m_good = m_file != nullptr;
     } else {
-        _wfopen_s(&m_file, Common::UTF8ToUTF16W(filename).c_str(),
-                  Common::UTF8ToUTF16W(openmode).c_str());
+        m_good = _wfopen_s(&m_file, Common::UTF8ToUTF16W(filename).c_str(),
+                           Common::UTF8ToUTF16W(openmode).c_str()) == 0;
     }
 #else
-    m_file = fopen(filename.c_str(), openmode);
+    m_file = std::fopen(filename.c_str(), openmode);
+    m_good = m_file != nullptr;
 #endif
 
-    return IsOpen();
+    return m_good;
 }
 
 bool IOFile::Close() {
@@ -956,7 +960,7 @@ u64 IOFile::Tell() const {
     if (IsOpen())
         return ftello(m_file);
 
-    return -1;
+    return std::numeric_limits<u64>::max();
 }
 
 bool IOFile::Flush() {
