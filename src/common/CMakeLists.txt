@@ -155,6 +155,8 @@ add_library(common STATIC
     uuid.cpp
     uuid.h
     vector_math.h
+    virtual_buffer.cpp
+    virtual_buffer.h
     web_result.h
     zstd_compression.cpp
     zstd_compression.h
