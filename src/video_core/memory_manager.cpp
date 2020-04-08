@@ -202,7 +202,7 @@ u8* MemoryManager::GetPointer(GPUVAddr addr) {
 
     auto& memory = system.Memory();
 
-    const VAddr const page_addr{page_table.backing_addr[addr >> page_bits]};
+    const VAddr page_addr{page_table.backing_addr[addr >> page_bits]};
 
     if (page_addr != 0) {
         return memory.GetPointer(page_addr + (addr & page_mask));
@@ -219,7 +219,7 @@ const u8* MemoryManager::GetPointer(GPUVAddr addr) const {
 
     const auto& memory = system.Memory();
 
-    const VAddr const page_addr{page_table.backing_addr[addr >> page_bits]};
+    const VAddr page_addr{page_table.backing_addr[addr >> page_bits]};
 
     if (page_addr != 0) {
         return memory.GetPointer(page_addr + (addr & page_mask));

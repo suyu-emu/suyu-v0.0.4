@@ -19,6 +19,7 @@
 #include "common/alignment.h"
 #include "common/common_types.h"
 #include "core/core.h"
+#include "core/memory.h"
 #include "video_core/buffer_cache/buffer_block.h"
 #include "video_core/buffer_cache/map_interval.h"
 #include "video_core/memory_manager.h"
