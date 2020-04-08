@@ -114,7 +114,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 }
 struct System::Impl {
     explicit Impl(System& system)
-        : kernel{system}, device_memory{system}, fs_controller{system}, memory{system},
+        : kernel{system}, fs_controller{system}, memory{system},
           cpu_manager{system}, reporter{system}, applet_manager{system} {}
 
     CoreManager& CurrentCoreManager() {
@@ -140,6 +140,8 @@ struct System::Impl {
 
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(HW_Memory, "initialized OK");
+
+        device_memory = std::make_unique<DeviceMemory>(system);
 
         core_timing.Initialize();
         kernel.Initialize();
@@ -277,6 +279,7 @@ struct System::Impl {
         telemetry_session.reset();
         perf_stats.reset();
         gpu_core.reset();
+        device_memory.reset();
 
         // Close all CPU/threading state
         cpu_manager.Shutdown();
@@ -338,7 +341,6 @@ struct System::Impl {
 
     Timing::CoreTiming core_timing;
     Kernel::KernelCore kernel;
-    DeviceMemory device_memory;
     /// RealVfsFilesystem instance
     FileSys::VirtualFilesystem virtual_filesystem;
     /// ContentProviderUnion instance
@@ -348,6 +350,7 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
+    std::unique_ptr<DeviceMemory> device_memory;
     Core::Memory::Memory memory;
     CpuManager cpu_manager;
     bool is_powered_on = false;
@@ -475,11 +478,11 @@ Kernel::Process* System::CurrentProcess() {
 }
 
 DeviceMemory& System::GetDeviceMemory() {
-    return impl->device_memory;
+    return *impl->device_memory;
 }
 
 const DeviceMemory& System::GetDeviceMemory() const {
-    return impl->device_memory;
+    return *impl->device_memory;
 }
 
 const Kernel::Process* System::CurrentProcess() const {
