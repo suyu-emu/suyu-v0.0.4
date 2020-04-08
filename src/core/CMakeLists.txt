@@ -159,6 +159,7 @@ add_library(core STATIC
     hle/kernel/memory/memory_block.h
     hle/kernel/memory/memory_block_manager.cpp
     hle/kernel/memory/memory_block_manager.h
+    hle/kernel/memory/memory_layout.h
     hle/kernel/memory/memory_manager.cpp
     hle/kernel/memory/memory_manager.h
     hle/kernel/memory/memory_types.h
