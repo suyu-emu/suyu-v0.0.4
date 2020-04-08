@@ -53,7 +53,7 @@ public:
             if (!is_written && !IsRegionWritten(cpu_addr, cpu_addr + size - 1)) {
                 auto& memory_manager = system.GPU().MemoryManager();
                 if (use_fast_cbuf) {
-                    if (Tegra::MemoryManager::IsGranularRange(gpu_addr, size)) {
+                    if (memory_manager.IsGranularRange(gpu_addr, size)) {
                         const auto host_ptr = memory_manager.GetPointer(gpu_addr);
                         return ConstBufferUpload(host_ptr, size);
                     } else {
@@ -62,7 +62,7 @@ public:
                         return ConstBufferUpload(staging_buffer.data(), size);
                     }
                 } else {
-                    if (Tegra::MemoryManager::IsGranularRange(gpu_addr, size)) {
+                    if (memory_manager.IsGranularRange(gpu_addr, size)) {
                         const auto host_ptr = memory_manager.GetPointer(gpu_addr);
                         return StreamBufferUpload(host_ptr, size, alignment);
                     } else {
@@ -228,7 +228,7 @@ private:
             auto& memory_manager = system.GPU().MemoryManager();
             const VAddr cpu_addr_end = cpu_addr + size;
             MapInterval new_map = CreateMap(cpu_addr, cpu_addr_end, gpu_addr);
-            if (Tegra::MemoryManager::IsGranularRange(gpu_addr, size)) {
+            if (memory_manager.IsGranularRange(gpu_addr, size)) {
                 u8* host_ptr = memory_manager.GetPointer(gpu_addr);
                 UploadBlockData(block, block->GetOffset(cpu_addr), size, host_ptr);
             } else {
