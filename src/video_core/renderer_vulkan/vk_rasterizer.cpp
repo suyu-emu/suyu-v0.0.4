@@ -499,7 +499,6 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
     if (addr == 0 || size == 0) {
         return;
     }
-    CacheAddr cache_addr = ToCacheAddr(system.Memory().GetPointer(addr));
     texture_cache.FlushRegion(addr, size);
     buffer_cache.FlushRegion(addr, size);
     query_cache.FlushRegion(addr, size);
