@@ -937,7 +937,7 @@ ResultVal<VAddr> PageTable::AllocateAndMapMemory(std::size_t needed_num_pages, s
 }
 
 PAddr PageTable::GetPhysicalAddr(VAddr addr) {
-    return system.GetDeviceMemory().GetPhysicalAddr(addr);
+    return system.DeviceMemory().GetPhysicalAddr(addr);
 }
 
 ResultCode PageTable::InitializeMemoryLayout(VAddr start, VAddr end) {

@@ -141,7 +141,7 @@ struct System::Impl {
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
-        device_memory = std::make_unique<DeviceMemory>(system);
+        device_memory = std::make_unique<Core::DeviceMemory>(system);
 
         core_timing.Initialize();
         kernel.Initialize();
@@ -350,7 +350,7 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
-    std::unique_ptr<DeviceMemory> device_memory;
+    std::unique_ptr<Core::DeviceMemory> device_memory;
     Core::Memory::Memory memory;
     CpuManager cpu_manager;
     bool is_powered_on = false;
@@ -477,11 +477,11 @@ Kernel::Process* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
 }
 
-DeviceMemory& System::GetDeviceMemory() {
+Core::DeviceMemory& System::DeviceMemory() {
     return *impl->device_memory;
 }
 
-const DeviceMemory& System::GetDeviceMemory() const {
+const Core::DeviceMemory& System::DeviceMemory() const {
     return *impl->device_memory;
 }
 

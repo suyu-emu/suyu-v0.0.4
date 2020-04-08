@@ -258,10 +258,10 @@ public:
     const Kernel::GlobalScheduler& GlobalScheduler() const;
 
     /// Gets the manager for the guest device memory
-    DeviceMemory& GetDeviceMemory();
+    Core::DeviceMemory& DeviceMemory();
 
     /// Gets the manager for the guest device memory
-    const DeviceMemory& GetDeviceMemory() const;
+    const Core::DeviceMemory& DeviceMemory() const;
 
     /// Provides a pointer to the current process
     Kernel::Process* CurrentProcess();
