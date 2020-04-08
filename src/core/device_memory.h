@@ -6,7 +6,7 @@
 
 #include "common/assert.h"
 #include "common/common_funcs.h"
-#include "core/hle/kernel/physical_memory.h"
+#include "common/virtual_buffer.h"
 
 namespace Core {
 
@@ -24,24 +24,25 @@ constexpr u64 SlabHeapEnd = SlabHeapBase + SlapHeapSize;
 
 class DeviceMemory : NonCopyable {
 public:
-    DeviceMemory(Core::System& system);
+    explicit DeviceMemory(Core::System& system);
     ~DeviceMemory();
 
     template <typename T>
     PAddr GetPhysicalAddr(T* ptr) {
         const auto ptr_addr{reinterpret_cast<uintptr_t>(ptr)};
-        const auto base_addr{reinterpret_cast<uintptr_t>(base)};
+        const auto base_addr{reinterpret_cast<uintptr_t>(buffer.data())};
         ASSERT(ptr_addr >= base_addr);
         return ptr_addr - base_addr + DramMemoryMap::Base;
     }
 
     PAddr GetPhysicalAddr(VAddr addr);
 
-    u8* GetPointer(PAddr addr);
+    constexpr u8* GetPointer(PAddr addr) {
+        return buffer.data() + (addr - DramMemoryMap::Base);
+    }
 
 private:
-    u8* base{};
-    Kernel::PhysicalMemory physical_memory;
+    Common::VirtualBuffer<u8> buffer;
     Core::System& system;
 };
 
