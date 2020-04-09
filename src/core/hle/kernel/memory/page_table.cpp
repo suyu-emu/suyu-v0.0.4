@@ -936,10 +936,6 @@ ResultVal<VAddr> PageTable::AllocateAndMapMemory(std::size_t needed_num_pages, s
     return MakeResult<VAddr>(addr);
 }
 
-PAddr PageTable::GetPhysicalAddr(VAddr addr) {
-    return system.DeviceMemory().GetPhysicalAddr(addr);
-}
-
 ResultCode PageTable::InitializeMemoryLayout(VAddr start, VAddr end) {
     block_manager = std::make_unique<MemoryBlockManager>(start, end);
 

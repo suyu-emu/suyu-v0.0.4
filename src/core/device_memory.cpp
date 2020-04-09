@@ -12,11 +12,4 @@ DeviceMemory::DeviceMemory(System& system) : buffer{DramMemoryMap::Size}, system
 
 DeviceMemory::~DeviceMemory() = default;
 
-PAddr DeviceMemory::GetPhysicalAddr(VAddr addr) {
-    const u8* const base{system.Memory().GetPointer(addr)};
-    ASSERT(base);
-    const uintptr_t offset{static_cast<uintptr_t>(base - GetPointer(DramMemoryMap::Base))};
-    return DramMemoryMap::Base + offset;
-}
-
 } // namespace Core

@@ -53,7 +53,6 @@ public:
                                           bool is_map_only, VAddr region_start,
                                           std::size_t region_num_pages, MemoryState state,
                                           MemoryPermission perm, PAddr map_addr = 0);
-    PAddr GetPhysicalAddr(VAddr addr);
 
     Common::PageTable& PageTableImpl() {
         return page_table_impl;
@@ -210,6 +209,9 @@ public:
     }
     constexpr bool IsInsideASLRRegion(VAddr address, std::size_t size) const {
         return !IsOutsideASLRRegion(address, size);
+    }
+    constexpr PAddr GetPhysicalAddr(VAddr addr) {
+        return page_table_impl.backing_addr[addr >> Memory::PageBits] + addr;
     }
 
 private:
