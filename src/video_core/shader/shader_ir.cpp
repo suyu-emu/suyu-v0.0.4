@@ -359,6 +359,9 @@ Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) const {
     switch (cc) {
     case Tegra::Shader::ConditionCode::NEU:
         return GetInternalFlag(InternalFlag::Zero, true);
+    case Tegra::Shader::ConditionCode::FCSM_TR:
+        UNIMPLEMENTED_MSG("EXIT.FCSM_TR is not implemented");
+        return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     default:
         UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
         return MakeNode<PredicateNode>(Pred::NeverExecute, false);

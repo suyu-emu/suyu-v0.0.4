@@ -71,18 +71,24 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         bb.push_back(Operation(OperationCode::Discard));
         break;
     }
-    case OpCode::Id::MOV_SYS: {
+    case OpCode::Id::S2R: {
         const Node value = [this, instr] {
             switch (instr.sys20) {
             case SystemVariable::LaneId:
-                LOG_WARNING(HW_GPU, "MOV_SYS instruction with LaneId is incomplete");
+                LOG_WARNING(HW_GPU, "S2R instruction with LaneId is incomplete");
                 return Immediate(0U);
             case SystemVariable::InvocationId:
                 return Operation(OperationCode::InvocationId);
             case SystemVariable::Ydirection:
                 return Operation(OperationCode::YNegate);
             case SystemVariable::InvocationInfo:
-                LOG_WARNING(HW_GPU, "MOV_SYS instruction with InvocationInfo is incomplete");
+                LOG_WARNING(HW_GPU, "S2R instruction with InvocationInfo is incomplete");
+                return Immediate(0U);
+            case SystemVariable::WscaleFactorXY:
+                UNIMPLEMENTED_MSG("S2R WscaleFactorXY is not implemented");
+                return Immediate(0U);
+            case SystemVariable::WscaleFactorZ:
+                UNIMPLEMENTED_MSG("S2R WscaleFactorZ is not implemented");
                 return Immediate(0U);
             case SystemVariable::Tid: {
                 Node value = Immediate(0);
