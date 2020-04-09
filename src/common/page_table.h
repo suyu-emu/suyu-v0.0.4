@@ -5,9 +5,12 @@
 #pragma once
 
 #include <vector>
+
 #include <boost/icl/interval_map.hpp>
+
 #include "common/common_types.h"
 #include "common/memory_hook.h"
+#include "common/virtual_buffer.h"
 
 namespace Common {
 
@@ -47,7 +50,7 @@ struct SpecialRegion {
  * mimics the way a real CPU page table works.
  */
 struct PageTable {
-    explicit PageTable(std::size_t page_size_in_bits);
+    PageTable();
     ~PageTable();
 
     /**
@@ -56,40 +59,18 @@ struct PageTable {
      *
      * @param address_space_width_in_bits The address size width in bits.
      */
-    void Resize(std::size_t address_space_width_in_bits);
+    void Resize(std::size_t address_space_width_in_bits, std::size_t page_size_in_bits,
+                bool has_attribute);
 
     /**
      * Vector of memory pointers backing each page. An entry can only be non-null if the
      * corresponding entry in the `attributes` vector is of type `Memory`.
      */
-    std::vector<u8*> pointers;
+    VirtualBuffer<u8*> pointers;
 
-    /**
-     * Contains MMIO handlers that back memory regions whose entries in the `attribute` vector is
-     * of type `Special`.
-     */
-    boost::icl::interval_map<u64, std::set<SpecialRegion>> special_regions;
+    VirtualBuffer<u64> backing_addr;
 
-    /**
-     * Vector of fine grained page attributes. If it is set to any value other than `Memory`, then
-     * the corresponding entry in `pointers` MUST be set to null.
-     */
-    std::vector<PageType> attributes;
-
-    const std::size_t page_size_in_bits{};
-};
-
-/**
- * A more advanced Page Table with the ability to save a backing address when using it
- * depends on another MMU.
- */
-struct BackingPageTable : PageTable {
-    explicit BackingPageTable(std::size_t page_size_in_bits);
-    ~BackingPageTable();
-
-    void Resize(std::size_t address_space_width_in_bits);
-
-    std::vector<u64> backing_addr;
+    VirtualBuffer<PageType> attributes;
 };
 
 } // namespace Common
