@@ -209,8 +209,6 @@ add_library(core STATIC
     hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp
     hle/kernel/transfer_memory.h
-    hle/kernel/vm_manager.cpp
-    hle/kernel/vm_manager.h
     hle/kernel/writable_event.cpp
     hle/kernel/writable_event.h
     hle/lock.cpp
