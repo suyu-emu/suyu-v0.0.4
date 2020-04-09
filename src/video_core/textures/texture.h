@@ -8,7 +8,6 @@
 #include "common/assert.h"
 #include "common/bit_field.h"
 #include "common/common_types.h"
-#include "core/settings.h"
 
 namespace Tegra::Texture {
 
@@ -336,24 +335,9 @@ struct TSCEntry {
         std::array<u8, 0x20> raw;
     };
 
-    float GetMaxAnisotropy() const {
-        const u32 min_value = [] {
-            switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
-            default:
-            case Anisotropy::Default:
-                return 1U;
-            case Anisotropy::Filter2x:
-                return 2U;
-            case Anisotropy::Filter4x:
-                return 4U;
-            case Anisotropy::Filter8x:
-                return 8U;
-            case Anisotropy::Filter16x:
-                return 16U;
-            }
-        }();
-        return static_cast<float>(std::max(1U << max_anisotropy, min_value));
-    }
+    std::array<float, 4> GetBorderColor() const noexcept;
+
+    float GetMaxAnisotropy() const noexcept;
 
     float GetMinLod() const {
         return static_cast<float>(min_lod_clamp) / 256.0f;
@@ -367,15 +351,6 @@ struct TSCEntry {
         // Sign extend the 13-bit value.
         constexpr u32 mask = 1U << (13 - 1);
         return static_cast<float>(static_cast<s32>((mip_lod_bias ^ mask) - mask)) / 256.0f;
-    }
-
-    std::array<float, 4> GetBorderColor() const {
-        if (srgb_conversion) {
-            return {static_cast<float>(srgb_border_color_r) / 255.0f,
-                    static_cast<float>(srgb_border_color_g) / 255.0f,
-                    static_cast<float>(srgb_border_color_b) / 255.0f, border_color[3]};
-        }
-        return border_color;
     }
 };
 static_assert(sizeof(TSCEntry) == 0x20, "TSCEntry has wrong size");
