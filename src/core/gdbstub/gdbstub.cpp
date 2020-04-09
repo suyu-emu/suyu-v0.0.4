@@ -37,9 +37,9 @@
 #include "core/core.h"
 #include "core/core_manager.h"
 #include "core/gdbstub/gdbstub.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
 
@@ -643,7 +643,7 @@ static void HandleQuery() {
         SendReply(target_xml);
     } else if (strncmp(query, "Offsets", strlen("Offsets")) == 0) {
         const VAddr base_address =
-            Core::System::GetInstance().CurrentProcess()->VMManager().GetCodeRegionBaseAddress();
+            Core::System::GetInstance().CurrentProcess()->PageTable().GetCodeRegionStart();
         std::string buffer = fmt::format("TextSeg={:0x}", base_address);
         SendReply(buffer.c_str());
     } else if (strncmp(query, "fThreadInfo", strlen("fThreadInfo")) == 0) {
