@@ -16,8 +16,8 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/nso.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -73,7 +73,7 @@ FileType AppLoader_NSO::IdentifyType(const FileSys::VirtualFile& file) {
 
 std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
                                                const FileSys::VfsFile& file, VAddr load_base,
-                                               bool should_pass_arguments,
+                                               bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NSOHeader)) {
         return {};
@@ -105,12 +105,9 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         codeset.segments[i].size = nso_header.segments[i].size;
     }
 
-    if (should_pass_arguments) {
-        std::vector<u8> arg_data{Settings::values.program_args.begin(),
-                                 Settings::values.program_args.end()};
-        if (arg_data.empty()) {
-            arg_data.resize(NSO_ARGUMENT_DEFAULT_SIZE);
-        }
+    if (should_pass_arguments && !Settings::values.program_args.empty()) {
+        const auto arg_data{Settings::values.program_args};
+
         codeset.DataSegment().size += NSO_ARGUMENT_DATA_ALLOCATION_SIZE;
         NSOArgumentHeader args_header{
             NSO_ARGUMENT_DATA_ALLOCATION_SIZE, static_cast<u32_le>(arg_data.size()), {}};
@@ -144,6 +141,11 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process,
         std::copy(pi_header.begin() + sizeof(NSOHeader), pi_header.end(), program_image.data());
     }
 
+    // If we aren't actually loading (i.e. just computing the process code layout), we are done
+    if (!load_into_process) {
+        return load_base + image_size;
+    }
+
     // Apply cheats if they exist and the program has a valid title ID
     if (pm) {
         auto& system = Core::System::GetInstance();
@@ -172,8 +174,8 @@ AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process) {
     modules.clear();
 
     // Load module
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    if (!LoadModule(process, *file, base_address, true)) {
+    const VAddr base_address = process.PageTable().GetCodeRegionStart();
+    if (!LoadModule(process, *file, base_address, true, true)) {
         return {ResultStatus::ErrorLoadingNSO, {}};
     }
 

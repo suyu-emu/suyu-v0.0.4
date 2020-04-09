@@ -14,6 +14,7 @@
 #include "core/file_sys/romfs_factory.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/deconstructed_rom_directory.h"
@@ -129,27 +130,47 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     }
     metadata.Print();
 
-    if (process.LoadFromMetadata(metadata).IsError()) {
-        return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
-    }
+    const auto static_modules = {"rtld",    "main",    "subsdk0", "subsdk1", "subsdk2", "subsdk3",
+                                 "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"};
 
-    const FileSys::PatchManager pm(metadata.GetTitleID());
-
-    // Load NSO modules
-    modules.clear();
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
-    VAddr next_load_addr = base_address;
-    for (const auto& module : {"rtld", "main", "subsdk0", "subsdk1", "subsdk2", "subsdk3",
-                               "subsdk4", "subsdk5", "subsdk6", "subsdk7", "sdk"}) {
-        const FileSys::VirtualFile module_file = dir->GetFile(module);
-        if (module_file == nullptr) {
+    // Use the NSO module loader to figure out the code layout
+    std::size_t code_size{};
+    for (const auto& module : static_modules) {
+        const FileSys::VirtualFile module_file{dir->GetFile(module)};
+        if (!module_file) {
             continue;
         }
 
-        const VAddr load_addr = next_load_addr;
-        const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
-        const auto tentative_next_load_addr =
-            AppLoader_NSO::LoadModule(process, *module_file, load_addr, should_pass_arguments, pm);
+        const bool should_pass_arguments{std::strcmp(module, "rtld") == 0};
+        const auto tentative_next_load_addr{AppLoader_NSO::LoadModule(
+            process, *module_file, code_size, should_pass_arguments, false)};
+        if (!tentative_next_load_addr) {
+            return {ResultStatus::ErrorLoadingNSO, {}};
+        }
+
+        code_size = *tentative_next_load_addr;
+    }
+
+    // Setup the process code layout
+    if (process.LoadFromMetadata(metadata, code_size).IsError()) {
+        return {ResultStatus::ErrorUnableToParseKernelMetadata, {}};
+    }
+
+    // Load NSO modules
+    modules.clear();
+    const VAddr base_address{process.PageTable().GetCodeRegionStart()};
+    VAddr next_load_addr{base_address};
+    const FileSys::PatchManager pm{metadata.GetTitleID()};
+    for (const auto& module : static_modules) {
+        const FileSys::VirtualFile module_file{dir->GetFile(module)};
+        if (!module_file) {
+            continue;
+        }
+
+        const VAddr load_addr{next_load_addr};
+        const bool should_pass_arguments{std::strcmp(module, "rtld") == 0};
+        const auto tentative_next_load_addr{AppLoader_NSO::LoadModule(
+            process, *module_file, load_addr, should_pass_arguments, true, pm)};
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
