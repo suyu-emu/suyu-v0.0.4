@@ -14,6 +14,7 @@
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/writable_event.h"
@@ -53,9 +54,7 @@ IAppletResource::IAppletResource(Core::System& system)
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    shared_mem = Kernel::SharedMemory::Create(
-        kernel, nullptr, SHARED_MEMORY_SIZE, Kernel::MemoryPermission::ReadWrite,
-        Kernel::MemoryPermission::Read, 0, Kernel::MemoryRegion::BASE, "HID:SharedMemory");
+    shared_mem = SharedFrom(&kernel.GetHidSharedMem());
 
     MakeController<Controller_DebugPad>(HidController::DebugPad);
     MakeController<Controller_Touchscreen>(HidController::Touchscreen);
