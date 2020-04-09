@@ -39,25 +39,25 @@ constexpr u32 Popcnt(u32 n) {
 
 class InputBitStream {
 public:
-    explicit InputBitStream(const u8* ptr, std::size_t start_offset = 0)
-        : cur_byte(ptr), next_bit(start_offset % 8) {}
+    constexpr explicit InputBitStream(const u8* ptr, std::size_t start_offset = 0)
+        : cur_byte{ptr}, next_bit{start_offset % 8} {}
 
-    std::size_t GetBitsRead() const {
-        return m_BitsRead;
+    constexpr std::size_t GetBitsRead() const {
+        return bits_read;
     }
 
-    u32 ReadBit() {
-        u32 bit = *cur_byte >> next_bit++;
+    constexpr bool ReadBit() {
+        const bool bit = (*cur_byte >> next_bit++) & 1;
         while (next_bit >= 8) {
             next_bit -= 8;
             cur_byte++;
         }
 
-        m_BitsRead++;
-        return bit & 1;
+        bits_read++;
+        return bit;
     }
 
-    u32 ReadBits(std::size_t nBits) {
+    constexpr u32 ReadBits(std::size_t nBits) {
         u32 ret = 0;
         for (std::size_t i = 0; i < nBits; ++i) {
             ret |= (ReadBit() & 1) << i;
@@ -66,7 +66,7 @@ public:
     }
 
     template <std::size_t nBits>
-    u32 ReadBits() {
+    constexpr u32 ReadBits() {
         u32 ret = 0;
         for (std::size_t i = 0; i < nBits; ++i) {
             ret |= (ReadBit() & 1) << i;
@@ -77,7 +77,7 @@ public:
 private:
     const u8* cur_byte;
     std::size_t next_bit = 0;
-    std::size_t m_BitsRead = 0;
+    std::size_t bits_read = 0;
 };
 
 class OutputBitStream {
