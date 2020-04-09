@@ -10,8 +10,8 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/loader/elf.h"
 #include "core/memory.h"
 
@@ -393,7 +393,7 @@ AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process) {
         return {ResultStatus::ErrorIncorrectELFFileSize, {}};
     }
 
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
+    const VAddr base_address = process.PageTable().GetCodeRegionStart();
     ElfReader elf_reader(&buffer[0]);
     Kernel::CodeSet codeset = elf_reader.LoadInto(base_address);
     const VAddr entry_point = codeset.entrypoint;

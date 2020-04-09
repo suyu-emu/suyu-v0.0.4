@@ -7,8 +7,10 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/kip.h"
+#include "core/memory.h"
 
 namespace Loader {
 
@@ -68,7 +70,7 @@ AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process) {
                         kip->GetMainThreadCpuCore(), kip->GetMainThreadStackSize(),
                         kip->GetTitleID(), 0xFFFFFFFFFFFFFFFF, kip->GetKernelCapabilities());
 
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
+    const VAddr base_address = process.PageTable().GetCodeRegionStart();
     Kernel::CodeSet codeset;
     Kernel::PhysicalMemory program_image;
 

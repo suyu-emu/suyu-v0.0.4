@@ -16,8 +16,8 @@
 #include "core/file_sys/vfs_offset.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
@@ -208,7 +208,7 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process) {
     }
 
     // Load NRO
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
+    const VAddr base_address = process.PageTable().GetCodeRegionStart();
 
     if (!LoadNro(process, *file, base_address)) {
         return {ResultStatus::ErrorLoadingNRO, {}};
