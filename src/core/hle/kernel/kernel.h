@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "core/hle/kernel/memory/memory_types.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
@@ -23,6 +24,12 @@ struct EventType;
 
 namespace Kernel {
 
+namespace Memory {
+class MemoryManager;
+template <typename T>
+class SlabHeap;
+} // namespace Memory
+
 class AddressArbiter;
 class ClientPort;
 class GlobalScheduler;
@@ -31,6 +38,7 @@ class PhysicalCore;
 class Process;
 class ResourceLimit;
 class Scheduler;
+class SharedMemory;
 class Synchronization;
 class Thread;
 class TimeManager;
@@ -146,6 +154,42 @@ public:
 
     /// Register the current thread as a non CPU core thread.
     void RegisterHostThread();
+
+    /// Gets the virtual memory manager for the kernel.
+    Memory::MemoryManager& MemoryManager();
+
+    /// Gets the virtual memory manager for the kernel.
+    const Memory::MemoryManager& MemoryManager() const;
+
+    /// Gets the slab heap allocated for user space pages.
+    Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages();
+
+    /// Gets the slab heap allocated for user space pages.
+    const Memory::SlabHeap<Memory::Page>& GetUserSlabHeapPages() const;
+
+    /// Gets the shared memory object for HID services.
+    Kernel::SharedMemory& GetHidSharedMem();
+
+    /// Gets the shared memory object for HID services.
+    const Kernel::SharedMemory& GetHidSharedMem() const;
+
+    /// Gets the shared memory object for font services.
+    Kernel::SharedMemory& GetFontSharedMem();
+
+    /// Gets the shared memory object for font services.
+    const Kernel::SharedMemory& GetFontSharedMem() const;
+
+    /// Gets the shared memory object for IRS services.
+    Kernel::SharedMemory& GetIrsSharedMem();
+
+    /// Gets the shared memory object for IRS services.
+    const Kernel::SharedMemory& GetIrsSharedMem() const;
+
+    /// Gets the shared memory object for Time services.
+    Kernel::SharedMemory& GetTimeSharedMem();
+
+    /// Gets the shared memory object for Time services.
+    const Kernel::SharedMemory& GetTimeSharedMem() const;
 
 private:
     friend class Object;
