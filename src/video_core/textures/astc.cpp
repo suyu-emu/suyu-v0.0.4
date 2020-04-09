@@ -680,6 +680,61 @@ static constexpr u32 ReplicateBitTo9(std::size_t value) {
     return REPLICATE_BIT_TO_9_TABLE[value];
 }
 
+static constexpr auto REPLICATE_1_BIT_TO_8_TABLE = MakeReplicateTable<u32, 1, 8>();
+static constexpr auto REPLICATE_2_BIT_TO_8_TABLE = MakeReplicateTable<u32, 2, 8>();
+static constexpr auto REPLICATE_3_BIT_TO_8_TABLE = MakeReplicateTable<u32, 3, 8>();
+static constexpr auto REPLICATE_4_BIT_TO_8_TABLE = MakeReplicateTable<u32, 4, 8>();
+static constexpr auto REPLICATE_5_BIT_TO_8_TABLE = MakeReplicateTable<u32, 5, 8>();
+static constexpr auto REPLICATE_6_BIT_TO_8_TABLE = MakeReplicateTable<u32, 6, 8>();
+static constexpr auto REPLICATE_7_BIT_TO_8_TABLE = MakeReplicateTable<u32, 7, 8>();
+static constexpr auto REPLICATE_8_BIT_TO_8_TABLE = MakeReplicateTable<u32, 8, 8>();
+/// Use a precompiled table with the most common usages, if it's not in the expected range, fallback
+/// to the runtime implementation
+static constexpr u32 FastReplicateTo8(u32 value, u32 num_bits) {
+    switch (num_bits) {
+    case 1:
+        return REPLICATE_1_BIT_TO_8_TABLE[value];
+    case 2:
+        return REPLICATE_2_BIT_TO_8_TABLE[value];
+    case 3:
+        return REPLICATE_3_BIT_TO_8_TABLE[value];
+    case 4:
+        return REPLICATE_4_BIT_TO_8_TABLE[value];
+    case 5:
+        return REPLICATE_5_BIT_TO_8_TABLE[value];
+    case 6:
+        return REPLICATE_6_BIT_TO_8_TABLE[value];
+    case 7:
+        return REPLICATE_7_BIT_TO_8_TABLE[value];
+    case 8:
+        return REPLICATE_8_BIT_TO_8_TABLE[value];
+    default:
+        return Replicate(value, num_bits, 8);
+    }
+}
+
+static constexpr auto REPLICATE_1_BIT_TO_6_TABLE = MakeReplicateTable<u32, 1, 6>();
+static constexpr auto REPLICATE_2_BIT_TO_6_TABLE = MakeReplicateTable<u32, 2, 6>();
+static constexpr auto REPLICATE_3_BIT_TO_6_TABLE = MakeReplicateTable<u32, 3, 6>();
+static constexpr auto REPLICATE_4_BIT_TO_6_TABLE = MakeReplicateTable<u32, 4, 6>();
+static constexpr auto REPLICATE_5_BIT_TO_6_TABLE = MakeReplicateTable<u32, 5, 6>();
+static constexpr u32 FastReplicateTo6(u32 value, u32 num_bits) {
+    switch (num_bits) {
+    case 1:
+        return REPLICATE_1_BIT_TO_6_TABLE[value];
+    case 2:
+        return REPLICATE_2_BIT_TO_6_TABLE[value];
+    case 3:
+        return REPLICATE_3_BIT_TO_6_TABLE[value];
+    case 4:
+        return REPLICATE_4_BIT_TO_6_TABLE[value];
+    case 5:
+        return REPLICATE_5_BIT_TO_6_TABLE[value];
+    default:
+        return Replicate(value, num_bits, 6);
+    }
+}
+
 class Pixel {
 protected:
     using ChannelType = s16;
@@ -868,7 +923,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
         switch (val.encoding) {
         // Replicate bits
         case IntegerEncoding::JustBits:
-            out[outIdx++] = Replicate(bitval, bitlen, 8);
+            out[outIdx++] = FastReplicateTo8(bitval, bitlen);
             break;
 
         // Use algorithm in C.2.13
@@ -992,7 +1047,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     u32 result = 0;
     switch (val.encoding) {
     case IntegerEncoding::JustBits:
-        result = Replicate(bitval, bitlen, 6);
+        result = FastReplicateTo6(bitval, bitlen);
         break;
 
     case IntegerEncoding::Trit: {
