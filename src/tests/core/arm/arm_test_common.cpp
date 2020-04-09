@@ -6,6 +6,7 @@
 
 #include "common/page_table.h"
 #include "core/core.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/memory.h"
 #include "tests/core/arm/arm_test_common.h"
@@ -18,12 +19,7 @@ TestEnvironment::TestEnvironment(bool mutable_memory_)
     auto& system = Core::System::GetInstance();
 
     auto process = Kernel::Process::Create(system, "", Kernel::Process::ProcessType::Userland);
-    page_table = &process->VMManager().page_table;
-
-    std::fill(page_table->pointers.begin(), page_table->pointers.end(), nullptr);
-    page_table->special_regions.clear();
-    std::fill(page_table->attributes.begin(), page_table->attributes.end(),
-              Common::PageType::Unmapped);
+    page_table = &process->PageTable().PageTableImpl();
 
     system.Memory().MapIoRegion(*page_table, 0x00000000, 0x80000000, test_memory);
     system.Memory().MapIoRegion(*page_table, 0x80000000, 0x80000000, test_memory);
