@@ -16,7 +16,6 @@
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process_capability.h"
 #include "core/hle/kernel/synchronization_object.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -35,6 +34,10 @@ class Thread;
 class TLSPage;
 
 struct CodeSet;
+
+namespace Memory {
+class PageTable;
+}
 
 enum class MemoryRegion : u16 {
     APPLICATION = 1,
@@ -100,14 +103,14 @@ public:
         return HANDLE_TYPE;
     }
 
-    /// Gets a reference to the process' memory manager.
-    Kernel::VMManager& VMManager() {
-        return vm_manager;
+    /// Gets a reference to the process' page table.
+    Memory::PageTable& PageTable() {
+        return *page_table;
     }
 
-    /// Gets a const reference to the process' memory manager.
-    const Kernel::VMManager& VMManager() const {
-        return vm_manager;
+    /// Gets const a reference to the process' page table.
+    const Memory::PageTable& PageTable() const {
+        return *page_table;
     }
 
     /// Gets a reference to the process' handle table.
@@ -273,7 +276,7 @@ public:
      * @returns RESULT_SUCCESS if all relevant metadata was able to be
      *          loaded and parsed. Otherwise, an error code is returned.
      */
-    ResultCode LoadFromMetadata(const FileSys::ProgramMetadata& metadata);
+    ResultCode LoadFromMetadata(const FileSys::ProgramMetadata& metadata, std::size_t code_size);
 
     /**
      * Starts the main application thread for this process.
@@ -289,7 +292,7 @@ public:
      */
     void PrepareForTermination();
 
-    void LoadModule(CodeSet module_, VAddr base_addr);
+    void LoadModule(CodeSet code_set, VAddr base_addr);
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
@@ -313,16 +316,10 @@ private:
     void ChangeStatus(ProcessStatus new_status);
 
     /// Allocates the main thread stack for the process, given the stack size in bytes.
-    void AllocateMainThreadStack(u64 stack_size);
+    ResultCode AllocateMainThreadStack(std::size_t stack_size);
 
-    /// Memory manager for this process.
-    Kernel::VMManager vm_manager;
-
-    /// Size of the main thread's stack in bytes.
-    u64 main_thread_stack_size = 0;
-
-    /// Size of the loaded code memory in bytes.
-    u64 code_memory_size = 0;
+    /// Memory manager for this process
+    std::unique_ptr<Memory::PageTable> page_table;
 
     /// Current status of the process
     ProcessStatus status{};
@@ -390,6 +387,18 @@ private:
 
     /// Name of this process
     std::string name;
+
+    /// Address of the top of the main thread's stack
+    VAddr main_thread_stack_top{};
+
+    /// Size of the main thread's stack
+    std::size_t main_thread_stack_size{};
+
+    /// Memory usage capacity for the process
+    std::size_t memory_usage_capacity{};
+
+    /// Process total image size
+    std::size_t image_size{};
 };
 
 } // namespace Kernel
