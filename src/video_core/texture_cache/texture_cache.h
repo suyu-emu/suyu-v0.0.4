@@ -52,11 +52,9 @@ using RenderTargetConfig = Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig;
 
 template <typename TSurface, typename TView>
 class TextureCache {
-    using IntervalMap = boost::icl::interval_map<CacheAddr, std::set<TSurface>>;
-    using IntervalType = typename IntervalMap::interval_type;
 
 public:
-    void InvalidateRegion(CacheAddr addr, std::size_t size) {
+    void InvalidateRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
         for (const auto& surface : GetSurfacesInRegion(addr, size)) {
@@ -76,7 +74,7 @@ public:
         guard_samplers = new_guard;
     }
 
-    void FlushRegion(CacheAddr addr, std::size_t size) {
+    void FlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
         auto surfaces = GetSurfacesInRegion(addr, size);
@@ -99,9 +97,9 @@ public:
             return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
 
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
-        if (!cache_addr) {
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
             return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
 
@@ -110,7 +108,7 @@ public:
         }
 
         const auto params{SurfaceParams::CreateForTexture(format_lookup_table, tic, entry)};
-        const auto [surface, view] = GetSurface(gpu_addr, cache_addr, params, true, false);
+        const auto [surface, view] = GetSurface(gpu_addr, *cpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
         }
@@ -124,13 +122,13 @@ public:
         if (!gpu_addr) {
             return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
-        if (!cache_addr) {
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
             return GetNullSurface(SurfaceParams::ExpectedTarget(entry));
         }
         const auto params{SurfaceParams::CreateForImage(format_lookup_table, tic, entry)};
-        const auto [surface, view] = GetSurface(gpu_addr, cache_addr, params, true, false);
+        const auto [surface, view] = GetSurface(gpu_addr, *cpu_addr, params, true, false);
         if (guard_samplers) {
             sampled_textures.push_back(surface);
         }
@@ -159,14 +157,14 @@ public:
             SetEmptyDepthBuffer();
             return {};
         }
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
-        if (!cache_addr) {
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
             SetEmptyDepthBuffer();
             return {};
         }
         const auto depth_params{SurfaceParams::CreateForDepthBuffer(system)};
-        auto surface_view = GetSurface(gpu_addr, cache_addr, depth_params, preserve_contents, true);
+        auto surface_view = GetSurface(gpu_addr, *cpu_addr, depth_params, preserve_contents, true);
         if (depth_buffer.target)
             depth_buffer.target->MarkAsRenderTarget(false, NO_RT);
         depth_buffer.target = surface_view.first;
@@ -199,15 +197,15 @@ public:
             return {};
         }
 
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
-        if (!cache_addr) {
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
             SetEmptyColorBuffer(index);
             return {};
         }
 
         auto surface_view =
-            GetSurface(gpu_addr, cache_addr, SurfaceParams::CreateForFramebuffer(system, index),
+            GetSurface(gpu_addr, *cpu_addr, SurfaceParams::CreateForFramebuffer(system, index),
                        preserve_contents, true);
         if (render_targets[index].target)
             render_targets[index].target->MarkAsRenderTarget(false, NO_RT);
@@ -257,27 +255,26 @@ public:
         const GPUVAddr src_gpu_addr = src_config.Address();
         const GPUVAddr dst_gpu_addr = dst_config.Address();
         DeduceBestBlit(src_params, dst_params, src_gpu_addr, dst_gpu_addr);
-        const auto dst_host_ptr{system.GPU().MemoryManager().GetPointer(dst_gpu_addr)};
-        const auto dst_cache_addr{ToCacheAddr(dst_host_ptr)};
-        const auto src_host_ptr{system.GPU().MemoryManager().GetPointer(src_gpu_addr)};
-        const auto src_cache_addr{ToCacheAddr(src_host_ptr)};
+        const std::optional<VAddr> dst_cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(dst_gpu_addr);
+        const std::optional<VAddr> src_cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(src_gpu_addr);
         std::pair<TSurface, TView> dst_surface =
-            GetSurface(dst_gpu_addr, dst_cache_addr, dst_params, true, false);
+            GetSurface(dst_gpu_addr, *dst_cpu_addr, dst_params, true, false);
         std::pair<TSurface, TView> src_surface =
-            GetSurface(src_gpu_addr, src_cache_addr, src_params, true, false);
+            GetSurface(src_gpu_addr, *src_cpu_addr, src_params, true, false);
         ImageBlit(src_surface.second, dst_surface.second, copy_config);
         dst_surface.first->MarkAsModified(true, Tick());
     }
 
-    TSurface TryFindFramebufferSurface(const u8* host_ptr) {
-        const CacheAddr cache_addr = ToCacheAddr(host_ptr);
-        if (!cache_addr) {
+    TSurface TryFindFramebufferSurface(VAddr addr) {
+        if (!addr) {
             return nullptr;
         }
-        const CacheAddr page = cache_addr >> registry_page_bits;
+        const VAddr page = addr >> registry_page_bits;
         std::vector<TSurface>& list = registry[page];
         for (auto& surface : list) {
-            if (surface->GetCacheAddr() == cache_addr) {
+            if (surface->GetCpuAddr() == addr) {
                 return surface;
             }
         }
@@ -338,18 +335,14 @@ protected:
 
     void Register(TSurface surface) {
         const GPUVAddr gpu_addr = surface->GetGpuAddr();
-        const CacheAddr cache_ptr = ToCacheAddr(system.GPU().MemoryManager().GetPointer(gpu_addr));
         const std::size_t size = surface->GetSizeInBytes();
         const std::optional<VAddr> cpu_addr =
             system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
-        if (!cache_ptr || !cpu_addr) {
+        if (!cpu_addr) {
             LOG_CRITICAL(HW_GPU, "Failed to register surface with unmapped gpu_address 0x{:016x}",
                          gpu_addr);
             return;
         }
-        const bool continuous = system.GPU().MemoryManager().IsBlockContinuous(gpu_addr, size);
-        surface->MarkAsContinuous(continuous);
-        surface->SetCacheAddr(cache_ptr);
         surface->SetCpuAddr(*cpu_addr);
         RegisterInnerCache(surface);
         surface->MarkAsRegistered(true);
@@ -634,7 +627,7 @@ private:
     std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(std::vector<TSurface>& overlaps,
                                                                const SurfaceParams& params,
                                                                const GPUVAddr gpu_addr,
-                                                               const CacheAddr cache_addr,
+                                                               const VAddr cpu_addr,
                                                                bool preserve_contents) {
         if (params.target == SurfaceTarget::Texture3D) {
             bool failed = false;
@@ -659,7 +652,7 @@ private:
                     failed = true;
                     break;
                 }
-                const u32 offset = static_cast<u32>(surface->GetCacheAddr() - cache_addr);
+                const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
                 const auto [x, y, z] = params.GetBlockOffsetXYZ(offset);
                 modified |= surface->IsModified();
                 const CopyParams copy_params(0, 0, 0, 0, 0, z, 0, 0, params.width, params.height,
@@ -679,7 +672,7 @@ private:
         } else {
             for (const auto& surface : overlaps) {
                 if (!surface->MatchTarget(params.target)) {
-                    if (overlaps.size() == 1 && surface->GetCacheAddr() == cache_addr) {
+                    if (overlaps.size() == 1 && surface->GetCpuAddr() == cpu_addr) {
                         if (Settings::values.use_accurate_gpu_emulation) {
                             return std::nullopt;
                         }
@@ -688,7 +681,7 @@ private:
                     }
                     return std::nullopt;
                 }
-                if (surface->GetCacheAddr() != cache_addr) {
+                if (surface->GetCpuAddr() != cpu_addr) {
                     continue;
                 }
                 if (surface->MatchesStructure(params) == MatchStructureResult::FullMatch) {
@@ -722,13 +715,13 @@ private:
      *                          left blank.
      * @param is_render         Whether or not the surface is a render target.
      **/
-    std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const CacheAddr cache_addr,
+    std::pair<TSurface, TView> GetSurface(const GPUVAddr gpu_addr, const VAddr cpu_addr,
                                           const SurfaceParams& params, bool preserve_contents,
                                           bool is_render) {
         // Step 1
         // Check Level 1 Cache for a fast structural match. If candidate surface
         // matches at certain level we are pretty much done.
-        if (const auto iter = l1_cache.find(cache_addr); iter != l1_cache.end()) {
+        if (const auto iter = l1_cache.find(cpu_addr); iter != l1_cache.end()) {
             TSurface& current_surface = iter->second;
             const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
@@ -755,7 +748,7 @@ private:
         // Step 2
         // Obtain all possible overlaps in the memory region
         const std::size_t candidate_size = params.GetGuestSizeInBytes();
-        auto overlaps{GetSurfacesInRegion(cache_addr, candidate_size)};
+        auto overlaps{GetSurfacesInRegion(cpu_addr, candidate_size)};
 
         // If none are found, we are done. we just load the surface and create it.
         if (overlaps.empty()) {
@@ -777,7 +770,7 @@ private:
         // Check if it's a 3D texture
         if (params.block_depth > 0) {
             auto surface =
-                Manage3DSurfaces(overlaps, params, gpu_addr, cache_addr, preserve_contents);
+                Manage3DSurfaces(overlaps, params, gpu_addr, cpu_addr, preserve_contents);
             if (surface) {
                 return *surface;
             }
@@ -852,16 +845,16 @@ private:
      * @param params   The parameters on the candidate surface.
      **/
     Deduction DeduceSurface(const GPUVAddr gpu_addr, const SurfaceParams& params) {
-        const auto host_ptr{system.GPU().MemoryManager().GetPointer(gpu_addr)};
-        const auto cache_addr{ToCacheAddr(host_ptr)};
+        const std::optional<VAddr> cpu_addr =
+            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
 
-        if (!cache_addr) {
+        if (!cpu_addr) {
             Deduction result{};
             result.type = DeductionType::DeductionFailed;
             return result;
         }
 
-        if (const auto iter = l1_cache.find(cache_addr); iter != l1_cache.end()) {
+        if (const auto iter = l1_cache.find(*cpu_addr); iter != l1_cache.end()) {
             TSurface& current_surface = iter->second;
             const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
@@ -880,7 +873,7 @@ private:
         }
 
         const std::size_t candidate_size = params.GetGuestSizeInBytes();
-        auto overlaps{GetSurfacesInRegion(cache_addr, candidate_size)};
+        auto overlaps{GetSurfacesInRegion(*cpu_addr, candidate_size)};
 
         if (overlaps.empty()) {
             Deduction result{};
@@ -1024,10 +1017,10 @@ private:
     }
 
     void RegisterInnerCache(TSurface& surface) {
-        const CacheAddr cache_addr = surface->GetCacheAddr();
-        CacheAddr start = cache_addr >> registry_page_bits;
-        const CacheAddr end = (surface->GetCacheAddrEnd() - 1) >> registry_page_bits;
-        l1_cache[cache_addr] = surface;
+        const VAddr cpu_addr = surface->GetCpuAddr();
+        VAddr start = cpu_addr >> registry_page_bits;
+        const VAddr end = (surface->GetCpuAddrEnd() - 1) >> registry_page_bits;
+        l1_cache[cpu_addr] = surface;
         while (start <= end) {
             registry[start].push_back(surface);
             start++;
@@ -1035,10 +1028,10 @@ private:
     }
 
     void UnregisterInnerCache(TSurface& surface) {
-        const CacheAddr cache_addr = surface->GetCacheAddr();
-        CacheAddr start = cache_addr >> registry_page_bits;
-        const CacheAddr end = (surface->GetCacheAddrEnd() - 1) >> registry_page_bits;
-        l1_cache.erase(cache_addr);
+        const VAddr cpu_addr = surface->GetCpuAddr();
+        VAddr start = cpu_addr >> registry_page_bits;
+        const VAddr end = (surface->GetCpuAddrEnd() - 1) >> registry_page_bits;
+        l1_cache.erase(cpu_addr);
         while (start <= end) {
             auto& reg{registry[start]};
             reg.erase(std::find(reg.begin(), reg.end(), surface));
@@ -1046,18 +1039,18 @@ private:
         }
     }
 
-    std::vector<TSurface> GetSurfacesInRegion(const CacheAddr cache_addr, const std::size_t size) {
+    std::vector<TSurface> GetSurfacesInRegion(const VAddr cpu_addr, const std::size_t size) {
         if (size == 0) {
             return {};
         }
-        const CacheAddr cache_addr_end = cache_addr + size;
-        CacheAddr start = cache_addr >> registry_page_bits;
-        const CacheAddr end = (cache_addr_end - 1) >> registry_page_bits;
+        const VAddr cpu_addr_end = cpu_addr + size;
+        VAddr start = cpu_addr >> registry_page_bits;
+        const VAddr end = (cpu_addr_end - 1) >> registry_page_bits;
         std::vector<TSurface> surfaces;
         while (start <= end) {
             std::vector<TSurface>& list = registry[start];
             for (auto& surface : list) {
-                if (!surface->IsPicked() && surface->Overlaps(cache_addr, cache_addr_end)) {
+                if (!surface->IsPicked() && surface->Overlaps(cpu_addr, cpu_addr_end)) {
                     surface->MarkAsPicked(true);
                     surfaces.push_back(surface);
                 }
@@ -1146,14 +1139,14 @@ private:
     // large in size.
     static constexpr u64 registry_page_bits{20};
     static constexpr u64 registry_page_size{1 << registry_page_bits};
-    std::unordered_map<CacheAddr, std::vector<TSurface>> registry;
+    std::unordered_map<VAddr, std::vector<TSurface>> registry;
 
     static constexpr u32 DEPTH_RT = 8;
     static constexpr u32 NO_RT = 0xFFFFFFFF;
 
     // The L1 Cache is used for fast texture lookup before checking the overlaps
     // This avoids calculating size and other stuffs.
-    std::unordered_map<CacheAddr, TSurface> l1_cache;
+    std::unordered_map<VAddr, TSurface> l1_cache;
 
     /// The surface reserve is a "backup" cache, this is where we put unique surfaces that have
     /// previously been used. This is to prevent surfaces from being constantly created and

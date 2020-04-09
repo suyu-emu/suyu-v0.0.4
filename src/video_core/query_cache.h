@@ -98,12 +98,12 @@ public:
                                                       static_cast<QueryCache&>(*this),
                                                       VideoCore::QueryType::SamplesPassed}}} {}
 
-    void InvalidateRegion(CacheAddr addr, std::size_t size) {
+    void InvalidateRegion(VAddr addr, std::size_t size) {
         std::unique_lock lock{mutex};
         FlushAndRemoveRegion(addr, size);
     }
 
-    void FlushRegion(CacheAddr addr, std::size_t size) {
+    void FlushRegion(VAddr addr, std::size_t size) {
         std::unique_lock lock{mutex};
         FlushAndRemoveRegion(addr, size);
     }
@@ -117,14 +117,16 @@ public:
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) {
         std::unique_lock lock{mutex};
         auto& memory_manager = system.GPU().MemoryManager();
-        const auto host_ptr = memory_manager.GetPointer(gpu_addr);
+        const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
+        ASSERT(cpu_addr_opt);
+        VAddr cpu_addr = *cpu_addr_opt;
 
-        CachedQuery* query = TryGet(ToCacheAddr(host_ptr));
+        CachedQuery* query = TryGet(cpu_addr);
         if (!query) {
-            const auto cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
-            ASSERT_OR_EXECUTE(cpu_addr, return;);
+            ASSERT_OR_EXECUTE(cpu_addr_opt, return;);
+            const auto host_ptr = memory_manager.GetPointer(gpu_addr);
 
-            query = Register(type, *cpu_addr, host_ptr, timestamp.has_value());
+            query = Register(type, cpu_addr, host_ptr, timestamp.has_value());
         }
 
         query->BindCounter(Stream(type).Current(), timestamp);
@@ -173,11 +175,11 @@ protected:
 
 private:
     /// Flushes a memory range to guest memory and removes it from the cache.
-    void FlushAndRemoveRegion(CacheAddr addr, std::size_t size) {
+    void FlushAndRemoveRegion(VAddr addr, std::size_t size) {
         const u64 addr_begin = static_cast<u64>(addr);
         const u64 addr_end = addr_begin + static_cast<u64>(size);
         const auto in_range = [addr_begin, addr_end](CachedQuery& query) {
-            const u64 cache_begin = query.GetCacheAddr();
+            const u64 cache_begin = query.GetCpuAddr();
             const u64 cache_end = cache_begin + query.SizeInBytes();
             return cache_begin < addr_end && addr_begin < cache_end;
         };
@@ -193,7 +195,7 @@ private:
                 if (!in_range(query)) {
                     continue;
                 }
-                rasterizer.UpdatePagesCachedCount(query.CpuAddr(), query.SizeInBytes(), -1);
+                rasterizer.UpdatePagesCachedCount(query.GetCpuAddr(), query.SizeInBytes(), -1);
                 query.Flush();
             }
             contents.erase(std::remove_if(std::begin(contents), std::end(contents), in_range),
@@ -204,22 +206,21 @@ private:
     /// Registers the passed parameters as cached and returns a pointer to the stored cached query.
     CachedQuery* Register(VideoCore::QueryType type, VAddr cpu_addr, u8* host_ptr, bool timestamp) {
         rasterizer.UpdatePagesCachedCount(cpu_addr, CachedQuery::SizeInBytes(timestamp), 1);
-        const u64 page = static_cast<u64>(ToCacheAddr(host_ptr)) >> PAGE_SHIFT;
+        const u64 page = static_cast<u64>(cpu_addr) >> PAGE_SHIFT;
         return &cached_queries[page].emplace_back(static_cast<QueryCache&>(*this), type, cpu_addr,
                                                   host_ptr);
     }
 
     /// Tries to a get a cached query. Returns nullptr on failure.
-    CachedQuery* TryGet(CacheAddr addr) {
+    CachedQuery* TryGet(VAddr addr) {
         const u64 page = static_cast<u64>(addr) >> PAGE_SHIFT;
         const auto it = cached_queries.find(page);
         if (it == std::end(cached_queries)) {
             return nullptr;
         }
         auto& contents = it->second;
-        const auto found =
-            std::find_if(std::begin(contents), std::end(contents),
-                         [addr](auto& query) { return query.GetCacheAddr() == addr; });
+        const auto found = std::find_if(std::begin(contents), std::end(contents),
+                                        [addr](auto& query) { return query.GetCpuAddr() == addr; });
         return found != std::end(contents) ? &*found : nullptr;
     }
 
@@ -323,12 +324,8 @@ public:
         timestamp = timestamp_;
     }
 
-    VAddr CpuAddr() const noexcept {
+    VAddr GetCpuAddr() const noexcept {
         return cpu_addr;
-    }
-
-    CacheAddr GetCacheAddr() const noexcept {
-        return ToCacheAddr(host_ptr);
     }
 
     u64 SizeInBytes() const noexcept {

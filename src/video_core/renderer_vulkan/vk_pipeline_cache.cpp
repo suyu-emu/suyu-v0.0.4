@@ -158,11 +158,11 @@ u32 FillDescriptorLayout(const ShaderEntries& entries,
 } // Anonymous namespace
 
 CachedShader::CachedShader(Core::System& system, Tegra::Engines::ShaderType stage,
-                           GPUVAddr gpu_addr, VAddr cpu_addr, u8* host_ptr,
-                           ProgramCode program_code, u32 main_offset)
-    : RasterizerCacheObject{host_ptr}, gpu_addr{gpu_addr}, cpu_addr{cpu_addr},
-      program_code{std::move(program_code)}, registry{stage, GetEngine(system, stage)},
-      shader_ir{this->program_code, main_offset, compiler_settings, registry},
+                           GPUVAddr gpu_addr, VAddr cpu_addr, ProgramCode program_code,
+                           u32 main_offset)
+    : RasterizerCacheObject{cpu_addr}, gpu_addr{gpu_addr}, program_code{std::move(program_code)},
+      registry{stage, GetEngine(system, stage)}, shader_ir{this->program_code, main_offset,
+                                                           compiler_settings, registry},
       entries{GenerateShaderEntries(shader_ir)} {}
 
 CachedShader::~CachedShader() = default;
@@ -201,19 +201,19 @@ std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
 
         auto& memory_manager{system.GPU().MemoryManager()};
         const GPUVAddr program_addr{GetShaderAddress(system, program)};
-        const auto host_ptr{memory_manager.GetPointer(program_addr)};
-        auto shader = TryGet(host_ptr);
+        const std::optional cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
+        ASSERT(cpu_addr);
+        auto shader = cpu_addr ? TryGet(*cpu_addr) : nullptr;
         if (!shader) {
+            const auto host_ptr{memory_manager.GetPointer(program_addr)};
+
             // No shader found - create a new one
             constexpr u32 stage_offset = 10;
             const auto stage = static_cast<Tegra::Engines::ShaderType>(index == 0 ? 0 : index - 1);
             auto code = GetShaderCode(memory_manager, program_addr, host_ptr, false);
 
-            const std::optional cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
-            ASSERT(cpu_addr);
-
             shader = std::make_shared<CachedShader>(system, stage, program_addr, *cpu_addr,
-                                                    host_ptr, std::move(code), stage_offset);
+                                                    std::move(code), stage_offset);
             Register(shader);
         }
         shaders[index] = std::move(shader);
@@ -253,18 +253,19 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
 
     auto& memory_manager = system.GPU().MemoryManager();
     const auto program_addr = key.shader;
-    const auto host_ptr = memory_manager.GetPointer(program_addr);
 
-    auto shader = TryGet(host_ptr);
+    const auto cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
+    ASSERT(cpu_addr);
+
+    auto shader = cpu_addr ? TryGet(*cpu_addr) : nullptr;
     if (!shader) {
         // No shader found - create a new one
-        const auto cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
-        ASSERT(cpu_addr);
+        const auto host_ptr = memory_manager.GetPointer(program_addr);
 
         auto code = GetShaderCode(memory_manager, program_addr, host_ptr, true);
         constexpr u32 kernel_main_offset = 0;
         shader = std::make_shared<CachedShader>(system, Tegra::Engines::ShaderType::Compute,
-                                                program_addr, *cpu_addr, host_ptr, std::move(code),
+                                                program_addr, *cpu_addr, std::move(code),
                                                 kernel_main_offset);
         Register(shader);
     }
@@ -345,8 +346,9 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         }
 
         const GPUVAddr gpu_addr = GetShaderAddress(system, program_enum);
-        const auto host_ptr = memory_manager.GetPointer(gpu_addr);
-        const auto shader = TryGet(host_ptr);
+        const auto cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
+        ASSERT(cpu_addr);
+        const auto shader = TryGet(*cpu_addr);
         ASSERT(shader);
 
         const std::size_t stage = index == 0 ? 0 : index - 1; // Stage indices are 0 - 5

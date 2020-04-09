@@ -295,6 +295,27 @@ public:
                    std::size_t size);
 
     /**
+     * Reads a contiguous block of bytes from a specified process' address space.
+     * This unsafe version does not trigger GPU flushing.
+     *
+     * @param process     The process to read the data from.
+     * @param src_addr    The virtual address to begin reading from.
+     * @param dest_buffer The buffer to place the read bytes into.
+     * @param size        The amount of data to read, in bytes.
+     *
+     * @note If a size of 0 is specified, then this function reads nothing and
+     *       no attempts to access memory are made at all.
+     *
+     * @pre dest_buffer must be at least size bytes in length, otherwise a
+     *      buffer overrun will occur.
+     *
+     * @post The range [dest_buffer, size) contains the read bytes from the
+     *       process' address space.
+     */
+    void ReadBlockUnsafe(const Kernel::Process& process, VAddr src_addr, void* dest_buffer,
+                         std::size_t size);
+
+    /**
      * Reads a contiguous block of bytes from the current process' address space.
      *
      * @param src_addr    The virtual address to begin reading from.
@@ -311,6 +332,25 @@ public:
      *       current process' address space.
      */
     void ReadBlock(VAddr src_addr, void* dest_buffer, std::size_t size);
+
+    /**
+     * Reads a contiguous block of bytes from the current process' address space.
+     * This unsafe version does not trigger GPU flushing.
+     *
+     * @param src_addr    The virtual address to begin reading from.
+     * @param dest_buffer The buffer to place the read bytes into.
+     * @param size        The amount of data to read, in bytes.
+     *
+     * @note If a size of 0 is specified, then this function reads nothing and
+     *       no attempts to access memory are made at all.
+     *
+     * @pre dest_buffer must be at least size bytes in length, otherwise a
+     *      buffer overrun will occur.
+     *
+     * @post The range [dest_buffer, size) contains the read bytes from the
+     *       current process' address space.
+     */
+    void ReadBlockUnsafe(VAddr src_addr, void* dest_buffer, std::size_t size);
 
     /**
      * Writes a range of bytes into a given process' address space at the specified
@@ -336,6 +376,26 @@ public:
                     std::size_t size);
 
     /**
+     * Writes a range of bytes into a given process' address space at the specified
+     * virtual address.
+     * This unsafe version does not invalidate GPU Memory.
+     *
+     * @param process    The process to write data into the address space of.
+     * @param dest_addr  The destination virtual address to begin writing the data at.
+     * @param src_buffer The data to write into the process' address space.
+     * @param size       The size of the data to write, in bytes.
+     *
+     * @post The address range [dest_addr, size) in the process' address space
+     *       contains the data that was within src_buffer.
+     *
+     * @post If an attempt is made to write into an unmapped region of memory, the writes
+     *       will be ignored and an error will be logged.
+     *
+     */
+    void WriteBlockUnsafe(const Kernel::Process& process, VAddr dest_addr, const void* src_buffer,
+                          std::size_t size);
+
+    /**
      * Writes a range of bytes into the current process' address space at the specified
      * virtual address.
      *
@@ -355,6 +415,24 @@ public:
      *       graphics backend may be maintaining over the course of execution.
      */
     void WriteBlock(VAddr dest_addr, const void* src_buffer, std::size_t size);
+
+    /**
+     * Writes a range of bytes into the current process' address space at the specified
+     * virtual address.
+     * This unsafe version does not invalidate GPU Memory.
+     *
+     * @param dest_addr  The destination virtual address to begin writing the data at.
+     * @param src_buffer The data to write into the current process' address space.
+     * @param size       The size of the data to write, in bytes.
+     *
+     * @post The address range [dest_addr, size) in the current process' address space
+     *       contains the data that was within src_buffer.
+     *
+     * @post If an attempt is made to write into an unmapped region of memory, the writes
+     *       will be ignored and an error will be logged.
+     *
+     */
+    void WriteBlockUnsafe(VAddr dest_addr, const void* src_buffer, std::size_t size);
 
     /**
      * Fills the specified address range within a process' address space with zeroes.

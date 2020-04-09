@@ -65,9 +65,9 @@ public:
     void ResetCounter(VideoCore::QueryType type) override;
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
     void FlushAll() override;
-    void FlushRegion(CacheAddr addr, u64 size) override;
-    void InvalidateRegion(CacheAddr addr, u64 size) override;
-    void FlushAndInvalidateRegion(CacheAddr addr, u64 size) override;
+    void FlushRegion(VAddr addr, u64 size) override;
+    void InvalidateRegion(VAddr addr, u64 size) override;
+    void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void FlushCommands() override;
     void TickFrame() override;
     bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,

@@ -656,9 +656,9 @@ void RasterizerOpenGL::Query(GPUVAddr gpu_addr, VideoCore::QueryType type,
 
 void RasterizerOpenGL::FlushAll() {}
 
-void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.FlushRegion(addr, size);
@@ -666,9 +666,9 @@ void RasterizerOpenGL::FlushRegion(CacheAddr addr, u64 size) {
     query_cache.FlushRegion(addr, size);
 }
 
-void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.InvalidateRegion(addr, size);
@@ -677,7 +677,7 @@ void RasterizerOpenGL::InvalidateRegion(CacheAddr addr, u64 size) {
     query_cache.InvalidateRegion(addr, size);
 }
 
-void RasterizerOpenGL::FlushAndInvalidateRegion(CacheAddr addr, u64 size) {
+void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     if (Settings::values.use_accurate_gpu_emulation) {
         FlushRegion(addr, size);
     }
@@ -716,8 +716,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
 
-    const auto surface{
-        texture_cache.TryFindFramebufferSurface(system.Memory().GetPointer(framebuffer_addr))};
+    const auto surface{texture_cache.TryFindFramebufferSurface(framebuffer_addr)};
     if (!surface) {
         return {};
     }

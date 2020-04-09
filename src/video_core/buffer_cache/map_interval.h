@@ -11,7 +11,7 @@ namespace VideoCommon {
 
 class MapIntervalBase {
 public:
-    MapIntervalBase(const CacheAddr start, const CacheAddr end, const GPUVAddr gpu_addr)
+    MapIntervalBase(const VAddr start, const VAddr end, const GPUVAddr gpu_addr)
         : start{start}, end{end}, gpu_addr{gpu_addr} {}
 
     void SetCpuAddress(VAddr new_cpu_addr) {
@@ -26,7 +26,7 @@ public:
         return gpu_addr;
     }
 
-    bool IsInside(const CacheAddr other_start, const CacheAddr other_end) const {
+    bool IsInside(const VAddr other_start, const VAddr other_end) const {
         return (start <= other_start && other_end <= end);
     }
 
@@ -46,11 +46,11 @@ public:
         return is_registered;
     }
 
-    CacheAddr GetStart() const {
+    VAddr GetStart() const {
         return start;
     }
 
-    CacheAddr GetEnd() const {
+    VAddr GetEnd() const {
         return end;
     }
 
@@ -76,8 +76,8 @@ public:
     }
 
 private:
-    CacheAddr start;
-    CacheAddr end;
+    VAddr start;
+    VAddr end;
     GPUVAddr gpu_addr;
     VAddr cpu_addr{};
     bool is_written{};
