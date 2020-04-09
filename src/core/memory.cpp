@@ -119,15 +119,33 @@ struct Memory::Impl {
     }
 
     u16 Read16(const VAddr addr) {
-        return Read<u16_le>(addr);
+        if ((addr & 1) == 0) {
+            return Read<u16_le>(addr);
+        } else {
+            const u8 a{Read<u8>(addr)};
+            const u8 b{Read<u8>(addr + sizeof(u8))};
+            return (static_cast<u16>(b) << 8) | a;
+        }
     }
 
     u32 Read32(const VAddr addr) {
-        return Read<u32_le>(addr);
+        if ((addr & 3) == 0) {
+            return Read<u32_le>(addr);
+        } else {
+            const u16 a{Read16(addr)};
+            const u16 b{Read16(addr + sizeof(u16))};
+            return (static_cast<u32>(b) << 16) | a;
+        }
     }
 
     u64 Read64(const VAddr addr) {
-        return Read<u64_le>(addr);
+        if ((addr & 7) == 0) {
+            return Read<u64_le>(addr);
+        } else {
+            const u32 a{Read32(addr)};
+            const u32 b{Read32(addr + sizeof(u32))};
+            return (static_cast<u64>(b) << 32) | a;
+        }
     }
 
     void Write8(const VAddr addr, const u8 data) {
@@ -135,15 +153,30 @@ struct Memory::Impl {
     }
 
     void Write16(const VAddr addr, const u16 data) {
-        Write<u16_le>(addr, data);
+        if ((addr & 1) == 0) {
+            Write<u16_le>(addr, data);
+        } else {
+            Write<u8>(addr, static_cast<u8>(data));
+            Write<u8>(addr + sizeof(u8), static_cast<u8>(data >> 8));
+        }
     }
 
     void Write32(const VAddr addr, const u32 data) {
-        Write<u32_le>(addr, data);
+        if ((addr & 3) == 0) {
+            Write<u32_le>(addr, data);
+        } else {
+            Write16(addr, static_cast<u16>(data));
+            Write16(addr + sizeof(u16), static_cast<u16>(data >> 16));
+        }
     }
 
     void Write64(const VAddr addr, const u64 data) {
-        Write<u64_le>(addr, data);
+        if ((addr & 7) == 0) {
+            Write<u64_le>(addr, data);
+        } else {
+            Write32(addr, static_cast<u32>(data));
+            Write32(addr + sizeof(u32), static_cast<u32>(data >> 32));
+        }
     }
 
     std::string ReadCString(VAddr vaddr, std::size_t max_length) {
