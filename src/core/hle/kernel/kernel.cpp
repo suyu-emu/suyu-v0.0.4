@@ -160,12 +160,17 @@ struct KernelCore::Impl {
         system_resource_limit = ResourceLimit::Create(kernel);
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x200000000)
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x100000000)
                    .IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Threads, 800).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Events, 700).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
+
+        if (!system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0) ||
+            !system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0x60000)) {
+            UNREACHABLE();
+        }
     }
 
     void InitializeThreads() {
