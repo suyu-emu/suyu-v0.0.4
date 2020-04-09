@@ -628,12 +628,14 @@ static void FillError(u32* outBuf, u32 blockWidth, u32 blockHeight) {
 // Replicates low numBits such that [(toBit - 1):(toBit - 1 - fromBit)]
 // is the same as [(numBits - 1):0] and repeats all the way down.
 template <typename IntType>
-static IntType Replicate(IntType val, u32 numBits, u32 toBit) {
-    if (numBits == 0)
+static constexpr IntType Replicate(IntType val, u32 numBits, u32 toBit) {
+    if (numBits == 0) {
         return 0;
-    if (toBit == 0)
+    }
+    if (toBit == 0) {
         return 0;
-    IntType v = val & static_cast<IntType>((1 << numBits) - 1);
+    }
+    const IntType v = val & static_cast<IntType>((1 << numBits) - 1);
     IntType res = v;
     u32 reslen = numBits;
     while (reslen < toBit) {
@@ -648,6 +650,34 @@ static IntType Replicate(IntType val, u32 numBits, u32 toBit) {
         reslen += numBits;
     }
     return res;
+}
+
+static constexpr std::size_t NumReplicateEntries(u32 num_bits) {
+    return std::size_t(1) << num_bits;
+}
+
+template <typename IntType, u32 num_bits, u32 to_bit>
+static constexpr auto MakeReplicateTable() {
+    std::array<IntType, NumReplicateEntries(num_bits)> table{};
+    for (IntType value = 0; value < static_cast<IntType>(std::size(table)); ++value) {
+        table[value] = Replicate(value, num_bits, to_bit);
+    }
+    return table;
+}
+
+static constexpr auto REPLICATE_BYTE_TO_16_TABLE = MakeReplicateTable<u32, 8, 16>();
+static constexpr u32 ReplicateByteTo16(std::size_t value) {
+    return REPLICATE_BYTE_TO_16_TABLE[value];
+}
+
+static constexpr auto REPLICATE_BIT_TO_7_TABLE = MakeReplicateTable<u32, 1, 7>();
+static constexpr u32 ReplicateBitTo7(std::size_t value) {
+    return REPLICATE_BIT_TO_7_TABLE[value];
+}
+
+static constexpr auto REPLICATE_BIT_TO_9_TABLE = MakeReplicateTable<u32, 1, 9>();
+static constexpr u32 ReplicateBitTo9(std::size_t value) {
+    return REPLICATE_BIT_TO_9_TABLE[value];
 }
 
 class Pixel {
@@ -833,7 +863,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
 
         u32 A = 0, B = 0, C = 0, D = 0;
         // A is just the lsb replicated 9 times.
-        A = Replicate(bitval & 1, 1, 9);
+        A = ReplicateBitTo9(bitval & 1);
 
         switch (val.encoding) {
         // Replicate bits
@@ -956,7 +986,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     u32 bitval = val.bit_value;
     u32 bitlen = val.num_bits;
 
-    u32 A = Replicate(bitval & 1, 1, 7);
+    u32 A = ReplicateBitTo7(bitval & 1);
     u32 B = 0, C = 0, D = 0;
 
     u32 result = 0;
@@ -1562,9 +1592,9 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
             Pixel p;
             for (u32 c = 0; c < 4; c++) {
                 u32 C0 = endpos32s[partition][0].Component(c);
-                C0 = Replicate(C0, 8, 16);
+                C0 = ReplicateByteTo16(C0);
                 u32 C1 = endpos32s[partition][1].Component(c);
-                C1 = Replicate(C1, 8, 16);
+                C1 = ReplicateByteTo16(C1);
 
                 u32 plane = 0;
                 if (weightParams.m_bDualPlane && (((planeIdx + 1) & 3) == c)) {
