@@ -224,7 +224,6 @@ public:
         }
 
         context->MakeCurrent();
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         if (Core::System::GetInstance().Renderer().TryPresent(100)) {
             context->SwapBuffers();
             glFinish();
