@@ -759,10 +759,10 @@ public:
     // significant bits when going from larger to smaller bit depth
     // or by repeating the most significant bits when going from
     // smaller to larger bit depths.
-    void ChangeBitDepth(const u8 (&depth)[4]) {
+    void ChangeBitDepth() {
         for (u32 i = 0; i < 4; i++) {
-            Component(i) = ChangeBitDepth(Component(i), m_BitDepth[i], depth[i]);
-            m_BitDepth[i] = depth[i];
+            Component(i) = ChangeBitDepth(Component(i), m_BitDepth[i]);
+            m_BitDepth[i] = 8;
         }
     }
 
@@ -774,28 +774,23 @@ public:
 
     // Changes the bit depth of a single component. See the comment
     // above for how we do this.
-    static ChannelType ChangeBitDepth(Pixel::ChannelType val, u8 oldDepth, u8 newDepth) {
-        assert(newDepth <= 8);
+    static ChannelType ChangeBitDepth(Pixel::ChannelType val, u8 oldDepth) {
         assert(oldDepth <= 8);
 
-        if (oldDepth == newDepth) {
+        if (oldDepth == 8) {
             // Do nothing
             return val;
-        } else if (oldDepth == 0 && newDepth != 0) {
-            return static_cast<ChannelType>((1 << newDepth) - 1);
-        } else if (newDepth > oldDepth) {
-            return Replicate(val, oldDepth, newDepth);
+        } else if (oldDepth == 0) {
+            return static_cast<ChannelType>((1 << 8) - 1);
+        } else if (8 > oldDepth) {
+            return static_cast<ChannelType>(FastReplicateTo8(static_cast<u32>(val), oldDepth));
         } else {
             // oldDepth > newDepth
-            if (newDepth == 0) {
-                return 0xFF;
-            } else {
-                u8 bitsWasted = static_cast<u8>(oldDepth - newDepth);
-                u16 v = static_cast<u16>(val);
-                v = static_cast<u16>((v + (1 << (bitsWasted - 1))) >> bitsWasted);
-                v = ::std::min<u16>(::std::max<u16>(0, v), static_cast<u16>((1 << newDepth) - 1));
-                return static_cast<u8>(v);
-            }
+            const u8 bitsWasted = static_cast<u8>(oldDepth - 8);
+            u16 v = static_cast<u16>(val);
+            v = static_cast<u16>((v + (1 << (bitsWasted - 1))) >> bitsWasted);
+            v = ::std::min<u16>(::std::max<u16>(0, v), static_cast<u16>((1 << 8) - 1));
+            return static_cast<u8>(v);
         }
 
         assert(false && "We shouldn't get here.");
@@ -845,8 +840,7 @@ public:
     // up in the most-significant byte.
     u32 Pack() const {
         Pixel eightBit(*this);
-        const u8 eightBitDepth[4] = {8, 8, 8, 8};
-        eightBit.ChangeBitDepth(eightBitDepth);
+        eightBit.ChangeBitDepth();
 
         u32 r = 0;
         r |= eightBit.A();
