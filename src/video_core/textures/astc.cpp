@@ -40,17 +40,17 @@ constexpr u32 Popcnt(u32 n) {
 class InputBitStream {
 public:
     explicit InputBitStream(const u8* ptr, std::size_t start_offset = 0)
-        : m_CurByte(ptr), m_NextBit(start_offset % 8) {}
+        : cur_byte(ptr), next_bit(start_offset % 8) {}
 
     std::size_t GetBitsRead() const {
         return m_BitsRead;
     }
 
     u32 ReadBit() {
-        u32 bit = *m_CurByte >> m_NextBit++;
-        while (m_NextBit >= 8) {
-            m_NextBit -= 8;
-            m_CurByte++;
+        u32 bit = *cur_byte >> next_bit++;
+        while (next_bit >= 8) {
+            next_bit -= 8;
+            cur_byte++;
         }
 
         m_BitsRead++;
@@ -75,64 +75,58 @@ public:
     }
 
 private:
-    const u8* m_CurByte;
-    std::size_t m_NextBit = 0;
+    const u8* cur_byte;
+    std::size_t next_bit = 0;
     std::size_t m_BitsRead = 0;
 };
 
 class OutputBitStream {
 public:
-    explicit OutputBitStream(u8* ptr, s32 nBits = 0, s32 start_offset = 0)
-        : m_NumBits(nBits), m_CurByte(ptr), m_NextBit(start_offset % 8) {}
+    constexpr explicit OutputBitStream(u8* ptr, std::size_t bits = 0, std::size_t start_offset = 0)
+        : cur_byte{ptr}, num_bits{bits}, next_bit{start_offset % 8} {}
 
-    ~OutputBitStream() = default;
-
-    s32 GetBitsWritten() const {
-        return m_BitsWritten;
+    constexpr std::size_t GetBitsWritten() const {
+        return bits_written;
     }
 
-    void WriteBitsR(u32 val, u32 nBits) {
+    constexpr void WriteBitsR(u32 val, u32 nBits) {
         for (u32 i = 0; i < nBits; i++) {
             WriteBit((val >> (nBits - i - 1)) & 1);
         }
     }
 
-    void WriteBits(u32 val, u32 nBits) {
+    constexpr void WriteBits(u32 val, u32 nBits) {
         for (u32 i = 0; i < nBits; i++) {
             WriteBit((val >> i) & 1);
         }
     }
 
 private:
-    void WriteBit(s32 b) {
-
-        if (done)
+    constexpr void WriteBit(bool b) {
+        if (bits_written >= num_bits) {
             return;
+        }
 
-        const u32 mask = 1 << m_NextBit++;
+        const u32 mask = 1 << next_bit++;
 
         // clear the bit
-        *m_CurByte &= static_cast<u8>(~mask);
+        *cur_byte &= static_cast<u8>(~mask);
 
         // Write the bit, if necessary
         if (b)
-            *m_CurByte |= static_cast<u8>(mask);
+            *cur_byte |= static_cast<u8>(mask);
 
         // Next byte?
-        if (m_NextBit >= 8) {
-            m_CurByte += 1;
-            m_NextBit = 0;
+        if (next_bit >= 8) {
+            cur_byte += 1;
+            next_bit = 0;
         }
-
-        done = done || ++m_BitsWritten >= m_NumBits;
     }
 
-    s32 m_BitsWritten = 0;
-    const s32 m_NumBits;
-    u8* m_CurByte;
-    s32 m_NextBit = 0;
-
-    bool done = false;
+    u8* cur_byte;
+    std::size_t num_bits;
+    std::size_t bits_written = 0;
+    std::size_t next_bit = 0;
 };
 
 template <typename IntType>
