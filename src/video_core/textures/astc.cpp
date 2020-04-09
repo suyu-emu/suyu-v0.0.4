@@ -20,6 +20,8 @@
 #include <cstring>
 #include <vector>
 
+#include <boost/container/static_vector.hpp>
+
 #include "common/common_types.h"
 
 #include "video_core/textures/astc.h"
@@ -189,9 +191,13 @@ struct IntegerEncodedValue {
         u32 trit_value;
     };
 };
+using IntegerEncodedVector = boost::container::static_vector<
+    IntegerEncodedValue, 64,
+    boost::container::static_vector_options<
+        boost::container::inplace_alignment<alignof(IntegerEncodedValue)>,
+        boost::container::throw_on_overflow<false>>::type>;
 
-static void DecodeTritBlock(InputBitStream& bits, std::vector<IntegerEncodedValue>& result,
-                            u32 nBitsPerValue) {
+static void DecodeTritBlock(InputBitStream& bits, IntegerEncodedVector& result, u32 nBitsPerValue) {
     // Implement the algorithm in section C.2.12
     u32 m[5];
     u32 t[5];
@@ -249,7 +255,7 @@ static void DecodeTritBlock(InputBitStream& bits, std::vector<IntegerEncodedValu
     }
 }
 
-static void DecodeQus32Block(InputBitStream& bits, std::vector<IntegerEncodedValue>& result,
+static void DecodeQus32Block(InputBitStream& bits, IntegerEncodedVector& result,
                              u32 nBitsPerValue) {
     // Implement the algorithm in section C.2.12
     u32 m[3];
@@ -337,8 +343,8 @@ static constexpr std::array EncodingsValues = MakeEncodedValues();
 // Fills result with the values that are encoded in the given
 // bitstream. We must know beforehand what the maximum possible
 // value is, and how many values we're decoding.
-static void DecodeIntegerSequence(std::vector<IntegerEncodedValue>& result, InputBitStream& bits,
-                                  u32 maxRange, u32 nValues) {
+static void DecodeIntegerSequence(IntegerEncodedVector& result, InputBitStream& bits, u32 maxRange,
+                                  u32 nValues) {
     // Determine encoding parameters
     IntegerEncodedValue val = EncodingsValues[maxRange];
 
@@ -895,8 +901,7 @@ static void DecodeColorValues(u32* out, u8* data, const u32* modes, const u32 nP
     }
 
     // We now have enough to decode our integer sequence.
-    std::vector<IntegerEncodedValue> decodedColorValues;
-    decodedColorValues.reserve(32);
+    IntegerEncodedVector decodedColorValues;
 
     InputBitStream colorStream(data);
     DecodeIntegerSequence(decodedColorValues, colorStream, range, nValues);
@@ -1126,7 +1131,7 @@ static u32 UnquantizeTexelWeight(const IntegerEncodedValue& val) {
     return result;
 }
 
-static void UnquantizeTexelWeights(u32 out[2][144], const std::vector<IntegerEncodedValue>& weights,
+static void UnquantizeTexelWeights(u32 out[2][144], const IntegerEncodedVector& weights,
                                    const TexelWeightParams& params, const u32 blockWidth,
                                    const u32 blockHeight) {
     u32 weightIdx = 0;
@@ -1624,8 +1629,7 @@ static void DecompressBlock(const u8 inBuf[16], const u32 blockWidth, const u32 
         static_cast<u8>((1 << (weightParams.GetPackedBitSize() % 8)) - 1);
     memset(texelWeightData + clearByteStart, 0, 16 - clearByteStart);
 
-    std::vector<IntegerEncodedValue> texelWeightValues;
-    texelWeightValues.reserve(64);
+    IntegerEncodedVector texelWeightValues;
 
     InputBitStream weightStream(texelWeightData);
 
