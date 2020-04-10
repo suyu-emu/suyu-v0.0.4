@@ -184,17 +184,18 @@ void ConfigureMouseAdvanced::HandleClick(
     button->setText(tr("[press key]"));
     button->setFocus();
 
-    const auto iter = std::find(button_map.begin(), button_map.end(), button);
-    ASSERT(iter != button_map.end());
-    const auto index = std::distance(button_map.begin(), iter);
-    ASSERT(index < Settings::NativeButton::NumButtons && index >= 0);
+    // Keyboard keys can only be used as button devices
+    want_keyboard_keys = type == InputCommon::Polling::DeviceType::Button;
+    if (want_keyboard_keys) {
+        const auto iter = std::find(button_map.begin(), button_map.end(), button);
+        ASSERT(iter != button_map.end());
+        const auto index = std::distance(button_map.begin(), iter);
+        ASSERT(index < Settings::NativeButton::NumButtons && index >= 0);
+    }
 
     input_setter = new_input_setter;
 
     device_pollers = InputCommon::Polling::GetPollers(type);
-
-    // Keyboard keys can only be used as button devices
-    want_keyboard_keys = type == InputCommon::Polling::DeviceType::Button;
 
     for (auto& poller : device_pollers) {
         poller->Start();
