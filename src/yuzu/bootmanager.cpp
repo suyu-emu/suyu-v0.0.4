@@ -292,6 +292,8 @@ GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread_)
     setLayout(layout);
     InputCommon::Init();
 
+    this->setMouseTracking(true);
+
     connect(this, &GRenderWindow::FirstFrameDisplayed, parent_, &GMainWindow::OnLoadComplete);
 }
 
@@ -385,6 +387,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
     } else if (event->button() == Qt::RightButton) {
         InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
+    QWidget::mousePressEvent(event);
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -397,6 +400,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     const auto [x, y] = ScaleTouch(pos);
     this->TouchMoved(x, y);
     InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
+    QWidget::mouseMoveEvent(event);
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {

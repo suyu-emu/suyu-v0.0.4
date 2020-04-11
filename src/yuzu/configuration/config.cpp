@@ -740,6 +740,8 @@ void Config::ReadUIValues() {
     UISettings::values.profile_index = ReadSetting(QStringLiteral("profileIndex"), 0).toUInt();
     UISettings::values.pause_when_in_background =
         ReadSetting(QStringLiteral("pauseWhenInBackground"), false).toBool();
+    UISettings::values.hide_mouse =
+        ReadSetting(QStringLiteral("hideInactiveMouse"), false).toBool();
 
     ApplyDefaultProfileIfInputInvalid();
 
@@ -1164,6 +1166,7 @@ void Config::SaveUIValues() {
     WriteSetting(QStringLiteral("profileIndex"), UISettings::values.profile_index, 0);
     WriteSetting(QStringLiteral("pauseWhenInBackground"),
                  UISettings::values.pause_when_in_background, false);
+    WriteSetting(QStringLiteral("hideInactiveMouse"), UISettings::values.hide_mouse, false);
 
     qt_config->endGroup();
 }

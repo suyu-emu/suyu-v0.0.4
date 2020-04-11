@@ -59,6 +59,7 @@ struct Values {
     bool confirm_before_closing;
     bool first_start;
     bool pause_when_in_background;
+    bool hide_mouse;
 
     bool select_user_on_boot;
 
