@@ -10,6 +10,7 @@
 #include <string_view>
 #include <thread>
 #include <vector>
+
 #include "common/assert.h"
 #include "core/settings.h"
 #include "video_core/renderer_vulkan/declarations.h"
@@ -35,20 +36,20 @@ void SetNext(void**& next, T& data) {
 }
 
 template <typename T>
-T GetFeatures(vk::PhysicalDevice physical, const vk::DispatchLoaderDynamic& dldi) {
+T GetFeatures(vk::PhysicalDevice physical, const vk::DispatchLoaderDynamic& dld) {
     vk::PhysicalDeviceFeatures2 features;
     T extension_features;
     features.pNext = &extension_features;
-    physical.getFeatures2(&features, dldi);
+    physical.getFeatures2(&features, dld);
     return extension_features;
 }
 
 template <typename T>
-T GetProperties(vk::PhysicalDevice physical, const vk::DispatchLoaderDynamic& dldi) {
+T GetProperties(vk::PhysicalDevice physical, const vk::DispatchLoaderDynamic& dld) {
     vk::PhysicalDeviceProperties2 properties;
     T extension_properties;
     properties.pNext = &extension_properties;
-    physical.getProperties2(&properties, dldi);
+    physical.getProperties2(&properties, dld);
     return extension_properties;
 }
 
@@ -78,19 +79,19 @@ vk::FormatFeatureFlags GetFormatFeatures(vk::FormatProperties properties, Format
 
 } // Anonymous namespace
 
-VKDevice::VKDevice(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical,
+VKDevice::VKDevice(const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical,
                    vk::SurfaceKHR surface)
-    : physical{physical}, properties{physical.getProperties(dldi)},
-      format_properties{GetFormatProperties(dldi, physical)} {
-    SetupFamilies(dldi, surface);
-    SetupFeatures(dldi);
+    : dld{dld}, physical{physical}, properties{physical.getProperties(dld)},
+      format_properties{GetFormatProperties(dld, physical)} {
+    SetupFamilies(surface);
+    SetupFeatures();
 }
 
 VKDevice::~VKDevice() = default;
 
-bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instance) {
+bool VKDevice::Create(vk::Instance instance) {
     const auto queue_cis = GetDeviceQueueCreateInfos();
-    const std::vector extensions = LoadExtensions(dldi);
+    const std::vector extensions = LoadExtensions();
 
     vk::PhysicalDeviceFeatures2 features2;
     void** next = &features2.pNext;
@@ -165,15 +166,13 @@ bool VKDevice::Create(const vk::DispatchLoaderDynamic& dldi, vk::Instance instan
                                    nullptr);
     device_ci.pNext = &features2;
 
-    vk::Device dummy_logical;
-    if (physical.createDevice(&device_ci, nullptr, &dummy_logical, dldi) != vk::Result::eSuccess) {
+    vk::Device unsafe_logical;
+    if (physical.createDevice(&device_ci, nullptr, &unsafe_logical, dld) != vk::Result::eSuccess) {
         LOG_CRITICAL(Render_Vulkan, "Logical device failed to be created!");
         return false;
     }
-
-    dld.init(instance, dldi.vkGetInstanceProcAddr, dummy_logical, dldi.vkGetDeviceProcAddr);
-    logical = UniqueDevice(
-        dummy_logical, vk::ObjectDestroy<vk::NoParent, vk::DispatchLoaderDynamic>(nullptr, dld));
+    dld.init(instance, dld.vkGetInstanceProcAddr, unsafe_logical);
+    logical = UniqueDevice(unsafe_logical, {nullptr, dld});
 
     CollectTelemetryParameters();
 
@@ -235,8 +234,8 @@ void VKDevice::ReportLoss() const {
     // *(VKGraphicsPipeline*)data[0]
 }
 
-bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features,
-                                      const vk::DispatchLoaderDynamic& dldi) const {
+bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features) const {
+    // Disable for now to avoid converting ASTC twice.
     static constexpr std::array astc_formats = {
         vk::Format::eAstc4x4UnormBlock,   vk::Format::eAstc4x4SrgbBlock,
         vk::Format::eAstc5x4UnormBlock,   vk::Format::eAstc5x4SrgbBlock,
@@ -260,7 +259,7 @@ bool VKDevice::IsOptimalAstcSupported(const vk::PhysicalDeviceFeatures& features
         vk::FormatFeatureFlagBits::eBlitDst | vk::FormatFeatureFlagBits::eTransferSrc |
         vk::FormatFeatureFlagBits::eTransferDst};
     for (const auto format : astc_formats) {
-        const auto format_properties{physical.getFormatProperties(format, dldi)};
+        const auto format_properties{physical.getFormatProperties(format, dld)};
         if (!(format_properties.optimalTilingFeatures & format_feature_usage)) {
             return false;
         }
@@ -279,11 +278,9 @@ bool VKDevice::IsFormatSupported(vk::Format wanted_format, vk::FormatFeatureFlag
     return (supported_usage & wanted_usage) == wanted_usage;
 }
 
-bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical,
-                          vk::SurfaceKHR surface) {
-    bool is_suitable = true;
-
-    constexpr std::array required_extensions = {
+bool VKDevice::IsSuitable(vk::PhysicalDevice physical, vk::SurfaceKHR surface,
+                          const vk::DispatchLoaderDynamic& dld) {
+    static constexpr std::array required_extensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_16BIT_STORAGE_EXTENSION_NAME,
         VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
@@ -293,9 +290,10 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
         VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME,
         VK_EXT_HOST_QUERY_RESET_EXTENSION_NAME,
     };
+    bool is_suitable = true;
     std::bitset<required_extensions.size()> available_extensions{};
 
-    for (const auto& prop : physical.enumerateDeviceExtensionProperties(nullptr, dldi)) {
+    for (const auto& prop : physical.enumerateDeviceExtensionProperties(nullptr, dld)) {
         for (std::size_t i = 0; i < required_extensions.size(); ++i) {
             if (available_extensions[i]) {
                 continue;
@@ -315,7 +313,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
     }
 
     bool has_graphics{}, has_present{};
-    const auto queue_family_properties = physical.getQueueFamilyProperties(dldi);
+    const auto queue_family_properties = physical.getQueueFamilyProperties(dld);
     for (u32 i = 0; i < static_cast<u32>(queue_family_properties.size()); ++i) {
         const auto& family = queue_family_properties[i];
         if (family.queueCount == 0) {
@@ -323,7 +321,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
         }
         has_graphics |=
             (family.queueFlags & vk::QueueFlagBits::eGraphics) != static_cast<vk::QueueFlagBits>(0);
-        has_present |= physical.getSurfaceSupportKHR(i, surface, dldi) != 0;
+        has_present |= physical.getSurfaceSupportKHR(i, surface, dld) != 0;
     }
     if (!has_graphics || !has_present) {
         LOG_ERROR(Render_Vulkan, "Device lacks a graphics and present queue");
@@ -331,7 +329,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
     }
 
     // TODO(Rodrigo): Check if the device matches all requeriments.
-    const auto properties{physical.getProperties(dldi)};
+    const auto properties{physical.getProperties(dld)};
     const auto& limits{properties.limits};
 
     constexpr u32 required_ubo_size = 65536;
@@ -348,7 +346,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
         is_suitable = false;
     }
 
-    const auto features{physical.getFeatures(dldi)};
+    const auto features{physical.getFeatures(dld)};
     const std::array feature_report = {
         std::make_pair(features.vertexPipelineStoresAndAtomics, "vertexPipelineStoresAndAtomics"),
         std::make_pair(features.independentBlend, "independentBlend"),
@@ -380,7 +378,7 @@ bool VKDevice::IsSuitable(const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDev
     return is_suitable;
 }
 
-std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynamic& dldi) {
+std::vector<const char*> VKDevice::LoadExtensions() {
     std::vector<const char*> extensions;
     const auto Test = [&](const vk::ExtensionProperties& extension,
                           std::optional<std::reference_wrapper<bool>> status, const char* name,
@@ -411,7 +409,7 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
     bool has_khr_shader_float16_int8{};
     bool has_ext_subgroup_size_control{};
     bool has_ext_transform_feedback{};
-    for (const auto& extension : physical.enumerateDeviceExtensionProperties(nullptr, dldi)) {
+    for (const auto& extension : physical.enumerateDeviceExtensionProperties(nullptr, dld)) {
         Test(extension, khr_uniform_buffer_standard_layout,
              VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME, true);
         Test(extension, has_khr_shader_float16_int8, VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME,
@@ -433,15 +431,15 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
 
     if (has_khr_shader_float16_int8) {
         is_float16_supported =
-            GetFeatures<vk::PhysicalDeviceFloat16Int8FeaturesKHR>(physical, dldi).shaderFloat16;
+            GetFeatures<vk::PhysicalDeviceFloat16Int8FeaturesKHR>(physical, dld).shaderFloat16;
         extensions.push_back(VK_KHR_SHADER_FLOAT16_INT8_EXTENSION_NAME);
     }
 
     if (has_ext_subgroup_size_control) {
         const auto features =
-            GetFeatures<vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT>(physical, dldi);
+            GetFeatures<vk::PhysicalDeviceSubgroupSizeControlFeaturesEXT>(physical, dld);
         const auto properties =
-            GetProperties<vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT>(physical, dldi);
+            GetProperties<vk::PhysicalDeviceSubgroupSizeControlPropertiesEXT>(physical, dld);
 
         is_warp_potentially_bigger = properties.maxSubgroupSize > GuestWarpSize;
 
@@ -456,9 +454,9 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
 
     if (has_ext_transform_feedback) {
         const auto features =
-            GetFeatures<vk::PhysicalDeviceTransformFeedbackFeaturesEXT>(physical, dldi);
+            GetFeatures<vk::PhysicalDeviceTransformFeedbackFeaturesEXT>(physical, dld);
         const auto properties =
-            GetProperties<vk::PhysicalDeviceTransformFeedbackPropertiesEXT>(physical, dldi);
+            GetProperties<vk::PhysicalDeviceTransformFeedbackPropertiesEXT>(physical, dld);
 
         if (features.transformFeedback && features.geometryStreams &&
             properties.maxTransformFeedbackStreams >= 4 && properties.maxTransformFeedbackBuffers &&
@@ -471,10 +469,10 @@ std::vector<const char*> VKDevice::LoadExtensions(const vk::DispatchLoaderDynami
     return extensions;
 }
 
-void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceKHR surface) {
+void VKDevice::SetupFamilies(vk::SurfaceKHR surface) {
     std::optional<u32> graphics_family_, present_family_;
 
-    const auto queue_family_properties = physical.getQueueFamilyProperties(dldi);
+    const auto queue_family_properties = physical.getQueueFamilyProperties(dld);
     for (u32 i = 0; i < static_cast<u32>(queue_family_properties.size()); ++i) {
         if (graphics_family_ && present_family_)
             break;
@@ -483,10 +481,12 @@ void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceK
         if (queue_family.queueCount == 0)
             continue;
 
-        if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
+        if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics) {
             graphics_family_ = i;
-        if (physical.getSurfaceSupportKHR(i, surface, dldi))
+        }
+        if (physical.getSurfaceSupportKHR(i, surface, dld)) {
             present_family_ = i;
+        }
     }
     ASSERT(graphics_family_ && present_family_);
 
@@ -494,10 +494,10 @@ void VKDevice::SetupFamilies(const vk::DispatchLoaderDynamic& dldi, vk::SurfaceK
     present_family = *present_family_;
 }
 
-void VKDevice::SetupFeatures(const vk::DispatchLoaderDynamic& dldi) {
-    const auto supported_features{physical.getFeatures(dldi)};
+void VKDevice::SetupFeatures() {
+    const auto supported_features{physical.getFeatures(dld)};
     is_formatless_image_load_supported = supported_features.shaderStorageImageReadWithoutFormat;
-    is_optimal_astc_supported = IsOptimalAstcSupported(supported_features, dldi);
+    is_optimal_astc_supported = IsOptimalAstcSupported(supported_features);
 }
 
 void VKDevice::CollectTelemetryParameters() {
@@ -525,7 +525,7 @@ std::vector<vk::DeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() con
 }
 
 std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperties(
-    const vk::DispatchLoaderDynamic& dldi, vk::PhysicalDevice physical) {
+    const vk::DispatchLoaderDynamic& dld, vk::PhysicalDevice physical) {
     static constexpr std::array formats{vk::Format::eA8B8G8R8UnormPack32,
                                         vk::Format::eA8B8G8R8UintPack32,
                                         vk::Format::eA8B8G8R8SnormPack32,
@@ -606,7 +606,7 @@ std::unordered_map<vk::Format, vk::FormatProperties> VKDevice::GetFormatProperti
                                         vk::Format::eE5B9G9R9UfloatPack32};
     std::unordered_map<vk::Format, vk::FormatProperties> format_properties;
     for (const auto format : formats) {
-        format_properties.emplace(format, physical.getFormatProperties(format, dldi));
+        format_properties.emplace(format, physical.getFormatProperties(format, dld));
     }
     return format_properties;
 }

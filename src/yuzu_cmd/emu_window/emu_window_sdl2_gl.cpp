@@ -156,12 +156,6 @@ EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
     SDL_GL_DeleteContext(window_context);
 }
 
-void EmuWindow_SDL2_GL::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
-                                               void* surface) const {
-    // Should not have been called from OpenGL
-    UNREACHABLE();
-}
-
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {
     return std::make_unique<SDLGLContext>();
 }

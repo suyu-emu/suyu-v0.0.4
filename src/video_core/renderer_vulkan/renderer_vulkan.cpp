@@ -2,13 +2,18 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <array>
+#include <cstring>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include <fmt/format.h>
 
 #include "common/assert.h"
+#include "common/dynamic_library.h"
 #include "common/logging/log.h"
 #include "common/telemetry.h"
 #include "core/core.h"
@@ -30,15 +35,30 @@
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 
+// Include these late to avoid changing Vulkan-Hpp's dynamic dispatcher size
+#ifdef _WIN32
+#include <windows.h>
+// ensure include order
+#include <vulkan/vulkan_win32.h>
+#endif
+
+#ifdef __linux__
+#include <X11/Xlib.h>
+#include <vulkan/vulkan_wayland.h>
+#include <vulkan/vulkan_xlib.h>
+#endif
+
 namespace Vulkan {
 
 namespace {
+
+using Core::Frontend::WindowSystemType;
 
 VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity_,
                        VkDebugUtilsMessageTypeFlagsEXT type,
                        const VkDebugUtilsMessengerCallbackDataEXT* data,
                        [[maybe_unused]] void* user_data) {
-    const vk::DebugUtilsMessageSeverityFlagBitsEXT severity{severity_};
+    const auto severity{static_cast<vk::DebugUtilsMessageSeverityFlagBitsEXT>(severity_)};
     const char* message{data->pMessage};
 
     if (severity & vk::DebugUtilsMessageSeverityFlagBitsEXT::eError) {
@@ -51,6 +71,110 @@ VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity_,
         LOG_DEBUG(Render_Vulkan, "{}", message);
     }
     return VK_FALSE;
+}
+
+Common::DynamicLibrary OpenVulkanLibrary() {
+    Common::DynamicLibrary library;
+#ifdef __APPLE__
+    // Check if a path to a specific Vulkan library has been specified.
+    char* libvulkan_env = getenv("LIBVULKAN_PATH");
+    if (!libvulkan_env || !library.Open(libvulkan_env)) {
+        // Use the libvulkan.dylib from the application bundle.
+        std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+        library.Open(filename.c_str());
+    }
+#else
+    std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
+    if (!library.Open(filename.c_str())) {
+        // Android devices may not have libvulkan.so.1, only libvulkan.so.
+        filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
+        library.Open(filename.c_str());
+    }
+#endif
+    return library;
+}
+
+UniqueInstance CreateInstance(Common::DynamicLibrary& library, vk::DispatchLoaderDynamic& dld,
+                              WindowSystemType window_type = WindowSystemType::Headless,
+                              bool enable_layers = false) {
+    if (!library.IsOpen()) {
+        LOG_ERROR(Render_Vulkan, "Vulkan library not available");
+        return UniqueInstance{};
+    }
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr;
+    if (!library.GetSymbol("vkGetInstanceProcAddr", &vkGetInstanceProcAddr)) {
+        LOG_ERROR(Render_Vulkan, "vkGetInstanceProcAddr not present in Vulkan");
+        return UniqueInstance{};
+    }
+    dld.init(vkGetInstanceProcAddr);
+
+    std::vector<const char*> extensions;
+    extensions.reserve(4);
+    switch (window_type) {
+    case Core::Frontend::WindowSystemType::Headless:
+        break;
+#ifdef _WIN32
+    case Core::Frontend::WindowSystemType::Windows:
+        extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+        break;
+#endif
+#ifdef __linux__
+    case Core::Frontend::WindowSystemType::X11:
+        extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
+        break;
+    case Core::Frontend::WindowSystemType::Wayland:
+        extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
+        break;
+#endif
+    default:
+        LOG_ERROR(Render_Vulkan, "Presentation not supported on this platform");
+        break;
+    }
+    if (window_type != Core::Frontend::WindowSystemType::Headless) {
+        extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+    }
+    if (enable_layers) {
+        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    }
+
+    u32 num_properties;
+    if (vk::enumerateInstanceExtensionProperties(nullptr, &num_properties, nullptr, dld) !=
+        vk::Result::eSuccess) {
+        LOG_ERROR(Render_Vulkan, "Failed to query number of extension properties");
+        return UniqueInstance{};
+    }
+    std::vector<vk::ExtensionProperties> properties(num_properties);
+    if (vk::enumerateInstanceExtensionProperties(nullptr, &num_properties, properties.data(),
+                                                 dld) != vk::Result::eSuccess) {
+        LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
+        return UniqueInstance{};
+    }
+
+    for (const char* extension : extensions) {
+        const auto it =
+            std::find_if(properties.begin(), properties.end(), [extension](const auto& prop) {
+                return !std::strcmp(extension, prop.extensionName);
+            });
+        if (it == properties.end()) {
+            LOG_ERROR(Render_Vulkan, "Required instance extension {} is not available", extension);
+            return UniqueInstance{};
+        }
+    }
+
+    const vk::ApplicationInfo application_info("yuzu Emulator", VK_MAKE_VERSION(0, 1, 0),
+                                               "yuzu Emulator", VK_MAKE_VERSION(0, 1, 0),
+                                               VK_API_VERSION_1_1);
+    const std::array layers = {"VK_LAYER_LUNARG_standard_validation"};
+    const vk::InstanceCreateInfo instance_ci(
+        {}, &application_info, enable_layers ? static_cast<u32>(layers.size()) : 0, layers.data(),
+        static_cast<u32>(extensions.size()), extensions.data());
+    vk::Instance unsafe_instance;
+    if (vk::createInstance(&instance_ci, nullptr, &unsafe_instance, dld) != vk::Result::eSuccess) {
+        LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
+        return UniqueInstance{};
+    }
+    dld.init(unsafe_instance);
+    return UniqueInstance(unsafe_instance, {nullptr, dld});
 }
 
 std::string GetReadableVersion(u32 version) {
@@ -147,27 +271,12 @@ bool RendererVulkan::TryPresent(int /*timeout_ms*/) {
 }
 
 bool RendererVulkan::Init() {
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr{};
-    render_window.RetrieveVulkanHandlers(&vkGetInstanceProcAddr, &instance, &surface);
-    const vk::DispatchLoaderDynamic dldi(instance, vkGetInstanceProcAddr);
-
-    std::optional<vk::DebugUtilsMessengerEXT> callback;
-    if (Settings::values.renderer_debug && dldi.vkCreateDebugUtilsMessengerEXT) {
-        callback = CreateDebugCallback(dldi);
-        if (!callback) {
-            return false;
-        }
-    }
-
-    if (!PickDevices(dldi)) {
-        if (callback) {
-            instance.destroy(*callback, nullptr, dldi);
-        }
+    library = OpenVulkanLibrary();
+    instance = CreateInstance(library, dld, render_window.GetWindowInfo().type,
+                              Settings::values.renderer_debug);
+    if (!instance || !CreateDebugCallback() || !CreateSurface() || !PickDevices()) {
         return false;
     }
-    debug_callback = UniqueDebugUtilsMessengerEXT(
-        *callback, vk::ObjectDestroy<vk::Instance, vk::DispatchLoaderDynamic>(
-                       instance, nullptr, device->GetDispatchLoader()));
 
     Report();
 
@@ -176,7 +285,7 @@ bool RendererVulkan::Init() {
     resource_manager = std::make_unique<VKResourceManager>(*device);
 
     const auto& framebuffer = render_window.GetFramebufferLayout();
-    swapchain = std::make_unique<VKSwapchain>(surface, *device);
+    swapchain = std::make_unique<VKSwapchain>(*surface, *device);
     swapchain->Create(framebuffer.width, framebuffer.height, false);
 
     state_tracker = std::make_unique<StateTracker>(system);
@@ -213,8 +322,10 @@ void RendererVulkan::ShutDown() {
     device.reset();
 }
 
-std::optional<vk::DebugUtilsMessengerEXT> RendererVulkan::CreateDebugCallback(
-    const vk::DispatchLoaderDynamic& dldi) {
+bool RendererVulkan::CreateDebugCallback() {
+    if (!Settings::values.renderer_debug) {
+        return true;
+    }
     const vk::DebugUtilsMessengerCreateInfoEXT callback_ci(
         {},
         vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
@@ -225,32 +336,88 @@ std::optional<vk::DebugUtilsMessengerEXT> RendererVulkan::CreateDebugCallback(
             vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
             vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
         &DebugCallback, nullptr);
-    vk::DebugUtilsMessengerEXT callback;
-    if (instance.createDebugUtilsMessengerEXT(&callback_ci, nullptr, &callback, dldi) !=
+    vk::DebugUtilsMessengerEXT unsafe_callback;
+    if (instance->createDebugUtilsMessengerEXT(&callback_ci, nullptr, &unsafe_callback, dld) !=
         vk::Result::eSuccess) {
         LOG_ERROR(Render_Vulkan, "Failed to create debug callback");
-        return {};
+        return false;
     }
-    return callback;
+    debug_callback = UniqueDebugUtilsMessengerEXT(unsafe_callback, {*instance, nullptr, dld});
+    return true;
 }
 
-bool RendererVulkan::PickDevices(const vk::DispatchLoaderDynamic& dldi) {
-    const auto devices = instance.enumeratePhysicalDevices(dldi);
+bool RendererVulkan::CreateSurface() {
+    [[maybe_unused]] const auto& window_info = render_window.GetWindowInfo();
+    VkSurfaceKHR unsafe_surface = nullptr;
 
-    // TODO(Rodrigo): Choose device from config file
+#ifdef _WIN32
+    if (window_info.type == Core::Frontend::WindowSystemType::Windows) {
+        const HWND hWnd = static_cast<HWND>(window_info.render_surface);
+        const VkWin32SurfaceCreateInfoKHR win32_ci{VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+                                                   nullptr, 0, nullptr, hWnd};
+        const auto vkCreateWin32SurfaceKHR = reinterpret_cast<PFN_vkCreateWin32SurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateWin32SurfaceKHR"));
+        if (!vkCreateWin32SurfaceKHR || vkCreateWin32SurfaceKHR(instance.get(), &win32_ci, nullptr,
+                                                                &unsafe_surface) != VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Win32 surface");
+            return false;
+        }
+    }
+#endif
+#ifdef __linux__
+    if (window_info.type == Core::Frontend::WindowSystemType::X11) {
+        const VkXlibSurfaceCreateInfoKHR xlib_ci{
+            VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, nullptr, 0,
+            static_cast<Display*>(window_info.display_connection),
+            reinterpret_cast<Window>(window_info.render_surface)};
+        const auto vkCreateXlibSurfaceKHR = reinterpret_cast<PFN_vkCreateXlibSurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateXlibSurfaceKHR"));
+        if (!vkCreateXlibSurfaceKHR || vkCreateXlibSurfaceKHR(instance.get(), &xlib_ci, nullptr,
+                                                              &unsafe_surface) != VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Xlib surface");
+            return false;
+        }
+    }
+    if (window_info.type == Core::Frontend::WindowSystemType::Wayland) {
+        const VkWaylandSurfaceCreateInfoKHR wayland_ci{
+            VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR, nullptr, 0,
+            static_cast<wl_display*>(window_info.display_connection),
+            static_cast<wl_surface*>(window_info.render_surface)};
+        const auto vkCreateWaylandSurfaceKHR = reinterpret_cast<PFN_vkCreateWaylandSurfaceKHR>(
+            dld.vkGetInstanceProcAddr(*instance, "vkCreateWaylandSurfaceKHR"));
+        if (!vkCreateWaylandSurfaceKHR ||
+            vkCreateWaylandSurfaceKHR(instance.get(), &wayland_ci, nullptr, &unsafe_surface) !=
+                VK_SUCCESS) {
+            LOG_ERROR(Render_Vulkan, "Failed to initialize Wayland surface");
+            return false;
+        }
+    }
+#endif
+    if (!unsafe_surface) {
+        LOG_ERROR(Render_Vulkan, "Presentation not supported on this platform");
+        return false;
+    }
+
+    surface = UniqueSurfaceKHR(unsafe_surface, {*instance, nullptr, dld});
+    return true;
+}
+
+bool RendererVulkan::PickDevices() {
+    const auto devices = instance->enumeratePhysicalDevices(dld);
+
     const s32 device_index = Settings::values.vulkan_device;
     if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
         return false;
     }
-    const vk::PhysicalDevice physical_device = devices[device_index];
+    const vk::PhysicalDevice physical_device = devices[static_cast<std::size_t>(device_index)];
 
-    if (!VKDevice::IsSuitable(dldi, physical_device, surface)) {
+    if (!VKDevice::IsSuitable(physical_device, *surface, dld)) {
         return false;
     }
 
-    device = std::make_unique<VKDevice>(dldi, physical_device, surface);
-    return device->Create(dldi, instance);
+    device = std::make_unique<VKDevice>(dld, physical_device, *surface);
+    return device->Create(*instance);
 }
 
 void RendererVulkan::Report() const {
@@ -274,6 +441,35 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);
     telemetry_session.AddField(field, "GPU_Vulkan_Version", api_version);
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
+}
+
+std::vector<std::string> RendererVulkan::EnumerateDevices() {
+    // Avoid putting DispatchLoaderDynamic, it's too large
+    auto dld_memory = std::make_unique<vk::DispatchLoaderDynamic>();
+    auto& dld = *dld_memory;
+
+    Common::DynamicLibrary library = OpenVulkanLibrary();
+    UniqueInstance instance = CreateInstance(library, dld);
+    if (!instance) {
+        return {};
+    }
+
+    u32 num_devices;
+    if (instance->enumeratePhysicalDevices(&num_devices, nullptr, dld) != vk::Result::eSuccess) {
+        return {};
+    }
+    std::vector<vk::PhysicalDevice> devices(num_devices);
+    if (instance->enumeratePhysicalDevices(&num_devices, devices.data(), dld) !=
+        vk::Result::eSuccess) {
+        return {};
+    }
+
+    std::vector<std::string> names;
+    names.reserve(num_devices);
+    for (auto& device : devices) {
+        names.push_back(device.getProperties(dld).deviceName);
+    }
+    return names;
 }
 
 } // namespace Vulkan

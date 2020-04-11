@@ -150,6 +150,10 @@ target_link_libraries(yuzu PRIVATE common core input_common video_core)
 target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::OpenGL Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
+if (ENABLE_VULKAN AND NOT WIN32)
+    target_include_directories(yuzu PRIVATE ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
+endif()
+
 target_compile_definitions(yuzu PRIVATE
     # Use QStringBuilder for string concatenation to reduce
     # the overall number of temporary strings created.

@@ -15,6 +15,10 @@
 #include "ui_configure_graphics.h"
 #include "yuzu/configuration/configure_graphics.h"
 
+#ifdef HAS_VULKAN
+#include "video_core/renderer_vulkan/renderer_vulkan.h"
+#endif
+
 namespace {
 enum class Resolution : int {
     Auto,
@@ -165,41 +169,9 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
 
 void ConfigureGraphics::RetrieveVulkanDevices() {
 #ifdef HAS_VULKAN
-    QVulkanInstance instance;
-    instance.setApiVersion(QVersionNumber(1, 1, 0));
-    if (!instance.create()) {
-        LOG_INFO(Frontend, "Vulkan 1.1 not available");
-        return;
-    }
-    const auto vkEnumeratePhysicalDevices{reinterpret_cast<PFN_vkEnumeratePhysicalDevices>(
-        instance.getInstanceProcAddr("vkEnumeratePhysicalDevices"))};
-    if (vkEnumeratePhysicalDevices == nullptr) {
-        LOG_INFO(Frontend, "Failed to get pointer to vkEnumeratePhysicalDevices");
-        return;
-    }
-    u32 physical_device_count;
-    if (vkEnumeratePhysicalDevices(instance.vkInstance(), &physical_device_count, nullptr) !=
-        VK_SUCCESS) {
-        LOG_INFO(Frontend, "Failed to get physical devices count");
-        return;
-    }
-    std::vector<VkPhysicalDevice> physical_devices(physical_device_count);
-    if (vkEnumeratePhysicalDevices(instance.vkInstance(), &physical_device_count,
-                                   physical_devices.data()) != VK_SUCCESS) {
-        LOG_INFO(Frontend, "Failed to get physical devices");
-        return;
-    }
-
-    const auto vkGetPhysicalDeviceProperties{reinterpret_cast<PFN_vkGetPhysicalDeviceProperties>(
-        instance.getInstanceProcAddr("vkGetPhysicalDeviceProperties"))};
-    if (vkGetPhysicalDeviceProperties == nullptr) {
-        LOG_INFO(Frontend, "Failed to get pointer to vkGetPhysicalDeviceProperties");
-        return;
-    }
-    for (const auto physical_device : physical_devices) {
-        VkPhysicalDeviceProperties properties;
-        vkGetPhysicalDeviceProperties(physical_device, &properties);
-        vulkan_devices.push_back(QString::fromUtf8(properties.deviceName));
+    vulkan_devices.clear();
+    for (auto& name : Vulkan::RendererVulkan::EnumerateDevices()) {
+        vulkan_devices.push_back(QString::fromStdString(name));
     }
 #endif
 }

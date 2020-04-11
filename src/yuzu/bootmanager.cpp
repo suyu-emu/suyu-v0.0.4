@@ -14,8 +14,9 @@
 #include <QScreen>
 #include <QStringList>
 #include <QWindow>
-#ifdef HAS_VULKAN
-#include <QVulkanWindow>
+
+#if !defined(WIN32) && HAS_VULKAN
+#include <qpa/qplatformnativeinterface.h>
 #endif
 
 #include <fmt/format.h>
@@ -237,16 +238,50 @@ private:
 #ifdef HAS_VULKAN
 class VulkanRenderWidget : public RenderWidget {
 public:
-    explicit VulkanRenderWidget(GRenderWindow* parent, QVulkanInstance* instance)
-        : RenderWidget(parent) {
+    explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
         windowHandle()->setSurfaceType(QWindow::VulkanSurface);
-        windowHandle()->setVulkanInstance(instance);
     }
 };
 #endif
 
-GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread)
-    : QWidget(parent_), emu_thread(emu_thread) {
+static Core::Frontend::WindowSystemType GetWindowSystemType() {
+    // Determine WSI type based on Qt platform.
+    QString platform_name = QGuiApplication::platformName();
+    if (platform_name == QStringLiteral("windows"))
+        return Core::Frontend::WindowSystemType::Windows;
+    else if (platform_name == QStringLiteral("xcb"))
+        return Core::Frontend::WindowSystemType::X11;
+    else if (platform_name == QStringLiteral("wayland"))
+        return Core::Frontend::WindowSystemType::Wayland;
+
+    LOG_CRITICAL(Frontend, "Unknown Qt platform!");
+    return Core::Frontend::WindowSystemType::Windows;
+}
+
+static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* window) {
+    Core::Frontend::EmuWindow::WindowSystemInfo wsi;
+    wsi.type = GetWindowSystemType();
+
+#ifdef HAS_VULKAN
+    // Our Win32 Qt external doesn't have the private API.
+#if defined(WIN32) || defined(__APPLE__)
+    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+#else
+    QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
+    wsi.display_connection = pni->nativeResourceForWindow("display", window);
+    if (wsi.type == Core::Frontend::WindowSystemType::Wayland)
+        wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
+    else
+        wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+#endif
+    wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
+#endif
+
+    return wsi;
+}
+
+GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread_)
+    : QWidget(parent_), emu_thread(emu_thread_) {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -459,6 +494,9 @@ bool GRenderWindow::InitRenderTarget() {
         break;
     }
 
+    // Update the Window System information with the new render target
+    window_info = GetWindowSystemInfo(child_widget->windowHandle());
+
     child_widget->resize(Layout::ScreenUndocked::Width, Layout::ScreenUndocked::Height);
     layout()->addWidget(child_widget);
     // Reset minimum required size to avoid resizing issues on the main window after restarting.
@@ -530,30 +568,7 @@ bool GRenderWindow::InitializeOpenGL() {
 
 bool GRenderWindow::InitializeVulkan() {
 #ifdef HAS_VULKAN
-    vk_instance = std::make_unique<QVulkanInstance>();
-    vk_instance->setApiVersion(QVersionNumber(1, 1, 0));
-    vk_instance->setFlags(QVulkanInstance::Flag::NoDebugOutputRedirect);
-    if (Settings::values.renderer_debug) {
-        const auto supported_layers{vk_instance->supportedLayers()};
-        const bool found =
-            std::find_if(supported_layers.begin(), supported_layers.end(), [](const auto& layer) {
-                constexpr const char searched_layer[] = "VK_LAYER_LUNARG_standard_validation";
-                return layer.name == searched_layer;
-            });
-        if (found) {
-            vk_instance->setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
-            vk_instance->setExtensions(QByteArrayList() << VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-        }
-    }
-    if (!vk_instance->create()) {
-        QMessageBox::critical(
-            this, tr("Error while initializing Vulkan 1.1!"),
-            tr("Your OS doesn't seem to support Vulkan 1.1 instances, or you do not have the "
-               "latest graphics drivers."));
-        return false;
-    }
-
-    auto child = new VulkanRenderWidget(this, vk_instance.get());
+    auto child = new VulkanRenderWidget(this);
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
@@ -563,21 +578,6 @@ bool GRenderWindow::InitializeVulkan() {
     QMessageBox::critical(this, tr("Vulkan not available!"),
                           tr("yuzu has not been compiled with Vulkan support."));
     return false;
-#endif
-}
-
-void GRenderWindow::RetrieveVulkanHandlers(void* get_instance_proc_addr, void* instance,
-                                           void* surface) const {
-#ifdef HAS_VULKAN
-    const auto instance_proc_addr = vk_instance->getInstanceProcAddr("vkGetInstanceProcAddr");
-    const VkInstance instance_copy = vk_instance->vkInstance();
-    const VkSurfaceKHR surface_copy = vk_instance->surfaceForWindow(child_widget->windowHandle());
-
-    std::memcpy(get_instance_proc_addr, &instance_proc_addr, sizeof(instance_proc_addr));
-    std::memcpy(instance, &instance_copy, sizeof(instance_copy));
-    std::memcpy(surface, &surface_copy, sizeof(surface_copy));
-#else
-    UNREACHABLE_MSG("Executing Vulkan code without compiling Vulkan");
 #endif
 }
 

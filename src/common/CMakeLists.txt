@@ -106,6 +106,8 @@ add_library(common STATIC
     common_funcs.h
     common_paths.h
     common_types.h
+    dynamic_library.cpp
+    dynamic_library.h
     file_util.cpp
     file_util.h
     hash.h
