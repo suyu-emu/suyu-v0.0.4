@@ -101,6 +101,7 @@ private:
     u32 id;
     u64 layer_id;
 
+    std::list<u32> free_buffers;
     std::vector<Buffer> queue;
     std::list<u32> queue_sequence;
     Kernel::EventPair buffer_wait_event;

@@ -28,6 +28,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     buffer.slot = slot;
     buffer.igbp_buffer = igbp_buffer;
     buffer.status = Buffer::Status::Free;
+    free_buffers.push_back(slot);
 
     queue.emplace_back(buffer);
     buffer_wait_event.writable->Signal();
@@ -35,16 +36,37 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
 
 std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::DequeueBuffer(u32 width,
                                                                                        u32 height) {
-    auto itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
-        // Only consider free buffers. Buffers become free once again after they've been Acquired
-        // and Released by the compositor, see the NVFlinger::Compose method.
-        if (buffer.status != Buffer::Status::Free) {
-            return false;
-        }
 
-        // Make sure that the parameters match.
-        return buffer.igbp_buffer.width == width && buffer.igbp_buffer.height == height;
-    });
+    if (free_buffers.empty()) {
+        return {};
+    }
+
+    auto f_itr = free_buffers.begin();
+    auto itr = queue.end();
+
+    while (f_itr != free_buffers.end()) {
+        auto slot = *f_itr;
+        itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
+            // Only consider free buffers. Buffers become free once again after they've been
+            // Acquired and Released by the compositor, see the NVFlinger::Compose method.
+            if (buffer.status != Buffer::Status::Free) {
+                return false;
+            }
+
+            if (buffer.slot != slot) {
+                return false;
+            }
+
+            // Make sure that the parameters match.
+            return buffer.igbp_buffer.width == width && buffer.igbp_buffer.height == height;
+        });
+
+        if (itr != queue.end()) {
+            free_buffers.erase(f_itr);
+            break;
+        }
+        ++f_itr;
+    }
 
     if (itr == queue.end()) {
         return {};
@@ -99,6 +121,7 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
     ASSERT(itr != queue.end());
     ASSERT(itr->status == Buffer::Status::Acquired);
     itr->status = Buffer::Status::Free;
+    free_buffers.push_back(slot);
 
     buffer_wait_event.writable->Signal();
 }
