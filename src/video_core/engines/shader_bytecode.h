@@ -290,6 +290,23 @@ enum class VmadShr : u64 {
     Shr15 = 2,
 };
 
+enum class VmnmxType : u64 {
+    Bits8,
+    Bits16,
+    Bits32,
+};
+
+enum class VmnmxOperation : u64 {
+    Mrg_16H = 0,
+    Mrg_16L = 1,
+    Mrg_8B0 = 2,
+    Mrg_8B2 = 3,
+    Acc = 4,
+    Min = 5,
+    Max = 6,
+    Nop = 7,
+};
+
 enum class XmadMode : u64 {
     None = 0,
     CLo = 1,
@@ -1651,6 +1668,42 @@ union Instruction {
     } vmad;
 
     union {
+        BitField<54, 1, u64> is_dest_signed;
+        BitField<48, 1, u64> is_src_a_signed;
+        BitField<49, 1, u64> is_src_b_signed;
+        BitField<37, 2, u64> src_format_a;
+        BitField<29, 2, u64> src_format_b;
+        BitField<56, 1, u64> mx;
+        BitField<55, 1, u64> sat;
+        BitField<36, 2, u64> selector_a;
+        BitField<28, 2, u64> selector_b;
+        BitField<50, 1, u64> is_op_b_register;
+        BitField<51, 3, VmnmxOperation> operation;
+
+        VmnmxType SourceFormatA() const {
+            switch (src_format_a) {
+            case 0b11:
+                return VmnmxType::Bits32;
+            case 0b10:
+                return VmnmxType::Bits16;
+            default:
+                return VmnmxType::Bits8;
+            }
+        }
+
+        VmnmxType SourceFormatB() const {
+            switch (src_format_b) {
+            case 0b11:
+                return VmnmxType::Bits32;
+            case 0b10:
+                return VmnmxType::Bits16;
+            default:
+                return VmnmxType::Bits8;
+            }
+        }
+    } vmnmx;
+
+    union {
         BitField<20, 16, u64> imm20_16;
         BitField<35, 1, u64> high_b_rr; // used on RR
         BitField<36, 1, u64> product_shift_left;
@@ -1763,6 +1816,7 @@ public:
         MEMBAR,
         VMAD,
         VSETP,
+        VMNMX,
         FFMA_IMM, // Fused Multiply and Add
         FFMA_CR,
         FFMA_RC,
@@ -2070,6 +2124,7 @@ private:
             INST("1110111110011---", Id::MEMBAR, Type::Trivial, "MEMBAR"),
             INST("01011111--------", Id::VMAD, Type::Video, "VMAD"),
             INST("0101000011110---", Id::VSETP, Type::Video, "VSETP"),
+            INST("0011101---------", Id::VMNMX, Type::Video, "VMNMX"),
             INST("0011001-1-------", Id::FFMA_IMM, Type::Ffma, "FFMA_IMM"),
             INST("010010011-------", Id::FFMA_CR, Type::Ffma, "FFMA_CR"),
             INST("010100011-------", Id::FFMA_RC, Type::Ffma, "FFMA_RC"),
@@ -2170,7 +2225,7 @@ private:
             INST("0011011-11111---", Id::SHF_LEFT_IMM, Type::Shift, "SHF_LEFT_IMM"),
             INST("0100110011100---", Id::I2I_C, Type::Conversion, "I2I_C"),
             INST("0101110011100---", Id::I2I_R, Type::Conversion, "I2I_R"),
-            INST("0011101-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
+            INST("0011100-11100---", Id::I2I_IMM, Type::Conversion, "I2I_IMM"),
             INST("0100110010111---", Id::I2F_C, Type::Conversion, "I2F_C"),
             INST("0101110010111---", Id::I2F_R, Type::Conversion, "I2F_R"),
             INST("0011100-10111---", Id::I2F_IMM, Type::Conversion, "I2F_IMM"),

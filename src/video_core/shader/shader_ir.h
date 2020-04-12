@@ -354,6 +354,9 @@ private:
     /// Marks the usage of a input or output attribute.
     void MarkAttributeUsage(Tegra::Shader::Attribute::Index index, u64 element);
 
+    /// Decodes VMNMX instruction and inserts its code into the passed basic block.
+    void DecodeVMNMX(NodeBlock& bb, Tegra::Shader::Instruction instr);
+
     void WriteTexInstructionFloat(NodeBlock& bb, Tegra::Shader::Instruction instr,
                                   const Node4& components);
 
