@@ -248,8 +248,14 @@ void SurfaceBaseImpl::FlushBuffer(Tegra::MemoryManager& memory_manager,
 
     // Use an extra temporal buffer
     auto& tmp_buffer = staging_cache.GetBuffer(1);
+    // Special case for 3D Texture Segments
+    const bool must_read_current_data =
+        params.block_depth > 0 && params.target == VideoCore::Surface::SurfaceTarget::Texture2D;
     tmp_buffer.resize(guest_memory_size);
     host_ptr = tmp_buffer.data();
+    if (must_read_current_data) {
+        memory_manager.ReadBlockUnsafe(gpu_addr, host_ptr, guest_memory_size);
+    }
 
     if (params.is_tiled) {
         ASSERT_MSG(params.block_width == 0, "Block width is defined as {}", params.block_width);
