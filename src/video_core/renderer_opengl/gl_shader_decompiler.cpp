@@ -1819,15 +1819,17 @@ private:
     }
 
     Expression HMergeH0(Operation operation) {
-        std::string dest = VisitOperand(operation, 0).AsUint();
-        std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("(({} & 0x0000FFFFU) | ({} & 0xFFFF0000U))", src, dest), Type::Uint};
+        const std::string dest = VisitOperand(operation, 0).AsUint();
+        const std::string src = VisitOperand(operation, 1).AsUint();
+        return {fmt::format("vec2(unpackHalf2x16({}).x, unpackHalf2x16({}).y)", src, dest),
+                Type::HalfFloat};
     }
 
     Expression HMergeH1(Operation operation) {
-        std::string dest = VisitOperand(operation, 0).AsUint();
-        std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("(({} & 0x0000FFFFU) | ({} & 0xFFFF0000U))", dest, src), Type::Uint};
+        const std::string dest = VisitOperand(operation, 0).AsUint();
+        const std::string src = VisitOperand(operation, 1).AsUint();
+        return {fmt::format("vec2(unpackHalf2x16({}).x, unpackHalf2x16({}).y)", dest, src),
+                Type::HalfFloat};
     }
 
     Expression HPack2(Operation operation) {
