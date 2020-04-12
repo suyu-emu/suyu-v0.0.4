@@ -513,7 +513,8 @@ private:
 
         auto& buffer_queue = nv_flinger->FindBufferQueue(id);
 
-        if (transaction == TransactionId::Connect) {
+        switch (transaction) {
+        case TransactionId::Connect: {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
             IGBPConnectResponseParcel response{
                 static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedWidth) *
@@ -521,14 +522,18 @@ private:
                 static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedHeight) *
                                  Settings::values.resolution_factor)};
             ctx.WriteBuffer(response.Serialize());
-        } else if (transaction == TransactionId::SetPreallocatedBuffer) {
+            break;
+        }
+        case TransactionId::SetPreallocatedBuffer: {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
             buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer);
 
             IGBPSetPreallocatedBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
-        } else if (transaction == TransactionId::DequeueBuffer) {
+            break;
+        }
+        case TransactionId::DequeueBuffer: {
             IGBPDequeueBufferRequestParcel request{ctx.ReadBuffer()};
             const u32 width{request.data.width};
             const u32 height{request.data.height};
@@ -556,14 +561,18 @@ private:
                     },
                     buffer_queue.GetWritableBufferWaitEvent());
             }
-        } else if (transaction == TransactionId::RequestBuffer) {
+            break;
+        }
+        case TransactionId::RequestBuffer: {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};
 
             auto& buffer = buffer_queue.RequestBuffer(request.slot);
 
             IGBPRequestBufferResponseParcel response{buffer};
             ctx.WriteBuffer(response.Serialize());
-        } else if (transaction == TransactionId::QueueBuffer) {
+            break;
+        }
+        case TransactionId::QueueBuffer: {
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
             buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
@@ -572,7 +581,9 @@ private:
 
             IGBPQueueBufferResponseParcel response{1280, 720};
             ctx.WriteBuffer(response.Serialize());
-        } else if (transaction == TransactionId::Query) {
+            break;
+        }
+        case TransactionId::Query: {
             IGBPQueryRequestParcel request{ctx.ReadBuffer()};
 
             const u32 value =
@@ -580,15 +591,30 @@ private:
 
             IGBPQueryResponseParcel response{value};
             ctx.WriteBuffer(response.Serialize());
-        } else if (transaction == TransactionId::CancelBuffer) {
+            break;
+        }
+        case TransactionId::CancelBuffer: {
             LOG_CRITICAL(Service_VI, "(STUBBED) called, transaction=CancelBuffer");
-        } else if (transaction == TransactionId::Disconnect ||
-                   transaction == TransactionId::DetachBuffer) {
+            break;
+        }
+        case TransactionId::Disconnect: {
+            LOG_WARNING(Service_VI, "(STUBBED) called, transaction=Disconnect");
+            const auto buffer = ctx.ReadBuffer();
+
+            buffer_queue.Disconnect();
+
+            IGBPEmptyResponseParcel response{};
+            ctx.WriteBuffer(response.Serialize());
+            break;
+        }
+        case TransactionId::DetachBuffer: {
             const auto buffer = ctx.ReadBuffer();
 
             IGBPEmptyResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
-        } else {
+            break;
+        }
+        default:
             ASSERT_MSG(false, "Unimplemented");
         }
 

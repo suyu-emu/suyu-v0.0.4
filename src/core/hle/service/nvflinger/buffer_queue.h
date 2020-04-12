@@ -87,6 +87,7 @@ public:
                      Service::Nvidia::MultiFence& multi_fence);
     std::optional<std::reference_wrapper<const Buffer>> AcquireBuffer();
     void ReleaseBuffer(u32 slot);
+    void Disconnect();
     u32 Query(QueryType type);
 
     u32 GetId() const {
