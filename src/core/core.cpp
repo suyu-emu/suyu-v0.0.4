@@ -51,7 +51,10 @@
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU0, "ARM JIT", "Dynarmic CPU 0", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU1, "ARM JIT", "Dynarmic CPU 1", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU2, "ARM JIT", "Dynarmic CPU 2", MP_RGB(255, 64, 64));
+MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_CPU3, "ARM JIT", "Dynarmic CPU 3", MP_RGB(255, 64, 64));
 
 namespace Core {
 
@@ -188,6 +191,11 @@ struct System::Impl {
 
         is_powered_on = true;
         exit_lock = false;
+
+        microprofile_dynarmic[0] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU0);
+        microprofile_dynarmic[1] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU1);
+        microprofile_dynarmic[2] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU2);
+        microprofile_dynarmic[3] = MICROPROFILE_TOKEN(ARM_Jit_Dynarmic_CPU3);
 
         LOG_DEBUG(Core, "Initialized OK");
 
@@ -396,6 +404,7 @@ struct System::Impl {
     bool is_async_gpu{};
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
+    std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_dynarmic{};
 };
 
 System::System() : impl{std::make_unique<Impl>(*this)} {}
@@ -747,12 +756,12 @@ void System::RegisterHostThread() {
 
 void System::EnterDynarmicProfile() {
     std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    impl->dynarmic_ticks[core] = MicroProfileEnter(MICROPROFILE_TOKEN(ARM_Jit_Dynarmic));
+    impl->dynarmic_ticks[core] = MicroProfileEnter(impl->microprofile_dynarmic[core]);
 }
 
 void System::ExitDynarmicProfile() {
     std::size_t core = impl->kernel.GetCurrentHostThreadID();
-    MicroProfileLeave(MICROPROFILE_TOKEN(ARM_Jit_Dynarmic), impl->dynarmic_ticks[core]);
+    MicroProfileLeave(impl->microprofile_dynarmic[core], impl->dynarmic_ticks[core]);
 }
 
 } // namespace Core
