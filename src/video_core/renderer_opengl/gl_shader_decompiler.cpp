@@ -1821,15 +1821,13 @@ private:
     Expression HMergeH0(Operation operation) {
         const std::string dest = VisitOperand(operation, 0).AsUint();
         const std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("vec2(unpackHalf2x16({}).x, unpackHalf2x16({}).y)", src, dest),
-                Type::HalfFloat};
+        return {fmt::format("bitfieldInsert({}, {}, 0, 16)", dest, src), Type::Uint};
     }
 
     Expression HMergeH1(Operation operation) {
         const std::string dest = VisitOperand(operation, 0).AsUint();
         const std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("vec2(unpackHalf2x16({}).x, unpackHalf2x16({}).y)", dest, src),
-                Type::HalfFloat};
+        return {fmt::format("bitfieldInsert({}, {}, 16, 16)", dest, src), Type::Uint};
     }
 
     Expression HPack2(Operation operation) {
