@@ -1819,15 +1819,15 @@ private:
     }
 
     Expression HMergeH0(Operation operation) {
-        std::string dest = VisitOperand(operation, 0).AsUint();
-        std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("(({} & 0x0000FFFFU) | ({} & 0xFFFF0000U))", src, dest), Type::Uint};
+        const std::string dest = VisitOperand(operation, 0).AsUint();
+        const std::string src = VisitOperand(operation, 1).AsUint();
+        return {fmt::format("bitfieldInsert({}, {}, 0, 16)", dest, src), Type::Uint};
     }
 
     Expression HMergeH1(Operation operation) {
-        std::string dest = VisitOperand(operation, 0).AsUint();
-        std::string src = VisitOperand(operation, 1).AsUint();
-        return {fmt::format("(({} & 0x0000FFFFU) | ({} & 0xFFFF0000U))", dest, src), Type::Uint};
+        const std::string dest = VisitOperand(operation, 0).AsUint();
+        const std::string src = VisitOperand(operation, 1).AsUint();
+        return {fmt::format("bitfieldInsert({}, {}, 16, 16)", dest, src), Type::Uint};
     }
 
     Expression HPack2(Operation operation) {
