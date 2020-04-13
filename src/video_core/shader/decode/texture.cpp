@@ -780,20 +780,6 @@ Node4 ShaderIR::GetTldsCode(Instruction instr, TextureType texture_type, bool is
     // When lod is used always is in gpr20
     const Node lod = lod_enabled ? GetRegister(instr.gpr20) : Immediate(0);
 
-    // Fill empty entries from the guest sampler
-    const std::size_t entry_coord_count = GetCoordCount(sampler.GetType());
-    if (type_coord_count != entry_coord_count) {
-        LOG_WARNING(HW_GPU, "Bound and built texture types mismatch");
-
-        // When the size is higher we insert zeroes
-        for (std::size_t i = type_coord_count; i < entry_coord_count; ++i) {
-            coords.push_back(GetRegister(Register::ZeroIndex));
-        }
-
-        // Then we ensure the size matches the number of entries (dropping unused values)
-        coords.resize(entry_coord_count);
-    }
-
     Node4 values;
     for (u32 element = 0; element < values.size(); ++element) {
         auto coords_copy = coords;
