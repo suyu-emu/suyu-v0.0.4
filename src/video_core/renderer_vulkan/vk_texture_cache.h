@@ -13,10 +13,10 @@
 #include "common/math_util.h"
 #include "video_core/gpu.h"
 #include "video_core/rasterizer_cache.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_image.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/texture_cache.h"
 #include "video_core/textures/decoders.h"
@@ -60,15 +60,15 @@ public:
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
     void DownloadTexture(std::vector<u8>& staging_buffer) override;
 
-    void FullTransition(vk::PipelineStageFlags new_stage_mask, vk::AccessFlags new_access,
-                        vk::ImageLayout new_layout) {
+    void FullTransition(VkPipelineStageFlags new_stage_mask, VkAccessFlags new_access,
+                        VkImageLayout new_layout) {
         image->Transition(0, static_cast<u32>(params.GetNumLayers()), 0, params.num_levels,
                           new_stage_mask, new_access, new_layout);
     }
 
     void Transition(u32 base_layer, u32 num_layers, u32 base_level, u32 num_levels,
-                    vk::PipelineStageFlags new_stage_mask, vk::AccessFlags new_access,
-                    vk::ImageLayout new_layout) {
+                    VkPipelineStageFlags new_stage_mask, VkAccessFlags new_access,
+                    VkImageLayout new_layout) {
         image->Transition(base_layer, num_layers, base_level, num_levels, new_stage_mask,
                           new_access, new_layout);
     }
@@ -81,15 +81,15 @@ public:
         return *image;
     }
 
-    vk::Image GetImageHandle() const {
-        return image->GetHandle();
+    VkImage GetImageHandle() const {
+        return *image->GetHandle();
     }
 
-    vk::ImageAspectFlags GetAspectMask() const {
+    VkImageAspectFlags GetAspectMask() const {
         return image->GetAspectMask();
     }
 
-    vk::BufferView GetBufferViewHandle() const {
+    VkBufferView GetBufferViewHandle() const {
         return *buffer_view;
     }
 
@@ -104,9 +104,9 @@ private:
 
     void UploadImage(const std::vector<u8>& staging_buffer);
 
-    vk::BufferImageCopy GetBufferImageCopy(u32 level) const;
+    VkBufferImageCopy GetBufferImageCopy(u32 level) const;
 
-    vk::ImageSubresourceRange GetImageSubresourceRange() const;
+    VkImageSubresourceRange GetImageSubresourceRange() const;
 
     Core::System& system;
     const VKDevice& device;
@@ -116,11 +116,11 @@ private:
     VKStagingBufferPool& staging_pool;
 
     std::optional<VKImage> image;
-    UniqueBuffer buffer;
-    UniqueBufferView buffer_view;
+    vk::Buffer buffer;
+    vk::BufferView buffer_view;
     VKMemoryCommit commit;
 
-    vk::Format format;
+    VkFormat format = VK_FORMAT_UNDEFINED;
 };
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
@@ -129,16 +129,16 @@ public:
                                const ViewParams& params, bool is_proxy);
     ~CachedSurfaceView();
 
-    vk::ImageView GetHandle(Tegra::Texture::SwizzleSource x_source,
-                            Tegra::Texture::SwizzleSource y_source,
-                            Tegra::Texture::SwizzleSource z_source,
-                            Tegra::Texture::SwizzleSource w_source);
+    VkImageView GetHandle(Tegra::Texture::SwizzleSource x_source,
+                          Tegra::Texture::SwizzleSource y_source,
+                          Tegra::Texture::SwizzleSource z_source,
+                          Tegra::Texture::SwizzleSource w_source);
 
     bool IsSameSurface(const CachedSurfaceView& rhs) const {
         return &surface == &rhs.surface;
     }
 
-    vk::ImageView GetHandle() {
+    VkImageView GetHandle() {
         return GetHandle(Tegra::Texture::SwizzleSource::R, Tegra::Texture::SwizzleSource::G,
                          Tegra::Texture::SwizzleSource::B, Tegra::Texture::SwizzleSource::A);
     }
@@ -159,24 +159,24 @@ public:
         return buffer_view;
     }
 
-    vk::Image GetImage() const {
+    VkImage GetImage() const {
         return image;
     }
 
-    vk::BufferView GetBufferView() const {
+    VkBufferView GetBufferView() const {
         return buffer_view;
     }
 
-    vk::ImageSubresourceRange GetImageSubresourceRange() const {
+    VkImageSubresourceRange GetImageSubresourceRange() const {
         return {aspect_mask, base_level, num_levels, base_layer, num_layers};
     }
 
-    vk::ImageSubresourceLayers GetImageSubresourceLayers() const {
+    VkImageSubresourceLayers GetImageSubresourceLayers() const {
         return {surface.GetAspectMask(), base_level, base_layer, num_layers};
     }
 
-    void Transition(vk::ImageLayout new_layout, vk::PipelineStageFlags new_stage_mask,
-                    vk::AccessFlags new_access) const {
+    void Transition(VkImageLayout new_layout, VkPipelineStageFlags new_stage_mask,
+                    VkAccessFlags new_access) const {
         surface.Transition(base_layer, num_layers, base_level, num_levels, new_stage_mask,
                            new_access, new_layout);
     }
@@ -196,9 +196,9 @@ private:
 
     // Store a copy of these values to avoid double dereference when reading them
     const SurfaceParams params;
-    const vk::Image image;
-    const vk::BufferView buffer_view;
-    const vk::ImageAspectFlags aspect_mask;
+    const VkImage image;
+    const VkBufferView buffer_view;
+    const VkImageAspectFlags aspect_mask;
 
     const VKDevice& device;
     CachedSurface& surface;
@@ -206,12 +206,12 @@ private:
     const u32 num_layers;
     const u32 base_level;
     const u32 num_levels;
-    const vk::ImageViewType image_view_type;
+    const VkImageViewType image_view_type;
 
-    vk::ImageView last_image_view;
-    u32 last_swizzle{};
+    VkImageView last_image_view = nullptr;
+    u32 last_swizzle = 0;
 
-    std::unordered_map<u32, UniqueImageView> view_cache;
+    std::unordered_map<u32, vk::ImageView> view_cache;
 };
 
 class VKTextureCache final : public TextureCacheBase {

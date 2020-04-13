@@ -156,7 +156,6 @@ add_library(video_core STATIC
 
 if (ENABLE_VULKAN)
     target_sources(video_core PRIVATE
-        renderer_vulkan/declarations.h
         renderer_vulkan/fixed_pipeline_state.cpp
         renderer_vulkan/fixed_pipeline_state.h
         renderer_vulkan/maxwell_to_vk.cpp

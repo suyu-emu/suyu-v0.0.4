@@ -20,7 +20,6 @@
 #include "video_core/gpu.h"
 #include "video_core/morton.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_device.h"
@@ -30,6 +29,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_util.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
 
 namespace Vulkan {
@@ -140,16 +140,25 @@ struct ScreenRectVertex {
     std::array<f32, 2> position;
     std::array<f32, 2> tex_coord;
 
-    static vk::VertexInputBindingDescription GetDescription() {
-        return vk::VertexInputBindingDescription(0, sizeof(ScreenRectVertex),
-                                                 vk::VertexInputRate::eVertex);
+    static VkVertexInputBindingDescription GetDescription() {
+        VkVertexInputBindingDescription description;
+        description.binding = 0;
+        description.stride = sizeof(ScreenRectVertex);
+        description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        return description;
     }
 
-    static std::array<vk::VertexInputAttributeDescription, 2> GetAttributes() {
-        return {vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32Sfloat,
-                                                    offsetof(ScreenRectVertex, position)),
-                vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32Sfloat,
-                                                    offsetof(ScreenRectVertex, tex_coord))};
+    static std::array<VkVertexInputAttributeDescription, 2> GetAttributes() {
+        std::array<VkVertexInputAttributeDescription, 2> attributes;
+        attributes[0].location = 0;
+        attributes[0].binding = 0;
+        attributes[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributes[0].offset = offsetof(ScreenRectVertex, position);
+        attributes[1].location = 1;
+        attributes[1].binding = 0;
+        attributes[1].format = VK_FORMAT_R32G32_SFLOAT;
+        attributes[1].offset = offsetof(ScreenRectVertex, tex_coord);
+        return attributes;
     }
 };
 
@@ -172,16 +181,16 @@ std::size_t GetSizeInBytes(const Tegra::FramebufferConfig& framebuffer) {
            static_cast<std::size_t>(framebuffer.height) * GetBytesPerPixel(framebuffer);
 }
 
-vk::Format GetFormat(const Tegra::FramebufferConfig& framebuffer) {
+VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
     switch (framebuffer.pixel_format) {
     case Tegra::FramebufferConfig::PixelFormat::ABGR8:
-        return vk::Format::eA8B8G8R8UnormPack32;
+        return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
     case Tegra::FramebufferConfig::PixelFormat::RGB565:
-        return vk::Format::eR5G6B5UnormPack16;
+        return VK_FORMAT_R5G6B5_UNORM_PACK16;
     default:
         UNIMPLEMENTED_MSG("Unknown framebuffer pixel format: {}",
                           static_cast<u32>(framebuffer.pixel_format));
-        return vk::Format::eA8B8G8R8UnormPack32;
+        return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
     }
 }
 
@@ -219,8 +228,8 @@ void VKBlitScreen::Recreate() {
     CreateDynamicResources();
 }
 
-std::tuple<VKFence&, vk::Semaphore> VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
-                                                       bool use_accelerated) {
+std::tuple<VKFence&, VkSemaphore> VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer,
+                                                     bool use_accelerated) {
     RefreshResources(framebuffer);
 
     // Finish any pending renderpass
@@ -255,46 +264,76 @@ std::tuple<VKFence&, vk::Semaphore> VKBlitScreen::Draw(const Tegra::FramebufferC
                                  framebuffer.stride, block_height_log2, framebuffer.height, 0, 1, 1,
                                  map.GetAddress() + image_offset, host_ptr);
 
-        blit_image->Transition(0, 1, 0, 1, vk::PipelineStageFlagBits::eTransfer,
-                               vk::AccessFlagBits::eTransferWrite,
-                               vk::ImageLayout::eTransferDstOptimal);
+        blit_image->Transition(0, 1, 0, 1, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                               VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-        const vk::BufferImageCopy copy(image_offset, 0, 0,
-                                       {vk::ImageAspectFlagBits::eColor, 0, 0, 1}, {0, 0, 0},
-                                       {framebuffer.width, framebuffer.height, 1});
-        scheduler.Record([buffer_handle = *buffer, image = blit_image->GetHandle(),
-                          copy](auto cmdbuf, auto& dld) {
-            cmdbuf.copyBufferToImage(buffer_handle, image, vk::ImageLayout::eTransferDstOptimal,
-                                     {copy}, dld);
-        });
+        VkBufferImageCopy copy;
+        copy.bufferOffset = image_offset;
+        copy.bufferRowLength = 0;
+        copy.bufferImageHeight = 0;
+        copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        copy.imageSubresource.mipLevel = 0;
+        copy.imageSubresource.baseArrayLayer = 0;
+        copy.imageSubresource.layerCount = 1;
+        copy.imageOffset.x = 0;
+        copy.imageOffset.y = 0;
+        copy.imageOffset.z = 0;
+        copy.imageExtent.width = framebuffer.width;
+        copy.imageExtent.height = framebuffer.height;
+        copy.imageExtent.depth = 1;
+        scheduler.Record(
+            [buffer = *buffer, image = *blit_image->GetHandle(), copy](vk::CommandBuffer cmdbuf) {
+                cmdbuf.CopyBufferToImage(buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, copy);
+            });
     }
     map.Release();
 
-    blit_image->Transition(0, 1, 0, 1, vk::PipelineStageFlagBits::eFragmentShader,
-                           vk::AccessFlagBits::eShaderRead,
-                           vk::ImageLayout::eShaderReadOnlyOptimal);
+    blit_image->Transition(0, 1, 0, 1, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                           VK_ACCESS_SHADER_READ_BIT, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     scheduler.Record([renderpass = *renderpass, framebuffer = *framebuffers[image_index],
                       descriptor_set = descriptor_sets[image_index], buffer = *buffer,
                       size = swapchain.GetSize(), pipeline = *pipeline,
-                      layout = *pipeline_layout](auto cmdbuf, auto& dld) {
-        const vk::ClearValue clear_color{std::array{0.0f, 0.0f, 0.0f, 1.0f}};
-        const vk::RenderPassBeginInfo renderpass_bi(renderpass, framebuffer, {{0, 0}, size}, 1,
-                                                    &clear_color);
+                      layout = *pipeline_layout](vk::CommandBuffer cmdbuf) {
+        VkClearValue clear_color;
+        clear_color.color.float32[0] = 0.0f;
+        clear_color.color.float32[1] = 0.0f;
+        clear_color.color.float32[2] = 0.0f;
+        clear_color.color.float32[3] = 0.0f;
 
-        cmdbuf.beginRenderPass(renderpass_bi, vk::SubpassContents::eInline, dld);
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline, dld);
-        cmdbuf.setViewport(
-            0,
-            {{0.0f, 0.0f, static_cast<f32>(size.width), static_cast<f32>(size.height), 0.0f, 1.0f}},
-            dld);
-        cmdbuf.setScissor(0, {{{0, 0}, size}}, dld);
+        VkRenderPassBeginInfo renderpass_bi;
+        renderpass_bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderpass_bi.pNext = nullptr;
+        renderpass_bi.renderPass = renderpass;
+        renderpass_bi.framebuffer = framebuffer;
+        renderpass_bi.renderArea.offset.x = 0;
+        renderpass_bi.renderArea.offset.y = 0;
+        renderpass_bi.renderArea.extent = size;
+        renderpass_bi.clearValueCount = 1;
+        renderpass_bi.pClearValues = &clear_color;
 
-        cmdbuf.bindVertexBuffers(0, {buffer}, {offsetof(BufferData, vertices)}, dld);
-        cmdbuf.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, layout, 0, {descriptor_set}, {},
-                                  dld);
-        cmdbuf.draw(4, 1, 0, 0, dld);
-        cmdbuf.endRenderPass(dld);
+        VkViewport viewport;
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(size.width);
+        viewport.height = static_cast<float>(size.height);
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        VkRect2D scissor;
+        scissor.offset.x = 0;
+        scissor.offset.y = 0;
+        scissor.extent = size;
+
+        cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+        cmdbuf.SetViewport(0, viewport);
+        cmdbuf.SetScissor(0, scissor);
+
+        cmdbuf.BindVertexBuffer(0, buffer, offsetof(BufferData, vertices));
+        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, descriptor_set, {});
+        cmdbuf.Draw(4, 1, 0, 0);
+        cmdbuf.EndRenderPass();
     });
 
     return {scheduler.GetFence(), *semaphores[image_index]};
@@ -334,165 +373,295 @@ void VKBlitScreen::CreateShaders() {
 }
 
 void VKBlitScreen::CreateSemaphores() {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-
     semaphores.resize(image_count);
-    for (std::size_t i = 0; i < image_count; ++i) {
-        semaphores[i] = dev.createSemaphoreUnique({}, nullptr, dld);
-    }
+    std::generate(semaphores.begin(), semaphores.end(),
+                  [this] { return device.GetLogical().CreateSemaphore(); });
 }
 
 void VKBlitScreen::CreateDescriptorPool() {
-    const std::array<vk::DescriptorPoolSize, 2> pool_sizes{
-        vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, static_cast<u32>(image_count)},
-        vk::DescriptorPoolSize{vk::DescriptorType::eCombinedImageSampler,
-                               static_cast<u32>(image_count)}};
-    const vk::DescriptorPoolCreateInfo pool_ci(
-        {}, static_cast<u32>(image_count), static_cast<u32>(pool_sizes.size()), pool_sizes.data());
-    const auto dev = device.GetLogical();
-    descriptor_pool = dev.createDescriptorPoolUnique(pool_ci, nullptr, device.GetDispatchLoader());
+    std::array<VkDescriptorPoolSize, 2> pool_sizes;
+    pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    pool_sizes[0].descriptorCount = static_cast<u32>(image_count);
+    pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    pool_sizes[1].descriptorCount = static_cast<u32>(image_count);
+
+    VkDescriptorPoolCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    ci.maxSets = static_cast<u32>(image_count);
+    ci.poolSizeCount = static_cast<u32>(pool_sizes.size());
+    ci.pPoolSizes = pool_sizes.data();
+    descriptor_pool = device.GetLogical().CreateDescriptorPool(ci);
 }
 
 void VKBlitScreen::CreateRenderPass() {
-    const vk::AttachmentDescription color_attachment(
-        {}, swapchain.GetImageFormat(), vk::SampleCountFlagBits::e1, vk::AttachmentLoadOp::eClear,
-        vk::AttachmentStoreOp::eStore, vk::AttachmentLoadOp::eDontCare,
-        vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined,
-        vk::ImageLayout::ePresentSrcKHR);
+    VkAttachmentDescription color_attachment;
+    color_attachment.flags = 0;
+    color_attachment.format = swapchain.GetImageFormat();
+    color_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    color_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    color_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    color_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    color_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    color_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    color_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    const vk::AttachmentReference color_attachment_ref(0, vk::ImageLayout::eColorAttachmentOptimal);
+    VkAttachmentReference color_attachment_ref;
+    color_attachment_ref.attachment = 0;
+    color_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    const vk::SubpassDescription subpass_description({}, vk::PipelineBindPoint::eGraphics, 0,
-                                                     nullptr, 1, &color_attachment_ref, nullptr,
-                                                     nullptr, 0, nullptr);
+    VkSubpassDescription subpass_description;
+    subpass_description.flags = 0;
+    subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_description.inputAttachmentCount = 0;
+    subpass_description.pInputAttachments = nullptr;
+    subpass_description.colorAttachmentCount = 1;
+    subpass_description.pColorAttachments = &color_attachment_ref;
+    subpass_description.pResolveAttachments = nullptr;
+    subpass_description.pDepthStencilAttachment = nullptr;
+    subpass_description.preserveAttachmentCount = 0;
+    subpass_description.pPreserveAttachments = nullptr;
 
-    const vk::SubpassDependency dependency(
-        VK_SUBPASS_EXTERNAL, 0, vk::PipelineStageFlagBits::eColorAttachmentOutput,
-        vk::PipelineStageFlagBits::eColorAttachmentOutput, {},
-        vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite, {});
+    VkSubpassDependency dependency;
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstAccessMask =
+        VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependency.dependencyFlags = 0;
 
-    const vk::RenderPassCreateInfo renderpass_ci({}, 1, &color_attachment, 1, &subpass_description,
-                                                 1, &dependency);
+    VkRenderPassCreateInfo renderpass_ci;
+    renderpass_ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    renderpass_ci.pNext = nullptr;
+    renderpass_ci.flags = 0;
+    renderpass_ci.attachmentCount = 1;
+    renderpass_ci.pAttachments = &color_attachment;
+    renderpass_ci.subpassCount = 1;
+    renderpass_ci.pSubpasses = &subpass_description;
+    renderpass_ci.dependencyCount = 1;
+    renderpass_ci.pDependencies = &dependency;
 
-    const auto dev = device.GetLogical();
-    renderpass = dev.createRenderPassUnique(renderpass_ci, nullptr, device.GetDispatchLoader());
+    renderpass = device.GetLogical().CreateRenderPass(renderpass_ci);
 }
 
 void VKBlitScreen::CreateDescriptorSetLayout() {
-    const std::array<vk::DescriptorSetLayoutBinding, 2> layout_bindings{
-        vk::DescriptorSetLayoutBinding(0, vk::DescriptorType::eUniformBuffer, 1,
-                                       vk::ShaderStageFlagBits::eVertex, nullptr),
-        vk::DescriptorSetLayoutBinding(1, vk::DescriptorType::eCombinedImageSampler, 1,
-                                       vk::ShaderStageFlagBits::eFragment, nullptr)};
-    const vk::DescriptorSetLayoutCreateInfo descriptor_layout_ci(
-        {}, static_cast<u32>(layout_bindings.size()), layout_bindings.data());
+    std::array<VkDescriptorSetLayoutBinding, 2> layout_bindings;
+    layout_bindings[0].binding = 0;
+    layout_bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    layout_bindings[0].descriptorCount = 1;
+    layout_bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    layout_bindings[0].pImmutableSamplers = nullptr;
+    layout_bindings[1].binding = 1;
+    layout_bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    layout_bindings[1].descriptorCount = 1;
+    layout_bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    layout_bindings[1].pImmutableSamplers = nullptr;
 
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    descriptor_set_layout = dev.createDescriptorSetLayoutUnique(descriptor_layout_ci, nullptr, dld);
+    VkDescriptorSetLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.bindingCount = static_cast<u32>(layout_bindings.size());
+    ci.pBindings = layout_bindings.data();
+
+    descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(ci);
 }
 
 void VKBlitScreen::CreateDescriptorSets() {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
+    const std::vector layouts(image_count, *descriptor_set_layout);
 
-    descriptor_sets.resize(image_count);
-    for (std::size_t i = 0; i < image_count; ++i) {
-        const vk::DescriptorSetLayout layout = *descriptor_set_layout;
-        const vk::DescriptorSetAllocateInfo descriptor_set_ai(*descriptor_pool, 1, &layout);
-        const vk::Result result =
-            dev.allocateDescriptorSets(&descriptor_set_ai, &descriptor_sets[i], dld);
-        ASSERT(result == vk::Result::eSuccess);
-    }
+    VkDescriptorSetAllocateInfo ai;
+    ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    ai.pNext = nullptr;
+    ai.descriptorPool = *descriptor_pool;
+    ai.descriptorSetCount = static_cast<u32>(image_count);
+    ai.pSetLayouts = layouts.data();
+    descriptor_sets = descriptor_pool.Allocate(ai);
 }
 
 void VKBlitScreen::CreatePipelineLayout() {
-    const vk::PipelineLayoutCreateInfo pipeline_layout_ci({}, 1, &descriptor_set_layout.get(), 0,
-                                                          nullptr);
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    pipeline_layout = dev.createPipelineLayoutUnique(pipeline_layout_ci, nullptr, dld);
+    VkPipelineLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.setLayoutCount = 1;
+    ci.pSetLayouts = descriptor_set_layout.address();
+    ci.pushConstantRangeCount = 0;
+    ci.pPushConstantRanges = nullptr;
+    pipeline_layout = device.GetLogical().CreatePipelineLayout(ci);
 }
 
 void VKBlitScreen::CreateGraphicsPipeline() {
-    const std::array shader_stages = {
-        vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eVertex, *vertex_shader,
-                                          "main", nullptr),
-        vk::PipelineShaderStageCreateInfo({}, vk::ShaderStageFlagBits::eFragment, *fragment_shader,
-                                          "main", nullptr)};
+    std::array<VkPipelineShaderStageCreateInfo, 2> shader_stages;
+    shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[0].pNext = nullptr;
+    shader_stages[0].flags = 0;
+    shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+    shader_stages[0].module = *vertex_shader;
+    shader_stages[0].pName = "main";
+    shader_stages[0].pSpecializationInfo = nullptr;
+    shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shader_stages[1].pNext = nullptr;
+    shader_stages[1].flags = 0;
+    shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    shader_stages[1].module = *fragment_shader;
+    shader_stages[1].pName = "main";
+    shader_stages[1].pSpecializationInfo = nullptr;
 
     const auto vertex_binding_description = ScreenRectVertex::GetDescription();
     const auto vertex_attrs_description = ScreenRectVertex::GetAttributes();
-    const vk::PipelineVertexInputStateCreateInfo vertex_input(
-        {}, 1, &vertex_binding_description, static_cast<u32>(vertex_attrs_description.size()),
-        vertex_attrs_description.data());
 
-    const vk::PipelineInputAssemblyStateCreateInfo input_assembly(
-        {}, vk::PrimitiveTopology::eTriangleStrip, false);
+    VkPipelineVertexInputStateCreateInfo vertex_input_ci;
+    vertex_input_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertex_input_ci.pNext = nullptr;
+    vertex_input_ci.flags = 0;
+    vertex_input_ci.vertexBindingDescriptionCount = 1;
+    vertex_input_ci.pVertexBindingDescriptions = &vertex_binding_description;
+    vertex_input_ci.vertexAttributeDescriptionCount = u32{vertex_attrs_description.size()};
+    vertex_input_ci.pVertexAttributeDescriptions = vertex_attrs_description.data();
 
-    // Set a dummy viewport, it's going to be replaced by dynamic states.
-    const vk::Viewport viewport(0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f);
-    const vk::Rect2D scissor({0, 0}, {1, 1});
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_ci;
+    input_assembly_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    input_assembly_ci.pNext = nullptr;
+    input_assembly_ci.flags = 0;
+    input_assembly_ci.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+    input_assembly_ci.primitiveRestartEnable = VK_FALSE;
 
-    const vk::PipelineViewportStateCreateInfo viewport_state({}, 1, &viewport, 1, &scissor);
+    VkPipelineViewportStateCreateInfo viewport_state_ci;
+    viewport_state_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    viewport_state_ci.pNext = nullptr;
+    viewport_state_ci.flags = 0;
+    viewport_state_ci.viewportCount = 1;
+    viewport_state_ci.scissorCount = 1;
 
-    const vk::PipelineRasterizationStateCreateInfo rasterizer(
-        {}, false, false, vk::PolygonMode::eFill, vk::CullModeFlagBits::eNone,
-        vk::FrontFace::eClockwise, false, 0.0f, 0.0f, 0.0f, 1.0f);
+    VkPipelineRasterizationStateCreateInfo rasterization_ci;
+    rasterization_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rasterization_ci.pNext = nullptr;
+    rasterization_ci.flags = 0;
+    rasterization_ci.depthClampEnable = VK_FALSE;
+    rasterization_ci.rasterizerDiscardEnable = VK_FALSE;
+    rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterization_ci.cullMode = VK_CULL_MODE_NONE;
+    rasterization_ci.frontFace = VK_FRONT_FACE_CLOCKWISE;
+    rasterization_ci.depthBiasEnable = VK_FALSE;
+    rasterization_ci.depthBiasConstantFactor = 0.0f;
+    rasterization_ci.depthBiasClamp = 0.0f;
+    rasterization_ci.depthBiasSlopeFactor = 0.0f;
+    rasterization_ci.lineWidth = 1.0f;
 
-    const vk::PipelineMultisampleStateCreateInfo multisampling({}, vk::SampleCountFlagBits::e1,
-                                                               false, 0.0f, nullptr, false, false);
+    VkPipelineMultisampleStateCreateInfo multisampling_ci;
+    multisampling_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    multisampling_ci.pNext = nullptr;
+    multisampling_ci.flags = 0;
+    multisampling_ci.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisampling_ci.sampleShadingEnable = VK_FALSE;
+    multisampling_ci.minSampleShading = 0.0f;
+    multisampling_ci.pSampleMask = nullptr;
+    multisampling_ci.alphaToCoverageEnable = VK_FALSE;
+    multisampling_ci.alphaToOneEnable = VK_FALSE;
 
-    const vk::PipelineColorBlendAttachmentState color_blend_attachment(
-        false, vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-        vk::BlendFactor::eZero, vk::BlendFactor::eZero, vk::BlendOp::eAdd,
-        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+    VkPipelineColorBlendAttachmentState color_blend_attachment;
+    color_blend_attachment.blendEnable = VK_FALSE;
+    color_blend_attachment.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    color_blend_attachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    color_blend_attachment.colorBlendOp = VK_BLEND_OP_ADD;
+    color_blend_attachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    color_blend_attachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    color_blend_attachment.alphaBlendOp = VK_BLEND_OP_ADD;
+    color_blend_attachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                            VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
-    const vk::PipelineColorBlendStateCreateInfo color_blending(
-        {}, false, vk::LogicOp::eCopy, 1, &color_blend_attachment, {0.0f, 0.0f, 0.0f, 0.0f});
+    VkPipelineColorBlendStateCreateInfo color_blend_ci;
+    color_blend_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    color_blend_ci.flags = 0;
+    color_blend_ci.pNext = nullptr;
+    color_blend_ci.logicOpEnable = VK_FALSE;
+    color_blend_ci.logicOp = VK_LOGIC_OP_COPY;
+    color_blend_ci.attachmentCount = 1;
+    color_blend_ci.pAttachments = &color_blend_attachment;
+    color_blend_ci.blendConstants[0] = 0.0f;
+    color_blend_ci.blendConstants[1] = 0.0f;
+    color_blend_ci.blendConstants[2] = 0.0f;
+    color_blend_ci.blendConstants[3] = 0.0f;
 
-    const std::array<vk::DynamicState, 2> dynamic_states = {vk::DynamicState::eViewport,
-                                                            vk::DynamicState::eScissor};
+    static constexpr std::array dynamic_states = {VK_DYNAMIC_STATE_VIEWPORT,
+                                                  VK_DYNAMIC_STATE_SCISSOR};
+    VkPipelineDynamicStateCreateInfo dynamic_state_ci;
+    dynamic_state_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamic_state_ci.pNext = nullptr;
+    dynamic_state_ci.flags = 0;
+    dynamic_state_ci.dynamicStateCount = static_cast<u32>(dynamic_states.size());
+    dynamic_state_ci.pDynamicStates = dynamic_states.data();
 
-    const vk::PipelineDynamicStateCreateInfo dynamic_state(
-        {}, static_cast<u32>(dynamic_states.size()), dynamic_states.data());
+    VkGraphicsPipelineCreateInfo pipeline_ci;
+    pipeline_ci.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    pipeline_ci.pNext = nullptr;
+    pipeline_ci.flags = 0;
+    pipeline_ci.stageCount = static_cast<u32>(shader_stages.size());
+    pipeline_ci.pStages = shader_stages.data();
+    pipeline_ci.pVertexInputState = &vertex_input_ci;
+    pipeline_ci.pInputAssemblyState = &input_assembly_ci;
+    pipeline_ci.pTessellationState = nullptr;
+    pipeline_ci.pViewportState = &viewport_state_ci;
+    pipeline_ci.pRasterizationState = &rasterization_ci;
+    pipeline_ci.pMultisampleState = &multisampling_ci;
+    pipeline_ci.pDepthStencilState = nullptr;
+    pipeline_ci.pColorBlendState = &color_blend_ci;
+    pipeline_ci.pDynamicState = &dynamic_state_ci;
+    pipeline_ci.layout = *pipeline_layout;
+    pipeline_ci.renderPass = *renderpass;
+    pipeline_ci.subpass = 0;
+    pipeline_ci.basePipelineHandle = 0;
+    pipeline_ci.basePipelineIndex = 0;
 
-    const vk::GraphicsPipelineCreateInfo pipeline_ci(
-        {}, static_cast<u32>(shader_stages.size()), shader_stages.data(), &vertex_input,
-        &input_assembly, nullptr, &viewport_state, &rasterizer, &multisampling, nullptr,
-        &color_blending, &dynamic_state, *pipeline_layout, *renderpass, 0, nullptr, 0);
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    pipeline = dev.createGraphicsPipelineUnique({}, pipeline_ci, nullptr, dld);
+    pipeline = device.GetLogical().CreateGraphicsPipeline(pipeline_ci);
 }
 
 void VKBlitScreen::CreateSampler() {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    const vk::SamplerCreateInfo sampler_ci(
-        {}, vk::Filter::eLinear, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
-        vk::SamplerAddressMode::eClampToBorder, vk::SamplerAddressMode::eClampToBorder,
-        vk::SamplerAddressMode::eClampToBorder, 0.0f, false, 0.0f, false, vk::CompareOp::eNever,
-        0.0f, 0.0f, vk::BorderColor::eFloatOpaqueBlack, false);
-    sampler = dev.createSamplerUnique(sampler_ci, nullptr, dld);
+    VkSamplerCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.magFilter = VK_FILTER_LINEAR;
+    ci.minFilter = VK_FILTER_NEAREST;
+    ci.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    ci.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    ci.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    ci.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
+    ci.mipLodBias = 0.0f;
+    ci.anisotropyEnable = VK_FALSE;
+    ci.maxAnisotropy = 0.0f;
+    ci.compareEnable = VK_FALSE;
+    ci.compareOp = VK_COMPARE_OP_NEVER;
+    ci.minLod = 0.0f;
+    ci.maxLod = 0.0f;
+    ci.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
+    ci.unnormalizedCoordinates = VK_FALSE;
+
+    sampler = device.GetLogical().CreateSampler(ci);
 }
 
 void VKBlitScreen::CreateFramebuffers() {
-    const vk::Extent2D size{swapchain.GetSize()};
-    framebuffers.clear();
+    const VkExtent2D size{swapchain.GetSize()};
     framebuffers.resize(image_count);
 
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
+    VkFramebufferCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.renderPass = *renderpass;
+    ci.attachmentCount = 1;
+    ci.width = size.width;
+    ci.height = size.height;
+    ci.layers = 1;
 
     for (std::size_t i = 0; i < image_count; ++i) {
-        const vk::ImageView image_view{swapchain.GetImageViewIndex(i)};
-        const vk::FramebufferCreateInfo framebuffer_ci({}, *renderpass, 1, &image_view, size.width,
-                                                       size.height, 1);
-        framebuffers[i] = dev.createFramebufferUnique(framebuffer_ci, nullptr, dld);
+        const VkImageView image_view{swapchain.GetImageViewIndex(i)};
+        ci.pAttachments = &image_view;
+        framebuffers[i] = device.GetLogical().CreateFramebuffer(ci);
     }
 }
 
@@ -507,54 +676,86 @@ void VKBlitScreen::ReleaseRawImages() {
 }
 
 void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
+    VkBufferCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.size = CalculateBufferSize(framebuffer);
+    ci.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+               VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    ci.queueFamilyIndexCount = 0;
+    ci.pQueueFamilyIndices = nullptr;
 
-    const vk::BufferCreateInfo buffer_ci({}, CalculateBufferSize(framebuffer),
-                                         vk::BufferUsageFlagBits::eTransferSrc |
-                                             vk::BufferUsageFlagBits::eVertexBuffer |
-                                             vk::BufferUsageFlagBits::eUniformBuffer,
-                                         vk::SharingMode::eExclusive, 0, nullptr);
-    buffer = dev.createBufferUnique(buffer_ci, nullptr, dld);
-    buffer_commit = memory_manager.Commit(*buffer, true);
+    buffer = device.GetLogical().CreateBuffer(ci);
+    buffer_commit = memory_manager.Commit(buffer, true);
 }
 
 void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
     raw_images.resize(image_count);
     raw_buffer_commits.resize(image_count);
 
-    const auto format = GetFormat(framebuffer);
-    for (std::size_t i = 0; i < image_count; ++i) {
-        const vk::ImageCreateInfo image_ci(
-            {}, vk::ImageType::e2D, format, {framebuffer.width, framebuffer.height, 1}, 1, 1,
-            vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal,
-            vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
-            vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
+    VkImageCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.imageType = VK_IMAGE_TYPE_2D;
+    ci.format = GetFormat(framebuffer);
+    ci.extent.width = framebuffer.width;
+    ci.extent.height = framebuffer.height;
+    ci.extent.depth = 1;
+    ci.mipLevels = 1;
+    ci.arrayLayers = 1;
+    ci.samples = VK_SAMPLE_COUNT_1_BIT;
+    ci.tiling = VK_IMAGE_TILING_LINEAR;
+    ci.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    ci.queueFamilyIndexCount = 0;
+    ci.pQueueFamilyIndices = nullptr;
+    ci.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-        raw_images[i] =
-            std::make_unique<VKImage>(device, scheduler, image_ci, vk::ImageAspectFlagBits::eColor);
+    for (std::size_t i = 0; i < image_count; ++i) {
+        raw_images[i] = std::make_unique<VKImage>(device, scheduler, ci, VK_IMAGE_ASPECT_COLOR_BIT);
         raw_buffer_commits[i] = memory_manager.Commit(raw_images[i]->GetHandle(), false);
     }
 }
 
-void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, vk::ImageView image_view) const {
-    const vk::DescriptorSet descriptor_set = descriptor_sets[image_index];
+void VKBlitScreen::UpdateDescriptorSet(std::size_t image_index, VkImageView image_view) const {
+    VkDescriptorBufferInfo buffer_info;
+    buffer_info.buffer = *buffer;
+    buffer_info.offset = offsetof(BufferData, uniform);
+    buffer_info.range = sizeof(BufferData::uniform);
 
-    const vk::DescriptorBufferInfo buffer_info(*buffer, offsetof(BufferData, uniform),
-                                               sizeof(BufferData::uniform));
-    const vk::WriteDescriptorSet ubo_write(descriptor_set, 0, 0, 1,
-                                           vk::DescriptorType::eUniformBuffer, nullptr,
-                                           &buffer_info, nullptr);
+    VkWriteDescriptorSet ubo_write;
+    ubo_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    ubo_write.pNext = nullptr;
+    ubo_write.dstSet = descriptor_sets[image_index];
+    ubo_write.dstBinding = 0;
+    ubo_write.dstArrayElement = 0;
+    ubo_write.descriptorCount = 1;
+    ubo_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    ubo_write.pImageInfo = nullptr;
+    ubo_write.pBufferInfo = &buffer_info;
+    ubo_write.pTexelBufferView = nullptr;
 
-    const vk::DescriptorImageInfo image_info(*sampler, image_view,
-                                             vk::ImageLayout::eShaderReadOnlyOptimal);
-    const vk::WriteDescriptorSet sampler_write(descriptor_set, 1, 0, 1,
-                                               vk::DescriptorType::eCombinedImageSampler,
-                                               &image_info, nullptr, nullptr);
+    VkDescriptorImageInfo image_info;
+    image_info.sampler = *sampler;
+    image_info.imageView = image_view;
+    image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    dev.updateDescriptorSets({ubo_write, sampler_write}, {}, dld);
+    VkWriteDescriptorSet sampler_write;
+    sampler_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    sampler_write.pNext = nullptr;
+    sampler_write.dstSet = descriptor_sets[image_index];
+    sampler_write.dstBinding = 1;
+    sampler_write.dstArrayElement = 0;
+    sampler_write.descriptorCount = 1;
+    sampler_write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    sampler_write.pImageInfo = &image_info;
+    sampler_write.pBufferInfo = nullptr;
+    sampler_write.pTexelBufferView = nullptr;
+
+    device.GetLogical().UpdateDescriptorSets(std::array{ubo_write, sampler_write}, {});
 }
 
 void VKBlitScreen::SetUniformData(BufferData& data,

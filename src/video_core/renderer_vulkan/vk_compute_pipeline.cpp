@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_compute_pipeline.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_device.h"
@@ -14,6 +13,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -30,7 +30,7 @@ VKComputePipeline::VKComputePipeline(const VKDevice& device, VKScheduler& schedu
 
 VKComputePipeline::~VKComputePipeline() = default;
 
-vk::DescriptorSet VKComputePipeline::CommitDescriptorSet() {
+VkDescriptorSet VKComputePipeline::CommitDescriptorSet() {
     if (!descriptor_template) {
         return {};
     }
@@ -39,74 +39,109 @@ vk::DescriptorSet VKComputePipeline::CommitDescriptorSet() {
     return set;
 }
 
-UniqueDescriptorSetLayout VKComputePipeline::CreateDescriptorSetLayout() const {
-    std::vector<vk::DescriptorSetLayoutBinding> bindings;
+vk::DescriptorSetLayout VKComputePipeline::CreateDescriptorSetLayout() const {
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
     u32 binding = 0;
-    const auto AddBindings = [&](vk::DescriptorType descriptor_type, std::size_t num_entries) {
+    const auto add_bindings = [&](VkDescriptorType descriptor_type, std::size_t num_entries) {
         // TODO(Rodrigo): Maybe make individual bindings here?
         for (u32 bindpoint = 0; bindpoint < static_cast<u32>(num_entries); ++bindpoint) {
-            bindings.emplace_back(binding++, descriptor_type, 1, vk::ShaderStageFlagBits::eCompute,
-                                  nullptr);
+            VkDescriptorSetLayoutBinding& entry = bindings.emplace_back();
+            entry.binding = binding++;
+            entry.descriptorType = descriptor_type;
+            entry.descriptorCount = 1;
+            entry.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
+            entry.pImmutableSamplers = nullptr;
         }
     };
-    AddBindings(vk::DescriptorType::eUniformBuffer, entries.const_buffers.size());
-    AddBindings(vk::DescriptorType::eStorageBuffer, entries.global_buffers.size());
-    AddBindings(vk::DescriptorType::eUniformTexelBuffer, entries.texel_buffers.size());
-    AddBindings(vk::DescriptorType::eCombinedImageSampler, entries.samplers.size());
-    AddBindings(vk::DescriptorType::eStorageImage, entries.images.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, entries.const_buffers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, entries.global_buffers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, entries.texel_buffers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, entries.samplers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, entries.images.size());
 
-    const vk::DescriptorSetLayoutCreateInfo descriptor_set_layout_ci(
-        {}, static_cast<u32>(bindings.size()), bindings.data());
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createDescriptorSetLayoutUnique(descriptor_set_layout_ci, nullptr, dld);
+    VkDescriptorSetLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.bindingCount = static_cast<u32>(bindings.size());
+    ci.pBindings = bindings.data();
+    return device.GetLogical().CreateDescriptorSetLayout(ci);
 }
 
-UniquePipelineLayout VKComputePipeline::CreatePipelineLayout() const {
-    const vk::PipelineLayoutCreateInfo layout_ci({}, 1, &*descriptor_set_layout, 0, nullptr);
-    const auto dev = device.GetLogical();
-    return dev.createPipelineLayoutUnique(layout_ci, nullptr, device.GetDispatchLoader());
+vk::PipelineLayout VKComputePipeline::CreatePipelineLayout() const {
+    VkPipelineLayoutCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.setLayoutCount = 1;
+    ci.pSetLayouts = descriptor_set_layout.address();
+    ci.pushConstantRangeCount = 0;
+    ci.pPushConstantRanges = nullptr;
+    return device.GetLogical().CreatePipelineLayout(ci);
 }
 
-UniqueDescriptorUpdateTemplate VKComputePipeline::CreateDescriptorUpdateTemplate() const {
-    std::vector<vk::DescriptorUpdateTemplateEntry> template_entries;
+vk::DescriptorUpdateTemplateKHR VKComputePipeline::CreateDescriptorUpdateTemplate() const {
+    std::vector<VkDescriptorUpdateTemplateEntryKHR> template_entries;
     u32 binding = 0;
     u32 offset = 0;
     FillDescriptorUpdateTemplateEntries(entries, binding, offset, template_entries);
     if (template_entries.empty()) {
         // If the shader doesn't use descriptor sets, skip template creation.
-        return UniqueDescriptorUpdateTemplate{};
+        return {};
     }
 
-    const vk::DescriptorUpdateTemplateCreateInfo template_ci(
-        {}, static_cast<u32>(template_entries.size()), template_entries.data(),
-        vk::DescriptorUpdateTemplateType::eDescriptorSet, *descriptor_set_layout,
-        vk::PipelineBindPoint::eGraphics, *layout, DESCRIPTOR_SET);
-
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    return dev.createDescriptorUpdateTemplateUnique(template_ci, nullptr, dld);
+    VkDescriptorUpdateTemplateCreateInfoKHR ci;
+    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.descriptorUpdateEntryCount = static_cast<u32>(template_entries.size());
+    ci.pDescriptorUpdateEntries = template_entries.data();
+    ci.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR;
+    ci.descriptorSetLayout = *descriptor_set_layout;
+    ci.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    ci.pipelineLayout = *layout;
+    ci.set = DESCRIPTOR_SET;
+    return device.GetLogical().CreateDescriptorUpdateTemplateKHR(ci);
 }
 
-UniqueShaderModule VKComputePipeline::CreateShaderModule(const std::vector<u32>& code) const {
-    const vk::ShaderModuleCreateInfo module_ci({}, code.size() * sizeof(u32), code.data());
-    const auto dev = device.GetLogical();
-    return dev.createShaderModuleUnique(module_ci, nullptr, device.GetDispatchLoader());
+vk::ShaderModule VKComputePipeline::CreateShaderModule(const std::vector<u32>& code) const {
+    VkShaderModuleCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.codeSize = code.size() * sizeof(u32);
+    ci.pCode = code.data();
+    return device.GetLogical().CreateShaderModule(ci);
 }
 
-UniquePipeline VKComputePipeline::CreatePipeline() const {
-    vk::PipelineShaderStageCreateInfo shader_stage_ci({}, vk::ShaderStageFlagBits::eCompute,
-                                                      *shader_module, "main", nullptr);
-    vk::PipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci;
+vk::Pipeline VKComputePipeline::CreatePipeline() const {
+    VkComputePipelineCreateInfo ci;
+    VkPipelineShaderStageCreateInfo& stage_ci = ci.stage;
+    stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    stage_ci.pNext = nullptr;
+    stage_ci.flags = 0;
+    stage_ci.stage = VK_SHADER_STAGE_COMPUTE_BIT;
+    stage_ci.module = *shader_module;
+    stage_ci.pName = "main";
+    stage_ci.pSpecializationInfo = nullptr;
+
+    VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci;
+    subgroup_size_ci.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT;
+    subgroup_size_ci.pNext = nullptr;
     subgroup_size_ci.requiredSubgroupSize = GuestWarpSize;
-    if (entries.uses_warps && device.IsGuestWarpSizeSupported(vk::ShaderStageFlagBits::eCompute)) {
-        shader_stage_ci.pNext = &subgroup_size_ci;
+
+    if (entries.uses_warps && device.IsGuestWarpSizeSupported(VK_SHADER_STAGE_COMPUTE_BIT)) {
+        stage_ci.pNext = &subgroup_size_ci;
     }
 
-    const vk::ComputePipelineCreateInfo create_info({}, shader_stage_ci, *layout, {}, 0);
-    const auto dev = device.GetLogical();
-    return dev.createComputePipelineUnique({}, create_info, nullptr, device.GetDispatchLoader());
+    ci.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.layout = *layout;
+    ci.basePipelineHandle = nullptr;
+    ci.basePipelineIndex = 0;
+    return device.GetLogical().CreateComputePipeline(ci);
 }
 
 } // namespace Vulkan

@@ -13,7 +13,7 @@
 #include <utility>
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
-#include "video_core/renderer_vulkan/declarations.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -49,10 +49,10 @@ public:
     ~VKScheduler();
 
     /// Sends the current execution context to the GPU.
-    void Flush(bool release_fence = true, vk::Semaphore semaphore = nullptr);
+    void Flush(bool release_fence = true, VkSemaphore semaphore = nullptr);
 
     /// Sends the current execution context to the GPU and waits for it to complete.
-    void Finish(bool release_fence = true, vk::Semaphore semaphore = nullptr);
+    void Finish(bool release_fence = true, VkSemaphore semaphore = nullptr);
 
     /// Waits for the worker thread to finish executing everything. After this function returns it's
     /// safe to touch worker resources.
@@ -62,14 +62,15 @@ public:
     void DispatchWork();
 
     /// Requests to begin a renderpass.
-    void RequestRenderpass(const vk::RenderPassBeginInfo& renderpass_bi);
+    void RequestRenderpass(VkRenderPass renderpass, VkFramebuffer framebuffer,
+                           VkExtent2D render_area);
 
     /// Requests the current executino context to be able to execute operations only allowed outside
     /// of a renderpass.
     void RequestOutsideRenderPassOperationContext();
 
     /// Binds a pipeline to the current execution context.
-    void BindGraphicsPipeline(vk::Pipeline pipeline);
+    void BindGraphicsPipeline(VkPipeline pipeline);
 
     /// Assigns the query cache.
     void SetQueryCache(VKQueryCache& query_cache_) {
@@ -101,8 +102,7 @@ private:
     public:
         virtual ~Command() = default;
 
-        virtual void Execute(vk::CommandBuffer cmdbuf,
-                             const vk::DispatchLoaderDynamic& dld) const = 0;
+        virtual void Execute(vk::CommandBuffer cmdbuf) const = 0;
 
         Command* GetNext() const {
             return next;
@@ -125,9 +125,8 @@ private:
         TypedCommand(TypedCommand&&) = delete;
         TypedCommand& operator=(TypedCommand&&) = delete;
 
-        void Execute(vk::CommandBuffer cmdbuf,
-                     const vk::DispatchLoaderDynamic& dld) const override {
-            command(cmdbuf, dld);
+        void Execute(vk::CommandBuffer cmdbuf) const override {
+            command(cmdbuf);
         }
 
     private:
@@ -136,7 +135,7 @@ private:
 
     class CommandChunk final {
     public:
-        void ExecuteAll(vk::CommandBuffer cmdbuf, const vk::DispatchLoaderDynamic& dld);
+        void ExecuteAll(vk::CommandBuffer cmdbuf);
 
         template <typename T>
         bool Record(T& command) {
@@ -175,7 +174,7 @@ private:
 
     void WorkerThread();
 
-    void SubmitExecution(vk::Semaphore semaphore);
+    void SubmitExecution(VkSemaphore semaphore);
 
     void AllocateNewContext();
 
@@ -198,8 +197,10 @@ private:
     VKFence* next_fence = nullptr;
 
     struct State {
-        std::optional<vk::RenderPassBeginInfo> renderpass;
-        vk::Pipeline graphics_pipeline;
+        VkRenderPass renderpass = nullptr;
+        VkFramebuffer framebuffer = nullptr;
+        VkExtent2D render_area = {0, 0};
+        VkPipeline graphics_pipeline = nullptr;
     } state;
 
     std::unique_ptr<CommandChunk> chunk;

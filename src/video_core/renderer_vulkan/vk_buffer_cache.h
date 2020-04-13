@@ -11,11 +11,11 @@
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/rasterizer_cache.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
 class System;
@@ -33,8 +33,8 @@ public:
                                VAddr cpu_addr, std::size_t size);
     ~CachedBufferBlock();
 
-    const vk::Buffer* GetHandle() const {
-        return &*buffer.handle;
+    const VkBuffer* GetHandle() const {
+        return buffer.handle.address();
     }
 
 private:
@@ -43,21 +43,21 @@ private:
 
 using Buffer = std::shared_ptr<CachedBufferBlock>;
 
-class VKBufferCache final : public VideoCommon::BufferCache<Buffer, vk::Buffer, VKStreamBuffer> {
+class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
     explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
                            const VKDevice& device, VKMemoryManager& memory_manager,
                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
-    const vk::Buffer* GetEmptyBuffer(std::size_t size) override;
+    const VkBuffer* GetEmptyBuffer(std::size_t size) override;
 
 protected:
     void WriteBarrier() override {}
 
     Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
-    const vk::Buffer* ToHandle(const Buffer& buffer) override;
+    const VkBuffer* ToHandle(const Buffer& buffer) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;

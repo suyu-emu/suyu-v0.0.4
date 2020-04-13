@@ -801,7 +801,7 @@ private:
             if (IsOutputAttributeArray()) {
                 const u32 num = GetNumOutputVertices();
                 type = TypeArray(type, Constant(t_uint, num));
-                if (device.GetDriverID() != vk::DriverIdKHR::eIntelProprietaryWindows) {
+                if (device.GetDriverID() != VK_DRIVER_ID_INTEL_PROPRIETARY_WINDOWS_KHR) {
                     // Intel's proprietary driver fails to setup defaults for arrayed output
                     // attributes.
                     varying_default = ConstantComposite(type, std::vector(num, varying_default));

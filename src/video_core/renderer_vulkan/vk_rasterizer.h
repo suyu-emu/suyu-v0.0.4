@@ -17,7 +17,6 @@
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -32,6 +31,7 @@
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
 class System;
@@ -49,11 +49,10 @@ namespace Vulkan {
 
 struct VKScreenInfo;
 
-using ImageViewsPack =
-    boost::container::static_vector<vk::ImageView, Maxwell::NumRenderTargets + 1>;
+using ImageViewsPack = boost::container::static_vector<VkImageView, Maxwell::NumRenderTargets + 1>;
 
 struct FramebufferCacheKey {
-    vk::RenderPass renderpass{};
+    VkRenderPass renderpass{};
     u32 width = 0;
     u32 height = 0;
     u32 layers = 0;
@@ -101,7 +100,7 @@ class BufferBindings;
 
 struct ImageView {
     View view;
-    vk::ImageLayout* layout = nullptr;
+    VkImageLayout* layout = nullptr;
 };
 
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
@@ -137,7 +136,7 @@ public:
 
 private:
     struct DrawParameters {
-        void Draw(vk::CommandBuffer cmdbuf, const vk::DispatchLoaderDynamic& dld) const;
+        void Draw(vk::CommandBuffer cmdbuf) const;
 
         u32 base_instance = 0;
         u32 num_instances = 0;
@@ -154,7 +153,7 @@ private:
 
     Texceptions UpdateAttachments();
 
-    std::tuple<vk::Framebuffer, vk::Extent2D> ConfigureFramebuffers(vk::RenderPass renderpass);
+    std::tuple<VkFramebuffer, VkExtent2D> ConfigureFramebuffers(VkRenderPass renderpass);
 
     /// Setups geometry buffers and state.
     DrawParameters SetupGeometry(FixedPipelineState& fixed_state, BufferBindings& buffer_bindings,
@@ -272,7 +271,7 @@ private:
     u32 draw_counter = 0;
 
     // TODO(Rodrigo): Invalidate on image destruction
-    std::unordered_map<FramebufferCacheKey, UniqueFramebuffer> framebuffer_cache;
+    std::unordered_map<FramebufferCacheKey, vk::Framebuffer> framebuffer_cache;
 };
 
 } // namespace Vulkan

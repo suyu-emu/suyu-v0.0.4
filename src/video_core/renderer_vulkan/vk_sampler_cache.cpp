@@ -7,64 +7,64 @@
 #include <unordered_map>
 
 #include "common/assert.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/textures/texture.h"
 
 namespace Vulkan {
 
-static std::optional<vk::BorderColor> TryConvertBorderColor(std::array<float, 4> color) {
+namespace {
+
+VkBorderColor ConvertBorderColor(std::array<float, 4> color) {
     // TODO(Rodrigo): Manage integer border colors
     if (color == std::array<float, 4>{0, 0, 0, 0}) {
-        return vk::BorderColor::eFloatTransparentBlack;
+        return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     } else if (color == std::array<float, 4>{0, 0, 0, 1}) {
-        return vk::BorderColor::eFloatOpaqueBlack;
+        return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
     } else if (color == std::array<float, 4>{1, 1, 1, 1}) {
-        return vk::BorderColor::eFloatOpaqueWhite;
+        return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    }
+    if (color[0] + color[1] + color[2] > 1.35f) {
+        // If color elements are brighter than roughly 0.5 average, use white border
+        return VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+    } else if (color[3] > 0.5f) {
+        return VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK;
     } else {
-        if (color[0] + color[1] + color[2] > 1.35f) {
-            // If color elements are brighter than roughly 0.5 average, use white border
-            return vk::BorderColor::eFloatOpaqueWhite;
-        }
-        if (color[3] > 0.5f) {
-            return vk::BorderColor::eFloatOpaqueBlack;
-        }
-        return vk::BorderColor::eFloatTransparentBlack;
+        return VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
     }
 }
+
+} // Anonymous namespace
 
 VKSamplerCache::VKSamplerCache(const VKDevice& device) : device{device} {}
 
 VKSamplerCache::~VKSamplerCache() = default;
 
-UniqueSampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) const {
-    const float max_anisotropy{tsc.GetMaxAnisotropy()};
-    const bool has_anisotropy{max_anisotropy > 1.0f};
-
-    const auto border_color{tsc.GetBorderColor()};
-    const auto vk_border_color{TryConvertBorderColor(border_color)};
-
-    constexpr bool unnormalized_coords{false};
-
-    const vk::SamplerCreateInfo sampler_ci(
-        {}, MaxwellToVK::Sampler::Filter(tsc.mag_filter),
-        MaxwellToVK::Sampler::Filter(tsc.min_filter),
-        MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
-        MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
-        MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
-        MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter), tsc.GetLodBias(),
-        has_anisotropy, max_anisotropy, tsc.depth_compare_enabled,
-        MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func), tsc.GetMinLod(),
-        tsc.GetMaxLod(), vk_border_color.value_or(vk::BorderColor::eFloatTransparentBlack),
-        unnormalized_coords);
-
-    const auto& dld{device.GetDispatchLoader()};
-    const auto dev{device.GetLogical()};
-    return dev.createSamplerUnique(sampler_ci, nullptr, dld);
+vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) const {
+    VkSamplerCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter);
+    ci.minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter);
+    ci.mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter);
+    ci.addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter);
+    ci.addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter);
+    ci.addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter);
+    ci.mipLodBias = tsc.GetLodBias();
+    ci.anisotropyEnable = tsc.GetMaxAnisotropy() > 1.0f ? VK_TRUE : VK_FALSE;
+    ci.maxAnisotropy = tsc.GetMaxAnisotropy();
+    ci.compareEnable = tsc.depth_compare_enabled;
+    ci.compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func);
+    ci.minLod = tsc.GetMinLod();
+    ci.maxLod = tsc.GetMaxLod();
+    ci.borderColor = ConvertBorderColor(tsc.GetBorderColor());
+    ci.unnormalizedCoordinates = VK_FALSE;
+    return device.GetLogical().CreateSampler(ci);
 }
 
-vk::Sampler VKSamplerCache::ToSamplerType(const UniqueSampler& sampler) const {
+VkSampler VKSamplerCache::ToSamplerType(const vk::Sampler& sampler) const {
     return *sampler;
 }
 

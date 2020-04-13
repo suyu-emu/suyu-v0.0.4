@@ -10,23 +10,22 @@
 
 #include "common/assert.h"
 #include "common/microprofile.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
 MICROPROFILE_DECLARE(Vulkan_WaitForWorker);
 
-void VKScheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf,
-                                           const vk::DispatchLoaderDynamic& dld) {
+void VKScheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf) {
     auto command = first;
     while (command != nullptr) {
         auto next = command->GetNext();
-        command->Execute(cmdbuf, dld);
+        command->Execute(cmdbuf);
         command->~Command();
         command = next;
     }
@@ -51,7 +50,7 @@ VKScheduler::~VKScheduler() {
     worker_thread.join();
 }
 
-void VKScheduler::Flush(bool release_fence, vk::Semaphore semaphore) {
+void VKScheduler::Flush(bool release_fence, VkSemaphore semaphore) {
     SubmitExecution(semaphore);
     if (release_fence) {
         current_fence->Release();
@@ -59,7 +58,7 @@ void VKScheduler::Flush(bool release_fence, vk::Semaphore semaphore) {
     AllocateNewContext();
 }
 
-void VKScheduler::Finish(bool release_fence, vk::Semaphore semaphore) {
+void VKScheduler::Finish(bool release_fence, VkSemaphore semaphore) {
     SubmitExecution(semaphore);
     current_fence->Wait();
     if (release_fence) {
@@ -89,17 +88,34 @@ void VKScheduler::DispatchWork() {
     AcquireNewChunk();
 }
 
-void VKScheduler::RequestRenderpass(const vk::RenderPassBeginInfo& renderpass_bi) {
-    if (state.renderpass && renderpass_bi == *state.renderpass) {
+void VKScheduler::RequestRenderpass(VkRenderPass renderpass, VkFramebuffer framebuffer,
+                                    VkExtent2D render_area) {
+    if (renderpass == state.renderpass && framebuffer == state.framebuffer &&
+        render_area.width == state.render_area.width &&
+        render_area.height == state.render_area.height) {
         return;
     }
-    const bool end_renderpass = state.renderpass.has_value();
-    state.renderpass = renderpass_bi;
-    Record([renderpass_bi, end_renderpass](auto cmdbuf, auto& dld) {
+    const bool end_renderpass = state.renderpass != nullptr;
+    state.renderpass = renderpass;
+    state.framebuffer = framebuffer;
+    state.render_area = render_area;
+
+    VkRenderPassBeginInfo renderpass_bi;
+    renderpass_bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderpass_bi.pNext = nullptr;
+    renderpass_bi.renderPass = renderpass;
+    renderpass_bi.framebuffer = framebuffer;
+    renderpass_bi.renderArea.offset.x = 0;
+    renderpass_bi.renderArea.offset.y = 0;
+    renderpass_bi.renderArea.extent = render_area;
+    renderpass_bi.clearValueCount = 0;
+    renderpass_bi.pClearValues = nullptr;
+
+    Record([renderpass_bi, end_renderpass](vk::CommandBuffer cmdbuf) {
         if (end_renderpass) {
-            cmdbuf.endRenderPass(dld);
+            cmdbuf.EndRenderPass();
         }
-        cmdbuf.beginRenderPass(renderpass_bi, vk::SubpassContents::eInline, dld);
+        cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
     });
 }
 
@@ -107,13 +123,13 @@ void VKScheduler::RequestOutsideRenderPassOperationContext() {
     EndRenderPass();
 }
 
-void VKScheduler::BindGraphicsPipeline(vk::Pipeline pipeline) {
+void VKScheduler::BindGraphicsPipeline(VkPipeline pipeline) {
     if (state.graphics_pipeline == pipeline) {
         return;
     }
     state.graphics_pipeline = pipeline;
-    Record([pipeline](auto cmdbuf, auto& dld) {
-        cmdbuf.bindPipeline(vk::PipelineBindPoint::eGraphics, pipeline, dld);
+    Record([pipeline](vk::CommandBuffer cmdbuf) {
+        cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     });
 }
 
@@ -126,37 +142,50 @@ void VKScheduler::WorkerThread() {
         }
         auto extracted_chunk = std::move(chunk_queue.Front());
         chunk_queue.Pop();
-        extracted_chunk->ExecuteAll(current_cmdbuf, device.GetDispatchLoader());
+        extracted_chunk->ExecuteAll(current_cmdbuf);
         chunk_reserve.Push(std::move(extracted_chunk));
     } while (!quit);
 }
 
-void VKScheduler::SubmitExecution(vk::Semaphore semaphore) {
+void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
     EndPendingOperations();
     InvalidateState();
     WaitWorker();
 
     std::unique_lock lock{mutex};
 
-    const auto queue = device.GetGraphicsQueue();
-    const auto& dld = device.GetDispatchLoader();
-    current_cmdbuf.end(dld);
+    current_cmdbuf.End();
 
-    const vk::SubmitInfo submit_info(0, nullptr, nullptr, 1, &current_cmdbuf, semaphore ? 1U : 0U,
-                                     &semaphore);
-    queue.submit({submit_info}, static_cast<vk::Fence>(*current_fence), dld);
+    VkSubmitInfo submit_info;
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.pNext = nullptr;
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
+    submit_info.pWaitDstStageMask = nullptr;
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = current_cmdbuf.address();
+    submit_info.signalSemaphoreCount = semaphore ? 1 : 0;
+    submit_info.pSignalSemaphores = &semaphore;
+    device.GetGraphicsQueue().Submit(submit_info, *current_fence);
 }
 
 void VKScheduler::AllocateNewContext() {
     ++ticks;
 
+    VkCommandBufferBeginInfo cmdbuf_bi;
+    cmdbuf_bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdbuf_bi.pNext = nullptr;
+    cmdbuf_bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    cmdbuf_bi.pInheritanceInfo = nullptr;
+
     std::unique_lock lock{mutex};
     current_fence = next_fence;
     next_fence = &resource_manager.CommitFence();
 
-    current_cmdbuf = resource_manager.CommitCommandBuffer(*current_fence);
-    current_cmdbuf.begin({vk::CommandBufferUsageFlagBits::eOneTimeSubmit},
-                         device.GetDispatchLoader());
+    current_cmdbuf = vk::CommandBuffer(resource_manager.CommitCommandBuffer(*current_fence),
+                                       device.GetDispatchLoader());
+    current_cmdbuf.Begin(cmdbuf_bi);
+
     // Enable counters once again. These are disabled when a command buffer is finished.
     if (query_cache) {
         query_cache->UpdateCounters();
@@ -177,8 +206,8 @@ void VKScheduler::EndRenderPass() {
     if (!state.renderpass) {
         return;
     }
-    state.renderpass = std::nullopt;
-    Record([](auto cmdbuf, auto& dld) { cmdbuf.endRenderPass(dld); });
+    state.renderpass = nullptr;
+    Record([](vk::CommandBuffer cmdbuf) { cmdbuf.EndRenderPass(); });
 }
 
 void VKScheduler::AcquireNewChunk() {

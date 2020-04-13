@@ -9,11 +9,11 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
@@ -25,8 +25,8 @@ constexpr u64 WATCHES_RESERVE_CHUNK = 0x1000;
 constexpr u64 STREAM_BUFFER_SIZE = 256 * 1024 * 1024;
 
 std::optional<u32> FindMemoryType(const VKDevice& device, u32 filter,
-                                  vk::MemoryPropertyFlags wanted) {
-    const auto properties = device.GetPhysical().getMemoryProperties(device.GetDispatchLoader());
+                                  VkMemoryPropertyFlags wanted) {
+    const auto properties = device.GetPhysical().GetMemoryProperties();
     for (u32 i = 0; i < properties.memoryTypeCount; i++) {
         if (!(filter & (1 << i))) {
             continue;
@@ -35,13 +35,13 @@ std::optional<u32> FindMemoryType(const VKDevice& device, u32 filter,
             return i;
         }
     }
-    return {};
+    return std::nullopt;
 }
 
 } // Anonymous namespace
 
 VKStreamBuffer::VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler,
-                               vk::BufferUsageFlags usage)
+                               VkBufferUsageFlags usage)
     : device{device}, scheduler{scheduler} {
     CreateBuffers(usage);
     ReserveWatches(current_watches, WATCHES_INITIAL_RESERVE);
@@ -78,17 +78,13 @@ std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
         invalidated = true;
     }
 
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    const auto pointer = reinterpret_cast<u8*>(dev.mapMemory(*memory, offset, size, {}, dld));
-    return {pointer, offset, invalidated};
+    return {memory.Map(offset, size), offset, invalidated};
 }
 
 void VKStreamBuffer::Unmap(u64 size) {
     ASSERT_MSG(size <= mapped_size, "Reserved size is too small");
 
-    const auto dev = device.GetLogical();
-    dev.unmapMemory(*memory, device.GetDispatchLoader());
+    memory.Unmap();
 
     offset += size;
 
@@ -101,30 +97,42 @@ void VKStreamBuffer::Unmap(u64 size) {
     watch.fence.Watch(scheduler.GetFence());
 }
 
-void VKStreamBuffer::CreateBuffers(vk::BufferUsageFlags usage) {
-    const vk::BufferCreateInfo buffer_ci({}, STREAM_BUFFER_SIZE, usage, vk::SharingMode::eExclusive,
-                                         0, nullptr);
-    const auto dev = device.GetLogical();
-    const auto& dld = device.GetDispatchLoader();
-    buffer = dev.createBufferUnique(buffer_ci, nullptr, dld);
+void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
+    VkBufferCreateInfo buffer_ci;
+    buffer_ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_ci.pNext = nullptr;
+    buffer_ci.flags = 0;
+    buffer_ci.size = STREAM_BUFFER_SIZE;
+    buffer_ci.usage = usage;
+    buffer_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buffer_ci.queueFamilyIndexCount = 0;
+    buffer_ci.pQueueFamilyIndices = nullptr;
 
-    const auto requirements = dev.getBufferMemoryRequirements(*buffer, dld);
+    const auto& dev = device.GetLogical();
+    buffer = dev.CreateBuffer(buffer_ci);
+
+    const auto& dld = device.GetDispatchLoader();
+    const auto requirements = dev.GetBufferMemoryRequirements(*buffer);
     // Prefer device local host visible allocations (this should hit AMD's pinned memory).
-    auto type = FindMemoryType(device, requirements.memoryTypeBits,
-                               vk::MemoryPropertyFlagBits::eHostVisible |
-                                   vk::MemoryPropertyFlagBits::eHostCoherent |
-                                   vk::MemoryPropertyFlagBits::eDeviceLocal);
+    auto type =
+        FindMemoryType(device, requirements.memoryTypeBits,
+                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     if (!type) {
         // Otherwise search for a host visible allocation.
         type = FindMemoryType(device, requirements.memoryTypeBits,
-                              vk::MemoryPropertyFlagBits::eHostVisible |
-                                  vk::MemoryPropertyFlagBits::eHostCoherent);
+                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
         ASSERT_MSG(type, "No host visible and coherent memory type found");
     }
-    const vk::MemoryAllocateInfo alloc_ci(requirements.size, *type);
-    memory = dev.allocateMemoryUnique(alloc_ci, nullptr, dld);
+    VkMemoryAllocateInfo memory_ai;
+    memory_ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memory_ai.pNext = nullptr;
+    memory_ai.allocationSize = requirements.size;
+    memory_ai.memoryTypeIndex = *type;
 
-    dev.bindBufferMemory(*buffer, *memory, 0, dld);
+    memory = dev.AllocateMemory(memory_ai);
+    buffer.BindMemory(*memory, 0);
 }
 
 void VKStreamBuffer::ReserveWatches(std::vector<Watch>& watches, std::size_t grow_size) {

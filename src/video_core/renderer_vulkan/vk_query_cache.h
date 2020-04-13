@@ -12,8 +12,8 @@
 
 #include "common/common_types.h"
 #include "video_core/query_cache.h"
-#include "video_core/renderer_vulkan/declarations.h"
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/wrapper.h"
 
 namespace VideoCore {
 class RasterizerInterface;
@@ -36,9 +36,9 @@ public:
 
     void Initialize(const VKDevice& device, VideoCore::QueryType type);
 
-    std::pair<vk::QueryPool, std::uint32_t> Commit(VKFence& fence);
+    std::pair<VkQueryPool, u32> Commit(VKFence& fence);
 
-    void Reserve(std::pair<vk::QueryPool, std::uint32_t> query);
+    void Reserve(std::pair<VkQueryPool, u32> query);
 
 protected:
     void Allocate(std::size_t begin, std::size_t end) override;
@@ -49,7 +49,7 @@ private:
     const VKDevice* device = nullptr;
     VideoCore::QueryType type = {};
 
-    std::vector<UniqueQueryPool> pools;
+    std::vector<vk::QueryPool> pools;
     std::vector<bool> usage;
 };
 
@@ -61,9 +61,9 @@ public:
                           const VKDevice& device, VKScheduler& scheduler);
     ~VKQueryCache();
 
-    std::pair<vk::QueryPool, std::uint32_t> AllocateQuery(VideoCore::QueryType type);
+    std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);
 
-    void Reserve(VideoCore::QueryType type, std::pair<vk::QueryPool, std::uint32_t> query);
+    void Reserve(VideoCore::QueryType type, std::pair<VkQueryPool, u32> query);
 
     const VKDevice& Device() const noexcept {
         return device;
@@ -91,7 +91,7 @@ private:
 
     VKQueryCache& cache;
     const VideoCore::QueryType type;
-    const std::pair<vk::QueryPool, std::uint32_t> query;
+    const std::pair<VkQueryPool, u32> query;
     const u64 ticks;
 };
 
