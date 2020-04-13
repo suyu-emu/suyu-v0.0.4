@@ -966,7 +966,10 @@ public:
                     BitField<4, 1, u32> triangle_rast_flip;
                 } screen_y_control;
 
-                INSERT_UNION_PADDING_WORDS(0x21);
+                float line_width_smooth;
+                float line_width_aliased;
+
+                INSERT_UNION_PADDING_WORDS(0x1F);
 
                 u32 vb_element_base;
                 u32 vb_base_instance;
@@ -1024,7 +1027,7 @@ public:
 
                 float polygon_offset_factor;
 
-                INSERT_UNION_PADDING_WORDS(0x1);
+                u32 line_smooth_enable;
 
                 struct {
                     u32 tic_address_high;
@@ -1591,6 +1594,8 @@ ASSERT_REG_POSITION(stencil_front_func_mask, 0x4E6);
 ASSERT_REG_POSITION(stencil_front_mask, 0x4E7);
 ASSERT_REG_POSITION(frag_color_clamp, 0x4EA);
 ASSERT_REG_POSITION(screen_y_control, 0x4EB);
+ASSERT_REG_POSITION(line_width_smooth, 0x4EC);
+ASSERT_REG_POSITION(line_width_aliased, 0x4ED);
 ASSERT_REG_POSITION(vb_element_base, 0x50D);
 ASSERT_REG_POSITION(vb_base_instance, 0x50E);
 ASSERT_REG_POSITION(clip_distance_enabled, 0x544);
@@ -1604,6 +1609,7 @@ ASSERT_REG_POSITION(multisample_control, 0x54F);
 ASSERT_REG_POSITION(condition, 0x554);
 ASSERT_REG_POSITION(tsc, 0x557);
 ASSERT_REG_POSITION(polygon_offset_factor, 0x55B);
+ASSERT_REG_POSITION(line_smooth_enable, 0x55C);
 ASSERT_REG_POSITION(tic, 0x55D);
 ASSERT_REG_POSITION(stencil_two_side_enable, 0x565);
 ASSERT_REG_POSITION(stencil_back_op_fail, 0x566);
