@@ -62,13 +62,16 @@ constexpr auto ComputeShaderIndex = static_cast<std::size_t>(Tegra::Engines::Sha
 
 VkViewport GetViewportState(const VKDevice& device, const Maxwell& regs, std::size_t index) {
     const auto& src = regs.viewport_transform[index];
+    const float width = src.scale_x * 2.0f;
+    const float height = src.scale_y * 2.0f;
+
     VkViewport viewport;
     viewport.x = src.translate_x - src.scale_x;
     viewport.y = src.translate_y - src.scale_y;
-    viewport.width = src.scale_x * 2.0f;
-    viewport.height = src.scale_y * 2.0f;
+    viewport.width = width != 0.0f ? width : 1.0f;
+    viewport.height = height != 0.0f ? height : 1.0f;
 
-    const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
+    const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
     viewport.minDepth = src.translate_z - src.scale_z * reduce_z;
     viewport.maxDepth = src.translate_z + src.scale_z;
     if (!device.IsExtDepthRangeUnrestrictedSupported()) {
