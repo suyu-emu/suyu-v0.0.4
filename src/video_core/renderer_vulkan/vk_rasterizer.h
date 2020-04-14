@@ -254,6 +254,7 @@ private:
     VKUpdateDescriptorQueue update_descriptor_queue;
     VKRenderPassCache renderpass_cache;
     QuadArrayPass quad_array_pass;
+    QuadIndexedPass quad_indexed_pass;
     Uint8Pass uint8_pass;
 
     VKTextureCache texture_cache;

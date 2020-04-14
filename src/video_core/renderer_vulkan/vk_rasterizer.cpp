@@ -293,6 +293,7 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       update_descriptor_queue(device, scheduler), renderpass_cache(device),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       uint8_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
+      quad_indexed_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       texture_cache(system, *this, device, resource_manager, memory_manager, scheduler,
                     staging_pool),
       pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue,
@@ -844,18 +845,26 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
                                         bool is_indexed) {
     const auto& regs = system.GPU().Maxwell3D().regs;
     switch (regs.draw.topology) {
-    case Maxwell::PrimitiveTopology::Quads:
-        if (params.is_indexed) {
-            UNIMPLEMENTED();
-        } else {
+    case Maxwell::PrimitiveTopology::Quads: {
+        if (!params.is_indexed) {
             const auto [buffer, offset] =
                 quad_array_pass.Assemble(params.num_vertices, params.base_vertex);
             buffer_bindings.SetIndexBinding(buffer, offset, VK_INDEX_TYPE_UINT32);
             params.base_vertex = 0;
             params.num_vertices = params.num_vertices * 6 / 4;
             params.is_indexed = true;
+            break;
         }
+        const GPUVAddr gpu_addr = regs.index_array.IndexStart();
+        auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
+        std::tie(buffer, offset) = quad_indexed_pass.Assemble(
+            regs.index_array.format, params.num_vertices, params.base_vertex, buffer, offset);
+
+        buffer_bindings.SetIndexBinding(buffer, offset, VK_INDEX_TYPE_UINT32);
+        params.num_vertices = (params.num_vertices / 4) * 6;
+        params.base_vertex = 0;
         break;
+    }
     default: {
         if (!is_indexed) {
             break;
