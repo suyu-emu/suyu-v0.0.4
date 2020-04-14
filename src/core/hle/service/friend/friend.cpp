@@ -27,7 +27,7 @@ public:
             {10110, nullptr, "GetFriendProfileImage"},
             {10200, nullptr, "SendFriendRequestForApplication"},
             {10211, nullptr, "AddFacedFriendRequestForApplication"},
-            {10400, nullptr, "GetBlockedUserListIds"},
+            {10400, &IFriendService::GetBlockedUserListIds, "GetBlockedUserListIds"},
             {10500, nullptr, "GetProfileList"},
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
             {10601, &IFriendService::DeclareCloseOnlinePlaySession, "DeclareCloseOnlinePlaySession"},
@@ -120,6 +120,15 @@ private:
         u64 group_id;
     };
     static_assert(sizeof(SizedFriendFilter) == 0x10, "SizedFriendFilter is an invalid size");
+
+    void GetBlockedUserListIds(Kernel::HLERequestContext& ctx) {
+        // This is safe to stub, as there should be no adverse consequences from reporting no
+        // blocked users.
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(0); // Indicates there are no blocked users
+    }
 
     void DeclareCloseOnlinePlaySession(Kernel::HLERequestContext& ctx) {
         // Stub used by Splatoon 2
