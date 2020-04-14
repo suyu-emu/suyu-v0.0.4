@@ -113,6 +113,7 @@ public:
     u32 GetSupportedLanguages() const;
     std::vector<u8> GetRawBytes() const;
     bool GetUserAccountSwitchLock() const;
+    u64 GetDeviceSaveDataSize() const;
 
 private:
     RawNACP raw{};
