@@ -802,10 +802,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Load_Folder, &QAction::triggered, this, &GMainWindow::OnMenuLoadFolder);
     connect(ui.action_Install_File_NAND, &QAction::triggered, this,
             &GMainWindow::OnMenuInstallToNAND);
-    connect(ui.action_Select_NAND_Directory, &QAction::triggered, this,
-            [this] { OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget::NAND); });
-    connect(ui.action_Select_SDMC_Directory, &QAction::triggered, this,
-            [this] { OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget::SDMC); });
     connect(ui.action_Exit, &QAction::triggered, this, &QMainWindow::close);
     connect(ui.action_Load_Amiibo, &QAction::triggered, this, &GMainWindow::OnLoadAmiibo);
 
@@ -940,16 +936,18 @@ bool GMainWindow::LoadROM(const QString& filename) {
         default:
             if (static_cast<u32>(result) >
                 static_cast<u32>(Core::System::ResultStatus::ErrorLoader)) {
-                LOG_CRITICAL(Frontend, "Failed to load ROM!");
                 const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
                 const u16 error_id = static_cast<u16>(result) - loader_id;
+                const std::string error_code = fmt::format("({:04X}-{:04X})", loader_id, error_id);
+                LOG_CRITICAL(Frontend, "Failed to load ROM! {}", error_code);
                 QMessageBox::critical(
-                    this, tr("Error while loading ROM!"),
+                    this,
+                    tr("Error while loading ROM! ").append(QString::fromStdString(error_code)),
                     QString::fromStdString(fmt::format(
-                        "While attempting to load the ROM requested, an error occured. Please "
-                        "refer to the yuzu wiki for more information or the yuzu discord for "
-                        "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
-                        loader_id, error_id, static_cast<Loader::ResultStatus>(error_id))));
+                        "{}<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the "
+                        "yuzu quickstart guide</a> to redump your files.<br>You can refer "
+                        "to the yuzu wiki</a> or the yuzu Discord</a> for help.",
+                        static_cast<Loader::ResultStatus>(error_id))));
             } else {
                 QMessageBox::critical(
                     this, tr("Error while loading ROM!"),
@@ -1663,28 +1661,6 @@ void GMainWindow::OnMenuInstallToNAND() {
     }
 }
 
-void GMainWindow::OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target) {
-    const auto res = QMessageBox::information(
-        this, tr("Changing Emulated Directory"),
-        tr("You are about to change the emulated %1 directory of the system. Please note "
-           "that this does not also move the contents of the previous directory to the "
-           "new one and you will have to do that yourself.")
-            .arg(target == EmulatedDirectoryTarget::SDMC ? tr("SD card") : tr("NAND")),
-        QMessageBox::StandardButtons{QMessageBox::Ok, QMessageBox::Cancel});
-
-    if (res == QMessageBox::Cancel)
-        return;
-
-    QString dir_path = QFileDialog::getExistingDirectory(this, tr("Select Directory"));
-    if (!dir_path.isEmpty()) {
-        FileUtil::GetUserPath(target == EmulatedDirectoryTarget::SDMC ? FileUtil::UserPath::SDMCDir
-                                                                      : FileUtil::UserPath::NANDDir,
-                              dir_path.toStdString());
-        Core::System::GetInstance().GetFileSystemController().CreateFactories(*vfs);
-        game_list->PopulateAsync(UISettings::values.game_dirs);
-    }
-}
-
 void GMainWindow::OnMenuRecentFile() {
     QAction* action = qobject_cast<QAction*>(sender());
     assert(action);
@@ -2095,27 +2071,25 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
 
         QString errors;
         if (!pdm.HasFuses()) {
-            errors += tr("- Missing fuses - Cannot derive SBK\n");
+            errors += tr("Missing fuses");
         }
         if (!pdm.HasBoot0()) {
-            errors += tr("- Missing BOOT0 - Cannot derive master keys\n");
+            errors += tr(" - Missing BOOT0");
         }
         if (!pdm.HasPackage2()) {
-            errors += tr("- Missing BCPKG2-1-Normal-Main - Cannot derive general keys\n");
+            errors += tr(" - Missing BCPKG2-1-Normal-Main");
         }
         if (!pdm.HasProdInfo()) {
-            errors += tr("- Missing PRODINFO - Cannot derive title keys\n");
+            errors += tr(" - Missing PRODINFO");
         }
         if (!errors.isEmpty()) {
             QMessageBox::warning(
-                this, tr("Warning Missing Derivation Components"),
-                tr("The following are missing from your configuration that may hinder key "
-                   "derivation. It will be attempted but may not complete.<br><br>") +
-                    errors +
-                    tr("<br><br>You can get all of these and dump all of your games easily by "
-                       "following <a href='https://yuzu-emu.org/help/quickstart/'>the "
-                       "quickstart guide</a>. Alternatively, you can use another method of dumping "
-                       "to obtain all of your keys."));
+                this, tr("Derivation Components Missing"),
+                tr("Components are missing that may hinder key derivation from completing. "
+                   "<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the yuzu "
+                   "quickstart guide</a> to get all your keys and "
+                   "games.<br><br><small>(%1)</small>")
+                    .arg(errors));
         }
 
         QProgressDialog prog;

@@ -196,8 +196,6 @@ private slots:
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
     void OnMenuInstallToNAND();
-    /// Called whenever a user select the "File->Select -- Directory" where -- is NAND or SD Card
-    void OnMenuSelectEmulatedDirectory(EmulatedDirectoryTarget target);
     void OnMenuRecentFile();
     void OnConfigure();
     void OnLoadAmiibo();
