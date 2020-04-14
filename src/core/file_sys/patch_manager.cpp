@@ -348,6 +348,12 @@ static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType t
         if (ext_dir != nullptr)
             layers_ext.push_back(std::move(ext_dir));
     }
+
+    // When there are no layers to apply, return early as there is no need to rebuild the RomFS
+    if (layers.empty() && layers_ext.empty()) {
+        return;
+    }
+
     layers.push_back(std::move(extracted));
 
     auto layered = LayeredVfsDirectory::MakeLayeredDirectory(std::move(layers));
