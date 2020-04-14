@@ -57,7 +57,8 @@ void PrintSaveDataDescriptorWarnings(SaveDataDescriptor meta) {
 bool ShouldSaveDataBeAutomaticallyCreated(SaveDataSpaceId space, const SaveDataDescriptor& desc) {
     return desc.type == SaveDataType::CacheStorage || desc.type == SaveDataType::TemporaryStorage ||
            (space == SaveDataSpaceId::NandUser && ///< Normal Save Data -- Current Title & User
-            desc.type == SaveDataType::SaveData && desc.title_id == 0 && desc.save_id == 0);
+            (desc.type == SaveDataType::SaveData || desc.type == SaveDataType::DeviceSaveData) &&
+            desc.title_id == 0 && desc.save_id == 0);
 }
 
 } // Anonymous namespace
@@ -139,8 +140,10 @@ std::string SaveDataFactory::GetFullPath(SaveDataSpaceId space, SaveDataType typ
                                          u128 user_id, u64 save_id) {
     // According to switchbrew, if a save is of type SaveData and the title id field is 0, it should
     // be interpreted as the title id of the current process.
-    if (type == SaveDataType::SaveData && title_id == 0) {
-        title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+    if (type == SaveDataType::SaveData || type == SaveDataType::DeviceSaveData) {
+        if (title_id == 0) {
+            title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
+        }
     }
 
     std::string out = GetSaveDataSpaceIdPath(space);
