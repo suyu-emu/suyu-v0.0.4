@@ -32,6 +32,7 @@ public:
         void CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERequestContext& ctx);
         void GetClockSnapshot(Kernel::HLERequestContext& ctx);
         void GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx);
+        void CalculateStandardUserSystemClockDifferenceByUser(Kernel::HLERequestContext& ctx);
         void CalculateSpanBetween(Kernel::HLERequestContext& ctx);
         void GetSharedMemoryNativeHandle(Kernel::HLERequestContext& ctx);
 

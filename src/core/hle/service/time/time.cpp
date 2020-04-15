@@ -308,6 +308,29 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
     ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
 }
 
+void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(
+    Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_Time, "called");
+
+    IPC::RequestParser rp{ctx};
+    const auto snapshot_a = rp.PopRaw<Clock::ClockSnapshot>();
+    const auto snapshot_b = rp.PopRaw<Clock::ClockSnapshot>();
+
+    auto time_span_type{Clock::TimeSpanType::FromSeconds(snapshot_b.user_context.offset -
+                                                         snapshot_a.user_context.offset)};
+
+    if ((snapshot_b.user_context.steady_time_point.clock_source_id !=
+         snapshot_a.user_context.steady_time_point.clock_source_id) ||
+        (snapshot_b.is_automatic_correction_enabled &&
+         snapshot_a.is_automatic_correction_enabled)) {
+        time_span_type.nanoseconds = 0;
+    }
+
+    IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushRaw(time_span_type.nanoseconds);
+}
+
 void Module::Interface::CalculateSpanBetween(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
 

@@ -29,7 +29,7 @@ Time::Time(std::shared_ptr<Module> module, Core::System& system, const char* nam
         {300, &Time::CalculateMonotonicSystemClockBaseTimePoint, "CalculateMonotonicSystemClockBaseTimePoint"},
         {400, &Time::GetClockSnapshot, "GetClockSnapshot"},
         {401, &Time::GetClockSnapshotFromSystemClockContext, "GetClockSnapshotFromSystemClockContext"},
-        {500, nullptr, "CalculateStandardUserSystemClockDifferenceByUser"},
+        {500, &Time::CalculateStandardUserSystemClockDifferenceByUser, "CalculateStandardUserSystemClockDifferenceByUser"},
         {501, &Time::CalculateSpanBetween, "CalculateSpanBetween"},
     };
     // clang-format on
