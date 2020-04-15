@@ -53,8 +53,11 @@ if (MSVC)
 else()
     add_compile_options(
         -Wall
+        -Werror=implicit-fallthrough
         -Werror=reorder
+        -Wextra
         -Wno-attributes
+        -Wno-unused-parameter
     )
 
     if (APPLE AND CMAKE_CXX_COMPILER_ID STREQUAL Clang)

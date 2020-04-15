@@ -101,8 +101,8 @@ public:
     }
 
     std::u16string ReadInterfaceToken() {
-        u32 unknown = Read<u32_le>();
-        u32 length = Read<u32_le>();
+        [[maybe_unused]] const u32 unknown = Read<u32_le>();
+        const u32 length = Read<u32_le>();
 
         std::u16string token{};
 

@@ -91,7 +91,8 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
             return generator();
         }
 
-        if (file1.write(reinterpret_cast<const char*>(icon.data()), icon.size()) != icon.size()) {
+        if (file1.write(reinterpret_cast<const char*>(icon.data()), icon.size()) !=
+            s64(icon.size())) {
             LOG_ERROR(Frontend, "Failed to write data to cache file.");
             return generator();
         }

@@ -352,8 +352,10 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                         registry.ObtainBoundSampler(static_cast<u32>(instr.image.index.Value()));
                 } else {
                     const Node image_register = GetRegister(instr.gpr39);
-                    const auto [base_image, buffer, offset] = TrackCbuf(
-                        image_register, global_code, static_cast<s64>(global_code.size()));
+                    const auto result = TrackCbuf(image_register, global_code,
+                                                  static_cast<s64>(global_code.size()));
+                    const auto buffer = std::get<1>(result);
+                    const auto offset = std::get<2>(result);
                     descriptor = registry.ObtainBindlessSampler(buffer, offset);
                 }
                 if (!descriptor) {
@@ -497,8 +499,11 @@ Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType t
 
 Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type) {
     const Node image_register = GetRegister(reg);
-    const auto [base_image, buffer, offset] =
+    const auto result =
         TrackCbuf(image_register, global_code, static_cast<s64>(global_code.size()));
+
+    const auto buffer = std::get<1>(result);
+    const auto offset = std::get<2>(result);
 
     const auto it =
         std::find_if(std::begin(used_images), std::end(used_images),

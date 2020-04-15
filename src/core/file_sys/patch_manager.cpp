@@ -440,7 +440,8 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
     PatchManager update{update_tid};
-    auto [nacp, discard_icon_file] = update.GetControlMetadata();
+    const auto metadata = update.GetControlMetadata();
+    const auto& nacp = metadata.first;
 
     const auto update_disabled =
         std::find(disabled.cbegin(), disabled.cend(), "Update") != disabled.cend();

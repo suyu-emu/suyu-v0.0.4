@@ -56,8 +56,7 @@ Node ShaderIR::GetConstBuffer(u64 index_, u64 offset_) {
     const auto index = static_cast<u32>(index_);
     const auto offset = static_cast<u32>(offset_);
 
-    const auto [entry, is_new] = used_cbufs.try_emplace(index);
-    entry->second.MarkAsUsed(offset);
+    used_cbufs.try_emplace(index).first->second.MarkAsUsed(offset);
 
     return MakeNode<CbufNode>(index, Immediate(offset));
 }
@@ -66,8 +65,7 @@ Node ShaderIR::GetConstBufferIndirect(u64 index_, u64 offset_, Node node) {
     const auto index = static_cast<u32>(index_);
     const auto offset = static_cast<u32>(offset_);
 
-    const auto [entry, is_new] = used_cbufs.try_emplace(index);
-    entry->second.MarkAsUsedIndirect();
+    used_cbufs.try_emplace(index).first->second.MarkAsUsedIndirect();
 
     Node final_offset = [&] {
         // Attempt to inline constant buffer without a variable offset. This is done to allow
@@ -166,6 +164,7 @@ Node ShaderIR::ConvertIntegerSize(Node value, Register::Size size, bool is_signe
                                 std::move(value), Immediate(16));
         value = SignedOperation(OperationCode::IArithmeticShiftRight, is_signed, NO_PRECISE,
                                 std::move(value), Immediate(16));
+        return value;
     case Register::Size::Word:
         // Default - do nothing
         return value;

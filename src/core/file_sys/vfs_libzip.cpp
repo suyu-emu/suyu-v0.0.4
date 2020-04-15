@@ -42,11 +42,11 @@ VirtualDir ExtractZIP(VirtualFile file) {
             continue;
 
         if (name.back() != '/') {
-            std::unique_ptr<zip_file_t, decltype(&zip_fclose)> file{
+            std::unique_ptr<zip_file_t, decltype(&zip_fclose)> file2{
                 zip_fopen_index(zip.get(), i, 0), zip_fclose};
 
             std::vector<u8> buf(stat.size);
-            if (zip_fread(file.get(), buf.data(), buf.size()) != buf.size())
+            if (zip_fread(file2.get(), buf.data(), buf.size()) != s64(buf.size()))
                 return nullptr;
 
             const auto parts = FileUtil::SplitPathComponents(stat.name);

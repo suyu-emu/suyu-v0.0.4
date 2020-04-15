@@ -309,7 +309,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
         offset = GetTZName(name, offset);
         std_len = offset;
     }
-    if (!std_len) {
+    if (std_len == 0) {
         return {};
     }
     if (!GetOffset(name, offset, std_offset)) {
@@ -320,7 +320,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
     int dest_len{};
     int dest_offset{};
     const char* dest_name{name + offset};
-    if (rule.chars.size() < char_count) {
+    if (rule.chars.size() < std::size_t(char_count)) {
         return {};
     }
 
@@ -343,7 +343,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
             return {};
         }
         char_count += dest_len + 1;
-        if (rule.chars.size() < char_count) {
+        if (rule.chars.size() < std::size_t(char_count)) {
             return {};
         }
         if (name[offset] != '\0' && name[offset] != ',' && name[offset] != ';') {
@@ -414,7 +414,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
                 if (is_reversed ||
                     (start_time < end_time &&
                      (end_time - start_time < (year_seconds + (std_offset - dest_offset))))) {
-                    if (rule.ats.size() - 2 < time_count) {
+                    if (rule.ats.size() - 2 < std::size_t(time_count)) {
                         break;
                     }
 
@@ -609,7 +609,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     }
 
     const u64 position{(read_offset - sizeof(TzifHeader))};
-    const std::size_t bytes_read{vfs_file->GetSize() - sizeof(TzifHeader) - position};
+    const s64 bytes_read = s64(vfs_file->GetSize() - sizeof(TzifHeader) - position);
     if (bytes_read < 0) {
         return {};
     }
@@ -621,11 +621,11 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     std::array<char, time_zone_name_max + 1> temp_name{};
     vfs_file->ReadArray(temp_name.data(), bytes_read, read_offset);
     if (bytes_read > 2 && temp_name[0] == '\n' && temp_name[bytes_read - 1] == '\n' &&
-        time_zone_rule.type_count + 2 <= time_zone_rule.ttis.size()) {
+        std::size_t(time_zone_rule.type_count) + 2 <= time_zone_rule.ttis.size()) {
         temp_name[bytes_read - 1] = '\0';
 
         std::array<char, time_zone_name_max> name{};
-        std::memcpy(name.data(), temp_name.data() + 1, bytes_read - 1);
+        std::memcpy(name.data(), temp_name.data() + 1, std::size_t(bytes_read - 1));
 
         TimeZoneRule temp_rule;
         if (ParsePosixName(name.data(), temp_rule)) {

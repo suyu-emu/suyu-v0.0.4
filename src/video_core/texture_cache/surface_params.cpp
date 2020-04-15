@@ -167,7 +167,6 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
 
 SurfaceParams SurfaceParams::CreateForDepthBuffer(Core::System& system) {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    regs.zeta_width, regs.zeta_height, regs.zeta.format, regs.zeta.memory_layout.type;
     SurfaceParams params;
     params.is_tiled = regs.zeta.memory_layout.type ==
                       Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;

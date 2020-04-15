@@ -27,8 +27,9 @@ std::pair<Node, s64> FindOperation(const NodeBlock& code, s64 cursor,
 
         if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
             const auto& conditional_code = conditional->GetCode();
-            auto [found, internal_cursor] = FindOperation(
+            auto result = FindOperation(
                 conditional_code, static_cast<s64>(conditional_code.size() - 1), operation_code);
+            auto& found = result.first;
             if (found) {
                 return {std::move(found), cursor};
             }
@@ -186,8 +187,8 @@ std::tuple<Node, u32, u32> ShaderIR::TrackCbuf(Node tracked, const NodeBlock& co
 std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const {
     // Reduce the cursor in one to avoid infinite loops when the instruction sets the same register
     // that it uses as operand
-    const auto [found, found_cursor] =
-        TrackRegister(&std::get<GprNode>(*tracked), code, cursor - 1);
+    const auto result = TrackRegister(&std::get<GprNode>(*tracked), code, cursor - 1);
+    const auto& found = result.first;
     if (!found) {
         return {};
     }

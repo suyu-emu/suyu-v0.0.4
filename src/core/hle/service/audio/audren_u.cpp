@@ -129,7 +129,7 @@ private:
         LOG_DEBUG(Service_Audio, "called. rendering_time_limit_percent={}",
                   rendering_time_limit_percent);
 
-        ASSERT(rendering_time_limit_percent >= 0 && rendering_time_limit_percent <= 100);
+        ASSERT(rendering_time_limit_percent <= 100);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

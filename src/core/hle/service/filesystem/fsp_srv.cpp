@@ -575,6 +575,7 @@ private:
                                 0,
                                 user_id->GetSize(),
                                 {},
+                                {},
                             });
 
                             continue;
@@ -594,6 +595,7 @@ private:
                                 save_id_numeric,
                                 stoull_be(title_id->GetName()),
                                 title_id->GetSize(),
+                                {},
                                 {},
                             });
                         }
@@ -618,6 +620,7 @@ private:
                                 stoull_be(type->GetName()),
                                 stoull_be(title_id->GetName()),
                                 title_id->GetSize(),
+                                {},
                                 {},
                             });
                         }

@@ -835,7 +835,8 @@ private:
 
     void DeclareConstantBuffers() {
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
-        for (const auto& [index, cbuf] : ir.GetConstantBuffers()) {
+        for (const auto& buffers : ir.GetConstantBuffers()) {
+            const auto index = buffers.first;
             code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
                          GetConstBufferBlock(index));
             code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), MAX_CONSTBUFFER_ELEMENTS);
