@@ -85,6 +85,7 @@ void Thread::ResumeFromWait() {
     ASSERT_MSG(wait_objects.empty(), "Thread is waking up while waiting for objects");
 
     switch (status) {
+    case ThreadStatus::Paused:
     case ThreadStatus::WaitSynch:
     case ThreadStatus::WaitHLEEvent:
     case ThreadStatus::WaitSleep:
@@ -92,6 +93,7 @@ void Thread::ResumeFromWait() {
     case ThreadStatus::WaitMutex:
     case ThreadStatus::WaitCondVar:
     case ThreadStatus::WaitArb:
+    case ThreadStatus::Dormant:
         break;
 
     case ThreadStatus::Ready:
