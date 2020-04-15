@@ -136,7 +136,8 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, value);
         break;
     }
-    case OpCode::Id::FCMP_R: {
+    case OpCode::Id::FCMP_RR:
+    case OpCode::Id::FCMP_RC: {
         UNIMPLEMENTED_IF(instr.fcmp.ftz == 0);
         Node op_c = GetRegister(instr.gpr39);
         Node comp = GetPredicateComparisonFloat(instr.fcmp.cond, std::move(op_c), Immediate(0.0f));

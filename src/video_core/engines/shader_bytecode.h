@@ -1871,7 +1871,8 @@ public:
         ICMP_R,
         ICMP_CR,
         ICMP_IMM,
-        FCMP_R,
+        FCMP_RR,
+        FCMP_RC,
         MUFU,  // Multi-Function Operator
         RRO_C, // Range Reduction Operator
         RRO_R,
@@ -2179,7 +2180,8 @@ private:
             INST("0101110100100---", Id::HSETP2_R, Type::HalfSetPredicate, "HSETP2_R"),
             INST("0111111-0-------", Id::HSETP2_IMM, Type::HalfSetPredicate, "HSETP2_IMM"),
             INST("0101110100011---", Id::HSET2_R, Type::HalfSet, "HSET2_R"),
-            INST("010110111010----", Id::FCMP_R, Type::Arithmetic, "FCMP_R"),
+            INST("010110111010----", Id::FCMP_RR, Type::Arithmetic, "FCMP_RR"),
+            INST("010010111010----", Id::FCMP_RC, Type::Arithmetic, "FCMP_RC"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
             INST("0100110010010---", Id::RRO_C, Type::Arithmetic, "RRO_C"),
             INST("0101110010010---", Id::RRO_R, Type::Arithmetic, "RRO_R"),
