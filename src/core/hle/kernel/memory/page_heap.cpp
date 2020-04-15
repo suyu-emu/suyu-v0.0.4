@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+// This file references various implementation details from Atmosphère, an open-source firmware for
+// the Nintendo Switch. Copyright 2018-2020 Atmosphère-NX.
+
 #include "core/core.h"
 #include "core/hle/kernel/memory/page_heap.h"
 #include "core/memory.h"

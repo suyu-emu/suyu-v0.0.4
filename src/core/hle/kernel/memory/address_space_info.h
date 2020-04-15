@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+// This file references various implementation details from Atmosphère, an open-source firmware for
+// the Nintendo Switch. Copyright 2018-2020 Atmosphère-NX.
+
 #pragma once
 
 #include "common/common_funcs.h"
