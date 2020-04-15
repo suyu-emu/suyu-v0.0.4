@@ -417,7 +417,7 @@ void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
 
         switch (params.target) {
         case SurfaceTarget::Texture2DArray:
-            glFramebufferTexture(target, attachment, GetTexture(), params.base_level);
+            glFramebufferTexture(target, attachment, GetTexture(), 0);
             break;
         default:
             UNIMPLEMENTED();
