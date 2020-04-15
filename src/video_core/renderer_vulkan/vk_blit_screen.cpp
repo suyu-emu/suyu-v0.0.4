@@ -535,7 +535,9 @@ void VKBlitScreen::CreateGraphicsPipeline() {
     viewport_state_ci.pNext = nullptr;
     viewport_state_ci.flags = 0;
     viewport_state_ci.viewportCount = 1;
+    viewport_state_ci.pViewports = nullptr;
     viewport_state_ci.scissorCount = 1;
+    viewport_state_ci.pScissors = nullptr;
 
     VkPipelineRasterizationStateCreateInfo rasterization_ci;
     rasterization_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
