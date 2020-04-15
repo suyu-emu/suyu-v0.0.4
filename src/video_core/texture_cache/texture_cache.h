@@ -509,7 +509,9 @@ private:
         }
         const auto& final_params = new_surface->GetSurfaceParams();
         if (cr_params.type != final_params.type) {
-            BufferCopy(current_surface, new_surface);
+            if (Settings::values.use_accurate_gpu_emulation) {
+                BufferCopy(current_surface, new_surface);
+            }
         } else {
             std::vector<CopyParams> bricks = current_surface->BreakDown(final_params);
             for (auto& brick : bricks) {
