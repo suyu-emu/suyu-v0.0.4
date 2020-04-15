@@ -101,9 +101,9 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
     : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device, state_tracker},
       shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
       screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker},
-      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE}, fence_manager{system, *this,
-                                                                             texture_cache,
-                                                                             buffer_cache} {
+      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE}, fence_manager{
+                                                                   system, *this, texture_cache,
+                                                                   buffer_cache, query_cache} {
     CheckExtensions();
 }
 

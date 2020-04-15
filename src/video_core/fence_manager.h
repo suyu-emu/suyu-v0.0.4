@@ -49,15 +49,17 @@ protected:
     bool is_stubbed;
 };
 
-template <typename TFence, typename TTextureCache, typename TTBufferCache>
+template <typename TFence, typename TTextureCache, typename TTBufferCache, typename TQueryCache>
 class FenceManager {
 public:
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
         bool should_flush = texture_cache.HasUncommitedFlushes();
         should_flush |= buffer_cache.HasUncommitedFlushes();
+        should_flush |= query_cache.HasUncommitedFlushes();
         texture_cache.CommitAsyncFlushes();
         buffer_cache.CommitAsyncFlushes();
+        query_cache.CommitAsyncFlushes();
         TFence new_fence = CreateFence(addr, value, !should_flush);
         fences.push(new_fence);
         QueueFence(new_fence);
@@ -71,8 +73,10 @@ public:
         TryReleasePendingFences();
         bool should_flush = texture_cache.HasUncommitedFlushes();
         should_flush |= buffer_cache.HasUncommitedFlushes();
+        should_flush |= query_cache.HasUncommitedFlushes();
         texture_cache.CommitAsyncFlushes();
         buffer_cache.CommitAsyncFlushes();
+        query_cache.CommitAsyncFlushes();
         TFence new_fence = CreateFence(value, !should_flush);
         fences.push(new_fence);
         QueueFence(new_fence);
@@ -87,11 +91,13 @@ public:
             TFence& current_fence = fences.front();
             bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
             should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
+            should_wait |= query_cache.ShouldWaitAsyncFlushes();
             if (should_wait) {
                 WaitFence(current_fence);
             }
             texture_cache.PopAsyncFlushes();
             buffer_cache.PopAsyncFlushes();
+            query_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
                 auto& memory_manager{gpu.MemoryManager()};
@@ -105,9 +111,10 @@ public:
 
 protected:
     FenceManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                 TTextureCache& texture_cache, TTBufferCache& buffer_cache)
-        : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache}, buffer_cache{
-                                                                                    buffer_cache} {}
+                 TTextureCache& texture_cache, TTBufferCache& buffer_cache,
+                 TQueryCache& query_cache)
+        : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache},
+          buffer_cache{buffer_cache}, query_cache{query_cache} {}
 
     virtual TFence CreateFence(u32 value, bool is_stubbed) = 0;
     virtual TFence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) = 0;
@@ -119,6 +126,7 @@ protected:
     VideoCore::RasterizerInterface& rasterizer;
     TTextureCache& texture_cache;
     TTBufferCache& buffer_cache;
+    TQueryCache& query_cache;
 
 private:
     void TryReleasePendingFences() {
@@ -126,11 +134,13 @@ private:
             TFence& current_fence = fences.front();
             bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
             should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
+            should_wait |= query_cache.ShouldWaitAsyncFlushes();
             if (should_wait && !IsFenceSignaled(current_fence)) {
                 return;
             }
             texture_cache.PopAsyncFlushes();
             buffer_cache.PopAsyncFlushes();
+            query_cache.PopAsyncFlushes();
             auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
                 auto& memory_manager{gpu.MemoryManager()};
