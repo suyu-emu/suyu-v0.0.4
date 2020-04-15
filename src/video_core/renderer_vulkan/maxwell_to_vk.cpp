@@ -360,6 +360,7 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
         default:
             break;
         }
+        break;
     case Maxwell::VertexAttribute::Type::UnsignedInt:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
@@ -370,6 +371,14 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R8G8B8_UINT;
         case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
             return VK_FORMAT_R8G8B8A8_UINT;
+        case Maxwell::VertexAttribute::Size::Size_16:
+            return VK_FORMAT_R16_UINT;
+        case Maxwell::VertexAttribute::Size::Size_16_16:
+            return VK_FORMAT_R16G16_UINT;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16:
+            return VK_FORMAT_R16G16B16_UINT;
+        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
+            return VK_FORMAT_R16G16B16A16_UINT;
         case Maxwell::VertexAttribute::Size::Size_32:
             return VK_FORMAT_R32_UINT;
         case Maxwell::VertexAttribute::Size::Size_32_32:
@@ -381,6 +390,7 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
         default:
             break;
         }
+        break;
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
         switch (size) {
         case Maxwell::VertexAttribute::Size::Size_8:
