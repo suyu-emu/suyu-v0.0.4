@@ -178,6 +178,20 @@ enum class OperationCode {
     AtomicIOr,       /// (memory, int) -> int
     AtomicIXor,      /// (memory, int) -> int
 
+    ReduceUAdd, /// (memory, uint) -> void
+    ReduceUMin, /// (memory, uint) -> void
+    ReduceUMax, /// (memory, uint) -> void
+    ReduceUAnd, /// (memory, uint) -> void
+    ReduceUOr,  /// (memory, uint) -> void
+    ReduceUXor, /// (memory, uint) -> void
+
+    ReduceIAdd, /// (memory, int) -> void
+    ReduceIMin, /// (memory, int) -> void
+    ReduceIMax, /// (memory, int) -> void
+    ReduceIAnd, /// (memory, int) -> void
+    ReduceIOr,  /// (memory, int) -> void
+    ReduceIXor, /// (memory, int) -> void
+
     Branch,         /// (uint branch_target) -> void
     BranchIndirect, /// (uint branch_target) -> void
     PushFlowStack,  /// (uint branch_target) -> void

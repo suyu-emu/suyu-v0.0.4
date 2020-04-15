@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <utility>
 #include <vector>
+
 #include <fmt/format.h>
 
 #include "common/alignment.h"
@@ -16,6 +18,7 @@
 
 namespace VideoCommon::Shader {
 
+using std::move;
 using Tegra::Shader::AtomicOp;
 using Tegra::Shader::AtomicType;
 using Tegra::Shader::Attribute;
@@ -27,29 +30,26 @@ using Tegra::Shader::StoreType;
 
 namespace {
 
-Node GetAtomOperation(AtomicOp op, bool is_signed, Node memory, Node data) {
-    const OperationCode operation_code = [op] {
-        switch (op) {
-        case AtomicOp::Add:
-            return OperationCode::AtomicIAdd;
-        case AtomicOp::Min:
-            return OperationCode::AtomicIMin;
-        case AtomicOp::Max:
-            return OperationCode::AtomicIMax;
-        case AtomicOp::And:
-            return OperationCode::AtomicIAnd;
-        case AtomicOp::Or:
-            return OperationCode::AtomicIOr;
-        case AtomicOp::Xor:
-            return OperationCode::AtomicIXor;
-        case AtomicOp::Exch:
-            return OperationCode::AtomicIExchange;
-        default:
-            UNIMPLEMENTED_MSG("op={}", static_cast<int>(op));
-            return OperationCode::AtomicIAdd;
-        }
-    }();
-    return SignedOperation(operation_code, is_signed, std::move(memory), std::move(data));
+OperationCode GetAtomOperation(AtomicOp op) {
+    switch (op) {
+    case AtomicOp::Add:
+        return OperationCode::AtomicIAdd;
+    case AtomicOp::Min:
+        return OperationCode::AtomicIMin;
+    case AtomicOp::Max:
+        return OperationCode::AtomicIMax;
+    case AtomicOp::And:
+        return OperationCode::AtomicIAnd;
+    case AtomicOp::Or:
+        return OperationCode::AtomicIOr;
+    case AtomicOp::Xor:
+        return OperationCode::AtomicIXor;
+    case AtomicOp::Exch:
+        return OperationCode::AtomicIExchange;
+    default:
+        UNIMPLEMENTED_MSG("op={}", static_cast<int>(op));
+        return OperationCode::AtomicIAdd;
+    }
 }
 
 bool IsUnaligned(Tegra::Shader::UniformType uniform_type) {
@@ -90,23 +90,22 @@ u32 GetMemorySize(Tegra::Shader::UniformType uniform_type) {
 
 Node ExtractUnaligned(Node value, Node address, u32 mask, u32 size) {
     Node offset = Operation(OperationCode::UBitwiseAnd, address, Immediate(mask));
-    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
-    return Operation(OperationCode::UBitfieldExtract, std::move(value), std::move(offset),
-                     Immediate(size));
+    offset = Operation(OperationCode::ULogicalShiftLeft, move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldExtract, move(value), move(offset), Immediate(size));
 }
 
 Node InsertUnaligned(Node dest, Node value, Node address, u32 mask, u32 size) {
-    Node offset = Operation(OperationCode::UBitwiseAnd, std::move(address), Immediate(mask));
-    offset = Operation(OperationCode::ULogicalShiftLeft, std::move(offset), Immediate(3));
-    return Operation(OperationCode::UBitfieldInsert, std::move(dest), std::move(value),
-                     std::move(offset), Immediate(size));
+    Node offset = Operation(OperationCode::UBitwiseAnd, move(address), Immediate(mask));
+    offset = Operation(OperationCode::ULogicalShiftLeft, move(offset), Immediate(3));
+    return Operation(OperationCode::UBitfieldInsert, move(dest), move(value), move(offset),
+                     Immediate(size));
 }
 
 Node Sign16Extend(Node value) {
     Node sign = Operation(OperationCode::UBitwiseAnd, value, Immediate(1U << 15));
-    Node is_sign = Operation(OperationCode::LogicalUEqual, std::move(sign), Immediate(1U << 15));
+    Node is_sign = Operation(OperationCode::LogicalUEqual, move(sign), Immediate(1U << 15));
     Node extend = Operation(OperationCode::Select, is_sign, Immediate(0xFFFF0000), Immediate(0));
-    return Operation(OperationCode::UBitwiseOr, std::move(value), std::move(extend));
+    return Operation(OperationCode::UBitwiseOr, move(value), move(extend));
 }
 
 } // Anonymous namespace
@@ -379,11 +378,25 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
 
             if (IsUnaligned(type)) {
                 const u32 mask = GetUnalignedMask(type);
-                value = InsertUnaligned(gmem, std::move(value), real_address, mask, size);
+                value = InsertUnaligned(gmem, move(value), real_address, mask, size);
             }
 
             bb.push_back(Operation(OperationCode::Assign, gmem, value));
         }
+        break;
+    }
+    case OpCode::Id::RED: {
+        UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32);
+        UNIMPLEMENTED_IF_MSG(instr.red.operation != AtomicOp::Add);
+        const auto [real_address, base_address, descriptor] =
+            TrackGlobalMemory(bb, instr, true, true);
+        if (!real_address || !base_address) {
+            // Tracking failed, skip atomic.
+            break;
+        }
+        Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
+        Node value = GetRegister(instr.gpr0);
+        bb.push_back(Operation(OperationCode::ReduceIAdd, move(gmem), move(value)));
         break;
     }
     case OpCode::Id::ATOM: {
@@ -392,7 +405,9 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
                                  instr.atom.operation == AtomicOp::SafeAdd,
                              "operation={}", static_cast<int>(instr.atom.operation.Value()));
         UNIMPLEMENTED_IF_MSG(instr.atom.type == GlobalAtomicType::S64 ||
-                                 instr.atom.type == GlobalAtomicType::U64,
+                                 instr.atom.type == GlobalAtomicType::U64 ||
+                                 instr.atom.type == GlobalAtomicType::F16x2_FTZ_RN ||
+                                 instr.atom.type == GlobalAtomicType::F32_FTZ_RN,
                              "type={}", static_cast<int>(instr.atom.type.Value()));
 
         const auto [real_address, base_address, descriptor] =
@@ -403,11 +418,11 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
 
         const bool is_signed =
-            instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
+            instr.atom.type == GlobalAtomicType::S32 || instr.atom.type == GlobalAtomicType::S64;
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
-        Node value = GetAtomOperation(static_cast<AtomicOp>(instr.atom.operation), is_signed, gmem,
-                                      GetRegister(instr.gpr20));
-        SetRegister(bb, instr.gpr0, std::move(value));
+        SetRegister(bb, instr.gpr0,
+                    SignedOperation(GetAtomOperation(instr.atom.operation), is_signed, gmem,
+                                    GetRegister(instr.gpr20)));
         break;
     }
     case OpCode::Id::ATOMS: {
@@ -421,11 +436,10 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
             instr.atoms.type == AtomicType::S32 || instr.atoms.type == AtomicType::S64;
         const s32 offset = instr.atoms.GetImmediateOffset();
         Node address = GetRegister(instr.gpr8);
-        address = Operation(OperationCode::IAdd, std::move(address), Immediate(offset));
-        Node value =
-            GetAtomOperation(static_cast<AtomicOp>(instr.atoms.operation), is_signed,
-                             GetSharedMemory(std::move(address)), GetRegister(instr.gpr20));
-        SetRegister(bb, instr.gpr0, std::move(value));
+        address = Operation(OperationCode::IAdd, move(address), Immediate(offset));
+        SetRegister(bb, instr.gpr0,
+                    SignedOperation(GetAtomOperation(instr.atoms.operation), is_signed,
+                                    GetSharedMemory(move(address)), GetRegister(instr.gpr20)));
         break;
     }
     case OpCode::Id::AL2P: {

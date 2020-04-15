@@ -1938,11 +1938,8 @@ private:
         return {};
     }
 
-    template <Id (Module::*func)(Id, Id, Id, Id, Id), Type result_type,
-              Type value_type = result_type>
+    template <Id (Module::*func)(Id, Id, Id, Id, Id)>
     Expression Atomic(Operation operation) {
-        const Id type_def = GetTypeDefinition(result_type);
-
         Id pointer;
         if (const auto smem = std::get_if<SmemNode>(&*operation[0])) {
             pointer = GetSharedMemoryPointer(*smem);
@@ -1950,15 +1947,19 @@ private:
             pointer = GetGlobalMemoryPointer(*gmem);
         } else {
             UNREACHABLE();
-            return {Constant(type_def, 0), result_type};
+            return {v_float_zero, Type::Float};
         }
-
-        const Id value = As(Visit(operation[1]), value_type);
-
         const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
-        const Id semantics = Constant(type_def, 0);
+        const Id semantics = Constant(t_uint, 0);
+        const Id value = AsUint(Visit(operation[1]));
 
-        return {(this->*func)(type_def, pointer, scope, semantics, value), result_type};
+        return {(this->*func)(t_uint, pointer, scope, semantics, value), Type::Uint};
+    }
+
+    template <Id (Module::*func)(Id, Id, Id, Id, Id)>
+    Expression Reduce(Operation operation) {
+        Atomic<func>(operation);
+        return {};
     }
 
     Expression Branch(Operation operation) {
@@ -2547,21 +2548,35 @@ private:
         &SPIRVDecompiler::AtomicImageXor,
         &SPIRVDecompiler::AtomicImageExchange,
 
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMin, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMax, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr, Type::Uint>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor, Type::Uint>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMin>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicUMax>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor>,
 
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMin, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMax, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr, Type::Int>,
-        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor, Type::Int>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMin>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicSMax>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicAnd>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicOr>,
+        &SPIRVDecompiler::Atomic<&Module::OpAtomicXor>,
+
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicIAdd>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicUMin>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicUMax>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicAnd>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicOr>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicXor>,
+
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicIAdd>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicSMin>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicSMax>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicAnd>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicOr>,
+        &SPIRVDecompiler::Reduce<&Module::OpAtomicXor>,
 
         &SPIRVDecompiler::Branch,
         &SPIRVDecompiler::BranchIndirect,

@@ -1006,6 +1006,12 @@ union Instruction {
     } stg;
 
     union {
+        BitField<23, 3, AtomicOp> operation;
+        BitField<48, 1, u64> extended;
+        BitField<20, 3, GlobalAtomicType> type;
+    } red;
+
+    union {
         BitField<52, 4, AtomicOp> operation;
         BitField<49, 3, GlobalAtomicType> type;
         BitField<28, 20, s64> offset;
@@ -1787,6 +1793,7 @@ public:
         ST_S,
         ST,    // Store in generic memory
         STG,   // Store in global memory
+        RED,   // Reduction operation
         ATOM,  // Atomic operation on global memory
         ATOMS, // Atomic operation on shared memory
         AL2P,  // Transforms attribute memory into physical memory
@@ -2097,6 +2104,7 @@ private:
             INST("1110111101010---", Id::ST_L, Type::Memory, "ST_L"),
             INST("101-------------", Id::ST, Type::Memory, "ST"),
             INST("1110111011011---", Id::STG, Type::Memory, "STG"),
+            INST("1110101111111---", Id::RED, Type::Memory, "RED"),
             INST("11101101--------", Id::ATOM, Type::Memory, "ATOM"),
             INST("11101100--------", Id::ATOMS, Type::Memory, "ATOMS"),
             INST("1110111110100---", Id::AL2P, Type::Memory, "AL2P"),
