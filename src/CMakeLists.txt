@@ -53,6 +53,7 @@ if (MSVC)
 else()
     add_compile_options(
         -Wall
+        -Werror=reorder
         -Wno-attributes
     )
 

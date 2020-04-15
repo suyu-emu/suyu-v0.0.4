@@ -315,8 +315,8 @@ public:
 
 RendererOpenGL::RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system,
                                Core::Frontend::GraphicsContext& context)
-    : VideoCore::RendererBase{emu_window}, emu_window{emu_window}, system{system},
-      frame_mailbox{}, context{context}, has_debug_tool{HasDebugTool()} {}
+    : RendererBase{emu_window}, emu_window{emu_window}, system{system}, context{context},
+      has_debug_tool{HasDebugTool()} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
