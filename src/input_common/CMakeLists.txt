@@ -27,4 +27,4 @@ if(SDL2_FOUND)
 endif()
 
 create_target_directory_groups(input_common)
-target_link_libraries(input_common PUBLIC core PRIVATE common ${Boost_LIBRARIES})
+target_link_libraries(input_common PUBLIC core PRIVATE common Boost::boost)
