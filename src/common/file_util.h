@@ -222,22 +222,15 @@ public:
         static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
 
-        if (!IsOpen()) {
-            return std::numeric_limits<std::size_t>::max();
-        }
-
-        return std::fread(data, sizeof(T), length, m_file);
+        return ReadImpl(data, length, sizeof(T));
     }
 
     template <typename T>
     std::size_t WriteArray(const T* data, std::size_t length) {
         static_assert(std::is_trivially_copyable_v<T>,
                       "Given array does not consist of trivially copyable objects");
-        if (!IsOpen()) {
-            return std::numeric_limits<std::size_t>::max();
-        }
 
-        return std::fwrite(data, sizeof(T), length, m_file);
+        return WriteImpl(data, length, sizeof(T));
     }
 
     template <typename T>
@@ -278,6 +271,9 @@ public:
     }
 
 private:
+    std::size_t ReadImpl(void* data, std::size_t length, std::size_t data_size) const;
+    std::size_t WriteImpl(const void* data, std::size_t length, std::size_t data_size);
+
     std::FILE* m_file = nullptr;
 };
 
