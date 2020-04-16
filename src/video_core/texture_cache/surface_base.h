@@ -72,9 +72,9 @@ public:
         return (cpu_addr < end) && (cpu_addr_end > start);
     }
 
-    bool IsInside(const GPUVAddr other_start, const GPUVAddr other_end) {
+    bool IsInside(const GPUVAddr other_start, const GPUVAddr other_end) const {
         const GPUVAddr gpu_addr_end = gpu_addr + guest_memory_size;
-        return (gpu_addr <= other_start && other_end <= gpu_addr_end);
+        return gpu_addr <= other_start && other_end <= gpu_addr_end;
     }
 
     // Use only when recycling a surface
