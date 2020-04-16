@@ -137,13 +137,13 @@ Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry
 
 class BufferBindings final {
 public:
-    void AddVertexBinding(const VkBuffer* buffer, VkDeviceSize offset) {
-        vertex.buffer_ptrs[vertex.num_buffers] = buffer;
+    void AddVertexBinding(VkBuffer buffer, VkDeviceSize offset) {
+        vertex.buffers[vertex.num_buffers] = buffer;
         vertex.offsets[vertex.num_buffers] = offset;
         ++vertex.num_buffers;
     }
 
-    void SetIndexBinding(const VkBuffer* buffer, VkDeviceSize offset, VkIndexType type) {
+    void SetIndexBinding(VkBuffer buffer, VkDeviceSize offset, VkIndexType type) {
         index.buffer = buffer;
         index.offset = offset;
         index.type = type;
@@ -227,19 +227,19 @@ private:
     // Some of these fields are intentionally left uninitialized to avoid initializing them twice.
     struct {
         std::size_t num_buffers = 0;
-        std::array<const VkBuffer*, Maxwell::NumVertexArrays> buffer_ptrs;
+        std::array<VkBuffer, Maxwell::NumVertexArrays> buffers;
         std::array<VkDeviceSize, Maxwell::NumVertexArrays> offsets;
     } vertex;
 
     struct {
-        const VkBuffer* buffer = nullptr;
+        VkBuffer buffer = nullptr;
         VkDeviceSize offset;
         VkIndexType type;
     } index;
 
     template <std::size_t N>
     void BindStatic(VKScheduler& scheduler) const {
-        if (index.buffer != nullptr) {
+        if (index.buffer) {
             BindStatic<N, true>(scheduler);
         } else {
             BindStatic<N, false>(scheduler);
@@ -254,18 +254,14 @@ private:
         }
 
         std::array<VkBuffer, N> buffers;
-        std::transform(vertex.buffer_ptrs.begin(), vertex.buffer_ptrs.begin() + N, buffers.begin(),
-                       [](const auto ptr) { return *ptr; });
-
         std::array<VkDeviceSize, N> offsets;
+        std::copy(vertex.buffers.begin(), vertex.buffers.begin() + N, buffers.begin());
         std::copy(vertex.offsets.begin(), vertex.offsets.begin() + N, offsets.begin());
 
         if constexpr (is_indexed) {
             // Indexed draw
-            scheduler.Record([buffers, offsets, index_buffer = *index.buffer,
-                              index_offset = index.offset,
-                              index_type = index.type](vk::CommandBuffer cmdbuf) {
-                cmdbuf.BindIndexBuffer(index_buffer, index_offset, index_type);
+            scheduler.Record([buffers, offsets, index = index](vk::CommandBuffer cmdbuf) {
+                cmdbuf.BindIndexBuffer(index.buffer, index.offset, index.type);
                 cmdbuf.BindVertexBuffers(0, static_cast<u32>(N), buffers.data(), offsets.data());
             });
         } else {
@@ -790,7 +786,7 @@ void RasterizerVulkan::BeginTransformFeedback() {
     const std::size_t size = binding.buffer_size;
     const auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
 
-    scheduler.Record([buffer = *buffer, offset = offset, size](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([buffer = buffer, offset = offset, size](vk::CommandBuffer cmdbuf) {
         cmdbuf.BindTransformFeedbackBuffersEXT(0, 1, &buffer, &offset, &size);
         cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
     });
@@ -870,7 +866,7 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
         auto format = regs.index_array.format;
         const bool is_uint8 = format == Maxwell::IndexFormat::UnsignedByte;
         if (is_uint8 && !device.IsExtIndexTypeUint8Supported()) {
-            std::tie(buffer, offset) = uint8_pass.Assemble(params.num_vertices, *buffer, offset);
+            std::tie(buffer, offset) = uint8_pass.Assemble(params.num_vertices, buffer, offset);
             format = Maxwell::IndexFormat::UnsignedShort;
         }
 
@@ -1007,8 +1003,8 @@ void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAdd
     const auto size = memory_manager.Read<u32>(address + 8);
 
     if (size == 0) {
-        // Sometimes global memory pointers don't have a proper size. Upload a dummy entry because
-        // Vulkan doesn't like empty buffers.
+        // Sometimes global memory pointers don't have a proper size. Upload a dummy entry
+        // because Vulkan doesn't like empty buffers.
         constexpr std::size_t dummy_size = 4;
         const auto buffer = buffer_cache.GetEmptyBuffer(dummy_size);
         update_descriptor_queue.AddBuffer(buffer, 0, dummy_size);

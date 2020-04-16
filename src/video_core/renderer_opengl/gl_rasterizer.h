@@ -231,9 +231,7 @@ private:
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
     OGLBufferCache buffer_cache;
 
-    VertexArrayPushBuffer vertex_array_pushbuffer{state_tracker};
-    BindBuffersRangePushBuffer bind_ubo_pushbuffer{GL_UNIFORM_BUFFER};
-    BindBuffersRangePushBuffer bind_ssbo_pushbuffer{GL_SHADER_STORAGE_BUFFER};
+    GLint vertex_binding = 0;
 
     std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
         transform_feedback_buffers;

@@ -34,12 +34,12 @@ public:
     explicit CachedBufferBlock(VAddr cpu_addr, const std::size_t size);
     ~CachedBufferBlock();
 
-    const GLuint* GetHandle() const {
-        return &gl_buffer.handle;
+    GLuint GetHandle() const {
+        return gl_buffer.handle;
     }
 
 private:
-    OGLBuffer gl_buffer{};
+    OGLBuffer gl_buffer;
 };
 
 class OGLBufferCache final : public GenericBufferCache {
@@ -48,7 +48,7 @@ public:
                             const Device& device, std::size_t stream_size);
     ~OGLBufferCache();
 
-    const GLuint* GetEmptyBuffer(std::size_t) override;
+    GLuint GetEmptyBuffer(std::size_t) override;
 
     void Acquire() noexcept {
         cbuf_cursor = 0;
@@ -57,9 +57,9 @@ public:
 protected:
     Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
-    void WriteBarrier() override;
+    GLuint ToHandle(const Buffer& buffer) override;
 
-    const GLuint* ToHandle(const Buffer& buffer) override;
+    void WriteBarrier() override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;
