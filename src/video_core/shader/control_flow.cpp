@@ -484,17 +484,17 @@ bool TryInspectAddress(CFGRebuildState& state) {
     }
     case BlockCollision::Inside: {
         // This case is the tricky one:
-        // We need to Split the block in 2 sepparate blocks
+        // We need to split the block into 2 separate blocks
         const u32 end = state.block_info[block_index].end;
         BlockInfo& new_block = CreateBlockInfo(state, address, end);
         BlockInfo& current_block = state.block_info[block_index];
         current_block.end = address - 1;
-        new_block.branch = current_block.branch;
+        new_block.branch = std::move(current_block.branch);
         BlockBranchInfo forward_branch = MakeBranchInfo<SingleBranch>();
         const auto branch = std::get_if<SingleBranch>(forward_branch.get());
         branch->address = address;
         branch->ignore = true;
-        current_block.branch = forward_branch;
+        current_block.branch = std::move(forward_branch);
         return true;
     }
     default:
