@@ -20,4 +20,8 @@ bool ViewParams::operator==(const ViewParams& rhs) const {
            std::tie(rhs.base_layer, rhs.num_layers, rhs.base_level, rhs.num_levels, rhs.target);
 }
 
+bool ViewParams::operator!=(const ViewParams& rhs) const {
+    return !operator==(rhs);
+}
+
 } // namespace VideoCommon
