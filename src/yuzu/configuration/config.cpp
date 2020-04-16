@@ -1080,7 +1080,8 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
     WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,
                  true);
-    WriteSetting(QStringLiteral("gpu_accuracy"), static_cast<int>(Settings::values.gpu_accuracy), 0);
+    WriteSetting(QStringLiteral("gpu_accuracy"), static_cast<int>(Settings::values.gpu_accuracy),
+                 0);
     WriteSetting(QStringLiteral("use_asynchronous_gpu_emulation"),
                  Settings::values.use_asynchronous_gpu_emulation, false);
     WriteSetting(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
