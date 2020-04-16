@@ -191,10 +191,14 @@ private:
     friend class ASTDecoder;
 
     struct SamplerInfo {
-        Tegra::Shader::TextureType type;
-        bool is_array;
-        bool is_shadow;
-        bool is_buffer;
+        std::optional<Tegra::Shader::TextureType> type;
+        std::optional<bool> is_array;
+        std::optional<bool> is_shadow;
+        std::optional<bool> is_buffer;
+
+        constexpr bool IsComplete() const noexcept {
+            return type && is_array && is_shadow && is_buffer;
+        }
     };
 
     void Decode();
@@ -327,17 +331,15 @@ private:
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
 
     /// Queries the missing sampler info from the execution context.
-    SamplerInfo GetSamplerInfo(std::optional<SamplerInfo> sampler_info, u32 offset,
+    SamplerInfo GetSamplerInfo(SamplerInfo info, u32 offset,
                                std::optional<u32> buffer = std::nullopt);
 
-    /// Accesses a texture sampler
-    std::optional<Sampler> GetSampler(const Tegra::Shader::Sampler& sampler,
-                                      std::optional<SamplerInfo> sampler_info = std::nullopt);
+    /// Accesses a texture sampler.
+    std::optional<Sampler> GetSampler(Tegra::Shader::Sampler sampler, SamplerInfo info);
 
     /// Accesses a texture sampler for a bindless texture.
-    std::optional<Sampler> GetBindlessSampler(
-        Tegra::Shader::Register reg, Node& index_var,
-        std::optional<SamplerInfo> sampler_info = std::nullopt);
+    std::optional<Sampler> GetBindlessSampler(Tegra::Shader::Register reg, SamplerInfo info,
+                                              Node& index_var);
 
     /// Accesses an image.
     Image& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);
