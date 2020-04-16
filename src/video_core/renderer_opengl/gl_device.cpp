@@ -87,7 +87,7 @@ u32 Extract(u32& base, u32& num, u32 amount, std::optional<GLenum> limit = {}) {
 std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindings() noexcept {
     std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> bindings;
 
-    static std::array<std::size_t, 5> stage_swizzle = {0, 1, 2, 3, 4};
+    static constexpr std::array<std::size_t, 5> stage_swizzle{0, 1, 2, 3, 4};
     const u32 total_ubos = GetInteger<u32>(GL_MAX_UNIFORM_BUFFER_BINDINGS);
     const u32 total_ssbos = GetInteger<u32>(GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS);
     const u32 total_samplers = GetInteger<u32>(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
