@@ -182,6 +182,9 @@ private:
     VKUpdateDescriptorQueue& update_descriptor_queue;
     VKRenderPassCache& renderpass_cache;
 
+    Shader null_shader{};
+    Shader null_kernel{};
+
     std::array<Shader, Maxwell::MaxShaderProgram> last_shaders;
 
     GraphicsPipelineCacheKey last_graphics_key;
