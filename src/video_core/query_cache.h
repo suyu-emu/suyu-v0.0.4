@@ -17,6 +17,7 @@
 
 #include "common/assert.h"
 #include "core/core.h"
+#include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -131,7 +132,9 @@ public:
         }
 
         query->BindCounter(Stream(type).Current(), timestamp);
-        AsyncFlushQuery(cpu_addr);
+        if (Settings::values.use_asynchronous_gpu_emulation) {
+            AsyncFlushQuery(cpu_addr);
+        }
     }
 
     /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
