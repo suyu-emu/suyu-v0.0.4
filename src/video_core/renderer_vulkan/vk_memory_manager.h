@@ -32,7 +32,7 @@ public:
      *                     memory. When passing false, it will try to allocate device local memory.
      * @returns A memory commit.
      */
-    VKMemoryCommit Commit(const VkMemoryRequirements& reqs, bool host_visible);
+    VKMemoryCommit Commit(const VkMemoryRequirements& requirements, bool host_visible);
 
     /// Commits memory required by the buffer and binds it.
     VKMemoryCommit Commit(const vk::Buffer& buffer, bool host_visible);
