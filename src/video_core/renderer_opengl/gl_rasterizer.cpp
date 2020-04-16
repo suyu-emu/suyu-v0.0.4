@@ -59,14 +59,12 @@ constexpr std::size_t NumSupportedVertexAttributes = 16;
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
                                                ShaderType shader_type, std::size_t index = 0) {
-    if (entry.IsBindless()) {
-        const Tegra::Texture::TextureHandle tex_handle =
-            engine.AccessConstBuffer32(shader_type, entry.GetBuffer(), entry.GetOffset());
+    if (entry.is_bindless) {
+        const auto tex_handle = engine.AccessConstBuffer32(shader_type, entry.buffer, entry.offset);
         return engine.GetTextureInfo(tex_handle);
     }
     const auto& gpu_profile = engine.AccessGuestDriverProfile();
-    const u32 offset =
-        entry.GetOffset() + static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
+    const u32 offset = entry.offset + static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
     if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
         return engine.GetStageTexture(shader_type, offset);
     } else {
@@ -829,9 +827,9 @@ void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shad
 
     u32 binding = device.GetBaseBindings(stage_index).shader_storage_buffer;
     for (const auto& entry : shader->GetEntries().global_memory_entries) {
-        const auto addr{cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset()};
-        const auto gpu_addr{memory_manager.Read<u64>(addr)};
-        const auto size{memory_manager.Read<u32>(addr + 8)};
+        const GPUVAddr addr{cbufs.const_buffers[entry.cbuf_index].address + entry.cbuf_offset};
+        const GPUVAddr gpu_addr{memory_manager.Read<u64>(addr)};
+        const u32 size{memory_manager.Read<u32>(addr + 8)};
         SetupGlobalMemory(binding++, entry, gpu_addr, size);
     }
 }
@@ -843,7 +841,7 @@ void RasterizerOpenGL::SetupComputeGlobalMemory(const Shader& kernel) {
 
     u32 binding = 0;
     for (const auto& entry : kernel->GetEntries().global_memory_entries) {
-        const auto addr{cbufs[entry.GetCbufIndex()].Address() + entry.GetCbufOffset()};
+        const auto addr{cbufs[entry.cbuf_index].Address() + entry.cbuf_offset};
         const auto gpu_addr{memory_manager.Read<u64>(addr)};
         const auto size{memory_manager.Read<u32>(addr + 8)};
         SetupGlobalMemory(binding++, entry, gpu_addr, size);
@@ -854,7 +852,7 @@ void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& e
                                          GPUVAddr gpu_addr, std::size_t size) {
     const auto alignment{device.GetShaderStorageBufferAlignment()};
     const auto [ssbo, buffer_offset] =
-        buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.IsWritten());
+        buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.is_written);
     glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, ssbo, buffer_offset,
                       static_cast<GLsizeiptr>(size));
 }
@@ -865,7 +863,7 @@ void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& 
     u32 binding = device.GetBaseBindings(stage_index).sampler;
     for (const auto& entry : shader->GetEntries().samplers) {
         const auto shader_type = static_cast<ShaderType>(stage_index);
-        for (std::size_t i = 0; i < entry.Size(); ++i) {
+        for (std::size_t i = 0; i < entry.size; ++i) {
             const auto texture = GetTextureInfo(maxwell3d, entry, shader_type, i);
             SetupTexture(binding++, texture, entry);
         }
@@ -877,7 +875,7 @@ void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
     const auto& compute = system.GPU().KeplerCompute();
     u32 binding = 0;
     for (const auto& entry : kernel->GetEntries().samplers) {
-        for (std::size_t i = 0; i < entry.Size(); ++i) {
+        for (std::size_t i = 0; i < entry.size; ++i) {
             const auto texture = GetTextureInfo(compute, entry, ShaderType::Compute, i);
             SetupTexture(binding++, texture, entry);
         }
@@ -934,7 +932,7 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
     if (!tic.IsBuffer()) {
         view->ApplySwizzle(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
     }
-    if (entry.IsWritten()) {
+    if (entry.is_written) {
         view->MarkAsModified(texture_cache.Tick());
     }
     glBindImageTexture(binding, view->GetTexture(), 0, GL_TRUE, 0, GL_READ_WRITE,

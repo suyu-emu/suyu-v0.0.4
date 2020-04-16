@@ -485,11 +485,10 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
 Image& ShaderIR::GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type) {
     const auto offset = static_cast<u32>(image.index.Value());
 
-    const auto it =
-        std::find_if(std::begin(used_images), std::end(used_images),
-                     [offset](const Image& entry) { return entry.GetOffset() == offset; });
+    const auto it = std::find_if(std::begin(used_images), std::end(used_images),
+                                 [offset](const Image& entry) { return entry.offset == offset; });
     if (it != std::end(used_images)) {
-        ASSERT(!it->IsBindless() && it->GetType() == it->GetType());
+        ASSERT(!it->is_bindless && it->type == type);
         return *it;
     }
 
@@ -505,13 +504,12 @@ Image& ShaderIR::GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::Im
     const auto buffer = std::get<1>(result);
     const auto offset = std::get<2>(result);
 
-    const auto it =
-        std::find_if(std::begin(used_images), std::end(used_images),
-                     [buffer = buffer, offset = offset](const Image& entry) {
-                         return entry.GetBuffer() == buffer && entry.GetOffset() == offset;
-                     });
+    const auto it = std::find_if(std::begin(used_images), std::end(used_images),
+                                 [buffer, offset](const Image& entry) {
+                                     return entry.buffer == buffer && entry.offset == offset;
+                                 });
     if (it != std::end(used_images)) {
-        ASSERT(it->IsBindless() && it->GetType() == it->GetType());
+        ASSERT(it->is_bindless && it->type == type);
         return *it;
     }
 

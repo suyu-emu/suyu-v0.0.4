@@ -133,7 +133,7 @@ void AddBindings(std::vector<VkDescriptorSetLayoutBinding>& bindings, u32& bindi
         u32 count = 1;
         if constexpr (descriptor_type == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
             // Combined image samplers can be arrayed.
-            count = container[i].Size();
+            count = container[i].size;
         }
         VkDescriptorSetLayoutBinding& entry = bindings.emplace_back();
         entry.binding = binding++;
@@ -393,7 +393,7 @@ void AddEntry(std::vector<VkDescriptorUpdateTemplateEntry>& template_entries, u3
 
     if constexpr (descriptor_type == COMBINED_IMAGE_SAMPLER) {
         for (u32 i = 0; i < count; ++i) {
-            const u32 num_samplers = container[i].Size();
+            const u32 num_samplers = container[i].size;
             VkDescriptorUpdateTemplateEntry& entry = template_entries.emplace_back();
             entry.dstBinding = binding;
             entry.dstArrayElement = 0;
