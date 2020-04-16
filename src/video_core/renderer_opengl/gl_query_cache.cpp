@@ -94,9 +94,9 @@ CachedQuery::CachedQuery(CachedQuery&& rhs) noexcept
     : VideoCommon::CachedQueryBase<HostCounter>(std::move(rhs)), cache{rhs.cache}, type{rhs.type} {}
 
 CachedQuery& CachedQuery::operator=(CachedQuery&& rhs) noexcept {
-    VideoCommon::CachedQueryBase<HostCounter>::operator=(std::move(rhs));
     cache = rhs.cache;
     type = rhs.type;
+    CachedQueryBase<HostCounter>::operator=(std::move(rhs));
     return *this;
 }
 
