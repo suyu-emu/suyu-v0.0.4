@@ -28,12 +28,16 @@ public:
     ~DeviceMemory();
 
     template <typename T>
-    constexpr PAddr GetPhysicalAddr(T* ptr) {
+    PAddr GetPhysicalAddr(const T* ptr) const {
         return (reinterpret_cast<uintptr_t>(ptr) - reinterpret_cast<uintptr_t>(buffer.data())) +
                DramMemoryMap::Base;
     }
 
-    constexpr u8* GetPointer(PAddr addr) {
+    u8* GetPointer(PAddr addr) {
+        return buffer.data() + (addr - DramMemoryMap::Base);
+    }
+
+    const u8* GetPointer(PAddr addr) const {
         return buffer.data() + (addr - DramMemoryMap::Base);
     }
 
