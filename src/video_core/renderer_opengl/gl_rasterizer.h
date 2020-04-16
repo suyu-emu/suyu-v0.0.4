@@ -229,6 +229,7 @@ private:
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
     QueryCache query_cache;
+    OGLBufferCache buffer_cache;
     FenceManagerOpenGL fence_manager;
 
     Core::System& system;
@@ -237,7 +238,6 @@ private:
     StateTracker& state_tracker;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
-    OGLBufferCache buffer_cache;
 
     GLint vertex_binding = 0;
 
