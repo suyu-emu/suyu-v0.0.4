@@ -591,11 +591,8 @@ target_link_libraries(core PUBLIC common PRIVATE audio_core video_core)
 target_link_libraries(core PUBLIC Boost::boost PRIVATE fmt json-headers mbedtls opus unicorn)
 
 if (YUZU_ENABLE_BOXCAT)
-    get_directory_property(OPENSSL_LIBS
-        DIRECTORY ${PROJECT_SOURCE_DIR}/externals/libressl
-        DEFINITION OPENSSL_LIBS)
-    target_compile_definitions(core PRIVATE -DCPPHTTPLIB_OPENSSL_SUPPORT -DYUZU_ENABLE_BOXCAT)
-    target_link_libraries(core PRIVATE httplib json-headers ${OPENSSL_LIBS} zip)
+    target_compile_definitions(core PRIVATE -DYUZU_ENABLE_BOXCAT)
+    target_link_libraries(core PRIVATE httplib json-headers zip)
 endif()
 
 if (ENABLE_WEB_SERVICE)
