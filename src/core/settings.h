@@ -486,13 +486,8 @@ struct Values {
     std::map<u64, std::vector<std::string>> disabled_addons;
 } extern values;
 
-constexpr bool IsGPULevelExtreme() {
-    return values.gpu_accuracy == GPUAccuracy::Extreme;
-}
-
-constexpr bool IsGPULevelHigh() {
-    return values.gpu_accuracy == GPUAccuracy::Extreme || values.gpu_accuracy == GPUAccuracy::High;
-}
+bool IsGPULevelExtreme();
+bool IsGPULevelHigh();
 
 void Apply();
 void LogSettings();

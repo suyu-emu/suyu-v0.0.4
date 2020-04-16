@@ -109,4 +109,12 @@ void LogSettings() {
     LogSetting("Services_BCATBoxcatLocal", Settings::values.bcat_boxcat_local);
 }
 
+bool IsGPULevelExtreme() {
+    return values.gpu_accuracy == GPUAccuracy::Extreme;
+}
+
+bool IsGPULevelHigh() {
+    return values.gpu_accuracy == GPUAccuracy::Extreme || values.gpu_accuracy == GPUAccuracy::High;
+}
+
 } // namespace Settings
