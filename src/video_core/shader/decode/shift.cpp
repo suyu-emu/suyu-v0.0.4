@@ -23,7 +23,6 @@ Node IsFull(Node shift) {
 }
 
 Node Shift(OperationCode opcode, Node value, Node shift) {
-    Node is_full = Operation(OperationCode::LogicalIEqual, shift, Immediate(32));
     Node shifted = Operation(opcode, move(value), shift);
     return Operation(OperationCode::Select, IsFull(move(shift)), Immediate(0), move(shifted));
 }
