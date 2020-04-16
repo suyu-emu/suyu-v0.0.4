@@ -90,7 +90,7 @@ void VKFenceManager::QueueFence(Fence& fence) {
     fence->Queue();
 }
 
-bool VKFenceManager::IsFenceSignaled(Fence& fence) {
+bool VKFenceManager::IsFenceSignaled(Fence& fence) const {
     return fence->IsSignaled();
 }
 

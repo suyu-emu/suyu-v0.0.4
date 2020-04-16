@@ -63,7 +63,7 @@ protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;
     Fence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) override;
     void QueueFence(Fence& fence) override;
-    bool IsFenceSignaled(Fence& fence) override;
+    bool IsFenceSignaled(Fence& fence) const override;
     void WaitFence(Fence& fence) override;
 
 private:

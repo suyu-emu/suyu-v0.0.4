@@ -154,12 +154,9 @@ public:
         std::lock_guard lock{mutex};
 
         std::vector<MapInterval> objects = GetMapsInRange(addr, size);
-        for (auto& object : objects) {
-            if (object->IsModified() && object->IsRegistered()) {
-                return true;
-            }
-        }
-        return false;
+        return std::any_of(objects.begin(), objects.end(), [](const MapInterval& map) {
+            return map->IsModified() && map->IsRegistered();
+        });
     }
 
     /// Mark the specified region as being invalidated
@@ -199,9 +196,9 @@ public:
     }
 
     void CommitAsyncFlushes() {
-        if (uncommited_flushes) {
+        if (uncommitted_flushes) {
             auto commit_list = std::make_shared<std::list<MapInterval>>();
-            for (auto& map : *uncommited_flushes) {
+            for (auto& map : *uncommitted_flushes) {
                 if (map->IsRegistered() && map->IsModified()) {
                     // TODO(Blinkhawk): Implement backend asynchronous flushing
                     // AsyncFlushMap(map)
@@ -209,41 +206,34 @@ public:
                 }
             }
             if (!commit_list->empty()) {
-                commited_flushes.push_back(commit_list);
+                committed_flushes.push_back(commit_list);
             } else {
-                commited_flushes.emplace_back();
+                committed_flushes.emplace_back();
             }
         } else {
-            commited_flushes.emplace_back();
+            committed_flushes.emplace_back();
         }
-        uncommited_flushes.reset();
+        uncommitted_flushes.reset();
     }
 
-    bool ShouldWaitAsyncFlushes() {
-        if (commited_flushes.empty()) {
+    bool ShouldWaitAsyncFlushes() const {
+        if (committed_flushes.empty()) {
             return false;
         }
-        auto& flush_list = commited_flushes.front();
-        if (!flush_list) {
-            return false;
-        }
-        return true;
+        return committed_flushes.front() != nullptr;
     }
 
-    bool HasUncommitedFlushes() {
-        if (uncommited_flushes) {
-            return true;
-        }
-        return false;
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
     }
 
     void PopAsyncFlushes() {
-        if (commited_flushes.empty()) {
+        if (committed_flushes.empty()) {
             return;
         }
-        auto& flush_list = commited_flushes.front();
+        auto& flush_list = committed_flushes.front();
         if (!flush_list) {
-            commited_flushes.pop_front();
+            committed_flushes.pop_front();
             return;
         }
         for (MapInterval& map : *flush_list) {
@@ -252,7 +242,7 @@ public:
                 FlushMap(map);
             }
         }
-        commited_flushes.pop_front();
+        committed_flushes.pop_front();
     }
 
     virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
@@ -568,10 +558,10 @@ private:
     }
 
     void MarkForAsyncFlush(MapInterval& map) {
-        if (!uncommited_flushes) {
-            uncommited_flushes = std::make_shared<std::unordered_set<MapInterval>>();
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::unordered_set<MapInterval>>();
         }
-        uncommited_flushes->insert(map);
+        uncommitted_flushes->insert(map);
     }
 
     VideoCore::RasterizerInterface& rasterizer;
@@ -605,8 +595,8 @@ private:
     std::vector<u8> staging_buffer;
     std::list<MapInterval> marked_for_unregister;
 
-    std::shared_ptr<std::unordered_set<MapInterval>> uncommited_flushes{};
-    std::list<std::shared_ptr<std::list<MapInterval>>> commited_flushes;
+    std::shared_ptr<std::unordered_set<MapInterval>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::list<MapInterval>>> committed_flushes;
 
     std::recursive_mutex mutex;
 };

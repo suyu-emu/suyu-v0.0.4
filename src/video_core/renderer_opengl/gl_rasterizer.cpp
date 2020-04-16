@@ -653,9 +653,6 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
 }
 
 bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size) {
-    if (!Settings::IsGPULevelExtreme()) {
-        return buffer_cache.MustFlushRegion(addr, size);
-    }
     return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
 }
 
@@ -672,7 +669,7 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
 
 void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.OnCPUWrite(addr, size);

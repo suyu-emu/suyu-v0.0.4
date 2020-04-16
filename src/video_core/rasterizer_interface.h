@@ -64,6 +64,7 @@ public:
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     virtual void FlushRegion(VAddr addr, u64 size) = 0;
 
+    /// Check if the the specified memory area requires flushing to CPU Memory.
     virtual bool MustFlushRegion(VAddr addr, u64 size) = 0;
 
     /// Notify rasterizer that any caches of the specified region should be invalidated

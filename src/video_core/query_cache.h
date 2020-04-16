@@ -176,41 +176,34 @@ public:
     }
 
     void CommitAsyncFlushes() {
-        commited_flushes.push_back(uncommited_flushes);
-        uncommited_flushes.reset();
+        committed_flushes.push_back(uncommitted_flushes);
+        uncommitted_flushes.reset();
     }
 
-    bool HasUncommitedFlushes() {
-        if (uncommited_flushes) {
-            return true;
-        }
-        return false;
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
     }
 
-    bool ShouldWaitAsyncFlushes() {
-        if (commited_flushes.empty()) {
+    bool ShouldWaitAsyncFlushes() const {
+        if (committed_flushes.empty()) {
             return false;
         }
-        auto& flush_list = commited_flushes.front();
-        if (!flush_list) {
-            return false;
-        }
-        return true;
+        return committed_flushes.front() != nullptr;
     }
 
     void PopAsyncFlushes() {
-        if (commited_flushes.empty()) {
+        if (committed_flushes.empty()) {
             return;
         }
-        auto& flush_list = commited_flushes.front();
+        auto& flush_list = committed_flushes.front();
         if (!flush_list) {
-            commited_flushes.pop_front();
+            committed_flushes.pop_front();
             return;
         }
         for (VAddr query_address : *flush_list) {
             FlushAndRemoveRegion(query_address, 4);
         }
-        commited_flushes.pop_front();
+        committed_flushes.pop_front();
     }
 
 protected:
@@ -268,10 +261,10 @@ private:
     }
 
     void AsyncFlushQuery(VAddr addr) {
-        if (!uncommited_flushes) {
-            uncommited_flushes = std::make_shared<std::unordered_set<VAddr>>();
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::unordered_set<VAddr>>();
         }
-        uncommited_flushes->insert(addr);
+        uncommitted_flushes->insert(addr);
     }
 
     static constexpr std::uintptr_t PAGE_SIZE = 4096;
@@ -286,8 +279,8 @@ private:
 
     std::array<CounterStream, VideoCore::NumQueryTypes> streams;
 
-    std::shared_ptr<std::unordered_set<VAddr>> uncommited_flushes{};
-    std::list<std::shared_ptr<std::unordered_set<VAddr>>> commited_flushes;
+    std::shared_ptr<std::unordered_set<VAddr>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::unordered_set<VAddr>>> committed_flushes;
 };
 
 template <class QueryCache, class HostCounter>

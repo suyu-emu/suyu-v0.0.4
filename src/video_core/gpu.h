@@ -155,16 +155,22 @@ public:
     /// Calls a GPU method.
     void CallMethod(const MethodCall& method_call);
 
+    /// Flush all current written commands into the host GPU for execution.
     void FlushCommands();
+    /// Synchronizes CPU writes with Host GPU memory.
     void SyncGuestHost();
+    /// Signal the ending of command list.
     virtual void OnCommandListEnd();
 
-    u64 RequestFlush(CacheAddr addr, std::size_t size);
+    /// Request a host GPU memory flush from the CPU.
+    u64 RequestFlush(VAddr addr, std::size_t size);
 
+    /// Obtains current flush request fence id.
     u64 CurrentFlushRequestFence() const {
         return current_flush_fence.load(std::memory_order_relaxed);
     }
 
+    /// Tick pending requests within the GPU.
     void TickWork();
 
     /// Returns a reference to the Maxwell3D GPU engine.
@@ -336,10 +342,10 @@ private:
     std::condition_variable sync_cv;
 
     struct FlushRequest {
-        FlushRequest(u64 fence, CacheAddr addr, std::size_t size)
+        FlushRequest(u64 fence, VAddr addr, std::size_t size)
             : fence{fence}, addr{addr}, size{size} {}
         u64 fence;
-        CacheAddr addr;
+        VAddr addr;
         std::size_t size;
     };
 

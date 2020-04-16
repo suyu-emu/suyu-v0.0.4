@@ -120,15 +120,8 @@ public:
         std::lock_guard lock{mutex};
 
         auto surfaces = GetSurfacesInRegion(addr, size);
-        if (surfaces.empty()) {
-            return false;
-        }
-        for (const auto& surface : surfaces) {
-            if (surface->IsModified()) {
-                return true;
-            }
-        }
-        return false;
+        return std::any_of(surfaces.begin(), surfaces.end(),
+                           [](const TSurface& surface) { return surface->IsModified(); });
     }
 
     TView GetTextureSurface(const Tegra::Texture::TICEntry& tic,
@@ -333,41 +326,34 @@ public:
     }
 
     void CommitAsyncFlushes() {
-        commited_flushes.push_back(uncommited_flushes);
-        uncommited_flushes.reset();
+        committed_flushes.push_back(uncommitted_flushes);
+        uncommitted_flushes.reset();
     }
 
-    bool HasUncommitedFlushes() {
-        if (uncommited_flushes) {
-            return true;
-        }
-        return false;
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
     }
 
-    bool ShouldWaitAsyncFlushes() {
-        if (commited_flushes.empty()) {
+    bool ShouldWaitAsyncFlushes() const {
+        if (committed_flushes.empty()) {
             return false;
         }
-        auto& flush_list = commited_flushes.front();
-        if (!flush_list) {
-            return false;
-        }
-        return true;
+        return committed_flushes.front() != nullptr;
     }
 
     void PopAsyncFlushes() {
-        if (commited_flushes.empty()) {
+        if (committed_flushes.empty()) {
             return;
         }
-        auto& flush_list = commited_flushes.front();
+        auto& flush_list = committed_flushes.front();
         if (!flush_list) {
-            commited_flushes.pop_front();
+            committed_flushes.pop_front();
             return;
         }
         for (TSurface& surface : *flush_list) {
             FlushSurface(surface);
         }
-        commited_flushes.pop_front();
+        committed_flushes.pop_front();
     }
 
 protected:
@@ -1206,10 +1192,10 @@ private:
     };
 
     void AsyncFlushSurface(TSurface& surface) {
-        if (!uncommited_flushes) {
-            uncommited_flushes = std::make_shared<std::list<TSurface>>();
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::list<TSurface>>();
         }
-        uncommited_flushes->push_back(surface);
+        uncommitted_flushes->push_back(surface);
     }
 
     VideoCore::RasterizerInterface& rasterizer;
@@ -1258,8 +1244,8 @@ private:
 
     std::list<TSurface> marked_for_unregister;
 
-    std::shared_ptr<std::list<TSurface>> uncommited_flushes{};
-    std::list<std::shared_ptr<std::list<TSurface>>> commited_flushes;
+    std::shared_ptr<std::list<TSurface>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::list<TSurface>>> committed_flushes;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;

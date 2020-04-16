@@ -125,7 +125,7 @@ bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     return true;
 }
 
-u64 GPU::RequestFlush(CacheAddr addr, std::size_t size) {
+u64 GPU::RequestFlush(VAddr addr, std::size_t size) {
     std::unique_lock lck{flush_request_mutex};
     const u64 fence = ++last_flush_fence;
     flush_requests.emplace_back(fence, addr, size);
@@ -137,7 +137,7 @@ void GPU::TickWork() {
     while (!flush_requests.empty()) {
         auto& request = flush_requests.front();
         const u64 fence = request.fence;
-        const CacheAddr addr = request.addr;
+        const VAddr addr = request.addr;
         const std::size_t size = request.size;
         flush_requests.pop_front();
         flush_request_mutex.unlock();

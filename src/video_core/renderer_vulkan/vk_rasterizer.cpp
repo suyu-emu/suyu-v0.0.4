@@ -533,7 +533,7 @@ void RasterizerVulkan::InvalidateRegion(VAddr addr, u64 size) {
 }
 
 void RasterizerVulkan::OnCPUWrite(VAddr addr, u64 size) {
-    if (!addr || !size) {
+    if (addr == 0 || size == 0) {
         return;
     }
     texture_cache.OnCPUWrite(addr, size);

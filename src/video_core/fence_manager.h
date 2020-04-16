@@ -28,15 +28,15 @@ public:
     FenceBase(GPUVAddr address, u32 payload, bool is_stubbed)
         : address{address}, payload{payload}, is_semaphore{true}, is_stubbed{is_stubbed} {}
 
-    constexpr GPUVAddr GetAddress() const {
+    GPUVAddr GetAddress() const {
         return address;
     }
 
-    constexpr u32 GetPayload() const {
+    u32 GetPayload() const {
         return payload;
     }
 
-    constexpr bool IsSemaphore() const {
+    bool IsSemaphore() const {
         return is_semaphore;
     }
 
@@ -54,12 +54,8 @@ class FenceManager {
 public:
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
-        bool should_flush = texture_cache.HasUncommitedFlushes();
-        should_flush |= buffer_cache.HasUncommitedFlushes();
-        should_flush |= query_cache.HasUncommitedFlushes();
-        texture_cache.CommitAsyncFlushes();
-        buffer_cache.CommitAsyncFlushes();
-        query_cache.CommitAsyncFlushes();
+        bool should_flush = ShouldFlush();
+        CommitAsyncFlushes();
         TFence new_fence = CreateFence(addr, value, !should_flush);
         fences.push(new_fence);
         QueueFence(new_fence);
@@ -71,12 +67,8 @@ public:
 
     void SignalSyncPoint(u32 value) {
         TryReleasePendingFences();
-        bool should_flush = texture_cache.HasUncommitedFlushes();
-        should_flush |= buffer_cache.HasUncommitedFlushes();
-        should_flush |= query_cache.HasUncommitedFlushes();
-        texture_cache.CommitAsyncFlushes();
-        buffer_cache.CommitAsyncFlushes();
-        query_cache.CommitAsyncFlushes();
+        bool should_flush = ShouldFlush();
+        CommitAsyncFlushes();
         TFence new_fence = CreateFence(value, !should_flush);
         fences.push(new_fence);
         QueueFence(new_fence);
@@ -89,15 +81,10 @@ public:
     void WaitPendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
-            bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
-            should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
-            should_wait |= query_cache.ShouldWaitAsyncFlushes();
-            if (should_wait) {
+            if (ShouldWait()) {
                 WaitFence(current_fence);
             }
-            texture_cache.PopAsyncFlushes();
-            buffer_cache.PopAsyncFlushes();
-            query_cache.PopAsyncFlushes();
+            PopAsyncFlushes();
             auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
                 auto& memory_manager{gpu.MemoryManager()};
@@ -116,10 +103,18 @@ protected:
         : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache},
           buffer_cache{buffer_cache}, query_cache{query_cache} {}
 
+    virtual ~FenceManager() {}
+
+    /// Creates a Sync Point Fence Interface, does not create a backend fence if 'is_stubbed' is
+    /// true
     virtual TFence CreateFence(u32 value, bool is_stubbed) = 0;
+    /// Creates a Semaphore Fence Interface, does not create a backend fence if 'is_stubbed' is true
     virtual TFence CreateFence(GPUVAddr addr, u32 value, bool is_stubbed) = 0;
+    /// Queues a fence into the backend if the fence isn't stubbed.
     virtual void QueueFence(TFence& fence) = 0;
-    virtual bool IsFenceSignaled(TFence& fence) = 0;
+    /// Notifies that the backend fence has been signaled/reached in host GPU.
+    virtual bool IsFenceSignaled(TFence& fence) const = 0;
+    /// Waits until a fence has been signalled by the host GPU.
     virtual void WaitFence(TFence& fence) = 0;
 
     Core::System& system;
@@ -132,15 +127,10 @@ private:
     void TryReleasePendingFences() {
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
-            bool should_wait = texture_cache.ShouldWaitAsyncFlushes();
-            should_wait |= buffer_cache.ShouldWaitAsyncFlushes();
-            should_wait |= query_cache.ShouldWaitAsyncFlushes();
-            if (should_wait && !IsFenceSignaled(current_fence)) {
+            if (ShouldWait() && !IsFenceSignaled(current_fence)) {
                 return;
             }
-            texture_cache.PopAsyncFlushes();
-            buffer_cache.PopAsyncFlushes();
-            query_cache.PopAsyncFlushes();
+            PopAsyncFlushes();
             auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
                 auto& memory_manager{gpu.MemoryManager()};
@@ -150,6 +140,28 @@ private:
             }
             fences.pop();
         }
+    }
+
+    bool ShouldWait() const {
+        return texture_cache.ShouldWaitAsyncFlushes() || buffer_cache.ShouldWaitAsyncFlushes() ||
+               query_cache.ShouldWaitAsyncFlushes();
+    }
+
+    bool ShouldFlush() const {
+        return texture_cache.HasUncommittedFlushes() || buffer_cache.HasUncommittedFlushes() ||
+               query_cache.HasUncommittedFlushes();
+    }
+
+    void PopAsyncFlushes() {
+        texture_cache.PopAsyncFlushes();
+        buffer_cache.PopAsyncFlushes();
+        query_cache.PopAsyncFlushes();
+    }
+
+    void CommitAsyncFlushes() {
+        texture_cache.CommitAsyncFlushes();
+        buffer_cache.CommitAsyncFlushes();
+        query_cache.CommitAsyncFlushes();
     }
 
     std::queue<TFence> fences;

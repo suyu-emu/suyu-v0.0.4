@@ -62,7 +62,7 @@ void FenceManagerOpenGL::QueueFence(Fence& fence) {
     fence->Queue();
 }
 
-bool FenceManagerOpenGL::IsFenceSignaled(Fence& fence) {
+bool FenceManagerOpenGL::IsFenceSignaled(Fence& fence) const {
     return fence->IsSignaled();
 }
 
