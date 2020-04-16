@@ -84,7 +84,7 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 }
 
 void ThreadManager::FlushRegion(VAddr addr, u64 size) {
-    if (!Settings::IsGPULevelHigh()) {
+    if (!Settings::IsGPULevelExtreme()) {
         return;
     }
     if (system.Renderer().Rasterizer().MustFlushRegion(addr, size)) {
