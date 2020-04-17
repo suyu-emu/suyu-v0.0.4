@@ -12,7 +12,9 @@ union ResultCode;
 
 namespace Kernel {
 
-class VMManager;
+namespace Memory {
+class PageTable;
+}
 
 /// The possible types of programs that may be indicated
 /// by the program type capability descriptor.
@@ -81,27 +83,27 @@ public:
     ///
     /// @param capabilities     The capabilities to parse
     /// @param num_capabilities The number of capabilities to parse.
-    /// @param vm_manager       The memory manager to use for handling any mapping-related
+    /// @param page_table       The memory manager to use for handling any mapping-related
     ///                         operations (such as mapping IO memory, etc).
     ///
     /// @returns RESULT_SUCCESS if this capabilities instance was able to be initialized,
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForKernelProcess(const u32* capabilities, std::size_t num_capabilities,
-                                          VMManager& vm_manager);
+                                          Memory::PageTable& page_table);
 
     /// Initializes this process capabilities instance for a userland process.
     ///
     /// @param capabilities     The capabilities to parse.
     /// @param num_capabilities The total number of capabilities to parse.
-    /// @param vm_manager       The memory manager to use for handling any mapping-related
+    /// @param page_table       The memory manager to use for handling any mapping-related
     ///                         operations (such as mapping IO memory, etc).
     ///
     /// @returns RESULT_SUCCESS if this capabilities instance was able to be initialized,
     ///          otherwise, an error code upon failure.
     ///
     ResultCode InitializeForUserProcess(const u32* capabilities, std::size_t num_capabilities,
-                                        VMManager& vm_manager);
+                                        Memory::PageTable& page_table);
 
     /// Initializes this process capabilities instance for a process that does not
     /// have any metadata to parse.
@@ -181,13 +183,13 @@ private:
     ///
     /// @param capabilities     The sequence of capability descriptors to parse.
     /// @param num_capabilities The number of descriptors within the given sequence.
-    /// @param vm_manager       The memory manager that will perform any memory
+    /// @param page_table       The memory manager that will perform any memory
     ///                         mapping if necessary.
     ///
     /// @return RESULT_SUCCESS if no errors occur, otherwise an error code.
     ///
     ResultCode ParseCapabilities(const u32* capabilities, std::size_t num_capabilities,
-                                 VMManager& vm_manager);
+                                 Memory::PageTable& page_table);
 
     /// Attempts to parse a capability descriptor that is only represented by a
     /// single flag set.
@@ -196,13 +198,13 @@ private:
     ///                     flags being initialized more than once when they shouldn't be.
     /// @param set_svc_bits Running set of bits representing the allowed supervisor calls mask.
     /// @param flag         The flag to attempt to parse.
-    /// @param vm_manager   The memory manager that will perform any memory
+    /// @param page_table   The memory manager that will perform any memory
     ///                     mapping if necessary.
     ///
     /// @return RESULT_SUCCESS if no errors occurred, otherwise an error code.
     ///
     ResultCode ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits, u32 flag,
-                                         VMManager& vm_manager);
+                                         Memory::PageTable& page_table);
 
     /// Clears the internal state of this process capability instance. Necessary,
     /// to have a sane starting point due to us allowing running executables without
@@ -226,10 +228,10 @@ private:
     ResultCode HandleSyscallFlags(u32& set_svc_bits, u32 flags);
 
     /// Handles flags related to mapping physical memory pages.
-    ResultCode HandleMapPhysicalFlags(u32 flags, u32 size_flags, VMManager& vm_manager);
+    ResultCode HandleMapPhysicalFlags(u32 flags, u32 size_flags, Memory::PageTable& page_table);
 
     /// Handles flags related to mapping IO pages.
-    ResultCode HandleMapIOFlags(u32 flags, VMManager& vm_manager);
+    ResultCode HandleMapIOFlags(u32 flags, Memory::PageTable& page_table);
 
     /// Handles flags related to the interrupt capability flags.
     ResultCode HandleInterruptFlags(u32 flags);

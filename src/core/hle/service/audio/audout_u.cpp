@@ -210,7 +210,7 @@ private:
 
     /// This is the event handle used to check if the audio buffer was released
     Kernel::EventPair buffer_event;
-    Memory::Memory& main_memory;
+    Core::Memory::Memory& main_memory;
 };
 
 AudOutU::AudOutU(Core::System& system_) : ServiceFramework("audout:u"), system{system_} {

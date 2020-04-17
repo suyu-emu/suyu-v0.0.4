@@ -16,7 +16,7 @@ namespace {
 
 constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 60);
 
-u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
+u64 MemoryReadWidth(Core::Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
     case 1:
         return memory.Read8(addr);
@@ -32,7 +32,7 @@ u64 MemoryReadWidth(Memory::Memory& memory, u32 width, VAddr addr) {
     }
 }
 
-void MemoryWriteWidth(Memory::Memory& memory, u32 width, VAddr addr, u64 value) {
+void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 value) {
     switch (width) {
     case 1:
         memory.Write8(addr, static_cast<u8>(value));
@@ -53,7 +53,7 @@ void MemoryWriteWidth(Memory::Memory& memory, u32 width, VAddr addr, u64 value) 
 
 } // Anonymous namespace
 
-Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Memory::Memory& memory_)
+Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
     event = Core::Timing::CreateEvent(
         "MemoryFreezer::FrameCallback",

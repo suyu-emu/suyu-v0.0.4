@@ -47,7 +47,8 @@ ResultVal<std::shared_ptr<ClientSession>> ClientSession::Create(KernelCore& kern
     return MakeResult(std::move(client_session));
 }
 
-ResultCode ClientSession::SendSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory) {
+ResultCode ClientSession::SendSyncRequest(std::shared_ptr<Thread> thread,
+                                          Core::Memory::Memory& memory) {
     // Keep ServerSession alive until we're done working with it.
     if (!parent->Server()) {
         return ERR_SESSION_CLOSED_BY_REMOTE;

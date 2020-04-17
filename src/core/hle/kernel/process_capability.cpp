@@ -5,8 +5,8 @@
 #include "common/bit_util.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process_capability.h"
-#include "core/hle/kernel/vm_manager.h"
 
 namespace Kernel {
 namespace {
@@ -66,7 +66,7 @@ u32 GetFlagBitOffset(CapabilityType type) {
 
 ResultCode ProcessCapabilities::InitializeForKernelProcess(const u32* capabilities,
                                                            std::size_t num_capabilities,
-                                                           VMManager& vm_manager) {
+                                                           Memory::PageTable& page_table) {
     Clear();
 
     // Allow all cores and priorities.
@@ -74,15 +74,15 @@ ResultCode ProcessCapabilities::InitializeForKernelProcess(const u32* capabiliti
     priority_mask = 0xFFFFFFFFFFFFFFFF;
     kernel_version = PackedKernelVersion;
 
-    return ParseCapabilities(capabilities, num_capabilities, vm_manager);
+    return ParseCapabilities(capabilities, num_capabilities, page_table);
 }
 
 ResultCode ProcessCapabilities::InitializeForUserProcess(const u32* capabilities,
                                                          std::size_t num_capabilities,
-                                                         VMManager& vm_manager) {
+                                                         Memory::PageTable& page_table) {
     Clear();
 
-    return ParseCapabilities(capabilities, num_capabilities, vm_manager);
+    return ParseCapabilities(capabilities, num_capabilities, page_table);
 }
 
 void ProcessCapabilities::InitializeForMetadatalessProcess() {
@@ -105,7 +105,7 @@ void ProcessCapabilities::InitializeForMetadatalessProcess() {
 
 ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
                                                   std::size_t num_capabilities,
-                                                  VMManager& vm_manager) {
+                                                  Memory::PageTable& page_table) {
     u32 set_flags = 0;
     u32 set_svc_bits = 0;
 
@@ -127,13 +127,13 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
                 return ERR_INVALID_COMBINATION;
             }
 
-            const auto result = HandleMapPhysicalFlags(descriptor, size_flags, vm_manager);
+            const auto result = HandleMapPhysicalFlags(descriptor, size_flags, page_table);
             if (result.IsError()) {
                 return result;
             }
         } else {
             const auto result =
-                ParseSingleFlagCapability(set_flags, set_svc_bits, descriptor, vm_manager);
+                ParseSingleFlagCapability(set_flags, set_svc_bits, descriptor, page_table);
             if (result.IsError()) {
                 return result;
             }
@@ -144,7 +144,7 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
 }
 
 ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& set_svc_bits,
-                                                          u32 flag, VMManager& vm_manager) {
+                                                          u32 flag, Memory::PageTable& page_table) {
     const auto type = GetCapabilityType(flag);
 
     if (type == CapabilityType::Unset) {
@@ -172,7 +172,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
     case CapabilityType::Syscall:
         return HandleSyscallFlags(set_svc_bits, flag);
     case CapabilityType::MapIO:
-        return HandleMapIOFlags(flag, vm_manager);
+        return HandleMapIOFlags(flag, page_table);
     case CapabilityType::Interrupt:
         return HandleInterruptFlags(flag);
     case CapabilityType::ProgramType:
@@ -269,12 +269,12 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
 }
 
 ResultCode ProcessCapabilities::HandleMapPhysicalFlags(u32 flags, u32 size_flags,
-                                                       VMManager& vm_manager) {
+                                                       Memory::PageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
     return RESULT_SUCCESS;
 }
 
-ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, VMManager& vm_manager) {
+ResultCode ProcessCapabilities::HandleMapIOFlags(u32 flags, Memory::PageTable& page_table) {
     // TODO(Lioncache): Implement once the memory manager can handle this.
     return RESULT_SUCCESS;
 }

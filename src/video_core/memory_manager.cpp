@@ -6,8 +6,8 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -17,10 +17,7 @@ namespace Tegra {
 
 MemoryManager::MemoryManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
     : rasterizer{rasterizer}, system{system} {
-    std::fill(page_table.pointers.begin(), page_table.pointers.end(), nullptr);
-    std::fill(page_table.attributes.begin(), page_table.attributes.end(),
-              Common::PageType::Unmapped);
-    page_table.Resize(address_space_width);
+    page_table.Resize(address_space_width, page_bits, false);
 
     // Initialize the map with a single free region covering the entire managed space.
     VirtualMemoryArea initial_vma;
@@ -55,9 +52,9 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
 
     MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
     ASSERT(system.CurrentProcess()
-               ->VMManager()
-               .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
-                                   Kernel::MemoryAttribute::DeviceMapped)
+               ->PageTable()
+               .SetMemoryAttribute(cpu_addr, size, Kernel::Memory::MemoryAttribute::DeviceShared,
+                                   Kernel::Memory::MemoryAttribute::DeviceShared)
                .IsSuccess());
 
     return gpu_addr;
@@ -70,9 +67,9 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
 
     MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
     ASSERT(system.CurrentProcess()
-               ->VMManager()
-               .SetMemoryAttribute(cpu_addr, size, Kernel::MemoryAttribute::DeviceMapped,
-                                   Kernel::MemoryAttribute::DeviceMapped)
+               ->PageTable()
+               .SetMemoryAttribute(cpu_addr, size, Kernel::Memory::MemoryAttribute::DeviceShared,
+                                   Kernel::Memory::MemoryAttribute::DeviceShared)
                .IsSuccess());
     return gpu_addr;
 }
@@ -89,9 +86,10 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
 
     UnmapRange(gpu_addr, aligned_size);
     ASSERT(system.CurrentProcess()
-               ->VMManager()
-               .SetMemoryAttribute(cpu_addr.value(), size, Kernel::MemoryAttribute::DeviceMapped,
-                                   Kernel::MemoryAttribute::None)
+               ->PageTable()
+               .SetMemoryAttribute(cpu_addr.value(), size,
+                                   Kernel::Memory::MemoryAttribute::DeviceShared,
+                                   Kernel::Memory::MemoryAttribute::None)
                .IsSuccess());
 
     return gpu_addr;
@@ -147,16 +145,8 @@ T MemoryManager::Read(GPUVAddr addr) const {
         return value;
     }
 
-    switch (page_table.attributes[addr >> page_bits]) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_GPU, "Unmapped Read{} @ 0x{:08X}", sizeof(T) * 8, addr);
-        return 0;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", addr);
-        break;
-    default:
-        UNREACHABLE();
-    }
+    UNREACHABLE();
+
     return {};
 }
 
@@ -173,17 +163,7 @@ void MemoryManager::Write(GPUVAddr addr, T data) {
         return;
     }
 
-    switch (page_table.attributes[addr >> page_bits]) {
-    case Common::PageType::Unmapped:
-        LOG_ERROR(HW_GPU, "Unmapped Write{} 0x{:08X} @ 0x{:016X}", sizeof(data) * 8,
-                  static_cast<u32>(data), addr);
-        return;
-    case Common::PageType::Memory:
-        ASSERT_MSG(false, "Mapped memory page without a pointer @ {:016X}", addr);
-        break;
-    default:
-        UNREACHABLE();
-    }
+    UNREACHABLE();
 }
 
 template u8 MemoryManager::Read<u8>(GPUVAddr addr) const;
@@ -249,18 +229,11 @@ void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::s
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
 
-        switch (page_table.attributes[page_index]) {
-        case Common::PageType::Memory: {
-            const VAddr src_addr{page_table.backing_addr[page_index] + page_offset};
-            // Flush must happen on the rasterizer interface, such that memory is always synchronous
-            // when it is read (even when in asynchronous GPU mode). Fixes Dead Cells title menu.
-            rasterizer.FlushRegion(src_addr, copy_amount);
-            memory.ReadBlockUnsafe(src_addr, dest_buffer, copy_amount);
-            break;
-        }
-        default:
-            UNREACHABLE();
-        }
+        const VAddr src_addr{page_table.backing_addr[page_index] + page_offset};
+        // Flush must happen on the rasterizer interface, such that memory is always synchronous
+        // when it is read (even when in asynchronous GPU mode). Fixes Dead Cells title menu.
+        rasterizer.FlushRegion(src_addr, copy_amount);
+        memory.ReadBlockUnsafe(src_addr, dest_buffer, copy_amount);
 
         page_index++;
         page_offset = 0;
@@ -305,18 +278,11 @@ void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const
         const std::size_t copy_amount{
             std::min(static_cast<std::size_t>(page_size) - page_offset, remaining_size)};
 
-        switch (page_table.attributes[page_index]) {
-        case Common::PageType::Memory: {
-            const VAddr dest_addr{page_table.backing_addr[page_index] + page_offset};
-            // Invalidate must happen on the rasterizer interface, such that memory is always
-            // synchronous when it is written (even when in asynchronous GPU mode).
-            rasterizer.InvalidateRegion(dest_addr, copy_amount);
-            memory.WriteBlockUnsafe(dest_addr, src_buffer, copy_amount);
-            break;
-        }
-        default:
-            UNREACHABLE();
-        }
+        const VAddr dest_addr{page_table.backing_addr[page_index] + page_offset};
+        // Invalidate must happen on the rasterizer interface, such that memory is always
+        // synchronous when it is written (even when in asynchronous GPU mode).
+        rasterizer.InvalidateRegion(dest_addr, copy_amount);
+        memory.WriteBlockUnsafe(dest_addr, src_buffer, copy_amount);
 
         page_index++;
         page_offset = 0;
@@ -362,8 +328,8 @@ void MemoryManager::CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, const
 
 bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) {
     const VAddr addr = page_table.backing_addr[gpu_addr >> page_bits];
-    const std::size_t page = (addr & Memory::PAGE_MASK) + size;
-    return page <= Memory::PAGE_SIZE;
+    const std::size_t page = (addr & Core::Memory::PAGE_MASK) + size;
+    return page <= Core::Memory::PAGE_SIZE;
 }
 
 void MemoryManager::MapPages(GPUVAddr base, u64 size, u8* memory, Common::PageType type,
@@ -375,12 +341,13 @@ void MemoryManager::MapPages(GPUVAddr base, u64 size, u8* memory, Common::PageTy
     ASSERT_MSG(end <= page_table.pointers.size(), "out of range mapping at {:016X}",
                base + page_table.pointers.size());
 
-    std::fill(page_table.attributes.begin() + base, page_table.attributes.begin() + end, type);
-
     if (memory == nullptr) {
-        std::fill(page_table.pointers.begin() + base, page_table.pointers.begin() + end, memory);
-        std::fill(page_table.backing_addr.begin() + base, page_table.backing_addr.begin() + end,
-                  backing_addr);
+        while (base != end) {
+            page_table.pointers[base] = nullptr;
+            page_table.backing_addr[base] = 0;
+
+            base += 1;
+        }
     } else {
         while (base != end) {
             page_table.pointers[base] = memory;

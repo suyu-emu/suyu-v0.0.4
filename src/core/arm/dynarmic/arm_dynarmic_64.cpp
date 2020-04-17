@@ -8,6 +8,7 @@
 #include <dynarmic/A64/config.h>
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/page_table.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/core.h"
 #include "core/core_manager.h"
@@ -18,7 +19,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/memory.h"
 
 namespace Core {
@@ -103,7 +103,7 @@ public:
     }
 
     void CallSVC(u32 swi) override {
-        Kernel::CallSVC(parent.system, swi);
+        Kernel::Svc::Call(parent.system, swi);
     }
 
     void AddTicks(u64 ticks) override {
@@ -158,6 +158,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
+
+    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
+    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }

@@ -36,9 +36,9 @@ public:
     }
 
     void SetWaveIndex(std::size_t index);
-    std::vector<s16> DequeueSamples(std::size_t sample_count, Memory::Memory& memory);
+    std::vector<s16> DequeueSamples(std::size_t sample_count, Core::Memory::Memory& memory);
     void UpdateState();
-    void RefreshBuffer(Memory::Memory& memory);
+    void RefreshBuffer(Core::Memory::Memory& memory);
 
 private:
     bool is_in_use{};
@@ -66,13 +66,14 @@ public:
         return info;
     }
 
-    void UpdateState(Memory::Memory& memory);
+    void UpdateState(Core::Memory::Memory& memory);
 
 private:
     EffectOutStatus out_status{};
     EffectInStatus info{};
 };
-AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Memory::Memory& memory_,
+
+AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
                              AudioRendererParameter params,
                              std::shared_ptr<Kernel::WritableEvent> buffer_event,
                              std::size_t instance_number)
@@ -208,7 +209,7 @@ void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
 }
 
 std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(std::size_t sample_count,
-                                                           Memory::Memory& memory) {
+                                                           Core::Memory::Memory& memory) {
     if (!IsPlaying()) {
         return {};
     }
@@ -258,7 +259,7 @@ void AudioRenderer::VoiceState::UpdateState() {
     is_in_use = info.is_in_use;
 }
 
-void AudioRenderer::VoiceState::RefreshBuffer(Memory::Memory& memory) {
+void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory) {
     const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
     const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
     std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
@@ -310,7 +311,7 @@ void AudioRenderer::VoiceState::RefreshBuffer(Memory::Memory& memory) {
     is_refresh_pending = false;
 }
 
-void AudioRenderer::EffectState::UpdateState(Memory::Memory& memory) {
+void AudioRenderer::EffectState::UpdateState(Core::Memory::Memory& memory) {
     if (info.is_new) {
         out_status.state = EffectStatus::New;
     } else {

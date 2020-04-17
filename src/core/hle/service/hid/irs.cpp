@@ -6,6 +6,7 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/service/hid/irs.h"
 
@@ -38,9 +39,8 @@ IRS::IRS(Core::System& system) : ServiceFramework{"irs"}, system(system) {
     RegisterHandlers(functions);
 
     auto& kernel = system.Kernel();
-    shared_mem = Kernel::SharedMemory::Create(
-        kernel, nullptr, 0x8000, Kernel::MemoryPermission::ReadWrite,
-        Kernel::MemoryPermission::Read, 0, Kernel::MemoryRegion::BASE, "IRS:SharedMemory");
+
+    shared_mem = SharedFrom(&kernel.GetIrsSharedMem());
 }
 
 void IRS::ActivateIrsensor(Kernel::HLERequestContext& ctx) {

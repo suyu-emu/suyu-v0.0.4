@@ -16,9 +16,11 @@
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/result.h"
 #include "core/hle/service/lm/manager.h"
+#include "core/memory.h"
 #include "core/reporter.h"
 #include "core/settings.h"
 
@@ -108,14 +110,13 @@ json GetProcessorStateData(const std::string& architecture, u64 entry_point, u64
 
 json GetProcessorStateDataAuto(Core::System& system) {
     const auto* process{system.CurrentProcess()};
-    const auto& vm_manager{process->VMManager()};
     auto& arm{system.CurrentArmInterface()};
 
     Core::ARM_Interface::ThreadContext64 context{};
     arm.SaveContext(context);
 
     return GetProcessorStateData(process->Is64BitProcess() ? "AArch64" : "AArch32",
-                                 vm_manager.GetCodeRegionBaseAddress(), context.sp, context.pc,
+                                 process->PageTable().GetCodeRegionStart(), context.sp, context.pc,
                                  context.pstate, context.cpu_registers);
 }
 
@@ -147,7 +148,8 @@ json GetFullDataAuto(const std::string& timestamp, u64 title_id, Core::System& s
 }
 
 template <bool read_value, typename DescriptorType>
-json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Memory::Memory& memory) {
+json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer,
+                                Core::Memory::Memory& memory) {
     auto buffer_out = json::array();
     for (const auto& desc : buffer) {
         auto entry = json{
@@ -167,7 +169,7 @@ json GetHLEBufferDescriptorData(const std::vector<DescriptorType>& buffer, Memor
     return buffer_out;
 }
 
-json GetHLERequestContextData(Kernel::HLERequestContext& ctx, Memory::Memory& memory) {
+json GetHLERequestContextData(Kernel::HLERequestContext& ctx, Core::Memory::Memory& memory) {
     json out;
 
     auto cmd_buf = json::array();

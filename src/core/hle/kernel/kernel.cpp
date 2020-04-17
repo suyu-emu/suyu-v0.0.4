@@ -18,15 +18,20 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/device_memory.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/memory/memory_layout.h"
+#include "core/hle/kernel/memory/memory_manager.h"
+#include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/scheduler.h"
+#include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
@@ -110,6 +115,7 @@ struct KernelCore::Impl {
 
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
+        InitializeMemoryLayout();
         InitializeThreads();
         InitializePreemption();
     }
@@ -154,12 +160,17 @@ struct KernelCore::Impl {
         system_resource_limit = ResourceLimit::Create(kernel);
 
         // If setting the default system values fails, then something seriously wrong has occurred.
-        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x200000000)
+        ASSERT(system_resource_limit->SetLimitValue(ResourceType::PhysicalMemory, 0x100000000)
                    .IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Threads, 800).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Events, 700).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::TransferMemory, 200).IsSuccess());
         ASSERT(system_resource_limit->SetLimitValue(ResourceType::Sessions, 900).IsSuccess());
+
+        if (!system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0) ||
+            !system_resource_limit->Reserve(ResourceType::PhysicalMemory, 0x60000)) {
+            UNREACHABLE();
+        }
     }
 
     void InitializeThreads() {
@@ -237,6 +248,57 @@ struct KernelCore::Impl {
         return result;
     }
 
+    void InitializeMemoryLayout() {
+        // Initialize memory layout
+        constexpr Memory::MemoryLayout layout{Memory::MemoryLayout::GetDefaultLayout()};
+        constexpr std::size_t hid_size{0x40000};
+        constexpr std::size_t font_size{0x1100000};
+        constexpr std::size_t irs_size{0x8000};
+        constexpr std::size_t time_size{0x1000};
+        constexpr PAddr hid_addr{layout.System().StartAddress()};
+        constexpr PAddr font_pa{layout.System().StartAddress() + hid_size};
+        constexpr PAddr irs_addr{layout.System().StartAddress() + hid_size + font_size};
+        constexpr PAddr time_addr{layout.System().StartAddress() + hid_size + font_size + irs_size};
+
+        // Initialize memory manager
+        memory_manager = std::make_unique<Memory::MemoryManager>();
+        memory_manager->InitializeManager(Memory::MemoryManager::Pool::Application,
+                                          layout.Application().StartAddress(),
+                                          layout.Application().EndAddress());
+        memory_manager->InitializeManager(Memory::MemoryManager::Pool::Applet,
+                                          layout.Applet().StartAddress(),
+                                          layout.Applet().EndAddress());
+        memory_manager->InitializeManager(Memory::MemoryManager::Pool::System,
+                                          layout.System().StartAddress(),
+                                          layout.System().EndAddress());
+
+        hid_shared_mem = Kernel::SharedMemory::Create(
+            system.Kernel(), system.DeviceMemory(), nullptr,
+            {hid_addr, hid_size / Memory::PageSize}, Memory::MemoryPermission::None,
+            Memory::MemoryPermission::Read, hid_addr, hid_size, "HID:SharedMemory");
+        font_shared_mem = Kernel::SharedMemory::Create(
+            system.Kernel(), system.DeviceMemory(), nullptr,
+            {font_pa, font_size / Memory::PageSize}, Memory::MemoryPermission::None,
+            Memory::MemoryPermission::Read, font_pa, font_size, "Font:SharedMemory");
+        irs_shared_mem = Kernel::SharedMemory::Create(
+            system.Kernel(), system.DeviceMemory(), nullptr,
+            {irs_addr, irs_size / Memory::PageSize}, Memory::MemoryPermission::None,
+            Memory::MemoryPermission::Read, irs_addr, irs_size, "IRS:SharedMemory");
+        time_shared_mem = Kernel::SharedMemory::Create(
+            system.Kernel(), system.DeviceMemory(), nullptr,
+            {time_addr, time_size / Memory::PageSize}, Memory::MemoryPermission::None,
+            Memory::MemoryPermission::Read, time_addr, time_size, "Time:SharedMemory");
+
+        // Allocate slab heaps
+        user_slab_heap_pages = std::make_unique<Memory::SlabHeap<Memory::Page>>();
+
+        // Initialize slab heaps
+        constexpr u64 user_slab_heap_size{0x3de000};
+        user_slab_heap_pages->Initialize(
+            system.DeviceMemory().GetPointer(Core::DramMemoryMap::SlabHeapBase),
+            user_slab_heap_size);
+    }
+
     std::atomic<u32> next_object_id{0};
     std::atomic<u64> next_kernel_process_id{Process::InitialKIPIDMin};
     std::atomic<u64> next_user_process_id{Process::ProcessIDMin};
@@ -270,6 +332,16 @@ struct KernelCore::Impl {
     u32 registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
     std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads;
     std::mutex register_thread_mutex;
+
+    // Kernel memory management
+    std::unique_ptr<Memory::MemoryManager> memory_manager;
+    std::unique_ptr<Memory::SlabHeap<Memory::Page>> user_slab_heap_pages;
+
+    // Shared memory for services
+    std::shared_ptr<Kernel::SharedMemory> hid_shared_mem;
+    std::shared_ptr<Kernel::SharedMemory> font_shared_mem;
+    std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
+    std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
 
     // System context
     Core::System& system;
@@ -435,6 +507,54 @@ u32 KernelCore::GetCurrentHostThreadID() const {
 
 Core::EmuThreadHandle KernelCore::GetCurrentEmuThreadID() const {
     return impl->GetCurrentEmuThreadID();
+}
+
+Memory::MemoryManager& KernelCore::MemoryManager() {
+    return *impl->memory_manager;
+}
+
+const Memory::MemoryManager& KernelCore::MemoryManager() const {
+    return *impl->memory_manager;
+}
+
+Memory::SlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() {
+    return *impl->user_slab_heap_pages;
+}
+
+const Memory::SlabHeap<Memory::Page>& KernelCore::GetUserSlabHeapPages() const {
+    return *impl->user_slab_heap_pages;
+}
+
+Kernel::SharedMemory& KernelCore::GetHidSharedMem() {
+    return *impl->hid_shared_mem;
+}
+
+const Kernel::SharedMemory& KernelCore::GetHidSharedMem() const {
+    return *impl->hid_shared_mem;
+}
+
+Kernel::SharedMemory& KernelCore::GetFontSharedMem() {
+    return *impl->font_shared_mem;
+}
+
+const Kernel::SharedMemory& KernelCore::GetFontSharedMem() const {
+    return *impl->font_shared_mem;
+}
+
+Kernel::SharedMemory& KernelCore::GetIrsSharedMem() {
+    return *impl->irs_shared_mem;
+}
+
+const Kernel::SharedMemory& KernelCore::GetIrsSharedMem() const {
+    return *impl->irs_shared_mem;
+}
+
+Kernel::SharedMemory& KernelCore::GetTimeSharedMem() {
+    return *impl->time_shared_mem;
+}
+
+const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
+    return *impl->time_shared_mem;
 }
 
 } // namespace Kernel

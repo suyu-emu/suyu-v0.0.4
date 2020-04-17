@@ -35,6 +35,8 @@ add_library(core STATIC
     crypto/ctr_encryption_layer.h
     crypto/xts_encryption_layer.cpp
     crypto/xts_encryption_layer.h
+    device_memory.cpp
+    device_memory.h
     file_sys/bis_factory.cpp
     file_sys/bis_factory.h
     file_sys/card_image.cpp
@@ -152,6 +154,23 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
+    hle/kernel/memory/address_space_info.cpp
+    hle/kernel/memory/address_space_info.h
+    hle/kernel/memory/memory_block.h
+    hle/kernel/memory/memory_block_manager.cpp
+    hle/kernel/memory/memory_block_manager.h
+    hle/kernel/memory/memory_layout.h
+    hle/kernel/memory/memory_manager.cpp
+    hle/kernel/memory/memory_manager.h
+    hle/kernel/memory/memory_types.h
+    hle/kernel/memory/page_linked_list.h
+    hle/kernel/memory/page_heap.cpp
+    hle/kernel/memory/page_heap.h
+    hle/kernel/memory/page_table.cpp
+    hle/kernel/memory/page_table.h
+    hle/kernel/memory/slab_heap.h
+    hle/kernel/memory/system_control.cpp
+    hle/kernel/memory/system_control.h
     hle/kernel/mutex.cpp
     hle/kernel/mutex.h
     hle/kernel/object.cpp
@@ -178,6 +197,7 @@ add_library(core STATIC
     hle/kernel/shared_memory.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
+    hle/kernel/svc_types.h
     hle/kernel/svc_wrap.h
     hle/kernel/synchronization_object.cpp
     hle/kernel/synchronization_object.h
@@ -189,8 +209,6 @@ add_library(core STATIC
     hle/kernel/time_manager.h
     hle/kernel/transfer_memory.cpp
     hle/kernel/transfer_memory.h
-    hle/kernel/vm_manager.cpp
-    hle/kernel/vm_manager.h
     hle/kernel/writable_event.cpp
     hle/kernel/writable_event.h
     hle/lock.cpp

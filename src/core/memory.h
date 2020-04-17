@@ -23,7 +23,7 @@ class PhysicalMemory;
 class Process;
 } // namespace Kernel
 
-namespace Memory {
+namespace Core::Memory {
 
 /**
  * Page size used by the ARM architecture. This is the smallest granularity with which memory can
@@ -67,19 +67,6 @@ public:
     void SetCurrentPageTable(Kernel::Process& process);
 
     /**
-     * Maps an physical buffer onto a region of the emulated process address space.
-     *
-     * @param page_table The page table of the emulated process.
-     * @param base       The address to start mapping at. Must be page-aligned.
-     * @param size       The amount of bytes to map. Must be page-aligned.
-     * @param memory     Physical buffer with the memory backing the mapping. Must be of length
-     *                   at least `size + offset`.
-     * @param offset     The offset within the physical memory. Must be page-aligned.
-     */
-    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size,
-                         Kernel::PhysicalMemory& memory, VAddr offset);
-
-    /**
      * Maps an allocated buffer onto a region of the emulated process address space.
      *
      * @param page_table The page table of the emulated process.
@@ -88,7 +75,7 @@ public:
      * @param target     Buffer with the memory backing the mapping. Must be of length at least
      *                   `size`.
      */
-    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, u8* target);
+    void MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size, PAddr target);
 
     /**
      * Maps a region of the emulated process address space as a IO region.
@@ -503,4 +490,4 @@ private:
 /// Determines if the given VAddr is a kernel address
 bool IsKernelVirtualAddress(VAddr vaddr);
 
-} // namespace Memory
+} // namespace Core::Memory

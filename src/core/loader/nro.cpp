@@ -16,8 +16,8 @@
 #include "core/file_sys/vfs_offset.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/code_set.h"
+#include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/vm_manager.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/nro.h"
 #include "core/loader/nso.h"
@@ -127,7 +127,7 @@ FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Memory::PAGE_MASK) & ~Memory::PAGE_MASK;
+    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
 }
 
 static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,
@@ -208,7 +208,7 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process) {
     }
 
     // Load NRO
-    const VAddr base_address = process.VMManager().GetCodeRegionBaseAddress();
+    const VAddr base_address = process.PageTable().GetCodeRegionStart();
 
     if (!LoadNro(process, *file, base_address)) {
         return {ResultStatus::ErrorLoadingNRO, {}};
@@ -221,7 +221,7 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process) {
 
     is_loaded = true;
     return {ResultStatus::Success,
-            LoadParameters{Kernel::THREADPRIO_DEFAULT, Memory::DEFAULT_STACK_SIZE}};
+            LoadParameters{Kernel::THREADPRIO_DEFAULT, Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 ResultStatus AppLoader_NRO::ReadIcon(std::vector<u8>& buffer) {

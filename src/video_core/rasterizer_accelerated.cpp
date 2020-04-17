@@ -23,15 +23,15 @@ constexpr auto RangeFromInterval(Map& map, const Interval& interval) {
 
 } // Anonymous namespace
 
-RasterizerAccelerated::RasterizerAccelerated(Memory::Memory& cpu_memory_)
+RasterizerAccelerated::RasterizerAccelerated(Core::Memory::Memory& cpu_memory_)
     : cpu_memory{cpu_memory_} {}
 
 RasterizerAccelerated::~RasterizerAccelerated() = default;
 
 void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int delta) {
     std::lock_guard lock{pages_mutex};
-    const u64 page_start{addr >> Memory::PAGE_BITS};
-    const u64 page_end{(addr + size + Memory::PAGE_SIZE - 1) >> Memory::PAGE_BITS};
+    const u64 page_start{addr >> Core::Memory::PAGE_BITS};
+    const u64 page_end{(addr + size + Core::Memory::PAGE_SIZE - 1) >> Core::Memory::PAGE_BITS};
 
     // Interval maps will erase segments if count reaches 0, so if delta is negative we have to
     // subtract after iterating
@@ -44,8 +44,8 @@ void RasterizerAccelerated::UpdatePagesCachedCount(VAddr addr, u64 size, int del
         const auto interval = pair.first & pages_interval;
         const int count = pair.second;
 
-        const VAddr interval_start_addr = boost::icl::first(interval) << Memory::PAGE_BITS;
-        const VAddr interval_end_addr = boost::icl::last_next(interval) << Memory::PAGE_BITS;
+        const VAddr interval_start_addr = boost::icl::first(interval) << Core::Memory::PAGE_BITS;
+        const VAddr interval_end_addr = boost::icl::last_next(interval) << Core::Memory::PAGE_BITS;
         const u64 interval_size = interval_end_addr - interval_start_addr;
 
         if (delta > 0 && count == delta) {

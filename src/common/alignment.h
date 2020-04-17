@@ -38,6 +38,13 @@ constexpr bool IsWordAligned(T value) {
     return (value & 0b11) == 0;
 }
 
+template <typename T>
+constexpr bool IsAligned(T value, std::size_t alignment) {
+    using U = typename std::make_unsigned<T>::type;
+    const U mask = static_cast<U>(alignment - 1);
+    return (value & mask) == 0;
+}
+
 template <typename T, std::size_t Align = 16>
 class AlignmentAllocator {
 public:

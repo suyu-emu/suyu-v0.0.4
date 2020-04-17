@@ -12,7 +12,7 @@
 
 union ResultCode;
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 
@@ -42,7 +42,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Memory::Memory& memory);
+    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
 
     bool ShouldWait(const Thread* thread) const override;
 

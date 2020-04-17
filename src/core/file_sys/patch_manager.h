@@ -51,8 +51,8 @@ public:
     bool HasNSOPatch(const std::array<u8, 0x20>& build_id) const;
 
     // Creates a CheatList object with all
-    std::vector<Memory::CheatEntry> CreateCheatList(const Core::System& system,
-                                                    const std::array<u8, 0x20>& build_id) const;
+    std::vector<Core::Memory::CheatEntry> CreateCheatList(
+        const Core::System& system, const std::array<u8, 0x20>& build_id) const;
 
     // Currently tracked RomFS patches:
     // - Game Updates

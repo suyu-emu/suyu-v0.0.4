@@ -179,7 +179,7 @@ private:
     /// End of address space, based on address space in bits.
     static constexpr GPUVAddr address_space_end{1ULL << address_space_width};
 
-    Common::BackingPageTable page_table{page_bits};
+    Common::PageTable page_table;
     VMAMap vma_map;
     VideoCore::RasterizerInterface& rasterizer;
 

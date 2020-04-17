@@ -8,13 +8,20 @@
 
 #include "common/alignment.h"
 #include "common/hex_util.h"
+#include "common/scope_exit.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/memory/page_table.h"
+#include "core/hle/kernel/memory/system_control.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/ldr/ldr.h"
 #include "core/hle/service/service.h"
 #include "core/loader/nro.h"
+#include "core/memory.h"
 
 namespace Service::LDR {
+
+constexpr ResultCode ERROR_INSUFFICIENT_ADDRESS_SPACE{ErrorModule::RO, 2};
 
 constexpr ResultCode ERROR_INVALID_MEMORY_STATE{ErrorModule::Loader, 51};
 constexpr ResultCode ERROR_INVALID_NRO{ErrorModule::Loader, 52};
@@ -29,7 +36,61 @@ constexpr ResultCode ERROR_INVALID_NRO_ADDRESS{ErrorModule::Loader, 84};
 constexpr ResultCode ERROR_INVALID_NRR_ADDRESS{ErrorModule::Loader, 85};
 constexpr ResultCode ERROR_NOT_INITIALIZED{ErrorModule::Loader, 87};
 
-constexpr u64 MAXIMUM_LOADED_RO = 0x40;
+constexpr std::size_t MAXIMUM_LOADED_RO{0x40};
+constexpr std::size_t MAXIMUM_MAP_RETRIES{0x200};
+
+struct NRRHeader {
+    u32_le magic;
+    INSERT_PADDING_BYTES(12);
+    u64_le title_id_mask;
+    u64_le title_id_pattern;
+    INSERT_PADDING_BYTES(16);
+    std::array<u8, 0x100> modulus;
+    std::array<u8, 0x100> signature_1;
+    std::array<u8, 0x100> signature_2;
+    u64_le title_id;
+    u32_le size;
+    INSERT_PADDING_BYTES(4);
+    u32_le hash_offset;
+    u32_le hash_count;
+    INSERT_PADDING_BYTES(8);
+};
+static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has incorrect size.");
+
+struct NROHeader {
+    INSERT_PADDING_WORDS(1);
+    u32_le mod_offset;
+    INSERT_PADDING_WORDS(2);
+    u32_le magic;
+    u32_le version;
+    u32_le nro_size;
+    u32_le flags;
+    u32_le text_offset;
+    u32_le text_size;
+    u32_le ro_offset;
+    u32_le ro_size;
+    u32_le rw_offset;
+    u32_le rw_size;
+    u32_le bss_size;
+    INSERT_PADDING_WORDS(1);
+    std::array<u8, 0x20> build_id;
+    INSERT_PADDING_BYTES(0x20);
+};
+static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
+
+using SHA256Hash = std::array<u8, 0x20>;
+
+struct NROInfo {
+    SHA256Hash hash{};
+    VAddr nro_address{};
+    std::size_t nro_size{};
+    VAddr bss_address{};
+    std::size_t bss_size{};
+    std::size_t text_size{};
+    std::size_t ro_size{};
+    std::size_t data_size{};
+    VAddr src_addr{};
+};
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
@@ -84,7 +145,7 @@ public:
             {0, &RelocatableObject::LoadNro, "LoadNro"},
             {1, &RelocatableObject::UnloadNro, "UnloadNro"},
             {2, &RelocatableObject::LoadNrr, "LoadNrr"},
-            {3, &RelocatableObject::UnloadNrr, "UnloadNrr"},
+            {3, nullptr, "UnloadNrr"},
             {4, &RelocatableObject::Initialize, "Initialize"},
             {10, nullptr, "LoadNrrEx"},
         };
@@ -190,46 +251,125 @@ public:
         rb.Push(RESULT_SUCCESS);
     }
 
-    void UnloadNrr(Kernel::HLERequestContext& ctx) {
-        if (!initialized) {
-            LOG_ERROR(Service_LDR, "LDR:RO not initialized before use!");
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_NOT_INITIALIZED);
-            return;
+    bool ValidateRegionForMap(Kernel::Memory::PageTable& page_table, VAddr start,
+                              std::size_t size) const {
+        constexpr std::size_t padding_size{4 * Kernel::Memory::PageSize};
+        const auto start_info{page_table.QueryInfo(start - 1)};
+
+        if (start_info.state != Kernel::Memory::MemoryState::Free) {
+            return {};
         }
 
-        struct Parameters {
-            u64_le process_id;
-            u64_le nrr_address;
-        };
-
-        IPC::RequestParser rp{ctx};
-        const auto [process_id, nrr_address] = rp.PopRaw<Parameters>();
-
-        LOG_DEBUG(Service_LDR, "called with process_id={:016X}, nrr_addr={:016X}", process_id,
-                  nrr_address);
-
-        if (!Common::Is4KBAligned(nrr_address)) {
-            LOG_ERROR(Service_LDR, "NRR Address has invalid alignment (actual {:016X})!",
-                      nrr_address);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_ALIGNMENT);
-            return;
+        if (start_info.GetAddress() > (start - padding_size)) {
+            return {};
         }
 
-        const auto iter = nrr.find(nrr_address);
-        if (iter == nrr.end()) {
-            LOG_ERROR(Service_LDR,
-                      "Attempting to unload NRR which has not been loaded! (addr={:016X})",
-                      nrr_address);
-            IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_NRR_ADDRESS);
-            return;
+        const auto end_info{page_table.QueryInfo(start + size)};
+
+        if (end_info.state != Kernel::Memory::MemoryState::Free) {
+            return {};
         }
 
-        nrr.erase(iter);
-        IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+        return (start + size + padding_size) <= (end_info.GetAddress() + end_info.GetSize());
+    }
+
+    VAddr GetRandomMapRegion(const Kernel::Memory::PageTable& page_table, std::size_t size) const {
+        VAddr addr{};
+        const std::size_t end_pages{(page_table.GetAliasCodeRegionSize() - size) >>
+                                    Kernel::Memory::PageBits};
+        do {
+            addr = page_table.GetAliasCodeRegionStart() +
+                   (Kernel::Memory::SystemControl::GenerateRandomRange(0, end_pages)
+                    << Kernel::Memory::PageBits);
+        } while (!page_table.IsInsideAddressSpace(addr, size) ||
+                 page_table.IsInsideHeapRegion(addr, size) ||
+                 page_table.IsInsideAliasRegion(addr, size));
+        return addr;
+    }
+
+    ResultVal<VAddr> MapProcessCodeMemory(Kernel::Process* process, VAddr baseAddress,
+                                          u64 size) const {
+        for (int retry{}; retry < MAXIMUM_MAP_RETRIES; retry++) {
+            auto& page_table{process->PageTable()};
+            const VAddr addr{GetRandomMapRegion(page_table, size)};
+            const ResultCode result{page_table.MapProcessCodeMemory(addr, baseAddress, size)};
+
+            if (result == Kernel::ERR_INVALID_ADDRESS_STATE) {
+                continue;
+            }
+
+            CASCADE_CODE(result);
+
+            if (ValidateRegionForMap(page_table, addr, size)) {
+                return MakeResult<VAddr>(addr);
+            }
+        }
+
+        return ERROR_INSUFFICIENT_ADDRESS_SPACE;
+    }
+
+    ResultVal<VAddr> MapNro(Kernel::Process* process, VAddr nro_addr, std::size_t nro_size,
+                            VAddr bss_addr, std::size_t bss_size, std::size_t size) const {
+
+        for (int retry{}; retry < MAXIMUM_MAP_RETRIES; retry++) {
+            auto& page_table{process->PageTable()};
+            VAddr addr{};
+
+            CASCADE_RESULT(addr, MapProcessCodeMemory(process, nro_addr, nro_size));
+
+            if (bss_size) {
+                auto block_guard = detail::ScopeExit([&] {
+                    page_table.UnmapProcessCodeMemory(addr + nro_size, bss_addr, bss_size);
+                    page_table.UnmapProcessCodeMemory(addr, nro_addr, nro_size);
+                });
+
+                const ResultCode result{
+                    page_table.MapProcessCodeMemory(addr + nro_size, bss_addr, bss_size)};
+
+                if (result == Kernel::ERR_INVALID_ADDRESS_STATE) {
+                    continue;
+                }
+
+                if (result.IsError()) {
+                    return result;
+                }
+
+                block_guard.Cancel();
+            }
+
+            if (ValidateRegionForMap(page_table, addr, size)) {
+                return MakeResult<VAddr>(addr);
+            }
+        }
+
+        return ERROR_INSUFFICIENT_ADDRESS_SPACE;
+    }
+
+    ResultCode LoadNro(Kernel::Process* process, const NROHeader& nro_header, VAddr nro_addr,
+                       VAddr start) const {
+        const VAddr text_start{start + nro_header.text_offset};
+        const VAddr ro_start{start + nro_header.ro_offset};
+        const VAddr data_start{start + nro_header.rw_offset};
+        const VAddr bss_start{data_start + nro_header.rw_size};
+        const VAddr bss_end_addr{
+            Common::AlignUp(bss_start + nro_header.bss_size, Kernel::Memory::PageSize)};
+
+        auto CopyCode{[&](VAddr src_addr, VAddr dst_addr, u64 size) {
+            std::vector<u8> source_data(size);
+            system.Memory().ReadBlock(src_addr, source_data.data(), source_data.size());
+            system.Memory().WriteBlock(dst_addr, source_data.data(), source_data.size());
+        }};
+        CopyCode(nro_addr + nro_header.text_offset, text_start, nro_header.text_size);
+        CopyCode(nro_addr + nro_header.ro_offset, ro_start, nro_header.ro_size);
+        CopyCode(nro_addr + nro_header.rw_offset, data_start, nro_header.rw_size);
+
+        CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
+            text_start, ro_start - text_start, Kernel::Memory::MemoryPermission::ReadAndExecute));
+        CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
+            ro_start, data_start - ro_start, Kernel::Memory::MemoryPermission::Read));
+
+        return process->PageTable().SetCodeMemoryPermission(
+            data_start, bss_end_addr - data_start, Kernel::Memory::MemoryPermission::ReadAndWrite);
     }
 
     void LoadNro(Kernel::HLERequestContext& ctx) {
@@ -317,9 +457,9 @@ public:
             return;
         }
 
-        NROHeader header;
+        // Load and validate the NRO header
+        NROHeader header{};
         std::memcpy(&header, nro_data.data(), sizeof(NROHeader));
-
         if (!IsValidNRO(header, nro_size, bss_size)) {
             LOG_ERROR(Service_LDR, "NRO was invalid!");
             IPC::ResponseBuilder rb{ctx, 2};
@@ -327,62 +467,48 @@ public:
             return;
         }
 
-        // Load NRO as new executable module
-        auto* process = system.CurrentProcess();
-        auto& vm_manager = process->VMManager();
-        auto map_address = vm_manager.FindFreeRegion(nro_size + bss_size);
-
-        if (!map_address.Succeeded() ||
-            *map_address + nro_size + bss_size > vm_manager.GetAddressSpaceEndAddress()) {
-
-            LOG_ERROR(Service_LDR,
-                      "General error while allocation memory or no available memory to allocate!");
+        // Map memory for the NRO
+        const auto map_result{MapNro(system.CurrentProcess(), nro_address, nro_size, bss_address,
+                                     bss_size, nro_size + bss_size)};
+        if (map_result.Failed()) {
             IPC::ResponseBuilder rb{ctx, 2};
-            rb.Push(ERROR_INVALID_MEMORY_STATE);
-            return;
+            rb.Push(map_result.Code());
         }
 
-        // Mark text and read-only region as ModuleCode
-        ASSERT(vm_manager
-                   .MirrorMemory(*map_address, nro_address, header.text_size + header.ro_size,
-                                 Kernel::MemoryState::ModuleCode)
-                   .IsSuccess());
-        // Mark read/write region as ModuleCodeData, which is necessary if this region is used for
-        // TransferMemory (e.g. Final Fantasy VIII Remastered does this)
-        ASSERT(vm_manager
-                   .MirrorMemory(*map_address + header.rw_offset, nro_address + header.rw_offset,
-                                 header.rw_size, Kernel::MemoryState::ModuleCodeData)
-                   .IsSuccess());
-        // Revoke permissions from the old memory region
-        ASSERT(vm_manager.ReprotectRange(nro_address, nro_size, Kernel::VMAPermission::None)
-                   .IsSuccess());
-
-        if (bss_size > 0) {
-            // Mark BSS region as ModuleCodeData, which is necessary if this region is used for
-            // TransferMemory (e.g. Final Fantasy VIII Remastered does this)
-            ASSERT(vm_manager
-                       .MirrorMemory(*map_address + nro_size, bss_address, bss_size,
-                                     Kernel::MemoryState::ModuleCodeData)
-                       .IsSuccess());
-            ASSERT(vm_manager.ReprotectRange(bss_address, bss_size, Kernel::VMAPermission::None)
-                       .IsSuccess());
+        // Load the NRO into the mapped memory
+        if (const auto result{LoadNro(system.CurrentProcess(), header, nro_address, *map_result)};
+            result.IsError()) {
+            IPC::ResponseBuilder rb{ctx, 2};
+            rb.Push(map_result.Code());
         }
 
-        vm_manager.ReprotectRange(*map_address, header.text_size,
-                                  Kernel::VMAPermission::ReadExecute);
-        vm_manager.ReprotectRange(*map_address + header.ro_offset, header.ro_size,
-                                  Kernel::VMAPermission::Read);
-        vm_manager.ReprotectRange(*map_address + header.rw_offset, header.rw_size,
-                                  Kernel::VMAPermission::ReadWrite);
+        // Track the loaded NRO
+        nro.insert_or_assign(*map_result, NROInfo{hash, *map_result, nro_size, bss_address,
+                                                  bss_size, header.text_size, header.ro_size,
+                                                  header.rw_size, nro_address});
 
+        // Invalidate JIT caches for the newly mapped process code
         system.InvalidateCpuInstructionCaches();
-
-        nro.insert_or_assign(*map_address,
-                             NROInfo{hash, nro_address, nro_size, bss_address, bss_size});
 
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.Push(*map_address);
+        rb.Push(*map_result);
+    }
+
+    ResultCode UnmapNro(const NROInfo& info) {
+        // Each region must be unmapped separately to validate memory state
+        auto& page_table{system.CurrentProcess()->PageTable()};
+        CASCADE_CODE(page_table.UnmapProcessCodeMemory(info.nro_address + info.text_size +
+                                                           info.ro_size + info.data_size,
+                                                       info.bss_address, info.bss_size));
+        CASCADE_CODE(page_table.UnmapProcessCodeMemory(
+            info.nro_address + info.text_size + info.ro_size,
+            info.src_addr + info.text_size + info.ro_size, info.data_size));
+        CASCADE_CODE(page_table.UnmapProcessCodeMemory(
+            info.nro_address + info.text_size, info.src_addr + info.text_size, info.ro_size));
+        CASCADE_CODE(
+            page_table.UnmapProcessCodeMemory(info.nro_address, info.src_addr, info.text_size));
+        return RESULT_SUCCESS;
     }
 
     void UnloadNro(Kernel::HLERequestContext& ctx) {
@@ -422,30 +548,15 @@ public:
             return;
         }
 
-        auto& vm_manager = system.CurrentProcess()->VMManager();
-        const auto& nro_info = iter->second;
-
-        // Unmap the mirrored memory
-        ASSERT(
-            vm_manager.UnmapRange(nro_address, nro_info.nro_size + nro_info.bss_size).IsSuccess());
-
-        // Reprotect the source memory
-        ASSERT(vm_manager
-                   .ReprotectRange(nro_info.nro_address, nro_info.nro_size,
-                                   Kernel::VMAPermission::ReadWrite)
-                   .IsSuccess());
-        if (nro_info.bss_size > 0) {
-            ASSERT(vm_manager
-                       .ReprotectRange(nro_info.bss_address, nro_info.bss_size,
-                                       Kernel::VMAPermission::ReadWrite)
-                       .IsSuccess());
-        }
+        const auto result{UnmapNro(iter->second)};
 
         system.InvalidateCpuInstructionCaches();
 
         nro.erase(iter);
+
         IPC::ResponseBuilder rb{ctx, 2};
-        rb.Push(RESULT_SUCCESS);
+
+        rb.Push(result);
     }
 
     void Initialize(Kernel::HLERequestContext& ctx) {
@@ -458,56 +569,7 @@ public:
     }
 
 private:
-    using SHA256Hash = std::array<u8, 0x20>;
-
-    struct NROHeader {
-        INSERT_PADDING_WORDS(1);
-        u32_le mod_offset;
-        INSERT_PADDING_WORDS(2);
-        u32_le magic;
-        u32_le version;
-        u32_le nro_size;
-        u32_le flags;
-        u32_le text_offset;
-        u32_le text_size;
-        u32_le ro_offset;
-        u32_le ro_size;
-        u32_le rw_offset;
-        u32_le rw_size;
-        u32_le bss_size;
-        INSERT_PADDING_WORDS(1);
-        std::array<u8, 0x20> build_id;
-        INSERT_PADDING_BYTES(0x20);
-    };
-    static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
-
-    struct NRRHeader {
-        u32_le magic;
-        INSERT_PADDING_BYTES(12);
-        u64_le title_id_mask;
-        u64_le title_id_pattern;
-        INSERT_PADDING_BYTES(16);
-        std::array<u8, 0x100> modulus;
-        std::array<u8, 0x100> signature_1;
-        std::array<u8, 0x100> signature_2;
-        u64_le title_id;
-        u32_le size;
-        INSERT_PADDING_BYTES(4);
-        u32_le hash_offset;
-        u32_le hash_count;
-        INSERT_PADDING_BYTES(8);
-    };
-    static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has incorrect size.");
-
-    struct NROInfo {
-        SHA256Hash hash;
-        VAddr nro_address;
-        u64 nro_size;
-        VAddr bss_address;
-        u64 bss_size;
-    };
-
-    bool initialized = false;
+    bool initialized{};
 
     std::map<VAddr, NROInfo> nro;
     std::map<VAddr, std::vector<SHA256Hash>> nrr;

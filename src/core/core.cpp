@@ -14,6 +14,7 @@
 #include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
+#include "core/device_memory.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/mode.h"
@@ -139,6 +140,8 @@ struct System::Impl {
 
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(HW_Memory, "initialized OK");
+
+        device_memory = std::make_unique<Core::DeviceMemory>(system);
 
         core_timing.Initialize();
         kernel.Initialize();
@@ -276,6 +279,7 @@ struct System::Impl {
         telemetry_session.reset();
         perf_stats.reset();
         gpu_core.reset();
+        device_memory.reset();
 
         // Close all CPU/threading state
         cpu_manager.Shutdown();
@@ -346,7 +350,8 @@ struct System::Impl {
     std::unique_ptr<Loader::AppLoader> app_loader;
     std::unique_ptr<Tegra::GPU> gpu_core;
     std::unique_ptr<Hardware::InterruptManager> interrupt_manager;
-    Memory::Memory memory;
+    std::unique_ptr<Core::DeviceMemory> device_memory;
+    Core::Memory::Memory memory;
     CpuManager cpu_manager;
     bool is_powered_on = false;
     bool exit_lock = false;
@@ -472,6 +477,14 @@ Kernel::Process* System::CurrentProcess() {
     return impl->kernel.CurrentProcess();
 }
 
+Core::DeviceMemory& System::DeviceMemory() {
+    return *impl->device_memory;
+}
+
+const Core::DeviceMemory& System::DeviceMemory() const {
+    return *impl->device_memory;
+}
+
 const Kernel::Process* System::CurrentProcess() const {
     return impl->kernel.CurrentProcess();
 }
@@ -505,7 +518,7 @@ Memory::Memory& System::Memory() {
     return impl->memory;
 }
 
-const Memory::Memory& System::Memory() const {
+const Core::Memory::Memory& System::Memory() const {
     return impl->memory;
 }
 

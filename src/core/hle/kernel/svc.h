@@ -10,8 +10,8 @@ namespace Core {
 class System;
 }
 
-namespace Kernel {
+namespace Kernel::Svc {
 
-void CallSVC(Core::System& system, u32 immediate);
+void Call(Core::System& system, u32 immediate);
 
-} // namespace Kernel
+} // namespace Kernel::Svc

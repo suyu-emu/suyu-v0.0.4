@@ -15,7 +15,7 @@
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 

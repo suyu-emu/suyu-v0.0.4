@@ -8,7 +8,7 @@
 
 #include "common/common_types.h"
 
-namespace Memory {
+namespace Core::Memory {
 class Memory;
 }
 

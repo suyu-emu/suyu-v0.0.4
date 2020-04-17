@@ -30,7 +30,7 @@
 #include "common/common_types.h"
 #include "core/memory/dmnt_cheat_types.h"
 
-namespace Memory {
+namespace Core::Memory {
 
 enum class CheatVmOpcodeType : u32 {
     StoreStatic = 0,
@@ -318,4 +318,4 @@ private:
                                       MemoryAccessType mem_type, u64 rel_address);
 };
 
-}; // namespace Memory
+}; // namespace Core::Memory

@@ -36,9 +36,10 @@ class AppLoader;
 enum class ResultStatus : u16;
 } // namespace Loader
 
-namespace Memory {
+namespace Core::Memory {
 struct CheatEntry;
-} // namespace Memory
+class Memory;
+} // namespace Core::Memory
 
 namespace Service {
 
@@ -86,14 +87,11 @@ namespace Core::Hardware {
 class InterruptManager;
 }
 
-namespace Memory {
-class Memory;
-}
-
 namespace Core {
 
 class ARM_Interface;
 class CoreManager;
+class DeviceMemory;
 class ExclusiveMonitor;
 class FrameLimiter;
 class PerfStats;
@@ -230,10 +228,10 @@ public:
     const ExclusiveMonitor& Monitor() const;
 
     /// Gets a mutable reference to the system memory instance.
-    Memory::Memory& Memory();
+    Core::Memory::Memory& Memory();
 
     /// Gets a constant reference to the system memory instance.
-    const Memory::Memory& Memory() const;
+    const Core::Memory::Memory& Memory() const;
 
     /// Gets a mutable reference to the GPU interface
     Tegra::GPU& GPU();
@@ -258,6 +256,12 @@ public:
 
     /// Gets the global scheduler
     const Kernel::GlobalScheduler& GlobalScheduler() const;
+
+    /// Gets the manager for the guest device memory
+    Core::DeviceMemory& DeviceMemory();
+
+    /// Gets the manager for the guest device memory
+    const Core::DeviceMemory& DeviceMemory() const;
 
     /// Provides a pointer to the current process
     Kernel::Process* CurrentProcess();
