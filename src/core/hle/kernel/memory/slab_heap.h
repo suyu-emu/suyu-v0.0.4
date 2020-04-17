@@ -51,7 +51,7 @@ public:
     }
 
     void Free(void* obj) {
-        Node* node = reinterpret_cast<Node*>(obj);
+        Node* node = static_cast<Node*>(obj);
 
         Node* cur_head = head.load();
         do {
@@ -145,7 +145,7 @@ public:
     }
 
     T* Allocate() {
-        T* obj = reinterpret_cast<T*>(AllocateImpl());
+        T* obj = static_cast<T*>(AllocateImpl());
         if (obj != nullptr) {
             new (obj) T();
         }
