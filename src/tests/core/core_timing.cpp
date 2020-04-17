@@ -14,13 +14,14 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 
+namespace {
 // Numbers are chosen randomly to make sure the correct one is given.
-static constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
-static constexpr int MAX_SLICE_LENGTH = 10000; // Copied from CoreTiming internals
+constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
+constexpr int MAX_SLICE_LENGTH = 10000; // Copied from CoreTiming internals
 
-static std::bitset<CB_IDS.size()> callbacks_ran_flags;
-static u64 expected_callback = 0;
-static s64 lateness = 0;
+std::bitset<CB_IDS.size()> callbacks_ran_flags;
+u64 expected_callback = 0;
+s64 lateness = 0;
 
 template <unsigned int IDX>
 void CallbackTemplate(u64 userdata, s64 cycles_late) {
@@ -31,7 +32,7 @@ void CallbackTemplate(u64 userdata, s64 cycles_late) {
     REQUIRE(lateness == cycles_late);
 }
 
-static u64 callbacks_done = 0;
+u64 callbacks_done = 0;
 
 void EmptyCallback(u64 userdata, s64 cycles_late) {
     ++callbacks_done;
@@ -48,8 +49,8 @@ struct ScopeInit final {
     Core::Timing::CoreTiming core_timing;
 };
 
-static void AdvanceAndCheck(Core::Timing::CoreTiming& core_timing, u32 idx, u32 context = 0,
-                            int expected_lateness = 0, int cpu_downcount = 0) {
+void AdvanceAndCheck(Core::Timing::CoreTiming& core_timing, u32 idx, u32 context = 0,
+                     int expected_lateness = 0, int cpu_downcount = 0) {
     callbacks_ran_flags = 0;
     expected_callback = CB_IDS[idx];
     lateness = expected_lateness;
@@ -62,6 +63,7 @@ static void AdvanceAndCheck(Core::Timing::CoreTiming& core_timing, u32 idx, u32 
 
     REQUIRE(decltype(callbacks_ran_flags)().set(idx) == callbacks_ran_flags);
 }
+} // Anonymous namespace
 
 TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
     ScopeInit guard;

@@ -17,6 +17,7 @@
 #include "yuzu/applets/profile_select.h"
 #include "yuzu/main.h"
 
+namespace {
 QString FormatUserEntryText(const QString& username, Common::UUID uuid) {
     return QtProfileSelectionDialog::tr(
                "%1\n%2", "%1 is the profile username, %2 is the formatted UUID (e.g. "
@@ -41,6 +42,7 @@ QPixmap GetIcon(Common::UUID uuid) {
 
     return icon.scaled(64, 64, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
+} // Anonymous namespace
 
 QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
     : QDialog(parent), profile_manager(std::make_unique<Service::Account::ProfileManager>()) {
