@@ -37,7 +37,7 @@ static_assert(sizeof(MODHeader) == 0x1c, "MODHeader has incorrect size.");
 
 std::vector<u8> DecompressSegment(const std::vector<u8>& compressed_data,
                                   const NSOSegmentHeader& header) {
-    const std::vector<u8> uncompressed_data =
+    std::vector<u8> uncompressed_data =
         Common::Compression::DecompressDataLZ4(compressed_data, header.size);
 
     ASSERT_MSG(uncompressed_data.size() == header.size, "{} != {}", header.size,
