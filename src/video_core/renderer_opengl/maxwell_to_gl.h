@@ -191,6 +191,7 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
         case Tegra::Texture::TextureMipmapFilter::Linear:
             return GL_LINEAR_MIPMAP_LINEAR;
         }
+        break;
     }
     case Tegra::Texture::TextureFilter::Nearest: {
         switch (mip_filter_mode) {
@@ -201,6 +202,7 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
         case Tegra::Texture::TextureMipmapFilter::Linear:
             return GL_NEAREST_MIPMAP_LINEAR;
         }
+        break;
     }
     }
     LOG_ERROR(Render_OpenGL, "Unimplemented texture filter mode={}", static_cast<u32>(filter_mode));
