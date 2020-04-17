@@ -903,7 +903,7 @@ private:
     void PopOutData(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        const auto storage = applet->GetBroker().PopNormalDataToGame();
+        auto storage = applet->GetBroker().PopNormalDataToGame();
         if (storage == nullptr) {
             LOG_ERROR(Service_AM,
                       "storage is a nullptr. There is no data in the current normal channel");
@@ -934,7 +934,7 @@ private:
     void PopInteractiveOutData(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_AM, "called");
 
-        const auto storage = applet->GetBroker().PopInteractiveDataToGame();
+        auto storage = applet->GetBroker().PopInteractiveDataToGame();
         if (storage == nullptr) {
             LOG_ERROR(Service_AM,
                       "storage is a nullptr. There is no data in the current interactive channel");
