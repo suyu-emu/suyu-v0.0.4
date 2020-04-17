@@ -6,6 +6,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "common/cityhash.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 
@@ -128,25 +129,6 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
 
 } // Anonymous namespace
 
-std::size_t FixedPipelineState::VertexBinding::Hash() const noexcept {
-    return (index << stride) ^ divisor;
-}
-
-bool FixedPipelineState::VertexBinding::operator==(const VertexBinding& rhs) const noexcept {
-    return std::tie(index, stride, divisor) == std::tie(rhs.index, rhs.stride, rhs.divisor);
-}
-
-std::size_t FixedPipelineState::VertexAttribute::Hash() const noexcept {
-    return static_cast<std::size_t>(index) ^ (static_cast<std::size_t>(buffer) << 13) ^
-           (static_cast<std::size_t>(type) << 22) ^ (static_cast<std::size_t>(size) << 31) ^
-           (static_cast<std::size_t>(offset) << 36);
-}
-
-bool FixedPipelineState::VertexAttribute::operator==(const VertexAttribute& rhs) const noexcept {
-    return std::tie(index, buffer, type, size, offset) ==
-           std::tie(rhs.index, rhs.buffer, rhs.type, rhs.size, rhs.offset);
-}
-
 std::size_t FixedPipelineState::StencilFace::Hash() const noexcept {
     return static_cast<std::size_t>(action_stencil_fail) ^
            (static_cast<std::size_t>(action_depth_fail) << 4) ^
@@ -182,21 +164,12 @@ bool FixedPipelineState::BlendingAttachment::operator==(const BlendingAttachment
 }
 
 std::size_t FixedPipelineState::VertexInput::Hash() const noexcept {
-    std::size_t hash = num_bindings ^ (num_attributes << 32);
-    for (std::size_t i = 0; i < num_bindings; ++i) {
-        boost::hash_combine(hash, bindings[i].Hash());
-    }
-    for (std::size_t i = 0; i < num_attributes; ++i) {
-        boost::hash_combine(hash, attributes[i].Hash());
-    }
-    return hash;
+    // TODO(Rodrigo): Replace this
+    return Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
 }
 
 bool FixedPipelineState::VertexInput::operator==(const VertexInput& rhs) const noexcept {
-    return std::equal(bindings.begin(), bindings.begin() + num_bindings, rhs.bindings.begin(),
-                      rhs.bindings.begin() + rhs.num_bindings) &&
-           std::equal(attributes.begin(), attributes.begin() + num_attributes,
-                      rhs.attributes.begin(), rhs.attributes.begin() + rhs.num_attributes);
+    return std::memcmp(this, &rhs, sizeof *this) == 0;
 }
 
 std::size_t FixedPipelineState::InputAssembly::Hash() const noexcept {

@@ -7,6 +7,7 @@
 #include <array>
 #include <type_traits>
 
+#include "common/bit_field.h"
 #include "common/common_types.h"
 
 #include "video_core/engines/maxwell_3d.h"
@@ -18,48 +19,11 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 // TODO(Rodrigo): Optimize this structure.
 
+template <class T>
+inline constexpr bool IsHashable = std::has_unique_object_representations_v<T>&&
+    std::is_trivially_copyable_v<T>&& std::is_trivially_constructible_v<T>;
+
 struct FixedPipelineState {
-    using PixelFormat = VideoCore::Surface::PixelFormat;
-
-    struct VertexBinding {
-        constexpr VertexBinding(u32 index, u32 stride, u32 divisor)
-            : index{index}, stride{stride}, divisor{divisor} {}
-        VertexBinding() = default;
-
-        u32 index;
-        u32 stride;
-        u32 divisor;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const VertexBinding& rhs) const noexcept;
-
-        bool operator!=(const VertexBinding& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-    };
-
-    struct VertexAttribute {
-        constexpr VertexAttribute(u32 index, u32 buffer, Maxwell::VertexAttribute::Type type,
-                                  Maxwell::VertexAttribute::Size size, u32 offset)
-            : index{index}, buffer{buffer}, type{type}, size{size}, offset{offset} {}
-        VertexAttribute() = default;
-
-        u32 index;
-        u32 buffer;
-        Maxwell::VertexAttribute::Type type;
-        Maxwell::VertexAttribute::Size size;
-        u32 offset;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const VertexAttribute& rhs) const noexcept;
-
-        bool operator!=(const VertexAttribute& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-    };
-
     struct StencilFace {
         constexpr StencilFace(Maxwell::StencilOp action_stencil_fail,
                               Maxwell::StencilOp action_depth_fail,
@@ -114,10 +78,52 @@ struct FixedPipelineState {
     };
 
     struct VertexInput {
-        std::size_t num_bindings = 0;
-        std::size_t num_attributes = 0;
-        std::array<VertexBinding, Maxwell::NumVertexArrays> bindings;
-        std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
+        union Binding {
+            u16 raw;
+            BitField<0, 1, u16> enabled;
+            BitField<1, 12, u16> stride;
+        };
+
+        union Attribute {
+            u32 raw;
+            BitField<0, 1, u32> enabled;
+            BitField<1, 5, u32> buffer;
+            BitField<6, 14, u32> offset;
+            BitField<20, 3, u32> type;
+            BitField<23, 6, u32> size;
+
+            constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
+                return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
+            }
+
+            constexpr Maxwell::VertexAttribute::Size Size() const noexcept {
+                return static_cast<Maxwell::VertexAttribute::Size>(size.Value());
+            }
+        };
+
+        std::array<Binding, Maxwell::NumVertexArrays> bindings;
+        std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
+        std::array<Attribute, Maxwell::NumVertexAttributes> attributes;
+
+        void SetBinding(std::size_t index, bool enabled, u32 stride, u32 divisor) noexcept {
+            auto& binding = bindings[index];
+            binding.raw = 0;
+            binding.enabled.Assign(enabled ? 1 : 0);
+            binding.stride.Assign(stride);
+            binding_divisors[index] = divisor;
+        }
+
+        void SetAttribute(std::size_t index, bool enabled, u32 buffer, u32 offset,
+                          Maxwell::VertexAttribute::Type type,
+                          Maxwell::VertexAttribute::Size size) noexcept {
+            auto& attribute = attributes[index];
+            attribute.raw = 0;
+            attribute.enabled.Assign(enabled ? 1 : 0);
+            attribute.buffer.Assign(buffer);
+            attribute.offset.Assign(offset);
+            attribute.type.Assign(static_cast<u32>(type));
+            attribute.size.Assign(static_cast<u32>(size));
+        }
 
         std::size_t Hash() const noexcept;
 
@@ -127,6 +133,7 @@ struct FixedPipelineState {
             return !operator==(rhs);
         }
     };
+    static_assert(IsHashable<VertexInput>);
 
     struct InputAssembly {
         constexpr InputAssembly(Maxwell::PrimitiveTopology topology, bool primitive_restart_enable,
@@ -256,8 +263,6 @@ struct FixedPipelineState {
     DepthStencil depth_stencil;
     ColorBlending color_blending;
 };
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexBinding>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexAttribute>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::StencilFace>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::BlendingAttachment>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexInput>);

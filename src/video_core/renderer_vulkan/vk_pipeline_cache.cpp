@@ -334,7 +334,7 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         specialization.point_size = fixed_state.input_assembly.point_size;
     }
     for (std::size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
-        specialization.attribute_types[i] = fixed_state.vertex_input.attributes[i].type;
+        specialization.attribute_types[i] = fixed_state.vertex_input.attributes[i].Type();
     }
     specialization.ndc_minus_one_to_one = fixed_state.rasterizer.ndc_minus_one_to_one;
 

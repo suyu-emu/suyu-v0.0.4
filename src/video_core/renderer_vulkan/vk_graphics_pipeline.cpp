@@ -165,35 +165,41 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
-    for (std::size_t i = 0; i < vi.num_bindings; ++i) {
-        const auto& binding = vi.bindings[i];
-        const bool instanced = binding.divisor != 0;
+    for (std::size_t index = 0; index < std::size(vi.bindings); ++index) {
+        const auto& binding = vi.bindings[index];
+        if (!binding.enabled) {
+            continue;
+        }
+        const bool instanced = vi.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
         auto& vertex_binding = vertex_bindings.emplace_back();
-        vertex_binding.binding = binding.index;
+        vertex_binding.binding = static_cast<u32>(index);
         vertex_binding.stride = binding.stride;
         vertex_binding.inputRate = rate;
 
         if (instanced) {
             auto& binding_divisor = vertex_binding_divisors.emplace_back();
-            binding_divisor.binding = binding.index;
-            binding_divisor.divisor = binding.divisor;
+            binding_divisor.binding = static_cast<u32>(index);
+            binding_divisor.divisor = vi.binding_divisors[index];
         }
     }
 
     std::vector<VkVertexInputAttributeDescription> vertex_attributes;
     const auto& input_attributes = program[0]->entries.attributes;
-    for (std::size_t i = 0; i < vi.num_attributes; ++i) {
-        const auto& attribute = vi.attributes[i];
-        if (input_attributes.find(attribute.index) == input_attributes.end()) {
+    for (std::size_t index = 0; index < std::size(vi.attributes); ++index) {
+        const auto& attribute = vi.attributes[index];
+        if (!attribute.enabled) {
+            continue;
+        }
+        if (input_attributes.find(static_cast<u32>(index)) == input_attributes.end()) {
             // Skip attributes not used by the vertex shaders.
             continue;
         }
         auto& vertex_attribute = vertex_attributes.emplace_back();
-        vertex_attribute.location = attribute.index;
+        vertex_attribute.location = static_cast<u32>(index);
         vertex_attribute.binding = attribute.buffer;
-        vertex_attribute.format = MaxwellToVK::VertexFormat(attribute.type, attribute.size);
+        vertex_attribute.format = MaxwellToVK::VertexFormat(attribute.Type(), attribute.Size());
         vertex_attribute.offset = attribute.offset;
     }
 
