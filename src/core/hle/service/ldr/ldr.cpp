@@ -298,9 +298,7 @@ public:
                 continue;
             }
 
-            if (result.IsError()) {
-                return result;
-            }
+            CASCADE_CODE(result);
 
             if (ValidateRegionForMap(page_table, addr, size)) {
                 return MakeResult<VAddr>(addr);
@@ -470,16 +468,15 @@ public:
         }
 
         // Map memory for the NRO
-        const ResultVal<VAddr> map_result{MapNro(system.CurrentProcess(), nro_address, nro_size,
-                                                 bss_address, bss_size, nro_size + bss_size)};
+        const auto map_result{MapNro(system.CurrentProcess(), nro_address, nro_size, bss_address,
+                                     bss_size, nro_size + bss_size)};
         if (map_result.Failed()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(map_result.Code());
         }
 
         // Load the NRO into the mapped memory
-        if (const ResultCode result{
-                LoadNro(system.CurrentProcess(), header, nro_address, *map_result)};
+        if (const auto result{LoadNro(system.CurrentProcess(), header, nro_address, *map_result)};
             result.IsError()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(map_result.Code());
@@ -551,7 +548,7 @@ public:
             return;
         }
 
-        const ResultCode result{UnmapNro(iter->second)};
+        const auto result{UnmapNro(iter->second)};
 
         system.InvalidateCpuInstructionCaches();
 

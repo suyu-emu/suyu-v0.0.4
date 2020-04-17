@@ -15,7 +15,7 @@ MemoryBlockManager::MemoryBlockManager(VAddr start_addr, VAddr end_addr)
 }
 
 MemoryBlockManager::iterator MemoryBlockManager::FindIterator(VAddr addr) {
-    iterator node{memory_block_tree.begin()};
+    auto node{memory_block_tree.begin()};
     while (node != end()) {
         const VAddr end_addr{node->GetNumPages() * PageSize + node->GetAddress()};
         if (node->GetAddress() <= addr && end_addr - 1 >= addr) {
@@ -35,8 +35,8 @@ VAddr MemoryBlockManager::FindFreeArea(VAddr region_start, std::size_t region_nu
 
     const VAddr region_end{region_start + region_num_pages * PageSize};
     const VAddr region_last{region_end - 1};
-    for (const_iterator it{FindIterator(region_start)}; it != memory_block_tree.cend(); it++) {
-        const MemoryInfo info{it->GetMemoryInfo()};
+    for (auto it{FindIterator(region_start)}; it != memory_block_tree.cend(); it++) {
+        const auto info{it->GetMemoryInfo()};
         if (region_last < info.GetAddress()) {
             break;
         }

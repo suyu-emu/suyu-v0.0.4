@@ -15,15 +15,14 @@
 namespace Kernel::Memory {
 
 std::size_t MemoryManager::Impl::Initialize(Pool new_pool, u64 start_address, u64 end_address) {
-    const std::size_t size{end_address - start_address};
+    const auto size{end_address - start_address};
 
     // Calculate metadata sizes
-    const std::size_t ref_count_size{(size / PageSize) * sizeof(u16)};
-    const std::size_t optimize_map_size{(Common::AlignUp((size / PageSize), 64) / 64) *
-                                        sizeof(u64)};
-    const std::size_t manager_size{Common::AlignUp(optimize_map_size + ref_count_size, PageSize)};
-    const std::size_t page_heap_size{PageHeap::CalculateMetadataOverheadSize(size)};
-    const std::size_t total_metadata_size{manager_size + page_heap_size};
+    const auto ref_count_size{(size / PageSize) * sizeof(u16)};
+    const auto optimize_map_size{(Common::AlignUp((size / PageSize), 64) / 64) * sizeof(u64)};
+    const auto manager_size{Common::AlignUp(optimize_map_size + ref_count_size, PageSize)};
+    const auto page_heap_size{PageHeap::CalculateMetadataOverheadSize(size)};
+    const auto total_metadata_size{manager_size + page_heap_size};
     ASSERT(manager_size <= total_metadata_size);
     ASSERT(Common::IsAligned(total_metadata_size, PageSize));
 
@@ -55,7 +54,7 @@ VAddr MemoryManager::AllocateContinuous(std::size_t num_pages, std::size_t align
     }
 
     // Lock the pool that we're allocating from
-    const std::size_t pool_index{static_cast<std::size_t>(pool)};
+    const auto pool_index{static_cast<std::size_t>(pool)};
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
@@ -72,7 +71,7 @@ VAddr MemoryManager::AllocateContinuous(std::size_t num_pages, std::size_t align
     }
 
     // If we allocated more than we need, free some
-    const std::size_t allocated_pages{PageHeap::GetBlockNumPages(heap_index)};
+    const auto allocated_pages{PageHeap::GetBlockNumPages(heap_index)};
     if (allocated_pages > num_pages) {
         chosen_manager.Free(allocated_block + num_pages * PageSize, allocated_pages - num_pages);
     }
@@ -90,7 +89,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
     }
 
     // Lock the pool that we're allocating from
-    const std::size_t pool_index{static_cast<std::size_t>(pool)};
+    const auto pool_index{static_cast<std::size_t>(pool)};
     std::lock_guard lock{pool_locks[pool_index]};
 
     // Choose a heap based on our page size request
@@ -105,7 +104,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
     // Ensure that we don't leave anything un-freed
     auto group_guard = detail::ScopeExit([&] {
         for (const auto& it : page_list.Nodes()) {
-            const std::size_t num_pages{std::min(
+            const auto num_pages{std::min(
                 it.GetNumPages(), (chosen_manager.GetEndAddress() - it.GetAddress()) / PageSize)};
             chosen_manager.Free(it.GetAddress(), num_pages);
         }
@@ -113,12 +112,12 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
 
     // Keep allocating until we've allocated all our pages
     for (s32 index{heap_index}; index >= 0 && num_pages > 0; index--) {
-        const std::size_t pages_per_alloc{PageHeap::GetBlockNumPages(index)};
+        const auto pages_per_alloc{PageHeap::GetBlockNumPages(index)};
 
         while (num_pages >= pages_per_alloc) {
             // Allocate a block
             VAddr allocated_block{chosen_manager.AllocateBlock(index)};
-            if (allocated_block == 0) {
+            if (!allocated_block) {
                 break;
             }
 
@@ -158,7 +157,7 @@ ResultCode MemoryManager::Free(PageLinkedList& page_list, std::size_t num_pages,
     }
 
     // Lock the pool that we're freeing from
-    const std::size_t pool_index{static_cast<std::size_t>(pool)};
+    const auto pool_index{static_cast<std::size_t>(pool)};
     std::lock_guard lock{pool_locks[pool_index]};
 
     // TODO (bunnei): Support multiple managers
@@ -166,7 +165,7 @@ ResultCode MemoryManager::Free(PageLinkedList& page_list, std::size_t num_pages,
 
     // Free all of the pages
     for (const auto& it : page_list.Nodes()) {
-        const std::size_t num_pages{std::min(
+        const auto num_pages{std::min(
             it.GetNumPages(), (chosen_manager.GetEndAddress() - it.GetAddress()) / PageSize)};
         chosen_manager.Free(it.GetAddress(), num_pages);
     }

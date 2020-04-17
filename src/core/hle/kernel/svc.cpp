@@ -1196,7 +1196,7 @@ static ResultCode QueryProcessMemory(Core::System& system, VAddr memory_info_add
     }
 
     auto& memory{system.Memory()};
-    const Svc::MemoryInfo memory_info{process->PageTable().QueryInfo(address).GetSvcMemoryInfo()};
+    const auto memory_info{process->PageTable().QueryInfo(address).GetSvcMemoryInfo()};
 
     memory.Write64(memory_info_address + 0x00, memory_info.addr);
     memory.Write64(memory_info_address + 0x08, memory_info.size);

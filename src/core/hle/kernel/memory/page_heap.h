@@ -22,9 +22,10 @@ namespace Kernel::Memory {
 class PageHeap final : NonCopyable {
 public:
     static constexpr s32 GetAlignedBlockIndex(std::size_t num_pages, std::size_t align_pages) {
-        const std::size_t target_pages{std::max(num_pages, align_pages)};
+        const auto target_pages{std::max(num_pages, align_pages)};
         for (std::size_t i = 0; i < NumMemoryBlockPageShifts; i++) {
-            if (target_pages <= (std::size_t(1) << MemoryBlockPageShifts[i]) / PageSize) {
+            if (target_pages <=
+                (static_cast<std::size_t>(1) << MemoryBlockPageShifts[i]) / PageSize) {
                 return static_cast<s32>(i);
             }
         }
@@ -33,7 +34,7 @@ public:
 
     static constexpr s32 GetBlockIndex(std::size_t num_pages) {
         for (s32 i{static_cast<s32>(NumMemoryBlockPageShifts) - 1}; i >= 0; i--) {
-            if (num_pages >= (std::size_t(1) << MemoryBlockPageShifts[i]) / PageSize) {
+            if (num_pages >= (static_cast<std::size_t>(1) << MemoryBlockPageShifts[i]) / PageSize) {
                 return i;
             }
         }
@@ -41,7 +42,7 @@ public:
     }
 
     static constexpr std::size_t GetBlockSize(std::size_t index) {
-        return std::size_t(1) << MemoryBlockPageShifts[index];
+        return static_cast<std::size_t>(1) << MemoryBlockPageShifts[index];
     }
 
     static constexpr std::size_t GetBlockNumPages(std::size_t index) {
@@ -51,7 +52,8 @@ public:
 private:
     static constexpr std::size_t NumMemoryBlockPageShifts{7};
     static constexpr std::array<std::size_t, NumMemoryBlockPageShifts> MemoryBlockPageShifts{
-        0xC, 0x10, 0x15, 0x16, 0x19, 0x1D, 0x1E};
+        0xC, 0x10, 0x15, 0x16, 0x19, 0x1D, 0x1E,
+    };
 
     class Block final : NonCopyable {
     private:
@@ -122,13 +124,13 @@ private:
 
             constexpr bool ClearRange(std::size_t offset, std::size_t count) {
                 const s32 depth{GetHighestDepthIndex()};
-                const std::size_t bit_ind{offset / 64};
+                const auto bit_ind{offset / 64};
                 u64* bits{bit_storages[depth]};
                 if (count < 64) {
-                    const std::size_t shift{offset % 64};
+                    const auto shift{offset % 64};
                     ASSERT(shift + count <= 64);
                     // Check that all the bits are set
-                    const u64 mask{((u64(1) << count) - 1) << shift};
+                    const u64 mask{((1ULL << count) - 1) << shift};
                     u64 v{bits[bit_ind]};
                     if ((v & mask) != mask) {
                         return false;
@@ -171,9 +173,9 @@ private:
         private:
             constexpr void SetBit(s32 depth, std::size_t offset) {
                 while (depth >= 0) {
-                    const std::size_t ind{offset / 64};
-                    const std::size_t which{offset % 64};
-                    const u64 mask{u64(1) << which};
+                    const auto ind{offset / 64};
+                    const auto which{offset % 64};
+                    const u64 mask{1ULL << which};
 
                     u64* bit{std::addressof(bit_storages[depth][ind])};
                     const u64 v{*bit};
@@ -189,9 +191,9 @@ private:
 
             constexpr void ClearBit(s32 depth, std::size_t offset) {
                 while (depth >= 0) {
-                    const std::size_t ind{offset / 64};
-                    const std::size_t which{offset % 64};
-                    const u64 mask{u64(1) << which};
+                    const auto ind{offset / 64};
+                    const auto which{offset % 64};
+                    const u64 mask{1ULL << which};
 
                     u64* bit{std::addressof(bit_storages[depth][ind])};
                     u64 v{*bit};
@@ -246,7 +248,7 @@ private:
             return next_block_shift;
         }
         constexpr std::size_t GetSize() const {
-            return std::size_t(1) << GetShift();
+            return static_cast<std::size_t>(1) << GetShift();
         }
         constexpr std::size_t GetNumPages() const {
             return GetSize() / PageSize;
@@ -266,13 +268,13 @@ private:
 
             // Align up the address
             VAddr end{addr + size};
-            const std::size_t align{(next_block_shift != 0) ? (u64(1) << next_block_shift)
-                                                            : (u64(1) << block_shift)};
+            const auto align{(next_block_shift != 0) ? (1ULL << next_block_shift)
+                                                     : (1ULL << block_shift)};
             addr = Common::AlignDown((addr), align);
             end = Common::AlignUp((end), align);
 
             heap_address = addr;
-            end_offset = (end - addr) / (u64(1) << block_shift);
+            end_offset = (end - addr) / (1ULL << block_shift);
             return bitmap.Initialize(bit_storage, end_offset);
         }
 
@@ -283,7 +285,7 @@ private:
 
             // If we have a next shift, try to clear the blocks below and return the address
             if (GetNextShift()) {
-                const std::size_t diff{u64(1) << (GetNextShift() - GetShift())};
+                const auto diff{1ULL << (GetNextShift() - GetShift())};
                 offset = Common::AlignDown(offset, diff);
                 if (bitmap.ClearRange(offset, diff)) {
                     return heap_address + (offset << GetShift());
@@ -300,7 +302,7 @@ private:
             if (soffset < 0) {
                 return 0;
             }
-            const std::size_t offset{static_cast<std::size_t>(soffset)};
+            const auto offset{static_cast<std::size_t>(soffset)};
 
             // Update our tracking and return it
             bitmap.ClearBit(offset);
@@ -311,9 +313,9 @@ private:
         static constexpr std::size_t CalculateMetadataOverheadSize(std::size_t region_size,
                                                                    std::size_t cur_block_shift,
                                                                    std::size_t next_block_shift) {
-            const std::size_t cur_block_size{(u64(1) << cur_block_shift)};
-            const std::size_t next_block_size{(u64(1) << next_block_shift)};
-            const std::size_t align{(next_block_shift != 0) ? next_block_size : cur_block_size};
+            const auto cur_block_size{(1ULL << cur_block_shift)};
+            const auto next_block_size{(1ULL << next_block_shift)};
+            const auto align{(next_block_shift != 0) ? next_block_size : cur_block_size};
             return Bitmap::CalculateMetadataOverheadSize(
                 (align * 2 + Common::AlignUp(region_size, align)) / cur_block_size);
         }

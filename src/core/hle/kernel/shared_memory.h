@@ -28,7 +28,7 @@ public:
         KernelCore& kernel, Core::DeviceMemory& device_memory, Process* owner_process,
         Memory::PageLinkedList&& page_list, Memory::MemoryPermission owner_permission,
         Memory::MemoryPermission user_permission, PAddr physical_address, std::size_t size,
-        std::string name = "Unknown");
+        std::string name);
 
     std::string GetTypeName() const override {
         return "SharedMemory";

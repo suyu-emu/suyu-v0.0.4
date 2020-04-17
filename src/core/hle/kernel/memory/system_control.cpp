@@ -11,9 +11,9 @@
 namespace Kernel::Memory::SystemControl {
 
 u64 GenerateRandomU64ForInit() {
-    std::random_device device;
-    std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
+    static std::random_device device;
+    static std::mt19937 gen(device());
+    static std::uniform_int_distribution<u64> distribution(1, std::numeric_limits<u64>::max());
     return distribution(gen);
 }
 

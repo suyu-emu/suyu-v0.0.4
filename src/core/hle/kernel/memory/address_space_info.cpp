@@ -14,16 +14,18 @@ namespace Kernel::Memory {
 
 namespace {
 
-constexpr std::size_t Size_1_MB{0x100000};
-constexpr std::size_t Size_2_MB{2 * Size_1_MB};
-constexpr std::size_t Size_128_MB{128 * Size_1_MB};
-constexpr std::size_t Size_1_GB{0x40000000};
-constexpr std::size_t Size_2_GB{2 * Size_1_GB};
-constexpr std::size_t Size_4_GB{4 * Size_1_GB};
-constexpr std::size_t Size_6_GB{6 * Size_1_GB};
-constexpr std::size_t Size_64_GB{64 * Size_1_GB};
-constexpr std::size_t Size_512_GB{512 * Size_1_GB};
-constexpr u64 Invalid{std::numeric_limits<u64>::max()};
+enum : u64 {
+    Size_1_MB = 0x100000,
+    Size_2_MB = 2 * Size_1_MB,
+    Size_128_MB = 128 * Size_1_MB,
+    Size_1_GB = 0x40000000,
+    Size_2_GB = 2 * Size_1_GB,
+    Size_4_GB = 4 * Size_1_GB,
+    Size_6_GB = 6 * Size_1_GB,
+    Size_64_GB = 64 * Size_1_GB,
+    Size_512_GB = 512 * Size_1_GB,
+    Invalid = std::numeric_limits<u64>::max(),
+};
 
 // clang-format off
 constexpr std::array<AddressSpaceInfo, 13> AddressSpaceInfos{{

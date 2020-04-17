@@ -64,10 +64,10 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
                                            bool enable_aslr, VAddr code_addr, std::size_t code_size,
                                            Memory::MemoryManager::Pool pool) {
 
-    const auto GetSpaceStart = [&](AddressSpaceInfo::Type type) {
+    const auto GetSpaceStart = [this](AddressSpaceInfo::Type type) {
         return AddressSpaceInfo::GetAddressSpaceStart(address_space_width, type);
     };
-    const auto GetSpaceSize = [&](AddressSpaceInfo::Type type) {
+    const auto GetSpaceSize = [this](AddressSpaceInfo::Type type) {
         return AddressSpaceInfo::GetAddressSpaceSize(address_space_width, type);
     };
 
@@ -286,17 +286,9 @@ ResultCode PageTable::MapProcessCode(VAddr addr, std::size_t num_pages, MemorySt
     }
 
     PageLinkedList page_linked_list;
-    if (const ResultCode result{
-            system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool)};
-        result.IsError()) {
-        return result;
-    }
-
-    if (const ResultCode result{
-            Operate(addr, num_pages, page_linked_list, OperationType::MapGroup)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(
+        system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool));
+    CASCADE_CODE(Operate(addr, num_pages, page_linked_list, OperationType::MapGroup));
 
     block_manager->Update(addr, num_pages, state, perm);
 
@@ -310,13 +302,10 @@ ResultCode PageTable::MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::
 
     MemoryState state{};
     MemoryPermission perm{};
-    if (const ResultCode result{CheckMemoryState(
-            &state, &perm, nullptr, src_addr, size, MemoryState::All, MemoryState::Normal,
-            MemoryPermission::Mask, MemoryPermission::ReadAndWrite, MemoryAttribute::Mask,
-            MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(&state, &perm, nullptr, src_addr, size, MemoryState::All,
+                                  MemoryState::Normal, MemoryPermission::Mask,
+                                  MemoryPermission::ReadAndWrite, MemoryAttribute::Mask,
+                                  MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped));
 
     if (IsRegionMapped(dst_addr, size)) {
         return ERR_INVALID_ADDRESS_STATE;
@@ -329,16 +318,9 @@ ResultCode PageTable::MapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std::
         auto block_guard = detail::ScopeExit(
             [&] { Operate(src_addr, num_pages, perm, OperationType::ChangePermissions); });
 
-        if (const ResultCode result{Operate(src_addr, num_pages, MemoryPermission::None,
-                                            OperationType::ChangePermissions)};
-            result.IsError()) {
-            return result;
-        }
-
-        if (const ResultCode result{MapPages(dst_addr, page_linked_list, MemoryPermission::None)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(
+            Operate(src_addr, num_pages, MemoryPermission::None, OperationType::ChangePermissions));
+        CASCADE_CODE(MapPages(dst_addr, page_linked_list, MemoryPermission::None));
 
         block_guard.Cancel();
     }
@@ -359,35 +341,20 @@ ResultCode PageTable::UnmapProcessCodeMemory(VAddr dst_addr, VAddr src_addr, std
 
     const std::size_t num_pages{size / PageSize};
 
-    if (const ResultCode result{CheckMemoryState(
-            nullptr, nullptr, nullptr, src_addr, size, MemoryState::All, MemoryState::Normal,
-            MemoryPermission::None, MemoryPermission::None, MemoryAttribute::Mask,
-            MemoryAttribute::Locked, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(nullptr, nullptr, nullptr, src_addr, size, MemoryState::All,
+                                  MemoryState::Normal, MemoryPermission::None,
+                                  MemoryPermission::None, MemoryAttribute::Mask,
+                                  MemoryAttribute::Locked, MemoryAttribute::IpcAndDeviceMapped));
 
     MemoryState state{};
-    if (const ResultCode result{CheckMemoryState(
-            &state, nullptr, nullptr, dst_addr, PageSize, MemoryState::FlagCanCodeAlias,
-            MemoryState::FlagCanCodeAlias, MemoryPermission::None, MemoryPermission::None,
-            MemoryAttribute::Mask, MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
-
-    if (const ResultCode result{CheckMemoryState(dst_addr, size, MemoryState::All, state,
-                                                 MemoryPermission::None, MemoryPermission::None,
-                                                 MemoryAttribute::Mask, MemoryAttribute::None)};
-        result.IsError()) {
-        return result;
-    }
-
-    if (const ResultCode result{
-            Operate(dst_addr, num_pages, MemoryPermission::None, OperationType::Unmap)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(
+        &state, nullptr, nullptr, dst_addr, PageSize, MemoryState::FlagCanCodeAlias,
+        MemoryState::FlagCanCodeAlias, MemoryPermission::None, MemoryPermission::None,
+        MemoryAttribute::Mask, MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped));
+    CASCADE_CODE(CheckMemoryState(dst_addr, size, MemoryState::All, state, MemoryPermission::None,
+                                  MemoryPermission::None, MemoryAttribute::Mask,
+                                  MemoryAttribute::None));
+    CASCADE_CODE(Operate(dst_addr, num_pages, MemoryPermission::None, OperationType::Unmap));
 
     block_manager->Update(dst_addr, num_pages, MemoryState::Free);
     block_manager->Update(src_addr, num_pages, MemoryState::Normal, MemoryPermission::ReadAndWrite);
@@ -459,11 +426,8 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
             process->GetResourceLimit()->Release(ResourceType::PhysicalMemory, remaining_size);
         });
 
-        if (const ResultCode result{system.Kernel().MemoryManager().Allocate(
-                page_linked_list, remaining_pages, memory_pool)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(system.Kernel().MemoryManager().Allocate(page_linked_list, remaining_pages,
+                                                              memory_pool));
 
         block_guard.Cancel();
     }
@@ -508,9 +472,7 @@ ResultCode PageTable::UnmapPhysicalMemory(VAddr addr, std::size_t size) {
         return RESULT_SUCCESS;
     }
 
-    if (const ResultCode result{UnmapMemory(addr, size)}; result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(UnmapMemory(addr, size));
 
     auto process{system.Kernel().CurrentProcess()};
     process->GetResourceLimit()->Release(ResourceType::PhysicalMemory, mapped_size);
@@ -559,13 +521,10 @@ ResultCode PageTable::Map(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     MemoryState src_state{};
-    if (const ResultCode result{CheckMemoryState(
-            &src_state, nullptr, nullptr, src_addr, size, MemoryState::FlagCanAlias,
-            MemoryState::FlagCanAlias, MemoryPermission::Mask, MemoryPermission::ReadAndWrite,
-            MemoryAttribute::Mask, MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(
+        &src_state, nullptr, nullptr, src_addr, size, MemoryState::FlagCanAlias,
+        MemoryState::FlagCanAlias, MemoryPermission::Mask, MemoryPermission::ReadAndWrite,
+        MemoryAttribute::Mask, MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped));
 
     if (IsRegionMapped(dst_addr, size)) {
         return ERR_INVALID_ADDRESS_STATE;
@@ -582,17 +541,9 @@ ResultCode PageTable::Map(VAddr dst_addr, VAddr src_addr, std::size_t size) {
                     OperationType::ChangePermissions);
         });
 
-        if (const ResultCode result{Operate(src_addr, num_pages, MemoryPermission::None,
-                                            OperationType::ChangePermissions)};
-            result.IsError()) {
-            return result;
-        }
-
-        if (const ResultCode result{
-                MapPages(dst_addr, page_linked_list, MemoryPermission::ReadAndWrite)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(
+            Operate(src_addr, num_pages, MemoryPermission::None, OperationType::ChangePermissions));
+        CASCADE_CODE(MapPages(dst_addr, page_linked_list, MemoryPermission::ReadAndWrite));
 
         block_guard.Cancel();
     }
@@ -608,22 +559,16 @@ ResultCode PageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     std::lock_guard lock{page_table_lock};
 
     MemoryState src_state{};
-    if (const ResultCode result{CheckMemoryState(
-            &src_state, nullptr, nullptr, src_addr, size, MemoryState::FlagCanAlias,
-            MemoryState::FlagCanAlias, MemoryPermission::Mask, MemoryPermission::None,
-            MemoryAttribute::Mask, MemoryAttribute::Locked, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(
+        &src_state, nullptr, nullptr, src_addr, size, MemoryState::FlagCanAlias,
+        MemoryState::FlagCanAlias, MemoryPermission::Mask, MemoryPermission::None,
+        MemoryAttribute::Mask, MemoryAttribute::Locked, MemoryAttribute::IpcAndDeviceMapped));
 
     MemoryPermission dst_perm{};
-    if (const ResultCode result{CheckMemoryState(
-            nullptr, &dst_perm, nullptr, dst_addr, size, MemoryState::All, MemoryState::Stack,
-            MemoryPermission::None, MemoryPermission::None, MemoryAttribute::Mask,
-            MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(nullptr, &dst_perm, nullptr, dst_addr, size, MemoryState::All,
+                                  MemoryState::Stack, MemoryPermission::None,
+                                  MemoryPermission::None, MemoryAttribute::Mask,
+                                  MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped));
 
     PageLinkedList src_pages;
     PageLinkedList dst_pages;
@@ -639,17 +584,9 @@ ResultCode PageTable::Unmap(VAddr dst_addr, VAddr src_addr, std::size_t size) {
     {
         auto block_guard = detail::ScopeExit([&] { MapPages(dst_addr, dst_pages, dst_perm); });
 
-        if (const ResultCode result{
-                Operate(dst_addr, num_pages, MemoryPermission::None, OperationType::Unmap)};
-            result.IsError()) {
-            return result;
-        }
-
-        if (const ResultCode result{Operate(src_addr, num_pages, MemoryPermission::ReadAndWrite,
-                                            OperationType::ChangePermissions)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(Operate(dst_addr, num_pages, MemoryPermission::None, OperationType::Unmap));
+        CASCADE_CODE(Operate(src_addr, num_pages, MemoryPermission::ReadAndWrite,
+                             OperationType::ChangePermissions));
 
         block_guard.Cancel();
     }
@@ -665,7 +602,7 @@ ResultCode PageTable::MapPages(VAddr addr, const PageLinkedList& page_linked_lis
     VAddr cur_addr{addr};
 
     for (const auto& node : page_linked_list.Nodes()) {
-        if (const ResultCode result{
+        if (const auto result{
                 Operate(cur_addr, node.GetNumPages(), perm, OperationType::Map, node.GetAddress())};
             result.IsError()) {
             const MemoryInfo info{block_manager->FindBlock(cur_addr).GetMemoryInfo()};
@@ -698,9 +635,7 @@ ResultCode PageTable::MapPages(VAddr addr, PageLinkedList& page_linked_list, Mem
         return ERR_INVALID_ADDRESS_STATE;
     }
 
-    if (const ResultCode result{MapPages(addr, page_linked_list, perm)}; result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(MapPages(addr, page_linked_list, perm));
 
     block_manager->Update(addr, num_pages, state, perm);
 
@@ -714,13 +649,10 @@ ResultCode PageTable::SetCodeMemoryPermission(VAddr addr, std::size_t size, Memo
     MemoryState prev_state{};
     MemoryPermission prev_perm{};
 
-    if (const ResultCode result{CheckMemoryState(
-            &prev_state, &prev_perm, nullptr, addr, size, MemoryState::FlagCode,
-            MemoryState::FlagCode, MemoryPermission::None, MemoryPermission::None,
-            MemoryAttribute::Mask, MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(
+        &prev_state, &prev_perm, nullptr, addr, size, MemoryState::FlagCode, MemoryState::FlagCode,
+        MemoryPermission::None, MemoryPermission::None, MemoryAttribute::Mask,
+        MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped));
 
     MemoryState state{prev_state};
 
@@ -745,9 +677,7 @@ ResultCode PageTable::SetCodeMemoryPermission(VAddr addr, std::size_t size, Memo
                                       ? OperationType::ChangePermissionsAndRefresh
                                       : OperationType::ChangePermissions};
 
-    if (const ResultCode result{Operate(addr, num_pages, perm, operation)}; result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(Operate(addr, num_pages, perm, operation));
 
     block_manager->Update(addr, num_pages, state, perm);
 
@@ -775,15 +705,12 @@ ResultCode PageTable::ReserveTransferMemory(VAddr addr, std::size_t size, Memory
     MemoryState state{};
     MemoryAttribute attribute{};
 
-    if (const ResultCode result{CheckMemoryState(
-            &state, nullptr, &attribute, addr, size,
-            MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
-            MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
-            MemoryPermission::Mask, MemoryPermission::ReadAndWrite, MemoryAttribute::Mask,
-            MemoryAttribute::None, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(&state, nullptr, &attribute, addr, size,
+                                  MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
+                                  MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
+                                  MemoryPermission::Mask, MemoryPermission::ReadAndWrite,
+                                  MemoryAttribute::Mask, MemoryAttribute::None,
+                                  MemoryAttribute::IpcAndDeviceMapped));
 
     block_manager->Update(addr, size / PageSize, state, perm, attribute | MemoryAttribute::Locked);
 
@@ -795,15 +722,12 @@ ResultCode PageTable::ResetTransferMemory(VAddr addr, std::size_t size) {
 
     MemoryState state{};
 
-    if (const ResultCode result{
-            CheckMemoryState(&state, nullptr, nullptr, addr, size,
-                             MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
-                             MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
-                             MemoryPermission::None, MemoryPermission::None, MemoryAttribute::Mask,
-                             MemoryAttribute::Locked, MemoryAttribute::IpcAndDeviceMapped)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(&state, nullptr, nullptr, addr, size,
+                                  MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
+                                  MemoryState::FlagCanTransfer | MemoryState::FlagReferenceCounted,
+                                  MemoryPermission::None, MemoryPermission::None,
+                                  MemoryAttribute::Mask, MemoryAttribute::Locked,
+                                  MemoryAttribute::IpcAndDeviceMapped));
 
     block_manager->Update(addr, size / PageSize, state, MemoryPermission::ReadAndWrite);
 
@@ -818,14 +742,11 @@ ResultCode PageTable::SetMemoryAttribute(VAddr addr, std::size_t size, MemoryAtt
     MemoryPermission perm{};
     MemoryAttribute attribute{};
 
-    if (const ResultCode result{CheckMemoryState(
-            &state, &perm, &attribute, addr, size, MemoryState::FlagCanChangeAttribute,
-            MemoryState::FlagCanChangeAttribute, MemoryPermission::None, MemoryPermission::None,
-            MemoryAttribute::LockedAndIpcLocked, MemoryAttribute::None,
-            MemoryAttribute::DeviceSharedAndUncached)};
-        result.IsError()) {
-        return result;
-    }
+    CASCADE_CODE(CheckMemoryState(&state, &perm, &attribute, addr, size,
+                                  MemoryState::FlagCanChangeAttribute,
+                                  MemoryState::FlagCanChangeAttribute, MemoryPermission::None,
+                                  MemoryPermission::None, MemoryAttribute::LockedAndIpcLocked,
+                                  MemoryAttribute::None, MemoryAttribute::DeviceSharedAndUncached));
 
     attribute = attribute & ~mask;
     attribute = attribute | (mask & value);
@@ -866,21 +787,15 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
         PageLinkedList page_linked_list;
         const std::size_t num_pages{delta / PageSize};
 
-        if (const ResultCode result{
-                system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(
+            system.Kernel().MemoryManager().Allocate(page_linked_list, num_pages, memory_pool));
 
         if (IsRegionMapped(current_heap_addr, delta)) {
             return ERR_INVALID_ADDRESS_STATE;
         }
 
-        if (const ResultCode result{
-                Operate(current_heap_addr, num_pages, page_linked_list, OperationType::MapGroup)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(
+            Operate(current_heap_addr, num_pages, page_linked_list, OperationType::MapGroup));
 
         block_manager->Update(current_heap_addr, num_pages, MemoryState::Normal,
                               MemoryPermission::ReadAndWrite);
@@ -912,23 +827,12 @@ ResultVal<VAddr> PageTable::AllocateAndMapMemory(std::size_t needed_num_pages, s
     }
 
     if (is_map_only) {
-        if (const ResultCode result{
-                Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(Operate(addr, needed_num_pages, perm, OperationType::Map, map_addr));
     } else {
         PageLinkedList page_group;
-        if (const ResultCode result{system.Kernel().MemoryManager().Allocate(
-                page_group, needed_num_pages, memory_pool)};
-            result.IsError()) {
-            return result;
-        }
-        if (const ResultCode result{
-                Operate(addr, needed_num_pages, page_group, OperationType::MapGroup)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(
+            system.Kernel().MemoryManager().Allocate(page_group, needed_num_pages, memory_pool));
+        CASCADE_CODE(Operate(addr, needed_num_pages, page_group, OperationType::MapGroup));
     }
 
     block_manager->Update(addr, needed_num_pages, state, perm);
@@ -1196,11 +1100,7 @@ ResultCode PageTable::CheckMemoryState(MemoryState* out_state, MemoryPermission*
         }
 
         // Validate against the provided masks
-        if (const ResultCode result{
-                CheckMemoryState(info, state_mask, state, perm_mask, perm, attr_mask, attr)};
-            result.IsError()) {
-            return result;
-        }
+        CASCADE_CODE(CheckMemoryState(info, state_mask, state, perm_mask, perm, attr_mask, attr));
 
         // Break once we're done
         if (last_addr <= info.GetLastAddress()) {

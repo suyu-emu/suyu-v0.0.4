@@ -13,13 +13,15 @@ namespace Core {
 class System;
 
 namespace DramMemoryMap {
-constexpr u64 Base = 0x80000000ULL;
-constexpr u64 Size = 0x100000000ULL;
-constexpr u64 End = Base + Size;
-constexpr u64 KernelReserveBase = Base + 0x60000;
-constexpr u64 SlabHeapBase = KernelReserveBase + 0x85000;
-constexpr u64 SlapHeapSize = 0xa21000;
-constexpr u64 SlabHeapEnd = SlabHeapBase + SlapHeapSize;
+enum : u64 {
+    Base = 0x80000000ULL,
+    Size = 0x100000000ULL,
+    End = Base + Size,
+    KernelReserveBase = Base + 0x60000,
+    SlabHeapBase = KernelReserveBase + 0x85000,
+    SlapHeapSize = 0xa21000,
+    SlabHeapEnd = SlabHeapBase + SlapHeapSize,
+};
 }; // namespace DramMemoryMap
 
 class DeviceMemory : NonCopyable {
