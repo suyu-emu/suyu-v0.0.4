@@ -252,8 +252,6 @@ private:
     }
 
     void GetAudioDeviceOutputVolume(Kernel::HLERequestContext& ctx) {
-        IPC::RequestParser rp{ctx};
-
         const auto device_name_buffer = ctx.ReadBuffer();
         const std::string name = Common::StringFromBuffer(device_name_buffer);
 
