@@ -56,6 +56,7 @@ else()
         -Werror=implicit-fallthrough
         -Werror=reorder
         -Wextra
+        -Wmissing-declarations
         -Wno-attributes
         -Wno-unused-parameter
     )
