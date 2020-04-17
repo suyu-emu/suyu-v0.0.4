@@ -139,7 +139,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
         const Node component = Immediate(static_cast<u32>(instr.tld4s.component));
 
-        const SamplerInfo info{TextureType::Texture2D, false, is_depth_compare};
+        const SamplerInfo info{TextureType::Texture2D, false, is_depth_compare, false};
         const Sampler& sampler = *GetSampler(instr.sampler, info);
 
         Node4 values;
@@ -171,8 +171,9 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const auto coord_count = GetCoordCount(texture_type);
         Node index_var{};
         const Sampler* sampler =
-            is_bindless ? GetBindlessSampler(base_reg, index_var, {{texture_type, is_array, false}})
-                        : GetSampler(instr.sampler, {{texture_type, is_array, false}});
+            is_bindless
+                ? GetBindlessSampler(base_reg, index_var, {{texture_type, is_array, false, false}})
+                : GetSampler(instr.sampler, {{texture_type, is_array, false, false}});
         Node4 values;
         if (sampler == nullptr) {
             for (u32 element = 0; element < values.size(); ++element) {
