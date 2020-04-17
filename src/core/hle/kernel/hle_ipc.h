@@ -179,10 +179,11 @@ public:
     }
 
     /// Helper function to read a buffer using the appropriate buffer descriptor
-    std::vector<u8> ReadBuffer(int buffer_index = 0) const;
+    std::vector<u8> ReadBuffer(std::size_t buffer_index = 0) const;
 
     /// Helper function to write a buffer using the appropriate buffer descriptor
-    std::size_t WriteBuffer(const void* buffer, std::size_t size, int buffer_index = 0) const;
+    std::size_t WriteBuffer(const void* buffer, std::size_t size,
+                            std::size_t buffer_index = 0) const;
 
     /* Helper function to write a buffer using the appropriate buffer descriptor
      *
@@ -194,7 +195,8 @@ public:
      */
     template <typename ContiguousContainer,
               typename = std::enable_if_t<!std::is_pointer_v<ContiguousContainer>>>
-    std::size_t WriteBuffer(const ContiguousContainer& container, int buffer_index = 0) const {
+    std::size_t WriteBuffer(const ContiguousContainer& container,
+                            std::size_t buffer_index = 0) const {
         using ContiguousType = typename ContiguousContainer::value_type;
 
         static_assert(std::is_trivially_copyable_v<ContiguousType>,
@@ -205,10 +207,10 @@ public:
     }
 
     /// Helper function to get the size of the input buffer
-    std::size_t GetReadBufferSize(int buffer_index = 0) const;
+    std::size_t GetReadBufferSize(std::size_t buffer_index = 0) const;
 
     /// Helper function to get the size of the output buffer
-    std::size_t GetWriteBufferSize(int buffer_index = 0) const;
+    std::size_t GetWriteBufferSize(std::size_t buffer_index = 0) const;
 
     template <typename T>
     std::shared_ptr<T> GetCopyObject(std::size_t index) {
