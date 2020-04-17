@@ -20,7 +20,7 @@ namespace Service::Time::Clock {
 class SystemClockContextUpdateCallback {
 public:
     SystemClockContextUpdateCallback();
-    ~SystemClockContextUpdateCallback();
+    virtual ~SystemClockContextUpdateCallback();
 
     bool NeedUpdate(const SystemClockContext& value) const;
 
