@@ -28,6 +28,7 @@ class MicroProfileDialog;
 class ProfilerWidget;
 class QLabel;
 class QPushButton;
+class QProgressDialog;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
 class GameListPlaceholder;
@@ -271,6 +272,9 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
+
+    // Install to NAND progress dialog
+    QProgressDialog* install_progress;
 
 protected:
     void dropEvent(QDropEvent* event) override;
