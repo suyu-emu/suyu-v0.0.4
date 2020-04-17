@@ -34,8 +34,6 @@
 namespace OpenGL {
 
 using Tegra::Engines::ShaderType;
-using VideoCommon::Shader::CompileDepth;
-using VideoCommon::Shader::CompilerSettings;
 using VideoCommon::Shader::ProgramCode;
 using VideoCommon::Shader::Registry;
 using VideoCommon::Shader::ShaderIR;
@@ -45,7 +43,7 @@ namespace {
 constexpr u32 STAGE_MAIN_OFFSET = 10;
 constexpr u32 KERNEL_MAIN_OFFSET = 0;
 
-constexpr CompilerSettings COMPILER_SETTINGS{CompileDepth::FullDecompile};
+constexpr VideoCommon::Shader::CompilerSettings COMPILER_SETTINGS{};
 
 /// Gets the address for the specified shader stage program
 GPUVAddr GetShaderAddress(Core::System& system, Maxwell::ShaderProgram program) {
