@@ -16,11 +16,11 @@ add_library(catch-single-include INTERFACE)
 target_include_directories(catch-single-include INTERFACE catch/single_include)
 
 # libfmt
-pkg_check_modules(FMT IMPORTED_TARGET GLOBAL fmt>=6.1.0)
+pkg_check_modules(FMT IMPORTED_TARGET GLOBAL fmt>=6.2.0)
 if (FMT_FOUND)
     add_library(fmt::fmt ALIAS PkgConfig::FMT)
 else()
-    message(STATUS "fmt 6.1.0 or newer not found, falling back to externals")
+    message(STATUS "fmt 6.2.0 or newer not found, falling back to externals")
     add_subdirectory(fmt)
     add_library(fmt::fmt ALIAS fmt)
 endif()
