@@ -55,7 +55,7 @@ void DmntCheatVm::LogOpcode(const CheatVmOpcode& opcode) {
             fmt::format("Cond Type: {:X}", static_cast<u32>(begin_cond->cond_type)));
         callbacks->CommandLog(fmt::format("Rel Addr:  {:X}", begin_cond->rel_address));
         callbacks->CommandLog(fmt::format("Value:     {:X}", begin_cond->value.bit64));
-    } else if (auto end_cond = std::get_if<EndConditionalOpcode>(&opcode.opcode)) {
+    } else if (std::holds_alternative<EndConditionalOpcode>(opcode.opcode)) {
         callbacks->CommandLog("Opcode: End Conditional");
     } else if (auto ctrl_loop = std::get_if<ControlLoopOpcode>(&opcode.opcode)) {
         if (ctrl_loop->start_loop) {
@@ -399,6 +399,7 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
         // 8kkkkkkk
         // Just parse the mask.
         begin_keypress_cond.key_mask = first_dword & 0x0FFFFFFF;
+        opcode.opcode = begin_keypress_cond;
     } break;
     case CheatVmOpcodeType::PerformArithmeticRegister: {
         PerformArithmeticRegisterOpcode perform_math_reg{};
@@ -779,7 +780,7 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
             if (!cond_met) {
                 SkipConditionalBlock();
             }
-        } else if (auto end_cond = std::get_if<EndConditionalOpcode>(&cur_opcode.opcode)) {
+        } else if (std::holds_alternative<EndConditionalOpcode>(cur_opcode.opcode)) {
             // Decrement the condition depth.
             // We will assume, graciously, that mismatched conditional block ends are a nop.
             if (condition_depth > 0) {

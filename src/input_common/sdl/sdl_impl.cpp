@@ -603,6 +603,7 @@ public:
                 if (std::abs(event.jaxis.value / 32767.0) < 0.5) {
                     break;
                 }
+                [[fallthrough]];
             case SDL_JOYBUTTONUP:
             case SDL_JOYHATMOTION:
                 return SDLEventToButtonParamPackage(state, event);

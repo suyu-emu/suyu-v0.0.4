@@ -451,7 +451,8 @@ FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataTy
 
         if (res != Loader::ResultStatus::Success) {
             FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
-            auto [nacp_unique, discard] = pm.GetControlMetadata();
+            const auto metadata = pm.GetControlMetadata();
+            const auto& nacp_unique = metadata.first;
 
             if (nacp_unique != nullptr) {
                 new_size = {nacp_unique->GetDefaultNormalSaveSize(),

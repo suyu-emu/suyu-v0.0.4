@@ -153,9 +153,9 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
         app_loader.ReadTitle(name);
 
         if (name.empty()) {
-            auto [nacp, icon_file] = FileSys::PatchManager(program_id).GetControlMetadata();
-            if (nacp != nullptr) {
-                name = nacp->GetApplicationName();
+            const auto metadata = FileSys::PatchManager(program_id).GetControlMetadata();
+            if (metadata.first != nullptr) {
+                name = metadata.first->GetApplicationName();
             }
         }
 

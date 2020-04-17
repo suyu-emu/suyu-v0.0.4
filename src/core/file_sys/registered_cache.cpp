@@ -591,14 +591,18 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
 InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
                                             bool overwrite_if_exists, const VfsCopyFunction& copy) {
     CNMTHeader header{
-        nca.GetTitleId(), ///< Title ID
-        0,                ///< Ignore/Default title version
-        type,             ///< Type
-        {},               ///< Padding
-        0x10,             ///< Default table offset
-        1,                ///< 1 Content Entry
-        0,                ///< No Meta Entries
-        {},               ///< Padding
+        nca.GetTitleId(), // Title ID
+        0,                // Ignore/Default title version
+        type,             // Type
+        {},               // Padding
+        0x10,             // Default table offset
+        1,                // 1 Content Entry
+        0,                // No Meta Entries
+        {},               // Padding
+        {},               // Reserved 1
+        0,                // Is committed
+        0,                // Required download system version
+        {},               // Reserved 2
     };
     OptionalHeader opt_header{0, 0};
     ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca.GetType()), {}};
@@ -848,7 +852,8 @@ VirtualFile ManualContentProvider::GetEntryUnparsed(u64 title_id, ContentRecordT
 VirtualFile ManualContentProvider::GetEntryRaw(u64 title_id, ContentRecordType type) const {
     const auto iter =
         std::find_if(entries.begin(), entries.end(), [title_id, type](const auto& entry) {
-            const auto [title_type, content_type, e_title_id] = entry.first;
+            const auto content_type = std::get<1>(entry.first);
+            const auto e_title_id = std::get<2>(entry.first);
             return content_type == type && e_title_id == title_id;
         });
     if (iter == entries.end())

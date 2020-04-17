@@ -1507,7 +1507,7 @@ union Instruction {
 
         TextureType GetTextureType() const {
             // The TLDS instruction has a weird encoding for the texture type.
-            if (texture_info >= 0 && texture_info <= 1) {
+            if (texture_info <= 1) {
                 return TextureType::Texture1D;
             }
             if (texture_info == 2 || texture_info == 8 || texture_info == 12 ||

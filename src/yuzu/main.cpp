@@ -1019,9 +1019,9 @@ void GMainWindow::BootGame(const QString& filename) {
     std::string title_name;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
     if (res != Loader::ResultStatus::Success) {
-        const auto [nacp, icon_file] = FileSys::PatchManager(title_id).GetControlMetadata();
-        if (nacp != nullptr)
-            title_name = nacp->GetApplicationName();
+        const auto metadata = FileSys::PatchManager(title_id).GetControlMetadata();
+        if (metadata.first != nullptr)
+            title_name = metadata.first->GetApplicationName();
 
         if (title_name.empty())
             title_name = FileUtil::GetFilename(filename.toStdString());
@@ -1628,7 +1628,7 @@ void GMainWindow::OnMenuInstallToNAND() {
         }
 
         FileSys::InstallResult res;
-        if (index >= static_cast<size_t>(FileSys::TitleType::Application)) {
+        if (index >= static_cast<s32>(FileSys::TitleType::Application)) {
             res = Core::System::GetInstance()
                       .GetFileSystemController()
                       .GetUserNANDContents()

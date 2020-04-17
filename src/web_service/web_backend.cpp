@@ -43,7 +43,7 @@ struct Client::Impl {
         if (jwt.empty() && !allow_anonymous) {
             LOG_ERROR(WebService, "Credentials must be provided for authenticated requests");
             return Common::WebResult{Common::WebResult::Code::CredentialsMissing,
-                                     "Credentials needed"};
+                                     "Credentials needed", ""};
         }
 
         auto result = GenericRequest(method, path, data, accept, jwt);
@@ -81,12 +81,12 @@ struct Client::Impl {
                 cli = std::make_unique<httplib::SSLClient>(parsedUrl.m_Host.c_str(), port);
             } else {
                 LOG_ERROR(WebService, "Bad URL scheme {}", parsedUrl.m_Scheme);
-                return Common::WebResult{Common::WebResult::Code::InvalidURL, "Bad URL scheme"};
+                return Common::WebResult{Common::WebResult::Code::InvalidURL, "Bad URL scheme", ""};
             }
         }
         if (cli == nullptr) {
             LOG_ERROR(WebService, "Invalid URL {}", host + path);
-            return Common::WebResult{Common::WebResult::Code::InvalidURL, "Invalid URL"};
+            return Common::WebResult{Common::WebResult::Code::InvalidURL, "Invalid URL", ""};
         }
         cli->set_timeout_sec(TIMEOUT_SECONDS);
 
@@ -118,27 +118,27 @@ struct Client::Impl {
 
         if (!cli->send(request, response)) {
             LOG_ERROR(WebService, "{} to {} returned null", method, host + path);
-            return Common::WebResult{Common::WebResult::Code::LibError, "Null response"};
+            return Common::WebResult{Common::WebResult::Code::LibError, "Null response", ""};
         }
 
         if (response.status >= 400) {
             LOG_ERROR(WebService, "{} to {} returned error status code: {}", method, host + path,
                       response.status);
             return Common::WebResult{Common::WebResult::Code::HttpError,
-                                     std::to_string(response.status)};
+                                     std::to_string(response.status), ""};
         }
 
         auto content_type = response.headers.find("content-type");
 
         if (content_type == response.headers.end()) {
             LOG_ERROR(WebService, "{} to {} returned no content", method, host + path);
-            return Common::WebResult{Common::WebResult::Code::WrongContent, ""};
+            return Common::WebResult{Common::WebResult::Code::WrongContent, "", ""};
         }
 
         if (content_type->second.find(accept) == std::string::npos) {
             LOG_ERROR(WebService, "{} to {} returned wrong content: {}", method, host + path,
                       content_type->second);
-            return Common::WebResult{Common::WebResult::Code::WrongContent, "Wrong content"};
+            return Common::WebResult{Common::WebResult::Code::WrongContent, "Wrong content", ""};
         }
         return Common::WebResult{Common::WebResult::Code::Success, "", response.body};
     }

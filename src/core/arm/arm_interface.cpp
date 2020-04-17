@@ -123,7 +123,7 @@ Symbols GetSymbols(VAddr text_offset, Memory::Memory& memory) {
 std::optional<std::string> GetSymbolName(const Symbols& symbols, VAddr func_address) {
     const auto iter =
         std::find_if(symbols.begin(), symbols.end(), [func_address](const auto& pair) {
-            const auto& [symbol, name] = pair;
+            const auto& symbol = pair.first;
             const auto end_address = symbol.value + symbol.size;
             return func_address >= symbol.value && func_address < end_address;
         });
@@ -146,7 +146,7 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
     auto fp = GetReg(29);
     auto lr = GetReg(30);
     while (true) {
-        out.push_back({"", 0, lr, 0});
+        out.push_back({"", 0, lr, 0, ""});
         if (!fp) {
             break;
         }

@@ -647,7 +647,8 @@ private:
                     break;
                 }
                 const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
-                const auto [x, y, z] = params.GetBlockOffsetXYZ(offset);
+                const auto offsets = params.GetBlockOffsetXYZ(offset);
+                const auto z = std::get<2>(offsets);
                 modified |= surface->IsModified();
                 const CopyParams copy_params(0, 0, 0, 0, 0, z, 0, 0, params.width, params.height,
                                              1);
