@@ -12,22 +12,31 @@
 
 namespace Vulkan {
 
-namespace {
-
-constexpr FixedPipelineState::DepthStencil GetDepthStencilState(const Maxwell& regs) {
-    const FixedPipelineState::StencilFace front_stencil(
-        regs.stencil_front_op_fail, regs.stencil_front_op_zfail, regs.stencil_front_op_zpass,
-        regs.stencil_front_func_func);
-    const FixedPipelineState::StencilFace back_stencil =
-        regs.stencil_two_side_enable
-            ? FixedPipelineState::StencilFace(regs.stencil_back_op_fail, regs.stencil_back_op_zfail,
-                                              regs.stencil_back_op_zpass,
-                                              regs.stencil_back_func_func)
-            : front_stencil;
-    return FixedPipelineState::DepthStencil(
-        regs.depth_test_enable == 1, regs.depth_write_enabled == 1, regs.depth_bounds_enable == 1,
-        regs.stencil_enable == 1, regs.depth_test_func, front_stencil, back_stencil);
+void FixedPipelineState::DepthStencil::Fill(const Maxwell& regs) noexcept {
+    raw = 0;
+    front.action_stencil_fail.Assign(PackStencilOp(regs.stencil_front_op_fail));
+    front.action_depth_fail.Assign(PackStencilOp(regs.stencil_front_op_zfail));
+    front.action_depth_pass.Assign(PackStencilOp(regs.stencil_front_op_zpass));
+    front.test_func.Assign(PackComparisonOp(regs.stencil_front_func_func));
+    if (regs.stencil_two_side_enable) {
+        back.action_stencil_fail.Assign(PackStencilOp(regs.stencil_back_op_fail));
+        back.action_depth_fail.Assign(PackStencilOp(regs.stencil_back_op_zfail));
+        back.action_depth_pass.Assign(PackStencilOp(regs.stencil_back_op_zpass));
+        back.test_func.Assign(PackComparisonOp(regs.stencil_back_func_func));
+    } else {
+        back.action_stencil_fail.Assign(front.action_stencil_fail);
+        back.action_depth_fail.Assign(front.action_depth_fail);
+        back.action_depth_pass.Assign(front.action_depth_pass);
+        back.test_func.Assign(front.test_func);
+    }
+    depth_test_enable.Assign(regs.depth_test_enable);
+    depth_write_enable.Assign(regs.depth_write_enabled);
+    depth_bounds_enable.Assign(regs.depth_bounds_enable);
+    stencil_enable.Assign(regs.stencil_enable);
+    depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
 }
+
+namespace {
 
 constexpr FixedPipelineState::InputAssembly GetInputAssemblyState(const Maxwell& regs) {
     return FixedPipelineState::InputAssembly(
@@ -129,19 +138,6 @@ constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs)
 
 } // Anonymous namespace
 
-std::size_t FixedPipelineState::StencilFace::Hash() const noexcept {
-    return static_cast<std::size_t>(action_stencil_fail) ^
-           (static_cast<std::size_t>(action_depth_fail) << 4) ^
-           (static_cast<std::size_t>(action_depth_fail) << 20) ^
-           (static_cast<std::size_t>(action_depth_pass) << 36);
-}
-
-bool FixedPipelineState::StencilFace::operator==(const StencilFace& rhs) const noexcept {
-    return std::tie(action_stencil_fail, action_depth_fail, action_depth_pass, test_func) ==
-           std::tie(rhs.action_stencil_fail, rhs.action_depth_fail, rhs.action_depth_pass,
-                    rhs.test_func);
-}
-
 std::size_t FixedPipelineState::BlendingAttachment::Hash() const noexcept {
     return static_cast<std::size_t>(enable) ^ (static_cast<std::size_t>(rgb_equation) << 5) ^
            (static_cast<std::size_t>(src_rgb_func) << 10) ^
@@ -212,22 +208,11 @@ bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const noe
 }
 
 std::size_t FixedPipelineState::DepthStencil::Hash() const noexcept {
-    std::size_t hash = static_cast<std::size_t>(depth_test_enable) ^
-                       (static_cast<std::size_t>(depth_write_enable) << 1) ^
-                       (static_cast<std::size_t>(depth_bounds_enable) << 2) ^
-                       (static_cast<std::size_t>(stencil_enable) << 3) ^
-                       (static_cast<std::size_t>(depth_test_function) << 4);
-    boost::hash_combine(hash, front_stencil.Hash());
-    boost::hash_combine(hash, back_stencil.Hash());
-    return hash;
+    return raw;
 }
 
 bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const noexcept {
-    return std::tie(depth_test_enable, depth_write_enable, depth_bounds_enable, depth_test_function,
-                    stencil_enable, front_stencil, back_stencil) ==
-           std::tie(rhs.depth_test_enable, rhs.depth_write_enable, rhs.depth_bounds_enable,
-                    rhs.depth_test_function, rhs.stencil_enable, rhs.front_stencil,
-                    rhs.back_stencil);
+    return raw == rhs.raw;
 }
 
 std::size_t FixedPipelineState::ColorBlending::Hash() const noexcept {
@@ -266,9 +251,60 @@ FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
     fixed_state.input_assembly = GetInputAssemblyState(regs);
     fixed_state.tessellation = GetTessellationState(regs);
     fixed_state.rasterizer = GetRasterizerState(regs);
-    fixed_state.depth_stencil = GetDepthStencilState(regs);
+    fixed_state.depth_stencil.Fill(regs);
     fixed_state.color_blending = GetColorBlendingState(regs);
     return fixed_state;
+}
+
+u32 FixedPipelineState::PackComparisonOp(Maxwell::ComparisonOp op) noexcept {
+    // OpenGL enums go from 0x200 to 0x207 and the others from 1 to 8
+    // If we substract 0x200 to OpenGL enums and 1 to the others we get a 0-7 range.
+    // Perfect for a hash.
+    const u32 value = static_cast<u32>(op);
+    return value - (value >= 0x200 ? 0x200 : 1);
+}
+
+Maxwell::ComparisonOp FixedPipelineState::UnpackComparisonOp(u32 packed) noexcept {
+    // Read PackComparisonOp for the logic behind this.
+    return static_cast<Maxwell::ComparisonOp>(packed + 1);
+}
+
+u32 FixedPipelineState::PackStencilOp(Maxwell::StencilOp op) noexcept {
+    switch (op) {
+    case Maxwell::StencilOp::Keep:
+    case Maxwell::StencilOp::KeepOGL:
+        return 0;
+    case Maxwell::StencilOp::Zero:
+    case Maxwell::StencilOp::ZeroOGL:
+        return 1;
+    case Maxwell::StencilOp::Replace:
+    case Maxwell::StencilOp::ReplaceOGL:
+        return 2;
+    case Maxwell::StencilOp::Incr:
+    case Maxwell::StencilOp::IncrOGL:
+        return 3;
+    case Maxwell::StencilOp::Decr:
+    case Maxwell::StencilOp::DecrOGL:
+        return 4;
+    case Maxwell::StencilOp::Invert:
+    case Maxwell::StencilOp::InvertOGL:
+        return 5;
+    case Maxwell::StencilOp::IncrWrap:
+    case Maxwell::StencilOp::IncrWrapOGL:
+        return 6;
+    case Maxwell::StencilOp::DecrWrap:
+    case Maxwell::StencilOp::DecrWrapOGL:
+        return 7;
+    }
+    return 0;
+}
+
+Maxwell::StencilOp FixedPipelineState::UnpackStencilOp(u32 packed) noexcept {
+    static constexpr std::array LUT = {Maxwell::StencilOp::Keep,     Maxwell::StencilOp::Zero,
+                                       Maxwell::StencilOp::Replace,  Maxwell::StencilOp::Incr,
+                                       Maxwell::StencilOp::Decr,     Maxwell::StencilOp::Invert,
+                                       Maxwell::StencilOp::IncrWrap, Maxwell::StencilOp::DecrWrap};
+    return LUT[packed];
 }
 
 } // namespace Vulkan

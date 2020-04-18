@@ -26,12 +26,13 @@ MICROPROFILE_DECLARE(Vulkan_PipelineCache);
 
 namespace {
 
-VkStencilOpState GetStencilFaceState(const FixedPipelineState::StencilFace& face) {
+template <class StencilFace>
+VkStencilOpState GetStencilFaceState(const StencilFace& face) {
     VkStencilOpState state;
-    state.failOp = MaxwellToVK::StencilOp(face.action_stencil_fail);
-    state.passOp = MaxwellToVK::StencilOp(face.action_depth_pass);
-    state.depthFailOp = MaxwellToVK::StencilOp(face.action_depth_fail);
-    state.compareOp = MaxwellToVK::ComparisonOp(face.test_func);
+    state.failOp = MaxwellToVK::StencilOp(face.ActionStencilFail());
+    state.passOp = MaxwellToVK::StencilOp(face.ActionDepthPass());
+    state.depthFailOp = MaxwellToVK::StencilOp(face.ActionDepthFail());
+    state.compareOp = MaxwellToVK::ComparisonOp(face.TestFunc());
     state.compareMask = 0;
     state.writeMask = 0;
     state.reference = 0;
@@ -277,13 +278,12 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     depth_stencil_ci.flags = 0;
     depth_stencil_ci.depthTestEnable = ds.depth_test_enable;
     depth_stencil_ci.depthWriteEnable = ds.depth_write_enable;
-    depth_stencil_ci.depthCompareOp = ds.depth_test_enable
-                                          ? MaxwellToVK::ComparisonOp(ds.depth_test_function)
-                                          : VK_COMPARE_OP_ALWAYS;
+    depth_stencil_ci.depthCompareOp =
+        ds.depth_test_enable ? MaxwellToVK::ComparisonOp(ds.DepthTestFunc()) : VK_COMPARE_OP_ALWAYS;
     depth_stencil_ci.depthBoundsTestEnable = ds.depth_bounds_enable;
     depth_stencil_ci.stencilTestEnable = ds.stencil_enable;
-    depth_stencil_ci.front = GetStencilFaceState(ds.front_stencil);
-    depth_stencil_ci.back = GetStencilFaceState(ds.back_stencil);
+    depth_stencil_ci.front = GetStencilFaceState(ds.front);
+    depth_stencil_ci.back = GetStencilFaceState(ds.back);
     depth_stencil_ci.minDepthBounds = 0.0f;
     depth_stencil_ci.maxDepthBounds = 0.0f;
 

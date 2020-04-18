@@ -24,27 +24,11 @@ inline constexpr bool IsHashable = std::has_unique_object_representations_v<T>&&
     std::is_trivially_copyable_v<T>&& std::is_trivially_constructible_v<T>;
 
 struct FixedPipelineState {
-    struct StencilFace {
-        constexpr StencilFace(Maxwell::StencilOp action_stencil_fail,
-                              Maxwell::StencilOp action_depth_fail,
-                              Maxwell::StencilOp action_depth_pass, Maxwell::ComparisonOp test_func)
-            : action_stencil_fail{action_stencil_fail}, action_depth_fail{action_depth_fail},
-              action_depth_pass{action_depth_pass}, test_func{test_func} {}
-        StencilFace() = default;
+    static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
+    static Maxwell::ComparisonOp UnpackComparisonOp(u32 packed) noexcept;
 
-        Maxwell::StencilOp action_stencil_fail;
-        Maxwell::StencilOp action_depth_fail;
-        Maxwell::StencilOp action_depth_pass;
-        Maxwell::ComparisonOp test_func;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const StencilFace& rhs) const noexcept;
-
-        bool operator!=(const StencilFace& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-    };
+    static u32 PackStencilOp(Maxwell::StencilOp op) noexcept;
+    static Maxwell::StencilOp UnpackStencilOp(u32 packed) noexcept;
 
     struct BlendingAttachment {
         constexpr BlendingAttachment(bool enable, Maxwell::Blend::Equation rgb_equation,
@@ -202,23 +186,42 @@ struct FixedPipelineState {
     };
 
     struct DepthStencil {
-        constexpr DepthStencil(bool depth_test_enable, bool depth_write_enable,
-                               bool depth_bounds_enable, bool stencil_enable,
-                               Maxwell::ComparisonOp depth_test_function, StencilFace front_stencil,
-                               StencilFace back_stencil)
-            : depth_test_enable{depth_test_enable}, depth_write_enable{depth_write_enable},
-              depth_bounds_enable{depth_bounds_enable}, stencil_enable{stencil_enable},
-              depth_test_function{depth_test_function}, front_stencil{front_stencil},
-              back_stencil{back_stencil} {}
-        DepthStencil() = default;
+        template <std::size_t Position>
+        union StencilFace {
+            BitField<Position + 0, 3, u32> action_stencil_fail;
+            BitField<Position + 3, 3, u32> action_depth_fail;
+            BitField<Position + 6, 3, u32> action_depth_pass;
+            BitField<Position + 9, 3, u32> test_func;
 
-        bool depth_test_enable;
-        bool depth_write_enable;
-        bool depth_bounds_enable;
-        bool stencil_enable;
-        Maxwell::ComparisonOp depth_test_function;
-        StencilFace front_stencil;
-        StencilFace back_stencil;
+            Maxwell::StencilOp ActionStencilFail() const noexcept {
+                return UnpackStencilOp(action_stencil_fail);
+            }
+
+            Maxwell::StencilOp ActionDepthFail() const noexcept {
+                return UnpackStencilOp(action_depth_fail);
+            }
+
+            Maxwell::StencilOp ActionDepthPass() const noexcept {
+                return UnpackStencilOp(action_depth_pass);
+            }
+
+            Maxwell::ComparisonOp TestFunc() const noexcept {
+                return UnpackComparisonOp(test_func);
+            }
+        };
+
+        union {
+            u32 raw;
+            StencilFace<0> front;
+            StencilFace<12> back;
+            BitField<24, 1, u32> depth_test_enable;
+            BitField<25, 1, u32> depth_write_enable;
+            BitField<26, 1, u32> depth_bounds_enable;
+            BitField<27, 1, u32> stencil_enable;
+            BitField<28, 3, u32> depth_test_func;
+        };
+
+        void Fill(const Maxwell& regs) noexcept;
 
         std::size_t Hash() const noexcept;
 
@@ -227,7 +230,12 @@ struct FixedPipelineState {
         bool operator!=(const DepthStencil& rhs) const noexcept {
             return !operator==(rhs);
         }
+
+        Maxwell::ComparisonOp DepthTestFunc() const noexcept {
+            return UnpackComparisonOp(depth_test_func);
+        }
     };
+    static_assert(IsHashable<DepthStencil>);
 
     struct ColorBlending {
         constexpr ColorBlending(
@@ -248,6 +256,13 @@ struct FixedPipelineState {
         }
     };
 
+    VertexInput vertex_input;
+    InputAssembly input_assembly;
+    Tessellation tessellation;
+    Rasterizer rasterizer;
+    DepthStencil depth_stencil;
+    ColorBlending color_blending;
+
     std::size_t Hash() const noexcept;
 
     bool operator==(const FixedPipelineState& rhs) const noexcept;
@@ -255,15 +270,7 @@ struct FixedPipelineState {
     bool operator!=(const FixedPipelineState& rhs) const noexcept {
         return !operator==(rhs);
     }
-
-    VertexInput vertex_input;
-    InputAssembly input_assembly;
-    Tessellation tessellation;
-    Rasterizer rasterizer;
-    DepthStencil depth_stencil;
-    ColorBlending color_blending;
 };
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::StencilFace>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::BlendingAttachment>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexInput>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::InputAssembly>);
