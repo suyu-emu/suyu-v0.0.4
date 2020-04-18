@@ -140,66 +140,13 @@ void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size
     enable.Assign(1);
 }
 
-std::size_t FixedPipelineState::BlendingAttachment::Hash() const noexcept {
-    return raw;
-}
-
-bool FixedPipelineState::BlendingAttachment::operator==(const BlendingAttachment& rhs) const
-    noexcept {
-    return raw == rhs.raw;
-}
-
-std::size_t FixedPipelineState::VertexInput::Hash() const noexcept {
-    // TODO(Rodrigo): Replace this
-    return Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
-}
-
-bool FixedPipelineState::VertexInput::operator==(const VertexInput& rhs) const noexcept {
-    return std::memcmp(this, &rhs, sizeof *this) == 0;
-}
-
-std::size_t FixedPipelineState::Rasterizer::Hash() const noexcept {
-    u64 hash = static_cast<u64>(raw) << 32;
-    std::memcpy(&hash, &point_size, sizeof(u32));
+std::size_t FixedPipelineState::Hash() const noexcept {
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
     return static_cast<std::size_t>(hash);
 }
 
-bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const noexcept {
-    return raw == rhs.raw && point_size == rhs.point_size;
-}
-
-std::size_t FixedPipelineState::DepthStencil::Hash() const noexcept {
-    return raw;
-}
-
-bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const noexcept {
-    return raw == rhs.raw;
-}
-
-std::size_t FixedPipelineState::ColorBlending::Hash() const noexcept {
-    std::size_t hash = 0;
-    for (std::size_t rt = 0; rt < std::size(attachments); ++rt) {
-        boost::hash_combine(hash, attachments[rt].Hash());
-    }
-    return hash;
-}
-
-bool FixedPipelineState::ColorBlending::operator==(const ColorBlending& rhs) const noexcept {
-    return attachments == rhs.attachments;
-}
-
-std::size_t FixedPipelineState::Hash() const noexcept {
-    std::size_t hash = 0;
-    boost::hash_combine(hash, vertex_input.Hash());
-    boost::hash_combine(hash, rasterizer.Hash());
-    boost::hash_combine(hash, depth_stencil.Hash());
-    boost::hash_combine(hash, color_blending.Hash());
-    return hash;
-}
-
 bool FixedPipelineState::operator==(const FixedPipelineState& rhs) const noexcept {
-    return std::tie(vertex_input, rasterizer, depth_stencil, color_blending) ==
-           std::tie(rhs.vertex_input, rhs.rasterizer, rhs.depth_stencil, rhs.color_blending);
+    return std::memcmp(this, &rhs, sizeof *this) == 0;
 }
 
 FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
@@ -207,6 +154,7 @@ FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
     fixed_state.rasterizer.Fill(regs);
     fixed_state.depth_stencil.Fill(regs);
     fixed_state.color_blending.Fill(regs);
+    fixed_state.padding = {};
     return fixed_state;
 }
 

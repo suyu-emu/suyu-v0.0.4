@@ -17,13 +17,7 @@ namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-// TODO(Rodrigo): Optimize this structure.
-
-template <class T>
-inline constexpr bool IsHashable = std::has_unique_object_representations_v<T>&&
-    std::is_trivially_copyable_v<T>&& std::is_trivially_constructible_v<T>;
-
-struct FixedPipelineState {
+struct alignas(32) FixedPipelineState {
     static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
     static Maxwell::ComparisonOp UnpackComparisonOp(u32 packed) noexcept;
 
@@ -102,7 +96,6 @@ struct FixedPipelineState {
             return UnpackBlendFactor(factor_dest_a.Value());
         }
     };
-    static_assert(IsHashable<BlendingAttachment>);
 
     struct VertexInput {
         union Binding {
@@ -151,16 +144,7 @@ struct FixedPipelineState {
             attribute.type.Assign(static_cast<u32>(type));
             attribute.size.Assign(static_cast<u32>(size));
         }
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const VertexInput& rhs) const noexcept;
-
-        bool operator!=(const VertexInput& rhs) const noexcept {
-            return !operator==(rhs);
-        }
     };
-    static_assert(IsHashable<VertexInput>);
 
     struct Rasterizer {
         union {
@@ -187,14 +171,6 @@ struct FixedPipelineState {
 
         void Fill(const Maxwell& regs) noexcept;
 
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const Rasterizer& rhs) const noexcept;
-
-        bool operator!=(const Rasterizer& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-
         constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
             return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
         }
@@ -207,7 +183,6 @@ struct FixedPipelineState {
             return UnpackFrontFace(front_face.Value());
         }
     };
-    static_assert(IsHashable<Rasterizer>);
 
     struct DepthStencil {
         template <std::size_t Position>
@@ -247,39 +222,22 @@ struct FixedPipelineState {
 
         void Fill(const Maxwell& regs) noexcept;
 
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const DepthStencil& rhs) const noexcept;
-
-        bool operator!=(const DepthStencil& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-
         Maxwell::ComparisonOp DepthTestFunc() const noexcept {
             return UnpackComparisonOp(depth_test_func);
         }
     };
-    static_assert(IsHashable<DepthStencil>);
 
     struct ColorBlending {
         std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
 
         void Fill(const Maxwell& regs) noexcept;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const ColorBlending& rhs) const noexcept;
-
-        bool operator!=(const ColorBlending& rhs) const noexcept {
-            return !operator==(rhs);
-        }
     };
-    static_assert(IsHashable<ColorBlending>);
 
     VertexInput vertex_input;
     Rasterizer rasterizer;
     DepthStencil depth_stencil;
     ColorBlending color_blending;
+    std::array<u8, 20> padding;
 
     std::size_t Hash() const noexcept;
 
@@ -289,12 +247,10 @@ struct FixedPipelineState {
         return !operator==(rhs);
     }
 };
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::BlendingAttachment>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexInput>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::Rasterizer>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::DepthStencil>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::ColorBlending>);
+static_assert(std::has_unique_object_representations_v<FixedPipelineState>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState>);
+static_assert(std::is_trivially_constructible_v<FixedPipelineState>);
+static_assert(sizeof(FixedPipelineState) % 32 == 0, "Size is not aligned");
 
 FixedPipelineState GetFixedPipelineState(const Maxwell& regs);
 
