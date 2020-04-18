@@ -107,6 +107,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     switch (controller_type) {
     case NPadControllerType::None:
         UNREACHABLE();
+        break;
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
         controller.device_type.handheld.Assign(1);
@@ -363,6 +364,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         switch (controller_type) {
         case NPadControllerType::None:
             UNREACHABLE();
+            break;
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
             handheld_entry.connection_status.IsWired.Assign(1);
