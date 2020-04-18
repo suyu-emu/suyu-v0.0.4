@@ -286,29 +286,28 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     depth_stencil_ci.maxDepthBounds = 0.0f;
 
     std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
-    const std::size_t num_attachments =
-        std::min(cd.attachments_count, renderpass_params.color_attachments.size());
-    for (std::size_t i = 0; i < num_attachments; ++i) {
-        static constexpr std::array component_table = {
+    const std::size_t num_attachments = renderpass_params.color_attachments.size();
+    for (std::size_t index = 0; index < num_attachments; ++index) {
+        static constexpr std::array COMPONENT_TABLE = {
             VK_COLOR_COMPONENT_R_BIT, VK_COLOR_COMPONENT_G_BIT, VK_COLOR_COMPONENT_B_BIT,
             VK_COLOR_COMPONENT_A_BIT};
-        const auto& blend = cd.attachments[i];
+        const auto& blend = cd.attachments[index];
 
         VkColorComponentFlags color_components = 0;
-        for (std::size_t j = 0; j < component_table.size(); ++j) {
-            if (blend.components[j]) {
-                color_components |= component_table[j];
+        for (std::size_t i = 0; i < COMPONENT_TABLE.size(); ++i) {
+            if (blend.Mask()[i]) {
+                color_components |= COMPONENT_TABLE[i];
             }
         }
 
-        VkPipelineColorBlendAttachmentState& attachment = cb_attachments[i];
-        attachment.blendEnable = blend.enable;
-        attachment.srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.src_rgb_func);
-        attachment.dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.dst_rgb_func);
-        attachment.colorBlendOp = MaxwellToVK::BlendEquation(blend.rgb_equation);
-        attachment.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.src_a_func);
-        attachment.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.dst_a_func);
-        attachment.alphaBlendOp = MaxwellToVK::BlendEquation(blend.a_equation);
+        VkPipelineColorBlendAttachmentState& attachment = cb_attachments[index];
+        attachment.blendEnable = blend.enable != 0;
+        attachment.srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.SourceRGBFactor());
+        attachment.dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.DestRGBFactor());
+        attachment.colorBlendOp = MaxwellToVK::BlendEquation(blend.EquationRGB());
+        attachment.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.SourceAlphaFactor());
+        attachment.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.DestAlphaFactor());
+        attachment.alphaBlendOp = MaxwellToVK::BlendEquation(blend.EquationAlpha());
         attachment.colorWriteMask = color_components;
     }
 

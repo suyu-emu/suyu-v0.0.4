@@ -95,71 +95,58 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
     std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
 }
 
-namespace {
-
-constexpr FixedPipelineState::BlendingAttachment GetBlendingAttachmentState(
-    const Maxwell& regs, std::size_t render_target) {
-    const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : render_target];
-    const std::array components = {mask.R != 0, mask.G != 0, mask.B != 0, mask.A != 0};
-
-    const FixedPipelineState::BlendingAttachment default_blending(
-        false, Maxwell::Blend::Equation::Add, Maxwell::Blend::Factor::One,
-        Maxwell::Blend::Factor::Zero, Maxwell::Blend::Equation::Add, Maxwell::Blend::Factor::One,
-        Maxwell::Blend::Factor::Zero, components);
-    if (render_target >= regs.rt_control.count) {
-        return default_blending;
+void FixedPipelineState::ColorBlending::Fill(const Maxwell& regs) noexcept {
+    for (std::size_t index = 0; index < std::size(attachments); ++index) {
+        attachments[index].Fill(regs, index);
     }
+}
+
+void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size_t index) {
+    const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
+
+    raw = 0;
+    mask_r.Assign(mask.R);
+    mask_g.Assign(mask.G);
+    mask_b.Assign(mask.B);
+    mask_a.Assign(mask.A);
+
+    // TODO: C++20 Use templated lambda to deduplicate code
 
     if (!regs.independent_blend_enable) {
         const auto& src = regs.blend;
-        if (!src.enable[render_target]) {
-            return default_blending;
+        if (!src.enable[index]) {
+            return;
         }
-        return FixedPipelineState::BlendingAttachment(
-            true, src.equation_rgb, src.factor_source_rgb, src.factor_dest_rgb, src.equation_a,
-            src.factor_source_a, src.factor_dest_a, components);
+        equation_rgb.Assign(PackBlendEquation(src.equation_rgb));
+        equation_a.Assign(PackBlendEquation(src.equation_a));
+        factor_source_rgb.Assign(PackBlendFactor(src.factor_source_rgb));
+        factor_dest_rgb.Assign(PackBlendFactor(src.factor_dest_rgb));
+        factor_source_a.Assign(PackBlendFactor(src.factor_source_a));
+        factor_dest_a.Assign(PackBlendFactor(src.factor_dest_a));
+        enable.Assign(1);
+        return;
     }
 
-    if (!regs.blend.enable[render_target]) {
-        return default_blending;
+    if (!regs.blend.enable[index]) {
+        return;
     }
-    const auto& src = regs.independent_blend[render_target];
-    return FixedPipelineState::BlendingAttachment(
-        true, src.equation_rgb, src.factor_source_rgb, src.factor_dest_rgb, src.equation_a,
-        src.factor_source_a, src.factor_dest_a, components);
+    const auto& src = regs.independent_blend[index];
+    equation_rgb.Assign(PackBlendEquation(src.equation_rgb));
+    equation_a.Assign(PackBlendEquation(src.equation_a));
+    factor_source_rgb.Assign(PackBlendFactor(src.factor_source_rgb));
+    factor_dest_rgb.Assign(PackBlendFactor(src.factor_dest_rgb));
+    factor_source_a.Assign(PackBlendFactor(src.factor_source_a));
+    factor_dest_a.Assign(PackBlendFactor(src.factor_dest_a));
+    enable.Assign(1);
 }
-
-constexpr FixedPipelineState::ColorBlending GetColorBlendingState(const Maxwell& regs) {
-    return FixedPipelineState::ColorBlending(
-        {regs.blend_color.r, regs.blend_color.g, regs.blend_color.b, regs.blend_color.a},
-        regs.rt_control.count,
-        {GetBlendingAttachmentState(regs, 0), GetBlendingAttachmentState(regs, 1),
-         GetBlendingAttachmentState(regs, 2), GetBlendingAttachmentState(regs, 3),
-         GetBlendingAttachmentState(regs, 4), GetBlendingAttachmentState(regs, 5),
-         GetBlendingAttachmentState(regs, 6), GetBlendingAttachmentState(regs, 7)});
-}
-
-} // Anonymous namespace
 
 std::size_t FixedPipelineState::BlendingAttachment::Hash() const noexcept {
-    return static_cast<std::size_t>(enable) ^ (static_cast<std::size_t>(rgb_equation) << 5) ^
-           (static_cast<std::size_t>(src_rgb_func) << 10) ^
-           (static_cast<std::size_t>(dst_rgb_func) << 15) ^
-           (static_cast<std::size_t>(a_equation) << 20) ^
-           (static_cast<std::size_t>(src_a_func) << 25) ^
-           (static_cast<std::size_t>(dst_a_func) << 30) ^
-           (static_cast<std::size_t>(components[0]) << 35) ^
-           (static_cast<std::size_t>(components[1]) << 36) ^
-           (static_cast<std::size_t>(components[2]) << 37) ^
-           (static_cast<std::size_t>(components[3]) << 38);
+    return raw;
 }
 
 bool FixedPipelineState::BlendingAttachment::operator==(const BlendingAttachment& rhs) const
     noexcept {
-    return std::tie(enable, rgb_equation, src_rgb_func, dst_rgb_func, a_equation, src_a_func,
-                    dst_a_func, components) ==
-           std::tie(rhs.enable, rhs.rgb_equation, rhs.src_rgb_func, rhs.dst_rgb_func,
-                    rhs.a_equation, rhs.src_a_func, rhs.dst_a_func, rhs.components);
+    return raw == rhs.raw;
 }
 
 std::size_t FixedPipelineState::VertexInput::Hash() const noexcept {
@@ -190,16 +177,15 @@ bool FixedPipelineState::DepthStencil::operator==(const DepthStencil& rhs) const
 }
 
 std::size_t FixedPipelineState::ColorBlending::Hash() const noexcept {
-    std::size_t hash = attachments_count << 13;
-    for (std::size_t rt = 0; rt < static_cast<std::size_t>(attachments_count); ++rt) {
+    std::size_t hash = 0;
+    for (std::size_t rt = 0; rt < std::size(attachments); ++rt) {
         boost::hash_combine(hash, attachments[rt].Hash());
     }
     return hash;
 }
 
 bool FixedPipelineState::ColorBlending::operator==(const ColorBlending& rhs) const noexcept {
-    return std::equal(attachments.begin(), attachments.begin() + attachments_count,
-                      rhs.attachments.begin(), rhs.attachments.begin() + rhs.attachments_count);
+    return attachments == rhs.attachments;
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {
@@ -220,7 +206,7 @@ FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
     FixedPipelineState fixed_state;
     fixed_state.rasterizer.Fill(regs);
     fixed_state.depth_stencil.Fill(regs);
-    fixed_state.color_blending = GetColorBlendingState(regs);
+    fixed_state.color_blending.Fill(regs);
     return fixed_state;
 }
 
@@ -310,6 +296,123 @@ u32 FixedPipelineState::PackLogicOp(Maxwell::LogicOperation op) noexcept {
 
 Maxwell::LogicOperation FixedPipelineState::UnpackLogicOp(u32 packed) noexcept {
     return static_cast<Maxwell::LogicOperation>(packed + 0x1500);
+}
+
+u32 FixedPipelineState::PackBlendEquation(Maxwell::Blend::Equation equation) noexcept {
+    switch (equation) {
+    case Maxwell::Blend::Equation::Add:
+    case Maxwell::Blend::Equation::AddGL:
+        return 0;
+    case Maxwell::Blend::Equation::Subtract:
+    case Maxwell::Blend::Equation::SubtractGL:
+        return 1;
+    case Maxwell::Blend::Equation::ReverseSubtract:
+    case Maxwell::Blend::Equation::ReverseSubtractGL:
+        return 2;
+    case Maxwell::Blend::Equation::Min:
+    case Maxwell::Blend::Equation::MinGL:
+        return 3;
+    case Maxwell::Blend::Equation::Max:
+    case Maxwell::Blend::Equation::MaxGL:
+        return 4;
+    }
+    return 0;
+}
+
+Maxwell::Blend::Equation FixedPipelineState::UnpackBlendEquation(u32 packed) noexcept {
+    static constexpr std::array LUT = {
+        Maxwell::Blend::Equation::Add, Maxwell::Blend::Equation::Subtract,
+        Maxwell::Blend::Equation::ReverseSubtract, Maxwell::Blend::Equation::Min,
+        Maxwell::Blend::Equation::Max};
+    return LUT[packed];
+}
+
+u32 FixedPipelineState::PackBlendFactor(Maxwell::Blend::Factor factor) noexcept {
+    switch (factor) {
+    case Maxwell::Blend::Factor::Zero:
+    case Maxwell::Blend::Factor::ZeroGL:
+        return 0;
+    case Maxwell::Blend::Factor::One:
+    case Maxwell::Blend::Factor::OneGL:
+        return 1;
+    case Maxwell::Blend::Factor::SourceColor:
+    case Maxwell::Blend::Factor::SourceColorGL:
+        return 2;
+    case Maxwell::Blend::Factor::OneMinusSourceColor:
+    case Maxwell::Blend::Factor::OneMinusSourceColorGL:
+        return 3;
+    case Maxwell::Blend::Factor::SourceAlpha:
+    case Maxwell::Blend::Factor::SourceAlphaGL:
+        return 4;
+    case Maxwell::Blend::Factor::OneMinusSourceAlpha:
+    case Maxwell::Blend::Factor::OneMinusSourceAlphaGL:
+        return 5;
+    case Maxwell::Blend::Factor::DestAlpha:
+    case Maxwell::Blend::Factor::DestAlphaGL:
+        return 6;
+    case Maxwell::Blend::Factor::OneMinusDestAlpha:
+    case Maxwell::Blend::Factor::OneMinusDestAlphaGL:
+        return 7;
+    case Maxwell::Blend::Factor::DestColor:
+    case Maxwell::Blend::Factor::DestColorGL:
+        return 8;
+    case Maxwell::Blend::Factor::OneMinusDestColor:
+    case Maxwell::Blend::Factor::OneMinusDestColorGL:
+        return 9;
+    case Maxwell::Blend::Factor::SourceAlphaSaturate:
+    case Maxwell::Blend::Factor::SourceAlphaSaturateGL:
+        return 10;
+    case Maxwell::Blend::Factor::Source1Color:
+    case Maxwell::Blend::Factor::Source1ColorGL:
+        return 11;
+    case Maxwell::Blend::Factor::OneMinusSource1Color:
+    case Maxwell::Blend::Factor::OneMinusSource1ColorGL:
+        return 12;
+    case Maxwell::Blend::Factor::Source1Alpha:
+    case Maxwell::Blend::Factor::Source1AlphaGL:
+        return 13;
+    case Maxwell::Blend::Factor::OneMinusSource1Alpha:
+    case Maxwell::Blend::Factor::OneMinusSource1AlphaGL:
+        return 14;
+    case Maxwell::Blend::Factor::ConstantColor:
+    case Maxwell::Blend::Factor::ConstantColorGL:
+        return 15;
+    case Maxwell::Blend::Factor::OneMinusConstantColor:
+    case Maxwell::Blend::Factor::OneMinusConstantColorGL:
+        return 16;
+    case Maxwell::Blend::Factor::ConstantAlpha:
+    case Maxwell::Blend::Factor::ConstantAlphaGL:
+        return 17;
+    case Maxwell::Blend::Factor::OneMinusConstantAlpha:
+    case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
+        return 18;
+    }
+    return 0;
+}
+
+Maxwell::Blend::Factor FixedPipelineState::UnpackBlendFactor(u32 packed) noexcept {
+    static constexpr std::array LUT = {
+        Maxwell::Blend::Factor::Zero,
+        Maxwell::Blend::Factor::One,
+        Maxwell::Blend::Factor::SourceColor,
+        Maxwell::Blend::Factor::OneMinusSourceColor,
+        Maxwell::Blend::Factor::SourceAlpha,
+        Maxwell::Blend::Factor::OneMinusSourceAlpha,
+        Maxwell::Blend::Factor::DestAlpha,
+        Maxwell::Blend::Factor::OneMinusDestAlpha,
+        Maxwell::Blend::Factor::DestColor,
+        Maxwell::Blend::Factor::OneMinusDestColor,
+        Maxwell::Blend::Factor::SourceAlphaSaturate,
+        Maxwell::Blend::Factor::Source1Color,
+        Maxwell::Blend::Factor::OneMinusSource1Color,
+        Maxwell::Blend::Factor::Source1Alpha,
+        Maxwell::Blend::Factor::OneMinusSource1Alpha,
+        Maxwell::Blend::Factor::ConstantColor,
+        Maxwell::Blend::Factor::OneMinusConstantColor,
+        Maxwell::Blend::Factor::ConstantAlpha,
+        Maxwell::Blend::Factor::OneMinusConstantAlpha,
+    };
+    return LUT[packed];
 }
 
 } // namespace Vulkan

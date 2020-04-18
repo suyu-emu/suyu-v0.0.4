@@ -42,27 +42,29 @@ struct FixedPipelineState {
     static u32 PackLogicOp(Maxwell::LogicOperation op) noexcept;
     static Maxwell::LogicOperation UnpackLogicOp(u32 packed) noexcept;
 
-    struct BlendingAttachment {
-        constexpr BlendingAttachment(bool enable, Maxwell::Blend::Equation rgb_equation,
-                                     Maxwell::Blend::Factor src_rgb_func,
-                                     Maxwell::Blend::Factor dst_rgb_func,
-                                     Maxwell::Blend::Equation a_equation,
-                                     Maxwell::Blend::Factor src_a_func,
-                                     Maxwell::Blend::Factor dst_a_func,
-                                     std::array<bool, 4> components)
-            : enable{enable}, rgb_equation{rgb_equation}, src_rgb_func{src_rgb_func},
-              dst_rgb_func{dst_rgb_func}, a_equation{a_equation}, src_a_func{src_a_func},
-              dst_a_func{dst_a_func}, components{components} {}
-        BlendingAttachment() = default;
+    static u32 PackBlendEquation(Maxwell::Blend::Equation equation) noexcept;
+    static Maxwell::Blend::Equation UnpackBlendEquation(u32 packed) noexcept;
 
-        bool enable;
-        Maxwell::Blend::Equation rgb_equation;
-        Maxwell::Blend::Factor src_rgb_func;
-        Maxwell::Blend::Factor dst_rgb_func;
-        Maxwell::Blend::Equation a_equation;
-        Maxwell::Blend::Factor src_a_func;
-        Maxwell::Blend::Factor dst_a_func;
-        std::array<bool, 4> components;
+    static u32 PackBlendFactor(Maxwell::Blend::Factor factor) noexcept;
+    static Maxwell::Blend::Factor UnpackBlendFactor(u32 packed) noexcept;
+
+    struct BlendingAttachment {
+        union {
+            u32 raw;
+            BitField<0, 1, u32> mask_r;
+            BitField<1, 1, u32> mask_g;
+            BitField<2, 1, u32> mask_b;
+            BitField<3, 1, u32> mask_a;
+            BitField<4, 3, u32> equation_rgb;
+            BitField<7, 3, u32> equation_a;
+            BitField<10, 5, u32> factor_source_rgb;
+            BitField<15, 5, u32> factor_dest_rgb;
+            BitField<20, 5, u32> factor_source_a;
+            BitField<25, 5, u32> factor_dest_a;
+            BitField<30, 1, u32> enable;
+        };
+
+        void Fill(const Maxwell& regs, std::size_t index);
 
         std::size_t Hash() const noexcept;
 
@@ -71,7 +73,36 @@ struct FixedPipelineState {
         bool operator!=(const BlendingAttachment& rhs) const noexcept {
             return !operator==(rhs);
         }
+
+        constexpr std::array<bool, 4> Mask() const noexcept {
+            return {mask_r != 0, mask_g != 0, mask_b != 0, mask_a != 0};
+        }
+
+        Maxwell::Blend::Equation EquationRGB() const noexcept {
+            return UnpackBlendEquation(equation_rgb.Value());
+        }
+
+        Maxwell::Blend::Equation EquationAlpha() const noexcept {
+            return UnpackBlendEquation(equation_a.Value());
+        }
+
+        Maxwell::Blend::Factor SourceRGBFactor() const noexcept {
+            return UnpackBlendFactor(factor_source_rgb.Value());
+        }
+
+        Maxwell::Blend::Factor DestRGBFactor() const noexcept {
+            return UnpackBlendFactor(factor_dest_rgb.Value());
+        }
+
+        Maxwell::Blend::Factor SourceAlphaFactor() const noexcept {
+            return UnpackBlendFactor(factor_source_a.Value());
+        }
+
+        Maxwell::Blend::Factor DestAlphaFactor() const noexcept {
+            return UnpackBlendFactor(factor_dest_a.Value());
+        }
     };
+    static_assert(IsHashable<BlendingAttachment>);
 
     struct VertexInput {
         union Binding {
@@ -231,14 +262,9 @@ struct FixedPipelineState {
     static_assert(IsHashable<DepthStencil>);
 
     struct ColorBlending {
-        constexpr ColorBlending(
-            std::array<float, 4> blend_constants, std::size_t attachments_count,
-            std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments)
-            : attachments_count{attachments_count}, attachments{attachments} {}
-        ColorBlending() = default;
-
-        std::size_t attachments_count;
         std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
+
+        void Fill(const Maxwell& regs) noexcept;
 
         std::size_t Hash() const noexcept;
 
@@ -248,6 +274,7 @@ struct FixedPipelineState {
             return !operator==(rhs);
         }
     };
+    static_assert(IsHashable<ColorBlending>);
 
     VertexInput vertex_input;
     Rasterizer rasterizer;
