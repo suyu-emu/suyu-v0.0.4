@@ -1145,6 +1145,7 @@ private:
                 return {"gl_FragCoord"s + GetSwizzle(element), Type::Float};
             default:
                 UNREACHABLE();
+                return {"0", Type::Int};
             }
         case Attribute::Index::FrontColor:
             return {"gl_Color"s + GetSwizzle(element), Type::Float};
