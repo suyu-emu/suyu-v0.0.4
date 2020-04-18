@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <cstring>
 #include <tuple>
 
 #include <boost/functional/hash.hpp>
@@ -11,6 +12,31 @@
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 
 namespace Vulkan {
+
+namespace {
+
+constexpr std::size_t POINT = 0;
+constexpr std::size_t LINE = 1;
+constexpr std::size_t POLYGON = 2;
+constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
+    POINT,   // Points
+    LINE,    // Lines
+    LINE,    // LineLoop
+    LINE,    // LineStrip
+    POLYGON, // Triangles
+    POLYGON, // TriangleStrip
+    POLYGON, // TriangleFan
+    POLYGON, // Quads
+    POLYGON, // QuadStrip
+    POLYGON, // Polygon
+    LINE,    // LinesAdjacency
+    LINE,    // LineStripAdjacency
+    POLYGON, // TrianglesAdjacency
+    POLYGON, // TriangleStripAdjacency
+    POLYGON, // Patches
+};
+
+} // Anonymous namespace
 
 void FixedPipelineState::DepthStencil::Fill(const Maxwell& regs) noexcept {
     raw = 0;
@@ -36,13 +62,40 @@ void FixedPipelineState::DepthStencil::Fill(const Maxwell& regs) noexcept {
     depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
 }
 
-namespace {
+void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
+    const auto& clip = regs.view_volume_clip_control;
+    const std::array enabled_lut = {regs.polygon_offset_point_enable,
+                                    regs.polygon_offset_line_enable,
+                                    regs.polygon_offset_fill_enable};
+    const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
 
-constexpr FixedPipelineState::InputAssembly GetInputAssemblyState(const Maxwell& regs) {
-    return FixedPipelineState::InputAssembly(
-        regs.draw.topology, regs.primitive_restart.enabled,
-        regs.draw.topology == Maxwell::PrimitiveTopology::Points ? regs.point_size : 0.0f);
+    u32 packed_front_face = PackFrontFace(regs.front_face);
+    if (regs.screen_y_control.triangle_rast_flip != 0 &&
+        regs.viewport_transform[0].scale_y > 0.0f) {
+        // Flip front face
+        packed_front_face = 1 - packed_front_face;
+    }
+
+    raw = 0;
+    topology.Assign(topology_index);
+    primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
+    cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
+    depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
+    depth_clamp_enable.Assign(clip.depth_clamp_near == 1 || clip.depth_clamp_far == 1 ? 1 : 0);
+    ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
+    cull_face.Assign(PackCullFace(regs.cull_face));
+    front_face.Assign(packed_front_face);
+    polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
+    patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
+    tessellation_primitive.Assign(static_cast<u32>(regs.tess_mode.prim.Value()));
+    tessellation_spacing.Assign(static_cast<u32>(regs.tess_mode.spacing.Value()));
+    tessellation_clockwise.Assign(regs.tess_mode.cw.Value());
+    logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
+    logic_op.Assign(PackLogicOp(regs.logic_op.operation));
+    std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
 }
+
+namespace {
 
 constexpr FixedPipelineState::BlendingAttachment GetBlendingAttachmentState(
     const Maxwell& regs, std::size_t render_target) {
@@ -86,56 +139,6 @@ constexpr FixedPipelineState::ColorBlending GetColorBlendingState(const Maxwell&
          GetBlendingAttachmentState(regs, 6), GetBlendingAttachmentState(regs, 7)});
 }
 
-constexpr FixedPipelineState::Tessellation GetTessellationState(const Maxwell& regs) {
-    return FixedPipelineState::Tessellation(regs.patch_vertices, regs.tess_mode.prim,
-                                            regs.tess_mode.spacing, regs.tess_mode.cw != 0);
-}
-
-constexpr std::size_t Point = 0;
-constexpr std::size_t Line = 1;
-constexpr std::size_t Polygon = 2;
-constexpr std::array PolygonOffsetEnableLUT = {
-    Point,   // Points
-    Line,    // Lines
-    Line,    // LineLoop
-    Line,    // LineStrip
-    Polygon, // Triangles
-    Polygon, // TriangleStrip
-    Polygon, // TriangleFan
-    Polygon, // Quads
-    Polygon, // QuadStrip
-    Polygon, // Polygon
-    Line,    // LinesAdjacency
-    Line,    // LineStripAdjacency
-    Polygon, // TrianglesAdjacency
-    Polygon, // TriangleStripAdjacency
-    Polygon, // Patches
-};
-
-constexpr FixedPipelineState::Rasterizer GetRasterizerState(const Maxwell& regs) {
-    const std::array enabled_lut = {regs.polygon_offset_point_enable,
-                                    regs.polygon_offset_line_enable,
-                                    regs.polygon_offset_fill_enable};
-    const auto topology = static_cast<std::size_t>(regs.draw.topology.Value());
-    const bool depth_bias_enabled = enabled_lut[PolygonOffsetEnableLUT[topology]];
-
-    const auto& clip = regs.view_volume_clip_control;
-    const bool depth_clamp_enabled = clip.depth_clamp_near == 1 || clip.depth_clamp_far == 1;
-
-    Maxwell::FrontFace front_face = regs.front_face;
-    if (regs.screen_y_control.triangle_rast_flip != 0 &&
-        regs.viewport_transform[0].scale_y > 0.0f) {
-        if (front_face == Maxwell::FrontFace::CounterClockWise)
-            front_face = Maxwell::FrontFace::ClockWise;
-        else if (front_face == Maxwell::FrontFace::ClockWise)
-            front_face = Maxwell::FrontFace::CounterClockWise;
-    }
-
-    const bool gl_ndc = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne;
-    return FixedPipelineState::Rasterizer(regs.cull_test_enabled, depth_bias_enabled,
-                                          depth_clamp_enabled, gl_ndc, regs.cull_face, front_face);
-}
-
 } // Anonymous namespace
 
 std::size_t FixedPipelineState::BlendingAttachment::Hash() const noexcept {
@@ -168,43 +171,14 @@ bool FixedPipelineState::VertexInput::operator==(const VertexInput& rhs) const n
     return std::memcmp(this, &rhs, sizeof *this) == 0;
 }
 
-std::size_t FixedPipelineState::InputAssembly::Hash() const noexcept {
-    std::size_t point_size_int = 0;
-    std::memcpy(&point_size_int, &point_size, sizeof(point_size));
-    return (static_cast<std::size_t>(topology) << 24) ^ (point_size_int << 32) ^
-           static_cast<std::size_t>(primitive_restart_enable);
-}
-
-bool FixedPipelineState::InputAssembly::operator==(const InputAssembly& rhs) const noexcept {
-    return std::tie(topology, primitive_restart_enable, point_size) ==
-           std::tie(rhs.topology, rhs.primitive_restart_enable, rhs.point_size);
-}
-
-std::size_t FixedPipelineState::Tessellation::Hash() const noexcept {
-    return static_cast<std::size_t>(patch_control_points) ^
-           (static_cast<std::size_t>(primitive) << 6) ^ (static_cast<std::size_t>(spacing) << 8) ^
-           (static_cast<std::size_t>(clockwise) << 10);
-}
-
-bool FixedPipelineState::Tessellation::operator==(const Tessellation& rhs) const noexcept {
-    return std::tie(patch_control_points, primitive, spacing, clockwise) ==
-           std::tie(rhs.patch_control_points, rhs.primitive, rhs.spacing, rhs.clockwise);
-}
-
 std::size_t FixedPipelineState::Rasterizer::Hash() const noexcept {
-    return static_cast<std::size_t>(cull_enable) ^
-           (static_cast<std::size_t>(depth_bias_enable) << 1) ^
-           (static_cast<std::size_t>(depth_clamp_enable) << 2) ^
-           (static_cast<std::size_t>(ndc_minus_one_to_one) << 3) ^
-           (static_cast<std::size_t>(cull_face) << 24) ^
-           (static_cast<std::size_t>(front_face) << 48);
+    u64 hash = static_cast<u64>(raw) << 32;
+    std::memcpy(&hash, &point_size, sizeof(u32));
+    return static_cast<std::size_t>(hash);
 }
 
 bool FixedPipelineState::Rasterizer::operator==(const Rasterizer& rhs) const noexcept {
-    return std::tie(cull_enable, depth_bias_enable, depth_clamp_enable, ndc_minus_one_to_one,
-                    cull_face, front_face) ==
-           std::tie(rhs.cull_enable, rhs.depth_bias_enable, rhs.depth_clamp_enable,
-                    rhs.ndc_minus_one_to_one, rhs.cull_face, rhs.front_face);
+    return raw == rhs.raw && point_size == rhs.point_size;
 }
 
 std::size_t FixedPipelineState::DepthStencil::Hash() const noexcept {
@@ -231,8 +205,6 @@ bool FixedPipelineState::ColorBlending::operator==(const ColorBlending& rhs) con
 std::size_t FixedPipelineState::Hash() const noexcept {
     std::size_t hash = 0;
     boost::hash_combine(hash, vertex_input.Hash());
-    boost::hash_combine(hash, input_assembly.Hash());
-    boost::hash_combine(hash, tessellation.Hash());
     boost::hash_combine(hash, rasterizer.Hash());
     boost::hash_combine(hash, depth_stencil.Hash());
     boost::hash_combine(hash, color_blending.Hash());
@@ -240,17 +212,13 @@ std::size_t FixedPipelineState::Hash() const noexcept {
 }
 
 bool FixedPipelineState::operator==(const FixedPipelineState& rhs) const noexcept {
-    return std::tie(vertex_input, input_assembly, tessellation, rasterizer, depth_stencil,
-                    color_blending) == std::tie(rhs.vertex_input, rhs.input_assembly,
-                                                rhs.tessellation, rhs.rasterizer, rhs.depth_stencil,
-                                                rhs.color_blending);
+    return std::tie(vertex_input, rasterizer, depth_stencil, color_blending) ==
+           std::tie(rhs.vertex_input, rhs.rasterizer, rhs.depth_stencil, rhs.color_blending);
 }
 
 FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
     FixedPipelineState fixed_state;
-    fixed_state.input_assembly = GetInputAssemblyState(regs);
-    fixed_state.tessellation = GetTessellationState(regs);
-    fixed_state.rasterizer = GetRasterizerState(regs);
+    fixed_state.rasterizer.Fill(regs);
     fixed_state.depth_stencil.Fill(regs);
     fixed_state.color_blending = GetColorBlendingState(regs);
     return fixed_state;
@@ -305,6 +273,43 @@ Maxwell::StencilOp FixedPipelineState::UnpackStencilOp(u32 packed) noexcept {
                                        Maxwell::StencilOp::Decr,     Maxwell::StencilOp::Invert,
                                        Maxwell::StencilOp::IncrWrap, Maxwell::StencilOp::DecrWrap};
     return LUT[packed];
+}
+
+u32 FixedPipelineState::PackCullFace(Maxwell::CullFace cull) noexcept {
+    // FrontAndBack is 0x408, by substracting 0x406 in it we get 2.
+    // Individual cull faces are in 0x404 and 0x405, substracting 0x404 we get 0 and 1.
+    const u32 value = static_cast<u32>(cull);
+    return value - (value == 0x408 ? 0x406 : 0x404);
+}
+
+Maxwell::CullFace FixedPipelineState::UnpackCullFace(u32 packed) noexcept {
+    static constexpr std::array LUT = {Maxwell::CullFace::Front, Maxwell::CullFace::Back,
+                                       Maxwell::CullFace::FrontAndBack};
+    return LUT[packed];
+}
+
+u32 FixedPipelineState::PackFrontFace(Maxwell::FrontFace face) noexcept {
+    return static_cast<u32>(face) - 0x900;
+}
+
+Maxwell::FrontFace FixedPipelineState::UnpackFrontFace(u32 packed) noexcept {
+    return static_cast<Maxwell::FrontFace>(packed + 0x900);
+}
+
+u32 FixedPipelineState::PackPolygonMode(Maxwell::PolygonMode mode) noexcept {
+    return static_cast<u32>(mode) - 0x1B00;
+}
+
+Maxwell::PolygonMode FixedPipelineState::UnpackPolygonMode(u32 packed) noexcept {
+    return static_cast<Maxwell::PolygonMode>(packed + 0x1B00);
+}
+
+u32 FixedPipelineState::PackLogicOp(Maxwell::LogicOperation op) noexcept {
+    return static_cast<u32>(op) - 0x1500;
+}
+
+Maxwell::LogicOperation FixedPipelineState::UnpackLogicOp(u32 packed) noexcept {
+    return static_cast<Maxwell::LogicOperation>(packed + 0x1500);
 }
 
 } // namespace Vulkan

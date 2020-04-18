@@ -329,9 +329,9 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     const auto& gpu = system.GPU().Maxwell3D();
 
     Specialization specialization;
-    if (fixed_state.input_assembly.topology == Maxwell::PrimitiveTopology::Points) {
-        ASSERT(fixed_state.input_assembly.point_size != 0.0f);
-        specialization.point_size = fixed_state.input_assembly.point_size;
+    if (fixed_state.rasterizer.Topology() == Maxwell::PrimitiveTopology::Points) {
+        ASSERT(fixed_state.rasterizer.point_size != 0);
+        std::memcpy(&specialization.point_size, &fixed_state.rasterizer.point_size, sizeof(u32));
     }
     for (std::size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
         specialization.attribute_types[i] = fixed_state.vertex_input.attributes[i].Type();

@@ -158,10 +158,8 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
                                                 const SPIRVProgram& program) const {
     const auto& vi = fixed_state.vertex_input;
-    const auto& ia = fixed_state.input_assembly;
     const auto& ds = fixed_state.depth_stencil;
     const auto& cd = fixed_state.color_blending;
-    const auto& ts = fixed_state.tessellation;
     const auto& rs = fixed_state.rasterizer;
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
@@ -226,15 +224,15 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     input_assembly_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_ci.pNext = nullptr;
     input_assembly_ci.flags = 0;
-    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, ia.topology);
+    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, rs.Topology());
     input_assembly_ci.primitiveRestartEnable =
-        ia.primitive_restart_enable && SupportsPrimitiveRestart(input_assembly_ci.topology);
+        rs.primitive_restart_enable != 0 && SupportsPrimitiveRestart(input_assembly_ci.topology);
 
     VkPipelineTessellationStateCreateInfo tessellation_ci;
     tessellation_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
     tessellation_ci.pNext = nullptr;
     tessellation_ci.flags = 0;
-    tessellation_ci.patchControlPoints = ts.patch_control_points;
+    tessellation_ci.patchControlPoints = rs.patch_control_points_minus_one.Value() + 1;
 
     VkPipelineViewportStateCreateInfo viewport_ci;
     viewport_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -253,8 +251,8 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     rasterization_ci.rasterizerDiscardEnable = VK_FALSE;
     rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
     rasterization_ci.cullMode =
-        rs.cull_enable ? MaxwellToVK::CullFace(rs.cull_face) : VK_CULL_MODE_NONE;
-    rasterization_ci.frontFace = MaxwellToVK::FrontFace(rs.front_face);
+        rs.cull_enable ? MaxwellToVK::CullFace(rs.CullFace()) : VK_CULL_MODE_NONE;
+    rasterization_ci.frontFace = MaxwellToVK::FrontFace(rs.FrontFace());
     rasterization_ci.depthBiasEnable = rs.depth_bias_enable;
     rasterization_ci.depthBiasConstantFactor = 0.0f;
     rasterization_ci.depthBiasClamp = 0.0f;

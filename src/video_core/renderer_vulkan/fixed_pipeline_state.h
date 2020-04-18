@@ -30,6 +30,18 @@ struct FixedPipelineState {
     static u32 PackStencilOp(Maxwell::StencilOp op) noexcept;
     static Maxwell::StencilOp UnpackStencilOp(u32 packed) noexcept;
 
+    static u32 PackCullFace(Maxwell::CullFace cull) noexcept;
+    static Maxwell::CullFace UnpackCullFace(u32 packed) noexcept;
+
+    static u32 PackFrontFace(Maxwell::FrontFace face) noexcept;
+    static Maxwell::FrontFace UnpackFrontFace(u32 packed) noexcept;
+
+    static u32 PackPolygonMode(Maxwell::PolygonMode mode) noexcept;
+    static Maxwell::PolygonMode UnpackPolygonMode(u32 packed) noexcept;
+
+    static u32 PackLogicOp(Maxwell::LogicOperation op) noexcept;
+    static Maxwell::LogicOperation UnpackLogicOp(u32 packed) noexcept;
+
     struct BlendingAttachment {
         constexpr BlendingAttachment(bool enable, Maxwell::Blend::Equation rgb_equation,
                                      Maxwell::Blend::Factor src_rgb_func,
@@ -119,62 +131,30 @@ struct FixedPipelineState {
     };
     static_assert(IsHashable<VertexInput>);
 
-    struct InputAssembly {
-        constexpr InputAssembly(Maxwell::PrimitiveTopology topology, bool primitive_restart_enable,
-                                float point_size)
-            : topology{topology}, primitive_restart_enable{primitive_restart_enable},
-              point_size{point_size} {}
-        InputAssembly() = default;
-
-        Maxwell::PrimitiveTopology topology;
-        bool primitive_restart_enable;
-        float point_size;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const InputAssembly& rhs) const noexcept;
-
-        bool operator!=(const InputAssembly& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-    };
-
-    struct Tessellation {
-        constexpr Tessellation(u32 patch_control_points, Maxwell::TessellationPrimitive primitive,
-                               Maxwell::TessellationSpacing spacing, bool clockwise)
-            : patch_control_points{patch_control_points}, primitive{primitive}, spacing{spacing},
-              clockwise{clockwise} {}
-        Tessellation() = default;
-
-        u32 patch_control_points;
-        Maxwell::TessellationPrimitive primitive;
-        Maxwell::TessellationSpacing spacing;
-        bool clockwise;
-
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const Tessellation& rhs) const noexcept;
-
-        bool operator!=(const Tessellation& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-    };
-
     struct Rasterizer {
-        constexpr Rasterizer(bool cull_enable, bool depth_bias_enable, bool depth_clamp_enable,
-                             bool ndc_minus_one_to_one, Maxwell::CullFace cull_face,
-                             Maxwell::FrontFace front_face)
-            : cull_enable{cull_enable}, depth_bias_enable{depth_bias_enable},
-              depth_clamp_enable{depth_clamp_enable}, ndc_minus_one_to_one{ndc_minus_one_to_one},
-              cull_face{cull_face}, front_face{front_face} {}
-        Rasterizer() = default;
+        union {
+            u32 raw;
+            BitField<0, 4, u32> topology;
+            BitField<4, 1, u32> primitive_restart_enable;
+            BitField<5, 1, u32> cull_enable;
+            BitField<6, 1, u32> depth_bias_enable;
+            BitField<7, 1, u32> depth_clamp_enable;
+            BitField<8, 1, u32> ndc_minus_one_to_one;
+            BitField<9, 2, u32> cull_face;
+            BitField<11, 1, u32> front_face;
+            BitField<12, 2, u32> polygon_mode;
+            BitField<14, 5, u32> patch_control_points_minus_one;
+            BitField<19, 2, u32> tessellation_primitive;
+            BitField<21, 2, u32> tessellation_spacing;
+            BitField<23, 1, u32> tessellation_clockwise;
+            BitField<24, 1, u32> logic_op_enable;
+            BitField<25, 4, u32> logic_op;
+        };
 
-        bool cull_enable;
-        bool depth_bias_enable;
-        bool depth_clamp_enable;
-        bool ndc_minus_one_to_one;
-        Maxwell::CullFace cull_face;
-        Maxwell::FrontFace front_face;
+        // TODO(Rodrigo): Move this to push constants
+        u32 point_size;
+
+        void Fill(const Maxwell& regs) noexcept;
 
         std::size_t Hash() const noexcept;
 
@@ -183,7 +163,20 @@ struct FixedPipelineState {
         bool operator!=(const Rasterizer& rhs) const noexcept {
             return !operator==(rhs);
         }
+
+        constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
+            return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
+        }
+
+        Maxwell::CullFace CullFace() const noexcept {
+            return UnpackCullFace(cull_face.Value());
+        }
+
+        Maxwell::FrontFace FrontFace() const noexcept {
+            return UnpackFrontFace(front_face.Value());
+        }
     };
+    static_assert(IsHashable<Rasterizer>);
 
     struct DepthStencil {
         template <std::size_t Position>
@@ -257,8 +250,6 @@ struct FixedPipelineState {
     };
 
     VertexInput vertex_input;
-    InputAssembly input_assembly;
-    Tessellation tessellation;
     Rasterizer rasterizer;
     DepthStencil depth_stencil;
     ColorBlending color_blending;
@@ -273,8 +264,6 @@ struct FixedPipelineState {
 };
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::BlendingAttachment>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::VertexInput>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::InputAssembly>);
-static_assert(std::is_trivially_copyable_v<FixedPipelineState::Tessellation>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::Rasterizer>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::DepthStencil>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState::ColorBlending>);
