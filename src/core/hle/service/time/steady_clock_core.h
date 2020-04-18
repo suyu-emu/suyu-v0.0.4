@@ -16,6 +16,7 @@ namespace Service::Time::Clock {
 class SteadyClockCore {
 public:
     SteadyClockCore() = default;
+    virtual ~SteadyClockCore() = default;
 
     const Common::UUID& GetClockSourceId() const {
         return clock_source_id;

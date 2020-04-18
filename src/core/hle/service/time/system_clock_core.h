@@ -22,7 +22,7 @@ class SystemClockContextUpdateCallback;
 class SystemClockCore {
 public:
     explicit SystemClockCore(SteadyClockCore& steady_clock_core);
-    ~SystemClockCore();
+    virtual ~SystemClockCore();
 
     SteadyClockCore& GetSteadyClockCore() const {
         return steady_clock_core;

@@ -23,7 +23,7 @@ public:
         standard_network_clock_sufficient_accuracy = value;
     }
 
-    bool IsStandardNetworkSystemClockAccuracySufficient(Core::System& system) {
+    bool IsStandardNetworkSystemClockAccuracySufficient(Core::System& system) const {
         SystemClockContext context{};
         if (GetClockContext(system, context) != RESULT_SUCCESS) {
             return {};

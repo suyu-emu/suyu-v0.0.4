@@ -9,7 +9,7 @@
 namespace Service::Time::Clock {
 
 SystemClockCore::SystemClockCore(SteadyClockCore& steady_clock_core)
-    : steady_clock_core{steady_clock_core}, is_initialized{} {
+    : steady_clock_core{steady_clock_core} {
     context.steady_time_point.clock_source_id = steady_clock_core.GetClockSourceId();
 }
 
