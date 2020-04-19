@@ -42,7 +42,7 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 
-#ifdef __linux__
+#if !defined(_WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <vulkan/vulkan_wayland.h>
 #include <vulkan/vulkan_xlib.h>
@@ -119,7 +119,7 @@ vk::Instance CreateInstance(Common::DynamicLibrary& library, vk::InstanceDispatc
         extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
         break;
 #endif
-#ifdef __linux__
+#if !defined(_WIN32) && !defined(__APPLE__)
     case Core::Frontend::WindowSystemType::X11:
         extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
         break;
@@ -345,7 +345,7 @@ bool RendererVulkan::CreateSurface() {
         }
     }
 #endif
-#ifdef __linux__
+#if !defined(_WIN32) && !defined(__APPLE__)
     if (window_info.type == Core::Frontend::WindowSystemType::X11) {
         const VkXlibSurfaceCreateInfoKHR xlib_ci{
             VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR, nullptr, 0,
