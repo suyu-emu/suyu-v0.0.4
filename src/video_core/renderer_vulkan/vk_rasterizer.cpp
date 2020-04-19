@@ -834,8 +834,8 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
         const GPUVAddr start{vertex_array.StartAddress()};
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
 
-        ASSERT(end > start);
-        const std::size_t size{end - start + 1};
+        ASSERT(end >= start);
+        const std::size_t size{end - start};
         const auto [buffer, offset] = buffer_cache.UploadMemory(start, size);
         buffer_bindings.AddVertexBinding(buffer, offset);
     }
@@ -1179,7 +1179,7 @@ std::size_t RasterizerVulkan::CalculateVertexArraysSize() const {
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
         DEBUG_ASSERT(end >= start);
 
-        size += (end - start + 1) * regs.vertex_array[index].enable;
+        size += (end - start) * regs.vertex_array[index].enable;
     }
     return size;
 }
