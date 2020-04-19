@@ -84,6 +84,10 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 }
 
 void ThreadManager::FlushRegion(VAddr addr, u64 size) {
+    if (!Settings::IsGPULevelHigh()) {
+        PushCommand(FlushRegionCommand(addr, size));
+        return;
+    }
     if (!Settings::IsGPULevelExtreme()) {
         return;
     }

@@ -653,6 +653,9 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
 }
 
 bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size) {
+    if (!Settings::IsGPULevelHigh()) {
+        return buffer_cache.MustFlushRegion(addr, size);
+    }
     return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
 }
 

@@ -17,6 +17,7 @@
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
@@ -519,6 +520,9 @@ void RasterizerVulkan::FlushRegion(VAddr addr, u64 size) {
 }
 
 bool RasterizerVulkan::MustFlushRegion(VAddr addr, u64 size) {
+    if (!Settings::IsGPULevelHigh()) {
+        return buffer_cache.MustFlushRegion(addr, size);
+    }
     return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
 }
 
