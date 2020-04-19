@@ -8,6 +8,7 @@
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
@@ -66,6 +67,24 @@ public:
     ~Uint8Pass();
 
     std::pair<VkBuffer, u64> Assemble(u32 num_vertices, VkBuffer src_buffer, u64 src_offset);
+
+private:
+    VKScheduler& scheduler;
+    VKStagingBufferPool& staging_buffer_pool;
+    VKUpdateDescriptorQueue& update_descriptor_queue;
+};
+
+class QuadIndexedPass final : public VKComputePass {
+public:
+    explicit QuadIndexedPass(const VKDevice& device, VKScheduler& scheduler,
+                             VKDescriptorPool& descriptor_pool,
+                             VKStagingBufferPool& staging_buffer_pool,
+                             VKUpdateDescriptorQueue& update_descriptor_queue);
+    ~QuadIndexedPass();
+
+    std::pair<VkBuffer, u64> Assemble(Tegra::Engines::Maxwell3D::Regs::IndexFormat index_format,
+                                      u32 num_vertices, u32 base_vertex, VkBuffer src_buffer,
+                                      u64 src_offset);
 
 private:
     VKScheduler& scheduler;
