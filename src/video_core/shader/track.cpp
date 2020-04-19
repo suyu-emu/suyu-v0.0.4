@@ -76,12 +76,13 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, cons
                                                               s64 cursor) {
     if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
         // Constant buffer found, test if it's an immediate
-        const auto offset = cbuf->GetOffset();
+        const auto& offset = cbuf->GetOffset();
         if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
             auto track =
                 MakeTrackSampler<BindlessSamplerNode>(cbuf->GetIndex(), immediate->GetValue());
             return {tracked, track};
-        } else if (const auto operation = std::get_if<OperationNode>(&*offset)) {
+        }
+        if (const auto operation = std::get_if<OperationNode>(&*offset)) {
             const u32 bound_buffer = registry.GetBoundBuffer();
             if (bound_buffer != cbuf->GetIndex()) {
                 return {};
@@ -94,12 +95,12 @@ std::tuple<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, cons
             const auto offset_inm = std::get_if<ImmediateNode>(&*base_offset);
             const auto& gpu_driver = registry.AccessGuestDriverProfile();
             const u32 bindless_cv = NewCustomVariable();
-            const Node op =
+            Node op =
                 Operation(OperationCode::UDiv, gpr, Immediate(gpu_driver.GetTextureHandlerSize()));
 
             const Node cv_node = GetCustomVariable(bindless_cv);
             Node amend_op = Operation(OperationCode::Assign, cv_node, std::move(op));
-            const std::size_t amend_index = DeclareAmend(amend_op);
+            const std::size_t amend_index = DeclareAmend(std::move(amend_op));
             AmendNodeCv(amend_index, code[cursor]);
             // TODO Implement Bindless Index custom variable
             auto track = MakeTrackSampler<ArraySamplerNode>(cbuf->GetIndex(),
@@ -142,7 +143,7 @@ std::tuple<Node, u32, u32> ShaderIR::TrackCbuf(Node tracked, const NodeBlock& co
                                                s64 cursor) const {
     if (const auto cbuf = std::get_if<CbufNode>(&*tracked)) {
         // Constant buffer found, test if it's an immediate
-        const auto offset = cbuf->GetOffset();
+        const auto& offset = cbuf->GetOffset();
         if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
             return {tracked, cbuf->GetIndex(), immediate->GetValue()};
         }
