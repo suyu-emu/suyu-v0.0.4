@@ -164,7 +164,7 @@ if (ENABLE_SDL2)
             set(SDL2_LIBRARIES "SDL2::SDL2")
         endif()
 
-        include_directories(${SDL2_INCLUDE_DIRS})
+        include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
         add_library(SDL2 INTERFACE)
         target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
     endif()
