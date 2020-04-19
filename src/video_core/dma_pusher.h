@@ -10,6 +10,10 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 
+namespace Core {
+class System;
+}
+
 namespace Tegra {
 
 enum class SubmissionMode : u32 {
@@ -56,7 +60,7 @@ using CommandList = std::vector<Tegra::CommandListHeader>;
  */
 class DmaPusher {
 public:
-    explicit DmaPusher(GPU& gpu);
+    explicit DmaPusher(Core::System& system, GPU& gpu);
     ~DmaPusher();
 
     void Push(CommandList&& entries) {
@@ -71,8 +75,6 @@ private:
     void SetState(const CommandHeader& command_header);
 
     void CallMethod(u32 argument) const;
-
-    GPU& gpu;
 
     std::vector<CommandHeader> command_headers; ///< Buffer for list of commands fetched at once
 
@@ -92,6 +94,9 @@ private:
 
     GPUVAddr dma_mget{};  ///< main pushbuffer last read address
     bool ib_enable{true}; ///< IB mode enabled
+
+    GPU& gpu;
+    Core::System& system;
 };
 
 } // namespace Tegra
