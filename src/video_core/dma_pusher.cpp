@@ -12,7 +12,7 @@
 
 namespace Tegra {
 
-DmaPusher::DmaPusher(GPU& gpu) : gpu(gpu) {}
+DmaPusher::DmaPusher(Core::System& system, GPU& gpu) : gpu{gpu}, system{system} {}
 
 DmaPusher::~DmaPusher() = default;
 
@@ -26,7 +26,7 @@ void DmaPusher::DispatchCalls() {
 
     dma_pushbuffer_subindex = 0;
 
-    while (Core::System::GetInstance().IsPoweredOn()) {
+    while (system.IsPoweredOn()) {
         if (!Step()) {
             break;
         }

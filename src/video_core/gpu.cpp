@@ -27,7 +27,7 @@ GPU::GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& render
     : system{system}, renderer{std::move(renderer_)}, is_async{is_async} {
     auto& rasterizer{renderer->Rasterizer()};
     memory_manager = std::make_unique<Tegra::MemoryManager>(system, rasterizer);
-    dma_pusher = std::make_unique<Tegra::DmaPusher>(*this);
+    dma_pusher = std::make_unique<Tegra::DmaPusher>(system, *this);
     maxwell_3d = std::make_unique<Engines::Maxwell3D>(system, rasterizer, *memory_manager);
     fermi_2d = std::make_unique<Engines::Fermi2D>(rasterizer);
     kepler_compute = std::make_unique<Engines::KeplerCompute>(system, rasterizer, *memory_manager);
