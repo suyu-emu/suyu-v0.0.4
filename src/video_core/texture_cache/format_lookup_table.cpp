@@ -196,9 +196,9 @@ std::size_t FormatLookupTable::CalculateIndex(TextureFormat format, bool is_srgb
                                               ComponentType alpha_component) noexcept {
     const auto format_index = static_cast<std::size_t>(format);
     const auto red_index = static_cast<std::size_t>(red_component);
-    const auto green_index = static_cast<std::size_t>(red_component);
-    const auto blue_index = static_cast<std::size_t>(red_component);
-    const auto alpha_index = static_cast<std::size_t>(red_component);
+    const auto green_index = static_cast<std::size_t>(green_component);
+    const auto blue_index = static_cast<std::size_t>(blue_component);
+    const auto alpha_index = static_cast<std::size_t>(alpha_component);
     const std::size_t srgb_index = is_srgb ? 1 : 0;
 
     return format_index * PerFormat +
