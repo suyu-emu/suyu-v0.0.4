@@ -9,14 +9,12 @@
 #include <vector>
 
 #include <boost/container/static_vector.hpp>
-#include <boost/functional/hash.hpp>
 
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/maxwell_3d.h"

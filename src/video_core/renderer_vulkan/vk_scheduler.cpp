@@ -8,7 +8,6 @@
 #include <thread>
 #include <utility>
 
-#include "common/assert.h"
 #include "common/microprofile.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"

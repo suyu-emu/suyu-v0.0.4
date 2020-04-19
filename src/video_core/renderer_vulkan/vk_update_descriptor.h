@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <type_traits>
 #include <variant>
 #include <boost/container/static_vector.hpp>
 

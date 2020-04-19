@@ -2,11 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <cstring>
-#include <optional>
 #include <unordered_map>
 
-#include "common/assert.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/wrapper.h"

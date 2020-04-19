@@ -6,7 +6,7 @@
 
 #include <optional>
 #include <utility>
-#include <vector>
+
 #include "common/common_types.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"

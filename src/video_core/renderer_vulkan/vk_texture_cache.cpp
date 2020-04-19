@@ -10,11 +10,9 @@
 #include <variant>
 #include <vector>
 
-#include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "core/core.h"
-#include "core/memory.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
@@ -26,7 +24,6 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/surface.h"
-#include "video_core/textures/convert.h"
 
 namespace Vulkan {
 

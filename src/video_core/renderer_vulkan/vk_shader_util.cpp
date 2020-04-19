@@ -4,8 +4,7 @@
 
 #include <cstring>
 #include <memory>
-#include <vector>
-#include "common/alignment.h"
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_device.h"

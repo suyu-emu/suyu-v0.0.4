@@ -7,19 +7,13 @@
 #include <memory>
 #include <unordered_map>
 
-#include "common/assert.h"
 #include "common/common_types.h"
-#include "common/logging/log.h"
-#include "common/math_util.h"
-#include "video_core/gpu.h"
-#include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_vulkan/vk_image.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/texture_cache.h"
-#include "video_core/textures/decoders.h"
 
 namespace Core {
 class System;
