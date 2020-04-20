@@ -19,22 +19,46 @@ u32 ShaderIR::DecodeArithmeticHalf(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    if (opcode->get().GetId() == OpCode::Id::HADD2_C ||
-        opcode->get().GetId() == OpCode::Id::HADD2_R) {
+    bool negate_a = false;
+    bool negate_b = false;
+    bool absolute_a = false;
+    bool absolute_b = false;
+
+    switch (opcode->get().GetId()) {
+    case OpCode::Id::HADD2_R:
         if (instr.alu_half.ftz == 0) {
             LOG_DEBUG(HW_GPU, "{} without FTZ is not implemented", opcode->get().GetName());
         }
+        negate_a = ((instr.value >> 43) & 1) != 0;
+        negate_b = ((instr.value >> 31) & 1) != 0;
+        absolute_a = ((instr.value >> 44) & 1) != 0;
+        absolute_b = ((instr.value >> 30) & 1) != 0;
+        break;
+    case OpCode::Id::HADD2_C:
+        if (instr.alu_half.ftz == 0) {
+            LOG_DEBUG(HW_GPU, "{} without FTZ is not implemented", opcode->get().GetName());
+        }
+        negate_a = ((instr.value >> 43) & 1) != 0;
+        negate_b = ((instr.value >> 56) & 1) != 0;
+        absolute_a = ((instr.value >> 44) & 1) != 0;
+        absolute_b = ((instr.value >> 54) & 1) != 0;
+        break;
+    case OpCode::Id::HMUL2_R:
+        negate_a = ((instr.value >> 43) & 1) != 0;
+        absolute_a = ((instr.value >> 44) & 1) != 0;
+        absolute_b = ((instr.value >> 30) & 1) != 0;
+        break;
+    case OpCode::Id::HMUL2_C:
+        negate_b = ((instr.value >> 31) & 1) != 0;
+        absolute_a = ((instr.value >> 44) & 1) != 0;
+        absolute_b = ((instr.value >> 54) & 1) != 0;
+        break;
     }
 
-    const bool negate_a =
-        opcode->get().GetId() != OpCode::Id::HMUL2_R && instr.alu_half.negate_a != 0;
-    const bool negate_b =
-        opcode->get().GetId() != OpCode::Id::HMUL2_C && instr.alu_half.negate_b != 0;
-
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.alu_half.type_a);
-    op_a = GetOperandAbsNegHalf(op_a, instr.alu_half.abs_a, negate_a);
+    op_a = GetOperandAbsNegHalf(op_a, absolute_a, negate_a);
 
-    auto [type_b, op_b] = [&]() -> std::tuple<HalfType, Node> {
+    auto [type_b, op_b] = [this, instr, opcode]() -> std::pair<HalfType, Node> {
         switch (opcode->get().GetId()) {
         case OpCode::Id::HADD2_C:
         case OpCode::Id::HMUL2_C:
@@ -48,17 +72,16 @@ u32 ShaderIR::DecodeArithmeticHalf(NodeBlock& bb, u32 pc) {
         }
     }();
     op_b = UnpackHalfFloat(op_b, type_b);
-    // redeclaration to avoid a bug in clang with reusing local bindings in lambdas
-    Node op_b_alt = GetOperandAbsNegHalf(op_b, instr.alu_half.abs_b, negate_b);
+    op_b = GetOperandAbsNegHalf(op_b, absolute_b, negate_b);
 
-    Node value = [&]() {
+    Node value = [this, opcode, op_a, op_b = op_b] {
         switch (opcode->get().GetId()) {
         case OpCode::Id::HADD2_C:
         case OpCode::Id::HADD2_R:
-            return Operation(OperationCode::HAdd, PRECISE, op_a, op_b_alt);
+            return Operation(OperationCode::HAdd, PRECISE, op_a, op_b);
         case OpCode::Id::HMUL2_C:
         case OpCode::Id::HMUL2_R:
-            return Operation(OperationCode::HMul, PRECISE, op_a, op_b_alt);
+            return Operation(OperationCode::HMul, PRECISE, op_a, op_b);
         default:
             UNIMPLEMENTED_MSG("Unhandled half float instruction: {}", opcode->get().GetName());
             return Immediate(0);
