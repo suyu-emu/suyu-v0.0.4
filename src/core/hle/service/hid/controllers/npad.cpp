@@ -502,7 +502,7 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) 
 
 void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
                                         const std::vector<Vibration>& vibrations) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    LOG_DEBUG(Service_HID, "(STUBBED) called");
 
     if (!can_controllers_vibrate) {
         return;
