@@ -697,12 +697,14 @@ FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
         {68, nullptr, "OpenSaveDataInfoReaderBySaveDataFilter"},
         {69, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataAttribute"},
         {70, nullptr, "WriteSaveDataFileSystemExtraDataBySaveDataAttribute"},
+        {71, nullptr, "ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute"},
         {80, nullptr, "OpenSaveDataMetaFile"},
         {81, nullptr, "OpenSaveDataTransferManager"},
         {82, nullptr, "OpenSaveDataTransferManagerVersion2"},
         {83, nullptr, "OpenSaveDataTransferProhibiterForCloudBackUp"},
         {84, nullptr, "ListApplicationAccessibleSaveDataOwnerId"},
         {85, nullptr, "OpenSaveDataTransferManagerForSaveDataRepair"},
+        {86, nullptr, "OpenSaveDataMover"},
         {100, nullptr, "OpenImageDirectoryFileSystem"},
         {110, nullptr, "OpenContentStorageFileSystem"},
         {120, nullptr, "OpenCloudBackupWorkStorageFileSystem"},
@@ -762,9 +764,11 @@ FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
         {1011, &FSP_SRV::GetAccessLogVersionInfo, "GetAccessLogVersionInfo"},
         {1012, nullptr, "GetFsStackUsage"},
         {1013, nullptr, "UnsetSaveDataRootPath"},
+        {1014, nullptr, "OutputMultiProgramTagAccessLog"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
         {1200, nullptr, "OpenMultiCommitManager"},
+        {1300, nullptr, "OpenBisWiper"},
     };
     // clang-format on
     RegisterHandlers(functions);

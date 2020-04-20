@@ -116,6 +116,7 @@ public:
             {1, nullptr, "GetProgramInfo"},
             {2, nullptr, "RegisterTitle"},
             {3, nullptr, "UnregisterTitle"},
+            {4, nullptr, "SetEnabledProgramVerification"},
         };
         // clang-format on
 

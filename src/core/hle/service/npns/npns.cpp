@@ -48,6 +48,8 @@ public:
             {151, nullptr, "GetStateWithHandover"},
             {152, nullptr, "GetStateChangeEventWithHandover"},
             {153, nullptr, "GetDropEventWithHandover"},
+            {161, nullptr, "GetRequestChangeStateCancelEvent"},
+            {162, nullptr, "RequestChangeStateForceTimedWithCancelEvent"},
             {201, nullptr, "RequestChangeStateForceTimed"},
             {202, nullptr, "RequestChangeStateForceAsync"},
         };

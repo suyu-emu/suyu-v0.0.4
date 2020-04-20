@@ -110,6 +110,10 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {100, nullptr, "ResetToFactorySettings"},
         {101, nullptr, "ResetToFactorySettingsWithoutUserSaveData"},
         {102, nullptr, "ResetToFactorySettingsForRefurbishment"},
+        {103, nullptr, "ResetToFactorySettingsWithPlatformRegion"},
+        {104, nullptr, "ResetToFactorySettingsWithPlatformRegionAuthentication"},
+        {105, nullptr, "RequestResetToFactorySettingsSecurely"},
+        {106, nullptr, "RequestResetToFactorySettingsWithPlatformRegionAuthenticationSecurely"},
         {200, nullptr, "CalculateUserSaveDataStatistics"},
         {201, nullptr, "DeleteUserSaveDataAll"},
         {210, nullptr, "DeleteUserSystemSaveData"},
@@ -191,6 +195,9 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {1307, nullptr, "TryDeleteRunningApplicationContentEntities"},
         {1308, nullptr, "DeleteApplicationCompletelyForDebug"},
         {1309, nullptr, "CleanupUnavailableAddOnContents"},
+        {1310, nullptr, "RequestMoveApplicationEntity"},
+        {1311, nullptr, "EstimateSizeToMove"},
+        {1312, nullptr, "HasMovableEntity"},
         {1400, nullptr, "PrepareShutdown"},
         {1500, nullptr, "FormatSdCard"},
         {1501, nullptr, "NeedsSystemUpdateToFormatSdCard"},
@@ -241,7 +248,7 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {2153, nullptr, "DeactivateRightsEnvironment"},
         {2154, nullptr, "ForceActivateRightsContextForExit"},
         {2155, nullptr, "UpdateRightsEnvironmentStatus"},
-        {2156, nullptr, "CreateRightsEnvironmentForPreomia"},
+        {2156, nullptr, "CreateRightsEnvironmentForMicroApplication"},
         {2160, nullptr, "AddTargetApplicationToRightsEnvironment"},
         {2161, nullptr, "SetUsersToRightsEnvironment"},
         {2170, nullptr, "GetRightsEnvironmentStatus"},
@@ -258,6 +265,7 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {2350, nullptr, "PerformAutoUpdateByApplicationId"},
         {2351, nullptr, "RequestNoDownloadRightsErrorResolution"},
         {2352, nullptr, "RequestResolveNoDownloadRightsError"},
+        {2353, nullptr, "GetApplicationDownloadTaskInfo"},
         {2400, nullptr, "GetPromotionInfo"},
         {2401, nullptr, "CountPromotionInfo"},
         {2402, nullptr, "ListPromotionInfo"},
@@ -266,9 +274,12 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {2500, nullptr, "ConfirmAvailableTime"},
         {2510, nullptr, "CreateApplicationResource"},
         {2511, nullptr, "GetApplicationResource"},
-        {2513, nullptr, "LaunchPreomia"},
+        {2513, nullptr, "LaunchMicroApplication"},
         {2514, nullptr, "ClearTaskOfAsyncTaskManager"},
+        {2515, nullptr, "CleanupAllPlaceHolderAndFragmentsIfNoTask"},
+        {2516, nullptr, "EnsureApplicationCertificate"},
         {2800, nullptr, "GetApplicationIdOfPreomia"},
+        {9999, nullptr, "GetApplicationCertificate"},
     };
     // clang-format on
 
@@ -505,6 +516,10 @@ IFactoryResetInterface::IFactoryResetInterface::IFactoryResetInterface()
             {100, nullptr, "ResetToFactorySettings"},
             {101, nullptr, "ResetToFactorySettingsWithoutUserSaveData"},
             {102, nullptr, "ResetToFactorySettingsForRefurbishment"},
+            {103, nullptr, "ResetToFactorySettingsWithPlatformRegion"},
+            {104, nullptr, "ResetToFactorySettingsWithPlatformRegionAuthentication"},
+            {105, nullptr, "RequestResetToFactorySettingsSecurely"},
+            {106, nullptr, "RequestResetToFactorySettingsWithPlatformRegionAuthenticationSecurely"},
         };
     // clang-format on
 
@@ -553,6 +568,9 @@ public:
             {10, nullptr, "TerminateApplication2"},
             {11, nullptr, "GetRunningApplicationProcessId"},
             {12, nullptr, "SetCurrentApplicationRightsEnvironmentCanBeActive"},
+            {13, nullptr, "CreateApplicationResourceForDevelop"},
+            {14, nullptr, "IsPreomiaForDevelop"},
+            {15, nullptr, "GetApplicationProgramIdFromHost"},
         };
         // clang-format on
 

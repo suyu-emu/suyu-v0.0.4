@@ -35,6 +35,7 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {113, nullptr, "GetSaveDataThumbnailExistence"},
         {130, nullptr, "ActivateOpenContextRetention"},
         {140, nullptr, "ListQualifiedUsers"},
+        {150, nullptr, "AuthenticateApplicationAsync"},
         {190, nullptr, "GetUserLastOpenedApplication"},
         {191, nullptr, "ActivateOpenContextHolder"},
         {997, nullptr, "DebugInvalidateTokenCacheForUser"},

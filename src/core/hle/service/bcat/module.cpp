@@ -141,6 +141,7 @@ public:
             {20301, nullptr, "RequestSuspendDeliveryTask"},
             {20400, nullptr, "RegisterSystemApplicationDeliveryTask"},
             {20401, nullptr, "UnregisterSystemApplicationDeliveryTask"},
+            {20410, nullptr, "SetSystemApplicationDeliveryTaskTimer"},
             {30100, &IBcatService::SetPassphrase, "SetPassphrase"},
             {30200, nullptr, "RegisterBackgroundDeliveryTask"},
             {30201, nullptr, "UnregisterBackgroundDeliveryTask"},
