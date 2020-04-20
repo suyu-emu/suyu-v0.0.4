@@ -280,34 +280,56 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     }
 }
 
-void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
-    switch (method) {
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[1]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[2]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[3]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[4]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[5]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[6]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[7]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[8]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[9]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[10]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[11]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[12]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[13]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[14]):
-        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[15]): {
-            ProcessCBMultiData(method, base_start, amount);
-            break;
+void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                                u32 methods_pending) {
+    // Methods after 0xE00 are special, they're actually triggers for some microcode that was
+    // uploaded to the GPU during initialization.
+    if (method >= MacroRegistersStart) {
+        // We're trying to execute a macro
+        if (executing_macro == 0) {
+            // A macro call must begin by writing the macro method's register, not its argument.
+            ASSERT_MSG((method % 2) == 0,
+                       "Can't start macro execution by writing to the ARGS register");
+            executing_macro = method;
         }
-        default: {
-            for (std::size_t i = 0; i < amount; i++) {
-                CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
-            }
+
+        for (std::size_t i = 0; i < amount; i++) {
+            macro_params.push_back(base_start[i]);
+        }
+
+        // Call the macro when there are no more parameters in the command buffer
+        if (amount == methods_pending) {
+            CallMacroMethod(executing_macro, macro_params.size(), macro_params.data());
+            macro_params.clear();
+        }
+        return;
+    }
+    switch (method) {
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[1]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[2]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[3]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[4]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[5]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[6]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[7]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[8]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[9]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[10]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[11]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[12]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[13]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[14]):
+    case MAXWELL3D_REG_INDEX(const_buffer.cb_data[15]): {
+        ProcessCBMultiData(method, base_start, amount);
+        break;
+    }
+    default: {
+        for (std::size_t i = 0; i < amount; i++) {
+            CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
         }
     }
-
+    }
 }
 
 void Maxwell3D::StepInstance(const MMEDrawMode expected_mode, const u32 count) {
