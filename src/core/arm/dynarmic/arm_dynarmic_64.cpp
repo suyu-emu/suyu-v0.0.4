@@ -20,6 +20,7 @@
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Core {
 
@@ -144,6 +145,8 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     config.page_table_address_space_bits = address_space_bits;
     config.silently_mirror_page_table = false;
     config.absolute_offset_page_table = true;
+    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
+    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
 
     // Multi-process state
     config.processor_id = core_index;
@@ -159,8 +162,11 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     // Unpredictable instructions
     config.define_unpredictable_behaviour = true;
 
-    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
-    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+    // Optimizations
+    if (Settings::values.disable_cpu_opt) {
+        config.enable_optimizations = false;
+        config.enable_fast_dispatch = false;
+    }
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
 }

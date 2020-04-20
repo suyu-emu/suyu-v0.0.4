@@ -215,6 +215,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="disable_cpu_opt">
+        <property name="text">
+         <string>Disable CPU JIT optimizations</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
