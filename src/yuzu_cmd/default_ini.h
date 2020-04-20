@@ -280,6 +280,9 @@ dump_nso=false
 # Determines whether or not yuzu will report to the game that the emulated console is in Kiosk Mode
 # false: Retail/Normal Mode (default), true: Kiosk Mode
 quest_flag =
+# Determines whether or not JIT CPU optimizations are enabled
+# false: Optimizations Enabled, true: Optimizations Disabled
+disable_cpu_opt =
 
 [WebService]
 # Whether or not to enable telemetry
