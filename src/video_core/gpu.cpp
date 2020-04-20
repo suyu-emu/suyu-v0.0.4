@@ -220,9 +220,9 @@ void GPU::CallMethod(const MethodCall& method_call) {
     }
 }
 
-void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending) {
-    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method,
-              subchannel);
+void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                          u32 methods_pending) {
+    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method, subchannel);
 
     ASSERT(subchannel < bound_engines.size());
 
@@ -230,7 +230,8 @@ void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32
         CallEngineMultiMethod(method, subchannel, base_start, amount, methods_pending);
     } else {
         for (std::size_t i = 0; i < amount; i++) {
-            CallPullerMethod({method, base_start[i], subchannel, methods_pending - static_cast<u32>(i)});
+            CallPullerMethod(
+                {method, base_start[i], subchannel, methods_pending - static_cast<u32>(i)});
         }
     }
 }
@@ -317,7 +318,8 @@ void GPU::CallEngineMethod(const MethodCall& method_call) {
     }
 }
 
-void GPU::CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending) {
+void GPU::CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                                u32 methods_pending) {
     const EngineID engine = bound_engines[subchannel];
 
     switch (engine) {

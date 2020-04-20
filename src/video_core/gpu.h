@@ -156,7 +156,8 @@ public:
     void CallMethod(const MethodCall& method_call);
 
     /// Calls a GPU multivalue method.
-    void CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                         u32 methods_pending);
 
     /// Flush all current written commands into the host GPU for execution.
     void FlushCommands();
@@ -313,7 +314,8 @@ private:
     void CallEngineMethod(const MethodCall& method_call);
 
     /// Calls a GPU engine multivalue method.
-    void CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                               u32 methods_pending);
 
     /// Determines where the method should be executed.
     bool ExecuteMethodOnEngine(u32 method);
