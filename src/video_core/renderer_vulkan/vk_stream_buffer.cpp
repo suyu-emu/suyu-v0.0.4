@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <limits>
 #include <optional>
 #include <tuple>
 #include <vector>
@@ -22,20 +23,36 @@ namespace {
 constexpr u64 WATCHES_INITIAL_RESERVE = 0x4000;
 constexpr u64 WATCHES_RESERVE_CHUNK = 0x1000;
 
-constexpr u64 STREAM_BUFFER_SIZE = 256 * 1024 * 1024;
+constexpr u64 PREFERRED_STREAM_BUFFER_SIZE = 256 * 1024 * 1024;
 
-std::optional<u32> FindMemoryType(const VKDevice& device, u32 filter,
-                                  VkMemoryPropertyFlags wanted) {
-    const auto properties = device.GetPhysical().GetMemoryProperties();
-    for (u32 i = 0; i < properties.memoryTypeCount; i++) {
-        if (!(filter & (1 << i))) {
-            continue;
-        }
-        if ((properties.memoryTypes[i].propertyFlags & wanted) == wanted) {
+/// Find a memory type with the passed requirements
+std::optional<u32> FindMemoryType(const VkPhysicalDeviceMemoryProperties& properties,
+                                  VkMemoryPropertyFlags wanted,
+                                  u32 filter = std::numeric_limits<u32>::max()) {
+    for (u32 i = 0; i < properties.memoryTypeCount; ++i) {
+        const auto flags = properties.memoryTypes[i].propertyFlags;
+        if ((flags & wanted) == wanted && (filter & (1U << i)) != 0) {
             return i;
         }
     }
     return std::nullopt;
+}
+
+/// Get the preferred host visible memory type.
+u32 GetMemoryType(const VkPhysicalDeviceMemoryProperties& properties,
+                  u32 filter = std::numeric_limits<u32>::max()) {
+    // Prefer device local host visible allocations. Both AMD and Nvidia now provide one.
+    // Otherwise search for a host visible allocation.
+    static constexpr auto HOST_MEMORY =
+        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    static constexpr auto DYNAMIC_MEMORY = HOST_MEMORY | VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+
+    std::optional preferred_type = FindMemoryType(properties, DYNAMIC_MEMORY);
+    if (!preferred_type) {
+        preferred_type = FindMemoryType(properties, HOST_MEMORY);
+        ASSERT_MSG(preferred_type, "No host visible and coherent memory type found");
+    }
+    return preferred_type.value_or(0);
 }
 
 } // Anonymous namespace
@@ -51,7 +68,7 @@ VKStreamBuffer::VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler,
 VKStreamBuffer::~VKStreamBuffer() = default;
 
 std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
-    ASSERT(size <= STREAM_BUFFER_SIZE);
+    ASSERT(size <= stream_buffer_size);
     mapped_size = size;
 
     if (alignment > 0) {
@@ -61,7 +78,7 @@ std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
     WaitPendingOperations(offset);
 
     bool invalidated = false;
-    if (offset + size > STREAM_BUFFER_SIZE) {
+    if (offset + size > stream_buffer_size) {
         // The buffer would overflow, save the amount of used watches and reset the state.
         invalidation_mark = current_watch_cursor;
         current_watch_cursor = 0;
@@ -98,40 +115,37 @@ void VKStreamBuffer::Unmap(u64 size) {
 }
 
 void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
+    const auto memory_properties = device.GetPhysical().GetMemoryProperties();
+    const u32 preferred_type = GetMemoryType(memory_properties);
+    const u32 preferred_heap = memory_properties.memoryTypes[preferred_type].heapIndex;
+
+    // Substract from the preferred heap size some bytes to avoid getting out of memory.
+    const VkDeviceSize heap_size = memory_properties.memoryHeaps[preferred_heap].size;
+    const VkDeviceSize allocable_size = heap_size - 4 * 1024 * 1024;
+
     VkBufferCreateInfo buffer_ci;
     buffer_ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     buffer_ci.pNext = nullptr;
     buffer_ci.flags = 0;
-    buffer_ci.size = STREAM_BUFFER_SIZE;
+    buffer_ci.size = std::min(PREFERRED_STREAM_BUFFER_SIZE, allocable_size);
     buffer_ci.usage = usage;
     buffer_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     buffer_ci.queueFamilyIndexCount = 0;
     buffer_ci.pQueueFamilyIndices = nullptr;
 
-    const auto& dev = device.GetLogical();
-    buffer = dev.CreateBuffer(buffer_ci);
+    buffer = device.GetLogical().CreateBuffer(buffer_ci);
 
-    const auto& dld = device.GetDispatchLoader();
-    const auto requirements = dev.GetBufferMemoryRequirements(*buffer);
-    // Prefer device local host visible allocations (this should hit AMD's pinned memory).
-    auto type =
-        FindMemoryType(device, requirements.memoryTypeBits,
-                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT |
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    if (!type) {
-        // Otherwise search for a host visible allocation.
-        type = FindMemoryType(device, requirements.memoryTypeBits,
-                              VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-                                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        ASSERT_MSG(type, "No host visible and coherent memory type found");
-    }
+    const auto requirements = device.GetLogical().GetBufferMemoryRequirements(*buffer);
+    const u32 required_flags = requirements.memoryTypeBits;
+    stream_buffer_size = static_cast<u64>(requirements.size);
+
     VkMemoryAllocateInfo memory_ai;
     memory_ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memory_ai.pNext = nullptr;
     memory_ai.allocationSize = requirements.size;
-    memory_ai.memoryTypeIndex = *type;
+    memory_ai.memoryTypeIndex = GetMemoryType(memory_properties, required_flags);
 
-    memory = dev.AllocateMemory(memory_ai);
+    memory = device.GetLogical().AllocateMemory(memory_ai);
     buffer.BindMemory(*memory, 0);
 }
 

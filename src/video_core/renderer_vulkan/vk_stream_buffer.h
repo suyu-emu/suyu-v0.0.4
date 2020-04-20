@@ -56,8 +56,9 @@ private:
     const VKDevice& device; ///< Vulkan device manager.
     VKScheduler& scheduler; ///< Command scheduler.
 
-    vk::Buffer buffer;       ///< Mapped buffer.
-    vk::DeviceMemory memory; ///< Memory allocation.
+    vk::Buffer buffer;        ///< Mapped buffer.
+    vk::DeviceMemory memory;  ///< Memory allocation.
+    u64 stream_buffer_size{}; ///< Stream buffer size.
 
     u64 offset{};      ///< Buffer iterator.
     u64 mapped_size{}; ///< Size reserved for the current copy.
