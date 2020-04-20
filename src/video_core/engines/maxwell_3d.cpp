@@ -280,6 +280,36 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     }
 }
 
+void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending) {
+    switch (method) {
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[1]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[2]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[3]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[4]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[5]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[6]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[7]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[8]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[9]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[10]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[11]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[12]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[13]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[14]):
+        case MAXWELL3D_REG_INDEX(const_buffer.cb_data[15]): {
+            ProcessCBMultiData(method, base_start, amount);
+            break;
+        }
+        default: {
+            for (std::size_t i = 0; i < amount; i++) {
+                CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
+            }
+        }
+    }
+
+}
+
 void Maxwell3D::StepInstance(const MMEDrawMode expected_mode, const u32 count) {
     if (mme_draw.current_mode == MMEDrawMode::Undefined) {
         if (mme_draw.gl_begin_consume) {
@@ -568,6 +598,28 @@ void Maxwell3D::StartCBData(u32 method) {
     cb_data_state.current = method;
     cb_data_state.counter = 0;
     ProcessCBData(regs.const_buffer.cb_data[cb_data_state.id]);
+}
+
+void Maxwell3D::ProcessCBMultiData(u32 method, const u32* start_base, u32 amount) {
+    if (cb_data_state.current != method) {
+        if (cb_data_state.current != null_cb_data) {
+            FinishCBData();
+        }
+        constexpr u32 first_cb_data = MAXWELL3D_REG_INDEX(const_buffer.cb_data[0]);
+        cb_data_state.start_pos = regs.const_buffer.cb_pos;
+        cb_data_state.id = method - first_cb_data;
+        cb_data_state.current = method;
+        cb_data_state.counter = 0;
+    }
+    const std::size_t id = cb_data_state.id;
+    const std::size_t size = amount;
+    std::size_t i = 0;
+    for (; i < size; i++) {
+        cb_data_state.buffer[id][cb_data_state.counter] = start_base[i];
+        cb_data_state.counter++;
+    }
+    // Increment the current buffer position.
+    regs.const_buffer.cb_pos = regs.const_buffer.cb_pos + 4 * amount;
 }
 
 void Maxwell3D::FinishCBData() {

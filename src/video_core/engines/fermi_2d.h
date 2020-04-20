@@ -39,6 +39,9 @@ public:
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
 
+    /// Write multiple values to the register identified by method.
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+
     enum class Origin : u32 {
         Center = 0,
         Corner = 1,
