@@ -92,7 +92,7 @@ private:
     }
 
     void RequestUpdateImpl(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_Audio, "(STUBBED) called");
+        LOG_DEBUG(Service_Audio, "(STUBBED) called");
 
         ctx.WriteBuffer(renderer->UpdateAudioRenderer(ctx.ReadBuffer()));
         IPC::ResponseBuilder rb{ctx, 2};
