@@ -9,6 +9,7 @@
 #include "core/core_timing_util.h"
 #include "core/frontend/emu_window.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/kepler_memory.h"
@@ -154,7 +155,10 @@ u64 GPU::GetTicks() const {
     constexpr u64 gpu_ticks_den = 625;
 
     const u64 cpu_ticks = system.CoreTiming().GetTicks();
-    const u64 nanoseconds = Core::Timing::CyclesToNs(cpu_ticks).count();
+    u64 nanoseconds = Core::Timing::CyclesToNs(cpu_ticks).count();
+    if (Settings::values.use_fast_gpu_time) {
+        nanoseconds /= 256;
+    }
     const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
     const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
     return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
