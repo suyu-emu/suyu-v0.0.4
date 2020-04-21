@@ -249,8 +249,8 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
             }
             case OpCode::Id::LEA_IMM: {
                 const bool neg = instr.lea.imm.neg != 0;
-                return {Immediate(static_cast<u32>(instr.lea.imm.entry_a)),
-                        GetOperandAbsNegInteger(GetRegister(instr.gpr8), false, neg, true),
+                return {GetOperandAbsNegInteger(GetRegister(instr.gpr8), false, neg, true),
+                        Immediate(static_cast<u32>(instr.lea.imm.entry_a)),
                         Immediate(static_cast<u32>(instr.lea.imm.entry_b))};
             }
             case OpCode::Id::LEA_RZ: {
