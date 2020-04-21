@@ -26,12 +26,13 @@ MICROPROFILE_DECLARE(Vulkan_PipelineCache);
 
 namespace {
 
-VkStencilOpState GetStencilFaceState(const FixedPipelineState::StencilFace& face) {
+template <class StencilFace>
+VkStencilOpState GetStencilFaceState(const StencilFace& face) {
     VkStencilOpState state;
-    state.failOp = MaxwellToVK::StencilOp(face.action_stencil_fail);
-    state.passOp = MaxwellToVK::StencilOp(face.action_depth_pass);
-    state.depthFailOp = MaxwellToVK::StencilOp(face.action_depth_fail);
-    state.compareOp = MaxwellToVK::ComparisonOp(face.test_func);
+    state.failOp = MaxwellToVK::StencilOp(face.ActionStencilFail());
+    state.passOp = MaxwellToVK::StencilOp(face.ActionDepthPass());
+    state.depthFailOp = MaxwellToVK::StencilOp(face.ActionDepthFail());
+    state.compareOp = MaxwellToVK::ComparisonOp(face.TestFunc());
     state.compareMask = 0;
     state.writeMask = 0;
     state.reference = 0;
@@ -157,43 +158,47 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
                                                 const SPIRVProgram& program) const {
     const auto& vi = fixed_state.vertex_input;
-    const auto& ia = fixed_state.input_assembly;
     const auto& ds = fixed_state.depth_stencil;
     const auto& cd = fixed_state.color_blending;
-    const auto& ts = fixed_state.tessellation;
     const auto& rs = fixed_state.rasterizer;
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
-    for (std::size_t i = 0; i < vi.num_bindings; ++i) {
-        const auto& binding = vi.bindings[i];
-        const bool instanced = binding.divisor != 0;
+    for (std::size_t index = 0; index < std::size(vi.bindings); ++index) {
+        const auto& binding = vi.bindings[index];
+        if (!binding.enabled) {
+            continue;
+        }
+        const bool instanced = vi.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
         auto& vertex_binding = vertex_bindings.emplace_back();
-        vertex_binding.binding = binding.index;
+        vertex_binding.binding = static_cast<u32>(index);
         vertex_binding.stride = binding.stride;
         vertex_binding.inputRate = rate;
 
         if (instanced) {
             auto& binding_divisor = vertex_binding_divisors.emplace_back();
-            binding_divisor.binding = binding.index;
-            binding_divisor.divisor = binding.divisor;
+            binding_divisor.binding = static_cast<u32>(index);
+            binding_divisor.divisor = vi.binding_divisors[index];
         }
     }
 
     std::vector<VkVertexInputAttributeDescription> vertex_attributes;
     const auto& input_attributes = program[0]->entries.attributes;
-    for (std::size_t i = 0; i < vi.num_attributes; ++i) {
-        const auto& attribute = vi.attributes[i];
-        if (input_attributes.find(attribute.index) == input_attributes.end()) {
+    for (std::size_t index = 0; index < std::size(vi.attributes); ++index) {
+        const auto& attribute = vi.attributes[index];
+        if (!attribute.enabled) {
+            continue;
+        }
+        if (input_attributes.find(static_cast<u32>(index)) == input_attributes.end()) {
             // Skip attributes not used by the vertex shaders.
             continue;
         }
         auto& vertex_attribute = vertex_attributes.emplace_back();
-        vertex_attribute.location = attribute.index;
+        vertex_attribute.location = static_cast<u32>(index);
         vertex_attribute.binding = attribute.buffer;
-        vertex_attribute.format = MaxwellToVK::VertexFormat(attribute.type, attribute.size);
+        vertex_attribute.format = MaxwellToVK::VertexFormat(attribute.Type(), attribute.Size());
         vertex_attribute.offset = attribute.offset;
     }
 
@@ -219,15 +224,15 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     input_assembly_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_ci.pNext = nullptr;
     input_assembly_ci.flags = 0;
-    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, ia.topology);
+    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, rs.Topology());
     input_assembly_ci.primitiveRestartEnable =
-        ia.primitive_restart_enable && SupportsPrimitiveRestart(input_assembly_ci.topology);
+        rs.primitive_restart_enable != 0 && SupportsPrimitiveRestart(input_assembly_ci.topology);
 
     VkPipelineTessellationStateCreateInfo tessellation_ci;
     tessellation_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
     tessellation_ci.pNext = nullptr;
     tessellation_ci.flags = 0;
-    tessellation_ci.patchControlPoints = ts.patch_control_points;
+    tessellation_ci.patchControlPoints = rs.patch_control_points_minus_one.Value() + 1;
 
     VkPipelineViewportStateCreateInfo viewport_ci;
     viewport_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -246,8 +251,8 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     rasterization_ci.rasterizerDiscardEnable = VK_FALSE;
     rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
     rasterization_ci.cullMode =
-        rs.cull_enable ? MaxwellToVK::CullFace(rs.cull_face) : VK_CULL_MODE_NONE;
-    rasterization_ci.frontFace = MaxwellToVK::FrontFace(rs.front_face);
+        rs.cull_enable ? MaxwellToVK::CullFace(rs.CullFace()) : VK_CULL_MODE_NONE;
+    rasterization_ci.frontFace = MaxwellToVK::FrontFace(rs.FrontFace());
     rasterization_ci.depthBiasEnable = rs.depth_bias_enable;
     rasterization_ci.depthBiasConstantFactor = 0.0f;
     rasterization_ci.depthBiasClamp = 0.0f;
@@ -271,40 +276,38 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     depth_stencil_ci.flags = 0;
     depth_stencil_ci.depthTestEnable = ds.depth_test_enable;
     depth_stencil_ci.depthWriteEnable = ds.depth_write_enable;
-    depth_stencil_ci.depthCompareOp = ds.depth_test_enable
-                                          ? MaxwellToVK::ComparisonOp(ds.depth_test_function)
-                                          : VK_COMPARE_OP_ALWAYS;
+    depth_stencil_ci.depthCompareOp =
+        ds.depth_test_enable ? MaxwellToVK::ComparisonOp(ds.DepthTestFunc()) : VK_COMPARE_OP_ALWAYS;
     depth_stencil_ci.depthBoundsTestEnable = ds.depth_bounds_enable;
     depth_stencil_ci.stencilTestEnable = ds.stencil_enable;
-    depth_stencil_ci.front = GetStencilFaceState(ds.front_stencil);
-    depth_stencil_ci.back = GetStencilFaceState(ds.back_stencil);
+    depth_stencil_ci.front = GetStencilFaceState(ds.front);
+    depth_stencil_ci.back = GetStencilFaceState(ds.back);
     depth_stencil_ci.minDepthBounds = 0.0f;
     depth_stencil_ci.maxDepthBounds = 0.0f;
 
     std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
-    const std::size_t num_attachments =
-        std::min(cd.attachments_count, renderpass_params.color_attachments.size());
-    for (std::size_t i = 0; i < num_attachments; ++i) {
-        static constexpr std::array component_table = {
+    const std::size_t num_attachments = renderpass_params.color_attachments.size();
+    for (std::size_t index = 0; index < num_attachments; ++index) {
+        static constexpr std::array COMPONENT_TABLE = {
             VK_COLOR_COMPONENT_R_BIT, VK_COLOR_COMPONENT_G_BIT, VK_COLOR_COMPONENT_B_BIT,
             VK_COLOR_COMPONENT_A_BIT};
-        const auto& blend = cd.attachments[i];
+        const auto& blend = cd.attachments[index];
 
         VkColorComponentFlags color_components = 0;
-        for (std::size_t j = 0; j < component_table.size(); ++j) {
-            if (blend.components[j]) {
-                color_components |= component_table[j];
+        for (std::size_t i = 0; i < COMPONENT_TABLE.size(); ++i) {
+            if (blend.Mask()[i]) {
+                color_components |= COMPONENT_TABLE[i];
             }
         }
 
-        VkPipelineColorBlendAttachmentState& attachment = cb_attachments[i];
-        attachment.blendEnable = blend.enable;
-        attachment.srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.src_rgb_func);
-        attachment.dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.dst_rgb_func);
-        attachment.colorBlendOp = MaxwellToVK::BlendEquation(blend.rgb_equation);
-        attachment.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.src_a_func);
-        attachment.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.dst_a_func);
-        attachment.alphaBlendOp = MaxwellToVK::BlendEquation(blend.a_equation);
+        VkPipelineColorBlendAttachmentState& attachment = cb_attachments[index];
+        attachment.blendEnable = blend.enable != 0;
+        attachment.srcColorBlendFactor = MaxwellToVK::BlendFactor(blend.SourceRGBFactor());
+        attachment.dstColorBlendFactor = MaxwellToVK::BlendFactor(blend.DestRGBFactor());
+        attachment.colorBlendOp = MaxwellToVK::BlendEquation(blend.EquationRGB());
+        attachment.srcAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.SourceAlphaFactor());
+        attachment.dstAlphaBlendFactor = MaxwellToVK::BlendFactor(blend.DestAlphaFactor());
+        attachment.alphaBlendOp = MaxwellToVK::BlendEquation(blend.EquationAlpha());
         attachment.colorWriteMask = color_components;
     }
 

@@ -807,25 +807,29 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
                                          BufferBindings& buffer_bindings) {
     const auto& regs = system.GPU().Maxwell3D().regs;
 
-    for (u32 index = 0; index < static_cast<u32>(Maxwell::NumVertexAttributes); ++index) {
+    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
         const auto& attrib = regs.vertex_attrib_format[index];
         if (!attrib.IsValid()) {
+            vertex_input.SetAttribute(index, false, 0, 0, {}, {});
             continue;
         }
 
-        const auto& buffer = regs.vertex_array[attrib.buffer];
+        [[maybe_unused]] const auto& buffer = regs.vertex_array[attrib.buffer];
         ASSERT(buffer.IsEnabled());
 
-        vertex_input.attributes[vertex_input.num_attributes++] =
-            FixedPipelineState::VertexAttribute(index, attrib.buffer, attrib.type, attrib.size,
-                                                attrib.offset);
+        vertex_input.SetAttribute(index, true, attrib.buffer, attrib.offset, attrib.type.Value(),
+                                  attrib.size.Value());
     }
 
-    for (u32 index = 0; index < static_cast<u32>(Maxwell::NumVertexArrays); ++index) {
+    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
         const auto& vertex_array = regs.vertex_array[index];
         if (!vertex_array.IsEnabled()) {
+            vertex_input.SetBinding(index, false, 0, 0);
             continue;
         }
+        vertex_input.SetBinding(
+            index, true, vertex_array.stride,
+            regs.instanced_arrays.IsInstancingEnabled(index) ? vertex_array.divisor : 0);
 
         const GPUVAddr start{vertex_array.StartAddress()};
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
@@ -833,10 +837,6 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
         ASSERT(end > start);
         const std::size_t size{end - start + 1};
         const auto [buffer, offset] = buffer_cache.UploadMemory(start, size);
-
-        vertex_input.bindings[vertex_input.num_bindings++] = FixedPipelineState::VertexBinding(
-            index, vertex_array.stride,
-            regs.instanced_arrays.IsInstancingEnabled(index) ? vertex_array.divisor : 0);
         buffer_bindings.AddVertexBinding(buffer, offset);
     }
 }
