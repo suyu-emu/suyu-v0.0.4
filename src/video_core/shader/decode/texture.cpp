@@ -139,7 +139,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         }
         const Node component = Immediate(static_cast<u32>(instr.tld4s.component));
 
-        const SamplerInfo info{TextureType::Texture2D, false, is_depth_compare};
+        const SamplerInfo info{TextureType::Texture2D, false, is_depth_compare, false};
         const Sampler& sampler = *GetSampler(instr.sampler, info);
 
         Node4 values;
@@ -171,13 +171,12 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
         const auto coord_count = GetCoordCount(texture_type);
         Node index_var{};
         const Sampler* sampler =
-            is_bindless ? GetBindlessSampler(base_reg, index_var, {{texture_type, is_array, false}})
-                        : GetSampler(instr.sampler, {{texture_type, is_array, false}});
+            is_bindless
+                ? GetBindlessSampler(base_reg, index_var, {{texture_type, is_array, false, false}})
+                : GetSampler(instr.sampler, {{texture_type, is_array, false, false}});
         Node4 values;
         if (sampler == nullptr) {
-            for (u32 element = 0; element < values.size(); ++element) {
-                values[element] = Immediate(0);
-            }
+            std::generate(values.begin(), values.end(), [] { return Immediate(0); });
             WriteTexInstructionFloat(bb, instr, values);
             break;
         }
@@ -269,7 +268,6 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
                              "NDV is not implemented");
 
         auto texture_type = instr.tmml.texture_type.Value();
-        const bool is_array = instr.tmml.array != 0;
         Node index_var{};
         const Sampler* sampler =
             is_bindless ? GetBindlessSampler(instr.gpr20, index_var) : GetSampler(instr.sampler);
@@ -593,8 +591,9 @@ Node4 ShaderIR::GetTexCode(Instruction instr, TextureType texture_type,
         ++parameter_register;
     }
 
-    const auto [coord_count, total_coord_count] = ValidateAndGetCoordinateElement(
-        texture_type, depth_compare, is_array, lod_bias_enabled, 4, 5);
+    const auto coord_counts = ValidateAndGetCoordinateElement(texture_type, depth_compare, is_array,
+                                                              lod_bias_enabled, 4, 5);
+    const auto coord_count = std::get<0>(coord_counts);
     // If enabled arrays index is always stored in the gpr8 field
     const u64 array_register = instr.gpr8.Value();
     // First coordinate index is the gpr8 or gpr8 + 1 when arrays are used
@@ -632,8 +631,10 @@ Node4 ShaderIR::GetTexsCode(Instruction instr, TextureType texture_type,
     const bool lod_bias_enabled =
         (process_mode != TextureProcessMode::None && process_mode != TextureProcessMode::LZ);
 
-    const auto [coord_count, total_coord_count] = ValidateAndGetCoordinateElement(
-        texture_type, depth_compare, is_array, lod_bias_enabled, 4, 4);
+    const auto coord_counts = ValidateAndGetCoordinateElement(texture_type, depth_compare, is_array,
+                                                              lod_bias_enabled, 4, 4);
+    const auto coord_count = std::get<0>(coord_counts);
+
     // If enabled arrays index is always stored in the gpr8 field
     const u64 array_register = instr.gpr8.Value();
     // First coordinate index is stored in gpr8 field or (gpr8 + 1) when arrays are used

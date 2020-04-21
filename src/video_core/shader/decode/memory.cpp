@@ -479,7 +479,7 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& 
     bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
     const GlobalMemoryBase descriptor{index, offset};
-    const auto& [entry, is_new] = used_global_memory.try_emplace(descriptor);
+    const auto& entry = used_global_memory.try_emplace(descriptor).first;
     auto& usage = entry->second;
     usage.is_written |= is_write;
     usage.is_read |= is_read;

@@ -518,8 +518,8 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     constexpr s32 time_zone_max_leaps{50};
     constexpr s32 time_zone_max_chars{50};
     if (!(0 <= header.leap_count && header.leap_count < time_zone_max_leaps &&
-          0 < header.type_count && header.type_count < time_zone_rule.ttis.size() &&
-          0 <= header.time_count && header.time_count < time_zone_rule.ats.size() &&
+          0 < header.type_count && header.type_count < s32(time_zone_rule.ttis.size()) &&
+          0 <= header.time_count && header.time_count < s32(time_zone_rule.ats.size()) &&
           0 <= header.char_count && header.char_count < time_zone_max_chars &&
           (header.ttis_std_count == header.type_count || header.ttis_std_count == 0) &&
           (header.ttis_gmt_count == header.type_count || header.ttis_gmt_count == 0))) {
