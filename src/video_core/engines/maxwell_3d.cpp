@@ -92,6 +92,10 @@ void Maxwell3D::InitializeRegisterDefaults() {
         color_mask.A.Assign(1);
     }
 
+    for (auto& format : regs.vertex_attrib_format) {
+        format.constant.Assign(1);
+    }
+
     // NVN games expect these values to be enabled at boot
     regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
