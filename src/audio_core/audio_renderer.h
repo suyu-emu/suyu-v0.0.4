@@ -8,11 +8,13 @@
 #include <memory>
 #include <vector>
 
+#include "audio_core/behavior_info.h"
 #include "audio_core/stream.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/result.h"
 
 namespace Core::Timing {
 class CoreTiming;
@@ -226,7 +228,7 @@ public:
                   std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
     ~AudioRenderer();
 
-    std::vector<u8> UpdateAudioRenderer(const std::vector<u8>& input_params);
+    ResultVal<std::vector<u8>> UpdateAudioRenderer(const std::vector<u8>& input_params);
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
     u32 GetSampleRate() const;
@@ -237,6 +239,7 @@ public:
 private:
     class EffectState;
     class VoiceState;
+    BehaviorInfo behavior_info{};
 
     AudioRendererParameter worker_params;
     std::shared_ptr<Kernel::WritableEvent> buffer_event;

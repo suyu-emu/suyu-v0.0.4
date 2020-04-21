@@ -7,9 +7,12 @@ add_library(audio_core STATIC
     audio_out.h
     audio_renderer.cpp
     audio_renderer.h
+    behavior_info.cpp
+    behavior_info.h
     buffer.h
     codec.cpp
     codec.h
+    common.h
     null_sink.h
     sink.h
     sink_details.cpp
