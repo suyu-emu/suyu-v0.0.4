@@ -44,9 +44,13 @@ public:
     ProgramMetadata();
     ~ProgramMetadata();
 
+    /// Gets a default ProgramMetadata configuration, should only be used for homebrew formats where
+    /// we do not have an NPDM file
+    static ProgramMetadata GetDefault();
+
     Loader::ResultStatus Load(VirtualFile file);
 
-    // Load from parameters instead of NPDM file, used for KIP
+    /// Load from parameters instead of NPDM file, used for KIP
     void LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space, s32 main_thread_prio,
                     u32 main_thread_core, u32 main_thread_stack_size, u64 title_id,
                     u64 filesystem_permissions, KernelCapabilityDescriptors capabilities);

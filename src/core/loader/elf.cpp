@@ -398,6 +398,11 @@ AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process) {
     Kernel::CodeSet codeset = elf_reader.LoadInto(base_address);
     const VAddr entry_point = codeset.entrypoint;
 
+    // Setup the process code layout
+    if (process.LoadFromMetadata(FileSys::ProgramMetadata::GetDefault(), buffer.size()).IsError()) {
+        return {ResultStatus::ErrorNotInitialized, {}};
+    }
+
     process.LoadModule(std::move(codeset), entry_point);
 
     is_loaded = true;

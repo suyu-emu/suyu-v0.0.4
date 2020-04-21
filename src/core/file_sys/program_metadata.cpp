@@ -51,6 +51,17 @@ Loader::ResultStatus ProgramMetadata::Load(VirtualFile file) {
     return Loader::ResultStatus::Success;
 }
 
+/*static*/ ProgramMetadata ProgramMetadata::GetDefault() {
+    ProgramMetadata result;
+
+    result.LoadManual(
+        true /*is_64_bit*/, FileSys::ProgramAddressSpaceType::Is39Bit /*address_space*/,
+        0x2c /*main_thread_prio*/, 0 /*main_thread_core*/, 0x00100000 /*main_thread_stack_size*/,
+        {}, 0xFFFFFFFFFFFFFFFF /*filesystem_permissions*/, {} /*capabilities*/);
+
+    return result;
+}
+
 void ProgramMetadata::LoadManual(bool is_64_bit, ProgramAddressSpaceType address_space,
                                  s32 main_thread_prio, u32 main_thread_core,
                                  u32 main_thread_stack_size, u64 title_id,
