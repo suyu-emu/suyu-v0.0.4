@@ -22,3 +22,5 @@ public:
 
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 };
+
+class DummyContext : public Core::Frontend::GraphicsContext {};
