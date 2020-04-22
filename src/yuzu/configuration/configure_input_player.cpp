@@ -56,7 +56,6 @@ static void SetAnalogButton(const Common::ParamPackage& input_param,
     if (analog_param.Get("engine", "") != "analog_from_button") {
         analog_param = {
             {"engine", "analog_from_button"},
-            {"modifier_scale", "0.5"},
         };
     }
     analog_param.Set(button_name, input_param.Serialize());
@@ -236,8 +235,10 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         widget->setVisible(false);
 
     analog_map_stick = {ui->buttonLStickAnalog, ui->buttonRStickAnalog};
-    analog_map_deadzone = {ui->sliderLStickDeadzone, ui->sliderRStickDeadzone};
-    analog_map_deadzone_label = {ui->labelLStickDeadzone, ui->labelRStickDeadzone};
+    analog_map_deadzone_and_modifier_slider = {ui->sliderLStickDeadzoneAndModifier,
+                                               ui->sliderRStickDeadzoneAndModifier};
+    analog_map_deadzone_and_modifier_slider_label = {ui->labelLStickDeadzoneAndModifier,
+                                                     ui->labelRStickDeadzoneAndModifier};
 
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
         auto* const button = button_map[button_id];
@@ -328,10 +329,18 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                     InputCommon::Polling::DeviceType::Analog);
             }
         });
-        connect(analog_map_deadzone[analog_id], &QSlider::valueChanged, [=] {
-            const float deadzone = analog_map_deadzone[analog_id]->value() / 100.0f;
-            analog_map_deadzone_label[analog_id]->setText(tr("Deadzone: %1").arg(deadzone));
-            analogs_param[analog_id].Set("deadzone", deadzone);
+
+        connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged, [=] {
+            const float slider_value = analog_map_deadzone_and_modifier_slider[analog_id]->value();
+            if (analogs_param[analog_id].Get("engine", "") == "sdl") {
+                analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
+                    tr("Deadzone: %1%").arg(slider_value));
+                analogs_param[analog_id].Set("deadzone", slider_value / 100.0f);
+            } else {
+                analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
+                    tr("Modifier Scale: %1%").arg(slider_value));
+                analogs_param[analog_id].Set("modifier_scale", slider_value / 100.0f);
+            }
         });
     }
 
@@ -517,20 +526,31 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
         analog_map_stick[analog_id]->setText(tr("Set Analog Stick"));
 
         auto& param = analogs_param[analog_id];
-        auto* const analog_deadzone_slider = analog_map_deadzone[analog_id];
-        auto* const analog_deadzone_label = analog_map_deadzone_label[analog_id];
+        auto* const analog_stick_slider = analog_map_deadzone_and_modifier_slider[analog_id];
+        auto* const analog_stick_slider_label =
+            analog_map_deadzone_and_modifier_slider_label[analog_id];
 
-        if (param.Has("engine") && param.Get("engine", "") == "sdl") {
-            if (!param.Has("deadzone")) {
-                param.Set("deadzone", 0.1f);
+        if (param.Has("engine")) {
+            if (param.Get("engine", "") == "sdl") {
+                if (!param.Has("deadzone")) {
+                    param.Set("deadzone", 0.1f);
+                }
+
+                analog_stick_slider->setValue(static_cast<int>(param.Get("deadzone", 0.1f) * 100));
+                if (analog_stick_slider->value() == 0) {
+                    analog_stick_slider_label->setText(tr("Deadzone: 0%"));
+                }
+            } else {
+                if (!param.Has("modifier_scale")) {
+                    param.Set("modifier_scale", 0.5f);
+                }
+
+                analog_stick_slider->setValue(
+                    static_cast<int>(param.Get("modifier_scale", 0.5f) * 100));
+                if (analog_stick_slider->value() == 0) {
+                    analog_stick_slider_label->setText(tr("Modifier Scale: 0%"));
+                }
             }
-
-            analog_deadzone_slider->setValue(static_cast<int>(param.Get("deadzone", 0.1f) * 100));
-            analog_deadzone_slider->setVisible(true);
-            analog_deadzone_label->setVisible(true);
-        } else {
-            analog_deadzone_slider->setVisible(false);
-            analog_deadzone_label->setVisible(false);
         }
     }
 }
