@@ -17,7 +17,7 @@ namespace AudioCore {
 
 constexpr u32 STREAM_SAMPLE_RATE{48000};
 constexpr u32 STREAM_NUM_CHANNELS{2};
-
+using VoiceChannelHolder = std::array<VoiceResourceInformation*, 6>;
 class AudioRenderer::VoiceState {
 public:
     bool IsPlaying() const {
@@ -38,10 +38,9 @@ public:
 
     void SetWaveIndex(std::size_t index);
     std::vector<s16> DequeueSamples(std::size_t sample_count, Core::Memory::Memory& memory,
-                                    std::array<VoiceResourceInformation*, 6> voice_resources);
+                                    const VoiceChannelHolder& voice_resources);
     void UpdateState();
-    void RefreshBuffer(Core::Memory::Memory& memory,
-                       std::array<VoiceResourceInformation*, 6> voice_resources);
+    void RefreshBuffer(Core::Memory::Memory& memory, const VoiceChannelHolder& voice_resources);
 
 private:
     bool is_in_use{};
@@ -230,7 +229,7 @@ void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
 
 std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(
     std::size_t sample_count, Core::Memory::Memory& memory,
-    std::array<VoiceResourceInformation*, 6> voice_resources) {
+    const VoiceChannelHolder& voice_resources) {
     if (!IsPlaying()) {
         return {};
     }
@@ -280,8 +279,8 @@ void AudioRenderer::VoiceState::UpdateState() {
     is_in_use = info.is_in_use;
 }
 
-void AudioRenderer::VoiceState::RefreshBuffer(
-    Core::Memory::Memory& memory, std::array<VoiceResourceInformation*, 6> voice_resources) {
+void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
+                                              const VoiceChannelHolder& voice_resources) {
     const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
     const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
     std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
@@ -420,7 +419,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
         if (!voice.IsPlaying()) {
             continue;
         }
-        std::array<VoiceResourceInformation*, 6> resources{};
+        VoiceChannelHolder resources{};
         for (u32 channel = 0; channel < voice.GetInfo().channel_count; channel++) {
             const auto channel_resource_id = voice.GetInfo().voice_channel_resource_ids[channel];
             resources[channel] = &voice_resources[channel_resource_id];
