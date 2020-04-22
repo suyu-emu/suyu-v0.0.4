@@ -138,7 +138,7 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
         str = QFileDialog::getOpenFileName(this, caption, QFileInfo(edit->text()).dir().path(),
                                            QStringLiteral("NX Gamecard;*.xci"));
     } else {
-        str = QFileDialog::getExistingDirectory(this, caption, edit->text());
+        str = QFileDialog::getExistingDirectory(this, caption, edit->text()) + QDir::separator();
     }
 
     if (str.isEmpty())
