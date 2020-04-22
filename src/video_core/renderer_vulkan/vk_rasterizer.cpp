@@ -316,7 +316,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     query_cache.UpdateCounters();
 
     const auto& gpu = system.GPU().Maxwell3D();
-    GraphicsPipelineCacheKey key{GetFixedPipelineState(gpu.regs)};
+    GraphicsPipelineCacheKey key;
+    key.fixed_state.Fill(gpu.regs);
 
     buffer_cache.Map(CalculateGraphicsStreamBufferSize(is_indexed));
 
@@ -334,10 +335,11 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     buffer_cache.Unmap();
 
-    const auto texceptions = UpdateAttachments();
+    const Texceptions texceptions = UpdateAttachments();
     SetupImageTransitions(texceptions, color_attachments, zeta_attachment);
 
     key.renderpass_params = GetRenderPassParams(texceptions);
+    key.padding = 0;
 
     auto& pipeline = pipeline_cache.GetGraphicsPipeline(key);
     scheduler.BindGraphicsPipeline(pipeline.GetHandle());
@@ -453,10 +455,12 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     query_cache.UpdateCounters();
 
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
-    const ComputePipelineCacheKey key{
-        code_addr,
-        launch_desc.shared_alloc,
-        {launch_desc.block_dim_x, launch_desc.block_dim_y, launch_desc.block_dim_z}};
+    ComputePipelineCacheKey key;
+    key.shader = code_addr;
+    key.shared_memory_size = launch_desc.shared_alloc;
+    key.workgroup_size = {launch_desc.block_dim_x, launch_desc.block_dim_y,
+                          launch_desc.block_dim_z};
+
     auto& pipeline = pipeline_cache.GetComputePipeline(key);
 
     // Compute dispatches can't be executed inside a renderpass

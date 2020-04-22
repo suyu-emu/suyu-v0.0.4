@@ -17,7 +17,7 @@ namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-struct alignas(32) FixedPipelineState {
+struct FixedPipelineState {
     static u32 PackComparisonOp(Maxwell::ComparisonOp op) noexcept;
     static Maxwell::ComparisonOp UnpackComparisonOp(u32 packed) noexcept;
 
@@ -237,7 +237,8 @@ struct alignas(32) FixedPipelineState {
     Rasterizer rasterizer;
     DepthStencil depth_stencil;
     ColorBlending color_blending;
-    std::array<u8, 20> padding;
+
+    void Fill(const Maxwell& regs);
 
     std::size_t Hash() const noexcept;
 
@@ -250,9 +251,6 @@ struct alignas(32) FixedPipelineState {
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);
 static_assert(std::is_trivially_copyable_v<FixedPipelineState>);
 static_assert(std::is_trivially_constructible_v<FixedPipelineState>);
-static_assert(sizeof(FixedPipelineState) % 32 == 0, "Size is not aligned");
-
-FixedPipelineState GetFixedPipelineState(const Maxwell& regs);
 
 } // namespace Vulkan
 
