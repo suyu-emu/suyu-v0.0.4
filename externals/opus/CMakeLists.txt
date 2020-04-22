@@ -203,7 +203,11 @@ endif()
 target_compile_definitions(opus PRIVATE OPUS_BUILD ENABLE_HARDENING)
 
 if(NOT MSVC)
-    target_compile_definitions(opus PRIVATE _FORTIFY_SOURCE=2)
+    if(MINGW)
+        target_compile_definitions(opus PRIVATE _FORTIFY_SOURCE=0)
+    else()
+        target_compile_definitions(opus PRIVATE _FORTIFY_SOURCE=2)
+    endif()
 endif()
 
 # It is strongly recommended to uncomment one of these VAR_ARRAYS: Use C99
