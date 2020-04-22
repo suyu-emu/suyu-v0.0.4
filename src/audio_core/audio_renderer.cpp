@@ -315,8 +315,8 @@ void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
                 sample *= voice_resources[0]->mix_volumes[0];
             }
 
-            samples[index * 2] = static_cast<s16>(sample);
-            samples[index * 2 + 1] = static_cast<s16>(sample);
+            samples[index * 2] = static_cast<s16>(sample * info.volume);
+            samples[index * 2 + 1] = static_cast<s16>(sample * info.volume);
         }
         break;
     }
@@ -336,11 +336,11 @@ void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
             }
 
             if (voice_resources[1]->in_use) {
-                sample_l *= voice_resources[1]->mix_volumes[1];
+                sample_r *= voice_resources[1]->mix_volumes[1];
             }
 
-            samples[index_l] = static_cast<s16>(sample_l);
-            samples[index_r] = static_cast<s16>(sample_r);
+            samples[index_l] = static_cast<s16>(sample_l * info.volume);
+            samples[index_r] = static_cast<s16>(sample_r * info.volume);
         }
         break;
     }
@@ -371,8 +371,10 @@ void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
                 BR *= voice_resources[5]->mix_volumes[5];
             }
 
-            samples[index * 2] = static_cast<s16>(0.3694f * FL + 0.2612f * FC + 0.3694f * BL);
-            samples[index * 2 + 1] = static_cast<s16>(0.3694f * FR + 0.2612f * FC + 0.3694f * BR);
+            samples[index * 2] =
+                static_cast<s16>((0.3694f * FL + 0.2612f * FC + 0.3694f * BL) * info.volume);
+            samples[index * 2 + 1] =
+                static_cast<s16>((0.3694f * FR + 0.2612f * FC + 0.3694f * BR) * info.volume);
         }
         break;
     }
