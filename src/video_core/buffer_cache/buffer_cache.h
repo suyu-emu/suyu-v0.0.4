@@ -153,8 +153,8 @@ public:
     bool MustFlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
-        std::vector<MapInterval> objects = GetMapsInRange(addr, size);
-        return std::any_of(objects.begin(), objects.end(), [](const MapInterval& map) {
+        const std::vector<MapInterval> objects = GetMapsInRange(addr, size);
+        return std::any_of(objects.cbegin(), objects.cend(), [](const MapInterval& map) {
             return map->IsModified() && map->IsRegistered();
         });
     }
@@ -176,7 +176,7 @@ public:
 
         for (const auto& object : GetMapsInRange(addr, size)) {
             if (object->IsMemoryMarked() && object->IsRegistered()) {
-                Unmark(object);
+                UnmarkMemory(object);
                 object->SetSyncPending(true);
                 marked_for_unregister.emplace_back(object);
             }
@@ -217,10 +217,7 @@ public:
     }
 
     bool ShouldWaitAsyncFlushes() const {
-        if (committed_flushes.empty()) {
-            return false;
-        }
-        return committed_flushes.front() != nullptr;
+        return !committed_flushes.empty() && committed_flushes.front() != nullptr;
     }
 
     bool HasUncommittedFlushes() const {
@@ -294,7 +291,7 @@ protected:
         }
     }
 
-    void Unmark(const MapInterval& map) {
+    void UnmarkMemory(const MapInterval& map) {
         if (!map->IsMemoryMarked()) {
             return;
         }
@@ -305,7 +302,7 @@ protected:
 
     /// Unregisters an object from the cache
     void Unregister(const MapInterval& map) {
-        Unmark(map);
+        UnmarkMemory(map);
         map->MarkAsRegistered(false);
         if (map->IsSyncPending()) {
             marked_for_unregister.remove(map);

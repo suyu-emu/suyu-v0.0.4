@@ -68,7 +68,7 @@ public:
 
         for (const auto& surface : GetSurfacesInRegion(addr, size)) {
             if (surface->IsMemoryMarked()) {
-                Unmark(surface);
+                UnmarkMemory(surface);
                 surface->SetSyncPending(true);
                 marked_for_unregister.emplace_back(surface);
             }
@@ -119,8 +119,8 @@ public:
     bool MustFlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
-        auto surfaces = GetSurfacesInRegion(addr, size);
-        return std::any_of(surfaces.begin(), surfaces.end(),
+        const auto surfaces = GetSurfacesInRegion(addr, size);
+        return std::any_of(surfaces.cbegin(), surfaces.cend(),
                            [](const TSurface& surface) { return surface->IsModified(); });
     }
 
@@ -335,10 +335,7 @@ public:
     }
 
     bool ShouldWaitAsyncFlushes() const {
-        if (committed_flushes.empty()) {
-            return false;
-        }
-        return committed_flushes.front() != nullptr;
+        return !committed_flushes.empty() && committed_flushes.front() != nullptr;
     }
 
     void PopAsyncFlushes() {
@@ -421,7 +418,7 @@ protected:
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
     }
 
-    void Unmark(TSurface surface) {
+    void UnmarkMemory(TSurface surface) {
         if (!surface->IsMemoryMarked()) {
             return;
         }
@@ -438,7 +435,7 @@ protected:
         if (!guard_render_targets && surface->IsRenderTarget()) {
             ManageRenderTargetUnregister(surface);
         }
-        Unmark(surface);
+        UnmarkMemory(surface);
         if (surface->IsSyncPending()) {
             marked_for_unregister.remove(surface);
             surface->SetSyncPending(false);

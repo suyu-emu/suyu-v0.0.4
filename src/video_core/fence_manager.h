@@ -54,7 +54,7 @@ class FenceManager {
 public:
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
-        bool should_flush = ShouldFlush();
+        const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(addr, value, !should_flush);
         fences.push(new_fence);
@@ -67,7 +67,7 @@ public:
 
     void SignalSyncPoint(u32 value) {
         TryReleasePendingFences();
-        bool should_flush = ShouldFlush();
+        const bool should_flush = ShouldFlush();
         CommitAsyncFlushes();
         TFence new_fence = CreateFence(value, !should_flush);
         fences.push(new_fence);
@@ -79,15 +79,15 @@ public:
     }
 
     void WaitPendingFences() {
+        auto& gpu{system.GPU()};
+        auto& memory_manager{gpu.MemoryManager()};
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             if (ShouldWait()) {
                 WaitFence(current_fence);
             }
             PopAsyncFlushes();
-            auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
-                auto& memory_manager{gpu.MemoryManager()};
                 memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
@@ -125,15 +125,15 @@ protected:
 
 private:
     void TryReleasePendingFences() {
+        auto& gpu{system.GPU()};
+        auto& memory_manager{gpu.MemoryManager()};
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             if (ShouldWait() && !IsFenceSignaled(current_fence)) {
                 return;
             }
             PopAsyncFlushes();
-            auto& gpu{system.GPU()};
             if (current_fence->IsSemaphore()) {
-                auto& memory_manager{gpu.MemoryManager()};
                 memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
