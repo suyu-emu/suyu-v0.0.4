@@ -150,8 +150,7 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
     context.pc = entry_point;
     context.sp = stack_top;
     // TODO(merry): Perform a hardware test to determine the below value.
-    // AHP = 0, DN = 1, FTZ = 1, RMode = Round towards zero
-    context.fpcr = 0x03C00000;
+    context.fpcr = 0;
 }
 
 ResultVal<std::shared_ptr<Thread>> Thread::Create(KernelCore& kernel, std::string name,
