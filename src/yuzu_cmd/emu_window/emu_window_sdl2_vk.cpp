@@ -71,7 +71,7 @@ EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(Core::System& system, bool fullscreen)
 EmuWindow_SDL2_VK::~EmuWindow_SDL2_VK() = default;
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_VK::CreateSharedContext() const {
-    return std::make_unique<DummyContext>()
+    return std::make_unique<DummyContext>();
 }
 
 void EmuWindow_SDL2_VK::Present() {
