@@ -1245,28 +1245,15 @@ std::size_t RasterizerVulkan::CalculateConstBufferSize(
 }
 
 RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) const {
-    using namespace VideoCore::Surface;
-
     const auto& regs = system.GPU().Maxwell3D().regs;
-    RenderPassParams renderpass_params;
-
-    for (std::size_t rt = 0; rt < static_cast<std::size_t>(regs.rt_control.count); ++rt) {
-        const auto& rendertarget = regs.rt[rt];
-        if (rendertarget.Address() == 0 || rendertarget.format == Tegra::RenderTargetFormat::NONE) {
-            continue;
-        }
-        renderpass_params.color_attachments.push_back(RenderPassParams::ColorAttachment{
-            static_cast<u32>(rt), PixelFormatFromRenderTargetFormat(rendertarget.format),
-            texceptions[rt]});
-    }
-
-    renderpass_params.has_zeta = regs.zeta_enable;
-    if (renderpass_params.has_zeta) {
-        renderpass_params.zeta_pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
-        renderpass_params.zeta_texception = texceptions[ZETA_TEXCEPTION_INDEX];
-    }
-
-    return renderpass_params;
+    RenderPassParams params;
+    params.num_color_attachments = static_cast<u8>(regs.rt_control.count);
+    std::transform(regs.rt.begin(), regs.rt.end(), params.color_formats.begin(),
+                   [](const auto& rt) { return static_cast<u8>(rt.format); });
+    params.texceptions = static_cast<u8>(texceptions.to_ullong());
+    params.zeta_format = regs.zeta_enable ? static_cast<u8>(regs.zeta.format) : 0;
+    params.zeta_texception = texceptions[ZETA_TEXCEPTION_INDEX];
+    return params;
 }
 
 } // namespace Vulkan
