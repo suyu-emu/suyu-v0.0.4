@@ -39,8 +39,7 @@ VKStagingBufferPool::StagingBuffer& VKStagingBufferPool::StagingBuffer::operator
 
 VKStagingBufferPool::VKStagingBufferPool(const VKDevice& device, VKMemoryManager& memory_manager,
                                          VKScheduler& scheduler)
-    : device{device}, memory_manager{memory_manager}, scheduler{scheduler},
-      is_device_integrated{device.IsIntegrated()} {}
+    : device{device}, memory_manager{memory_manager}, scheduler{scheduler} {}
 
 VKStagingBufferPool::~VKStagingBufferPool() = default;
 
@@ -56,9 +55,7 @@ void VKStagingBufferPool::TickFrame() {
     current_delete_level = (current_delete_level + 1) % NumLevels;
 
     ReleaseCache(true);
-    if (!is_device_integrated) {
-        ReleaseCache(false);
-    }
+    ReleaseCache(false);
 }
 
 VKBuffer* VKStagingBufferPool::TryGetReservedBuffer(std::size_t size, bool host_visible) {
@@ -95,7 +92,7 @@ VKBuffer& VKStagingBufferPool::CreateStagingBuffer(std::size_t size, bool host_v
 }
 
 VKStagingBufferPool::StagingBuffersCache& VKStagingBufferPool::GetCache(bool host_visible) {
-    return is_device_integrated || host_visible ? host_staging_buffers : device_staging_buffers;
+    return host_visible ? host_staging_buffers : device_staging_buffers;
 }
 
 void VKStagingBufferPool::ReleaseCache(bool host_visible) {
