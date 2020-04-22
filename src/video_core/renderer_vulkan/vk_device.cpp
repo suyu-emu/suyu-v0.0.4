@@ -9,6 +9,7 @@
 #include <string_view>
 #include <thread>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "common/assert.h"
@@ -167,6 +168,7 @@ bool VKDevice::Create() {
     VkPhysicalDeviceFeatures2 features2;
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features2.pNext = nullptr;
+    const void* first_next = &features2;
     void** next = &features2.pNext;
 
     auto& features = features2.features;
@@ -296,7 +298,19 @@ bool VKDevice::Create() {
         LOG_INFO(Render_Vulkan, "Device doesn't support depth range unrestricted");
     }
 
-    logical = vk::Device::Create(physical, queue_cis, extensions, features2, dld);
+    VkDeviceDiagnosticsConfigCreateInfoNV diagnostics_nv;
+    if (nv_device_diagnostics_config) {
+        nsight_aftermath_tracker.Initialize();
+
+        diagnostics_nv.sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV;
+        diagnostics_nv.pNext = &features2;
+        diagnostics_nv.flags = VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV |
+                               VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
+                               VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV;
+        first_next = &diagnostics_nv;
+    }
+
+    logical = vk::Device::Create(physical, queue_cis, extensions, first_next, dld);
     if (!logical) {
         LOG_ERROR(Render_Vulkan, "Failed to create logical device");
         return false;
@@ -344,17 +358,12 @@ VkFormat VKDevice::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFla
 void VKDevice::ReportLoss() const {
     LOG_CRITICAL(Render_Vulkan, "Device loss occured!");
 
-    // Wait some time to let the log flush
-    std::this_thread::sleep_for(std::chrono::seconds{1});
+    // Wait for the log to flush and for Nsight Aftermath to dump the results
+    std::this_thread::sleep_for(std::chrono::seconds{3});
+}
 
-    if (!nv_device_diagnostic_checkpoints) {
-        return;
-    }
-
-    [[maybe_unused]] const std::vector data = graphics_queue.GetCheckpointDataNV(dld);
-    // Catch here in debug builds (or with optimizations disabled) the last graphics pipeline to be
-    // executed. It can be done on a debugger by evaluating the expression:
-    // *(VKGraphicsPipeline*)data[0]
+void VKDevice::SaveShader(const std::vector<u32>& spirv) const {
+    nsight_aftermath_tracker.SaveShader(spirv);
 }
 
 bool VKDevice::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const {
@@ -527,8 +536,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         Test(extension, has_ext_transform_feedback, VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME,
              false);
         if (Settings::values.renderer_debug) {
-            Test(extension, nv_device_diagnostic_checkpoints,
-                 VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME, true);
+            Test(extension, nv_device_diagnostics_config,
+                 VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME, true);
         }
     }
 

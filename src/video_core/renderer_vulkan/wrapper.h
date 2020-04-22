@@ -197,7 +197,6 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCmdPipelineBarrier vkCmdPipelineBarrier;
     PFN_vkCmdPushConstants vkCmdPushConstants;
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
-    PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV;
     PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
     PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds;
     PFN_vkCmdSetScissor vkCmdSetScissor;
@@ -252,7 +251,6 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkGetFenceStatus vkGetFenceStatus;
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
-    PFN_vkGetQueueCheckpointDataNV vkGetQueueCheckpointDataNV;
     PFN_vkMapMemory vkMapMemory;
     PFN_vkQueueSubmit vkQueueSubmit;
     PFN_vkResetFences vkResetFences;
@@ -567,12 +565,8 @@ public:
     /// Construct a queue handle.
     constexpr Queue(VkQueue queue, const DeviceDispatch& dld) noexcept : queue{queue}, dld{&dld} {}
 
-    /// Returns the checkpoint data.
-    /// @note Returns an empty vector when the function pointer is not present.
-    std::vector<VkCheckpointDataNV> GetCheckpointDataNV(const DeviceDispatch& dld) const;
-
-    void Submit(Span<VkSubmitInfo> submit_infos, VkFence fence) const {
-        Check(dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence));
+    VkResult Submit(Span<VkSubmitInfo> submit_infos, VkFence fence) const noexcept {
+        return dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence);
     }
 
     VkResult Present(const VkPresentInfoKHR& present_info) const noexcept {
@@ -659,8 +653,7 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
 
 public:
     static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
-                         Span<const char*> enabled_extensions,
-                         const VkPhysicalDeviceFeatures2& enabled_features,
+                         Span<const char*> enabled_extensions, const void* next,
                          DeviceDispatch& dld) noexcept;
 
     Queue GetQueue(u32 family_index) const noexcept;
@@ -734,18 +727,11 @@ public:
         dld->vkResetQueryPoolEXT(handle, query_pool, first, count);
     }
 
-    void GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,
-                         void* data, VkDeviceSize stride, VkQueryResultFlags flags) const {
-        Check(dld->vkGetQueryPoolResults(handle, query_pool, first, count, data_size, data, stride,
-                                         flags));
-    }
-
-    template <typename T>
-    T GetQueryResult(VkQueryPool query_pool, u32 first, VkQueryResultFlags flags) const {
-        static_assert(std::is_trivially_copyable_v<T>);
-        T value;
-        GetQueryResults(query_pool, first, 1, sizeof(T), &value, sizeof(T), flags);
-        return value;
+    VkResult GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,
+                             void* data, VkDeviceSize stride, VkQueryResultFlags flags) const
+        noexcept {
+        return dld->vkGetQueryPoolResults(handle, query_pool, first, count, data_size, data, stride,
+                                          flags);
     }
 };
 
@@ -918,10 +904,6 @@ public:
     void PushConstants(VkPipelineLayout layout, VkShaderStageFlags flags, u32 offset, u32 size,
                        const void* values) const noexcept {
         dld->vkCmdPushConstants(handle, layout, flags, offset, size, values);
-    }
-
-    void SetCheckpointNV(const void* checkpoint_marker) const noexcept {
-        dld->vkCmdSetCheckpointNV(handle, checkpoint_marker);
     }
 
     void SetViewport(u32 first, Span<VkViewport> viewports) const noexcept {

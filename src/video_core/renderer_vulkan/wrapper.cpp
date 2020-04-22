@@ -61,7 +61,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdPipelineBarrier);
     X(vkCmdPushConstants);
     X(vkCmdSetBlendConstants);
-    X(vkCmdSetCheckpointNV);
     X(vkCmdSetDepthBias);
     X(vkCmdSetDepthBounds);
     X(vkCmdSetScissor);
@@ -116,7 +115,6 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetFenceStatus);
     X(vkGetImageMemoryRequirements);
     X(vkGetQueryPoolResults);
-    X(vkGetQueueCheckpointDataNV);
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
@@ -409,17 +407,6 @@ DebugCallback Instance::TryCreateDebugCallback(
     return DebugCallback(messenger, handle, *dld);
 }
 
-std::vector<VkCheckpointDataNV> Queue::GetCheckpointDataNV(const DeviceDispatch& dld) const {
-    if (!dld.vkGetQueueCheckpointDataNV) {
-        return {};
-    }
-    u32 num;
-    dld.vkGetQueueCheckpointDataNV(queue, &num, nullptr);
-    std::vector<VkCheckpointDataNV> checkpoints(num);
-    dld.vkGetQueueCheckpointDataNV(queue, &num, checkpoints.data());
-    return checkpoints;
-}
-
 void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
     Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
 }
@@ -469,12 +456,11 @@ std::vector<VkImage> SwapchainKHR::GetImages() const {
 }
 
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
-                      Span<const char*> enabled_extensions,
-                      const VkPhysicalDeviceFeatures2& enabled_features,
+                      Span<const char*> enabled_extensions, const void* next,
                       DeviceDispatch& dld) noexcept {
     VkDeviceCreateInfo ci;
     ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    ci.pNext = &enabled_features;
+    ci.pNext = next;
     ci.flags = 0;
     ci.queueCreateInfoCount = queues_ci.size();
     ci.pQueueCreateInfos = queues_ci.data();

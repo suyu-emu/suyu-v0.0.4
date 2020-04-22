@@ -160,6 +160,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/fixed_pipeline_state.h
         renderer_vulkan/maxwell_to_vk.cpp
         renderer_vulkan/maxwell_to_vk.h
+        renderer_vulkan/nsight_aftermath_tracker.cpp
+        renderer_vulkan/nsight_aftermath_tracker.h
         renderer_vulkan/renderer_vulkan.h
         renderer_vulkan/renderer_vulkan.cpp
         renderer_vulkan/vk_blit_screen.cpp
@@ -213,17 +215,28 @@ if (ENABLE_VULKAN)
         renderer_vulkan/wrapper.cpp
         renderer_vulkan/wrapper.h
     )
-
-    target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
-    target_compile_definitions(video_core PRIVATE HAS_VULKAN)
 endif()
 
 create_target_directory_groups(video_core)
 
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PRIVATE glad)
+
 if (ENABLE_VULKAN)
+    target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)
+    target_compile_definitions(video_core PRIVATE HAS_VULKAN)
     target_link_libraries(video_core PRIVATE sirit)
+endif()
+
+if (ENABLE_NSIGHT_AFTERMATH)
+    if (NOT DEFINED ENV{NSIGHT_AFTERMATH_SDK})
+        message(ERROR "Environment variable NSIGHT_AFTERMATH_SDK has to be provided")
+    endif()
+    if (NOT WIN32)
+        message(ERROR "Nsight Aftermath doesn't support non-Windows platforms")
+    endif()
+    target_compile_definitions(video_core PRIVATE HAS_NSIGHT_AFTERMATH)
+    target_include_directories(video_core PRIVATE "$ENV{NSIGHT_AFTERMATH_SDK}/include")
 endif()
 
 if (MSVC)

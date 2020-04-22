@@ -347,11 +347,6 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     buffer_bindings.Bind(scheduler);
 
-    if (device.IsNvDeviceDiagnosticCheckpoints()) {
-        scheduler.Record(
-            [&pipeline](vk::CommandBuffer cmdbuf) { cmdbuf.SetCheckpointNV(&pipeline); });
-    }
-
     BeginTransformFeedback();
 
     const auto pipeline_layout = pipeline.GetLayout();
@@ -477,11 +472,6 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
                      VK_ACCESS_SHADER_READ_BIT);
     TransitionImages(image_views, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
                      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
-
-    if (device.IsNvDeviceDiagnosticCheckpoints()) {
-        scheduler.Record(
-            [&pipeline](vk::CommandBuffer cmdbuf) { cmdbuf.SetCheckpointNV(nullptr); });
-    }
 
     scheduler.Record([grid_x = launch_desc.grid_dim_x, grid_y = launch_desc.grid_dim_y,
                       grid_z = launch_desc.grid_dim_z, pipeline_handle = pipeline.GetHandle(),

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "video_core/renderer_vulkan/nsight_aftermath_tracker.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
@@ -42,6 +43,9 @@ public:
 
     /// Reports a device loss.
     void ReportLoss() const;
+
+    /// Reports a shader to Nsight Aftermath.
+    void SaveShader(const std::vector<u32>& spirv) const;
 
     /// Returns the dispatch loader with direct function pointers of the device.
     const vk::DeviceDispatch& GetDispatchLoader() const {
@@ -173,11 +177,6 @@ public:
         return ext_transform_feedback;
     }
 
-    /// Returns true if the device supports VK_NV_device_diagnostic_checkpoints.
-    bool IsNvDeviceDiagnosticCheckpoints() const {
-        return nv_device_diagnostic_checkpoints;
-    }
-
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return vendor_name;
@@ -233,7 +232,7 @@ private:
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
     bool ext_transform_feedback{};             ///< Support for VK_EXT_transform_feedback.
-    bool nv_device_diagnostic_checkpoints{};   ///< Support for VK_NV_device_diagnostic_checkpoints.
+    bool nv_device_diagnostics_config{};       ///< Support for VK_NV_device_diagnostics_config.
 
     // Telemetry parameters
     std::string vendor_name;                      ///< Device's driver name.
@@ -241,6 +240,9 @@ private:
 
     /// Format properties dictionary.
     std::unordered_map<VkFormat, VkFormatProperties> format_properties;
+
+    /// Nsight Aftermath GPU crash tracker
+    NsightAftermathTracker nsight_aftermath_tracker;
 };
 
 } // namespace Vulkan

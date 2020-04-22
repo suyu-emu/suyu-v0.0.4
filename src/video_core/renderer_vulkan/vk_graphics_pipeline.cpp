@@ -148,6 +148,8 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
             continue;
         }
 
+        device.SaveShader(stage->code);
+
         ci.codeSize = stage->code.size() * sizeof(u32);
         ci.pCode = stage->code.data();
         modules.push_back(device.GetLogical().CreateShaderModule(ci));
