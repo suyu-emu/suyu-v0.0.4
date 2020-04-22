@@ -484,7 +484,7 @@ private:
         code.AddLine("switch (jmp_to) {{");
 
         for (const auto& pair : ir.GetBasicBlocks()) {
-            const auto [address, bb] = pair;
+            const auto& [address, bb] = pair;
             code.AddLine("case 0x{:X}U: {{", address);
             ++code.scope;
 
@@ -1484,8 +1484,8 @@ private:
         dy += '(';
 
         for (std::size_t index = 0; index < components; ++index) {
-            const auto operand_x{derivates.at(index * 2)};
-            const auto operand_y{derivates.at(index * 2 + 1)};
+            const auto& operand_x{derivates.at(index * 2)};
+            const auto& operand_y{derivates.at(index * 2 + 1)};
             dx += Visit(operand_x).AsFloat();
             dy += Visit(operand_y).AsFloat();
 
