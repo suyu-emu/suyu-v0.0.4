@@ -20,8 +20,8 @@ namespace Service::Time {
 
 class ISystemClock final : public ServiceFramework<ISystemClock> {
 public:
-    ISystemClock(Clock::SystemClockCore& clock_core)
-        : ServiceFramework("ISystemClock"), clock_core{clock_core} {
+    explicit ISystemClock(Clock::SystemClockCore& clock_core, Core::System& system)
+        : ServiceFramework("ISystemClock"), clock_core{clock_core}, system{system} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISystemClock::GetCurrentTime, "GetCurrentTime"},
@@ -46,9 +46,8 @@ private:
         }
 
         s64 posix_time{};
-        if (const ResultCode result{
-                clock_core.GetCurrentTime(Core::System::GetInstance(), posix_time)};
-            result != RESULT_SUCCESS) {
+        if (const ResultCode result{clock_core.GetCurrentTime(system, posix_time)};
+            result.IsError()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(result);
             return;
@@ -69,9 +68,8 @@ private:
         }
 
         Clock::SystemClockContext system_clock_context{};
-        if (const ResultCode result{
-                clock_core.GetClockContext(Core::System::GetInstance(), system_clock_context)};
-            result != RESULT_SUCCESS) {
+        if (const ResultCode result{clock_core.GetClockContext(system, system_clock_context)};
+            result.IsError()) {
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(result);
             return;
@@ -83,12 +81,13 @@ private:
     }
 
     Clock::SystemClockCore& clock_core;
+    Core::System& system;
 };
 
 class ISteadyClock final : public ServiceFramework<ISteadyClock> {
 public:
-    ISteadyClock(Clock::SteadyClockCore& clock_core)
-        : ServiceFramework("ISteadyClock"), clock_core{clock_core} {
+    explicit ISteadyClock(Clock::SteadyClockCore& clock_core, Core::System& system)
+        : ServiceFramework("ISteadyClock"), clock_core{clock_core}, system{system} {
         static const FunctionInfo functions[] = {
             {0, &ISteadyClock::GetCurrentTimePoint, "GetCurrentTimePoint"},
         };
@@ -105,14 +104,14 @@ private:
             return;
         }
 
-        const Clock::SteadyClockTimePoint time_point{
-            clock_core.GetCurrentTimePoint(Core::System::GetInstance())};
+        const Clock::SteadyClockTimePoint time_point{clock_core.GetCurrentTimePoint(system)};
         IPC::ResponseBuilder rb{ctx, (sizeof(Clock::SteadyClockTimePoint) / 4) + 2};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw(time_point);
     }
 
     Clock::SteadyClockCore& clock_core;
+    Core::System& system;
 };
 
 ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
@@ -134,7 +133,7 @@ ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
     }
 
     const auto current_time_point{
-        time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(Core::System::GetInstance())};
+        time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
     if (const ResultCode result{Clock::ClockSnapshot::GetCurrentTime(
             clock_snapshot.user_time, current_time_point, clock_snapshot.user_context)};
         result != RESULT_SUCCESS) {
@@ -176,21 +175,24 @@ void Module::Interface::GetStandardUserSystemClock(Kernel::HLERequestContext& ct
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardUserSystemClockCore());
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardUserSystemClockCore(),
+                                      system);
 }
 
 void Module::Interface::GetStandardNetworkSystemClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardNetworkSystemClockCore());
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardNetworkSystemClockCore(),
+                                      system);
 }
 
 void Module::Interface::GetStandardSteadyClock(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISteadyClock>(module->GetTimeManager().GetStandardSteadyClockCore());
+    rb.PushIpcInterface<ISteadyClock>(module->GetTimeManager().GetStandardSteadyClockCore(),
+                                      system);
 }
 
 void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
@@ -204,7 +206,8 @@ void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& c
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardLocalSystemClockCore());
+    rb.PushIpcInterface<ISystemClock>(module->GetTimeManager().GetStandardLocalSystemClockCore(),
+                                      system);
 }
 
 void Module::Interface::IsStandardNetworkSystemClockAccuracySufficient(
@@ -228,8 +231,7 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
 
     IPC::RequestParser rp{ctx};
     const auto context{rp.PopRaw<Clock::SystemClockContext>()};
-    const auto current_time_point{
-        steady_clock_core.GetCurrentTimePoint(Core::System::GetInstance())};
+    const auto current_time_point{steady_clock_core.GetCurrentTimePoint(system)};
 
     if (current_time_point.clock_source_id == context.steady_time_point.clock_source_id) {
         const auto ticks{Clock::TimeSpanType::FromTicks(
@@ -255,8 +257,8 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     Clock::SystemClockContext user_context{};
     if (const ResultCode result{
             module->GetTimeManager().GetStandardUserSystemClockCore().GetClockContext(
-                Core::System::GetInstance(), user_context)};
-        result != RESULT_SUCCESS) {
+                system, user_context)};
+        result.IsError()) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -264,8 +266,8 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     Clock::SystemClockContext network_context{};
     if (const ResultCode result{
             module->GetTimeManager().GetStandardNetworkSystemClockCore().GetClockContext(
-                Core::System::GetInstance(), network_context)};
-        result != RESULT_SUCCESS) {
+                system, network_context)};
+        result.IsError()) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
@@ -274,7 +276,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
     Clock::ClockSnapshot clock_snapshot{};
     if (const ResultCode result{GetClockSnapshotFromSystemClockContextInternal(
             &ctx.GetThread(), user_context, network_context, type, clock_snapshot)};
-        result != RESULT_SUCCESS) {
+        result.IsError()) {
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(result);
         return;
