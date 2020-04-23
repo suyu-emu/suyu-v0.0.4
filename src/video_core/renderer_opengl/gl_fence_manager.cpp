@@ -40,8 +40,7 @@ void GLInnerFence::Wait() {
         return;
     }
     ASSERT(sync_object.handle != 0);
-    while (glClientWaitSync(sync_object.handle, 0, 1000) == GL_TIMEOUT_EXPIRED)
-        ;
+    glClientWaitSync(sync_object.handle, 0, GL_TIMEOUT_IGNORED);
 }
 
 FenceManagerOpenGL::FenceManagerOpenGL(Core::System& system,
