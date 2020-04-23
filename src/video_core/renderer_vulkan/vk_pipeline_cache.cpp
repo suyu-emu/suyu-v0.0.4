@@ -330,8 +330,10 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
 
     Specialization specialization;
     if (fixed_state.rasterizer.Topology() == Maxwell::PrimitiveTopology::Points) {
-        ASSERT(fixed_state.rasterizer.point_size != 0);
-        std::memcpy(&specialization.point_size, &fixed_state.rasterizer.point_size, sizeof(u32));
+        float point_size;
+        std::memcpy(&point_size, &fixed_state.rasterizer.point_size, sizeof(float));
+        specialization.point_size = point_size;
+        ASSERT(point_size != 0.0f);
     }
     for (std::size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
         specialization.attribute_types[i] = fixed_state.vertex_input.attributes[i].Type();
