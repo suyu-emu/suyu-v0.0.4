@@ -36,22 +36,22 @@ std::shared_ptr<SharedMemory> SharedMemory::Create(
 }
 
 ResultCode SharedMemory::Map(Process& target_process, VAddr address, std::size_t size,
-                             Memory::MemoryPermission permission) {
+                             Memory::MemoryPermission permissions) {
     const u64 page_count{(size + Memory::PageSize - 1) / Memory::PageSize};
 
     if (page_list.GetNumPages() != page_count) {
         UNIMPLEMENTED_MSG("Page count does not match");
     }
 
-    Memory::MemoryPermission expected =
+    const Memory::MemoryPermission expected =
         &target_process == owner_process ? owner_permission : user_permission;
 
-    if (permission != expected) {
+    if (permissions != expected) {
         UNIMPLEMENTED_MSG("Permission does not match");
     }
 
     return target_process.PageTable().MapPages(address, page_list, Memory::MemoryState::Shared,
-                                               permission);
+                                               permissions);
 }
 
 } // namespace Kernel

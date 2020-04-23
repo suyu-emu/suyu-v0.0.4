@@ -51,7 +51,7 @@ public:
      * @param permissions Memory block map permissions (specified by SVC field)
      */
     ResultCode Map(Process& target_process, VAddr address, std::size_t size,
-                   Memory::MemoryPermission permission);
+                   Memory::MemoryPermission permissions);
 
     /**
      * Gets a pointer to the shared memory block
