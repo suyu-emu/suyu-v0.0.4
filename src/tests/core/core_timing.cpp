@@ -16,10 +16,10 @@
 
 namespace {
 // Numbers are chosen randomly to make sure the correct one is given.
-static constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
-static constexpr int MAX_SLICE_LENGTH = 10000; // Copied from CoreTiming internals
-static constexpr std::array<u64, 5> calls_order{{2, 0, 1, 4, 3}};
-static std::array<s64, 5> delays{};
+constexpr std::array<u64, 5> CB_IDS{{42, 144, 93, 1026, UINT64_C(0xFFFF7FFFF7FFFF)}};
+constexpr int MAX_SLICE_LENGTH = 10000; // Copied from CoreTiming internals
+constexpr std::array<u64, 5> calls_order{{2, 0, 1, 4, 3}};
+std::array<s64, 5> delays{};
 
 std::bitset<CB_IDS.size()> callbacks_ran_flags;
 u64 expected_callback = 0;
@@ -48,6 +48,8 @@ struct ScopeInit final {
 
     Core::Timing::CoreTiming core_timing;
 };
+
+} // Anonymous namespace
 
 TEST_CASE("CoreTiming[BasicOrder]", "[core]") {
     ScopeInit guard;

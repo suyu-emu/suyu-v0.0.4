@@ -56,6 +56,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
 void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
+    shutting_down = false;
     ticks = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
@@ -79,6 +80,7 @@ void CoreTiming::Shutdown() {
 
 void CoreTiming::Pause(bool is_paused) {
     paused = is_paused;
+    pause_event.Set();
 }
 
 void CoreTiming::SyncPause(bool is_paused) {
