@@ -49,14 +49,32 @@ public:
     /// Records a GPU query and caches it
     virtual void Query(GPUVAddr gpu_addr, QueryType type, std::optional<u64> timestamp) = 0;
 
+    /// Signal a GPU based semaphore as a fence
+    virtual void SignalSemaphore(GPUVAddr addr, u32 value) = 0;
+
+    /// Signal a GPU based syncpoint as a fence
+    virtual void SignalSyncPoint(u32 value) = 0;
+
+    /// Release all pending fences.
+    virtual void ReleaseFences() = 0;
+
     /// Notify rasterizer that all caches should be flushed to Switch memory
     virtual void FlushAll() = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     virtual void FlushRegion(VAddr addr, u64 size) = 0;
 
+    /// Check if the the specified memory area requires flushing to CPU Memory.
+    virtual bool MustFlushRegion(VAddr addr, u64 size) = 0;
+
     /// Notify rasterizer that any caches of the specified region should be invalidated
     virtual void InvalidateRegion(VAddr addr, u64 size) = 0;
+
+    /// Notify rasterizer that any caches of the specified region are desync with guest
+    virtual void OnCPUWrite(VAddr addr, u64 size) = 0;
+
+    /// Sync memory between guest and host.
+    virtual void SyncGuestHost() = 0;
 
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     /// and invalidated

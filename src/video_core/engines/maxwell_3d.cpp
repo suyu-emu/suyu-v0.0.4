@@ -404,7 +404,11 @@ void Maxwell3D::ProcessQueryGet() {
 
     switch (regs.query.query_get.operation) {
     case Regs::QueryOperation::Release:
-        StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
+        if (regs.query.query_get.fence == 1) {
+            rasterizer.SignalSemaphore(regs.query.QueryAddress(), regs.query.query_sequence);
+        } else {
+            StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
+        }
         break;
     case Regs::QueryOperation::Acquire:
         // TODO(Blinkhawk): Under this operation, the GPU waits for the CPU to write a value that
@@ -483,7 +487,7 @@ void Maxwell3D::ProcessSyncPoint() {
     const u32 increment = regs.sync_info.increment.Value();
     [[maybe_unused]] const u32 cache_flush = regs.sync_info.unknown.Value();
     if (increment) {
-        system.GPU().IncrementSyncPoint(sync_point);
+        rasterizer.SignalSyncPoint(sync_point);
     }
 }
 

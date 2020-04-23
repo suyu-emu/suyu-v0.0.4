@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
@@ -18,8 +19,10 @@
 
 #include "common/alignment.h"
 #include "common/common_types.h"
+#include "common/logging/log.h"
 #include "core/core.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/buffer_cache/buffer_block.h"
 #include "video_core/buffer_cache/map_interval.h"
 #include "video_core/memory_manager.h"
@@ -79,6 +82,9 @@ public:
         auto map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (is_written) {
             map->MarkAsModified(true, GetModifiedTicks());
+            if (Settings::IsGPULevelHigh() && Settings::values.use_asynchronous_gpu_emulation) {
+                MarkForAsyncFlush(map);
+            }
             if (!map->IsWritten()) {
                 map->MarkAsWritten(true);
                 MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
@@ -137,9 +143,20 @@ public:
         });
         for (auto& object : objects) {
             if (object->IsModified() && object->IsRegistered()) {
+                mutex.unlock();
                 FlushMap(object);
+                mutex.lock();
             }
         }
+    }
+
+    bool MustFlushRegion(VAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        const std::vector<MapInterval> objects = GetMapsInRange(addr, size);
+        return std::any_of(objects.cbegin(), objects.cend(), [](const MapInterval& map) {
+            return map->IsModified() && map->IsRegistered();
+        });
     }
 
     /// Mark the specified region as being invalidated
@@ -152,6 +169,77 @@ public:
                 Unregister(object);
             }
         }
+    }
+
+    void OnCPUWrite(VAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        for (const auto& object : GetMapsInRange(addr, size)) {
+            if (object->IsMemoryMarked() && object->IsRegistered()) {
+                UnmarkMemory(object);
+                object->SetSyncPending(true);
+                marked_for_unregister.emplace_back(object);
+            }
+        }
+    }
+
+    void SyncGuestHost() {
+        std::lock_guard lock{mutex};
+
+        for (const auto& object : marked_for_unregister) {
+            if (object->IsRegistered()) {
+                object->SetSyncPending(false);
+                Unregister(object);
+            }
+        }
+        marked_for_unregister.clear();
+    }
+
+    void CommitAsyncFlushes() {
+        if (uncommitted_flushes) {
+            auto commit_list = std::make_shared<std::list<MapInterval>>();
+            for (auto& map : *uncommitted_flushes) {
+                if (map->IsRegistered() && map->IsModified()) {
+                    // TODO(Blinkhawk): Implement backend asynchronous flushing
+                    // AsyncFlushMap(map)
+                    commit_list->push_back(map);
+                }
+            }
+            if (!commit_list->empty()) {
+                committed_flushes.push_back(commit_list);
+            } else {
+                committed_flushes.emplace_back();
+            }
+        } else {
+            committed_flushes.emplace_back();
+        }
+        uncommitted_flushes.reset();
+    }
+
+    bool ShouldWaitAsyncFlushes() const {
+        return !committed_flushes.empty() && committed_flushes.front() != nullptr;
+    }
+
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
+    }
+
+    void PopAsyncFlushes() {
+        if (committed_flushes.empty()) {
+            return;
+        }
+        auto& flush_list = committed_flushes.front();
+        if (!flush_list) {
+            committed_flushes.pop_front();
+            return;
+        }
+        for (MapInterval& map : *flush_list) {
+            if (map->IsRegistered()) {
+                // TODO(Blinkhawk): Replace this for reading the asynchronous flush
+                FlushMap(map);
+            }
+        }
+        committed_flushes.pop_front();
     }
 
     virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
@@ -196,17 +284,30 @@ protected:
         const IntervalType interval{new_map->GetStart(), new_map->GetEnd()};
         mapped_addresses.insert({interval, new_map});
         rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
+        new_map->SetMemoryMarked(true);
         if (inherit_written) {
             MarkRegionAsWritten(new_map->GetStart(), new_map->GetEnd() - 1);
             new_map->MarkAsWritten(true);
         }
     }
 
-    /// Unregisters an object from the cache
-    void Unregister(MapInterval& map) {
+    void UnmarkMemory(const MapInterval& map) {
+        if (!map->IsMemoryMarked()) {
+            return;
+        }
         const std::size_t size = map->GetEnd() - map->GetStart();
         rasterizer.UpdatePagesCachedCount(map->GetStart(), size, -1);
+        map->SetMemoryMarked(false);
+    }
+
+    /// Unregisters an object from the cache
+    void Unregister(const MapInterval& map) {
+        UnmarkMemory(map);
         map->MarkAsRegistered(false);
+        if (map->IsSyncPending()) {
+            marked_for_unregister.remove(map);
+            map->SetSyncPending(false);
+        }
         if (map->IsWritten()) {
             UnmarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
         }
@@ -264,6 +365,9 @@ private:
         MapInterval new_map = CreateMap(new_start, new_end, new_gpu_addr);
         if (modified_inheritance) {
             new_map->MarkAsModified(true, GetModifiedTicks());
+            if (Settings::IsGPULevelHigh() && Settings::values.use_asynchronous_gpu_emulation) {
+                MarkForAsyncFlush(new_map);
+            }
         }
         Register(new_map, write_inheritance);
         return new_map;
@@ -450,6 +554,13 @@ private:
         return false;
     }
 
+    void MarkForAsyncFlush(MapInterval& map) {
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::unordered_set<MapInterval>>();
+        }
+        uncommitted_flushes->insert(map);
+    }
+
     VideoCore::RasterizerInterface& rasterizer;
     Core::System& system;
 
@@ -479,6 +590,10 @@ private:
     u64 modified_ticks = 0;
 
     std::vector<u8> staging_buffer;
+    std::list<MapInterval> marked_for_unregister;
+
+    std::shared_ptr<std::unordered_set<MapInterval>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::list<MapInterval>>> committed_flushes;
 
     std::recursive_mutex mutex;
 };

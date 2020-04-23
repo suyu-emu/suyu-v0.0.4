@@ -23,6 +23,7 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
+#include "video_core/renderer_opengl/gl_fence_manager.h"
 #include "video_core/renderer_opengl/gl_framebuffer_cache.h"
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
@@ -66,7 +67,13 @@ public:
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) override;
     void FlushAll() override;
     void FlushRegion(VAddr addr, u64 size) override;
+    bool MustFlushRegion(VAddr addr, u64 size) override;
     void InvalidateRegion(VAddr addr, u64 size) override;
+    void OnCPUWrite(VAddr addr, u64 size) override;
+    void SyncGuestHost() override;
+    void SignalSemaphore(GPUVAddr addr, u32 value) override;
+    void SignalSyncPoint(u32 value) override;
+    void ReleaseFences() override;
     void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void FlushCommands() override;
     void TickFrame() override;
@@ -222,6 +229,8 @@ private:
     SamplerCacheOpenGL sampler_cache;
     FramebufferCacheOpenGL framebuffer_cache;
     QueryCache query_cache;
+    OGLBufferCache buffer_cache;
+    FenceManagerOpenGL fence_manager;
 
     Core::System& system;
     ScreenInfo& screen_info;
@@ -229,7 +238,6 @@ private:
     StateTracker& state_tracker;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
-    OGLBufferCache buffer_cache;
 
     GLint vertex_binding = 0;
 

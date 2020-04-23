@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <list>
 #include <memory>
 #include <mutex>
 #include <set>
@@ -62,6 +63,30 @@ public:
         }
     }
 
+    void OnCPUWrite(VAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        for (const auto& surface : GetSurfacesInRegion(addr, size)) {
+            if (surface->IsMemoryMarked()) {
+                UnmarkMemory(surface);
+                surface->SetSyncPending(true);
+                marked_for_unregister.emplace_back(surface);
+            }
+        }
+    }
+
+    void SyncGuestHost() {
+        std::lock_guard lock{mutex};
+
+        for (const auto& surface : marked_for_unregister) {
+            if (surface->IsRegistered()) {
+                surface->SetSyncPending(false);
+                Unregister(surface);
+            }
+        }
+        marked_for_unregister.clear();
+    }
+
     /**
      * Guarantees that rendertargets don't unregister themselves if the
      * collide. Protection is currently only done on 3D slices.
@@ -85,8 +110,18 @@ public:
             return a->GetModificationTick() < b->GetModificationTick();
         });
         for (const auto& surface : surfaces) {
+            mutex.unlock();
             FlushSurface(surface);
+            mutex.lock();
         }
+    }
+
+    bool MustFlushRegion(VAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        const auto surfaces = GetSurfacesInRegion(addr, size);
+        return std::any_of(surfaces.cbegin(), surfaces.cend(),
+                           [](const TSurface& surface) { return surface->IsModified(); });
     }
 
     TView GetTextureSurface(const Tegra::Texture::TICEntry& tic,
@@ -206,8 +241,14 @@ public:
 
         auto surface_view = GetSurface(gpu_addr, *cpu_addr,
                                        SurfaceParams::CreateForFramebuffer(system, index), true);
-        if (render_targets[index].target)
-            render_targets[index].target->MarkAsRenderTarget(false, NO_RT);
+        if (render_targets[index].target) {
+            auto& surface = render_targets[index].target;
+            surface->MarkAsRenderTarget(false, NO_RT);
+            const auto& cr_params = surface->GetSurfaceParams();
+            if (!cr_params.is_tiled && Settings::values.use_asynchronous_gpu_emulation) {
+                AsyncFlushSurface(surface);
+            }
+        }
         render_targets[index].target = surface_view.first;
         render_targets[index].view = surface_view.second;
         if (render_targets[index].target)
@@ -284,6 +325,34 @@ public:
         return ++ticks;
     }
 
+    void CommitAsyncFlushes() {
+        committed_flushes.push_back(uncommitted_flushes);
+        uncommitted_flushes.reset();
+    }
+
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
+    }
+
+    bool ShouldWaitAsyncFlushes() const {
+        return !committed_flushes.empty() && committed_flushes.front() != nullptr;
+    }
+
+    void PopAsyncFlushes() {
+        if (committed_flushes.empty()) {
+            return;
+        }
+        auto& flush_list = committed_flushes.front();
+        if (!flush_list) {
+            committed_flushes.pop_front();
+            return;
+        }
+        for (TSurface& surface : *flush_list) {
+            FlushSurface(surface);
+        }
+        committed_flushes.pop_front();
+    }
+
 protected:
     explicit TextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                           bool is_astc_supported)
@@ -345,7 +414,18 @@ protected:
         surface->SetCpuAddr(*cpu_addr);
         RegisterInnerCache(surface);
         surface->MarkAsRegistered(true);
+        surface->SetMemoryMarked(true);
         rasterizer.UpdatePagesCachedCount(*cpu_addr, size, 1);
+    }
+
+    void UnmarkMemory(TSurface surface) {
+        if (!surface->IsMemoryMarked()) {
+            return;
+        }
+        const std::size_t size = surface->GetSizeInBytes();
+        const VAddr cpu_addr = surface->GetCpuAddr();
+        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+        surface->SetMemoryMarked(false);
     }
 
     void Unregister(TSurface surface) {
@@ -355,9 +435,11 @@ protected:
         if (!guard_render_targets && surface->IsRenderTarget()) {
             ManageRenderTargetUnregister(surface);
         }
-        const std::size_t size = surface->GetSizeInBytes();
-        const VAddr cpu_addr = surface->GetCpuAddr();
-        rasterizer.UpdatePagesCachedCount(cpu_addr, size, -1);
+        UnmarkMemory(surface);
+        if (surface->IsSyncPending()) {
+            marked_for_unregister.remove(surface);
+            surface->SetSyncPending(false);
+        }
         UnregisterInnerCache(surface);
         surface->MarkAsRegistered(false);
         ReserveSurface(surface->GetSurfaceParams(), surface);
@@ -417,7 +499,7 @@ private:
      **/
     RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
-        if (Settings::values.use_accurate_gpu_emulation) {
+        if (Settings::IsGPULevelExtreme()) {
             return RecycleStrategy::Flush;
         }
         // 3D Textures decision
@@ -461,7 +543,7 @@ private:
         }
         switch (PickStrategy(overlaps, params, gpu_addr, untopological)) {
         case RecycleStrategy::Ignore: {
-            return InitializeSurface(gpu_addr, params, Settings::values.use_accurate_gpu_emulation);
+            return InitializeSurface(gpu_addr, params, Settings::IsGPULevelExtreme());
         }
         case RecycleStrategy::Flush: {
             std::sort(overlaps.begin(), overlaps.end(),
@@ -509,7 +591,7 @@ private:
         }
         const auto& final_params = new_surface->GetSurfaceParams();
         if (cr_params.type != final_params.type) {
-            if (Settings::values.use_accurate_gpu_emulation) {
+            if (Settings::IsGPULevelExtreme()) {
                 BufferCopy(current_surface, new_surface);
             }
         } else {
@@ -598,7 +680,7 @@ private:
         if (passed_tests == 0) {
             return {};
             // In Accurate GPU all tests should pass, else we recycle
-        } else if (Settings::values.use_accurate_gpu_emulation && passed_tests != overlaps.size()) {
+        } else if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
             return {};
         }
         for (const auto& surface : overlaps) {
@@ -668,7 +750,7 @@ private:
             for (const auto& surface : overlaps) {
                 if (!surface->MatchTarget(params.target)) {
                     if (overlaps.size() == 1 && surface->GetCpuAddr() == cpu_addr) {
-                        if (Settings::values.use_accurate_gpu_emulation) {
+                        if (Settings::IsGPULevelExtreme()) {
                             return std::nullopt;
                         }
                         Unregister(surface);
@@ -1106,6 +1188,13 @@ private:
         TView view;
     };
 
+    void AsyncFlushSurface(TSurface& surface) {
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::list<TSurface>>();
+        }
+        uncommitted_flushes->push_back(surface);
+    }
+
     VideoCore::RasterizerInterface& rasterizer;
 
     FormatLookupTable format_lookup_table;
@@ -1149,6 +1238,11 @@ private:
     /// for invalid texture calls.
     std::unordered_map<u32, TSurface> invalid_cache;
     std::vector<u8> invalid_memory;
+
+    std::list<TSurface> marked_for_unregister;
+
+    std::shared_ptr<std::list<TSurface>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::list<TSurface>>> committed_flushes;
 
     StagingCache staging_cache;
     std::recursive_mutex mutex;

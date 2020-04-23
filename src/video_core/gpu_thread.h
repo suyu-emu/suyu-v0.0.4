@@ -70,9 +70,16 @@ struct FlushAndInvalidateRegionCommand final {
     u64 size;
 };
 
+/// Command called within the gpu, to schedule actions after a command list end
+struct OnCommandListEndCommand final {};
+
+/// Command to make the gpu look into pending requests
+struct GPUTickCommand final {};
+
 using CommandData =
     std::variant<EndProcessingCommand, SubmitListCommand, SwapBuffersCommand, FlushRegionCommand,
-                 InvalidateRegionCommand, FlushAndInvalidateRegionCommand>;
+                 InvalidateRegionCommand, FlushAndInvalidateRegionCommand, OnCommandListEndCommand,
+                 GPUTickCommand>;
 
 struct CommandDataContainer {
     CommandDataContainer() = default;
@@ -121,6 +128,8 @@ public:
 
     // Wait until the gpu thread is idle.
     void WaitIdle() const;
+
+    void OnCommandListEnd();
 
 private:
     /// Pushes a command to be executed by the GPU thread

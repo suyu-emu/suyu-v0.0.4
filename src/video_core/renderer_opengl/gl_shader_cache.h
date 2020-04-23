@@ -125,6 +125,9 @@ private:
     ShaderDiskCacheOpenGL disk_cache;
     std::unordered_map<u64, PrecompiledShader> runtime_cache;
 
+    Shader null_shader{};
+    Shader null_kernel{};
+
     std::array<Shader, Maxwell::MaxShaderProgram> last_shaders;
 };
 

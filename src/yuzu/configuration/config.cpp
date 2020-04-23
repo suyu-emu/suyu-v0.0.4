@@ -639,8 +639,8 @@ void Config::ReadRendererValues() {
     Settings::values.frame_limit = ReadSetting(QStringLiteral("frame_limit"), 100).toInt();
     Settings::values.use_disk_shader_cache =
         ReadSetting(QStringLiteral("use_disk_shader_cache"), true).toBool();
-    Settings::values.use_accurate_gpu_emulation =
-        ReadSetting(QStringLiteral("use_accurate_gpu_emulation"), false).toBool();
+    const int gpu_accuracy_level = ReadSetting(QStringLiteral("gpu_accuracy"), 0).toInt();
+    Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(gpu_accuracy_level);
     Settings::values.use_asynchronous_gpu_emulation =
         ReadSetting(QStringLiteral("use_asynchronous_gpu_emulation"), false).toBool();
     Settings::values.use_vsync = ReadSetting(QStringLiteral("use_vsync"), true).toBool();
@@ -1080,8 +1080,8 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("frame_limit"), Settings::values.frame_limit, 100);
     WriteSetting(QStringLiteral("use_disk_shader_cache"), Settings::values.use_disk_shader_cache,
                  true);
-    WriteSetting(QStringLiteral("use_accurate_gpu_emulation"),
-                 Settings::values.use_accurate_gpu_emulation, false);
+    WriteSetting(QStringLiteral("gpu_accuracy"), static_cast<int>(Settings::values.gpu_accuracy),
+                 0);
     WriteSetting(QStringLiteral("use_asynchronous_gpu_emulation"),
                  Settings::values.use_asynchronous_gpu_emulation, false);
     WriteSetting(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);

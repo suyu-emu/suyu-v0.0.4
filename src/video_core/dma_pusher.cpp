@@ -21,6 +21,7 @@ MICROPROFILE_DEFINE(DispatchCalls, "GPU", "Execute command buffer", MP_RGB(128, 
 void DmaPusher::DispatchCalls() {
     MICROPROFILE_SCOPE(DispatchCalls);
 
+    gpu.SyncGuestHost();
     // On entering GPU code, assume all memory may be touched by the ARM core.
     gpu.Maxwell3D().OnMemoryWrite();
 
@@ -32,6 +33,8 @@ void DmaPusher::DispatchCalls() {
         }
     }
     gpu.FlushCommands();
+    gpu.SyncGuestHost();
+    gpu.OnCommandListEnd();
 }
 
 bool DmaPusher::Step() {

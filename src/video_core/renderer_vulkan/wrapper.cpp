@@ -63,6 +63,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetBlendConstants);
     X(vkCmdSetDepthBias);
     X(vkCmdSetDepthBounds);
+    X(vkCmdSetEvent);
     X(vkCmdSetScissor);
     X(vkCmdSetStencilCompareMask);
     X(vkCmdSetStencilReference);
@@ -75,6 +76,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCreateDescriptorPool);
     X(vkCreateDescriptorSetLayout);
     X(vkCreateDescriptorUpdateTemplateKHR);
+    X(vkCreateEvent);
     X(vkCreateFence);
     X(vkCreateFramebuffer);
     X(vkCreateGraphicsPipelines);
@@ -93,6 +95,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkDestroyDescriptorPool);
     X(vkDestroyDescriptorSetLayout);
     X(vkDestroyDescriptorUpdateTemplateKHR);
+    X(vkDestroyEvent);
     X(vkDestroyFence);
     X(vkDestroyFramebuffer);
     X(vkDestroyImage);
@@ -112,6 +115,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkFreeMemory);
     X(vkGetBufferMemoryRequirements);
     X(vkGetDeviceQueue);
+    X(vkGetEventStatus);
     X(vkGetFenceStatus);
     X(vkGetImageMemoryRequirements);
     X(vkGetQueryPoolResults);
@@ -267,6 +271,10 @@ void Destroy(VkDevice device, VkDescriptorUpdateTemplateKHR handle,
 
 void Destroy(VkDevice device, VkDeviceMemory handle, const DeviceDispatch& dld) noexcept {
     dld.vkFreeMemory(device, handle, nullptr);
+}
+
+void Destroy(VkDevice device, VkEvent handle, const DeviceDispatch& dld) noexcept {
+    dld.vkDestroyEvent(device, handle, nullptr);
 }
 
 void Destroy(VkDevice device, VkFence handle, const DeviceDispatch& dld) noexcept {
@@ -597,6 +605,16 @@ ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) cons
     VkShaderModule object;
     Check(dld->vkCreateShaderModule(handle, &ci, nullptr, &object));
     return ShaderModule(object, handle, *dld);
+}
+
+Event Device::CreateEvent() const {
+    VkEventCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    VkEvent object;
+    Check(dld->vkCreateEvent(handle, &ci, nullptr, &object));
+    return Event(object, handle, *dld);
 }
 
 SwapchainKHR Device::CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const {

@@ -199,6 +199,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCmdSetBlendConstants vkCmdSetBlendConstants;
     PFN_vkCmdSetDepthBias vkCmdSetDepthBias;
     PFN_vkCmdSetDepthBounds vkCmdSetDepthBounds;
+    PFN_vkCmdSetEvent vkCmdSetEvent;
     PFN_vkCmdSetScissor vkCmdSetScissor;
     PFN_vkCmdSetStencilCompareMask vkCmdSetStencilCompareMask;
     PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
@@ -211,6 +212,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCreateDescriptorPool vkCreateDescriptorPool;
     PFN_vkCreateDescriptorSetLayout vkCreateDescriptorSetLayout;
     PFN_vkCreateDescriptorUpdateTemplateKHR vkCreateDescriptorUpdateTemplateKHR;
+    PFN_vkCreateEvent vkCreateEvent;
     PFN_vkCreateFence vkCreateFence;
     PFN_vkCreateFramebuffer vkCreateFramebuffer;
     PFN_vkCreateGraphicsPipelines vkCreateGraphicsPipelines;
@@ -229,6 +231,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkDestroyDescriptorPool vkDestroyDescriptorPool;
     PFN_vkDestroyDescriptorSetLayout vkDestroyDescriptorSetLayout;
     PFN_vkDestroyDescriptorUpdateTemplateKHR vkDestroyDescriptorUpdateTemplateKHR;
+    PFN_vkDestroyEvent vkDestroyEvent;
     PFN_vkDestroyFence vkDestroyFence;
     PFN_vkDestroyFramebuffer vkDestroyFramebuffer;
     PFN_vkDestroyImage vkDestroyImage;
@@ -248,6 +251,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkFreeMemory vkFreeMemory;
     PFN_vkGetBufferMemoryRequirements vkGetBufferMemoryRequirements;
     PFN_vkGetDeviceQueue vkGetDeviceQueue;
+    PFN_vkGetEventStatus vkGetEventStatus;
     PFN_vkGetFenceStatus vkGetFenceStatus;
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
@@ -279,6 +283,7 @@ void Destroy(VkDevice, VkDescriptorPool, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDescriptorSetLayout, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDescriptorUpdateTemplateKHR, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkDeviceMemory, const DeviceDispatch&) noexcept;
+void Destroy(VkDevice, VkEvent, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkFence, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkFramebuffer, const DeviceDispatch&) noexcept;
 void Destroy(VkDevice, VkImage, const DeviceDispatch&) noexcept;
@@ -648,6 +653,15 @@ public:
     std::vector<VkImage> GetImages() const;
 };
 
+class Event : public Handle<VkEvent, VkDevice, DeviceDispatch> {
+    using Handle<VkEvent, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    VkResult GetStatus() const noexcept {
+        return dld->vkGetEventStatus(owner, handle);
+    }
+};
+
 class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
     using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
 
@@ -694,6 +708,8 @@ public:
     QueryPool CreateQueryPool(const VkQueryPoolCreateInfo& ci) const;
 
     ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
+
+    Event CreateEvent() const;
 
     SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
 
@@ -936,6 +952,10 @@ public:
 
     void SetDepthBounds(float min_depth_bounds, float max_depth_bounds) const noexcept {
         dld->vkCmdSetDepthBounds(handle, min_depth_bounds, max_depth_bounds);
+    }
+
+    void SetEvent(VkEvent event, VkPipelineStageFlags stage_flags) const noexcept {
+        dld->vkCmdSetEvent(handle, event, stage_flags);
     }
 
     void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,

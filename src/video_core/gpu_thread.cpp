@@ -6,6 +6,7 @@
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
+#include "core/settings.h"
 #include "video_core/dma_pusher.h"
 #include "video_core/gpu.h"
 #include "video_core/gpu_thread.h"
@@ -14,8 +15,9 @@
 namespace VideoCommon::GPUThread {
 
 /// Runs the GPU thread
-static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::GraphicsContext& context,
-                      Tegra::DmaPusher& dma_pusher, SynchState& state) {
+static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
+                      Core::Frontend::GraphicsContext& context, Tegra::DmaPusher& dma_pusher,
+                      SynchState& state) {
     MicroProfileOnThreadCreate("GpuThread");
 
     // Wait for first GPU command before acquiring the window context
@@ -37,10 +39,14 @@ static void RunThread(VideoCore::RendererBase& renderer, Core::Frontend::Graphic
             dma_pusher.DispatchCalls();
         } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
+        } else if (const auto data = std::get_if<OnCommandListEndCommand>(&next.data)) {
+            renderer.Rasterizer().ReleaseFences();
+        } else if (const auto data = std::get_if<GPUTickCommand>(&next.data)) {
+            system.GPU().TickWork();
         } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
             renderer.Rasterizer().FlushRegion(data->addr, data->size);
         } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
-            renderer.Rasterizer().InvalidateRegion(data->addr, data->size);
+            renderer.Rasterizer().OnCPUWrite(data->addr, data->size);
         } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
             return;
         } else {
@@ -65,8 +71,8 @@ ThreadManager::~ThreadManager() {
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
                                 Core::Frontend::GraphicsContext& context,
                                 Tegra::DmaPusher& dma_pusher) {
-    thread = std::thread{RunThread, std::ref(renderer), std::ref(context), std::ref(dma_pusher),
-                         std::ref(state)};
+    thread = std::thread{RunThread,         std::ref(system),     std::ref(renderer),
+                         std::ref(context), std::ref(dma_pusher), std::ref(state)};
 }
 
 void ThreadManager::SubmitList(Tegra::CommandList&& entries) {
@@ -78,21 +84,38 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 }
 
 void ThreadManager::FlushRegion(VAddr addr, u64 size) {
-    PushCommand(FlushRegionCommand(addr, size));
+    if (!Settings::IsGPULevelHigh()) {
+        PushCommand(FlushRegionCommand(addr, size));
+        return;
+    }
+    if (!Settings::IsGPULevelExtreme()) {
+        return;
+    }
+    if (system.Renderer().Rasterizer().MustFlushRegion(addr, size)) {
+        auto& gpu = system.GPU();
+        u64 fence = gpu.RequestFlush(addr, size);
+        PushCommand(GPUTickCommand());
+        while (fence > gpu.CurrentFlushRequestFence()) {
+        }
+    }
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
-    system.Renderer().Rasterizer().InvalidateRegion(addr, size);
+    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
 }
 
 void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
-    InvalidateRegion(addr, size);
+    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
 }
 
 void ThreadManager::WaitIdle() const {
     while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed)) {
     }
+}
+
+void ThreadManager::OnCommandListEnd() {
+    PushCommand(OnCommandListEndCommand());
 }
 
 u64 ThreadManager::PushCommand(CommandData&& command_data) {

@@ -52,7 +52,7 @@ Buffer OGLBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
 }
 
 void OGLBufferCache::WriteBarrier() {
-    glMemoryBarrier(GL_ALL_BARRIER_BITS);
+    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
 GLuint OGLBufferCache::ToHandle(const Buffer& buffer) {
@@ -72,6 +72,7 @@ void OGLBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, s
 void OGLBufferCache::DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                        u8* data) {
     MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
+    glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
     glGetNamedBufferSubData(buffer->GetHandle(), static_cast<GLintptr>(offset),
                             static_cast<GLsizeiptr>(size), data);
 }

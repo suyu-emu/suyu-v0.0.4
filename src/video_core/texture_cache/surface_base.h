@@ -192,6 +192,22 @@ public:
         index = index_;
     }
 
+    void SetMemoryMarked(bool is_memory_marked_) {
+        is_memory_marked = is_memory_marked_;
+    }
+
+    bool IsMemoryMarked() const {
+        return is_memory_marked;
+    }
+
+    void SetSyncPending(bool is_sync_pending_) {
+        is_sync_pending = is_sync_pending_;
+    }
+
+    bool IsSyncPending() const {
+        return is_sync_pending;
+    }
+
     void MarkAsPicked(bool is_picked_) {
         is_picked = is_picked_;
     }
@@ -303,6 +319,8 @@ private:
     bool is_target{};
     bool is_registered{};
     bool is_picked{};
+    bool is_memory_marked{};
+    bool is_sync_pending{};
     u32 index{NO_RT};
     u64 modification_tick{};
 };

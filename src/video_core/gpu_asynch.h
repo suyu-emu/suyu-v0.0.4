@@ -32,6 +32,8 @@ public:
     void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void WaitIdle() const override;
 
+    void OnCommandListEnd() override;
+
 protected:
     void TriggerCpuInterrupt(u32 syncpoint_id, u32 value) const override;
 

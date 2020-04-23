@@ -92,7 +92,7 @@ void LogSettings() {
     LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
     LogSetting("Renderer_FrameLimit", Settings::values.frame_limit);
     LogSetting("Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache);
-    LogSetting("Renderer_UseAccurateGpuEmulation", Settings::values.use_accurate_gpu_emulation);
+    LogSetting("Renderer_GPUAccuracyLevel", Settings::values.gpu_accuracy);
     LogSetting("Renderer_UseAsynchronousGpuEmulation",
                Settings::values.use_asynchronous_gpu_emulation);
     LogSetting("Renderer_UseVsync", Settings::values.use_vsync);
@@ -107,6 +107,14 @@ void LogSettings() {
     LogSetting("Debugging_ProgramArgs", Settings::values.program_args);
     LogSetting("Services_BCATBackend", Settings::values.bcat_backend);
     LogSetting("Services_BCATBoxcatLocal", Settings::values.bcat_boxcat_local);
+}
+
+bool IsGPULevelExtreme() {
+    return values.gpu_accuracy == GPUAccuracy::Extreme;
+}
+
+bool IsGPULevelHigh() {
+    return values.gpu_accuracy == GPUAccuracy::Extreme || values.gpu_accuracy == GPUAccuracy::High;
 }
 
 } // namespace Settings

@@ -376,6 +376,12 @@ enum class RendererBackend {
     Vulkan = 1,
 };
 
+enum class GPUAccuracy : u32 {
+    Normal = 0,
+    High = 1,
+    Extreme = 2,
+};
+
 struct Values {
     // System
     bool use_docked_mode;
@@ -436,7 +442,7 @@ struct Values {
     bool use_frame_limit;
     u16 frame_limit;
     bool use_disk_shader_cache;
-    bool use_accurate_gpu_emulation;
+    GPUAccuracy gpu_accuracy;
     bool use_asynchronous_gpu_emulation;
     bool use_vsync;
     bool force_30fps_mode;
@@ -479,6 +485,9 @@ struct Values {
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
 } extern values;
+
+bool IsGPULevelExtreme();
+bool IsGPULevelHigh();
 
 void Apply();
 void LogSettings();

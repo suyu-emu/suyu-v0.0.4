@@ -12,10 +12,12 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "common/assert.h"
 #include "core/core.h"
+#include "core/settings.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
@@ -130,6 +132,9 @@ public:
         }
 
         query->BindCounter(Stream(type).Current(), timestamp);
+        if (Settings::values.use_asynchronous_gpu_emulation) {
+            AsyncFlushQuery(cpu_addr);
+        }
     }
 
     /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
@@ -168,6 +173,37 @@ public:
     /// Returns the counter stream of the specified type.
     const CounterStream& Stream(VideoCore::QueryType type) const {
         return streams[static_cast<std::size_t>(type)];
+    }
+
+    void CommitAsyncFlushes() {
+        committed_flushes.push_back(uncommitted_flushes);
+        uncommitted_flushes.reset();
+    }
+
+    bool HasUncommittedFlushes() const {
+        return uncommitted_flushes != nullptr;
+    }
+
+    bool ShouldWaitAsyncFlushes() const {
+        if (committed_flushes.empty()) {
+            return false;
+        }
+        return committed_flushes.front() != nullptr;
+    }
+
+    void PopAsyncFlushes() {
+        if (committed_flushes.empty()) {
+            return;
+        }
+        auto& flush_list = committed_flushes.front();
+        if (!flush_list) {
+            committed_flushes.pop_front();
+            return;
+        }
+        for (VAddr query_address : *flush_list) {
+            FlushAndRemoveRegion(query_address, 4);
+        }
+        committed_flushes.pop_front();
     }
 
 protected:
@@ -224,6 +260,13 @@ private:
         return found != std::end(contents) ? &*found : nullptr;
     }
 
+    void AsyncFlushQuery(VAddr addr) {
+        if (!uncommitted_flushes) {
+            uncommitted_flushes = std::make_shared<std::unordered_set<VAddr>>();
+        }
+        uncommitted_flushes->insert(addr);
+    }
+
     static constexpr std::uintptr_t PAGE_SIZE = 4096;
     static constexpr unsigned PAGE_SHIFT = 12;
 
@@ -235,6 +278,9 @@ private:
     std::unordered_map<u64, std::vector<CachedQuery>> cached_queries;
 
     std::array<CounterStream, VideoCore::NumQueryTypes> streams;
+
+    std::shared_ptr<std::unordered_set<VAddr>> uncommitted_flushes{};
+    std::list<std::shared_ptr<std::unordered_set<VAddr>>> committed_flushes;
 };
 
 template <class QueryCache, class HostCounter>

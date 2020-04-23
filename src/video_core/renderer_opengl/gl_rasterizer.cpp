@@ -99,9 +99,10 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
                                    ScreenInfo& info, GLShader::ProgramManager& program_manager,
                                    StateTracker& state_tracker)
     : RasterizerAccelerated{system.Memory()}, texture_cache{system, *this, device, state_tracker},
-      shader_cache{*this, system, emu_window, device}, query_cache{system, *this}, system{system},
-      screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker},
-      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE} {
+      shader_cache{*this, system, emu_window, device}, query_cache{system, *this},
+      buffer_cache{*this, system, device, STREAM_BUFFER_SIZE},
+      fence_manager{system, *this, texture_cache, buffer_cache, query_cache}, system{system},
+      screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker} {
     CheckExtensions();
 }
 
@@ -599,6 +600,8 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     EndTransformFeedback();
 
     ++num_queued_commands;
+
+    system.GPU().TickWork();
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
@@ -649,6 +652,13 @@ void RasterizerOpenGL::FlushRegion(VAddr addr, u64 size) {
     query_cache.FlushRegion(addr, size);
 }
 
+bool RasterizerOpenGL::MustFlushRegion(VAddr addr, u64 size) {
+    if (!Settings::IsGPULevelHigh()) {
+        return buffer_cache.MustFlushRegion(addr, size);
+    }
+    return texture_cache.MustFlushRegion(addr, size) || buffer_cache.MustFlushRegion(addr, size);
+}
+
 void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     if (addr == 0 || size == 0) {
@@ -660,8 +670,52 @@ void RasterizerOpenGL::InvalidateRegion(VAddr addr, u64 size) {
     query_cache.InvalidateRegion(addr, size);
 }
 
+void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
+    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    if (addr == 0 || size == 0) {
+        return;
+    }
+    texture_cache.OnCPUWrite(addr, size);
+    shader_cache.InvalidateRegion(addr, size);
+    buffer_cache.OnCPUWrite(addr, size);
+    query_cache.InvalidateRegion(addr, size);
+}
+
+void RasterizerOpenGL::SyncGuestHost() {
+    MICROPROFILE_SCOPE(OpenGL_CacheManagement);
+    texture_cache.SyncGuestHost();
+    buffer_cache.SyncGuestHost();
+}
+
+void RasterizerOpenGL::SignalSemaphore(GPUVAddr addr, u32 value) {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        auto& memory_manager{gpu.MemoryManager()};
+        memory_manager.Write<u32>(addr, value);
+        return;
+    }
+    fence_manager.SignalSemaphore(addr, value);
+}
+
+void RasterizerOpenGL::SignalSyncPoint(u32 value) {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        gpu.IncrementSyncPoint(value);
+        return;
+    }
+    fence_manager.SignalSyncPoint(value);
+}
+
+void RasterizerOpenGL::ReleaseFences() {
+    auto& gpu{system.GPU()};
+    if (!gpu.IsAsync()) {
+        return;
+    }
+    fence_manager.WaitPendingFences();
+}
+
 void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
-    if (Settings::values.use_accurate_gpu_emulation) {
+    if (Settings::IsGPULevelExtreme()) {
         FlushRegion(addr, size);
     }
     InvalidateRegion(addr, size);

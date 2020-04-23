@@ -23,11 +23,34 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <widget class="QCheckBox" name="use_accurate_gpu_emulation">
-          <property name="text">
-           <string>Use accurate GPU emulation (slow)</string>
-          </property>
-         </widget>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_gpu_accuracy">
+            <property name="text">
+             <string>Accuracy Level:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="gpu_accuracy">
+            <item>
+             <property name="text">
+              <string notr="true">Normal</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">High</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string notr="true">Extreme(very slow)</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item>
          <widget class="QCheckBox" name="use_vsync">

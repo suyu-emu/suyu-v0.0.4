@@ -104,8 +104,13 @@ void MaxwellDMA::HandleCopy() {
             write_buffer.resize(dst_size);
         }
 
-        memory_manager.ReadBlock(source, read_buffer.data(), src_size);
-        memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
+        if (Settings::IsGPULevelExtreme()) {
+            memory_manager.ReadBlock(source, read_buffer.data(), src_size);
+            memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
+        } else {
+            memory_manager.ReadBlockUnsafe(source, read_buffer.data(), src_size);
+            memory_manager.ReadBlockUnsafe(dest, write_buffer.data(), dst_size);
+        }
 
         Texture::UnswizzleSubrect(
             regs.x_count, regs.y_count, regs.dst_pitch, regs.src_params.size_x, bytes_per_pixel,
@@ -136,7 +141,7 @@ void MaxwellDMA::HandleCopy() {
             write_buffer.resize(dst_size);
         }
 
-        if (Settings::values.use_accurate_gpu_emulation) {
+        if (Settings::IsGPULevelExtreme()) {
             memory_manager.ReadBlock(source, read_buffer.data(), src_size);
             memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
         } else {
