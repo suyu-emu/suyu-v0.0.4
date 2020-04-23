@@ -4,6 +4,7 @@
 
 #include "core/crypto/key_manager.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/service/es/es.h"
 #include "core/hle/service/service.h"
 
 namespace Service::ES {

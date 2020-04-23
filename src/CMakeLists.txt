@@ -54,8 +54,10 @@ else()
     add_compile_options(
         -Wall
         -Werror=implicit-fallthrough
+        -Werror=missing-declarations
         -Werror=reorder
         -Wextra
+        -Wmissing-declarations
         -Wno-attributes
         -Wno-unused-parameter
     )

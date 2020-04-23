@@ -202,8 +202,8 @@ static std::array<Key128, 0x20> FindEncryptedMasterKeyFromHex(const std::vector<
     return out;
 }
 
-FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
-                                            const std::string& name) {
+static FileSys::VirtualFile FindFileInDirWithNames(const FileSys::VirtualDir& dir,
+                                                   const std::string& name) {
     const auto upper = Common::ToUpper(name);
 
     for (const auto& fname : {name, name + ".bin", upper, upper + ".BIN"}) {
@@ -345,8 +345,7 @@ FileSys::VirtualFile PartitionDataManager::GetPackage2Raw(Package2Type type) con
     return package2.at(static_cast<size_t>(type));
 }
 
-bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
-
+static bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
     const std::vector<u8> iv(header.header_ctr.begin(), header.header_ctr.end());
     Package2Header temp = header;
     AESCipher<Key128> cipher(key, Mode::CTR);

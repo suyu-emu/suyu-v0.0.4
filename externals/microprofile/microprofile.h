@@ -910,14 +910,14 @@ typedef void* (*MicroProfileThreadFunc)(void*);
 
 #ifndef _WIN32
 typedef pthread_t MicroProfileThread;
-void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
+inline void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
 {
     pthread_attr_t Attr;
     int r  = pthread_attr_init(&Attr);
     MP_ASSERT(r == 0);
     pthread_create(pThread, &Attr, Func, 0);
 }
-void MicroProfileThreadJoin(MicroProfileThread* pThread)
+inline void MicroProfileThreadJoin(MicroProfileThread* pThread)
 {
     int r = pthread_join(*pThread, 0);
     MP_ASSERT(r == 0);
@@ -930,11 +930,11 @@ DWORD _stdcall ThreadTrampoline(void* pFunc)
     return (uint32_t)F(0);
 }
 
-void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
+inline void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
 {
     *pThread = CreateThread(0, 0, ThreadTrampoline, Func, 0, 0);
 }
-void MicroProfileThreadJoin(MicroProfileThread* pThread)
+inline void MicroProfileThreadJoin(MicroProfileThread* pThread)
 {
     WaitForSingleObject(*pThread, INFINITE);
     CloseHandle(*pThread);
@@ -1131,7 +1131,7 @@ inline void MicroProfileSetThreadLog(MicroProfileThreadLog* pLog)
     pthread_setspecific(g_MicroProfileThreadLogKey, pLog);
 }
 #else
-MicroProfileThreadLog* MicroProfileGetThreadLog()
+inline MicroProfileThreadLog* MicroProfileGetThreadLog()
 {
     return g_MicroProfileThreadLog;
 }
@@ -1247,7 +1247,7 @@ MicroProfileToken MicroProfileFindToken(const char* pGroup, const char* pName)
     return MICROPROFILE_INVALID_TOKEN;
 }
 
-uint16_t MicroProfileGetGroup(const char* pGroup, MicroProfileTokenType Type)
+inline uint16_t MicroProfileGetGroup(const char* pGroup, MicroProfileTokenType Type)
 {
     for(uint32_t i = 0; i < S.nGroupCount; ++i)
     {
@@ -1276,7 +1276,7 @@ uint16_t MicroProfileGetGroup(const char* pGroup, MicroProfileTokenType Type)
     return nGroupIndex;
 }
 
-void MicroProfileRegisterGroup(const char* pGroup, const char* pCategory, uint32_t nColor)
+inline void MicroProfileRegisterGroup(const char* pGroup, const char* pCategory, uint32_t nColor)
 {
     int nCategoryIndex = -1;
     for(uint32_t i = 0; i < S.nCategoryCount; ++i)
@@ -1442,7 +1442,7 @@ void MicroProfileGpuLeave(MicroProfileToken nToken_, uint64_t nTickStart)
     }
 }
 
-void MicroProfileContextSwitchPut(MicroProfileContextSwitch* pContextSwitch)
+inline void MicroProfileContextSwitchPut(MicroProfileContextSwitch* pContextSwitch)
 {
     if(S.nRunning || pContextSwitch->nTicks <= S.nPauseTicks)
     {
@@ -1894,7 +1894,7 @@ void MicroProfileSetEnableAllGroups(bool bEnableAllGroups)
     S.nAllGroupsWanted = bEnableAllGroups ? 1 : 0;
 }
 
-void MicroProfileEnableCategory(const char* pCategory, bool bEnabled)
+inline void MicroProfileEnableCategory(const char* pCategory, bool bEnabled)
 {
     int nCategoryIndex = -1;
     for(uint32_t i = 0; i < S.nCategoryCount; ++i)
@@ -2004,7 +2004,7 @@ void MicroProfileForceDisableGroup(const char* pGroup, MicroProfileTokenType Typ
 }
 
 
-void MicroProfileCalcAllTimers(float* pTimers, float* pAverage, float* pMax, float* pCallAverage, float* pExclusive, float* pAverageExclusive, float* pMaxExclusive, float* pTotal, uint32_t nSize)
+inline void MicroProfileCalcAllTimers(float* pTimers, float* pAverage, float* pMax, float* pCallAverage, float* pExclusive, float* pAverageExclusive, float* pMaxExclusive, float* pTotal, uint32_t nSize)
 {
     for(uint32_t i = 0; i < S.nTotalTimers && i < nSize; ++i)
     {

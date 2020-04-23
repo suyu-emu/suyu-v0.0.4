@@ -587,8 +587,6 @@ bool TryQuery(CFGRebuildState& state) {
     return true;
 }
 
-} // Anonymous namespace
-
 void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
     const auto get_expr = ([&](const Condition& cond) -> Expr {
         Expr result{};
@@ -654,6 +652,8 @@ void DecompileShader(CFGRebuildState& state) {
     }
     state.manager->Decompile();
 }
+
+} // Anonymous namespace
 
 std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code, u32 start_address,
                                                 const CompilerSettings& settings,

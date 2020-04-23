@@ -56,8 +56,7 @@ void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32
                       u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data, u32 block_height,
                       u32 offset_x, u32 offset_y);
 
-void SwizzleKepler(const u32 width, const u32 height, const u32 dst_x, const u32 dst_y,
-                   const u32 block_height, const std::size_t copy_size, const u8* source_data,
-                   u8* swizzle_data);
+void SwizzleKepler(u32 width, u32 height, u32 dst_x, u32 dst_y, u32 block_height,
+                   std::size_t copy_size, const u8* source_data, u8* swizzle_data);
 
 } // namespace Tegra::Texture

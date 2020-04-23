@@ -18,6 +18,7 @@
 #include "core/hle/service/bcat/backend/boxcat.h"
 #include "core/settings.h"
 
+namespace Service::BCAT {
 namespace {
 
 // Prevents conflicts with windows macro called CreateFile
@@ -29,10 +30,6 @@ FileSys::VirtualFile VfsCreateFileWrap(FileSys::VirtualDir dir, std::string_view
 bool VfsDeleteFileWrap(FileSys::VirtualDir dir, std::string_view name) {
     return dir->DeleteFile(name);
 }
-
-} // Anonymous namespace
-
-namespace Service::BCAT {
 
 constexpr ResultCode ERROR_GENERAL_BCAT_FAILURE{ErrorModule::BCAT, 1};
 
@@ -89,8 +86,6 @@ std::ostream& operator<<(std::ostream& os, DownloadResult result) {
 constexpr u32 PORT = 443;
 constexpr u32 TIMEOUT_SECONDS = 30;
 [[maybe_unused]] constexpr u64 VFS_COPY_BLOCK_SIZE = 1ULL << 24; // 4MB
-
-namespace {
 
 std::string GetBINFilePath(u64 title_id) {
     return fmt::format("{}bcat/{:016X}/launchparam.bin",
