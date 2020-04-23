@@ -17,7 +17,7 @@ namespace Kernel::Memory {
 
 enum class MemoryState : u32 {
     None = 0,
-    Mask = 0xFFFFFFFF, // TODO(bunnei): This should probable be 0xFF
+    Mask = 0xFF,
     All = ~None,
 
     FlagCanReprotect = (1 << 8),
@@ -253,6 +253,23 @@ public:
         };
     }
 
+    void ShareToDevice(MemoryPermission /*new_perm*/) {
+        ASSERT((attribute & MemoryAttribute::DeviceShared) == MemoryAttribute::DeviceShared ||
+               device_use_count == 0);
+        attribute |= MemoryAttribute::DeviceShared;
+        const u16 new_use_count{++device_use_count};
+        ASSERT(new_use_count > 0);
+    }
+
+    void UnshareToDevice(MemoryPermission /*new_perm*/) {
+        ASSERT((attribute & MemoryAttribute::DeviceShared) == MemoryAttribute::DeviceShared);
+        const u16 prev_use_count{device_use_count--};
+        ASSERT(prev_use_count > 0);
+        if (prev_use_count == 1) {
+            attribute &= ~MemoryAttribute::DeviceShared;
+        }
+    }
+
 private:
     constexpr bool HasProperties(MemoryState s, MemoryPermission p, MemoryAttribute a) const {
         constexpr MemoryAttribute AttributeIgnoreMask{MemoryAttribute::DontCareMask |
@@ -287,9 +304,9 @@ private:
         state = new_state;
         perm = new_perm;
 
-        // TODO(bunnei): Is this right?
         attribute = static_cast<MemoryAttribute>(
-            new_attribute /*| (attribute & (MemoryAttribute::IpcLocked | MemoryAttribute::DeviceShared))*/);
+            new_attribute |
+            (attribute & (MemoryAttribute::IpcLocked | MemoryAttribute::DeviceShared)));
     }
 
     constexpr MemoryBlock Split(VAddr split_addr) {

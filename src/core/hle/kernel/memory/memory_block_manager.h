@@ -45,6 +45,9 @@ public:
                 MemoryPermission perm = MemoryPermission::None,
                 MemoryAttribute attribute = MemoryAttribute::None);
 
+    using LockFunc = std::function<void(iterator, MemoryPermission)>;
+    void UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func, MemoryPermission perm);
+
     using IterateFunc = std::function<void(const MemoryInfo&)>;
     void IterateForRange(VAddr start, VAddr end, IterateFunc&& func);
 

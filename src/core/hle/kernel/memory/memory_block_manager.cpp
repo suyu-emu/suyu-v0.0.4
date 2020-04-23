@@ -143,6 +143,42 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState s
     }
 }
 
+void MemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
+                                    MemoryPermission perm) {
+    const std::size_t prev_count{memory_block_tree.size()};
+    const VAddr end_addr{addr + num_pages * PageSize};
+    iterator node{memory_block_tree.begin()};
+
+    while (node != memory_block_tree.end()) {
+        MemoryBlock* block{&(*node)};
+        iterator next_node{std::next(node)};
+        const VAddr cur_addr{block->GetAddress()};
+        const VAddr cur_end_addr{block->GetNumPages() * PageSize + cur_addr};
+
+        if (addr < cur_end_addr && cur_addr < end_addr) {
+            iterator new_node{node};
+
+            if (addr > cur_addr) {
+                memory_block_tree.insert(node, block->Split(addr));
+            }
+
+            if (end_addr < cur_end_addr) {
+                new_node = memory_block_tree.insert(node, block->Split(end_addr));
+            }
+
+            lock_func(new_node, perm);
+
+            MergeAdjacent(new_node, next_node);
+        }
+
+        if (cur_end_addr - 1 >= end_addr - 1) {
+            break;
+        }
+
+        node = next_node;
+    }
+}
+
 void MemoryBlockManager::IterateForRange(VAddr start, VAddr end, IterateFunc&& func) {
     const_iterator it{FindIterator(start)};
     MemoryInfo info{};

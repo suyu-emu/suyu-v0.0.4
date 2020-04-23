@@ -840,6 +840,50 @@ ResultVal<VAddr> PageTable::AllocateAndMapMemory(std::size_t needed_num_pages, s
     return MakeResult<VAddr>(addr);
 }
 
+ResultCode PageTable::LockForDeviceAddressSpace(VAddr addr, std::size_t size) {
+    std::lock_guard lock{page_table_lock};
+
+    MemoryPermission perm{};
+    if (const ResultCode result{CheckMemoryState(
+            nullptr, &perm, nullptr, addr, size, MemoryState::FlagCanChangeAttribute,
+            MemoryState::FlagCanChangeAttribute, MemoryPermission::None, MemoryPermission::None,
+            MemoryAttribute::LockedAndIpcLocked, MemoryAttribute::None,
+            MemoryAttribute::DeviceSharedAndUncached)};
+        result.IsError()) {
+        return result;
+    }
+
+    block_manager->UpdateLock(addr, size / PageSize,
+                              [perm](MemoryBlockManager::iterator block, MemoryPermission perm) {
+                                  block->ShareToDevice(perm);
+                              },
+                              perm);
+
+    return RESULT_SUCCESS;
+}
+
+ResultCode PageTable::UnlockForDeviceAddressSpace(VAddr addr, std::size_t size) {
+    std::lock_guard lock{page_table_lock};
+
+    MemoryPermission perm{};
+    if (const ResultCode result{CheckMemoryState(
+            nullptr, &perm, nullptr, addr, size, MemoryState::FlagCanChangeAttribute,
+            MemoryState::FlagCanChangeAttribute, MemoryPermission::None, MemoryPermission::None,
+            MemoryAttribute::LockedAndIpcLocked, MemoryAttribute::None,
+            MemoryAttribute::DeviceSharedAndUncached)};
+        result.IsError()) {
+        return result;
+    }
+
+    block_manager->UpdateLock(addr, size / PageSize,
+                              [perm](MemoryBlockManager::iterator block, MemoryPermission perm) {
+                                  block->UnshareToDevice(perm);
+                              },
+                              perm);
+
+    return RESULT_SUCCESS;
+}
+
 ResultCode PageTable::InitializeMemoryLayout(VAddr start, VAddr end) {
     block_manager = std::make_unique<MemoryBlockManager>(start, end);
 

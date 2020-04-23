@@ -53,6 +53,8 @@ public:
                                           bool is_map_only, VAddr region_start,
                                           std::size_t region_num_pages, MemoryState state,
                                           MemoryPermission perm, PAddr map_addr = 0);
+    ResultCode LockForDeviceAddressSpace(VAddr addr, std::size_t size);
+    ResultCode UnlockForDeviceAddressSpace(VAddr addr, std::size_t size);
 
     Common::PageTable& PageTableImpl() {
         return page_table_impl;

@@ -51,11 +51,8 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, u64 size) {
     const GPUVAddr gpu_addr{FindFreeRegion(address_space_base, aligned_size)};
 
     MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
-    ASSERT(system.CurrentProcess()
-               ->PageTable()
-               .SetMemoryAttribute(cpu_addr, size, Kernel::Memory::MemoryAttribute::DeviceShared,
-                                   Kernel::Memory::MemoryAttribute::DeviceShared)
-               .IsSuccess());
+    ASSERT(
+        system.CurrentProcess()->PageTable().LockForDeviceAddressSpace(cpu_addr, size).IsSuccess());
 
     return gpu_addr;
 }
@@ -66,11 +63,8 @@ GPUVAddr MemoryManager::MapBufferEx(VAddr cpu_addr, GPUVAddr gpu_addr, u64 size)
     const u64 aligned_size{Common::AlignUp(size, page_size)};
 
     MapBackingMemory(gpu_addr, system.Memory().GetPointer(cpu_addr), aligned_size, cpu_addr);
-    ASSERT(system.CurrentProcess()
-               ->PageTable()
-               .SetMemoryAttribute(cpu_addr, size, Kernel::Memory::MemoryAttribute::DeviceShared,
-                                   Kernel::Memory::MemoryAttribute::DeviceShared)
-               .IsSuccess());
+    ASSERT(
+        system.CurrentProcess()->PageTable().LockForDeviceAddressSpace(cpu_addr, size).IsSuccess());
     return gpu_addr;
 }
 
@@ -87,9 +81,7 @@ GPUVAddr MemoryManager::UnmapBuffer(GPUVAddr gpu_addr, u64 size) {
     UnmapRange(gpu_addr, aligned_size);
     ASSERT(system.CurrentProcess()
                ->PageTable()
-               .SetMemoryAttribute(cpu_addr.value(), size,
-                                   Kernel::Memory::MemoryAttribute::DeviceShared,
-                                   Kernel::Memory::MemoryAttribute::None)
+               .UnlockForDeviceAddressSpace(cpu_addr.value(), size)
                .IsSuccess());
 
     return gpu_addr;
