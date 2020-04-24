@@ -62,8 +62,9 @@ static bool UnmappedMemoryHook(uc_engine* uc, uc_mem_type type, u64 addr, int si
     return false;
 }
 
-ARM_Unicorn::ARM_Unicorn(System& system) : ARM_Interface{system} {
-    CHECKED(uc_open(UC_ARCH_ARM64, UC_MODE_ARM, &uc));
+ARM_Unicorn::ARM_Unicorn(System& system, Arch architecture) : ARM_Interface{system} {
+    const auto arch = architecture == Arch::AArch32 ? UC_ARCH_ARM : UC_ARCH_ARM64;
+    CHECKED(uc_open(arch, UC_MODE_ARM, &uc));
 
     auto fpv = 3 << 20;
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_CPACR_EL1, &fpv));

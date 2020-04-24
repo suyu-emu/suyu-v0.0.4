@@ -185,10 +185,9 @@ void ARM_Dynarmic_64::Step() {
 
 ARM_Dynarmic_64::ARM_Dynarmic_64(System& system, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
-    : ARM_Interface{system},
-      cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system},
-      core_index{core_index}, exclusive_monitor{
-                                  dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
+    : ARM_Interface{system}, cb(std::make_unique<DynarmicCallbacks64>(*this)),
+      inner_unicorn{system, ARM_Unicorn::Arch::AArch64}, core_index{core_index},
+      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic_64::~ARM_Dynarmic_64() = default;
 

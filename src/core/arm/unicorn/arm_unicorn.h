@@ -15,7 +15,12 @@ class System;
 
 class ARM_Unicorn final : public ARM_Interface {
 public:
-    explicit ARM_Unicorn(System& system);
+    enum class Arch {
+        AArch32, // 32-bit ARM
+        AArch64, // 64-bit ARM
+    };
+
+    explicit ARM_Unicorn(System& system, Arch architecture);
     ~ARM_Unicorn() override;
 
     void SetPC(u64 pc) override;
