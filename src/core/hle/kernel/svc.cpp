@@ -55,9 +55,6 @@ constexpr bool IsValidAddressRange(VAddr address, u64 size) {
     return address + size > address;
 }
 
-// 8 GiB
-constexpr u64 MAIN_MEMORY_SIZE = 0x200000000;
-
 // Helper function that performs the common sanity checks for svcMapMemory
 // and svcUnmapMemory. This is doable, as both functions perform their sanitizing
 // in the same order.
