@@ -129,7 +129,7 @@ struct alignas(32) FixedPipelineState {
             auto& binding = bindings[index];
             binding.raw = 0;
             binding.enabled.Assign(enabled ? 1 : 0);
-            binding.stride.Assign(stride);
+            binding.stride.Assign(static_cast<u16>(stride));
             binding_divisors[index] = divisor;
         }
 
