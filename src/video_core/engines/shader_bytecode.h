@@ -655,6 +655,7 @@ union Instruction {
     }
 
     constexpr Instruction(u64 value) : value{value} {}
+    constexpr Instruction(const Instruction& instr) : value(instr.value) {}
 
     BitField<0, 8, Register> gpr0;
     BitField<8, 8, Register> gpr8;
