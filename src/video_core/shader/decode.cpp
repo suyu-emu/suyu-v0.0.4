@@ -13,6 +13,7 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/control_flow.h"
+#include "video_core/shader/memory_util.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -22,17 +23,6 @@ using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 
 namespace {
-
-/**
- * Returns whether the instruction at the specified offset is a 'sched' instruction.
- * Sched instructions always appear before a sequence of 3 instructions.
- */
-constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
-    constexpr u32 SchedPeriod = 4;
-    u32 absolute_offset = offset - main_offset;
-
-    return (absolute_offset % SchedPeriod) == 0;
-}
 
 void DeduceTextureHandlerSize(VideoCore::GuestDriverProfile& gpu_driver,
                               const std::list<Sampler>& used_samplers) {

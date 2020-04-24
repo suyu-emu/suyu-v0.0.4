@@ -10,8 +10,6 @@
 #include <thread>
 #include <unordered_set>
 
-#include <boost/functional/hash.hpp>
-
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -28,75 +26,25 @@
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
 #include "video_core/renderer_opengl/utils.h"
+#include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
 namespace OpenGL {
 
 using Tegra::Engines::ShaderType;
+using VideoCommon::Shader::GetShaderAddress;
+using VideoCommon::Shader::GetShaderCode;
+using VideoCommon::Shader::GetUniqueIdentifier;
+using VideoCommon::Shader::KERNEL_MAIN_OFFSET;
 using VideoCommon::Shader::ProgramCode;
 using VideoCommon::Shader::Registry;
 using VideoCommon::Shader::ShaderIR;
+using VideoCommon::Shader::STAGE_MAIN_OFFSET;
 
 namespace {
 
-constexpr u32 STAGE_MAIN_OFFSET = 10;
-constexpr u32 KERNEL_MAIN_OFFSET = 0;
-
 constexpr VideoCommon::Shader::CompilerSettings COMPILER_SETTINGS{};
-
-/// Gets the address for the specified shader stage program
-GPUVAddr GetShaderAddress(Core::System& system, Maxwell::ShaderProgram program) {
-    const auto& gpu{system.GPU().Maxwell3D()};
-    const auto& shader_config{gpu.regs.shader_config[static_cast<std::size_t>(program)]};
-    return gpu.regs.code_address.CodeAddress() + shader_config.offset;
-}
-
-/// Gets if the current instruction offset is a scheduler instruction
-constexpr bool IsSchedInstruction(std::size_t offset, std::size_t main_offset) {
-    // Sched instructions appear once every 4 instructions.
-    constexpr std::size_t SchedPeriod = 4;
-    const std::size_t absolute_offset = offset - main_offset;
-    return (absolute_offset % SchedPeriod) == 0;
-}
-
-/// Calculates the size of a program stream
-std::size_t CalculateProgramSize(const ProgramCode& program) {
-    constexpr std::size_t start_offset = 10;
-    // This is the encoded version of BRA that jumps to itself. All Nvidia
-    // shaders end with one.
-    constexpr u64 self_jumping_branch = 0xE2400FFFFF07000FULL;
-    constexpr u64 mask = 0xFFFFFFFFFF7FFFFFULL;
-    std::size_t offset = start_offset;
-    while (offset < program.size()) {
-        const u64 instruction = program[offset];
-        if (!IsSchedInstruction(offset, start_offset)) {
-            if ((instruction & mask) == self_jumping_branch) {
-                // End on Maxwell's "nop" instruction
-                break;
-            }
-            if (instruction == 0) {
-                break;
-            }
-        }
-        offset++;
-    }
-    // The last instruction is included in the program size
-    return std::min(offset + 1, program.size());
-}
-
-/// Gets the shader program code from memory for the specified address
-ProgramCode GetShaderCode(Tegra::MemoryManager& memory_manager, const GPUVAddr gpu_addr,
-                          const u8* host_ptr) {
-    ProgramCode code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
-    ASSERT_OR_EXECUTE(host_ptr != nullptr, {
-        std::fill(code.begin(), code.end(), 0);
-        return code;
-    });
-    memory_manager.ReadBlockUnsafe(gpu_addr, code.data(), code.size() * sizeof(u64));
-    code.resize(CalculateProgramSize(code));
-    return code;
-}
 
 /// Gets the shader type from a Maxwell program type
 constexpr GLenum GetGLShaderType(ShaderType shader_type) {
@@ -112,17 +60,6 @@ constexpr GLenum GetGLShaderType(ShaderType shader_type) {
     default:
         return GL_NONE;
     }
-}
-
-/// Hashes one (or two) program streams
-u64 GetUniqueIdentifier(ShaderType shader_type, bool is_a, const ProgramCode& code,
-                        const ProgramCode& code_b = {}) {
-    u64 unique_identifier = boost::hash_value(code);
-    if (is_a) {
-        // VertexA programs include two programs
-        boost::hash_combine(unique_identifier, boost::hash_value(code_b));
-    }
-    return unique_identifier;
 }
 
 constexpr const char* GetShaderTypeName(ShaderType shader_type) {
@@ -456,11 +393,12 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const auto host_ptr{memory_manager.GetPointer(address)};
 
     // No shader found - create a new one
-    ProgramCode code{GetShaderCode(memory_manager, address, host_ptr)};
+    ProgramCode code{GetShaderCode(memory_manager, address, host_ptr, false)};
     ProgramCode code_b;
     if (program == Maxwell::ShaderProgram::VertexA) {
         const GPUVAddr address_b{GetShaderAddress(system, Maxwell::ShaderProgram::VertexB)};
-        code_b = GetShaderCode(memory_manager, address_b, memory_manager.GetPointer(address_b));
+        const u8* host_ptr_b = memory_manager.GetPointer(address_b);
+        code_b = GetShaderCode(memory_manager, address_b, host_ptr_b, false);
     }
 
     const auto unique_identifier = GetUniqueIdentifier(
@@ -498,7 +436,7 @@ Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
 
     const auto host_ptr{memory_manager.GetPointer(code_addr)};
     // No kernel found, create a new one
-    auto code{GetShaderCode(memory_manager, code_addr, host_ptr)};
+    auto code{GetShaderCode(memory_manager, code_addr, host_ptr, true)};
     const auto unique_identifier{GetUniqueIdentifier(ShaderType::Compute, false, code)};
 
     const ShaderParameters params{system,    disk_cache, device,

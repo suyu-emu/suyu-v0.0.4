@@ -13,6 +13,7 @@
 #include "common/common_types.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/control_flow.h"
+#include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 
@@ -113,17 +114,6 @@ BlockInfo& CreateBlockInfo(CFGRebuildState& state, u32 start, u32 end) {
 
 Pred GetPredicate(u32 index, bool negated) {
     return static_cast<Pred>(static_cast<u64>(index) + (negated ? 8ULL : 0ULL));
-}
-
-/**
- * Returns whether the instruction at the specified offset is a 'sched' instruction.
- * Sched instructions always appear before a sequence of 3 instructions.
- */
-constexpr bool IsSchedInstruction(u32 offset, u32 main_offset) {
-    constexpr u32 SchedPeriod = 4;
-    u32 absolute_offset = offset - main_offset;
-
-    return (absolute_offset % SchedPeriod) == 0;
 }
 
 enum class ParseResult : u32 {

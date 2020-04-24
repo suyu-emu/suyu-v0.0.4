@@ -18,14 +18,13 @@
 #include "video_core/engines/shader_header.h"
 #include "video_core/shader/ast.h"
 #include "video_core/shader/compiler_settings.h"
+#include "video_core/shader/memory_util.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/registry.h"
 
 namespace VideoCommon::Shader {
 
 struct ShaderBlock;
-
-using ProgramCode = std::vector<u64>;
 
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 

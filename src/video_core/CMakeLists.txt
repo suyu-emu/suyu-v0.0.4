@@ -124,6 +124,8 @@ add_library(video_core STATIC
     shader/decode.cpp
     shader/expr.cpp
     shader/expr.h
+    shader/memory_util.cpp
+    shader/memory_util.h
     shader/node_helper.cpp
     shader/node_helper.h
     shader/node.h
