@@ -180,7 +180,7 @@ public:
     }
 
     constexpr void Assign(const T& value) {
-        storage = (static_cast<StorageType>(storage) & ~mask) | FormatValue(value);
+        storage = static_cast<StorageType>((storage & ~mask) | FormatValue(value));
     }
 
     constexpr T Value() const {
