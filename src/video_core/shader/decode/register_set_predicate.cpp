@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <utility>
+
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "video_core/engines/shader_bytecode.h"
@@ -10,6 +12,7 @@
 
 namespace VideoCommon::Shader {
 
+using std::move;
 using Tegra::Shader::Instruction;
 using Tegra::Shader::OpCode;
 
@@ -23,7 +26,7 @@ u32 ShaderIR::DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc) {
 
     UNIMPLEMENTED_IF(instr.p2r_r2p.mode != Tegra::Shader::R2pMode::Pr);
 
-    const Node apply_mask = [&] {
+    Node apply_mask = [this, opcode, instr] {
         switch (opcode->get().GetId()) {
         case OpCode::Id::R2P_IMM:
         case OpCode::Id::P2R_IMM:
@@ -34,25 +37,23 @@ u32 ShaderIR::DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc) {
         }
     }();
 
-    const auto offset = static_cast<u32>(instr.p2r_r2p.byte) * 8;
+    const u32 offset = static_cast<u32>(instr.p2r_r2p.byte) * 8;
 
     switch (opcode->get().GetId()) {
     case OpCode::Id::R2P_IMM: {
-        const Node mask = GetRegister(instr.gpr8);
+        Node mask = GetRegister(instr.gpr8);
 
         for (u64 pred = 0; pred < NUM_PROGRAMMABLE_PREDICATES; ++pred) {
-            const auto shift = static_cast<u32>(pred);
+            const u32 shift = static_cast<u32>(pred);
 
-            const Node apply_compare = BitfieldExtract(apply_mask, shift, 1);
-            const Node condition =
-                Operation(OperationCode::LogicalUNotEqual, apply_compare, Immediate(0));
+            Node apply = BitfieldExtract(apply_mask, shift, 1);
+            Node condition = Operation(OperationCode::LogicalUNotEqual, apply, Immediate(0));
 
-            const Node value_compare = BitfieldExtract(mask, offset + shift, 1);
-            const Node value =
-                Operation(OperationCode::LogicalUNotEqual, value_compare, Immediate(0));
+            Node compare = BitfieldExtract(mask, offset + shift, 1);
+            Node value = Operation(OperationCode::LogicalUNotEqual, move(compare), Immediate(0));
 
-            const Node code = Operation(OperationCode::LogicalAssign, GetPredicate(pred), value);
-            bb.push_back(Conditional(condition, {code}));
+            Node code = Operation(OperationCode::LogicalAssign, GetPredicate(pred), move(value));
+            bb.push_back(Conditional(condition, {move(code)}));
         }
         break;
     }
@@ -61,12 +62,12 @@ u32 ShaderIR::DecodeRegisterSetPredicate(NodeBlock& bb, u32 pc) {
         for (u64 pred = 0; pred < NUM_PROGRAMMABLE_PREDICATES; ++pred) {
             Node bit = Operation(OperationCode::Select, GetPredicate(pred), Immediate(1U << pred),
                                  Immediate(0));
-            value = Operation(OperationCode::UBitwiseOr, std::move(value), std::move(bit));
+            value = Operation(OperationCode::UBitwiseOr, move(value), move(bit));
         }
-        value = Operation(OperationCode::UBitwiseAnd, std::move(value), apply_mask);
-        value = BitfieldInsert(GetRegister(instr.gpr8), std::move(value), offset, 8);
+        value = Operation(OperationCode::UBitwiseAnd, move(value), apply_mask);
+        value = BitfieldInsert(GetRegister(instr.gpr8), move(value), offset, 8);
 
-        SetRegister(bb, instr.gpr0, std::move(value));
+        SetRegister(bb, instr.gpr0, move(value));
         break;
     }
     default:
