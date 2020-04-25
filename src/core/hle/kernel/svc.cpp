@@ -1226,6 +1226,142 @@ static ResultCode QueryMemory32(Core::System& system, u32 memory_info_address,
     return QueryMemory(system, memory_info_address, page_info_address, query_address);
 }
 
+static ResultCode MapProcessCodeMemory(Core::System& system, Handle process_handle, u64 dst_address,
+                                       u64 src_address, u64 size) {
+    LOG_DEBUG(Kernel_SVC,
+              "called. process_handle=0x{:08X}, dst_address=0x{:016X}, "
+              "src_address=0x{:016X}, size=0x{:016X}",
+              process_handle, dst_address, src_address, size);
+
+    if (!Common::Is4KBAligned(src_address)) {
+        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
+                  src_address);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (!Common::Is4KBAligned(dst_address)) {
+        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
+                  dst_address);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || !Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X})", size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!IsValidAddressRange(dst_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Destination address range overflows the address space (dst_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  dst_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!IsValidAddressRange(src_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Source address range overflows the address space (src_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  src_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    auto process = handle_table.Get<Process>(process_handle);
+    if (!process) {
+        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
+                  process_handle);
+        return ERR_INVALID_HANDLE;
+    }
+
+    auto& page_table = process->PageTable();
+    if (!page_table.IsInsideAddressSpace(src_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Source address range is not within the address space (src_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  src_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!page_table.IsInsideASLRRegion(dst_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  dst_address, size);
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return page_table.MapProcessCodeMemory(dst_address, src_address, size);
+}
+
+static ResultCode UnmapProcessCodeMemory(Core::System& system, Handle process_handle,
+                                         u64 dst_address, u64 src_address, u64 size) {
+    LOG_DEBUG(Kernel_SVC,
+              "called. process_handle=0x{:08X}, dst_address=0x{:016X}, src_address=0x{:016X}, "
+              "size=0x{:016X}",
+              process_handle, dst_address, src_address, size);
+
+    if (!Common::Is4KBAligned(dst_address)) {
+        LOG_ERROR(Kernel_SVC, "dst_address is not page-aligned (dst_address=0x{:016X}).",
+                  dst_address);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (!Common::Is4KBAligned(src_address)) {
+        LOG_ERROR(Kernel_SVC, "src_address is not page-aligned (src_address=0x{:016X}).",
+                  src_address);
+        return ERR_INVALID_ADDRESS;
+    }
+
+    if (size == 0 || Common::Is4KBAligned(size)) {
+        LOG_ERROR(Kernel_SVC, "Size is zero or not page-aligned (size=0x{:016X}).", size);
+        return ERR_INVALID_SIZE;
+    }
+
+    if (!IsValidAddressRange(dst_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Destination address range overflows the address space (dst_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  dst_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!IsValidAddressRange(src_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Source address range overflows the address space (src_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  src_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    auto process = handle_table.Get<Process>(process_handle);
+    if (!process) {
+        LOG_ERROR(Kernel_SVC, "Invalid process handle specified (handle=0x{:08X}).",
+                  process_handle);
+        return ERR_INVALID_HANDLE;
+    }
+
+    auto& page_table = process->PageTable();
+    if (!page_table.IsInsideAddressSpace(src_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Source address range is not within the address space (src_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  src_address, size);
+        return ERR_INVALID_ADDRESS_STATE;
+    }
+
+    if (!page_table.IsInsideASLRRegion(dst_address, size)) {
+        LOG_ERROR(Kernel_SVC,
+                  "Destination address range is not within the ASLR region (dst_address=0x{:016X}, "
+                  "size=0x{:016X}).",
+                  dst_address, size);
+        return ERR_INVALID_MEMORY_RANGE;
+    }
+
+    return page_table.UnmapProcessCodeMemory(dst_address, src_address, size);
+}
+
 /// Exits the current process
 static void ExitProcess(Core::System& system) {
     auto* current_process = system.Kernel().CurrentProcess();
@@ -2253,8 +2389,8 @@ static const FunctionDef SVC_Table_64[] = {
     {0x74, nullptr, "MapProcessMemory"},
     {0x75, nullptr, "UnmapProcessMemory"},
     {0x76, SvcWrap64<QueryProcessMemory>, "QueryProcessMemory"},
-    {0x77, nullptr, "MapProcessCodeMemory"},
-    {0x78, nullptr, "UnmapProcessCodeMemory"},
+    {0x77, SvcWrap64<MapProcessCodeMemory>, "MapProcessCodeMemory"},
+    {0x78, SvcWrap64<UnmapProcessCodeMemory>, "UnmapProcessCodeMemory"},
     {0x79, nullptr, "CreateProcess"},
     {0x7A, nullptr, "StartProcess"},
     {0x7B, nullptr, "TerminateProcess"},
