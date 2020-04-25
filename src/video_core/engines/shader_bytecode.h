@@ -818,11 +818,9 @@ union Instruction {
         BitField<32, 1, u64> saturate;
         BitField<49, 2, HalfMerge> merge;
 
-        BitField<43, 1, u64> negate_a;
         BitField<44, 1, u64> abs_a;
         BitField<47, 2, HalfType> type_a;
 
-        BitField<31, 1, u64> negate_b;
         BitField<30, 1, u64> abs_b;
         BitField<28, 2, HalfType> type_b;
 
