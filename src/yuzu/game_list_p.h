@@ -126,13 +126,6 @@ public:
 
         return GameListItem::data(role);
     }
-
-    /**
-     * Override to prevent automatic sorting.
-     */
-    bool operator<(const QStandardItem& other) const override {
-        return false;
-    }
 };
 
 class GameListItemCompat : public GameListItem {
@@ -277,6 +270,13 @@ public:
 
     int type() const override {
         return static_cast<int>(dir_type);
+    }
+
+    /**
+     * Override to prevent automatic sorting between folders and the addDir button.
+     */
+    bool operator<(const QStandardItem& other) const override {
+        return false;
     }
 
 private:
