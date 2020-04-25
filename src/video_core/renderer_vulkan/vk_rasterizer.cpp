@@ -1252,11 +1252,25 @@ std::size_t RasterizerVulkan::CalculateConstBufferSize(
 
 RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) const {
     const auto& regs = system.GPU().Maxwell3D().regs;
+    const std::size_t num_attachments = static_cast<std::size_t>(regs.rt_control.count);
+
     RenderPassParams params;
-    params.num_color_attachments = static_cast<u8>(regs.rt_control.count);
-    std::transform(regs.rt.begin(), regs.rt.end(), params.color_formats.begin(),
-                   [](const auto& rt) { return static_cast<u8>(rt.format); });
-    params.texceptions = static_cast<u8>(texceptions.to_ullong());
+    params.color_formats = {};
+    std::size_t color_texceptions = 0;
+
+    std::size_t index = 0;
+    for (std::size_t rt = 0; rt < num_attachments; ++rt) {
+        const auto& rendertarget = regs.rt[rt];
+        if (rendertarget.Address() == 0 || rendertarget.format == Tegra::RenderTargetFormat::NONE) {
+            continue;
+        }
+        params.color_formats[index] = static_cast<u8>(rendertarget.format);
+        color_texceptions |= (texceptions[rt] ? 1ULL : 0ULL) << index;
+        ++index;
+    }
+    params.num_color_attachments = static_cast<u8>(index);
+    params.texceptions = static_cast<u8>(color_texceptions);
+
     params.zeta_format = regs.zeta_enable ? static_cast<u8>(regs.zeta.format) : 0;
     params.zeta_texception = texceptions[ZETA_TEXCEPTION_INDEX];
     return params;

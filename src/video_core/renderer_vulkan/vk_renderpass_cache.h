@@ -19,8 +19,8 @@ namespace Vulkan {
 class VKDevice;
 
 struct RenderPassParams {
-    u8 num_color_attachments;
     std::array<u8, Tegra::Engines::Maxwell3D::Regs::NumRenderTargets> color_formats;
+    u8 num_color_attachments;
     u8 texceptions;
 
     u8 zeta_format;
