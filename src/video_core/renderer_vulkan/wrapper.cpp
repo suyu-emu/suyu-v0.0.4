@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <exception>
 #include <memory>
 #include <optional>
@@ -15,6 +16,23 @@
 namespace Vulkan::vk {
 
 namespace {
+
+void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld) {
+    std::stable_sort(devices.begin(), devices.end(), [&](auto lhs, auto rhs) {
+        // This will call Vulkan more than needed, but these calls are cheap.
+        const auto lhs_properties = vk::PhysicalDevice(lhs, dld).GetProperties();
+        const auto rhs_properties = vk::PhysicalDevice(rhs, dld).GetProperties();
+
+        // Prefer discrete GPUs, Nvidia over AMD, AMD over Intel, Intel over the rest.
+        const bool preferred =
+            (lhs_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+             rhs_properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) ||
+            (lhs_properties.vendorID == 0x10DE && rhs_properties.vendorID != 0x10DE) ||
+            (lhs_properties.vendorID == 0x1002 && rhs_properties.vendorID != 0x1002) ||
+            (lhs_properties.vendorID == 0x8086 && rhs_properties.vendorID != 0x8086);
+        return !preferred;
+    });
+}
 
 template <typename T>
 bool Proc(T& result, const InstanceDispatch& dld, const char* proc_name,
@@ -389,7 +407,8 @@ std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices(
     if (dld->vkEnumeratePhysicalDevices(handle, &num, physical_devices.data()) != VK_SUCCESS) {
         return std::nullopt;
     }
-    return physical_devices;
+    SortPhysicalDevices(physical_devices, *dld);
+    return std::make_optional(std::move(physical_devices));
 }
 
 DebugCallback Instance::TryCreateDebugCallback(
