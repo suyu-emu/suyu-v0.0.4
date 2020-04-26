@@ -40,12 +40,12 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         op_a = GetOperandAbsNegInteger(op_a, false, instr.alu_integer.negate_a, true);
         op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
 
-        Node value = Operation(OperationCode::IAdd, op_a, op_b);
+        Node value = Operation(OperationCode::UAdd, op_a, op_b);
 
         if (instr.iadd.x) {
             Node carry = GetInternalFlag(InternalFlag::Carry);
             Node x = Operation(OperationCode::Select, std::move(carry), Immediate(1), Immediate(0));
-            value = Operation(OperationCode::IAdd, std::move(value), std::move(x));
+            value = Operation(OperationCode::UAdd, std::move(value), std::move(x));
         }
 
         if (instr.generates_cc) {
