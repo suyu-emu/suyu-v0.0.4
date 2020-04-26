@@ -1870,6 +1870,14 @@ private:
         return GenerateBinaryInfix(operation, ">=", Type::Bool, type, type);
     }
 
+    Expression LogicalAddCarry(Operation operation) {
+        const std::string carry = code.GenerateTemporary();
+        code.AddLine("uint {};", carry);
+        code.AddLine("uaddCarry({}, {}, {});", VisitOperand(operation, 0).AsUint(),
+                     VisitOperand(operation, 1).AsUint(), carry);
+        return {fmt::format("({} != 0)", carry), Type::Bool};
+    }
+
     Expression LogicalFIsNan(Operation operation) {
         return GenerateUnary(operation, "isnan", Type::Bool, Type::Float);
     }
@@ -2440,6 +2448,8 @@ private:
         &GLSLDecompiler::LogicalGreaterThan<Type::Uint>,
         &GLSLDecompiler::LogicalNotEqual<Type::Uint>,
         &GLSLDecompiler::LogicalGreaterEqual<Type::Uint>,
+
+        &GLSLDecompiler::LogicalAddCarry,
 
         &GLSLDecompiler::Logical2HLessThan<false>,
         &GLSLDecompiler::Logical2HEqual<false>,

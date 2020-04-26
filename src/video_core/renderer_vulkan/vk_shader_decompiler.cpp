@@ -1584,6 +1584,15 @@ private:
         return {OpCompositeConstruct(t_half, low, high), Type::HalfFloat};
     }
 
+    Expression LogicalAddCarry(Operation operation) {
+        const Id op_a = AsUint(Visit(operation[0]));
+        const Id op_b = AsUint(Visit(operation[1]));
+
+        const Id result = OpIAddCarry(TypeStruct({t_uint, t_uint}), op_a, op_b);
+        const Id carry = OpCompositeExtract(t_uint, result, 1);
+        return {OpINotEqual(t_bool, carry, Constant(t_uint, 0)), Type::Bool};
+    }
+
     Expression LogicalAssign(Operation operation) {
         const Node& dest = operation[0];
         const Node& src = operation[1];
@@ -2517,6 +2526,8 @@ private:
         &SPIRVDecompiler::Binary<&Module::OpUGreaterThan, Type::Bool, Type::Uint>,
         &SPIRVDecompiler::Binary<&Module::OpINotEqual, Type::Bool, Type::Uint>,
         &SPIRVDecompiler::Binary<&Module::OpUGreaterThanEqual, Type::Bool, Type::Uint>,
+
+        &SPIRVDecompiler::LogicalAddCarry,
 
         &SPIRVDecompiler::Binary<&Module::OpFOrdLessThan, Type::Bool2, Type::HalfFloat>,
         &SPIRVDecompiler::Binary<&Module::OpFOrdEqual, Type::Bool2, Type::HalfFloat>,
