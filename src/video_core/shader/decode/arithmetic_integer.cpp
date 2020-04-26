@@ -35,7 +35,8 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     case OpCode::Id::IADD_C:
     case OpCode::Id::IADD_R:
     case OpCode::Id::IADD_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.alu.saturate_d, "IADD saturation not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.alu.saturate_d, "IADD.SAT");
+        UNIMPLEMENTED_IF_MSG(instr.iadd.x && instr.generates_cc, "IADD.X Rd.CC");
 
         op_a = GetOperandAbsNegInteger(op_a, false, instr.alu_integer.negate_a, true);
         op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
@@ -49,6 +50,10 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         }
 
         if (instr.generates_cc) {
+            // Avoid changing result's carry flag
+            SetTemporary(bb, 0, std::move(value));
+            value = GetTemporary(0);
+
             const Node i0 = Immediate(0);
 
             Node zero = Operation(OperationCode::LogicalIEqual, value, i0);
