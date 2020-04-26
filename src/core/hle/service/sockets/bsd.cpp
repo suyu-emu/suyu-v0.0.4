@@ -148,6 +148,7 @@ BSD::BSD(const char* name) : ServiceFramework(name) {
         {30, nullptr, "SendMMsg"},
         {31, nullptr, "EventFd"},
         {32, nullptr, "RegisterResourceStatisticsName"},
+        {33, nullptr, "Initialize2"},
     };
     // clang-format on
 

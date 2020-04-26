@@ -31,6 +31,8 @@ public:
             {1014, nullptr, "ConfirmPlayableApplicationVideoOld"},
             {1015, nullptr, "ConfirmPlayableApplicationVideo"},
             {1016, nullptr, "ConfirmShowNewsPermission"},
+            {1017, nullptr, "EndFreeCommunication"},
+            {1018, nullptr, "IsFreeCommunicationAvailable"},
             {1031, nullptr, "IsRestrictionEnabled"},
             {1032, nullptr, "GetSafetyLevel"},
             {1033, nullptr, "SetSafetyLevel"},

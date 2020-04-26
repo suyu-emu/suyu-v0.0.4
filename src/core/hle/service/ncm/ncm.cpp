@@ -122,6 +122,7 @@ public:
             {11, nullptr, "ActivateContentMetaDatabase"},
             {12, nullptr, "InactivateContentMetaDatabase"},
             {13, nullptr, "InvalidateRightsIdCache"},
+            {14, nullptr, "GetMemoryReport"},
         };
         // clang-format on
 

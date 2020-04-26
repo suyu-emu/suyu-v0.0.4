@@ -50,6 +50,8 @@ SET_CAL::SET_CAL() : ServiceFramework("set:cal") {
         {39, nullptr, "GetConsoleSixAxisSensorModuleType"},
         {40, nullptr, "GetConsoleSixAxisSensorHorizontalOffset"},
         {41, nullptr, "GetBatteryVersion"},
+        {42, nullptr, "GetDeviceId"},
+        {43, nullptr, "GetConsoleSixAxisSensorMountType"},
     };
     // clang-format on
 

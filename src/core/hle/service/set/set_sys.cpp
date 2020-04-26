@@ -288,6 +288,18 @@ SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
         {186, nullptr, "GetMemoryUsageRateFlag"},
         {187, nullptr, "GetTouchScreenMode"},
         {188, nullptr, "SetTouchScreenMode"},
+        {189, nullptr, "GetButtonConfigSettingsFull"},
+        {190, nullptr, "SetButtonConfigSettingsFull"},
+        {191, nullptr, "GetButtonConfigSettingsEmbedded"},
+        {192, nullptr, "SetButtonConfigSettingsEmbedded"},
+        {193, nullptr, "GetButtonConfigSettingsLeft"},
+        {194, nullptr, "SetButtonConfigSettingsLeft"},
+        {195, nullptr, "GetButtonConfigSettingsRight"},
+        {196, nullptr, "SetButtonConfigSettingsRight"},
+        {197, nullptr, "GetButtonConfigRegisteredSettingsEmbedded"},
+        {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
+        {199, nullptr, "GetButtonConfigRegisteredSettings"},
+        {200, nullptr, "SetButtonConfigRegisteredSettings"},
     };
     // clang-format on
 

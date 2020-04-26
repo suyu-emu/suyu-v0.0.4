@@ -96,6 +96,7 @@ public:
             {30830, nullptr, "ClearPlayLog"},
             {30900, nullptr, "SendFriendInvitation"},
             {30910, nullptr, "ReadFriendInvitation"},
+            {30911, nullptr, "ReadAllFriendInvitations"},
             {49900, nullptr, "DeleteNetworkServiceAccountCache"},
         };
         // clang-format on
