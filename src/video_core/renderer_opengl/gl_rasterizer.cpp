@@ -186,8 +186,12 @@ void RasterizerOpenGL::SetupVertexBuffer() {
         const GPUVAddr start = vertex_array.StartAddress();
         const GPUVAddr end = regs.vertex_array_limit[index].LimitAddress();
 
-        ASSERT(end > start);
-        const u64 size = end - start + 1;
+        ASSERT(end >= start);
+        const u64 size = end - start;
+        if (size == 0) {
+            glBindVertexBuffer(static_cast<GLuint>(index), 0, 0, vertex_array.stride);
+            continue;
+        }
         const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
         glBindVertexBuffer(static_cast<GLuint>(index), vertex_buffer, vertex_buffer_offset,
                            vertex_array.stride);
@@ -311,8 +315,8 @@ std::size_t RasterizerOpenGL::CalculateVertexArraysSize() const {
         const GPUVAddr start = regs.vertex_array[index].StartAddress();
         const GPUVAddr end = regs.vertex_array_limit[index].LimitAddress();
 
-        ASSERT(end > start);
-        size += end - start + 1;
+        size += end - start;
+        ASSERT(end >= start);
     }
 
     return size;

@@ -1259,7 +1259,8 @@ public:
 
                     GPUVAddr LimitAddress() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(limit_high) << 32) |
-                                                     limit_low);
+                                                     limit_low) +
+                               1;
                     }
                 } vertex_array_limit[NumVertexArrays];
 

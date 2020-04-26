@@ -877,8 +877,12 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
         const GPUVAddr start{vertex_array.StartAddress()};
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
 
-        ASSERT(end > start);
-        const std::size_t size{end - start + 1};
+        ASSERT(end >= start);
+        const std::size_t size{end - start};
+        if (size == 0) {
+            buffer_bindings.AddVertexBinding(DefaultBuffer(), 0);
+            continue;
+        }
         const auto [buffer, offset] = buffer_cache.UploadMemory(start, size);
         buffer_bindings.AddVertexBinding(buffer, offset);
     }
@@ -1033,8 +1037,7 @@ void RasterizerVulkan::SetupConstBuffer(const ConstBufferEntry& entry,
                                         const Tegra::Engines::ConstBufferInfo& buffer) {
     if (!buffer.enabled) {
         // Set values to zero to unbind buffers
-        update_descriptor_queue.AddBuffer(buffer_cache.GetEmptyBuffer(sizeof(float)), 0,
-                                          sizeof(float));
+        update_descriptor_queue.AddBuffer(DefaultBuffer(), 0, DEFAULT_BUFFER_SIZE);
         return;
     }
 
@@ -1057,7 +1060,9 @@ void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAdd
     if (size == 0) {
         // Sometimes global memory pointers don't have a proper size. Upload a dummy entry
         // because Vulkan doesn't like empty buffers.
-        constexpr std::size_t dummy_size = 4;
+        // Note: Do *not* use DefaultBuffer() here, storage buffers can be written breaking the
+        // default buffer.
+        static constexpr std::size_t dummy_size = 4;
         const auto buffer = buffer_cache.GetEmptyBuffer(dummy_size);
         update_descriptor_queue.AddBuffer(buffer, 0, dummy_size);
         return;
@@ -1222,7 +1227,7 @@ std::size_t RasterizerVulkan::CalculateVertexArraysSize() const {
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
         DEBUG_ASSERT(end >= start);
 
-        size += (end - start + 1) * regs.vertex_array[index].enable;
+        size += (end - start) * regs.vertex_array[index].enable;
     }
     return size;
 }
@@ -1267,6 +1272,31 @@ RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) 
     }
 
     return renderpass_params;
+}
+
+VkBuffer RasterizerVulkan::DefaultBuffer() {
+    if (default_buffer) {
+        return *default_buffer;
+    }
+
+    VkBufferCreateInfo ci;
+    ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    ci.pNext = nullptr;
+    ci.flags = 0;
+    ci.size = DEFAULT_BUFFER_SIZE;
+    ci.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    ci.queueFamilyIndexCount = 0;
+    ci.pQueueFamilyIndices = nullptr;
+    default_buffer = device.GetLogical().CreateBuffer(ci);
+    default_buffer_commit = memory_manager.Commit(default_buffer, false);
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([buffer = *default_buffer](vk::CommandBuffer cmdbuf) {
+        cmdbuf.FillBuffer(buffer, 0, DEFAULT_BUFFER_SIZE, 0);
+    });
+    return *default_buffer;
 }
 
 } // namespace Vulkan

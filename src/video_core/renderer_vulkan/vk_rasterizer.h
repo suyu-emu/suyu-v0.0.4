@@ -155,6 +155,7 @@ private:
     using Texceptions = std::bitset<Maxwell::NumRenderTargets + 1>;
 
     static constexpr std::size_t ZETA_TEXCEPTION_INDEX = 8;
+    static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
 
     void FlushWork();
 
@@ -247,6 +248,8 @@ private:
 
     RenderPassParams GetRenderPassParams(Texceptions texceptions) const;
 
+    VkBuffer DefaultBuffer();
+
     Core::System& system;
     Core::Frontend::EmuWindow& render_window;
     VKScreenInfo& screen_info;
@@ -270,6 +273,9 @@ private:
     VKSamplerCache sampler_cache;
     VKFenceManager fence_manager;
     VKQueryCache query_cache;
+
+    vk::Buffer default_buffer;
+    VKMemoryCommit default_buffer_commit;
 
     std::array<View, Maxwell::NumRenderTargets> color_attachments;
     View zeta_attachment;
