@@ -814,6 +814,10 @@ union Instruction {
     } alu_integer;
 
     union {
+        BitField<43, 1, u64> x;
+    } iadd;
+
+    union {
         BitField<39, 1, u64> ftz;
         BitField<32, 1, u64> saturate;
         BitField<49, 2, HalfMerge> merge;
