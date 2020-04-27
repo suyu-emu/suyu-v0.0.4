@@ -35,6 +35,9 @@ public:
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
 
+    /// Write multiple values to the register identified by method.
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+
     struct Regs {
         static constexpr std::size_t NUM_REGS = 0x1D6;
 

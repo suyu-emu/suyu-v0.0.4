@@ -1359,6 +1359,9 @@ public:
     /// Write the value to the register identified by method.
     void CallMethod(const GPU::MethodCall& method_call);
 
+    /// Write multiple values to the register identified by method.
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+
     /// Write the value to the register identified by method.
     void CallMethodFromMME(const GPU::MethodCall& method_call);
 
@@ -1512,6 +1515,7 @@ private:
     /// Handles a write to the CB_DATA[i] register.
     void StartCBData(u32 method);
     void ProcessCBData(u32 value);
+    void ProcessCBMultiData(u32 method, const u32* start_base, u32 amount);
     void FinishCBData();
 
     /// Handles a write to the CB_BIND register.

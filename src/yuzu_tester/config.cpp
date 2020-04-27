@@ -130,6 +130,8 @@ void Config::ReadValues() {
     Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(gpu_accuracy_level);
     Settings::values.use_asynchronous_gpu_emulation =
         sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false);
+    Settings::values.use_fast_gpu_time =
+        sdl2_config->GetBoolean("Renderer", "use_fast_gpu_time", true);
 
     Settings::values.bg_red = static_cast<float>(sdl2_config->GetReal("Renderer", "bg_red", 0.0));
     Settings::values.bg_green =

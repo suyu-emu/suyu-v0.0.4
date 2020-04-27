@@ -75,6 +75,7 @@ private:
     void SetState(const CommandHeader& command_header);
 
     void CallMethod(u32 argument) const;
+    void CallMultiMethod(const u32* base_start, u32 num_methods) const;
 
     std::vector<CommandHeader> command_headers; ///< Buffer for list of commands fetched at once
 

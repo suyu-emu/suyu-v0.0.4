@@ -155,6 +155,10 @@ public:
     /// Calls a GPU method.
     void CallMethod(const MethodCall& method_call);
 
+    /// Calls a GPU multivalue method.
+    void CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                         u32 methods_pending);
+
     /// Flush all current written commands into the host GPU for execution.
     void FlushCommands();
     /// Synchronizes CPU writes with Host GPU memory.
@@ -309,8 +313,12 @@ private:
     /// Calls a GPU engine method.
     void CallEngineMethod(const MethodCall& method_call);
 
+    /// Calls a GPU engine multivalue method.
+    void CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                               u32 methods_pending);
+
     /// Determines where the method should be executed.
-    bool ExecuteMethodOnEngine(const MethodCall& method_call);
+    bool ExecuteMethodOnEngine(u32 method);
 
 protected:
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;

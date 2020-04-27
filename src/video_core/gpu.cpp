@@ -9,6 +9,7 @@
 #include "core/core_timing_util.h"
 #include "core/frontend/emu_window.h"
 #include "core/memory.h"
+#include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/kepler_compute.h"
 #include "video_core/engines/kepler_memory.h"
@@ -154,7 +155,10 @@ u64 GPU::GetTicks() const {
     constexpr u64 gpu_ticks_den = 625;
 
     const u64 cpu_ticks = system.CoreTiming().GetTicks();
-    const u64 nanoseconds = Core::Timing::CyclesToNs(cpu_ticks).count();
+    u64 nanoseconds = Core::Timing::CyclesToNs(cpu_ticks).count();
+    if (Settings::values.use_fast_gpu_time) {
+        nanoseconds /= 256;
+    }
     const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;
     const u64 nanoseconds_rem = nanoseconds % gpu_ticks_den;
     return nanoseconds_num * gpu_ticks_num + (nanoseconds_rem * gpu_ticks_num) / gpu_ticks_den;
@@ -209,16 +213,32 @@ void GPU::CallMethod(const MethodCall& method_call) {
 
     ASSERT(method_call.subchannel < bound_engines.size());
 
-    if (ExecuteMethodOnEngine(method_call)) {
+    if (ExecuteMethodOnEngine(method_call.method)) {
         CallEngineMethod(method_call);
     } else {
         CallPullerMethod(method_call);
     }
 }
 
-bool GPU::ExecuteMethodOnEngine(const MethodCall& method_call) {
-    const auto method = static_cast<BufferMethods>(method_call.method);
-    return method >= BufferMethods::NonPullerMethods;
+void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                          u32 methods_pending) {
+    LOG_TRACE(HW_GPU, "Processing method {:08X} on subchannel {}", method, subchannel);
+
+    ASSERT(subchannel < bound_engines.size());
+
+    if (ExecuteMethodOnEngine(method)) {
+        CallEngineMultiMethod(method, subchannel, base_start, amount, methods_pending);
+    } else {
+        for (std::size_t i = 0; i < amount; i++) {
+            CallPullerMethod(
+                {method, base_start[i], subchannel, methods_pending - static_cast<u32>(i)});
+        }
+    }
+}
+
+bool GPU::ExecuteMethodOnEngine(u32 method) {
+    const auto buffer_method = static_cast<BufferMethods>(method);
+    return buffer_method >= BufferMethods::NonPullerMethods;
 }
 
 void GPU::CallPullerMethod(const MethodCall& method_call) {
@@ -292,6 +312,31 @@ void GPU::CallEngineMethod(const MethodCall& method_call) {
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
         kepler_memory->CallMethod(method_call);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented engine");
+    }
+}
+
+void GPU::CallEngineMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32 amount,
+                                u32 methods_pending) {
+    const EngineID engine = bound_engines[subchannel];
+
+    switch (engine) {
+    case EngineID::FERMI_TWOD_A:
+        fermi_2d->CallMultiMethod(method, base_start, amount, methods_pending);
+        break;
+    case EngineID::MAXWELL_B:
+        maxwell_3d->CallMultiMethod(method, base_start, amount, methods_pending);
+        break;
+    case EngineID::KEPLER_COMPUTE_B:
+        kepler_compute->CallMultiMethod(method, base_start, amount, methods_pending);
+        break;
+    case EngineID::MAXWELL_DMA_COPY_A:
+        maxwell_dma->CallMultiMethod(method, base_start, amount, methods_pending);
+        break;
+    case EngineID::KEPLER_INLINE_TO_MEMORY_B:
+        kepler_memory->CallMultiMethod(method, base_start, amount, methods_pending);
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine");

@@ -446,6 +446,7 @@ struct Values {
     bool use_asynchronous_gpu_emulation;
     bool use_vsync;
     bool force_30fps_mode;
+    bool use_fast_gpu_time;
 
     float bg_red;
     float bg_green;

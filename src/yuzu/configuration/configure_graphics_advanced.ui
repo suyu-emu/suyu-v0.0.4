@@ -70,6 +70,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_fast_gpu_time">
+          <property name="text">
+           <string>Use Fast GPU Time</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_1">
           <item>
            <widget class="QLabel" name="af_label">

@@ -36,6 +36,13 @@ void MaxwellDMA::CallMethod(const GPU::MethodCall& method_call) {
 #undef MAXWELLDMA_REG_INDEX
 }
 
+void MaxwellDMA::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                                 u32 methods_pending) {
+    for (std::size_t i = 0; i < amount; i++) {
+        CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
+    }
+}
+
 void MaxwellDMA::HandleCopy() {
     LOG_TRACE(HW_GPU, "Requested a DMA copy");
 
