@@ -233,7 +233,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {302, nullptr, "StopConsoleSixAxisSensor"},
         {303, nullptr, "ActivateSevenSixAxisSensor"},
         {304, nullptr, "StartSevenSixAxisSensor"},
-        {305, nullptr, "StopSevenSixAxisSensor"},
+        {305, &Hid::StopSevenSixAxisSensor, "StopSevenSixAxisSensor"},
         {306, &Hid::InitializeSevenSixAxisSensor, "InitializeSevenSixAxisSensor"},
         {307, nullptr, "FinalizeSevenSixAxisSensor"},
         {308, nullptr, "SetSevenSixAxisSensorFusionStrength"},
@@ -848,6 +848,17 @@ void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
     const auto unknown{rp.Pop<u32>()};
 
     LOG_WARNING(Service_HID, "(STUBBED) called, unknown={}", unknown);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
