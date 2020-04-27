@@ -267,7 +267,7 @@ protected:
 
 private:
     struct Data {
-        u32_le unk_0;
+        u32_le unk_0{};
     };
 
     Data data{};
@@ -609,6 +609,14 @@ private:
         }
         case TransactionId::DetachBuffer: {
             const auto buffer = ctx.ReadBuffer();
+
+            IGBPEmptyResponseParcel response{};
+            ctx.WriteBuffer(response.Serialize());
+            break;
+        }
+        case TransactionId::SetBufferCount: {
+            LOG_WARNING(Service_VI, "(STUBBED) called, transaction=SetBufferCount");
+            [[maybe_unused]] const auto buffer = ctx.ReadBuffer();
 
             IGBPEmptyResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
