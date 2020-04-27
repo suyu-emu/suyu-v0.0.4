@@ -40,11 +40,6 @@ public:
     /// Commits memory required by the image and binds it.
     VKMemoryCommit Commit(const vk::Image& image, bool host_visible);
 
-    /// Returns true if the memory allocations are done always in host visible and coherent memory.
-    bool IsMemoryUnified() const {
-        return is_memory_unified;
-    }
-
 private:
     /// Allocates a chunk of memory.
     bool AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
@@ -53,12 +48,8 @@ private:
     VKMemoryCommit TryAllocCommit(const VkMemoryRequirements& requirements,
                                   VkMemoryPropertyFlags wanted_properties);
 
-    /// Returns true if the device uses an unified memory model.
-    static bool GetMemoryUnified(const VkPhysicalDeviceMemoryProperties& properties);
-
-    const VKDevice& device;                            ///< Device handler.
-    const VkPhysicalDeviceMemoryProperties properties; ///< Physical device properties.
-    const bool is_memory_unified;                      ///< True if memory model is unified.
+    const VKDevice& device;                                       ///< Device handler.
+    const VkPhysicalDeviceMemoryProperties properties;            ///< Physical device properties.
     std::vector<std::unique_ptr<VKMemoryAllocation>> allocations; ///< Current allocations.
 };
 

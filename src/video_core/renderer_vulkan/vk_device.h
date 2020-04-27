@@ -82,11 +82,6 @@ public:
         return present_family;
     }
 
-    /// Returns true if the device is integrated with the host CPU.
-    bool IsIntegrated() const {
-        return properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU;
-    }
-
     /// Returns the current Vulkan API version provided in Vulkan-formatted version numbers.
     u32 GetApiVersion() const {
         return properties.apiVersion;

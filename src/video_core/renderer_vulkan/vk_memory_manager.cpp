@@ -118,8 +118,7 @@ private:
 };
 
 VKMemoryManager::VKMemoryManager(const VKDevice& device)
-    : device{device}, properties{device.GetPhysical().GetMemoryProperties()},
-      is_memory_unified{GetMemoryUnified(properties)} {}
+    : device{device}, properties{device.GetPhysical().GetMemoryProperties()} {}
 
 VKMemoryManager::~VKMemoryManager() = default;
 
@@ -207,16 +206,6 @@ VKMemoryCommit VKMemoryManager::TryAllocCommit(const VkMemoryRequirements& requi
         }
     }
     return {};
-}
-
-bool VKMemoryManager::GetMemoryUnified(const VkPhysicalDeviceMemoryProperties& properties) {
-    for (u32 heap_index = 0; heap_index < properties.memoryHeapCount; ++heap_index) {
-        if (!(properties.memoryHeaps[heap_index].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)) {
-            // Memory is considered unified when heaps are device local only.
-            return false;
-        }
-    }
-    return true;
 }
 
 VKMemoryCommitImpl::VKMemoryCommitImpl(const VKDevice& device, VKMemoryAllocation* allocation,

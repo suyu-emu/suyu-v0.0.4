@@ -71,7 +71,6 @@ private:
     const VKDevice& device;
     VKMemoryManager& memory_manager;
     VKScheduler& scheduler;
-    const bool is_device_integrated;
 
     StagingBuffersCache host_staging_buffers;
     StagingBuffersCache device_staging_buffers;
