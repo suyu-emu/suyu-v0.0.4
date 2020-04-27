@@ -81,7 +81,7 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
     primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
     cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
-    depth_clamp_enable.Assign(clip.depth_clamp_near == 1 || clip.depth_clamp_far == 1 ? 1 : 0);
+    depth_clamp_disabled.Assign(regs.view_volume_clip_control.depth_clamp_disabled.Value());
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
     cull_face.Assign(PackCullFace(regs.cull_face));
     front_face.Assign(packed_front_face);

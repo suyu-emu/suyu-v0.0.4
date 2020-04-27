@@ -153,7 +153,7 @@ struct FixedPipelineState {
             BitField<4, 1, u32> primitive_restart_enable;
             BitField<5, 1, u32> cull_enable;
             BitField<6, 1, u32> depth_bias_enable;
-            BitField<7, 1, u32> depth_clamp_enable;
+            BitField<7, 1, u32> depth_clamp_disabled;
             BitField<8, 1, u32> ndc_minus_one_to_one;
             BitField<9, 2, u32> cull_face;
             BitField<11, 1, u32> front_face;

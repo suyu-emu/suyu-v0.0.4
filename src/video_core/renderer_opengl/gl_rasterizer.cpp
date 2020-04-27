@@ -999,11 +999,7 @@ void RasterizerOpenGL::SyncDepthClamp() {
     }
     flags[Dirty::DepthClampEnabled] = false;
 
-    const auto& state = gpu.regs.view_volume_clip_control;
-    UNIMPLEMENTED_IF_MSG(state.depth_clamp_far != state.depth_clamp_near,
-                         "Unimplemented depth clamp separation!");
-
-    oglEnable(GL_DEPTH_CLAMP, state.depth_clamp_far || state.depth_clamp_near);
+    oglEnable(GL_DEPTH_CLAMP, gpu.regs.view_volume_clip_control.depth_clamp_disabled == 0);
 }
 
 void RasterizerOpenGL::SyncClipEnabled(u32 clip_mask) {
