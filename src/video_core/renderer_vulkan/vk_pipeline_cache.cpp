@@ -161,6 +161,24 @@ u32 FillDescriptorLayout(const ShaderEntries& entries,
 
 } // Anonymous namespace
 
+std::size_t GraphicsPipelineCacheKey::Hash() const noexcept {
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
+    return static_cast<std::size_t>(hash);
+}
+
+bool GraphicsPipelineCacheKey::operator==(const GraphicsPipelineCacheKey& rhs) const noexcept {
+    return std::memcmp(&rhs, this, sizeof *this) == 0;
+}
+
+std::size_t ComputePipelineCacheKey::Hash() const noexcept {
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
+    return static_cast<std::size_t>(hash);
+}
+
+bool ComputePipelineCacheKey::operator==(const ComputePipelineCacheKey& rhs) const noexcept {
+    return std::memcmp(&rhs, this, sizeof *this) == 0;
+}
+
 CachedShader::CachedShader(Core::System& system, Tegra::Engines::ShaderType stage,
                            GPUVAddr gpu_addr, VAddr cpu_addr, ProgramCode program_code,
                            u32 main_offset)

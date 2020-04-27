@@ -288,7 +288,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     depth_stencil_ci.maxDepthBounds = 0.0f;
 
     std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
-    const std::size_t num_attachments = renderpass_params.color_attachments.size();
+    const auto num_attachments = static_cast<std::size_t>(renderpass_params.num_color_attachments);
     for (std::size_t index = 0; index < num_attachments; ++index) {
         static constexpr std::array COMPONENT_TABLE = {
             VK_COLOR_COMPONENT_R_BIT, VK_COLOR_COMPONENT_G_BIT, VK_COLOR_COMPONENT_B_BIT,

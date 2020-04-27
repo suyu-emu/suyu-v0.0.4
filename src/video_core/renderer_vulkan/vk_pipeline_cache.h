@@ -7,7 +7,6 @@
 #include <array>
 #include <cstddef>
 #include <memory>
-#include <tuple>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
@@ -51,42 +50,38 @@ using ProgramCode = std::vector<u64>;
 
 struct GraphicsPipelineCacheKey {
     FixedPipelineState fixed_state;
-    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
     RenderPassParams renderpass_params;
+    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
+    u64 padding; // This is necessary for unique object representations
 
-    std::size_t Hash() const noexcept {
-        std::size_t hash = fixed_state.Hash();
-        for (const auto& shader : shaders) {
-            boost::hash_combine(hash, shader);
-        }
-        boost::hash_combine(hash, renderpass_params.Hash());
-        return hash;
-    }
+    std::size_t Hash() const noexcept;
 
-    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept {
-        return std::tie(fixed_state, shaders, renderpass_params) ==
-               std::tie(rhs.fixed_state, rhs.shaders, rhs.renderpass_params);
+    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept;
+
+    bool operator!=(const GraphicsPipelineCacheKey& rhs) const noexcept {
+        return !operator==(rhs);
     }
 };
+static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
+static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);
+static_assert(std::is_trivially_constructible_v<GraphicsPipelineCacheKey>);
 
 struct ComputePipelineCacheKey {
-    GPUVAddr shader{};
-    u32 shared_memory_size{};
-    std::array<u32, 3> workgroup_size{};
+    GPUVAddr shader;
+    u32 shared_memory_size;
+    std::array<u32, 3> workgroup_size;
 
-    std::size_t Hash() const noexcept {
-        return static_cast<std::size_t>(shader) ^
-               ((static_cast<std::size_t>(shared_memory_size) >> 7) << 40) ^
-               static_cast<std::size_t>(workgroup_size[0]) ^
-               (static_cast<std::size_t>(workgroup_size[1]) << 16) ^
-               (static_cast<std::size_t>(workgroup_size[2]) << 24);
-    }
+    std::size_t Hash() const noexcept;
 
-    bool operator==(const ComputePipelineCacheKey& rhs) const noexcept {
-        return std::tie(shader, shared_memory_size, workgroup_size) ==
-               std::tie(rhs.shader, rhs.shared_memory_size, rhs.workgroup_size);
+    bool operator==(const ComputePipelineCacheKey& rhs) const noexcept;
+
+    bool operator!=(const ComputePipelineCacheKey& rhs) const noexcept {
+        return !operator==(rhs);
     }
 };
+static_assert(std::has_unique_object_representations_v<ComputePipelineCacheKey>);
+static_assert(std::is_trivially_copyable_v<ComputePipelineCacheKey>);
+static_assert(std::is_trivially_constructible_v<ComputePipelineCacheKey>);
 
 } // namespace Vulkan
 

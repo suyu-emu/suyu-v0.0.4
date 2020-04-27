@@ -140,6 +140,12 @@ void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size
     enable.Assign(1);
 }
 
+void FixedPipelineState::Fill(const Maxwell& regs) {
+    rasterizer.Fill(regs);
+    depth_stencil.Fill(regs);
+    color_blending.Fill(regs);
+}
+
 std::size_t FixedPipelineState::Hash() const noexcept {
     const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
     return static_cast<std::size_t>(hash);
@@ -147,15 +153,6 @@ std::size_t FixedPipelineState::Hash() const noexcept {
 
 bool FixedPipelineState::operator==(const FixedPipelineState& rhs) const noexcept {
     return std::memcmp(this, &rhs, sizeof *this) == 0;
-}
-
-FixedPipelineState GetFixedPipelineState(const Maxwell& regs) {
-    FixedPipelineState fixed_state;
-    fixed_state.rasterizer.Fill(regs);
-    fixed_state.depth_stencil.Fill(regs);
-    fixed_state.color_blending.Fill(regs);
-    fixed_state.padding = {};
-    return fixed_state;
 }
 
 u32 FixedPipelineState::PackComparisonOp(Maxwell::ComparisonOp op) noexcept {

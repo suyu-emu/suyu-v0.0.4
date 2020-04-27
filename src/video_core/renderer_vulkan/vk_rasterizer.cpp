@@ -316,7 +316,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     query_cache.UpdateCounters();
 
     const auto& gpu = system.GPU().Maxwell3D();
-    GraphicsPipelineCacheKey key{GetFixedPipelineState(gpu.regs)};
+    GraphicsPipelineCacheKey key;
+    key.fixed_state.Fill(gpu.regs);
 
     buffer_cache.Map(CalculateGraphicsStreamBufferSize(is_indexed));
 
@@ -334,10 +335,11 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     buffer_cache.Unmap();
 
-    const auto texceptions = UpdateAttachments();
+    const Texceptions texceptions = UpdateAttachments();
     SetupImageTransitions(texceptions, color_attachments, zeta_attachment);
 
     key.renderpass_params = GetRenderPassParams(texceptions);
+    key.padding = 0;
 
     auto& pipeline = pipeline_cache.GetGraphicsPipeline(key);
     scheduler.BindGraphicsPipeline(pipeline.GetHandle());
@@ -453,10 +455,12 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     query_cache.UpdateCounters();
 
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
-    const ComputePipelineCacheKey key{
-        code_addr,
-        launch_desc.shared_alloc,
-        {launch_desc.block_dim_x, launch_desc.block_dim_y, launch_desc.block_dim_z}};
+    ComputePipelineCacheKey key;
+    key.shader = code_addr;
+    key.shared_memory_size = launch_desc.shared_alloc;
+    key.workgroup_size = {launch_desc.block_dim_x, launch_desc.block_dim_y,
+                          launch_desc.block_dim_z};
+
     auto& pipeline = pipeline_cache.GetComputePipeline(key);
 
     // Compute dispatches can't be executed inside a renderpass
@@ -688,7 +692,7 @@ std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
     FramebufferCacheKey key{renderpass, std::numeric_limits<u32>::max(),
                             std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
 
-    const auto try_push = [&](const View& view) {
+    const auto try_push = [&key](const View& view) {
         if (!view) {
             return false;
         }
@@ -699,7 +703,9 @@ std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
         return true;
     };
 
-    for (std::size_t index = 0; index < std::size(color_attachments); ++index) {
+    const auto& regs = system.GPU().Maxwell3D().regs;
+    const std::size_t num_attachments = static_cast<std::size_t>(regs.rt_control.count);
+    for (std::size_t index = 0; index < num_attachments; ++index) {
         if (try_push(color_attachments[index])) {
             texture_cache.MarkColorBufferInUse(index);
         }
@@ -1250,28 +1256,29 @@ std::size_t RasterizerVulkan::CalculateConstBufferSize(
 }
 
 RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) const {
-    using namespace VideoCore::Surface;
-
     const auto& regs = system.GPU().Maxwell3D().regs;
-    RenderPassParams renderpass_params;
+    const std::size_t num_attachments = static_cast<std::size_t>(regs.rt_control.count);
 
-    for (std::size_t rt = 0; rt < static_cast<std::size_t>(regs.rt_control.count); ++rt) {
+    RenderPassParams params;
+    params.color_formats = {};
+    std::size_t color_texceptions = 0;
+
+    std::size_t index = 0;
+    for (std::size_t rt = 0; rt < num_attachments; ++rt) {
         const auto& rendertarget = regs.rt[rt];
         if (rendertarget.Address() == 0 || rendertarget.format == Tegra::RenderTargetFormat::NONE) {
             continue;
         }
-        renderpass_params.color_attachments.push_back(RenderPassParams::ColorAttachment{
-            static_cast<u32>(rt), PixelFormatFromRenderTargetFormat(rendertarget.format),
-            texceptions[rt]});
+        params.color_formats[index] = static_cast<u8>(rendertarget.format);
+        color_texceptions |= (texceptions[rt] ? 1ULL : 0ULL) << index;
+        ++index;
     }
+    params.num_color_attachments = static_cast<u8>(index);
+    params.texceptions = static_cast<u8>(color_texceptions);
 
-    renderpass_params.has_zeta = regs.zeta_enable;
-    if (renderpass_params.has_zeta) {
-        renderpass_params.zeta_pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
-        renderpass_params.zeta_texception = texceptions[ZETA_TEXCEPTION_INDEX];
-    }
-
-    return renderpass_params;
+    params.zeta_format = regs.zeta_enable ? static_cast<u8>(regs.zeta.format) : 0;
+    params.zeta_texception = texceptions[ZETA_TEXCEPTION_INDEX];
+    return params;
 }
 
 VkBuffer RasterizerVulkan::DefaultBuffer() {
