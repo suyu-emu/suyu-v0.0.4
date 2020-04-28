@@ -43,9 +43,9 @@
 
 namespace Service::AM {
 
-constexpr ResultCode ERR_NO_DATA_IN_CHANNEL{ErrorModule::AM, 0x2};
-constexpr ResultCode ERR_NO_MESSAGES{ErrorModule::AM, 0x3};
-constexpr ResultCode ERR_SIZE_OUT_OF_BOUNDS{ErrorModule::AM, 0x1F7};
+constexpr ResultCode ERR_NO_DATA_IN_CHANNEL{ErrorModule::AM, 2};
+constexpr ResultCode ERR_NO_MESSAGES{ErrorModule::AM, 3};
+constexpr ResultCode ERR_SIZE_OUT_OF_BOUNDS{ErrorModule::AM, 503};
 
 enum class LaunchParameterKind : u32 {
     ApplicationSpecific = 1,
