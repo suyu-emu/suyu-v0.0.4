@@ -431,7 +431,9 @@ void Module::Interface::GetProfileEditor(Kernel::HLERequestContext& ctx) {
 void Module::Interface::ListQualifiedUsers(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
 
-    // All users should be qualified
+    // All users should be qualified. We don't actually have parental control or anything to do with
+    // nintendo online currently. We're just going to assume the user running the game has access to
+    // the game regardless of parental control settings.
     ctx.WriteBuffer(profile_manager->GetAllUsers());
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
