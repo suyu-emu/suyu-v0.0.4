@@ -59,8 +59,6 @@ protected:
 
     GLuint ToHandle(const Buffer& buffer) override;
 
-    void WriteBarrier() override;
-
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;
 

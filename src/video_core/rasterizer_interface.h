@@ -80,6 +80,9 @@ public:
     /// and invalidated
     virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;
 
+    /// Notify the host renderer to wait for previous primitive and compute operations.
+    virtual void WaitForIdle() = 0;
+
     /// Notify the rasterizer to send all written commands to the host GPU.
     virtual void FlushCommands() = 0;
 

@@ -184,6 +184,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     }
 
     switch (method) {
+    case MAXWELL3D_REG_INDEX(wait_for_idle): {
+        rasterizer.WaitForIdle();
+        break;
+    }
     case MAXWELL3D_REG_INDEX(shadow_ram_control): {
         shadow_state.shadow_ram_control = static_cast<Regs::ShadowRamControl>(method_call.argument);
         break;

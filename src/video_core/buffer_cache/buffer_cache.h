@@ -89,10 +89,6 @@ public:
                 map->MarkAsWritten(true);
                 MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
             }
-        } else {
-            if (map->IsWritten()) {
-                WriteBarrier();
-            }
         }
 
         return {ToHandle(block), static_cast<u64>(block->GetOffset(cpu_addr))};
@@ -253,8 +249,6 @@ protected:
     ~BufferCache() = default;
 
     virtual BufferType ToHandle(const OwnerBuffer& storage) = 0;
-
-    virtual void WriteBarrier() = 0;
 
     virtual OwnerBuffer CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
 
