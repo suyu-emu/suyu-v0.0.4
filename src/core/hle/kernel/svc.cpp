@@ -773,7 +773,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             break;
         }
 
-        LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
         return ERR_INVALID_ENUM_VALUE;
     }
 
@@ -866,7 +866,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     }
 
     default:
-        LOG_WARNING(Kernel_SVC, "(STUBBED) Unimplemented svcGetInfo id=0x{:016X}", info_id);
+        LOG_ERROR(Kernel_SVC, "Unimplemented svcGetInfo id=0x{:016X}", info_id);
         return ERR_INVALID_ENUM_VALUE;
     }
 }
