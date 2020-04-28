@@ -33,6 +33,7 @@ public:
         void TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx);
         void IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx);
         void GetProfileEditor(Kernel::HLERequestContext& ctx);
+        void ListQualifiedUsers(Kernel::HLERequestContext& ctx);
 
     private:
         ResultCode InitializeApplicationInfoBase(u64 process_id);
