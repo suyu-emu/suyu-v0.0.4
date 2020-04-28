@@ -347,7 +347,27 @@ void GPU::ProcessBindMethod(const MethodCall& method_call) {
     // Bind the current subchannel to the desired engine id.
     LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {}", method_call.subchannel,
               method_call.argument);
-    bound_engines[method_call.subchannel] = static_cast<EngineID>(method_call.argument);
+    auto engine_id = static_cast<EngineID>(method_call.argument);
+    bound_engines[method_call.subchannel] = static_cast<EngineID>(engine_id);
+    switch (engine_id) {
+    case EngineID::FERMI_TWOD_A:
+        dma_pusher->BindSubchannel(fermi_2d.get(), method_call.subchannel);
+        break;
+    case EngineID::MAXWELL_B:
+        dma_pusher->BindSubchannel(maxwell_3d.get(), method_call.subchannel);
+        break;
+    case EngineID::KEPLER_COMPUTE_B:
+        dma_pusher->BindSubchannel(kepler_compute.get(), method_call.subchannel);
+        break;
+    case EngineID::MAXWELL_DMA_COPY_A:
+        dma_pusher->BindSubchannel(maxwell_dma.get(), method_call.subchannel);
+        break;
+    case EngineID::KEPLER_INLINE_TO_MEMORY_B:
+        dma_pusher->BindSubchannel(kepler_memory.get(), method_call.subchannel);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented engine");
+    }
 }
 
 void GPU::ProcessSemaphoreTriggerMethod() {

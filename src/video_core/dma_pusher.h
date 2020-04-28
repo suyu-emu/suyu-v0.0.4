@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include <queue>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "video_core/engines/engine_interface.h"
 
 namespace Core {
 class System;
@@ -69,7 +71,13 @@ public:
 
     void DispatchCalls();
 
+    void BindSubchannel(Tegra::Engines::EngineInterface* engine, u32 subchannel_id) {
+        subchannels[subchannel_id] = engine;
+    }
+
 private:
+    static constexpr u32 non_puller_methods = 0x40;
+    static constexpr u32 max_subchannels = 8;
     bool Step();
 
     void SetState(const CommandHeader& command_header);
@@ -88,6 +96,7 @@ private:
         u32 method_count;      ///< Current method count
         u32 length_pending;    ///< Large NI command length pending
         bool non_incrementing; ///< Current command's NI flag
+        bool is_last_call;
     };
 
     DmaState dma_state{};
@@ -95,6 +104,8 @@ private:
 
     GPUVAddr dma_mget{};  ///< main pushbuffer last read address
     bool ib_enable{true}; ///< IB mode enabled
+
+    std::array<Tegra::Engines::EngineInterface*, max_subchannels> subchannels{};
 
     GPU& gpu;
     Core::System& system;
