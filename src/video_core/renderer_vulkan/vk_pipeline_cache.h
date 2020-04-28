@@ -24,6 +24,7 @@
 #include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/surface.h"
@@ -45,8 +46,6 @@ class VKUpdateDescriptorQueue;
 class CachedShader;
 using Shader = std::shared_ptr<CachedShader>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-
-using ProgramCode = std::vector<u64>;
 
 struct GraphicsPipelineCacheKey {
     FixedPipelineState fixed_state;
@@ -108,7 +107,8 @@ namespace Vulkan {
 class CachedShader final : public RasterizerCacheObject {
 public:
     explicit CachedShader(Core::System& system, Tegra::Engines::ShaderType stage, GPUVAddr gpu_addr,
-                          VAddr cpu_addr, ProgramCode program_code, u32 main_offset);
+                          VAddr cpu_addr, VideoCommon::Shader::ProgramCode program_code,
+                          u32 main_offset);
     ~CachedShader();
 
     GPUVAddr GetGpuAddr() const {
@@ -140,7 +140,7 @@ private:
                                                                  Tegra::Engines::ShaderType stage);
 
     GPUVAddr gpu_addr{};
-    ProgramCode program_code;
+    VideoCommon::Shader::ProgramCode program_code;
     VideoCommon::Shader::Registry registry;
     VideoCommon::Shader::ShaderIR shader_ir;
     ShaderEntries entries;

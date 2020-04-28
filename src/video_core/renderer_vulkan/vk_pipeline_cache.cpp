@@ -27,12 +27,18 @@
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/compiler_settings.h"
+#include "video_core/shader/memory_util.h"
 
 namespace Vulkan {
 
 MICROPROFILE_DECLARE(Vulkan_PipelineCache);
 
 using Tegra::Engines::ShaderType;
+using VideoCommon::Shader::GetShaderAddress;
+using VideoCommon::Shader::GetShaderCode;
+using VideoCommon::Shader::KERNEL_MAIN_OFFSET;
+using VideoCommon::Shader::ProgramCode;
+using VideoCommon::Shader::STAGE_MAIN_OFFSET;
 
 namespace {
 
@@ -44,60 +50,6 @@ constexpr VkDescriptorType STORAGE_IMAGE = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
 constexpr VideoCommon::Shader::CompilerSettings compiler_settings{
     VideoCommon::Shader::CompileDepth::FullDecompile};
-
-/// Gets the address for the specified shader stage program
-GPUVAddr GetShaderAddress(Core::System& system, Maxwell::ShaderProgram program) {
-    const auto& gpu{system.GPU().Maxwell3D()};
-    const auto& shader_config{gpu.regs.shader_config[static_cast<std::size_t>(program)]};
-    return gpu.regs.code_address.CodeAddress() + shader_config.offset;
-}
-
-/// Gets if the current instruction offset is a scheduler instruction
-constexpr bool IsSchedInstruction(std::size_t offset, std::size_t main_offset) {
-    // Sched instructions appear once every 4 instructions.
-    constexpr std::size_t SchedPeriod = 4;
-    const std::size_t absolute_offset = offset - main_offset;
-    return (absolute_offset % SchedPeriod) == 0;
-}
-
-/// Calculates the size of a program stream
-std::size_t CalculateProgramSize(const ProgramCode& program, bool is_compute) {
-    const std::size_t start_offset = is_compute ? 0 : 10;
-    // This is the encoded version of BRA that jumps to itself. All Nvidia
-    // shaders end with one.
-    constexpr u64 self_jumping_branch = 0xE2400FFFFF07000FULL;
-    constexpr u64 mask = 0xFFFFFFFFFF7FFFFFULL;
-    std::size_t offset = start_offset;
-    while (offset < program.size()) {
-        const u64 instruction = program[offset];
-        if (!IsSchedInstruction(offset, start_offset)) {
-            if ((instruction & mask) == self_jumping_branch) {
-                // End on Maxwell's "nop" instruction
-                break;
-            }
-            if (instruction == 0) {
-                break;
-            }
-        }
-        ++offset;
-    }
-    // The last instruction is included in the program size
-    return std::min(offset + 1, program.size());
-}
-
-/// Gets the shader program code from memory for the specified address
-ProgramCode GetShaderCode(Tegra::MemoryManager& memory_manager, const GPUVAddr gpu_addr,
-                          const u8* host_ptr, bool is_compute) {
-    ProgramCode program_code(VideoCommon::Shader::MAX_PROGRAM_LENGTH);
-    ASSERT_OR_EXECUTE(host_ptr != nullptr, {
-        std::fill(program_code.begin(), program_code.end(), 0);
-        return program_code;
-    });
-    memory_manager.ReadBlockUnsafe(gpu_addr, program_code.data(),
-                                   program_code.size() * sizeof(u64));
-    program_code.resize(CalculateProgramSize(program_code, is_compute));
-    return program_code;
-}
 
 constexpr std::size_t GetStageFromProgram(std::size_t program) {
     return program == 0 ? 0 : program - 1;
@@ -230,9 +182,9 @@ std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
             const auto host_ptr{memory_manager.GetPointer(program_addr)};
 
             // No shader found - create a new one
-            constexpr u32 stage_offset = 10;
+            constexpr u32 stage_offset = STAGE_MAIN_OFFSET;
             const auto stage = static_cast<Tegra::Engines::ShaderType>(index == 0 ? 0 : index - 1);
-            auto code = GetShaderCode(memory_manager, program_addr, host_ptr, false);
+            ProgramCode code = GetShaderCode(memory_manager, program_addr, host_ptr, false);
 
             shader = std::make_shared<CachedShader>(system, stage, program_addr, *cpu_addr,
                                                     std::move(code), stage_offset);
@@ -288,11 +240,10 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
         // No shader found - create a new one
         const auto host_ptr = memory_manager.GetPointer(program_addr);
 
-        auto code = GetShaderCode(memory_manager, program_addr, host_ptr, true);
-        constexpr u32 kernel_main_offset = 0;
+        ProgramCode code = GetShaderCode(memory_manager, program_addr, host_ptr, true);
         shader = std::make_shared<CachedShader>(system, Tegra::Engines::ShaderType::Compute,
                                                 program_addr, *cpu_addr, std::move(code),
-                                                kernel_main_offset);
+                                                KERNEL_MAIN_OFFSET);
         if (cpu_addr) {
             Register(shader);
         } else {
