@@ -299,19 +299,19 @@ void GPU::CallEngineMethod(const MethodCall& method_call) {
 
     switch (engine) {
     case EngineID::FERMI_TWOD_A:
-        fermi_2d->CallMethod(method_call);
+        fermi_2d->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::MAXWELL_B:
-        maxwell_3d->CallMethod(method_call);
+        maxwell_3d->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::KEPLER_COMPUTE_B:
-        kepler_compute->CallMethod(method_call);
+        kepler_compute->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::MAXWELL_DMA_COPY_A:
-        maxwell_dma->CallMethod(method_call);
+        maxwell_dma->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     case EngineID::KEPLER_INLINE_TO_MEMORY_B:
-        kepler_memory->CallMethod(method_call);
+        kepler_memory->CallMethod(method_call.method, method_call.argument, method_call.IsLastCall());
         break;
     default:
         UNIMPLEMENTED_MSG("Unimplemented engine");
