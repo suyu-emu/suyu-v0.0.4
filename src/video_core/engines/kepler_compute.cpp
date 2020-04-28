@@ -24,7 +24,7 @@ KeplerCompute::KeplerCompute(Core::System& system, VideoCore::RasterizerInterfac
 
 KeplerCompute::~KeplerCompute() = default;
 
-void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call)  {
+void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid KeplerCompute register, increase the size of the Regs structure");
 
