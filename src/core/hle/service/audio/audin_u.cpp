@@ -57,8 +57,9 @@ void AudInU::ListAudioIns(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
     const std::size_t count = ctx.GetWriteBufferSize() / sizeof(AudioInDeviceName);
 
-    std::vector<AudioInDeviceName> device_names;
     const std::size_t device_count = std::min(count, audio_device_names.size());
+    std::vector<AudioInDeviceName> device_names;
+    device_names.reserve(device_count);
 
     for (std::size_t i = 0; i < device_count; i++) {
         const auto& device_name = audio_device_names[i];
@@ -75,7 +76,7 @@ void AudInU::ListAudioIns(Kernel::HLERequestContext& ctx) {
 
 void AudInU::ListAudioInsAutoFiltered(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Audio, "called");
-    const u32 device_count = 0;
+    constexpr u32 device_count = 0;
 
     // Since we don't actually use any other audio input devices, we return 0 devices. Filtered
     // device listing just omits the default input device
@@ -99,12 +100,12 @@ void AudInU::OpenInOutImpl(Kernel::HLERequestContext& ctx) {
 }
 
 void AudInU::OpenAudioIn(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_Audio, "called");
+    LOG_WARNING(Service_Audio, "(STUBBED) called");
     OpenInOutImpl(ctx);
 }
 
 void AudInU::OpenAudioInProtocolSpecified(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_Audio, "called");
+    LOG_WARNING(Service_Audio, "(STUBBED) called");
     OpenInOutImpl(ctx);
 }
 
