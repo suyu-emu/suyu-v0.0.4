@@ -382,4 +382,18 @@ std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height
     }
 }
 
+u64 GetGOBOffset(u32 width, u32 height, u32 dst_x, u32 dst_y, u32 block_height,
+                 u32 bytes_per_pixel) {
+    auto div_ceil = [](const u32 x, const u32 y) { return ((x + y - 1) / y); };
+    const u32 gobs_in_block = 1 << block_height;
+    const u32 y_blocks = gob_size_y << block_height;
+    const u32 x_per_gob = gob_size_x / bytes_per_pixel;
+    const u32 x_blocks = div_ceil(width, x_per_gob);
+    const u32 block_size = gob_size * gobs_in_block;
+    const u32 stride = block_size * x_blocks;
+    const u32 base = (dst_y / y_blocks) * stride + (dst_x / x_per_gob) * block_size;
+    const u32 relative_y = dst_y % y_blocks;
+    return base + (relative_y / gob_size_y) * gob_size;
+}
+
 } // namespace Tegra::Texture

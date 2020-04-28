@@ -90,7 +90,47 @@ void MaxwellDMA::HandleCopy() {
     ASSERT(regs.exec.enable_2d == 1);
 
     if (regs.exec.is_dst_linear && !regs.exec.is_src_linear) {
+
         ASSERT(regs.src_params.BlockDepth() == 0);
+        // Optimized path for micro copies.
+        if (regs.dst_pitch * regs.y_count < Texture::GetGOBSize() && regs.dst_pitch <= 64) {
+            const u32 bytes_per_pixel = regs.dst_pitch / regs.x_count;
+            const std::size_t src_size = Texture::GetGOBSize();
+            const std::size_t dst_size = regs.dst_pitch * regs.y_count;
+            u32 pos_x = regs.src_params.pos_x;
+            u32 pos_y = regs.src_params.pos_y;
+            const u64 offset =
+                Texture::GetGOBOffset(regs.src_params.size_x, regs.src_params.size_y, pos_x, pos_y,
+                                      regs.src_params.BlockDepth(), bytes_per_pixel);
+            const u32 x_in_gob = 64 / bytes_per_pixel;
+            pos_x = pos_x % x_in_gob;
+            pos_y = pos_y % 8;
+
+            if (read_buffer.size() < src_size) {
+                read_buffer.resize(src_size);
+            }
+
+            if (write_buffer.size() < dst_size) {
+                write_buffer.resize(dst_size);
+            }
+
+            if (Settings::IsGPULevelExtreme()) {
+                memory_manager.ReadBlock(source + offset, read_buffer.data(), src_size);
+                memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
+            } else {
+                memory_manager.ReadBlockUnsafe(source + offset, read_buffer.data(), src_size);
+                memory_manager.ReadBlockUnsafe(dest, write_buffer.data(), dst_size);
+            }
+
+            Texture::UnswizzleSubrect(regs.x_count, regs.y_count, regs.dst_pitch,
+                                      regs.src_params.size_x, bytes_per_pixel, read_buffer.data(),
+                                      write_buffer.data(), regs.src_params.BlockHeight(), pos_x,
+                                      pos_y);
+
+            memory_manager.WriteBlock(dest, write_buffer.data(), dst_size);
+
+            return;
+        }
         // If the input is tiled and the output is linear, deswizzle the input and copy it over.
         const u32 bytes_per_pixel = regs.dst_pitch / regs.x_count;
         const std::size_t src_size = Texture::CalculateSize(
