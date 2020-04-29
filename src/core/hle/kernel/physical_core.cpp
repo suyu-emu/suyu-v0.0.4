@@ -27,7 +27,9 @@ PhysicalCore::PhysicalCore(Core::System& system, std::size_t id,
         std::make_unique<Core::ARM_Dynarmic_64>(system, exclusive_monitor, core_index);
 
 #else
-    arm_interface = std::make_shared<Core::ARM_Unicorn>(system);
+    using Core::ARM_Unicorn;
+    arm_interface_32 = std::make_unique<ARM_Unicorn>(system, ARM_Unicorn::Arch::AArch32);
+    arm_interface_64 = std::make_unique<ARM_Unicorn>(system, ARM_Unicorn::Arch::AArch64);
     LOG_WARNING(Core, "CPU JIT requested, but Dynarmic not available");
 #endif
 
