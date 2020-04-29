@@ -52,11 +52,6 @@ enum class LaunchParameterKind : u32 {
     AccountPreselectedUser = 2,
 };
 
-enum class VrMode : u8 {
-    Disabled = 0,
-    Enabled = 1,
-};
-
 constexpr u32 LAUNCH_PARAMETER_ACCOUNT_PRESELECTED_USER_MAGIC = 0xC79497CA;
 
 struct LaunchParameterAccountPreselectedUser {
@@ -685,27 +680,21 @@ void ICommonStateGetter::GetCurrentFocusState(Kernel::HLERequestContext& ctx) {
 }
 
 void ICommonStateGetter::IsVrModeEnabled(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.PushEnum(VrMode::Disabled);
+    rb.Push(vr_mode_state);
 }
 
 void ICommonStateGetter::SetVrModeEnabled(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto is_vr_mode_enabled = rp.Pop<bool>();
+    vr_mode_state = rp.Pop<bool>();
 
-    LOG_WARNING(Service_AM, "(STUBBED) called. is_vr_mode_enabled={}", is_vr_mode_enabled);
+    LOG_WARNING(Service_AM, "VR Mode is {}", vr_mode_state ? "on" : "off");
 
     IPC::ResponseBuilder rb{ctx, 2};
-    if (!is_vr_mode_enabled) {
-        rb.Push(RESULT_SUCCESS);
-    } else {
-        // TODO: Find better error code for this
-        UNIMPLEMENTED_MSG("is_vr_mode_enabled={}", is_vr_mode_enabled);
-        rb.Push(RESULT_UNKNOWN);
-    }
+    rb.Push(RESULT_SUCCESS);
 }
 
 void ICommonStateGetter::SetLcdBacklighOffEnabled(Kernel::HLERequestContext& ctx) {
