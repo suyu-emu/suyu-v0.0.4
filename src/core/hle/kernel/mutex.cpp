@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
@@ -67,6 +68,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
                              Handle requesting_thread_handle) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
+        LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
         return ERR_INVALID_ADDRESS;
     }
 
@@ -88,6 +90,8 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     }
 
     if (holding_thread == nullptr) {
+        LOG_ERROR(Kernel, "Holding thread does not exist! thread_handle={:08X}",
+                  holding_thread_handle);
         return ERR_INVALID_HANDLE;
     }
 
@@ -109,6 +113,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
 ResultCode Mutex::Release(VAddr address) {
     // The mutex address must be 4-byte aligned
     if ((address % sizeof(u32)) != 0) {
+        LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
         return ERR_INVALID_ADDRESS;
     }
 

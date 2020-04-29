@@ -423,6 +423,8 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     if (new_core == THREADPROCESSORID_DONT_UPDATE) {
         new_core = use_override ? ideal_core_override : ideal_core;
         if ((new_affinity_mask & (1ULL << new_core)) == 0) {
+            LOG_ERROR(Kernel, "New affinity mask is incorrect! new_core={}, new_affinity_mask={}",
+                      new_core, new_affinity_mask);
             return ERR_INVALID_COMBINATION;
         }
     }
