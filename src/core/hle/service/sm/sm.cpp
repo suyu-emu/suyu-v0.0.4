@@ -28,9 +28,11 @@ void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
 
 static ResultCode ValidateServiceName(const std::string& name) {
     if (name.size() <= 0 || name.size() > 8) {
+        LOG_ERROR(Service_SM, "Invalid service name! service={}", name);
         return ERR_INVALID_NAME;
     }
     if (name.find('\0') != std::string::npos) {
+        LOG_ERROR(Service_SM, "A non null terminated service was passed");
         return ERR_INVALID_NAME;
     }
     return RESULT_SUCCESS;
@@ -51,8 +53,10 @@ ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(
 
     CASCADE_CODE(ValidateServiceName(name));
 
-    if (registered_services.find(name) != registered_services.end())
+    if (registered_services.find(name) != registered_services.end()) {
+        LOG_ERROR(Service_SM, "Service is already registered! service={}", name);
         return ERR_ALREADY_REGISTERED;
+    }
 
     auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
@@ -66,9 +70,10 @@ ResultCode ServiceManager::UnregisterService(const std::string& name) {
     CASCADE_CODE(ValidateServiceName(name));
 
     const auto iter = registered_services.find(name);
-    if (iter == registered_services.end())
+    if (iter == registered_services.end()) {
+        LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
         return ERR_SERVICE_NOT_REGISTERED;
-
+    }
     registered_services.erase(iter);
     return RESULT_SUCCESS;
 }
@@ -79,6 +84,7 @@ ResultVal<std::shared_ptr<Kernel::ClientPort>> ServiceManager::GetServicePort(
     CASCADE_CODE(ValidateServiceName(name));
     auto it = registered_services.find(name);
     if (it == registered_services.end()) {
+        LOG_ERROR(Service_SM, "Server is not registered! service={}", name);
         return ERR_SERVICE_NOT_REGISTERED;
     }
 

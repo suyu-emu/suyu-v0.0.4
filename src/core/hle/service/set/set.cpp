@@ -67,6 +67,7 @@ void SET::MakeLanguageCode(Kernel::HLERequestContext& ctx) {
     const auto index = rp.Pop<u32>();
 
     if (index >= available_language_codes.size()) {
+        LOG_ERROR(Service_SET, "Invalid language code index! index={}", index);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_INVALID_LANGUAGE);
         return;

@@ -867,6 +867,7 @@ private:
 
         const auto layer_id = nv_flinger->CreateLayer(display);
         if (!layer_id) {
+            LOG_ERROR(Service_VI, "Layer not found! display=0x{:016X}", display);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -983,6 +984,7 @@ private:
 
         const auto display_id = nv_flinger->OpenDisplay(name);
         if (!display_id) {
+            LOG_ERROR(Service_VI, "Display not found! display_name={}", name);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1082,6 +1084,7 @@ private:
 
         const auto display_id = nv_flinger->OpenDisplay(display_name);
         if (!display_id) {
+            LOG_ERROR(Service_VI, "Layer not found! layer_id={}", layer_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1089,6 +1092,7 @@ private:
 
         const auto buffer_queue_id = nv_flinger->FindBufferQueueId(*display_id, layer_id);
         if (!buffer_queue_id) {
+            LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", *display_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1124,6 +1128,7 @@ private:
 
         const auto layer_id = nv_flinger->CreateLayer(display_id);
         if (!layer_id) {
+            LOG_ERROR(Service_VI, "Layer not found! layer_id={}", *layer_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1131,6 +1136,7 @@ private:
 
         const auto buffer_queue_id = nv_flinger->FindBufferQueueId(display_id, *layer_id);
         if (!buffer_queue_id) {
+            LOG_ERROR(Service_VI, "Buffer queue id not found! display_id={}", display_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1161,6 +1167,7 @@ private:
 
         const auto vsync_event = nv_flinger->FindVsyncEvent(display_id);
         if (!vsync_event) {
+            LOG_ERROR(Service_VI, "Vsync event was not found for display_id={}", display_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERR_NOT_FOUND);
             return;
@@ -1201,6 +1208,7 @@ private:
         case NintendoScaleMode::PreserveAspectRatio:
             return MakeResult(ConvertedScaleMode::PreserveAspectRatio);
         default:
+            LOG_ERROR(Service_VI, "Invalid scaling mode specified, mode={}", mode);
             return ERR_OPERATION_FAILED;
         }
     }
@@ -1257,6 +1265,7 @@ void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
     const auto policy = rp.PopEnum<Policy>();
 
     if (!IsValidServiceAccess(permission, policy)) {
+        LOG_ERROR(Service_VI, "Permission denied for policy {}", static_cast<u32>(policy));
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_PERMISSION_DENIED);
         return;
