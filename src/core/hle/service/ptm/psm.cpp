@@ -12,9 +12,6 @@
 
 namespace Service::PSM {
 
-constexpr u32 BATTERY_FULLY_CHARGED = 100;    // 100% Full
-constexpr u32 BATTERY_CURRENTLY_CHARGING = 1; // Plugged into an official dock
-
 class PSM final : public ServiceFramework<PSM> {
 public:
     explicit PSM() : ServiceFramework{"psm"} {
@@ -48,20 +45,30 @@ public:
 
 private:
     void GetBatteryChargePercentage(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PSM, "(STUBBED) called");
+        LOG_DEBUG(Service_PSM, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(BATTERY_FULLY_CHARGED);
+        rb.Push<u32>(battery_charge_percentage);
     }
 
     void GetChargerType(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_PSM, "(STUBBED) called");
+        LOG_DEBUG(Service_PSM, "called");
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(BATTERY_CURRENTLY_CHARGING);
+        rb.PushEnum(charger_type);
     }
+
+    enum class ChargerType : u32 {
+        Unplugged = 0,
+        RegularCharger = 1,
+        LowPowerCharger = 2,
+        Unknown = 3,
+    };
+
+    u32 battery_charge_percentage{100}; // 100%
+    ChargerType charger_type{ChargerType::RegularCharger};
 };
 
 void InstallInterfaces(SM::ServiceManager& sm) {
