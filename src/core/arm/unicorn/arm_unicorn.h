@@ -20,7 +20,7 @@ public:
         AArch64, // 64-bit ARM
     };
 
-    explicit ARM_Unicorn(System& system, CPUInterruptHandler& interrupt_handler,
+    explicit ARM_Unicorn(System& system, CPUInterrupts& interrupt_handlers,
                          bool uses_wall_clock, Arch architecture, std::size_t core_index);
     ~ARM_Unicorn() override;
 

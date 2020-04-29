@@ -212,8 +212,8 @@ void ARM_Dynarmic_64::Step() {
 ARM_Dynarmic_64::ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handlers,
                                  bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
-    : ARM_Interface{system, interrupt_handler, uses_wall_clock},
-      cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system, interrupt_handler,
+    : ARM_Interface{system, interrupt_handlers, uses_wall_clock},
+      cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system, interrupt_handlers,
                                                                       uses_wall_clock,
                                                                       ARM_Unicorn::Arch::AArch64,
                                                                       core_index},
