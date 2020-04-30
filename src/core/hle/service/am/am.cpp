@@ -1169,7 +1169,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
-        {140, nullptr, "GetFriendInvitationStorageChannelEvent"},
+        {140, &IApplicationFunctions::GetFriendInvitationStorageChannelEvent, "GetFriendInvitationStorageChannelEvent"},
         {141, nullptr, "TryPopFromFriendInvitationStorageChannel"},
         {150, nullptr, "GetNotificationStorageChannelEvent"},
         {151, nullptr, "TryPopFromNotificationStorageChannel"},
@@ -1186,6 +1186,9 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
     auto& kernel = system.Kernel();
     gpu_error_detected_event = Kernel::WritableEvent::CreateEventPair(
         kernel, "IApplicationFunctions:GpuErrorDetectedSystemEvent");
+
+    friend_invitation_storage_channel_event = Kernel::WritableEvent::CreateEventPair(
+        kernel, "IApplicationFunctions:FriendInvitationStorageChannelEvent");
 }
 
 IApplicationFunctions::~IApplicationFunctions() = default;
@@ -1498,6 +1501,14 @@ void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(Kernel::HLERequestCon
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(gpu_error_detected_event.readable);
+}
+
+void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_AM, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(friend_invitation_storage_channel_event.readable);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager,
