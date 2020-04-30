@@ -35,15 +35,38 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
     case OpCode::Id::IADD_C:
     case OpCode::Id::IADD_R:
     case OpCode::Id::IADD_IMM: {
-        UNIMPLEMENTED_IF_MSG(instr.alu.saturate_d, "IADD saturation not implemented");
+        UNIMPLEMENTED_IF_MSG(instr.alu.saturate_d, "IADD.SAT");
+        UNIMPLEMENTED_IF_MSG(instr.iadd.x && instr.generates_cc, "IADD.X Rd.CC");
 
         op_a = GetOperandAbsNegInteger(op_a, false, instr.alu_integer.negate_a, true);
         op_b = GetOperandAbsNegInteger(op_b, false, instr.alu_integer.negate_b, true);
 
-        const Node value = Operation(OperationCode::IAdd, PRECISE, op_a, op_b);
+        Node value = Operation(OperationCode::UAdd, op_a, op_b);
 
-        SetInternalFlagsFromInteger(bb, value, instr.generates_cc);
-        SetRegister(bb, instr.gpr0, value);
+        if (instr.iadd.x) {
+            Node carry = GetInternalFlag(InternalFlag::Carry);
+            Node x = Operation(OperationCode::Select, std::move(carry), Immediate(1), Immediate(0));
+            value = Operation(OperationCode::UAdd, std::move(value), std::move(x));
+        }
+
+        if (instr.generates_cc) {
+            const Node i0 = Immediate(0);
+
+            Node zero = Operation(OperationCode::LogicalIEqual, value, i0);
+            Node sign = Operation(OperationCode::LogicalILessThan, value, i0);
+            Node carry = Operation(OperationCode::LogicalAddCarry, op_a, op_b);
+
+            Node pos_a = Operation(OperationCode::LogicalIGreaterThan, op_a, i0);
+            Node pos_b = Operation(OperationCode::LogicalIGreaterThan, op_b, i0);
+            Node pos = Operation(OperationCode::LogicalAnd, std::move(pos_a), std::move(pos_b));
+            Node overflow = Operation(OperationCode::LogicalAnd, pos, sign);
+
+            SetInternalFlag(bb, InternalFlag::Zero, std::move(zero));
+            SetInternalFlag(bb, InternalFlag::Sign, std::move(sign));
+            SetInternalFlag(bb, InternalFlag::Carry, std::move(carry));
+            SetInternalFlag(bb, InternalFlag::Overflow, std::move(overflow));
+        }
+        SetRegister(bb, instr.gpr0, std::move(value));
         break;
     }
     case OpCode::Id::IADD3_C:

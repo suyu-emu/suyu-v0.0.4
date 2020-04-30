@@ -132,6 +132,8 @@ enum class OperationCode {
     LogicalUNotEqual,     /// (uint a, uint b) -> bool
     LogicalUGreaterEqual, /// (uint a, uint b) -> bool
 
+    LogicalAddCarry, /// (uint a, uint b) -> bool
+
     Logical2HLessThan,            /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
     Logical2HEqual,               /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
     Logical2HLessEqual,           /// (MetaHalfArithmetic, f16vec2 a, f16vec2) -> bool2
