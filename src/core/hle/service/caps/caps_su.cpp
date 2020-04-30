@@ -9,8 +9,11 @@ namespace Service::Capture {
 CAPS_SU::CAPS_SU() : ServiceFramework("caps:su") {
     // clang-format off
     static const FunctionInfo functions[] = {
+        {32, nullptr, "SetShimLibraryVersion"},
         {201, nullptr, "SaveScreenShot"},
         {203, nullptr, "SaveScreenShotEx0"},
+        {205, nullptr, "SaveScreenShotEx1"},
+        {210, nullptr, "SaveScreenShotEx2"},
     };
     // clang-format on
 
