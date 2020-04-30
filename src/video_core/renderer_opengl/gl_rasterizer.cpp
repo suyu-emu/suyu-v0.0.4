@@ -348,7 +348,7 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
 
     texture_cache.GuardRenderTargets(true);
 
-    View depth_surface = texture_cache.GetDepthBufferSurface();
+    View depth_surface = texture_cache.GetDepthBufferSurface(true);
 
     const auto& regs = gpu.regs;
     UNIMPLEMENTED_IF(regs.rt_separate_frag_data == 0);
@@ -357,7 +357,7 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     FramebufferCacheKey key;
     const auto colors_count = static_cast<std::size_t>(regs.rt_control.count);
     for (std::size_t index = 0; index < colors_count; ++index) {
-        View color_surface{texture_cache.GetColorBufferSurface(index)};
+        View color_surface{texture_cache.GetColorBufferSurface(index, true)};
         if (!color_surface) {
             continue;
         }
@@ -381,28 +381,52 @@ void RasterizerOpenGL::ConfigureFramebuffers() {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
 }
 
-void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb,
-                                                 bool using_stencil_fb) {
+void RasterizerOpenGL::ConfigureClearFramebuffer(bool using_color, bool using_depth_stencil) {
     auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
     texture_cache.GuardRenderTargets(true);
     View color_surface;
-    if (using_color_fb) {
+
+    if (using_color) {
+        // Determine if we have to preserve the contents.
+        // First we have to make sure all clear masks are enabled.
+        bool preserve_contents = !regs.clear_buffers.R || !regs.clear_buffers.G ||
+                                 !regs.clear_buffers.B || !regs.clear_buffers.A;
         const std::size_t index = regs.clear_buffers.RT;
-        color_surface = texture_cache.GetColorBufferSurface(index);
+        if (regs.clear_flags.scissor) {
+            // Then we have to confirm scissor testing clears the whole image.
+            const auto& scissor = regs.scissor_test[0];
+            preserve_contents |= scissor.min_x > 0;
+            preserve_contents |= scissor.min_y > 0;
+            preserve_contents |= scissor.max_x < regs.rt[index].width;
+            preserve_contents |= scissor.max_y < regs.rt[index].height;
+        }
+
+        color_surface = texture_cache.GetColorBufferSurface(index, preserve_contents);
         texture_cache.MarkColorBufferInUse(index);
     }
+
     View depth_surface;
-    if (using_depth_fb || using_stencil_fb) {
-        depth_surface = texture_cache.GetDepthBufferSurface();
+    if (using_depth_stencil) {
+        bool preserve_contents = false;
+        if (regs.clear_flags.scissor) {
+            // For depth stencil clears we only have to confirm scissor test covers the whole image.
+            const auto& scissor = regs.scissor_test[0];
+            preserve_contents |= scissor.min_x > 0;
+            preserve_contents |= scissor.min_y > 0;
+            preserve_contents |= scissor.max_x < regs.zeta_width;
+            preserve_contents |= scissor.max_y < regs.zeta_height;
+        }
+
+        depth_surface = texture_cache.GetDepthBufferSurface(preserve_contents);
         texture_cache.MarkDepthBufferInUse();
     }
     texture_cache.GuardRenderTargets(false);
 
     FramebufferCacheKey key;
-    key.colors[0] = color_surface;
-    key.zeta = depth_surface;
+    key.colors[0] = std::move(color_surface);
+    key.zeta = std::move(depth_surface);
 
     state_tracker.NotifyFramebuffer();
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer_cache.GetFramebuffer(key));
@@ -422,8 +446,7 @@ void RasterizerOpenGL::Clear() {
     if (regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
         regs.clear_buffers.A) {
         use_color = true;
-    }
-    if (use_color) {
+
         state_tracker.NotifyColorMask0();
         glColorMaski(0, regs.clear_buffers.R != 0, regs.clear_buffers.G != 0,
                      regs.clear_buffers.B != 0, regs.clear_buffers.A != 0);
@@ -461,7 +484,7 @@ void RasterizerOpenGL::Clear() {
 
     UNIMPLEMENTED_IF(regs.clear_flags.viewport);
 
-    ConfigureClearFramebuffer(use_color, use_depth, use_stencil);
+    ConfigureClearFramebuffer(use_color, use_depth || use_stencil);
 
     if (use_color) {
         glClearBufferfv(GL_COLOR, 0, regs.clear_color);

@@ -656,7 +656,7 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     Texceptions texceptions;
     for (std::size_t rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
         if (update_rendertargets) {
-            color_attachments[rt] = texture_cache.GetColorBufferSurface(rt);
+            color_attachments[rt] = texture_cache.GetColorBufferSurface(rt, true);
         }
         if (color_attachments[rt] && WalkAttachmentOverlaps(*color_attachments[rt])) {
             texceptions[rt] = true;
@@ -664,7 +664,7 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     }
 
     if (update_rendertargets) {
-        zeta_attachment = texture_cache.GetDepthBufferSurface();
+        zeta_attachment = texture_cache.GetDepthBufferSurface(true);
     }
     if (zeta_attachment && WalkAttachmentOverlaps(*zeta_attachment)) {
         texceptions[ZETA_TEXCEPTION_INDEX] = true;

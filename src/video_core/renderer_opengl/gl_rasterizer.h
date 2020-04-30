@@ -95,7 +95,8 @@ private:
     /// Configures the color and depth framebuffer states.
     void ConfigureFramebuffers();
 
-    void ConfigureClearFramebuffer(bool using_color_fb, bool using_depth_fb, bool using_stencil_fb);
+    /// Configures the color and depth framebuffer for clearing.
+    void ConfigureClearFramebuffer(bool using_color, bool using_depth_stencil);
 
     /// Configures the current constbuffers to use for the draw command.
     void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
