@@ -16,6 +16,9 @@ class CAPS_SU final : public ServiceFramework<CAPS_SU> {
 public:
     explicit CAPS_SU();
     ~CAPS_SU() override;
+
+private:
+    void SetShimLibraryVersion(Kernel::HLERequestContext& ctx);
 };
 
 } // namespace Service::Capture
