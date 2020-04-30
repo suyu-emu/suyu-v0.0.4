@@ -153,21 +153,13 @@ std::tuple<Node, u32, u32> ShaderIR::TrackCbuf(Node tracked, const NodeBlock& co
         if (gpr->GetIndex() == Tegra::Shader::Register::ZeroIndex) {
             return {};
         }
-        s64 current_cursor = cursor;
-        while (current_cursor > 0) {
-            // Reduce the cursor in one to avoid infinite loops when the instruction sets the same
-            // register that it uses as operand
-            const auto [source, new_cursor] = TrackRegister(gpr, code, current_cursor - 1);
-            current_cursor = new_cursor;
-            if (!source) {
-                continue;
-            }
-            const auto [base_address, index, offset] = TrackCbuf(source, code, current_cursor);
-            if (base_address != nullptr) {
-                return {base_address, index, offset};
-            }
+        // Reduce the cursor in one to avoid infinite loops when the instruction sets the same
+        // register that it uses as operand
+        const auto [source, new_cursor] = TrackRegister(gpr, code, cursor - 1);
+        if (!source) {
+            return {};
         }
-        return {};
+        return TrackCbuf(source, code, new_cursor);
     }
     if (const auto operation = std::get_if<OperationNode>(&*tracked)) {
         for (std::size_t i = operation->GetOperandsCount(); i > 0; --i) {
