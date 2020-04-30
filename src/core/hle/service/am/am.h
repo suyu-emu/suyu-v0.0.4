@@ -191,6 +191,7 @@ private:
 
     Core::System& system;
     std::shared_ptr<AppletMessageQueue> msg_queue;
+    bool vr_mode_state{};
 };
 
 class IStorageImpl {
