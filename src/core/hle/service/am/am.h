@@ -292,11 +292,15 @@ private:
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
 public:
-    IHomeMenuFunctions();
+    explicit IHomeMenuFunctions(Kernel::KernelCore& kernel);
     ~IHomeMenuFunctions() override;
 
 private:
     void RequestToGetForeground(Kernel::HLERequestContext& ctx);
+    void GetPopFromGeneralChannelEvent(Kernel::HLERequestContext& ctx);
+
+    Kernel::EventPair pop_from_general_channel_event;
+    Kernel::KernelCore& kernel;
 };
 
 class IGlobalStateController final : public ServiceFramework<IGlobalStateController> {
