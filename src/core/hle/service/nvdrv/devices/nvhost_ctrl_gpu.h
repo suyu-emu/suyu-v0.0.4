@@ -159,9 +159,10 @@ private:
     static_assert(sizeof(IoctlFlushL2) == 8, "IoctlFlushL2 is incorrect size");
 
     struct IoctlGetGpuTime {
-        u64_le gpu_time;
+        u64_le gpu_time{};
+        INSERT_PADDING_WORDS(2);
     };
-    static_assert(sizeof(IoctlGetGpuTime) == 8, "IoctlGetGpuTime is incorrect size");
+    static_assert(sizeof(IoctlGetGpuTime) == 0x10, "IoctlGetGpuTime is incorrect size");
 
     u32 GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output,
                            std::vector<u8>& output2, IoctlVersion version);
