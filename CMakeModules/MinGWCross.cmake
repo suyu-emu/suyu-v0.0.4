@@ -10,8 +10,8 @@ set(SDL2_PATH                       ${MINGW_PREFIX})
 set(MINGW_TOOL_PREFIX               ${CMAKE_SYSTEM_PROCESSOR}-w64-mingw32-)
 
 # Specify the cross compiler
-set(CMAKE_C_COMPILER            ${MINGW_TOOL_PREFIX}gcc-posix)
-set(CMAKE_CXX_COMPILER          ${MINGW_TOOL_PREFIX}g++-posix)
+set(CMAKE_C_COMPILER            ${MINGW_TOOL_PREFIX}gcc)
+set(CMAKE_CXX_COMPILER          ${MINGW_TOOL_PREFIX}g++)
 set(CMAKE_RC_COMPILER           ${MINGW_TOOL_PREFIX}windres)
 
 # Mingw tools
