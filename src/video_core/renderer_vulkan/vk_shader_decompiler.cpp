@@ -103,8 +103,8 @@ struct GenericVaryingDescription {
 };
 
 spv::Dim GetSamplerDim(const Sampler& sampler) {
-    ASSERT(!sampler.IsBuffer());
-    switch (sampler.GetType()) {
+    ASSERT(!sampler.is_buffer);
+    switch (sampler.type) {
     case Tegra::Shader::TextureType::Texture1D:
         return spv::Dim::Dim1D;
     case Tegra::Shader::TextureType::Texture2D:
@@ -114,13 +114,13 @@ spv::Dim GetSamplerDim(const Sampler& sampler) {
     case Tegra::Shader::TextureType::TextureCube:
         return spv::Dim::Cube;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", static_cast<u32>(sampler.GetType()));
+        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", static_cast<int>(sampler.type));
         return spv::Dim::Dim2D;
     }
 }
 
 std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
-    switch (image.GetType()) {
+    switch (image.type) {
     case Tegra::Shader::ImageType::Texture1D:
         return {spv::Dim::Dim1D, false};
     case Tegra::Shader::ImageType::TextureBuffer:
@@ -134,7 +134,7 @@ std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
     case Tegra::Shader::ImageType::Texture3D:
         return {spv::Dim::Dim3D, false};
     default:
-        UNIMPLEMENTED_MSG("Unimplemented image type={}", static_cast<u32>(image.GetType()));
+        UNIMPLEMENTED_MSG("Unimplemented image type={}", static_cast<int>(image.type));
         return {spv::Dim::Dim2D, false};
     }
 }
@@ -879,11 +879,11 @@ private:
 
     u32 DeclareTexelBuffers(u32 binding) {
         for (const auto& sampler : ir.GetSamplers()) {
-            if (!sampler.IsBuffer()) {
+            if (!sampler.is_buffer) {
                 continue;
             }
-            ASSERT(!sampler.IsArray());
-            ASSERT(!sampler.IsShadow());
+            ASSERT(!sampler.is_array);
+            ASSERT(!sampler.is_shadow);
 
             constexpr auto dim = spv::Dim::Buffer;
             constexpr int depth = 0;
@@ -894,23 +894,23 @@ private:
             const Id image_type = TypeImage(t_float, dim, depth, arrayed, ms, sampled, format);
             const Id pointer_type = TypePointer(spv::StorageClass::UniformConstant, image_type);
             const Id id = OpVariable(pointer_type, spv::StorageClass::UniformConstant);
-            AddGlobalVariable(Name(id, fmt::format("sampler_{}", sampler.GetIndex())));
+            AddGlobalVariable(Name(id, fmt::format("sampler_{}", sampler.index)));
             Decorate(id, spv::Decoration::Binding, binding++);
             Decorate(id, spv::Decoration::DescriptorSet, DESCRIPTOR_SET);
 
-            texel_buffers.emplace(sampler.GetIndex(), TexelBuffer{image_type, id});
+            texel_buffers.emplace(sampler.index, TexelBuffer{image_type, id});
         }
         return binding;
     }
 
     u32 DeclareSamplers(u32 binding) {
         for (const auto& sampler : ir.GetSamplers()) {
-            if (sampler.IsBuffer()) {
+            if (sampler.is_buffer) {
                 continue;
             }
             const auto dim = GetSamplerDim(sampler);
-            const int depth = sampler.IsShadow() ? 1 : 0;
-            const int arrayed = sampler.IsArray() ? 1 : 0;
+            const int depth = sampler.is_shadow ? 1 : 0;
+            const int arrayed = sampler.is_array ? 1 : 0;
             constexpr bool ms = false;
             constexpr int sampled = 1;
             constexpr auto format = spv::ImageFormat::Unknown;
@@ -918,17 +918,17 @@ private:
             const Id sampler_type = TypeSampledImage(image_type);
             const Id sampler_pointer_type =
                 TypePointer(spv::StorageClass::UniformConstant, sampler_type);
-            const Id type = sampler.IsIndexed()
-                                ? TypeArray(sampler_type, Constant(t_uint, sampler.Size()))
+            const Id type = sampler.is_indexed
+                                ? TypeArray(sampler_type, Constant(t_uint, sampler.size))
                                 : sampler_type;
             const Id pointer_type = TypePointer(spv::StorageClass::UniformConstant, type);
             const Id id = OpVariable(pointer_type, spv::StorageClass::UniformConstant);
-            AddGlobalVariable(Name(id, fmt::format("sampler_{}", sampler.GetIndex())));
+            AddGlobalVariable(Name(id, fmt::format("sampler_{}", sampler.index)));
             Decorate(id, spv::Decoration::Binding, binding++);
             Decorate(id, spv::Decoration::DescriptorSet, DESCRIPTOR_SET);
 
-            sampled_images.emplace(sampler.GetIndex(), SampledImage{image_type, sampler_type,
-                                                                    sampler_pointer_type, id});
+            sampled_images.emplace(
+                sampler.index, SampledImage{image_type, sampler_type, sampler_pointer_type, id});
         }
         return binding;
     }
@@ -943,17 +943,17 @@ private:
             const Id image_type = TypeImage(t_uint, dim, depth, arrayed, ms, sampled, format, {});
             const Id pointer_type = TypePointer(spv::StorageClass::UniformConstant, image_type);
             const Id id = OpVariable(pointer_type, spv::StorageClass::UniformConstant);
-            AddGlobalVariable(Name(id, fmt::format("image_{}", image.GetIndex())));
+            AddGlobalVariable(Name(id, fmt::format("image_{}", image.index)));
 
             Decorate(id, spv::Decoration::Binding, binding++);
             Decorate(id, spv::Decoration::DescriptorSet, DESCRIPTOR_SET);
-            if (image.IsRead() && !image.IsWritten()) {
+            if (image.is_read && !image.is_written) {
                 Decorate(id, spv::Decoration::NonWritable);
-            } else if (image.IsWritten() && !image.IsRead()) {
+            } else if (image.is_written && !image.is_read) {
                 Decorate(id, spv::Decoration::NonReadable);
             }
 
-            images.emplace(static_cast<u32>(image.GetIndex()), StorageImage{image_type, id});
+            images.emplace(image.index, StorageImage{image_type, id});
         }
         return binding;
     }
@@ -1620,11 +1620,11 @@ private:
 
     Id GetTextureSampler(Operation operation) {
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        ASSERT(!meta.sampler.IsBuffer());
+        ASSERT(!meta.sampler.is_buffer);
 
-        const auto& entry = sampled_images.at(meta.sampler.GetIndex());
+        const auto& entry = sampled_images.at(meta.sampler.index);
         Id sampler = entry.variable;
-        if (meta.sampler.IsIndexed()) {
+        if (meta.sampler.is_indexed) {
             const Id index = AsInt(Visit(meta.index));
             sampler = OpAccessChain(entry.sampler_pointer_type, sampler, index);
         }
@@ -1633,8 +1633,8 @@ private:
 
     Id GetTextureImage(Operation operation) {
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
-        const u32 index = meta.sampler.GetIndex();
-        if (meta.sampler.IsBuffer()) {
+        const u32 index = meta.sampler.index;
+        if (meta.sampler.is_buffer) {
             const auto& entry = texel_buffers.at(index);
             return OpLoad(entry.image_type, entry.image);
         } else {
@@ -1645,7 +1645,7 @@ private:
 
     Id GetImage(Operation operation) {
         const auto& meta = std::get<MetaImage>(operation.GetMeta());
-        const auto entry = images.at(meta.image.GetIndex());
+        const auto entry = images.at(meta.image.index);
         return OpLoad(entry.image_type, entry.image);
     }
 
@@ -1661,7 +1661,7 @@ private:
         }
         if (const auto meta = std::get_if<MetaTexture>(&operation.GetMeta())) {
             // Add array coordinate for textures
-            if (meta->sampler.IsArray()) {
+            if (meta->sampler.is_array) {
                 Id array = AsInt(Visit(meta->array));
                 if (type == Type::Float) {
                     array = OpConvertSToF(t_float, array);
@@ -1767,7 +1767,7 @@ private:
             operands.push_back(GetOffsetCoordinates(operation));
         }
 
-        if (meta.sampler.IsShadow()) {
+        if (meta.sampler.is_shadow) {
             const Id dref = AsFloat(Visit(meta.depth_compare));
             return {OpImageSampleDrefExplicitLod(t_float, sampler, coords, dref, mask, operands),
                     Type::Float};
@@ -1782,7 +1782,7 @@ private:
 
         const Id coords = GetCoordinates(operation, Type::Float);
         Id texture{};
-        if (meta.sampler.IsShadow()) {
+        if (meta.sampler.is_shadow) {
             texture = OpImageDrefGather(t_float4, GetTextureSampler(operation), coords,
                                         AsFloat(Visit(meta.depth_compare)));
         } else {
@@ -1809,8 +1809,8 @@ private:
         }
 
         const Id lod = AsUint(Visit(operation[0]));
-        const std::size_t coords_count = [&]() {
-            switch (const auto type = meta.sampler.GetType(); type) {
+        const std::size_t coords_count = [&meta] {
+            switch (const auto type = meta.sampler.type) {
             case Tegra::Shader::TextureType::Texture1D:
                 return 1;
             case Tegra::Shader::TextureType::Texture2D:
@@ -1819,7 +1819,7 @@ private:
             case Tegra::Shader::TextureType::Texture3D:
                 return 3;
             default:
-                UNREACHABLE_MSG("Invalid texture type={}", static_cast<u32>(type));
+                UNREACHABLE_MSG("Invalid texture type={}", static_cast<int>(type));
                 return 2;
             }
         }();
@@ -1862,7 +1862,7 @@ private:
         const Id image = GetTextureImage(operation);
         const Id coords = GetCoordinates(operation, Type::Int);
         Id fetch;
-        if (meta.lod && !meta.sampler.IsBuffer()) {
+        if (meta.lod && !meta.sampler.is_buffer) {
             fetch = OpImageFetch(t_float4, image, coords, spv::ImageOperandsMask::Lod,
                                  AsInt(Visit(meta.lod)));
         } else {
@@ -2980,7 +2980,7 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
         entries.global_buffers.emplace_back(base.cbuf_index, base.cbuf_offset, usage.is_written);
     }
     for (const auto& sampler : ir.GetSamplers()) {
-        if (sampler.IsBuffer()) {
+        if (sampler.is_buffer) {
             entries.texel_buffers.emplace_back(sampler);
         } else {
             entries.samplers.emplace_back(sampler);

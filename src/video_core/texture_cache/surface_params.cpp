@@ -81,7 +81,7 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
-    if (entry.IsShadow() && params.type == SurfaceType::ColorTexture) {
+    if (entry.is_shadow && params.type == SurfaceType::ColorTexture) {
         switch (params.pixel_format) {
         case PixelFormat::R16U:
         case PixelFormat::R16F:
@@ -108,7 +108,7 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
         params.emulated_levels = 1;
         params.is_layered = false;
     } else {
-        params.target = TextureTypeToSurfaceTarget(entry.GetType(), entry.IsArray());
+        params.target = TextureTypeToSurfaceTarget(entry.type, entry.is_array);
         params.width = tic.Width();
         params.height = tic.Height();
         params.depth = tic.Depth();
@@ -138,7 +138,7 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
     params.type = GetFormatType(params.pixel_format);
-    params.target = ImageTypeToSurfaceTarget(entry.GetType());
+    params.target = ImageTypeToSurfaceTarget(entry.type);
     // TODO: on 1DBuffer we should use the tic info.
     if (tic.IsBuffer()) {
         params.target = SurfaceTarget::TextureBuffer;
@@ -248,12 +248,12 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
 
 VideoCore::Surface::SurfaceTarget SurfaceParams::ExpectedTarget(
     const VideoCommon::Shader::Sampler& entry) {
-    return TextureTypeToSurfaceTarget(entry.GetType(), entry.IsArray());
+    return TextureTypeToSurfaceTarget(entry.type, entry.is_array);
 }
 
 VideoCore::Surface::SurfaceTarget SurfaceParams::ExpectedTarget(
     const VideoCommon::Shader::Image& entry) {
-    return ImageTypeToSurfaceTarget(entry.GetType());
+    return ImageTypeToSurfaceTarget(entry.type);
 }
 
 bool SurfaceParams::IsLayered() const {

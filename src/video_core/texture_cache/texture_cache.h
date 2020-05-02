@@ -1172,7 +1172,7 @@ private:
     /// Returns true the shader sampler entry is compatible with the TIC texture type.
     static bool IsTypeCompatible(Tegra::Texture::TextureType tic_type,
                                  const VideoCommon::Shader::Sampler& entry) {
-        const auto shader_type = entry.GetType();
+        const auto shader_type = entry.type;
         switch (tic_type) {
         case Tegra::Texture::TextureType::Texture1D:
         case Tegra::Texture::TextureType::Texture1DArray:
@@ -1193,7 +1193,7 @@ private:
             if (shader_type == Tegra::Shader::TextureType::TextureCube) {
                 return true;
             }
-            return shader_type == Tegra::Shader::TextureType::Texture2D && entry.IsArray();
+            return shader_type == Tegra::Shader::TextureType::Texture2D && entry.is_array;
         }
         UNREACHABLE();
         return true;
