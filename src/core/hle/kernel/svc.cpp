@@ -685,6 +685,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
     case GetInfoType::TotalPhysicalMemoryAvailableWithoutSystemResource:
     case GetInfoType::TotalPhysicalMemoryUsedWithoutSystemResource: {
         if (info_sub_id != 0) {
+            LOG_ERROR(Kernel_SVC, "Info sub id is non zero! info_id={}, info_sub_id={}", info_id,
+                      info_sub_id);
             return ERR_INVALID_ENUM_VALUE;
         }
 
@@ -692,6 +694,8 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             system.Kernel().CurrentProcess()->GetHandleTable();
         const auto process = current_process_handle_table.Get<Process>(static_cast<Handle>(handle));
         if (!process) {
+            LOG_ERROR(Kernel_SVC, "Process is not valid! info_id={}, info_sub_id={}, handle={:08X}",
+                      info_id, info_sub_id, handle);
             return ERR_INVALID_HANDLE;
         }
 
@@ -783,10 +787,13 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
 
     case GetInfoType::RegisterResourceLimit: {
         if (handle != 0) {
+            LOG_ERROR(Kernel, "Handle is non zero! handle={:08X}", handle);
             return ERR_INVALID_HANDLE;
         }
 
         if (info_sub_id != 0) {
+            LOG_ERROR(Kernel, "Info sub id is non zero! info_id={}, info_sub_id={}", info_id,
+                      info_sub_id);
             return ERR_INVALID_COMBINATION;
         }
 

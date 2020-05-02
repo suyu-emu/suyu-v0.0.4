@@ -30,6 +30,7 @@ HandleTable::~HandleTable() = default;
 
 ResultCode HandleTable::SetSize(s32 handle_table_size) {
     if (static_cast<u32>(handle_table_size) > MAX_COUNT) {
+        LOG_ERROR(Kernel, "Handle table size {} is greater than {}", handle_table_size, MAX_COUNT);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -80,6 +81,7 @@ ResultVal<Handle> HandleTable::Duplicate(Handle handle) {
 
 ResultCode HandleTable::Close(Handle handle) {
     if (!IsValid(handle)) {
+        LOG_ERROR(Kernel, "Handle is not valid! handle={:08X}", handle);
         return ERR_INVALID_HANDLE;
     }
 

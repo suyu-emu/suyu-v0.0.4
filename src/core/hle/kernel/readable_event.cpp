@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include "common/assert.h"
+#include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/readable_event.h"
@@ -35,6 +36,8 @@ void ReadableEvent::Clear() {
 
 ResultCode ReadableEvent::Reset() {
     if (!is_signaled) {
+        LOG_ERROR(Kernel, "Handle is not signaled! object_id={}, object_type={}, object_name={}",
+                  GetObjectId(), GetTypeName(), GetName());
         return ERR_INVALID_STATE;
     }
 

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/bit_util.h"
+#include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/memory/page_table.h"
@@ -119,22 +120,30 @@ ResultCode ProcessCapabilities::ParseCapabilities(const u32* capabilities,
             // The MapPhysical type uses two descriptor flags for its parameters.
             // If there's only one, then there's a problem.
             if (i >= num_capabilities) {
+                LOG_ERROR(Kernel, "Invalid combination! i={}", i);
                 return ERR_INVALID_COMBINATION;
             }
 
             const auto size_flags = capabilities[i];
             if (GetCapabilityType(size_flags) != CapabilityType::MapPhysical) {
+                LOG_ERROR(Kernel, "Invalid capability type! size_flags={}", size_flags);
                 return ERR_INVALID_COMBINATION;
             }
 
             const auto result = HandleMapPhysicalFlags(descriptor, size_flags, page_table);
             if (result.IsError()) {
+                LOG_ERROR(Kernel, "Failed to map physical flags! descriptor={}, size_flags={}",
+                          descriptor, size_flags);
                 return result;
             }
         } else {
             const auto result =
                 ParseSingleFlagCapability(set_flags, set_svc_bits, descriptor, page_table);
             if (result.IsError()) {
+                LOG_ERROR(
+                    Kernel,
+                    "Failed to parse capability flag! set_flags={}, set_svc_bits={}, descriptor={}",
+                    set_flags, set_svc_bits, descriptor);
                 return result;
             }
         }
@@ -162,6 +171,9 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
     const u32 flag_length = GetFlagBitOffset(type);
     const u32 set_flag = 1U << flag_length;
     if ((set_flag & set_flags & InitializeOnceMask) != 0) {
+        LOG_ERROR(Kernel,
+                  "Attempted to initialize flags that may only be initialized once. set_flags={}",
+                  set_flags);
         return ERR_INVALID_COMBINATION;
     }
     set_flags |= set_flag;
@@ -187,6 +199,7 @@ ResultCode ProcessCapabilities::ParseSingleFlagCapability(u32& set_flags, u32& s
         break;
     }
 
+    LOG_ERROR(Kernel, "Invalid capability type! type={}", static_cast<u32>(type));
     return ERR_INVALID_CAPABILITY_DESCRIPTOR;
 }
 
@@ -208,23 +221,31 @@ void ProcessCapabilities::Clear() {
 
 ResultCode ProcessCapabilities::HandlePriorityCoreNumFlags(u32 flags) {
     if (priority_mask != 0 || core_mask != 0) {
+        LOG_ERROR(Kernel, "Core or priority mask are not zero! priority_mask={}, core_mask={}",
+                  priority_mask, core_mask);
         return ERR_INVALID_CAPABILITY_DESCRIPTOR;
     }
 
     const u32 core_num_min = (flags >> 16) & 0xFF;
     const u32 core_num_max = (flags >> 24) & 0xFF;
     if (core_num_min > core_num_max) {
+        LOG_ERROR(Kernel, "Core min is greater than core max! core_num_min={}, core_num_max={}",
+                  core_num_min, core_num_max);
         return ERR_INVALID_COMBINATION;
     }
 
     const u32 priority_min = (flags >> 10) & 0x3F;
     const u32 priority_max = (flags >> 4) & 0x3F;
     if (priority_min > priority_max) {
+        LOG_ERROR(Kernel,
+                  "Priority min is greater than priority max! priority_min={}, priority_max={}",
+                  core_num_min, priority_max);
         return ERR_INVALID_COMBINATION;
     }
 
     // The switch only has 4 usable cores.
     if (core_num_max >= 4) {
+        LOG_ERROR(Kernel, "Invalid max cores specified! core_num_max={}", core_num_max);
         return ERR_INVALID_PROCESSOR_ID;
     }
 
@@ -259,6 +280,7 @@ ResultCode ProcessCapabilities::HandleSyscallFlags(u32& set_svc_bits, u32 flags)
         }
 
         if (svc_number >= svc_capabilities.size()) {
+            LOG_ERROR(Kernel, "Process svc capability is out of range! svc_number={}", svc_number);
             return ERR_OUT_OF_RANGE;
         }
 
@@ -295,6 +317,8 @@ ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
         // emulate that, it's sufficient to mark every interrupt as defined.
 
         if (interrupt >= interrupt_capabilities.size()) {
+            LOG_ERROR(Kernel, "Process interrupt capability is out of range! svc_number={}",
+                      interrupt);
             return ERR_OUT_OF_RANGE;
         }
 
@@ -307,6 +331,7 @@ ResultCode ProcessCapabilities::HandleInterruptFlags(u32 flags) {
 ResultCode ProcessCapabilities::HandleProgramTypeFlags(u32 flags) {
     const u32 reserved = flags >> 17;
     if (reserved != 0) {
+        LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
         return ERR_RESERVED_VALUE;
     }
 
@@ -324,6 +349,9 @@ ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
     const u32 major_version = kernel_version >> 19;
 
     if (major_version != 0 || flags < 0x80000) {
+        LOG_ERROR(Kernel,
+                  "Kernel version is non zero or flags are too small! major_version={}, flags={}",
+                  major_version, flags);
         return ERR_INVALID_CAPABILITY_DESCRIPTOR;
     }
 
@@ -334,6 +362,7 @@ ResultCode ProcessCapabilities::HandleKernelVersionFlags(u32 flags) {
 ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
     const u32 reserved = flags >> 26;
     if (reserved != 0) {
+        LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
         return ERR_RESERVED_VALUE;
     }
 
@@ -344,6 +373,7 @@ ResultCode ProcessCapabilities::HandleHandleTableFlags(u32 flags) {
 ResultCode ProcessCapabilities::HandleDebugFlags(u32 flags) {
     const u32 reserved = flags >> 19;
     if (reserved != 0) {
+        LOG_ERROR(Kernel, "Reserved value is non-zero! reserved={}", reserved);
         return ERR_RESERVED_VALUE;
     }
 

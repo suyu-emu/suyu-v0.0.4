@@ -69,6 +69,8 @@ ResultCode ResourceLimit::SetLimitValue(ResourceType resource, s64 value) {
         limit[index] = value;
         return RESULT_SUCCESS;
     } else {
+        LOG_ERROR(Kernel, "Limit value is too large! resource={}, value={}, index={}",
+                  static_cast<u32>(resource), value, index);
         return ERR_INVALID_STATE;
     }
 }
