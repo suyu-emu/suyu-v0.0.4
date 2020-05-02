@@ -5,16 +5,13 @@
 #pragma once
 
 #include <array>
-#include <memory>
 #include <optional>
-#include <unordered_map>
 #include <vector>
 
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 

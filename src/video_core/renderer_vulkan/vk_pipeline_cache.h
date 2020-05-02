@@ -21,13 +21,11 @@
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
-#include "video_core/surface.h"
 
 namespace Core {
 class System;

@@ -4,7 +4,6 @@
 
 #include <bitset>
 #include <chrono>
-#include <cstdlib>
 #include <optional>
 #include <string_view>
 #include <thread>

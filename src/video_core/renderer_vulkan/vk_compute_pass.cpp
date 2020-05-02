@@ -6,7 +6,7 @@
 #include <memory>
 #include <optional>
 #include <utility>
-#include <vector>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/common_types.h"

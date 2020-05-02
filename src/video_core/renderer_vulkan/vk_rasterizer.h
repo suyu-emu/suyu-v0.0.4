@@ -14,7 +14,6 @@
 #include <boost/functional/hash.hpp>
 
 #include "common/common_types.h"
-#include "video_core/memory_manager.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"

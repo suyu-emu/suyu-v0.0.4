@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <memory>
-
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"

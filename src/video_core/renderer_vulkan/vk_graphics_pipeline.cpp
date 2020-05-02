@@ -6,7 +6,6 @@
 #include <cstring>
 #include <vector>
 
-#include "common/assert.h"
 #include "common/common_types.h"
 #include "common/microprofile.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
