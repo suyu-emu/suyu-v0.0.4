@@ -36,7 +36,7 @@ public:
         void ListQualifiedUsers(Kernel::HLERequestContext& ctx);
 
     private:
-        ResultCode InitializeApplicationInfoBase(u64 process_id);
+        ResultCode InitializeApplicationInfoBase();
 
         enum class ApplicationType : u32_le {
             GameCard = 0,
