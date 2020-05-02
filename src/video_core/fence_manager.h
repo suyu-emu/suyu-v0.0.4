@@ -88,7 +88,8 @@ public:
             }
             PopAsyncFlushes();
             if (current_fence->IsSemaphore()) {
-                memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+                memory_manager.template Write<u32>(current_fence->GetAddress(),
+                                                   current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
@@ -134,7 +135,8 @@ private:
             }
             PopAsyncFlushes();
             if (current_fence->IsSemaphore()) {
-                memory_manager.Write<u32>(current_fence->GetAddress(), current_fence->GetPayload());
+                memory_manager.template Write<u32>(current_fence->GetAddress(),
+                                                   current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
