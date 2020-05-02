@@ -29,7 +29,13 @@ echo 'Prepare binaries...'
 cd ..
 mkdir package
 
-QT_PLATFORM_DLL_PATH='/usr/x86_64-w64-mingw32/lib/qt5/plugins/platforms/'
+if [ -d "/usr/x86_64-w64-mingw32/lib/qt5/plugins/platforms/" ]; then
+  QT_PLATFORM_DLL_PATH='/usr/x86_64-w64-mingw32/lib/qt5/plugins/platforms/'
+else
+  #fallback to qt
+  QT_PLATFORM_DLL_PATH='/usr/x86_64-w64-mingw32/lib/qt/plugins/platforms/'
+fi
+
 find build/ -name "yuzu*.exe" -exec cp {} 'package' \;
 
 # copy Qt plugins
