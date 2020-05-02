@@ -428,6 +428,17 @@ void Module::Interface::GetProfileEditor(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<IProfileEditor>(user_id, *profile_manager);
 }
 
+void Module::Interface::ListQualifiedUsers(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_ACC, "called");
+
+    // All users should be qualified. We don't actually have parental control or anything to do with
+    // nintendo online currently. We're just going to assume the user running the game has access to
+    // the game regardless of parental control settings.
+    ctx.WriteBuffer(profile_manager->GetAllUsers());
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_ACC, "called");
     // A u8 is passed into this function which we can safely ignore. It's to determine if we have

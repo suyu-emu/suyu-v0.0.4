@@ -35,7 +35,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {113, nullptr, "GetSaveDataThumbnailExistence"},
         {120, nullptr, "ListOpenUsersInApplication"},
         {130, nullptr, "ActivateOpenContextRetention"},
-        {140, nullptr, "ListQualifiedUsers"},
+        {140, &ACC_SU::ListQualifiedUsers, "ListQualifiedUsers"},
         {150, nullptr, "AuthenticateApplicationAsync"},
         {190, nullptr, "GetUserLastOpenedApplication"},
         {191, nullptr, "ActivateOpenContextHolder"},

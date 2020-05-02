@@ -32,7 +32,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {130, nullptr, "LoadOpenContext"},
         {131, nullptr, "ListOpenContextStoredUsers"},
         {140, &ACC_U0::InitializeApplicationInfoRestricted, "InitializeApplicationInfoRestricted"},
-        {141, nullptr, "ListQualifiedUsers"},
+        {141, &ACC_U0::ListQualifiedUsers, "ListQualifiedUsers"},
         {150, &ACC_U0::IsUserAccountSwitchLocked, "IsUserAccountSwitchLocked"},
     };
     // clang-format on
