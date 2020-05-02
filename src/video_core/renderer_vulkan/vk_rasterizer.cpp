@@ -895,6 +895,9 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
 
 void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawParameters& params,
                                         bool is_indexed) {
+    if (params.num_vertices == 0) {
+        return;
+    }
     const auto& regs = system.GPU().Maxwell3D().regs;
     switch (regs.draw.topology) {
     case Maxwell::PrimitiveTopology::Quads: {
