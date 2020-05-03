@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -36,8 +37,20 @@ private:
     };
     static_assert(sizeof(IoctlSetNvmapFD) == 4, "IoctlSetNvmapFD is incorrect size");
 
+    struct IoctlSubmitCommandBuffer {
+        u32 id;
+        u32 offset;
+        u32 count;
+    };
+    static_assert(sizeof(IoctlSubmitCommandBuffer) == 0xC,
+                  "IoctlSubmitCommandBuffer is incorrect size");
+
     struct IoctlSubmit {
-        INSERT_PADDING_BYTES(0x40); // TODO(DarkLordZach): RE this structure
+        u32 command_buffer_count;
+        u32 relocations_count;
+        u32 syncpt_count;
+        u32 wait_count;
+        std::array<IoctlSubmitCommandBuffer, 4> command_buffer;
     };
     static_assert(sizeof(IoctlSubmit) == 0x40, "IoctlSubmit is incorrect size");
 

@@ -53,6 +53,10 @@ u32 nvhost_vic::Submit(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlSubmit params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmit));
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
+
+    // Workaround for Luigi's Mansion 3, as nvhost_vic is not implemented for asynch GPU
+    params.command_buffer = {};
+
     std::memcpy(output.data(), &params, sizeof(IoctlSubmit));
     return 0;
 }
