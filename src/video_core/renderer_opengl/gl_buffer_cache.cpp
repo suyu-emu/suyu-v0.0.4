@@ -51,10 +51,6 @@ Buffer OGLBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
     return std::make_shared<CachedBufferBlock>(cpu_addr, size);
 }
 
-void OGLBufferCache::WriteBarrier() {
-    glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-}
-
 GLuint OGLBufferCache::ToHandle(const Buffer& buffer) {
     return buffer->GetHandle();
 }

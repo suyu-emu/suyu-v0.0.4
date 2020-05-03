@@ -299,7 +299,7 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
       sampler_cache(device),
       fence_manager(system, *this, device, scheduler, texture_cache, buffer_cache, query_cache),
-      query_cache(system, *this, device, scheduler) {
+      query_cache(system, *this, device, scheduler), wfi_event{device.GetLogical().CreateEvent()} {
     scheduler.SetQueryCache(query_cache);
 }
 
@@ -571,6 +571,26 @@ void RasterizerVulkan::ReleaseFences() {
 void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     FlushRegion(addr, size);
     InvalidateRegion(addr, size);
+}
+
+void RasterizerVulkan::WaitForIdle() {
+    // Everything but wait pixel operations. This intentionally includes FRAGMENT_SHADER_BIT because
+    // fragment shaders can still write storage buffers.
+    VkPipelineStageFlags flags =
+        VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT | VK_PIPELINE_STAGE_VERTEX_INPUT_BIT |
+        VK_PIPELINE_STAGE_VERTEX_SHADER_BIT | VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT |
+        VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT |
+        VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT | VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
+        VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT;
+    if (device.IsExtTransformFeedbackSupported()) {
+        flags |= VK_PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT;
+    }
+
+    scheduler.RequestOutsideRenderPassOperationContext();
+    scheduler.Record([event = *wfi_event, flags](vk::CommandBuffer cmdbuf) {
+        cmdbuf.SetEvent(event, flags);
+        cmdbuf.WaitEvents(event, flags, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, {}, {}, {});
+    });
 }
 
 void RasterizerVulkan::FlushCommands() {

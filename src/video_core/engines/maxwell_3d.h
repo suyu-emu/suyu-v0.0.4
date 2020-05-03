@@ -709,7 +709,9 @@ public:
 
         union {
             struct {
-                INSERT_UNION_PADDING_WORDS(0x45);
+                INSERT_UNION_PADDING_WORDS(0x44);
+
+                u32 wait_for_idle;
 
                 struct {
                     u32 upload_address;
@@ -1536,6 +1538,7 @@ private:
     static_assert(offsetof(Maxwell3D::Regs, field_name) == position * 4,                           \
                   "Field " #field_name " has invalid position")
 
+ASSERT_REG_POSITION(wait_for_idle, 0x44);
 ASSERT_REG_POSITION(macros, 0x45);
 ASSERT_REG_POSITION(shadow_ram_control, 0x49);
 ASSERT_REG_POSITION(upload, 0x60);

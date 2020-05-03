@@ -52,8 +52,6 @@ public:
 protected:
     VkBuffer ToHandle(const Buffer& buffer) override;
 
-    void WriteBarrier() override {}
-
     Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,

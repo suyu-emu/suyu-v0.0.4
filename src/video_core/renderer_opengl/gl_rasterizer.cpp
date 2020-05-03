@@ -746,6 +746,17 @@ void RasterizerOpenGL::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     InvalidateRegion(addr, size);
 }
 
+void RasterizerOpenGL::WaitForIdle() {
+    // Place a barrier on everything that is not framebuffer related.
+    // This is related to another flag that is not currently implemented.
+    glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT | GL_ELEMENT_ARRAY_BARRIER_BIT |
+                    GL_UNIFORM_BARRIER_BIT | GL_TEXTURE_FETCH_BARRIER_BIT |
+                    GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_COMMAND_BARRIER_BIT |
+                    GL_PIXEL_BUFFER_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT |
+                    GL_BUFFER_UPDATE_BARRIER_BIT | GL_TRANSFORM_FEEDBACK_BARRIER_BIT |
+                    GL_SHADER_STORAGE_BARRIER_BIT | GL_QUERY_BUFFER_BARRIER_BIT);
+}
+
 void RasterizerOpenGL::FlushCommands() {
     // Only flush when we have commands queued to OpenGL.
     if (num_queued_commands == 0) {

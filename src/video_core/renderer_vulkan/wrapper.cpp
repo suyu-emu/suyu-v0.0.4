@@ -87,6 +87,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilReference);
     X(vkCmdSetStencilWriteMask);
     X(vkCmdSetViewport);
+    X(vkCmdWaitEvents);
     X(vkCreateBuffer);
     X(vkCreateBufferView);
     X(vkCreateCommandPool);

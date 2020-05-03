@@ -205,6 +205,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCmdSetStencilReference vkCmdSetStencilReference;
     PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
     PFN_vkCmdSetViewport vkCmdSetViewport;
+    PFN_vkCmdWaitEvents vkCmdWaitEvents;
     PFN_vkCreateBuffer vkCreateBuffer;
     PFN_vkCreateBufferView vkCreateBufferView;
     PFN_vkCreateCommandPool vkCreateCommandPool;
@@ -956,6 +957,15 @@ public:
 
     void SetEvent(VkEvent event, VkPipelineStageFlags stage_flags) const noexcept {
         dld->vkCmdSetEvent(handle, event, stage_flags);
+    }
+
+    void WaitEvents(Span<VkEvent> events, VkPipelineStageFlags src_stage_mask,
+                    VkPipelineStageFlags dst_stage_mask, Span<VkMemoryBarrier> memory_barriers,
+                    Span<VkBufferMemoryBarrier> buffer_barriers,
+                    Span<VkImageMemoryBarrier> image_barriers) const noexcept {
+        dld->vkCmdWaitEvents(handle, events.size(), events.data(), src_stage_mask, dst_stage_mask,
+                             memory_barriers.size(), memory_barriers.data(), buffer_barriers.size(),
+                             buffer_barriers.data(), image_barriers.size(), image_barriers.data());
     }
 
     void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,
