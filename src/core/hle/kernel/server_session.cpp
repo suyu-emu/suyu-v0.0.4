@@ -137,8 +137,8 @@ ResultCode ServerSession::HandleDomainSyncRequest(Kernel::HLERequestContext& con
 ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<Thread> thread,
                                            Core::Memory::Memory& memory) {
     u32* cmd_buf{reinterpret_cast<u32*>(memory.GetPointer(thread->GetTLSAddress()))};
-    std::shared_ptr<Kernel::HLERequestContext> context{
-        std::make_shared<Kernel::HLERequestContext>(SharedFrom(this), std::move(thread))};
+    auto context =
+        std::make_shared<HLERequestContext>(kernel, memory, SharedFrom(this), std::move(thread));
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
     request_queue.Push(std::move(context));
