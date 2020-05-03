@@ -195,7 +195,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
         config.enable_fast_dispatch = false;
     }
 
-    // CNTPCT uses wall clock.
+    // Timing
     config.wall_clock_cntpct = uses_wall_clock;
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
@@ -271,7 +271,7 @@ void ARM_Dynarmic_64::SetTPIDR_EL0(u64 value) {
 }
 
 void ARM_Dynarmic_64::ChangeProcessorId(std::size_t new_core_id) {
-    jit->ChangeProcessorId(new_core_id);
+    jit->ChangeProcessorID(new_core_id);
 }
 
 void ARM_Dynarmic_64::SaveContext(ThreadContext64& ctx) {
@@ -358,31 +358,31 @@ void DynarmicExclusiveMonitor::ClearExclusive() {
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite8(std::size_t core_index, VAddr vaddr, u8 value) {
-    return monitor.DoExclusiveOperation<u8>(core_index, vaddr, 1, [&](u8 expected) -> bool {
+    return monitor.DoExclusiveOperation<u8>(core_index, vaddr, [&](u8 expected) -> bool {
         return memory.WriteExclusive8(vaddr, value, expected);
     });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite16(std::size_t core_index, VAddr vaddr, u16 value) {
-    return monitor.DoExclusiveOperation<u16>(core_index, vaddr, 2, [&](u16 expected) -> bool {
+    return monitor.DoExclusiveOperation<u16>(core_index, vaddr, [&](u16 expected) -> bool {
         return memory.WriteExclusive16(vaddr, value, expected);
     });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite32(std::size_t core_index, VAddr vaddr, u32 value) {
-    return monitor.DoExclusiveOperation<u32>(core_index, vaddr, 4, [&](u32 expected) -> bool {
+    return monitor.DoExclusiveOperation<u32>(core_index, vaddr, [&](u32 expected) -> bool {
         return memory.WriteExclusive32(vaddr, value, expected);
     });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite64(std::size_t core_index, VAddr vaddr, u64 value) {
-    return monitor.DoExclusiveOperation<u64>(core_index, vaddr, 8, [&](u64 expected) -> bool {
+    return monitor.DoExclusiveOperation<u64>(core_index, vaddr, [&](u64 expected) -> bool {
         return memory.WriteExclusive64(vaddr, value, expected);
     });
 }
 
 bool DynarmicExclusiveMonitor::ExclusiveWrite128(std::size_t core_index, VAddr vaddr, u128 value) {
-    return monitor.DoExclusiveOperation<u128>(core_index, vaddr, 16, [&](u128 expected) -> bool {
+    return monitor.DoExclusiveOperation<u128>(core_index, vaddr, [&](u128 expected) -> bool {
         return memory.WriteExclusive128(vaddr, value, expected);
     });
 }
