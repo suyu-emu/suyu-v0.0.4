@@ -6,7 +6,6 @@
 #include "common/assert.h"
 #include "common/scope_exit.h"
 #include "core/core.h"
-#include "core/device_memory.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/address_space_info.h"

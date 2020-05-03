@@ -6,7 +6,6 @@
 
 #include <functional>
 #include <list>
-#include <memory>
 
 #include "common/common_types.h"
 #include "core/hle/kernel/memory/memory_block.h"
