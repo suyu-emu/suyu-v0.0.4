@@ -1353,7 +1353,7 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
         const auto& version = res.first->GetVersionString();
         std::copy(version.begin(), version.end(), version_string.begin());
     } else {
-        const u128 default_version = {1, 0};
+        constexpr u128 default_version = {1, 0};
         std::memcpy(version_string.data(), default_version.data(), sizeof(u128));
     }
 
