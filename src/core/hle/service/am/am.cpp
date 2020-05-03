@@ -1335,12 +1335,23 @@ void IApplicationFunctions::SetTerminateResult(Kernel::HLERequestContext& ctx) {
 }
 
 void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    LOG_DEBUG(Service_AM, "called");
+
+    std::array<u8, 0x10> version_string{};
+
+    FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
+    const auto res = pm.GetControlMetadata();
+    if (res.first != nullptr) {
+        const auto& version = res.first->GetVersionString();
+        std::copy(version.begin(), version.end(), version_string.begin());
+    } else {
+        constexpr u128 default_version = {1, 0};
+        std::memcpy(version_string.data(), default_version.data(), sizeof(u128));
+    }
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u64>(1);
-    rb.Push<u64>(0);
+    rb.PushRaw(version_string);
 }
 
 void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
