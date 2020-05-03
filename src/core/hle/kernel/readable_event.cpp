@@ -24,10 +24,12 @@ void ReadableEvent::Acquire(Thread* thread) {
 }
 
 void ReadableEvent::Signal() {
-    if (!is_signaled) {
-        is_signaled = true;
-        SynchronizationObject::Signal();
-    };
+    if (is_signaled) {
+        return;
+    }
+
+    is_signaled = true;
+    SynchronizationObject::Signal();
 }
 
 void ReadableEvent::Clear() {
