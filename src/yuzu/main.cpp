@@ -135,6 +135,8 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
+constexpr int default_mouse_timeout = 2500;
+
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
 /**
@@ -235,6 +237,14 @@ GMainWindow::GMainWindow()
 
     // Show one-time "callout" messages to the user
     ShowTelemetryCallout();
+
+    // make sure menubar has the arrow cursor instead of inheriting from this
+    ui.menubar->setCursor(QCursor());
+    statusBar()->setCursor(QCursor());
+
+    mouse_hide_timer.setInterval(default_mouse_timeout);
+    connect(&mouse_hide_timer, &QTimer::timeout, this, &GMainWindow::HideMouseCursor);
+    connect(ui.menubar, &QMenuBar::hovered, this, &GMainWindow::ShowMouseCursor);
 
     QStringList args = QApplication::arguments();
     if (args.length() >= 2) {
@@ -1012,6 +1022,13 @@ void GMainWindow::BootGame(const QString& filename) {
     async_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
 
+    if (UISettings::values.hide_mouse) {
+        mouse_hide_timer.start();
+        setMouseTracking(true);
+        ui.centralwidget->setMouseTracking(true);
+        ui.menubar->setMouseTracking(true);
+    }
+
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
     std::string title_name;
@@ -1079,6 +1096,10 @@ void GMainWindow::ShutdownGame() {
     else
         game_list->show();
     game_list->setFilterFocus();
+
+    setMouseTracking(false);
+    ui.centralwidget->setMouseTracking(false);
+    ui.menubar->setMouseTracking(false);
 
     UpdateWindowTitle();
 
@@ -1837,6 +1858,17 @@ void GMainWindow::OnConfigure() {
 
     config->Save();
 
+    if (UISettings::values.hide_mouse && emulation_running) {
+        setMouseTracking(true);
+        ui.centralwidget->setMouseTracking(true);
+        ui.menubar->setMouseTracking(true);
+        mouse_hide_timer.start();
+    } else {
+        setMouseTracking(false);
+        ui.centralwidget->setMouseTracking(false);
+        ui.menubar->setMouseTracking(false);
+    }
+
     dock_status_button->setChecked(Settings::values.use_docked_mode);
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
 #ifdef HAS_VULKAN
@@ -1968,6 +2000,30 @@ void GMainWindow::UpdateStatusBar() {
     emu_speed_label->setVisible(true);
     game_fps_label->setVisible(true);
     emu_frametime_label->setVisible(true);
+}
+
+void GMainWindow::HideMouseCursor() {
+    if (emu_thread == nullptr || UISettings::values.hide_mouse == false) {
+        mouse_hide_timer.stop();
+        ShowMouseCursor();
+        return;
+    }
+    setCursor(QCursor(Qt::BlankCursor));
+}
+
+void GMainWindow::ShowMouseCursor() {
+    unsetCursor();
+    if (emu_thread != nullptr && UISettings::values.hide_mouse) {
+        mouse_hide_timer.start();
+    }
+}
+
+void GMainWindow::mouseMoveEvent(QMouseEvent* event) {
+    ShowMouseCursor();
+}
+
+void GMainWindow::mousePressEvent(QMouseEvent* event) {
+    ShowMouseCursor();
 }
 
 void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string details) {
