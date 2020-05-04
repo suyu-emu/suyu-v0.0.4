@@ -1525,14 +1525,15 @@ void InstallInterfaces(SM::ServiceManager& service_manager,
     std::make_shared<TCAP>()->InstallAsService(service_manager);
 }
 
-IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions") {
+IHomeMenuFunctions::IHomeMenuFunctions(Kernel::KernelCore& kernel)
+    : ServiceFramework("IHomeMenuFunctions"), kernel(kernel) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {10, &IHomeMenuFunctions::RequestToGetForeground, "RequestToGetForeground"},
         {11, nullptr, "LockForeground"},
         {12, nullptr, "UnlockForeground"},
         {20, nullptr, "PopFromGeneralChannel"},
-        {21, nullptr, "GetPopFromGeneralChannelEvent"},
+        {21, &IHomeMenuFunctions::GetPopFromGeneralChannelEvent, "GetPopFromGeneralChannelEvent"},
         {30, nullptr, "GetHomeButtonWriterLockAccessor"},
         {31, nullptr, "GetWriterLockAccessorEx"},
         {100, nullptr, "PopRequestLaunchApplicationForDebug"},
@@ -1542,6 +1543,9 @@ IHomeMenuFunctions::IHomeMenuFunctions() : ServiceFramework("IHomeMenuFunctions"
     // clang-format on
 
     RegisterHandlers(functions);
+
+    pop_from_general_channel_event = Kernel::WritableEvent::CreateEventPair(
+        kernel, "IHomeMenuFunctions:PopFromGeneralChannelEvent");
 }
 
 IHomeMenuFunctions::~IHomeMenuFunctions() = default;
@@ -1551,6 +1555,14 @@ void IHomeMenuFunctions::RequestToGetForeground(Kernel::HLERequestContext& ctx) 
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void IHomeMenuFunctions::GetPopFromGeneralChannelEvent(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushCopyObjects(pop_from_general_channel_event.readable);
 }
 
 IGlobalStateController::IGlobalStateController() : ServiceFramework("IGlobalStateController") {
