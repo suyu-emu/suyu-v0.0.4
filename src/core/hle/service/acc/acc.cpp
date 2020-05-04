@@ -228,7 +228,8 @@ public:
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
-    IManagerForApplication() : ServiceFramework("IManagerForApplication") {
+    explicit IManagerForApplication(Common::UUID user_id)
+        : ServiceFramework("IManagerForApplication"), user_id(user_id) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
@@ -254,12 +255,14 @@ private:
     }
 
     void GetAccountId(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_ACC, "(STUBBED) called");
-        // Should return a nintendo account ID
+        LOG_DEBUG(Service_ACC, "called");
+
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
-        rb.PushRaw<u64>(1);
+        rb.PushRaw<u64>(user_id.GetNintendoID());
     }
+
+    Common::UUID user_id;
 };
 
 void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {
@@ -382,7 +385,7 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
     LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IManagerForApplication>();
+    rb.PushIpcInterface<IManagerForApplication>(profile_manager->GetLastOpenedUser());
 }
 
 void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx) {
