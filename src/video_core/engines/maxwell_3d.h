@@ -630,6 +630,7 @@ public:
             f32 translate_y;
             f32 translate_z;
             union {
+                u32 raw;
                 BitField<0, 3, ViewportSwizzle> x;
                 BitField<4, 3, ViewportSwizzle> y;
                 BitField<8, 3, ViewportSwizzle> z;

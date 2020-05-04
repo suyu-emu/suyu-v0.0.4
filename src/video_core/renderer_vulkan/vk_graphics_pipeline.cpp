@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <cstring>
 #include <vector>
@@ -48,6 +49,23 @@ bool SupportsPrimitiveRestart(VkPrimitiveTopology topology) {
         VK_PRIMITIVE_TOPOLOGY_PATCH_LIST};
     return std::find(std::begin(unsupported_topologies), std::end(unsupported_topologies),
                      topology) == std::end(unsupported_topologies);
+}
+
+VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
+    union {
+        u32 raw;
+        BitField<0, 3, Maxwell::ViewportSwizzle> x;
+        BitField<4, 3, Maxwell::ViewportSwizzle> y;
+        BitField<8, 3, Maxwell::ViewportSwizzle> z;
+        BitField<12, 3, Maxwell::ViewportSwizzle> w;
+    } const unpacked{swizzle};
+
+    VkViewportSwizzleNV result;
+    result.x = MaxwellToVK::ViewportSwizzle(unpacked.x);
+    result.y = MaxwellToVK::ViewportSwizzle(unpacked.y);
+    result.z = MaxwellToVK::ViewportSwizzle(unpacked.z);
+    result.w = MaxwellToVK::ViewportSwizzle(unpacked.w);
+    return result;
 }
 
 } // Anonymous namespace
@@ -162,6 +180,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     const auto& ds = fixed_state.depth_stencil;
     const auto& cd = fixed_state.color_blending;
     const auto& rs = fixed_state.rasterizer;
+    const auto& viewport_swizzles = fixed_state.viewport_swizzles.swizzles;
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
@@ -243,6 +262,19 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     viewport_ci.pViewports = nullptr;
     viewport_ci.scissorCount = Maxwell::NumViewports;
     viewport_ci.pScissors = nullptr;
+
+    std::array<VkViewportSwizzleNV, Maxwell::NumViewports> swizzles;
+    std::transform(viewport_swizzles.begin(), viewport_swizzles.end(), swizzles.begin(),
+                   UnpackViewportSwizzle);
+    VkPipelineViewportSwizzleStateCreateInfoNV swizzle_ci;
+    swizzle_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV;
+    swizzle_ci.pNext = nullptr;
+    swizzle_ci.flags = 0;
+    swizzle_ci.viewportCount = Maxwell::NumViewports;
+    swizzle_ci.pViewportSwizzles = swizzles.data();
+    if (device.IsNvViewportSwizzleSupported()) {
+        viewport_ci.pNext = &swizzle_ci;
+    }
 
     VkPipelineRasterizationStateCreateInfo rasterization_ci;
     rasterization_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;

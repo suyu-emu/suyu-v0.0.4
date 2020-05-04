@@ -59,4 +59,6 @@ VkCullModeFlags CullFace(Maxwell::CullFace cull_face);
 
 VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
+VkViewportCoordinateSwizzleNV ViewportSwizzle(Maxwell::ViewportSwizzle swizzle);
+
 } // namespace Vulkan::MaxwellToVK

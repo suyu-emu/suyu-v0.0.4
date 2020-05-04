@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstring>
 #include <tuple>
 
@@ -101,6 +102,12 @@ void FixedPipelineState::ColorBlending::Fill(const Maxwell& regs) noexcept {
     }
 }
 
+void FixedPipelineState::ViewportSwizzles::Fill(const Maxwell& regs) noexcept {
+    const auto& transform = regs.viewport_transform;
+    std::transform(transform.begin(), transform.end(), swizzles.begin(),
+                   [](const auto& viewport) { return static_cast<u16>(viewport.swizzle.raw); });
+}
+
 void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size_t index) {
     const auto& mask = regs.color_mask[regs.color_mask_common ? 0 : index];
 
@@ -144,6 +151,7 @@ void FixedPipelineState::Fill(const Maxwell& regs) {
     rasterizer.Fill(regs);
     depth_stencil.Fill(regs);
     color_blending.Fill(regs);
+    viewport_swizzles.Fill(regs);
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {
