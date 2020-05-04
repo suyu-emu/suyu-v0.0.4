@@ -503,5 +503,10 @@ inline GLenum PolygonMode(Maxwell::PolygonMode polygon_mode) {
     return GL_FILL;
 }
 
+inline GLenum ViewportSwizzle(Maxwell::ViewportSwizzle swizzle) {
+    // Enumeration order matches register order. We can convert it arithmetically.
+    return GL_VIEWPORT_SWIZZLE_POSITIVE_X_NV + static_cast<GLenum>(swizzle);
+}
+
 } // namespace MaxwellToGL
 } // namespace OpenGL
