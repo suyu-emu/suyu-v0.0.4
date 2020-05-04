@@ -293,6 +293,17 @@ bool VKDevice::Create() {
         LOG_INFO(Render_Vulkan, "Device doesn't support transform feedbacks");
     }
 
+    VkPhysicalDeviceCustomBorderColorFeaturesEXT custom_border;
+    if (ext_custom_border_color) {
+        custom_border.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT;
+        custom_border.pNext = nullptr;
+        custom_border.customBorderColors = VK_TRUE;
+        custom_border.customBorderColorWithoutFormat = VK_TRUE;
+        SetNext(next, custom_border);
+    } else {
+        LOG_INFO(Render_Vulkan, "Device doesn't support custom border colors");
+    }
+
     if (!ext_depth_range_unrestricted) {
         LOG_INFO(Render_Vulkan, "Device doesn't support depth range unrestricted");
     }
@@ -520,6 +531,7 @@ std::vector<const char*> VKDevice::LoadExtensions() {
     bool has_khr_shader_float16_int8{};
     bool has_ext_subgroup_size_control{};
     bool has_ext_transform_feedback{};
+    bool has_ext_custom_border_color{};
     for (const auto& extension : physical.EnumerateDeviceExtensionProperties()) {
         Test(extension, khr_uniform_buffer_standard_layout,
              VK_KHR_UNIFORM_BUFFER_STANDARD_LAYOUT_EXTENSION_NAME, true);
@@ -533,6 +545,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         Test(extension, has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME,
              false);
         Test(extension, has_ext_transform_feedback, VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME,
+             false);
+        Test(extension, has_ext_custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
              false);
         if (Settings::values.renderer_debug) {
             Test(extension, nv_device_diagnostics_config,
@@ -603,6 +617,19 @@ std::vector<const char*> VKDevice::LoadExtensions() {
             tfb_properties.transformFeedbackDraw) {
             extensions.push_back(VK_EXT_TRANSFORM_FEEDBACK_EXTENSION_NAME);
             ext_transform_feedback = true;
+        }
+    }
+
+    if (has_ext_custom_border_color) {
+        VkPhysicalDeviceCustomBorderColorFeaturesEXT border_features;
+        border_features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT;
+        border_features.pNext = nullptr;
+        features.pNext = &border_features;
+        physical.GetFeatures2KHR(features);
+
+        if (border_features.customBorderColors && border_features.customBorderColorWithoutFormat) {
+            extensions.push_back(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
+            ext_custom_border_color = true;
         }
     }
 

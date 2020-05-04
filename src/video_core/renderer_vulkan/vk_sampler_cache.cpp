@@ -39,9 +39,18 @@ VKSamplerCache::VKSamplerCache(const VKDevice& device) : device{device} {}
 VKSamplerCache::~VKSamplerCache() = default;
 
 vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) const {
+    const bool arbitrary_borders = device.IsExtCustomBorderColorSupported();
+    const std::array color = tsc.GetBorderColor();
+
+    VkSamplerCustomBorderColorCreateInfoEXT border;
+    border.sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT;
+    border.pNext = nullptr;
+    border.format = VK_FORMAT_UNDEFINED;
+    std::memcpy(&border.customBorderColor, color.data(), sizeof(color));
+
     VkSamplerCreateInfo ci;
     ci.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    ci.pNext = nullptr;
+    ci.pNext = arbitrary_borders ? &border : nullptr;
     ci.flags = 0;
     ci.magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter);
     ci.minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter);
@@ -56,7 +65,7 @@ vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) c
     ci.compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func);
     ci.minLod = tsc.GetMinLod();
     ci.maxLod = tsc.GetMaxLod();
-    ci.borderColor = ConvertBorderColor(tsc.GetBorderColor());
+    ci.borderColor = arbitrary_borders ? VK_BORDER_COLOR_INT_CUSTOM_EXT : ConvertBorderColor(color);
     ci.unnormalizedCoordinates = VK_FALSE;
     return device.GetLogical().CreateSampler(ci);
 }
