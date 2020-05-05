@@ -19,6 +19,7 @@
 #include "common/math_util.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
 #include "video_core/engines/const_buffer_info.h"
+#include "video_core/engines/engine_interface.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/gpu.h"
@@ -48,7 +49,7 @@ namespace Tegra::Engines {
 #define MAXWELL3D_REG_INDEX(field_name)                                                            \
     (offsetof(Tegra::Engines::Maxwell3D::Regs, field_name) / sizeof(u32))
 
-class Maxwell3D final : public ConstBufferEngineInterface {
+class Maxwell3D final : public ConstBufferEngineInterface, public EngineInterface {
 public:
     explicit Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                        MemoryManager& memory_manager);
@@ -1360,13 +1361,14 @@ public:
     u32 GetRegisterValue(u32 method) const;
 
     /// Write the value to the register identified by method.
-    void CallMethod(const GPU::MethodCall& method_call);
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     /// Write the value to the register identified by method.
-    void CallMethodFromMME(const GPU::MethodCall& method_call);
+    void CallMethodFromMME(u32 method, u32 method_argument);
 
     void FlushMMEInlineDraw();
 

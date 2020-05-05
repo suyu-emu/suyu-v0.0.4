@@ -10,6 +10,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/math_util.h"
+#include "video_core/engines/engine_interface.h"
 #include "video_core/gpu.h"
 
 namespace Tegra {
@@ -31,16 +32,17 @@ namespace Tegra::Engines {
 #define FERMI2D_REG_INDEX(field_name)                                                              \
     (offsetof(Tegra::Engines::Fermi2D::Regs, field_name) / sizeof(u32))
 
-class Fermi2D final {
+class Fermi2D final : public EngineInterface {
 public:
     explicit Fermi2D(VideoCore::RasterizerInterface& rasterizer);
     ~Fermi2D() = default;
 
     /// Write the value to the register identified by method.
-    void CallMethod(const GPU::MethodCall& method_call);
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     enum class Origin : u32 {
         Center = 0,

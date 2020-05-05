@@ -125,12 +125,10 @@ void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u3
     }
 }
 
-void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
-    const u32 method = method_call.method;
-
+void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     if (method == cb_data_state.current) {
-        regs.reg_array[method] = method_call.argument;
-        ProcessCBData(method_call.argument);
+        regs.reg_array[method] = method_argument;
+        ProcessCBData(method_argument);
         return;
     } else if (cb_data_state.current != null_cb_data) {
         FinishCBData();
@@ -153,10 +151,10 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
             executing_macro = method;
         }
 
-        macro_params.push_back(method_call.argument);
+        macro_params.push_back(method_argument);
 
         // Call the macro when there are no more parameters in the command buffer
-        if (method_call.IsLastCall()) {
+        if (is_last_call) {
             CallMacroMethod(executing_macro, macro_params.size(), macro_params.data());
             macro_params.clear();
         }
@@ -166,7 +164,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid Maxwell3D register, increase the size of the Regs structure");
 
-    u32 arg = method_call.argument;
+    u32 arg = method_argument;
     // Keep track of the register value in shadow_state when requested.
     if (shadow_state.shadow_ram_control == Regs::ShadowRamControl::Track ||
         shadow_state.shadow_ram_control == Regs::ShadowRamControl::TrackWithFilter) {
@@ -189,7 +187,7 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         break;
     }
     case MAXWELL3D_REG_INDEX(shadow_ram_control): {
-        shadow_state.shadow_ram_control = static_cast<Regs::ShadowRamControl>(method_call.argument);
+        shadow_state.shadow_ram_control = static_cast<Regs::ShadowRamControl>(method_argument);
         break;
     }
     case MAXWELL3D_REG_INDEX(macros.data): {
@@ -272,7 +270,6 @@ void Maxwell3D::CallMethod(const GPU::MethodCall& method_call) {
         break;
     }
     case MAXWELL3D_REG_INDEX(data_upload): {
-        const bool is_last_call = method_call.IsLastCall();
         upload_state.ProcessData(arg, is_last_call);
         if (is_last_call) {
             OnMemoryWrite();
@@ -330,7 +327,7 @@ void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
     }
     default: {
         for (std::size_t i = 0; i < amount; i++) {
-            CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
+            CallMethod(method, base_start[i], methods_pending - static_cast<u32>(i) <= 1);
         }
     }
     }
@@ -360,16 +357,15 @@ void Maxwell3D::StepInstance(const MMEDrawMode expected_mode, const u32 count) {
     StepInstance(expected_mode, count);
 }
 
-void Maxwell3D::CallMethodFromMME(const GPU::MethodCall& method_call) {
-    const u32 method = method_call.method;
+void Maxwell3D::CallMethodFromMME(u32 method, u32 method_argument) {
     if (mme_inline[method]) {
-        regs.reg_array[method] = method_call.argument;
+        regs.reg_array[method] = method_argument;
         if (method == MAXWELL3D_REG_INDEX(vertex_buffer.count) ||
             method == MAXWELL3D_REG_INDEX(index_array.count)) {
             const MMEDrawMode expected_mode = method == MAXWELL3D_REG_INDEX(vertex_buffer.count)
                                                   ? MMEDrawMode::Array
                                                   : MMEDrawMode::Indexed;
-            StepInstance(expected_mode, method_call.argument);
+            StepInstance(expected_mode, method_argument);
         } else if (method == MAXWELL3D_REG_INDEX(draw.vertex_begin_gl)) {
             mme_draw.instance_mode =
                 (regs.draw.instance_next != 0) || (regs.draw.instance_cont != 0);
@@ -381,7 +377,7 @@ void Maxwell3D::CallMethodFromMME(const GPU::MethodCall& method_call) {
         if (mme_draw.current_mode != MMEDrawMode::Undefined) {
             FlushMMEInlineDraw();
         }
-        CallMethod(method_call);
+        CallMethod(method, method_argument, true);
     }
 }
 

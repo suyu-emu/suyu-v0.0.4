@@ -10,6 +10,7 @@
 #include "common/bit_field.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "video_core/engines/engine_interface.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/gpu.h"
 
@@ -32,16 +33,17 @@ namespace Tegra::Engines {
 #define KEPLERMEMORY_REG_INDEX(field_name)                                                         \
     (offsetof(Tegra::Engines::KeplerMemory::Regs, field_name) / sizeof(u32))
 
-class KeplerMemory final {
+class KeplerMemory final : public EngineInterface {
 public:
     KeplerMemory(Core::System& system, MemoryManager& memory_manager);
     ~KeplerMemory();
 
     /// Write the value to the register identified by method.
-    void CallMethod(const GPU::MethodCall& method_call);
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     struct Regs {
         static constexpr size_t NUM_REGS = 0x7F;

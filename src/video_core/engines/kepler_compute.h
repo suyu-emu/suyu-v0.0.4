@@ -11,6 +11,7 @@
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "video_core/engines/const_buffer_engine_interface.h"
+#include "video_core/engines/engine_interface.h"
 #include "video_core/engines/engine_upload.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/gpu.h"
@@ -39,7 +40,7 @@ namespace Tegra::Engines {
 #define KEPLER_COMPUTE_REG_INDEX(field_name)                                                       \
     (offsetof(Tegra::Engines::KeplerCompute::Regs, field_name) / sizeof(u32))
 
-class KeplerCompute final : public ConstBufferEngineInterface {
+class KeplerCompute final : public ConstBufferEngineInterface, public EngineInterface {
 public:
     explicit KeplerCompute(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                            MemoryManager& memory_manager);
@@ -200,10 +201,11 @@ public:
                   "KeplerCompute LaunchParams has wrong size");
 
     /// Write the value to the register identified by method.
-    void CallMethod(const GPU::MethodCall& method_call);
+    void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
 
     /// Write multiple values to the register identified by method.
-    void CallMultiMethod(u32 method, const u32* base_start, u32 amount, u32 methods_pending);
+    void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
+                         u32 methods_pending) override;
 
     Texture::FullTextureInfo GetTexture(std::size_t offset) const;
 

@@ -59,4 +59,8 @@ void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32
 void SwizzleKepler(u32 width, u32 height, u32 dst_x, u32 dst_y, u32 block_height,
                    std::size_t copy_size, const u8* source_data, u8* swizzle_data);
 
+/// Obtains the offset of the gob for positions 'dst_x' & 'dst_y'
+u64 GetGOBOffset(u32 width, u32 height, u32 dst_x, u32 dst_y, u32 block_height,
+                 u32 bytes_per_pixel);
+
 } // namespace Tegra::Texture

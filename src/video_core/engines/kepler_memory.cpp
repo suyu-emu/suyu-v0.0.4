@@ -19,20 +19,19 @@ KeplerMemory::KeplerMemory(Core::System& system, MemoryManager& memory_manager)
 
 KeplerMemory::~KeplerMemory() = default;
 
-void KeplerMemory::CallMethod(const GPU::MethodCall& method_call) {
-    ASSERT_MSG(method_call.method < Regs::NUM_REGS,
+void KeplerMemory::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
+    ASSERT_MSG(method < Regs::NUM_REGS,
                "Invalid KeplerMemory register, increase the size of the Regs structure");
 
-    regs.reg_array[method_call.method] = method_call.argument;
+    regs.reg_array[method] = method_argument;
 
-    switch (method_call.method) {
+    switch (method) {
     case KEPLERMEMORY_REG_INDEX(exec): {
         upload_state.ProcessExec(regs.exec.linear != 0);
         break;
     }
     case KEPLERMEMORY_REG_INDEX(data): {
-        const bool is_last_call = method_call.IsLastCall();
-        upload_state.ProcessData(method_call.argument, is_last_call);
+        upload_state.ProcessData(method_argument, is_last_call);
         if (is_last_call) {
             system.GPU().Maxwell3D().OnMemoryWrite();
         }
@@ -44,7 +43,7 @@ void KeplerMemory::CallMethod(const GPU::MethodCall& method_call) {
 void KeplerMemory::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                                    u32 methods_pending) {
     for (std::size_t i = 0; i < amount; i++) {
-        CallMethod({method, base_start[i], 0, methods_pending - static_cast<u32>(i)});
+        CallMethod(method, base_start[i], methods_pending - static_cast<u32>(i) <= 1);
     }
 }
 
