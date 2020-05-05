@@ -4,16 +4,15 @@
 
 #pragma once
 
-#include <list>
 #include <memory>
 #include <mutex>
 
-#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/page_table.h"
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_manager.h"
+#include "core/hle/result.h"
 
 namespace Core {
 class System;

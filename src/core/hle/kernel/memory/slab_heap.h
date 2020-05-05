@@ -10,7 +10,6 @@
 #include <atomic>
 
 #include "common/assert.h"
-#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace Kernel::Memory {

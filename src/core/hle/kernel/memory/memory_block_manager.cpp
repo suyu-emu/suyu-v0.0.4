@@ -67,7 +67,6 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState p
                                 MemoryPermission prev_perm, MemoryAttribute prev_attribute,
                                 MemoryState state, MemoryPermission perm,
                                 MemoryAttribute attribute) {
-    const std::size_t prev_count{memory_block_tree.size()};
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
@@ -109,7 +108,6 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState p
 
 void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState state,
                                 MemoryPermission perm, MemoryAttribute attribute) {
-    const std::size_t prev_count{memory_block_tree.size()};
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
@@ -145,7 +143,6 @@ void MemoryBlockManager::Update(VAddr addr, std::size_t num_pages, MemoryState s
 
 void MemoryBlockManager::UpdateLock(VAddr addr, std::size_t num_pages, LockFunc&& lock_func,
                                     MemoryPermission perm) {
-    const std::size_t prev_count{memory_block_tree.size()};
     const VAddr end_addr{addr + num_pages * PageSize};
     iterator node{memory_block_tree.begin()};
 
