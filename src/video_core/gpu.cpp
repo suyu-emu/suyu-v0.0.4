@@ -349,7 +349,7 @@ void GPU::ProcessBindMethod(const MethodCall& method_call) {
     // Bind the current subchannel to the desired engine id.
     LOG_DEBUG(HW_GPU, "Binding subchannel {} to engine {}", method_call.subchannel,
               method_call.argument);
-    auto engine_id = static_cast<EngineID>(method_call.argument);
+    const auto engine_id = static_cast<EngineID>(method_call.argument);
     bound_engines[method_call.subchannel] = static_cast<EngineID>(engine_id);
     switch (engine_id) {
     case EngineID::FERMI_TWOD_A:
