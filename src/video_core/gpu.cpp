@@ -368,7 +368,7 @@ void GPU::ProcessBindMethod(const MethodCall& method_call) {
         dma_pusher->BindSubchannel(kepler_memory.get(), method_call.subchannel);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented engine");
+        UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", static_cast<u32>(engine_id));
     }
 }
 
