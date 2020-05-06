@@ -1026,7 +1026,6 @@ void GMainWindow::BootGame(const QString& filename) {
         mouse_hide_timer.start();
         setMouseTracking(true);
         ui.centralwidget->setMouseTracking(true);
-        ui.menubar->setMouseTracking(true);
     }
 
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
@@ -1099,7 +1098,6 @@ void GMainWindow::ShutdownGame() {
 
     setMouseTracking(false);
     ui.centralwidget->setMouseTracking(false);
-    ui.menubar->setMouseTracking(false);
 
     UpdateWindowTitle();
 
@@ -1861,12 +1859,10 @@ void GMainWindow::OnConfigure() {
     if (UISettings::values.hide_mouse && emulation_running) {
         setMouseTracking(true);
         ui.centralwidget->setMouseTracking(true);
-        ui.menubar->setMouseTracking(true);
         mouse_hide_timer.start();
     } else {
         setMouseTracking(false);
         ui.centralwidget->setMouseTracking(false);
-        ui.menubar->setMouseTracking(false);
     }
 
     dock_status_button->setChecked(Settings::values.use_docked_mode);
