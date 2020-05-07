@@ -19,6 +19,10 @@
 
 union ResultCode;
 
+namespace Core::Memory {
+class Memory;
+}
+
 namespace Service {
 class ServiceFrameworkBase;
 }
@@ -28,6 +32,7 @@ namespace Kernel {
 class Domain;
 class HandleTable;
 class HLERequestContext;
+class KernelCore;
 class Process;
 class ServerSession;
 class Thread;
@@ -98,7 +103,8 @@ protected:
  */
 class HLERequestContext {
 public:
-    explicit HLERequestContext(std::shared_ptr<ServerSession> session,
+    explicit HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
+                               std::shared_ptr<ServerSession> session,
                                std::shared_ptr<Thread> thread);
     ~HLERequestContext();
 
@@ -305,6 +311,9 @@ private:
 
     std::vector<std::shared_ptr<SessionRequestHandler>> domain_request_handlers;
     bool is_thread_waiting{};
+
+    KernelCore& kernel;
+    Core::Memory::Memory& memory;
 };
 
 } // namespace Kernel
