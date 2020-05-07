@@ -172,6 +172,11 @@ public:
         return ext_transform_feedback;
     }
 
+    /// Returns true if the device supports VK_EXT_custom_border_color.
+    bool IsExtCustomBorderColorSupported() const {
+        return ext_custom_border_color;
+    }
+
     /// Returns the vendor name reported from Vulkan.
     std::string_view GetVendorName() const {
         return vendor_name;
@@ -227,6 +232,7 @@ private:
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
     bool ext_transform_feedback{};             ///< Support for VK_EXT_transform_feedback.
+    bool ext_custom_border_color{};            ///< Support for VK_EXT_custom_border_color.
     bool nv_device_diagnostics_config{};       ///< Support for VK_NV_device_diagnostics_config.
 
     // Telemetry parameters
