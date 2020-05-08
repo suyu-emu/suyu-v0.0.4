@@ -576,6 +576,17 @@ public:
             Replay = 3,
         };
 
+        enum class ViewportSwizzle : u32 {
+            PositiveX = 0,
+            NegativeX = 1,
+            PositiveY = 2,
+            NegativeY = 3,
+            PositiveZ = 4,
+            NegativeZ = 5,
+            PositiveW = 6,
+            NegativeW = 7,
+        };
+
         struct RenderTargetConfig {
             u32 address_high;
             u32 address_low;
@@ -619,7 +630,14 @@ public:
             f32 translate_x;
             f32 translate_y;
             f32 translate_z;
-            INSERT_UNION_PADDING_WORDS(2);
+            union {
+                u32 raw;
+                BitField<0, 3, ViewportSwizzle> x;
+                BitField<4, 3, ViewportSwizzle> y;
+                BitField<8, 3, ViewportSwizzle> z;
+                BitField<12, 3, ViewportSwizzle> w;
+            } swizzle;
+            INSERT_UNION_PADDING_WORDS(1);
 
             Common::Rectangle<f32> GetRect() const {
                 return {

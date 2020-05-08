@@ -147,6 +147,11 @@ public:
         return is_formatless_image_load_supported;
     }
 
+    /// Returns true if the device supports VK_NV_viewport_swizzle.
+    bool IsNvViewportSwizzleSupported() const {
+        return nv_viewport_swizzle;
+    }
+
     /// Returns true if the device supports VK_EXT_scalar_block_layout.
     bool IsKhrUniformBufferStandardLayoutSupported() const {
         return khr_uniform_buffer_standard_layout;
@@ -227,6 +232,7 @@ private:
     bool is_float16_supported{};            ///< Support for float16 arithmetics.
     bool is_warp_potentially_bigger{};      ///< Host warp size can be bigger than guest.
     bool is_formatless_image_load_supported{}; ///< Support for shader image read without format.
+    bool nv_viewport_swizzle{};                ///< Support for VK_NV_viewport_swizzle.
     bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.

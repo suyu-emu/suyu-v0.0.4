@@ -44,6 +44,12 @@ void Maxwell3D::InitializeRegisterDefaults() {
         viewport.depth_range_near = 0.0f;
         viewport.depth_range_far = 1.0f;
     }
+    for (auto& viewport : regs.viewport_transform) {
+        viewport.swizzle.x.Assign(Regs::ViewportSwizzle::PositiveX);
+        viewport.swizzle.y.Assign(Regs::ViewportSwizzle::PositiveY);
+        viewport.swizzle.z.Assign(Regs::ViewportSwizzle::PositiveZ);
+        viewport.swizzle.w.Assign(Regs::ViewportSwizzle::PositiveW);
+    }
 
     // Doom and Bomberman seems to use the uninitialized registers and just enable blend
     // so initialize blend registers with sane values

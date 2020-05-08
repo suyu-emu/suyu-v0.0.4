@@ -1019,6 +1019,14 @@ void RasterizerOpenGL::SyncViewport() {
             const GLdouble near_depth = src.translate_z - src.scale_z * reduce_z;
             const GLdouble far_depth = src.translate_z + src.scale_z;
             glDepthRangeIndexed(static_cast<GLuint>(i), near_depth, far_depth);
+
+            if (!GLAD_GL_NV_viewport_swizzle) {
+                continue;
+            }
+            glViewportSwizzleNV(static_cast<GLuint>(i), MaxwellToGL::ViewportSwizzle(src.swizzle.x),
+                                MaxwellToGL::ViewportSwizzle(src.swizzle.y),
+                                MaxwellToGL::ViewportSwizzle(src.swizzle.z),
+                                MaxwellToGL::ViewportSwizzle(src.swizzle.w));
         }
     }
 }

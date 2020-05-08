@@ -233,10 +233,17 @@ struct FixedPipelineState {
         void Fill(const Maxwell& regs) noexcept;
     };
 
+    struct ViewportSwizzles {
+        std::array<u16, Maxwell::NumViewports> swizzles;
+
+        void Fill(const Maxwell& regs) noexcept;
+    };
+
     VertexInput vertex_input;
     Rasterizer rasterizer;
     DepthStencil depth_stencil;
     ColorBlending color_blending;
+    ViewportSwizzles viewport_swizzles;
 
     void Fill(const Maxwell& regs);
 
