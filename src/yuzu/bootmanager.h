@@ -62,7 +62,8 @@ public:
         if (!running) {
             running_wait.Set();
             /// Wait until effectively paused
-            while (running_guard);
+            while (running_guard)
+                ;
         }
     }
 

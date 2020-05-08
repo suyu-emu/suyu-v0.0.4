@@ -29,7 +29,8 @@ public:
                           Handle requesting_thread_handle);
 
     /// Unlocks a mutex for owner at address
-    std::pair<ResultCode, std::shared_ptr<Thread>> Unlock(std::shared_ptr<Thread> owner, VAddr address);
+    std::pair<ResultCode, std::shared_ptr<Thread>> Unlock(std::shared_ptr<Thread> owner,
+                                                          VAddr address);
 
     /// Releases the mutex at the specified address.
     ResultCode Release(VAddr address);

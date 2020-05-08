@@ -10,7 +10,7 @@
 #include "core/arm/cpu_interrupt_handler.h"
 
 namespace Common {
-    class SpinLock;
+class SpinLock;
 }
 
 namespace Kernel {
@@ -27,9 +27,8 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(Core::System& system, std::size_t id,
-                               Kernel::Scheduler& scheduler,
-                               Core::CPUInterruptHandler& interrupt_handler);
+    PhysicalCore(Core::System& system, std::size_t id, Kernel::Scheduler& scheduler,
+                 Core::CPUInterruptHandler& interrupt_handler);
     ~PhysicalCore();
 
     PhysicalCore(const PhysicalCore&) = delete;

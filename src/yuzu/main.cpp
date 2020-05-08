@@ -534,7 +534,8 @@ void GMainWindow::InitializeWidgets() {
         if (emulation_running) {
             return;
         }
-        bool is_async = !Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        bool is_async =
+            !Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
         Settings::values.use_asynchronous_gpu_emulation = is_async;
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
         Settings::Apply();
@@ -552,7 +553,8 @@ void GMainWindow::InitializeWidgets() {
             return;
         }
         Settings::values.use_multi_core = !Settings::values.use_multi_core;
-        bool is_async = Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        bool is_async =
+            Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
         Settings::values.use_asynchronous_gpu_emulation = is_async;
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
         multicore_status_button->setChecked(Settings::values.use_multi_core);
@@ -1958,7 +1960,8 @@ void GMainWindow::OnConfigure() {
 
     dock_status_button->setChecked(Settings::values.use_docked_mode);
     multicore_status_button->setChecked(Settings::values.use_multi_core);
-    Settings::values.use_asynchronous_gpu_emulation = Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+    Settings::values.use_asynchronous_gpu_emulation =
+        Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
 
 #ifdef HAS_VULKAN

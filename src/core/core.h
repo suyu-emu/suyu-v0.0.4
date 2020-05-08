@@ -148,8 +148,6 @@ public:
      */
     ResultStatus Pause();
 
-
-
     /**
      * Step the CPU one instruction
      * @return Result status, indicating whether or not the operation succeeded.

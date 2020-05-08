@@ -9,7 +9,6 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
-#include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
@@ -126,11 +125,11 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
 
 std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thread> owner,
                                                              VAddr address) {
-     // The mutex address must be 4-byte aligned
-     if ((address % sizeof(u32)) != 0) {
-         LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
-         return {ERR_INVALID_ADDRESS, nullptr};
-     }
+    // The mutex address must be 4-byte aligned
+    if ((address % sizeof(u32)) != 0) {
+        LOG_ERROR(Kernel, "Address is not 4-byte aligned! address={:016X}", address);
+        return {ERR_INVALID_ADDRESS, nullptr};
+    }
 
     auto [new_owner, num_waiters] = GetHighestPriorityMutexWaitingThread(owner, address);
     if (new_owner == nullptr) {
