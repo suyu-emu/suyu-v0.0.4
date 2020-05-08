@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 #include "common/detached_tasks.h"
 #include "common/web_result.h"
 #include "web_service/telemetry_json.h"

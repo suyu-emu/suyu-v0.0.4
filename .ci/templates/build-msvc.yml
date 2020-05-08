@@ -4,7 +4,9 @@ parameters:
   version: ''
 
 steps:
-- script: mkdir build && cd build && cmake -G "Visual Studio 16 2019" -A x64 --config Release -DYUZU_USE_BUNDLED_QT=1 -DYUZU_USE_BUNDLED_SDL2=1 -DYUZU_USE_BUNDLED_UNICORN=1 -DYUZU_USE_QT_WEB_ENGINE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DYUZU_ENABLE_COMPATIBILITY_REPORTING=${COMPAT} -DUSE_DISCORD_PRESENCE=ON -DDISPLAY_VERSION=${{ parameters['version'] }} .. && cd ..
+- script: python -m pip install --upgrade pip conan
+  displayName: 'Install conan'
+- script: mkdir build && cd build && cmake -G "Visual Studio 16 2019" -A x64 --config Release -DYUZU_USE_BUNDLED_QT=1 -DYUZU_USE_BUNDLED_UNICORN=1 -DYUZU_USE_QT_WEB_ENGINE=ON -DENABLE_COMPATIBILITY_LIST_DOWNLOAD=ON -DYUZU_ENABLE_COMPATIBILITY_REPORTING=${COMPAT} -DUSE_DISCORD_PRESENCE=ON -DDISPLAY_VERSION=${{ parameters['version'] }} .. && cd ..
   displayName: 'Configure CMake'
 - task: MSBuild@1
   displayName: 'Build'

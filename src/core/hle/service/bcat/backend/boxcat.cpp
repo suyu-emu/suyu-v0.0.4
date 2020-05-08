@@ -4,8 +4,8 @@
 
 #include <fmt/ostream.h>
 #include <httplib.h>
-#include <json.hpp>
 #include <mbedtls/sha256.h>
+#include <nlohmann/json.hpp>
 #include "common/hex_util.h"
 #include "common/logging/backend.h"
 #include "common/logging/log.h"

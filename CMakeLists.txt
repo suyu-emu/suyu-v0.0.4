@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.7)
+cmake_minimum_required(VERSION 3.11)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/find-modules")
 include(DownloadExternals)
 include(CMakeDependentOption)
 
@@ -10,10 +11,9 @@ project(yuzu)
 # Set bundled sdl2/qt as dependent options.
 # OFF by default, but if ENABLE_SDL2 and MSVC are true then ON
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_SDL2 "Download bundled SDL2 binaries" ON "ENABLE_SDL2;MSVC" OFF)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" OFF "ENABLE_QT;MSVC" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
@@ -28,6 +28,13 @@ option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 option(ENABLE_VULKAN "Enables Vulkan backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
+
+# Default to a Release build
+get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+    message(STATUS "Defaulting to a Release build")
+endif()
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/hooks/pre-commit AND NOT EXISTS ${PROJECT_SOURCE_DIR}/.git/hooks/pre-commit)
     message(STATUS "Copying pre-commit hook")
@@ -53,7 +60,6 @@ endfunction()
 if(EXISTS ${PROJECT_SOURCE_DIR}/.gitmodules)
     check_submodules_present()
 endif()
-
 configure_file(${PROJECT_SOURCE_DIR}/dist/compatibility_list/compatibility_list.qrc
                ${PROJECT_BINARY_DIR}/dist/compatibility_list/compatibility_list.qrc
                COPYONLY)
@@ -115,62 +121,225 @@ message(STATUS "Target architecture: ${ARCHITECTURE}")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# System imported libraries
-# ======================
-
-find_package(Boost 1.66.0 QUIET)
-if (NOT Boost_FOUND)
-    message(STATUS "Boost 1.66.0 or newer not found, falling back to externals")
-
-    set(BOOST_ROOT "${PROJECT_SOURCE_DIR}/externals/boost")
-    set(Boost_NO_SYSTEM_PATHS OFF)
-    find_package(Boost QUIET REQUIRED)
-endif()
-
 # Output binaries to bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+
+# System imported libraries
+# If not found, download any missing through Conan
+# =======================================================================
+set(CONAN_CMAKE_SILENT_OUTPUT TRUE)
+set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)
+if (YUZU_CONAN_INSTALLED)
+    if (IS_MULTI_CONFIG)
+        include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
+    else()
+        include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    endif()
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+    conan_basic_setup()
+    message(STATUS "Adding conan installed libraries to the search path")
+endif()
+
+macro(yuzu_find_packages)
+    set(options FORCE_REQUIRED)
+    cmake_parse_arguments(FN "${options}" "" "" ${ARGN})
+
+    # Cmake has a *serious* lack of 2D array or associative array...
+    # Capitalization matters here. We need the naming to match the generated paths from Conan
+    set(REQUIRED_LIBS
+    #    Cmake Pkg Prefix  Version     Conan Pkg
+        "Boost             1.71        boost/1.72.0"
+        "Catch2            2.11        catch2/2.11.0"
+        "fmt               6.2         fmt/6.2.0"
+        "OpenSSL           1.1         openssl/1.1.1f"
+    # can't use until https://github.com/bincrafters/community/issues/1173
+        #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
+        "lz4               1.8         lz4/1.9.2"
+        "nlohmann_json     3.7         nlohmann_json/3.7.3"
+        "opus              1.3         opus/1.3.1"
+        "ZLIB              1.2         zlib/1.2.11"
+        "zstd              1.4         zstd/1.4.4"
+    )
+
+    foreach(PACKAGE ${REQUIRED_LIBS})
+        string(REGEX REPLACE "[ \t\r\n]+" ";" PACKAGE_SPLIT ${PACKAGE})
+        list(GET PACKAGE_SPLIT 0 PACKAGE_PREFIX)
+        list(GET PACKAGE_SPLIT 1 PACKAGE_VERSION)
+        list(GET PACKAGE_SPLIT 2 PACKAGE_CONAN)
+        # This function is called twice, once to check if the packages exist on the system already
+        # and a second time to check if conan installed them properly. The second check passes in FORCE_REQUIRED
+        if (NOT ${PACKAGE_PREFIX}_FOUND)
+            if (FN_FORCE_REQUIRED)
+                find_package(${PACKAGE_PREFIX} ${PACKAGE_VERSION} REQUIRED)
+            else()
+                find_package(${PACKAGE_PREFIX} ${PACKAGE_VERSION})
+            endif()
+        endif()
+        if (NOT ${PACKAGE_PREFIX}_FOUND)
+            list(APPEND CONAN_REQUIRED_LIBS ${PACKAGE_CONAN})
+        else()
+            # Set a legacy findPackage.cmake style PACKAGE_LIBRARIES variable for subprojects that rely on this
+            set(${PACKAGE_PREFIX}_LIBRARIES "${PACKAGE_PREFIX}::${PACKAGE_PREFIX}")
+        endif()
+    endforeach()
+    unset(FN_FORCE_REQUIRED)
+endmacro()
+
+# Attempt to locate any packages that are required and report the missing ones in CONAN_REQUIRED_LIBS
+yuzu_find_packages()
+
+# Qt5 requires that we find components, so it doesn't fit our pretty little find package function
+if(ENABLE_QT)
+    # We want to load the generated conan qt config so that we get the QT_ROOT var so that we can use the official
+    # Qt5Config inside the root folder instead of the conan generated one.
+    if(EXISTS ${CMAKE_BINARY_DIR}/qtConfig.cmake)
+        include(${CMAKE_BINARY_DIR}/qtConfig.cmake)
+        list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
+        list(APPEND CMAKE_PREFIX_PATH "${CONAN_QT_ROOT_RELEASE}")
+    endif()
+    # Workaround for an issue where conan tries to build Qt from scratch instead of download prebuilt binaries
+    set(QT_PREFIX_HINT)
+    if(YUZU_USE_BUNDLED_QT)
+        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1930) AND ARCHITECTURE_x86_64)
+            set(QT_VER qt-5.12.0-msvc2017_64)
+        else()
+            message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable YUZU_USE_BUNDLED_QT and provide your own.")
+        endif()
+
+        if (DEFINED QT_VER)
+            download_bundled_external("qt/" ${QT_VER} QT_PREFIX)
+        endif()
+
+        set(QT_PREFIX_HINT HINTS "${QT_PREFIX}")
+    endif()
+    find_package(Qt5 5.9 COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
+    if (NOT Qt5_FOUND)
+        list(APPEND CONAN_REQUIRED_LIBS "qt/5.14.1@bincrafters/stable")
+    endif()
+endif()
+# find SDL2 exports a bunch of variables that are needed, so its easier to do this outside of the yuzu_find_package
+if(ENABLE_SDL2)
+    if(EXISTS ${CMAKE_BINARY_DIR}/sdl2Config.cmake)
+        include(${CMAKE_BINARY_DIR}/sdl2Config.cmake)
+        list(APPEND CMAKE_MODULE_PATH "${CONAN_SDL2_ROOT_RELEASE}")
+        list(APPEND CMAKE_PREFIX_PATH "${CONAN_SDL2_ROOT_RELEASE}")
+    endif()
+    find_package(SDL2)
+    if (NOT SDL2_FOUND)
+        # otherwise add this to the list of libraries to install
+        list(APPEND CONAN_REQUIRED_LIBS "sdl2/2.0.12@bincrafters/stable")
+    endif()
+endif()
+
+# Install any missing dependencies with conan install
+if (CONAN_REQUIRED_LIBS)
+    message(STATUS "Packages ${CONAN_REQUIRED_LIBS} not found!")
+    # Use Conan to fetch the libraries that aren't found
+    # Download conan.cmake automatically, you can also just copy the conan.cmake file
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+        message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+        file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
+                        "${CMAKE_BINARY_DIR}/conan.cmake")
+    endif()
+    include(${CMAKE_BINARY_DIR}/conan.cmake)
+
+    set(CONAN_LIB_OPTIONS
+        libzip:with_openssl=False
+        libzip:enable_windows_crypto=False
+    )
+    conan_check(VERSION 1.24.0 REQUIRED)
+    # Add the bincrafters remote
+    conan_add_remote(NAME bincrafters
+                    URL https://api.bintray.com/conan/bincrafters/public-conan)
+
+    # Manually add iconv to fix a dep conflict between qt and sdl2
+    # We don't need to add it through find_package or anything since the other two can find it just fine
+    if ("${CONAN_REQUIRED_LIBS}" MATCHES "qt" AND "${CONAN_REQUIRED_LIBS}" MATCHES "sdl")
+        list(APPEND CONAN_REQUIRED_LIBS "libiconv/1.16")
+    endif()
+    if (IS_MULTI_CONFIG)
+        conan_cmake_run(REQUIRES ${CONAN_REQUIRED_LIBS}
+                        OPTIONS ${CONAN_LIB_OPTIONS}
+                        BUILD missing
+                        CONFIGURATION_TYPES "Release;Debug"
+                        GENERATORS cmake_multi cmake_find_package_multi)
+        include(${CMAKE_BINARY_DIR}/conanbuildinfo_multi.cmake)
+    else()
+        conan_cmake_run(REQUIRES ${CONAN_REQUIRED_LIBS}
+                        OPTIONS ${CONAN_LIB_OPTIONS}
+                        BUILD missing
+                        GENERATORS cmake cmake_find_package_multi)
+        include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+    endif()
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
+    list(APPEND CMAKE_PREFIX_PATH "${CMAKE_BINARY_DIR}")
+    conan_basic_setup()
+
+    set(YUZU_CONAN_INSTALLED TRUE CACHE BOOL "If true, the following builds will add conan to the lib search path" FORCE)
+
+    # Now that we've installed what we are missing, try to locate them again,
+    # this time with required, so we bail if its not found.
+    yuzu_find_packages(FORCE_REQUIRED)
+
+    # Due to issues with variable scopes in functions, we need to also find_package(qt5) outside of the function
+    if(ENABLE_QT)
+        list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
+        list(APPEND CMAKE_PREFIX_PATH "${CONAN_QT_ROOT_RELEASE}")
+        find_package(Qt5 5.9 REQUIRED COMPONENTS Widgets OpenGL)
+        if (YUZU_USE_QT_WEB_ENGINE)
+            find_package(Qt5 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets)
+        endif()
+    endif()
+    if(ENABLE_SDL2)
+        list(APPEND CMAKE_MODULE_PATH "${CONAN_SDL2_ROOT_RELEASE}")
+        list(APPEND CMAKE_PREFIX_PATH "${CONAN_SDL2_ROOT_RELEASE}")
+        find_package(SDL2 REQUIRED)
+    endif()
+
+endif()
+
+# Reexport some targets that are named differently when using the upstream CmakeConfig vs the generated Conan config
+# In order to ALIAS targets to a new name, they first need to be IMPORTED_GLOBAL
+# Dynarmic checks for target `boost` and so we want to make sure it can find it through our system instead of using their external
+if (TARGET Boost::Boost)
+    set_target_properties(Boost::Boost PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(Boost::boost ALIAS Boost::Boost)
+    add_library(boost ALIAS Boost::Boost)
+elseif (TARGET Boost::boost)
+    set_target_properties(Boost::boost PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(boost ALIAS Boost::boost)
+endif()
+
+if (NOT TARGET OpenSSL::SSL)
+    set_target_properties(OpenSSL::OpenSSL PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(OpenSSL::SSL ALIAS OpenSSL::OpenSSL)
+endif()
+if (NOT TARGET OpenSSL::Crypto)
+    set_target_properties(OpenSSL::OpenSSL PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(OpenSSL::Crypto ALIAS OpenSSL::OpenSSL)
+endif()
+
+if (TARGET sdl2::sdl2)
+    # imported from the conan generated sdl2Config.cmake
+    set_target_properties(sdl2::sdl2 PROPERTIES IMPORTED_GLOBAL TRUE)
+    add_library(SDL2 ALIAS sdl2::sdl2)
+elseif(SDL2_FOUND)
+    # found through the system package manager
+    # Some installations don't set SDL2_LIBRARIES
+    if("${SDL2_LIBRARIES}" STREQUAL "")
+        message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
+        set(SDL2_LIBRARIES "SDL2::SDL2")
+    endif()
+
+    include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
+    add_library(SDL2 INTERFACE)
+    target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
+endif()
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-if (ENABLE_SDL2)
-    if (YUZU_USE_BUNDLED_SDL2)
-        # Detect toolchain and platform
-        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1930) AND ARCHITECTURE_x86_64)
-            set(SDL2_VER "SDL2-2.0.8")
-        else()
-            message(FATAL_ERROR "No bundled SDL2 binaries for your toolchain. Disable YUZU_USE_BUNDLED_SDL2 and provide your own.")
-        endif()
-
-        if (DEFINED SDL2_VER)
-            download_bundled_external("sdl2/" ${SDL2_VER} SDL2_PREFIX)
-        endif()
-
-        set(SDL2_FOUND YES)
-        set(SDL2_INCLUDE_DIR "${SDL2_PREFIX}/include" CACHE PATH "Path to SDL2 headers")
-        set(SDL2_LIBRARY "${SDL2_PREFIX}/lib/x64/SDL2.lib" CACHE PATH "Path to SDL2 library")
-        set(SDL2_DLL_DIR "${SDL2_PREFIX}/lib/x64/" CACHE PATH "Path to SDL2.dll")
-
-        add_library(SDL2 INTERFACE)
-        target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARY}")
-        target_include_directories(SDL2 INTERFACE "${SDL2_INCLUDE_DIR}")
-    else()
-        find_package(SDL2 REQUIRED)
-
-        # Some installations don't set SDL2_LIBRARIES
-        if("${SDL2_LIBRARIES}" STREQUAL "")
-            message(WARNING "SDL2_LIBRARIES wasn't set, manually setting to SDL2::SDL2")
-            set(SDL2_LIBRARIES "SDL2::SDL2")
-        endif()
-
-        include_directories(SYSTEM ${SDL2_INCLUDE_DIRS})
-        add_library(SDL2 INTERFACE)
-        target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
-    endif()
-else()
-    set(SDL2_FOUND NO)
-endif()
 
 # If unicorn isn't found, msvc -> download bundled unicorn; everyone else -> build external
 if (YUZU_USE_BUNDLED_UNICORN)
@@ -212,8 +381,12 @@ if (YUZU_USE_BUNDLED_UNICORN)
         find_package(PythonInterp 2.7 REQUIRED)
 
         if (MINGW)
+            # Intentionally call the unicorn makefile directly instead of using make.sh so that we can override the
+            # UNAME_S makefile variable to MINGW. This way we don't have to hack at the uname binary to build
+            # Additionally, overriding DO_WINDOWS_EXPORT prevents unicorn from patching the static unicorn.a by using msvc and cmd,
+            # which are both things we don't have in a mingw cross compiling environment.
             add_custom_command(OUTPUT ${LIBUNICORN_LIBRARY}
-                COMMAND ${CMAKE_COMMAND} -E env UNICORN_ARCHS="aarch64" PYTHON="${PYTHON_EXECUTABLE}" /bin/sh make.sh cross-win64
+                COMMAND ${CMAKE_COMMAND} -E env UNICORN_ARCHS="aarch64" PYTHON="${PYTHON_EXECUTABLE}" CC=x86_64-w64-mingw32-gcc AR=x86_64-w64-mingw32-gcc-ar RANLIB=x86_64-w64-mingw32-gcc-ranlib make UNAME_S=MINGW DO_WINDOWS_EXPORT=0
                 WORKING_DIRECTORY ${UNICORN_PREFIX}
             )
         else()
@@ -241,32 +414,6 @@ if (UNICORN_FOUND)
     target_include_directories(unicorn INTERFACE "${LIBUNICORN_INCLUDE_DIR}")
 else()
     message(FATAL_ERROR "Could not find or build unicorn which is required.")
-endif()
-
-if (ENABLE_QT)
-    if (YUZU_USE_BUNDLED_QT)
-        if ((MSVC_VERSION GREATER_EQUAL 1910 AND MSVC_VERSION LESS 1930) AND ARCHITECTURE_x86_64)
-            set(QT_VER qt-5.12.0-msvc2017_64)
-        else()
-            message(FATAL_ERROR "No bundled Qt binaries for your toolchain. Disable YUZU_USE_BUNDLED_QT and provide your own.")
-        endif()
-
-        if (DEFINED QT_VER)
-            download_bundled_external("qt/" ${QT_VER} QT_PREFIX)
-        endif()
-
-        set(QT_PREFIX_HINT HINTS "${QT_PREFIX}")
-    else()
-        # Passing an empty HINTS seems to cause default system paths to get ignored in CMake 2.8 so
-        # make sure to not pass anything if we don't have one.
-        set(QT_PREFIX_HINT)
-    endif()
-
-    find_package(Qt5 REQUIRED COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
-
-    if (YUZU_USE_QT_WEB_ENGINE)
-        find_package(Qt5 REQUIRED COMPONENTS WebEngineCore WebEngineWidgets ${QT_PREFIX_HINT})
-    endif ()
 endif()
 
 # Platform-specific library requirements
@@ -299,7 +446,7 @@ find_program(CLANG_FORMAT
     PATHS ${PROJECT_BINARY_DIR}/externals)
 # if find_program doesn't find it, try to download from externals
 if (NOT CLANG_FORMAT)
-    if (WIN32)
+    if (WIN32 AND NOT CMAKE_CROSSCOMPILING)
         message(STATUS "Clang format not found! Downloading...")
         set(CLANG_FORMAT "${PROJECT_BINARY_DIR}/externals/clang-format${CLANG_FORMAT_POSTFIX}.exe")
         file(DOWNLOAD

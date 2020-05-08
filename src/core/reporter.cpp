@@ -4,11 +4,12 @@
 
 #include <ctime>
 #include <fstream>
+#include <iomanip>
 
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include "common/file_util.h"
 #include "common/hex_util.h"
