@@ -168,18 +168,22 @@ enum class Pred : u64 {
 };
 
 enum class PredCondition : u64 {
-    LessThan = 1,
-    Equal = 2,
-    LessEqual = 3,
-    GreaterThan = 4,
-    NotEqual = 5,
-    GreaterEqual = 6,
-    LessThanWithNan = 9,
-    LessEqualWithNan = 11,
-    GreaterThanWithNan = 12,
-    NotEqualWithNan = 13,
-    GreaterEqualWithNan = 14,
-    // TODO(Subv): Other condition types
+    F = 0,    // Always false
+    LT = 1,   // Ordered less than
+    EQ = 2,   // Ordered equal
+    LE = 3,   // Ordered less than or equal
+    GT = 4,   // Ordered greater than
+    NE = 5,   // Ordered not equal
+    GE = 6,   // Ordered greater than or equal
+    NUM = 7,  // Ordered
+    NAN_ = 8, // Unordered
+    LTU = 9,  // Unordered less than
+    EQU = 10, // Unordered equal
+    LEU = 11, // Unordered less than or equal
+    GTU = 12, // Unordered greater than
+    NEU = 13, // Unordered not equal
+    GEU = 14, // Unordered greater than or equal
+    T = 15,   // Always true
 };
 
 enum class PredOperation : u64 {

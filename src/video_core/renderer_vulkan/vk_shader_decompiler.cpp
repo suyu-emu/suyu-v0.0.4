@@ -1618,6 +1618,24 @@ private:
         return {};
     }
 
+    Expression LogicalFOrdered(Operation operation) {
+        // Emulate SPIR-V's OpOrdered
+        const Id op_a = AsFloat(Visit(operation[0]));
+        const Id op_b = AsFloat(Visit(operation[1]));
+        const Id is_num_a = OpFOrdEqual(t_bool, op_a, op_a);
+        const Id is_num_b = OpFOrdEqual(t_bool, op_b, op_b);
+        return {OpLogicalAnd(t_bool, is_num_a, is_num_b), Type::Bool};
+    }
+
+    Expression LogicalFUnordered(Operation operation) {
+        // Emulate SPIR-V's OpUnordered
+        const Id op_a = AsFloat(Visit(operation[0]));
+        const Id op_b = AsFloat(Visit(operation[1]));
+        const Id is_nan_a = OpIsNan(t_bool, op_a);
+        const Id is_nan_b = OpIsNan(t_bool, op_b);
+        return {OpLogicalOr(t_bool, is_nan_a, is_nan_b), Type::Bool};
+    }
+
     Id GetTextureSampler(Operation operation) {
         const auto& meta = std::get<MetaTexture>(operation.GetMeta());
         ASSERT(!meta.sampler.is_buffer);
@@ -2511,7 +2529,14 @@ private:
         &SPIRVDecompiler::Binary<&Module::OpFOrdGreaterThan, Type::Bool, Type::Float>,
         &SPIRVDecompiler::Binary<&Module::OpFOrdNotEqual, Type::Bool, Type::Float>,
         &SPIRVDecompiler::Binary<&Module::OpFOrdGreaterThanEqual, Type::Bool, Type::Float>,
-        &SPIRVDecompiler::Unary<&Module::OpIsNan, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::LogicalFOrdered,
+        &SPIRVDecompiler::LogicalFUnordered,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordLessThan, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordEqual, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordLessThanEqual, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordGreaterThan, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordNotEqual, Type::Bool, Type::Float>,
+        &SPIRVDecompiler::Binary<&Module::OpFUnordGreaterThanEqual, Type::Bool, Type::Float>,
 
         &SPIRVDecompiler::Binary<&Module::OpSLessThan, Type::Bool, Type::Int>,
         &SPIRVDecompiler::Binary<&Module::OpIEqual, Type::Bool, Type::Int>,

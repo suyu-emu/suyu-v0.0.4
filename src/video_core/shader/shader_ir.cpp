@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "video_core/engines/shader_bytecode.h"
+#include "video_core/shader/node.h"
 #include "video_core/shader/node_helper.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
@@ -243,56 +244,44 @@ Node ShaderIR::GetSaturatedHalfFloat(Node value, bool saturate) {
 }
 
 Node ShaderIR::GetPredicateComparisonFloat(PredCondition condition, Node op_a, Node op_b) {
-    static constexpr std::array comparison_table{
-        std::pair{PredCondition::LessThan, OperationCode::LogicalFLessThan},
-        std::pair{PredCondition::Equal, OperationCode::LogicalFEqual},
-        std::pair{PredCondition::LessEqual, OperationCode::LogicalFLessEqual},
-        std::pair{PredCondition::GreaterThan, OperationCode::LogicalFGreaterThan},
-        std::pair{PredCondition::NotEqual, OperationCode::LogicalFNotEqual},
-        std::pair{PredCondition::GreaterEqual, OperationCode::LogicalFGreaterEqual},
-        std::pair{PredCondition::LessThanWithNan, OperationCode::LogicalFLessThan},
-        std::pair{PredCondition::NotEqualWithNan, OperationCode::LogicalFNotEqual},
-        std::pair{PredCondition::LessEqualWithNan, OperationCode::LogicalFLessEqual},
-        std::pair{PredCondition::GreaterThanWithNan, OperationCode::LogicalFGreaterThan},
-        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::LogicalFGreaterEqual},
-    };
-
-    const auto comparison =
-        std::find_if(comparison_table.cbegin(), comparison_table.cend(),
-                     [condition](const auto entry) { return condition == entry.first; });
-    UNIMPLEMENTED_IF_MSG(comparison == comparison_table.cend(),
-                         "Unknown predicate comparison operation");
-
-    Node predicate = Operation(comparison->second, NO_PRECISE, op_a, op_b);
-
-    if (condition == PredCondition::LessThanWithNan ||
-        condition == PredCondition::NotEqualWithNan ||
-        condition == PredCondition::LessEqualWithNan ||
-        condition == PredCondition::GreaterThanWithNan ||
-        condition == PredCondition::GreaterEqualWithNan) {
-        predicate = Operation(OperationCode::LogicalOr, predicate,
-                              Operation(OperationCode::LogicalFIsNan, op_a));
-        predicate = Operation(OperationCode::LogicalOr, predicate,
-                              Operation(OperationCode::LogicalFIsNan, op_b));
+    if (condition == PredCondition::T) {
+        return GetPredicate(true);
+    } else if (condition == PredCondition::F) {
+        return GetPredicate(false);
     }
 
-    return predicate;
+    static constexpr std::array comparison_table{
+        OperationCode(0),
+        OperationCode::LogicalFOrdLessThan,       // LT
+        OperationCode::LogicalFOrdEqual,          // EQ
+        OperationCode::LogicalFOrdLessEqual,      // LE
+        OperationCode::LogicalFOrdGreaterThan,    // GT
+        OperationCode::LogicalFOrdNotEqual,       // NE
+        OperationCode::LogicalFOrdGreaterEqual,   // GE
+        OperationCode::LogicalFOrdered,           // NUM
+        OperationCode::LogicalFUnordered,         // NAN
+        OperationCode::LogicalFUnordLessThan,     // LTU
+        OperationCode::LogicalFUnordEqual,        // EQU
+        OperationCode::LogicalFUnordLessEqual,    // LEU
+        OperationCode::LogicalFUnordGreaterThan,  // GTU
+        OperationCode::LogicalFUnordNotEqual,     // NEU
+        OperationCode::LogicalFUnordGreaterEqual, // GEU
+    };
+    const std::size_t index = static_cast<std::size_t>(condition);
+    ASSERT_MSG(index < std::size(comparison_table), "Invalid condition={}", index);
+
+    return Operation(comparison_table[index], op_a, op_b);
 }
 
 Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_signed, Node op_a,
                                              Node op_b) {
     static constexpr std::array comparison_table{
-        std::pair{PredCondition::LessThan, OperationCode::LogicalILessThan},
-        std::pair{PredCondition::Equal, OperationCode::LogicalIEqual},
-        std::pair{PredCondition::LessEqual, OperationCode::LogicalILessEqual},
-        std::pair{PredCondition::GreaterThan, OperationCode::LogicalIGreaterThan},
-        std::pair{PredCondition::NotEqual, OperationCode::LogicalINotEqual},
-        std::pair{PredCondition::GreaterEqual, OperationCode::LogicalIGreaterEqual},
-        std::pair{PredCondition::LessThanWithNan, OperationCode::LogicalILessThan},
-        std::pair{PredCondition::NotEqualWithNan, OperationCode::LogicalINotEqual},
-        std::pair{PredCondition::LessEqualWithNan, OperationCode::LogicalILessEqual},
-        std::pair{PredCondition::GreaterThanWithNan, OperationCode::LogicalIGreaterThan},
-        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::LogicalIGreaterEqual},
+        std::pair{PredCondition::LT, OperationCode::LogicalILessThan},
+        std::pair{PredCondition::EQ, OperationCode::LogicalIEqual},
+        std::pair{PredCondition::LE, OperationCode::LogicalILessEqual},
+        std::pair{PredCondition::GT, OperationCode::LogicalIGreaterThan},
+        std::pair{PredCondition::NE, OperationCode::LogicalINotEqual},
+        std::pair{PredCondition::GE, OperationCode::LogicalIGreaterEqual},
     };
 
     const auto comparison =
@@ -301,32 +290,24 @@ Node ShaderIR::GetPredicateComparisonInteger(PredCondition condition, bool is_si
     UNIMPLEMENTED_IF_MSG(comparison == comparison_table.cend(),
                          "Unknown predicate comparison operation");
 
-    Node predicate = SignedOperation(comparison->second, is_signed, NO_PRECISE, std::move(op_a),
-                                     std::move(op_b));
-
-    UNIMPLEMENTED_IF_MSG(condition == PredCondition::LessThanWithNan ||
-                             condition == PredCondition::NotEqualWithNan ||
-                             condition == PredCondition::LessEqualWithNan ||
-                             condition == PredCondition::GreaterThanWithNan ||
-                             condition == PredCondition::GreaterEqualWithNan,
-                         "NaN comparisons for integers are not implemented");
-    return predicate;
+    return SignedOperation(comparison->second, is_signed, NO_PRECISE, std::move(op_a),
+                           std::move(op_b));
 }
 
 Node ShaderIR::GetPredicateComparisonHalf(Tegra::Shader::PredCondition condition, Node op_a,
                                           Node op_b) {
     static constexpr std::array comparison_table{
-        std::pair{PredCondition::LessThan, OperationCode::Logical2HLessThan},
-        std::pair{PredCondition::Equal, OperationCode::Logical2HEqual},
-        std::pair{PredCondition::LessEqual, OperationCode::Logical2HLessEqual},
-        std::pair{PredCondition::GreaterThan, OperationCode::Logical2HGreaterThan},
-        std::pair{PredCondition::NotEqual, OperationCode::Logical2HNotEqual},
-        std::pair{PredCondition::GreaterEqual, OperationCode::Logical2HGreaterEqual},
-        std::pair{PredCondition::LessThanWithNan, OperationCode::Logical2HLessThanWithNan},
-        std::pair{PredCondition::NotEqualWithNan, OperationCode::Logical2HNotEqualWithNan},
-        std::pair{PredCondition::LessEqualWithNan, OperationCode::Logical2HLessEqualWithNan},
-        std::pair{PredCondition::GreaterThanWithNan, OperationCode::Logical2HGreaterThanWithNan},
-        std::pair{PredCondition::GreaterEqualWithNan, OperationCode::Logical2HGreaterEqualWithNan},
+        std::pair{PredCondition::LT, OperationCode::Logical2HLessThan},
+        std::pair{PredCondition::EQ, OperationCode::Logical2HEqual},
+        std::pair{PredCondition::LE, OperationCode::Logical2HLessEqual},
+        std::pair{PredCondition::GT, OperationCode::Logical2HGreaterThan},
+        std::pair{PredCondition::NE, OperationCode::Logical2HNotEqual},
+        std::pair{PredCondition::GE, OperationCode::Logical2HGreaterEqual},
+        std::pair{PredCondition::LTU, OperationCode::Logical2HLessThanWithNan},
+        std::pair{PredCondition::LEU, OperationCode::Logical2HLessEqualWithNan},
+        std::pair{PredCondition::GTU, OperationCode::Logical2HGreaterThanWithNan},
+        std::pair{PredCondition::NEU, OperationCode::Logical2HNotEqualWithNan},
+        std::pair{PredCondition::GEU, OperationCode::Logical2HGreaterEqualWithNan},
     };
 
     const auto comparison =
@@ -397,7 +378,7 @@ void ShaderIR::SetInternalFlagsFromFloat(NodeBlock& bb, Node value, bool sets_cc
     if (!sets_cc) {
         return;
     }
-    Node zerop = Operation(OperationCode::LogicalFEqual, std::move(value), Immediate(0.0f));
+    Node zerop = Operation(OperationCode::LogicalFOrdEqual, std::move(value), Immediate(0.0f));
     SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
     LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
 }

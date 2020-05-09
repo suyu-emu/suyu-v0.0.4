@@ -110,13 +110,20 @@ enum class OperationCode {
     LogicalPick2,  /// (bool2 pair, uint index) -> bool
     LogicalAnd2,   /// (bool2 a) -> bool
 
-    LogicalFLessThan,     /// (float a, float b) -> bool
-    LogicalFEqual,        /// (float a, float b) -> bool
-    LogicalFLessEqual,    /// (float a, float b) -> bool
-    LogicalFGreaterThan,  /// (float a, float b) -> bool
-    LogicalFNotEqual,     /// (float a, float b) -> bool
-    LogicalFGreaterEqual, /// (float a, float b) -> bool
-    LogicalFIsNan,        /// (float a) -> bool
+    LogicalFOrdLessThan,       /// (float a, float b) -> bool
+    LogicalFOrdEqual,          /// (float a, float b) -> bool
+    LogicalFOrdLessEqual,      /// (float a, float b) -> bool
+    LogicalFOrdGreaterThan,    /// (float a, float b) -> bool
+    LogicalFOrdNotEqual,       /// (float a, float b) -> bool
+    LogicalFOrdGreaterEqual,   /// (float a, float b) -> bool
+    LogicalFOrdered,           /// (float a, float b) -> bool
+    LogicalFUnordered,         /// (float a, float b) -> bool
+    LogicalFUnordLessThan,     /// (float a, float b) -> bool
+    LogicalFUnordEqual,        /// (float a, float b) -> bool
+    LogicalFUnordLessEqual,    /// (float a, float b) -> bool
+    LogicalFUnordGreaterThan,  /// (float a, float b) -> bool
+    LogicalFUnordNotEqual,     /// (float a, float b) -> bool
+    LogicalFUnordGreaterEqual, /// (float a, float b) -> bool
 
     LogicalILessThan,     /// (int a, int b) -> bool
     LogicalIEqual,        /// (int a, int b) -> bool
