@@ -28,6 +28,16 @@ find_library(LIBZIP_LIBRARY
   "$ENV{LIB_DIR}/lib" "$ENV{LIB}" /usr/local/lib /usr/lib
 )
 
+if (LIBZIP_INCLUDE_DIR_ZIPCONF)
+  FILE(READ "${LIBZIP_INCLUDE_DIR_ZIPCONF}/zipconf.h" _LIBZIP_VERSION_CONTENTS)
+  if (_LIBZIP_VERSION_CONTENTS)
+    STRING(REGEX REPLACE ".*#define LIBZIP_VERSION \"([0-9.]+)\".*" "\\1" LIBZIP_VERSION "${_LIBZIP_VERSION_CONTENTS}")
+  endif()
+  unset(_LIBZIP_VERSION_CONTENTS)
+endif()
+
+set(LIBZIP_VERSION ${LIBZIP_VERSION} CACHE STRING "Version number of libzip")
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Libzip
   FOUND_VAR LIBZIP_FOUND
@@ -35,18 +45,9 @@ find_package_handle_standard_args(Libzip
     LIBZIP_LIBRARY
     LIBZIP_INCLUDE_DIR
     LIBZIP_INCLUDE_DIR_ZIPCONF
+    LIBZIP_VERSION
+  VERSION_VAR LIBZIP_VERSION
 )
-
-set(LIBZIP_VERSION 0)
-
-if (LIBZIP_INCLUDE_DIR_ZIPCONF)
-  FILE(READ "${LIBZIP_INCLUDE_DIR_ZIPCONF}/zipconf.h" _LIBZIP_VERSION_CONTENTS)
-  if (_LIBZIP_VERSION_CONTENTS)
-    STRING(REGEX REPLACE ".*#define LIBZIP_VERSION \"([0-9.]+)\".*" "\\1" LIBZIP_VERSION "${_LIBZIP_VERSION_CONTENTS}")
-  endif()
-endif()
-
-set(LIBZIP_VERSION ${LIBZIP_VERSION} CACHE STRING "Version number of libzip")
 
 if(LIBZIP_FOUND)
   set(LIBZIP_LIBRARIES ${LIBZIP_LIBRARY})
@@ -65,5 +66,7 @@ endif()
 
 mark_as_advanced(
     LIBZIP_INCLUDE_DIR
+    LIBZIP_INCLUDE_DIR_ZIPCONF
     LIBZIP_LIBRARY
+    LIBZIP_VERSION
 )

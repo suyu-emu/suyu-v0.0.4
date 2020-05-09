@@ -8,11 +8,25 @@ find_path(Catch2_INCLUDE_DIR
   PATH_SUFFIXES catch2
 )
 
+if(Catch2_INCLUDE_DIR)
+  file(STRINGS "${Catch2_INCLUDE_DIR}/catch.hpp" _Catch2_version_lines
+    REGEX "#define[ \t]+CATCH_VERSION_(MAJOR|MINOR|PATCH)")
+  string(REGEX REPLACE ".*CATCH_VERSION_MAJOR +\([0-9]+\).*" "\\1" _Catch2_version_major "${_Catch2_version_lines}")
+  string(REGEX REPLACE ".*CATCH_VERSION_MINOR +\([0-9]+\).*" "\\1" _Catch2_version_minor "${_Catch2_version_lines}")
+  string(REGEX REPLACE ".*CATCH_VERSION_PATCH +\([0-9]+\).*" "\\1" _Catch2_version_patch "${_Catch2_version_lines}")
+  set(Catch2_VERSION "${_Catch2_version_major}.${_Catch2_version_minor}.${_Catch2_version_patch}")
+  unset(_Catch2_version_major)
+  unset(_Catch2_version_minor)
+  unset(_Catch2_version_patch)
+  unset(_Catch2_version_lines)
+endif()
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Catch2
   FOUND_VAR Catch2_FOUND
   REQUIRED_VARS
     Catch2_INCLUDE_DIR
+    Catch2_VERSION
   VERSION_VAR Catch2_VERSION
 )
 

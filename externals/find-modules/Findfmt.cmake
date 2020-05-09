@@ -13,12 +13,38 @@ find_library(fmt_LIBRARY
   PATHS ${PC_fmt_LIBRARY_DIRS} ${CONAN_LIB_DIRS_fmt}
 )
 
+if(fmt_INCLUDE_DIR)
+  set(_fmt_version_file "${fmt_INCLUDE_DIR}/core.h")
+  if(NOT EXISTS "${_fmt_version_file}")
+    set(_fmt_version_file "${fmt_INCLUDE_DIR}/format.h")
+  endif()
+  if(EXISTS "${_fmt_version_file}")
+    # parse "#define FMT_VERSION 60200" to 6.2.0
+    file(STRINGS "${_fmt_version_file}" fmt_VERSION_LINE
+      REGEX "^#define[ \t]+FMT_VERSION[ \t]+[0-9]+$")
+    string(REGEX REPLACE "^#define[ \t]+FMT_VERSION[ \t]+([0-9]+)$"
+      "\\1" fmt_VERSION "${fmt_VERSION_LINE}")
+    foreach(ver "fmt_VERSION_PATCH" "fmt_VERSION_MINOR" "fmt_VERSION_MAJOR")
+      math(EXPR ${ver} "${fmt_VERSION} % 100")
+      math(EXPR fmt_VERSION "(${fmt_VERSION} - ${${ver}}) / 100")
+    endforeach()
+    set(fmt_VERSION
+      "${fmt_VERSION_MAJOR}.${fmt_VERSION_MINOR}.${fmt_VERSION_PATCH}")
+  endif()
+  unset(_fmt_version_file)
+  unset(fmt_VERSION_LINE)
+  unset(fmt_VERSION_MAJOR)
+  unset(fmt_VERSION_MINOR)
+  unset(fmt_VERSION_PATCH)
+endif()
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(fmt
   FOUND_VAR fmt_FOUND
   REQUIRED_VARS
     fmt_LIBRARY
     fmt_INCLUDE_DIR
+    fmt_VERSION
   VERSION_VAR fmt_VERSION
 )
 
