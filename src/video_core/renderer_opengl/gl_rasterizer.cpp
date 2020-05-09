@@ -701,15 +701,15 @@ void RasterizerOpenGL::OnCPUWrite(VAddr addr, u64 size) {
         return;
     }
     texture_cache.OnCPUWrite(addr, size);
-    shader_cache.InvalidateRegion(addr, size);
+    shader_cache.OnCPUWrite(addr, size);
     buffer_cache.OnCPUWrite(addr, size);
-    query_cache.InvalidateRegion(addr, size);
 }
 
 void RasterizerOpenGL::SyncGuestHost() {
     MICROPROFILE_SCOPE(OpenGL_CacheManagement);
     texture_cache.SyncGuestHost();
     buffer_cache.SyncGuestHost();
+    shader_cache.SyncGuestHost();
 }
 
 void RasterizerOpenGL::SignalSemaphore(GPUVAddr addr, u32 value) {
