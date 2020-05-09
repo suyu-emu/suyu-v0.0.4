@@ -1845,6 +1845,15 @@ private:
         static_assert(!unordered || type == Type::Float);
 
         const Expression expr = GenerateBinaryInfix(operation, op, Type::Bool, type, type);
+
+        if constexpr (op.compare("!=") == 0 && type == Type::Float && !unordered) {
+            // GLSL's operator!=(float, float) doesn't seem be ordered. This happens on both AMD's
+            // and Nvidia's proprietary stacks. Manually force an ordered comparison.
+            return {fmt::format("({} && !isnan({}) && !isnan({}))", expr.AsBool(),
+                                VisitOperand(operation, 0).AsFloat(),
+                                VisitOperand(operation, 1).AsFloat()),
+                    Type::Bool};
+        }
         if constexpr (!unordered) {
             return expr;
         }
