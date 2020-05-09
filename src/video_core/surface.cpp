@@ -145,6 +145,8 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
         return PixelFormat::RG8U;
     case Tegra::RenderTargetFormat::RG8_SNORM:
         return PixelFormat::RG8S;
+    case Tegra::RenderTargetFormat::RG8_UINT:
+        return PixelFormat::RG8UI;
     case Tegra::RenderTargetFormat::R16_FLOAT:
         return PixelFormat::R16F;
     case Tegra::RenderTargetFormat::R16_UNORM:

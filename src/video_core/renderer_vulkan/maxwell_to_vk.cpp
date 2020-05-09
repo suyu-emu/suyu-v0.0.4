@@ -160,6 +160,7 @@ struct FormatTuple {
     {VK_FORMAT_R8G8B8A8_SRGB, Attachable},                      // RGBA8_SRGB
     {VK_FORMAT_R8G8_UNORM, Attachable | Storage},               // RG8U
     {VK_FORMAT_R8G8_SNORM, Attachable | Storage},               // RG8S
+    {VK_FORMAT_R8G8_UINT, Attachable | Storage},                // RG8UI
     {VK_FORMAT_R32G32_UINT, Attachable | Storage},              // RG32UI
     {VK_FORMAT_UNDEFINED},                                      // RGBX16F
     {VK_FORMAT_R32_UINT, Attachable | Storage},                 // R32UI
