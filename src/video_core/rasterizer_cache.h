@@ -75,8 +75,8 @@ public:
 private:
     bool is_registered{};      ///< Whether the object is currently registered with the cache
     bool is_dirty{};           ///< Whether the object is dirty (out of sync with guest memory)
-    bool is_memory_marked{};   ///< Whether it's marking rasterizer memory.
-    bool is_sync_pending{};    ///< Whether it's pending deletion.
+    bool is_memory_marked{};   ///< Whether the object is marking rasterizer memory.
+    bool is_sync_pending{};    ///< Whether the object is pending deletion.
     u64 last_modified_ticks{}; ///< When the object was last modified, used for in-order flushing
     VAddr cpu_addr{};          ///< Cpu address memory, unique from emulated virtual address space
 };
