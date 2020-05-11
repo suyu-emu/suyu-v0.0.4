@@ -130,6 +130,7 @@ private:
     void SetPalmaBoostMode(Kernel::HLERequestContext& ctx);
     void StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
     void InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<IAppletResource> applet_resource;
     Core::System& system;

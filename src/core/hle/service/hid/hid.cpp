@@ -157,7 +157,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {11, &Hid::ActivateTouchScreen, "ActivateTouchScreen"},
         {21, &Hid::ActivateMouse, "ActivateMouse"},
         {31, &Hid::ActivateKeyboard, "ActivateKeyboard"},
-        {32, nullptr, "SendKeyboardLockKeyEvent"},
+        {32, &Hid::SendKeyboardLockKeyEvent, "SendKeyboardLockKeyEvent"},
         {40, nullptr, "AcquireXpadIdEventHandle"},
         {41, nullptr, "ReleaseXpadIdEventHandle"},
         {51, &Hid::ActivateXpad, "ActivateXpad"},
@@ -866,6 +866,15 @@ void Hid::StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
 
 void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_HID, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto flags{rp.Pop<u32>()};
+    LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
