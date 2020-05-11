@@ -4,6 +4,7 @@
 
 #include <deque>
 #include <vector>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/microprofile.h"
@@ -14,8 +15,7 @@ MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
 
 namespace OpenGL {
 
-OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage, bool prefer_coherent)
-    : buffer_size(size) {
+OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage) : buffer_size(size) {
     gl_buffer.Create();
 
     GLsizeiptr allocate_size = size;
@@ -28,12 +28,10 @@ OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage, bool p
         allocate_size *= 2;
     }
 
-    coherent = prefer_coherent;
-    const GLbitfield flags =
-        GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0);
+    static constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
     glNamedBufferStorage(gl_buffer.handle, allocate_size, nullptr, flags);
-    mapped_ptr = static_cast<u8*>(glMapNamedBufferRange(
-        gl_buffer.handle, 0, buffer_size, flags | (coherent ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT)));
+    mapped_ptr = static_cast<u8*>(
+        glMapNamedBufferRange(gl_buffer.handle, 0, buffer_size, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
 }
 
 OGLStreamBuffer::~OGLStreamBuffer() {
@@ -59,10 +57,10 @@ std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr a
     }
 
     if (invalidate) {
+        static const GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
+                                        GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
+
         MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
-        const GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                 GL_MAP_INVALIDATE_BUFFER_BIT |
-                                 (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT);
         mapped_ptr = static_cast<u8*>(
             glMapNamedBufferRange(gl_buffer.handle, buffer_pos, buffer_size - buffer_pos, flags));
         mapped_offset = buffer_pos;
@@ -74,7 +72,7 @@ std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr a
 void OGLStreamBuffer::Unmap(GLsizeiptr size) {
     ASSERT(size <= mapped_size);
 
-    if (!coherent && size > 0) {
+    if (size > 0) {
         glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos - mapped_offset, size);
     }
 
