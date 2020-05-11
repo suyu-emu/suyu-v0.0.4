@@ -93,6 +93,7 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
     tessellation_clockwise.Assign(regs.tess_mode.cw.Value());
     logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
     logic_op.Assign(PackLogicOp(regs.logic_op.operation));
+    rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
     std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
 }
 

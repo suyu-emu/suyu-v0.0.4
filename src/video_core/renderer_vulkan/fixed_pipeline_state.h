@@ -164,6 +164,7 @@ struct FixedPipelineState {
             BitField<23, 1, u32> tessellation_clockwise;
             BitField<24, 1, u32> logic_op_enable;
             BitField<25, 4, u32> logic_op;
+            BitField<29, 1, u32> rasterize_enable;
         };
 
         // TODO(Rodrigo): Move this to push constants

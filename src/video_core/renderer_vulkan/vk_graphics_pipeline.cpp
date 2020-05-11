@@ -281,7 +281,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     rasterization_ci.pNext = nullptr;
     rasterization_ci.flags = 0;
     rasterization_ci.depthClampEnable = rs.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE;
-    rasterization_ci.rasterizerDiscardEnable = VK_FALSE;
+    rasterization_ci.rasterizerDiscardEnable = rs.rasterize_enable == 0 ? VK_TRUE : VK_FALSE;
     rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
     rasterization_ci.cullMode =
         rs.cull_enable ? MaxwellToVK::CullFace(rs.CullFace()) : VK_CULL_MODE_NONE;
