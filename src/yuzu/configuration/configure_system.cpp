@@ -57,6 +57,7 @@ void ConfigureSystem::SetConfiguration() {
 
     ui->combo_language->setCurrentIndex(Settings::values.language_index);
     ui->combo_region->setCurrentIndex(Settings::values.region_index);
+    ui->combo_time_zone->setCurrentIndex(Settings::values.time_zone_index);
     ui->combo_sound->setCurrentIndex(Settings::values.sound_index);
 
     ui->rng_seed_checkbox->setChecked(Settings::values.rng_seed.has_value());
@@ -84,6 +85,7 @@ void ConfigureSystem::ApplyConfiguration() {
 
     Settings::values.language_index = ui->combo_language->currentIndex();
     Settings::values.region_index = ui->combo_region->currentIndex();
+    Settings::values.time_zone_index = ui->combo_time_zone->currentIndex();
     Settings::values.sound_index = ui->combo_sound->currentIndex();
 
     if (ui->rng_seed_checkbox->isChecked()) {

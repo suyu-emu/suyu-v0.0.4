@@ -262,6 +262,10 @@ language_index =
 # -1: Auto-select (default), 0: Japan, 1: USA, 2: Europe, 3: Australia, 4: China, 5: Korea, 6: Taiwan
 region_value =
 
+# The system time zone that yuzu will use during emulation
+# 0: Auto-select (default), 1: Default (system archive value), Others: Index for specified time zone
+time_zone_index =
+
 [Miscellaneous]
 # A filter which removes logs below a certain logging level.
 # Examples: *:Debug Kernel.SVC:Trace Service.*:Critical

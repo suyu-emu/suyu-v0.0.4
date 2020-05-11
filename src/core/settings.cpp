@@ -63,6 +63,21 @@ const std::array<const char*, NumMouseButtons> mapping = {{
 
 Values values = {};
 
+std::string GetTimeZoneString() {
+    static constexpr std::array<const char*, 46> timezones{{
+        "auto",      "default",   "CET", "CST6CDT", "Cuba",    "EET",    "Egypt",     "Eire",
+        "EST",       "EST5EDT",   "GB",  "GB-Eire", "GMT",     "GMT+0",  "GMT-0",     "GMT0",
+        "Greenwich", "Hongkong",  "HST", "Iceland", "Iran",    "Israel", "Jamaica",   "Japan",
+        "Kwajalein", "Libya",     "MET", "MST",     "MST7MDT", "Navajo", "NZ",        "NZ-CHAT",
+        "Poland",    "Portugal",  "PRC", "PST8PDT", "ROC",     "ROK",    "Singapore", "Turkey",
+        "UCT",       "Universal", "UTC", "W-SU",    "WET",     "Zulu",
+    }};
+
+    ASSERT(Settings::values.time_zone_index < timezones.size());
+
+    return timezones[Settings::values.time_zone_index];
+}
+
 void Apply() {
     GDBStub::SetServerPort(values.gdbstub_port);
     GDBStub::ToggleServer(values.use_gdbstub);
@@ -87,6 +102,7 @@ void LogSettings() {
     LogSetting("System_CurrentUser", Settings::values.current_user);
     LogSetting("System_LanguageIndex", Settings::values.language_index);
     LogSetting("System_RegionIndex", Settings::values.region_index);
+    LogSetting("System_TimeZoneIndex", Settings::values.time_zone_index);
     LogSetting("Core_UseMultiCore", Settings::values.use_multi_core);
     LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor);
     LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
