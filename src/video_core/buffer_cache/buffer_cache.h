@@ -41,7 +41,11 @@ class BufferCache {
     static constexpr u64 BLOCK_PAGE_SIZE = 1ULL << BLOCK_PAGE_BITS;
 
 public:
-    using BufferInfo = std::pair<BufferType, u64>;
+    struct BufferInfo {
+        BufferType handle;
+        u64 offset;
+        u64 address;
+    };
 
     BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
                             bool is_written = false, bool use_fast_cbuf = false) {
@@ -50,7 +54,7 @@ public:
         auto& memory_manager = system.GPU().MemoryManager();
         const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
         if (!cpu_addr_opt) {
-            return {GetEmptyBuffer(size), 0};
+            return GetEmptyBuffer(size);
         }
         const VAddr cpu_addr = *cpu_addr_opt;
 
@@ -88,7 +92,7 @@ public:
         Buffer* const block = GetBlock(cpu_addr, size);
         MapInterval* const map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (!map) {
-            return {GetEmptyBuffer(size), 0};
+            return GetEmptyBuffer(size);
         }
         if (is_written) {
             map->MarkAsModified(true, GetModifiedTicks());
@@ -101,7 +105,7 @@ public:
             }
         }
 
-        return {block->Handle(), static_cast<u64>(block->Offset(cpu_addr))};
+        return BufferInfo{block->Handle(), block->Offset(cpu_addr), block->Address()};
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
@@ -254,13 +258,12 @@ public:
         committed_flushes.pop_front();
     }
 
-    virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
+    virtual BufferInfo GetEmptyBuffer(std::size_t size) = 0;
 
 protected:
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
-                         std::unique_ptr<StreamBuffer> stream_buffer_)
-        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer_)},
-          stream_buffer_handle{stream_buffer->Handle()} {}
+                         std::unique_ptr<StreamBuffer> stream_buffer)
+        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer)} {}
 
     ~BufferCache() = default;
 
@@ -449,7 +452,7 @@ private:
 
         buffer_ptr += size;
         buffer_offset += size;
-        return {stream_buffer_handle, uploaded_offset};
+        return BufferInfo{stream_buffer->Handle(), uploaded_offset, stream_buffer->Address()};
     }
 
     void AlignBuffer(std::size_t alignment) {

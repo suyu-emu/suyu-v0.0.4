@@ -2,12 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <deque>
+#include <tuple>
 #include <vector>
 
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/microprofile.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
 MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
@@ -15,7 +16,8 @@ MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
 
 namespace OpenGL {
 
-OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage) : buffer_size(size) {
+OGLStreamBuffer::OGLStreamBuffer(const Device& device, GLsizeiptr size, bool vertex_data_usage)
+    : buffer_size(size) {
     gl_buffer.Create();
 
     GLsizeiptr allocate_size = size;
@@ -32,6 +34,11 @@ OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage) : buff
     glNamedBufferStorage(gl_buffer.handle, allocate_size, nullptr, flags);
     mapped_ptr = static_cast<u8*>(
         glMapNamedBufferRange(gl_buffer.handle, 0, buffer_size, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
+
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_ONLY);
+        glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
+    }
 }
 
 OGLStreamBuffer::~OGLStreamBuffer() {

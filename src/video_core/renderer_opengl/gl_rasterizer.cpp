@@ -253,8 +253,8 @@ void RasterizerOpenGL::SetupVertexBuffer() {
             glBindVertexBuffer(static_cast<GLuint>(index), 0, 0, vertex_array.stride);
             continue;
         }
-        const auto [vertex_buffer, vertex_buffer_offset] = buffer_cache.UploadMemory(start, size);
-        glBindVertexBuffer(static_cast<GLuint>(index), vertex_buffer, vertex_buffer_offset,
+        const auto info = buffer_cache.UploadMemory(start, size);
+        glBindVertexBuffer(static_cast<GLuint>(index), info.handle, info.offset,
                            vertex_array.stride);
     }
 }
@@ -285,9 +285,9 @@ GLintptr RasterizerOpenGL::SetupIndexBuffer() {
     MICROPROFILE_SCOPE(OpenGL_Index);
     const auto& regs = system.GPU().Maxwell3D().regs;
     const std::size_t size = CalculateIndexBufferSize();
-    const auto [buffer, offset] = buffer_cache.UploadMemory(regs.index_array.IndexStart(), size);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
-    return offset;
+    const auto info = buffer_cache.UploadMemory(regs.index_array.IndexStart(), size);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, info.handle);
+    return info.offset;
 }
 
 void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
@@ -643,9 +643,9 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
     if (!device.UseAssemblyShaders()) {
         MaxwellUniformData ubo;
         ubo.SetFromRegs(gpu);
-        const auto [buffer, offset] =
+        const auto info =
             buffer_cache.UploadHostMemory(&ubo, sizeof(ubo), device.GetUniformBufferAlignment());
-        glBindBufferRange(GL_UNIFORM_BUFFER, EmulationUniformBlockBinding, buffer, offset,
+        glBindBufferRange(GL_UNIFORM_BUFFER, EmulationUniformBlockBinding, info.handle, info.offset,
                           static_cast<GLsizeiptr>(sizeof(ubo)));
     }
 
@@ -956,8 +956,7 @@ void RasterizerOpenGL::SetupConstBuffer(GLenum stage, u32 binding,
         if (device.UseAssemblyShaders()) {
             glBindBufferRangeNV(stage, entry.GetIndex(), 0, 0, 0);
         } else {
-            glBindBufferRange(GL_UNIFORM_BUFFER, binding,
-                              buffer_cache.GetEmptyBuffer(sizeof(float)), 0, sizeof(float));
+            glBindBufferRange(GL_UNIFORM_BUFFER, binding, 0, 0, sizeof(float));
         }
         return;
     }
@@ -970,24 +969,25 @@ void RasterizerOpenGL::SetupConstBuffer(GLenum stage, u32 binding,
 
     const std::size_t alignment = use_unified ? 4 : device.GetUniformBufferAlignment();
     const GPUVAddr gpu_addr = buffer.address;
-    auto [cbuf, offset] = buffer_cache.UploadMemory(gpu_addr, size, alignment, false, fast_upload);
+    auto info = buffer_cache.UploadMemory(gpu_addr, size, alignment, false, fast_upload);
 
     if (device.UseAssemblyShaders()) {
         UNIMPLEMENTED_IF(use_unified);
-        if (offset != 0) {
+        if (info.offset != 0) {
             const GLuint staging_cbuf = staging_cbufs[current_cbuf++];
-            glCopyNamedBufferSubData(cbuf, staging_cbuf, offset, 0, size);
-            cbuf = staging_cbuf;
-            offset = 0;
+            glCopyNamedBufferSubData(info.handle, staging_cbuf, info.offset, 0, size);
+            info.handle = staging_cbuf;
+            info.offset = 0;
         }
-        glBindBufferRangeNV(stage, binding, cbuf, offset, size);
+        glBindBufferRangeNV(stage, binding, info.handle, info.offset, size);
         return;
     }
 
     if (use_unified) {
-        glCopyNamedBufferSubData(cbuf, unified_uniform_buffer.handle, offset, unified_offset, size);
+        glCopyNamedBufferSubData(info.handle, unified_uniform_buffer.handle, info.offset,
+                                 unified_offset, size);
     } else {
-        glBindBufferRange(GL_UNIFORM_BUFFER, binding, cbuf, offset, size);
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding, info.handle, info.offset, size);
     }
 }
 
@@ -1023,9 +1023,8 @@ void RasterizerOpenGL::SetupComputeGlobalMemory(Shader* kernel) {
 void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry,
                                          GPUVAddr gpu_addr, std::size_t size) {
     const auto alignment{device.GetShaderStorageBufferAlignment()};
-    const auto [ssbo, buffer_offset] =
-        buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.is_written);
-    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, ssbo, buffer_offset,
+    const auto info = buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.is_written);
+    glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, info.handle, info.offset,
                       static_cast<GLsizeiptr>(size));
 }
 
@@ -1712,8 +1711,9 @@ void RasterizerOpenGL::EndTransformFeedback() {
         const GLuint handle = transform_feedback_buffers[index].handle;
         const GPUVAddr gpu_addr = binding.Address();
         const std::size_t size = binding.buffer_size;
-        const auto [dest_buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
-        glCopyNamedBufferSubData(handle, dest_buffer, 0, offset, static_cast<GLsizeiptr>(size));
+        const auto info = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
+        glCopyNamedBufferSubData(handle, info.handle, 0, info.offset,
+                                 static_cast<GLsizeiptr>(size));
     }
 }
 

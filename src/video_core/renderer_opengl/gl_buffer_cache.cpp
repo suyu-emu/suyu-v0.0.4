@@ -22,21 +22,28 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 MICROPROFILE_DEFINE(OpenGL_Buffer_Download, "OpenGL", "Buffer Download", MP_RGB(192, 192, 128));
 
-Buffer::Buffer(VAddr cpu_addr, const std::size_t size) : VideoCommon::BufferBlock{cpu_addr, size} {
+Buffer::Buffer(const Device& device, VAddr cpu_addr, std::size_t size)
+    : VideoCommon::BufferBlock{cpu_addr, size} {
     gl_buffer.Create();
     glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size), nullptr, GL_DYNAMIC_DRAW);
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_WRITE);
+        glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
+    }
 }
 
 Buffer::~Buffer() = default;
 
 OGLBufferCache::OGLBufferCache(RasterizerOpenGL& rasterizer, Core::System& system,
-                               const Device& device, std::size_t stream_size)
-    : GenericBufferCache{rasterizer, system, std::make_unique<OGLStreamBuffer>(stream_size, true)} {
+                               const Device& device_, std::size_t stream_size)
+    : GenericBufferCache{rasterizer, system,
+                         std::make_unique<OGLStreamBuffer>(device_, stream_size, true)},
+      device{device_} {
     if (!device.HasFastBufferSubData()) {
         return;
     }
 
-    static constexpr auto size = static_cast<GLsizeiptr>(Maxwell::MaxConstBufferSize);
+    static constexpr GLsizeiptr size = static_cast<GLsizeiptr>(Maxwell::MaxConstBufferSize);
     glCreateBuffers(static_cast<GLsizei>(std::size(cbufs)), std::data(cbufs));
     for (const GLuint cbuf : cbufs) {
         glNamedBufferData(cbuf, size, nullptr, GL_STREAM_DRAW);
@@ -48,11 +55,11 @@ OGLBufferCache::~OGLBufferCache() {
 }
 
 std::shared_ptr<Buffer> OGLBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
-    return std::make_shared<Buffer>(cpu_addr, size);
+    return std::make_shared<Buffer>(device, cpu_addr, size);
 }
 
-GLuint OGLBufferCache::GetEmptyBuffer(std::size_t) {
-    return 0;
+OGLBufferCache::BufferInfo OGLBufferCache::GetEmptyBuffer(std::size_t) {
+    return {0, 0, 0};
 }
 
 void OGLBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
@@ -79,8 +86,9 @@ OGLBufferCache::BufferInfo OGLBufferCache::ConstBufferUpload(const void* raw_poi
                                                              std::size_t size) {
     DEBUG_ASSERT(cbuf_cursor < std::size(cbufs));
     const GLuint cbuf = cbufs[cbuf_cursor++];
+
     glNamedBufferSubData(cbuf, 0, static_cast<GLsizeiptr>(size), raw_pointer);
-    return {cbuf, 0};
+    return {cbuf, 0, 0};
 }
 
 } // namespace OpenGL

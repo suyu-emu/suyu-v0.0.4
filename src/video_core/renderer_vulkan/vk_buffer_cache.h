@@ -33,6 +33,10 @@ public:
         return *buffer.handle;
     }
 
+    u64 Address() const {
+        return 0;
+    }
+
 private:
     VKBuffer buffer;
 };
@@ -44,7 +48,7 @@ public:
                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
-    VkBuffer GetEmptyBuffer(std::size_t size) override;
+    BufferInfo GetEmptyBuffer(std::size_t size) override;
 
 protected:
     std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;

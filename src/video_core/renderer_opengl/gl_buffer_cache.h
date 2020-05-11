@@ -25,15 +25,20 @@ class RasterizerOpenGL;
 
 class Buffer : public VideoCommon::BufferBlock {
 public:
-    explicit Buffer(VAddr cpu_addr, const std::size_t size);
+    explicit Buffer(const Device& device, VAddr cpu_addr, std::size_t size);
     ~Buffer();
 
-    GLuint Handle() const {
+    GLuint Handle() const noexcept {
         return gl_buffer.handle;
+    }
+
+    u64 Address() const noexcept {
+        return gpu_address;
     }
 
 private:
     OGLBuffer gl_buffer;
+    u64 gpu_address = 0;
 };
 
 using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuffer>;
@@ -43,7 +48,7 @@ public:
                             const Device& device, std::size_t stream_size);
     ~OGLBufferCache();
 
-    GLuint GetEmptyBuffer(std::size_t) override;
+    BufferInfo GetEmptyBuffer(std::size_t) override;
 
     void Acquire() noexcept {
         cbuf_cursor = 0;
@@ -64,10 +69,13 @@ protected:
     BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) override;
 
 private:
+    static constexpr std::size_t NUM_CBUFS = Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers *
+                                             Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram;
+
+    const Device& device;
+
     std::size_t cbuf_cursor = 0;
-    std::array<GLuint, Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers *
-                           Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram>
-        cbufs;
+    std::array<GLuint, NUM_CBUFS> cbufs{};
 };
 
 } // namespace OpenGL

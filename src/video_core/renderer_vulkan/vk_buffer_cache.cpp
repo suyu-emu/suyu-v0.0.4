@@ -71,14 +71,14 @@ std::shared_ptr<Buffer> VKBufferCache::CreateBlock(VAddr cpu_addr, std::size_t s
     return std::make_shared<Buffer>(device, memory_manager, cpu_addr, size);
 }
 
-VkBuffer VKBufferCache::GetEmptyBuffer(std::size_t size) {
+VKBufferCache::BufferInfo VKBufferCache::GetEmptyBuffer(std::size_t size) {
     size = std::max(size, std::size_t(4));
     const auto& empty = staging_pool.GetUnusedBuffer(size, false);
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([size, buffer = *empty.handle](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, size, 0);
     });
-    return *empty.handle;
+    return {*empty.handle, 0, 0};
 }
 
 void VKBufferCache::UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
