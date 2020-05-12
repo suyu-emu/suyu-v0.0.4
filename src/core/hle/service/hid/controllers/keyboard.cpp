@@ -38,10 +38,11 @@ void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
+    cur_entry.key.fill(0);
+    cur_entry.modifier = 0;
+
     for (std::size_t i = 0; i < keyboard_keys.size(); ++i) {
-        for (std::size_t k = 0; k < KEYS_PER_BYTE; ++k) {
-            cur_entry.key[i / KEYS_PER_BYTE] |= (keyboard_keys[i]->GetStatus() << k);
-        }
+        cur_entry.key[i / KEYS_PER_BYTE] |= (keyboard_keys[i]->GetStatus() << (i % KEYS_PER_BYTE));
     }
 
     for (std::size_t i = 0; i < keyboard_mods.size(); ++i) {
