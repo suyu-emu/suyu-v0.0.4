@@ -37,13 +37,13 @@ static int ConvertOsTimeZoneOffsetToInt(const std::string& timezone) {
     }
 }
 
-int GetCurrentOffsetSeconds() {
+std::chrono::seconds GetCurrentOffsetSeconds() {
     const int offset{ConvertOsTimeZoneOffsetToInt(GetOsTimeZoneOffset())};
 
     int seconds{(offset / 100) * 60 * 60}; // Convert hour component to seconds
     seconds += (offset % 100) * 60;        // Convert minute component to seconds
 
-    return seconds;
+    return std::chrono::seconds{seconds};
 }
 
 } // namespace Common::TimeZone

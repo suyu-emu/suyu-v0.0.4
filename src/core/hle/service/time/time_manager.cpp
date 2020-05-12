@@ -25,7 +25,7 @@ static std::chrono::seconds GetSecondsSinceEpoch() {
 static s64 GetExternalTimeZoneOffset() {
     // With "auto" timezone setting, we use the external system's timezone offset
     if (Settings::GetTimeZoneString() == "auto") {
-        return Common::TimeZone::GetCurrentOffsetSeconds();
+        return Common::TimeZone::GetCurrentOffsetSeconds().count();
     }
     return 0;
 }

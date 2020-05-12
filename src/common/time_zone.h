@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <string>
 
 namespace Common::TimeZone {
@@ -12,6 +13,6 @@ namespace Common::TimeZone {
 std::string GetDefaultTimeZone();
 
 /// Gets the offset of the current timezone (from the default), in seconds
-int GetCurrentOffsetSeconds();
+std::chrono::seconds GetCurrentOffsetSeconds();
 
 } // namespace Common::TimeZone
