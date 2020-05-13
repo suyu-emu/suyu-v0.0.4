@@ -21,7 +21,7 @@ struct Fiber::FiberImpl {
     LPVOID rewind_handle = nullptr;
 };
 
-void Fiber::start() {
+void Fiber::Start() {
     ASSERT(previous_fiber != nullptr);
     previous_fiber->guard.unlock();
     previous_fiber.reset();
@@ -29,7 +29,7 @@ void Fiber::start() {
     UNREACHABLE();
 }
 
-void Fiber::onRewind() {
+void Fiber::OnRewind() {
     ASSERT(impl->handle != nullptr);
     DeleteFiber(impl->handle);
     impl->handle = impl->rewind_handle;
@@ -38,14 +38,14 @@ void Fiber::onRewind() {
     UNREACHABLE();
 }
 
-void __stdcall Fiber::FiberStartFunc(void* fiber_parameter) {
+void Fiber::FiberStartFunc(void* fiber_parameter) {
     auto fiber = static_cast<Fiber*>(fiber_parameter);
-    fiber->start();
+    fiber->Start();
 }
 
-void __stdcall Fiber::RewindStartFunc(void* fiber_parameter) {
+void Fiber::RewindStartFunc(void* fiber_parameter) {
     auto fiber = static_cast<Fiber*>(fiber_parameter);
-    fiber->onRewind();
+    fiber->OnRewind();
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
@@ -59,8 +59,11 @@ Fiber::Fiber() {
 }
 
 Fiber::~Fiber() {
+    if (released) {
+        return;
+    }
     // Make sure the Fiber is not being used
-    bool locked = guard.try_lock();
+    const bool locked = guard.try_lock();
     ASSERT_MSG(locked, "Destroying a fiber that's still running");
     if (locked) {
         guard.unlock();
@@ -75,6 +78,7 @@ void Fiber::Exit() {
     }
     ConvertFiberToThread();
     guard.unlock();
+    released = true;
 }
 
 void Fiber::SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start_parameter) {
@@ -89,22 +93,21 @@ void Fiber::Rewind() {
     SwitchToFiber(impl->rewind_handle);
 }
 
-void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
+void Fiber::YieldTo(std::shared_ptr<Fiber>& from, std::shared_ptr<Fiber>& to) {
     ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
     to->previous_fiber = from;
     SwitchToFiber(to->impl->handle);
-    auto previous_fiber = from->previous_fiber;
-    ASSERT(previous_fiber != nullptr);
-    previous_fiber->guard.unlock();
-    previous_fiber.reset();
+    ASSERT(from->previous_fiber != nullptr);
+    from->previous_fiber->guard.unlock();
+    from->previous_fiber.reset();
 }
 
 std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
     std::shared_ptr<Fiber> fiber = std::shared_ptr<Fiber>{new Fiber()};
     fiber->guard.lock();
-    fiber->impl->handle = ConvertThreadToFiber(NULL);
+    fiber->impl->handle = ConvertThreadToFiber(nullptr);
     fiber->is_thread_fiber = true;
     return fiber;
 }
@@ -120,7 +123,7 @@ struct Fiber::FiberImpl {
     boost::context::detail::fcontext_t rewind_context;
 };
 
-void Fiber::start(boost::context::detail::transfer_t& transfer) {
+void Fiber::Start(boost::context::detail::transfer_t& transfer) {
     ASSERT(previous_fiber != nullptr);
     previous_fiber->impl->context = transfer.fctx;
     previous_fiber->guard.unlock();
@@ -129,7 +132,7 @@ void Fiber::start(boost::context::detail::transfer_t& transfer) {
     UNREACHABLE();
 }
 
-void Fiber::onRewind(boost::context::detail::transfer_t& [[maybe_unused]] transfer) {
+void Fiber::OnRewind([[maybe_unused]] boost::context::detail::transfer_t& transfer) {
     ASSERT(impl->context != nullptr);
     impl->context = impl->rewind_context;
     impl->rewind_context = nullptr;
@@ -142,17 +145,16 @@ void Fiber::onRewind(boost::context::detail::transfer_t& [[maybe_unused]] transf
 
 void Fiber::FiberStartFunc(boost::context::detail::transfer_t transfer) {
     auto fiber = static_cast<Fiber*>(transfer.data);
-    fiber->start(transfer);
+    fiber->Start(transfer);
 }
 
 void Fiber::RewindStartFunc(boost::context::detail::transfer_t transfer) {
     auto fiber = static_cast<Fiber*>(transfer.data);
-    fiber->onRewind(transfer);
+    fiber->OnRewind(transfer);
 }
 
 Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_parameter)
-    : guard{}, entry_point{std::move(entry_point_func)}, start_parameter{start_parameter},
-      previous_fiber{} {
+    : entry_point{std::move(entry_point_func)}, start_parameter{start_parameter} {
     impl = std::make_unique<FiberImpl>();
     impl->stack_limit = impl->stack.data();
     impl->rewind_stack_limit = impl->rewind_stack.data();
@@ -171,8 +173,11 @@ Fiber::Fiber() {
 }
 
 Fiber::~Fiber() {
+    if (released) {
+        return;
+    }
     // Make sure the Fiber is not being used
-    bool locked = guard.try_lock();
+    const bool locked = guard.try_lock();
     ASSERT_MSG(locked, "Destroying a fiber that's still running");
     if (locked) {
         guard.unlock();
@@ -180,11 +185,13 @@ Fiber::~Fiber() {
 }
 
 void Fiber::Exit() {
+
     ASSERT_MSG(is_thread_fiber, "Exitting non main thread fiber");
     if (!is_thread_fiber) {
         return;
     }
     guard.unlock();
+    released = true;
 }
 
 void Fiber::Rewind() {
@@ -196,17 +203,16 @@ void Fiber::Rewind() {
     boost::context::detail::jump_fcontext(impl->rewind_context, this);
 }
 
-void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
+void Fiber::YieldTo(std::shared_ptr<Fiber>& from, std::shared_ptr<Fiber>& to) {
     ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
     to->previous_fiber = from;
     auto transfer = boost::context::detail::jump_fcontext(to->impl->context, to.get());
-    auto previous_fiber = from->previous_fiber;
-    ASSERT(previous_fiber != nullptr);
-    previous_fiber->impl->context = transfer.fctx;
-    previous_fiber->guard.unlock();
-    previous_fiber.reset();
+    ASSERT(from->previous_fiber != nullptr);
+    from->previous_fiber->impl->context = transfer.fctx;
+    from->previous_fiber->guard.unlock();
+    from->previous_fiber.reset();
 }
 
 std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
