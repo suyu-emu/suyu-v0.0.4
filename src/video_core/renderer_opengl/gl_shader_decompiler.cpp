@@ -1840,34 +1840,40 @@ private:
                 Type::HalfFloat};
     }
 
-    template <Type type>
-    Expression LogicalLessThan(Operation operation) {
-        return GenerateBinaryInfix(operation, "<", Type::Bool, type, type);
+    template <const std::string_view& op, Type type, bool unordered = false>
+    Expression Comparison(Operation operation) {
+        static_assert(!unordered || type == Type::Float);
+
+        const Expression expr = GenerateBinaryInfix(operation, op, Type::Bool, type, type);
+
+        if constexpr (op.compare("!=") == 0 && type == Type::Float && !unordered) {
+            // GLSL's operator!=(float, float) doesn't seem be ordered. This happens on both AMD's
+            // and Nvidia's proprietary stacks. Manually force an ordered comparison.
+            return {fmt::format("({} && !isnan({}) && !isnan({}))", expr.AsBool(),
+                                VisitOperand(operation, 0).AsFloat(),
+                                VisitOperand(operation, 1).AsFloat()),
+                    Type::Bool};
+        }
+        if constexpr (!unordered) {
+            return expr;
+        }
+        // Unordered comparisons are always true for NaN operands.
+        return {fmt::format("({} || isnan({}) || isnan({}))", expr.AsBool(),
+                            VisitOperand(operation, 0).AsFloat(),
+                            VisitOperand(operation, 1).AsFloat()),
+                Type::Bool};
     }
 
-    template <Type type>
-    Expression LogicalEqual(Operation operation) {
-        return GenerateBinaryInfix(operation, "==", Type::Bool, type, type);
+    Expression FOrdered(Operation operation) {
+        return {fmt::format("(!isnan({}) && !isnan({}))", VisitOperand(operation, 0).AsFloat(),
+                            VisitOperand(operation, 1).AsFloat()),
+                Type::Bool};
     }
 
-    template <Type type>
-    Expression LogicalLessEqual(Operation operation) {
-        return GenerateBinaryInfix(operation, "<=", Type::Bool, type, type);
-    }
-
-    template <Type type>
-    Expression LogicalGreaterThan(Operation operation) {
-        return GenerateBinaryInfix(operation, ">", Type::Bool, type, type);
-    }
-
-    template <Type type>
-    Expression LogicalNotEqual(Operation operation) {
-        return GenerateBinaryInfix(operation, "!=", Type::Bool, type, type);
-    }
-
-    template <Type type>
-    Expression LogicalGreaterEqual(Operation operation) {
-        return GenerateBinaryInfix(operation, ">=", Type::Bool, type, type);
+    Expression FUnordered(Operation operation) {
+        return {fmt::format("(isnan({}) || isnan({}))", VisitOperand(operation, 0).AsFloat(),
+                            VisitOperand(operation, 1).AsFloat()),
+                Type::Bool};
     }
 
     Expression LogicalAddCarry(Operation operation) {
@@ -2324,6 +2330,13 @@ private:
         Func() = delete;
         ~Func() = delete;
 
+        static constexpr std::string_view LessThan = "<";
+        static constexpr std::string_view Equal = "==";
+        static constexpr std::string_view LessEqual = "<=";
+        static constexpr std::string_view GreaterThan = ">";
+        static constexpr std::string_view NotEqual = "!=";
+        static constexpr std::string_view GreaterEqual = ">=";
+
         static constexpr std::string_view Add = "Add";
         static constexpr std::string_view Min = "Min";
         static constexpr std::string_view Max = "Max";
@@ -2425,27 +2438,34 @@ private:
         &GLSLDecompiler::LogicalPick2,
         &GLSLDecompiler::LogicalAnd2,
 
-        &GLSLDecompiler::LogicalLessThan<Type::Float>,
-        &GLSLDecompiler::LogicalEqual<Type::Float>,
-        &GLSLDecompiler::LogicalLessEqual<Type::Float>,
-        &GLSLDecompiler::LogicalGreaterThan<Type::Float>,
-        &GLSLDecompiler::LogicalNotEqual<Type::Float>,
-        &GLSLDecompiler::LogicalGreaterEqual<Type::Float>,
-        &GLSLDecompiler::LogicalFIsNan,
+        &GLSLDecompiler::Comparison<Func::LessThan, Type::Float, false>,
+        &GLSLDecompiler::Comparison<Func::Equal, Type::Float, false>,
+        &GLSLDecompiler::Comparison<Func::LessEqual, Type::Float, false>,
+        &GLSLDecompiler::Comparison<Func::GreaterThan, Type::Float, false>,
+        &GLSLDecompiler::Comparison<Func::NotEqual, Type::Float, false>,
+        &GLSLDecompiler::Comparison<Func::GreaterEqual, Type::Float, false>,
+        &GLSLDecompiler::FOrdered,
+        &GLSLDecompiler::FUnordered,
+        &GLSLDecompiler::Comparison<Func::LessThan, Type::Float, true>,
+        &GLSLDecompiler::Comparison<Func::Equal, Type::Float, true>,
+        &GLSLDecompiler::Comparison<Func::LessEqual, Type::Float, true>,
+        &GLSLDecompiler::Comparison<Func::GreaterThan, Type::Float, true>,
+        &GLSLDecompiler::Comparison<Func::NotEqual, Type::Float, true>,
+        &GLSLDecompiler::Comparison<Func::GreaterEqual, Type::Float, true>,
 
-        &GLSLDecompiler::LogicalLessThan<Type::Int>,
-        &GLSLDecompiler::LogicalEqual<Type::Int>,
-        &GLSLDecompiler::LogicalLessEqual<Type::Int>,
-        &GLSLDecompiler::LogicalGreaterThan<Type::Int>,
-        &GLSLDecompiler::LogicalNotEqual<Type::Int>,
-        &GLSLDecompiler::LogicalGreaterEqual<Type::Int>,
+        &GLSLDecompiler::Comparison<Func::LessThan, Type::Int>,
+        &GLSLDecompiler::Comparison<Func::Equal, Type::Int>,
+        &GLSLDecompiler::Comparison<Func::LessEqual, Type::Int>,
+        &GLSLDecompiler::Comparison<Func::GreaterThan, Type::Int>,
+        &GLSLDecompiler::Comparison<Func::NotEqual, Type::Int>,
+        &GLSLDecompiler::Comparison<Func::GreaterEqual, Type::Int>,
 
-        &GLSLDecompiler::LogicalLessThan<Type::Uint>,
-        &GLSLDecompiler::LogicalEqual<Type::Uint>,
-        &GLSLDecompiler::LogicalLessEqual<Type::Uint>,
-        &GLSLDecompiler::LogicalGreaterThan<Type::Uint>,
-        &GLSLDecompiler::LogicalNotEqual<Type::Uint>,
-        &GLSLDecompiler::LogicalGreaterEqual<Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::LessThan, Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::Equal, Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::LessEqual, Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::GreaterThan, Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::NotEqual, Type::Uint>,
+        &GLSLDecompiler::Comparison<Func::GreaterEqual, Type::Uint>,
 
         &GLSLDecompiler::LogicalAddCarry,
 

@@ -255,7 +255,7 @@ void ShaderIR::InsertControlFlow(NodeBlock& bb, const ShaderBlock& block) {
         Node n = Operation(OperationCode::Branch, Immediate(branch_case.address));
         Node op_b = Immediate(branch_case.cmp_value);
         Node condition =
-            GetPredicateComparisonInteger(Tegra::Shader::PredCondition::Equal, false, op_a, op_b);
+            GetPredicateComparisonInteger(Tegra::Shader::PredCondition::EQ, false, op_a, op_b);
         auto result = Conditional(condition, {n});
         bb.push_back(result);
         global_code.push_back(result);

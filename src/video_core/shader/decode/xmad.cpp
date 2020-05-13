@@ -97,19 +97,19 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
             return SignedOperation(OperationCode::IAdd, is_signed_c, original_c, shifted_b);
         }
         case Tegra::Shader::XmadMode::CSfu: {
-            const Node comp_a = GetPredicateComparisonInteger(PredCondition::Equal, is_signed_a,
-                                                              op_a, Immediate(0));
-            const Node comp_b = GetPredicateComparisonInteger(PredCondition::Equal, is_signed_b,
-                                                              op_b, Immediate(0));
+            const Node comp_a =
+                GetPredicateComparisonInteger(PredCondition::EQ, is_signed_a, op_a, Immediate(0));
+            const Node comp_b =
+                GetPredicateComparisonInteger(PredCondition::EQ, is_signed_b, op_b, Immediate(0));
             const Node comp = Operation(OperationCode::LogicalOr, comp_a, comp_b);
 
             const Node comp_minus_a = GetPredicateComparisonInteger(
-                PredCondition::NotEqual, is_signed_a,
+                PredCondition::NE, is_signed_a,
                 SignedOperation(OperationCode::IBitwiseAnd, is_signed_a, op_a,
                                 Immediate(0x80000000)),
                 Immediate(0));
             const Node comp_minus_b = GetPredicateComparisonInteger(
-                PredCondition::NotEqual, is_signed_b,
+                PredCondition::NE, is_signed_b,
                 SignedOperation(OperationCode::IBitwiseAnd, is_signed_b, op_b,
                                 Immediate(0x80000000)),
                 Immediate(0));
