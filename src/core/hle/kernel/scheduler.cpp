@@ -736,15 +736,15 @@ void Scheduler::SwitchContext() {
         previous_thread->context_guard.unlock();
     }
 
-    std::shared_ptr<Common::Fiber> old_context;
+    std::shared_ptr<Common::Fiber>* old_context;
     if (previous_thread != nullptr) {
-        old_context = previous_thread->GetHostContext();
+        old_context = &previous_thread->GetHostContext();
     } else {
-        old_context = idle_thread->GetHostContext();
+        old_context = &idle_thread->GetHostContext();
     }
     guard.unlock();
 
-    Common::Fiber::YieldTo(old_context, switch_fiber);
+    Common::Fiber::YieldTo(*old_context, switch_fiber);
     /// When a thread wakes up, the scheduler may have changed to other in another core.
     auto& next_scheduler = system.Kernel().CurrentScheduler();
     next_scheduler.SwitchContextStep2();
@@ -774,13 +774,13 @@ void Scheduler::SwitchToCurrent() {
                     break;
                 }
             }
-            std::shared_ptr<Common::Fiber> next_context;
+            std::shared_ptr<Common::Fiber>* next_context;
             if (current_thread != nullptr) {
-                next_context = current_thread->GetHostContext();
+                next_context = &current_thread->GetHostContext();
             } else {
-                next_context = idle_thread->GetHostContext();
+                next_context = &idle_thread->GetHostContext();
             }
-            Common::Fiber::YieldTo(switch_fiber, next_context);
+            Common::Fiber::YieldTo(switch_fiber, *next_context);
         }
     }
 }

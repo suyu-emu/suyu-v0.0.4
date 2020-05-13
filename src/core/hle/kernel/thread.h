@@ -342,7 +342,7 @@ public:
         was_running = value;
     }
 
-    std::shared_ptr<Common::Fiber> GetHostContext() const;
+    std::shared_ptr<Common::Fiber>& GetHostContext();
 
     ThreadStatus GetStatus() const {
         return status;

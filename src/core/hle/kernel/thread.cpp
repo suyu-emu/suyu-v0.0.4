@@ -150,7 +150,7 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
     context.fpcr = 0;
 }
 
-std::shared_ptr<Common::Fiber> Thread::GetHostContext() const {
+std::shared_ptr<Common::Fiber>& Thread::GetHostContext() {
     return host_context;
 }
 

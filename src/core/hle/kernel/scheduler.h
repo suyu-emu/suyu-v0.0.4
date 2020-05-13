@@ -236,7 +236,7 @@ public:
 
     void OnThreadStart();
 
-    std::shared_ptr<Common::Fiber> ControlContext() {
+    std::shared_ptr<Common::Fiber>& ControlContext() {
         return switch_fiber;
     }
 
