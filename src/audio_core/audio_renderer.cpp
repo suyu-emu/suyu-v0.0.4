@@ -17,7 +17,7 @@ namespace AudioCore {
 
 constexpr u32 STREAM_SAMPLE_RATE{48000};
 constexpr u32 STREAM_NUM_CHANNELS{2};
-
+using VoiceChannelHolder = std::array<VoiceResourceInformation*, 6>;
 class AudioRenderer::VoiceState {
 public:
     bool IsPlaying() const {
@@ -37,9 +37,10 @@ public:
     }
 
     void SetWaveIndex(std::size_t index);
-    std::vector<s16> DequeueSamples(std::size_t sample_count, Core::Memory::Memory& memory);
+    std::vector<s16> DequeueSamples(std::size_t sample_count, Core::Memory::Memory& memory,
+                                    const VoiceChannelHolder& voice_resources);
     void UpdateState();
-    void RefreshBuffer(Core::Memory::Memory& memory);
+    void RefreshBuffer(Core::Memory::Memory& memory, const VoiceChannelHolder& voice_resources);
 
 private:
     bool is_in_use{};
@@ -79,7 +80,7 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory
                              std::shared_ptr<Kernel::WritableEvent> buffer_event,
                              std::size_t instance_number)
     : worker_params{params}, buffer_event{buffer_event}, voices(params.voice_count),
-      effects(params.effect_count), memory{memory_} {
+      voice_resources(params.voice_count), effects(params.effect_count), memory{memory_} {
     behavior_info.SetUserRevision(params.revision);
     audio_out = std::make_unique<AudioCore::AudioOut>();
     stream = audio_out->OpenStream(core_timing, STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS,
@@ -126,6 +127,12 @@ ResultVal<std::vector<u8>> AudioRenderer::UpdateAudioRenderer(const std::vector<
     std::memcpy(mem_pool_info.data(),
                 input_params.data() + sizeof(UpdateDataHeader) + config.behavior_size,
                 memory_pool_count * sizeof(MemoryPoolInfo));
+
+    // Copy voice resources
+    const std::size_t voice_resource_offset{sizeof(UpdateDataHeader) + config.behavior_size +
+                                            config.memory_pools_size};
+    std::memcpy(voice_resources.data(), input_params.data() + voice_resource_offset,
+                sizeof(VoiceResourceInformation) * voice_resources.size());
 
     // Copy VoiceInfo structs
     std::size_t voice_offset{sizeof(UpdateDataHeader) + config.behavior_size +
@@ -220,14 +227,15 @@ void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
     is_refresh_pending = true;
 }
 
-std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(std::size_t sample_count,
-                                                           Core::Memory::Memory& memory) {
+std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(
+    std::size_t sample_count, Core::Memory::Memory& memory,
+    const VoiceChannelHolder& voice_resources) {
     if (!IsPlaying()) {
         return {};
     }
 
     if (is_refresh_pending) {
-        RefreshBuffer(memory);
+        RefreshBuffer(memory, voice_resources);
     }
 
     const std::size_t max_size{samples.size() - offset};
@@ -271,7 +279,8 @@ void AudioRenderer::VoiceState::UpdateState() {
     is_in_use = info.is_in_use;
 }
 
-void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory) {
+void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
+                                              const VoiceChannelHolder& voice_resources) {
     const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
     const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
     std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
@@ -296,17 +305,77 @@ void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory) {
     }
 
     switch (info.channel_count) {
-    case 1:
+    case 1: {
         // 1 channel is upsampled to 2 channel
         samples.resize(new_samples.size() * 2);
+
         for (std::size_t index = 0; index < new_samples.size(); ++index) {
-            samples[index * 2] = new_samples[index];
-            samples[index * 2 + 1] = new_samples[index];
+            auto sample = static_cast<float>(new_samples[index]);
+            if (voice_resources[0]->in_use) {
+                sample *= voice_resources[0]->mix_volumes[0];
+            }
+
+            samples[index * 2] = static_cast<s16>(sample * info.volume);
+            samples[index * 2 + 1] = static_cast<s16>(sample * info.volume);
         }
         break;
+    }
     case 2: {
         // 2 channel is played as is
         samples = std::move(new_samples);
+        const std::size_t sample_count = (samples.size() / 2);
+        for (std::size_t index = 0; index < sample_count; ++index) {
+            const std::size_t index_l = index * 2;
+            const std::size_t index_r = index * 2 + 1;
+
+            auto sample_l = static_cast<float>(samples[index_l]);
+            auto sample_r = static_cast<float>(samples[index_r]);
+
+            if (voice_resources[0]->in_use) {
+                sample_l *= voice_resources[0]->mix_volumes[0];
+            }
+
+            if (voice_resources[1]->in_use) {
+                sample_r *= voice_resources[1]->mix_volumes[1];
+            }
+
+            samples[index_l] = static_cast<s16>(sample_l * info.volume);
+            samples[index_r] = static_cast<s16>(sample_r * info.volume);
+        }
+        break;
+    }
+    case 6: {
+        samples.resize((new_samples.size() / 6) * 2);
+        const std::size_t sample_count = samples.size() / 2;
+
+        for (std::size_t index = 0; index < sample_count; ++index) {
+            auto FL = static_cast<float>(new_samples[index * 6]);
+            auto FR = static_cast<float>(new_samples[index * 6 + 1]);
+            auto FC = static_cast<float>(new_samples[index * 6 + 2]);
+            auto BL = static_cast<float>(new_samples[index * 6 + 4]);
+            auto BR = static_cast<float>(new_samples[index * 6 + 5]);
+
+            if (voice_resources[0]->in_use) {
+                FL *= voice_resources[0]->mix_volumes[0];
+            }
+            if (voice_resources[1]->in_use) {
+                FR *= voice_resources[1]->mix_volumes[1];
+            }
+            if (voice_resources[2]->in_use) {
+                FC *= voice_resources[2]->mix_volumes[2];
+            }
+            if (voice_resources[4]->in_use) {
+                BL *= voice_resources[4]->mix_volumes[4];
+            }
+            if (voice_resources[5]->in_use) {
+                BR *= voice_resources[5]->mix_volumes[5];
+            }
+
+            samples[index * 2] =
+                static_cast<s16>((0.3694f * FL + 0.2612f * FC + 0.3694f * BL) * info.volume);
+            samples[index * 2 + 1] =
+                static_cast<s16>((0.3694f * FR + 0.2612f * FC + 0.3694f * BR) * info.volume);
+        }
         break;
     }
     default:
@@ -352,11 +421,17 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
         if (!voice.IsPlaying()) {
             continue;
         }
+        VoiceChannelHolder resources{};
+        for (u32 channel = 0; channel < voice.GetInfo().channel_count; channel++) {
+            const auto channel_resource_id = voice.GetInfo().voice_channel_resource_ids[channel];
+            resources[channel] = &voice_resources[channel_resource_id];
+        }
 
         std::size_t offset{};
         s64 samples_remaining{BUFFER_SIZE};
         while (samples_remaining > 0) {
-            const std::vector<s16> samples{voice.DequeueSamples(samples_remaining, memory)};
+            const std::vector<s16> samples{
+                voice.DequeueSamples(samples_remaining, memory, resources)};
 
             if (samples.empty()) {
                 break;

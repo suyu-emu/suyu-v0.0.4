@@ -14,6 +14,7 @@ constexpr ResultCode ERR_INVALID_PARAMETERS{ErrorModule::Audio, 41};
 }
 
 constexpr u32_le CURRENT_PROCESS_REVISION = Common::MakeMagic('R', 'E', 'V', '8');
+constexpr std::size_t MAX_MIX_BUFFERS = 24;
 
 static constexpr u32 VersionFromRevision(u32_le rev) {
     // "REV7" -> 7

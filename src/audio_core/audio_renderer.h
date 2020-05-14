@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "audio_core/behavior_info.h"
+#include "audio_core/common.h"
 #include "audio_core/stream.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
@@ -115,6 +116,14 @@ struct WaveBuffer {
     INSERT_PADDING_BYTES(8);
 };
 static_assert(sizeof(WaveBuffer) == 0x38, "WaveBuffer has wrong size");
+
+struct VoiceResourceInformation {
+    s32_le id{};
+    std::array<float_le, MAX_MIX_BUFFERS> mix_volumes{};
+    bool in_use{};
+    INSERT_PADDING_BYTES(11);
+};
+static_assert(sizeof(VoiceResourceInformation) == 0x70, "VoiceResourceInformation has wrong size");
 
 struct VoiceInfo {
     u32_le id;
@@ -244,6 +253,7 @@ private:
     AudioRendererParameter worker_params;
     std::shared_ptr<Kernel::WritableEvent> buffer_event;
     std::vector<VoiceState> voices;
+    std::vector<VoiceResourceInformation> voice_resources;
     std::vector<EffectState> effects;
     std::unique_ptr<AudioOut> audio_out;
     StreamPtr stream;
