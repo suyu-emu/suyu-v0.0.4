@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "common/logging/log.h"
+#include "common/time_zone.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
@@ -14,6 +15,7 @@
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/hle/service/time/time_manager.h"
 #include "core/hle/service/time/time_zone_content_manager.h"
+#include "core/settings.h"
 
 namespace Service::Time::TimeZone {
 
@@ -68,10 +70,22 @@ static std::vector<std::string> BuildLocationNameCache(Core::System& system) {
 
 TimeZoneContentManager::TimeZoneContentManager(TimeManager& time_manager, Core::System& system)
     : system{system}, location_name_cache{BuildLocationNameCache(system)} {
-    if (FileSys::VirtualFile vfs_file; GetTimeZoneInfoFile("GMT", vfs_file) == RESULT_SUCCESS) {
+
+    std::string location_name;
+    const auto timezone_setting = Settings::GetTimeZoneString();
+    if (timezone_setting == "auto") {
+        location_name = Common::TimeZone::GetDefaultTimeZone();
+    } else if (timezone_setting == "default") {
+        location_name = location_name;
+    } else {
+        location_name = timezone_setting;
+    }
+
+    if (FileSys::VirtualFile vfs_file;
+        GetTimeZoneInfoFile(location_name, vfs_file) == RESULT_SUCCESS) {
         const auto time_point{
             time_manager.GetStandardSteadyClockCore().GetCurrentTimePoint(system)};
-        time_manager.SetupTimeZoneManager("GMT", time_point, location_name_cache.size(), {},
+        time_manager.SetupTimeZoneManager(location_name, time_point, location_name_cache.size(), {},
                                           vfs_file);
     } else {
         time_zone_manager.MarkAsInitialized();
@@ -113,6 +127,12 @@ ResultCode TimeZoneContentManager::GetTimeZoneInfoFile(const std::string& locati
     }
 
     vfs_file = zoneinfo_dir->GetFile(location_name);
+    if (!vfs_file) {
+        LOG_ERROR(Service_Time, "{:016X} has no file \"{}\"! Using default timezone.",
+                  time_zone_binary_titleid, location_name);
+        vfs_file = zoneinfo_dir->GetFile(Common::TimeZone::GetDefaultTimeZone());
+    }
+
     if (!vfs_file) {
         LOG_ERROR(Service_Time, "{:016X} has no file \"{}\"!", time_zone_binary_titleid,
                   location_name);

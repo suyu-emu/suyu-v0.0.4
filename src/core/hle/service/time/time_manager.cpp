@@ -5,6 +5,7 @@
 #include <chrono>
 #include <ctime>
 
+#include "common/time_zone.h"
 #include "core/hle/service/time/ephemeral_network_system_clock_context_writer.h"
 #include "core/hle/service/time/local_system_clock_context_writer.h"
 #include "core/hle/service/time/network_system_clock_context_writer.h"
@@ -21,8 +22,16 @@ static std::chrono::seconds GetSecondsSinceEpoch() {
            Settings::values.custom_rtc_differential;
 }
 
+static s64 GetExternalTimeZoneOffset() {
+    // With "auto" timezone setting, we use the external system's timezone offset
+    if (Settings::GetTimeZoneString() == "auto") {
+        return Common::TimeZone::GetCurrentOffsetSeconds().count();
+    }
+    return 0;
+}
+
 static s64 GetExternalRtcValue() {
-    return GetSecondsSinceEpoch().count();
+    return GetSecondsSinceEpoch().count() + GetExternalTimeZoneOffset();
 }
 
 TimeManager::TimeManager(Core::System& system)

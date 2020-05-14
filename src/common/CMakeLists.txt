@@ -148,6 +148,8 @@ add_library(common STATIC
     thread.h
     thread_queue_list.h
     threadsafe_queue.h
+    time_zone.cpp
+    time_zone.h
     timer.cpp
     timer.h
     uint128.cpp

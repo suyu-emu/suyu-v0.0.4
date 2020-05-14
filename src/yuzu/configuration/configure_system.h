@@ -37,5 +37,6 @@ private:
 
     int language_index = 0;
     int region_index = 0;
+    int time_zone_index = 0;
     int sound_index = 0;
 };

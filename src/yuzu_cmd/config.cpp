@@ -367,6 +367,9 @@ void Config::ReadValues() {
         Settings::values.custom_rtc = std::nullopt;
     }
 
+    Settings::values.language_index = sdl2_config->GetInteger("System", "language_index", 1);
+    Settings::values.time_zone_index = sdl2_config->GetInteger("System", "time_zone_index", 0);
+
     // Core
     Settings::values.use_multi_core = sdl2_config->GetBoolean("Core", "use_multi_core", false);
 
@@ -408,8 +411,6 @@ void Config::ReadValues() {
         sdl2_config->GetBoolean("Audio", "enable_audio_stretching", true);
     Settings::values.audio_device_id = sdl2_config->Get("Audio", "output_device", "auto");
     Settings::values.volume = static_cast<float>(sdl2_config->GetReal("Audio", "volume", 1));
-
-    Settings::values.language_index = sdl2_config->GetInteger("System", "language_index", 1);
 
     // Miscellaneous
     Settings::values.log_filter = sdl2_config->Get("Miscellaneous", "log_filter", "*:Trace");

@@ -394,6 +394,7 @@ struct Values {
     s32 current_user;
     s32 language_index;
     s32 region_index;
+    s32 time_zone_index;
     s32 sound_index;
 
     // Controls
@@ -490,6 +491,9 @@ struct Values {
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
 
+std::string GetTimeZoneString();
+
 void Apply();
 void LogSettings();
+
 } // namespace Settings
