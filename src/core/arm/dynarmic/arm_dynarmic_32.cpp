@@ -91,11 +91,11 @@ public:
     u64 GetTicksRemaining() override {
         if (parent.uses_wall_clock) {
             if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
-                return std::max<s64>(1000U, 0);
+                return 1000U;
             }
-            return 0ULL;
+            return 0U;
         }
-        return std::max(parent.system.CoreTiming().GetDowncount(), 0LL);
+        return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
     }
 
     ARM_Dynarmic_32& parent;
