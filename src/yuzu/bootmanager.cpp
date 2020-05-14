@@ -150,18 +150,19 @@ public:
     }
 
     void MakeCurrent() override {
-        if (is_current) {
-            return;
+        // We can't track the current state of the underlying context in this wrapper class because
+        // Qt may make the underlying context not current for one reason or another. In particular,
+        // the WebBrowser uses GL, so it seems to conflict if we aren't careful.
+        // Instead of always just making the context current (which does not have any caching to
+        // check if the underlying context is already current) we can check for the current context
+        // in the thread local data by calling `currentContext()` and checking if its ours.
+        if (QOpenGLContext::currentContext() != context.get()) {
+            context->makeCurrent(surface);
         }
-        is_current = context->makeCurrent(surface);
     }
 
     void DoneCurrent() override {
-        if (!is_current) {
-            return;
-        }
         context->doneCurrent();
-        is_current = false;
     }
 
     QOpenGLContext* GetShareContext() {
@@ -178,7 +179,6 @@ private:
     std::unique_ptr<QOpenGLContext> context;
     std::unique_ptr<QOffscreenSurface> offscreen_surface{};
     QSurface* surface;
-    bool is_current = false;
 };
 
 class DummyContext : public Core::Frontend::GraphicsContext {};
