@@ -22,7 +22,6 @@ static std::array<s64, 5> delays{};
 
 static std::bitset<CB_IDS.size()> callbacks_ran_flags;
 static u64 expected_callback = 0;
-static s64 lateness = 0;
 
 template <unsigned int IDX>
 void HostCallbackTemplate(u64 userdata, s64 nanoseconds_late) {
@@ -34,8 +33,6 @@ void HostCallbackTemplate(u64 userdata, s64 nanoseconds_late) {
     ++expected_callback;
 }
 
-static u64 callbacks_done = 0;
-
 struct ScopeInit final {
     ScopeInit() {
         core_timing.Initialize();
@@ -46,6 +43,20 @@ struct ScopeInit final {
 
     Core::HostTiming::CoreTiming core_timing;
 };
+
+#pragma optimize("", off)
+
+static u64 TestTimerSpeed(Core::HostTiming::CoreTiming& core_timing) {
+    u64 start = core_timing.GetGlobalTimeNs().count();
+    u64 placebo = 0;
+    for (std::size_t i = 0; i < 1000; i++) {
+        placebo += core_timing.GetGlobalTimeNs().count();
+    }
+    u64 end = core_timing.GetGlobalTimeNs().count();
+    return (end - start);
+}
+
+#pragma optimize("", on)
 
 TEST_CASE("HostTiming[BasicOrder]", "[core]") {
     ScopeInit guard;
@@ -84,18 +95,6 @@ TEST_CASE("HostTiming[BasicOrder]", "[core]") {
         printf("HostTimer Pausing Delay[%zu]: %.3f %.6f\n", i, micro, mili);
     }
 }
-
-#pragma optimize("", off)
-u64 TestTimerSpeed(Core::HostTiming::CoreTiming& core_timing) {
-    u64 start = core_timing.GetGlobalTimeNs().count();
-    u64 placebo = 0;
-    for (std::size_t i = 0; i < 1000; i++) {
-        placebo += core_timing.GetGlobalTimeNs().count();
-    }
-    u64 end = core_timing.GetGlobalTimeNs().count();
-    return (end - start);
-}
-#pragma optimize("", on)
 
 TEST_CASE("HostTiming[BasicOrderNoPausing]", "[core]") {
     ScopeInit guard;
