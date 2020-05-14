@@ -42,19 +42,19 @@ bool AtomicCompareAndSwap(u64 volatile* pointer, u128 value, u128 expected) {
 #else
 
 bool AtomicCompareAndSwap(u8 volatile* pointer, u8 value, u8 expected) {
-    return __sync_bool_compare_and_swap(pointer, value, expected);
+    return __sync_bool_compare_and_swap(pointer, expected, value);
 }
 
 bool AtomicCompareAndSwap(u16 volatile* pointer, u16 value, u16 expected) {
-    return __sync_bool_compare_and_swap(pointer, value, expected);
+    return __sync_bool_compare_and_swap(pointer, expected, value);
 }
 
 bool AtomicCompareAndSwap(u32 volatile* pointer, u32 value, u32 expected) {
-    return __sync_bool_compare_and_swap(pointer, value, expected);
+    return __sync_bool_compare_and_swap(pointer, expected, value);
 }
 
 bool AtomicCompareAndSwap(u64 volatile* pointer, u64 value, u64 expected) {
-    return __sync_bool_compare_and_swap(pointer, value, expected);
+    return __sync_bool_compare_and_swap(pointer, expected, value);
 }
 
 bool AtomicCompareAndSwap(u64 volatile* pointer, u128 value, u128 expected) {
@@ -62,7 +62,7 @@ bool AtomicCompareAndSwap(u64 volatile* pointer, u128 value, u128 expected) {
     unsigned __int128 expected_a;
     std::memcpy(&value_a, value.data(), sizeof(u128));
     std::memcpy(&expected_a, expected.data(), sizeof(u128));
-    return __sync_bool_compare_and_swap((unsigned __int128*)pointer, value_a, expected_a);
+    return __sync_bool_compare_and_swap((unsigned __int128*)pointer, expected_a, value_a);
 }
 
 #endif
