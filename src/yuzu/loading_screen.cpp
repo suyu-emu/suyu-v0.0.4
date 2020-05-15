@@ -19,6 +19,7 @@
 #include <QTime>
 #include <QtConcurrent/QtConcurrentRun>
 #include "common/logging/log.h"
+#include "core/frontend/framebuffer_layout.h"
 #include "core/loader/loader.h"
 #include "ui_loading_screen.h"
 #include "video_core/rasterizer_interface.h"
@@ -61,7 +62,7 @@ LoadingScreen::LoadingScreen(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::LoadingScreen>()),
       previous_stage(VideoCore::LoadCallbackStage::Complete) {
     ui->setupUi(this);
-    setMinimumSize(1280, 720);
+    setMinimumSize(Layout::MinimumSize::Width, Layout::MinimumSize::Height);
 
     // Create a fade out effect to hide this loading screen widget.
     // When fading opacity, it will fade to the parent widgets background color, which is why we

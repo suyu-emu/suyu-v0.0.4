@@ -724,13 +724,13 @@ void GMainWindow::InitializeHotkeys() {
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
-    // geometry: 55% of the window contents are in the upper screen half, 45% in the lower half
+    // geometry: 53% of the window contents are in the upper screen half, 47% in the lower half
     const QRect screenRect = QApplication::desktop()->screenGeometry(this);
 
     const int w = screenRect.width() * 2 / 3;
-    const int h = screenRect.height() / 2;
+    const int h = screenRect.height() * 2 / 3;
     const int x = (screenRect.x() + screenRect.width()) / 2 - w / 2;
-    const int y = (screenRect.y() + screenRect.height()) / 2 - h * 55 / 100;
+    const int y = (screenRect.y() + screenRect.height()) / 2 - h * 53 / 100;
 
     setGeometry(x, y, w, h);
 }
@@ -831,6 +831,7 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::OnDisplayTitleBars);
     connect(ui.action_Show_Filter_Bar, &QAction::triggered, this, &GMainWindow::OnToggleFilterBar);
     connect(ui.action_Show_Status_Bar, &QAction::triggered, statusBar(), &QStatusBar::setVisible);
+    connect(ui.action_Reset_Window_Size, &QAction::triggered, this, &GMainWindow::ResetWindowSize);
 
     // Fullscreen
     ui.action_Fullscreen->setShortcut(
@@ -1826,6 +1827,20 @@ void GMainWindow::ToggleWindowMode() {
             render_window->RestoreGeometry();
             game_list->show();
         }
+    }
+}
+
+void GMainWindow::ResetWindowSize() {
+    const auto aspect_ratio = Layout::EmulationAspectRatio(
+        static_cast<Layout::AspectRatio>(Settings::values.aspect_ratio),
+        static_cast<float>(Layout::ScreenUndocked::Height) / Layout::ScreenUndocked::Width);
+    if (!ui.action_Single_Window_Mode->isChecked()) {
+        render_window->resize(Layout::ScreenUndocked::Height / aspect_ratio,
+                              Layout::ScreenUndocked::Height);
+    } else {
+        resize(Layout::ScreenUndocked::Height / aspect_ratio,
+               Layout::ScreenUndocked::Height + menuBar()->height() +
+                   (ui.action_Show_Status_Bar->isChecked() ? statusBar()->height() : 0));
     }
 }
 
