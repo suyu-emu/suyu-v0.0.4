@@ -1071,8 +1071,7 @@ private:
 
     void VisitBasicBlock(const NodeBlock& bb) {
         for (const auto& node : bb) {
-            [[maybe_unused]] const Type type = Visit(node).type;
-            ASSERT(type == Type::Void);
+            Visit(node);
         }
     }
 
