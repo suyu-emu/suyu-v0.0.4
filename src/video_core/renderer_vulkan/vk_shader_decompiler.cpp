@@ -1361,7 +1361,9 @@ private:
         Expression target{};
         if (const auto gpr = std::get_if<GprNode>(&*dest)) {
             if (gpr->GetIndex() == Register::ZeroIndex) {
-                // Writing to Register::ZeroIndex is a no op
+                // Writing to Register::ZeroIndex is a no op but we still have to visit its source
+                // because it might have side effects.
+                Visit(src);
                 return {};
             }
             target = {registers.at(gpr->GetIndex()), Type::Float};
