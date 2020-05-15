@@ -2309,6 +2309,18 @@ private:
         return {"gl_SubGroupInvocationARB", Type::Uint};
     }
 
+    template <const std::string_view& comparison>
+    Expression ThreadMask(Operation) {
+        if (device.HasWarpIntrinsics()) {
+            return {fmt::format("gl_Thread{}MaskNV", comparison), Type::Uint};
+        }
+        if (device.HasShaderBallot()) {
+            return {fmt::format("uint(gl_SubGroup{}MaskARB)", comparison), Type::Uint};
+        }
+        LOG_ERROR(Render_OpenGL, "Thread mask intrinsics are required by the shader");
+        return {"0U", Type::Uint};
+    }
+
     Expression ShuffleIndexed(Operation operation) {
         std::string value = VisitOperand(operation, 0).AsFloat();
 
@@ -2336,6 +2348,12 @@ private:
         static constexpr std::string_view GreaterThan = ">";
         static constexpr std::string_view NotEqual = "!=";
         static constexpr std::string_view GreaterEqual = ">=";
+
+        static constexpr std::string_view Eq = "Eq";
+        static constexpr std::string_view Ge = "Ge";
+        static constexpr std::string_view Gt = "Gt";
+        static constexpr std::string_view Le = "Le";
+        static constexpr std::string_view Lt = "Lt";
 
         static constexpr std::string_view Add = "Add";
         static constexpr std::string_view Min = "Min";
@@ -2554,6 +2572,11 @@ private:
         &GLSLDecompiler::VoteEqual,
 
         &GLSLDecompiler::ThreadId,
+        &GLSLDecompiler::ThreadMask<Func::Eq>,
+        &GLSLDecompiler::ThreadMask<Func::Ge>,
+        &GLSLDecompiler::ThreadMask<Func::Gt>,
+        &GLSLDecompiler::ThreadMask<Func::Le>,
+        &GLSLDecompiler::ThreadMask<Func::Lt>,
         &GLSLDecompiler::ShuffleIndexed,
 
         &GLSLDecompiler::MemoryBarrierGL,
