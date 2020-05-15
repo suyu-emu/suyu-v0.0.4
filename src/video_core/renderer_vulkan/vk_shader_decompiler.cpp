@@ -2181,6 +2181,22 @@ private:
         return {OpSubgroupReadInvocationKHR(t_float, value, index), Type::Float};
     }
 
+    Expression Barrier(Operation) {
+        if (!ir.IsDecompiled()) {
+            LOG_ERROR(Render_Vulkan, "OpBarrier used by shader is not decompiled");
+            return {};
+        }
+
+        const auto scope = spv::Scope::Workgroup;
+        const auto memory = spv::Scope::Workgroup;
+        const auto semantics =
+            spv::MemorySemanticsMask::WorkgroupMemory | spv::MemorySemanticsMask::AcquireRelease;
+        OpControlBarrier(Constant(t_uint, static_cast<u32>(scope)),
+                         Constant(t_uint, static_cast<u32>(memory)),
+                         Constant(t_uint, static_cast<u32>(semantics)));
+        return {};
+    }
+
     Expression MemoryBarrierGL(Operation) {
         const auto scope = spv::Scope::Device;
         const auto semantics =
@@ -2641,6 +2657,7 @@ private:
         &SPIRVDecompiler::ThreadId,
         &SPIRVDecompiler::ShuffleIndexed,
 
+        &SPIRVDecompiler::Barrier,
         &SPIRVDecompiler::MemoryBarrierGL,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));

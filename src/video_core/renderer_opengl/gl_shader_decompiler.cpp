@@ -2321,6 +2321,15 @@ private:
         return {fmt::format("readInvocationARB({}, {})", value, index), Type::Float};
     }
 
+    Expression Barrier(Operation) {
+        if (!ir.IsDecompiled()) {
+            LOG_ERROR(Render_OpenGL, "barrier() used but shader is not decompiled");
+            return {};
+        }
+        code.AddLine("barrier();");
+        return {};
+    }
+
     Expression MemoryBarrierGL(Operation) {
         code.AddLine("memoryBarrier();");
         return {};
@@ -2556,6 +2565,7 @@ private:
         &GLSLDecompiler::ThreadId,
         &GLSLDecompiler::ShuffleIndexed,
 
+        &GLSLDecompiler::Barrier,
         &GLSLDecompiler::MemoryBarrierGL,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
