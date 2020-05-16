@@ -138,9 +138,7 @@ u32 BufferQueue::Query(QueryType type) {
 
     switch (type) {
     case QueryType::NativeWindowFormat:
-        // TODO(Subv): Use an enum for this
-        static constexpr u32 FormatABGR8 = 1;
-        return FormatABGR8;
+        return static_cast<u32>(PixelFormat::RGBA8888);
     }
 
     UNIMPLEMENTED();
