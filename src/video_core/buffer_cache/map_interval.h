@@ -9,12 +9,22 @@
 
 namespace VideoCommon {
 
-struct MapIntervalBase {
-    constexpr explicit MapIntervalBase(VAddr start, VAddr end, GPUVAddr gpu_addr) noexcept
+struct MapInterval {
+    constexpr explicit MapInterval() noexcept = default;
+
+    constexpr explicit MapInterval(VAddr start, VAddr end, GPUVAddr gpu_addr) noexcept
         : start{start}, end{end}, gpu_addr{gpu_addr} {}
 
-    constexpr bool IsInside(const VAddr other_start, const VAddr other_end) const noexcept {
+    constexpr bool IsInside(VAddr other_start, VAddr other_end) const noexcept {
         return (start <= other_start && other_end <= end);
+    }
+
+    constexpr bool operator==(const MapInterval& rhs) const noexcept {
+        return start == rhs.start && end == rhs.end;
+    }
+
+    constexpr bool operator!=(const MapInterval& rhs) const noexcept {
+        return !operator==(rhs);
     }
 
     constexpr void MarkAsModified(bool is_modified_, u64 ticks_) noexcept {
@@ -22,17 +32,9 @@ struct MapIntervalBase {
         ticks = ticks_;
     }
 
-    constexpr bool operator==(const MapIntervalBase& rhs) const noexcept {
-        return start == rhs.start && end == rhs.end;
-    }
-
-    constexpr bool operator!=(const MapIntervalBase& rhs) const noexcept {
-        return !operator==(rhs);
-    }
-
-    VAddr start;
-    VAddr end;
-    GPUVAddr gpu_addr;
+    VAddr start = 0;
+    VAddr end = 0;
+    GPUVAddr gpu_addr = 0;
     VAddr cpu_addr = 0;
     u64 ticks = 0;
     bool is_written = false;
