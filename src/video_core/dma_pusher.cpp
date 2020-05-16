@@ -54,9 +54,7 @@ bool DmaPusher::Step() {
         return true;
     });
     const CommandListHeader command_list_header{command_list[dma_pushbuffer_subindex++]};
-    GPUVAddr dma_get = command_list_header.addr;
-    GPUVAddr dma_put = dma_get + command_list_header.size * sizeof(u32);
-    bool non_main = command_list_header.is_non_main;
+    const GPUVAddr dma_get = command_list_header.addr;
 
     if (dma_pushbuffer_subindex >= command_list.size()) {
         // We've gone through the current list, remove it from the queue
@@ -131,11 +129,6 @@ bool DmaPusher::Step() {
             }
         }
         index++;
-    }
-
-    if (!non_main) {
-        // TODO (degasus): This is dead code, as dma_mget is never read.
-        dma_mget = dma_put;
     }
 
     return true;

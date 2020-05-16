@@ -102,7 +102,6 @@ private:
     DmaState dma_state{};
     bool dma_increment_once{};
 
-    GPUVAddr dma_mget{};  ///< main pushbuffer last read address
     bool ib_enable{true}; ///< IB mode enabled
 
     std::array<Tegra::Engines::EngineInterface*, max_subchannels> subchannels{};
