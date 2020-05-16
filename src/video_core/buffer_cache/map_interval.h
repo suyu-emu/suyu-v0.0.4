@@ -9,99 +9,37 @@
 
 namespace VideoCommon {
 
-class MapIntervalBase {
-public:
-    MapIntervalBase(const VAddr start, const VAddr end, const GPUVAddr gpu_addr)
+struct MapIntervalBase {
+    constexpr explicit MapIntervalBase(VAddr start, VAddr end, GPUVAddr gpu_addr) noexcept
         : start{start}, end{end}, gpu_addr{gpu_addr} {}
 
-    void SetCpuAddress(VAddr new_cpu_addr) {
-        cpu_addr = new_cpu_addr;
-    }
-
-    VAddr GetCpuAddress() const {
-        return cpu_addr;
-    }
-
-    GPUVAddr GetGpuAddress() const {
-        return gpu_addr;
-    }
-
-    bool IsInside(const VAddr other_start, const VAddr other_end) const {
+    constexpr bool IsInside(const VAddr other_start, const VAddr other_end) const noexcept {
         return (start <= other_start && other_end <= end);
     }
 
-    bool operator==(const MapIntervalBase& rhs) const {
-        return std::tie(start, end) == std::tie(rhs.start, rhs.end);
+    constexpr void MarkAsModified(bool is_modified_, u64 ticks_) noexcept {
+        is_modified = is_modified_;
+        ticks = ticks_;
     }
 
-    bool operator!=(const MapIntervalBase& rhs) const {
+    constexpr bool operator==(const MapIntervalBase& rhs) const noexcept {
+        return start == rhs.start && end == rhs.end;
+    }
+
+    constexpr bool operator!=(const MapIntervalBase& rhs) const noexcept {
         return !operator==(rhs);
     }
 
-    void MarkAsRegistered(const bool registered) {
-        is_registered = registered;
-    }
-
-    bool IsRegistered() const {
-        return is_registered;
-    }
-
-    void SetMemoryMarked(bool is_memory_marked_) {
-        is_memory_marked = is_memory_marked_;
-    }
-
-    bool IsMemoryMarked() const {
-        return is_memory_marked;
-    }
-
-    void SetSyncPending(bool is_sync_pending_) {
-        is_sync_pending = is_sync_pending_;
-    }
-
-    bool IsSyncPending() const {
-        return is_sync_pending;
-    }
-
-    VAddr GetStart() const {
-        return start;
-    }
-
-    VAddr GetEnd() const {
-        return end;
-    }
-
-    void MarkAsModified(const bool is_modified_, const u64 tick) {
-        is_modified = is_modified_;
-        ticks = tick;
-    }
-
-    bool IsModified() const {
-        return is_modified;
-    }
-
-    u64 GetModificationTick() const {
-        return ticks;
-    }
-
-    void MarkAsWritten(const bool is_written_) {
-        is_written = is_written_;
-    }
-
-    bool IsWritten() const {
-        return is_written;
-    }
-
-private:
     VAddr start;
     VAddr end;
     GPUVAddr gpu_addr;
-    VAddr cpu_addr{};
-    bool is_written{};
-    bool is_modified{};
-    bool is_registered{};
-    bool is_memory_marked{};
-    bool is_sync_pending{};
-    u64 ticks{};
+    VAddr cpu_addr = 0;
+    u64 ticks = 0;
+    bool is_written = false;
+    bool is_modified = false;
+    bool is_registered = false;
+    bool is_memory_marked = false;
+    bool is_sync_pending = false;
 };
 
 } // namespace VideoCommon

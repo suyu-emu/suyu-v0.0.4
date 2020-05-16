@@ -40,14 +40,12 @@ public:
                             bool is_written = false, bool use_fast_cbuf = false) {
         std::lock_guard lock{mutex};
 
-        const std::optional<VAddr> cpu_addr_opt =
-            system.GPU().MemoryManager().GpuToCpuAddress(gpu_addr);
-
+        const auto& memory_manager = system.GPU().MemoryManager();
+        const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
         if (!cpu_addr_opt) {
             return {GetEmptyBuffer(size), 0};
         }
-
-        VAddr cpu_addr = *cpu_addr_opt;
+        const VAddr cpu_addr = *cpu_addr_opt;
 
         // Cache management is a big overhead, so only cache entries with a given size.
         // TODO: Figure out which size is the best for given games.
@@ -84,9 +82,9 @@ public:
             if (Settings::IsGPULevelHigh() && Settings::values.use_asynchronous_gpu_emulation) {
                 MarkForAsyncFlush(map);
             }
-            if (!map->IsWritten()) {
-                map->MarkAsWritten(true);
-                MarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
+            if (!map->is_written) {
+                map->is_written = true;
+                MarkRegionAsWritten(map->start, map->end - 1);
             }
         }
 
@@ -133,11 +131,11 @@ public:
         std::lock_guard lock{mutex};
 
         std::vector<MapInterval> objects = GetMapsInRange(addr, size);
-        std::sort(objects.begin(), objects.end(), [](const MapInterval& a, const MapInterval& b) {
-            return a->GetModificationTick() < b->GetModificationTick();
-        });
+        std::sort(
+            objects.begin(), objects.end(),
+            [](const MapInterval& lhs, const MapInterval& rhs) { return lhs->ticks < rhs->ticks; });
         for (auto& object : objects) {
-            if (object->IsModified() && object->IsRegistered()) {
+            if (object->is_modified && object->is_registered) {
                 mutex.unlock();
                 FlushMap(object);
                 mutex.lock();
@@ -150,7 +148,7 @@ public:
 
         const std::vector<MapInterval> objects = GetMapsInRange(addr, size);
         return std::any_of(objects.cbegin(), objects.cend(), [](const MapInterval& map) {
-            return map->IsModified() && map->IsRegistered();
+            return map->is_modified && map->is_registered;
         });
     }
 
@@ -160,7 +158,7 @@ public:
 
         std::vector<MapInterval> objects = GetMapsInRange(addr, size);
         for (auto& object : objects) {
-            if (object->IsRegistered()) {
+            if (object->is_registered) {
                 Unregister(object);
             }
         }
@@ -170,9 +168,9 @@ public:
         std::lock_guard lock{mutex};
 
         for (const auto& object : GetMapsInRange(addr, size)) {
-            if (object->IsMemoryMarked() && object->IsRegistered()) {
+            if (object->is_memory_marked && object->is_registered) {
                 UnmarkMemory(object);
-                object->SetSyncPending(true);
+                object->is_sync_pending = true;
                 marked_for_unregister.emplace_back(object);
             }
         }
@@ -182,8 +180,8 @@ public:
         std::lock_guard lock{mutex};
 
         for (const auto& object : marked_for_unregister) {
-            if (object->IsRegistered()) {
-                object->SetSyncPending(false);
+            if (object->is_registered) {
+                object->is_sync_pending = false;
                 Unregister(object);
             }
         }
@@ -194,7 +192,7 @@ public:
         if (uncommitted_flushes) {
             auto commit_list = std::make_shared<std::list<MapInterval>>();
             for (auto& map : *uncommitted_flushes) {
-                if (map->IsRegistered() && map->IsModified()) {
+                if (map->is_registered && map->is_modified) {
                     // TODO(Blinkhawk): Implement backend asynchronous flushing
                     // AsyncFlushMap(map)
                     commit_list->push_back(map);
@@ -229,7 +227,7 @@ public:
             return;
         }
         for (MapInterval& map : *flush_list) {
-            if (map->IsRegistered()) {
+            if (map->is_registered) {
                 // TODO(Blinkhawk): Replace this for reading the asynchronous flush
                 FlushMap(map);
             }
@@ -266,45 +264,45 @@ protected:
 
     /// Register an object into the cache
     void Register(const MapInterval& new_map, bool inherit_written = false) {
-        const VAddr cpu_addr = new_map->GetStart();
+        const VAddr cpu_addr = new_map->start;
         if (!cpu_addr) {
             LOG_CRITICAL(HW_GPU, "Failed to register buffer with unmapped gpu_address 0x{:016x}",
-                         new_map->GetGpuAddress());
+                         new_map->gpu_addr);
             return;
         }
-        const std::size_t size = new_map->GetEnd() - new_map->GetStart();
-        new_map->MarkAsRegistered(true);
-        const IntervalType interval{new_map->GetStart(), new_map->GetEnd()};
+        const std::size_t size = new_map->end - new_map->start;
+        new_map->is_registered = true;
+        const IntervalType interval{new_map->start, new_map->end};
         mapped_addresses.insert({interval, new_map});
         rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
-        new_map->SetMemoryMarked(true);
+        new_map->is_memory_marked = true;
         if (inherit_written) {
-            MarkRegionAsWritten(new_map->GetStart(), new_map->GetEnd() - 1);
-            new_map->MarkAsWritten(true);
+            MarkRegionAsWritten(new_map->start, new_map->end - 1);
+            new_map->is_written = true;
         }
     }
 
     void UnmarkMemory(const MapInterval& map) {
-        if (!map->IsMemoryMarked()) {
+        if (!map->is_memory_marked) {
             return;
         }
-        const std::size_t size = map->GetEnd() - map->GetStart();
-        rasterizer.UpdatePagesCachedCount(map->GetStart(), size, -1);
-        map->SetMemoryMarked(false);
+        const std::size_t size = map->end - map->start;
+        rasterizer.UpdatePagesCachedCount(map->start, size, -1);
+        map->is_memory_marked = false;
     }
 
     /// Unregisters an object from the cache
     void Unregister(const MapInterval& map) {
         UnmarkMemory(map);
-        map->MarkAsRegistered(false);
-        if (map->IsSyncPending()) {
+        map->is_registered = false;
+        if (map->is_sync_pending) {
+            map->is_sync_pending = false;
             marked_for_unregister.remove(map);
-            map->SetSyncPending(false);
         }
-        if (map->IsWritten()) {
-            UnmarkRegionAsWritten(map->GetStart(), map->GetEnd() - 1);
+        if (map->is_written) {
+            UnmarkRegionAsWritten(map->start, map->end - 1);
         }
-        const IntervalType delete_interval{map->GetStart(), map->GetEnd()};
+        const IntervalType delete_interval{map->start, map->end};
         mapped_addresses.erase(delete_interval);
     }
 
@@ -345,10 +343,10 @@ private:
         bool modified_inheritance = false;
         // Calculate new buffer parameters
         for (auto& overlap : overlaps) {
-            new_start = std::min(overlap->GetStart(), new_start);
-            new_end = std::max(overlap->GetEnd(), new_end);
-            write_inheritance |= overlap->IsWritten();
-            modified_inheritance |= overlap->IsModified();
+            new_start = std::min(overlap->start, new_start);
+            new_end = std::max(overlap->end, new_end);
+            write_inheritance |= overlap->is_written;
+            modified_inheritance |= overlap->is_modified;
         }
         GPUVAddr new_gpu_addr = gpu_addr + new_start - cpu_addr;
         for (auto& overlap : overlaps) {
@@ -372,7 +370,7 @@ private:
         IntervalSet interval_set{};
         interval_set.add(base_interval);
         for (auto& overlap : overlaps) {
-            const IntervalType subtract{overlap->GetStart(), overlap->GetEnd()};
+            const IntervalType subtract{overlap->start, overlap->end};
             interval_set.subtract(subtract);
         }
         for (auto& interval : interval_set) {
@@ -406,11 +404,11 @@ private:
     }
 
     void FlushMap(MapInterval map) {
-        std::size_t size = map->GetEnd() - map->GetStart();
-        OwnerBuffer block = blocks[map->GetStart() >> block_page_bits];
+        std::size_t size = map->end - map->start;
+        OwnerBuffer block = blocks[map->start >> block_page_bits];
         staging_buffer.resize(size);
-        DownloadBlockData(block, block->GetOffset(map->GetStart()), size, staging_buffer.data());
-        system.Memory().WriteBlockUnsafe(map->GetStart(), staging_buffer.data(), size);
+        DownloadBlockData(block, block->GetOffset(map->start), size, staging_buffer.data());
+        system.Memory().WriteBlockUnsafe(map->start, staging_buffer.data(), size);
         map->MarkAsModified(false, 0);
     }
 
@@ -515,7 +513,7 @@ private:
             } else {
                 written_pages[page_start] = 1;
             }
-            page_start++;
+            ++page_start;
         }
     }
 
@@ -531,7 +529,7 @@ private:
                     written_pages.erase(it);
                 }
             }
-            page_start++;
+            ++page_start;
         }
     }
 
@@ -542,7 +540,7 @@ private:
             if (written_pages.count(page_start) > 0) {
                 return true;
             }
-            page_start++;
+            ++page_start;
         }
         return false;
     }
@@ -585,7 +583,7 @@ private:
     std::vector<u8> staging_buffer;
     std::list<MapInterval> marked_for_unregister;
 
-    std::shared_ptr<std::unordered_set<MapInterval>> uncommitted_flushes{};
+    std::shared_ptr<std::unordered_set<MapInterval>> uncommitted_flushes;
     std::list<std::shared_ptr<std::list<MapInterval>>> committed_flushes;
 
     std::recursive_mutex mutex;
