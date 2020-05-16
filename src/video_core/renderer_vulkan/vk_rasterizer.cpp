@@ -569,7 +569,9 @@ void RasterizerVulkan::ReleaseFences() {
 }
 
 void RasterizerVulkan::FlushAndInvalidateRegion(VAddr addr, u64 size) {
-    FlushRegion(addr, size);
+    if (Settings::IsGPULevelExtreme()) {
+        FlushRegion(addr, size);
+    }
     InvalidateRegion(addr, size);
 }
 
