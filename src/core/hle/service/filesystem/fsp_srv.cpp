@@ -767,7 +767,7 @@ FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
         {1014, nullptr, "OutputMultiProgramTagAccessLog"},
         {1100, nullptr, "OverrideSaveDataTransferTokenSignVerificationKey"},
         {1110, nullptr, "CorruptSaveDataFileSystemBySaveDataSpaceId2"},
-        {1200, nullptr, "OpenMultiCommitManager"},
+        {1200, &FSP_SRV::OpenMultiCommitManager, "OpenMultiCommitManager"},
         {1300, nullptr, "OpenBisWiper"},
     };
     // clang-format on
@@ -986,6 +986,42 @@ void FSP_SRV::GetAccessLogVersionInfo(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
     rb.PushEnum(AccessLogVersion::Latest);
     rb.Push(access_log_program_index);
+}
+
+class IMultiCommitManager final : public ServiceFramework<IMultiCommitManager> {
+public:
+    explicit IMultiCommitManager() : ServiceFramework("IMultiCommitManager") {
+        static const FunctionInfo functions[] = {
+            {1, &IMultiCommitManager::Add, "Add"},
+            {2, &IMultiCommitManager::Commit, "Commit"},
+        };
+        RegisterHandlers(functions);
+    }
+
+private:
+    FileSys::VirtualFile backend;
+
+    void Add(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_FS, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void Commit(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_FS, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+};
+
+void FSP_SRV::OpenMultiCommitManager(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_FS, "called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IMultiCommitManager>(std::make_shared<IMultiCommitManager>());
 }
 
 } // namespace Service::FileSystem

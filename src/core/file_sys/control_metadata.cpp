@@ -95,6 +95,10 @@ u32 NACP::GetSupportedLanguages() const {
     return raw.supported_languages;
 }
 
+u64 NACP::GetDeviceSaveDataSize() const {
+    return raw.device_save_data_size;
+}
+
 std::vector<u8> NACP::GetRawBytes() const {
     std::vector<u8> out(sizeof(RawNACP));
     std::memcpy(out.data(), &raw, sizeof(RawNACP));

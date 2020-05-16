@@ -1155,39 +1155,61 @@ void GMainWindow::OnGameListLoadFile(QString game_path) {
     BootGame(game_path);
 }
 
-void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target) {
+void GMainWindow::OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path) {
     std::string path;
     QString open_target;
+
+    const auto v_file = Core::GetGameFileFromPath(vfs, game_path);
+    const auto loader = Loader::GetLoader(v_file);
+    FileSys::NACP control{};
+    u64 program_id{};
+
+    loader->ReadControlData(control);
+    loader->ReadProgramId(program_id);
+
+    const bool has_user_save{control.GetDefaultNormalSaveSize() > 0};
+    const bool has_device_save{control.GetDeviceSaveDataSize() > 0};
+
+    ASSERT_MSG(has_user_save != has_device_save, "Game uses both user and device savedata?");
+
     switch (target) {
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
         ASSERT(program_id != 0);
 
-        const auto select_profile = [this] {
-            QtProfileSelectionDialog dialog(this);
-            dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                                  Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-            dialog.setWindowModality(Qt::WindowModal);
+        if (has_user_save) {
+            // User save data
+            const auto select_profile = [this] {
+                QtProfileSelectionDialog dialog(this);
+                dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                                      Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+                dialog.setWindowModality(Qt::WindowModal);
 
-            if (dialog.exec() == QDialog::Rejected) {
-                return -1;
+                if (dialog.exec() == QDialog::Rejected) {
+                    return -1;
+                }
+
+                return dialog.GetIndex();
+            };
+
+            const auto index = select_profile();
+            if (index == -1) {
+                return;
             }
 
-            return dialog.GetIndex();
-        };
-
-        const auto index = select_profile();
-        if (index == -1) {
-            return;
+            Service::Account::ProfileManager manager;
+            const auto user_id = manager.GetUser(static_cast<std::size_t>(index));
+            ASSERT(user_id);
+            path = nand_dir + FileSys::SaveDataFactory::GetFullPath(
+                                  FileSys::SaveDataSpaceId::NandUser,
+                                  FileSys::SaveDataType::SaveData, program_id, user_id->uuid, 0);
+        } else {
+            // Device save data
+            path = nand_dir + FileSys::SaveDataFactory::GetFullPath(
+                                  FileSys::SaveDataSpaceId::NandUser,
+                                  FileSys::SaveDataType::SaveData, program_id, {}, 0);
         }
-
-        Service::Account::ProfileManager manager;
-        const auto user_id = manager.GetUser(static_cast<std::size_t>(index));
-        ASSERT(user_id);
-        path = nand_dir + FileSys::SaveDataFactory::GetFullPath(FileSys::SaveDataSpaceId::NandUser,
-                                                                FileSys::SaveDataType::SaveData,
-                                                                program_id, user_id->uuid, 0);
 
         if (!FileUtil::Exists(path)) {
             FileUtil::CreateFullPath(path);
