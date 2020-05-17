@@ -14,9 +14,11 @@
 
 #include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
+#include <boost/intrusive/set.hpp>
 #include <boost/range/iterator_range.hpp>
 
 #include "common/alignment.h"
+#include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
@@ -73,7 +75,7 @@ public:
             }
         }
 
-        auto block = GetBlock(cpu_addr, size);
+        OwnerBuffer block = GetBlock(cpu_addr, size);
         MapInterval* const map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (!map) {
             return {GetEmptyBuffer(size), 0};
@@ -272,16 +274,16 @@ protected:
         }
         const std::size_t size = new_map.end - new_map.start;
         new_map.is_registered = true;
-        const IntervalType interval{new_map.start, new_map.end};
         rasterizer.UpdatePagesCachedCount(cpu_addr, size, 1);
         new_map.is_memory_marked = true;
         if (inherit_written) {
             MarkRegionAsWritten(new_map.start, new_map.end - 1);
             new_map.is_written = true;
         }
-        mapped_addresses.insert({interval, new_map});
-        // Temporary hack until this is replaced with boost::intrusive::rbtree
-        return const_cast<MapInterval*>(&mapped_addresses.find(interval)->second);
+        // Temporary hack, leaks memory and it's not cache local
+        MapInterval* const storage = &mapped_addresses_storage.emplace_back(new_map);
+        mapped_addresses.insert(*storage);
+        return storage;
     }
 
     void UnmarkMemory(MapInterval* map) {
@@ -304,8 +306,9 @@ protected:
         if (map->is_written) {
             UnmarkRegionAsWritten(map->start, map->end - 1);
         }
-        const IntervalType delete_interval{map->start, map->end};
-        mapped_addresses.erase(delete_interval);
+        const auto it = mapped_addresses.find(*map);
+        ASSERT(it != mapped_addresses.end());
+        mapped_addresses.erase(it);
     }
 
 private:
@@ -389,13 +392,20 @@ private:
             return {};
         }
 
-        std::vector<MapInterval*> objects;
-        const IntervalType interval{addr, addr + size};
-        for (auto& pair : boost::make_iterator_range(mapped_addresses.equal_range(interval))) {
-            objects.push_back(&pair.second);
-        }
+        std::vector<MapInterval*> result;
+        const VAddr addr_end = addr + size;
 
-        return objects;
+        auto it = mapped_addresses.lower_bound(addr);
+        if (it != mapped_addresses.begin()) {
+            --it;
+        }
+        while (it != mapped_addresses.end() && it->start < addr_end) {
+            if (it->Overlaps(addr, addr_end)) {
+                result.push_back(&*it);
+            }
+            ++it;
+        }
+        return result;
     }
 
     /// Returns a ticks counter used for tracking when cached objects were last modified
@@ -565,9 +575,9 @@ private:
     u64 buffer_offset_base = 0;
 
     using IntervalSet = boost::icl::interval_set<VAddr>;
-    using IntervalCache = boost::icl::interval_map<VAddr, MapInterval>;
-    using IntervalType = typename IntervalCache::interval_type;
-    IntervalCache mapped_addresses;
+    using IntervalType = typename IntervalSet::interval_type;
+    std::list<MapInterval> mapped_addresses_storage; // Temporary hack
+    boost::intrusive::set<MapInterval, boost::intrusive::compare<MapIntervalCompare>> mapped_addresses;
 
     static constexpr u64 write_page_bit = 11;
     std::unordered_map<u64, u32> written_pages;

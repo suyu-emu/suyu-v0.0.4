@@ -8,6 +8,7 @@
 
 #include "common/assert.h"
 #include "common/microprofile.h"
+#include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"

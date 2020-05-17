@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 
+#include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_fence_manager.h"
 
 namespace OpenGL {
