@@ -123,6 +123,8 @@ add_library(common STATIC
     lz4_compression.cpp
     lz4_compression.h
     math_util.h
+    memory_detect.cpp
+    memory_detect.h
     memory_hook.cpp
     memory_hook.h
     microprofile.cpp
