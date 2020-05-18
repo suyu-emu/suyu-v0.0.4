@@ -13,6 +13,7 @@
 
 #include "common/logging/log.h"
 #include "common/scope_exit.h"
+#include "core/settings.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
@@ -183,10 +184,16 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_precise_bug = TestPreciseBug();
     has_broken_compute = is_intel_proprietary;
     has_fast_buffer_sub_data = is_nvidia;
+    use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
+                           GLAD_GL_NV_compute_program5;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
     LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);
+
+    if (Settings::values.use_assembly_shaders && !use_assembly_shaders) {
+        LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");
+    }
 }
 
 Device::Device(std::nullptr_t) {

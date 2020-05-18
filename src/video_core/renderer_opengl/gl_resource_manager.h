@@ -167,6 +167,22 @@ public:
     GLuint handle = 0;
 };
 
+class OGLAssemblyProgram : private NonCopyable {
+public:
+    OGLAssemblyProgram() = default;
+
+    OGLAssemblyProgram(OGLAssemblyProgram&& o) noexcept : handle(std::exchange(o.handle, 0)) {}
+
+    ~OGLAssemblyProgram() {
+        Release();
+    }
+
+    /// Deletes the internal OpenGL resource
+    void Release();
+
+    GLuint handle = 0;
+};
+
 class OGLPipeline : private NonCopyable {
 public:
     OGLPipeline() = default;

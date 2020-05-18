@@ -11,7 +11,9 @@
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 
-namespace OpenGL::GLShader {
+namespace OpenGL {
+
+class Device;
 
 /// Uniform structure for the Uniform Buffer Object, all vectors must be 16-byte aligned
 /// @note Always keep a vec4 at the end. The GL spec is not clear whether the alignment at
@@ -28,50 +30,58 @@ static_assert(sizeof(MaxwellUniformData) < 16384,
 
 class ProgramManager {
 public:
-    explicit ProgramManager();
+    explicit ProgramManager(const Device& device);
     ~ProgramManager();
 
-    void Create();
+    /// Binds a compute program
+    void BindCompute(GLuint program);
 
-    /// Updates the graphics pipeline and binds it.
+    /// Updates bound programs.
     void BindGraphicsPipeline();
 
-    /// Binds a compute shader.
-    void BindComputeShader(GLuint program);
+    /// Binds an OpenGL pipeline object unsynchronized with the guest state.
+    void BindHostPipeline(GLuint pipeline);
+
+    /// Rewinds BindHostPipeline state changes.
+    void RestoreGuestPipeline();
 
     void UseVertexShader(GLuint program) {
-        current_state.vertex_shader = program;
+        current_state.vertex = program;
     }
 
     void UseGeometryShader(GLuint program) {
-        current_state.geometry_shader = program;
+        current_state.geometry = program;
     }
 
     void UseFragmentShader(GLuint program) {
-        current_state.fragment_shader = program;
+        current_state.fragment = program;
     }
 
 private:
     struct PipelineState {
-        bool operator==(const PipelineState& rhs) const noexcept {
-            return vertex_shader == rhs.vertex_shader && fragment_shader == rhs.fragment_shader &&
-                   geometry_shader == rhs.geometry_shader;
-        }
-
-        bool operator!=(const PipelineState& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-
-        GLuint vertex_shader = 0;
-        GLuint fragment_shader = 0;
-        GLuint geometry_shader = 0;
+        GLuint vertex = 0;
+        GLuint geometry = 0;
+        GLuint fragment = 0;
     };
 
+    /// Update NV_gpu_program5 programs.
+    void UpdateAssemblyPrograms();
+
+    /// Update GLSL programs.
+    void UpdateSourcePrograms();
+
     OGLPipeline graphics_pipeline;
-    OGLPipeline compute_pipeline;
+
     PipelineState current_state;
     PipelineState old_state;
+
+    bool use_assembly_programs = false;
+
     bool is_graphics_bound = true;
+
+    bool vertex_enabled = false;
+    bool geometry_enabled = false;
+    bool fragment_enabled = false;
 };
 
-} // namespace OpenGL::GLShader
+} // namespace OpenGL
