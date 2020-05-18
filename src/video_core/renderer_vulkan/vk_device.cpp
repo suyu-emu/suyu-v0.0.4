@@ -104,6 +104,7 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(
                                         VK_FORMAT_R16_SFLOAT,
                                         VK_FORMAT_R16G16B16A16_SFLOAT,
                                         VK_FORMAT_B8G8R8A8_UNORM,
+                                        VK_FORMAT_B8G8R8A8_SRGB,
                                         VK_FORMAT_R4G4B4A4_UNORM_PACK16,
                                         VK_FORMAT_D32_SFLOAT,
                                         VK_FORMAT_D16_UNORM,
