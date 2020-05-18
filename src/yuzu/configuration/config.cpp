@@ -643,6 +643,8 @@ void Config::ReadRendererValues() {
     Settings::values.use_asynchronous_gpu_emulation =
         ReadSetting(QStringLiteral("use_asynchronous_gpu_emulation"), false).toBool();
     Settings::values.use_vsync = ReadSetting(QStringLiteral("use_vsync"), true).toBool();
+    Settings::values.use_assembly_shaders =
+        ReadSetting(QStringLiteral("use_assembly_shaders"), false).toBool();
     Settings::values.use_fast_gpu_time =
         ReadSetting(QStringLiteral("use_fast_gpu_time"), true).toBool();
     Settings::values.force_30fps_mode =
@@ -1090,6 +1092,8 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("use_asynchronous_gpu_emulation"),
                  Settings::values.use_asynchronous_gpu_emulation, false);
     WriteSetting(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
+    WriteSetting(QStringLiteral("use_assembly_shaders"), Settings::values.use_assembly_shaders,
+                 false);
     WriteSetting(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time, true);
     WriteSetting(QStringLiteral("force_30fps_mode"), Settings::values.force_30fps_mode, false);
 

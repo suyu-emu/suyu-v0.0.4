@@ -397,6 +397,8 @@ void Config::ReadValues() {
         sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false);
     Settings::values.use_vsync =
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "use_vsync", 1));
+    Settings::values.use_assembly_shaders =
+        sdl2_config->GetBoolean("Renderer", "use_assembly_shaders", false);
     Settings::values.use_fast_gpu_time =
         sdl2_config->GetBoolean("Renderer", "use_fast_gpu_time", true);
 

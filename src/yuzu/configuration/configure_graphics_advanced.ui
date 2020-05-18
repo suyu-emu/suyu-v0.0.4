@@ -63,6 +63,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_assembly_shaders">
+          <property name="toolTip">
+           <string>Enabling this reduces shader stutter. Enables OpenGL assembly shaders on supported Nvidia devices (NV_gpu_program5 is required). This feature is experimental.</string>
+          </property>
+          <property name="text">
+           <string>Use assembly shaders (experimental, Nvidia OpenGL only)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="force_30fps_mode">
           <property name="text">
            <string>Force 30 FPS mode</string>
