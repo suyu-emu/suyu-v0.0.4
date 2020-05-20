@@ -12,17 +12,17 @@ namespace SystemVersionData {
 // This section should reflect the best system version to describe yuzu's HLE api.
 // TODO(DarkLordZach): Update when HLE gets better.
 
-constexpr u8 VERSION_MAJOR = 5;
-constexpr u8 VERSION_MINOR = 1;
-constexpr u8 VERSION_MICRO = 0;
+constexpr u8 VERSION_MAJOR = 10;
+constexpr u8 VERSION_MINOR = 0;
+constexpr u8 VERSION_MICRO = 2;
 
-constexpr u8 REVISION_MAJOR = 3;
+constexpr u8 REVISION_MAJOR = 1;
 constexpr u8 REVISION_MINOR = 0;
 
 constexpr char PLATFORM_STRING[] = "NX";
-constexpr char VERSION_HASH[] = "23f9df53e25709d756e0c76effcb2473bd3447dd";
-constexpr char DISPLAY_VERSION[] = "5.1.0";
-constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 5.1.0-3.0";
+constexpr char VERSION_HASH[] = "f90143fa8bbc061d4f68c35f95f04f8080c0ecdc";
+constexpr char DISPLAY_VERSION[] = "10.0.2";
+constexpr char DISPLAY_TITLE[] = "NintendoSDK Firmware for NX 10.0.2-1.0";
 
 } // namespace SystemVersionData
 
