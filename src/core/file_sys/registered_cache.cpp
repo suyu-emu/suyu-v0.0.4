@@ -408,7 +408,7 @@ void RegisteredCache::ProcessFiles(const std::vector<NcaID>& ids) {
 
         if (file == nullptr)
             continue;
-        const auto nca = std::make_shared<NCA>(parser(file, id), nullptr, 0, keys);
+        const auto nca = std::make_shared<NCA>(parser(file, id), nullptr, 0);
         if (nca->GetStatus() != Loader::ResultStatus::Success ||
             nca->GetType() != NCAContentType::Meta) {
             continue;
@@ -486,7 +486,7 @@ std::unique_ptr<NCA> RegisteredCache::GetEntry(u64 title_id, ContentRecordType t
     const auto raw = GetEntryRaw(title_id, type);
     if (raw == nullptr)
         return nullptr;
-    return std::make_unique<NCA>(raw, nullptr, 0, keys);
+    return std::make_unique<NCA>(raw, nullptr, 0);
 }
 
 template <typename T>
@@ -865,7 +865,7 @@ std::unique_ptr<NCA> ManualContentProvider::GetEntry(u64 title_id, ContentRecord
     const auto res = GetEntryRaw(title_id, type);
     if (res == nullptr)
         return nullptr;
-    return std::make_unique<NCA>(res, nullptr, 0, keys);
+    return std::make_unique<NCA>(res, nullptr, 0);
 }
 
 std::vector<ContentProviderEntry> ManualContentProvider::ListEntriesFilter(
