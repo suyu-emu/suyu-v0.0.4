@@ -106,6 +106,8 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
     regs.framebuffer_srgb = 1;
+    regs.line_width_aliased = 1.0f;
+    regs.line_width_smooth = 1.0f;
     regs.front_face = Maxwell3D::Regs::FrontFace::ClockWise;
     regs.polygon_mode_back = Maxwell3D::Regs::PolygonMode::Fill;
     regs.polygon_mode_front = Maxwell3D::Regs::PolygonMode::Fill;
