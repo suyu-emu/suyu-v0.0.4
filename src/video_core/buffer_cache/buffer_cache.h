@@ -13,10 +13,8 @@
 #include <vector>
 
 #include <boost/container/small_vector.hpp>
-#include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
 #include <boost/intrusive/set.hpp>
-#include <boost/range/iterator_range.hpp>
 
 #include "common/alignment.h"
 #include "common/assert.h"
