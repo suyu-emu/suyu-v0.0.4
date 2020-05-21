@@ -284,8 +284,8 @@ protected:
             MarkRegionAsWritten(new_map.start, new_map.end - 1);
             new_map.is_written = true;
         }
-        // Temporary hack, leaks memory and it's not cache local
-        MapInterval* const storage = &mapped_addresses_storage.emplace_back(new_map);
+        MapInterval* const storage = mapped_addresses_allocator.Allocate();
+        *storage = new_map;
         mapped_addresses.insert(*storage);
         return storage;
     }
@@ -313,6 +313,7 @@ protected:
         const auto it = mapped_addresses.find(*map);
         ASSERT(it != mapped_addresses.end());
         mapped_addresses.erase(it);
+        mapped_addresses_allocator.Release(map);
     }
 
 private:
@@ -577,7 +578,7 @@ private:
     u64 buffer_offset = 0;
     u64 buffer_offset_base = 0;
 
-    std::list<MapInterval> mapped_addresses_storage; // Temporary hack
+    MapIntervalAllocator mapped_addresses_allocator;
     boost::intrusive::set<MapInterval, boost::intrusive::compare<MapIntervalCompare>>
         mapped_addresses;
 

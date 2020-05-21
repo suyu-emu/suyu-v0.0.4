@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+#include <memory>
+#include <vector>
+
 #include <boost/intrusive/set_hook.hpp>
 
 #include "common/common_types.h"
@@ -12,6 +17,8 @@
 namespace VideoCommon {
 
 struct MapInterval : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true>> {
+    MapInterval() = default;
+
     /*implicit*/ MapInterval(VAddr start_) noexcept : start{start_} {}
 
     explicit MapInterval(VAddr start_, VAddr end_, GPUVAddr gpu_addr_) noexcept
@@ -46,6 +53,40 @@ struct MapIntervalCompare {
     constexpr bool operator()(const MapInterval& lhs, const MapInterval& rhs) const noexcept {
         return lhs.start < rhs.start;
     }
+};
+
+class MapIntervalAllocator {
+public:
+    MapIntervalAllocator();
+    ~MapIntervalAllocator();
+
+    MapInterval* Allocate() {
+        if (free_list.empty()) {
+            AllocateNewChunk();
+        }
+        MapInterval* const interval = free_list.back();
+        free_list.pop_back();
+        return interval;
+    }
+
+    void Release(MapInterval* interval) {
+        free_list.push_back(interval);
+    }
+
+private:
+    struct Chunk {
+        std::unique_ptr<Chunk> next;
+        std::array<MapInterval, 0x8000> data;
+    };
+
+    void AllocateNewChunk();
+
+    void FillFreeList(Chunk& chunk);
+
+    std::vector<MapInterval*> free_list;
+    std::unique_ptr<Chunk>* new_chunk = &first_chunk.next;
+
+    Chunk first_chunk;
 };
 
 } // namespace VideoCommon
