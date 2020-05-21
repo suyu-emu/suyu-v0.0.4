@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include <boost/container/small_vector.hpp>
 #include <boost/icl/interval_map.hpp>
 #include <boost/icl/interval_set.hpp>
 #include <boost/intrusive/set.hpp>
@@ -33,6 +34,10 @@ namespace VideoCommon {
 
 template <typename OwnerBuffer, typename BufferType, typename StreamBuffer>
 class BufferCache {
+    using IntervalSet = boost::icl::interval_set<VAddr>;
+    using IntervalType = typename IntervalSet::interval_type;
+    using VectorMapInterval = boost::container::small_vector<MapInterval*, 1>;
+
 public:
     using BufferInfo = std::pair<BufferType, u64>;
 
@@ -133,7 +138,7 @@ public:
     void FlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
-        std::vector<MapInterval*> objects = GetMapsInRange(addr, size);
+        VectorMapInterval objects = GetMapsInRange(addr, size);
         std::sort(objects.begin(), objects.end(),
                   [](MapInterval* lhs, MapInterval* rhs) { return lhs->ticks < rhs->ticks; });
         for (MapInterval* object : objects) {
@@ -148,7 +153,7 @@ public:
     bool MustFlushRegion(VAddr addr, std::size_t size) {
         std::lock_guard lock{mutex};
 
-        const std::vector<MapInterval*> objects = GetMapsInRange(addr, size);
+        const VectorMapInterval objects = GetMapsInRange(addr, size);
         return std::any_of(objects.cbegin(), objects.cend(), [](const MapInterval* map) {
             return map->is_modified && map->is_registered;
         });
@@ -158,8 +163,7 @@ public:
     void InvalidateRegion(VAddr addr, u64 size) {
         std::lock_guard lock{mutex};
 
-        std::vector<MapInterval*> objects = GetMapsInRange(addr, size);
-        for (auto& object : objects) {
+        for (auto& object : GetMapsInRange(addr, size)) {
             if (object->is_registered) {
                 Unregister(object);
             }
@@ -314,7 +318,7 @@ protected:
 private:
     MapInterval* MapAddress(const OwnerBuffer& block, GPUVAddr gpu_addr, VAddr cpu_addr,
                             std::size_t size) {
-        std::vector<MapInterval*> overlaps = GetMapsInRange(cpu_addr, size);
+        const VectorMapInterval overlaps = GetMapsInRange(cpu_addr, size);
         if (overlaps.empty()) {
             auto& memory_manager = system.GPU().MemoryManager();
             const VAddr cpu_addr_end = cpu_addr + size;
@@ -368,7 +372,7 @@ private:
     }
 
     void UpdateBlock(const OwnerBuffer& block, VAddr start, VAddr end,
-                     std::vector<MapInterval*>& overlaps) {
+                     const VectorMapInterval& overlaps) {
         const IntervalType base_interval{start, end};
         IntervalSet interval_set{};
         interval_set.add(base_interval);
@@ -387,14 +391,13 @@ private:
         }
     }
 
-    std::vector<MapInterval*> GetMapsInRange(VAddr addr, std::size_t size) {
+    VectorMapInterval GetMapsInRange(VAddr addr, std::size_t size) {
+        VectorMapInterval result;
         if (size == 0) {
-            return {};
+            return result;
         }
 
-        std::vector<MapInterval*> result;
         const VAddr addr_end = addr + size;
-
         auto it = mapped_addresses.lower_bound(addr);
         if (it != mapped_addresses.begin()) {
             --it;
@@ -574,10 +577,9 @@ private:
     u64 buffer_offset = 0;
     u64 buffer_offset_base = 0;
 
-    using IntervalSet = boost::icl::interval_set<VAddr>;
-    using IntervalType = typename IntervalSet::interval_type;
     std::list<MapInterval> mapped_addresses_storage; // Temporary hack
-    boost::intrusive::set<MapInterval, boost::intrusive::compare<MapIntervalCompare>> mapped_addresses;
+    boost::intrusive::set<MapInterval, boost::intrusive::compare<MapIntervalCompare>>
+        mapped_addresses;
 
     static constexpr u64 write_page_bit = 11;
     std::unordered_map<u64, u32> written_pages;
