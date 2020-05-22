@@ -18,7 +18,7 @@ DiscordImpl::DiscordImpl() {
 
     // The number is the client ID for yuzu, it's used for images and the
     // application name
-    Discord_Initialize("471872241299226636", &handlers, 1, nullptr);
+    Discord_Initialize("712465656758665259", &handlers, 1, nullptr);
 }
 
 DiscordImpl::~DiscordImpl() {
