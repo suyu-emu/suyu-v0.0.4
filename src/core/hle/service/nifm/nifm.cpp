@@ -177,7 +177,8 @@ private:
     void CreateTemporaryNetworkProfile(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NIFM, "called");
 
-        ASSERT_MSG(ctx.GetReadBufferSize() == 0x17c, "NetworkProfileData is not the correct size");
+        ASSERT_MSG(ctx.GetReadBufferSize() == 0x17c,
+                   "SfNetworkProfileData is not the correct size");
         u128 uuid{};
         auto buffer = ctx.ReadBuffer();
         std::memcpy(&uuid, buffer.data() + 8, sizeof(u128));
