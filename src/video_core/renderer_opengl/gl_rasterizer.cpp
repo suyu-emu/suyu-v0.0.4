@@ -30,6 +30,7 @@
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/maxwell_to_gl.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
+#include "video_core/shader_cache.h"
 
 namespace OpenGL {
 
@@ -282,7 +283,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             continue;
         }
 
-        Shader shader{shader_cache.GetStageProgram(program)};
+        Shader* const shader = shader_cache.GetStageProgram(program);
 
         if (device.UseAssemblyShaders()) {
             // Check for ARB limitation. We only have 16 SSBOs per context state. To workaround this
@@ -842,7 +843,7 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
-void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader) {
+void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, Shader* shader) {
     static constexpr std::array PARAMETER_LUT = {
         GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV, GL_TESS_CONTROL_PROGRAM_PARAMETER_BUFFER_NV,
         GL_TESS_EVALUATION_PROGRAM_PARAMETER_BUFFER_NV, GL_GEOMETRY_PROGRAM_PARAMETER_BUFFER_NV,
@@ -872,7 +873,7 @@ void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shad
     }
 }
 
-void RasterizerOpenGL::SetupComputeConstBuffers(const Shader& kernel) {
+void RasterizerOpenGL::SetupComputeConstBuffers(Shader* kernel) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
     const auto& entries = kernel->GetEntries();
@@ -941,7 +942,7 @@ void RasterizerOpenGL::SetupConstBuffer(GLenum stage, u32 binding,
     }
 }
 
-void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader) {
+void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, Shader* shader) {
     auto& gpu{system.GPU()};
     auto& memory_manager{gpu.MemoryManager()};
     const auto cbufs{gpu.Maxwell3D().state.shader_stages[stage_index]};
@@ -956,7 +957,7 @@ void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shad
     }
 }
 
-void RasterizerOpenGL::SetupComputeGlobalMemory(const Shader& kernel) {
+void RasterizerOpenGL::SetupComputeGlobalMemory(Shader* kernel) {
     auto& gpu{system.GPU()};
     auto& memory_manager{gpu.MemoryManager()};
     const auto cbufs{gpu.KeplerCompute().launch_description.const_buffer_config};
@@ -979,7 +980,7 @@ void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& e
                       static_cast<GLsizeiptr>(size));
 }
 
-void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& shader) {
+void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, Shader* shader) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& maxwell3d = system.GPU().Maxwell3D();
     u32 binding = device.GetBaseBindings(stage_index).sampler;
@@ -992,7 +993,7 @@ void RasterizerOpenGL::SetupDrawTextures(std::size_t stage_index, const Shader& 
     }
 }
 
-void RasterizerOpenGL::SetupComputeTextures(const Shader& kernel) {
+void RasterizerOpenGL::SetupComputeTextures(Shader* kernel) {
     MICROPROFILE_SCOPE(OpenGL_Texture);
     const auto& compute = system.GPU().KeplerCompute();
     u32 binding = 0;
@@ -1021,7 +1022,7 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
     }
 }
 
-void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader) {
+void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, Shader* shader) {
     const auto& maxwell3d = system.GPU().Maxwell3D();
     u32 binding = device.GetBaseBindings(stage_index).image;
     for (const auto& entry : shader->GetEntries().images) {
@@ -1031,7 +1032,7 @@ void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& sh
     }
 }
 
-void RasterizerOpenGL::SetupComputeImages(const Shader& shader) {
+void RasterizerOpenGL::SetupComputeImages(Shader* shader) {
     const auto& compute = system.GPU().KeplerCompute();
     u32 binding = 0;
     for (const auto& entry : shader->GetEntries().images) {
