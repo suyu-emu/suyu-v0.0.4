@@ -8,7 +8,6 @@
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache.h"
-#include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"

@@ -335,12 +335,11 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         }
 
         const GPUVAddr gpu_addr = GetShaderAddress(system, program_enum);
-        const auto cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
-        const auto shader = cpu_addr ? TryGet(*cpu_addr) : null_shader;
-        ASSERT(shader);
+        const std::optional<VAddr> cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
+        Shader* const shader = cpu_addr ? TryGet(*cpu_addr) : null_shader.get();
 
         const std::size_t stage = index == 0 ? 0 : index - 1; // Stage indices are 0 - 5
-        const auto program_type = GetShaderType(program_enum);
+        const ShaderType program_type = GetShaderType(program_enum);
         const auto& entries = shader->GetEntries();
         program[stage] = {
             Decompile(device, shader->GetIR(), program_type, shader->GetRegistry(), specialization),

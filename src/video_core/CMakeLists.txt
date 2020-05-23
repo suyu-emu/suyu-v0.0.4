@@ -49,8 +49,6 @@ add_library(video_core STATIC
     query_cache.h
     rasterizer_accelerated.cpp
     rasterizer_accelerated.h
-    rasterizer_cache.cpp
-    rasterizer_cache.h
     rasterizer_interface.h
     renderer_base.cpp
     renderer_base.h
