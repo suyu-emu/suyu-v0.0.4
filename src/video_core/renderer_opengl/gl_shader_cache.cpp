@@ -195,9 +195,9 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 } // Anonymous namespace
 
-Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry, ShaderEntries entries,
-               ProgramSharedPtr program)
-    : registry{std::move(registry)}, entries{std::move(entries)}, program{std::move(program)} {
+Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry_, ShaderEntries entries_,
+               ProgramSharedPtr program_)
+    : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)} {
     handle = program->assembly_program.handle;
     if (handle == 0) {
         handle = program->source_program.handle;

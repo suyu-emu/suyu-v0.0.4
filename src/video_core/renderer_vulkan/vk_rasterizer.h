@@ -168,7 +168,7 @@ private:
                                  bool is_indexed, bool is_instanced);
 
     /// Setup descriptors in the graphics pipeline.
-    void SetupShaderDescriptors(const std::array<Shader, Maxwell::MaxShaderProgram>& shaders);
+    void SetupShaderDescriptors(const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders);
 
     void SetupImageTransitions(Texceptions texceptions,
                                const std::array<View, Maxwell::NumRenderTargets>& color_attachments,
