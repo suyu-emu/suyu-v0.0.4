@@ -56,9 +56,27 @@ public:
         last_modified_ticks = cache.GetModifiedTicks();
     }
 
+    void SetMemoryMarked(bool is_memory_marked_) {
+        is_memory_marked = is_memory_marked_;
+    }
+
+    bool IsMemoryMarked() const {
+        return is_memory_marked;
+    }
+
+    void SetSyncPending(bool is_sync_pending_) {
+        is_sync_pending = is_sync_pending_;
+    }
+
+    bool IsSyncPending() const {
+        return is_sync_pending;
+    }
+
 private:
     bool is_registered{};      ///< Whether the object is currently registered with the cache
     bool is_dirty{};           ///< Whether the object is dirty (out of sync with guest memory)
+    bool is_memory_marked{};   ///< Whether the object is marking rasterizer memory.
+    bool is_sync_pending{};    ///< Whether the object is pending deletion.
     u64 last_modified_ticks{}; ///< When the object was last modified, used for in-order flushing
     VAddr cpu_addr{};          ///< Cpu address memory, unique from emulated virtual address space
 };
@@ -94,6 +112,30 @@ public:
         }
     }
 
+    void OnCPUWrite(VAddr addr, std::size_t size) {
+        std::lock_guard lock{mutex};
+
+        for (const auto& object : GetSortedObjectsFromRegion(addr, size)) {
+            if (object->IsRegistered()) {
+                UnmarkMemory(object);
+                object->SetSyncPending(true);
+                marked_for_unregister.emplace_back(object);
+            }
+        }
+    }
+
+    void SyncGuestHost() {
+        std::lock_guard lock{mutex};
+
+        for (const auto& object : marked_for_unregister) {
+            if (object->IsRegistered()) {
+                object->SetSyncPending(false);
+                Unregister(object);
+            }
+        }
+        marked_for_unregister.clear();
+    }
+
     /// Invalidates everything in the cache
     void InvalidateAll() {
         std::lock_guard lock{mutex};
@@ -120,17 +162,30 @@ protected:
         interval_cache.add({GetInterval(object), ObjectSet{object}});
         map_cache.insert({object->GetCpuAddr(), object});
         rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), 1);
+        object->SetMemoryMarked(true);
     }
 
     /// Unregisters an object from the cache
     virtual void Unregister(const T& object) {
         std::lock_guard lock{mutex};
 
+        UnmarkMemory(object);
         object->SetIsRegistered(false);
-        rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), -1);
+        if (object->IsSyncPending()) {
+            marked_for_unregister.remove(object);
+            object->SetSyncPending(false);
+        }
         const VAddr addr = object->GetCpuAddr();
         interval_cache.subtract({GetInterval(object), ObjectSet{object}});
         map_cache.erase(addr);
+    }
+
+    void UnmarkMemory(const T& object) {
+        if (!object->IsMemoryMarked()) {
+            return;
+        }
+        rasterizer.UpdatePagesCachedCount(object->GetCpuAddr(), object->GetSizeInBytes(), -1);
+        object->SetMemoryMarked(false);
     }
 
     /// Returns a ticks counter used for tracking when cached objects were last modified
@@ -194,4 +249,5 @@ private:
     IntervalCache interval_cache; ///< Cache of objects
     u64 modified_ticks{};         ///< Counter of cache state ticks, used for in-order flushing
     VideoCore::RasterizerInterface& rasterizer;
+    std::list<T> marked_for_unregister;
 };
