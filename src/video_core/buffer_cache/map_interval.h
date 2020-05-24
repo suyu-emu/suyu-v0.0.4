@@ -4,104 +4,89 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+#include <memory>
+#include <vector>
+
+#include <boost/intrusive/set_hook.hpp>
+
 #include "common/common_types.h"
 #include "video_core/gpu.h"
 
 namespace VideoCommon {
 
-class MapIntervalBase {
-public:
-    MapIntervalBase(const VAddr start, const VAddr end, const GPUVAddr gpu_addr)
-        : start{start}, end{end}, gpu_addr{gpu_addr} {}
+struct MapInterval : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true>> {
+    MapInterval() = default;
 
-    void SetCpuAddress(VAddr new_cpu_addr) {
-        cpu_addr = new_cpu_addr;
+    /*implicit*/ MapInterval(VAddr start_) noexcept : start{start_} {}
+
+    explicit MapInterval(VAddr start_, VAddr end_, GPUVAddr gpu_addr_) noexcept
+        : start{start_}, end{end_}, gpu_addr{gpu_addr_} {}
+
+    bool IsInside(VAddr other_start, VAddr other_end) const noexcept {
+        return start <= other_start && other_end <= end;
     }
 
-    VAddr GetCpuAddress() const {
-        return cpu_addr;
+    bool Overlaps(VAddr other_start, VAddr other_end) const noexcept {
+        return start < other_end && other_start < end;
     }
 
-    GPUVAddr GetGpuAddress() const {
-        return gpu_addr;
-    }
-
-    bool IsInside(const VAddr other_start, const VAddr other_end) const {
-        return (start <= other_start && other_end <= end);
-    }
-
-    bool operator==(const MapIntervalBase& rhs) const {
-        return std::tie(start, end) == std::tie(rhs.start, rhs.end);
-    }
-
-    bool operator!=(const MapIntervalBase& rhs) const {
-        return !operator==(rhs);
-    }
-
-    void MarkAsRegistered(const bool registered) {
-        is_registered = registered;
-    }
-
-    bool IsRegistered() const {
-        return is_registered;
-    }
-
-    void SetMemoryMarked(bool is_memory_marked_) {
-        is_memory_marked = is_memory_marked_;
-    }
-
-    bool IsMemoryMarked() const {
-        return is_memory_marked;
-    }
-
-    void SetSyncPending(bool is_sync_pending_) {
-        is_sync_pending = is_sync_pending_;
-    }
-
-    bool IsSyncPending() const {
-        return is_sync_pending;
-    }
-
-    VAddr GetStart() const {
-        return start;
-    }
-
-    VAddr GetEnd() const {
-        return end;
-    }
-
-    void MarkAsModified(const bool is_modified_, const u64 tick) {
+    void MarkAsModified(bool is_modified_, u64 ticks_) noexcept {
         is_modified = is_modified_;
-        ticks = tick;
+        ticks = ticks_;
     }
 
-    bool IsModified() const {
-        return is_modified;
+    boost::intrusive::set_member_hook<> member_hook_;
+    VAddr start = 0;
+    VAddr end = 0;
+    GPUVAddr gpu_addr = 0;
+    u64 ticks = 0;
+    bool is_written = false;
+    bool is_modified = false;
+    bool is_registered = false;
+    bool is_memory_marked = false;
+    bool is_sync_pending = false;
+};
+
+struct MapIntervalCompare {
+    constexpr bool operator()(const MapInterval& lhs, const MapInterval& rhs) const noexcept {
+        return lhs.start < rhs.start;
+    }
+};
+
+class MapIntervalAllocator {
+public:
+    MapIntervalAllocator();
+    ~MapIntervalAllocator();
+
+    MapInterval* Allocate() {
+        if (free_list.empty()) {
+            AllocateNewChunk();
+        }
+        MapInterval* const interval = free_list.back();
+        free_list.pop_back();
+        return interval;
     }
 
-    u64 GetModificationTick() const {
-        return ticks;
-    }
-
-    void MarkAsWritten(const bool is_written_) {
-        is_written = is_written_;
-    }
-
-    bool IsWritten() const {
-        return is_written;
+    void Release(MapInterval* interval) {
+        free_list.push_back(interval);
     }
 
 private:
-    VAddr start;
-    VAddr end;
-    GPUVAddr gpu_addr;
-    VAddr cpu_addr{};
-    bool is_written{};
-    bool is_modified{};
-    bool is_registered{};
-    bool is_memory_marked{};
-    bool is_sync_pending{};
-    u64 ticks{};
+    struct Chunk {
+        std::unique_ptr<Chunk> next;
+        std::array<MapInterval, 0x8000> data;
+    };
+
+    void AllocateNewChunk();
+
+    void FillFreeList(Chunk& chunk);
+
+    std::vector<MapInterval*> free_list;
+    std::unique_ptr<Chunk>* new_chunk = &first_chunk.next;
+
+    Chunk first_chunk;
 };
 
 } // namespace VideoCommon

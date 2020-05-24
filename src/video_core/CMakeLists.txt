@@ -1,6 +1,7 @@
 add_library(video_core STATIC
     buffer_cache/buffer_block.h
     buffer_cache/buffer_cache.h
+    buffer_cache/map_interval.cpp
     buffer_cache/map_interval.h
     dirty_flags.cpp
     dirty_flags.h

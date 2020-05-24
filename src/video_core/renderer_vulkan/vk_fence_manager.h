@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "video_core/fence_manager.h"
+#include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
