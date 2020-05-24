@@ -125,6 +125,15 @@ void OGLProgram::Release() {
     handle = 0;
 }
 
+void OGLAssemblyProgram::Release() {
+    if (handle == 0) {
+        return;
+    }
+    MICROPROFILE_SCOPE(OpenGL_ResourceDeletion);
+    glDeleteProgramsARB(1, &handle);
+    handle = 0;
+}
+
 void OGLPipeline::Create() {
     if (handle != 0)
         return;

@@ -88,6 +88,10 @@ public:
         return has_fast_buffer_sub_data;
     }
 
+    bool UseAssemblyShaders() const {
+        return use_assembly_shaders;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -107,6 +111,7 @@ private:
     bool has_precise_bug{};
     bool has_broken_compute{};
     bool has_fast_buffer_sub_data{};
+    bool use_assembly_shaders{};
 };
 
 } // namespace OpenGL

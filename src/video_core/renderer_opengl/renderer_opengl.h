@@ -9,6 +9,7 @@
 #include "common/common_types.h"
 #include "common/math_util.h"
 #include "video_core/renderer_base.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
@@ -95,6 +96,7 @@ private:
     Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
     Core::Frontend::GraphicsContext& context;
+    const Device device;
 
     StateTracker state_tracker{system};
 
@@ -102,13 +104,14 @@ private:
     OGLBuffer vertex_buffer;
     OGLProgram vertex_program;
     OGLProgram fragment_program;
+    OGLPipeline pipeline;
     OGLFramebuffer screenshot_framebuffer;
 
     /// Display information for Switch screen
     ScreenInfo screen_info;
 
     /// Global dummy shader pipeline
-    GLShader::ProgramManager program_manager;
+    ProgramManager program_manager;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

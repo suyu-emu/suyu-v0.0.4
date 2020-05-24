@@ -97,6 +97,24 @@ constexpr ShaderType GetShaderType(Maxwell::ShaderProgram program_type) {
     return {};
 }
 
+constexpr GLenum AssemblyEnum(ShaderType shader_type) {
+    switch (shader_type) {
+    case ShaderType::Vertex:
+        return GL_VERTEX_PROGRAM_NV;
+    case ShaderType::TesselationControl:
+        return GL_TESS_CONTROL_PROGRAM_NV;
+    case ShaderType::TesselationEval:
+        return GL_TESS_EVALUATION_PROGRAM_NV;
+    case ShaderType::Geometry:
+        return GL_GEOMETRY_PROGRAM_NV;
+    case ShaderType::Fragment:
+        return GL_FRAGMENT_PROGRAM_NV;
+    case ShaderType::Compute:
+        return GL_COMPUTE_PROGRAM_NV;
+    }
+    return {};
+}
+
 std::string MakeShaderID(u64 unique_identifier, ShaderType shader_type) {
     return fmt::format("{}{:016X}", GetShaderTypeName(shader_type), unique_identifier);
 }
@@ -120,18 +138,43 @@ std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
     return registry;
 }
 
-std::shared_ptr<OGLProgram> BuildShader(const Device& device, ShaderType shader_type,
-                                        u64 unique_identifier, const ShaderIR& ir,
-                                        const Registry& registry, bool hint_retrievable = false) {
+ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 unique_identifier,
+                             const ShaderIR& ir, const Registry& registry,
+                             bool hint_retrievable = false) {
     const std::string shader_id = MakeShaderID(unique_identifier, shader_type);
     LOG_INFO(Render_OpenGL, "{}", shader_id);
 
-    const std::string glsl = DecompileShader(device, ir, registry, shader_type, shader_id);
-    OGLShader shader;
-    shader.Create(glsl.c_str(), GetGLShaderType(shader_type));
+    auto program = std::make_shared<ProgramHandle>();
 
-    auto program = std::make_shared<OGLProgram>();
-    program->Create(true, hint_retrievable, shader.handle);
+    if (device.UseAssemblyShaders()) {
+        const std::string arb = "Not implemented";
+
+        GLuint& arb_prog = program->assembly_program.handle;
+
+// Commented out functions signal OpenGL errors but are compatible with apitrace.
+// Use them only to capture and replay on apitrace.
+#if 0
+        glGenProgramsNV(1, &arb_prog);
+        glLoadProgramNV(AssemblyEnum(shader_type), arb_prog, static_cast<GLsizei>(arb.size()),
+                        reinterpret_cast<const GLubyte*>(arb.data()));
+#else
+        glGenProgramsARB(1, &arb_prog);
+        glNamedProgramStringEXT(arb_prog, AssemblyEnum(shader_type), GL_PROGRAM_FORMAT_ASCII_ARB,
+                                static_cast<GLsizei>(arb.size()), arb.data());
+#endif
+        const auto err = reinterpret_cast<const char*>(glGetString(GL_PROGRAM_ERROR_STRING_NV));
+        if (err && *err) {
+            LOG_CRITICAL(Render_OpenGL, "{}", err);
+            LOG_INFO(Render_OpenGL, "\n{}", arb);
+        }
+    } else {
+        const std::string glsl = DecompileShader(device, ir, registry, shader_type, shader_id);
+        OGLShader shader;
+        shader.Create(glsl.c_str(), GetGLShaderType(shader_type));
+
+        program->source_program.Create(true, hint_retrievable, shader.handle);
+    }
+
     return program;
 }
 
@@ -153,15 +196,22 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 CachedShader::CachedShader(VAddr cpu_addr, std::size_t size_in_bytes,
                            std::shared_ptr<VideoCommon::Shader::Registry> registry,
-                           ShaderEntries entries, std::shared_ptr<OGLProgram> program)
+                           ShaderEntries entries, ProgramSharedPtr program_)
     : RasterizerCacheObject{cpu_addr}, registry{std::move(registry)}, entries{std::move(entries)},
-      size_in_bytes{size_in_bytes}, program{std::move(program)} {}
+      size_in_bytes{size_in_bytes}, program{std::move(program_)} {
+    // Assign either the assembly program or source program. We can't have both.
+    handle = program->assembly_program.handle;
+    if (handle == 0) {
+        handle = program->source_program.handle;
+    }
+    ASSERT(handle != 0);
+}
 
 CachedShader::~CachedShader() = default;
 
 GLuint CachedShader::GetHandle() const {
     DEBUG_ASSERT(registry->IsConsistent());
-    return program->handle;
+    return handle;
 }
 
 Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
@@ -239,7 +289,11 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
         return;
     }
 
-    const std::vector gl_cache = disk_cache.LoadPrecompiled();
+    std::vector<ShaderDiskCachePrecompiled> gl_cache;
+    if (!device.UseAssemblyShaders()) {
+        // Only load precompiled cache when we are not using assembly shaders
+        gl_cache = disk_cache.LoadPrecompiled();
+    }
     const auto supported_formats = GetSupportedFormats();
 
     // Track if precompiled cache was altered during loading to know if we have to
@@ -278,7 +332,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             auto registry = MakeRegistry(entry);
             const ShaderIR ir(entry.code, main_offset, COMPILER_SETTINGS, *registry);
 
-            std::shared_ptr<OGLProgram> program;
+            ProgramSharedPtr program;
             if (precompiled_entry) {
                 // If the shader is precompiled, attempt to load it with
                 program = GeneratePrecompiledProgram(entry, *precompiled_entry, supported_formats);
@@ -332,6 +386,11 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
         return;
     }
 
+    if (device.UseAssemblyShaders()) {
+        // Don't store precompiled binaries for assembly shaders.
+        return;
+    }
+
     // TODO(Rodrigo): Do state tracking for transferable shaders and do a dummy draw
     // before precompiling them
 
@@ -339,7 +398,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
         const u64 id = (*transferable)[i].unique_identifier;
         const auto it = find_precompiled(id);
         if (it == gl_cache.end()) {
-            const GLuint program = runtime_cache.at(id).program->handle;
+            const GLuint program = runtime_cache.at(id).program->source_program.handle;
             disk_cache.SavePrecompiled(id, program);
             precompiled_cache_altered = true;
         }
@@ -350,7 +409,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
     }
 }
 
-std::shared_ptr<OGLProgram> ShaderCacheOpenGL::GeneratePrecompiledProgram(
+ProgramSharedPtr ShaderCacheOpenGL::GeneratePrecompiledProgram(
     const ShaderDiskCacheEntry& entry, const ShaderDiskCachePrecompiled& precompiled_entry,
     const std::unordered_set<GLenum>& supported_formats) {
     if (supported_formats.find(precompiled_entry.binary_format) == supported_formats.end()) {
@@ -358,15 +417,15 @@ std::shared_ptr<OGLProgram> ShaderCacheOpenGL::GeneratePrecompiledProgram(
         return {};
     }
 
-    auto program = std::make_shared<OGLProgram>();
-    program->handle = glCreateProgram();
-    glProgramParameteri(program->handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
-    glProgramBinary(program->handle, precompiled_entry.binary_format,
-                    precompiled_entry.binary.data(),
+    auto program = std::make_shared<ProgramHandle>();
+    GLuint& handle = program->source_program.handle;
+    handle = glCreateProgram();
+    glProgramParameteri(handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
+    glProgramBinary(handle, precompiled_entry.binary_format, precompiled_entry.binary.data(),
                     static_cast<GLsizei>(precompiled_entry.binary.size()));
 
     GLint link_status;
-    glGetProgramiv(program->handle, GL_LINK_STATUS, &link_status);
+    glGetProgramiv(handle, GL_LINK_STATUS, &link_status);
     if (link_status == GL_FALSE) {
         LOG_INFO(Render_OpenGL, "Precompiled cache rejected by the driver, removing");
         return {};

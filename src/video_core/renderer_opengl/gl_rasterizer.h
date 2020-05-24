@@ -56,8 +56,8 @@ struct DrawParameters;
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
-                              ScreenInfo& info, GLShader::ProgramManager& program_manager,
-                              StateTracker& state_tracker);
+                              const Device& device, ScreenInfo& info,
+                              ProgramManager& program_manager, StateTracker& state_tracker);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -106,7 +106,7 @@ private:
     void SetupComputeConstBuffers(const Shader& kernel);
 
     /// Configures a constant buffer.
-    void SetupConstBuffer(u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
+    void SetupConstBuffer(GLenum stage, u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
                           const ConstBufferEntry& entry);
 
     /// Configures the current global memory entries to use for the draw command.
@@ -224,7 +224,7 @@ private:
 
     void SetupShaders(GLenum primitive_mode);
 
-    const Device device;
+    const Device& device;
 
     TextureCacheOpenGL texture_cache;
     ShaderCacheOpenGL shader_cache;
@@ -236,7 +236,7 @@ private:
 
     Core::System& system;
     ScreenInfo& screen_info;
-    GLShader::ProgramManager& program_manager;
+    ProgramManager& program_manager;
     StateTracker& state_tracker;
 
     static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
@@ -247,6 +247,12 @@ private:
         transform_feedback_buffers;
     std::bitset<Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
         enabled_transform_feedback_buffers;
+
+    static constexpr std::size_t NUM_CONSTANT_BUFFERS =
+        Tegra::Engines::Maxwell3D::Regs::MaxConstBuffers *
+        Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram;
+    std::array<GLuint, NUM_CONSTANT_BUFFERS> staging_cbufs{};
+    std::size_t current_cbuf = 0;
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;

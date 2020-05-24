@@ -134,6 +134,10 @@ max_anisotropy =
 # 0 (default): Off, 1: On
 use_vsync =
 
+# Whether to use OpenGL assembly shaders or not. NV_gpu_program5 is required.
+# 0 (default): Off, 1: On
+use_assembly_shaders =
+
 # Turns on the frame limiter, which will limit frames output to the target game speed
 # 0: Off, 1: On (default)
 use_frame_limit =

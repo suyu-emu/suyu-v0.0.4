@@ -446,6 +446,7 @@ struct Values {
     GPUAccuracy gpu_accuracy;
     bool use_asynchronous_gpu_emulation;
     bool use_vsync;
+    bool use_assembly_shaders;
     bool force_30fps_mode;
     bool use_fast_gpu_time;
 

@@ -43,8 +43,14 @@ struct UnspecializedShader;
 using Shader = std::shared_ptr<CachedShader>;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
+struct ProgramHandle {
+    OGLProgram source_program;
+    OGLAssemblyProgram assembly_program;
+};
+using ProgramSharedPtr = std::shared_ptr<ProgramHandle>;
+
 struct PrecompiledShader {
-    std::shared_ptr<OGLProgram> program;
+    ProgramSharedPtr program;
     std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
 };
@@ -87,12 +93,13 @@ public:
 private:
     explicit CachedShader(VAddr cpu_addr, std::size_t size_in_bytes,
                           std::shared_ptr<VideoCommon::Shader::Registry> registry,
-                          ShaderEntries entries, std::shared_ptr<OGLProgram> program);
+                          ShaderEntries entries, ProgramSharedPtr program);
 
     std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
     std::size_t size_in_bytes = 0;
-    std::shared_ptr<OGLProgram> program;
+    ProgramSharedPtr program;
+    GLuint handle = 0;
 };
 
 class ShaderCacheOpenGL final : public RasterizerCache<Shader> {
@@ -115,7 +122,7 @@ protected:
     void FlushObjectInner(const Shader& object) override {}
 
 private:
-    std::shared_ptr<OGLProgram> GeneratePrecompiledProgram(
+    ProgramSharedPtr GeneratePrecompiledProgram(
         const ShaderDiskCacheEntry& entry, const ShaderDiskCachePrecompiled& precompiled_entry,
         const std::unordered_set<GLenum>& supported_formats);
 
