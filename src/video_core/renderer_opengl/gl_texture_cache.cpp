@@ -238,6 +238,12 @@ OGLTexture CreateTexture(const SurfaceParams& params, GLenum target, GLenum inte
     return texture;
 }
 
+constexpr u32 EncodeSwizzle(SwizzleSource x_source, SwizzleSource y_source, SwizzleSource z_source,
+                            SwizzleSource w_source) {
+    return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
+           (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
+}
+
 } // Anonymous namespace
 
 CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
@@ -404,7 +410,8 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
     if (!is_proxy) {
         texture_view = CreateTextureView();
     }
-    swizzle = EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
+    current_swizzle =
+        EncodeSwizzle(SwizzleSource::R, SwizzleSource::G, SwizzleSource::B, SwizzleSource::A);
 }
 
 CachedSurfaceView::~CachedSurfaceView() = default;
@@ -449,24 +456,34 @@ void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
 
 void CachedSurfaceView::ApplySwizzle(SwizzleSource x_source, SwizzleSource y_source,
                                      SwizzleSource z_source, SwizzleSource w_source) {
-    u32 new_swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
-    if (new_swizzle == swizzle)
+    const u32 new_swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
+    if (current_swizzle == new_swizzle) {
         return;
-    swizzle = new_swizzle;
-    const std::array gl_swizzle = {GetSwizzleSource(x_source), GetSwizzleSource(y_source),
-                                   GetSwizzleSource(z_source), GetSwizzleSource(w_source)};
+    }
+    current_swizzle = new_swizzle;
+
+    std::array swizzle{x_source, y_source, z_source, w_source};
+
     const GLuint handle = GetTexture();
-    const PixelFormat format = surface.GetSurfaceParams().pixel_format;
-    switch (format) {
+    switch (const PixelFormat format = surface.GetSurfaceParams().pixel_format) {
+    case PixelFormat::S8Z24:
     case PixelFormat::Z24S8:
     case PixelFormat::Z32FS8:
-    case PixelFormat::S8Z24:
+        UNIMPLEMENTED_IF(x_source != SwizzleSource::R && x_source != SwizzleSource::G);
         glTextureParameteri(handle, GL_DEPTH_STENCIL_TEXTURE_MODE,
                             GetComponent(format, x_source == SwizzleSource::R));
-        break;
-    default:
+
+        // Make sure we sample the first component
+        std::transform(swizzle.begin(), swizzle.end(), swizzle.begin(), [](SwizzleSource value) {
+            return value == SwizzleSource::G ? SwizzleSource::R : value;
+        });
+        [[fallthrough]];
+    default: {
+        const std::array gl_swizzle = {GetSwizzleSource(swizzle[0]), GetSwizzleSource(swizzle[1]),
+                                       GetSwizzleSource(swizzle[2]), GetSwizzleSource(swizzle[3])};
         glTextureParameteriv(handle, GL_TEXTURE_SWIZZLE_RGBA, gl_swizzle.data());
         break;
+    }
     }
 }
 

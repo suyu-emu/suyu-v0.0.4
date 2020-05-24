@@ -110,14 +110,6 @@ public:
     }
 
 private:
-    u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source,
-                      Tegra::Texture::SwizzleSource y_source,
-                      Tegra::Texture::SwizzleSource z_source,
-                      Tegra::Texture::SwizzleSource w_source) const {
-        return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
-               (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
-    }
-
     OGLTextureView CreateTextureView() const;
 
     CachedSurface& surface;
@@ -125,7 +117,7 @@ private:
     GLenum format{};
 
     OGLTextureView texture_view;
-    u32 swizzle{};
+    u32 current_swizzle{};
     bool is_proxy{};
 };
 
