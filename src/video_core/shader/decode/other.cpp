@@ -293,6 +293,11 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         SetRegister(bb, instr.gpr0, GetRegister(instr.gpr8));
         break;
     }
+    case OpCode::Id::BAR: {
+        UNIMPLEMENTED_IF_MSG(instr.value != 0xF0A81B8000070000ULL, "BAR is not BAR.SYNC 0x0");
+        bb.push_back(Operation(OperationCode::Barrier));
+        break;
+    }
     case OpCode::Id::MEMBAR: {
         UNIMPLEMENTED_IF(instr.membar.type != Tegra::Shader::MembarType::GL);
         UNIMPLEMENTED_IF(instr.membar.unknown != Tegra::Shader::MembarUnknown::Default);
