@@ -387,7 +387,6 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
     }
     case OpCode::Id::RED: {
         UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32);
-        UNIMPLEMENTED_IF_MSG(instr.red.operation != AtomicOp::Add);
         const auto [real_address, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, true, true);
         if (!real_address || !base_address) {
@@ -396,7 +395,7 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         }
         Node gmem = MakeNode<GmemNode>(real_address, base_address, descriptor);
         Node value = GetRegister(instr.gpr0);
-        bb.push_back(Operation(OperationCode::ReduceIAdd, move(gmem), move(value)));
+        bb.push_back(Operation(GetAtomOperation(instr.red.operation), move(gmem), move(value)));
         break;
     }
     case OpCode::Id::ATOM: {
