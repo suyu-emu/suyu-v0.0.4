@@ -310,18 +310,20 @@ public:
         dst_surface.first->MarkAsModified(true, Tick());
     }
 
-    TSurface TryFindFramebufferSurface(VAddr addr) {
+    TSurface TryFindFramebufferSurface(VAddr addr) const {
         if (!addr) {
             return nullptr;
         }
         const VAddr page = addr >> registry_page_bits;
-        std::vector<TSurface>& list = registry[page];
-        for (auto& surface : list) {
-            if (surface->GetCpuAddr() == addr) {
-                return surface;
-            }
+        const auto it = registry.find(page);
+        if (it == registry.end()) {
+            return nullptr;
         }
-        return nullptr;
+        const auto& list = it->second;
+        const auto found = std::find_if(list.begin(), list.end(), [addr](const auto& surface) {
+            return surface->GetCpuAddr() == addr;
+        });
+        return found != list.end() ? *found : nullptr;
     }
 
     u64 Tick() {
@@ -1130,18 +1132,20 @@ private:
             return {};
         }
         const VAddr cpu_addr_end = cpu_addr + size;
-        VAddr start = cpu_addr >> registry_page_bits;
         const VAddr end = (cpu_addr_end - 1) >> registry_page_bits;
         VectorSurface surfaces;
-        while (start <= end) {
-            std::vector<TSurface>& list = registry[start];
-            for (auto& surface : list) {
-                if (!surface->IsPicked() && surface->Overlaps(cpu_addr, cpu_addr_end)) {
-                    surface->MarkAsPicked(true);
-                    surfaces.push_back(surface);
-                }
+        for (VAddr start = cpu_addr >> registry_page_bits; start <= end; ++start) {
+            const auto it = registry.find(start);
+            if (it == registry.end()) {
+                continue;
             }
-            start++;
+            for (auto& surface : it->second) {
+                if (surface->IsPicked() || !surface->Overlaps(cpu_addr, cpu_addr_end)) {
+                    continue;
+                }
+                surface->MarkAsPicked(true);
+                surfaces.push_back(surface);
+            }
         }
         for (auto& surface : surfaces) {
             surface->MarkAsPicked(false);
