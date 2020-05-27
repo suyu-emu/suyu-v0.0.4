@@ -222,7 +222,7 @@ GMainWindow::GMainWindow()
     LOG_INFO(Frontend, "Host OS: {}", QSysInfo::prettyProductName().toStdString());
     LOG_INFO(Frontend, "Host RAM: {:.2f} GB",
              Common::GetMemInfo().TotalPhysicalMemory / 1024.0f / 1024 / 1024);
-    LOG_INFO(Frontend, "Host Swapfile: {:.2f} GB",
+    LOG_INFO(Frontend, "Host Swap: {:.2f} GB",
              Common::GetMemInfo().TotalSwapMemory / 1024.0f / 1024 / 1024);
     UpdateWindowTitle();
 
