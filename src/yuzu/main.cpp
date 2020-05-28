@@ -65,6 +65,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "common/logging/backend.h"
 #include "common/logging/filter.h"
 #include "common/logging/log.h"
+#include "common/memory_detect.h"
 #include "common/microprofile.h"
 #include "common/scm_rev.h"
 #include "common/scope_exit.h"
@@ -219,6 +220,10 @@ GMainWindow::GMainWindow()
     LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
 #endif
     LOG_INFO(Frontend, "Host OS: {}", QSysInfo::prettyProductName().toStdString());
+    LOG_INFO(Frontend, "Host RAM: {:.2f} GB",
+             Common::GetMemInfo().TotalPhysicalMemory / 1024.0f / 1024 / 1024);
+    LOG_INFO(Frontend, "Host Swap: {:.2f} GB",
+             Common::GetMemInfo().TotalSwapMemory / 1024.0f / 1024 / 1024);
     UpdateWindowTitle();
 
     show();
