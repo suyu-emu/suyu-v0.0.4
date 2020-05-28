@@ -56,8 +56,7 @@ std::shared_ptr<VfsDirectory> FindSubdirectoryCaseless(const std::shared_ptr<Vfs
 #else
     const auto subdirs = dir->GetSubdirectories();
     for (const auto& subdir : subdirs) {
-        std::string dir_name = subdir->GetName();
-        dir_name = Common::ToLower(dir_name);
+        std::string dir_name = Common::ToLower(subdir->GetName());
         if (dir_name == name) {
             return subdir;
         }
