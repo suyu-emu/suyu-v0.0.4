@@ -241,8 +241,9 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
-    return std::shared_ptr<CachedShader>(new CachedShader(
-        params.cpu_addr, size_in_bytes, std::move(registry), MakeEntries(ir), std::move(program)));
+    return std::shared_ptr<CachedShader>(
+        new CachedShader(params.cpu_addr, size_in_bytes, std::move(registry),
+                         MakeEntries(params.device, ir, shader_type), std::move(program)));
 }
 
 Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode code) {
@@ -265,8 +266,9 @@ Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, Prog
     entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
-    return std::shared_ptr<CachedShader>(new CachedShader(
-        params.cpu_addr, size_in_bytes, std::move(registry), MakeEntries(ir), std::move(program)));
+    return std::shared_ptr<CachedShader>(
+        new CachedShader(params.cpu_addr, size_in_bytes, std::move(registry),
+                         MakeEntries(params.device, ir, ShaderType::Compute), std::move(program)));
 }
 
 Shader CachedShader::CreateFromCache(const ShaderParameters& params,
@@ -348,7 +350,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
             PrecompiledShader shader;
             shader.program = std::move(program);
             shader.registry = std::move(registry);
-            shader.entries = MakeEntries(ir);
+            shader.entries = MakeEntries(device, ir, entry.type);
 
             std::scoped_lock lock{mutex};
             if (callback) {

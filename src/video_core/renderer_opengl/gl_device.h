@@ -24,6 +24,10 @@ public:
     explicit Device();
     explicit Device(std::nullptr_t);
 
+    u32 GetMaxUniformBuffers(Tegra::Engines::ShaderType shader_type) const noexcept {
+        return max_uniform_buffers[static_cast<std::size_t>(shader_type)];
+    }
+
     const BaseBindings& GetBaseBindings(std::size_t stage_index) const noexcept {
         return base_bindings[stage_index];
     }
@@ -92,7 +96,8 @@ private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
 
-    std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings;
+    std::array<u32, Tegra::Engines::MaxShaderTypes> max_uniform_buffers{};
+    std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings{};
     std::size_t uniform_buffer_alignment{};
     std::size_t shader_storage_alignment{};
     u32 max_vertex_attributes{};

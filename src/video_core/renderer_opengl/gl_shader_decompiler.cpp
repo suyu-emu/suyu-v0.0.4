@@ -61,8 +61,8 @@ struct TextureDerivates {};
 using TextureArgument = std::pair<Type, Node>;
 using TextureIR = std::variant<TextureOffset, TextureDerivates, TextureArgument>;
 
-constexpr u32 MAX_CONSTBUFFER_ELEMENTS =
-    static_cast<u32>(Maxwell::MaxConstBufferSize) / (4 * sizeof(float));
+constexpr u32 MAX_CONSTBUFFER_SCALARS = static_cast<u32>(Maxwell::MaxConstBufferSize) / sizeof(u32);
+constexpr u32 MAX_CONSTBUFFER_ELEMENTS = MAX_CONSTBUFFER_SCALARS / sizeof(u32);
 
 constexpr std::string_view CommonDeclarations = R"(#define ftoi floatBitsToInt
 #define ftou floatBitsToUint
@@ -402,6 +402,13 @@ std::string FlowStackTopName(MetaStackClass stack) {
     return fmt::format("{}_flow_stack_top", GetFlowStackPrefix(stack));
 }
 
+bool UseUnifiedUniforms(const Device& device, const ShaderIR& ir, ShaderType stage) {
+    const u32 num_ubos = static_cast<u32>(ir.GetConstantBuffers().size());
+    // We waste one UBO for emulation
+    const u32 num_available_ubos = device.GetMaxUniformBuffers(stage) - 1;
+    return num_ubos > num_available_ubos;
+}
+
 struct GenericVaryingDescription {
     std::string name;
     u8 first_element = 0;
@@ -412,8 +419,9 @@ class GLSLDecompiler final {
 public:
     explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
                             ShaderType stage, std::string_view identifier, std::string_view suffix)
-        : device{device}, ir{ir}, registry{registry}, stage{stage},
-          identifier{identifier}, suffix{suffix}, header{ir.GetHeader()} {
+        : device{device}, ir{ir}, registry{registry}, stage{stage}, identifier{identifier},
+          suffix{suffix}, header{ir.GetHeader()}, use_unified_uniforms{
+                                                      UseUnifiedUniforms(device, ir, stage)} {
         if (stage != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
         }
@@ -834,12 +842,24 @@ private:
     }
 
     void DeclareConstantBuffers() {
+        if (use_unified_uniforms) {
+            const u32 binding = device.GetBaseBindings(stage).shader_storage_buffer +
+                                static_cast<u32>(ir.GetGlobalMemory().size());
+            code.AddLine("layout (std430, binding = {}) readonly buffer UnifiedUniforms {{",
+                         binding);
+            code.AddLine("    uint cbufs[];");
+            code.AddLine("}};");
+            code.AddNewLine();
+            return;
+        }
+
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
-        for (const auto& buffers : ir.GetConstantBuffers()) {
-            const auto index = buffers.first;
+        for (const auto [index, info] : ir.GetConstantBuffers()) {
+            const u32 num_elements = Common::AlignUp(info.GetSize(), 4) / 4;
+            const u32 size = info.IsIndirect() ? MAX_CONSTBUFFER_ELEMENTS : num_elements;
             code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
                          GetConstBufferBlock(index));
-            code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), MAX_CONSTBUFFER_ELEMENTS);
+            code.AddLine("    uvec4 {}[{}];", GetConstBuffer(index), size);
             code.AddLine("}};");
             code.AddNewLine();
         }
@@ -1038,42 +1058,51 @@ private:
 
         if (const auto cbuf = std::get_if<CbufNode>(&*node)) {
             const Node offset = cbuf->GetOffset();
+            const u32 base_unified_offset = cbuf->GetIndex() * MAX_CONSTBUFFER_SCALARS;
+
             if (const auto immediate = std::get_if<ImmediateNode>(&*offset)) {
                 // Direct access
                 const u32 offset_imm = immediate->GetValue();
                 ASSERT_MSG(offset_imm % 4 == 0, "Unaligned cbuf direct access");
-                return {fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()),
-                                    offset_imm / (4 * 4), (offset_imm / 4) % 4),
+                if (use_unified_uniforms) {
+                    return {fmt::format("cbufs[{}]", base_unified_offset + offset_imm / 4),
+                            Type::Uint};
+                } else {
+                    return {fmt::format("{}[{}][{}]", GetConstBuffer(cbuf->GetIndex()),
+                                        offset_imm / (4 * 4), (offset_imm / 4) % 4),
+                            Type::Uint};
+                }
+            }
+
+            // Indirect access
+            if (use_unified_uniforms) {
+                return {fmt::format("cbufs[{} + ({} >> 2)]", base_unified_offset,
+                                    Visit(offset).AsUint()),
                         Type::Uint};
             }
 
-            if (std::holds_alternative<OperationNode>(*offset)) {
-                // Indirect access
-                const std::string final_offset = code.GenerateTemporary();
-                code.AddLine("uint {} = {} >> 2;", final_offset, Visit(offset).AsUint());
+            const std::string final_offset = code.GenerateTemporary();
+            code.AddLine("uint {} = {} >> 2;", final_offset, Visit(offset).AsUint());
 
-                if (!device.HasComponentIndexingBug()) {
-                    return {fmt::format("{}[{} >> 2][{} & 3]", GetConstBuffer(cbuf->GetIndex()),
-                                        final_offset, final_offset),
-                            Type::Uint};
-                }
-
-                // AMD's proprietary GLSL compiler emits ill code for variable component access.
-                // To bypass this driver bug generate 4 ifs, one per each component.
-                const std::string pack = code.GenerateTemporary();
-                code.AddLine("uvec4 {} = {}[{} >> 2];", pack, GetConstBuffer(cbuf->GetIndex()),
-                             final_offset);
-
-                const std::string result = code.GenerateTemporary();
-                code.AddLine("uint {};", result);
-                for (u32 swizzle = 0; swizzle < 4; ++swizzle) {
-                    code.AddLine("if (({} & 3) == {}) {} = {}{};", final_offset, swizzle, result,
-                                 pack, GetSwizzle(swizzle));
-                }
-                return {result, Type::Uint};
+            if (!device.HasComponentIndexingBug()) {
+                return {fmt::format("{}[{} >> 2][{} & 3]", GetConstBuffer(cbuf->GetIndex()),
+                                    final_offset, final_offset),
+                        Type::Uint};
             }
 
-            UNREACHABLE_MSG("Unmanaged offset node type");
+            // AMD's proprietary GLSL compiler emits ill code for variable component access.
+            // To bypass this driver bug generate 4 ifs, one per each component.
+            const std::string pack = code.GenerateTemporary();
+            code.AddLine("uvec4 {} = {}[{} >> 2];", pack, GetConstBuffer(cbuf->GetIndex()),
+                         final_offset);
+
+            const std::string result = code.GenerateTemporary();
+            code.AddLine("uint {};", result);
+            for (u32 swizzle = 0; swizzle < 4; ++swizzle) {
+                code.AddLine("if (({} & 3) == {}) {} = {}{};", final_offset, swizzle, result, pack,
+                             GetSwizzle(swizzle));
+            }
+            return {result, Type::Uint};
         }
 
         if (const auto gmem = std::get_if<GmemNode>(&*node)) {
@@ -2710,6 +2739,7 @@ private:
     const std::string_view identifier;
     const std::string_view suffix;
     const Header header;
+    const bool use_unified_uniforms;
     std::unordered_map<u8, VaryingTFB> transform_feedback;
 
     ShaderWriter code;
@@ -2905,7 +2935,7 @@ void GLSLDecompiler::DecompileAST() {
 
 } // Anonymous namespace
 
-ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir) {
+ShaderEntries MakeEntries(const Device& device, const ShaderIR& ir, ShaderType stage) {
     ShaderEntries entries;
     for (const auto& cbuf : ir.GetConstantBuffers()) {
         entries.const_buffers.emplace_back(cbuf.second.GetMaxOffset(), cbuf.second.IsIndirect(),
@@ -2926,6 +2956,7 @@ ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir) {
         entries.clip_distances = (clip_distances[i] ? 1U : 0U) << i;
     }
     entries.shader_length = ir.GetLength();
+    entries.use_unified_uniforms = UseUnifiedUniforms(device, ir, stage);
     return entries;
 }
 
