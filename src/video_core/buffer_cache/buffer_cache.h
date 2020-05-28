@@ -56,24 +56,28 @@ public:
         if (use_fast_cbuf || size < max_stream_size) {
             if (!is_written && !IsRegionWritten(cpu_addr, cpu_addr + size - 1)) {
                 auto& memory_manager = system.GPU().MemoryManager();
+                const bool is_granular = memory_manager.IsGranularRange(gpu_addr, size);
                 if (use_fast_cbuf) {
-                    if (memory_manager.IsGranularRange(gpu_addr, size)) {
-                        const auto host_ptr = memory_manager.GetPointer(gpu_addr);
-                        return ConstBufferUpload(host_ptr, size);
+                    u8* dest;
+                    if (is_granular) {
+                        dest = memory_manager.GetPointer(gpu_addr);
                     } else {
                         staging_buffer.resize(size);
-                        memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
-                        return ConstBufferUpload(staging_buffer.data(), size);
+                        dest = staging_buffer.data();
+                        memory_manager.ReadBlockUnsafe(gpu_addr, dest, size);
                     }
+                    return ConstBufferUpload(dest, size);
+                }
+                if (is_granular) {
+                    u8* const host_ptr = memory_manager.GetPointer(gpu_addr);
+                    return StreamBufferUpload(size, alignment, [host_ptr, size](u8* dest) {
+                        std::memcpy(dest, host_ptr, size);
+                    });
                 } else {
-                    if (memory_manager.IsGranularRange(gpu_addr, size)) {
-                        const auto host_ptr = memory_manager.GetPointer(gpu_addr);
-                        return StreamBufferUpload(host_ptr, size, alignment);
-                    } else {
-                        staging_buffer.resize(size);
-                        memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
-                        return StreamBufferUpload(staging_buffer.data(), size, alignment);
-                    }
+                    return StreamBufferUpload(
+                        size, alignment, [&memory_manager, gpu_addr, size](u8* dest) {
+                            memory_manager.ReadBlockUnsafe(gpu_addr, dest, size);
+                        });
                 }
             }
         }
@@ -101,7 +105,9 @@ public:
     BufferInfo UploadHostMemory(const void* raw_pointer, std::size_t size,
                                 std::size_t alignment = 4) {
         std::lock_guard lock{mutex};
-        return StreamBufferUpload(raw_pointer, size, alignment);
+        return StreamBufferUpload(size, alignment, [raw_pointer, size](u8* dest) {
+            std::memcpy(dest, raw_pointer, size);
+        });
     }
 
     void Map(std::size_t max_size) {
@@ -424,11 +430,11 @@ private:
         map->MarkAsModified(false, 0);
     }
 
-    BufferInfo StreamBufferUpload(const void* raw_pointer, std::size_t size,
-                                  std::size_t alignment) {
+    template <typename Callable>
+    BufferInfo StreamBufferUpload(std::size_t size, std::size_t alignment, Callable&& callable) {
         AlignBuffer(alignment);
         const std::size_t uploaded_offset = buffer_offset;
-        std::memcpy(buffer_ptr, raw_pointer, size);
+        callable(buffer_ptr);
 
         buffer_ptr += size;
         buffer_offset += size;
