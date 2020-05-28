@@ -32,7 +32,7 @@ std::string FormatTitleVersion(u32 version,
 // Returns a directory with name matching name case-insensitive. Returns nullptr if directory
 // doesn't have a directory with name.
 std::shared_ptr<VfsDirectory> FindSubdirectoryCaseless(const std::shared_ptr<VfsDirectory> dir,
-                                                       const std::string& name);
+                                                       std::string_view name);
 
 // A centralized class to manage patches to games.
 class PatchManager {

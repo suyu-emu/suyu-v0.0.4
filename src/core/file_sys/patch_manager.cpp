@@ -6,11 +6,11 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
-#include <boost/algorithm/string/case_conv.hpp>
 
 #include "common/file_util.h"
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
@@ -50,14 +50,14 @@ std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
 }
 
 std::shared_ptr<VfsDirectory> FindSubdirectoryCaseless(const std::shared_ptr<VfsDirectory> dir,
-                                                       const std::string& name) {
+                                                       std::string_view name) {
 #ifdef _WIN32
     return dir->GetSubdirectory(name);
 #else
     const auto subdirs = dir->GetSubdirectories();
     for (const auto& subdir : subdirs) {
         std::string dir_name = subdir->GetName();
-        boost::algorithm::to_lower(dir_name);
+        dir_name = Common::ToLower(dir_name);
         if (dir_name == name) {
             return subdir;
         }
