@@ -47,6 +47,10 @@ void ProgramManager::BindHostPipeline(GLuint pipeline) {
             old_state.geometry = 0;
             glDisable(GL_GEOMETRY_PROGRAM_NV);
         }
+    } else {
+        if (!is_graphics_bound) {
+            glUseProgram(0);
+        }
     }
     glBindProgramPipeline(pipeline);
 }
