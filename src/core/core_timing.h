@@ -72,6 +72,11 @@ public:
         this->is_multicore = is_multicore;
     }
 
+    /// Check if it's using host timing.
+    bool IsHostTiming() const {
+        return is_multicore;
+    }
+
     /// Pauses/Unpauses the execution of the timer thread.
     void Pause(bool is_paused);
 

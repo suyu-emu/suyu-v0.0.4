@@ -66,6 +66,15 @@ s64 Stream::GetBufferReleaseNS(const Buffer& buffer) const {
     return ns.count();
 }
 
+s64 Stream::GetBufferReleaseNSHostTiming(const Buffer& buffer) const {
+    const std::size_t num_samples{buffer.GetSamples().size() / GetNumChannels()};
+    /// DSP signals before playing the last sample, in HLE we emulate this in this way
+    s64 base_samples = std::max<s64>(static_cast<s64>(num_samples) - 1, 0);
+    const auto ns =
+        std::chrono::nanoseconds((static_cast<u64>(base_samples) * 1000000000ULL) / sample_rate);
+    return ns.count();
+}
+
 static void VolumeAdjustSamples(std::vector<s16>& samples, float game_volume) {
     const float volume{std::clamp(Settings::Volume() - (1.0f - game_volume), 0.0f, 1.0f)};
 
@@ -105,7 +114,11 @@ void Stream::PlayNextBuffer() {
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 
-    core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer), release_event, {});
+    if (core_timing.IsHostTiming()) {
+        core_timing.ScheduleEvent(GetBufferReleaseNSHostTiming(*active_buffer), release_event, {});
+    } else {
+        core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer), release_event, {});
+    }
 }
 
 void Stream::ReleaseActiveBuffer() {
