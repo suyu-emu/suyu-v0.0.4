@@ -381,6 +381,9 @@ public:
     /// Exit Dynarmic Microprofile
     void ExitDynarmicProfile();
 
+    /// Tells if system is running on multicore.
+    bool IsMulticore() const;
+
 private:
     System();
 

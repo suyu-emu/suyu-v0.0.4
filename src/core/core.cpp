@@ -294,8 +294,6 @@ struct System::Impl {
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
-        perf_stats.reset();
-        gpu_core.reset();
         device_memory.reset();
 
         // Close all CPU/threading state
@@ -307,6 +305,8 @@ struct System::Impl {
 
         // Close app loader
         app_loader.reset();
+        gpu_core.reset();
+        perf_stats.reset();
 
         // Clear all applets
         applet_manager.ClearAll();
@@ -762,6 +762,10 @@ void System::EnterDynarmicProfile() {
 void System::ExitDynarmicProfile() {
     std::size_t core = impl->kernel.GetCurrentHostThreadID();
     MicroProfileLeave(impl->microprofile_dynarmic[core], impl->dynarmic_ticks[core]);
+}
+
+bool System::IsMulticore() const {
+    return impl->is_multicore;
 }
 
 } // namespace Core

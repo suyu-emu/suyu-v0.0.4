@@ -4,15 +4,21 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
+#include <thread>
 
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
+
+namespace Common {
+class Event;
+} // namespace Common
 
 namespace Core::Timing {
 class CoreTiming;
@@ -97,6 +103,10 @@ private:
     /// Finds the layer identified by the specified ID in the desired display.
     const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
 
+    static void VSyncThread(NVFlinger& nv_flinger);
+
+    void SplitVSync();
+
     std::shared_ptr<Nvidia::Module> nvdrv;
 
     std::vector<VI::Display> displays;
@@ -116,6 +126,10 @@ private:
     std::shared_ptr<std::mutex> guard;
 
     Core::System& system;
+
+    std::unique_ptr<std::thread> vsync_thread;
+    std::unique_ptr<Common::Event> wait_event;
+    std::atomic<bool> is_running{};
 };
 
 } // namespace Service::NVFlinger
