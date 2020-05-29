@@ -660,6 +660,15 @@ private:
         std::size_t passed_tests = 0;
         bool modified = false;
 
+        u32 num_resources = 0;
+        for (auto& surface : overlaps) {
+            const SurfaceParams& src_params = surface->GetSurfaceParams();
+            num_resources += src_params.depth * src_params.num_levels;
+        }
+        if (num_resources != params.depth * params.num_levels) {
+            LoadSurface(new_surface);
+        }
+
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
             const auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
