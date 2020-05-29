@@ -344,9 +344,9 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
             SchedulerLock lock(system.Kernel());
             auto* sync_object = thread->GetHLESyncObject();
             sync_object->RemoveWaitingThread(SharedFrom(thread));
-
-            thread->InvokeHLECallback(SharedFrom(thread));
         }
+
+        thread->InvokeHLECallback(SharedFrom(thread));
     }
 
     return thread->GetSignalingResult();
