@@ -133,6 +133,7 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
 }
 
 bool IsASTCSupported() {
+    static constexpr std::array targets = {GL_TEXTURE_2D, GL_TEXTURE_2D_ARRAY};
     static constexpr std::array formats = {
         GL_COMPRESSED_RGBA_ASTC_4x4_KHR,           GL_COMPRESSED_RGBA_ASTC_5x4_KHR,
         GL_COMPRESSED_RGBA_ASTC_5x5_KHR,           GL_COMPRESSED_RGBA_ASTC_6x5_KHR,
@@ -149,12 +150,23 @@ bool IsASTCSupported() {
         GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x8_KHR,  GL_COMPRESSED_SRGB8_ALPHA8_ASTC_10x10_KHR,
         GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x10_KHR, GL_COMPRESSED_SRGB8_ALPHA8_ASTC_12x12_KHR,
     };
-    return std::find_if_not(formats.begin(), formats.end(), [](GLenum format) {
-               GLint supported;
-               glGetInternalformativ(GL_TEXTURE_2D, format, GL_INTERNALFORMAT_SUPPORTED, 1,
-                                     &supported);
-               return supported == GL_TRUE;
-           }) == formats.end();
+    static constexpr std::array required_support = {
+        GL_VERTEX_TEXTURE,   GL_TESS_CONTROL_TEXTURE, GL_TESS_EVALUATION_TEXTURE,
+        GL_GEOMETRY_TEXTURE, GL_FRAGMENT_TEXTURE,     GL_COMPUTE_TEXTURE,
+    };
+
+    for (const GLenum target : targets) {
+        for (const GLenum format : formats) {
+            for (const GLenum support : required_support) {
+                GLint value;
+                glGetInternalformativ(GL_TEXTURE_2D, format, support, 1, &value);
+                if (value != GL_FULL_SUPPORT) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 } // Anonymous namespace
