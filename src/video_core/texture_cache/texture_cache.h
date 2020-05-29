@@ -991,7 +991,9 @@ private:
         params.target = target;
         params.is_tiled = false;
         params.srgb_conversion = false;
-        params.is_layered = false;
+        params.is_layered =
+            target == SurfaceTarget::Texture1DArray || target == SurfaceTarget::Texture2DArray ||
+            target == SurfaceTarget::TextureCubemap || target == SurfaceTarget::TextureCubeArray;
         params.block_width = 0;
         params.block_height = 0;
         params.block_depth = 0;

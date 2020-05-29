@@ -977,16 +977,12 @@ void RasterizerOpenGL::SetupTexture(u32 binding, const Tegra::Texture::FullTextu
         glBindTextureUnit(binding, 0);
         return;
     }
-    glBindTextureUnit(binding, view->GetTexture());
-
-    if (view->GetSurfaceParams().IsBuffer()) {
-        return;
+    const GLuint handle = view->GetTexture(texture.tic.x_source, texture.tic.y_source,
+                                           texture.tic.z_source, texture.tic.w_source);
+    glBindTextureUnit(binding, handle);
+    if (!view->GetSurfaceParams().IsBuffer()) {
+        glBindSampler(binding, sampler_cache.GetSampler(texture.tsc));
     }
-    // Apply swizzle to textures that are not buffers.
-    view->ApplySwizzle(texture.tic.x_source, texture.tic.y_source, texture.tic.z_source,
-                       texture.tic.w_source);
-
-    glBindSampler(binding, sampler_cache.GetSampler(texture.tsc));
 }
 
 void RasterizerOpenGL::SetupDrawImages(std::size_t stage_index, const Shader& shader) {
@@ -1015,14 +1011,11 @@ void RasterizerOpenGL::SetupImage(u32 binding, const Tegra::Texture::TICEntry& t
         glBindImageTexture(binding, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_R8);
         return;
     }
-    if (!tic.IsBuffer()) {
-        view->ApplySwizzle(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
-    }
     if (entry.is_written) {
         view->MarkAsModified(texture_cache.Tick());
     }
-    glBindImageTexture(binding, view->GetTexture(), 0, GL_TRUE, 0, GL_READ_WRITE,
-                       view->GetFormat());
+    const GLuint handle = view->GetTexture(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
+    glBindImageTexture(binding, handle, 0, GL_TRUE, 0, GL_READ_WRITE, view->GetFormat());
 }
 
 void RasterizerOpenGL::SyncViewport() {

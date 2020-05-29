@@ -354,26 +354,23 @@ CachedSurfaceView::~CachedSurfaceView() = default;
 
 VkImageView CachedSurfaceView::GetHandle(SwizzleSource x_source, SwizzleSource y_source,
                                          SwizzleSource z_source, SwizzleSource w_source) {
-    const u32 swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
-    if (last_image_view && last_swizzle == swizzle) {
+    const u32 new_swizzle = EncodeSwizzle(x_source, y_source, z_source, w_source);
+    if (last_image_view && last_swizzle == new_swizzle) {
         return last_image_view;
     }
-    last_swizzle = swizzle;
+    last_swizzle = new_swizzle;
 
-    const auto [entry, is_cache_miss] = view_cache.try_emplace(swizzle);
+    const auto [entry, is_cache_miss] = view_cache.try_emplace(new_swizzle);
     auto& image_view = entry->second;
     if (!is_cache_miss) {
         return last_image_view = *image_view;
     }
 
-    auto swizzle_x = MaxwellToVK::SwizzleSource(x_source);
-    auto swizzle_y = MaxwellToVK::SwizzleSource(y_source);
-    auto swizzle_z = MaxwellToVK::SwizzleSource(z_source);
-    auto swizzle_w = MaxwellToVK::SwizzleSource(w_source);
-
+    std::array swizzle{MaxwellToVK::SwizzleSource(x_source), MaxwellToVK::SwizzleSource(y_source),
+                       MaxwellToVK::SwizzleSource(z_source), MaxwellToVK::SwizzleSource(w_source)};
     if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5U) {
         // A1B5G5R5 is implemented as A1R5G5B5, we have to change the swizzle here.
-        std::swap(swizzle_x, swizzle_z);
+        std::swap(swizzle[0], swizzle[2]);
     }
 
     // Games can sample depth or stencil values on textures. This is decided by the swizzle value on
@@ -395,11 +392,11 @@ VkImageView CachedSurfaceView::GetHandle(SwizzleSource x_source, SwizzleSource y
             UNIMPLEMENTED();
         }
 
-        // Vulkan doesn't seem to understand swizzling of a depth stencil image, use identity
-        swizzle_x = VK_COMPONENT_SWIZZLE_R;
-        swizzle_y = VK_COMPONENT_SWIZZLE_G;
-        swizzle_z = VK_COMPONENT_SWIZZLE_B;
-        swizzle_w = VK_COMPONENT_SWIZZLE_A;
+        // Make sure we sample the first component
+        std::transform(
+            swizzle.begin(), swizzle.end(), swizzle.begin(), [](VkComponentSwizzle component) {
+                return component == VK_COMPONENT_SWIZZLE_G ? VK_COMPONENT_SWIZZLE_R : component;
+            });
     }
 
     VkImageViewCreateInfo ci;
@@ -409,7 +406,7 @@ VkImageView CachedSurfaceView::GetHandle(SwizzleSource x_source, SwizzleSource y
     ci.image = surface.GetImageHandle();
     ci.viewType = image_view_type;
     ci.format = surface.GetImage().GetFormat();
-    ci.components = {swizzle_x, swizzle_y, swizzle_z, swizzle_w};
+    ci.components = {swizzle[0], swizzle[1], swizzle[2], swizzle[3]};
     ci.subresourceRange.aspectMask = aspect;
     ci.subresourceRange.baseMipLevel = base_level;
     ci.subresourceRange.levelCount = num_levels;

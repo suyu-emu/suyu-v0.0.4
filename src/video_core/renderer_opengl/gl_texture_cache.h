@@ -83,7 +83,7 @@ public:
     /// Attaches this texture view to the current bound GL_DRAW_FRAMEBUFFER
     void Attach(GLenum attachment, GLenum target) const;
 
-    void ApplySwizzle(Tegra::Texture::SwizzleSource x_source,
+    GLuint GetTexture(Tegra::Texture::SwizzleSource x_source,
                       Tegra::Texture::SwizzleSource y_source,
                       Tegra::Texture::SwizzleSource z_source,
                       Tegra::Texture::SwizzleSource w_source);
@@ -98,7 +98,7 @@ public:
         if (is_proxy) {
             return surface.GetTexture();
         }
-        return texture_view.handle;
+        return main_view.handle;
     }
 
     GLenum GetFormat() const {
@@ -110,23 +110,19 @@ public:
     }
 
 private:
-    u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source,
-                      Tegra::Texture::SwizzleSource y_source,
-                      Tegra::Texture::SwizzleSource z_source,
-                      Tegra::Texture::SwizzleSource w_source) const {
-        return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
-               (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
-    }
-
     OGLTextureView CreateTextureView() const;
 
     CachedSurface& surface;
-    GLenum target{};
-    GLenum format{};
+    const GLenum format;
+    const GLenum target;
+    const bool is_proxy;
 
-    OGLTextureView texture_view;
-    u32 swizzle{};
-    bool is_proxy{};
+    std::unordered_map<u32, OGLTextureView> view_cache;
+    OGLTextureView main_view;
+
+    // Use an invalid default so it always fails the comparison test
+    u32 current_swizzle = 0xffffffff;
+    GLuint current_view = 0;
 };
 
 class TextureCacheOpenGL final : public TextureCacheBase {
