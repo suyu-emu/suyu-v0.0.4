@@ -838,6 +838,10 @@ void RasterizerVulkan::BeginTransformFeedback() {
     if (regs.tfb_enabled == 0) {
         return;
     }
+    if (!device.IsExtTransformFeedbackSupported()) {
+        LOG_ERROR(Render_Vulkan, "Transform feedbacks used but not supported");
+        return;
+    }
 
     UNIMPLEMENTED_IF(regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationControl) ||
                      regs.IsShaderConfigEnabled(Maxwell::ShaderProgram::TesselationEval) ||
@@ -864,6 +868,9 @@ void RasterizerVulkan::BeginTransformFeedback() {
 void RasterizerVulkan::EndTransformFeedback() {
     const auto& regs = system.GPU().Maxwell3D().regs;
     if (regs.tfb_enabled == 0) {
+        return;
+    }
+    if (!device.IsExtTransformFeedbackSupported()) {
         return;
     }
 
