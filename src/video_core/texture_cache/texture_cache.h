@@ -679,6 +679,12 @@ private:
             if (new_surface->GetMipmapSize(base_mipmap) != surface->GetMipmapSize(0)) {
                 continue;
             }
+            ++passed_tests;
+
+            if (!surface->IsModified()) {
+                continue;
+            }
+            modified = true;
 
             // Copy all mipmaps and layers
             const u32 block_width = params.GetDefaultBlockWidth();
@@ -694,8 +700,6 @@ private:
                                              src_params.depth);
                 ImageCopy(surface, new_surface, copy_params);
             }
-            ++passed_tests;
-            modified |= surface->IsModified();
         }
         if (passed_tests == 0) {
             return std::nullopt;
