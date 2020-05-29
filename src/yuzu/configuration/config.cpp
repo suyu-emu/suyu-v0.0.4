@@ -533,6 +533,8 @@ void Config::ReadDebuggingValues() {
     Settings::values.quest_flag = ReadSetting(QStringLiteral("quest_flag"), false).toBool();
     Settings::values.disable_cpu_opt =
         ReadSetting(QStringLiteral("disable_cpu_opt"), false).toBool();
+    Settings::values.disable_macro_jit =
+        ReadSetting(QStringLiteral("disable_macro_jit"), false).toBool();
 
     qt_config->endGroup();
 }
@@ -1011,6 +1013,7 @@ void Config::SaveDebuggingValues() {
     WriteSetting(QStringLiteral("dump_nso"), Settings::values.dump_nso, false);
     WriteSetting(QStringLiteral("quest_flag"), Settings::values.quest_flag, false);
     WriteSetting(QStringLiteral("disable_cpu_opt"), Settings::values.disable_cpu_opt, false);
+    WriteSetting(QStringLiteral("disable_macro_jit"), Settings::values.disable_macro_jit, false);
 
     qt_config->endGroup();
 }

@@ -25,6 +25,12 @@ add_library(video_core STATIC
     engines/shader_bytecode.h
     engines/shader_header.h
     engines/shader_type.h
+    macro/macro.cpp
+    macro/macro.h
+    macro/macro_interpreter.cpp
+    macro/macro_interpreter.h
+    macro/macro_jit_x64.cpp
+    macro/macro_jit_x64.h
     fence_manager.h
     gpu.cpp
     gpu.h
@@ -36,8 +42,6 @@ add_library(video_core STATIC
     gpu_thread.h
     guest_driver.cpp
     guest_driver.h
-    macro_interpreter.cpp
-    macro_interpreter.h
     memory_manager.cpp
     memory_manager.h
     morton.cpp

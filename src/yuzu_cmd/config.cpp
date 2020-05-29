@@ -432,6 +432,8 @@ void Config::ReadValues() {
     Settings::values.quest_flag = sdl2_config->GetBoolean("Debugging", "quest_flag", false);
     Settings::values.disable_cpu_opt =
         sdl2_config->GetBoolean("Debugging", "disable_cpu_opt", false);
+    Settings::values.disable_macro_jit =
+        sdl2_config->GetBoolean("Debugging", "disable_macro_jit", false);
 
     const auto title_list = sdl2_config->Get("AddOns", "title_ids", "");
     std::stringstream ss(title_list);
