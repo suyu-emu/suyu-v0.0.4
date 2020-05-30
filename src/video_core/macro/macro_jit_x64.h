@@ -35,6 +35,7 @@ class MacroJITx64Impl : public Xbyak::CodeGenerator, public CachedMacro {
 public:
     MacroJITx64Impl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
     ~MacroJITx64Impl();
+
     void Execute(std::vector<u32>& parameters, u32 method) override;
 
     void Compile_ALU(Macro::Opcode opcode);

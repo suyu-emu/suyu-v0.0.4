@@ -14,18 +14,6 @@ MICROPROFILE_DEFINE(MacroJitCompile, "GPU", "Compile macro JIT", MP_RGB(173, 255
 MICROPROFILE_DEFINE(MacroJitExecute, "GPU", "Execute macro JIT", MP_RGB(255, 255, 0));
 
 namespace Tegra {
-using JitFunction = void (MacroJITx64Impl::*)(Macro::Opcode opcode);
-const std::array<JitFunction, 8> InstructionTable{
-    &MacroJITx64Impl::Compile_ALU,
-    &MacroJITx64Impl::Compile_AddImmediate,
-    &MacroJITx64Impl::Compile_ExtractInsert,
-    &MacroJITx64Impl::Compile_ExtractShiftLeftImmediate,
-    &MacroJITx64Impl::Compile_ExtractShiftLeftRegister,
-    &MacroJITx64Impl::Compile_Read,
-    nullptr,
-    &MacroJITx64Impl::Compile_Branch,
-};
-
 static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r9;
 static const Xbyak::Reg64 REGISTERS = Xbyak::util::r10;
 static const Xbyak::Reg64 STATE = Xbyak::util::r11;
@@ -489,12 +477,31 @@ bool MacroJITx64Impl::Compile_NextInstruction() {
 
     L(labels[pc]);
 
-    const std::size_t op = static_cast<std::size_t>(opcode.operation.Value());
-
-    if (InstructionTable[op] == nullptr) {
-        UNIMPLEMENTED_MSG("Unimplemented opcode {}", op);
-    } else {
-        ((*this).*InstructionTable[op])(opcode);
+    switch (opcode.operation) {
+    case Macro::Operation::ALU:
+        Compile_ALU(opcode);
+        break;
+    case Macro::Operation::AddImmediate:
+        Compile_AddImmediate(opcode);
+        break;
+    case Macro::Operation::ExtractInsert:
+        Compile_ExtractInsert(opcode);
+        break;
+    case Macro::Operation::ExtractShiftLeftImmediate:
+        Compile_ExtractShiftLeftImmediate(opcode);
+        break;
+    case Macro::Operation::ExtractShiftLeftRegister:
+        Compile_ExtractShiftLeftRegister(opcode);
+        break;
+    case Macro::Operation::Read:
+        Compile_Read(opcode);
+        break;
+    case Macro::Operation::Branch:
+        Compile_Branch(opcode);
+        break;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented opcode {}", opcode.operation.Value());
+        break;
     }
 
     if (optimizer.has_delayed_pc) {
