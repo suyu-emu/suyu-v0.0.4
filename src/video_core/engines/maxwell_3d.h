@@ -598,6 +598,7 @@ public:
                 BitField<4, 3, u32> block_height;
                 BitField<8, 3, u32> block_depth;
                 BitField<12, 1, InvMemoryLayout> type;
+                BitField<16, 1, u32> is_3d;
             } memory_layout;
             union {
                 BitField<0, 16, u32> layers;
