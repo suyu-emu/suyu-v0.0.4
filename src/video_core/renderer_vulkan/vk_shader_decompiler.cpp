@@ -2215,8 +2215,8 @@ private:
         return {};
     }
 
-    Expression MemoryBarrierGL(Operation) {
-        const auto scope = spv::Scope::Device;
+    template <spv::Scope scope>
+    Expression MemoryBarrier(Operation) {
         const auto semantics =
             spv::MemorySemanticsMask::AcquireRelease | spv::MemorySemanticsMask::UniformMemory |
             spv::MemorySemanticsMask::WorkgroupMemory |
@@ -2681,7 +2681,8 @@ private:
         &SPIRVDecompiler::ShuffleIndexed,
 
         &SPIRVDecompiler::Barrier,
-        &SPIRVDecompiler::MemoryBarrierGL,
+        &SPIRVDecompiler::MemoryBarrier<spv::Scope::Workgroup>,
+        &SPIRVDecompiler::MemoryBarrier<spv::Scope::Device>,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 

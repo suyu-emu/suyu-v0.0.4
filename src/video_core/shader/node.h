@@ -233,8 +233,9 @@ enum class OperationCode {
     ThreadLtMask,   /// () -> uint
     ShuffleIndexed, /// (uint value, uint index) -> uint
 
-    Barrier,         /// () -> void
-    MemoryBarrierGL, /// () -> void
+    Barrier,             /// () -> void
+    MemoryBarrierGroup,  /// () -> void
+    MemoryBarrierGlobal, /// () -> void
 
     Amount,
 };

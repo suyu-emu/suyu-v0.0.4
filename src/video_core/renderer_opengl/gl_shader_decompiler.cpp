@@ -2344,7 +2344,12 @@ private:
         return {};
     }
 
-    Expression MemoryBarrierGL(Operation) {
+    Expression MemoryBarrierGroup(Operation) {
+        code.AddLine("groupMemoryBarrier();");
+        return {};
+    }
+
+    Expression MemoryBarrierGlobal(Operation) {
         code.AddLine("memoryBarrier();");
         return {};
     }
@@ -2591,7 +2596,8 @@ private:
         &GLSLDecompiler::ShuffleIndexed,
 
         &GLSLDecompiler::Barrier,
-        &GLSLDecompiler::MemoryBarrierGL,
+        &GLSLDecompiler::MemoryBarrierGroup,
+        &GLSLDecompiler::MemoryBarrierGlobal,
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
