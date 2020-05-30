@@ -656,19 +656,19 @@ private:
         if (params.target == SurfaceTarget::Texture3D) {
             return std::nullopt;
         }
+        const auto test_modified = [](TSurface& surface) { return surface->IsModified(); };
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        std::size_t passed_tests = 0;
-        bool modified = false;
 
-        u32 num_resources = 0;
-        for (auto& surface : overlaps) {
-            const SurfaceParams& src_params = surface->GetSurfaceParams();
-            num_resources += src_params.depth * src_params.num_levels;
-        }
-        if (num_resources != params.depth * params.num_levels) {
+        if (std::none_of(overlaps.begin(), overlaps.end(), test_modified)) {
             LoadSurface(new_surface);
+            for (const auto& surface : overlaps) {
+                Unregister(surface);
+            }
+            Register(new_surface);
+            return {{new_surface, new_surface->GetMainView()}};
         }
 
+        std::size_t passed_tests = 0;
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
             const auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
@@ -680,11 +680,6 @@ private:
                 continue;
             }
             ++passed_tests;
-
-            if (!surface->IsModified()) {
-                continue;
-            }
-            modified = true;
 
             // Copy all mipmaps and layers
             const u32 block_width = params.GetDefaultBlockWidth();
@@ -709,6 +704,7 @@ private:
             return std::nullopt;
         }
 
+        const bool modified = std::any_of(overlaps.begin(), overlaps.end(), test_modified);
         for (const auto& surface : overlaps) {
             Unregister(surface);
         }
