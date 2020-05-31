@@ -58,7 +58,7 @@ struct NRRHeader {
     std::array<u8, 0x100> signature;
     u64_le application_id;
     u32_le size;
-    u8 nrr_kind;
+    u8 nrr_kind; // 7.0.0+
     std::array<u8, 0x3> reserved_2;
     u32_le hash_offset;
     u32_le hash_count;
