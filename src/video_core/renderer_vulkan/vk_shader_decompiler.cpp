@@ -741,8 +741,10 @@ private:
             if (!IsGenericAttribute(index)) {
                 continue;
             }
-
             const u32 location = GetGenericAttributeLocation(index);
+            if (!IsAttributeEnabled(location)) {
+                continue;
+            }
             const auto type_descriptor = GetAttributeType(location);
             Id type;
             if (IsInputAttributeArray()) {
@@ -986,6 +988,10 @@ private:
         return stage == ShaderType::TesselationControl;
     }
 
+    bool IsAttributeEnabled(u32 location) const {
+        return stage != ShaderType::Vertex || specialization.enabled_attributes[location];
+    }
+
     u32 GetNumInputVertices() const {
         switch (stage) {
         case ShaderType::Geometry:
@@ -1201,16 +1207,20 @@ private:
                 UNIMPLEMENTED_MSG("Unmanaged FrontFacing element={}", element);
                 return {v_float_zero, Type::Float};
             default:
-                if (IsGenericAttribute(attribute)) {
-                    const u32 location = GetGenericAttributeLocation(attribute);
-                    const auto type_descriptor = GetAttributeType(location);
-                    const Type type = type_descriptor.type;
-                    const Id attribute_id = input_attributes.at(attribute);
-                    const std::vector elements = {element};
-                    const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, elements);
-                    return {OpLoad(GetTypeDefinition(type), pointer), type};
+                if (!IsGenericAttribute(attribute)) {
+                    break;
                 }
-                break;
+                const u32 location = GetGenericAttributeLocation(attribute);
+                if (!IsAttributeEnabled(location)) {
+                    // Disabled attributes (also known as constant attributes) always return zero.
+                    return {v_float_zero, Type::Float};
+                }
+                const auto type_descriptor = GetAttributeType(location);
+                const Type type = type_descriptor.type;
+                const Id attribute_id = input_attributes.at(attribute);
+                const std::vector elements = {element};
+                const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, elements);
+                return {OpLoad(GetTypeDefinition(type), pointer), type};
             }
             UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
             return {v_float_zero, Type::Float};

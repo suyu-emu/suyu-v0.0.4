@@ -877,14 +877,10 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
 
     for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
         const auto& attrib = regs.vertex_attrib_format[index];
-        if (!attrib.IsValid()) {
+        if (attrib.IsConstant()) {
             vertex_input.SetAttribute(index, false, 0, 0, {}, {});
             continue;
         }
-
-        [[maybe_unused]] const auto& buffer = regs.vertex_array[attrib.buffer];
-        ASSERT(buffer.IsEnabled());
-
         vertex_input.SetAttribute(index, true, attrib.buffer, attrib.offset, attrib.type.Value(),
                                   attrib.size.Value());
     }

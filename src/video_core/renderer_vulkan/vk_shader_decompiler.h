@@ -88,7 +88,8 @@ struct Specialization final {
     u32 shared_memory_size{};
 
     // Graphics specific
-    std::optional<float> point_size{};
+    std::optional<float> point_size;
+    std::bitset<Maxwell::NumVertexAttributes> enabled_attributes;
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
     bool ndc_minus_one_to_one{};
 };
