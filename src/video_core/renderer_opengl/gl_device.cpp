@@ -166,8 +166,6 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
     const bool is_amd = vendor == "ATI Technologies Inc.";
-    const bool is_intel = vendor == "Intel";
-    const bool is_intel_proprietary = is_intel && std::strstr(renderer, "Mesa") == nullptr;
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
@@ -182,7 +180,6 @@ Device::Device() : base_bindings{BuildBaseBindings()} {
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
-    has_broken_compute = is_intel_proprietary;
     has_fast_buffer_sub_data = is_nvidia;
     use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
                            GLAD_GL_NV_compute_program5;
@@ -206,7 +203,6 @@ Device::Device(std::nullptr_t) {
     has_image_load_formatted = true;
     has_variable_aoffi = true;
     has_component_indexing_bug = false;
-    has_broken_compute = false;
     has_precise_bug = false;
 }
 
