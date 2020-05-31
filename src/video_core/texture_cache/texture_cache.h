@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/container/small_vector.hpp>
 #include <boost/icl/interval_map.hpp>
 #include <boost/range/iterator_range.hpp>
 
@@ -53,6 +54,7 @@ using RenderTargetConfig = Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig;
 
 template <typename TSurface, typename TView>
 class TextureCache {
+    using VectorSurface = boost::container::small_vector<TSurface, 1>;
 
 public:
     void InvalidateRegion(VAddr addr, std::size_t size) {
@@ -308,18 +310,20 @@ public:
         dst_surface.first->MarkAsModified(true, Tick());
     }
 
-    TSurface TryFindFramebufferSurface(VAddr addr) {
+    TSurface TryFindFramebufferSurface(VAddr addr) const {
         if (!addr) {
             return nullptr;
         }
         const VAddr page = addr >> registry_page_bits;
-        std::vector<TSurface>& list = registry[page];
-        for (auto& surface : list) {
-            if (surface->GetCpuAddr() == addr) {
-                return surface;
-            }
+        const auto it = registry.find(page);
+        if (it == registry.end()) {
+            return nullptr;
         }
-        return nullptr;
+        const auto& list = it->second;
+        const auto found = std::find_if(list.begin(), list.end(), [addr](const auto& surface) {
+            return surface->GetCpuAddr() == addr;
+        });
+        return found != list.end() ? *found : nullptr;
     }
 
     u64 Tick() {
@@ -498,7 +502,7 @@ private:
      * @param untopological Indicates to the recycler that the texture has no way
      *                      to match the overlaps due to topological reasons.
      **/
-    RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
+    RecycleStrategy PickStrategy(VectorSurface& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
         if (Settings::IsGPULevelExtreme()) {
             return RecycleStrategy::Flush;
@@ -538,9 +542,8 @@ private:
      * @param untopological     Indicates to the recycler that the texture has no way to match the
      *                          overlaps due to topological reasons.
      **/
-    std::pair<TSurface, TView> RecycleSurface(std::vector<TSurface>& overlaps,
-                                              const SurfaceParams& params, const GPUVAddr gpu_addr,
-                                              const bool preserve_contents,
+    std::pair<TSurface, TView> RecycleSurface(VectorSurface& overlaps, const SurfaceParams& params,
+                                              const GPUVAddr gpu_addr, const bool preserve_contents,
                                               const MatchTopologyResult untopological) {
         const bool do_load = preserve_contents && Settings::IsGPULevelExtreme();
         for (auto& surface : overlaps) {
@@ -650,7 +653,7 @@ private:
      * @param params   The parameters on the new surface.
      * @param gpu_addr The starting address of the new surface.
      **/
-    std::optional<std::pair<TSurface, TView>> TryReconstructSurface(std::vector<TSurface>& overlaps,
+    std::optional<std::pair<TSurface, TView>> TryReconstructSurface(VectorSurface& overlaps,
                                                                     const SurfaceParams& params,
                                                                     const GPUVAddr gpu_addr) {
         if (params.target == SurfaceTarget::Texture3D) {
@@ -708,7 +711,7 @@ private:
      * @param preserve_contents Indicates that the new surface should be loaded from memory or
      *                          left blank.
      */
-    std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(std::vector<TSurface>& overlaps,
+    std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(VectorSurface& overlaps,
                                                                const SurfaceParams& params,
                                                                const GPUVAddr gpu_addr,
                                                                const VAddr cpu_addr,
@@ -810,7 +813,7 @@ private:
             TSurface& current_surface = iter->second;
             const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
-                std::vector<TSurface> overlaps{current_surface};
+                VectorSurface overlaps{current_surface};
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
             }
@@ -1126,23 +1129,25 @@ private:
         }
     }
 
-    std::vector<TSurface> GetSurfacesInRegion(const VAddr cpu_addr, const std::size_t size) {
+    VectorSurface GetSurfacesInRegion(const VAddr cpu_addr, const std::size_t size) {
         if (size == 0) {
             return {};
         }
         const VAddr cpu_addr_end = cpu_addr + size;
-        VAddr start = cpu_addr >> registry_page_bits;
         const VAddr end = (cpu_addr_end - 1) >> registry_page_bits;
-        std::vector<TSurface> surfaces;
-        while (start <= end) {
-            std::vector<TSurface>& list = registry[start];
-            for (auto& surface : list) {
-                if (!surface->IsPicked() && surface->Overlaps(cpu_addr, cpu_addr_end)) {
-                    surface->MarkAsPicked(true);
-                    surfaces.push_back(surface);
-                }
+        VectorSurface surfaces;
+        for (VAddr start = cpu_addr >> registry_page_bits; start <= end; ++start) {
+            const auto it = registry.find(start);
+            if (it == registry.end()) {
+                continue;
             }
-            start++;
+            for (auto& surface : it->second) {
+                if (surface->IsPicked() || !surface->Overlaps(cpu_addr, cpu_addr_end)) {
+                    continue;
+                }
+                surface->MarkAsPicked(true);
+                surfaces.push_back(surface);
+            }
         }
         for (auto& surface : surfaces) {
             surface->MarkAsPicked(false);
