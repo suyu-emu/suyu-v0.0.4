@@ -655,10 +655,6 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
 }
 
 void RasterizerOpenGL::DispatchCompute(GPUVAddr code_addr) {
-    if (device.HasBrokenCompute()) {
-        return;
-    }
-
     buffer_cache.Acquire();
     current_cbuf = 0;
 
