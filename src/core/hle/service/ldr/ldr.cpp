@@ -39,46 +39,67 @@ constexpr ResultCode ERROR_NOT_INITIALIZED{ErrorModule::Loader, 87};
 constexpr std::size_t MAXIMUM_LOADED_RO{0x40};
 constexpr std::size_t MAXIMUM_MAP_RETRIES{0x200};
 
+struct Certification {
+    u64_le application_id_mask;
+    u64_le application_id_pattern;
+    std::array<u8, 0x10> reserved;
+    std::array<u8, 0x100> public_key; // Also known as modulus
+    std::array<u8, 0x100> signature;
+};
+static_assert(sizeof(Certification) == 0x220, "Certification has invalid size!");
+
+using SHA256Hash = std::array<u8, 0x20>;
+
 struct NRRHeader {
     u32_le magic;
-    INSERT_PADDING_BYTES(12);
-    u64_le title_id_mask;
-    u64_le title_id_pattern;
-    INSERT_PADDING_BYTES(16);
-    std::array<u8, 0x100> modulus;
-    std::array<u8, 0x100> signature_1;
-    std::array<u8, 0x100> signature_2;
-    u64_le title_id;
+    u32_le certification_signature_key_generation; // 9.0.0+
+    u64_le reserved;
+    Certification certification;
+    std::array<u8, 0x100> signature;
+    u64_le application_id;
     u32_le size;
-    INSERT_PADDING_BYTES(4);
+    u8 nrr_kind;
+    std::array<u8, 0x3> reserved_2;
     u32_le hash_offset;
     u32_le hash_count;
-    INSERT_PADDING_BYTES(8);
+    u64_le reserved_3;
+
+    // Must be dynamically allocated because, according to
+    // SwitchBrew, its size is (0x20 * hash_count) and
+    // it's impossible to determine the value of hash_count
+    // (SwitchBrew calls it "NumHash") before runtime,
+    // therefore it's not possible to calculate a SHA-256
+    std::vector<SHA256Hash> NroHashList;
 };
-static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has incorrect size.");
+
+struct SegmentHeader {
+    u32_le memory_offset;
+    u32_le memory_size;
+};
+static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size!");
 
 struct NROHeader {
-    INSERT_PADDING_WORDS(1);
+    // Switchbrew calls this "Start" (0x10)
+    u32_le unused;
     u32_le mod_offset;
-    INSERT_PADDING_WORDS(2);
+    u64_le padding;
+
+    // Switchbrew calls this "Header" (0x70)
     u32_le magic;
     u32_le version;
     u32_le nro_size;
     u32_le flags;
-    u32_le text_offset;
-    u32_le text_size;
-    u32_le ro_offset;
-    u32_le ro_size;
-    u32_le rw_offset;
-    u32_le rw_size;
+    // .text, .ro, .data (yuzu previously called it "rw" instead of "data")
+    std::array<SegmentHeader, 0x3> segment_headers;
     u32_le bss_size;
-    INSERT_PADDING_WORDS(1);
+    u32_le reserved;
     std::array<u8, 0x20> build_id;
-    INSERT_PADDING_BYTES(0x20);
+    u32_le dso_handle_offset;
+    u32_le unused_2;
+    // .apiInfo, .dynstr, .dynsym
+    std::array<SegmentHeader, 0x3> segment_headers_2;
 };
 static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
-
-using SHA256Hash = std::array<u8, 0x20>;
 
 struct NROInfo {
     SHA256Hash hash{};
@@ -226,11 +247,11 @@ public:
             return;
         }
 
-        if (system.CurrentProcess()->GetTitleID() != header.title_id) {
+        if (system.CurrentProcess()->GetTitleID() != header.application_id) {
             LOG_ERROR(Service_LDR,
                       "Attempting to load NRR with title ID other than current process. (actual "
                       "{:016X})!",
-                      header.title_id);
+                      header.application_id);
             IPC::ResponseBuilder rb{ctx, 2};
             rb.Push(ERROR_INVALID_NRR);
             return;
@@ -348,10 +369,10 @@ public:
 
     ResultCode LoadNro(Kernel::Process* process, const NROHeader& nro_header, VAddr nro_addr,
                        VAddr start) const {
-        const VAddr text_start{start + nro_header.text_offset};
-        const VAddr ro_start{start + nro_header.ro_offset};
-        const VAddr data_start{start + nro_header.rw_offset};
-        const VAddr bss_start{data_start + nro_header.rw_size};
+        const VAddr text_start{start + nro_header.segment_headers[0].memory_offset};
+        const VAddr ro_start{start + nro_header.segment_headers[1].memory_offset};
+        const VAddr data_start{start + nro_header.segment_headers[2].memory_offset};
+        const VAddr bss_start{data_start + nro_header.segment_headers[2].memory_size};
         const VAddr bss_end_addr{
             Common::AlignUp(bss_start + nro_header.bss_size, Kernel::Memory::PageSize)};
 
@@ -360,9 +381,12 @@ public:
             system.Memory().ReadBlock(src_addr, source_data.data(), source_data.size());
             system.Memory().WriteBlock(dst_addr, source_data.data(), source_data.size());
         }};
-        CopyCode(nro_addr + nro_header.text_offset, text_start, nro_header.text_size);
-        CopyCode(nro_addr + nro_header.ro_offset, ro_start, nro_header.ro_size);
-        CopyCode(nro_addr + nro_header.rw_offset, data_start, nro_header.rw_size);
+        CopyCode(nro_addr + nro_header.segment_headers[0].memory_offset, text_start,
+                 nro_header.segment_headers[0].memory_size);
+        CopyCode(nro_addr + nro_header.segment_headers[1].memory_offset, ro_start,
+                 nro_header.segment_headers[1].memory_size);
+        CopyCode(nro_addr + nro_header.segment_headers[2].memory_offset, data_start,
+                 nro_header.segment_headers[2].memory_size);
 
         CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
             text_start, ro_start - text_start, Kernel::Memory::MemoryPermission::ReadAndExecute));
@@ -484,9 +508,11 @@ public:
         }
 
         // Track the loaded NRO
-        nro.insert_or_assign(*map_result, NROInfo{hash, *map_result, nro_size, bss_address,
-                                                  bss_size, header.text_size, header.ro_size,
-                                                  header.rw_size, nro_address});
+        nro.insert_or_assign(*map_result,
+                             NROInfo{hash, *map_result, nro_size, bss_address, bss_size,
+                                     header.segment_headers[0].memory_size,
+                                     header.segment_headers[1].memory_size,
+                                     header.segment_headers[2].memory_size, nro_address});
 
         // Invalidate JIT caches for the newly mapped process code
         system.InvalidateCpuInstructionCaches();
@@ -584,11 +610,17 @@ private:
     static bool IsValidNRO(const NROHeader& header, u64 nro_size, u64 bss_size) {
         return header.magic == Common::MakeMagic('N', 'R', 'O', '0') &&
                header.nro_size == nro_size && header.bss_size == bss_size &&
-               header.ro_offset == header.text_offset + header.text_size &&
-               header.rw_offset == header.ro_offset + header.ro_size &&
-               nro_size == header.rw_offset + header.rw_size &&
-               Common::Is4KBAligned(header.text_size) && Common::Is4KBAligned(header.ro_size) &&
-               Common::Is4KBAligned(header.rw_size);
+               header.segment_headers[1].memory_offset ==
+                   header.segment_headers[0].memory_offset +
+                       header.segment_headers[0].memory_size &&
+               header.segment_headers[2].memory_offset ==
+                   header.segment_headers[1].memory_offset +
+                       header.segment_headers[1].memory_size &&
+               nro_size == header.segment_headers[2].memory_offset +
+                               header.segment_headers[2].memory_size &&
+               Common::Is4KBAligned(header.segment_headers[0].memory_size) &&
+               Common::Is4KBAligned(header.segment_headers[1].memory_size) &&
+               Common::Is4KBAligned(header.segment_headers[2].memory_size);
     }
     Core::System& system;
 };
