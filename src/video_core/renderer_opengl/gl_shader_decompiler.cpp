@@ -619,6 +619,21 @@ private:
             }
         }
 
+        if (stage != ShaderType::Geometry &&
+            (stage != ShaderType::Vertex || device.HasVertexViewportLayer())) {
+            if (ir.UsesLayer()) {
+                code.AddLine("int gl_Layer;");
+            }
+            if (ir.UsesViewportIndex()) {
+                code.AddLine("int gl_ViewportIndex;");
+            }
+        } else if ((ir.UsesLayer() || ir.UsesViewportIndex()) && stage == ShaderType::Vertex &&
+                   !device.HasVertexViewportLayer()) {
+            LOG_ERROR(
+                Render_OpenGL,
+                "GL_ARB_shader_viewport_layer_array is not available and its required by a shader");
+        }
+
         if (ir.UsesPointSize()) {
             code.AddLine("float gl_PointSize;");
         }
@@ -635,18 +650,13 @@ private:
         code.AddLine("}};");
         code.AddNewLine();
 
-        if (stage != ShaderType::Vertex || device.HasVertexViewportLayer()) {
+        if (stage == ShaderType::Geometry) {
             if (ir.UsesLayer()) {
                 code.AddLine("out int gl_Layer;");
             }
             if (ir.UsesViewportIndex()) {
                 code.AddLine("out int gl_ViewportIndex;");
             }
-        } else if ((ir.UsesLayer() || ir.UsesViewportIndex()) && stage == ShaderType::Vertex &&
-                   !device.HasVertexViewportLayer()) {
-            LOG_ERROR(
-                Render_OpenGL,
-                "GL_ARB_shader_viewport_layer_array is not available and its required by a shader");
         }
         code.AddNewLine();
     }
