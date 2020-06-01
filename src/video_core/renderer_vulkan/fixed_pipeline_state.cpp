@@ -71,8 +71,7 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
     const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
 
     u32 packed_front_face = PackFrontFace(regs.front_face);
-    if (regs.screen_y_control.triangle_rast_flip != 0 &&
-        regs.viewport_transform[0].scale_y > 0.0f) {
+    if (regs.screen_y_control.triangle_rast_flip != 0) {
         // Flip front face
         packed_front_face = 1 - packed_front_face;
     }
