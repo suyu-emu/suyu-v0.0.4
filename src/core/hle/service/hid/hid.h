@@ -86,6 +86,7 @@ public:
 private:
     void CreateAppletResource(Kernel::HLERequestContext& ctx);
     void ActivateXpad(Kernel::HLERequestContext& ctx);
+    void GetXpadIDs(Kernel::HLERequestContext& ctx);
     void ActivateDebugPad(Kernel::HLERequestContext& ctx);
     void ActivateTouchScreen(Kernel::HLERequestContext& ctx);
     void ActivateMouse(Kernel::HLERequestContext& ctx);
