@@ -755,6 +755,8 @@ private:
         }
 
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
+        LoadSurface(new_surface);
+
         bool modified = false;
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
@@ -763,7 +765,10 @@ private:
                 src_params.block_height != params.block_height) {
                 return std::nullopt;
             }
-            modified |= surface->IsModified();
+            if (!surface->IsModified()) {
+                continue;
+            }
+            modified = true;
 
             const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
             const u32 slice = std::get<2>(params.GetBlockOffsetXYZ(offset));

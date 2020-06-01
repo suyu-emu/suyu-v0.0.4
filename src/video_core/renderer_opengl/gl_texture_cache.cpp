@@ -557,8 +557,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
                                    const Tegra::Engines::Fermi2D::Config& copy_config) {
     const auto& src_params{src_view->GetSurfaceParams()};
     const auto& dst_params{dst_view->GetSurfaceParams()};
-    UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
-    UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
+    UNIMPLEMENTED_IF(src_params.depth != 1);
+    UNIMPLEMENTED_IF(dst_params.depth != 1);
 
     state_tracker.NotifyScissor0();
     state_tracker.NotifyFramebuffer();
