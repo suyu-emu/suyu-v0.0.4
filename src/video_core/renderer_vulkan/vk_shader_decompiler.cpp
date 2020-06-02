@@ -971,7 +971,7 @@ private:
         constexpr int depth = 0;
         constexpr bool ms = false;
         constexpr int sampled = 2; // This won't be accessed with a sampler
-        constexpr auto format = spv::ImageFormat::Unknown;
+        const auto format = image.is_atomic ? spv::ImageFormat::R32ui : spv::ImageFormat::Unknown;
         const Id image_type = TypeImage(t_uint, dim, depth, arrayed, ms, sampled, format, {});
         const Id pointer_type = TypePointer(spv::StorageClass::UniformConstant, image_type);
         const Id id = OpVariable(pointer_type, spv::StorageClass::UniformConstant);
@@ -1274,7 +1274,7 @@ private:
                 } else {
                     UNREACHABLE_MSG("Unmanaged offset node type");
                 }
-                pointer = OpAccessChain(t_cbuf_float, buffer_id, Constant(t_uint, 0), buffer_index,
+                pointer = OpAccessChain(t_cbuf_float, buffer_id, v_uint_zero, buffer_index,
                                         buffer_element);
             }
             return {OpLoad(t_float, pointer), Type::Float};
@@ -1629,7 +1629,7 @@ private:
 
         const Id result = OpIAddCarry(TypeStruct({t_uint, t_uint}), op_a, op_b);
         const Id carry = OpCompositeExtract(t_uint, result, 1);
-        return {OpINotEqual(t_bool, carry, Constant(t_uint, 0)), Type::Bool};
+        return {OpINotEqual(t_bool, carry, v_uint_zero), Type::Bool};
     }
 
     Expression LogicalAssign(Operation operation) {
@@ -1969,39 +1969,20 @@ private:
         return {};
     }
 
-    Expression AtomicImageAdd(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
+    template <Id (Module::*func)(Id, Id, Id, Id, Id)>
+    Expression AtomicImage(Operation operation) {
+        const auto& meta{std::get<MetaImage>(operation.GetMeta())};
+        ASSERT(meta.values.size() == 1);
 
-    Expression AtomicImageMin(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
+        const Id coordinate = GetCoordinates(operation, Type::Int);
+        const Id image = images.at(meta.image.index).image;
+        const Id sample = v_uint_zero;
+        const Id pointer = OpImageTexelPointer(t_image_uint, image, coordinate, sample);
 
-    Expression AtomicImageMax(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Expression AtomicImageAnd(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Expression AtomicImageOr(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Expression AtomicImageXor(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
-    }
-
-    Expression AtomicImageExchange(Operation operation) {
-        UNIMPLEMENTED();
-        return {};
+        const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
+        const Id semantics = v_uint_zero;
+        const Id value = AsUint(Visit(meta.values[0]));
+        return {(this->*func)(t_uint, pointer, scope, semantics, value), Type::Uint};
     }
 
     template <Id (Module::*func)(Id, Id, Id, Id, Id)>
@@ -2016,7 +1997,7 @@ private:
             return {v_float_zero, Type::Float};
         }
         const Id scope = Constant(t_uint, static_cast<u32>(spv::Scope::Device));
-        const Id semantics = Constant(t_uint, 0);
+        const Id semantics = v_uint_zero;
         const Id value = AsUint(Visit(operation[1]));
 
         return {(this->*func)(t_uint, pointer, scope, semantics, value), Type::Uint};
@@ -2640,11 +2621,11 @@ private:
 
         &SPIRVDecompiler::ImageLoad,
         &SPIRVDecompiler::ImageStore,
-        &SPIRVDecompiler::AtomicImageAdd,
-        &SPIRVDecompiler::AtomicImageAnd,
-        &SPIRVDecompiler::AtomicImageOr,
-        &SPIRVDecompiler::AtomicImageXor,
-        &SPIRVDecompiler::AtomicImageExchange,
+        &SPIRVDecompiler::AtomicImage<&Module::OpAtomicIAdd>,
+        &SPIRVDecompiler::AtomicImage<&Module::OpAtomicAnd>,
+        &SPIRVDecompiler::AtomicImage<&Module::OpAtomicOr>,
+        &SPIRVDecompiler::AtomicImage<&Module::OpAtomicXor>,
+        &SPIRVDecompiler::AtomicImage<&Module::OpAtomicExchange>,
 
         &SPIRVDecompiler::Atomic<&Module::OpAtomicExchange>,
         &SPIRVDecompiler::Atomic<&Module::OpAtomicIAdd>,
@@ -2786,8 +2767,11 @@ private:
         Decorate(TypeStruct(t_gmem_array), spv::Decoration::Block), 0, spv::Decoration::Offset, 0);
     const Id t_gmem_ssbo = TypePointer(spv::StorageClass::StorageBuffer, t_gmem_struct);
 
+    const Id t_image_uint = TypePointer(spv::StorageClass::Image, t_uint);
+
     const Id v_float_zero = Constant(t_float, 0.0f);
     const Id v_float_one = Constant(t_float, 1.0f);
+    const Id v_uint_zero = Constant(t_uint, 0);
 
     // Nvidia uses these defaults for varyings (e.g. position and generic attributes)
     const Id v_varying_default =
