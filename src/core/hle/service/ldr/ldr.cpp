@@ -59,7 +59,7 @@ struct NRRHeader {
     u64_le application_id;
     u32_le size;
     u8 nrr_kind; // 7.0.0+
-    std::array<u8, 0x3> reserved_2;
+    std::array<u8, 3> reserved_2;
     u32_le hash_offset;
     u32_le hash_count;
     u64_le reserved_3;
@@ -89,15 +89,15 @@ struct NROHeader {
     u32_le version;
     u32_le nro_size;
     u32_le flags;
-    // .text, .ro, .data (yuzu previously called it "rw" instead of "data")
-    std::array<SegmentHeader, 0x3> segment_headers;
+    // .text, .ro, .data
+    std::array<SegmentHeader, 3> segment_headers;
     u32_le bss_size;
     u32_le reserved;
     std::array<u8, 0x20> build_id;
     u32_le dso_handle_offset;
     u32_le unused_2;
     // .apiInfo, .dynstr, .dynsym
-    std::array<SegmentHeader, 0x3> segment_headers_2;
+    std::array<SegmentHeader, 3> segment_headers_2;
 };
 static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
 
