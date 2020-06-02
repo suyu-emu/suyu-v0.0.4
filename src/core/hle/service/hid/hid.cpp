@@ -161,7 +161,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {40, nullptr, "AcquireXpadIdEventHandle"},
         {41, nullptr, "ReleaseXpadIdEventHandle"},
         {51, &Hid::ActivateXpad, "ActivateXpad"},
-        {55, nullptr, "GetXpadIds"},
+        {55, &Hid::GetXpadIDs, "GetXpadIds"},
         {56, nullptr, "ActivateJoyXpad"},
         {58, nullptr, "GetJoyXpadLifoHandle"},
         {59, nullptr, "GetJoyXpadIds"},
@@ -317,6 +317,17 @@ void Hid::ActivateXpad(Kernel::HLERequestContext& ctx) {
     applet_resource->ActivateController(HidController::XPad);
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetXpadIDs(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_DEBUG(Service_HID, "(STUBBED) called, applet_resource_user_id={}", applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(0);
 }
 
 void Hid::ActivateDebugPad(Kernel::HLERequestContext& ctx) {
