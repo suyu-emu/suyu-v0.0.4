@@ -53,8 +53,9 @@ vk::DescriptorSetLayout VKComputePipeline::CreateDescriptorSetLayout() const {
     };
     add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, entries.const_buffers.size());
     add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, entries.global_buffers.size());
-    add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, entries.texel_buffers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, entries.uniform_texels.size());
     add_bindings(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, entries.samplers.size());
+    add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, entries.storage_texels.size());
     add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, entries.images.size());
 
     VkDescriptorSetLayoutCreateInfo ci;

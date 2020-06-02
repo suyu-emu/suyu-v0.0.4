@@ -42,6 +42,7 @@ vk::DescriptorPool* VKDescriptorPool::AllocateNewPool() {
         {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, num_sets * 60},
         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, num_sets * 64},
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, num_sets * 64},
+        {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, num_sets * 64},
         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, num_sets * 40}};
 
     VkDescriptorPoolCreateInfo ci;

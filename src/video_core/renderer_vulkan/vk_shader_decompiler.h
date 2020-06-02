@@ -21,8 +21,9 @@ class VKDevice;
 namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using TexelBufferEntry = VideoCommon::Shader::Sampler;
+using UniformTexelEntry = VideoCommon::Shader::Sampler;
 using SamplerEntry = VideoCommon::Shader::Sampler;
+using StorageTexelEntry = VideoCommon::Shader::Image;
 using ImageEntry = VideoCommon::Shader::Image;
 
 constexpr u32 DESCRIPTOR_SET = 0;
@@ -66,13 +67,15 @@ private:
 struct ShaderEntries {
     u32 NumBindings() const {
         return static_cast<u32>(const_buffers.size() + global_buffers.size() +
-                                texel_buffers.size() + samplers.size() + images.size());
+                                uniform_texels.size() + samplers.size() + storage_texels.size() +
+                                images.size());
     }
 
     std::vector<ConstBufferEntry> const_buffers;
     std::vector<GlobalBufferEntry> global_buffers;
-    std::vector<TexelBufferEntry> texel_buffers;
+    std::vector<UniformTexelEntry> uniform_texels;
     std::vector<SamplerEntry> samplers;
+    std::vector<StorageTexelEntry> storage_texels;
     std::vector<ImageEntry> images;
     std::set<u32> attributes;
     std::array<bool, Maxwell::NumClipDistances> clip_distances{};
