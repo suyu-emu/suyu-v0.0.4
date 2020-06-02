@@ -107,7 +107,8 @@ private:
 
     /// Configures a constant buffer.
     void SetupConstBuffer(GLenum stage, u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
-                          const ConstBufferEntry& entry);
+                          const ConstBufferEntry& entry, bool use_unified,
+                          std::size_t unified_offset);
 
     /// Configures the current global memory entries to use for the draw command.
     void SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader);
@@ -253,6 +254,7 @@ private:
         Tegra::Engines::Maxwell3D::Regs::MaxShaderProgram;
     std::array<GLuint, NUM_CONSTANT_BUFFERS> staging_cbufs{};
     std::size_t current_cbuf = 0;
+    OGLBuffer unified_uniform_buffer;
 
     /// Number of commands queued to the OpenGL driver. Reseted on flush.
     std::size_t num_queued_commands = 0;

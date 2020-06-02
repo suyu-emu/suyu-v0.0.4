@@ -54,6 +54,12 @@ MICROPROFILE_DEFINE(OpenGL_PrimitiveAssembly, "OpenGL", "Prim Asmbl", MP_RGB(255
 
 namespace {
 
+constexpr std::size_t NUM_CONST_BUFFERS_PER_STAGE = 18;
+constexpr std::size_t NUM_CONST_BUFFERS_BYTES_PER_STAGE =
+    NUM_CONST_BUFFERS_PER_STAGE * Maxwell::MaxConstBufferSize;
+constexpr std::size_t TOTAL_CONST_BUFFER_BYTES =
+    NUM_CONST_BUFFERS_BYTES_PER_STAGE * Maxwell::MaxShaderStage;
+
 constexpr std::size_t NumSupportedVertexAttributes = 16;
 
 template <typename Engine, typename Entry>
@@ -103,6 +109,9 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
       fence_manager{system, *this, texture_cache, buffer_cache, query_cache}, system{system},
       screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker} {
     CheckExtensions();
+
+    unified_uniform_buffer.Create();
+    glNamedBufferStorage(unified_uniform_buffer.handle, TOTAL_CONST_BUFFER_BYTES, nullptr, 0);
 
     if (device.UseAssemblyShaders()) {
         glCreateBuffers(static_cast<GLsizei>(staging_cbufs.size()), staging_cbufs.data());
@@ -842,34 +851,56 @@ void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, const Shad
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& stages = system.GPU().Maxwell3D().state.shader_stages;
     const auto& shader_stage = stages[stage_index];
+    const auto& entries = shader->GetEntries();
+    const bool use_unified = entries.use_unified_uniforms;
+    const std::size_t base_unified_offset = stage_index * NUM_CONST_BUFFERS_BYTES_PER_STAGE;
 
-    u32 binding =
-        device.UseAssemblyShaders() ? 0 : device.GetBaseBindings(stage_index).uniform_buffer;
-    for (const auto& entry : shader->GetEntries().const_buffers) {
-        const auto& buffer = shader_stage.const_buffers[entry.GetIndex()];
-        SetupConstBuffer(PARAMETER_LUT[stage_index], binding++, buffer, entry);
+    const auto base_bindings = device.GetBaseBindings(stage_index);
+    u32 binding = device.UseAssemblyShaders() ? 0 : base_bindings.uniform_buffer;
+    for (const auto& entry : entries.const_buffers) {
+        const u32 index = entry.GetIndex();
+        const auto& buffer = shader_stage.const_buffers[index];
+        SetupConstBuffer(PARAMETER_LUT[stage_index], binding, buffer, entry, use_unified,
+                         base_unified_offset + index * Maxwell::MaxConstBufferSize);
+        ++binding;
+    }
+    if (use_unified) {
+        const u32 index = static_cast<u32>(base_bindings.shader_storage_buffer +
+                                           entries.global_memory_entries.size());
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, index, unified_uniform_buffer.handle,
+                          base_unified_offset, NUM_CONST_BUFFERS_BYTES_PER_STAGE);
     }
 }
 
 void RasterizerOpenGL::SetupComputeConstBuffers(const Shader& kernel) {
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+    const auto& entries = kernel->GetEntries();
+    const bool use_unified = entries.use_unified_uniforms;
 
     u32 binding = 0;
-    for (const auto& entry : kernel->GetEntries().const_buffers) {
+    for (const auto& entry : entries.const_buffers) {
         const auto& config = launch_desc.const_buffer_config[entry.GetIndex()];
         const std::bitset<8> mask = launch_desc.const_buffer_enable_mask.Value();
         Tegra::Engines::ConstBufferInfo buffer;
         buffer.address = config.Address();
         buffer.size = config.size;
         buffer.enabled = mask[entry.GetIndex()];
-        SetupConstBuffer(GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV, binding++, buffer, entry);
+        SetupConstBuffer(GL_COMPUTE_PROGRAM_PARAMETER_BUFFER_NV, binding, buffer, entry,
+                         use_unified, entry.GetIndex() * Maxwell::MaxConstBufferSize);
+        ++binding;
+    }
+    if (use_unified) {
+        const GLuint index = static_cast<GLuint>(entries.global_memory_entries.size());
+        glBindBufferRange(GL_SHADER_STORAGE_BUFFER, index, unified_uniform_buffer.handle, 0,
+                          NUM_CONST_BUFFERS_BYTES_PER_STAGE);
     }
 }
 
 void RasterizerOpenGL::SetupConstBuffer(GLenum stage, u32 binding,
                                         const Tegra::Engines::ConstBufferInfo& buffer,
-                                        const ConstBufferEntry& entry) {
+                                        const ConstBufferEntry& entry, bool use_unified,
+                                        std::size_t unified_offset) {
     if (!buffer.enabled) {
         // Set values to zero to unbind buffers
         if (device.UseAssemblyShaders()) {
@@ -885,20 +916,29 @@ void RasterizerOpenGL::SetupConstBuffer(GLenum stage, u32 binding,
     // UBO alignment requirements.
     const std::size_t size = Common::AlignUp(GetConstBufferSize(buffer, entry), sizeof(GLvec4));
 
-    const auto alignment = device.GetUniformBufferAlignment();
-    auto [cbuf, offset] = buffer_cache.UploadMemory(buffer.address, size, alignment, false,
-                                                    device.HasFastBufferSubData());
-    if (!device.UseAssemblyShaders()) {
-        glBindBufferRange(GL_UNIFORM_BUFFER, binding, cbuf, offset, size);
+    const bool fast_upload = !use_unified && device.HasFastBufferSubData();
+
+    const std::size_t alignment = use_unified ? 4 : device.GetUniformBufferAlignment();
+    const GPUVAddr gpu_addr = buffer.address;
+    auto [cbuf, offset] = buffer_cache.UploadMemory(gpu_addr, size, alignment, false, fast_upload);
+
+    if (device.UseAssemblyShaders()) {
+        UNIMPLEMENTED_IF(use_unified);
+        if (offset != 0) {
+            const GLuint staging_cbuf = staging_cbufs[current_cbuf++];
+            glCopyNamedBufferSubData(cbuf, staging_cbuf, offset, 0, size);
+            cbuf = staging_cbuf;
+            offset = 0;
+        }
+        glBindBufferRangeNV(stage, binding, cbuf, offset, size);
         return;
     }
-    if (offset != 0) {
-        const GLuint staging_cbuf = staging_cbufs[current_cbuf++];
-        glCopyNamedBufferSubData(cbuf, staging_cbuf, offset, 0, size);
-        cbuf = staging_cbuf;
-        offset = 0;
+
+    if (use_unified) {
+        glCopyNamedBufferSubData(cbuf, unified_uniform_buffer.handle, offset, unified_offset, size);
+    } else {
+        glBindBufferRange(GL_UNIFORM_BUFFER, binding, cbuf, offset, size);
     }
-    glBindBufferRangeNV(stage, binding, cbuf, offset, size);
 }
 
 void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader) {
