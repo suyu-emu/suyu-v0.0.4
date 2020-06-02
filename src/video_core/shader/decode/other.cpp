@@ -83,7 +83,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
                 return Operation(OperationCode::YNegate);
             case SystemVariable::InvocationInfo:
                 LOG_WARNING(HW_GPU, "S2R instruction with InvocationInfo is incomplete");
-                return Immediate(0U);
+                return Immediate(0x00ff'0000U);
             case SystemVariable::WscaleFactorXY:
                 UNIMPLEMENTED_MSG("S2R WscaleFactorXY is not implemented");
                 return Immediate(0U);
