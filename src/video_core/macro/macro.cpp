@@ -15,7 +15,7 @@ void MacroEngine::AddCode(u32 method, u32 data) {
     uploaded_macro_code[method].push_back(data);
 }
 
-void MacroEngine::Execute(u32 method, std::vector<u32> parameters) {
+void MacroEngine::Execute(u32 method, std::vector<u32>& parameters) {
     auto compiled_macro = macro_cache.find(method);
     if (compiled_macro != macro_cache.end()) {
         compiled_macro->second->Execute(parameters, method);

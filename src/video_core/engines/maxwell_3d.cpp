@@ -115,7 +115,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
     mme_inline[MAXWELL3D_REG_INDEX(index_array.count)] = true;
 }
 
-void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32>&& parameters) {
+void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32>& parameters) {
     // Reset the current macro.
     executing_macro = 0;
 
@@ -124,7 +124,7 @@ void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32>&& parameters) {
         ((method - MacroRegistersStart) >> 1) % static_cast<u32>(macro_positions.size());
 
     // Execute the current macro.
-    macro_engine->Execute(macro_positions[entry], std::move(parameters));
+    macro_engine->Execute(macro_positions[entry], parameters);
     if (mme_draw.current_mode != MMEDrawMode::Undefined) {
         FlushMMEInlineDraw();
     }
@@ -160,7 +160,8 @@ void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
 
         // Call the macro when there are no more parameters in the command buffer
         if (is_last_call) {
-            CallMacroMethod(executing_macro, std::move(macro_params));
+            CallMacroMethod(executing_macro, macro_params);
+            macro_params.clear();
         }
         return;
     }
@@ -304,7 +305,8 @@ void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
 
         // Call the macro when there are no more parameters in the command buffer
         if (amount == methods_pending) {
-            CallMacroMethod(executing_macro, std::move(macro_params));
+            CallMacroMethod(executing_macro, macro_params);
+            macro_params.clear();
         }
         return;
     }
