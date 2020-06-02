@@ -404,8 +404,7 @@ View CachedSurface::CreateViewInner(const ViewParams& view_key, const bool is_pr
 
 CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
                                      bool is_proxy)
-    : VideoCommon::ViewBase(params), surface{surface},
-      format{GetFormatTuple(surface.GetSurfaceParams().pixel_format).internal_format},
+    : VideoCommon::ViewBase(params), surface{surface}, format{surface.internal_format},
       target{GetTextureTarget(params.target)}, is_proxy{is_proxy} {
     if (!is_proxy) {
         main_view = CreateTextureView();
