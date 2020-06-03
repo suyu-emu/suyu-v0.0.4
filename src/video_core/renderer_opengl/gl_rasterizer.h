@@ -202,6 +202,10 @@ private:
     /// Syncs the framebuffer sRGB state to match the guest state
     void SyncFramebufferSRGB();
 
+    /// Syncs transform feedback state to match guest state
+    /// @note Only valid on assembly shaders
+    void SyncTransformFeedback();
+
     /// Begin a transform feedback
     void BeginTransformFeedback(GLenum primitive_mode);
 
