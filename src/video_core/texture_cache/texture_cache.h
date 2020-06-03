@@ -655,45 +655,63 @@ private:
      **/
     std::optional<std::pair<TSurface, TView>> TryReconstructSurface(VectorSurface& overlaps,
                                                                     const SurfaceParams& params,
-                                                                    const GPUVAddr gpu_addr) {
+                                                                    GPUVAddr gpu_addr) {
         if (params.target == SurfaceTarget::Texture3D) {
-            return {};
+            return std::nullopt;
         }
-        bool modified = false;
+        const auto test_modified = [](TSurface& surface) { return surface->IsModified(); };
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        u32 passed_tests = 0;
+
+        if (std::none_of(overlaps.begin(), overlaps.end(), test_modified)) {
+            LoadSurface(new_surface);
+            for (const auto& surface : overlaps) {
+                Unregister(surface);
+            }
+            Register(new_surface);
+            return {{new_surface, new_surface->GetMainView()}};
+        }
+
+        std::size_t passed_tests = 0;
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
-            if (src_params.is_layered || src_params.num_levels > 1) {
-                // We send this cases to recycle as they are more complex to handle
-                return {};
-            }
-            const std::size_t candidate_size = surface->GetSizeInBytes();
-            auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
+            const auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
             if (!mipmap_layer) {
                 continue;
             }
-            const auto [layer, mipmap] = *mipmap_layer;
-            if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
+            const auto [base_layer, base_mipmap] = *mipmap_layer;
+            if (new_surface->GetMipmapSize(base_mipmap) != surface->GetMipmapSize(0)) {
                 continue;
             }
-            modified |= surface->IsModified();
-            // Now we got all the data set up
-            const u32 width = SurfaceParams::IntersectWidth(src_params, params, 0, mipmap);
-            const u32 height = SurfaceParams::IntersectHeight(src_params, params, 0, mipmap);
-            const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap, width, height, 1);
-            passed_tests++;
-            ImageCopy(surface, new_surface, copy_params);
+            ++passed_tests;
+
+            // Copy all mipmaps and layers
+            const u32 block_width = params.GetDefaultBlockWidth();
+            const u32 block_height = params.GetDefaultBlockHeight();
+            for (u32 mipmap = base_mipmap; mipmap < base_mipmap + src_params.num_levels; ++mipmap) {
+                const u32 width = SurfaceParams::IntersectWidth(src_params, params, 0, mipmap);
+                const u32 height = SurfaceParams::IntersectHeight(src_params, params, 0, mipmap);
+                if (width < block_width || height < block_height) {
+                    // Current APIs forbid copying small compressed textures, avoid errors
+                    break;
+                }
+                const CopyParams copy_params(0, 0, 0, 0, 0, base_layer, 0, mipmap, width, height,
+                                             src_params.depth);
+                ImageCopy(surface, new_surface, copy_params);
+            }
         }
         if (passed_tests == 0) {
-            return {};
-            // In Accurate GPU all tests should pass, else we recycle
-        } else if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
-            return {};
+            return std::nullopt;
         }
+        if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
+            // In Accurate GPU all tests should pass, else we recycle
+            return std::nullopt;
+        }
+
+        const bool modified = std::any_of(overlaps.begin(), overlaps.end(), test_modified);
         for (const auto& surface : overlaps) {
             Unregister(surface);
         }
+
         new_surface->MarkAsModified(modified, Tick());
         Register(new_surface);
         return {{new_surface, new_surface->GetMainView()}};
@@ -871,12 +889,9 @@ private:
             // two things either the candidate surface is a supertexture of the overlap
             // or they don't match in any known way.
             if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
-                if (current_surface->GetGpuAddr() == gpu_addr) {
-                    std::optional<std::pair<TSurface, TView>> view =
-                        TryReconstructSurface(overlaps, params, gpu_addr);
-                    if (view) {
-                        return *view;
-                    }
+                const std::optional view = TryReconstructSurface(overlaps, params, gpu_addr);
+                if (view) {
+                    return *view;
                 }
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       MatchTopologyResult::FullMatch);
