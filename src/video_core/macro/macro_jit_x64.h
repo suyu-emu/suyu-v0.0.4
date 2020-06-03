@@ -13,6 +13,7 @@
 #include "video_core/macro/macro.h"
 
 namespace Tegra {
+
 namespace Engines {
 class Maxwell3D;
 }
@@ -36,7 +37,7 @@ public:
     MacroJITx64Impl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
     ~MacroJITx64Impl();
 
-    void Execute(std::vector<u32>& parameters, u32 method) override;
+    void Execute(const std::vector<u32>& parameters, u32 method) override;
 
     void Compile_ALU(Macro::Opcode opcode);
     void Compile_AddImmediate(Macro::Opcode opcode);
@@ -66,7 +67,7 @@ private:
     struct JITState {
         Engines::Maxwell3D* maxwell3d{};
         std::array<u32, Macro::NUM_MACRO_REGISTERS> registers{};
-        u32* parameters{};
+        const u32* parameters{};
         u32 carry_flag{};
     };
     static_assert(offsetof(JITState, maxwell3d) == 0, "Maxwell3D is not at 0x0");

@@ -21,7 +21,7 @@ MacroInterpreterImpl::MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d,
                                            const std::vector<u32>& code)
     : maxwell3d(maxwell3d), code(code) {}
 
-void MacroInterpreterImpl::Execute(std::vector<u32>& parameters, u32 method) {
+void MacroInterpreterImpl::Execute(const std::vector<u32>& parameters, u32 method) {
     MICROPROFILE_SCOPE(MacroInterp);
     Reset();
 

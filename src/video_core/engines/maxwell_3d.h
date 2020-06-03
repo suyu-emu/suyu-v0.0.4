@@ -1466,7 +1466,6 @@ private:
 
     /// Interpreter for the macro codes uploaded to the GPU.
     std::unique_ptr<MacroEngine> macro_engine;
-    // MacroInterpreter macro_interpreter;
 
     static constexpr u32 null_cb_data = 0xFFFFFFFF;
     struct {
@@ -1495,7 +1494,7 @@ private:
      * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
      */
-    void CallMacroMethod(u32 method, std::vector<u32>& parameters);
+    void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
 
     /// Handles writes to the macro uploading register.
     void ProcessMacroUpload(u32 data);

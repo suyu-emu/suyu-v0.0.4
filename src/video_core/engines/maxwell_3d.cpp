@@ -115,7 +115,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
     mme_inline[MAXWELL3D_REG_INDEX(index_array.count)] = true;
 }
 
-void Maxwell3D::CallMacroMethod(u32 method, std::vector<u32>& parameters) {
+void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) {
     // Reset the current macro.
     executing_macro = 0;
 

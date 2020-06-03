@@ -47,7 +47,7 @@ MacroJITx64Impl::MacroJITx64Impl(Engines::Maxwell3D& maxwell3d, const std::vecto
 
 MacroJITx64Impl::~MacroJITx64Impl() = default;
 
-void MacroJITx64Impl::Execute(std::vector<u32>& parameters, u32 method) {
+void MacroJITx64Impl::Execute(const std::vector<u32>& parameters, u32 method) {
     MICROPROFILE_SCOPE(MacroJitExecute);
     ASSERT_OR_EXECUTE(program != nullptr, { return; });
     JITState state{};

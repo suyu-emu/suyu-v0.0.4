@@ -29,7 +29,7 @@ private:
 class MacroInterpreterImpl : public CachedMacro {
 public:
     MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
-    void Execute(std::vector<u32>& parameters, u32 method) override;
+    void Execute(const std::vector<u32>& parameters, u32 method) override;
 
 private:
     /// Resets the execution engine state, zeroing registers, etc.
