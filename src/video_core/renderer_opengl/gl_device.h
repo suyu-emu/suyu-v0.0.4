@@ -88,6 +88,10 @@ public:
         return has_fast_buffer_sub_data;
     }
 
+    bool HasNvViewportArray2() const {
+        return has_nv_viewport_array2;
+    }
+
     bool UseAssemblyShaders() const {
         return use_assembly_shaders;
     }
@@ -111,6 +115,7 @@ private:
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
     bool has_fast_buffer_sub_data{};
+    bool has_nv_viewport_array2{};
     bool use_assembly_shaders{};
 };
 
