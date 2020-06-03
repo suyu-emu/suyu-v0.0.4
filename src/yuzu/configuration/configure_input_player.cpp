@@ -480,7 +480,9 @@ void ConfigureInputPlayer::RestoreDefaults() {
             SetAnalogButton(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
         }
     }
+
     UpdateButtonLabels();
+    ApplyConfiguration();
 }
 
 void ConfigureInputPlayer::ClearAll() {
@@ -505,6 +507,7 @@ void ConfigureInputPlayer::ClearAll() {
     }
 
     UpdateButtonLabels();
+    ApplyConfiguration();
 }
 
 void ConfigureInputPlayer::UpdateButtonLabels() {
