@@ -1418,6 +1418,10 @@ public:
         return execute_on;
     }
 
+    VideoCore::RasterizerInterface& GetRasterizer() {
+        return rasterizer;
+    }
+
     /// Notify a memory write has happened.
     void OnMemoryWrite() {
         dirty.flags |= dirty.on_write_stores;
