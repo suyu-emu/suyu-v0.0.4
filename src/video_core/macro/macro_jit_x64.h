@@ -85,7 +85,7 @@ private:
     std::optional<Macro::Opcode> next_opcode{};
     ProgramType program{nullptr};
 
-    std::array<Xbyak::Label, MAX_CODE_SIZE> labels;
+    std::array<Xbyak::Label, MAX_CODE_SIZE> labels{};
     std::array<Xbyak::Label, MAX_CODE_SIZE> delay_skip{};
     Xbyak::Label end_of_code{};
 

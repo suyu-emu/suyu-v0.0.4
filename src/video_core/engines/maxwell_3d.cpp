@@ -25,7 +25,7 @@ constexpr u32 MacroRegistersStart = 0xE00;
 Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                      MemoryManager& memory_manager)
     : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
-      macro_engine(GetMacroEngine(*this)), upload_state{memory_manager, regs.upload} {
+      macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
 }
