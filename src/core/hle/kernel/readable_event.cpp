@@ -38,7 +38,7 @@ void ReadableEvent::Clear() {
 
 ResultCode ReadableEvent::Reset() {
     if (!is_signaled) {
-        LOG_ERROR(Kernel, "Handle is not signaled! object_id={}, object_type={}, object_name={}",
+        LOG_TRACE(Kernel, "Handle is not signaled! object_id={}, object_type={}, object_name={}",
                   GetObjectId(), GetTypeName(), GetName());
         return ERR_INVALID_STATE;
     }
