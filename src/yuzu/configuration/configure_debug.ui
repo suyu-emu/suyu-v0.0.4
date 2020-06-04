@@ -148,6 +148,19 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="disable_macro_jit">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="whatsThis">
+         <string>When checked, it disables the macro Just In Time compiler. Enabled this makes games run slower</string>
+        </property>
+        <property name="text">
+         <string>Disable Macro JIT</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

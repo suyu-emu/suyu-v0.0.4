@@ -474,6 +474,7 @@ struct Values {
     bool reporting_services;
     bool quest_flag;
     bool disable_cpu_opt;
+    bool disable_macro_jit;
 
     // BCAT
     std::string bcat_backend;

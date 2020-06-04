@@ -1,44 +1,37 @@
-// Copyright 2018 yuzu Emulator Project
+// Copyright 2020 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
-
 #include <array>
 #include <optional>
-
+#include <vector>
 #include "common/bit_field.h"
 #include "common/common_types.h"
+#include "video_core/macro/macro.h"
 
 namespace Tegra {
 namespace Engines {
 class Maxwell3D;
 }
 
-class MacroInterpreter final {
+class MacroInterpreter final : public MacroEngine {
 public:
     explicit MacroInterpreter(Engines::Maxwell3D& maxwell3d);
 
-    /**
-     * Executes the macro code with the specified input parameters.
-     * @param offset Offset to start execution at.
-     * @param parameters The parameters of the macro.
-     */
-    void Execute(u32 offset, std::size_t num_parameters, const u32* parameters);
+protected:
+    std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code) override;
 
 private:
-    enum class ALUOperation : u32;
-    enum class BranchCondition : u32;
-    enum class ResultOperation : u32;
+    Engines::Maxwell3D& maxwell3d;
+};
 
-    union Opcode;
+class MacroInterpreterImpl : public CachedMacro {
+public:
+    MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
+    void Execute(const std::vector<u32>& parameters, u32 method) override;
 
-    union MethodAddress {
-        u32 raw;
-        BitField<0, 12, u32> address;
-        BitField<12, 6, u32> increment;
-    };
-
+private:
     /// Resets the execution engine state, zeroing registers, etc.
     void Reset();
 
@@ -49,20 +42,20 @@ private:
      * @param is_delay_slot Whether the current step is being executed due to a delay slot in a
      * previous instruction.
      */
-    bool Step(u32 offset, bool is_delay_slot);
+    bool Step(bool is_delay_slot);
 
     /// Calculates the result of an ALU operation. src_a OP src_b;
-    u32 GetALUResult(ALUOperation operation, u32 src_a, u32 src_b);
+    u32 GetALUResult(Macro::ALUOperation operation, u32 src_a, u32 src_b);
 
     /// Performs the result operation on the input result and stores it in the specified register
     /// (if necessary).
-    void ProcessResult(ResultOperation operation, u32 reg, u32 result);
+    void ProcessResult(Macro::ResultOperation operation, u32 reg, u32 result);
 
     /// Evaluates the branch condition and returns whether the branch should be taken or not.
-    bool EvaluateBranchCondition(BranchCondition cond, u32 value) const;
+    bool EvaluateBranchCondition(Macro::BranchCondition cond, u32 value) const;
 
     /// Reads an opcode at the current program counter location.
-    Opcode GetOpcode(u32 offset) const;
+    Macro::Opcode GetOpcode() const;
 
     /// Returns the specified register's value. Register 0 is hardcoded to always return 0.
     u32 GetRegister(u32 register_id) const;
@@ -89,13 +82,11 @@ private:
     /// Program counter to execute at after the delay slot is executed.
     std::optional<u32> delayed_pc;
 
-    static constexpr std::size_t NumMacroRegisters = 8;
-
     /// General purpose macro registers.
-    std::array<u32, NumMacroRegisters> registers = {};
+    std::array<u32, Macro::NUM_MACRO_REGISTERS> registers = {};
 
     /// Method address to use for the next Send instruction.
-    MethodAddress method_address = {};
+    Macro::MethodAddress method_address = {};
 
     /// Input parameters of the current macro.
     std::unique_ptr<u32[]> parameters;
@@ -105,5 +96,7 @@ private:
     u32 next_parameter_index = 0;
 
     bool carry_flag = false;
+    const std::vector<u32>& code;
 };
+
 } // namespace Tegra

@@ -291,6 +291,8 @@ quest_flag =
 # Determines whether or not JIT CPU optimizations are enabled
 # false: Optimizations Enabled, true: Optimizations Disabled
 disable_cpu_opt =
+# Enables/Disables the macro JIT compiler
+disable_macro_jit=false
 
 [WebService]
 # Whether or not to enable telemetry

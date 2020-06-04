@@ -23,7 +23,7 @@
 #include "video_core/engines/engine_upload.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/gpu.h"
-#include "video_core/macro_interpreter.h"
+#include "video_core/macro/macro.h"
 #include "video_core/textures/texture.h"
 
 namespace Core {
@@ -1411,15 +1411,6 @@ public:
 
     const VideoCore::GuestDriverProfile& AccessGuestDriverProfile() const override;
 
-    /// Memory for macro code - it's undetermined how big this is, however 1MB is much larger than
-    /// we've seen used.
-    using MacroMemory = std::array<u32, 0x40000>;
-
-    /// Gets a reference to macro memory.
-    const MacroMemory& GetMacroMemory() const {
-        return macro_memory;
-    }
-
     bool ShouldExecute() const {
         return execute_on;
     }
@@ -1468,16 +1459,13 @@ private:
 
     std::array<bool, Regs::NUM_REGS> mme_inline{};
 
-    /// Memory for macro code
-    MacroMemory macro_memory;
-
     /// Macro method that is currently being executed / being fed parameters.
     u32 executing_macro = 0;
     /// Parameters that have been submitted to the macro call so far.
     std::vector<u32> macro_params;
 
     /// Interpreter for the macro codes uploaded to the GPU.
-    MacroInterpreter macro_interpreter;
+    std::unique_ptr<MacroEngine> macro_engine;
 
     static constexpr u32 null_cb_data = 0xFFFFFFFF;
     struct {
@@ -1506,7 +1494,7 @@ private:
      * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
      */
-    void CallMacroMethod(u32 method, std::size_t num_parameters, const u32* parameters);
+    void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
 
     /// Handles writes to the macro uploading register.
     void ProcessMacroUpload(u32 data);
