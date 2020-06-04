@@ -626,7 +626,9 @@ private:
                 break;
             }
         }
-        if (stage != ShaderType::Vertex || device.HasVertexViewportLayer()) {
+
+        if (stage != ShaderType::Geometry &&
+            (stage != ShaderType::Vertex || device.HasVertexViewportLayer())) {
             if (ir.UsesLayer()) {
                 code.AddLine("int gl_Layer;");
             }
@@ -654,6 +656,16 @@ private:
 
         --code.scope;
         code.AddLine("}};");
+        code.AddNewLine();
+
+        if (stage == ShaderType::Geometry) {
+            if (ir.UsesLayer()) {
+                code.AddLine("out int gl_Layer;");
+            }
+            if (ir.UsesViewportIndex()) {
+                code.AddLine("out int gl_ViewportIndex;");
+            }
+        }
         code.AddNewLine();
     }
 
