@@ -29,6 +29,7 @@ static void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d,
     }
     maxwell3d.regs.index_array.count = 0;
     maxwell3d.mme_draw.instance_count = 0;
+    maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
 
 static void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d,
@@ -47,6 +48,7 @@ static void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d,
     }
     maxwell3d.regs.vertex_buffer.count = 0;
     maxwell3d.mme_draw.instance_count = 0;
+    maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
 
 static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
@@ -76,6 +78,7 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.CallMethodFromMME(0x8e3, 0x640);
     maxwell3d.CallMethodFromMME(0x8e4, 0x0);
     maxwell3d.CallMethodFromMME(0x8e5, 0x0);
+    maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
 
 static const std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{
