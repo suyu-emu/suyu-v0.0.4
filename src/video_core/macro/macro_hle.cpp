@@ -59,10 +59,10 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.regs.index_array.count = parameters[1];
     maxwell3d.regs.vb_element_base = element_base;
     maxwell3d.regs.vb_base_instance = base_instance;
-    maxwell3d.regs.const_buffer.cb_pos = 0x640;
     maxwell3d.mme_draw.instance_count = instance_count;
-    maxwell3d.regs.const_buffer.cb_data[0] = element_base;
-    maxwell3d.regs.const_buffer.cb_data[1] = base_instance;
+    maxwell3d.CallMethodFromMME(0x8e3, 0x640);
+    maxwell3d.CallMethodFromMME(0x8e4, element_base);
+    maxwell3d.CallMethodFromMME(0x8e5, base_instance);
     maxwell3d.regs.draw.topology.Assign(
         static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]));
     if (maxwell3d.ShouldExecute()) {
@@ -72,10 +72,10 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.regs.index_array.count = 0;
     maxwell3d.regs.vb_element_base = 0x0;
     maxwell3d.regs.vb_base_instance = 0x0;
-    maxwell3d.regs.const_buffer.cb_pos = 0x640;
-    maxwell3d.regs.const_buffer.cb_data[0] = 0;
-    maxwell3d.regs.const_buffer.cb_data[1] = 0;
     maxwell3d.mme_draw.instance_count = 0;
+    maxwell3d.CallMethodFromMME(0x8e3, 0x640);
+    maxwell3d.CallMethodFromMME(0x8e4, 0x0);
+    maxwell3d.CallMethodFromMME(0x8e5, 0x0);
 }
 
 static const std::unordered_map<u64, HLEFunction> hle_funcs{
