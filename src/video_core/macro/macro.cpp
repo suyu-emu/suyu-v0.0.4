@@ -17,7 +17,7 @@ namespace Tegra {
 MacroEngine::MacroEngine(Engines::Maxwell3D& maxwell3d)
     : hle_macros{std::make_unique<Tegra::HLEMacro>(maxwell3d)} {}
 
-MacroEngine::~MacroEngine() {}
+MacroEngine::~MacroEngine() = default;
 
 void MacroEngine::AddCode(u32 method, u32 data) {
     uploaded_macro_code[method].push_back(data);

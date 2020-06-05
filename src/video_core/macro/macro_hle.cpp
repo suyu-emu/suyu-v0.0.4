@@ -2,7 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <unordered_map>
+#include <array>
 #include <vector>
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro_hle.h"
@@ -78,22 +78,22 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.CallMethodFromMME(0x8e5, 0x0);
 }
 
-static const std::unordered_map<u64, HLEFunction> hle_funcs{
-    {0x771BB18C62444DA0, &HLE_771BB18C62444DA0},
-    {0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD},
-    {0x0217920100488FF7, &HLE_0217920100488FF7},
+static const std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{
+    std::make_pair<u64, HLEFunction>(0x771BB18C62444DA0, &HLE_771BB18C62444DA0),
+    std::make_pair<u64, HLEFunction>(0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD),
+    std::make_pair<u64, HLEFunction>(0x0217920100488FF7, &HLE_0217920100488FF7),
 };
 
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
 HLEMacro::~HLEMacro() = default;
 
 std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) const {
-    auto it = hle_funcs.find(hash);
-    if (it != hle_funcs.end()) {
-        return std::make_unique<HLEMacroImpl>(maxwell3d, it->second);
-    } else {
-        return {};
+    const auto it = std::find_if(hle_funcs.begin(), hle_funcs.end(),
+                                 [hash](auto& pair) { return pair.first == hash; });
+    if (it == hle_funcs.end()) {
+        return std::nullopt;
     }
+    return std::make_unique<HLEMacroImpl>(maxwell3d, it->second);
 }
 
 HLEMacroImpl::~HLEMacroImpl() = default;

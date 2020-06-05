@@ -1422,6 +1422,10 @@ public:
         return rasterizer;
     }
 
+    const VideoCore::RasterizerInterface& GetRasterizer() const {
+        return rasterizer;
+    }
+
     /// Notify a memory write has happened.
     void OnMemoryWrite() {
         dirty.flags |= dirty.on_write_stores;

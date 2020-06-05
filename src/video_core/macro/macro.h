@@ -111,7 +111,7 @@ public:
 
 class MacroEngine {
 public:
-    MacroEngine(Engines::Maxwell3D& maxwell3d);
+    explicit MacroEngine(Engines::Maxwell3D& maxwell3d);
     virtual ~MacroEngine();
 
     // Store the uploaded macro code to compile them when they're called.
