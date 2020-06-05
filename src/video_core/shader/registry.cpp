@@ -93,6 +93,26 @@ std::optional<SamplerDescriptor> Registry::ObtainBoundSampler(u32 offset) {
     return value;
 }
 
+std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainSeparateSampler(
+    std::pair<u32, u32> buffers, std::pair<u32, u32> offsets) {
+    SeparateSamplerKey key;
+    key.buffers = buffers;
+    key.offsets = offsets;
+    const auto iter = separate_samplers.find(key);
+    if (iter != separate_samplers.end()) {
+        return iter->second;
+    }
+    if (!engine) {
+        return std::nullopt;
+    }
+
+    const u32 handle_1 = engine->AccessConstBuffer32(stage, key.buffers.first, key.offsets.first);
+    const u32 handle_2 = engine->AccessConstBuffer32(stage, key.buffers.second, key.offsets.second);
+    const SamplerDescriptor value = engine->AccessSampler(handle_1 | handle_2);
+    separate_samplers.emplace(key, value);
+    return value;
+}
+
 std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer,
                                                                                  u32 offset) {
     const std::pair key = {buffer, offset};

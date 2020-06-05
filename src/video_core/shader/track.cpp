@@ -64,7 +64,8 @@ bool AmendNodeCv(std::size_t amend_index, Node node) {
     if (const auto operation = std::get_if<OperationNode>(&*node)) {
         operation->SetAmendIndex(amend_index);
         return true;
-    } else if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
+    }
+    if (const auto conditional = std::get_if<ConditionalNode>(&*node)) {
         conditional->SetAmendIndex(amend_index);
         return true;
     }
@@ -110,10 +111,23 @@ std::pair<Node, TrackSampler> ShaderIR::TrackBindlessSampler(Node tracked, const
         return TrackBindlessSampler(source, code, new_cursor);
     }
     if (const auto operation = std::get_if<OperationNode>(&*tracked)) {
-        for (std::size_t i = operation->GetOperandsCount(); i > 0; --i) {
-            if (auto found = TrackBindlessSampler((*operation)[i - 1], code, cursor);
-                std::get<0>(found)) {
-                // Cbuf found in operand.
+        const OperationNode& op = *operation;
+
+        const OperationCode opcode = operation->GetCode();
+        if (opcode == OperationCode::IBitwiseOr || opcode == OperationCode::UBitwiseOr) {
+            ASSERT(op.GetOperandsCount() == 2);
+            auto [node_a, index_a, offset_a] = TrackCbuf(op[0], code, cursor);
+            auto [node_b, index_b, offset_b] = TrackCbuf(op[1], code, cursor);
+            if (node_a && node_b) {
+                auto track = MakeTrackSampler<SeparateSamplerNode>(std::pair{index_a, index_b},
+                                                                   std::pair{offset_a, offset_b});
+                return {tracked, std::move(track)};
+            }
+        }
+        std::size_t i = op.GetOperandsCount();
+        while (i--) {
+            if (auto found = TrackBindlessSampler(op[i - 1], code, cursor); std::get<0>(found)) {
+                // Constant buffer found in operand.
                 return found;
             }
         }

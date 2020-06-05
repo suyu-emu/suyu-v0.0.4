@@ -330,8 +330,8 @@ private:
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
 
     /// Queries the missing sampler info from the execution context.
-    SamplerInfo GetSamplerInfo(SamplerInfo info, u32 offset,
-                               std::optional<u32> buffer = std::nullopt);
+    SamplerInfo GetSamplerInfo(SamplerInfo info,
+                               std::optional<Tegra::Engines::SamplerDescriptor> sampler);
 
     /// Accesses a texture sampler.
     std::optional<Sampler> GetSampler(Tegra::Shader::Sampler sampler, SamplerInfo info);

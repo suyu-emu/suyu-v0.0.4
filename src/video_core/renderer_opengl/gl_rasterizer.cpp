@@ -65,10 +65,22 @@ constexpr std::size_t NumSupportedVertexAttributes = 16;
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
                                                ShaderType shader_type, std::size_t index = 0) {
-    if (entry.is_bindless) {
-        const auto tex_handle = engine.AccessConstBuffer32(shader_type, entry.buffer, entry.offset);
-        return engine.GetTextureInfo(tex_handle);
+    if constexpr (std::is_same_v<Entry, SamplerEntry>) {
+        if (entry.is_separated) {
+            const u32 buffer_1 = entry.buffer;
+            const u32 buffer_2 = entry.secondary_buffer;
+            const u32 offset_1 = entry.offset;
+            const u32 offset_2 = entry.secondary_offset;
+            const u32 handle_1 = engine.AccessConstBuffer32(shader_type, buffer_1, offset_1);
+            const u32 handle_2 = engine.AccessConstBuffer32(shader_type, buffer_2, offset_2);
+            return engine.GetTextureInfo(handle_1 | handle_2);
+        }
     }
+    if (entry.is_bindless) {
+        const u32 handle = engine.AccessConstBuffer32(shader_type, entry.buffer, entry.offset);
+        return engine.GetTextureInfo(handle);
+    }
+
     const auto& gpu_profile = engine.AccessGuestDriverProfile();
     const u32 offset = entry.offset + static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
     if constexpr (std::is_same_v<Engine, Tegra::Engines::Maxwell3D>) {
