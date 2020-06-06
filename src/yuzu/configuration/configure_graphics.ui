@@ -85,46 +85,6 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>Internal Resolution:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="resolution_factor_combobox">
-            <item>
-             <property name="text">
-              <string>Auto (Window Size)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Native (1280x720)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>2x Native (2560x1440)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>3x Native (3840x2160)</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>4x Native (5120x2880)</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_6">
           <item>
            <widget class="QLabel" name="ar_label">

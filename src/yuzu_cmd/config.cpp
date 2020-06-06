@@ -380,8 +380,6 @@ void Config::ReadValues() {
     Settings::values.renderer_debug = sdl2_config->GetBoolean("Renderer", "debug", false);
     Settings::values.vulkan_device = sdl2_config->GetInteger("Renderer", "vulkan_device", 0);
 
-    Settings::values.resolution_factor =
-        static_cast<float>(sdl2_config->GetReal("Renderer", "resolution_factor", 1.0));
     Settings::values.aspect_ratio =
         static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0));
     Settings::values.max_anisotropy =
