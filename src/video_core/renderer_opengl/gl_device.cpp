@@ -185,11 +185,19 @@ bool IsASTCSupported() {
 Device::Device()
     : max_uniform_buffers{BuildMaxUniformBuffers()}, base_bindings{BuildBaseBindings()} {
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const auto renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
     const bool is_amd = vendor == "ATI Technologies Inc.";
+
+    bool disable_fast_buffer_sub_data = false;
+    if (is_nvidia && version == "4.6.0 NVIDIA 443.24") {
+        LOG_WARNING(
+            Render_OpenGL,
+            "Beta driver 443.24 is known to have issues. There might be performance issues.");
+        disable_fast_buffer_sub_data = true;
+    }
 
     uniform_buffer_alignment = GetInteger<std::size_t>(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT);
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
@@ -204,7 +212,7 @@ Device::Device()
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
-    has_fast_buffer_sub_data = is_nvidia;
+    has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
     use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
                            GLAD_GL_NV_compute_program5;
 
