@@ -468,8 +468,9 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     const auto& entries = pipeline.GetEntries();
     SetupComputeConstBuffers(entries);
     SetupComputeGlobalBuffers(entries);
-    SetupComputeTexelBuffers(entries);
+    SetupComputeUniformTexels(entries);
     SetupComputeTextures(entries);
+    SetupComputeStorageTexels(entries);
     SetupComputeImages(entries);
 
     buffer_cache.Unmap();
@@ -787,8 +788,9 @@ void RasterizerVulkan::SetupShaderDescriptors(
         const auto& entries = shader->GetEntries();
         SetupGraphicsConstBuffers(entries, stage);
         SetupGraphicsGlobalBuffers(entries, stage);
-        SetupGraphicsTexelBuffers(entries, stage);
+        SetupGraphicsUniformTexels(entries, stage);
         SetupGraphicsTextures(entries, stage);
+        SetupGraphicsStorageTexels(entries, stage);
         SetupGraphicsImages(entries, stage);
     }
     texture_cache.GuardSamplers(false);
@@ -983,12 +985,12 @@ void RasterizerVulkan::SetupGraphicsGlobalBuffers(const ShaderEntries& entries, 
     }
 }
 
-void RasterizerVulkan::SetupGraphicsTexelBuffers(const ShaderEntries& entries, std::size_t stage) {
+void RasterizerVulkan::SetupGraphicsUniformTexels(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
     const auto& gpu = system.GPU().Maxwell3D();
-    for (const auto& entry : entries.texel_buffers) {
+    for (const auto& entry : entries.uniform_texels) {
         const auto image = GetTextureInfo(gpu, entry, stage).tic;
-        SetupTexelBuffer(image, entry);
+        SetupUniformTexels(image, entry);
     }
 }
 
@@ -1000,6 +1002,15 @@ void RasterizerVulkan::SetupGraphicsTextures(const ShaderEntries& entries, std::
             const auto texture = GetTextureInfo(gpu, entry, stage, i);
             SetupTexture(texture, entry);
         }
+    }
+}
+
+void RasterizerVulkan::SetupGraphicsStorageTexels(const ShaderEntries& entries, std::size_t stage) {
+    MICROPROFILE_SCOPE(Vulkan_Textures);
+    const auto& gpu = system.GPU().Maxwell3D();
+    for (const auto& entry : entries.storage_texels) {
+        const auto image = GetTextureInfo(gpu, entry, stage).tic;
+        SetupStorageTexel(image, entry);
     }
 }
 
@@ -1035,12 +1046,12 @@ void RasterizerVulkan::SetupComputeGlobalBuffers(const ShaderEntries& entries) {
     }
 }
 
-void RasterizerVulkan::SetupComputeTexelBuffers(const ShaderEntries& entries) {
+void RasterizerVulkan::SetupComputeUniformTexels(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
     const auto& gpu = system.GPU().KeplerCompute();
-    for (const auto& entry : entries.texel_buffers) {
+    for (const auto& entry : entries.uniform_texels) {
         const auto image = GetTextureInfo(gpu, entry, ComputeShaderIndex).tic;
-        SetupTexelBuffer(image, entry);
+        SetupUniformTexels(image, entry);
     }
 }
 
@@ -1052,6 +1063,15 @@ void RasterizerVulkan::SetupComputeTextures(const ShaderEntries& entries) {
             const auto texture = GetTextureInfo(gpu, entry, ComputeShaderIndex, i);
             SetupTexture(texture, entry);
         }
+    }
+}
+
+void RasterizerVulkan::SetupComputeStorageTexels(const ShaderEntries& entries) {
+    MICROPROFILE_SCOPE(Vulkan_Textures);
+    const auto& gpu = system.GPU().KeplerCompute();
+    for (const auto& entry : entries.storage_texels) {
+        const auto image = GetTextureInfo(gpu, entry, ComputeShaderIndex).tic;
+        SetupStorageTexel(image, entry);
     }
 }
 
@@ -1104,8 +1124,8 @@ void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAdd
     update_descriptor_queue.AddBuffer(buffer, offset, size);
 }
 
-void RasterizerVulkan::SetupTexelBuffer(const Tegra::Texture::TICEntry& tic,
-                                        const TexelBufferEntry& entry) {
+void RasterizerVulkan::SetupUniformTexels(const Tegra::Texture::TICEntry& tic,
+                                          const UniformTexelEntry& entry) {
     const auto view = texture_cache.GetTextureSurface(tic, entry);
     ASSERT(view->IsBufferView());
 
@@ -1125,6 +1145,14 @@ void RasterizerVulkan::SetupTexture(const Tegra::Texture::FullTextureInfo& textu
     const auto image_layout = update_descriptor_queue.GetLastImageLayout();
     *image_layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     sampled_views.push_back(ImageView{std::move(view), image_layout});
+}
+
+void RasterizerVulkan::SetupStorageTexel(const Tegra::Texture::TICEntry& tic,
+                                         const StorageTexelEntry& entry) {
+    const auto view = texture_cache.GetImageSurface(tic, entry);
+    ASSERT(view->IsBufferView());
+
+    update_descriptor_queue.AddTexelBuffer(view->GetBufferView());
 }
 
 void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const ImageEntry& entry) {

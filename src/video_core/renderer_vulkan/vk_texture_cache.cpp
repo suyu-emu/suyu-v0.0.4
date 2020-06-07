@@ -100,8 +100,8 @@ vk::Buffer CreateBuffer(const VKDevice& device, const SurfaceParams& params,
     ci.pNext = nullptr;
     ci.flags = 0;
     ci.size = static_cast<VkDeviceSize>(host_memory_size);
-    ci.usage = VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
-               VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    ci.usage = VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT |
+               VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     ci.queueFamilyIndexCount = 0;
     ci.pQueueFamilyIndices = nullptr;

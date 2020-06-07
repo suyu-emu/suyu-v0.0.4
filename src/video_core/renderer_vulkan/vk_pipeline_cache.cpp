@@ -45,6 +45,7 @@ constexpr VkDescriptorType UNIFORM_BUFFER = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 constexpr VkDescriptorType STORAGE_BUFFER = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
 constexpr VkDescriptorType UNIFORM_TEXEL_BUFFER = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
 constexpr VkDescriptorType COMBINED_IMAGE_SAMPLER = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+constexpr VkDescriptorType STORAGE_TEXEL_BUFFER = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
 constexpr VkDescriptorType STORAGE_IMAGE = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
 constexpr VideoCommon::Shader::CompilerSettings compiler_settings{
@@ -104,8 +105,9 @@ u32 FillDescriptorLayout(const ShaderEntries& entries,
     u32 binding = base_binding;
     AddBindings<UNIFORM_BUFFER>(bindings, binding, flags, entries.const_buffers);
     AddBindings<STORAGE_BUFFER>(bindings, binding, flags, entries.global_buffers);
-    AddBindings<UNIFORM_TEXEL_BUFFER>(bindings, binding, flags, entries.texel_buffers);
+    AddBindings<UNIFORM_TEXEL_BUFFER>(bindings, binding, flags, entries.uniform_texels);
     AddBindings<COMBINED_IMAGE_SAMPLER>(bindings, binding, flags, entries.samplers);
+    AddBindings<STORAGE_TEXEL_BUFFER>(bindings, binding, flags, entries.storage_texels);
     AddBindings<STORAGE_IMAGE>(bindings, binding, flags, entries.images);
     return binding;
 }
@@ -377,16 +379,17 @@ void AddEntry(std::vector<VkDescriptorUpdateTemplateEntry>& template_entries, u3
         return;
     }
 
-    if constexpr (descriptor_type == UNIFORM_TEXEL_BUFFER) {
-        // Nvidia has a bug where updating multiple uniform texels at once causes the driver to
-        // crash.
+    if constexpr (descriptor_type == UNIFORM_TEXEL_BUFFER ||
+                  descriptor_type == STORAGE_TEXEL_BUFFER) {
+        // Nvidia has a bug where updating multiple texels at once causes the driver to crash.
+        // Note: Fixed in driver Windows 443.24, Linux 440.66.15
         for (u32 i = 0; i < count; ++i) {
             VkDescriptorUpdateTemplateEntry& entry = template_entries.emplace_back();
             entry.dstBinding = binding + i;
             entry.dstArrayElement = 0;
             entry.descriptorCount = 1;
             entry.descriptorType = descriptor_type;
-            entry.offset = offset + i * entry_size;
+            entry.offset = static_cast<std::size_t>(offset + i * entry_size);
             entry.stride = entry_size;
         }
     } else if (count > 0) {
@@ -407,8 +410,9 @@ void FillDescriptorUpdateTemplateEntries(
     std::vector<VkDescriptorUpdateTemplateEntryKHR>& template_entries) {
     AddEntry<UNIFORM_BUFFER>(template_entries, offset, binding, entries.const_buffers);
     AddEntry<STORAGE_BUFFER>(template_entries, offset, binding, entries.global_buffers);
-    AddEntry<UNIFORM_TEXEL_BUFFER>(template_entries, offset, binding, entries.texel_buffers);
+    AddEntry<UNIFORM_TEXEL_BUFFER>(template_entries, offset, binding, entries.uniform_texels);
     AddEntry<COMBINED_IMAGE_SAMPLER>(template_entries, offset, binding, entries.samplers);
+    AddEntry<STORAGE_TEXEL_BUFFER>(template_entries, offset, binding, entries.storage_texels);
     AddEntry<STORAGE_IMAGE>(template_entries, offset, binding, entries.images);
 }
 
