@@ -298,15 +298,13 @@ public:
         const GPUVAddr src_gpu_addr = src_config.Address();
         const GPUVAddr dst_gpu_addr = dst_config.Address();
         DeduceBestBlit(src_params, dst_params, src_gpu_addr, dst_gpu_addr);
-        const std::optional<VAddr> dst_cpu_addr =
-            system.GPU().MemoryManager().GpuToCpuAddress(dst_gpu_addr);
-        const std::optional<VAddr> src_cpu_addr =
-            system.GPU().MemoryManager().GpuToCpuAddress(src_gpu_addr);
-        std::pair<TSurface, TView> dst_surface =
-            GetSurface(dst_gpu_addr, *dst_cpu_addr, dst_params, true, false);
-        std::pair<TSurface, TView> src_surface =
-            GetSurface(src_gpu_addr, *src_cpu_addr, src_params, true, false);
-        ImageBlit(src_surface.second, dst_surface.second, copy_config);
+
+        const auto& memory_manager = system.GPU().MemoryManager();
+        const std::optional<VAddr> dst_cpu_addr = memory_manager.GpuToCpuAddress(dst_gpu_addr);
+        const std::optional<VAddr> src_cpu_addr = memory_manager.GpuToCpuAddress(src_gpu_addr);
+        std::pair dst_surface = GetSurface(dst_gpu_addr, *dst_cpu_addr, dst_params, true, false);
+        TView src_surface = GetSurface(src_gpu_addr, *src_cpu_addr, src_params, true, false).second;
+        ImageBlit(src_surface, dst_surface.second, copy_config);
         dst_surface.first->MarkAsModified(true, Tick());
     }
 
