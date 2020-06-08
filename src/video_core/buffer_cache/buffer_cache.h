@@ -110,19 +110,23 @@ public:
         });
     }
 
-    void Map(std::size_t max_size) {
+    /// Prepares the buffer cache for data uploading
+    /// @param max_size Maximum number of bytes that will be uploaded
+    /// @return True when a stream buffer invalidation was required, false otherwise
+    bool Map(std::size_t max_size) {
         std::lock_guard lock{mutex};
 
+        bool invalidated;
         std::tie(buffer_ptr, buffer_offset_base, invalidated) = stream_buffer->Map(max_size, 4);
         buffer_offset = buffer_offset_base;
+
+        return invalidated;
     }
 
-    /// Finishes the upload stream, returns true on bindings invalidation.
-    bool Unmap() {
+    /// Finishes the upload stream
+    void Unmap() {
         std::lock_guard lock{mutex};
-
         stream_buffer->Unmap(buffer_offset - buffer_offset_base);
-        return std::exchange(invalidated, false);
     }
 
     void TickFrame() {
@@ -575,8 +579,6 @@ private:
 
     std::unique_ptr<StreamBuffer> stream_buffer;
     BufferType stream_buffer_handle{};
-
-    bool invalidated = false;
 
     u8* buffer_ptr = nullptr;
     u64 buffer_offset = 0;
