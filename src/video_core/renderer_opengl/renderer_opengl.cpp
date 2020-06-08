@@ -751,11 +751,9 @@ void RendererOpenGL::RenderScreenshot() {
 }
 
 bool RendererOpenGL::Init() {
-    if (GLAD_GL_KHR_debug) {
+    if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
         glEnable(GL_DEBUG_OUTPUT);
-        if (Settings::values.renderer_debug) {
-            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        }
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(DebugHandler, nullptr);
     }
 
