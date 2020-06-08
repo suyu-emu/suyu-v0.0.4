@@ -724,10 +724,35 @@ private:
      * @param params    The parameters on the new surface.
      * @param gpu_addr  The starting address of the new surface.
      * @param cpu_addr  The starting address of the new surface on physical memory.
+     * @param preserve_contents Indicates that the new surface should be loaded from memory or
+     *                          left blank.
      */
     std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(VectorSurface& overlaps,
                                                                const SurfaceParams& params,
-                                                               GPUVAddr gpu_addr, VAddr cpu_addr) {
+                                                               GPUVAddr gpu_addr, VAddr cpu_addr,
+                                                               bool preserve_contents) {
+        if (params.target != SurfaceTarget::Texture3D) {
+            for (const auto& surface : overlaps) {
+                if (!surface->MatchTarget(params.target)) {
+                    if (overlaps.size() == 1 && surface->GetCpuAddr() == cpu_addr) {
+                        if (Settings::IsGPULevelExtreme()) {
+                            return std::nullopt;
+                        }
+                        Unregister(surface);
+                        return InitializeSurface(gpu_addr, params, preserve_contents);
+                    }
+                    return std::nullopt;
+                }
+                if (surface->GetCpuAddr() != cpu_addr) {
+                    continue;
+                }
+                if (surface->MatchesStructure(params) == MatchStructureResult::FullMatch) {
+                    return std::make_pair(surface, surface->GetMainView());
+                }
+            }
+            return InitializeSurface(gpu_addr, params, preserve_contents);
+        }
+
         if (params.num_levels > 1) {
             // We can't handle mipmaps in 3D textures yet, better fallback to LLE approach
             return std::nullopt;
@@ -748,25 +773,18 @@ private:
             }
         }
 
-        if (params.depth == 1) {
-            return std::nullopt;
-        }
-
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        LoadSurface(new_surface);
-
         bool modified = false;
+
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
-            if (src_params.height != params.height ||
+            if (src_params.target != SurfaceTarget::Texture2D ||
+                src_params.height != params.height ||
                 src_params.block_depth != params.block_depth ||
                 src_params.block_height != params.block_height) {
                 return std::nullopt;
             }
-            if (!surface->IsModified()) {
-                continue;
-            }
-            modified = true;
+            modified |= surface->IsModified();
 
             const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
             const u32 slice = std::get<2>(params.GetBlockOffsetXYZ(offset));
@@ -781,7 +799,7 @@ private:
         new_surface->MarkAsModified(modified, Tick());
         Register(new_surface);
 
-        auto view = new_surface->GetMainView();
+        TView view = new_surface->GetMainView();
         return std::make_pair(std::move(new_surface), std::move(view));
     }
 
@@ -861,8 +879,9 @@ private:
         }
 
         // Manage 3D textures
-        if (params.target == SurfaceTarget::Texture3D) {
-            auto surface = Manage3DSurfaces(overlaps, params, gpu_addr, cpu_addr);
+        if (params.block_depth > 0) {
+            auto surface =
+                Manage3DSurfaces(overlaps, params, gpu_addr, cpu_addr, preserve_contents);
             if (surface) {
                 return *surface;
             }
