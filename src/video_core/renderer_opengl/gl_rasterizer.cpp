@@ -576,7 +576,16 @@ void RasterizerOpenGL::Draw(bool is_indexed, bool is_instanced) {
                    (Maxwell::MaxConstBufferSize + device.GetUniformBufferAlignment());
 
     // Prepare the vertex array.
-    buffer_cache.Map(buffer_size);
+    const bool invalidated = buffer_cache.Map(buffer_size);
+
+    if (invalidated) {
+        // When the stream buffer has been invalidated, we have to consider vertex buffers as dirty
+        auto& dirty = gpu.dirty.flags;
+        dirty[Dirty::VertexBuffers] = true;
+        for (int index = Dirty::VertexBuffer0; index <= Dirty::VertexBuffer31; ++index) {
+            dirty[index] = true;
+        }
+    }
 
     // Prepare vertex array format.
     SetupVertexFormat();
