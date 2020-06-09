@@ -786,6 +786,8 @@ ARBDecompiler::ARBDecompiler(const Device& device, const ShaderIR& ir, const Reg
                              ShaderType stage, std::string_view identifier)
     : device{device}, ir{ir}, registry{registry}, stage{stage} {
     AddLine("TEMP RC;");
+    AddLine("TEMP FSWZA[4];");
+    AddLine("TEMP FSWZB[4];");
     if (ir.IsDecompiled()) {
         DecompileAST();
     } else {
@@ -991,6 +993,15 @@ void ARBDecompiler::DeclareInternalFlags() {
 }
 
 void ARBDecompiler::InitializeVariables() {
+    AddLine("MOV.F32 FSWZA[0], -1;");
+    AddLine("MOV.F32 FSWZA[1], 1;");
+    AddLine("MOV.F32 FSWZA[2], -1;");
+    AddLine("MOV.F32 FSWZA[3], 0;");
+    AddLine("MOV.F32 FSWZB[0], -1;");
+    AddLine("MOV.F32 FSWZB[1], -1;");
+    AddLine("MOV.F32 FSWZB[2], 1;");
+    AddLine("MOV.F32 FSWZB[3], -1;");
+
     if (stage == ShaderType::Vertex || stage == ShaderType::Geometry) {
         AddLine("MOV.F result.position, {{0, 0, 0, 1}};");
     }
@@ -1570,10 +1581,22 @@ std::string ARBDecompiler::FSqrt(Operation operation) {
 }
 
 std::string ARBDecompiler::FSwizzleAdd(Operation operation) {
-    LOG_WARNING(Render_OpenGL, "(STUBBED)");
-    const std::string temporary = AllocTemporary();
-    AddLine("ADD.F {}, {}, {};", temporary, Visit(operation[0]), Visit(operation[1]));
-    return temporary;
+    const std::string temporary = AllocVectorTemporary();
+    if (!device.HasWarpIntrinsics()) {
+        LOG_ERROR(Render_OpenGL,
+                  "NV_shader_thread_shuffle is missing. Kepler or better is required.");
+        AddLine("ADD.F {}.x, {}, {};", temporary, Visit(operation[0]), Visit(operation[1]));
+        return fmt::format("{}.x", temporary);
+    }
+    const std::string lut = AllocVectorTemporary();
+    AddLine("AND.U {}.z, {}.threadid, 3;", temporary, StageInputName(stage));
+    AddLine("SHL.U {}.z, {}.z, 1;", temporary, temporary);
+    AddLine("SHR.U {}.z, {}, {}.z;", temporary, Visit(operation[2]), temporary);
+    AddLine("AND.U {}.z, {}.z, 3;", temporary, temporary);
+    AddLine("MUL.F32 {}.x, {}, FSWZA[{}.z];", temporary, Visit(operation[0]), temporary);
+    AddLine("MUL.F32 {}.y, {}, FSWZB[{}.z];", temporary, Visit(operation[1]), temporary);
+    AddLine("ADD.F32 {}.x, {}.x, {}.y;", temporary, temporary, temporary);
+    return fmt::format("{}.x", temporary);
 }
 
 std::string ARBDecompiler::HAdd2(Operation operation) {
