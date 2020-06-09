@@ -49,14 +49,6 @@ OGLStreamBuffer::~OGLStreamBuffer() {
     gl_buffer.Release();
 }
 
-GLuint OGLStreamBuffer::GetHandle() const {
-    return gl_buffer.handle;
-}
-
-GLsizeiptr OGLStreamBuffer::GetSize() const {
-    return buffer_size;
-}
-
 std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr alignment) {
     ASSERT(size <= buffer_size);
     ASSERT(alignment <= buffer_size);

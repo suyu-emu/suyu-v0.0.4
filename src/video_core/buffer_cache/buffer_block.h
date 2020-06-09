@@ -15,48 +15,47 @@ namespace VideoCommon {
 
 class BufferBlock {
 public:
-    bool Overlaps(const VAddr start, const VAddr end) const {
+    bool Overlaps(VAddr start, VAddr end) const {
         return (cpu_addr < end) && (cpu_addr_end > start);
     }
 
-    bool IsInside(const VAddr other_start, const VAddr other_end) const {
+    bool IsInside(VAddr other_start, VAddr other_end) const {
         return cpu_addr <= other_start && other_end <= cpu_addr_end;
     }
 
-    std::size_t GetOffset(const VAddr in_addr) {
+    std::size_t Offset(VAddr in_addr) const {
         return static_cast<std::size_t>(in_addr - cpu_addr);
     }
 
-    VAddr GetCpuAddr() const {
+    VAddr CpuAddr() const {
         return cpu_addr;
     }
 
-    VAddr GetCpuAddrEnd() const {
+    VAddr CpuAddrEnd() const {
         return cpu_addr_end;
     }
 
-    void SetCpuAddr(const VAddr new_addr) {
+    void SetCpuAddr(VAddr new_addr) {
         cpu_addr = new_addr;
         cpu_addr_end = new_addr + size;
     }
 
-    std::size_t GetSize() const {
+    std::size_t Size() const {
         return size;
+    }
+
+    u64 Epoch() const {
+        return epoch;
     }
 
     void SetEpoch(u64 new_epoch) {
         epoch = new_epoch;
     }
 
-    u64 GetEpoch() {
-        return epoch;
-    }
-
 protected:
-    explicit BufferBlock(VAddr cpu_addr, const std::size_t size) : size{size} {
-        SetCpuAddr(cpu_addr);
+    explicit BufferBlock(VAddr cpu_addr_, std::size_t size_) : size{size_} {
+        SetCpuAddr(cpu_addr_);
     }
-    ~BufferBlock() = default;
 
 private:
     VAddr cpu_addr{};

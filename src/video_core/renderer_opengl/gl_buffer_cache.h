@@ -24,17 +24,12 @@ class Device;
 class OGLStreamBuffer;
 class RasterizerOpenGL;
 
-class CachedBufferBlock;
-
-using Buffer = std::shared_ptr<CachedBufferBlock>;
-using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuffer>;
-
-class CachedBufferBlock : public VideoCommon::BufferBlock {
+class Buffer : public VideoCommon::BufferBlock {
 public:
-    explicit CachedBufferBlock(VAddr cpu_addr, const std::size_t size);
-    ~CachedBufferBlock();
+    explicit Buffer(VAddr cpu_addr, const std::size_t size);
+    ~Buffer();
 
-    GLuint GetHandle() const {
+    GLuint Handle() const {
         return gl_buffer.handle;
     }
 
@@ -42,6 +37,7 @@ private:
     OGLBuffer gl_buffer;
 };
 
+using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuffer>;
 class OGLBufferCache final : public GenericBufferCache {
 public:
     explicit OGLBufferCache(RasterizerOpenGL& rasterizer, Core::System& system,
@@ -55,9 +51,7 @@ public:
     }
 
 protected:
-    Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
-
-    GLuint ToHandle(const Buffer& buffer) override;
+    std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;
