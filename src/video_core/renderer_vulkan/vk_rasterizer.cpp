@@ -716,7 +716,7 @@ std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
         if (!view) {
             return false;
         }
-        key.views.push_back(view->GetHandle());
+        key.views.push_back(view->GetAttachment());
         key.width = std::min(key.width, view->GetWidth());
         key.height = std::min(key.height, view->GetHeight());
         key.layers = std::min(key.layers, view->GetNumLayers());
@@ -1137,8 +1137,8 @@ void RasterizerVulkan::SetupTexture(const Tegra::Texture::FullTextureInfo& textu
     auto view = texture_cache.GetTextureSurface(texture.tic, entry);
     ASSERT(!view->IsBufferView());
 
-    const auto image_view = view->GetHandle(texture.tic.x_source, texture.tic.y_source,
-                                            texture.tic.z_source, texture.tic.w_source);
+    const VkImageView image_view = view->GetImageView(texture.tic.x_source, texture.tic.y_source,
+                                                      texture.tic.z_source, texture.tic.w_source);
     const auto sampler = sampler_cache.GetSampler(texture.tsc);
     update_descriptor_queue.AddSampledImage(sampler, image_view);
 
@@ -1164,7 +1164,8 @@ void RasterizerVulkan::SetupImage(const Tegra::Texture::TICEntry& tic, const Ima
 
     UNIMPLEMENTED_IF(tic.IsBuffer());
 
-    const auto image_view = view->GetHandle(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
+    const VkImageView image_view =
+        view->GetImageView(tic.x_source, tic.y_source, tic.z_source, tic.w_source);
     update_descriptor_queue.AddImage(image_view);
 
     const auto image_layout = update_descriptor_queue.GetLastImageLayout();
