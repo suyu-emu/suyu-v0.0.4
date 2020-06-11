@@ -16,13 +16,14 @@
 
 namespace Tegra::Engines {
 
-KeplerCompute::KeplerCompute(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                             MemoryManager& memory_manager)
-    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager}, upload_state{
-                                                                                  memory_manager,
-                                                                                  regs.upload} {}
+KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manager_)
+    : system{system_}, memory_manager{memory_manager_}, upload_state{memory_manager, regs.upload} {}
 
 KeplerCompute::~KeplerCompute() = default;
+
+void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
+    rasterizer = &rasterizer_;
+}
 
 void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
@@ -104,11 +105,11 @@ SamplerDescriptor KeplerCompute::AccessSampler(u32 handle) const {
 }
 
 VideoCore::GuestDriverProfile& KeplerCompute::AccessGuestDriverProfile() {
-    return rasterizer.AccessGuestDriverProfile();
+    return rasterizer->AccessGuestDriverProfile();
 }
 
 const VideoCore::GuestDriverProfile& KeplerCompute::AccessGuestDriverProfile() const {
-    return rasterizer.AccessGuestDriverProfile();
+    return rasterizer->AccessGuestDriverProfile();
 }
 
 void KeplerCompute::ProcessLaunch() {
@@ -119,7 +120,7 @@ void KeplerCompute::ProcessLaunch() {
     const GPUVAddr code_addr = regs.code_loc.Address() + launch_description.program_start;
     LOG_TRACE(HW_GPU, "Compute invocation launched at address 0x{:016x}", code_addr);
 
-    rasterizer.DispatchCompute(code_addr);
+    rasterizer->DispatchCompute(code_addr);
 }
 
 Texture::TICEntry KeplerCompute::GetTICEntry(u32 tic_index) const {

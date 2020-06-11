@@ -56,8 +56,9 @@ class FrameMailbox;
 
 class RendererOpenGL final : public VideoCore::RendererBase {
 public:
-    explicit RendererOpenGL(Core::Frontend::EmuWindow& emu_window, Core::System& system,
-                            Core::Frontend::GraphicsContext& context);
+    explicit RendererOpenGL(Core::System& system, Core::Frontend::EmuWindow& emu_window,
+                            Tegra::GPU& gpu,
+                            std::unique_ptr<Core::Frontend::GraphicsContext> context);
     ~RendererOpenGL() override;
 
     bool Init() override;
@@ -93,9 +94,9 @@ private:
 
     bool Present(int timeout_ms);
 
-    Core::Frontend::EmuWindow& emu_window;
     Core::System& system;
-    Core::Frontend::GraphicsContext& context;
+    Core::Frontend::EmuWindow& emu_window;
+    Tegra::GPU& gpu;
     const Device device;
 
     StateTracker state_tracker{system};
@@ -120,7 +121,7 @@ private:
     std::vector<u8> gl_framebuffer_data;
 
     /// Used for transforming the framebuffer orientation
-    Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags;
+    Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags{};
     Common::Rectangle<int> framebuffer_crop_rect;
 
     /// Frame presentation mailbox

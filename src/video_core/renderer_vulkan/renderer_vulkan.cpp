@@ -237,8 +237,10 @@ std::string BuildCommaSeparatedExtensions(std::vector<std::string> available_ext
 
 } // Anonymous namespace
 
-RendererVulkan::RendererVulkan(Core::Frontend::EmuWindow& window, Core::System& system)
-    : RendererBase(window), system{system} {}
+RendererVulkan::RendererVulkan(Core::System& system_, Core::Frontend::EmuWindow& emu_window,
+                               Tegra::GPU& gpu_,
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context)
+    : RendererBase{emu_window, std::move(context)}, system{system_}, gpu{gpu_} {}
 
 RendererVulkan::~RendererVulkan() {
     ShutDown();

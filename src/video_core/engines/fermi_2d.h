@@ -34,8 +34,11 @@ namespace Tegra::Engines {
 
 class Fermi2D final : public EngineInterface {
 public:
-    explicit Fermi2D(VideoCore::RasterizerInterface& rasterizer);
-    ~Fermi2D() = default;
+    explicit Fermi2D();
+    ~Fermi2D();
+
+    /// Binds a rasterizer to this engine.
+    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
 
     /// Write the value to the register identified by method.
     void CallMethod(u32 method, u32 method_argument, bool is_last_call) override;
@@ -149,7 +152,7 @@ public:
     };
 
 private:
-    VideoCore::RasterizerInterface& rasterizer;
+    VideoCore::RasterizerInterface* rasterizer;
 
     /// Performs the copy from the source surface to the destination surface as configured in the
     /// registers.

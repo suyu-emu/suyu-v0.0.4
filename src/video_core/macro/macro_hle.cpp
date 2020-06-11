@@ -24,7 +24,7 @@ void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.regs.index_array.first = parameters[4];
 
     if (maxwell3d.ShouldExecute()) {
-        maxwell3d.GetRasterizer().Draw(true, true);
+        maxwell3d.Rasterizer().Draw(true, true);
     }
     maxwell3d.regs.index_array.count = 0;
     maxwell3d.mme_draw.instance_count = 0;
@@ -42,7 +42,7 @@ void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.mme_draw.instance_count = count;
 
     if (maxwell3d.ShouldExecute()) {
-        maxwell3d.GetRasterizer().Draw(false, true);
+        maxwell3d.Rasterizer().Draw(false, true);
     }
     maxwell3d.regs.vertex_buffer.count = 0;
     maxwell3d.mme_draw.instance_count = 0;
@@ -65,7 +65,7 @@ void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>&
     maxwell3d.regs.draw.topology.Assign(
         static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0]));
     if (maxwell3d.ShouldExecute()) {
-        maxwell3d.GetRasterizer().Draw(true, true);
+        maxwell3d.Rasterizer().Draw(true, true);
     }
     maxwell3d.regs.reg_array[0x446] = 0x0; // vertex id base?
     maxwell3d.regs.index_array.count = 0;

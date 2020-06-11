@@ -10,16 +10,14 @@
 
 namespace VideoCommon {
 
-GPUAsynch::GPUAsynch(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer_,
-                     std::unique_ptr<Core::Frontend::GraphicsContext>&& context)
-    : GPU(system, std::move(renderer_), true), gpu_thread{system},
-      cpu_context(renderer->GetRenderWindow().CreateSharedContext()),
-      gpu_context(std::move(context)) {}
+GPUAsynch::GPUAsynch(Core::System& system) : GPU{system, true}, gpu_thread{system} {}
 
 GPUAsynch::~GPUAsynch() = default;
 
 void GPUAsynch::Start() {
-    gpu_thread.StartThread(*renderer, *gpu_context, *dma_pusher);
+    gpu_thread.StartThread(*renderer, renderer->Context(), *dma_pusher);
+    cpu_context = renderer->GetRenderWindow().CreateSharedContext();
+    cpu_context->MakeCurrent();
 }
 
 void GPUAsynch::ObtainContext() {

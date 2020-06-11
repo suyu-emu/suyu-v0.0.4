@@ -15,7 +15,8 @@
 
 namespace Core::Frontend {
 class EmuWindow;
-}
+class GraphicsContext;
+} // namespace Core::Frontend
 
 namespace VideoCore {
 
@@ -25,14 +26,15 @@ struct RendererSettings {
 
     // Screenshot
     std::atomic<bool> screenshot_requested{false};
-    void* screenshot_bits;
+    void* screenshot_bits{};
     std::function<void()> screenshot_complete_callback;
     Layout::FramebufferLayout screenshot_framebuffer_layout;
 };
 
 class RendererBase : NonCopyable {
 public:
-    explicit RendererBase(Core::Frontend::EmuWindow& window);
+    explicit RendererBase(Core::Frontend::EmuWindow& window,
+                          std::unique_ptr<Core::Frontend::GraphicsContext> context);
     virtual ~RendererBase();
 
     /// Initialize the renderer
@@ -68,6 +70,14 @@ public:
         return *rasterizer;
     }
 
+    Core::Frontend::GraphicsContext& Context() {
+        return *context;
+    }
+
+    const Core::Frontend::GraphicsContext& Context() const {
+        return *context;
+    }
+
     Core::Frontend::EmuWindow& GetRenderWindow() {
         return render_window;
     }
@@ -94,6 +104,7 @@ public:
 protected:
     Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.
     std::unique_ptr<RasterizerInterface> rasterizer;
+    std::unique_ptr<Core::Frontend::GraphicsContext> context;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer
     int m_current_frame = 0;  ///< Current frame, should be set by the renderer
 

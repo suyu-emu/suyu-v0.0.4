@@ -142,11 +142,6 @@ class MemoryManager;
 
 class GPU {
 public:
-    explicit GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer,
-                 bool is_async);
-
-    virtual ~GPU();
-
     struct MethodCall {
         u32 method{};
         u32 argument{};
@@ -161,6 +156,12 @@ public:
             : method(method), argument(argument), subchannel(subchannel),
               method_count(method_count) {}
     };
+
+    explicit GPU(Core::System& system, bool is_async);
+    virtual ~GPU();
+
+    /// Binds a renderer to the GPU.
+    void BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer);
 
     /// Calls a GPU method.
     void CallMethod(const MethodCall& method_call);
@@ -345,8 +346,8 @@ private:
     bool ExecuteMethodOnEngine(u32 method);
 
 protected:
-    std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     Core::System& system;
+    std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     std::unique_ptr<VideoCore::RendererBase> renderer;
 
 private:

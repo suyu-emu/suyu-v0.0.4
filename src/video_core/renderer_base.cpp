@@ -9,7 +9,9 @@
 
 namespace VideoCore {
 
-RendererBase::RendererBase(Core::Frontend::EmuWindow& window) : render_window{window} {
+RendererBase::RendererBase(Core::Frontend::EmuWindow& window_,
+                           std::unique_ptr<Core::Frontend::GraphicsContext> context_)
+    : render_window{window_}, context{std::move(context_)} {
     RefreshBaseSettings();
 }
 

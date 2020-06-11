@@ -7,20 +7,18 @@
 
 namespace VideoCommon {
 
-GPUSynch::GPUSynch(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer,
-                   std::unique_ptr<Core::Frontend::GraphicsContext>&& context)
-    : GPU(system, std::move(renderer), false), context{std::move(context)} {}
+GPUSynch::GPUSynch(Core::System& system) : GPU{system, false} {}
 
 GPUSynch::~GPUSynch() = default;
 
 void GPUSynch::Start() {}
 
 void GPUSynch::ObtainContext() {
-    context->MakeCurrent();
+    renderer->Context().MakeCurrent();
 }
 
 void GPUSynch::ReleaseContext() {
-    context->DoneCurrent();
+    renderer->Context().DoneCurrent();
 }
 
 void GPUSynch::PushGPUEntries(Tegra::CommandList&& entries) {
