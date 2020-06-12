@@ -16,11 +16,10 @@
 
 namespace VideoCommon::Shader {
 
-GPUVAddr GetShaderAddress(Core::System& system,
+GPUVAddr GetShaderAddress(Tegra::Engines::Maxwell3D& maxwell3d,
                           Tegra::Engines::Maxwell3D::Regs::ShaderProgram program) {
-    const auto& gpu{system.GPU().Maxwell3D()};
-    const auto& shader_config{gpu.regs.shader_config[static_cast<std::size_t>(program)]};
-    return gpu.regs.code_address.CodeAddress() + shader_config.offset;
+    const auto& shader_config{maxwell3d.regs.shader_config[static_cast<std::size_t>(program)]};
+    return maxwell3d.regs.code_address.CodeAddress() + shader_config.offset;
 }
 
 bool IsSchedInstruction(std::size_t offset, std::size_t main_offset) {

@@ -21,10 +21,6 @@
 #include "video_core/engines/shader_type.h"
 #include "video_core/shader/registry.h"
 
-namespace Core {
-class System;
-}
-
 namespace Common::FS {
 class IOFile;
 }
@@ -70,8 +66,11 @@ struct ShaderDiskCachePrecompiled {
 
 class ShaderDiskCacheOpenGL {
 public:
-    explicit ShaderDiskCacheOpenGL(Core::System& system);
+    explicit ShaderDiskCacheOpenGL();
     ~ShaderDiskCacheOpenGL();
+
+    /// Binds a title ID for all future operations.
+    void BindTitleID(u64 title_id);
 
     /// Loads transferable cache. If file has a old version or on failure, it deletes the file.
     std::optional<std::vector<ShaderDiskCacheEntry>> LoadTransferable();
@@ -157,8 +156,6 @@ private:
         return LoadArrayFromPrecompiled(&object, 1);
     }
 
-    Core::System& system;
-
     // Stores whole precompiled cache which will be read from or saved to the precompiled chache
     // file
     FileSys::VectorVfsFile precompiled_cache_virtual_file;
@@ -168,8 +165,11 @@ private:
     // Stored transferable shaders
     std::unordered_set<u64> stored_transferable;
 
+    /// Title ID to operate on
+    u64 title_id = 0;
+
     // The cache has been loaded at boot
-    bool is_usable{};
+    bool is_usable = false;
 };
 
 } // namespace OpenGL

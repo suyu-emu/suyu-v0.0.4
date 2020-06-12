@@ -132,12 +132,9 @@ void SetupDirtyStencilTestEnable(Tables& tables) {
 
 } // Anonymous namespace
 
-StateTracker::StateTracker(Core::System& system)
-    : system{system}, invalidation_flags{MakeInvalidationFlags()} {}
-
-void StateTracker::Initialize() {
-    auto& dirty = system.GPU().Maxwell3D().dirty;
-    auto& tables = dirty.tables;
+StateTracker::StateTracker(Tegra::GPU& gpu)
+    : flags{gpu.Maxwell3D().dirty.flags}, invalidation_flags{MakeInvalidationFlags()} {
+    auto& tables = gpu.Maxwell3D().dirty.tables;
     SetupDirtyRenderTargets(tables);
     SetupDirtyViewports(tables);
     SetupDirtyScissors(tables);
@@ -153,11 +150,6 @@ void StateTracker::Initialize() {
     SetupDirtyFrontFace(tables);
     SetupDirtyStencilOp(tables);
     SetupDirtyStencilTestEnable(tables);
-}
-
-void StateTracker::InvalidateCommandBufferState() {
-    system.GPU().Maxwell3D().dirty.flags |= invalidation_flags;
-    current_topology = INVALID_TOPOLOGY;
 }
 
 } // namespace Vulkan

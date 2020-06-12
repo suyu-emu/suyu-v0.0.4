@@ -95,10 +95,12 @@ template <class QueryCache, class CachedQuery, class CounterStream, class HostCo
           class QueryPool>
 class QueryCacheBase {
 public:
-    explicit QueryCacheBase(Core::System& system, VideoCore::RasterizerInterface& rasterizer)
-        : system{system}, rasterizer{rasterizer}, streams{{CounterStream{
-                                                      static_cast<QueryCache&>(*this),
-                                                      VideoCore::QueryType::SamplesPassed}}} {}
+    explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_,
+                            Tegra::Engines::Maxwell3D& maxwell3d_,
+                            Tegra::MemoryManager& gpu_memory_)
+        : rasterizer{rasterizer_}, maxwell3d{maxwell3d_},
+          gpu_memory{gpu_memory_}, streams{{CounterStream{static_cast<QueryCache&>(*this),
+                                                          VideoCore::QueryType::SamplesPassed}}} {}
 
     void InvalidateRegion(VAddr addr, std::size_t size) {
         std::unique_lock lock{mutex};
@@ -118,29 +120,27 @@ public:
      */
     void Query(GPUVAddr gpu_addr, VideoCore::QueryType type, std::optional<u64> timestamp) {
         std::unique_lock lock{mutex};
-        auto& memory_manager = system.GPU().MemoryManager();
-        const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
-        ASSERT(cpu_addr_opt);
-        VAddr cpu_addr = *cpu_addr_opt;
+        const std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
+        ASSERT(cpu_addr);
 
-        CachedQuery* query = TryGet(cpu_addr);
+        CachedQuery* query = TryGet(*cpu_addr);
         if (!query) {
-            ASSERT_OR_EXECUTE(cpu_addr_opt, return;);
-            const auto host_ptr = memory_manager.GetPointer(gpu_addr);
+            ASSERT_OR_EXECUTE(cpu_addr, return;);
+            u8* const host_ptr = gpu_memory.GetPointer(gpu_addr);
 
-            query = Register(type, cpu_addr, host_ptr, timestamp.has_value());
+            query = Register(type, *cpu_addr, host_ptr, timestamp.has_value());
         }
 
         query->BindCounter(Stream(type).Current(), timestamp);
         if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
-            AsyncFlushQuery(cpu_addr);
+            AsyncFlushQuery(*cpu_addr);
         }
     }
 
     /// Updates counters from GPU state. Expected to be called once per draw, clear or dispatch.
     void UpdateCounters() {
         std::unique_lock lock{mutex};
-        const auto& regs = system.GPU().Maxwell3D().regs;
+        const auto& regs = maxwell3d.regs;
         Stream(VideoCore::QueryType::SamplesPassed).Update(regs.samplecnt_enable);
     }
 
@@ -270,8 +270,9 @@ private:
     static constexpr std::uintptr_t PAGE_SIZE = 4096;
     static constexpr unsigned PAGE_BITS = 12;
 
-    Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
+    Tegra::Engines::Maxwell3D& maxwell3d;
+    Tegra::MemoryManager& gpu_memory;
 
     std::recursive_mutex mutex;
 

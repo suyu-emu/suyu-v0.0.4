@@ -21,14 +21,17 @@ namespace {
 std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     Core::System& system, Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
     std::unique_ptr<Core::Frontend::GraphicsContext> context) {
+    auto& telemetry_session = system.TelemetrySession();
+    auto& cpu_memory = system.Memory();
+
     switch (Settings::values.renderer_backend.GetValue()) {
     case Settings::RendererBackend::OpenGL:
-        return std::make_unique<OpenGL::RendererOpenGL>(system, emu_window, gpu,
-                                                        std::move(context));
+        return std::make_unique<OpenGL::RendererOpenGL>(telemetry_session, emu_window, cpu_memory,
+                                                        gpu, std::move(context));
 #ifdef HAS_VULKAN
     case Settings::RendererBackend::Vulkan:
-        return std::make_unique<Vulkan::RendererVulkan>(system, emu_window, gpu,
-                                                        std::move(context));
+        return std::make_unique<Vulkan::RendererVulkan>(telemetry_session, emu_window, cpu_memory,
+                                                        gpu, std::move(context));
 #endif
     default:
         return nullptr;

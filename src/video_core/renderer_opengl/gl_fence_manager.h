@@ -37,9 +37,9 @@ using GenericFenceManager =
 
 class FenceManagerOpenGL final : public GenericFenceManager {
 public:
-    FenceManagerOpenGL(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                       TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache,
-                       QueryCache& query_cache);
+    explicit FenceManagerOpenGL(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
+                                TextureCacheOpenGL& texture_cache, OGLBufferCache& buffer_cache,
+                                QueryCache& query_cache);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;

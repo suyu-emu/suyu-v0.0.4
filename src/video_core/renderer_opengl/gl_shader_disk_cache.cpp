@@ -206,13 +206,17 @@ bool ShaderDiskCacheEntry::Save(Common::FS::IOFile& file) const {
                flat_bindless_samplers.size();
 }
 
-ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL(Core::System& system) : system{system} {}
+ShaderDiskCacheOpenGL::ShaderDiskCacheOpenGL() = default;
 
 ShaderDiskCacheOpenGL::~ShaderDiskCacheOpenGL() = default;
 
+void ShaderDiskCacheOpenGL::BindTitleID(u64 title_id_) {
+    title_id = title_id_;
+}
+
 std::optional<std::vector<ShaderDiskCacheEntry>> ShaderDiskCacheOpenGL::LoadTransferable() {
     // Skip games without title id
-    const bool has_title_id = system.CurrentProcess()->GetTitleID() != 0;
+    const bool has_title_id = title_id != 0;
     if (!Settings::values.use_disk_shader_cache.GetValue() || !has_title_id) {
         return std::nullopt;
     }
@@ -474,7 +478,7 @@ std::string ShaderDiskCacheOpenGL::GetBaseDir() const {
 }
 
 std::string ShaderDiskCacheOpenGL::GetTitleID() const {
-    return fmt::format("{:016X}", system.CurrentProcess()->GetTitleID());
+    return fmt::format("{:016X}", title_id);
 }
 
 } // namespace OpenGL

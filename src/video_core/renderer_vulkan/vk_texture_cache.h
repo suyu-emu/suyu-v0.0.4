@@ -15,10 +15,6 @@
 #include "video_core/texture_cache/surface_base.h"
 #include "video_core/texture_cache/texture_cache.h"
 
-namespace Core {
-class System;
-}
-
 namespace VideoCore {
 class RasterizerInterface;
 }
@@ -45,10 +41,10 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(Core::System& system, const VKDevice& device,
-                           VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                           VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
-                           GPUVAddr gpu_addr, const SurfaceParams& params);
+    explicit CachedSurface(const VKDevice& device, VKResourceManager& resource_manager,
+                           VKMemoryManager& memory_manager, VKScheduler& scheduler,
+                           VKStagingBufferPool& staging_pool, GPUVAddr gpu_addr,
+                           const SurfaceParams& params);
     ~CachedSurface();
 
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
@@ -101,7 +97,6 @@ private:
 
     VkImageSubresourceRange GetImageSubresourceRange() const;
 
-    Core::System& system;
     const VKDevice& device;
     VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
@@ -201,7 +196,8 @@ private:
 
 class VKTextureCache final : public TextureCacheBase {
 public:
-    explicit VKTextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+    explicit VKTextureCache(VideoCore::RasterizerInterface& rasterizer,
+                            Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
                             const VKDevice& device, VKResourceManager& resource_manager,
                             VKMemoryManager& memory_manager, VKScheduler& scheduler,
                             VKStagingBufferPool& staging_pool);

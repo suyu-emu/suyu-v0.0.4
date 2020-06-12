@@ -163,13 +163,11 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
     return params;
 }
 
-SurfaceParams SurfaceParams::CreateForDepthBuffer(Core::System& system) {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-
+SurfaceParams SurfaceParams::CreateForDepthBuffer(Tegra::Engines::Maxwell3D& maxwell3d) {
+    const auto& regs = maxwell3d.regs;
     const auto block_depth = std::min(regs.zeta.memory_layout.block_depth.Value(), 5U);
     const bool is_layered = regs.zeta_layers > 1 && block_depth == 0;
     const auto pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
-
     return {
         .is_tiled = regs.zeta.memory_layout.type ==
                     Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear,
@@ -191,8 +189,9 @@ SurfaceParams SurfaceParams::CreateForDepthBuffer(Core::System& system) {
     };
 }
 
-SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::size_t index) {
-    const auto& config{system.GPU().Maxwell3D().regs.rt[index]};
+SurfaceParams SurfaceParams::CreateForFramebuffer(Tegra::Engines::Maxwell3D& maxwell3d,
+                                                  std::size_t index) {
+    const auto& config{maxwell3d.regs.rt[index]};
     SurfaceParams params;
     params.is_tiled =
         config.memory_layout.type == Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;

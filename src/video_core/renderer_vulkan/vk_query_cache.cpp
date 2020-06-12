@@ -68,10 +68,11 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
     usage[pool_index * GROW_STEP + static_cast<std::ptrdiff_t>(query.second)] = false;
 }
 
-VKQueryCache::VKQueryCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
+VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
+                           Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
                            const VKDevice& device, VKScheduler& scheduler)
     : VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter,
-                                  QueryPool>{system, rasterizer},
+                                  QueryPool>{rasterizer, maxwell3d, gpu_memory},
       device{device}, scheduler{scheduler} {
     for (std::size_t i = 0; i < static_cast<std::size_t>(VideoCore::NumQueryTypes); ++i) {
         query_pools[i].Initialize(device, static_cast<VideoCore::QueryType>(i));

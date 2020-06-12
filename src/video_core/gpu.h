@@ -347,12 +347,11 @@ private:
 
 protected:
     Core::System& system;
+    std::unique_ptr<Tegra::MemoryManager> memory_manager;
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
     std::unique_ptr<VideoCore::RendererBase> renderer;
 
 private:
-    std::unique_ptr<Tegra::MemoryManager> memory_manager;
-
     /// Mapping of command subchannels to their bound engine ids
     std::array<EngineID, 8> bound_engines = {};
     /// 3D engine
