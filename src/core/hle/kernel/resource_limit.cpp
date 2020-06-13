@@ -24,13 +24,9 @@ bool ResourceLimit::Reserve(ResourceType resource, s64 amount, u64 timeout) {
     const std::size_t index{ResourceTypeToIndex(resource)};
 
     s64 new_value = current[index] + amount;
-    while (new_value > limit[index] && available[index] + amount <= limit[index]) {
+    if (new_value > limit[index] && available[index] + amount <= limit[index]) {
         // TODO(bunnei): This is wrong for multicore, we should wait the calling thread for timeout
         new_value = current[index] + amount;
-
-        if (timeout >= 0) {
-            break;
-        }
     }
 
     if (new_value <= limit[index]) {
