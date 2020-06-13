@@ -196,6 +196,12 @@ struct EffectOutStatus {
 };
 static_assert(sizeof(EffectOutStatus) == 0x10, "EffectOutStatus is an invalid size");
 
+struct RendererInfo {
+    u64_le elasped_frame_count{};
+    INSERT_PADDING_WORDS(2);
+};
+static_assert(sizeof(RendererInfo) == 0x10, "RendererInfo is an invalid size");
+
 struct UpdateDataHeader {
     UpdateDataHeader() {}
 
@@ -209,7 +215,7 @@ struct UpdateDataHeader {
         mixes_size = 0x0;
         sinks_size = config.sink_count * 0x20;
         performance_manager_size = 0x10;
-        frame_count = 0;
+        render_info = 0;
         total_size = sizeof(UpdateDataHeader) + behavior_size + memory_pools_size + voices_size +
                      effects_size + sinks_size + performance_manager_size;
     }
@@ -223,8 +229,8 @@ struct UpdateDataHeader {
     u32_le mixes_size{};
     u32_le sinks_size{};
     u32_le performance_manager_size{};
-    INSERT_PADDING_WORDS(1);
-    u32_le frame_count{};
+    u32_le splitter_size{};
+    u32_le render_info{};
     INSERT_PADDING_WORDS(4);
     u32_le total_size{};
 };
@@ -258,6 +264,7 @@ private:
     std::unique_ptr<AudioOut> audio_out;
     StreamPtr stream;
     Core::Memory::Memory& memory;
+    std::size_t elapsed_frame_count{};
 };
 
 } // namespace AudioCore
