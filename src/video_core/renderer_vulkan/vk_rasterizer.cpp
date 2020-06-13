@@ -38,6 +38,7 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/shader_cache.h"
 
 namespace Vulkan {
 
@@ -98,7 +99,7 @@ VkRect2D GetScissorState(const Maxwell& regs, std::size_t index) {
 }
 
 std::array<GPUVAddr, Maxwell::MaxShaderProgram> GetShaderAddresses(
-    const std::array<Shader, Maxwell::MaxShaderProgram>& shaders) {
+    const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders) {
     std::array<GPUVAddr, Maxwell::MaxShaderProgram> addresses;
     for (std::size_t i = 0; i < std::size(addresses); ++i) {
         addresses[i] = shaders[i] ? shaders[i]->GetGpuAddr() : 0;
@@ -776,12 +777,12 @@ RasterizerVulkan::DrawParameters RasterizerVulkan::SetupGeometry(FixedPipelineSt
 }
 
 void RasterizerVulkan::SetupShaderDescriptors(
-    const std::array<Shader, Maxwell::MaxShaderProgram>& shaders) {
+    const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders) {
     texture_cache.GuardSamplers(true);
 
     for (std::size_t stage = 0; stage < Maxwell::MaxShaderStage; ++stage) {
         // Skip VertexA stage
-        const auto& shader = shaders[stage + 1];
+        Shader* const shader = shaders[stage + 1];
         if (!shader) {
             continue;
         }

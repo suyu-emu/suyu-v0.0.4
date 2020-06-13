@@ -19,7 +19,6 @@
 #include "video_core/engines/const_buffer_info.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/rasterizer_accelerated.h"
-#include "video_core/rasterizer_cache.h"
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
@@ -100,10 +99,10 @@ private:
     void ConfigureClearFramebuffer(bool using_color, bool using_depth_stencil);
 
     /// Configures the current constbuffers to use for the draw command.
-    void SetupDrawConstBuffers(std::size_t stage_index, const Shader& shader);
+    void SetupDrawConstBuffers(std::size_t stage_index, Shader* shader);
 
     /// Configures the current constbuffers to use for the kernel invocation.
-    void SetupComputeConstBuffers(const Shader& kernel);
+    void SetupComputeConstBuffers(Shader* kernel);
 
     /// Configures a constant buffer.
     void SetupConstBuffer(GLenum stage, u32 binding, const Tegra::Engines::ConstBufferInfo& buffer,
@@ -111,30 +110,30 @@ private:
                           std::size_t unified_offset);
 
     /// Configures the current global memory entries to use for the draw command.
-    void SetupDrawGlobalMemory(std::size_t stage_index, const Shader& shader);
+    void SetupDrawGlobalMemory(std::size_t stage_index, Shader* shader);
 
     /// Configures the current global memory entries to use for the kernel invocation.
-    void SetupComputeGlobalMemory(const Shader& kernel);
+    void SetupComputeGlobalMemory(Shader* kernel);
 
     /// Configures a constant buffer.
     void SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
                            std::size_t size);
 
     /// Configures the current textures to use for the draw command.
-    void SetupDrawTextures(std::size_t stage_index, const Shader& shader);
+    void SetupDrawTextures(std::size_t stage_index, Shader* shader);
 
     /// Configures the textures used in a compute shader.
-    void SetupComputeTextures(const Shader& kernel);
+    void SetupComputeTextures(Shader* kernel);
 
     /// Configures a texture.
     void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
                       const SamplerEntry& entry);
 
     /// Configures images in a graphics shader.
-    void SetupDrawImages(std::size_t stage_index, const Shader& shader);
+    void SetupDrawImages(std::size_t stage_index, Shader* shader);
 
     /// Configures images in a compute shader.
-    void SetupComputeImages(const Shader& shader);
+    void SetupComputeImages(Shader* shader);
 
     /// Configures an image.
     void SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);

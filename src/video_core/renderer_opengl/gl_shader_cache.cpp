@@ -29,6 +29,7 @@
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
+#include "video_core/shader_cache.h"
 
 namespace OpenGL {
 
@@ -194,12 +195,9 @@ std::unordered_set<GLenum> GetSupportedFormats() {
 
 } // Anonymous namespace
 
-CachedShader::CachedShader(VAddr cpu_addr, std::size_t size_in_bytes,
-                           std::shared_ptr<VideoCommon::Shader::Registry> registry,
-                           ShaderEntries entries, ProgramSharedPtr program_)
-    : RasterizerCacheObject{cpu_addr}, registry{std::move(registry)}, entries{std::move(entries)},
-      size_in_bytes{size_in_bytes}, program{std::move(program_)} {
-    // Assign either the assembly program or source program. We can't have both.
+Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry_, ShaderEntries entries_,
+               ProgramSharedPtr program_)
+    : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)} {
     handle = program->assembly_program.handle;
     if (handle == 0) {
         handle = program->source_program.handle;
@@ -207,16 +205,16 @@ CachedShader::CachedShader(VAddr cpu_addr, std::size_t size_in_bytes,
     ASSERT(handle != 0);
 }
 
-CachedShader::~CachedShader() = default;
+Shader::~Shader() = default;
 
-GLuint CachedShader::GetHandle() const {
+GLuint Shader::GetHandle() const {
     DEBUG_ASSERT(registry->IsConsistent());
     return handle;
 }
 
-Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
-                                           Maxwell::ShaderProgram program_type, ProgramCode code,
-                                           ProgramCode code_b) {
+std::unique_ptr<Shader> Shader::CreateStageFromMemory(const ShaderParameters& params,
+                                                      Maxwell::ShaderProgram program_type,
+                                                      ProgramCode code, ProgramCode code_b) {
     const auto shader_type = GetShaderType(program_type);
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
@@ -241,12 +239,12 @@ Shader CachedShader::CreateStageFromMemory(const ShaderParameters& params,
     entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
-    return std::shared_ptr<CachedShader>(
-        new CachedShader(params.cpu_addr, size_in_bytes, std::move(registry),
-                         MakeEntries(params.device, ir, shader_type), std::move(program)));
+    return std::unique_ptr<Shader>(new Shader(
+        std::move(registry), MakeEntries(params.device, ir, shader_type), std::move(program)));
 }
 
-Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, ProgramCode code) {
+std::unique_ptr<Shader> Shader::CreateKernelFromMemory(const ShaderParameters& params,
+                                                       ProgramCode code) {
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
     auto& engine = params.system.GPU().KeplerCompute();
@@ -266,23 +264,23 @@ Shader CachedShader::CreateKernelFromMemory(const ShaderParameters& params, Prog
     entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
 
-    return std::shared_ptr<CachedShader>(
-        new CachedShader(params.cpu_addr, size_in_bytes, std::move(registry),
-                         MakeEntries(params.device, ir, ShaderType::Compute), std::move(program)));
+    return std::unique_ptr<Shader>(new Shader(std::move(registry),
+                                              MakeEntries(params.device, ir, ShaderType::Compute),
+                                              std::move(program)));
 }
 
-Shader CachedShader::CreateFromCache(const ShaderParameters& params,
-                                     const PrecompiledShader& precompiled_shader,
-                                     std::size_t size_in_bytes) {
-    return std::shared_ptr<CachedShader>(
-        new CachedShader(params.cpu_addr, size_in_bytes, precompiled_shader.registry,
-                         precompiled_shader.entries, precompiled_shader.program));
+std::unique_ptr<Shader> Shader::CreateFromCache(const ShaderParameters& params,
+                                                const PrecompiledShader& precompiled_shader) {
+    return std::unique_ptr<Shader>(new Shader(
+        precompiled_shader.registry, precompiled_shader.entries, precompiled_shader.program));
 }
 
 ShaderCacheOpenGL::ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
                                      Core::Frontend::EmuWindow& emu_window, const Device& device)
-    : RasterizerCache{rasterizer}, system{system}, emu_window{emu_window}, device{device},
-      disk_cache{system} {}
+    : VideoCommon::ShaderCache<Shader>{rasterizer}, system{system},
+      emu_window{emu_window}, device{device}, disk_cache{system} {}
+
+ShaderCacheOpenGL::~ShaderCacheOpenGL() = default;
 
 void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
                                       const VideoCore::DiskResourceLoadCallback& callback) {
@@ -436,7 +434,7 @@ ProgramSharedPtr ShaderCacheOpenGL::GeneratePrecompiledProgram(
     return program;
 }
 
-Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
+Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     if (!system.GPU().Maxwell3D().dirty.flags[Dirty::Shaders]) {
         return last_shaders[static_cast<std::size_t>(program)];
     }
@@ -446,8 +444,7 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
 
     // Look up shader in the cache based on address
     const auto cpu_addr{memory_manager.GpuToCpuAddress(address)};
-    Shader shader{cpu_addr ? TryGet(*cpu_addr) : null_shader};
-    if (shader) {
+    if (Shader* const shader{cpu_addr ? TryGet(*cpu_addr) : null_shader.get()}) {
         return last_shaders[static_cast<std::size_t>(program)] = shader;
     }
 
@@ -468,30 +465,29 @@ Shader ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     const ShaderParameters params{system,    disk_cache, device,
                                   *cpu_addr, host_ptr,   unique_identifier};
 
+    std::unique_ptr<Shader> shader;
     const auto found = runtime_cache.find(unique_identifier);
     if (found == runtime_cache.end()) {
-        shader = CachedShader::CreateStageFromMemory(params, program, std::move(code),
-                                                     std::move(code_b));
+        shader = Shader::CreateStageFromMemory(params, program, std::move(code), std::move(code_b));
     } else {
-        const std::size_t size_in_bytes = code.size() * sizeof(u64);
-        shader = CachedShader::CreateFromCache(params, found->second, size_in_bytes);
+        shader = Shader::CreateFromCache(params, found->second);
     }
 
+    Shader* const result = shader.get();
     if (cpu_addr) {
-        Register(shader);
+        Register(std::move(shader), *cpu_addr, code.size() * sizeof(u64));
     } else {
-        null_shader = shader;
+        null_shader = std::move(shader);
     }
 
-    return last_shaders[static_cast<std::size_t>(program)] = shader;
+    return last_shaders[static_cast<std::size_t>(program)] = result;
 }
 
-Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
+Shader* ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
     auto& memory_manager{system.GPU().MemoryManager()};
     const auto cpu_addr{memory_manager.GpuToCpuAddress(code_addr)};
 
-    auto kernel = cpu_addr ? TryGet(*cpu_addr) : null_kernel;
-    if (kernel) {
+    if (Shader* const kernel = cpu_addr ? TryGet(*cpu_addr) : null_kernel.get()) {
         return kernel;
     }
 
@@ -503,20 +499,21 @@ Shader ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
     const ShaderParameters params{system,    disk_cache, device,
                                   *cpu_addr, host_ptr,   unique_identifier};
 
+    std::unique_ptr<Shader> kernel;
     const auto found = runtime_cache.find(unique_identifier);
     if (found == runtime_cache.end()) {
-        kernel = CachedShader::CreateKernelFromMemory(params, std::move(code));
+        kernel = Shader::CreateKernelFromMemory(params, std::move(code));
     } else {
-        const std::size_t size_in_bytes = code.size() * sizeof(u64);
-        kernel = CachedShader::CreateFromCache(params, found->second, size_in_bytes);
+        kernel = Shader::CreateFromCache(params, found->second);
     }
 
+    Shader* const result = kernel.get();
     if (cpu_addr) {
-        Register(kernel);
+        Register(std::move(kernel), *cpu_addr, code.size() * sizeof(u64));
     } else {
-        null_kernel = kernel;
+        null_kernel = std::move(kernel);
     }
-    return kernel;
+    return result;
 }
 
 } // namespace OpenGL

@@ -27,6 +27,7 @@
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/compiler_settings.h"
 #include "video_core/shader/memory_util.h"
+#include "video_core/shader_cache.h"
 
 namespace Vulkan {
 
@@ -132,19 +133,18 @@ bool ComputePipelineCacheKey::operator==(const ComputePipelineCacheKey& rhs) con
     return std::memcmp(&rhs, this, sizeof *this) == 0;
 }
 
-CachedShader::CachedShader(Core::System& system, Tegra::Engines::ShaderType stage,
-                           GPUVAddr gpu_addr, VAddr cpu_addr, ProgramCode program_code,
-                           u32 main_offset)
-    : RasterizerCacheObject{cpu_addr}, gpu_addr{gpu_addr}, program_code{std::move(program_code)},
+Shader::Shader(Core::System& system, Tegra::Engines::ShaderType stage, GPUVAddr gpu_addr,
+               VideoCommon::Shader::ProgramCode program_code, u32 main_offset)
+    : gpu_addr{gpu_addr}, program_code{std::move(program_code)},
       registry{stage, GetEngine(system, stage)}, shader_ir{this->program_code, main_offset,
                                                            compiler_settings, registry},
       entries{GenerateShaderEntries(shader_ir)} {}
 
-CachedShader::~CachedShader() = default;
+Shader::~Shader() = default;
 
-Tegra::Engines::ConstBufferEngineInterface& CachedShader::GetEngine(
-    Core::System& system, Tegra::Engines::ShaderType stage) {
-    if (stage == Tegra::Engines::ShaderType::Compute) {
+Tegra::Engines::ConstBufferEngineInterface& Shader::GetEngine(Core::System& system,
+                                                              Tegra::Engines::ShaderType stage) {
+    if (stage == ShaderType::Compute) {
         return system.GPU().KeplerCompute();
     } else {
         return system.GPU().Maxwell3D();
@@ -156,16 +156,16 @@ VKPipelineCache::VKPipelineCache(Core::System& system, RasterizerVulkan& rasteri
                                  VKDescriptorPool& descriptor_pool,
                                  VKUpdateDescriptorQueue& update_descriptor_queue,
                                  VKRenderPassCache& renderpass_cache)
-    : RasterizerCache{rasterizer}, system{system}, device{device}, scheduler{scheduler},
-      descriptor_pool{descriptor_pool}, update_descriptor_queue{update_descriptor_queue},
-      renderpass_cache{renderpass_cache} {}
+    : VideoCommon::ShaderCache<Shader>{rasterizer}, system{system}, device{device},
+      scheduler{scheduler}, descriptor_pool{descriptor_pool},
+      update_descriptor_queue{update_descriptor_queue}, renderpass_cache{renderpass_cache} {}
 
 VKPipelineCache::~VKPipelineCache() = default;
 
-std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
+std::array<Shader*, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
     const auto& gpu = system.GPU().Maxwell3D();
 
-    std::array<Shader, Maxwell::MaxShaderProgram> shaders;
+    std::array<Shader*, Maxwell::MaxShaderProgram> shaders{};
     for (std::size_t index = 0; index < Maxwell::MaxShaderProgram; ++index) {
         const auto program{static_cast<Maxwell::ShaderProgram>(index)};
 
@@ -178,24 +178,28 @@ std::array<Shader, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
         const GPUVAddr program_addr{GetShaderAddress(system, program)};
         const std::optional cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
         ASSERT(cpu_addr);
-        auto shader = cpu_addr ? TryGet(*cpu_addr) : null_shader;
-        if (!shader) {
+
+        Shader* result = cpu_addr ? TryGet(*cpu_addr) : null_shader.get();
+        if (!result) {
             const auto host_ptr{memory_manager.GetPointer(program_addr)};
 
             // No shader found - create a new one
             constexpr u32 stage_offset = STAGE_MAIN_OFFSET;
-            const auto stage = static_cast<Tegra::Engines::ShaderType>(index == 0 ? 0 : index - 1);
+            const auto stage = static_cast<ShaderType>(index == 0 ? 0 : index - 1);
             ProgramCode code = GetShaderCode(memory_manager, program_addr, host_ptr, false);
+            const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-            shader = std::make_shared<CachedShader>(system, stage, program_addr, *cpu_addr,
-                                                    std::move(code), stage_offset);
+            auto shader = std::make_unique<Shader>(system, stage, program_addr, std::move(code),
+                                                   stage_offset);
+            result = shader.get();
+
             if (cpu_addr) {
-                Register(shader);
+                Register(std::move(shader), *cpu_addr, size_in_bytes);
             } else {
-                null_shader = shader;
+                null_shader = std::move(shader);
             }
         }
-        shaders[index] = std::move(shader);
+        shaders[index] = result;
     }
     return last_shaders = shaders;
 }
@@ -236,19 +240,22 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
     const auto cpu_addr = memory_manager.GpuToCpuAddress(program_addr);
     ASSERT(cpu_addr);
 
-    auto shader = cpu_addr ? TryGet(*cpu_addr) : null_kernel;
+    Shader* shader = cpu_addr ? TryGet(*cpu_addr) : null_kernel.get();
     if (!shader) {
         // No shader found - create a new one
         const auto host_ptr = memory_manager.GetPointer(program_addr);
 
         ProgramCode code = GetShaderCode(memory_manager, program_addr, host_ptr, true);
-        shader = std::make_shared<CachedShader>(system, Tegra::Engines::ShaderType::Compute,
-                                                program_addr, *cpu_addr, std::move(code),
-                                                KERNEL_MAIN_OFFSET);
+        const std::size_t size_in_bytes = code.size() * sizeof(u64);
+
+        auto shader_info = std::make_unique<Shader>(system, ShaderType::Compute, program_addr,
+                                                    std::move(code), KERNEL_MAIN_OFFSET);
+        shader = shader_info.get();
+
         if (cpu_addr) {
-            Register(shader);
+            Register(std::move(shader_info), *cpu_addr, size_in_bytes);
         } else {
-            null_kernel = shader;
+            null_kernel = std::move(shader_info);
         }
     }
 
@@ -264,7 +271,7 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
     return *entry;
 }
 
-void VKPipelineCache::Unregister(const Shader& shader) {
+void VKPipelineCache::OnShaderRemoval(Shader* shader) {
     bool finished = false;
     const auto Finish = [&] {
         // TODO(Rodrigo): Instead of finishing here, wait for the fences that use this pipeline and
@@ -296,8 +303,6 @@ void VKPipelineCache::Unregister(const Shader& shader) {
         Finish();
         it = compute_cache.erase(it);
     }
-
-    RasterizerCache::Unregister(shader);
 }
 
 std::pair<SPIRVProgram, std::vector<VkDescriptorSetLayoutBinding>>
@@ -332,12 +337,11 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
         }
 
         const GPUVAddr gpu_addr = GetShaderAddress(system, program_enum);
-        const auto cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
-        const auto shader = cpu_addr ? TryGet(*cpu_addr) : null_shader;
-        ASSERT(shader);
+        const std::optional<VAddr> cpu_addr = memory_manager.GpuToCpuAddress(gpu_addr);
+        Shader* const shader = cpu_addr ? TryGet(*cpu_addr) : null_shader.get();
 
         const std::size_t stage = index == 0 ? 0 : index - 1; // Stage indices are 0 - 5
-        const auto program_type = GetShaderType(program_enum);
+        const ShaderType program_type = GetShaderType(program_enum);
         const auto& entries = shader->GetEntries();
         program[stage] = {
             Decompile(device, shader->GetIR(), program_type, shader->GetRegistry(), specialization),
