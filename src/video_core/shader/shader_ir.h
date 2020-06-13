@@ -330,8 +330,8 @@ private:
     OperationCode GetPredicateCombiner(Tegra::Shader::PredOperation operation);
 
     /// Queries the missing sampler info from the execution context.
-    SamplerInfo GetSamplerInfo(SamplerInfo info, u32 offset,
-                               std::optional<u32> buffer = std::nullopt);
+    SamplerInfo GetSamplerInfo(SamplerInfo info,
+                               std::optional<Tegra::Engines::SamplerDescriptor> sampler);
 
     /// Accesses a texture sampler.
     std::optional<Sampler> GetSampler(Tegra::Shader::Sampler sampler, SamplerInfo info);
@@ -409,8 +409,14 @@ private:
 
     std::tuple<Node, u32, u32> TrackCbuf(Node tracked, const NodeBlock& code, s64 cursor) const;
 
-    std::tuple<Node, TrackSampler> TrackBindlessSampler(Node tracked, const NodeBlock& code,
-                                                        s64 cursor);
+    std::pair<Node, TrackSampler> TrackBindlessSampler(Node tracked, const NodeBlock& code,
+                                                       s64 cursor);
+
+    std::pair<Node, TrackSampler> HandleBindlessIndirectRead(const CbufNode& cbuf,
+                                                             const OperationNode& operation,
+                                                             Node gpr, Node base_offset,
+                                                             Node tracked, const NodeBlock& code,
+                                                             s64 cursor);
 
     std::optional<u32> TrackImmediate(Node tracked, const NodeBlock& code, s64 cursor) const;
 

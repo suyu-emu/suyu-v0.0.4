@@ -118,6 +118,17 @@ template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
                                                std::size_t stage, std::size_t index = 0) {
     const auto stage_type = static_cast<Tegra::Engines::ShaderType>(stage);
+    if constexpr (std::is_same_v<Entry, SamplerEntry>) {
+        if (entry.is_separated) {
+            const u32 buffer_1 = entry.buffer;
+            const u32 buffer_2 = entry.secondary_buffer;
+            const u32 offset_1 = entry.offset;
+            const u32 offset_2 = entry.secondary_offset;
+            const u32 handle_1 = engine.AccessConstBuffer32(stage_type, buffer_1, offset_1);
+            const u32 handle_2 = engine.AccessConstBuffer32(stage_type, buffer_2, offset_2);
+            return engine.GetTextureInfo(handle_1 | handle_2);
+        }
+    }
     if (entry.is_bindless) {
         const auto tex_handle = engine.AccessConstBuffer32(stage_type, entry.buffer, entry.offset);
         return engine.GetTextureInfo(tex_handle);

@@ -29,6 +29,8 @@ using VideoCommon::Shader::KeyMap;
 
 namespace {
 
+using VideoCommon::Shader::SeparateSamplerKey;
+
 using ShaderCacheVersionHash = std::array<u8, 64>;
 
 struct ConstBufferKey {
@@ -37,18 +39,26 @@ struct ConstBufferKey {
     u32 value = 0;
 };
 
-struct BoundSamplerKey {
+struct BoundSamplerEntry {
     u32 offset = 0;
     Tegra::Engines::SamplerDescriptor sampler;
 };
 
-struct BindlessSamplerKey {
+struct SeparateSamplerEntry {
+    u32 cbuf1 = 0;
+    u32 cbuf2 = 0;
+    u32 offset1 = 0;
+    u32 offset2 = 0;
+    Tegra::Engines::SamplerDescriptor sampler;
+};
+
+struct BindlessSamplerEntry {
     u32 cbuf = 0;
     u32 offset = 0;
     Tegra::Engines::SamplerDescriptor sampler;
 };
 
-constexpr u32 NativeVersion = 20;
+constexpr u32 NativeVersion = 21;
 
 ShaderCacheVersionHash GetShaderCacheVersionHash() {
     ShaderCacheVersionHash hash{};
@@ -87,12 +97,14 @@ bool ShaderDiskCacheEntry::Load(FileUtil::IOFile& file) {
     u32 texture_handler_size_value;
     u32 num_keys;
     u32 num_bound_samplers;
+    u32 num_separate_samplers;
     u32 num_bindless_samplers;
     if (file.ReadArray(&unique_identifier, 1) != 1 || file.ReadArray(&bound_buffer, 1) != 1 ||
         file.ReadArray(&is_texture_handler_size_known, 1) != 1 ||
         file.ReadArray(&texture_handler_size_value, 1) != 1 ||
         file.ReadArray(&graphics_info, 1) != 1 || file.ReadArray(&compute_info, 1) != 1 ||
         file.ReadArray(&num_keys, 1) != 1 || file.ReadArray(&num_bound_samplers, 1) != 1 ||
+        file.ReadArray(&num_separate_samplers, 1) != 1 ||
         file.ReadArray(&num_bindless_samplers, 1) != 1) {
         return false;
     }
@@ -101,23 +113,32 @@ bool ShaderDiskCacheEntry::Load(FileUtil::IOFile& file) {
     }
 
     std::vector<ConstBufferKey> flat_keys(num_keys);
-    std::vector<BoundSamplerKey> flat_bound_samplers(num_bound_samplers);
-    std::vector<BindlessSamplerKey> flat_bindless_samplers(num_bindless_samplers);
+    std::vector<BoundSamplerEntry> flat_bound_samplers(num_bound_samplers);
+    std::vector<SeparateSamplerEntry> flat_separate_samplers(num_separate_samplers);
+    std::vector<BindlessSamplerEntry> flat_bindless_samplers(num_bindless_samplers);
     if (file.ReadArray(flat_keys.data(), flat_keys.size()) != flat_keys.size() ||
         file.ReadArray(flat_bound_samplers.data(), flat_bound_samplers.size()) !=
             flat_bound_samplers.size() ||
+        file.ReadArray(flat_separate_samplers.data(), flat_separate_samplers.size()) !=
+            flat_separate_samplers.size() ||
         file.ReadArray(flat_bindless_samplers.data(), flat_bindless_samplers.size()) !=
             flat_bindless_samplers.size()) {
         return false;
     }
-    for (const auto& key : flat_keys) {
-        keys.insert({{key.cbuf, key.offset}, key.value});
+    for (const auto& entry : flat_keys) {
+        keys.insert({{entry.cbuf, entry.offset}, entry.value});
     }
-    for (const auto& key : flat_bound_samplers) {
-        bound_samplers.emplace(key.offset, key.sampler);
+    for (const auto& entry : flat_bound_samplers) {
+        bound_samplers.emplace(entry.offset, entry.sampler);
     }
-    for (const auto& key : flat_bindless_samplers) {
-        bindless_samplers.insert({{key.cbuf, key.offset}, key.sampler});
+    for (const auto& entry : flat_separate_samplers) {
+        SeparateSamplerKey key;
+        key.buffers = {entry.cbuf1, entry.cbuf2};
+        key.offsets = {entry.offset1, entry.offset2};
+        separate_samplers.emplace(key, entry.sampler);
+    }
+    for (const auto& entry : flat_bindless_samplers) {
+        bindless_samplers.insert({{entry.cbuf, entry.offset}, entry.sampler});
     }
 
     return true;
@@ -142,6 +163,7 @@ bool ShaderDiskCacheEntry::Save(FileUtil::IOFile& file) const {
         file.WriteObject(graphics_info) != 1 || file.WriteObject(compute_info) != 1 ||
         file.WriteObject(static_cast<u32>(keys.size())) != 1 ||
         file.WriteObject(static_cast<u32>(bound_samplers.size())) != 1 ||
+        file.WriteObject(static_cast<u32>(separate_samplers.size())) != 1 ||
         file.WriteObject(static_cast<u32>(bindless_samplers.size())) != 1) {
         return false;
     }
@@ -152,22 +174,34 @@ bool ShaderDiskCacheEntry::Save(FileUtil::IOFile& file) const {
         flat_keys.push_back(ConstBufferKey{address.first, address.second, value});
     }
 
-    std::vector<BoundSamplerKey> flat_bound_samplers;
+    std::vector<BoundSamplerEntry> flat_bound_samplers;
     flat_bound_samplers.reserve(bound_samplers.size());
     for (const auto& [address, sampler] : bound_samplers) {
-        flat_bound_samplers.push_back(BoundSamplerKey{address, sampler});
+        flat_bound_samplers.push_back(BoundSamplerEntry{address, sampler});
     }
 
-    std::vector<BindlessSamplerKey> flat_bindless_samplers;
+    std::vector<SeparateSamplerEntry> flat_separate_samplers;
+    flat_separate_samplers.reserve(separate_samplers.size());
+    for (const auto& [key, sampler] : separate_samplers) {
+        SeparateSamplerEntry entry;
+        std::tie(entry.cbuf1, entry.cbuf2) = key.buffers;
+        std::tie(entry.offset1, entry.offset2) = key.offsets;
+        entry.sampler = sampler;
+        flat_separate_samplers.push_back(entry);
+    }
+
+    std::vector<BindlessSamplerEntry> flat_bindless_samplers;
     flat_bindless_samplers.reserve(bindless_samplers.size());
     for (const auto& [address, sampler] : bindless_samplers) {
         flat_bindless_samplers.push_back(
-            BindlessSamplerKey{address.first, address.second, sampler});
+            BindlessSamplerEntry{address.first, address.second, sampler});
     }
 
     return file.WriteArray(flat_keys.data(), flat_keys.size()) == flat_keys.size() &&
            file.WriteArray(flat_bound_samplers.data(), flat_bound_samplers.size()) ==
                flat_bound_samplers.size() &&
+           file.WriteArray(flat_separate_samplers.data(), flat_separate_samplers.size()) ==
+               flat_separate_samplers.size() &&
            file.WriteArray(flat_bindless_samplers.data(), flat_bindless_samplers.size()) ==
                flat_bindless_samplers.size();
 }

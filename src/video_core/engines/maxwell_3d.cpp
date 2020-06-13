@@ -740,8 +740,11 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
     const auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& tex_info_buffer = shader.const_buffers[const_buffer];
     const GPUVAddr tex_info_address = tex_info_buffer.address + offset;
+    return AccessSampler(memory_manager.Read<u32>(tex_info_address));
+}
 
-    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
+SamplerDescriptor Maxwell3D::AccessSampler(u32 handle) const {
+    const Texture::TextureHandle tex_handle{handle};
     const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
     SamplerDescriptor result = SamplerDescriptor::FromTIC(tex_info.tic);
     result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
