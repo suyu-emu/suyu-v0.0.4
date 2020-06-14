@@ -643,7 +643,8 @@ private:
             Common::Is4KBAligned(header.segment_headers[DATA_INDEX].memory_size);
 
         return valid_magic && valid_nro_size && valid_bss_size && valid_ro_offset &&
-               valid_rw_offset && valid_nro_calculated_size && text_aligned && ro_aligned && rw_aligned;
+               valid_rw_offset && valid_nro_calculated_size && text_aligned && ro_aligned &&
+               rw_aligned;
     }
     Core::System& system;
 };
