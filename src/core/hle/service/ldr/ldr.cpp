@@ -39,22 +39,27 @@ constexpr ResultCode ERROR_NOT_INITIALIZED{ErrorModule::Loader, 87};
 constexpr std::size_t MAXIMUM_LOADED_RO{0x40};
 constexpr std::size_t MAXIMUM_MAP_RETRIES{0x200};
 
-struct Certification {
+constexpr std::size_t TEXT_INDEX{0};
+constexpr std::size_t RO_INDEX{1};
+constexpr std::size_t DATA_INDEX{2};
+
+struct NRRCertification {
     u64_le application_id_mask;
     u64_le application_id_pattern;
     std::array<u8, 0x10> reserved;
     std::array<u8, 0x100> public_key; // Also known as modulus
     std::array<u8, 0x100> signature;
 };
-static_assert(sizeof(Certification) == 0x220, "Certification has invalid size!");
+static_assert(sizeof(NRRCertification) == 0x220, "Certification has invalid size!");
 
 using SHA256Hash = std::array<u8, 0x20>;
 
+#pragma pack(1)
 struct NRRHeader {
     u32_le magic;
     u32_le certification_signature_key_generation; // 9.0.0+
     u64_le reserved;
-    Certification certification;
+    NRRCertification certification;
     std::array<u8, 0x100> signature;
     u64_le application_id;
     u32_le size;
@@ -63,21 +68,19 @@ struct NRRHeader {
     u32_le hash_offset;
     u32_le hash_count;
     u64_le reserved_3;
-
-    // Must be dynamically allocated because, according to
-    // SwitchBrew, its size is (0x20 * hash_count) and
-    // it's impossible to determine the value of hash_count
-    // (SwitchBrew calls it "NumHash") before runtime,
-    // therefore it's not possible to calculate a SHA-256
-    std::vector<SHA256Hash> NroHashList;
 };
+#pragma pack()
+static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has invalid size!");
 
+#pragma pack(1)
 struct SegmentHeader {
     u32_le memory_offset;
     u32_le memory_size;
 };
+#pragma pack()
 static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size!");
 
+#pragma pack(1)
 struct NROHeader {
     // Switchbrew calls this "Start" (0x10)
     u32_le unused;
@@ -99,8 +102,10 @@ struct NROHeader {
     // .apiInfo, .dynstr, .dynsym
     std::array<SegmentHeader, 3> segment_headers_2;
 };
+#pragma pack()
 static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
 
+#pragma pack(1)
 struct NROInfo {
     SHA256Hash hash{};
     VAddr nro_address{};
@@ -112,6 +117,8 @@ struct NROInfo {
     std::size_t data_size{};
     VAddr src_addr{};
 };
+#pragma pack()
+static_assert(sizeof(NROInfo) == 0x60, "NROInfo has invalid size.");
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
@@ -369,10 +376,10 @@ public:
 
     ResultCode LoadNro(Kernel::Process* process, const NROHeader& nro_header, VAddr nro_addr,
                        VAddr start) const {
-        const VAddr text_start{start + nro_header.segment_headers[0].memory_offset};
-        const VAddr ro_start{start + nro_header.segment_headers[1].memory_offset};
-        const VAddr data_start{start + nro_header.segment_headers[2].memory_offset};
-        const VAddr bss_start{data_start + nro_header.segment_headers[2].memory_size};
+        const VAddr text_start{start + nro_header.segment_headers[TEXT_INDEX].memory_offset};
+        const VAddr ro_start{start + nro_header.segment_headers[RO_INDEX].memory_offset};
+        const VAddr data_start{start + nro_header.segment_headers[DATA_INDEX].memory_offset};
+        const VAddr bss_start{data_start + nro_header.segment_headers[DATA_INDEX].memory_size};
         const VAddr bss_end_addr{
             Common::AlignUp(bss_start + nro_header.bss_size, Kernel::Memory::PageSize)};
 
@@ -381,12 +388,12 @@ public:
             system.Memory().ReadBlock(src_addr, source_data.data(), source_data.size());
             system.Memory().WriteBlock(dst_addr, source_data.data(), source_data.size());
         }};
-        CopyCode(nro_addr + nro_header.segment_headers[0].memory_offset, text_start,
-                 nro_header.segment_headers[0].memory_size);
-        CopyCode(nro_addr + nro_header.segment_headers[1].memory_offset, ro_start,
-                 nro_header.segment_headers[1].memory_size);
-        CopyCode(nro_addr + nro_header.segment_headers[2].memory_offset, data_start,
-                 nro_header.segment_headers[2].memory_size);
+        CopyCode(nro_addr + nro_header.segment_headers[TEXT_INDEX].memory_offset, text_start,
+                 nro_header.segment_headers[TEXT_INDEX].memory_size);
+        CopyCode(nro_addr + nro_header.segment_headers[RO_INDEX].memory_offset, ro_start,
+                 nro_header.segment_headers[RO_INDEX].memory_size);
+        CopyCode(nro_addr + nro_header.segment_headers[DATA_INDEX].memory_offset, data_start,
+                 nro_header.segment_headers[DATA_INDEX].memory_size);
 
         CASCADE_CODE(process->PageTable().SetCodeMemoryPermission(
             text_start, ro_start - text_start, Kernel::Memory::MemoryPermission::ReadAndExecute));
@@ -510,9 +517,9 @@ public:
         // Track the loaded NRO
         nro.insert_or_assign(*map_result,
                              NROInfo{hash, *map_result, nro_size, bss_address, bss_size,
-                                     header.segment_headers[0].memory_size,
-                                     header.segment_headers[1].memory_size,
-                                     header.segment_headers[2].memory_size, nro_address});
+                                     header.segment_headers[TEXT_INDEX].memory_size,
+                                     header.segment_headers[RO_INDEX].memory_size,
+                                     header.segment_headers[DATA_INDEX].memory_size, nro_address});
 
         // Invalidate JIT caches for the newly mapped process code
         system.InvalidateCpuInstructionCaches();
@@ -608,19 +615,35 @@ private:
     }
 
     static bool IsValidNRO(const NROHeader& header, u64 nro_size, u64 bss_size) {
-        return header.magic == Common::MakeMagic('N', 'R', 'O', '0') &&
-               header.nro_size == nro_size && header.bss_size == bss_size &&
-               header.segment_headers[1].memory_offset ==
-                   header.segment_headers[0].memory_offset +
-                       header.segment_headers[0].memory_size &&
-               header.segment_headers[2].memory_offset ==
-                   header.segment_headers[1].memory_offset +
-                       header.segment_headers[1].memory_size &&
-               nro_size == header.segment_headers[2].memory_offset +
-                               header.segment_headers[2].memory_size &&
-               Common::Is4KBAligned(header.segment_headers[0].memory_size) &&
-               Common::Is4KBAligned(header.segment_headers[1].memory_size) &&
-               Common::Is4KBAligned(header.segment_headers[2].memory_size);
+
+        const bool valid_magic = header.magic == Common::MakeMagic('N', 'R', 'O', '0');
+
+        const bool valid_nro_size = header.nro_size == nro_size;
+
+        const bool valid_bss_size = header.bss_size == bss_size;
+
+        const bool valid_ro_offset = header.segment_headers[RO_INDEX].memory_offset ==
+                                     header.segment_headers[TEXT_INDEX].memory_offset +
+                                         header.segment_headers[TEXT_INDEX].memory_size;
+
+        const bool valid_rw_offset = header.segment_headers[DATA_INDEX].memory_offset ==
+                                     header.segment_headers[RO_INDEX].memory_offset +
+                                         header.segment_headers[RO_INDEX].memory_size;
+
+        const bool valid_nro_calculated_size =
+            nro_size == header.segment_headers[DATA_INDEX].memory_offset +
+                            header.segment_headers[DATA_INDEX].memory_size;
+
+        const bool text_aligned =
+            Common::Is4KBAligned(header.segment_headers[TEXT_INDEX].memory_size);
+
+        const bool ro_aligned = Common::Is4KBAligned(header.segment_headers[RO_INDEX].memory_size);
+
+        const bool rw_aligned =
+            Common::Is4KBAligned(header.segment_headers[DATA_INDEX].memory_size);
+
+        return valid_magic && valid_nro_size && valid_bss_size && valid_ro_offset &&
+               valid_rw_offset && valid_nro_calculated_size && text_aligned && ro_aligned && rw_aligned;
     }
     Core::System& system;
 };
