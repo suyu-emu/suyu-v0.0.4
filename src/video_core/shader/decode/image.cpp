@@ -97,6 +97,7 @@ ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor,
         break;
     case TextureFormat::B5G6R5:
     case TextureFormat::B6G5R5:
+    case TextureFormat::BF10GF11RF11:
         if (component == 0) {
             return descriptor.b_type;
         }
@@ -119,7 +120,7 @@ ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor,
         }
         break;
     }
-    UNIMPLEMENTED_MSG("texture format not implement={}", format);
+    UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
     return ComponentType::FLOAT;
 }
 
@@ -191,6 +192,14 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
             return 6;
         }
         return 0;
+    case TextureFormat::BF10GF11RF11:
+        if (component == 1 || component == 2) {
+            return 11;
+        }
+        if (component == 0) {
+            return 10;
+        }
+        return 0;
     case TextureFormat::G8R24:
         if (component == 0) {
             return 8;
@@ -211,10 +220,9 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
         return (component == 0 || component == 1) ? 8 : 0;
     case TextureFormat::G4R4:
         return (component == 0 || component == 1) ? 4 : 0;
-    default:
-        UNIMPLEMENTED_MSG("texture format not implement={}", format);
-        return 0;
     }
+    UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
+    return 0;
 }
 
 std::size_t GetImageComponentMask(TextureFormat format) {
@@ -235,6 +243,7 @@ std::size_t GetImageComponentMask(TextureFormat format) {
     case TextureFormat::R32_B24G8:
     case TextureFormat::B5G6R5:
     case TextureFormat::B6G5R5:
+    case TextureFormat::BF10GF11RF11:
         return std::size_t{R | G | B};
     case TextureFormat::R32_G32:
     case TextureFormat::R16_G16:
@@ -248,10 +257,9 @@ std::size_t GetImageComponentMask(TextureFormat format) {
     case TextureFormat::R8:
     case TextureFormat::R1:
         return std::size_t{R};
-    default:
-        UNIMPLEMENTED_MSG("texture format not implement={}", format);
-        return std::size_t{R | G | B | A};
     }
+    UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
+    return std::size_t{R | G | B | A};
 }
 
 std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
@@ -299,7 +307,7 @@ std::pair<Node, bool> ShaderIR::GetComponentValue(ComponentType component_type, 
             return {std::move(original_value), true};
         }
     default:
-        UNIMPLEMENTED_MSG("Unimplement component type={}", component_type);
+        UNIMPLEMENTED_MSG("Unimplemented component type={}", component_type);
         return {std::move(original_value), true};
     }
 }
@@ -459,7 +467,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
             default:
                 break;
             }
-            UNIMPLEMENTED_MSG("Unimplemented operation={} type={}",
+            UNIMPLEMENTED_MSG("Unimplemented operation={}, type={}",
                               static_cast<u64>(instr.suatom_d.operation.Value()),
                               static_cast<u64>(instr.suatom_d.operation_type.Value()));
             return OperationCode::AtomicImageAdd;
