@@ -627,8 +627,8 @@ private:
                                          header.segment_headers[TEXT_INDEX].memory_size;
 
         const bool valid_data_offset = header.segment_headers[DATA_INDEX].memory_offset ==
-                                     header.segment_headers[RO_INDEX].memory_offset +
-                                         header.segment_headers[RO_INDEX].memory_size;
+                                       header.segment_headers[RO_INDEX].memory_offset +
+                                           header.segment_headers[RO_INDEX].memory_size;
 
         const bool valid_nro_calculated_size =
             nro_size == header.segment_headers[DATA_INDEX].memory_offset +
