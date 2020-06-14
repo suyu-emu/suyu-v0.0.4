@@ -132,7 +132,8 @@ std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
     const u64 capacity{resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory) +
-                       page_table->GetTotalHeapSize() + image_size + main_thread_stack_size};
+                       page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
+                       main_thread_stack_size};
 
     if (capacity < memory_usage_capacity) {
         return capacity;
@@ -146,7 +147,8 @@ u64 Process::GetTotalPhysicalMemoryAvailableWithoutSystemResource() const {
 }
 
 u64 Process::GetTotalPhysicalMemoryUsed() const {
-    return image_size + main_thread_stack_size + page_table->GetTotalHeapSize();
+    return image_size + main_thread_stack_size + page_table->GetTotalHeapSize() +
+           GetSystemResourceSize();
 }
 
 u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
