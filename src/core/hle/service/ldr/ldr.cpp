@@ -50,7 +50,7 @@ struct NRRCertification {
     std::array<u8, 0x100> public_key; // Also known as modulus
     std::array<u8, 0x100> signature;
 };
-static_assert(sizeof(NRRCertification) == 0x220, "Certification has invalid size!");
+static_assert(sizeof(NRRCertification) == 0x220, "Certification has invalid size.");
 
 using SHA256Hash = std::array<u8, 0x20>;
 
@@ -70,7 +70,7 @@ struct NRRHeader {
     u64_le reserved_3;
 };
 #pragma pack()
-static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has invalid size!");
+static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has invalid size.");
 
 #pragma pack(1)
 struct SegmentHeader {
@@ -78,7 +78,7 @@ struct SegmentHeader {
     u32_le memory_size;
 };
 #pragma pack()
-static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size!");
+static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size.");
 
 #pragma pack(1)
 struct NROHeader {
