@@ -20,7 +20,6 @@ static const Xbyak::Reg64 STATE = Xbyak::util::r11;
 static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r12;
 static const Xbyak::Reg32 RESULT = Xbyak::util::r13d;
 static const Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
-static const Xbyak::Reg64 METHOD_ADDRESS_64 = Xbyak::util::r14;
 static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
 
 static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
@@ -328,7 +327,7 @@ void Tegra::MacroJITx64Impl::Compile_Send(Xbyak::Reg32 value) {
     and_(METHOD_ADDRESS, 0xfff);
     shr(ecx, 12);
     and_(ecx, 0x3f);
-    lea(eax, ptr[rcx + METHOD_ADDRESS_64]);
+    lea(eax, ptr[rcx + METHOD_ADDRESS.cvt64()]);
     sal(ecx, 12);
     or_(eax, ecx);
 
