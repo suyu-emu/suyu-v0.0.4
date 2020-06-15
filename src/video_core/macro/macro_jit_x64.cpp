@@ -51,8 +51,7 @@ void MacroJITx64Impl::Execute(const std::vector<u32>& parameters, u32 method) {
     JITState state{};
     state.maxwell3d = &maxwell3d;
     state.registers = {};
-    state.parameters = parameters.data();
-    program(&state);
+    program(&state, parameters.data());
 }
 
 void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
@@ -422,8 +421,7 @@ void MacroJITx64Impl::Compile() {
     Common::X64::ABI_PushRegistersAndAdjustStackGPS(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
     // JIT state
     mov(STATE, Common::X64::ABI_PARAM1);
-    mov(PARAMETERS, qword[Common::X64::ABI_PARAM1 +
-                          static_cast<Xbyak::uint32>(offsetof(JITState, parameters))]);
+    mov(PARAMETERS, Common::X64::ABI_PARAM2);
     mov(REGISTERS, Common::X64::ABI_PARAM1);
     add(REGISTERS, static_cast<Xbyak::uint32>(offsetof(JITState, registers)));
     xor_(RESULT, RESULT);

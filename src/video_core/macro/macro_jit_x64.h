@@ -66,11 +66,10 @@ private:
     struct JITState {
         Engines::Maxwell3D* maxwell3d{};
         std::array<u32, Macro::NUM_MACRO_REGISTERS> registers{};
-        const u32* parameters{};
         u32 carry_flag{};
     };
     static_assert(offsetof(JITState, maxwell3d) == 0, "Maxwell3D is not at 0x0");
-    using ProgramType = void (*)(JITState*);
+    using ProgramType = void (*)(JITState*, const u32*);
 
     struct OptimizerState {
         bool can_skip_carry{};
