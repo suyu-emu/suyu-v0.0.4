@@ -17,7 +17,6 @@ namespace Tegra {
 static const Xbyak::Reg64 STATE = Xbyak::util::rbx;
 static const Xbyak::Reg32 RESULT = Xbyak::util::ebp;
 static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r12;
-static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r13;
 static const Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
 static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
 
@@ -25,7 +24,6 @@ static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
     STATE,
     RESULT,
     PARAMETERS,
-    NEXT_PARAMETER,
     METHOD_ADDRESS,
     BRANCH_HOLDER,
 });
@@ -422,7 +420,6 @@ void MacroJITx64Impl::Compile() {
     mov(PARAMETERS, Common::X64::ABI_PARAM2);
     xor_(RESULT, RESULT);
     xor_(METHOD_ADDRESS, METHOD_ADDRESS);
-    xor_(NEXT_PARAMETER, NEXT_PARAMETER);
     xor_(BRANCH_HOLDER, BRANCH_HOLDER);
 
     mov(dword[STATE + offsetof(JITState, registers) + 4], Compile_FetchParameter());
@@ -529,8 +526,8 @@ bool MacroJITx64Impl::Compile_NextInstruction() {
 }
 
 Xbyak::Reg32 Tegra::MacroJITx64Impl::Compile_FetchParameter() {
-    mov(eax, dword[PARAMETERS + NEXT_PARAMETER * sizeof(u32)]);
-    inc(NEXT_PARAMETER);
+    mov(eax, dword[PARAMETERS]);
+    add(PARAMETERS, sizeof(u32));
     return eax;
 }
 
