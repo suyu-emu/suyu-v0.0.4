@@ -4,6 +4,13 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/externals/find-modules")
 include(DownloadExternals)
 
+# xbyak
+if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
+    add_library(xbyak INTERFACE)
+    target_include_directories(xbyak SYSTEM INTERFACE ./xbyak/xbyak)
+    target_compile_definitions(xbyak INTERFACE XBYAK_NO_OP_NAMES)
+endif()
+
 # Catch
 add_library(catch-single-include INTERFACE)
 target_include_directories(catch-single-include INTERFACE catch/single_include)
@@ -74,12 +81,4 @@ if (ENABLE_WEB_SERVICE)
     target_include_directories(httplib INTERFACE ./httplib)
     target_compile_definitions(httplib INTERFACE -DCPPHTTPLIB_OPENSSL_SUPPORT)
     target_link_libraries(httplib INTERFACE OpenSSL::SSL OpenSSL::Crypto)
-endif()
-
-if (NOT TARGET xbyak)
-    if (ARCHITECTURE_x86 OR ARCHITECTURE_x86_64)
-        add_library(xbyak INTERFACE)
-        target_include_directories(xbyak SYSTEM INTERFACE ./xbyak/xbyak)
-        target_compile_definitions(xbyak INTERFACE XBYAK_NO_OP_NAMES)
-    endif()
 endif()
