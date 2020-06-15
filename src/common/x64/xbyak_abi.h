@@ -178,19 +178,15 @@ inline size_t ABI_PushRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::b
                                               size_t rsp_alignment, size_t needed_frame_size = 0) {
     s32 subtraction, xmm_offset;
     ABI_CalculateFrameSize(regs, rsp_alignment, needed_frame_size, &subtraction, &xmm_offset);
+
     for (std::size_t i = 0; i < regs.size(); ++i) {
         if (regs[i] && ABI_ALL_GPRS[i]) {
             code.push(IndexToReg64(static_cast<int>(i)));
         }
     }
+
     if (subtraction != 0) {
         code.sub(code.rsp, subtraction);
-    }
-
-    for (int i = 0; i < regs.count(); i++) {
-        if (regs.test(i) & ABI_ALL_GPRS.test(i)) {
-            code.push(IndexToReg64(i));
-        }
     }
 
     for (std::size_t i = 0; i < regs.size(); ++i) {
