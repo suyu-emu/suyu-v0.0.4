@@ -185,7 +185,8 @@ void MacroJITx64Impl::Compile_AddImmediate(Macro::Opcode opcode) {
         opcode.result_operation == Macro::ResultOperation::MoveAndSetMethod) {
         if (next_opcode.has_value()) {
             const auto next = *next_opcode;
-            if (next.result_operation == Macro::ResultOperation::MoveAndSetMethod) {
+            if (next.result_operation == Macro::ResultOperation::MoveAndSetMethod &&
+                opcode.dst == next.dst) {
                 return;
             }
         }
