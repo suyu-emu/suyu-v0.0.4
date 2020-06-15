@@ -14,18 +14,18 @@ MICROPROFILE_DEFINE(MacroJitCompile, "GPU", "Compile macro JIT", MP_RGB(173, 255
 MICROPROFILE_DEFINE(MacroJitExecute, "GPU", "Execute macro JIT", MP_RGB(255, 255, 0));
 
 namespace Tegra {
-static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r9;
-static const Xbyak::Reg64 STATE = Xbyak::util::r11;
-static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r12;
-static const Xbyak::Reg32 RESULT = Xbyak::util::r13d;
+static const Xbyak::Reg64 STATE = Xbyak::util::rbx;
+static const Xbyak::Reg32 RESULT = Xbyak::util::ebp;
+static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r12;
+static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r13;
 static const Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
 static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
 
 static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
-    PARAMETERS,
     STATE,
-    NEXT_PARAMETER,
     RESULT,
+    PARAMETERS,
+    NEXT_PARAMETER,
     METHOD_ADDRESS,
     BRANCH_HOLDER,
 });
@@ -64,13 +64,13 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
 
     if (!optimizer.zero_reg_skip) {
         src_a = Compile_GetRegister(opcode.src_a, RESULT);
-        src_b = Compile_GetRegister(opcode.src_b, ebx);
+        src_b = Compile_GetRegister(opcode.src_b, eax);
     } else {
         if (!is_a_zero) {
             src_a = Compile_GetRegister(opcode.src_a, RESULT);
         }
         if (!is_b_zero) {
-            src_b = Compile_GetRegister(opcode.src_b, ebx);
+            src_b = Compile_GetRegister(opcode.src_b, eax);
         }
     }
     Xbyak::Label skip_carry{};
