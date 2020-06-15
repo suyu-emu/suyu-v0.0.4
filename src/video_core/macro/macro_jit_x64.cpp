@@ -19,7 +19,6 @@ static const Xbyak::Reg64 REGISTERS = Xbyak::util::r10;
 static const Xbyak::Reg64 STATE = Xbyak::util::r11;
 static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r12;
 static const Xbyak::Reg32 RESULT = Xbyak::util::r13d;
-static const Xbyak::Reg64 RESULT_64 = Xbyak::util::r13;
 static const Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
 static const Xbyak::Reg64 METHOD_ADDRESS_64 = Xbyak::util::r14;
 static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
@@ -64,15 +63,15 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
     const bool is_move_operation = !is_a_zero && is_b_zero;
     const bool has_zero_register = is_a_zero || is_b_zero;
 
-    Xbyak::Reg64 src_a;
+    Xbyak::Reg32 src_a;
     Xbyak::Reg32 src_b;
 
     if (!optimizer.zero_reg_skip) {
-        src_a = Compile_GetRegister(opcode.src_a, RESULT_64);
+        src_a = Compile_GetRegister(opcode.src_a, RESULT);
         src_b = Compile_GetRegister(opcode.src_b, ebx);
     } else {
         if (!is_a_zero) {
-            src_a = Compile_GetRegister(opcode.src_a, RESULT_64);
+            src_a = Compile_GetRegister(opcode.src_a, RESULT);
         }
         if (!is_b_zero) {
             src_b = Compile_GetRegister(opcode.src_b, ebx);
@@ -543,17 +542,6 @@ Xbyak::Reg32 Tegra::MacroJITx64Impl::Compile_FetchParameter() {
 }
 
 Xbyak::Reg32 MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg32 dst) {
-    if (index == 0) {
-        // Register 0 is always zero
-        xor_(dst, dst);
-    } else {
-        mov(dst, dword[REGISTERS + index * sizeof(u32)]);
-    }
-
-    return dst;
-}
-
-Xbyak::Reg64 Tegra::MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg64 dst) {
     if (index == 0) {
         // Register 0 is always zero
         xor_(dst, dst);
