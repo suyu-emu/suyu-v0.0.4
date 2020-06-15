@@ -15,7 +15,6 @@ MICROPROFILE_DEFINE(MacroJitExecute, "GPU", "Execute macro JIT", MP_RGB(255, 255
 
 namespace Tegra {
 static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r9;
-static const Xbyak::Reg64 REGISTERS = Xbyak::util::r10;
 static const Xbyak::Reg64 STATE = Xbyak::util::r11;
 static const Xbyak::Reg64 NEXT_PARAMETER = Xbyak::util::r12;
 static const Xbyak::Reg32 RESULT = Xbyak::util::r13d;
@@ -24,7 +23,6 @@ static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
 
 static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
     PARAMETERS,
-    REGISTERS,
     STATE,
     NEXT_PARAMETER,
     RESULT,
@@ -422,14 +420,12 @@ void MacroJITx64Impl::Compile() {
     // JIT state
     mov(STATE, Common::X64::ABI_PARAM1);
     mov(PARAMETERS, Common::X64::ABI_PARAM2);
-    mov(REGISTERS, Common::X64::ABI_PARAM1);
-    add(REGISTERS, static_cast<Xbyak::uint32>(offsetof(JITState, registers)));
     xor_(RESULT, RESULT);
     xor_(METHOD_ADDRESS, METHOD_ADDRESS);
     xor_(NEXT_PARAMETER, NEXT_PARAMETER);
     xor_(BRANCH_HOLDER, BRANCH_HOLDER);
 
-    mov(dword[REGISTERS + 4], Compile_FetchParameter());
+    mov(dword[STATE + offsetof(JITState, registers) + 4], Compile_FetchParameter());
 
     // Track get register for zero registers and mark it as no-op
     optimizer.zero_reg_skip = true;
@@ -543,7 +539,7 @@ Xbyak::Reg32 MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg32 dst) {
         // Register 0 is always zero
         xor_(dst, dst);
     } else {
-        mov(dst, dword[REGISTERS + index * sizeof(u32)]);
+        mov(dst, dword[STATE + offsetof(JITState, registers) + index * sizeof(u32)]);
     }
 
     return dst;
@@ -564,7 +560,7 @@ void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u3
         if (reg == 0) {
             return;
         }
-        mov(dword[REGISTERS + reg * sizeof(u32)], result);
+        mov(dword[STATE + offsetof(JITState, registers) + reg * sizeof(u32)], result);
     };
     auto SetMethodAddress = [=](Xbyak::Reg32 reg) { mov(METHOD_ADDRESS, reg); };
 
