@@ -55,7 +55,6 @@ private:
 
     Xbyak::Reg32 Compile_FetchParameter();
     Xbyak::Reg32 Compile_GetRegister(u32 index, Xbyak::Reg32 dst);
-    void Compile_WriteCarry(Xbyak::Reg64 dst);
 
     void Compile_ProcessResult(Macro::ResultOperation operation, u32 reg);
     void Compile_Send(Xbyak::Reg32 value);

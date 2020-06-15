@@ -545,14 +545,6 @@ Xbyak::Reg32 MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg32 dst) {
     return dst;
 }
 
-void Tegra::MacroJITx64Impl::Compile_WriteCarry(Xbyak::Reg64 dst) {
-    Xbyak::Label zero{}, end{};
-    xor_(ecx, ecx);
-    shr(dst, 32);
-    setne(cl);
-    mov(dword[STATE + offsetof(JITState, carry_flag)], ecx);
-}
-
 void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u32 reg) {
     auto SetRegister = [=](u32 reg, Xbyak::Reg32 result) {
         // Register 0 is supposed to always return 0. NOP is implemented as a store to the zero
