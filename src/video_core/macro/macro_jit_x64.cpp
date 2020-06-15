@@ -302,22 +302,22 @@ void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
             sub(result, opcode.immediate * -1);
         }
     }
-    Common::X64::ABI_PushRegistersAndAdjustStackGPS(*this, PersistentCallerSavedRegs(), 0);
+    Common::X64::ABI_PushRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
     mov(Common::X64::ABI_PARAM1, qword[STATE]);
     mov(Common::X64::ABI_PARAM2, RESULT);
     Common::X64::CallFarFunction(*this, &Read);
-    Common::X64::ABI_PopRegistersAndAdjustStackGPS(*this, PersistentCallerSavedRegs(), 0);
+    Common::X64::ABI_PopRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
     mov(RESULT, Common::X64::ABI_RETURN.cvt32());
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
 }
 
 void Tegra::MacroJITx64Impl::Compile_Send(Xbyak::Reg32 value) {
-    Common::X64::ABI_PushRegistersAndAdjustStackGPS(*this, PersistentCallerSavedRegs(), 0);
+    Common::X64::ABI_PushRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
     mov(Common::X64::ABI_PARAM1, qword[STATE]);
     mov(Common::X64::ABI_PARAM2, METHOD_ADDRESS);
     mov(Common::X64::ABI_PARAM3, value);
     Common::X64::CallFarFunction(*this, &Send);
-    Common::X64::ABI_PopRegistersAndAdjustStackGPS(*this, PersistentCallerSavedRegs(), 0);
+    Common::X64::ABI_PopRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
 
     Xbyak::Label dont_process{};
     // Get increment
@@ -421,7 +421,7 @@ void MacroJITx64Impl::Compile() {
     bool keep_executing = true;
     labels.fill(Xbyak::Label());
 
-    Common::X64::ABI_PushRegistersAndAdjustStackGPS(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
+    Common::X64::ABI_PushRegistersAndAdjustStack(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
     // JIT state
     mov(STATE, Common::X64::ABI_PARAM1);
     mov(PARAMETERS, qword[Common::X64::ABI_PARAM1 +
@@ -463,7 +463,7 @@ void MacroJITx64Impl::Compile() {
 
     L(end_of_code);
 
-    Common::X64::ABI_PopRegistersAndAdjustStackGPS(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
+    Common::X64::ABI_PopRegistersAndAdjustStack(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);
     ret();
     ready();
     program = getCode<ProgramType>();

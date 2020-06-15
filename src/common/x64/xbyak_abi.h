@@ -223,40 +223,4 @@ inline void ABI_PopRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::bits
     }
 }
 
-inline size_t ABI_PushRegistersAndAdjustStackGPS(Xbyak::CodeGenerator& code, std::bitset<32> regs,
-                                                 size_t rsp_alignment,
-                                                 size_t needed_frame_size = 0) {
-    s32 subtraction, xmm_offset;
-    ABI_CalculateFrameSize(regs, rsp_alignment, needed_frame_size, &subtraction, &xmm_offset);
-
-    for (std::size_t i = 0; i < regs.size(); ++i) {
-        if (regs[i] && ABI_ALL_GPRS[i]) {
-            code.push(IndexToReg64(static_cast<int>(i)));
-        }
-    }
-
-    if (subtraction != 0) {
-        code.sub(code.rsp, subtraction);
-    }
-
-    return ABI_SHADOW_SPACE;
-}
-
-inline void ABI_PopRegistersAndAdjustStackGPS(Xbyak::CodeGenerator& code, std::bitset<32> regs,
-                                              size_t rsp_alignment, size_t needed_frame_size = 0) {
-    s32 subtraction, xmm_offset;
-    ABI_CalculateFrameSize(regs, rsp_alignment, needed_frame_size, &subtraction, &xmm_offset);
-
-    if (subtraction != 0) {
-        code.add(code.rsp, subtraction);
-    }
-
-    // GPRs need to be popped in reverse order
-    for (int i = 15; i >= 0; i--) {
-        if (regs[i]) {
-            code.pop(IndexToReg64(i));
-        }
-    }
-}
-
 } // namespace Common::X64
