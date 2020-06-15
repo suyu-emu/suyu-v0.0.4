@@ -295,12 +295,20 @@ void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
             sub(result, opcode.immediate * -1);
         }
     }
-    Common::X64::ABI_PushRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
-    mov(Common::X64::ABI_PARAM1, qword[STATE]);
-    mov(Common::X64::ABI_PARAM2, RESULT);
-    Common::X64::CallFarFunction(*this, &Read);
-    Common::X64::ABI_PopRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
-    mov(RESULT, Common::X64::ABI_RETURN.cvt32());
+
+    // Equivalent to Engines::Maxwell3D::GetRegisterValue:
+    if (optimizer.enable_asserts) {
+        Xbyak::Label pass_range_check;
+        cmp(RESULT, static_cast<u32>(Engines::Maxwell3D::Regs::NUM_REGS));
+        jb(pass_range_check);
+        int3();
+        L(pass_range_check);
+    }
+    mov(rax, qword[STATE]);
+    mov(RESULT,
+        dword[rax + offsetof(Engines::Maxwell3D, regs) +
+              offsetof(Engines::Maxwell3D::Regs, reg_array) + RESULT.cvt64() * sizeof(u32)]);
+
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
 }
 
@@ -434,6 +442,9 @@ void MacroJITx64Impl::Compile() {
     // SMO tends to emit a lot of unnecessary method moves, we can mitigate this by only emitting
     // one if our register isn't "dirty"
     optimizer.optimize_for_method_move = true;
+
+    // Enable run-time assertions in JITted code
+    optimizer.enable_asserts = false;
 
     // Check to see if we can skip emitting certain instructions
     Optimizer_ScanFlags();
