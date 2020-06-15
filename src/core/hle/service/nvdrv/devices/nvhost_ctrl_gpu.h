@@ -92,16 +92,11 @@ private:
                   "IoctlCharacteristics is incorrect size");
 
     struct IoctlGpuGetTpcMasksArgs {
-        /// [in]  TPC mask buffer size reserved by userspace. Should be at least
-        /// sizeof(__u32) * fls(gpc_mask) to receive TPC mask for each GPC.
-        /// [out] full kernel buffer size
-        u32_le mask_buf_size;
-        u32_le reserved;
-
-        /// [in]  pointer to TPC mask buffer. It will receive one 32-bit TPC mask per GPC or 0 if
-        /// GPC is not enabled or not present. This parameter is ignored if mask_buf_size is 0.
-        u64_le mask_buf_addr;
-        u64_le tpc_mask_size; // Nintendo add this?
+        u32_le mask_buffer_size{};
+        INSERT_PADDING_WORDS(1);
+        u64_le mask_buffer_address{};
+        u32_le tcp_mask{};
+        INSERT_PADDING_WORDS(1);
     };
     static_assert(sizeof(IoctlGpuGetTpcMasksArgs) == 24,
                   "IoctlGpuGetTpcMasksArgs is incorrect size");
@@ -166,7 +161,8 @@ private:
 
     u32 GetCharacteristics(const std::vector<u8>& input, std::vector<u8>& output,
                            std::vector<u8>& output2, IoctlVersion version);
-    u32 GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output, std::vector<u8>& output2,
+                    IoctlVersion version);
     u32 GetActiveSlotMask(const std::vector<u8>& input, std::vector<u8>& output);
     u32 ZCullGetCtxSize(const std::vector<u8>& input, std::vector<u8>& output);
     u32 ZCullGetInfo(const std::vector<u8>& input, std::vector<u8>& output);
