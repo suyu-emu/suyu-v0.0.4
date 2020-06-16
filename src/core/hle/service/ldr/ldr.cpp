@@ -50,7 +50,7 @@ struct NRRCertification {
     std::array<u8, 0x100> public_key; // Also known as modulus
     std::array<u8, 0x100> signature;
 };
-static_assert(sizeof(NRRCertification) == 0x220, "Certification has invalid size.");
+static_assert(sizeof(NRRCertification) == 0x220, "NRRCertification has invalid size.");
 
 using SHA256Hash = std::array<u8, 0x20>;
 
