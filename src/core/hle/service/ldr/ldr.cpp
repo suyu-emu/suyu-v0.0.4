@@ -54,7 +54,6 @@ static_assert(sizeof(NRRCertification) == 0x220, "NRRCertification has invalid s
 
 using SHA256Hash = std::array<u8, 0x20>;
 
-#pragma pack(1)
 struct NRRHeader {
     u32_le magic;
     u32_le certification_signature_key_generation; // 9.0.0+
@@ -69,18 +68,14 @@ struct NRRHeader {
     u32_le hash_count;
     u64_le reserved_3;
 };
-#pragma pack()
 static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has invalid size.");
 
-#pragma pack(1)
 struct SegmentHeader {
     u32_le memory_offset;
     u32_le memory_size;
 };
-#pragma pack()
 static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size.");
 
-#pragma pack(1)
 struct NROHeader {
     // Switchbrew calls this "Start" (0x10)
     u32_le unused;
@@ -102,10 +97,8 @@ struct NROHeader {
     // .apiInfo, .dynstr, .dynsym
     std::array<SegmentHeader, 3> segment_headers_2;
 };
-#pragma pack()
 static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
 
-#pragma pack(1)
 struct NROInfo {
     SHA256Hash hash{};
     VAddr nro_address{};
@@ -117,7 +110,6 @@ struct NROInfo {
     std::size_t data_size{};
     VAddr src_addr{};
 };
-#pragma pack()
 static_assert(sizeof(NROInfo) == 0x60, "NROInfo has invalid size.");
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
