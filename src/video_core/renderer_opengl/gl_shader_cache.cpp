@@ -20,6 +20,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 #include "video_core/memory_manager.h"
+#include "video_core/renderer_opengl/gl_arb_decompiler.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
@@ -148,7 +149,8 @@ ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 u
     auto program = std::make_shared<ProgramHandle>();
 
     if (device.UseAssemblyShaders()) {
-        const std::string arb = "Not implemented";
+        const std::string arb =
+            DecompileAssemblyShader(device, ir, registry, shader_type, shader_id);
 
         GLuint& arb_prog = program->assembly_program.handle;
 

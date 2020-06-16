@@ -12,9 +12,6 @@ ConfigureGraphicsAdvanced::ConfigureGraphicsAdvanced(QWidget* parent)
 
     ui->setupUi(this);
 
-    // TODO: Remove this after assembly shaders are fully integrated
-    ui->use_assembly_shaders->setVisible(false);
-
     SetConfiguration();
 }
 

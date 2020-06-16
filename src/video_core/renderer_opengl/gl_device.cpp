@@ -213,6 +213,7 @@ Device::Device()
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
     has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
+    has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
                            GLAD_GL_NV_compute_program5 && GLAD_GL_NV_transform_feedback &&
                            GLAD_GL_NV_transform_feedback2;
