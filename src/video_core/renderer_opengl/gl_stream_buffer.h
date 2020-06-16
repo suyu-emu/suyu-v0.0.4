@@ -17,9 +17,6 @@ public:
                              bool use_persistent = true);
     ~OGLStreamBuffer();
 
-    GLuint GetHandle() const;
-    GLsizeiptr GetSize() const;
-
     /*
      * Allocates a linear chunk of memory in the GPU buffer with at least "size" bytes
      * and the optional alignment requirement.
@@ -31,6 +28,14 @@ public:
     std::tuple<u8*, GLintptr, bool> Map(GLsizeiptr size, GLintptr alignment = 0);
 
     void Unmap(GLsizeiptr size);
+
+    GLuint Handle() const {
+        return gl_buffer.handle;
+    }
+
+    GLsizeiptr Size() const {
+        return buffer_size;
+    }
 
 private:
     OGLBuffer gl_buffer;

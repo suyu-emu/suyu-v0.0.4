@@ -30,11 +30,15 @@
 
 namespace VideoCommon {
 
-template <typename OwnerBuffer, typename BufferType, typename StreamBuffer>
+template <typename Buffer, typename BufferType, typename StreamBuffer>
 class BufferCache {
     using IntervalSet = boost::icl::interval_set<VAddr>;
     using IntervalType = typename IntervalSet::interval_type;
     using VectorMapInterval = boost::container::small_vector<MapInterval*, 1>;
+
+    static constexpr u64 WRITE_PAGE_BIT = 11;
+    static constexpr u64 BLOCK_PAGE_BITS = 21;
+    static constexpr u64 BLOCK_PAGE_SIZE = 1ULL << BLOCK_PAGE_BITS;
 
 public:
     using BufferInfo = std::pair<BufferType, u64>;
@@ -82,7 +86,7 @@ public:
             }
         }
 
-        OwnerBuffer block = GetBlock(cpu_addr, size);
+        Buffer* const block = GetBlock(cpu_addr, size);
         MapInterval* const map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (!map) {
             return {GetEmptyBuffer(size), 0};
@@ -98,7 +102,7 @@ public:
             }
         }
 
-        return {ToHandle(block), static_cast<u64>(block->GetOffset(cpu_addr))};
+        return {block->Handle(), static_cast<u64>(block->Offset(cpu_addr))};
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
@@ -129,16 +133,18 @@ public:
         stream_buffer->Unmap(buffer_offset - buffer_offset_base);
     }
 
+    /// Function called at the end of each frame, inteded for deferred operations
     void TickFrame() {
         ++epoch;
+
         while (!pending_destruction.empty()) {
             // Delay at least 4 frames before destruction.
             // This is due to triple buffering happening on some drivers.
             static constexpr u64 epochs_to_destroy = 5;
-            if (pending_destruction.front()->GetEpoch() + epochs_to_destroy > epoch) {
+            if (pending_destruction.front()->Epoch() + epochs_to_destroy > epoch) {
                 break;
             }
-            pending_destruction.pop_front();
+            pending_destruction.pop();
         }
     }
 
@@ -253,23 +259,21 @@ public:
 
 protected:
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
-                         std::unique_ptr<StreamBuffer> stream_buffer)
-        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer)},
-          stream_buffer_handle{this->stream_buffer->GetHandle()} {}
+                         std::unique_ptr<StreamBuffer> stream_buffer_)
+        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer_)},
+          stream_buffer_handle{stream_buffer->Handle()} {}
 
     ~BufferCache() = default;
 
-    virtual BufferType ToHandle(const OwnerBuffer& storage) = 0;
+    virtual std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
 
-    virtual OwnerBuffer CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
-
-    virtual void UploadBlockData(const OwnerBuffer& buffer, std::size_t offset, std::size_t size,
+    virtual void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                  const u8* data) = 0;
 
-    virtual void DownloadBlockData(const OwnerBuffer& buffer, std::size_t offset, std::size_t size,
+    virtual void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                                    u8* data) = 0;
 
-    virtual void CopyBlock(const OwnerBuffer& src, const OwnerBuffer& dst, std::size_t src_offset,
+    virtual void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
                            std::size_t dst_offset, std::size_t size) = 0;
 
     virtual BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) {
@@ -325,7 +329,7 @@ protected:
     }
 
 private:
-    MapInterval* MapAddress(const OwnerBuffer& block, GPUVAddr gpu_addr, VAddr cpu_addr,
+    MapInterval* MapAddress(const Buffer* block, GPUVAddr gpu_addr, VAddr cpu_addr,
                             std::size_t size) {
         const VectorMapInterval overlaps = GetMapsInRange(cpu_addr, size);
         if (overlaps.empty()) {
@@ -333,11 +337,11 @@ private:
             const VAddr cpu_addr_end = cpu_addr + size;
             if (memory_manager.IsGranularRange(gpu_addr, size)) {
                 u8* host_ptr = memory_manager.GetPointer(gpu_addr);
-                UploadBlockData(block, block->GetOffset(cpu_addr), size, host_ptr);
+                UploadBlockData(*block, block->Offset(cpu_addr), size, host_ptr);
             } else {
                 staging_buffer.resize(size);
                 memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
-                UploadBlockData(block, block->GetOffset(cpu_addr), size, staging_buffer.data());
+                UploadBlockData(*block, block->Offset(cpu_addr), size, staging_buffer.data());
             }
             return Register(MapInterval(cpu_addr, cpu_addr_end, gpu_addr));
         }
@@ -380,7 +384,7 @@ private:
         return map;
     }
 
-    void UpdateBlock(const OwnerBuffer& block, VAddr start, VAddr end,
+    void UpdateBlock(const Buffer* block, VAddr start, VAddr end,
                      const VectorMapInterval& overlaps) {
         const IntervalType base_interval{start, end};
         IntervalSet interval_set{};
@@ -390,13 +394,13 @@ private:
             interval_set.subtract(subtract);
         }
         for (auto& interval : interval_set) {
-            std::size_t size = interval.upper() - interval.lower();
-            if (size > 0) {
-                staging_buffer.resize(size);
-                system.Memory().ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
-                UploadBlockData(block, block->GetOffset(interval.lower()), size,
-                                staging_buffer.data());
+            const std::size_t size = interval.upper() - interval.lower();
+            if (size == 0) {
+                continue;
             }
+            staging_buffer.resize(size);
+            system.Memory().ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
+            UploadBlockData(*block, block->Offset(interval.lower()), size, staging_buffer.data());
         }
     }
 
@@ -426,10 +430,14 @@ private:
     }
 
     void FlushMap(MapInterval* map) {
+        const auto it = blocks.find(map->start >> BLOCK_PAGE_BITS);
+        ASSERT_OR_EXECUTE(it != blocks.end(), return;);
+
+        std::shared_ptr<Buffer> block = it->second;
+
         const std::size_t size = map->end - map->start;
-        OwnerBuffer block = blocks[map->start >> block_page_bits];
         staging_buffer.resize(size);
-        DownloadBlockData(block, block->GetOffset(map->start), size, staging_buffer.data());
+        DownloadBlockData(*block, block->Offset(map->start), size, staging_buffer.data());
         system.Memory().WriteBlockUnsafe(map->start, staging_buffer.data(), size);
         map->MarkAsModified(false, 0);
     }
@@ -452,97 +460,89 @@ private:
         buffer_offset = offset_aligned;
     }
 
-    OwnerBuffer EnlargeBlock(OwnerBuffer buffer) {
-        const std::size_t old_size = buffer->GetSize();
-        const std::size_t new_size = old_size + block_page_size;
-        const VAddr cpu_addr = buffer->GetCpuAddr();
-        OwnerBuffer new_buffer = CreateBlock(cpu_addr, new_size);
-        CopyBlock(buffer, new_buffer, 0, 0, old_size);
-        buffer->SetEpoch(epoch);
-        pending_destruction.push_back(buffer);
+    std::shared_ptr<Buffer> EnlargeBlock(std::shared_ptr<Buffer> buffer) {
+        const std::size_t old_size = buffer->Size();
+        const std::size_t new_size = old_size + BLOCK_PAGE_SIZE;
+        const VAddr cpu_addr = buffer->CpuAddr();
+        std::shared_ptr<Buffer> new_buffer = CreateBlock(cpu_addr, new_size);
+        CopyBlock(*buffer, *new_buffer, 0, 0, old_size);
+        QueueDestruction(std::move(buffer));
+
         const VAddr cpu_addr_end = cpu_addr + new_size - 1;
-        u64 page_start = cpu_addr >> block_page_bits;
-        const u64 page_end = cpu_addr_end >> block_page_bits;
-        while (page_start <= page_end) {
-            blocks[page_start] = new_buffer;
-            ++page_start;
+        const u64 page_end = cpu_addr_end >> BLOCK_PAGE_BITS;
+        for (u64 page_start = cpu_addr >> BLOCK_PAGE_BITS; page_start <= page_end; ++page_start) {
+            blocks.insert_or_assign(page_start, new_buffer);
         }
+
         return new_buffer;
     }
 
-    OwnerBuffer MergeBlocks(OwnerBuffer first, OwnerBuffer second) {
-        const std::size_t size_1 = first->GetSize();
-        const std::size_t size_2 = second->GetSize();
-        const VAddr first_addr = first->GetCpuAddr();
-        const VAddr second_addr = second->GetCpuAddr();
+    std::shared_ptr<Buffer> MergeBlocks(std::shared_ptr<Buffer> first,
+                                        std::shared_ptr<Buffer> second) {
+        const std::size_t size_1 = first->Size();
+        const std::size_t size_2 = second->Size();
+        const VAddr first_addr = first->CpuAddr();
+        const VAddr second_addr = second->CpuAddr();
         const VAddr new_addr = std::min(first_addr, second_addr);
         const std::size_t new_size = size_1 + size_2;
-        OwnerBuffer new_buffer = CreateBlock(new_addr, new_size);
-        CopyBlock(first, new_buffer, 0, new_buffer->GetOffset(first_addr), size_1);
-        CopyBlock(second, new_buffer, 0, new_buffer->GetOffset(second_addr), size_2);
-        first->SetEpoch(epoch);
-        second->SetEpoch(epoch);
-        pending_destruction.push_back(first);
-        pending_destruction.push_back(second);
+
+        std::shared_ptr<Buffer> new_buffer = CreateBlock(new_addr, new_size);
+        CopyBlock(*first, *new_buffer, 0, new_buffer->Offset(first_addr), size_1);
+        CopyBlock(*second, *new_buffer, 0, new_buffer->Offset(second_addr), size_2);
+        QueueDestruction(std::move(first));
+        QueueDestruction(std::move(second));
+
         const VAddr cpu_addr_end = new_addr + new_size - 1;
-        u64 page_start = new_addr >> block_page_bits;
-        const u64 page_end = cpu_addr_end >> block_page_bits;
-        while (page_start <= page_end) {
-            blocks[page_start] = new_buffer;
-            ++page_start;
+        const u64 page_end = cpu_addr_end >> BLOCK_PAGE_BITS;
+        for (u64 page_start = new_addr >> BLOCK_PAGE_BITS; page_start <= page_end; ++page_start) {
+            blocks.insert_or_assign(page_start, new_buffer);
         }
         return new_buffer;
     }
 
-    OwnerBuffer GetBlock(const VAddr cpu_addr, const std::size_t size) {
-        OwnerBuffer found;
+    Buffer* GetBlock(VAddr cpu_addr, std::size_t size) {
+        std::shared_ptr<Buffer> found;
+
         const VAddr cpu_addr_end = cpu_addr + size - 1;
-        u64 page_start = cpu_addr >> block_page_bits;
-        const u64 page_end = cpu_addr_end >> block_page_bits;
-        while (page_start <= page_end) {
+        const u64 page_end = cpu_addr_end >> BLOCK_PAGE_BITS;
+        for (u64 page_start = cpu_addr >> BLOCK_PAGE_BITS; page_start <= page_end; ++page_start) {
             auto it = blocks.find(page_start);
             if (it == blocks.end()) {
                 if (found) {
                     found = EnlargeBlock(found);
-                } else {
-                    const VAddr start_addr = (page_start << block_page_bits);
-                    found = CreateBlock(start_addr, block_page_size);
-                    blocks[page_start] = found;
+                    continue;
                 }
-            } else {
-                if (found) {
-                    if (found == it->second) {
-                        ++page_start;
-                        continue;
-                    }
-                    found = MergeBlocks(found, it->second);
-                } else {
-                    found = it->second;
-                }
+                const VAddr start_addr = page_start << BLOCK_PAGE_BITS;
+                found = CreateBlock(start_addr, BLOCK_PAGE_SIZE);
+                blocks.insert_or_assign(page_start, found);
+                continue;
             }
-            ++page_start;
+            if (!found) {
+                found = it->second;
+                continue;
+            }
+            if (found != it->second) {
+                found = MergeBlocks(std::move(found), it->second);
+            }
         }
-        return found;
+        return found.get();
     }
 
-    void MarkRegionAsWritten(const VAddr start, const VAddr end) {
-        u64 page_start = start >> write_page_bit;
-        const u64 page_end = end >> write_page_bit;
-        while (page_start <= page_end) {
+    void MarkRegionAsWritten(VAddr start, VAddr end) {
+        const u64 page_end = end >> WRITE_PAGE_BIT;
+        for (u64 page_start = start >> WRITE_PAGE_BIT; page_start <= page_end; ++page_start) {
             auto it = written_pages.find(page_start);
             if (it != written_pages.end()) {
                 it->second = it->second + 1;
             } else {
-                written_pages[page_start] = 1;
+                written_pages.insert_or_assign(page_start, 1);
             }
-            ++page_start;
         }
     }
 
-    void UnmarkRegionAsWritten(const VAddr start, const VAddr end) {
-        u64 page_start = start >> write_page_bit;
-        const u64 page_end = end >> write_page_bit;
-        while (page_start <= page_end) {
+    void UnmarkRegionAsWritten(VAddr start, VAddr end) {
+        const u64 page_end = end >> WRITE_PAGE_BIT;
+        for (u64 page_start = start >> WRITE_PAGE_BIT; page_start <= page_end; ++page_start) {
             auto it = written_pages.find(page_start);
             if (it != written_pages.end()) {
                 if (it->second > 1) {
@@ -551,20 +551,22 @@ private:
                     written_pages.erase(it);
                 }
             }
-            ++page_start;
         }
     }
 
-    bool IsRegionWritten(const VAddr start, const VAddr end) const {
-        u64 page_start = start >> write_page_bit;
-        const u64 page_end = end >> write_page_bit;
-        while (page_start <= page_end) {
+    bool IsRegionWritten(VAddr start, VAddr end) const {
+        const u64 page_end = end >> WRITE_PAGE_BIT;
+        for (u64 page_start = start >> WRITE_PAGE_BIT; page_start <= page_end; ++page_start) {
             if (written_pages.count(page_start) > 0) {
                 return true;
             }
-            ++page_start;
         }
         return false;
+    }
+
+    void QueueDestruction(std::shared_ptr<Buffer> buffer) {
+        buffer->SetEpoch(epoch);
+        pending_destruction.push(std::move(buffer));
     }
 
     void MarkForAsyncFlush(MapInterval* map) {
@@ -578,7 +580,7 @@ private:
     Core::System& system;
 
     std::unique_ptr<StreamBuffer> stream_buffer;
-    BufferType stream_buffer_handle{};
+    BufferType stream_buffer_handle;
 
     u8* buffer_ptr = nullptr;
     u64 buffer_offset = 0;
@@ -588,18 +590,15 @@ private:
     boost::intrusive::set<MapInterval, boost::intrusive::compare<MapIntervalCompare>>
         mapped_addresses;
 
-    static constexpr u64 write_page_bit = 11;
     std::unordered_map<u64, u32> written_pages;
+    std::unordered_map<u64, std::shared_ptr<Buffer>> blocks;
 
-    static constexpr u64 block_page_bits = 21;
-    static constexpr u64 block_page_size = 1ULL << block_page_bits;
-    std::unordered_map<u64, OwnerBuffer> blocks;
-
-    std::list<OwnerBuffer> pending_destruction;
+    std::queue<std::shared_ptr<Buffer>> pending_destruction;
     u64 epoch = 0;
     u64 modified_ticks = 0;
 
     std::vector<u8> staging_buffer;
+
     std::list<MapInterval*> marked_for_unregister;
 
     std::shared_ptr<std::unordered_set<MapInterval*>> uncommitted_flushes;

@@ -35,7 +35,7 @@ public:
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
     void Unmap(u64 size);
 
-    VkBuffer GetHandle() const {
+    VkBuffer Handle() const {
         return *buffer;
     }
 

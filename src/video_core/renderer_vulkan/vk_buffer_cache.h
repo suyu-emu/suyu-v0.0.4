@@ -23,21 +23,19 @@ class VKDevice;
 class VKMemoryManager;
 class VKScheduler;
 
-class CachedBufferBlock final : public VideoCommon::BufferBlock {
+class Buffer final : public VideoCommon::BufferBlock {
 public:
-    explicit CachedBufferBlock(const VKDevice& device, VKMemoryManager& memory_manager,
-                               VAddr cpu_addr, std::size_t size);
-    ~CachedBufferBlock();
+    explicit Buffer(const VKDevice& device, VKMemoryManager& memory_manager, VAddr cpu_addr,
+                    std::size_t size);
+    ~Buffer();
 
-    VkBuffer GetHandle() const {
+    VkBuffer Handle() const {
         return *buffer.handle;
     }
 
 private:
     VKBuffer buffer;
 };
-
-using Buffer = std::shared_ptr<CachedBufferBlock>;
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
@@ -49,9 +47,7 @@ public:
     VkBuffer GetEmptyBuffer(std::size_t size) override;
 
 protected:
-    VkBuffer ToHandle(const Buffer& buffer) override;
-
-    Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
+    std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
     void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
                          const u8* data) override;
