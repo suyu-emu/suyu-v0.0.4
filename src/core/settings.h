@@ -437,7 +437,7 @@ struct Values {
     bool renderer_debug;
     int vulkan_device;
 
-    float resolution_factor;
+    u16 resolution_factor{1};
     int aspect_ratio;
     int max_anisotropy;
     bool use_frame_limit;

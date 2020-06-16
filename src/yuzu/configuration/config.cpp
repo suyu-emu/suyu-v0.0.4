@@ -631,13 +631,11 @@ void Config::ReadRendererValues() {
         static_cast<Settings::RendererBackend>(ReadSetting(QStringLiteral("backend"), 0).toInt());
     Settings::values.renderer_debug = ReadSetting(QStringLiteral("debug"), false).toBool();
     Settings::values.vulkan_device = ReadSetting(QStringLiteral("vulkan_device"), 0).toInt();
-    Settings::values.resolution_factor =
-        ReadSetting(QStringLiteral("resolution_factor"), 1.0).toFloat();
     Settings::values.aspect_ratio = ReadSetting(QStringLiteral("aspect_ratio"), 0).toInt();
     Settings::values.max_anisotropy = ReadSetting(QStringLiteral("max_anisotropy"), 0).toInt();
     Settings::values.use_frame_limit =
         ReadSetting(QStringLiteral("use_frame_limit"), true).toBool();
-    Settings::values.frame_limit = ReadSetting(QStringLiteral("frame_limit"), 100).toInt();
+    Settings::values.frame_limit = ReadSetting(QStringLiteral("frame_limit"), 100).toUInt();
     Settings::values.use_disk_shader_cache =
         ReadSetting(QStringLiteral("use_disk_shader_cache"), true).toBool();
     const int gpu_accuracy_level = ReadSetting(QStringLiteral("gpu_accuracy"), 0).toInt();
@@ -722,8 +720,6 @@ void Config::ReadUIValues() {
             .toString();
     UISettings::values.enable_discord_presence =
         ReadSetting(QStringLiteral("enable_discord_presence"), true).toBool();
-    UISettings::values.screenshot_resolution_factor =
-        static_cast<u16>(ReadSetting(QStringLiteral("screenshot_resolution_factor"), 0).toUInt());
     UISettings::values.select_user_on_boot =
         ReadSetting(QStringLiteral("select_user_on_boot"), false).toBool();
 
@@ -1082,8 +1078,6 @@ void Config::SaveRendererValues() {
     WriteSetting(QStringLiteral("backend"), static_cast<int>(Settings::values.renderer_backend), 0);
     WriteSetting(QStringLiteral("debug"), Settings::values.renderer_debug, false);
     WriteSetting(QStringLiteral("vulkan_device"), Settings::values.vulkan_device, 0);
-    WriteSetting(QStringLiteral("resolution_factor"),
-                 static_cast<double>(Settings::values.resolution_factor), 1.0);
     WriteSetting(QStringLiteral("aspect_ratio"), Settings::values.aspect_ratio, 0);
     WriteSetting(QStringLiteral("max_anisotropy"), Settings::values.max_anisotropy, 0);
     WriteSetting(QStringLiteral("use_frame_limit"), Settings::values.use_frame_limit, true);
@@ -1159,8 +1153,6 @@ void Config::SaveUIValues() {
                  QString::fromUtf8(UISettings::themes[0].second));
     WriteSetting(QStringLiteral("enable_discord_presence"),
                  UISettings::values.enable_discord_presence, true);
-    WriteSetting(QStringLiteral("screenshot_resolution_factor"),
-                 UISettings::values.screenshot_resolution_factor, 0);
     WriteSetting(QStringLiteral("select_user_on_boot"), UISettings::values.select_user_on_boot,
                  false);
 

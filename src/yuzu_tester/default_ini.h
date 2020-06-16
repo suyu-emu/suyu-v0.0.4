@@ -21,11 +21,6 @@ use_hw_renderer =
 # 0: Interpreter (slow), 1 (default): JIT (fast)
 use_shader_jit =
 
-# Resolution scale factor
-# 0: Auto (scales resolution to window size), 1: Native Switch screen resolution, Otherwise a scale
-# factor for the Switch resolution
-resolution_factor =
-
 # Aspect ratio
 # 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
 aspect_ratio =
