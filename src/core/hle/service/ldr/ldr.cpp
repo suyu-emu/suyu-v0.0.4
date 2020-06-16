@@ -615,36 +615,23 @@ private:
     }
 
     static bool IsValidNRO(const NROHeader& header, u64 nro_size, u64 bss_size) {
+        return header.magic == Common::MakeMagic('N', 'R', 'O', '0') &&
+               header.nro_size == nro_size && header.bss_size == bss_size &&
 
-        const bool valid_magic = header.magic == Common::MakeMagic('N', 'R', 'O', '0');
+               header.segment_headers[RO_INDEX].memory_offset ==
+                   header.segment_headers[TEXT_INDEX].memory_offset +
+                       header.segment_headers[TEXT_INDEX].memory_size &&
 
-        const bool valid_nro_size = header.nro_size == nro_size;
+               header.segment_headers[DATA_INDEX].memory_offset ==
+                   header.segment_headers[RO_INDEX].memory_offset +
+                       header.segment_headers[RO_INDEX].memory_size &&
 
-        const bool valid_bss_size = header.bss_size == bss_size;
+               nro_size == header.segment_headers[DATA_INDEX].memory_offset +
+                               header.segment_headers[DATA_INDEX].memory_size &&
 
-        const bool valid_ro_offset = header.segment_headers[RO_INDEX].memory_offset ==
-                                     header.segment_headers[TEXT_INDEX].memory_offset +
-                                         header.segment_headers[TEXT_INDEX].memory_size;
-
-        const bool valid_data_offset = header.segment_headers[DATA_INDEX].memory_offset ==
-                                       header.segment_headers[RO_INDEX].memory_offset +
-                                           header.segment_headers[RO_INDEX].memory_size;
-
-        const bool valid_nro_calculated_size =
-            nro_size == header.segment_headers[DATA_INDEX].memory_offset +
-                            header.segment_headers[DATA_INDEX].memory_size;
-
-        const bool text_aligned =
-            Common::Is4KBAligned(header.segment_headers[TEXT_INDEX].memory_size);
-
-        const bool ro_aligned = Common::Is4KBAligned(header.segment_headers[RO_INDEX].memory_size);
-
-        const bool data_aligned =
-            Common::Is4KBAligned(header.segment_headers[DATA_INDEX].memory_size);
-
-        return valid_magic && valid_nro_size && valid_bss_size && valid_ro_offset &&
-               valid_data_offset && valid_nro_calculated_size && text_aligned && ro_aligned &&
-               data_aligned;
+               Common::Is4KBAligned(header.segment_headers[TEXT_INDEX].memory_size) &&
+               Common::Is4KBAligned(header.segment_headers[RO_INDEX].memory_size) &&
+               Common::Is4KBAligned(header.segment_headers[DATA_INDEX].memory_size);
     }
     Core::System& system;
 };
