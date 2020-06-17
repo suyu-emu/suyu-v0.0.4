@@ -23,7 +23,7 @@ VirtualFile PackBFTTF(const std::array<u8, Size>& data, const std::string& name)
 
     std::vector<u8> bfttf(Size + sizeof(u64));
 
-    u64 offset = 0;
+    size_t offset = 0;
     Service::NS::EncryptSharedFont(vec, bfttf, offset);
     return std::make_shared<VectorVfsFile>(std::move(bfttf), name);
 }
