@@ -90,8 +90,6 @@ public:
 
     ARM_Dynarmic_32& parent;
     std::size_t num_interpreted_instructions{};
-    u64 tpidrro_el0{};
-    u64 tpidr_el0{};
 };
 
 std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& page_table,
@@ -100,7 +98,7 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     config.callbacks = cb.get();
     // TODO(bunnei): Implement page table for 32-bit
     // config.page_table = &page_table.pointers;
-    config.coprocessors[15] = std::make_shared<DynarmicCP15>((u32*)&CP15_regs[0]);
+    config.coprocessors[15] = cp15;
     config.define_unpredictable_behaviour = true;
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
@@ -118,8 +116,8 @@ void ARM_Dynarmic_32::Step() {
 
 ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
-    : ARM_Interface{system},
-      cb(std::make_unique<DynarmicCallbacks32>(*this)), core_index{core_index},
+    : ARM_Interface{system}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
+      cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic_32::~ARM_Dynarmic_32() = default;
@@ -155,19 +153,19 @@ void ARM_Dynarmic_32::SetPSTATE(u32 cpsr) {
 }
 
 u64 ARM_Dynarmic_32::GetTlsAddress() const {
-    return CP15_regs[static_cast<std::size_t>(CP15Register::CP15_THREAD_URO)];
+    return cp15->uro;
 }
 
 void ARM_Dynarmic_32::SetTlsAddress(VAddr address) {
-    CP15_regs[static_cast<std::size_t>(CP15Register::CP15_THREAD_URO)] = static_cast<u32>(address);
+    cp15->uro = static_cast<u32>(address);
 }
 
 u64 ARM_Dynarmic_32::GetTPIDR_EL0() const {
-    return cb->tpidr_el0;
+    return cp15->uprw;
 }
 
 void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
-    cb->tpidr_el0 = value;
+    cp15->uprw = value;
 }
 
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
