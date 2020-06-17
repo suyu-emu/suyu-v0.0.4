@@ -50,7 +50,8 @@ public:
     }
 
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
-        UNIMPLEMENTED();
+        UNIMPLEMENTED_MSG("This should never happen, pc = {:08X}, code = {:08X}", pc,
+                          MemoryReadCode(pc));
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override {
@@ -112,7 +113,7 @@ void ARM_Dynarmic_32::Run() {
 }
 
 void ARM_Dynarmic_32::Step() {
-    cb->InterpreterFallback(jit->Regs()[15], 1);
+    jit->Step();
 }
 
 ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, ExclusiveMonitor& exclusive_monitor,
