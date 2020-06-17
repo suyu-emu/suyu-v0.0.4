@@ -73,6 +73,15 @@ if (NOT LIBZIP_FOUND)
 endif()
 
 if (ENABLE_WEB_SERVICE)
+    # LibreSSL
+    set(LIBRESSL_SKIP_INSTALL ON CACHE BOOL "")
+    add_subdirectory(libressl EXCLUDE_FROM_ALL)
+    target_include_directories(ssl INTERFACE ./libressl/include)
+    target_compile_definitions(ssl PRIVATE -DHAVE_INET_NTOP)
+    get_directory_property(OPENSSL_LIBRARIES
+        DIRECTORY libressl
+        DEFINITION OPENSSL_LIBS)
+
     # lurlparser
     add_subdirectory(lurlparser EXCLUDE_FROM_ALL)
 
@@ -80,5 +89,5 @@ if (ENABLE_WEB_SERVICE)
     add_library(httplib INTERFACE)
     target_include_directories(httplib INTERFACE ./httplib)
     target_compile_definitions(httplib INTERFACE -DCPPHTTPLIB_OPENSSL_SUPPORT)
-    target_link_libraries(httplib INTERFACE OpenSSL::SSL OpenSSL::Crypto)
+    target_link_libraries(httplib INTERFACE ${OPENSSL_LIBRARIES})
 endif()
