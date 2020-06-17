@@ -220,8 +220,8 @@ private:
             return cache_begin < addr_end && addr_begin < cache_end;
         };
 
-        const u64 page_end = addr_end >> PAGE_SHIFT;
-        for (u64 page = addr_begin >> PAGE_SHIFT; page <= page_end; ++page) {
+        const u64 page_end = addr_end >> PAGE_BITS;
+        for (u64 page = addr_begin >> PAGE_BITS; page <= page_end; ++page) {
             const auto& it = cached_queries.find(page);
             if (it == std::end(cached_queries)) {
                 continue;
@@ -242,14 +242,14 @@ private:
     /// Registers the passed parameters as cached and returns a pointer to the stored cached query.
     CachedQuery* Register(VideoCore::QueryType type, VAddr cpu_addr, u8* host_ptr, bool timestamp) {
         rasterizer.UpdatePagesCachedCount(cpu_addr, CachedQuery::SizeInBytes(timestamp), 1);
-        const u64 page = static_cast<u64>(cpu_addr) >> PAGE_SHIFT;
+        const u64 page = static_cast<u64>(cpu_addr) >> PAGE_BITS;
         return &cached_queries[page].emplace_back(static_cast<QueryCache&>(*this), type, cpu_addr,
                                                   host_ptr);
     }
 
     /// Tries to a get a cached query. Returns nullptr on failure.
     CachedQuery* TryGet(VAddr addr) {
-        const u64 page = static_cast<u64>(addr) >> PAGE_SHIFT;
+        const u64 page = static_cast<u64>(addr) >> PAGE_BITS;
         const auto it = cached_queries.find(page);
         if (it == std::end(cached_queries)) {
             return nullptr;
@@ -268,7 +268,7 @@ private:
     }
 
     static constexpr std::uintptr_t PAGE_SIZE = 4096;
-    static constexpr unsigned PAGE_SHIFT = 12;
+    static constexpr unsigned PAGE_BITS = 12;
 
     Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
