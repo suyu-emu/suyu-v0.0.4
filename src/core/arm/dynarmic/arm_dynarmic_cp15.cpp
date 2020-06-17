@@ -6,6 +6,9 @@
 #include "common/logging/log.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
+#include "core/core.h"
+#include "core/core_timing.h"
+#include "core/core_timing_util.h"
 
 using Callback = Dynarmic::A32::Coprocessor::Callback;
 using CallbackOrAccessOneWord = Dynarmic::A32::Coprocessor::CallbackOrAccessOneWord;
@@ -89,6 +92,16 @@ CallbackOrAccessOneWord DynarmicCP15::CompileGetOneWord(bool two, unsigned opc1,
 }
 
 CallbackOrAccessTwoWords DynarmicCP15::CompileGetTwoWords(bool two, unsigned opc, CoprocReg CRm) {
+    if (!two && opc == 0 && CRm == CoprocReg::C14) {
+        // CNTPCT
+        const auto callback = static_cast<u64 (*)(Dynarmic::A32::Jit*, void*, u32, u32)>(
+            [](Dynarmic::A32::Jit*, void* arg, u32, u32) -> u64 {
+                ARM_Dynarmic_32& parent = *(ARM_Dynarmic_32*)arg;
+                return Timing::CpuCyclesToClockCycles(parent.system.CoreTiming().GetTicks());
+            });
+        return Dynarmic::A32::Coprocessor::Callback{callback, (void*)&parent};
+    }
+
     LOG_CRITICAL(Core_ARM, "CP15: mrrc{} p15, {}, <Rt>, <Rt2>, {}", two ? "2" : "", opc, CRm);
     return {};
 }
