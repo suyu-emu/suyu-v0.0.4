@@ -870,7 +870,7 @@ void RasterizerVulkan::BeginTransformFeedback() {
     UNIMPLEMENTED_IF(binding.buffer_offset != 0);
 
     const GPUVAddr gpu_addr = binding.Address();
-    const std::size_t size = binding.buffer_size;
+    const auto size = static_cast<VkDeviceSize>(binding.buffer_size);
     const auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
 
     scheduler.Record([buffer = buffer, offset = offset, size](vk::CommandBuffer cmdbuf) {
