@@ -488,6 +488,15 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Clear screen to black
     LoadColorToActiveGLTexture(0, 0, 0, 0, screen_info.texture);
+
+    // Enable unified vertex attributes and query vertex buffer address when the driver supports it
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glEnableClientState(GL_VERTEX_ATTRIB_ARRAY_UNIFIED_NV);
+
+        glMakeNamedBufferResidentNV(vertex_buffer.handle, GL_READ_ONLY);
+        glGetNamedBufferParameterui64vNV(vertex_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV,
+                                         &vertex_buffer_address);
+    }
 }
 
 void RendererOpenGL::AddTelemetryFields() {
@@ -656,7 +665,13 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
                          offsetof(ScreenRectVertex, tex_coord));
     glVertexAttribBinding(PositionLocation, 0);
     glVertexAttribBinding(TexCoordLocation, 0);
-    glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glBindVertexBuffer(0, 0, 0, sizeof(ScreenRectVertex));
+        glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, 0, vertex_buffer_address,
+                               sizeof(vertices));
+    } else {
+        glBindVertexBuffer(0, vertex_buffer.handle, 0, sizeof(ScreenRectVertex));
+    }
 
     glBindTextureUnit(0, screen_info.display_texture);
     glBindSampler(0, 0);

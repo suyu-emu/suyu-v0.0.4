@@ -61,7 +61,8 @@ constexpr std::size_t NUM_CONST_BUFFERS_BYTES_PER_STAGE =
 constexpr std::size_t TOTAL_CONST_BUFFER_BYTES =
     NUM_CONST_BUFFERS_BYTES_PER_STAGE * Maxwell::MaxShaderStage;
 
-constexpr std::size_t NumSupportedVertexAttributes = 16;
+constexpr std::size_t NUM_SUPPORTED_VERTEX_ATTRIBUTES = 16;
+constexpr std::size_t NUM_SUPPORTED_VERTEX_BINDINGS = 16;
 
 template <typename Engine, typename Entry>
 Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry& entry,
@@ -193,7 +194,7 @@ void RasterizerOpenGL::SetupVertexFormat() {
     // avoid OpenGL errors.
     // TODO(Subv): Analyze the shader to identify which attributes are actually used and don't
     // assume every shader uses them all.
-    for (std::size_t index = 0; index < NumSupportedVertexAttributes; ++index) {
+    for (std::size_t index = 0; index < NUM_SUPPORTED_VERTEX_ATTRIBUTES; ++index) {
         if (!flags[Dirty::VertexFormat0 + index]) {
             continue;
         }
@@ -231,9 +232,11 @@ void RasterizerOpenGL::SetupVertexBuffer() {
 
     MICROPROFILE_SCOPE(OpenGL_VB);
 
+    const bool use_unified_memory = device.HasVertexBufferUnifiedMemory();
+
     // Upload all guest vertex arrays sequentially to our buffer
     const auto& regs = gpu.regs;
-    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+    for (std::size_t index = 0; index < NUM_SUPPORTED_VERTEX_BINDINGS; ++index) {
         if (!flags[Dirty::VertexBuffer0 + index]) {
             continue;
         }
@@ -246,16 +249,25 @@ void RasterizerOpenGL::SetupVertexBuffer() {
 
         const GPUVAddr start = vertex_array.StartAddress();
         const GPUVAddr end = regs.vertex_array_limit[index].LimitAddress();
-
         ASSERT(end >= start);
+
+        const GLuint gl_index = static_cast<GLuint>(index);
         const u64 size = end - start;
         if (size == 0) {
-            glBindVertexBuffer(static_cast<GLuint>(index), 0, 0, vertex_array.stride);
+            glBindVertexBuffer(gl_index, 0, 0, vertex_array.stride);
+            if (use_unified_memory) {
+                glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, gl_index, 0, 0);
+            }
             continue;
         }
         const auto info = buffer_cache.UploadMemory(start, size);
-        glBindVertexBuffer(static_cast<GLuint>(index), info.handle, info.offset,
-                           vertex_array.stride);
+        if (use_unified_memory) {
+            glBindVertexBuffer(gl_index, 0, 0, vertex_array.stride);
+            glBufferAddressRangeNV(GL_VERTEX_ATTRIB_ARRAY_ADDRESS_NV, gl_index,
+                                   info.address + info.offset, size);
+        } else {
+            glBindVertexBuffer(gl_index, info.handle, info.offset, vertex_array.stride);
+        }
     }
 }
 
@@ -268,7 +280,7 @@ void RasterizerOpenGL::SetupVertexInstances() {
     flags[Dirty::VertexInstances] = false;
 
     const auto& regs = gpu.regs;
-    for (std::size_t index = 0; index < NumSupportedVertexAttributes; ++index) {
+    for (std::size_t index = 0; index < NUM_SUPPORTED_VERTEX_ATTRIBUTES; ++index) {
         if (!flags[Dirty::VertexInstance0 + index]) {
             continue;
         }
