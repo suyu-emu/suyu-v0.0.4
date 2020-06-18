@@ -21,29 +21,29 @@ namespace Sampler {
 
 VkFilter Filter(Tegra::Texture::TextureFilter filter) {
     switch (filter) {
-    case Tegra::Texture::TextureFilter::Linear:
-        return VK_FILTER_LINEAR;
     case Tegra::Texture::TextureFilter::Nearest:
         return VK_FILTER_NEAREST;
+    case Tegra::Texture::TextureFilter::Linear:
+        return VK_FILTER_LINEAR;
     }
-    UNIMPLEMENTED_MSG("Unimplemented sampler filter={}", static_cast<u32>(filter));
+    UNREACHABLE_MSG("Invalid sampler filter={}", static_cast<u32>(filter));
     return {};
 }
 
 VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter) {
     switch (mipmap_filter) {
     case Tegra::Texture::TextureMipmapFilter::None:
-        // TODO(Rodrigo): None seems to be mapped to OpenGL's mag and min filters without mipmapping
-        // (e.g. GL_NEAREST and GL_LINEAR). Vulkan doesn't have such a thing, find out if we have to
-        // use an image view with a single mipmap level to emulate this.
-        return VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        ;
-    case Tegra::Texture::TextureMipmapFilter::Linear:
-        return VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        // There are no Vulkan filter modes that directly correspond to OpenGL minification filters
+        // of GL_LINEAR or GL_NEAREST, but they can be emulated using
+        // VK_SAMPLER_MIPMAP_MODE_NEAREST, minLod = 0, and maxLod = 0.25, and using minFilter =
+        // VK_FILTER_LINEAR or minFilter = VK_FILTER_NEAREST, respectively.
+        return VK_SAMPLER_MIPMAP_MODE_NEAREST;
     case Tegra::Texture::TextureMipmapFilter::Nearest:
         return VK_SAMPLER_MIPMAP_MODE_NEAREST;
+    case Tegra::Texture::TextureMipmapFilter::Linear:
+        return VK_SAMPLER_MIPMAP_MODE_LINEAR;
     }
-    UNIMPLEMENTED_MSG("Unimplemented sampler mipmap mode={}", static_cast<u32>(mipmap_filter));
+    UNREACHABLE_MSG("Invalid sampler mipmap mode={}", static_cast<u32>(mipmap_filter));
     return {};
 }
 
@@ -78,10 +78,9 @@ VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode w
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
         UNIMPLEMENTED();
         return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
-    default:
-        UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
-        return {};
     }
+    UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
+    return {};
 }
 
 VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func) {
@@ -288,10 +287,9 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case Maxwell::PrimitiveTopology::Patches:
         return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
-    default:
-        UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
-        return {};
     }
+    UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
+    return {};
 }
 
 VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
