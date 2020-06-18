@@ -165,7 +165,7 @@ u64 ARM_Dynarmic_32::GetTPIDR_EL0() const {
 }
 
 void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
-    cp15->uprw = value;
+    cp15->uprw = static_cast<u32>(value);
 }
 
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
