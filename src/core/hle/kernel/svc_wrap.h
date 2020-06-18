@@ -399,6 +399,24 @@ void SvcWrap32(Core::System& system) {
     func(system, static_cast<u32>(Param(system, 0)), static_cast<s32>(Param(system, 1)));
 }
 
+// Used by SetThreadPriority32
+template <ResultCode func(Core::System&, Handle, u32)>
+void SvcWrap32(Core::System& system) {
+    const u32 retval =
+        func(system, static_cast<Handle>(Param(system, 0)), static_cast<u32>(Param(system, 1))).raw;
+    FuncReturn(system, retval);
+}
+
+// Used by SetThreadCoreMask32
+template <ResultCode func(Core::System&, Handle, u32, u32, u32)>
+void SvcWrap32(Core::System& system) {
+    const u32 retval =
+        func(system, static_cast<Handle>(Param(system, 0)), static_cast<u32>(Param(system, 1)),
+             static_cast<u32>(Param(system, 2)), static_cast<u32>(Param(system, 3)))
+            .raw;
+    FuncReturn(system, retval);
+}
+
 // Used by SendSyncRequest32
 template <ResultCode func(Core::System&, u32)>
 void SvcWrap32(Core::System& system) {
