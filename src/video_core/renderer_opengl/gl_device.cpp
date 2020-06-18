@@ -123,16 +123,24 @@ std::array<Device::BaseBindings, Tegra::Engines::MaxShaderTypes> BuildBaseBindin
     u32 num_images = GetInteger<u32>(GL_MAX_IMAGE_UNITS);
     u32 base_images = 0;
 
-    // Reserve more image bindings on fragment and vertex stages.
+    // GL_MAX_IMAGE_UNITS is guaranteed by the spec to have a minimum value of 8.
+    // Due to the limitation of GL_MAX_IMAGE_UNITS, reserve at least 4 image bindings on the
+    // fragment stage, and at least 1 for the rest of the stages.
+    // So far games are observed to use 1 image binding on vertex and 4 on fragment stages.
+
+    // Reserve at least 4 image bindings on the fragment stage.
     bindings[4].image =
-        Extract(base_images, num_images, num_images / NumStages + 2, LimitImages[4]);
-    bindings[0].image =
-        Extract(base_images, num_images, num_images / NumStages + 1, LimitImages[0]);
+        Extract(base_images, num_images, std::max(4U, num_images / NumStages), LimitImages[4]);
+
+    // This is guaranteed to be at least 1.
+    const u32 total_extracted_images = num_images / (NumStages - 1);
 
     // Reserve the other image bindings.
-    const u32 total_extracted_images = num_images / (NumStages - 2);
-    for (std::size_t i = 2; i < NumStages; ++i) {
+    for (std::size_t i = 0; i < NumStages; ++i) {
         const std::size_t stage = stage_swizzle[i];
+        if (stage == 4) {
+            continue;
+        }
         bindings[stage].image =
             Extract(base_images, num_images, total_extracted_images, LimitImages[stage]);
     }
