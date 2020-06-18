@@ -52,8 +52,6 @@ struct NRRCertification {
 };
 static_assert(sizeof(NRRCertification) == 0x220, "NRRCertification has invalid size.");
 
-using SHA256Hash = std::array<u8, 0x20>;
-
 struct NRRHeader {
     u32_le magic;
     u32_le certification_signature_key_generation; // 9.0.0+
@@ -98,6 +96,8 @@ struct NROHeader {
     std::array<SegmentHeader, 3> segment_headers_2;
 };
 static_assert(sizeof(NROHeader) == 0x80, "NROHeader has invalid size.");
+
+using SHA256Hash = std::array<u8, 0x20>;
 
 struct NROInfo {
     SHA256Hash hash{};
