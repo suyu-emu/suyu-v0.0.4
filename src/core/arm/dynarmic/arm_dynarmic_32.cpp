@@ -7,14 +7,17 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
+#include "common/logging/log.h"
+#include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
+#include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Core {
 
@@ -46,6 +49,19 @@ public:
     }
     void MemoryWrite64(u32 vaddr, u64 value) override {
         parent.system.Memory().Write64(vaddr, value);
+    }
+
+    bool MemoryWriteExclusive8(u32 vaddr, u8 value, u8 expected) override {
+        return parent.system.Memory().WriteExclusive8(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive16(u32 vaddr, u16 value, u16 expected) override {
+        return parent.system.Memory().WriteExclusive16(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive32(u32 vaddr, u32 value, u32 expected) override {
+        return parent.system.Memory().WriteExclusive32(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive64(u32 vaddr, u64 value, u64 expected) override {
+        return parent.system.Memory().WriteExclusive64(vaddr, value, expected);
     }
 
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
@@ -110,6 +126,27 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     // config.page_table = &page_table.pointers;
     config.coprocessors[15] = cp15;
     config.define_unpredictable_behaviour = true;
+    static constexpr std::size_t PAGE_BITS = 12;
+    static constexpr std::size_t NUM_PAGE_TABLE_ENTRIES = 1 << (32 - PAGE_BITS);
+    config.page_table = reinterpret_cast<std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>*>(
+        page_table.pointers.data());
+    config.absolute_offset_page_table = true;
+    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
+    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+
+    // Multi-process state
+    config.processor_id = core_index;
+    config.global_monitor = &exclusive_monitor.monitor;
+
+    // Timing
+    config.wall_clock_cntpct = uses_wall_clock;
+
+    // Optimizations
+    if (Settings::values.disable_cpu_opt) {
+        config.enable_optimizations = false;
+        config.enable_fast_dispatch = false;
+    }
+
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 
@@ -178,7 +215,7 @@ void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
 }
 
 void ARM_Dynarmic_32::ChangeProcessorId(std::size_t new_core_id) {
-    // jit->ChangeProcessorId(new_core_id);
+    jit->ChangeProcessorID(new_core_id);
 }
 
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {

@@ -9,7 +9,7 @@
 
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A64/a64.h>
-#include <dynarmic/A64/exclusive_monitor.h>
+#include <dynarmic/exclusive_monitor.h>
 #include "common/common_types.h"
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"

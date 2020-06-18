@@ -9,6 +9,14 @@ add_library(core STATIC
     arm/arm_interface.cpp
     arm/cpu_interrupt_handler.cpp
     arm/cpu_interrupt_handler.h
+    arm/dynarmic/arm_dynarmic_32.cpp
+    arm/dynarmic/arm_dynarmic_32.h
+    arm/dynarmic/arm_dynarmic_64.cpp
+    arm/dynarmic/arm_dynarmic_64.h
+    arm/dynarmic/arm_dynarmic_cp15.cpp
+    arm/dynarmic/arm_dynarmic_cp15.h
+    arm/dynarmic/arm_exclusive_monitor.cpp
+    arm/dynarmic/arm_exclusive_monitor.h
     arm/exclusive_monitor.cpp
     arm/exclusive_monitor.h
     arm/unicorn/arm_unicorn.cpp
