@@ -68,6 +68,7 @@ void ConfigureService::SetConfiguration() {
 }
 
 std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
+#ifdef YUZU_ENABLE_BOXCAT
     std::optional<std::string> global;
     std::map<std::string, Service::BCAT::EventStatus> map;
     const auto res = Service::BCAT::Boxcat::GetStatus(global, map);
@@ -106,6 +107,10 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
                    .arg(FormatEventStatusString(value));
     }
     return {QStringLiteral("Current Boxcat Events"), std::move(out)};
+#else
+    return {QStringLiteral("Current Boxcat Events"),
+            tr("There are currently no events on boxcat.")};
+#endif
 }
 
 void ConfigureService::OnBCATImplChanged() {
