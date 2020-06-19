@@ -232,6 +232,12 @@ static ResultCode SetMemoryAttribute(Core::System& system, VAddr address, u64 si
                                          static_cast<Memory::MemoryAttribute>(attribute));
 }
 
+static ResultCode SetMemoryAttribute32(Core::System& system, u32 address, u32 size, u32 mask,
+                                       u32 attribute) {
+    return SetMemoryAttribute(system, static_cast<VAddr>(address), static_cast<std::size_t>(size),
+                              mask, attribute);
+}
+
 /// Maps a memory range into a different range.
 static ResultCode MapMemory(Core::System& system, VAddr dst_addr, VAddr src_addr, u64 size) {
     std::lock_guard lock{HLE::g_hle_lock};
@@ -1136,13 +1142,17 @@ static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 pri
 }
 
 static ResultCode SetThreadPriority32(Core::System& system, Handle handle, u32 priority) {
-  return SetThreadPriority(system, handle, priority);
+    return SetThreadPriority(system, handle, priority);
 }
 
 /// Get which CPU core is executing the current thread
 static u32 GetCurrentProcessorNumber(Core::System& system) {
     LOG_TRACE(Kernel_SVC, "called");
     return static_cast<u32>(system.CurrentPhysicalCore().CoreIndex());
+}
+
+static u32 GetCurrentProcessorNumber32(Core::System& system) {
+    return GetCurrentProcessorNumber(system);
 }
 
 static ResultCode MapSharedMemory(Core::System& system, Handle shared_memory_handle, VAddr addr,
@@ -1861,6 +1871,12 @@ static ResultCode CreateTransferMemory(Core::System& system, Handle* handle, VAd
     return RESULT_SUCCESS;
 }
 
+static ResultCode CreateTransferMemory32(Core::System& system, Handle* handle, u32 addr, u32 size,
+                                         u32 permissions) {
+    return CreateTransferMemory(system, handle, static_cast<VAddr>(addr),
+                                static_cast<std::size_t>(size), permissions);
+}
+
 static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, u32* core,
                                     u64* mask) {
     LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
@@ -1938,8 +1954,9 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
 }
 
 static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle, u32 core,
-                                    u32 affinity_mask_low, u32 affinity_mask_high) {
-    const u64 affinity_mask = static_cast<u64>(affinity_mask_low) | (static_cast<u64>(affinity_mask_high) << 32);
+                                      u32 affinity_mask_low, u32 affinity_mask_high) {
+    const u64 affinity_mask =
+        static_cast<u64>(affinity_mask_low) | (static_cast<u64>(affinity_mask_high) << 32);
     return SetThreadCoreMask(system, thread_handle, core, affinity_mask);
 }
 
@@ -2206,7 +2223,7 @@ static const FunctionDef SVC_Table_32[] = {
     {0x00, nullptr, "Unknown"},
     {0x01, SvcWrap32<SetHeapSize32>, "SetHeapSize32"},
     {0x02, nullptr, "Unknown"},
-    {0x03, nullptr, "SetMemoryAttribute32"},
+    {0x03, SvcWrap32<SetMemoryAttribute32>, "SetMemoryAttribute32"},
     {0x04, nullptr, "MapMemory32"},
     {0x05, nullptr, "UnmapMemory32"},
     {0x06, SvcWrap32<QueryMemory32>, "QueryMemory32"},
@@ -2219,12 +2236,12 @@ static const FunctionDef SVC_Table_32[] = {
     {0x0d, SvcWrap32<SetThreadPriority32>, "SetThreadPriority32"},
     {0x0e, nullptr, "GetThreadCoreMask32"},
     {0x0f, SvcWrap32<SetThreadCoreMask32>, "SetThreadCoreMask32"},
-    {0x10, nullptr, "GetCurrentProcessorNumber32"},
+    {0x10, SvcWrap32<GetCurrentProcessorNumber32>, "GetCurrentProcessorNumber32"},
     {0x11, nullptr, "SignalEvent32"},
     {0x12, nullptr, "ClearEvent32"},
     {0x13, nullptr, "MapSharedMemory32"},
     {0x14, nullptr, "UnmapSharedMemory32"},
-    {0x15, nullptr, "CreateTransferMemory32"},
+    {0x15, SvcWrap32<CreateTransferMemory32>, "CreateTransferMemory32"},
     {0x16, SvcWrap32<CloseHandle32>, "CloseHandle32"},
     {0x17, nullptr, "ResetSignal32"},
     {0x18, SvcWrap32<WaitSynchronization32>, "WaitSynchronization32"},
