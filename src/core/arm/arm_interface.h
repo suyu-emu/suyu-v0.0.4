@@ -33,16 +33,15 @@ public:
 
     struct ThreadContext32 {
         std::array<u32, 16> cpu_registers{};
+        std::array<u32, 64> extension_registers{};
         u32 cpsr{};
-        std::array<u8, 4> padding{};
-        std::array<u64, 32> fprs{};
         u32 fpscr{};
         u32 fpexc{};
         u32 tpidr{};
     };
     // Internally within the kernel, it expects the AArch32 version of the
     // thread context to be 344 bytes in size.
-    static_assert(sizeof(ThreadContext32) == 0x158);
+    static_assert(sizeof(ThreadContext32) == 0x150);
 
     struct ThreadContext64 {
         std::array<u64, 31> cpu_registers{};

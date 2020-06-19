@@ -222,13 +222,17 @@ void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
     Dynarmic::A32::Context context;
     jit->SaveContext(context);
     ctx.cpu_registers = context.Regs();
+    ctx.extension_registers = context.ExtRegs();
     ctx.cpsr = context.Cpsr();
+    ctx.fpscr = context.Fpscr();
 }
 
 void ARM_Dynarmic_32::LoadContext(const ThreadContext32& ctx) {
     Dynarmic::A32::Context context;
     context.Regs() = ctx.cpu_registers;
+    context.ExtRegs() = ctx.extension_registers;
     context.SetCpsr(ctx.cpsr);
+    context.SetFpscr(ctx.fpscr);
     jit->LoadContext(context);
 }
 
@@ -243,7 +247,9 @@ void ARM_Dynarmic_32::ClearInstructionCache() {
     jit->ClearCache();
 }
 
-void ARM_Dynarmic_32::ClearExclusiveState() {}
+void ARM_Dynarmic_32::ClearExclusiveState() {
+    jit->ClearExclusiveState();
+}
 
 void ARM_Dynarmic_32::PageTableChanged(Common::PageTable& page_table,
                                        std::size_t new_address_space_size_in_bits) {
