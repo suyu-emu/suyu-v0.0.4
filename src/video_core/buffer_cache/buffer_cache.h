@@ -269,15 +269,6 @@ protected:
 
     virtual std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
 
-    virtual void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                                 const u8* data) = 0;
-
-    virtual void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                                   u8* data) = 0;
-
-    virtual void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
-                           std::size_t dst_offset, std::size_t size) = 0;
-
     virtual BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) {
         return {};
     }
@@ -339,11 +330,11 @@ private:
             const VAddr cpu_addr_end = cpu_addr + size;
             if (memory_manager.IsGranularRange(gpu_addr, size)) {
                 u8* host_ptr = memory_manager.GetPointer(gpu_addr);
-                UploadBlockData(*block, block->Offset(cpu_addr), size, host_ptr);
+                block->Upload(block->Offset(cpu_addr), size, host_ptr);
             } else {
                 staging_buffer.resize(size);
                 memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
-                UploadBlockData(*block, block->Offset(cpu_addr), size, staging_buffer.data());
+                block->Upload(block->Offset(cpu_addr), size, staging_buffer.data());
             }
             return Register(MapInterval(cpu_addr, cpu_addr_end, gpu_addr));
         }
@@ -402,7 +393,7 @@ private:
             }
             staging_buffer.resize(size);
             system.Memory().ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
-            UploadBlockData(*block, block->Offset(interval.lower()), size, staging_buffer.data());
+            block->Upload(block->Offset(interval.lower()), size, staging_buffer.data());
         }
     }
 
@@ -439,7 +430,7 @@ private:
 
         const std::size_t size = map->end - map->start;
         staging_buffer.resize(size);
-        DownloadBlockData(*block, block->Offset(map->start), size, staging_buffer.data());
+        block->Download(block->Offset(map->start), size, staging_buffer.data());
         system.Memory().WriteBlockUnsafe(map->start, staging_buffer.data(), size);
         map->MarkAsModified(false, 0);
     }
@@ -467,7 +458,7 @@ private:
         const std::size_t new_size = old_size + BLOCK_PAGE_SIZE;
         const VAddr cpu_addr = buffer->CpuAddr();
         std::shared_ptr<Buffer> new_buffer = CreateBlock(cpu_addr, new_size);
-        CopyBlock(*buffer, *new_buffer, 0, 0, old_size);
+        new_buffer->CopyFrom(*buffer, 0, 0, old_size);
         QueueDestruction(std::move(buffer));
 
         const VAddr cpu_addr_end = cpu_addr + new_size - 1;
@@ -489,8 +480,8 @@ private:
         const std::size_t new_size = size_1 + size_2;
 
         std::shared_ptr<Buffer> new_buffer = CreateBlock(new_addr, new_size);
-        CopyBlock(*first, *new_buffer, 0, new_buffer->Offset(first_addr), size_1);
-        CopyBlock(*second, *new_buffer, 0, new_buffer->Offset(second_addr), size_2);
+        new_buffer->CopyFrom(*first, 0, new_buffer->Offset(first_addr), size_1);
+        new_buffer->CopyFrom(*second, 0, new_buffer->Offset(second_addr), size_2);
         QueueDestruction(std::move(first));
         QueueDestruction(std::move(second));
 

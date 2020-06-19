@@ -28,6 +28,13 @@ public:
     explicit Buffer(const Device& device, VAddr cpu_addr, std::size_t size);
     ~Buffer();
 
+    void Upload(std::size_t offset, std::size_t size, const u8* data) const;
+
+    void Download(std::size_t offset, std::size_t size, u8* data) const;
+
+    void CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
+                  std::size_t size) const;
+
     GLuint Handle() const noexcept {
         return gl_buffer.handle;
     }
@@ -56,15 +63,6 @@ public:
 
 protected:
     std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;
-
-    void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                         const u8* data) override;
-
-    void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                           u8* data) override;
-
-    void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
-                   std::size_t dst_offset, std::size_t size) override;
 
     BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) override;
 
