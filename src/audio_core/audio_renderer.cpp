@@ -180,11 +180,12 @@ ResultVal<std::vector<u8>> AudioRenderer::UpdateAudioRenderer(const std::vector<
 
     // Copy output header
     UpdateDataHeader response_data{worker_params};
-    std::vector<u8> output_params(response_data.total_size);
     if (behavior_info.IsElapsedFrameCountSupported()) {
-        response_data.frame_count = 0x10;
-        response_data.total_size += 0x10;
+        response_data.render_info = sizeof(RendererInfo);
+        response_data.total_size += sizeof(RendererInfo);
     }
+
+    std::vector<u8> output_params(response_data.total_size);
     std::memcpy(output_params.data(), &response_data, sizeof(UpdateDataHeader));
 
     // Copy output memory pool entries
@@ -217,6 +218,17 @@ ResultVal<std::vector<u8>> AudioRenderer::UpdateAudioRenderer(const std::vector<
     if (!behavior_info.UpdateOutput(output_params, behavior_out_status_offset)) {
         LOG_ERROR(Audio, "Failed to update behavior info output parameters");
         return Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (behavior_info.IsElapsedFrameCountSupported()) {
+        const std::size_t renderer_info_offset{
+            sizeof(UpdateDataHeader) + response_data.memory_pools_size + response_data.voices_size +
+            response_data.effects_size + response_data.sinks_size +
+            response_data.performance_manager_size + response_data.behavior_size};
+        RendererInfo renderer_info{};
+        renderer_info.elasped_frame_count = elapsed_frame_count;
+        std::memcpy(output_params.data() + renderer_info_offset, &renderer_info,
+                    sizeof(RendererInfo));
     }
 
     return MakeResult(output_params);
@@ -447,6 +459,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
         }
     }
     audio_out->QueueBuffer(stream, tag, std::move(buffer));
+    elapsed_frame_count++;
 }
 
 void AudioRenderer::ReleaseAndQueueBuffers() {
