@@ -270,14 +270,6 @@ void MacroJITx64Impl::Compile_ExtractShiftLeftRegister(Macro::Opcode opcode) {
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
 }
 
-static u32 Read(Engines::Maxwell3D* maxwell3d, u32 method) {
-    return maxwell3d->GetRegisterValue(method);
-}
-
-static void Send(Engines::Maxwell3D* maxwell3d, Macro::MethodAddress method_address, u32 value) {
-    maxwell3d->CallMethodFromMME(method_address.address, value);
-}
-
 void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
     if (optimizer.zero_reg_skip && opcode.src_a == 0) {
         if (opcode.immediate == 0) {
@@ -310,6 +302,10 @@ void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
               offsetof(Engines::Maxwell3D::Regs, reg_array) + RESULT.cvt64() * sizeof(u32)]);
 
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
+}
+
+static void Send(Engines::Maxwell3D* maxwell3d, Macro::MethodAddress method_address, u32 value) {
+    maxwell3d->CallMethodFromMME(method_address.address, value);
 }
 
 void Tegra::MacroJITx64Impl::Compile_Send(Xbyak::Reg32 value) {
