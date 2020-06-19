@@ -48,7 +48,6 @@ private:
     GLuint64EXT gpu_address = 0;
     GLintptr buffer_pos = 0;
     GLsizeiptr buffer_size = 0;
-    GLintptr mapped_offset = 0;
     GLsizeiptr mapped_size = 0;
     u8* mapped_ptr = nullptr;
 };

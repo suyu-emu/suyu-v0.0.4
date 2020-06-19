@@ -57,30 +57,21 @@ std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr a
 
     bool invalidate = false;
     if (buffer_pos + size > buffer_size) {
+        MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
+        glInvalidateBufferData(gl_buffer.handle);
+
         buffer_pos = 0;
         invalidate = true;
-
-        glUnmapNamedBuffer(gl_buffer.handle);
     }
 
-    if (invalidate) {
-        static const GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT |
-                                        GL_MAP_INVALIDATE_BUFFER_BIT | GL_MAP_FLUSH_EXPLICIT_BIT;
-
-        MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
-        mapped_ptr = static_cast<u8*>(
-            glMapNamedBufferRange(gl_buffer.handle, buffer_pos, buffer_size - buffer_pos, flags));
-        mapped_offset = buffer_pos;
-    }
-
-    return std::make_tuple(mapped_ptr + buffer_pos - mapped_offset, buffer_pos, invalidate);
+    return std::make_tuple(mapped_ptr + buffer_pos, buffer_pos, invalidate);
 }
 
 void OGLStreamBuffer::Unmap(GLsizeiptr size) {
     ASSERT(size <= mapped_size);
 
     if (size > 0) {
-        glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos - mapped_offset, size);
+        glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos, size);
     }
 
     buffer_pos += size;
