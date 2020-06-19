@@ -76,7 +76,7 @@ std::unique_ptr<Input::ButtonDevice> Keyboard::Create(const Common::ParamPackage
     int key_code = params.Get("code", 0);
     std::unique_ptr<KeyButton> button = std::make_unique<KeyButton>(key_button_list);
     key_button_list->AddKeyButton(key_code, button.get());
-    return std::move(button);
+    return button;
 }
 
 void Keyboard::PressKey(int key_code) {

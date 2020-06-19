@@ -145,7 +145,7 @@ std::unique_ptr<Input::MotionDevice> MotionEmu::Create(const Common::ParamPackag
     // Previously created device is disconnected here. Having two motion devices for 3DS is not
     // expected.
     current_device = device_wrapper->device;
-    return std::move(device_wrapper);
+    return device_wrapper;
 }
 
 void MotionEmu::BeginTilt(int x, int y) {
