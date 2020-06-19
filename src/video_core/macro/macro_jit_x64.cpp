@@ -56,11 +56,13 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
     const bool valid_operation = !is_a_zero && !is_b_zero;
     const bool is_move_operation = !is_a_zero && is_b_zero;
     const bool has_zero_register = is_a_zero || is_b_zero;
+    const bool no_zero_reg_skip = opcode.alu_operation == Macro::ALUOperation::AddWithCarry ||
+                                  opcode.alu_operation == Macro::ALUOperation::SubtractWithBorrow;
 
     Xbyak::Reg32 src_a;
     Xbyak::Reg32 src_b;
 
-    if (!optimizer.zero_reg_skip) {
+    if (!optimizer.zero_reg_skip || no_zero_reg_skip) {
         src_a = Compile_GetRegister(opcode.src_a, RESULT);
         src_b = Compile_GetRegister(opcode.src_b, eax);
     } else {
@@ -183,7 +185,8 @@ void MacroJITx64Impl::Compile_AddImmediate(Macro::Opcode opcode) {
         opcode.result_operation == Macro::ResultOperation::MoveAndSetMethod) {
         if (next_opcode.has_value()) {
             const auto next = *next_opcode;
-            if (next.result_operation == Macro::ResultOperation::MoveAndSetMethod) {
+            if (next.result_operation == Macro::ResultOperation::MoveAndSetMethod &&
+                opcode.dst == next.dst) {
                 return;
             }
         }
