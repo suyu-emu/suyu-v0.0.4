@@ -273,14 +273,6 @@ void MacroJITx64Impl::Compile_ExtractShiftLeftRegister(Macro::Opcode opcode) {
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
 }
 
-static u32 Read(Engines::Maxwell3D* maxwell3d, u32 method) {
-    return maxwell3d->GetRegisterValue(method);
-}
-
-static void Send(Engines::Maxwell3D* maxwell3d, Macro::MethodAddress method_address, u32 value) {
-    maxwell3d->CallMethodFromMME(method_address.address, value);
-}
-
 void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
     if (optimizer.zero_reg_skip && opcode.src_a == 0) {
         if (opcode.immediate == 0) {
@@ -298,13 +290,25 @@ void MacroJITx64Impl::Compile_Read(Macro::Opcode opcode) {
             sub(result, opcode.immediate * -1);
         }
     }
-    Common::X64::ABI_PushRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
-    mov(Common::X64::ABI_PARAM1, qword[STATE]);
-    mov(Common::X64::ABI_PARAM2, RESULT);
-    Common::X64::CallFarFunction(*this, &Read);
-    Common::X64::ABI_PopRegistersAndAdjustStack(*this, PersistentCallerSavedRegs(), 0);
-    mov(RESULT, Common::X64::ABI_RETURN.cvt32());
+
+    // Equivalent to Engines::Maxwell3D::GetRegisterValue:
+    if (optimizer.enable_asserts) {
+        Xbyak::Label pass_range_check;
+        cmp(RESULT, static_cast<u32>(Engines::Maxwell3D::Regs::NUM_REGS));
+        jb(pass_range_check);
+        int3();
+        L(pass_range_check);
+    }
+    mov(rax, qword[STATE]);
+    mov(RESULT,
+        dword[rax + offsetof(Engines::Maxwell3D, regs) +
+              offsetof(Engines::Maxwell3D::Regs, reg_array) + RESULT.cvt64() * sizeof(u32)]);
+
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
+}
+
+static void Send(Engines::Maxwell3D* maxwell3d, Macro::MethodAddress method_address, u32 value) {
+    maxwell3d->CallMethodFromMME(method_address.address, value);
 }
 
 void Tegra::MacroJITx64Impl::Compile_Send(Xbyak::Reg32 value) {
@@ -437,6 +441,9 @@ void MacroJITx64Impl::Compile() {
     // SMO tends to emit a lot of unnecessary method moves, we can mitigate this by only emitting
     // one if our register isn't "dirty"
     optimizer.optimize_for_method_move = true;
+
+    // Enable run-time assertions in JITted code
+    optimizer.enable_asserts = false;
 
     // Check to see if we can skip emitting certain instructions
     Optimizer_ScanFlags();

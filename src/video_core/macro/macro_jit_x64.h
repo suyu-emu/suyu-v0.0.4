@@ -76,6 +76,7 @@ private:
         bool zero_reg_skip{};
         bool skip_dummy_addimmediate{};
         bool optimize_for_method_move{};
+        bool enable_asserts{};
     };
     OptimizerState optimizer{};
 
