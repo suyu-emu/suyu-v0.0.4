@@ -37,6 +37,7 @@ using Tegra::Shader::IpaMode;
 using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
+using Tegra::Shader::TextureType;
 using VideoCommon::Shader::BuildTransformFeedback;
 using VideoCommon::Shader::Registry;
 
@@ -526,6 +527,9 @@ private:
         if (device.HasImageLoadFormatted()) {
             code.AddLine("#extension GL_EXT_shader_image_load_formatted : require");
         }
+        if (device.HasTextureShadowLod()) {
+            code.AddLine("#extension GL_EXT_texture_shadow_lod : require");
+        }
         if (device.HasWarpIntrinsics()) {
             code.AddLine("#extension GL_NV_gpu_shader5 : require");
             code.AddLine("#extension GL_NV_shader_thread_group : require");
@@ -909,13 +913,13 @@ private:
                     return "samplerBuffer";
                 }
                 switch (sampler.type) {
-                case Tegra::Shader::TextureType::Texture1D:
+                case TextureType::Texture1D:
                     return "sampler1D";
-                case Tegra::Shader::TextureType::Texture2D:
+                case TextureType::Texture2D:
                     return "sampler2D";
-                case Tegra::Shader::TextureType::Texture3D:
+                case TextureType::Texture3D:
                     return "sampler3D";
-                case Tegra::Shader::TextureType::TextureCube:
+                case TextureType::TextureCube:
                     return "samplerCube";
                 default:
                     UNREACHABLE();
@@ -1380,8 +1384,19 @@ private:
         const std::size_t count = operation.GetOperandsCount();
         const bool has_array = meta->sampler.is_array;
         const bool has_shadow = meta->sampler.is_shadow;
+        const bool workaround_lod_array_shadow_as_grad =
+            !device.HasTextureShadowLod() && function_suffix == "Lod" && meta->sampler.is_shadow &&
+            ((meta->sampler.type == TextureType::Texture2D && meta->sampler.is_array) ||
+             meta->sampler.type == TextureType::TextureCube);
 
-        std::string expr = "texture" + function_suffix;
+        std::string expr = "texture";
+
+        if (workaround_lod_array_shadow_as_grad) {
+            expr += "Grad";
+        } else {
+            expr += function_suffix;
+        }
+
         if (!meta->aoffi.empty()) {
             expr += "Offset";
         } else if (!meta->ptp.empty()) {
@@ -1413,6 +1428,16 @@ private:
             }
         } else {
             expr += ')';
+        }
+
+        if (workaround_lod_array_shadow_as_grad) {
+            switch (meta->sampler.type) {
+            case TextureType::Texture2D:
+                return expr + ", vec2(0.0), vec2(0.0))";
+            case TextureType::TextureCube:
+                return expr + ", vec3(0.0), vec3(0.0))";
+            }
+            UNREACHABLE();
         }
 
         for (const auto& variant : extras) {
@@ -2041,8 +2066,19 @@ private:
         const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
         ASSERT(meta);
 
-        std::string expr = GenerateTexture(
-            operation, "Lod", {TextureArgument{Type::Float, meta->lod}, TextureOffset{}});
+        std::string expr{};
+
+        if (!device.HasTextureShadowLod() && meta->sampler.is_shadow &&
+            ((meta->sampler.type == TextureType::Texture2D && meta->sampler.is_array) ||
+             meta->sampler.type == TextureType::TextureCube)) {
+            LOG_ERROR(Render_OpenGL,
+                      "Device lacks GL_EXT_texture_shadow_lod, using textureGrad as a workaround");
+            expr = GenerateTexture(operation, "Lod", {});
+        } else {
+            expr = GenerateTexture(operation, "Lod",
+                                   {TextureArgument{Type::Float, meta->lod}, TextureOffset{}});
+        }
+
         if (meta->sampler.is_shadow) {
             expr = "vec4(" + expr + ')';
         }
