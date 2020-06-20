@@ -281,14 +281,14 @@ private:
 
     template <const std::string_view& op>
     std::string Unary(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("{}{} {}, {};", op, Modifiers(operation), temporary, Visit(operation[0]));
         return temporary;
     }
 
     template <const std::string_view& op>
     std::string Binary(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("{}{} {}, {}, {};", op, Modifiers(operation), temporary, Visit(operation[0]),
                 Visit(operation[1]));
         return temporary;
@@ -296,7 +296,7 @@ private:
 
     template <const std::string_view& op>
     std::string Trinary(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("{}{} {}, {}, {}, {};", op, Modifiers(operation), temporary, Visit(operation[0]),
                 Visit(operation[1]), Visit(operation[2]));
         return temporary;
@@ -304,7 +304,7 @@ private:
 
     template <const std::string_view& op, bool unordered>
     std::string FloatComparison(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("TRUNC.U.CC RC.x, {};", Binary<op>(operation));
         AddLine("MOV.S {}, 0;", temporary);
         AddLine("MOV.S {} (NE.x), -1;", temporary);
@@ -331,7 +331,7 @@ private:
 
     template <const std::string_view& op, bool is_nan>
     std::string HalfComparison(Operation operation) {
-        const std::string tmp1 = AllocVectorTemporary();
+        std::string tmp1 = AllocVectorTemporary();
         const std::string tmp2 = AllocVectorTemporary();
         const std::string op_a = Visit(operation[0]);
         const std::string op_b = Visit(operation[1]);
@@ -367,15 +367,14 @@ private:
             AddLine("MOV.F {}.{}, {};", value, Swizzle(i), Visit(meta.values[i]));
         }
 
-        const std::string result = coord;
-        AddLine("ATOMIM.{}.{} {}.x, {}, {}, image[{}], {};", op, type, result, value, coord,
+        AddLine("ATOMIM.{}.{} {}.x, {}, {}, image[{}], {};", op, type, coord, value, coord,
                 image_id, ImageType(meta.image.type));
-        return fmt::format("{}.x", result);
+        return fmt::format("{}.x", coord);
     }
 
     template <const std::string_view& op, const std::string_view& type>
     std::string Atomic(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         std::string address;
         std::string_view opname;
         if (const auto gmem = std::get_if<GmemNode>(&*operation[0])) {
@@ -396,7 +395,7 @@ private:
 
     template <char type>
     std::string Negate(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         if constexpr (type == 'F') {
             AddLine("MOV.F32 {}, -{};", temporary, Visit(operation[0]));
         } else {
@@ -407,7 +406,7 @@ private:
 
     template <char type>
     std::string Absolute(Operation operation) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("MOV.{} {}, |{}|;", type, temporary, Visit(operation[0]));
         return temporary;
     }
@@ -1156,20 +1155,20 @@ void ARBDecompiler::VisitAST(const ASTNode& node) {
 }
 
 std::string ARBDecompiler::VisitExpression(const Expr& node) {
-    const std::string result = AllocTemporary();
     if (const auto expr = std::get_if<ExprAnd>(&*node)) {
+        std::string result = AllocTemporary();
         AddLine("AND.U {}, {}, {};", result, VisitExpression(expr->operand1),
                 VisitExpression(expr->operand2));
         return result;
     }
     if (const auto expr = std::get_if<ExprOr>(&*node)) {
-        const std::string result = AllocTemporary();
+        std::string result = AllocTemporary();
         AddLine("OR.U {}, {}, {};", result, VisitExpression(expr->operand1),
                 VisitExpression(expr->operand2));
         return result;
     }
     if (const auto expr = std::get_if<ExprNot>(&*node)) {
-        const std::string result = AllocTemporary();
+        std::string result = AllocTemporary();
         AddLine("CMP.S {}, {}, 0, -1;", result, VisitExpression(expr->operand1));
         return result;
     }
@@ -1186,7 +1185,7 @@ std::string ARBDecompiler::VisitExpression(const Expr& node) {
         return expr->value ? "0xffffffff" : "0";
     }
     if (const auto expr = std::get_if<ExprGprEqual>(&*node)) {
-        const std::string result = AllocTemporary();
+        std::string result = AllocTemporary();
         AddLine("SEQ.U {}, R{}.x, {};", result, expr->gpr, expr->value);
         return result;
     }
@@ -1231,13 +1230,13 @@ std::string ARBDecompiler::Visit(const Node& node) {
     }
 
     if (const auto immediate = std::get_if<ImmediateNode>(&*node)) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("MOV.U {}, {};", temporary, immediate->GetValue());
         return temporary;
     }
 
     if (const auto predicate = std::get_if<PredicateNode>(&*node)) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         switch (const auto index = predicate->GetIndex(); index) {
         case Tegra::Shader::Pred::UnusedIndex:
             AddLine("MOV.S {}, -1;", temporary);
@@ -1333,13 +1332,13 @@ std::string ARBDecompiler::Visit(const Node& node) {
         } else {
             offset_string = Visit(offset);
         }
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("LDC.F32 {}, cbuf{}[{}];", temporary, cbuf->GetIndex(), offset_string);
         return temporary;
     }
 
     if (const auto gmem = std::get_if<GmemNode>(&*node)) {
-        const std::string temporary = AllocTemporary();
+        std::string temporary = AllocTemporary();
         AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem->GetRealAddress()),
                 Visit(gmem->GetBaseAddress()));
         AddLine("LDB.U32 {}, {}[{}];", temporary, GlobalMemoryName(gmem->GetDescriptor()),
@@ -1348,14 +1347,14 @@ std::string ARBDecompiler::Visit(const Node& node) {
     }
 
     if (const auto lmem = std::get_if<LmemNode>(&*node)) {
-        const std::string temporary = Visit(lmem->GetAddress());
+        std::string temporary = Visit(lmem->GetAddress());
         AddLine("SHR.U {}, {}, 2;", temporary, temporary);
         AddLine("MOV.U {}, lmem[{}].x;", temporary, temporary);
         return temporary;
     }
 
     if (const auto smem = std::get_if<SmemNode>(&*node)) {
-        const std::string temporary = Visit(smem->GetAddress());
+        std::string temporary = Visit(smem->GetAddress());
         AddLine("LDS.U32 {}, shared_mem[{}];", temporary, temporary);
         return temporary;
     }
@@ -1535,7 +1534,7 @@ std::string ARBDecompiler::Assign(Operation operation) {
 }
 
 std::string ARBDecompiler::Select(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("CMP.S {}, {}, {}, {};", temporary, Visit(operation[0]), Visit(operation[1]),
             Visit(operation[2]));
     return temporary;
@@ -1545,12 +1544,12 @@ std::string ARBDecompiler::FClamp(Operation operation) {
     // 1.0f in hex, replace with std::bit_cast on C++20
     static constexpr u32 POSITIVE_ONE = 0x3f800000;
 
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     const Node& value = operation[0];
     const Node& low = operation[1];
     const Node& high = operation[2];
-    const auto imm_low = std::get_if<ImmediateNode>(&*low);
-    const auto imm_high = std::get_if<ImmediateNode>(&*high);
+    const auto* const imm_low = std::get_if<ImmediateNode>(&*low);
+    const auto* const imm_high = std::get_if<ImmediateNode>(&*high);
     if (imm_low && imm_high && imm_low->GetValue() == 0 && imm_high->GetValue() == POSITIVE_ONE) {
         AddLine("MOV.F32.SAT {}, {};", temporary, Visit(value));
     } else {
@@ -1574,7 +1573,7 @@ std::string ARBDecompiler::FCastHalf1(Operation operation) {
 }
 
 std::string ARBDecompiler::FSqrt(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("RSQ.F32 {}, {};", temporary, Visit(operation[0]));
     AddLine("RCP.F32 {}, {};", temporary, temporary);
     return temporary;
@@ -1588,7 +1587,7 @@ std::string ARBDecompiler::FSwizzleAdd(Operation operation) {
         AddLine("ADD.F {}.x, {}, {};", temporary, Visit(operation[0]), Visit(operation[1]));
         return fmt::format("{}.x", temporary);
     }
-    const std::string lut = AllocVectorTemporary();
+
     AddLine("AND.U {}.z, {}.threadid, 3;", temporary, StageInputName(stage));
     AddLine("SHL.U {}.z, {}.z, 1;", temporary, temporary);
     AddLine("SHR.U {}.z, {}, {}.z;", temporary, Visit(operation[2]), temporary);
@@ -1766,21 +1765,21 @@ std::string ARBDecompiler::LogicalAssign(Operation operation) {
 }
 
 std::string ARBDecompiler::LogicalPick2(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     const u32 index = std::get<ImmediateNode>(*operation[1]).GetValue();
     AddLine("MOV.U {}, {}.{};", temporary, Visit(operation[0]), Swizzle(index));
     return temporary;
 }
 
 std::string ARBDecompiler::LogicalAnd2(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     const std::string op = Visit(operation[0]);
     AddLine("AND.U {}, {}.x, {}.y;", temporary, op, op);
     return temporary;
 }
 
 std::string ARBDecompiler::FloatOrdered(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("MOVC.F32 RC.x, {};", Visit(operation[0]));
     AddLine("MOVC.F32 RC.y, {};", Visit(operation[1]));
     AddLine("MOV.S {}, -1;", temporary);
@@ -1790,7 +1789,7 @@ std::string ARBDecompiler::FloatOrdered(Operation operation) {
 }
 
 std::string ARBDecompiler::FloatUnordered(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("MOVC.F32 RC.x, {};", Visit(operation[0]));
     AddLine("MOVC.F32 RC.y, {};", Visit(operation[1]));
     AddLine("MOV.S {}, 0;", temporary);
@@ -1800,7 +1799,7 @@ std::string ARBDecompiler::FloatUnordered(Operation operation) {
 }
 
 std::string ARBDecompiler::LogicalAddCarry(Operation operation) {
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("ADDC.U RC, {}, {};", Visit(operation[0]), Visit(operation[1]));
     AddLine("MOV.S {}, 0;", temporary);
     AddLine("IF CF.x;");
