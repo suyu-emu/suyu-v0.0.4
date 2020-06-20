@@ -30,7 +30,7 @@ static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
                                                                        config.sub_text.size());
     params.guide_text = Common::UTF16StringFromFixedZeroTerminatedBuffer(config.guide_text.data(),
                                                                          config.guide_text.size());
-    params.initial_text = initial_text;
+    params.initial_text = std::move(initial_text);
     params.max_length = config.length_limit == 0 ? DEFAULT_MAX_LENGTH : config.length_limit;
     params.password = static_cast<bool>(config.is_password);
     params.cursor_at_beginning = static_cast<bool>(config.initial_cursor_position);
@@ -109,7 +109,7 @@ void SoftwareKeyboard::Execute() {
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
 
-    frontend.RequestText([this](std::optional<std::u16string> text) { WriteText(text); },
+    frontend.RequestText([this](std::optional<std::u16string> text) { WriteText(std::move(text)); },
                          parameters);
 }
 
