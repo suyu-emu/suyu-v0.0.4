@@ -19,7 +19,7 @@ namespace VideoCommon {
 
 template <class T>
 class ShaderCache {
-    static constexpr u64 PAGE_SHIFT = 14;
+    static constexpr u64 PAGE_BITS = 14;
 
     struct Entry {
         VAddr addr_start;
@@ -87,8 +87,8 @@ protected:
         const VAddr addr_end = addr + size;
         Entry* const entry = NewEntry(addr, addr_end, data.get());
 
-        const u64 page_end = addr_end >> PAGE_SHIFT;
-        for (u64 page = addr >> PAGE_SHIFT; page <= page_end; ++page) {
+        const u64 page_end = addr_end >> PAGE_BITS;
+        for (u64 page = addr >> PAGE_BITS; page <= page_end; ++page) {
             invalidation_cache[page].push_back(entry);
         }
 
@@ -108,8 +108,8 @@ private:
     /// @pre invalidation_mutex is locked
     void InvalidatePagesInRegion(VAddr addr, std::size_t size) {
         const VAddr addr_end = addr + size;
-        const u64 page_end = addr_end >> PAGE_SHIFT;
-        for (u64 page = addr >> PAGE_SHIFT; page <= page_end; ++page) {
+        const u64 page_end = addr_end >> PAGE_BITS;
+        for (u64 page = addr >> PAGE_BITS; page <= page_end; ++page) {
             const auto it = invalidation_cache.find(page);
             if (it == invalidation_cache.end()) {
                 continue;
