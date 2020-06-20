@@ -106,10 +106,9 @@ std::pair<QString, QString> ConfigureService::BCATDownloadEvents() {
                    .arg(QString::fromStdString(key))
                    .arg(FormatEventStatusString(value));
     }
-    return {QStringLiteral("Current Boxcat Events"), std::move(out)};
+    return {tr("Current Boxcat Events"), std::move(out)};
 #else
-    return {QStringLiteral("Current Boxcat Events"),
-            tr("There are currently no events on boxcat.")};
+    return {tr("Current Boxcat Events"), tr("There are currently no events on boxcat.")};
 #endif
 }
 
