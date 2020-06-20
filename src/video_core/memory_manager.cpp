@@ -210,10 +210,11 @@ bool MemoryManager::IsBlockContinuous(const GPUVAddr start, const std::size_t si
     return range == inner_size;
 }
 
-void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::size_t size) const {
+void MemoryManager::ReadBlock(GPUVAddr gpu_src_addr, void* dest_buffer,
+                              const std::size_t size) const {
     std::size_t remaining_size{size};
-    std::size_t page_index{src_addr >> page_bits};
-    std::size_t page_offset{src_addr & page_mask};
+    std::size_t page_index{gpu_src_addr >> page_bits};
+    std::size_t page_offset{gpu_src_addr & page_mask};
 
     auto& memory = system.Memory();
 
@@ -234,11 +235,11 @@ void MemoryManager::ReadBlock(GPUVAddr src_addr, void* dest_buffer, const std::s
     }
 }
 
-void MemoryManager::ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer,
+void MemoryManager::ReadBlockUnsafe(GPUVAddr gpu_src_addr, void* dest_buffer,
                                     const std::size_t size) const {
     std::size_t remaining_size{size};
-    std::size_t page_index{src_addr >> page_bits};
-    std::size_t page_offset{src_addr & page_mask};
+    std::size_t page_index{gpu_src_addr >> page_bits};
+    std::size_t page_offset{gpu_src_addr & page_mask};
 
     auto& memory = system.Memory();
 
@@ -259,10 +260,11 @@ void MemoryManager::ReadBlockUnsafe(GPUVAddr src_addr, void* dest_buffer,
     }
 }
 
-void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const std::size_t size) {
+void MemoryManager::WriteBlock(GPUVAddr gpu_dest_addr, const void* src_buffer,
+                               const std::size_t size) {
     std::size_t remaining_size{size};
-    std::size_t page_index{dest_addr >> page_bits};
-    std::size_t page_offset{dest_addr & page_mask};
+    std::size_t page_index{gpu_dest_addr >> page_bits};
+    std::size_t page_offset{gpu_dest_addr & page_mask};
 
     auto& memory = system.Memory();
 
@@ -283,11 +285,11 @@ void MemoryManager::WriteBlock(GPUVAddr dest_addr, const void* src_buffer, const
     }
 }
 
-void MemoryManager::WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer,
+void MemoryManager::WriteBlockUnsafe(GPUVAddr gpu_dest_addr, const void* src_buffer,
                                      const std::size_t size) {
     std::size_t remaining_size{size};
-    std::size_t page_index{dest_addr >> page_bits};
-    std::size_t page_offset{dest_addr & page_mask};
+    std::size_t page_index{gpu_dest_addr >> page_bits};
+    std::size_t page_offset{gpu_dest_addr & page_mask};
 
     auto& memory = system.Memory();
 
@@ -306,16 +308,18 @@ void MemoryManager::WriteBlockUnsafe(GPUVAddr dest_addr, const void* src_buffer,
     }
 }
 
-void MemoryManager::CopyBlock(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size) {
+void MemoryManager::CopyBlock(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr,
+                              const std::size_t size) {
     std::vector<u8> tmp_buffer(size);
-    ReadBlock(src_addr, tmp_buffer.data(), size);
-    WriteBlock(dest_addr, tmp_buffer.data(), size);
+    ReadBlock(gpu_src_addr, tmp_buffer.data(), size);
+    WriteBlock(gpu_dest_addr, tmp_buffer.data(), size);
 }
 
-void MemoryManager::CopyBlockUnsafe(GPUVAddr dest_addr, GPUVAddr src_addr, const std::size_t size) {
+void MemoryManager::CopyBlockUnsafe(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_addr,
+                                    const std::size_t size) {
     std::vector<u8> tmp_buffer(size);
-    ReadBlockUnsafe(src_addr, tmp_buffer.data(), size);
-    WriteBlockUnsafe(dest_addr, tmp_buffer.data(), size);
+    ReadBlockUnsafe(gpu_src_addr, tmp_buffer.data(), size);
+    WriteBlockUnsafe(gpu_dest_addr, tmp_buffer.data(), size);
 }
 
 bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) {
