@@ -54,7 +54,7 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
     const bool is_a_zero = opcode.src_a == 0;
     const bool is_b_zero = opcode.src_b == 0;
     const bool valid_operation = !is_a_zero && !is_b_zero;
-    const bool is_move_operation = !is_a_zero && is_b_zero;
+    [[maybe_unused]] const bool is_move_operation = !is_a_zero && is_b_zero;
     const bool has_zero_register = is_a_zero || is_b_zero;
     const bool no_zero_reg_skip = opcode.alu_operation == Macro::ALUOperation::AddWithCarry ||
                                   opcode.alu_operation == Macro::ALUOperation::SubtractWithBorrow;
@@ -73,7 +73,6 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
             src_b = Compile_GetRegister(opcode.src_b, eax);
         }
     }
-    Xbyak::Label skip_carry{};
 
     bool has_emitted = false;
 
