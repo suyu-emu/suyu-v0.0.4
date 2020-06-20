@@ -259,8 +259,8 @@ void MacroJITx64Impl::Compile_ExtractShiftLeftImmediate(Macro::Opcode opcode) {
 }
 
 void MacroJITx64Impl::Compile_ExtractShiftLeftRegister(Macro::Opcode opcode) {
-    auto dst = Compile_GetRegister(opcode.src_a, eax);
-    auto src = Compile_GetRegister(opcode.src_b, RESULT);
+    const auto dst = Compile_GetRegister(opcode.src_a, eax);
+    const auto src = Compile_GetRegister(opcode.src_b, RESULT);
 
     if (opcode.bf_src_bit != 0) {
         shr(src, opcode.bf_src_bit);
@@ -269,7 +269,8 @@ void MacroJITx64Impl::Compile_ExtractShiftLeftRegister(Macro::Opcode opcode) {
     if (opcode.bf_size != 31) {
         and_(src, opcode.GetBitfieldMask());
     }
-    shl(src, al);
+    shl(src, dst.cvt8());
+
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
 }
 
