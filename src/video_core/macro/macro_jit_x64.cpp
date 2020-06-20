@@ -546,7 +546,7 @@ Xbyak::Reg32 MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg32 dst) {
 }
 
 void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u32 reg) {
-    auto SetRegister = [=](u32 reg, Xbyak::Reg32 result) {
+    const auto SetRegister = [this](u32 reg, const Xbyak::Reg32& result) {
         // Register 0 is supposed to always return 0. NOP is implemented as a store to the zero
         // register.
         if (reg == 0) {
@@ -554,7 +554,7 @@ void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u3
         }
         mov(dword[STATE + offsetof(JITState, registers) + reg * sizeof(u32)], result);
     };
-    auto SetMethodAddress = [=](Xbyak::Reg32 reg) { mov(METHOD_ADDRESS, reg); };
+    const auto SetMethodAddress = [this](const Xbyak::Reg32& reg) { mov(METHOD_ADDRESS, reg); };
 
     switch (operation) {
     case Macro::ResultOperation::IgnoreAndFetch:
