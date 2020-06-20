@@ -1053,7 +1053,7 @@ private:
     void DeduceBestBlit(SurfaceParams& src_params, SurfaceParams& dst_params,
                         const GPUVAddr src_gpu_addr, const GPUVAddr dst_gpu_addr) {
         auto deduced_src = DeduceSurface(src_gpu_addr, src_params);
-        auto deduced_dst = DeduceSurface(src_gpu_addr, src_params);
+        auto deduced_dst = DeduceSurface(dst_gpu_addr, dst_params);
         if (deduced_src.Failed() || deduced_dst.Failed()) {
             return;
         }
