@@ -240,10 +240,10 @@ void MacroJITx64Impl::Compile_ExtractInsert(Macro::Opcode opcode) {
 }
 
 void MacroJITx64Impl::Compile_ExtractShiftLeftImmediate(Macro::Opcode opcode) {
-    auto dst = Compile_GetRegister(opcode.src_a, eax);
-    auto src = Compile_GetRegister(opcode.src_b, RESULT);
+    const auto dst = Compile_GetRegister(opcode.src_a, eax);
+    const auto src = Compile_GetRegister(opcode.src_b, RESULT);
 
-    shr(src, al);
+    shr(src, dst.cvt8());
     if (opcode.bf_size != 0 && opcode.bf_size != 31) {
         and_(src, opcode.GetBitfieldMask());
     } else if (opcode.bf_size == 0) {
