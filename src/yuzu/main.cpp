@@ -1800,7 +1800,7 @@ void GMainWindow::OnMenuReportCompatibility() {
 }
 
 void GMainWindow::OnSwitchModsPage() {
-    const std::string mods_page_url = "https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods";
+    const auto mods_page_url = QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods");
     const QString mods_page_url_qs = QString::fromStdString(mods_page_url);
     const QUrl mods_page(mods_page_url_qs);
     const bool open = QDesktopServices::openUrl(mods_page);
