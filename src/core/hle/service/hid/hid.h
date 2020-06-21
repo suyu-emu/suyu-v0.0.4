@@ -95,6 +95,8 @@ private:
     void ActivateNpadWithRevision(Kernel::HLERequestContext& ctx);
     void StartSixAxisSensor(Kernel::HLERequestContext& ctx);
     void SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
+    void GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
+    void ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
     void IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx);
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
