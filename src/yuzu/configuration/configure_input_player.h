@@ -31,7 +31,7 @@ class ConfigureInputPlayer;
 }
 
 class ConfigureInputPlayer : public QDialog {
-    Q_OBJECT
+Q_OBJECT
 
 public:
     explicit ConfigureInputPlayer(QWidget* parent, std::size_t player_index, bool debug = false);
@@ -92,15 +92,15 @@ private:
     /// A group of five QPushButtons represent one analog input. The buttons each represent up,
     /// down, left, right, and modifier, respectively.
     std::array<std::array<QPushButton*, ANALOG_SUB_BUTTONS_NUM>, Settings::NativeAnalog::NumAnalogs>
-        analog_map_buttons;
+    analog_map_buttons;
 
     /// Analog inputs are also represented each with a single button, used to configure with an
     /// actual analog stick
     std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> analog_map_stick;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs>
-        analog_map_deadzone_and_modifier_slider;
+    analog_map_deadzone_and_modifier_slider;
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs>
-        analog_map_deadzone_and_modifier_slider_label;
+    analog_map_deadzone_and_modifier_slider_label;
 
     static const std::array<std::string, ANALOG_SUB_BUTTONS_NUM> analog_sub_buttons;
 

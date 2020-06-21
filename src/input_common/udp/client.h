@@ -40,6 +40,7 @@ struct DeviceStatus {
         u16 max_x{};
         u16 max_y{};
     };
+
     std::optional<CalibrationData> touch_calibration;
 };
 
@@ -72,6 +73,7 @@ public:
         Stage1Completed,
         Completed,
     };
+
     /**
      * Constructs and starts the job with the specified parameter.
      *

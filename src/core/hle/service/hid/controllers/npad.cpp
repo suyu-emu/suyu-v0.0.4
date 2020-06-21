@@ -44,7 +44,7 @@ static Controller_NPad::NPadControllerType MapSettingsTypeToNPad(Settings::Contr
     case Settings::ControllerType::RightJoycon:
         return Controller_NPad::NPadControllerType::JoyRight;
     default:
-        UNREACHABLE();
+    UNREACHABLE();
         return Controller_NPad::NPadControllerType::JoyDual;
     }
 }
@@ -93,7 +93,10 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
     };
 }
 
-Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {}
+Controller_NPad::Controller_NPad(Core::System& system)
+    : ControllerBase(system), system(system) {
+}
+
 Controller_NPad::~Controller_NPad() = default;
 
 void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
@@ -106,7 +109,7 @@ void Controller_NPad::InitNewlyAddedControler(std::size_t controller_idx) {
     controller.device_type.raw = 0;
     switch (controller_type) {
     case NPadControllerType::None:
-        UNREACHABLE();
+    UNREACHABLE();
         break;
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
@@ -194,7 +197,8 @@ void Controller_NPad::OnInit() {
 
     std::transform(
         Settings::values.players.begin(), Settings::values.players.end(),
-        connected_controllers.begin(), [](const Settings::PlayerInput& player) {
+        connected_controllers.begin(), [](const Settings::PlayerInput& player)
+        {
             return ControllerHolder{MapSettingsTypeToNPad(player.type), player.connected};
         });
 
@@ -238,7 +242,8 @@ void Controller_NPad::OnLoadInputDevices() {
     }
 }
 
-void Controller_NPad::OnRelease() {}
+void Controller_NPad::OnRelease() {
+}
 
 void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     const auto controller_idx = NPadIdToIndex(npad_id);
@@ -276,27 +281,31 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     pad_state.d_down.Assign(button_state[DDown - BUTTON_HID_BEGIN]->GetStatus());
 
     pad_state.l_stick_right.Assign(
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->
+        GetAnalogDirectionStatus(
             Input::AnalogDirection::RIGHT));
     pad_state.l_stick_left.Assign(
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->
+        GetAnalogDirectionStatus(
             Input::AnalogDirection::LEFT));
     pad_state.l_stick_up.Assign(
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->
+        GetAnalogDirectionStatus(
             Input::AnalogDirection::UP));
     pad_state.l_stick_down.Assign(
-        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetAnalogDirectionStatus(
+        analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->
+        GetAnalogDirectionStatus(
             Input::AnalogDirection::DOWN));
 
     pad_state.r_stick_right.Assign(
         analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-            ->GetAnalogDirectionStatus(Input::AnalogDirection::RIGHT));
+        ->GetAnalogDirectionStatus(Input::AnalogDirection::RIGHT));
     pad_state.r_stick_left.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::LEFT));
+        ->GetAnalogDirectionStatus(Input::AnalogDirection::LEFT));
     pad_state.r_stick_up.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-                                    ->GetAnalogDirectionStatus(Input::AnalogDirection::UP));
+        ->GetAnalogDirectionStatus(Input::AnalogDirection::UP));
     pad_state.r_stick_down.Assign(analog_state[static_cast<std::size_t>(JoystickId::Joystick_Right)]
-                                      ->GetAnalogDirectionStatus(Input::AnalogDirection::DOWN));
+        ->GetAnalogDirectionStatus(Input::AnalogDirection::DOWN));
 
     pad_state.left_sl.Assign(button_state[SL - BUTTON_HID_BEGIN]->GetStatus());
     pad_state.left_sr.Assign(button_state[SR - BUTTON_HID_BEGIN]->GetStatus());
@@ -363,7 +372,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
 
         switch (controller_type) {
         case NPadControllerType::None:
-            UNREACHABLE();
+        UNREACHABLE();
             break;
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
@@ -459,8 +468,9 @@ void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
             continue;
         }
         const auto requested_controller =
-            i <= MAX_NPAD_ID ? MapSettingsTypeToNPad(Settings::values.players[i].type)
-                             : NPadControllerType::Handheld;
+            i <= MAX_NPAD_ID
+                ? MapSettingsTypeToNPad(Settings::values.players[i].type)
+                : NPadControllerType::Handheld;
         if (!IsControllerSupported(requested_controller)) {
             const auto is_handheld = requested_controller == NPadControllerType::Handheld;
             if (is_handheld) {

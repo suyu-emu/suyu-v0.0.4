@@ -14,7 +14,8 @@ public:
            float modifier_scale_)
         : up(std::move(up_)), down(std::move(down_)), left(std::move(left_)),
           right(std::move(right_)), modifier(std::move(modifier_)),
-          modifier_scale(modifier_scale_) {}
+          modifier_scale(modifier_scale_) {
+    }
 
     std::tuple<float, float> GetStatus() const override {
         constexpr float SQRT_HALF = 0.707106781f;

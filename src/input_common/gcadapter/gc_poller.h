@@ -1,0 +1,59 @@
+#pragma once
+
+#include <memory>
+#include "core/frontend/input.h"
+
+namespace InputCommon {
+
+
+/**
+ * A button device factory representing a gcpad. It receives gcpad events and forward them
+ * to all button devices it created.
+ */
+class GCButtonFactory final : public Input::Factory<Input::ButtonDevice> {
+public:
+    GCButtonFactory();
+
+    /**
+     * Creates a button device from a button press
+     * @param params contains parameters for creating the device:
+     *     - "code": the code of the key to bind with the button
+     */
+    std::unique_ptr<Input::ButtonDevice> Create(const Common::ParamPackage& params) override;
+
+    Common::ParamPackage GetNextInput();
+
+    /// For device input configuration/polling
+    void BeginConfiguration();
+    void EndConfiguration();
+
+    bool IsPolling() {
+        return polling;
+    }
+
+private:
+    bool polling = false;
+};
+
+/// An analog device factory that creates analog devices from GC Adapter
+class GCAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
+public:
+    GCAnalogFactory();
+    std::unique_ptr<Input::AnalogDevice> Create(const Common::ParamPackage& params) override;
+    Common::ParamPackage GetNextInput();
+
+    /// For device input configuration/polling
+    void BeginConfiguration();
+    void EndConfiguration();
+
+    bool IsPolling() {
+        return polling;
+    }
+
+private:
+    int analog_x_axis = -1;
+    int analog_y_axis = -1;
+    int controller_number = -1;
+    bool polling = false;
+};
+} // namespace InputCommon

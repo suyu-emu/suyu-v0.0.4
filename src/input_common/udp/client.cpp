@@ -59,7 +59,8 @@ public:
     void StartReceive() {
         socket.async_receive_from(
             boost::asio::buffer(receive_buffer), receive_endpoint,
-            [this](const boost::system::error_code& error, std::size_t bytes_transferred) {
+            [this](const boost::system::error_code& error, std::size_t bytes_transferred)
+            {
                 HandleReceive(error, bytes_transferred);
             });
     }
@@ -211,21 +212,27 @@ void Client::StartCommunication(const std::string& host, u16 port, u8 pad_index,
 void TestCommunication(const std::string& host, u16 port, u8 pad_index, u32 client_id,
                        std::function<void()> success_callback,
                        std::function<void()> failure_callback) {
-    std::thread([=] {
-        Common::Event success_event;
-        SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
-                                [&](Response::PadData data) { success_event.Set(); }};
-        Socket socket{host, port, pad_index, client_id, std::move(callback)};
-        std::thread worker_thread{SocketLoop, &socket};
-        bool result = success_event.WaitFor(std::chrono::seconds(8));
-        socket.Stop();
-        worker_thread.join();
-        if (result) {
-            success_callback();
-        } else {
-            failure_callback();
-        }
-    })
+    std::thread([=]
+        {
+            Common::Event success_event;
+            SocketCallback callback{[](Response::Version version)
+                                    {
+                                    },
+                                    [](Response::PortInfo info)
+                                    {
+                                    },
+                                    [&](Response::PadData data) { success_event.Set(); }};
+            Socket socket{host, port, pad_index, client_id, std::move(callback)};
+            std::thread worker_thread{SocketLoop, &socket};
+            bool result = success_event.WaitFor(std::chrono::seconds(8));
+            socket.Stop();
+            worker_thread.join();
+            if (result) {
+                success_callback();
+            } else {
+                failure_callback();
+            }
+        })
         .detach();
 }
 
@@ -234,53 +241,60 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
     std::function<void(Status)> status_callback,
     std::function<void(u16, u16, u16, u16)> data_callback) {
 
-    std::thread([=] {
-        constexpr u16 CALIBRATION_THRESHOLD = 100;
+    std::thread([=]
+        {
+            constexpr u16 CALIBRATION_THRESHOLD = 100;
 
-        u16 min_x{UINT16_MAX};
-        u16 min_y{UINT16_MAX};
-        u16 max_x{};
-        u16 max_y{};
+            u16 min_x{UINT16_MAX};
+            u16 min_y{UINT16_MAX};
+            u16 max_x{};
+            u16 max_y{};
 
-        Status current_status{Status::Initialized};
-        SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
-                                [&](Response::PadData data) {
-                                    if (current_status == Status::Initialized) {
-                                        // Receiving data means the communication is ready now
-                                        current_status = Status::Ready;
-                                        status_callback(current_status);
-                                    }
-                                    if (!data.touch_1.is_active) {
-                                        return;
-                                    }
-                                    LOG_DEBUG(Input, "Current touch: {} {}", data.touch_1.x,
-                                              data.touch_1.y);
-                                    min_x = std::min(min_x, static_cast<u16>(data.touch_1.x));
-                                    min_y = std::min(min_y, static_cast<u16>(data.touch_1.y));
-                                    if (current_status == Status::Ready) {
-                                        // First touch - min data (min_x/min_y)
-                                        current_status = Status::Stage1Completed;
-                                        status_callback(current_status);
-                                    }
-                                    if (data.touch_1.x - min_x > CALIBRATION_THRESHOLD &&
-                                        data.touch_1.y - min_y > CALIBRATION_THRESHOLD) {
-                                        // Set the current position as max value and finishes
-                                        // configuration
-                                        max_x = data.touch_1.x;
-                                        max_y = data.touch_1.y;
-                                        current_status = Status::Completed;
-                                        data_callback(min_x, min_y, max_x, max_y);
-                                        status_callback(current_status);
+            Status current_status{Status::Initialized};
+            SocketCallback callback{[](Response::Version version)
+                                    {
+                                    },
+                                    [](Response::PortInfo info)
+                                    {
+                                    },
+                                    [&](Response::PadData data)
+                                    {
+                                        if (current_status == Status::Initialized) {
+                                            // Receiving data means the communication is ready now
+                                            current_status = Status::Ready;
+                                            status_callback(current_status);
+                                        }
+                                        if (!data.touch_1.is_active) {
+                                            return;
+                                        }
+                                        LOG_DEBUG(Input, "Current touch: {} {}", data.touch_1.x,
+                                                  data.touch_1.y);
+                                        min_x = std::min(min_x, static_cast<u16>(data.touch_1.x));
+                                        min_y = std::min(min_y, static_cast<u16>(data.touch_1.y));
+                                        if (current_status == Status::Ready) {
+                                            // First touch - min data (min_x/min_y)
+                                            current_status = Status::Stage1Completed;
+                                            status_callback(current_status);
+                                        }
+                                        if (data.touch_1.x - min_x > CALIBRATION_THRESHOLD &&
+                                            data.touch_1.y - min_y > CALIBRATION_THRESHOLD) {
+                                            // Set the current position as max value and finishes
+                                            // configuration
+                                            max_x = data.touch_1.x;
+                                            max_y = data.touch_1.y;
+                                            current_status = Status::Completed;
+                                            data_callback(min_x, min_y, max_x, max_y);
+                                            status_callback(current_status);
 
-                                        complete_event.Set();
-                                    }
-                                }};
-        Socket socket{host, port, pad_index, client_id, std::move(callback)};
-        std::thread worker_thread{SocketLoop, &socket};
-        complete_event.Wait();
-        socket.Stop();
-        worker_thread.join();
-    })
+                                            complete_event.Set();
+                                        }
+                                    }};
+            Socket socket{host, port, pad_index, client_id, std::move(callback)};
+            std::thread worker_thread{SocketLoop, &socket};
+            complete_event.Wait();
+            socket.Stop();
+            worker_thread.join();
+        })
         .detach();
 }
 
