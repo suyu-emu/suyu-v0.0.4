@@ -827,7 +827,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
-    connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnSwitchModsPage);
+    connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnOpenModsPage);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -1799,7 +1799,7 @@ void GMainWindow::OnMenuReportCompatibility() {
     }
 }
 
-void GMainWindow::OnSwitchModsPage() {
+void GMainWindow::OnOpenModsPage() {
     const auto mods_page_url = QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods");
     const QUrl mods_page(mods_page_url);
     const bool open = QDesktopServices::openUrl(mods_page);
