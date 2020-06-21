@@ -1,7 +1,7 @@
 // Copyright 2014 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
-//*
+
 #include "common/logging/log.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/gcadapter/gc_adapter.h"
@@ -45,35 +45,48 @@ GCPadStatus CheckStatus(int port, u8 adapter_payload[37]) {
         u8 b1 = adapter_payload[1 + (9 * port) + 1];
         u8 b2 = adapter_payload[1 + (9 * port) + 2];
 
-        if (b1 & (1 << 0))
+        if (b1 & (1 << 0)) {
             pad.button |= PAD_BUTTON_A;
-        if (b1 & (1 << 1))
+        }
+        if (b1 & (1 << 1)) {
             pad.button |= PAD_BUTTON_B;
-        if (b1 & (1 << 2))
+        }
+        if (b1 & (1 << 2)) {
             pad.button |= PAD_BUTTON_X;
-        if (b1 & (1 << 3))
+        }
+        if (b1 & (1 << 3)) {
             pad.button |= PAD_BUTTON_Y;
+        }
 
-        if (b1 & (1 << 4))
+        if (b1 & (1 << 4)) {
             pad.button |= PAD_BUTTON_LEFT;
-        if (b1 & (1 << 5))
+        }
+        if (b1 & (1 << 5)) {
             pad.button |= PAD_BUTTON_RIGHT;
-        if (b1 & (1 << 6))
+        }
+        if (b1 & (1 << 6)) {
             pad.button |= PAD_BUTTON_DOWN;
-        if (b1 & (1 << 7))
+        }
+        if (b1 & (1 << 7)) {
             pad.button |= PAD_BUTTON_UP;
+        }
 
-        if (b2 & (1 << 0))
+        if (b2 & (1 << 0)) {
             pad.button |= PAD_BUTTON_START;
-        if (b2 & (1 << 1))
+        }
+        if (b2 & (1 << 1)) {
             pad.button |= PAD_TRIGGER_Z;
-        if (b2 & (1 << 2))
+        }
+        if (b2 & (1 << 2)) {
             pad.button |= PAD_TRIGGER_R;
-        if (b2 & (1 << 3))
+        }
+        if (b2 & (1 << 3)) {
             pad.button |= PAD_TRIGGER_L;
+        }
 
-        if (get_origin)
+        if (get_origin) {
             pad.button |= PAD_GET_ORIGIN;
+        }
 
         pad.stickX = adapter_payload[1 + (9 * port) + 3];
         pad.stickY = adapter_payload[1 + (9 * port) + 4];
@@ -86,7 +99,7 @@ GCPadStatus CheckStatus(int port, u8 adapter_payload[37]) {
 }
 
 void PadToState(GCPadStatus pad, GCState& state) {
-    //std::lock_guard lock{s_mutex};
+    // std::lock_guard lock{s_mutex};
     state.buttons.insert_or_assign(PAD_BUTTON_A, pad.button & PAD_BUTTON_A);
     state.buttons.insert_or_assign(PAD_BUTTON_B, pad.button & PAD_BUTTON_B);
     state.buttons.insert_or_assign(PAD_BUTTON_X, pad.button & PAD_BUTTON_X);
@@ -125,7 +138,7 @@ static void Read() {
                       std::begin(controller_payload_copy));
             payload_size = payload_size_in;
         }
-        
+
         GCPadStatus pad[4];
         if (payload_size != sizeof(controller_payload_copy) ||
             controller_payload_copy[0] != LIBUSB_DT_HID) {
@@ -137,8 +150,9 @@ static void Read() {
         }
         for (int port = 0; port < 4; port++) {
             if (DeviceConnected(port) && configuring) {
-                if (pad[port].button != PAD_GET_ORIGIN)
+                if (pad[port].button != PAD_GET_ORIGIN) {
                     pad_queue[port].Push(pad[port]);
+                }
 
                 // Accounting for a threshold here because of some controller variance
                 if (pad[port].stickX > pad[port].MAIN_STICK_CENTER_X + pad[port].THRESHOLD ||
@@ -186,8 +200,9 @@ static void ScanThreadFunc() {
 
 void Init() {
 
-    if (usb_adapter_handle != nullptr)
+    if (usb_adapter_handle != nullptr) {
         return;
+    }
     LOG_INFO(Input, "GC Adapter Initialization started");
 
     current_status = NO_ADAPTER_DETECTED;
@@ -197,10 +212,12 @@ void Init() {
 }
 
 void StartScanThread() {
-    if (detect_thread_running)
+    if (detect_thread_running) {
         return;
-    if (!libusb_ctx)
+    }
+    if (!libusb_ctx) {
         return;
+    }
 
     detect_thread_running = true;
     detect_thread = std::thread(ScanThreadFunc);
@@ -212,15 +229,17 @@ void StopScanThread() {
 
 static void Setup() {
     // Reset the error status in case the adapter gets unplugged
-    if (current_status < 0)
+    if (current_status < 0) {
         current_status = NO_ADAPTER_DETECTED;
+    }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         adapter_controllers_status[i] = ControllerTypes::CONTROLLER_NONE;
-    
+    }
+
     libusb_device** devs; // pointer to list of connected usb devices
 
-    int cnt = libusb_get_device_list(libusb_ctx, &devs); //get the list of devices
+    int cnt = libusb_get_device_list(libusb_ctx, &devs); // get the list of devices
 
     for (int i = 0; i < cnt; i++) {
         if (CheckDeviceAccess(devs[i])) {
@@ -247,9 +266,8 @@ static bool CheckDeviceAccess(libusb_device* device) {
     ret = libusb_open(device, &usb_adapter_handle);
 
     if (ret == LIBUSB_ERROR_ACCESS) {
-        LOG_ERROR(Input,
-            "Yuzu can not gain access to this device: ID %04X:%04X.",
-            desc.idVendor, desc.idProduct);
+        LOG_ERROR(Input, "Yuzu can not gain access to this device: ID %04X:%04X.", desc.idVendor,
+                  desc.idProduct);
         return false;
     }
     if (ret) {
@@ -260,8 +278,9 @@ static bool CheckDeviceAccess(libusb_device* device) {
     ret = libusb_kernel_driver_active(usb_adapter_handle, 0);
     if (ret == 1) {
         ret = libusb_detach_kernel_driver(usb_adapter_handle, 0);
-        if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
+        if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED) {
             LOG_ERROR(Input, "libusb_detach_kernel_driver failed with error = %d", ret);
+        }
     }
 
     if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED) {
@@ -290,8 +309,9 @@ static void GetGCEndpoint(libusb_device* device) {
             const libusb_interface_descriptor* interface = &interfaceContainer->altsetting[i];
             for (u8 e = 0; e < interface->bNumEndpoints; e++) {
                 const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
-                if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+                if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) {
                     input_endpoint = endpoint->bEndpointAddress;
+                }
             }
         }
     }
@@ -311,16 +331,20 @@ void Shutdown() {
 
 static void Reset() {
     std::unique_lock<std::mutex> lock(initialization_mutex, std::defer_lock);
-    if (!lock.try_lock())
+    if (!lock.try_lock()) {
         return;
-    if (current_status != ADAPTER_DETECTED)
+    }
+    if (current_status != ADAPTER_DETECTED) {
         return;
+    }
 
-    if (adapter_thread_running)
+    if (adapter_thread_running) {
         adapter_input_thread.join();
+    }
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         adapter_controllers_status[i] = ControllerTypes::CONTROLLER_NONE;
+    }
 
     current_status = NO_ADAPTER_DETECTED;
 

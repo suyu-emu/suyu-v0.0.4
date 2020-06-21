@@ -1,10 +1,14 @@
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #include <atomic>
 #include <list>
 #include <mutex>
 #include <utility>
-#include "input_common/gcadapter/gc_poller.h"
-#include "input_common/gcadapter/gc_adapter.h"
 #include "common/threadsafe_queue.h"
+#include "input_common/gcadapter/gc_adapter.h"
+#include "input_common/gcadapter/gc_poller.h"
 
 // Using extern as to avoid multply defined symbols.
 extern Common::SPSCQueue<GCPadStatus> pad_queue[4];
@@ -14,9 +18,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, int axis_)
-        : port(port_), button(button_) {
-    }
+    explicit GCButton(int port_, int button_, int axis_) : port(port_), button(button_) {}
 
     ~GCButton() override;
 
@@ -31,17 +33,14 @@ private:
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
-    explicit GCAxisButton(int port_, int axis_, float threshold_,
-                          bool trigger_if_greater_)
-        : port(port_), axis(axis_), threshold(threshold_),
-          trigger_if_greater(trigger_if_greater_) {
+    explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_)
+        : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_) {
     }
-
 
     bool GetStatus() const override {
         const float axis_value = (state[port].axes.at(axis) - 128.0f) / 128.0f;
         if (trigger_if_greater) {
-            return axis_value > 0.10f; //TODO(ameerj) : Fix threshold.
+            return axis_value > 0.10f; // TODO(ameerj) : Fix threshold.
         }
         return axis_value < -0.10f;
     }
@@ -164,29 +163,30 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
 
 void GCButtonFactory::BeginConfiguration() {
     polling = true;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         pad_queue[i].Clear();
+    }
     GCAdapter::BeginConfiguration();
 }
 
 void GCButtonFactory::EndConfiguration() {
     polling = false;
-
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         pad_queue[i].Clear();
+    }
     GCAdapter::EndConfiguration();
 }
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
     GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_)
-        : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {
-    }
+        : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {}
 
     float GetAxis(int axis) const {
         std::lock_guard lock{mutex};
         // division is not by a perfect 128 to account for some variance in center location
-        // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range [20-230]
+        // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
+        // [20-230]
         return (state[port].axes.at(axis) - 128.0f) / 95.0f;
     }
 
@@ -240,18 +240,16 @@ private:
     mutable std::mutex mutex;
 };
 
-
 /// An analog device factory that creates analog devices from GC Adapter
-GCAnalogFactory::GCAnalogFactory() {};
-
+GCAnalogFactory::GCAnalogFactory(){};
 
 /**
-* Creates analog device from joystick axes
-* @param params contains parameters for creating the device:
-*     - "port": the nth gcpad on the adapter
-*     - "axis_x": the index of the axis to be bind as x-axis
-*     - "axis_y": the index of the axis to be bind as y-axis
-*/
+ * Creates analog device from joystick axes
+ * @param params contains parameters for creating the device:
+ *     - "port": the nth gcpad on the adapter
+ *     - "axis_x": the index of the axis to be bind as x-axis
+ *     - "axis_y": the index of the axis to be bind as y-axis
+ */
 std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::ParamPackage& params) {
     const std::string guid = params.Get("guid", "0");
     const int port = params.Get("port", 0);
@@ -264,15 +262,17 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
 
 void GCAnalogFactory::BeginConfiguration() {
     polling = true;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         pad_queue[i].Clear();
+    }
     GCAdapter::BeginConfiguration();
 }
 
 void GCAnalogFactory::EndConfiguration() {
     polling = false;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++) {
         pad_queue[i].Clear();
+    }
     GCAdapter::EndConfiguration();
 }
 

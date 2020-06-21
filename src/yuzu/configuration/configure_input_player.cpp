@@ -19,13 +19,13 @@
 #include "yuzu/configuration/configure_input_player.h"
 
 const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
-ConfigureInputPlayer::analog_sub_buttons{{
-    "up",
-    "down",
-    "left",
-    "right",
-    "modifier",
-}};
+    ConfigureInputPlayer::analog_sub_buttons{{
+        "up",
+        "down",
+        "left",
+        "right",
+        "modifier",
+    }};
 
 static void LayerGridElements(QGridLayout* grid, QWidget* item, QWidget* onTopOf) {
     const int index1 = grid->indexOf(item);
@@ -151,13 +151,13 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     setFocusPolicy(Qt::ClickFocus);
 
     button_map = {
-        ui->buttonA, ui->buttonB, ui->buttonX, ui->buttonY,
-        ui->buttonLStick, ui->buttonRStick, ui->buttonL, ui->buttonR,
-        ui->buttonZL, ui->buttonZR, ui->buttonPlus, ui->buttonMinus,
-        ui->buttonDpadLeft, ui->buttonDpadUp, ui->buttonDpadRight, ui->buttonDpadDown,
+        ui->buttonA,          ui->buttonB,        ui->buttonX,           ui->buttonY,
+        ui->buttonLStick,     ui->buttonRStick,   ui->buttonL,           ui->buttonR,
+        ui->buttonZL,         ui->buttonZR,       ui->buttonPlus,        ui->buttonMinus,
+        ui->buttonDpadLeft,   ui->buttonDpadUp,   ui->buttonDpadRight,   ui->buttonDpadDown,
         ui->buttonLStickLeft, ui->buttonLStickUp, ui->buttonLStickRight, ui->buttonLStickDown,
         ui->buttonRStickLeft, ui->buttonRStickUp, ui->buttonRStickRight, ui->buttonRStickDown,
-        ui->buttonSL, ui->buttonSR, ui->buttonHome, ui->buttonScreenshot,
+        ui->buttonSL,         ui->buttonSR,       ui->buttonHome,        ui->buttonScreenshot,
     };
 
     analog_map_buttons = {{
@@ -178,11 +178,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     }};
 
     debug_hidden = {
-        ui->buttonSL, ui->labelSL,
-        ui->buttonSR, ui->labelSR,
-        ui->buttonLStick, ui->labelLStickPressed,
-        ui->buttonRStick, ui->labelRStickPressed,
-        ui->buttonHome, ui->labelHome,
+        ui->buttonSL,         ui->labelSL,
+        ui->buttonSR,         ui->labelSR,
+        ui->buttonLStick,     ui->labelLStickPressed,
+        ui->buttonRStick,     ui->labelRStickPressed,
+        ui->buttonHome,       ui->labelHome,
         ui->buttonScreenshot, ui->labelScreenshot,
     };
 
@@ -221,12 +221,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     case Settings::ControllerType::RightJoycon:
         layout_hidden = {
             ui->left_body_button, ui->left_buttons_button,
-            ui->left_body_label, ui->left_buttons_label,
-            ui->buttonL, ui->labelL,
-            ui->buttonZL, ui->labelZL,
-            ui->labelScreenshot, ui->buttonScreenshot,
-            ui->buttonMinus, ui->labelMinus,
-            ui->LStick, ui->Dpad,
+            ui->left_body_label,  ui->left_buttons_label,
+            ui->buttonL,          ui->labelL,
+            ui->buttonZL,         ui->labelZL,
+            ui->labelScreenshot,  ui->buttonScreenshot,
+            ui->buttonMinus,      ui->labelMinus,
+            ui->LStick,           ui->Dpad,
         };
         break;
     }
@@ -261,38 +261,34 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QPushButton::clicked, [=]
-        {
-            HandleClick(button_map[button_id],
-                        [=](Common::ParamPackage params)
-                        {
-                            // Workaround for ZL & ZR for analog triggers like on XBOX controllors.
-                            // Analog triggers (from controllers like the XBOX controller) would not
-                            // work due to a different range of their signals (from 0 to 255 on
-                            // analog triggers instead of -32768 to 32768 on analog joysticks). The
-                            // SDL driver misinterprets analog triggers as analog joysticks.
-                            // TODO: reinterpret the signal range for analog triggers to map the
-                            // values correctly. This is required for the correct emulation of the
-                            // analog triggers of the GameCube controller.
-                            if (button_id == Settings::NativeButton::ZL ||
-                                button_id == Settings::NativeButton::ZR) {
-                                params.Set("direction", "+");
-                                params.Set("threshold", "0.5");
-                            }
-                            buttons_param[button_id] = std::move(params);
-                        },
-                        InputCommon::Polling::DeviceType::Button);
+        connect(button, &QPushButton::clicked, [=] {
+            HandleClick(
+                button_map[button_id],
+                [=](Common::ParamPackage params) {
+                    // Workaround for ZL & ZR for analog triggers like on XBOX controllors.
+                    // Analog triggers (from controllers like the XBOX controller) would not
+                    // work due to a different range of their signals (from 0 to 255 on
+                    // analog triggers instead of -32768 to 32768 on analog joysticks). The
+                    // SDL driver misinterprets analog triggers as analog joysticks.
+                    // TODO: reinterpret the signal range for analog triggers to map the
+                    // values correctly. This is required for the correct emulation of the
+                    // analog triggers of the GameCube controller.
+                    if (button_id == Settings::NativeButton::ZL ||
+                        button_id == Settings::NativeButton::ZR) {
+                        params.Set("direction", "+");
+                        params.Set("threshold", "0.5");
+                    }
+                    buttons_param[button_id] = std::move(params);
+                },
+                InputCommon::Polling::DeviceType::Button);
         });
-        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location)
-        {
+        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
             QMenu context_menu;
-            context_menu.addAction(tr("Clear"), [&]
-            {
+            context_menu.addAction(tr("Clear"), [&] {
                 buttons_param[button_id].Clear();
                 button_map[button_id]->setText(tr("[not set]"));
             });
-            context_menu.addAction(tr("Restore Default"), [&]
-            {
+            context_menu.addAction(tr("Restore Default"), [&] {
                 buttons_param[button_id] = Common::ParamPackage{
                     InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
                 button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
@@ -309,27 +305,23 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
 
             analog_button->setContextMenuPolicy(Qt::CustomContextMenu);
-            connect(analog_button, &QPushButton::clicked, [=]()
-            {
-                HandleClick(analog_map_buttons[analog_id][sub_button_id],
-                            [=](const Common::ParamPackage& params)
-                            {
-                                SetAnalogButton(params, analogs_param[analog_id],
-                                                analog_sub_buttons[sub_button_id]);
-                            },
-                            InputCommon::Polling::DeviceType::Button);
+            connect(analog_button, &QPushButton::clicked, [=]() {
+                HandleClick(
+                    analog_map_buttons[analog_id][sub_button_id],
+                    [=](const Common::ParamPackage& params) {
+                        SetAnalogButton(params, analogs_param[analog_id],
+                                        analog_sub_buttons[sub_button_id]);
+                    },
+                    InputCommon::Polling::DeviceType::Button);
             });
             connect(analog_button, &QPushButton::customContextMenuRequested,
-                    [=](const QPoint& menu_location)
-                    {
+                    [=](const QPoint& menu_location) {
                         QMenu context_menu;
-                        context_menu.addAction(tr("Clear"), [&]
-                        {
+                        context_menu.addAction(tr("Clear"), [&] {
                             analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
                             analog_map_buttons[analog_id][sub_button_id]->setText(tr("[not set]"));
                         });
-                        context_menu.addAction(tr("Restore Default"), [&]
-                        {
+                        context_menu.addAction(tr("Restore Default"), [&] {
                             Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
                                 Config::default_analogs[analog_id][sub_button_id])};
                             SetAnalogButton(params, analogs_param[analog_id],
@@ -341,12 +333,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             menu_location));
                     });
         }
-        connect(analog_map_stick[analog_id], &QPushButton::clicked, [=]
-        {
+        connect(analog_map_stick[analog_id], &QPushButton::clicked, [=] {
             if (QMessageBox::information(
                     this, tr("Information"),
                     tr("After pressing OK, first move your joystick horizontally, "
-                        "and then vertically."),
+                       "and then vertically."),
                     QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
                 HandleClick(
                     analog_map_stick[analog_id],
@@ -355,8 +346,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
         });
 
-        connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged, [=]
-        {
+        connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged, [=] {
             const float slider_value = analog_map_deadzone_and_modifier_slider[analog_id]->value();
             if (analogs_param[analog_id].Get("engine", "") == "sdl" ||
                 analogs_param[analog_id].Get("engine", "") == "gcpad") {
@@ -377,8 +367,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     timeout_timer->setSingleShot(true);
     connect(timeout_timer.get(), &QTimer::timeout, [this] { SetPollingResult({}, true); });
 
-    connect(poll_timer.get(), &QTimer::timeout, [this]
-    {
+    connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
         if (InputCommon::GetGCButtons()->IsPolling()) {
             params = InputCommon::GetGCButtons()->GetNextInput();
@@ -505,7 +494,7 @@ void ConfigureInputPlayer::LoadConfiguration() {
     for (std::size_t i = 0; i < colors.size(); ++i) {
         controller_color_buttons[i]->setStyleSheet(
             QStringLiteral("QPushButton { background-color: %1 }")
-            .arg(controller_colors[i].name()));
+                .arg(controller_colors[i].name()));
     }
 }
 
@@ -625,10 +614,11 @@ void ConfigureInputPlayer::HandleClick(
 
     grabKeyboard();
     grabMouse();
-    if (type == InputCommon::Polling::DeviceType::Button)
+    if (type == InputCommon::Polling::DeviceType::Button) {
         InputCommon::GetGCButtons()->BeginConfiguration();
-    else
+    } else {
         InputCommon::GetGCAnalogs()->BeginConfiguration();
+    }
     timeout_timer->start(5000); // Cancel after 5 seconds
     poll_timer->start(200);     // Check for new inputs every 200ms
 }

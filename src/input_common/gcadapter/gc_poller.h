@@ -1,10 +1,13 @@
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included.
+
 #pragma once
 
 #include <memory>
 #include "core/frontend/input.h"
 
 namespace InputCommon {
-
 
 /**
  * A button device factory representing a gcpad. It receives gcpad events and forward them

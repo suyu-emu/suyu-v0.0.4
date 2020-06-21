@@ -1,10 +1,13 @@
+// Copyright 2014 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
 #pragma once
 #include <algorithm>
-#include <libusb.h>
-#include <mutex>
 #include <functional>
+#include <mutex>
+#include <libusb.h>
 #include "common/common_types.h"
-
 
 enum {
     PAD_USE_ORIGIN = 0x0080,
@@ -61,13 +64,8 @@ struct GCState {
     std::unordered_map<int, u16> axes;
 };
 
-
 namespace GCAdapter {
-enum ControllerTypes {
-    CONTROLLER_NONE = 0,
-    CONTROLLER_WIRED = 1,
-    CONTROLLER_WIRELESS = 2
-};
+enum ControllerTypes { CONTROLLER_NONE = 0, CONTROLLER_WIRED = 1, CONTROLLER_WIRELESS = 2 };
 
 enum {
     NO_ADAPTER_DETECTED = 0,
