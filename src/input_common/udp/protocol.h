@@ -35,7 +35,6 @@ struct Header {
     ///> the data
     Type type{};
 };
-
 static_assert(sizeof(Header) == 20, "UDP Message Header struct has wrong size");
 static_assert(std::is_trivially_copyable_v<Header>, "UDP Message Header is not trivially copyable");
 
@@ -55,9 +54,7 @@ constexpr Type GetMessageType();
 
 namespace Request {
 
-struct Version {
-};
-
+struct Version {};
 /**
  * Requests the server to send information about what controllers are plugged into the ports
  * In citra's case, we only have one controller, so for simplicity's sake, we can just send a
@@ -65,14 +62,12 @@ struct Version {
  * nice to make this configurable
  */
 constexpr u32 MAX_PORTS = 4;
-
 struct PortInfo {
     u32_le pad_count{}; ///> Number of ports to request data for
     std::array<u8, MAX_PORTS> port;
 };
-
 static_assert(std::is_trivially_copyable_v<PortInfo>,
-    "UDP Request PortInfo is not trivially copyable");
+              "UDP Request PortInfo is not trivially copyable");
 
 /**
  * Request the latest pad information from the server. If the server hasn't received this message
@@ -85,7 +80,6 @@ struct PadData {
         Id,
         Mac,
     };
-
     /// Determines which method will be used as a look up for the controller
     Flags flags{};
     /// Index of the port of the controller to retrieve data about
@@ -93,10 +87,9 @@ struct PadData {
     /// Mac address of the controller to retrieve data about
     MacAddress mac;
 };
-
 static_assert(sizeof(PadData) == 8, "UDP Request PadData struct has wrong size");
 static_assert(std::is_trivially_copyable_v<PadData>,
-    "UDP Request PadData is not trivially copyable");
+              "UDP Request PadData is not trivially copyable");
 
 /**
  * Creates a message with the proper header data that can be sent to the server.
@@ -121,10 +114,9 @@ namespace Response {
 struct Version {
     u16_le version{};
 };
-
 static_assert(sizeof(Version) == 2, "UDP Response Version struct has wrong size");
 static_assert(std::is_trivially_copyable_v<Version>,
-    "UDP Response Version is not trivially copyable");
+              "UDP Response Version is not trivially copyable");
 
 struct PortInfo {
     u8 id{};
@@ -135,10 +127,9 @@ struct PortInfo {
     u8 battery{};
     u8 is_pad_active{};
 };
-
 static_assert(sizeof(PortInfo) == 12, "UDP Response PortInfo struct has wrong size");
 static_assert(std::is_trivially_copyable_v<PortInfo>,
-    "UDP Response PortInfo is not trivially copyable");
+              "UDP Response PortInfo is not trivially copyable");
 
 #pragma pack(push, 1)
 struct PadData {
@@ -215,16 +206,16 @@ struct PadData {
 
 static_assert(sizeof(PadData) == 80, "UDP Response PadData struct has wrong size ");
 static_assert(std::is_trivially_copyable_v<PadData>,
-    "UDP Response PadData is not trivially copyable");
+              "UDP Response PadData is not trivially copyable");
 
 static_assert(sizeof(Message<PadData>) == MAX_PACKET_SIZE,
-    "UDP MAX_PACKET_SIZE is no longer larger than Message<PadData>");
+              "UDP MAX_PACKET_SIZE is no longer larger than Message<PadData>");
 
 static_assert(sizeof(PadData::AnalogButton) == 12,
-    "UDP Response AnalogButton struct has wrong size ");
+              "UDP Response AnalogButton struct has wrong size ");
 static_assert(sizeof(PadData::TouchPad) == 6, "UDP Response TouchPad struct has wrong size ");
 static_assert(sizeof(PadData::Accelerometer) == 12,
-    "UDP Response Accelerometer struct has wrong size ");
+              "UDP Response Accelerometer struct has wrong size ");
 static_assert(sizeof(PadData::Gyroscope) == 12, "UDP Response Gyroscope struct has wrong size ");
 
 /**
@@ -241,27 +232,22 @@ template <>
 constexpr Type GetMessageType<Request::Version>() {
     return Type::Version;
 }
-
 template <>
 constexpr Type GetMessageType<Request::PortInfo>() {
     return Type::PortInfo;
 }
-
 template <>
 constexpr Type GetMessageType<Request::PadData>() {
     return Type::PadData;
 }
-
 template <>
 constexpr Type GetMessageType<Response::Version>() {
     return Type::Version;
 }
-
 template <>
 constexpr Type GetMessageType<Response::PortInfo>() {
     return Type::PortInfo;
 }
-
 template <>
 constexpr Type GetMessageType<Response::PadData>() {
     return Type::PadData;

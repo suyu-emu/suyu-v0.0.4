@@ -13,8 +13,7 @@ namespace InputCommon {
 class KeyButton final : public Input::ButtonDevice {
 public:
     explicit KeyButton(std::shared_ptr<KeyButtonList> key_button_list_)
-        : key_button_list(std::move(key_button_list_)) {
-    }
+        : key_button_list(std::move(key_button_list_)) {}
 
     ~KeyButton() override;
 
@@ -69,9 +68,7 @@ private:
     std::list<KeyButtonPair> list;
 };
 
-Keyboard::Keyboard()
-    : key_button_list{std::make_shared<KeyButtonList>()} {
-}
+Keyboard::Keyboard() : key_button_list{std::make_shared<KeyButtonList>()} {}
 
 KeyButton::~KeyButton() {
     key_button_list->RemoveKeyButton(this);
@@ -81,7 +78,7 @@ std::unique_ptr<Input::ButtonDevice> Keyboard::Create(const Common::ParamPackage
     int key_code = params.Get("code", 0);
     std::unique_ptr<KeyButton> button = std::make_unique<KeyButton>(key_button_list);
     key_button_list->AddKeyButton(key_code, button.get());
-    return std::move(button);
+    return button;
 }
 
 void Keyboard::PressKey(int key_code) {

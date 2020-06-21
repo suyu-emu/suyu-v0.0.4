@@ -49,8 +49,7 @@ static int SDLEventWatcher(void* user_data, SDL_Event* event) {
 class SDLJoystick {
 public:
     SDLJoystick(std::string guid_, int port_, SDL_Joystick* joystick)
-        : guid{std::move(guid_)}, port{port_}, sdl_joystick{joystick, &SDL_JoystickClose} {
-    }
+        : guid{std::move(guid_)}, port{port_}, sdl_joystick{joystick, &SDL_JoystickClose} {}
 
     void SetButton(int button, bool value) {
         std::lock_guard lock{mutex};
@@ -98,7 +97,6 @@ public:
         std::lock_guard lock{mutex};
         return (state.hats.at(hat) & direction) != 0;
     }
-
     /**
      * The guid of the joystick
      */
@@ -127,7 +125,6 @@ private:
         std::unordered_map<int, Sint16> axes;
         std::unordered_map<int, Uint8> hats;
     } state;
-
     std::string guid;
     int port;
     std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)> sdl_joystick;
@@ -158,8 +155,7 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_
     if (map_it != joystick_map.end()) {
         const auto vec_it =
             std::find_if(map_it->second.begin(), map_it->second.end(),
-                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick)
-                         {
+                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
                              return sdl_joystick == joystick->GetSDLJoystick();
                          });
         if (vec_it != map_it->second.end()) {
@@ -170,8 +166,7 @@ std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_
 
         // Search for a SDLJoystick without a mapped SDL_Joystick...
         const auto nullptr_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                             [](const std::shared_ptr<SDLJoystick>& joystick)
-                                             {
+                                             [](const std::shared_ptr<SDLJoystick>& joystick) {
                                                  return !joystick->GetSDLJoystick();
                                              });
         if (nullptr_it != map_it->second.end()) {
@@ -228,8 +223,7 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
         const auto& joystick_guid_list = joystick_map[guid];
         const auto joystick_it =
             std::find_if(joystick_guid_list.begin(), joystick_guid_list.end(),
-                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick)
-                         {
+                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
                              return joystick->GetSDLJoystick() == sdl_joystick;
                          });
         joystick = *joystick_it;
@@ -285,8 +279,7 @@ void SDLState::CloseJoysticks() {
 class SDLButton final : public Input::ButtonDevice {
 public:
     explicit SDLButton(std::shared_ptr<SDLJoystick> joystick_, int button_)
-        : joystick(std::move(joystick_)), button(button_) {
-    }
+        : joystick(std::move(joystick_)), button(button_) {}
 
     bool GetStatus() const override {
         return joystick->GetButton(button);
@@ -300,8 +293,7 @@ private:
 class SDLDirectionButton final : public Input::ButtonDevice {
 public:
     explicit SDLDirectionButton(std::shared_ptr<SDLJoystick> joystick_, int hat_, Uint8 direction_)
-        : joystick(std::move(joystick_)), hat(hat_), direction(direction_) {
-    }
+        : joystick(std::move(joystick_)), hat(hat_), direction(direction_) {}
 
     bool GetStatus() const override {
         return joystick->GetHatDirection(hat, direction);
@@ -318,8 +310,7 @@ public:
     explicit SDLAxisButton(std::shared_ptr<SDLJoystick> joystick_, int axis_, float threshold_,
                            bool trigger_if_greater_)
         : joystick(std::move(joystick_)), axis(axis_), threshold(threshold_),
-          trigger_if_greater(trigger_if_greater_) {
-    }
+          trigger_if_greater(trigger_if_greater_) {}
 
     bool GetStatus() const override {
         const float axis_value = joystick->GetAxis(axis);
@@ -339,8 +330,7 @@ private:
 class SDLAnalog final : public Input::AnalogDevice {
 public:
     SDLAnalog(std::shared_ptr<SDLJoystick> joystick_, int axis_x_, int axis_y_, float deadzone_)
-        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {
-    }
+        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {}
 
     std::tuple<float, float> GetStatus() const override {
         const auto [x, y] = joystick->GetAnalog(axis_x, axis_y);
@@ -378,9 +368,7 @@ private:
 /// A button device factory that creates button devices from SDL joystick
 class SDLButtonFactory final : public Input::Factory<Input::ButtonDevice> {
 public:
-    explicit SDLButtonFactory(SDLState& state_)
-        : state(state_) {
-    }
+    explicit SDLButtonFactory(SDLState& state_) : state(state_) {}
 
     /**
      * Creates a button device from a joystick button
@@ -455,9 +443,7 @@ private:
 /// An analog device factory that creates analog devices from SDL joystick
 class SDLAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
-    explicit SDLAnalogFactory(SDLState& state_)
-        : state(state_) {
-    }
+    explicit SDLAnalogFactory(SDLState& state_) : state(state_) {}
 
     /**
      * Creates analog device from joystick axes
@@ -505,8 +491,7 @@ SDLState::SDLState() {
 
     initialized = true;
     if (start_thread) {
-        poll_thread = std::thread([this]
-        {
+        poll_thread = std::thread([this] {
             using namespace std::chrono_literals;
             while (initialized) {
                 SDL_PumpEvents();
@@ -592,9 +577,7 @@ namespace Polling {
 
 class SDLPoller : public InputCommon::Polling::DevicePoller {
 public:
-    explicit SDLPoller(SDLState& state_)
-        : state(state_) {
-    }
+    explicit SDLPoller(SDLState& state_) : state(state_) {}
 
     void Start() override {
         state.event_queue.Clear();
@@ -611,9 +594,7 @@ protected:
 
 class SDLButtonPoller final : public SDLPoller {
 public:
-    explicit SDLButtonPoller(SDLState& state_)
-        : SDLPoller(state_) {
-    }
+    explicit SDLButtonPoller(SDLState& state_) : SDLPoller(state_) {}
 
     Common::ParamPackage GetNextInput() override {
         SDL_Event event;
@@ -622,7 +603,8 @@ public:
             case SDL_JOYAXISMOTION:
                 if (std::abs(event.jaxis.value / 32767.0) < 0.5) {
                     break;
-                }[[fallthrough]];
+                }
+                [[fallthrough]];
             case SDL_JOYBUTTONUP:
             case SDL_JOYHATMOTION:
                 return SDLEventToButtonParamPackage(state, event);
@@ -634,9 +616,7 @@ public:
 
 class SDLAnalogPoller final : public SDLPoller {
 public:
-    explicit SDLAnalogPoller(SDLState& state_)
-        : SDLPoller(state_) {
-    }
+    explicit SDLAnalogPoller(SDLState& state_) : SDLPoller(state_) {}
 
     void Start() override {
         SDLPoller::Start();

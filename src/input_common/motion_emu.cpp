@@ -22,8 +22,7 @@ public:
         : update_millisecond(update_millisecond),
           update_duration(std::chrono::duration_cast<std::chrono::steady_clock::duration>(
               std::chrono::milliseconds(update_millisecond))),
-          sensitivity(sensitivity), motion_emu_thread(&MotionEmuDevice::MotionEmuThread, this) {
-    }
+          sensitivity(sensitivity), motion_emu_thread(&MotionEmuDevice::MotionEmuThread, this) {}
 
     ~MotionEmuDevice() {
         if (motion_emu_thread.joinable()) {
@@ -146,7 +145,7 @@ std::unique_ptr<Input::MotionDevice> MotionEmu::Create(const Common::ParamPackag
     // Previously created device is disconnected here. Having two motion devices for 3DS is not
     // expected.
     current_device = device_wrapper->device;
-    return std::move(device_wrapper);
+    return device_wrapper;
 }
 
 void MotionEmu::BeginTilt(int x, int y) {

@@ -16,10 +16,7 @@ namespace InputCommon::CemuhookUDP {
 
 class UDPTouchDevice final : public Input::TouchDevice {
 public:
-    explicit UDPTouchDevice(std::shared_ptr<DeviceStatus> status_)
-        : status(std::move(status_)) {
-    }
-
+    explicit UDPTouchDevice(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
     std::tuple<float, float, bool> GetStatus() const override {
         std::lock_guard guard(status->update_mutex);
         return status->touch_status;
@@ -31,10 +28,7 @@ private:
 
 class UDPMotionDevice final : public Input::MotionDevice {
 public:
-    explicit UDPMotionDevice(std::shared_ptr<DeviceStatus> status_)
-        : status(std::move(status_)) {
-    }
-
+    explicit UDPMotionDevice(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
     std::tuple<Common::Vec3<float>, Common::Vec3<float>> GetStatus() const override {
         std::lock_guard guard(status->update_mutex);
         return status->motion_status;
@@ -46,9 +40,7 @@ private:
 
 class UDPTouchFactory final : public Input::Factory<Input::TouchDevice> {
 public:
-    explicit UDPTouchFactory(std::shared_ptr<DeviceStatus> status_)
-        : status(std::move(status_)) {
-    }
+    explicit UDPTouchFactory(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
 
     std::unique_ptr<Input::TouchDevice> Create(const Common::ParamPackage& params) override {
         {
@@ -69,9 +61,7 @@ private:
 
 class UDPMotionFactory final : public Input::Factory<Input::MotionDevice> {
 public:
-    explicit UDPMotionFactory(std::shared_ptr<DeviceStatus> status_)
-        : status(std::move(status_)) {
-    }
+    explicit UDPMotionFactory(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
 
     std::unique_ptr<Input::MotionDevice> Create(const Common::ParamPackage& params) override {
         return std::make_unique<UDPMotionDevice>(status);
