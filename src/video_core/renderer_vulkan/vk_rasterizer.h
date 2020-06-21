@@ -185,8 +185,7 @@ private:
 
     bool WalkAttachmentOverlaps(const CachedSurfaceView& attachment);
 
-    void SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
-                           BufferBindings& buffer_bindings);
+    void SetupVertexArrays(BufferBindings& buffer_bindings);
 
     void SetupIndexBuffer(BufferBindings& buffer_bindings, DrawParameters& params, bool is_indexed);
 

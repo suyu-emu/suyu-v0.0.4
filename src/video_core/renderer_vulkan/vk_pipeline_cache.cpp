@@ -312,7 +312,7 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     const auto& gpu = system.GPU().Maxwell3D();
 
     Specialization specialization;
-    if (fixed_state.rasterizer.Topology() == Maxwell::PrimitiveTopology::Points) {
+    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points) {
         float point_size;
         std::memcpy(&point_size, &fixed_state.rasterizer.point_size, sizeof(float));
         specialization.point_size = point_size;

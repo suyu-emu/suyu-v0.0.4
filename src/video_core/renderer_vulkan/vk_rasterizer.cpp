@@ -822,7 +822,7 @@ RasterizerVulkan::DrawParameters RasterizerVulkan::SetupGeometry(FixedPipelineSt
     const auto& gpu = system.GPU().Maxwell3D();
     const auto& regs = gpu.regs;
 
-    SetupVertexArrays(fixed_state.vertex_input, buffer_bindings);
+    SetupVertexArrays(buffer_bindings);
 
     const u32 base_instance = regs.vb_base_instance;
     const u32 num_instances = is_instanced ? gpu.mme_draw.instance_count : 1;
@@ -940,30 +940,14 @@ void RasterizerVulkan::EndTransformFeedback() {
         [](vk::CommandBuffer cmdbuf) { cmdbuf.EndTransformFeedbackEXT(0, 0, nullptr, nullptr); });
 }
 
-void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
-                                         BufferBindings& buffer_bindings) {
+void RasterizerVulkan::SetupVertexArrays(BufferBindings& buffer_bindings) {
     const auto& regs = system.GPU().Maxwell3D().regs;
-
-    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        const auto& attrib = regs.vertex_attrib_format[index];
-        if (attrib.IsConstant()) {
-            vertex_input.SetAttribute(index, false, 0, 0, {}, {});
-            continue;
-        }
-        vertex_input.SetAttribute(index, true, attrib.buffer, attrib.offset, attrib.type.Value(),
-                                  attrib.size.Value());
-    }
 
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
         const auto& vertex_array = regs.vertex_array[index];
         if (!vertex_array.IsEnabled()) {
-            vertex_input.SetBinding(index, false, 0, 0);
             continue;
         }
-        vertex_input.SetBinding(
-            index, true, vertex_array.stride,
-            regs.instanced_arrays.IsInstancingEnabled(index) ? vertex_array.divisor : 0);
-
         const GPUVAddr start{vertex_array.StartAddress()};
         const GPUVAddr end{regs.vertex_array_limit[index].LimitAddress()};
 

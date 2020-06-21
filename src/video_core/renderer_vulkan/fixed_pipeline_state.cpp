@@ -39,28 +39,21 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
 
 } // Anonymous namespace
 
-void FixedPipelineState::DepthStencil::Fill(const Maxwell& regs) noexcept {
-    raw = 0;
-    front.action_stencil_fail.Assign(PackStencilOp(regs.stencil_front_op_fail));
-    front.action_depth_fail.Assign(PackStencilOp(regs.stencil_front_op_zfail));
-    front.action_depth_pass.Assign(PackStencilOp(regs.stencil_front_op_zpass));
-    front.test_func.Assign(PackComparisonOp(regs.stencil_front_func_func));
-    if (regs.stencil_two_side_enable) {
-        back.action_stencil_fail.Assign(PackStencilOp(regs.stencil_back_op_fail));
-        back.action_depth_fail.Assign(PackStencilOp(regs.stencil_back_op_zfail));
-        back.action_depth_pass.Assign(PackStencilOp(regs.stencil_back_op_zpass));
-        back.test_func.Assign(PackComparisonOp(regs.stencil_back_func_func));
-    } else {
-        back.action_stencil_fail.Assign(front.action_stencil_fail);
-        back.action_depth_fail.Assign(front.action_depth_fail);
-        back.action_depth_pass.Assign(front.action_depth_pass);
-        back.test_func.Assign(front.test_func);
+void FixedPipelineState::VertexInput::Fill(const Maxwell& regs) noexcept {
+    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+        const auto& input = regs.vertex_attrib_format[index];
+        auto& attribute = attributes[index];
+        attribute.raw = 0;
+        attribute.enabled.Assign(input.IsConstant() ? 0 : 1);
+        attribute.buffer.Assign(input.buffer);
+        attribute.offset.Assign(input.offset);
+        attribute.type.Assign(static_cast<u32>(input.type.Value()));
+        attribute.size.Assign(static_cast<u32>(input.size.Value()));
     }
-    depth_test_enable.Assign(regs.depth_test_enable);
-    depth_write_enable.Assign(regs.depth_write_enabled);
-    depth_bounds_enable.Assign(regs.depth_bounds_enable);
-    stencil_enable.Assign(regs.stencil_enable);
-    depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
+    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        binding_divisors[index] =
+            regs.instanced_arrays.IsInstancingEnabled(index) ? regs.vertex_array[index].divisor : 0;
+    }
 }
 
 void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
@@ -70,21 +63,11 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
                                     regs.polygon_offset_fill_enable};
     const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
 
-    u32 packed_front_face = PackFrontFace(regs.front_face);
-    if (regs.screen_y_control.triangle_rast_flip != 0) {
-        // Flip front face
-        packed_front_face = 1 - packed_front_face;
-    }
-
     raw = 0;
-    topology.Assign(topology_index);
     primitive_restart_enable.Assign(regs.primitive_restart.enabled != 0 ? 1 : 0);
-    cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
     depth_bias_enable.Assign(enabled_lut[POLYGON_OFFSET_ENABLE_LUT[topology_index]] != 0 ? 1 : 0);
     depth_clamp_disabled.Assign(regs.view_volume_clip_control.depth_clamp_disabled.Value());
     ndc_minus_one_to_one.Assign(regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1 : 0);
-    cull_face.Assign(PackCullFace(regs.cull_face));
-    front_face.Assign(packed_front_face);
     polygon_mode.Assign(PackPolygonMode(regs.polygon_mode_front));
     patch_control_points_minus_one.Assign(regs.patch_vertices - 1);
     tessellation_primitive.Assign(static_cast<u32>(regs.tess_mode.prim.Value()));
@@ -147,11 +130,56 @@ void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size
     enable.Assign(1);
 }
 
+void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
+    const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
+    u32 packed_front_face = PackFrontFace(regs.front_face);
+    if (regs.screen_y_control.triangle_rast_flip != 0) {
+        // Flip front face
+        packed_front_face = 1 - packed_front_face;
+    }
+
+    raw1 = 0;
+    raw2 = 0;
+    front.action_stencil_fail.Assign(PackStencilOp(regs.stencil_front_op_fail));
+    front.action_depth_fail.Assign(PackStencilOp(regs.stencil_front_op_zfail));
+    front.action_depth_pass.Assign(PackStencilOp(regs.stencil_front_op_zpass));
+    front.test_func.Assign(PackComparisonOp(regs.stencil_front_func_func));
+    if (regs.stencil_two_side_enable) {
+        back.action_stencil_fail.Assign(PackStencilOp(regs.stencil_back_op_fail));
+        back.action_depth_fail.Assign(PackStencilOp(regs.stencil_back_op_zfail));
+        back.action_depth_pass.Assign(PackStencilOp(regs.stencil_back_op_zpass));
+        back.test_func.Assign(PackComparisonOp(regs.stencil_back_func_func));
+    } else {
+        back.action_stencil_fail.Assign(front.action_stencil_fail);
+        back.action_depth_fail.Assign(front.action_depth_fail);
+        back.action_depth_pass.Assign(front.action_depth_pass);
+        back.test_func.Assign(front.test_func);
+    }
+    stencil_enable.Assign(regs.stencil_enable);
+    depth_write_enable.Assign(regs.depth_write_enabled);
+    depth_bounds_enable.Assign(regs.depth_bounds_enable);
+    depth_test_enable.Assign(regs.depth_test_enable);
+    front_face.Assign(packed_front_face);
+    depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
+    topology.Assign(topology_index);
+    cull_face.Assign(PackCullFace(regs.cull_face));
+    cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
+
+    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        const auto& input = regs.vertex_array[index];
+        VertexBinding& binding = vertex_bindings[index];
+        binding.raw = 0;
+        binding.enabled.Assign(input.IsEnabled() ? 1 : 0);
+        binding.stride.Assign(static_cast<u16>(input.stride.Value()));
+    }
+}
+
 void FixedPipelineState::Fill(const Maxwell& regs) {
+    vertex_input.Fill(regs);
     rasterizer.Fill(regs);
-    depth_stencil.Fill(regs);
     color_blending.Fill(regs);
     viewport_swizzles.Fill(regs);
+    dynamic_state.Fill(regs);
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {

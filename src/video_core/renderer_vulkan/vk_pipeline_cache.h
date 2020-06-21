@@ -44,10 +44,10 @@ class VKUpdateDescriptorQueue;
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 struct GraphicsPipelineCacheKey {
-    FixedPipelineState fixed_state;
     RenderPassParams renderpass_params;
+    u32 padding;
     std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
-    u64 padding; // This is necessary for unique object representations
+    FixedPipelineState fixed_state;
 
     std::size_t Hash() const noexcept;
 
