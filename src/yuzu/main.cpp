@@ -57,6 +57,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QStatusBar>
 #include <QSysInfo>
 #include <QtConcurrent/QtConcurrent>
+#include <QUrl>
 
 #include <fmt/format.h>
 #include "common/common_paths.h"
@@ -826,6 +827,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
+    connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnSwitchModsPage);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -1794,6 +1796,17 @@ void GMainWindow::OnMenuReportCompatibility() {
                "account.<br><br/>To link your yuzu account, go to Emulation &gt; Configuration "
                "&gt; "
                "Web."));
+    }
+}
+
+void GMainWindow::OnSwitchModsPage() {
+    const std::string mods_page_url = "https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods";
+    const QString mods_page_url_qs = QString::fromStdString(mods_page_url);
+    const QUrl mods_page(mods_page_url_qs);
+    const bool open = QDesktopServices::openUrl(mods_page);
+    if (!open) {
+        QMessageBox::warning(this, tr("Error opening URL"),
+                             tr("Unable to open the URL \"%1\".").arg(mods_page_url_qs));
     }
 }
 
