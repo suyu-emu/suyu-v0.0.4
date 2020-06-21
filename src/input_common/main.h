@@ -32,10 +32,8 @@ class MotionEmu;
 /// Gets the motion emulation factory.
 MotionEmu* GetMotionEmu();
 
-class GCButtonFactory;
-class GCAnalogFactory;
-
 GCButtonFactory* GetGCButtons();
+
 GCAnalogFactory* GetGCAnalogs();
 
 /// Generates a serialized param package for creating a keyboard button device

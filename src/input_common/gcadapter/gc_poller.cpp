@@ -10,35 +10,34 @@
 #include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
 
-// Using extern as to avoid multply defined symbols.
-extern Common::SPSCQueue<GCPadStatus> pad_queue[4];
-extern struct GCState state[4];
-
 namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, int axis_) : port(port_), button(button_) {}
+    explicit GCButton(int port_, int button_, int axis_, GCAdapter::Adapter* adapter)
+        : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
 
     bool GetStatus() const override {
-        return state[port].buttons.at(button);
+        return gcadapter->GetPadState()[port].buttons.at(button);
     }
 
 private:
     const int port;
     const int button;
+    GCAdapter::Adapter* gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
-    explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_)
-        : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_) {
-    }
+    explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
+                          GCAdapter::Adapter* adapter)
+        : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
+          gcadapter(adapter) {}
 
     bool GetStatus() const override {
-        const float axis_value = (state[port].axes.at(axis) - 128.0f) / 128.0f;
+        const float axis_value = (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 128.0f;
         if (trigger_if_greater) {
             return axis_value > 0.10f; // TODO(ameerj) : Fix threshold.
         }
@@ -50,14 +49,15 @@ private:
     const int axis;
     float threshold;
     bool trigger_if_greater;
+    GCAdapter::Adapter* gcadapter;
 };
 
 GCButtonFactory::GCButtonFactory() {
-    GCAdapter::Init();
+    adapter = GCAdapter::Adapter::GetInstance();
 }
 
 GCButton::~GCButton() {
-    GCAdapter::Shutdown();
+    // GCAdapter::Shutdown();
 }
 
 std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::ParamPackage& params) {
@@ -77,76 +77,76 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
             trigger_if_greater = true;
             LOG_ERROR(Input, "Unknown direction {}", direction_name);
         }
-        return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater);
+        return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater, adapter);
     }
 
     std::unique_ptr<GCButton> button =
-        std::make_unique<GCButton>(port, button_id, params.Get("axis", 0));
+        std::make_unique<GCButton>(port, button_id, params.Get("axis", 0), adapter);
     return std::move(button);
 }
 
 Common::ParamPackage GCButtonFactory::GetNextInput() {
     Common::ParamPackage params;
-    GCPadStatus pad;
+    GCAdapter::GCPadStatus pad;
     for (int i = 0; i < 4; i++) {
-        while (pad_queue[i].Pop(pad)) {
+        while (adapter->GetPadQueue()[i].Pop(pad)) {
             // This while loop will break on the earliest detected button
             params.Set("engine", "gcpad");
             params.Set("port", i);
             // I was debating whether to keep these verbose for ease of reading
             // or to use a while loop shifting the bits to test and set the value.
-            if (pad.button & PAD_BUTTON_A) {
-                params.Set("button", PAD_BUTTON_A);
+            if (pad.button & GCAdapter::PAD_BUTTON_A) {
+                params.Set("button", GCAdapter::PAD_BUTTON_A);
                 break;
             }
-            if (pad.button & PAD_BUTTON_B) {
-                params.Set("button", PAD_BUTTON_B);
+            if (pad.button & GCAdapter::PAD_BUTTON_B) {
+                params.Set("button", GCAdapter::PAD_BUTTON_B);
                 break;
             }
-            if (pad.button & PAD_BUTTON_X) {
-                params.Set("button", PAD_BUTTON_X);
+            if (pad.button & GCAdapter::PAD_BUTTON_X) {
+                params.Set("button", GCAdapter::PAD_BUTTON_X);
                 break;
             }
-            if (pad.button & PAD_BUTTON_Y) {
-                params.Set("button", PAD_BUTTON_Y);
+            if (pad.button & GCAdapter::PAD_BUTTON_Y) {
+                params.Set("button", GCAdapter::PAD_BUTTON_Y);
                 break;
             }
-            if (pad.button & PAD_BUTTON_DOWN) {
-                params.Set("button", PAD_BUTTON_DOWN);
+            if (pad.button & GCAdapter::PAD_BUTTON_DOWN) {
+                params.Set("button", GCAdapter::PAD_BUTTON_DOWN);
                 break;
             }
-            if (pad.button & PAD_BUTTON_LEFT) {
-                params.Set("button", PAD_BUTTON_LEFT);
+            if (pad.button & GCAdapter::PAD_BUTTON_LEFT) {
+                params.Set("button", GCAdapter::PAD_BUTTON_LEFT);
                 break;
             }
-            if (pad.button & PAD_BUTTON_RIGHT) {
-                params.Set("button", PAD_BUTTON_RIGHT);
+            if (pad.button & GCAdapter::PAD_BUTTON_RIGHT) {
+                params.Set("button", GCAdapter::PAD_BUTTON_RIGHT);
                 break;
             }
-            if (pad.button & PAD_BUTTON_UP) {
-                params.Set("button", PAD_BUTTON_UP);
+            if (pad.button & GCAdapter::PAD_BUTTON_UP) {
+                params.Set("button", GCAdapter::PAD_BUTTON_UP);
                 break;
             }
-            if (pad.button & PAD_TRIGGER_L) {
-                params.Set("button", PAD_TRIGGER_L);
+            if (pad.button & GCAdapter::PAD_TRIGGER_L) {
+                params.Set("button", GCAdapter::PAD_TRIGGER_L);
                 break;
             }
-            if (pad.button & PAD_TRIGGER_R) {
-                params.Set("button", PAD_TRIGGER_R);
+            if (pad.button & GCAdapter::PAD_TRIGGER_R) {
+                params.Set("button", GCAdapter::PAD_TRIGGER_R);
                 break;
             }
-            if (pad.button & PAD_TRIGGER_Z) {
-                params.Set("button", PAD_TRIGGER_Z);
+            if (pad.button & GCAdapter::PAD_TRIGGER_Z) {
+                params.Set("button", GCAdapter::PAD_TRIGGER_Z);
                 break;
             }
-            if (pad.button & PAD_BUTTON_START) {
-                params.Set("button", PAD_BUTTON_START);
+            if (pad.button & GCAdapter::PAD_BUTTON_START) {
+                params.Set("button", GCAdapter::PAD_BUTTON_START);
                 break;
             }
             // For Axis button implementation
-            if (pad.axis_which != 255) {
-                params.Set("axis", pad.axis_which);
-                params.Set("button", PAD_STICK);
+            if (pad.axis != GCAdapter::PadAxes::Undefined) {
+                params.Set("axis", static_cast<u8>(pad.axis));
+                params.Set("button", GCAdapter::PAD_STICK);
                 if (pad.axis_value > 128) {
                     params.Set("direction", "+");
                     params.Set("threshold", "0.5");
@@ -164,30 +164,30 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
 void GCButtonFactory::BeginConfiguration() {
     polling = true;
     for (int i = 0; i < 4; i++) {
-        pad_queue[i].Clear();
+        adapter->GetPadQueue()[i].Clear();
     }
-    GCAdapter::BeginConfiguration();
+    adapter->BeginConfiguration();
 }
 
 void GCButtonFactory::EndConfiguration() {
     polling = false;
     for (int i = 0; i < 4; i++) {
-        pad_queue[i].Clear();
+        adapter->GetPadQueue()[i].Clear();
     }
-    GCAdapter::EndConfiguration();
+    adapter->EndConfiguration();
 }
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_)
-        : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_) {}
+    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter)
+        : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter) {}
 
     float GetAxis(int axis) const {
         std::lock_guard lock{mutex};
         // division is not by a perfect 128 to account for some variance in center location
         // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
         // [20-230]
-        return (state[port].axes.at(axis) - 128.0f) / 95.0f;
+        return (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 95.0f;
     }
 
     std::tuple<float, float> GetAnalog(int axis_x, int axis_y) const {
@@ -238,10 +238,13 @@ private:
     const int axis_y;
     const float deadzone;
     mutable std::mutex mutex;
+    GCAdapter::Adapter* gcadapter;
 };
 
 /// An analog device factory that creates analog devices from GC Adapter
-GCAnalogFactory::GCAnalogFactory(){};
+GCAnalogFactory::GCAnalogFactory() {
+    adapter = GCAdapter::Adapter::GetInstance();
+};
 
 /**
  * Creates analog device from joystick axes
@@ -257,35 +260,36 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
     const int axis_y = params.Get("axis_y", 1);
     const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
 
-    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone);
+    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter);
 }
 
 void GCAnalogFactory::BeginConfiguration() {
     polling = true;
     for (int i = 0; i < 4; i++) {
-        pad_queue[i].Clear();
+        adapter->GetPadQueue()[i].Clear();
     }
-    GCAdapter::BeginConfiguration();
+    adapter->BeginConfiguration();
 }
 
 void GCAnalogFactory::EndConfiguration() {
     polling = false;
     for (int i = 0; i < 4; i++) {
-        pad_queue[i].Clear();
+        adapter->GetPadQueue()[i].Clear();
     }
-    GCAdapter::EndConfiguration();
+    adapter->EndConfiguration();
 }
 
 Common::ParamPackage GCAnalogFactory::GetNextInput() {
-    GCPadStatus pad;
+    GCAdapter::GCPadStatus pad;
     for (int i = 0; i < 4; i++) {
-        while (pad_queue[i].Pop(pad)) {
-            if (pad.axis_which == 255 || std::abs((pad.axis_value - 128.0f) / 128.0f) < 0.1) {
+        while (adapter->GetPadQueue()[i].Pop(pad)) {
+            if (pad.axis == GCAdapter::PadAxes::Undefined ||
+                std::abs((pad.axis_value - 128.0f) / 128.0f) < 0.1) {
                 continue;
             }
             // An analog device needs two axes, so we need to store the axis for later and wait for
             // a second SDL event. The axes also must be from the same joystick.
-            const int axis = pad.axis_which;
+            const u8 axis = static_cast<u8>(pad.axis);
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
                 controller_number = i;
@@ -307,4 +311,5 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
     }
     return params;
 }
+
 } // namespace InputCommon

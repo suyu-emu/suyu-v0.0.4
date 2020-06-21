@@ -3,45 +3,41 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
-#include "common/threadsafe_queue.h"
 #include "input_common/gcadapter/gc_adapter.h"
 
-Common::SPSCQueue<GCPadStatus> pad_queue[4];
-struct GCState state[4];
-
 namespace GCAdapter {
+Adapter* Adapter::adapter_instance{nullptr};
 
-static libusb_device_handle* usb_adapter_handle = nullptr;
-static u8 adapter_controllers_status[4] = {
-    ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
-    ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
+Adapter::Adapter() {
+    if (usb_adapter_handle != nullptr) {
+        return;
+    }
+    LOG_INFO(Input, "GC Adapter Initialization started");
 
-static std::mutex s_mutex;
+    current_status = NO_ADAPTER_DETECTED;
+    libusb_init(&libusb_ctx);
 
-static std::thread adapter_input_thread;
-static bool adapter_thread_running;
+    StartScanThread();
+}
 
-static std::mutex initialization_mutex;
-static std::thread detect_thread;
-static bool detect_thread_running = false;
+Adapter* Adapter::GetInstance() {
+    if (!adapter_instance) {
+        adapter_instance = new Adapter;
+    }
+    return adapter_instance;
+}
 
-static libusb_context* libusb_ctx;
-
-static u8 input_endpoint = 0;
-
-static bool configuring = false;
-
-GCPadStatus CheckStatus(int port, u8 adapter_payload[37]) {
+GCPadStatus Adapter::CheckStatus(int port, u8 adapter_payload[37]) {
     GCPadStatus pad = {};
     bool get_origin = false;
 
-    u8 type = adapter_payload[1 + (9 * port)] >> 4;
-    if (type)
+    ControllerTypes type = ControllerTypes(adapter_payload[1 + (9 * port)] >> 4);
+    if (type != ControllerTypes::None)
         get_origin = true;
 
     adapter_controllers_status[port] = type;
 
-    if (adapter_controllers_status[port] != ControllerTypes::CONTROLLER_NONE) {
+    if (adapter_controllers_status[port] != ControllerTypes::None) {
         u8 b1 = adapter_payload[1 + (9 * port) + 1];
         u8 b2 = adapter_payload[1 + (9 * port) + 2];
 
@@ -88,18 +84,17 @@ GCPadStatus CheckStatus(int port, u8 adapter_payload[37]) {
             pad.button |= PAD_GET_ORIGIN;
         }
 
-        pad.stickX = adapter_payload[1 + (9 * port) + 3];
-        pad.stickY = adapter_payload[1 + (9 * port) + 4];
-        pad.substickX = adapter_payload[1 + (9 * port) + 5];
-        pad.substickY = adapter_payload[1 + (9 * port) + 6];
-        pad.triggerLeft = adapter_payload[1 + (9 * port) + 7];
-        pad.triggerRight = adapter_payload[1 + (9 * port) + 8];
+        pad.stick_x = adapter_payload[1 + (9 * port) + 3];
+        pad.stick_y = adapter_payload[1 + (9 * port) + 4];
+        pad.substick_x = adapter_payload[1 + (9 * port) + 5];
+        pad.substick_y = adapter_payload[1 + (9 * port) + 6];
+        pad.trigger_left = adapter_payload[1 + (9 * port) + 7];
+        pad.trigger_right = adapter_payload[1 + (9 * port) + 8];
     }
     return pad;
 }
 
-void PadToState(GCPadStatus pad, GCState& state) {
-    // std::lock_guard lock{s_mutex};
+void Adapter::PadToState(GCPadStatus pad, GCState& state) {
     state.buttons.insert_or_assign(PAD_BUTTON_A, pad.button & PAD_BUTTON_A);
     state.buttons.insert_or_assign(PAD_BUTTON_B, pad.button & PAD_BUTTON_B);
     state.buttons.insert_or_assign(PAD_BUTTON_X, pad.button & PAD_BUTTON_X);
@@ -112,15 +107,15 @@ void PadToState(GCPadStatus pad, GCState& state) {
     state.buttons.insert_or_assign(PAD_TRIGGER_Z, pad.button & PAD_TRIGGER_Z);
     state.buttons.insert_or_assign(PAD_TRIGGER_L, pad.button & PAD_TRIGGER_L);
     state.buttons.insert_or_assign(PAD_TRIGGER_R, pad.button & PAD_TRIGGER_R);
-    state.axes.insert_or_assign(STICK_X, pad.stickX);
-    state.axes.insert_or_assign(STICK_Y, pad.stickY);
-    state.axes.insert_or_assign(SUBSTICK_X, pad.substickX);
-    state.axes.insert_or_assign(SUBSTICK_Y, pad.substickY);
-    state.axes.insert_or_assign(TRIGGER_LEFT, pad.triggerLeft);
-    state.axes.insert_or_assign(TRIGGER_RIGHT, pad.triggerRight);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickX), pad.stick_x);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickY), pad.stick_y);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::SubstickX), pad.substick_x);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::SubstickY), pad.substick_y);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::TriggerLeft), pad.trigger_left);
+    state.axes.insert_or_assign(static_cast<u8>(PadAxes::TriggerRight), pad.trigger_right);
 }
 
-static void Read() {
+void Adapter::Read() {
     LOG_INFO(Input, "GC Adapter Read() thread started");
 
     int payload_size_in;
@@ -145,8 +140,9 @@ static void Read() {
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size,
                       controller_payload_copy[0]);
         } else {
-            for (int i = 0; i < 4; i++)
-                pad[i] = CheckStatus(i, controller_payload_copy);
+            for (int port = 0; port < 4; port++) {
+                pad[port] = CheckStatus(port, controller_payload_copy);
+            }
         }
         for (int port = 0; port < 4; port++) {
             if (DeviceConnected(port) && configuring) {
@@ -155,28 +151,36 @@ static void Read() {
                 }
 
                 // Accounting for a threshold here because of some controller variance
-                if (pad[port].stickX > pad[port].MAIN_STICK_CENTER_X + pad[port].THRESHOLD ||
-                    pad[port].stickX < pad[port].MAIN_STICK_CENTER_X - pad[port].THRESHOLD) {
-                    pad[port].axis_which = STICK_X;
-                    pad[port].axis_value = pad[port].stickX;
+                if (pad[port].stick_x >
+                        pad_constants.MAIN_STICK_CENTER_X + pad_constants.THRESHOLD ||
+                    pad[port].stick_x <
+                        pad_constants.MAIN_STICK_CENTER_X - pad_constants.THRESHOLD) {
+                    pad[port].axis = GCAdapter::PadAxes::StickX;
+                    pad[port].axis_value = pad[port].stick_x;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].stickY > pad[port].MAIN_STICK_CENTER_Y + pad[port].THRESHOLD ||
-                    pad[port].stickY < pad[port].MAIN_STICK_CENTER_Y - pad[port].THRESHOLD) {
-                    pad[port].axis_which = STICK_Y;
-                    pad[port].axis_value = pad[port].stickY;
+                if (pad[port].stick_y >
+                        pad_constants.MAIN_STICK_CENTER_Y + pad_constants.THRESHOLD ||
+                    pad[port].stick_y <
+                        pad_constants.MAIN_STICK_CENTER_Y - pad_constants.THRESHOLD) {
+                    pad[port].axis = GCAdapter::PadAxes::StickY;
+                    pad[port].axis_value = pad[port].stick_y;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].substickX > pad[port].C_STICK_CENTER_X + pad[port].THRESHOLD ||
-                    pad[port].substickX < pad[port].C_STICK_CENTER_X - pad[port].THRESHOLD) {
-                    pad[port].axis_which = SUBSTICK_X;
-                    pad[port].axis_value = pad[port].substickX;
+                if (pad[port].substick_x >
+                        pad_constants.C_STICK_CENTER_X + pad_constants.THRESHOLD ||
+                    pad[port].substick_x <
+                        pad_constants.C_STICK_CENTER_X - pad_constants.THRESHOLD) {
+                    pad[port].axis = GCAdapter::PadAxes::SubstickX;
+                    pad[port].axis_value = pad[port].substick_x;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].substickY > pad[port].C_STICK_CENTER_Y + pad[port].THRESHOLD ||
-                    pad[port].substickY < pad[port].C_STICK_CENTER_Y - pad[port].THRESHOLD) {
-                    pad[port].axis_which = SUBSTICK_Y;
-                    pad[port].axis_value = pad[port].substickY;
+                if (pad[port].substick_y >
+                        pad_constants.C_STICK_CENTER_Y + pad_constants.THRESHOLD ||
+                    pad[port].substick_y <
+                        pad_constants.C_STICK_CENTER_Y - pad_constants.THRESHOLD) {
+                    pad[port].axis = GCAdapter::PadAxes::SubstickY;
+                    pad[port].axis_value = pad[port].substick_y;
                     pad_queue[port].Push(pad[port]);
                 }
             }
@@ -186,7 +190,7 @@ static void Read() {
     }
 }
 
-static void ScanThreadFunc() {
+void Adapter::ScanThreadFunc() {
     LOG_INFO(Input, "GC Adapter scanning thread started");
 
     while (detect_thread_running) {
@@ -198,20 +202,7 @@ static void ScanThreadFunc() {
     }
 }
 
-void Init() {
-
-    if (usb_adapter_handle != nullptr) {
-        return;
-    }
-    LOG_INFO(Input, "GC Adapter Initialization started");
-
-    current_status = NO_ADAPTER_DETECTED;
-    libusb_init(&libusb_ctx);
-
-    StartScanThread();
-}
-
-void StartScanThread() {
+void Adapter::StartScanThread() {
     if (detect_thread_running) {
         return;
     }
@@ -220,21 +211,21 @@ void StartScanThread() {
     }
 
     detect_thread_running = true;
-    detect_thread = std::thread(ScanThreadFunc);
+    detect_thread = std::thread([=] { ScanThreadFunc(); });
 }
 
-void StopScanThread() {
+void Adapter::StopScanThread() {
     detect_thread.join();
 }
 
-static void Setup() {
+void Adapter::Setup() {
     // Reset the error status in case the adapter gets unplugged
     if (current_status < 0) {
         current_status = NO_ADAPTER_DETECTED;
     }
 
     for (int i = 0; i < 4; i++) {
-        adapter_controllers_status[i] = ControllerTypes::CONTROLLER_NONE;
+        adapter_controllers_status[i] = ControllerTypes::None;
     }
 
     libusb_device** devs; // pointer to list of connected usb devices
@@ -250,7 +241,7 @@ static void Setup() {
     }
 }
 
-static bool CheckDeviceAccess(libusb_device* device) {
+bool Adapter::CheckDeviceAccess(libusb_device* device) {
     libusb_device_descriptor desc;
     int ret = libusb_get_device_descriptor(device, &desc);
     if (ret) {
@@ -300,7 +291,7 @@ static bool CheckDeviceAccess(libusb_device* device) {
     return true;
 }
 
-static void GetGCEndpoint(libusb_device* device) {
+void Adapter::GetGCEndpoint(libusb_device* device) {
     libusb_config_descriptor* config = nullptr;
     libusb_get_config_descriptor(device, 0, &config);
     for (u8 ic = 0; ic < config->bNumInterfaces; ic++) {
@@ -318,18 +309,17 @@ static void GetGCEndpoint(libusb_device* device) {
 
     adapter_thread_running = true;
     current_status = ADAPTER_DETECTED;
-
-    adapter_input_thread = std::thread(Read); // Read input
+    adapter_input_thread = std::thread([=] { Read(); }); // Read input
 }
 
-void Shutdown() {
+Adapter::~Adapter() {
     StopScanThread();
     Reset();
 
     current_status = NO_ADAPTER_DETECTED;
 }
 
-static void Reset() {
+void Adapter::Reset() {
     std::unique_lock<std::mutex> lock(initialization_mutex, std::defer_lock);
     if (!lock.try_lock()) {
         return;
@@ -343,7 +333,7 @@ static void Reset() {
     }
 
     for (int i = 0; i < 4; i++) {
-        adapter_controllers_status[i] = ControllerTypes::CONTROLLER_NONE;
+        adapter_controllers_status[i] = ControllerTypes::None;
     }
 
     current_status = NO_ADAPTER_DETECTED;
@@ -355,20 +345,28 @@ static void Reset() {
     }
 }
 
-bool DeviceConnected(int port) {
-    return adapter_controllers_status[port] != ControllerTypes::CONTROLLER_NONE;
+bool Adapter::DeviceConnected(int port) {
+    return adapter_controllers_status[port] != ControllerTypes::None;
 }
 
-void ResetDeviceType(int port) {
-    adapter_controllers_status[port] = ControllerTypes::CONTROLLER_NONE;
+void Adapter::ResetDeviceType(int port) {
+    adapter_controllers_status[port] = ControllerTypes::None;
 }
 
-void BeginConfiguration() {
+void Adapter::BeginConfiguration() {
     configuring = true;
 }
 
-void EndConfiguration() {
+void Adapter::EndConfiguration() {
     configuring = false;
+}
+
+std::array<Common::SPSCQueue<GCPadStatus>, 4>& Adapter::GetPadQueue() {
+    return pad_queue;
+}
+
+std::array<GCState, 4>& Adapter::GetPadState() {
+    return state;
 }
 
 } // end of namespace GCAdapter

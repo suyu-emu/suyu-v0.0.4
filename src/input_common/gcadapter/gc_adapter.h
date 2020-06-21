@@ -8,6 +8,9 @@
 #include <mutex>
 #include <libusb.h>
 #include "common/common_types.h"
+#include "common/threadsafe_queue.h"
+
+namespace GCAdapter {
 
 enum {
     PAD_USE_ORIGIN = 0x0080,
@@ -33,29 +36,38 @@ enum PadButton {
 
 };
 
-enum PadAxes { STICK_X, STICK_Y, SUBSTICK_X, SUBSTICK_Y, TRIGGER_LEFT, TRIGGER_RIGHT };
+enum class PadAxes : u8 {
+    StickX,
+    StickY,
+    SubstickX,
+    SubstickY,
+    TriggerLeft,
+    TriggerRight,
+    Undefined,
+};
+const struct GCPadConstants {
+    const u8 MAIN_STICK_CENTER_X = 0x80;
+    const u8 MAIN_STICK_CENTER_Y = 0x80;
+    const u8 MAIN_STICK_RADIUS = 0x7f;
+    const u8 C_STICK_CENTER_X = 0x80;
+    const u8 C_STICK_CENTER_Y = 0x80;
+    const u8 C_STICK_RADIUS = 0x7f;
+
+    const u8 TRIGGER_CENTER = 20;
+    const u8 THRESHOLD = 10;
+} pad_constants;
 
 struct GCPadStatus {
-    u16 button;      // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-    u8 stickX;       // 0 <= stickX       <= 255
-    u8 stickY;       // 0 <= stickY       <= 255
-    u8 substickX;    // 0 <= substickX    <= 255
-    u8 substickY;    // 0 <= substickY    <= 255
-    u8 triggerLeft;  // 0 <= triggerLeft  <= 255
-    u8 triggerRight; // 0 <= triggerRight <= 255
-    bool isConnected{true};
+    u16 button;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+    u8 stick_x;       // 0 <= stick_x       <= 255
+    u8 stick_y;       // 0 <= stick_y       <= 255
+    u8 substick_x;    // 0 <= substick_x    <= 255
+    u8 substick_y;    // 0 <= substick_y    <= 255
+    u8 trigger_left;  // 0 <= trigger_left  <= 255
+    u8 trigger_right; // 0 <= trigger_right <= 255
 
-    static const u8 MAIN_STICK_CENTER_X = 0x80;
-    static const u8 MAIN_STICK_CENTER_Y = 0x80;
-    static const u8 MAIN_STICK_RADIUS = 0x7f;
-    static const u8 C_STICK_CENTER_X = 0x80;
-    static const u8 C_STICK_CENTER_Y = 0x80;
-    static const u8 C_STICK_RADIUS = 0x7f;
-
-    static const u8 TRIGGER_CENTER = 20;
-    static const u8 THRESHOLD = 10;
     u8 port;
-    u8 axis_which = 255;
+    PadAxes axis = PadAxes::Undefined;
     u8 axis_value = 255;
 };
 
@@ -64,51 +76,88 @@ struct GCState {
     std::unordered_map<int, u16> axes;
 };
 
-namespace GCAdapter {
-enum ControllerTypes { CONTROLLER_NONE = 0, CONTROLLER_WIRED = 1, CONTROLLER_WIRELESS = 2 };
+enum class ControllerTypes { None, Wired, Wireless };
 
 enum {
     NO_ADAPTER_DETECTED = 0,
     ADAPTER_DETECTED = 1,
 };
 
-// Current adapter status: detected/not detected/in error (holds the error code)
-static int current_status = NO_ADAPTER_DETECTED;
+/// Singleton Adapter class
+class Adapter {
+public:
+    /// For retreiving the singleton instance
+    static Adapter* GetInstance();
 
-GCPadStatus CheckStatus(int port, u8 adapter_payload[37]);
-/// Initialize the GC Adapter capture and read sequence
-void Init();
+    /// Used for polling
+    void BeginConfiguration();
+    void EndConfiguration();
 
-/// Close the adapter read thread and release the adapter
-void Shutdown();
+    std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
+    std::array<GCState, 4>& GetPadState();
 
-/// Begin scanning for the GC Adapter.
-void StartScanThread();
+private:
+    /// Singleton instance.
+    static Adapter* adapter_instance;
 
-/// Stop scanning for the adapter
-void StopScanThread();
+    /// Initialize the GC Adapter capture and read sequence
+    Adapter();
 
-/// Returns true if there is a device connected to port
-bool DeviceConnected(int port);
+    /// Close the adapter read thread and release the adapter
+    ~Adapter();
 
-/// Resets status of device connected to port
-void ResetDeviceType(int port);
+    GCPadStatus CheckStatus(int port, u8 adapter_payload[37]);
 
-/// Returns true if we successfully gain access to GC Adapter
-bool CheckDeviceAccess(libusb_device* device);
+    void PadToState(GCPadStatus pad, GCState& state);
 
-/// Captures GC Adapter endpoint address,
-void GetGCEndpoint(libusb_device* device);
+    void Read();
+    void ScanThreadFunc();
+    /// Begin scanning for the GC Adapter.
+    void StartScanThread();
 
-/// For shutting down, clear all data, join all threads, release usb
-void Reset();
+    /// Stop scanning for the adapter
+    void StopScanThread();
 
-/// For use in initialization, querying devices to find the adapter
-void Setup();
+    /// Returns true if there is a device connected to port
+    bool DeviceConnected(int port);
 
-/// Used for polling
-void BeginConfiguration();
+    /// Resets status of device connected to port
+    void ResetDeviceType(int port);
 
-void EndConfiguration();
+    /// Returns true if we successfully gain access to GC Adapter
+    bool CheckDeviceAccess(libusb_device* device);
+
+    /// Captures GC Adapter endpoint address,
+    void GetGCEndpoint(libusb_device* device);
+
+    /// For shutting down, clear all data, join all threads, release usb
+    void Reset();
+
+    /// For use in initialization, querying devices to find the adapter
+    void Setup();
+
+    int current_status = NO_ADAPTER_DETECTED;
+    libusb_device_handle* usb_adapter_handle = nullptr;
+    ControllerTypes adapter_controllers_status[4] = {ControllerTypes::None, ControllerTypes::None,
+                                                     ControllerTypes::None, ControllerTypes::None};
+
+    std::mutex s_mutex;
+
+    std::thread adapter_input_thread;
+    bool adapter_thread_running;
+
+    std::mutex initialization_mutex;
+    std::thread detect_thread;
+    bool detect_thread_running = false;
+
+    libusb_context* libusb_ctx;
+
+    u8 input_endpoint = 0;
+
+    bool configuring = false;
+
+    std::array<Common::SPSCQueue<GCPadStatus>, 4> pad_queue;
+    std::array<GCState, 4> state;
+};
 
 } // end of namespace GCAdapter

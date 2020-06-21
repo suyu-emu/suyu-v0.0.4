@@ -2,11 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <iostream>
 #include <memory>
 #include <thread>
 #include <libusb.h>
 #include "common/param_package.h"
 #include "input_common/analog_from_button.h"
+#include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"

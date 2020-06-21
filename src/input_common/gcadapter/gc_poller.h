@@ -35,6 +35,7 @@ public:
     }
 
 private:
+    GCAdapter::Adapter* adapter;
     bool polling = false;
 };
 
@@ -54,9 +55,11 @@ public:
     }
 
 private:
+    GCAdapter::Adapter* adapter;
     int analog_x_axis = -1;
     int analog_y_axis = -1;
     int controller_number = -1;
     bool polling = false;
 };
+
 } // namespace InputCommon
