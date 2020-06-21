@@ -56,8 +56,8 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QShortcut>
 #include <QStatusBar>
 #include <QSysInfo>
-#include <QtConcurrent/QtConcurrent>
 #include <QUrl>
+#include <QtConcurrent/QtConcurrent>
 
 #include <fmt/format.h>
 #include "common/common_paths.h"
