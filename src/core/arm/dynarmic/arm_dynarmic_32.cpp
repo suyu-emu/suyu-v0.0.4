@@ -62,7 +62,7 @@ public:
         case Dynarmic::A32::Exception::Breakpoint:
             break;
         }
-        LOG_CRITICAL(HW_GPU, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
+        LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
                      static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
         UNIMPLEMENTED();
     }
