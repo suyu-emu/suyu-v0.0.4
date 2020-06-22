@@ -29,7 +29,7 @@ static std::shared_ptr<GCButtonFactory> gcbuttons;
 static std::shared_ptr<GCAnalogFactory> gcanalog;
 
 void Init() {
-    std::shared_ptr<GCAdapter::Adapter> gcadapter = std::make_shared<GCAdapter::Adapter>();
+    auto gcadapter = std::make_shared<GCAdapter::Adapter>();
     gcbuttons = std::make_shared<GCButtonFactory>(gcadapter);
     Input::RegisterFactory<Input::ButtonDevice>("gcpad", gcbuttons);
     gcanalog = std::make_shared<GCAnalogFactory>(gcadapter);
