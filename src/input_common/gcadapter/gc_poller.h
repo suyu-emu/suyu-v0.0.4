@@ -15,7 +15,7 @@ namespace InputCommon {
  */
 class GCButtonFactory final : public Input::Factory<Input::ButtonDevice> {
 public:
-    GCButtonFactory();
+    GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
 
     /**
      * Creates a button device from a button press
@@ -35,14 +35,14 @@ public:
     }
 
 private:
-    GCAdapter::Adapter* adapter;
+    std::shared_ptr<GCAdapter::Adapter> adapter;
     bool polling = false;
 };
 
 /// An analog device factory that creates analog devices from GC Adapter
 class GCAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
-    GCAnalogFactory();
+    GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
     std::unique_ptr<Input::AnalogDevice> Create(const Common::ParamPackage& params) override;
     Common::ParamPackage GetNextInput();
 
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    GCAdapter::Adapter* adapter;
+    std::shared_ptr<GCAdapter::Adapter> adapter;
     int analog_x_axis = -1;
     int analog_y_axis = -1;
     int controller_number = -1;

@@ -6,7 +6,6 @@
 #include "input_common/gcadapter/gc_adapter.h"
 
 namespace GCAdapter {
-Adapter* Adapter::adapter_instance{nullptr};
 
 Adapter::Adapter() {
     if (usb_adapter_handle != nullptr) {
@@ -18,13 +17,6 @@ Adapter::Adapter() {
     libusb_init(&libusb_ctx);
 
     StartScanThread();
-}
-
-Adapter* Adapter::GetInstance() {
-    if (!adapter_instance) {
-        adapter_instance = new Adapter;
-    }
-    return adapter_instance;
 }
 
 GCPadStatus Adapter::CheckStatus(int port, u8 adapter_payload[37]) {
@@ -151,34 +143,26 @@ void Adapter::Read() {
                 }
 
                 // Accounting for a threshold here because of some controller variance
-                if (pad[port].stick_x >
-                        pad_constants.MAIN_STICK_CENTER_X + pad_constants.THRESHOLD ||
-                    pad[port].stick_x <
-                        pad_constants.MAIN_STICK_CENTER_X - pad_constants.THRESHOLD) {
+                if (pad[port].stick_x > pad[port].MAIN_STICK_CENTER_X + pad[port].THRESHOLD ||
+                    pad[port].stick_x < pad[port].MAIN_STICK_CENTER_X - pad[port].THRESHOLD) {
                     pad[port].axis = GCAdapter::PadAxes::StickX;
                     pad[port].axis_value = pad[port].stick_x;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].stick_y >
-                        pad_constants.MAIN_STICK_CENTER_Y + pad_constants.THRESHOLD ||
-                    pad[port].stick_y <
-                        pad_constants.MAIN_STICK_CENTER_Y - pad_constants.THRESHOLD) {
+                if (pad[port].stick_y > pad[port].MAIN_STICK_CENTER_Y + pad[port].THRESHOLD ||
+                    pad[port].stick_y < pad[port].MAIN_STICK_CENTER_Y - pad[port].THRESHOLD) {
                     pad[port].axis = GCAdapter::PadAxes::StickY;
                     pad[port].axis_value = pad[port].stick_y;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].substick_x >
-                        pad_constants.C_STICK_CENTER_X + pad_constants.THRESHOLD ||
-                    pad[port].substick_x <
-                        pad_constants.C_STICK_CENTER_X - pad_constants.THRESHOLD) {
+                if (pad[port].substick_x > pad[port].C_STICK_CENTER_X + pad[port].THRESHOLD ||
+                    pad[port].substick_x < pad[port].C_STICK_CENTER_X - pad[port].THRESHOLD) {
                     pad[port].axis = GCAdapter::PadAxes::SubstickX;
                     pad[port].axis_value = pad[port].substick_x;
                     pad_queue[port].Push(pad[port]);
                 }
-                if (pad[port].substick_y >
-                        pad_constants.C_STICK_CENTER_Y + pad_constants.THRESHOLD ||
-                    pad[port].substick_y <
-                        pad_constants.C_STICK_CENTER_Y - pad_constants.THRESHOLD) {
+                if (pad[port].substick_y > pad[port].C_STICK_CENTER_Y + pad[port].THRESHOLD ||
+                    pad[port].substick_y < pad[port].C_STICK_CENTER_Y - pad[port].THRESHOLD) {
                     pad[port].axis = GCAdapter::PadAxes::SubstickY;
                     pad[port].axis_value = pad[port].substick_y;
                     pad_queue[port].Push(pad[port]);
@@ -367,7 +351,15 @@ std::array<Common::SPSCQueue<GCPadStatus>, 4>& Adapter::GetPadQueue() {
     return pad_queue;
 }
 
+const std::array<Common::SPSCQueue<GCPadStatus>, 4>& Adapter::GetPadQueue() const {
+    return pad_queue;
+}
+
 std::array<GCState, 4>& Adapter::GetPadState() {
+    return state;
+}
+
+const std::array<GCState, 4>& Adapter::GetPadState() const {
     return state;
 }
 

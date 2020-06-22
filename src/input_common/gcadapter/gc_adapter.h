@@ -46,17 +46,6 @@ enum class PadAxes : u8 {
     TriggerRight,
     Undefined,
 };
-const struct GCPadConstants {
-    const u8 MAIN_STICK_CENTER_X = 0x80;
-    const u8 MAIN_STICK_CENTER_Y = 0x80;
-    const u8 MAIN_STICK_RADIUS = 0x7f;
-    const u8 C_STICK_CENTER_X = 0x80;
-    const u8 C_STICK_CENTER_Y = 0x80;
-    const u8 C_STICK_RADIUS = 0x7f;
-
-    const u8 TRIGGER_CENTER = 20;
-    const u8 THRESHOLD = 10;
-} pad_constants;
 
 struct GCPadStatus {
     u16 button;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
@@ -66,6 +55,15 @@ struct GCPadStatus {
     u8 substick_y;    // 0 <= substick_y    <= 255
     u8 trigger_left;  // 0 <= trigger_left  <= 255
     u8 trigger_right; // 0 <= trigger_right <= 255
+
+    static constexpr u8 MAIN_STICK_CENTER_X = 0x80;
+    static constexpr u8 MAIN_STICK_CENTER_Y = 0x80;
+    static constexpr u8 MAIN_STICK_RADIUS = 0x7f;
+    static constexpr u8 C_STICK_CENTER_X = 0x80;
+    static constexpr u8 C_STICK_CENTER_Y = 0x80;
+    static constexpr u8 C_STICK_RADIUS = 0x7f;
+    static constexpr u8 TRIGGER_CENTER = 20;
+    static constexpr u8 THRESHOLD = 10;
 
     u8 port;
     PadAxes axis = PadAxes::Undefined;
@@ -87,28 +85,22 @@ enum {
 /// Singleton Adapter class
 class Adapter {
 public:
-    /// For retreiving the singleton instance
-    static Adapter* GetInstance();
-
-    /// Used for polling
-    void BeginConfiguration();
-    void EndConfiguration();
-
-    std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
-    std::array<GCState, 4>& GetPadState();
-    std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue() const;
-    std::array<GCState, 4>& GetPadState() const;
-
-private:
-    /// Singleton instance.
-    static Adapter* adapter_instance;
-
     /// Initialize the GC Adapter capture and read sequence
     Adapter();
 
     /// Close the adapter read thread and release the adapter
     ~Adapter();
+    /// Used for polling
+    void BeginConfiguration();
+    void EndConfiguration();
 
+    std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
+    const std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue() const;
+
+    std::array<GCState, 4>& GetPadState();
+    const std::array<GCState, 4>& GetPadState() const;
+
+private:
     GCPadStatus CheckStatus(int port, u8 adapter_payload[37]);
 
     void PadToState(GCPadStatus pad, GCState& state);

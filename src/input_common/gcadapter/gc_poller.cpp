@@ -14,7 +14,8 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, int axis_, GCAdapter::Adapter* adapter)
+    explicit GCButton(int port_, int button_, int axis_,
+                      std::shared_ptr<GCAdapter::Adapter> adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -26,13 +27,13 @@ public:
 private:
     const int port;
     const int button;
-    GCAdapter::Adapter* gcadapter;
+    std::shared_ptr<GCAdapter::Adapter> gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
     explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
-                          GCAdapter::Adapter* adapter)
+                          std::shared_ptr<GCAdapter::Adapter> adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
           gcadapter(adapter) {}
 
@@ -49,12 +50,11 @@ private:
     const int axis;
     float threshold;
     bool trigger_if_greater;
-    GCAdapter::Adapter* gcadapter;
+    std::shared_ptr<GCAdapter::Adapter> gcadapter;
 };
 
-GCButtonFactory::GCButtonFactory() {
-    adapter = GCAdapter::Adapter::GetInstance();
-}
+GCButtonFactory::GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
+    : adapter(adapter_) {}
 
 GCButton::~GCButton() = default;
 
@@ -171,7 +171,8 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter)
+    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_,
+             std::shared_ptr<GCAdapter::Adapter> adapter)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter) {}
 
     float GetAxis(int axis) const {
@@ -230,13 +231,12 @@ private:
     const int axis_y;
     const float deadzone;
     mutable std::mutex mutex;
-    GCAdapter::Adapter* gcadapter;
+    std::shared_ptr<GCAdapter::Adapter> gcadapter;
 };
 
 /// An analog device factory that creates analog devices from GC Adapter
-GCAnalogFactory::GCAnalogFactory() {
-    adapter = GCAdapter::Adapter::GetInstance();
-};
+GCAnalogFactory::GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
+    : adapter(adapter_) {}
 
 /**
  * Creates analog device from joystick axes

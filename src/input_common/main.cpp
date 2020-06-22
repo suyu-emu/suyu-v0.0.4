@@ -25,13 +25,15 @@ static std::shared_ptr<MotionEmu> motion_emu;
 static std::unique_ptr<SDL::State> sdl;
 #endif
 static std::unique_ptr<CemuhookUDP::State> udp;
+static std::shared_ptr<GCAdapter::Adapter> gcadapter;
 static std::shared_ptr<GCButtonFactory> gcbuttons;
 static std::shared_ptr<GCAnalogFactory> gcanalog;
 
 void Init() {
-    gcbuttons = std::make_shared<GCButtonFactory>();
+    gcadapter = std::make_shared<GCAdapter::Adapter>();
+    gcbuttons = std::make_shared<GCButtonFactory>(gcadapter);
     Input::RegisterFactory<Input::ButtonDevice>("gcpad", gcbuttons);
-    gcanalog = std::make_shared<GCAnalogFactory>();
+    gcanalog = std::make_shared<GCAnalogFactory>(gcadapter);
     Input::RegisterFactory<Input::AnalogDevice>("gcpad", gcanalog);
 
     keyboard = std::make_shared<Keyboard>();
