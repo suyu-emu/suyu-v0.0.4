@@ -176,20 +176,18 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 
 vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
                                                 const SPIRVProgram& program) const {
-    const auto& vi = fixed_state.vertex_input;
-    const auto& cd = fixed_state.color_blending;
-    const auto& rs = fixed_state.rasterizer;
-    const auto& ds = fixed_state.dynamic_state;
-    const auto& viewport_swizzles = fixed_state.viewport_swizzles.swizzles;
+    const auto& state = fixed_state;
+    const auto& dynamic = fixed_state.dynamic_state;
+    const auto& viewport_swizzles = fixed_state.viewport_swizzles;
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        const auto& binding = ds.vertex_bindings[index];
+        const auto& binding = dynamic.vertex_bindings[index];
         if (!binding.enabled) {
             continue;
         }
-        const bool instanced = vi.binding_divisors[index] != 0;
+        const bool instanced = state.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
 
         auto& vertex_binding = vertex_bindings.emplace_back();
@@ -200,14 +198,14 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         if (instanced) {
             auto& binding_divisor = vertex_binding_divisors.emplace_back();
             binding_divisor.binding = static_cast<u32>(index);
-            binding_divisor.divisor = vi.binding_divisors[index];
+            binding_divisor.divisor = state.binding_divisors[index];
         }
     }
 
     std::vector<VkVertexInputAttributeDescription> vertex_attributes;
     const auto& input_attributes = program[0]->entries.attributes;
-    for (std::size_t index = 0; index < std::size(vi.attributes); ++index) {
-        const auto& attribute = vi.attributes[index];
+    for (std::size_t index = 0; index < state.attributes.size(); ++index) {
+        const auto& attribute = state.attributes[index];
         if (!attribute.enabled) {
             continue;
         }
@@ -244,15 +242,15 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     input_assembly_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_ci.pNext = nullptr;
     input_assembly_ci.flags = 0;
-    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, ds.Topology());
+    input_assembly_ci.topology = MaxwellToVK::PrimitiveTopology(device, dynamic.Topology());
     input_assembly_ci.primitiveRestartEnable =
-        rs.primitive_restart_enable != 0 && SupportsPrimitiveRestart(input_assembly_ci.topology);
+        state.primitive_restart_enable != 0 && SupportsPrimitiveRestart(input_assembly_ci.topology);
 
     VkPipelineTessellationStateCreateInfo tessellation_ci;
     tessellation_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
     tessellation_ci.pNext = nullptr;
     tessellation_ci.flags = 0;
-    tessellation_ci.patchControlPoints = rs.patch_control_points_minus_one.Value() + 1;
+    tessellation_ci.patchControlPoints = state.patch_control_points_minus_one.Value() + 1;
 
     VkPipelineViewportStateCreateInfo viewport_ci;
     viewport_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -280,13 +278,13 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     rasterization_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization_ci.pNext = nullptr;
     rasterization_ci.flags = 0;
-    rasterization_ci.depthClampEnable = rs.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE;
-    rasterization_ci.rasterizerDiscardEnable = rs.rasterize_enable == 0 ? VK_TRUE : VK_FALSE;
+    rasterization_ci.depthClampEnable = state.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE;
+    rasterization_ci.rasterizerDiscardEnable = state.rasterize_enable == 0 ? VK_TRUE : VK_FALSE;
     rasterization_ci.polygonMode = VK_POLYGON_MODE_FILL;
     rasterization_ci.cullMode =
-        ds.cull_enable ? MaxwellToVK::CullFace(ds.CullFace()) : VK_CULL_MODE_NONE;
-    rasterization_ci.frontFace = MaxwellToVK::FrontFace(ds.FrontFace());
-    rasterization_ci.depthBiasEnable = rs.depth_bias_enable;
+        dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE;
+    rasterization_ci.frontFace = MaxwellToVK::FrontFace(dynamic.FrontFace());
+    rasterization_ci.depthBiasEnable = state.depth_bias_enable;
     rasterization_ci.depthBiasConstantFactor = 0.0f;
     rasterization_ci.depthBiasClamp = 0.0f;
     rasterization_ci.depthBiasSlopeFactor = 0.0f;
@@ -307,14 +305,15 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     depth_stencil_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil_ci.pNext = nullptr;
     depth_stencil_ci.flags = 0;
-    depth_stencil_ci.depthTestEnable = ds.depth_test_enable;
-    depth_stencil_ci.depthWriteEnable = ds.depth_write_enable;
-    depth_stencil_ci.depthCompareOp =
-        ds.depth_test_enable ? MaxwellToVK::ComparisonOp(ds.DepthTestFunc()) : VK_COMPARE_OP_ALWAYS;
-    depth_stencil_ci.depthBoundsTestEnable = ds.depth_bounds_enable;
-    depth_stencil_ci.stencilTestEnable = ds.stencil_enable;
-    depth_stencil_ci.front = GetStencilFaceState(ds.front);
-    depth_stencil_ci.back = GetStencilFaceState(ds.back);
+    depth_stencil_ci.depthTestEnable = dynamic.depth_test_enable;
+    depth_stencil_ci.depthWriteEnable = dynamic.depth_write_enable;
+    depth_stencil_ci.depthCompareOp = dynamic.depth_test_enable
+                                          ? MaxwellToVK::ComparisonOp(dynamic.DepthTestFunc())
+                                          : VK_COMPARE_OP_ALWAYS;
+    depth_stencil_ci.depthBoundsTestEnable = dynamic.depth_bounds_enable;
+    depth_stencil_ci.stencilTestEnable = dynamic.stencil_enable;
+    depth_stencil_ci.front = GetStencilFaceState(dynamic.front);
+    depth_stencil_ci.back = GetStencilFaceState(dynamic.back);
     depth_stencil_ci.minDepthBounds = 0.0f;
     depth_stencil_ci.maxDepthBounds = 0.0f;
 
@@ -324,7 +323,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         static constexpr std::array COMPONENT_TABLE = {
             VK_COLOR_COMPONENT_R_BIT, VK_COLOR_COMPONENT_G_BIT, VK_COLOR_COMPONENT_B_BIT,
             VK_COLOR_COMPONENT_A_BIT};
-        const auto& blend = cd.attachments[index];
+        const auto& blend = state.attachments[index];
 
         VkColorComponentFlags color_components = 0;
         for (std::size_t i = 0; i < COMPONENT_TABLE.size(); ++i) {

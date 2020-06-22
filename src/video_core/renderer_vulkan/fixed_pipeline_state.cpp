@@ -39,24 +39,7 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
 
 } // Anonymous namespace
 
-void FixedPipelineState::VertexInput::Fill(const Maxwell& regs) noexcept {
-    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
-        const auto& input = regs.vertex_attrib_format[index];
-        auto& attribute = attributes[index];
-        attribute.raw = 0;
-        attribute.enabled.Assign(input.IsConstant() ? 0 : 1);
-        attribute.buffer.Assign(input.buffer);
-        attribute.offset.Assign(input.offset);
-        attribute.type.Assign(static_cast<u32>(input.type.Value()));
-        attribute.size.Assign(static_cast<u32>(input.size.Value()));
-    }
-    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        binding_divisors[index] =
-            regs.instanced_arrays.IsInstancingEnabled(index) ? regs.vertex_array[index].divisor : 0;
-    }
-}
-
-void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
+void FixedPipelineState::Fill(const Maxwell& regs) {
     const auto& clip = regs.view_volume_clip_control;
     const std::array enabled_lut = {regs.polygon_offset_point_enable,
                                     regs.polygon_offset_line_enable,
@@ -76,19 +59,34 @@ void FixedPipelineState::Rasterizer::Fill(const Maxwell& regs) noexcept {
     logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
     logic_op.Assign(PackLogicOp(regs.logic_op.operation));
     rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
-    std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
-}
 
-void FixedPipelineState::ColorBlending::Fill(const Maxwell& regs) noexcept {
+    std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
+
+    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
+        binding_divisors[index] =
+            regs.instanced_arrays.IsInstancingEnabled(index) ? regs.vertex_array[index].divisor : 0;
+    }
+
+    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+        const auto& input = regs.vertex_attrib_format[index];
+        auto& attribute = attributes[index];
+        attribute.raw = 0;
+        attribute.enabled.Assign(input.IsConstant() ? 0 : 1);
+        attribute.buffer.Assign(input.buffer);
+        attribute.offset.Assign(input.offset);
+        attribute.type.Assign(static_cast<u32>(input.type.Value()));
+        attribute.size.Assign(static_cast<u32>(input.size.Value()));
+    }
+
     for (std::size_t index = 0; index < std::size(attachments); ++index) {
         attachments[index].Fill(regs, index);
     }
-}
 
-void FixedPipelineState::ViewportSwizzles::Fill(const Maxwell& regs) noexcept {
     const auto& transform = regs.viewport_transform;
-    std::transform(transform.begin(), transform.end(), swizzles.begin(),
+    std::transform(transform.begin(), transform.end(), viewport_swizzles.begin(),
                    [](const auto& viewport) { return static_cast<u16>(viewport.swizzle.raw); });
+
+    dynamic_state.Fill(regs);
 }
 
 void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size_t index) {
@@ -172,14 +170,6 @@ void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
         binding.enabled.Assign(input.IsEnabled() ? 1 : 0);
         binding.stride.Assign(static_cast<u16>(input.stride.Value()));
     }
-}
-
-void FixedPipelineState::Fill(const Maxwell& regs) {
-    vertex_input.Fill(regs);
-    rasterizer.Fill(regs);
-    color_blending.Fill(regs);
-    viewport_swizzles.Fill(regs);
-    dynamic_state.Fill(regs);
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {

@@ -314,16 +314,16 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     Specialization specialization;
     if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points) {
         float point_size;
-        std::memcpy(&point_size, &fixed_state.rasterizer.point_size, sizeof(float));
+        std::memcpy(&point_size, &fixed_state.point_size, sizeof(float));
         specialization.point_size = point_size;
         ASSERT(point_size != 0.0f);
     }
     for (std::size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
-        const auto& attribute = fixed_state.vertex_input.attributes[i];
+        const auto& attribute = fixed_state.attributes[i];
         specialization.enabled_attributes[i] = attribute.enabled.Value() != 0;
         specialization.attribute_types[i] = attribute.Type();
     }
-    specialization.ndc_minus_one_to_one = fixed_state.rasterizer.ndc_minus_one_to_one;
+    specialization.ndc_minus_one_to_one = fixed_state.ndc_minus_one_to_one;
 
     SPIRVProgram program;
     std::vector<VkDescriptorSetLayoutBinding> bindings;

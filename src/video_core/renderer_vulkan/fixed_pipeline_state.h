@@ -89,63 +89,21 @@ struct FixedPipelineState {
         }
     };
 
-    struct VertexInput {
-        union Attribute {
-            u32 raw;
-            BitField<0, 1, u32> enabled;
-            BitField<1, 5, u32> buffer;
-            BitField<6, 14, u32> offset;
-            BitField<20, 3, u32> type;
-            BitField<23, 6, u32> size;
+    union VertexAttribute {
+        u32 raw;
+        BitField<0, 1, u32> enabled;
+        BitField<1, 5, u32> buffer;
+        BitField<6, 14, u32> offset;
+        BitField<20, 3, u32> type;
+        BitField<23, 6, u32> size;
 
-            constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
-                return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
-            }
+        constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
+            return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
+        }
 
-            constexpr Maxwell::VertexAttribute::Size Size() const noexcept {
-                return static_cast<Maxwell::VertexAttribute::Size>(size.Value());
-            }
-        };
-
-        std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
-        std::array<Attribute, Maxwell::NumVertexAttributes> attributes;
-
-        void Fill(const Maxwell& regs) noexcept;
-    };
-
-    struct Rasterizer {
-        union {
-            u32 raw;
-            BitField<0, 1, u32> primitive_restart_enable;
-            BitField<1, 1, u32> depth_bias_enable;
-            BitField<2, 1, u32> depth_clamp_disabled;
-            BitField<3, 1, u32> ndc_minus_one_to_one;
-            BitField<4, 2, u32> polygon_mode;
-            BitField<6, 5, u32> patch_control_points_minus_one;
-            BitField<11, 2, u32> tessellation_primitive;
-            BitField<13, 2, u32> tessellation_spacing;
-            BitField<15, 1, u32> tessellation_clockwise;
-            BitField<16, 1, u32> logic_op_enable;
-            BitField<17, 4, u32> logic_op;
-            BitField<21, 1, u32> rasterize_enable;
-        };
-
-        // TODO(Rodrigo): Move this to push constants
-        u32 point_size;
-
-        void Fill(const Maxwell& regs) noexcept;
-    };
-
-    struct ColorBlending {
-        std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
-
-        void Fill(const Maxwell& regs) noexcept;
-    };
-
-    struct ViewportSwizzles {
-        std::array<u16, Maxwell::NumViewports> swizzles;
-
-        void Fill(const Maxwell& regs) noexcept;
+        constexpr Maxwell::VertexAttribute::Size Size() const noexcept {
+            return static_cast<Maxwell::VertexAttribute::Size>(size.Value());
+        }
     };
 
     template <std::size_t Position>
@@ -217,10 +175,26 @@ struct FixedPipelineState {
         }
     };
 
-    VertexInput vertex_input;
-    Rasterizer rasterizer;
-    ColorBlending color_blending;
-    ViewportSwizzles viewport_swizzles;
+    union {
+        u32 raw;
+        BitField<0, 1, u32> primitive_restart_enable;
+        BitField<1, 1, u32> depth_bias_enable;
+        BitField<2, 1, u32> depth_clamp_disabled;
+        BitField<3, 1, u32> ndc_minus_one_to_one;
+        BitField<4, 2, u32> polygon_mode;
+        BitField<6, 5, u32> patch_control_points_minus_one;
+        BitField<11, 2, u32> tessellation_primitive;
+        BitField<13, 2, u32> tessellation_spacing;
+        BitField<15, 1, u32> tessellation_clockwise;
+        BitField<16, 1, u32> logic_op_enable;
+        BitField<17, 4, u32> logic_op;
+        BitField<21, 1, u32> rasterize_enable;
+    };
+    u32 point_size;
+    std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
+    std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
+    std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
+    std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     DynamicState dynamic_state;
 
     void Fill(const Maxwell& regs);
