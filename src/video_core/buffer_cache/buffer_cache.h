@@ -47,7 +47,7 @@ public:
                             bool is_written = false, bool use_fast_cbuf = false) {
         std::lock_guard lock{mutex};
 
-        const auto& memory_manager = system.GPU().MemoryManager();
+        auto& memory_manager = system.GPU().MemoryManager();
         const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
         if (!cpu_addr_opt) {
             return {GetEmptyBuffer(size), 0};
@@ -59,7 +59,6 @@ public:
         constexpr std::size_t max_stream_size = 0x800;
         if (use_fast_cbuf || size < max_stream_size) {
             if (!is_written && !IsRegionWritten(cpu_addr, cpu_addr + size - 1)) {
-                auto& memory_manager = system.GPU().MemoryManager();
                 const bool is_granular = memory_manager.IsGranularRange(gpu_addr, size);
                 if (use_fast_cbuf) {
                     u8* dest;
