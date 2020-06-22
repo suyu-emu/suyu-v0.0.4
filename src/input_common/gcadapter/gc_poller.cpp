@@ -14,8 +14,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, int axis_,
-                      std::shared_ptr<GCAdapter::Adapter> adapter)
+    explicit GCButton(int port_, int button_, int axis_, GCAdapter::Adapter* adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -27,13 +26,13 @@ public:
 private:
     const int port;
     const int button;
-    std::shared_ptr<GCAdapter::Adapter> gcadapter;
+    GCAdapter::Adapter* gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
     explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
-                          std::shared_ptr<GCAdapter::Adapter> adapter)
+                          GCAdapter::Adapter* adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
           gcadapter(adapter) {}
 
@@ -50,11 +49,11 @@ private:
     const int axis;
     float threshold;
     bool trigger_if_greater;
-    std::shared_ptr<GCAdapter::Adapter> gcadapter;
+    GCAdapter::Adapter* gcadapter;
 };
 
 GCButtonFactory::GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
-    : adapter(adapter_) {}
+    : adapter(std::move(adapter_)) {}
 
 GCButton::~GCButton() = default;
 
@@ -75,11 +74,12 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
             trigger_if_greater = true;
             LOG_ERROR(Input, "Unknown direction {}", direction_name);
         }
-        return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater, adapter);
+        return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater,
+                                              adapter.get());
     }
 
     std::unique_ptr<GCButton> button =
-        std::make_unique<GCButton>(port, button_id, params.Get("axis", 0), adapter);
+        std::make_unique<GCButton>(port, button_id, params.Get("axis", 0), adapter.get());
     return std::move(button);
 }
 
@@ -171,8 +171,7 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_,
-             std::shared_ptr<GCAdapter::Adapter> adapter)
+    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter) {}
 
     float GetAxis(int axis) const {
@@ -183,7 +182,7 @@ public:
         return (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 95.0f;
     }
 
-    std::tuple<float, float> GetAnalog(int axis_x, int axis_y) const {
+    std::pair<float, float> GetAnalog(int axis_x, int axis_y) const {
         float x = GetAxis(axis_x);
         float y = GetAxis(axis_y);
 
@@ -196,17 +195,17 @@ public:
             y /= r;
         }
 
-        return std::make_tuple(x, y);
+        return {x, y};
     }
 
     std::tuple<float, float> GetStatus() const override {
         const auto [x, y] = GetAnalog(axis_x, axis_y);
         const float r = std::sqrt((x * x) + (y * y));
         if (r > deadzone) {
-            return std::make_tuple(x / r * (r - deadzone) / (1 - deadzone),
-                                   y / r * (r - deadzone) / (1 - deadzone));
+            return {x / r * (r - deadzone) / (1 - deadzone),
+                    y / r * (r - deadzone) / (1 - deadzone)};
         }
-        return std::make_tuple<float, float>(0.0f, 0.0f);
+        return {0.0f, 0.0f};
     }
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
@@ -231,12 +230,12 @@ private:
     const int axis_y;
     const float deadzone;
     mutable std::mutex mutex;
-    std::shared_ptr<GCAdapter::Adapter> gcadapter;
+    GCAdapter::Adapter* gcadapter;
 };
 
 /// An analog device factory that creates analog devices from GC Adapter
 GCAnalogFactory::GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
-    : adapter(adapter_) {}
+    : adapter(std::move(adapter_)) {}
 
 /**
  * Creates analog device from joystick axes
@@ -246,13 +245,12 @@ GCAnalogFactory::GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
  *     - "axis_y": the index of the axis to be bind as y-axis
  */
 std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::ParamPackage& params) {
-    const std::string guid = params.Get("guid", "0");
     const int port = params.Get("port", 0);
     const int axis_x = params.Get("axis_x", 0);
     const int axis_y = params.Get("axis_y", 1);
     const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
 
-    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter);
+    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get());
 }
 
 void GCAnalogFactory::BeginConfiguration() {

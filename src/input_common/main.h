@@ -7,7 +7,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
 
 namespace Common {

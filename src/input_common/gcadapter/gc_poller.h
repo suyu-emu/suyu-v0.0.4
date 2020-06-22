@@ -6,6 +6,7 @@
 
 #include <memory>
 #include "core/frontend/input.h"
+#include "input_common/gcadapter/gc_adapter.h"
 
 namespace InputCommon {
 
@@ -15,7 +16,7 @@ namespace InputCommon {
  */
 class GCButtonFactory final : public Input::Factory<Input::ButtonDevice> {
 public:
-    GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
+    explicit GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
 
     /**
      * Creates a button device from a button press
@@ -42,7 +43,8 @@ private:
 /// An analog device factory that creates analog devices from GC Adapter
 class GCAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
-    GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
+    explicit GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
+
     std::unique_ptr<Input::AnalogDevice> Create(const Common::ParamPackage& params) override;
     Common::ParamPackage GetNextInput();
 
