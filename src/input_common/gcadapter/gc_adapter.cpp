@@ -134,7 +134,7 @@ void Adapter::Read() {
             payload_size = payload_size_in;
         }
 
-        GCPadStatus pad[4];
+        std::array<GCPadStatus, 4> pad;
         if (payload_size != sizeof(controller_payload_copy) ||
             controller_payload_copy[0] != LIBUSB_DT_HID) {
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size,
@@ -224,9 +224,7 @@ void Adapter::Setup() {
         current_status = NO_ADAPTER_DETECTED;
     }
 
-    for (int i = 0; i < 4; i++) {
-        adapter_controllers_status[i] = ControllerTypes::None;
-    }
+    adapter_controllers_status.fill(ControllerTypes::None);
 
     libusb_device** devs; // pointer to list of connected usb devices
 
@@ -332,9 +330,7 @@ void Adapter::Reset() {
         adapter_input_thread.join();
     }
 
-    for (int i = 0; i < 4; i++) {
-        adapter_controllers_status[i] = ControllerTypes::None;
-    }
+    adapter_controllers_status.fill(ControllerTypes::None);
 
     current_status = NO_ADAPTER_DETECTED;
 
@@ -354,10 +350,16 @@ void Adapter::ResetDeviceType(int port) {
 }
 
 void Adapter::BeginConfiguration() {
+    for (auto& pq : pad_queue) {
+        pq.Clear();
+    }
     configuring = true;
 }
 
 void Adapter::EndConfiguration() {
+    for (auto& pq : pad_queue) {
+        pq.Clear();
+    }
     configuring = false;
 }
 

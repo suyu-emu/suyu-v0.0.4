@@ -56,9 +56,7 @@ GCButtonFactory::GCButtonFactory() {
     adapter = GCAdapter::Adapter::GetInstance();
 }
 
-GCButton::~GCButton() {
-    // GCAdapter::Shutdown();
-}
+GCButton::~GCButton() = default;
 
 std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::ParamPackage& params) {
     int button_id = params.Get("button", 0);
@@ -163,17 +161,11 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
 
 void GCButtonFactory::BeginConfiguration() {
     polling = true;
-    for (int i = 0; i < 4; i++) {
-        adapter->GetPadQueue()[i].Clear();
-    }
     adapter->BeginConfiguration();
 }
 
 void GCButtonFactory::EndConfiguration() {
     polling = false;
-    for (int i = 0; i < 4; i++) {
-        adapter->GetPadQueue()[i].Clear();
-    }
     adapter->EndConfiguration();
 }
 
@@ -265,17 +257,11 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
 
 void GCAnalogFactory::BeginConfiguration() {
     polling = true;
-    for (int i = 0; i < 4; i++) {
-        adapter->GetPadQueue()[i].Clear();
-    }
     adapter->BeginConfiguration();
 }
 
 void GCAnalogFactory::EndConfiguration() {
     polling = false;
-    for (int i = 0; i < 4; i++) {
-        adapter->GetPadQueue()[i].Clear();
-    }
     adapter->EndConfiguration();
 }
 

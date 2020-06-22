@@ -30,7 +30,7 @@ public:
     void BeginConfiguration();
     void EndConfiguration();
 
-    bool IsPolling() {
+    bool IsPolling() const {
         return polling;
     }
 
@@ -50,7 +50,7 @@ public:
     void BeginConfiguration();
     void EndConfiguration();
 
-    bool IsPolling() {
+    bool IsPolling() const {
         return polling;
     }
 

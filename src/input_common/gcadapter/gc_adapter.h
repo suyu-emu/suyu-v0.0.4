@@ -96,6 +96,8 @@ public:
 
     std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
     std::array<GCState, 4>& GetPadState();
+    std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue() const;
+    std::array<GCState, 4>& GetPadState() const;
 
 private:
     /// Singleton instance.
@@ -139,8 +141,7 @@ private:
 
     int current_status = NO_ADAPTER_DETECTED;
     libusb_device_handle* usb_adapter_handle = nullptr;
-    ControllerTypes adapter_controllers_status[4] = {ControllerTypes::None, ControllerTypes::None,
-                                                     ControllerTypes::None, ControllerTypes::None};
+    std::array<ControllerTypes, 4> adapter_controllers_status{};
 
     std::mutex s_mutex;
 
