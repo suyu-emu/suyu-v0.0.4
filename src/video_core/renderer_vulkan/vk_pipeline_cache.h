@@ -56,6 +56,10 @@ struct GraphicsPipelineCacheKey {
     bool operator!=(const GraphicsPipelineCacheKey& rhs) const noexcept {
         return !operator==(rhs);
     }
+
+    std::size_t Size() const noexcept {
+        return sizeof(renderpass_params) + sizeof(padding) + sizeof(shaders) + fixed_state.Size();
+    }
 };
 static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
 static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);

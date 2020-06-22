@@ -177,8 +177,22 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
                                                 const SPIRVProgram& program) const {
     const auto& state = fixed_state;
-    const auto& dynamic = fixed_state.dynamic_state;
-    const auto& viewport_swizzles = fixed_state.viewport_swizzles;
+    const auto& viewport_swizzles = state.viewport_swizzles;
+
+    FixedPipelineState::DynamicState dynamic;
+    if (device.IsExtExtendedDynamicStateSupported()) {
+        // Insert dummy values, as long as they are valid they don't matter as extended dynamic
+        // state is ignored
+        dynamic.raw1 = 0;
+        dynamic.raw2 = 0;
+        for (FixedPipelineState::VertexBinding& binding : dynamic.vertex_bindings) {
+            // Enable all vertex bindings
+            binding.raw = 0;
+            binding.enabled.Assign(1);
+        }
+    } else {
+        dynamic = state.dynamic_state;
+    }
 
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;

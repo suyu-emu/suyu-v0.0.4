@@ -39,7 +39,7 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
 
 } // Anonymous namespace
 
-void FixedPipelineState::Fill(const Maxwell& regs) {
+void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_state) {
     const auto& clip = regs.view_volume_clip_control;
     const std::array enabled_lut = {regs.polygon_offset_point_enable,
                                     regs.polygon_offset_line_enable,
@@ -86,7 +86,10 @@ void FixedPipelineState::Fill(const Maxwell& regs) {
     std::transform(transform.begin(), transform.end(), viewport_swizzles.begin(),
                    [](const auto& viewport) { return static_cast<u16>(viewport.swizzle.raw); });
 
-    dynamic_state.Fill(regs);
+    if (!has_extended_dynamic_state) {
+        no_extended_dynamic_state.Assign(1);
+        dynamic_state.Fill(regs);
+    }
 }
 
 void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size_t index) {
@@ -173,12 +176,12 @@ void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {
-    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());
     return static_cast<std::size_t>(hash);
 }
 
 bool FixedPipelineState::operator==(const FixedPipelineState& rhs) const noexcept {
-    return std::memcmp(this, &rhs, sizeof *this) == 0;
+    return std::memcmp(this, &rhs, Size()) == 0;
 }
 
 u32 FixedPipelineState::PackComparisonOp(Maxwell::ComparisonOp op) noexcept {

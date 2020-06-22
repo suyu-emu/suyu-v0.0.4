@@ -177,18 +177,19 @@ struct FixedPipelineState {
 
     union {
         u32 raw;
-        BitField<0, 1, u32> primitive_restart_enable;
-        BitField<1, 1, u32> depth_bias_enable;
-        BitField<2, 1, u32> depth_clamp_disabled;
-        BitField<3, 1, u32> ndc_minus_one_to_one;
-        BitField<4, 2, u32> polygon_mode;
-        BitField<6, 5, u32> patch_control_points_minus_one;
-        BitField<11, 2, u32> tessellation_primitive;
-        BitField<13, 2, u32> tessellation_spacing;
-        BitField<15, 1, u32> tessellation_clockwise;
-        BitField<16, 1, u32> logic_op_enable;
-        BitField<17, 4, u32> logic_op;
-        BitField<21, 1, u32> rasterize_enable;
+        BitField<0, 1, u32> no_extended_dynamic_state;
+        BitField<2, 1, u32> primitive_restart_enable;
+        BitField<3, 1, u32> depth_bias_enable;
+        BitField<4, 1, u32> depth_clamp_disabled;
+        BitField<5, 1, u32> ndc_minus_one_to_one;
+        BitField<6, 2, u32> polygon_mode;
+        BitField<8, 5, u32> patch_control_points_minus_one;
+        BitField<13, 2, u32> tessellation_primitive;
+        BitField<15, 2, u32> tessellation_spacing;
+        BitField<17, 1, u32> tessellation_clockwise;
+        BitField<18, 1, u32> logic_op_enable;
+        BitField<19, 4, u32> logic_op;
+        BitField<23, 1, u32> rasterize_enable;
     };
     u32 point_size;
     std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
@@ -197,7 +198,7 @@ struct FixedPipelineState {
     std::array<u16, Maxwell::NumViewports> viewport_swizzles;
     DynamicState dynamic_state;
 
-    void Fill(const Maxwell& regs);
+    void Fill(const Maxwell& regs, bool has_extended_dynamic_state);
 
     std::size_t Hash() const noexcept;
 
@@ -205,6 +206,11 @@ struct FixedPipelineState {
 
     bool operator!=(const FixedPipelineState& rhs) const noexcept {
         return !operator==(rhs);
+    }
+
+    std::size_t Size() const noexcept {
+        const std::size_t total_size = sizeof *this;
+        return total_size - (no_extended_dynamic_state != 0 ? 0 : sizeof(DynamicState));
     }
 };
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);

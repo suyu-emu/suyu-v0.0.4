@@ -116,12 +116,12 @@ u32 FillDescriptorLayout(const ShaderEntries& entries,
 } // Anonymous namespace
 
 std::size_t GraphicsPipelineCacheKey::Hash() const noexcept {
-    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());
     return static_cast<std::size_t>(hash);
 }
 
 bool GraphicsPipelineCacheKey::operator==(const GraphicsPipelineCacheKey& rhs) const noexcept {
-    return std::memcmp(&rhs, this, sizeof *this) == 0;
+    return std::memcmp(&rhs, this, Size()) == 0;
 }
 
 std::size_t ComputePipelineCacheKey::Hash() const noexcept {
@@ -312,7 +312,8 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     const auto& gpu = system.GPU().Maxwell3D();
 
     Specialization specialization;
-    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points) {
+    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points ||
+        device.IsExtExtendedDynamicStateSupported()) {
         float point_size;
         std::memcpy(&point_size, &fixed_state.point_size, sizeof(float));
         specialization.point_size = point_size;

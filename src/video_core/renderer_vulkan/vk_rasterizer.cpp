@@ -413,7 +413,7 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     const auto& gpu = system.GPU().Maxwell3D();
     GraphicsPipelineCacheKey key;
-    key.fixed_state.Fill(gpu.regs);
+    key.fixed_state.Fill(gpu.regs, device.IsExtExtendedDynamicStateSupported());
 
     buffer_cache.Map(CalculateGraphicsStreamBufferSize(is_indexed));
 
