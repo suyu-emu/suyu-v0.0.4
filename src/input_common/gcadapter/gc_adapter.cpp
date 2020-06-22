@@ -21,7 +21,7 @@ Adapter::Adapter() {
     StartScanThread();
 }
 
-GCPadStatus Adapter::CheckStatus(int port, u8 adapter_payload[37]) {
+GCPadStatus Adapter::CheckStatus(int port, const std::array<u8, 37>& adapter_payload) {
     GCPadStatus pad = {};
     bool get_origin = false;
 
@@ -88,7 +88,7 @@ GCPadStatus Adapter::CheckStatus(int port, u8 adapter_payload[37]) {
     return pad;
 }
 
-void Adapter::PadToState(GCPadStatus pad, GCState& state) {
+void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
     state.buttons.insert_or_assign(PAD_BUTTON_A, pad.button & PAD_BUTTON_A);
     state.buttons.insert_or_assign(PAD_BUTTON_B, pad.button & PAD_BUTTON_B);
     state.buttons.insert_or_assign(PAD_BUTTON_X, pad.button & PAD_BUTTON_X);
@@ -112,15 +112,15 @@ void Adapter::PadToState(GCPadStatus pad, GCState& state) {
 void Adapter::Read() {
     LOG_INFO(Input, "GC Adapter Read() thread started");
 
-    int payload_size_in;
-    u8 adapter_payload[37];
+    int payload_size_in, payload_size;
+    std::array<u8, 37> adapter_payload;
+    std::array<u8, 37> controller_payload_copy;
+    std::array<GCPadStatus, 4> pad;
+
     while (adapter_thread_running) {
-        libusb_interrupt_transfer(usb_adapter_handle, input_endpoint, adapter_payload,
+        libusb_interrupt_transfer(usb_adapter_handle, input_endpoint, adapter_payload.data(),
                                   sizeof(adapter_payload), &payload_size_in, 32);
-
-        int payload_size = 0;
-        u8 controller_payload_copy[37];
-
+        payload_size = 0;
         {
             std::lock_guard<std::mutex> lk(s_mutex);
             std::copy(std::begin(adapter_payload), std::end(adapter_payload),
@@ -128,7 +128,6 @@ void Adapter::Read() {
             payload_size = payload_size_in;
         }
 
-        std::array<GCPadStatus, 4> pad;
         if (payload_size != sizeof(controller_payload_copy) ||
             controller_payload_copy[0] != LIBUSB_DT_HID) {
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size,
@@ -365,4 +364,4 @@ const std::array<GCState, 4>& Adapter::GetPadState() const {
     return state;
 }
 
-} // end of namespace GCAdapter
+} // namespace GCAdapter

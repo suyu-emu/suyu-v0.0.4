@@ -101,9 +101,9 @@ public:
     const std::array<GCState, 4>& GetPadState() const;
 
 private:
-    GCPadStatus CheckStatus(int port, u8 adapter_payload[37]);
+    GCPadStatus CheckStatus(int port, const std::array<u8, 37>& adapter_payload);
 
-    void PadToState(GCPadStatus pad, GCState& state);
+    void PadToState(const GCPadStatus& pad, GCState& state);
 
     void Read();
     void ScanThreadFunc();
@@ -154,4 +154,4 @@ private:
     std::array<GCState, 4> state;
 };
 
-} // end of namespace GCAdapter
+} // namespace GCAdapter
