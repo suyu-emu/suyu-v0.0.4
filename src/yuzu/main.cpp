@@ -2015,8 +2015,8 @@ void GMainWindow::UpdateWindowTitle(const std::string& title_name,
     } else {
         const auto fmt = std::string(Common::g_title_bar_format_running);
         setWindowTitle(QString::fromStdString(
-            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {4} | {1}-{2}" : fmt, full_name, branch_name,
-                        description, title_name, title_version, date, build_id)));
+            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {6} | {1}-{2}" : fmt, full_name, branch_name,
+                        description, title_name, date, build_id, title_version)));
     }
 }
 
