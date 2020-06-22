@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <chrono>
+#include <thread>
 #include "common/logging/log.h"
 #include "input_common/gcadapter/gc_adapter.h"
 
@@ -182,7 +184,7 @@ void Adapter::ScanThreadFunc() {
             std::lock_guard<std::mutex> lk(initialization_mutex);
             Setup();
         }
-        Sleep(500);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
 
