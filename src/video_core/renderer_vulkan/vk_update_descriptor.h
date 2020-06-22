@@ -15,17 +15,13 @@ namespace Vulkan {
 class VKDevice;
 class VKScheduler;
 
-class DescriptorUpdateEntry {
-public:
-    explicit DescriptorUpdateEntry() {}
+struct DescriptorUpdateEntry {
+    DescriptorUpdateEntry(VkDescriptorImageInfo image_) : image{image_} {}
 
-    DescriptorUpdateEntry(VkDescriptorImageInfo image) : image{image} {}
+    DescriptorUpdateEntry(VkDescriptorBufferInfo buffer_) : buffer{buffer_} {}
 
-    DescriptorUpdateEntry(VkDescriptorBufferInfo buffer) : buffer{buffer} {}
+    DescriptorUpdateEntry(VkBufferView texel_buffer_) : texel_buffer{texel_buffer_} {}
 
-    DescriptorUpdateEntry(VkBufferView texel_buffer) : texel_buffer{texel_buffer} {}
-
-private:
     union {
         VkDescriptorImageInfo image;
         VkDescriptorBufferInfo buffer;
@@ -45,32 +41,34 @@ public:
     void Send(VkDescriptorUpdateTemplateKHR update_template, VkDescriptorSet set);
 
     void AddSampledImage(VkSampler sampler, VkImageView image_view) {
-        entries.emplace_back(VkDescriptorImageInfo{sampler, image_view, {}});
+        payload.emplace_back(VkDescriptorImageInfo{sampler, image_view, {}});
     }
 
     void AddImage(VkImageView image_view) {
-        entries.emplace_back(VkDescriptorImageInfo{{}, image_view, {}});
+        payload.emplace_back(VkDescriptorImageInfo{{}, image_view, {}});
     }
 
     void AddBuffer(VkBuffer buffer, u64 offset, std::size_t size) {
-        entries.emplace_back(VkDescriptorBufferInfo{buffer, offset, size});
+        payload.emplace_back(VkDescriptorBufferInfo{buffer, offset, size});
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
-        entries.emplace_back(texel_buffer);
+        payload.emplace_back(texel_buffer);
     }
 
-    VkImageLayout* GetLastImageLayout() {
-        return &std::get<VkDescriptorImageInfo>(entries.back()).imageLayout;
+    VkImageLayout* LastImageLayout() {
+        return &payload.back().image.imageLayout;
+    }
+
+    const VkImageLayout* LastImageLayout() const {
+        return &payload.back().image.imageLayout;
     }
 
 private:
-    using Variant = std::variant<VkDescriptorImageInfo, VkDescriptorBufferInfo, VkBufferView>;
-
     const VKDevice& device;
     VKScheduler& scheduler;
 
-    boost::container::static_vector<Variant, 0x400> entries;
+    const DescriptorUpdateEntry* upload_start = nullptr;
     boost::container::static_vector<DescriptorUpdateEntry, 0x10000> payload;
 };
 
