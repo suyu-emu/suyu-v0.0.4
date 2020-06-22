@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 #include <mutex>
+#include <thread>
 #include <libusb.h>
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
