@@ -17,23 +17,23 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {3, &ACC_U0::ListOpenUsers, "ListOpenUsers"},
         {4, &ACC_U0::GetLastOpenedUser, "GetLastOpenedUser"},
         {5, &ACC_U0::GetProfile, "GetProfile"},
-        {6, nullptr, "GetProfileDigest"},
+        {6, nullptr, "GetProfileDigest"}, // 3.0.0+
         {50, &ACC_U0::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, &ACC_U0::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
-        {60, nullptr, "ListOpenContextStoredUsers"},
-        {99, nullptr, "DebugActivateOpenContextRetention"},
+        {60, nullptr, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
+        {99, nullptr, "DebugActivateOpenContextRetention"}, // 6.0.0+
         {100, &ACC_U0::InitializeApplicationInfo, "InitializeApplicationInfo"},
         {101, &ACC_U0::GetBaasAccountManagerForApplication, "GetBaasAccountManagerForApplication"},
         {102, nullptr, "AuthenticateApplicationAsync"},
-        {103, nullptr, "CheckNetworkServiceAvailabilityAsync"},
+        {103, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
         {110, nullptr, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {120, nullptr, "CreateGuestLoginRequest"},
-        {130, nullptr, "LoadOpenContext"},
-        {131, nullptr, "ListOpenContextStoredUsers"},
-        {140, &ACC_U0::InitializeApplicationInfoRestricted, "InitializeApplicationInfoRestricted"},
-        {141, &ACC_U0::ListQualifiedUsers, "ListQualifiedUsers"},
-        {150, &ACC_U0::IsUserAccountSwitchLocked, "IsUserAccountSwitchLocked"},
+        {130, nullptr, "LoadOpenContext"}, // 5.0.0+
+        {131, nullptr, "ListOpenContextStoredUsers"}, // 6.0.0+
+        {140, &ACC_U0::InitializeApplicationInfoRestricted, "InitializeApplicationInfoRestricted"}, // 6.0.0+
+        {141, &ACC_U0::ListQualifiedUsers, "ListQualifiedUsers"}, // 6.0.0+
+        {150, &ACC_U0::IsUserAccountSwitchLocked, "IsUserAccountSwitchLocked"}, // 6.0.0+
     };
     // clang-format on
 
