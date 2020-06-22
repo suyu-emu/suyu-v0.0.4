@@ -661,6 +661,10 @@ union Instruction {
     constexpr Instruction(u64 value) : value{value} {}
     constexpr Instruction(const Instruction& instr) : value(instr.value) {}
 
+    constexpr bool Bit(u64 offset) const {
+        return ((value >> offset) & 1) != 0;
+    }
+
     BitField<0, 8, Register> gpr0;
     BitField<8, 8, Register> gpr8;
     union {
@@ -1874,7 +1878,9 @@ public:
         HSETP2_C,
         HSETP2_R,
         HSETP2_IMM,
+        HSET2_C,
         HSET2_R,
+        HSET2_IMM,
         POPC_C,
         POPC_R,
         POPC_IMM,
@@ -2194,7 +2200,9 @@ private:
             INST("0111111-1-------", Id::HSETP2_C, Type::HalfSetPredicate, "HSETP2_C"),
             INST("0101110100100---", Id::HSETP2_R, Type::HalfSetPredicate, "HSETP2_R"),
             INST("0111111-0-------", Id::HSETP2_IMM, Type::HalfSetPredicate, "HSETP2_IMM"),
+            INST("0111110-1-------", Id::HSET2_C, Type::HalfSet, "HSET2_C"),
             INST("0101110100011---", Id::HSET2_R, Type::HalfSet, "HSET2_R"),
+            INST("0111110-0-------", Id::HSET2_IMM, Type::HalfSet, "HSET2_IMM"),
             INST("010110111010----", Id::FCMP_RR, Type::Arithmetic, "FCMP_RR"),
             INST("010010111010----", Id::FCMP_RC, Type::Arithmetic, "FCMP_RC"),
             INST("0101000010000---", Id::MUFU, Type::Arithmetic, "MUFU"),
