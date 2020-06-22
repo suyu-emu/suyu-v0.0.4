@@ -354,11 +354,27 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     color_blend_ci.pAttachments = cb_attachments.data();
     std::memset(color_blend_ci.blendConstants, 0, sizeof(color_blend_ci.blendConstants));
 
-    static constexpr std::array dynamic_states = {
+    std::vector dynamic_states = {
         VK_DYNAMIC_STATE_VIEWPORT,           VK_DYNAMIC_STATE_SCISSOR,
         VK_DYNAMIC_STATE_DEPTH_BIAS,         VK_DYNAMIC_STATE_BLEND_CONSTANTS,
         VK_DYNAMIC_STATE_DEPTH_BOUNDS,       VK_DYNAMIC_STATE_STENCIL_COMPARE_MASK,
-        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE};
+        VK_DYNAMIC_STATE_STENCIL_WRITE_MASK, VK_DYNAMIC_STATE_STENCIL_REFERENCE,
+    };
+    if (device.IsExtExtendedDynamicStateSupported()) {
+        static constexpr std::array extended = {
+            VK_DYNAMIC_STATE_CULL_MODE_EXT,
+            VK_DYNAMIC_STATE_FRONT_FACE_EXT,
+            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
+            VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,
+            VK_DYNAMIC_STATE_DEPTH_COMPARE_OP_EXT,
+            VK_DYNAMIC_STATE_DEPTH_BOUNDS_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_STENCIL_TEST_ENABLE_EXT,
+            VK_DYNAMIC_STATE_STENCIL_OP_EXT,
+        };
+        dynamic_states.insert(dynamic_states.end(), extended.begin(), extended.end());
+    }
 
     VkPipelineDynamicStateCreateInfo dynamic_state_ci;
     dynamic_state_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;

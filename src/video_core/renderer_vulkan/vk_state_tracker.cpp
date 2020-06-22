@@ -36,6 +36,15 @@ Flags MakeInvalidationFlags() {
     flags[BlendConstants] = true;
     flags[DepthBounds] = true;
     flags[StencilProperties] = true;
+    flags[CullMode] = true;
+    flags[DepthBoundsEnable] = true;
+    flags[DepthTestEnable] = true;
+    flags[DepthWriteEnable] = true;
+    flags[DepthCompareOp] = true;
+    flags[FrontFace] = true;
+    flags[PrimitiveTopology] = true;
+    flags[StencilOp] = true;
+    flags[StencilTestEnable] = true;
     return flags;
 }
 
@@ -75,6 +84,57 @@ void SetupDirtyStencilProperties(Tables& tables) {
     table[OFF(stencil_back_func_mask)] = StencilProperties;
 }
 
+void SetupDirtyCullMode(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(cull_face)] = CullMode;
+    table[OFF(cull_test_enabled)] = CullMode;
+}
+
+void SetupDirtyDepthBoundsEnable(Tables& tables) {
+    tables[0][OFF(depth_bounds_enable)] = DepthBoundsEnable;
+}
+
+void SetupDirtyDepthTestEnable(Tables& tables) {
+    tables[0][OFF(depth_test_enable)] = DepthTestEnable;
+}
+
+void SetupDirtyDepthWriteEnable(Tables& tables) {
+    tables[0][OFF(depth_write_enabled)] = DepthWriteEnable;
+}
+
+void SetupDirtyDepthCompareOp(Tables& tables) {
+    tables[0][OFF(depth_test_func)] = DepthCompareOp;
+}
+
+void SetupDirtyFrontFace(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(front_face)] = FrontFace;
+    table[OFF(screen_y_control)] = FrontFace;
+}
+
+void SetupDirtyPrimitiveTopology(Tables& tables) {
+    tables[0][OFF(draw.topology)] = PrimitiveTopology;
+}
+
+void SetupDirtyStencilOp(Tables& tables) {
+    auto& table = tables[0];
+    table[OFF(stencil_front_op_fail)] = StencilOp;
+    table[OFF(stencil_front_op_zfail)] = StencilOp;
+    table[OFF(stencil_front_op_zpass)] = StencilOp;
+    table[OFF(stencil_front_func_func)] = StencilOp;
+    table[OFF(stencil_back_op_fail)] = StencilOp;
+    table[OFF(stencil_back_op_zfail)] = StencilOp;
+    table[OFF(stencil_back_op_zpass)] = StencilOp;
+    table[OFF(stencil_back_func_func)] = StencilOp;
+
+    // Table 0 is used by StencilProperties
+    tables[1][OFF(stencil_two_side_enable)] = StencilOp;
+}
+
+void SetupDirtyStencilTestEnable(Tables& tables) {
+    tables[0][OFF(stencil_enable)] = StencilTestEnable;
+}
+
 } // Anonymous namespace
 
 StateTracker::StateTracker(Core::System& system)
@@ -90,6 +150,14 @@ void StateTracker::Initialize() {
     SetupDirtyBlendConstants(tables);
     SetupDirtyDepthBounds(tables);
     SetupDirtyStencilProperties(tables);
+    SetupDirtyCullMode(tables);
+    SetupDirtyDepthBoundsEnable(tables);
+    SetupDirtyDepthTestEnable(tables);
+    SetupDirtyDepthWriteEnable(tables);
+    SetupDirtyDepthCompareOp(tables);
+    SetupDirtyFrontFace(tables);
+    SetupDirtyPrimitiveTopology(tables);
+    SetupDirtyStencilOp(tables);
 }
 
 void StateTracker::InvalidateCommandBufferState() {
