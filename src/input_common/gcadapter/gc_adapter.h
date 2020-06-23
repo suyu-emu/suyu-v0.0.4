@@ -82,7 +82,6 @@ enum {
     ADAPTER_DETECTED = 1,
 };
 
-/// Singleton Adapter class
 class Adapter {
 public:
     /// Initialize the GC Adapter capture and read sequence

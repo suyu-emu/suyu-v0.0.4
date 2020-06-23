@@ -59,7 +59,10 @@ void Shutdown() {
 #endif
     udp.reset();
     Input::UnregisterFactory<Input::ButtonDevice>("gcpad");
+    Input::UnregisterFactory<Input::AnalogDevice>("gcpad");
+
     gcbuttons.reset();
+    gcanalog.reset();
 }
 
 Keyboard* GetKeyboard() {

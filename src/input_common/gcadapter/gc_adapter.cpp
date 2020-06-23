@@ -130,6 +130,7 @@ void Adapter::Read() {
 
         if (payload_size != sizeof(controller_payload_copy) ||
             controller_payload_copy[0] != LIBUSB_DT_HID) {
+            // TODO: It might be worthwhile to Shutdown GC Adapter if we encounter errors here
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size,
                       controller_payload_copy[0]);
         } else {
@@ -200,6 +201,7 @@ void Adapter::StartScanThread() {
 }
 
 void Adapter::StopScanThread() {
+    detect_thread_running = false;
     detect_thread.join();
 }
 
@@ -298,8 +300,6 @@ void Adapter::GetGCEndpoint(libusb_device* device) {
 Adapter::~Adapter() {
     StopScanThread();
     Reset();
-
-    current_status = NO_ADAPTER_DETECTED;
 }
 
 void Adapter::Reset() {
@@ -312,17 +312,21 @@ void Adapter::Reset() {
     }
 
     if (adapter_thread_running) {
+        adapter_thread_running = false;
         adapter_input_thread.join();
     }
 
     adapter_controllers_status.fill(ControllerTypes::None);
-
     current_status = NO_ADAPTER_DETECTED;
 
     if (usb_adapter_handle) {
         libusb_release_interface(usb_adapter_handle, 0);
         libusb_close(usb_adapter_handle);
         usb_adapter_handle = nullptr;
+    }
+
+    if (libusb_ctx) {
+        libusb_exit(libusb_ctx);
     }
 }
 
