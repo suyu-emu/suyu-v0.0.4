@@ -75,11 +75,11 @@ static QString ButtonToText(const Common::ParamPackage& param) {
             const QString axis_str = QString::fromStdString(param.Get("axis", ""));
             const QString direction_str = QString::fromStdString(param.Get("direction", ""));
 
-            return QObject::tr("Axis %1%2").arg(axis_str, direction_str);
+            return QObject::tr("GC Axis %1%2").arg(axis_str, direction_str);
         }
         if (param.Has("button")) {
             const QString button_str = QString::number(int(std::log2(param.Get("button", 0))));
-            return QObject::tr("Button %1").arg(button_str);
+            return QObject::tr("GC Button %1").arg(button_str);
         }
         return GetKeyName(param.Get("code", 0));
     }
