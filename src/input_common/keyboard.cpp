@@ -51,7 +51,6 @@ public:
         for (const KeyButtonPair& pair : list) {
             if (pair.key_code == key_code) {
                 pair.key_button->status.store(pressed);
-                break;
             }
         }
     }

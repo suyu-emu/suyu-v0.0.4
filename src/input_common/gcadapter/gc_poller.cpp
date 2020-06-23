@@ -58,8 +58,8 @@ GCButtonFactory::GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
 GCButton::~GCButton() = default;
 
 std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::ParamPackage& params) {
-    int button_id = params.Get("button", 0);
-    int port = params.Get("port", 0);
+    const int button_id = params.Get("button", 0);
+    const int port = params.Get("port", 0);
     // For Axis buttons, used by the binary sticks.
     if (params.Has("axis")) {
         const int axis = params.Get("axis", 0);
@@ -86,61 +86,22 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
 Common::ParamPackage GCButtonFactory::GetNextInput() {
     Common::ParamPackage params;
     GCAdapter::GCPadStatus pad;
-    for (int i = 0; i < 4; i++) {
-        while (adapter->GetPadQueue()[i].Pop(pad)) {
+    auto& queue = adapter->GetPadQueue();
+    for (int port = 0; port < queue.size(); port++) {
+        while (queue[port].Pop(pad)) {
             // This while loop will break on the earliest detected button
             params.Set("engine", "gcpad");
-            params.Set("port", i);
+            params.Set("port", port);
             // I was debating whether to keep these verbose for ease of reading
             // or to use a while loop shifting the bits to test and set the value.
-            if (pad.button & GCAdapter::PAD_BUTTON_A) {
-                params.Set("button", GCAdapter::PAD_BUTTON_A);
-                break;
+
+            for (auto button : GCAdapter::PadButtonArray) {
+                if (pad.button & button) {
+                    params.Set("button", button);
+                    break;
+                }
             }
-            if (pad.button & GCAdapter::PAD_BUTTON_B) {
-                params.Set("button", GCAdapter::PAD_BUTTON_B);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_X) {
-                params.Set("button", GCAdapter::PAD_BUTTON_X);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_Y) {
-                params.Set("button", GCAdapter::PAD_BUTTON_Y);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_DOWN) {
-                params.Set("button", GCAdapter::PAD_BUTTON_DOWN);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_LEFT) {
-                params.Set("button", GCAdapter::PAD_BUTTON_LEFT);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_RIGHT) {
-                params.Set("button", GCAdapter::PAD_BUTTON_RIGHT);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_UP) {
-                params.Set("button", GCAdapter::PAD_BUTTON_UP);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_TRIGGER_L) {
-                params.Set("button", GCAdapter::PAD_TRIGGER_L);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_TRIGGER_R) {
-                params.Set("button", GCAdapter::PAD_TRIGGER_R);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_TRIGGER_Z) {
-                params.Set("button", GCAdapter::PAD_TRIGGER_Z);
-                break;
-            }
-            if (pad.button & GCAdapter::PAD_BUTTON_START) {
-                params.Set("button", GCAdapter::PAD_BUTTON_START);
-                break;
-            }
+
             // For Axis button implementation
             if (pad.axis != GCAdapter::PadAxes::Undefined) {
                 params.Set("axis", static_cast<u8>(pad.axis));
@@ -265,8 +226,9 @@ void GCAnalogFactory::EndConfiguration() {
 
 Common::ParamPackage GCAnalogFactory::GetNextInput() {
     GCAdapter::GCPadStatus pad;
-    for (int i = 0; i < 4; i++) {
-        while (adapter->GetPadQueue()[i].Pop(pad)) {
+    auto& queue = adapter->GetPadQueue();
+    for (int port = 0; port < queue.size(); port++) {
+        while (queue[port].Pop(pad)) {
             if (pad.axis == GCAdapter::PadAxes::Undefined ||
                 std::abs((pad.axis_value - 128.0f) / 128.0f) < 0.1) {
                 continue;
@@ -276,8 +238,8 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
             const u8 axis = static_cast<u8>(pad.axis);
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
-                controller_number = i;
-            } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == i) {
+                controller_number = port;
+            } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == port) {
                 analog_y_axis = axis;
             }
         }

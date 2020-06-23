@@ -37,6 +37,12 @@ enum PadButton {
 
 };
 
+/// Used to loop through the and assign button in poller
+static constexpr std::array<PadButton, 12> PadButtonArray{
+    PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_DOWN, PAD_BUTTON_UP,
+    PAD_TRIGGER_Z,   PAD_TRIGGER_R,    PAD_TRIGGER_L,   PAD_BUTTON_A,
+    PAD_BUTTON_B,    PAD_BUTTON_X,     PAD_BUTTON_Y,    PAD_BUTTON_START};
+
 enum class PadAxes : u8 {
     StickX,
     StickY,
@@ -100,7 +106,7 @@ public:
     const std::array<GCState, 4>& GetPadState() const;
 
 private:
-    GCPadStatus CheckStatus(int port, const std::array<u8, 37>& adapter_payload);
+    GCPadStatus GetPadStatus(int port, const std::array<u8, 37>& adapter_payload);
 
     void PadToState(const GCPadStatus& pad, GCState& state);
 
