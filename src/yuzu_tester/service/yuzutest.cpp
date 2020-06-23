@@ -53,7 +53,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
-        rb.Push<u32>(write_size);
+        rb.Push<u32>(static_cast<u32>(write_size));
     }
 
     void StartIndividual(Kernel::HLERequestContext& ctx) {
