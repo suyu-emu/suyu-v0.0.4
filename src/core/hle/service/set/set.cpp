@@ -167,7 +167,7 @@ void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
     KeyboardLayout layout = KeyboardLayout::EnglishUs;
     if (key_code == language_to_layout.cend()) {
         LOG_ERROR(Service_SET,
-                  "Could not find keyboard layout for language index {} defaulting to english us",
+                  "Could not find keyboard layout for language index {}, defaulting to English us",
                   Settings::values.language_index);
     } else {
         layout = key_code->second;
