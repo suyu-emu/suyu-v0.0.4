@@ -33,11 +33,13 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
     adapter_controllers_status[port] = type;
 
     constexpr std::array<PadButton, 8> b1_buttons{
-        PAD_BUTTON_A,    PAD_BUTTON_B,     PAD_BUTTON_X,    PAD_BUTTON_Y,
-        PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_DOWN, PAD_BUTTON_UP};
+        PadButton::PAD_BUTTON_A,    PadButton::PAD_BUTTON_B,    PadButton::PAD_BUTTON_X,
+        PadButton::PAD_BUTTON_Y,    PadButton::PAD_BUTTON_LEFT, PadButton::PAD_BUTTON_RIGHT,
+        PadButton::PAD_BUTTON_DOWN, PadButton::PAD_BUTTON_UP};
 
-    constexpr std::array<PadButton, 4> b2_buttons{PAD_BUTTON_START, PAD_TRIGGER_Z, PAD_TRIGGER_R,
-                                                  PAD_TRIGGER_L};
+    constexpr std::array<PadButton, 4> b2_buttons{
+        PadButton::PAD_BUTTON_START, PadButton::PAD_TRIGGER_Z, PadButton::PAD_TRIGGER_R,
+        PadButton::PAD_TRIGGER_L};
 
     if (adapter_controllers_status[port] != ControllerTypes::None) {
         const u8 b1 = adapter_payload[1 + (9 * port) + 1];
@@ -45,13 +47,13 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
 
         for (int i = 0; i < b1_buttons.size(); i++) {
             if (b1 & (1 << i)) {
-                pad.button |= b1_buttons[i];
+                pad.button |= static_cast<u16>(b1_buttons[i]);
             }
         }
 
         for (int j = 0; j < b2_buttons.size(); j++) {
             if (b2 & (1 << j)) {
-                pad.button |= b2_buttons[j];
+                pad.button |= static_cast<u16>(b2_buttons[j]);
             }
         }
 
@@ -70,18 +72,11 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
 }
 
 void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
-    state.buttons.insert_or_assign(PAD_BUTTON_A, pad.button & PAD_BUTTON_A);
-    state.buttons.insert_or_assign(PAD_BUTTON_B, pad.button & PAD_BUTTON_B);
-    state.buttons.insert_or_assign(PAD_BUTTON_X, pad.button & PAD_BUTTON_X);
-    state.buttons.insert_or_assign(PAD_BUTTON_Y, pad.button & PAD_BUTTON_Y);
-    state.buttons.insert_or_assign(PAD_BUTTON_LEFT, pad.button & PAD_BUTTON_LEFT);
-    state.buttons.insert_or_assign(PAD_BUTTON_RIGHT, pad.button & PAD_BUTTON_RIGHT);
-    state.buttons.insert_or_assign(PAD_BUTTON_DOWN, pad.button & PAD_BUTTON_DOWN);
-    state.buttons.insert_or_assign(PAD_BUTTON_UP, pad.button & PAD_BUTTON_UP);
-    state.buttons.insert_or_assign(PAD_BUTTON_START, pad.button & PAD_BUTTON_START);
-    state.buttons.insert_or_assign(PAD_TRIGGER_Z, pad.button & PAD_TRIGGER_Z);
-    state.buttons.insert_or_assign(PAD_TRIGGER_L, pad.button & PAD_TRIGGER_L);
-    state.buttons.insert_or_assign(PAD_TRIGGER_R, pad.button & PAD_TRIGGER_R);
+    for (auto button : PadButtonArray) {
+        u16 button_value = static_cast<u16>(button);
+        state.buttons.insert_or_assign(button_value, pad.button & button_value);
+    }
+
     state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickX), pad.stick_x);
     state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickY), pad.stick_y);
     state.axes.insert_or_assign(static_cast<u8>(PadAxes::SubstickX), pad.substick_x);

@@ -19,7 +19,7 @@ enum {
     PAD_ERR_STATUS = 0x8000,
 };
 
-enum PadButton {
+enum class PadButton {
     PAD_BUTTON_LEFT = 0x0001,
     PAD_BUTTON_RIGHT = 0x0002,
     PAD_BUTTON_DOWN = 0x0004,
@@ -34,14 +34,14 @@ enum PadButton {
     PAD_BUTTON_START = 0x1000,
     // Below is for compatibility with "AxisButton" type
     PAD_STICK = 0x2000,
-
 };
 
 /// Used to loop through the and assign button in poller
 static constexpr std::array<PadButton, 12> PadButtonArray{
-    PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_DOWN, PAD_BUTTON_UP,
-    PAD_TRIGGER_Z,   PAD_TRIGGER_R,    PAD_TRIGGER_L,   PAD_BUTTON_A,
-    PAD_BUTTON_B,    PAD_BUTTON_X,     PAD_BUTTON_Y,    PAD_BUTTON_START};
+    PadButton::PAD_BUTTON_LEFT, PadButton::PAD_BUTTON_RIGHT, PadButton::PAD_BUTTON_DOWN,
+    PadButton::PAD_BUTTON_UP,   PadButton::PAD_TRIGGER_Z,    PadButton::PAD_TRIGGER_R,
+    PadButton::PAD_TRIGGER_L,   PadButton::PAD_BUTTON_A,     PadButton::PAD_BUTTON_B,
+    PadButton::PAD_BUTTON_X,    PadButton::PAD_BUTTON_Y,     PadButton::PAD_BUTTON_START};
 
 enum class PadAxes : u8 {
     StickX,
@@ -54,13 +54,13 @@ enum class PadAxes : u8 {
 };
 
 struct GCPadStatus {
-    u16 button;       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-    u8 stick_x;       // 0 <= stick_x       <= 255
-    u8 stick_y;       // 0 <= stick_y       <= 255
-    u8 substick_x;    // 0 <= substick_x    <= 255
-    u8 substick_y;    // 0 <= substick_y    <= 255
-    u8 trigger_left;  // 0 <= trigger_left  <= 255
-    u8 trigger_right; // 0 <= trigger_right <= 255
+    u16 button{};       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
+    u8 stick_x{};       // 0 <= stick_x       <= 255
+    u8 stick_y{};       // 0 <= stick_y       <= 255
+    u8 substick_x{};    // 0 <= substick_x    <= 255
+    u8 substick_y{};    // 0 <= substick_y    <= 255
+    u8 trigger_left{};  // 0 <= trigger_left  <= 255
+    u8 trigger_right{}; // 0 <= trigger_right <= 255
 
     static constexpr u8 MAIN_STICK_CENTER_X = 0x80;
     static constexpr u8 MAIN_STICK_CENTER_Y = 0x80;
@@ -71,9 +71,9 @@ struct GCPadStatus {
     static constexpr u8 TRIGGER_CENTER = 20;
     static constexpr u8 THRESHOLD = 10;
 
-    u8 port;
-    PadAxes axis = PadAxes::Undefined;
-    u8 axis_value = 255;
+    u8 port{};
+    PadAxes axis{PadAxes::Undefined};
+    u8 axis_value{255};
 };
 
 struct GCState {

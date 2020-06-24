@@ -96,8 +96,9 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
             // or to use a while loop shifting the bits to test and set the value.
 
             for (auto button : GCAdapter::PadButtonArray) {
-                if (pad.button & button) {
-                    params.Set("button", button);
+                u16 button_value = static_cast<u16>(button);
+                if (pad.button & button_value) {
+                    params.Set("button", button_value);
                     break;
                 }
             }
@@ -105,7 +106,7 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
             // For Axis button implementation
             if (pad.axis != GCAdapter::PadAxes::Undefined) {
                 params.Set("axis", static_cast<u8>(pad.axis));
-                params.Set("button", GCAdapter::PAD_STICK);
+                params.Set("button", static_cast<u16>(GCAdapter::PadButton::PAD_STICK));
                 if (pad.axis_value > 128) {
                     params.Set("direction", "+");
                     params.Set("threshold", "0.5");
