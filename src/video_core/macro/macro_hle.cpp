@@ -10,6 +10,7 @@
 
 namespace Tegra {
 
+namespace {
 // HLE'd functions
 static void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d,
                                  const std::vector<u32>& parameters) {
@@ -80,19 +81,20 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.CallMethodFromMME(0x8e5, 0x0);
     maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
+} // namespace
 
-static const std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{
+constexpr std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{{
     std::make_pair<u64, HLEFunction>(0x771BB18C62444DA0, &HLE_771BB18C62444DA0),
     std::make_pair<u64, HLEFunction>(0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD),
     std::make_pair<u64, HLEFunction>(0x0217920100488FF7, &HLE_0217920100488FF7),
-};
+}};
 
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
 HLEMacro::~HLEMacro() = default;
 
 std::optional<std::unique_ptr<CachedMacro>> HLEMacro::GetHLEProgram(u64 hash) const {
-    const auto it = std::find_if(hle_funcs.begin(), hle_funcs.end(),
-                                 [hash](auto& pair) { return pair.first == hash; });
+    const auto it = std::find_if(hle_funcs.cbegin(), hle_funcs.cend(),
+                                 [hash](const auto& pair) { return pair.first == hash; });
     if (it == hle_funcs.end()) {
         return std::nullopt;
     }
