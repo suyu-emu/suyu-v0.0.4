@@ -870,10 +870,10 @@ void RasterizerVulkan::BeginTransformFeedback() {
     UNIMPLEMENTED_IF(binding.buffer_offset != 0);
 
     const GPUVAddr gpu_addr = binding.Address();
-    const auto size = static_cast<VkDeviceSize>(binding.buffer_size);
-    const auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
+    const VkDeviceSize size = static_cast<VkDeviceSize>(binding.buffer_size);
+    const auto info = buffer_cache.UploadMemory(gpu_addr, size, 4, true);
 
-    scheduler.Record([buffer = buffer, offset = offset, size](vk::CommandBuffer cmdbuf) {
+    scheduler.Record([buffer = info.handle, offset = info.offset, size](vk::CommandBuffer cmdbuf) {
         cmdbuf.BindTransformFeedbackBuffersEXT(0, 1, &buffer, &offset, &size);
         cmdbuf.BeginTransformFeedbackEXT(0, 0, nullptr, nullptr);
     });
@@ -925,8 +925,8 @@ void RasterizerVulkan::SetupVertexArrays(FixedPipelineState::VertexInput& vertex
             buffer_bindings.AddVertexBinding(DefaultBuffer(), 0);
             continue;
         }
-        const auto [buffer, offset] = buffer_cache.UploadMemory(start, size);
-        buffer_bindings.AddVertexBinding(buffer, offset);
+        const auto info = buffer_cache.UploadMemory(start, size);
+        buffer_bindings.AddVertexBinding(info.handle, info.offset);
     }
 }
 
@@ -948,7 +948,9 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
             break;
         }
         const GPUVAddr gpu_addr = regs.index_array.IndexStart();
-        auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
+        const auto info = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
+        VkBuffer buffer = info.handle;
+        u64 offset = info.offset;
         std::tie(buffer, offset) = quad_indexed_pass.Assemble(
             regs.index_array.format, params.num_vertices, params.base_vertex, buffer, offset);
 
@@ -962,7 +964,9 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
             break;
         }
         const GPUVAddr gpu_addr = regs.index_array.IndexStart();
-        auto [buffer, offset] = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
+        const auto info = buffer_cache.UploadMemory(gpu_addr, CalculateIndexBufferSize());
+        VkBuffer buffer = info.handle;
+        u64 offset = info.offset;
 
         auto format = regs.index_array.format;
         const bool is_uint8 = format == Maxwell::IndexFormat::UnsignedByte;
@@ -1109,10 +1113,9 @@ void RasterizerVulkan::SetupConstBuffer(const ConstBufferEntry& entry,
         Common::AlignUp(CalculateConstBufferSize(entry, buffer), 4 * sizeof(float));
     ASSERT(size <= MaxConstbufferSize);
 
-    const auto [buffer_handle, offset] =
+    const auto info =
         buffer_cache.UploadMemory(buffer.address, size, device.GetUniformBufferAlignment());
-
-    update_descriptor_queue.AddBuffer(buffer_handle, offset, size);
+    update_descriptor_queue.AddBuffer(info.handle, info.offset, size);
 }
 
 void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAddr address) {
@@ -1126,14 +1129,14 @@ void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAdd
         // Note: Do *not* use DefaultBuffer() here, storage buffers can be written breaking the
         // default buffer.
         static constexpr std::size_t dummy_size = 4;
-        const auto buffer = buffer_cache.GetEmptyBuffer(dummy_size);
-        update_descriptor_queue.AddBuffer(buffer, 0, dummy_size);
+        const auto info = buffer_cache.GetEmptyBuffer(dummy_size);
+        update_descriptor_queue.AddBuffer(info.handle, info.offset, dummy_size);
         return;
     }
 
-    const auto [buffer, offset] = buffer_cache.UploadMemory(
+    const auto info = buffer_cache.UploadMemory(
         actual_addr, size, device.GetStorageBufferAlignment(), entry.IsWritten());
-    update_descriptor_queue.AddBuffer(buffer, offset, size);
+    update_descriptor_queue.AddBuffer(info.handle, info.offset, size);
 }
 
 void RasterizerVulkan::SetupUniformTexels(const Tegra::Texture::TICEntry& tic,

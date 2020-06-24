@@ -11,10 +11,11 @@
 
 namespace OpenGL {
 
+class Device;
+
 class OGLStreamBuffer : private NonCopyable {
 public:
-    explicit OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage, bool prefer_coherent = false,
-                             bool use_persistent = true);
+    explicit OGLStreamBuffer(const Device& device, GLsizeiptr size, bool vertex_data_usage);
     ~OGLStreamBuffer();
 
     /*
@@ -33,19 +34,20 @@ public:
         return gl_buffer.handle;
     }
 
-    GLsizeiptr Size() const {
+    u64 Address() const {
+        return gpu_address;
+    }
+
+    GLsizeiptr Size() const noexcept {
         return buffer_size;
     }
 
 private:
     OGLBuffer gl_buffer;
 
-    bool coherent = false;
-    bool persistent = false;
-
+    GLuint64EXT gpu_address = 0;
     GLintptr buffer_pos = 0;
     GLsizeiptr buffer_size = 0;
-    GLintptr mapped_offset = 0;
     GLsizeiptr mapped_size = 0;
     u8* mapped_ptr = nullptr;
 };

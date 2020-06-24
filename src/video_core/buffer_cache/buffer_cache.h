@@ -41,7 +41,11 @@ class BufferCache {
     static constexpr u64 BLOCK_PAGE_SIZE = 1ULL << BLOCK_PAGE_BITS;
 
 public:
-    using BufferInfo = std::pair<BufferType, u64>;
+    struct BufferInfo {
+        BufferType handle;
+        u64 offset;
+        u64 address;
+    };
 
     BufferInfo UploadMemory(GPUVAddr gpu_addr, std::size_t size, std::size_t alignment = 4,
                             bool is_written = false, bool use_fast_cbuf = false) {
@@ -50,7 +54,7 @@ public:
         auto& memory_manager = system.GPU().MemoryManager();
         const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
         if (!cpu_addr_opt) {
-            return {GetEmptyBuffer(size), 0};
+            return GetEmptyBuffer(size);
         }
         const VAddr cpu_addr = *cpu_addr_opt;
 
@@ -88,7 +92,7 @@ public:
         Buffer* const block = GetBlock(cpu_addr, size);
         MapInterval* const map = MapAddress(block, gpu_addr, cpu_addr, size);
         if (!map) {
-            return {GetEmptyBuffer(size), 0};
+            return GetEmptyBuffer(size);
         }
         if (is_written) {
             map->MarkAsModified(true, GetModifiedTicks());
@@ -101,7 +105,7 @@ public:
             }
         }
 
-        return {block->Handle(), static_cast<u64>(block->Offset(cpu_addr))};
+        return BufferInfo{block->Handle(), block->Offset(cpu_addr), block->Address()};
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
@@ -254,26 +258,16 @@ public:
         committed_flushes.pop_front();
     }
 
-    virtual BufferType GetEmptyBuffer(std::size_t size) = 0;
+    virtual BufferInfo GetEmptyBuffer(std::size_t size) = 0;
 
 protected:
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
-                         std::unique_ptr<StreamBuffer> stream_buffer_)
-        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer_)},
-          stream_buffer_handle{stream_buffer->Handle()} {}
+                         std::unique_ptr<StreamBuffer> stream_buffer)
+        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer)} {}
 
     ~BufferCache() = default;
 
     virtual std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) = 0;
-
-    virtual void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                                 const u8* data) = 0;
-
-    virtual void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                                   u8* data) = 0;
-
-    virtual void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
-                           std::size_t dst_offset, std::size_t size) = 0;
 
     virtual BufferInfo ConstBufferUpload(const void* raw_pointer, std::size_t size) {
         return {};
@@ -336,11 +330,11 @@ private:
             const VAddr cpu_addr_end = cpu_addr + size;
             if (memory_manager.IsGranularRange(gpu_addr, size)) {
                 u8* host_ptr = memory_manager.GetPointer(gpu_addr);
-                UploadBlockData(*block, block->Offset(cpu_addr), size, host_ptr);
+                block->Upload(block->Offset(cpu_addr), size, host_ptr);
             } else {
                 staging_buffer.resize(size);
                 memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
-                UploadBlockData(*block, block->Offset(cpu_addr), size, staging_buffer.data());
+                block->Upload(block->Offset(cpu_addr), size, staging_buffer.data());
             }
             return Register(MapInterval(cpu_addr, cpu_addr_end, gpu_addr));
         }
@@ -399,7 +393,7 @@ private:
             }
             staging_buffer.resize(size);
             system.Memory().ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
-            UploadBlockData(*block, block->Offset(interval.lower()), size, staging_buffer.data());
+            block->Upload(block->Offset(interval.lower()), size, staging_buffer.data());
         }
     }
 
@@ -436,7 +430,7 @@ private:
 
         const std::size_t size = map->end - map->start;
         staging_buffer.resize(size);
-        DownloadBlockData(*block, block->Offset(map->start), size, staging_buffer.data());
+        block->Download(block->Offset(map->start), size, staging_buffer.data());
         system.Memory().WriteBlockUnsafe(map->start, staging_buffer.data(), size);
         map->MarkAsModified(false, 0);
     }
@@ -449,7 +443,7 @@ private:
 
         buffer_ptr += size;
         buffer_offset += size;
-        return {stream_buffer_handle, uploaded_offset};
+        return BufferInfo{stream_buffer->Handle(), uploaded_offset, stream_buffer->Address()};
     }
 
     void AlignBuffer(std::size_t alignment) {
@@ -464,7 +458,7 @@ private:
         const std::size_t new_size = old_size + BLOCK_PAGE_SIZE;
         const VAddr cpu_addr = buffer->CpuAddr();
         std::shared_ptr<Buffer> new_buffer = CreateBlock(cpu_addr, new_size);
-        CopyBlock(*buffer, *new_buffer, 0, 0, old_size);
+        new_buffer->CopyFrom(*buffer, 0, 0, old_size);
         QueueDestruction(std::move(buffer));
 
         const VAddr cpu_addr_end = cpu_addr + new_size - 1;
@@ -486,8 +480,8 @@ private:
         const std::size_t new_size = size_1 + size_2;
 
         std::shared_ptr<Buffer> new_buffer = CreateBlock(new_addr, new_size);
-        CopyBlock(*first, *new_buffer, 0, new_buffer->Offset(first_addr), size_1);
-        CopyBlock(*second, *new_buffer, 0, new_buffer->Offset(second_addr), size_2);
+        new_buffer->CopyFrom(*first, 0, new_buffer->Offset(first_addr), size_1);
+        new_buffer->CopyFrom(*second, 0, new_buffer->Offset(second_addr), size_2);
         QueueDestruction(std::move(first));
         QueueDestruction(std::move(second));
 

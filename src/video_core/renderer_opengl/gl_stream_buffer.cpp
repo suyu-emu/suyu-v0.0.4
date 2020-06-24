@@ -2,11 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <deque>
+#include <tuple>
 #include <vector>
+
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "common/microprofile.h"
+#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_stream_buffer.h"
 
 MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
@@ -14,8 +16,7 @@ MICROPROFILE_DEFINE(OpenGL_StreamBuffer, "OpenGL", "Stream Buffer Orphaning",
 
 namespace OpenGL {
 
-OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage, bool prefer_coherent,
-                                 bool use_persistent)
+OGLStreamBuffer::OGLStreamBuffer(const Device& device, GLsizeiptr size, bool vertex_data_usage)
     : buffer_size(size) {
     gl_buffer.Create();
 
@@ -29,23 +30,19 @@ OGLStreamBuffer::OGLStreamBuffer(GLsizeiptr size, bool vertex_data_usage, bool p
         allocate_size *= 2;
     }
 
-    if (use_persistent) {
-        persistent = true;
-        coherent = prefer_coherent;
-        const GLbitfield flags =
-            GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | (coherent ? GL_MAP_COHERENT_BIT : 0);
-        glNamedBufferStorage(gl_buffer.handle, allocate_size, nullptr, flags);
-        mapped_ptr = static_cast<u8*>(glMapNamedBufferRange(
-            gl_buffer.handle, 0, buffer_size, flags | (coherent ? 0 : GL_MAP_FLUSH_EXPLICIT_BIT)));
-    } else {
-        glNamedBufferData(gl_buffer.handle, allocate_size, nullptr, GL_STREAM_DRAW);
+    static constexpr GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT;
+    glNamedBufferStorage(gl_buffer.handle, allocate_size, nullptr, flags);
+    mapped_ptr = static_cast<u8*>(
+        glMapNamedBufferRange(gl_buffer.handle, 0, buffer_size, flags | GL_MAP_FLUSH_EXPLICIT_BIT));
+
+    if (device.HasVertexBufferUnifiedMemory()) {
+        glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_ONLY);
+        glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
     }
 }
 
 OGLStreamBuffer::~OGLStreamBuffer() {
-    if (persistent) {
-        glUnmapNamedBuffer(gl_buffer.handle);
-    }
+    glUnmapNamedBuffer(gl_buffer.handle);
     gl_buffer.Release();
 }
 
@@ -60,36 +57,21 @@ std::tuple<u8*, GLintptr, bool> OGLStreamBuffer::Map(GLsizeiptr size, GLintptr a
 
     bool invalidate = false;
     if (buffer_pos + size > buffer_size) {
+        MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
+        glInvalidateBufferData(gl_buffer.handle);
+
         buffer_pos = 0;
         invalidate = true;
-
-        if (persistent) {
-            glUnmapNamedBuffer(gl_buffer.handle);
-        }
     }
 
-    if (invalidate || !persistent) {
-        MICROPROFILE_SCOPE(OpenGL_StreamBuffer);
-        GLbitfield flags = GL_MAP_WRITE_BIT | (persistent ? GL_MAP_PERSISTENT_BIT : 0) |
-                           (coherent ? GL_MAP_COHERENT_BIT : GL_MAP_FLUSH_EXPLICIT_BIT) |
-                           (invalidate ? GL_MAP_INVALIDATE_BUFFER_BIT : GL_MAP_UNSYNCHRONIZED_BIT);
-        mapped_ptr = static_cast<u8*>(
-            glMapNamedBufferRange(gl_buffer.handle, buffer_pos, buffer_size - buffer_pos, flags));
-        mapped_offset = buffer_pos;
-    }
-
-    return std::make_tuple(mapped_ptr + buffer_pos - mapped_offset, buffer_pos, invalidate);
+    return std::make_tuple(mapped_ptr + buffer_pos, buffer_pos, invalidate);
 }
 
 void OGLStreamBuffer::Unmap(GLsizeiptr size) {
     ASSERT(size <= mapped_size);
 
-    if (!coherent && size > 0) {
-        glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos - mapped_offset, size);
-    }
-
-    if (!persistent) {
-        glUnmapNamedBuffer(gl_buffer.handle);
+    if (size > 0) {
+        glFlushMappedNamedBufferRange(gl_buffer.handle, buffer_pos, size);
     }
 
     buffer_pos += size;
