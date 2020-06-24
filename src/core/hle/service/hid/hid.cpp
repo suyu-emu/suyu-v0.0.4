@@ -185,8 +185,8 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {77, nullptr, "GetAccelerometerPlayMode"},
         {78, nullptr, "ResetAccelerometerPlayMode"},
         {79, &Hid::SetGyroscopeZeroDriftMode, "SetGyroscopeZeroDriftMode"},
-        {80, nullptr, "GetGyroscopeZeroDriftMode"},
-        {81, nullptr, "ResetGyroscopeZeroDriftMode"},
+        {80, &Hid::GetGyroscopeZeroDriftMode, "GetGyroscopeZeroDriftMode"},
+        {81, &Hid::ResetGyroscopeZeroDriftMode, "ResetGyroscopeZeroDriftMode"},
         {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
         {83, nullptr, "IsFirmwareUpdateAvailableForSixAxisSensor"},
         {91, &Hid::ActivateGesture, "ActivateGesture"},
@@ -419,9 +419,41 @@ void Hid::SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
     const auto drift_mode{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, handle={}, drift_mode={}, applet_resource_user_id={}", handle,
-                drift_mode, applet_resource_user_id);
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetGyroscopeZeroDriftMode(Controller_NPad::GyroscopeZeroDriftMode{drift_mode});
+
+    LOG_DEBUG(Service_HID, "called, handle={}, drift_mode={}, applet_resource_user_id={}", handle,
+              drift_mode, applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_DEBUG(Service_HID, "called, handle={}, applet_resource_user_id={}", handle,
+              applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(
+        static_cast<u32>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                             .GetGyroscopeZeroDriftMode()));
+}
+
+void Hid::ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetGyroscopeZeroDriftMode(Controller_NPad::GyroscopeZeroDriftMode::Standard);
+
+    LOG_DEBUG(Service_HID, "called, handle={}, applet_resource_user_id={}", handle,
+              applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
