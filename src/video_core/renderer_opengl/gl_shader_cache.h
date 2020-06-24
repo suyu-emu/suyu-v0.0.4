@@ -37,7 +37,6 @@ namespace OpenGL {
 
 class Device;
 class RasterizerOpenGL;
-struct UnspecializedShader;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 

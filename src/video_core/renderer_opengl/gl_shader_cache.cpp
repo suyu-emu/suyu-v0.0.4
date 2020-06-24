@@ -460,8 +460,9 @@ Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
         const u8* host_ptr_b = memory_manager.GetPointer(address_b);
         code_b = GetShaderCode(memory_manager, address_b, host_ptr_b, false);
     }
+    const std::size_t code_size = code.size() * sizeof(u64);
 
-    const auto unique_identifier = GetUniqueIdentifier(
+    const u64 unique_identifier = GetUniqueIdentifier(
         GetShaderType(program), program == Maxwell::ShaderProgram::VertexA, code, code_b);
 
     const ShaderParameters params{system,    disk_cache, device,
@@ -477,7 +478,7 @@ Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
 
     Shader* const result = shader.get();
     if (cpu_addr) {
-        Register(std::move(shader), *cpu_addr, code.size() * sizeof(u64));
+        Register(std::move(shader), *cpu_addr, code_size);
     } else {
         null_shader = std::move(shader);
     }
@@ -495,8 +496,9 @@ Shader* ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
 
     const auto host_ptr{memory_manager.GetPointer(code_addr)};
     // No kernel found, create a new one
-    auto code{GetShaderCode(memory_manager, code_addr, host_ptr, true)};
-    const auto unique_identifier{GetUniqueIdentifier(ShaderType::Compute, false, code)};
+    ProgramCode code{GetShaderCode(memory_manager, code_addr, host_ptr, true)};
+    const std::size_t code_size{code.size() * sizeof(u64)};
+    const u64 unique_identifier{GetUniqueIdentifier(ShaderType::Compute, false, code)};
 
     const ShaderParameters params{system,    disk_cache, device,
                                   *cpu_addr, host_ptr,   unique_identifier};
@@ -511,7 +513,7 @@ Shader* ShaderCacheOpenGL::GetComputeKernel(GPUVAddr code_addr) {
 
     Shader* const result = kernel.get();
     if (cpu_addr) {
-        Register(std::move(kernel), *cpu_addr, code.size() * sizeof(u64));
+        Register(std::move(kernel), *cpu_addr, code_size);
     } else {
         null_kernel = std::move(kernel);
     }
