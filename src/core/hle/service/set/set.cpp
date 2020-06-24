@@ -89,6 +89,25 @@ void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t m
     ctx.WriteBuffer(available_language_codes.data(), copy_size);
     PushResponseLanguageCode(ctx, copy_amount);
 }
+
+void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
+    const auto language_code = available_language_codes[Settings::values.language_index];
+    const auto key_code =
+        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
+                     [=](const auto& element) { return element.first == language_code; });
+    KeyboardLayout layout = KeyboardLayout::EnglishUs;
+    if (key_code == language_to_layout.cend()) {
+        LOG_ERROR(Service_SET,
+                  "Could not find keyboard layout for language index {}, defaulting to English us",
+                  Settings::values.language_index);
+    } else {
+        layout = key_code->second;
+    }
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+    ctx.WriteBuffer(&layout, sizeof(KeyboardLayout));
+}
 } // Anonymous namespace
 
 LanguageCode GetLanguageCodeFromIndex(std::size_t index) {
@@ -157,25 +176,6 @@ void SET::GetRegionCode(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(Settings::values.region_index);
-}
-
-void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
-    const auto language_code = available_language_codes[Settings::values.language_index];
-    const auto key_code =
-        std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
-                     [=](const auto& element) { return element.first == language_code; });
-    KeyboardLayout layout = KeyboardLayout::EnglishUs;
-    if (key_code == language_to_layout.cend()) {
-        LOG_ERROR(Service_SET,
-                  "Could not find keyboard layout for language index {}, defaulting to English us",
-                  Settings::values.language_index);
-    } else {
-        layout = key_code->second;
-    }
-
-    IPC::ResponseBuilder rb{ctx, 2};
-    rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(&layout, sizeof(KeyboardLayout));
 }
 
 void SET::GetKeyCodeMap(Kernel::HLERequestContext& ctx) {
