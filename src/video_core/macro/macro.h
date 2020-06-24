@@ -11,9 +11,11 @@
 #include "common/common_types.h"
 
 namespace Tegra {
+
 namespace Engines {
 class Maxwell3D;
 }
+
 namespace Macro {
 constexpr std::size_t NUM_MACRO_REGISTERS = 8;
 enum class Operation : u32 {
@@ -94,6 +96,8 @@ union MethodAddress {
 
 } // namespace Macro
 
+class HLEMacro;
+
 class CachedMacro {
 public:
     virtual ~CachedMacro() = default;
@@ -107,20 +111,29 @@ public:
 
 class MacroEngine {
 public:
-    virtual ~MacroEngine() = default;
+    explicit MacroEngine(Engines::Maxwell3D& maxwell3d);
+    virtual ~MacroEngine();
 
     // Store the uploaded macro code to compile them when they're called.
     void AddCode(u32 method, u32 data);
 
     // Compiles the macro if its not in the cache, and executes the compiled macro
-    void Execute(u32 method, const std::vector<u32>& parameters);
+    void Execute(Engines::Maxwell3D& maxwell3d, u32 method, const std::vector<u32>& parameters);
 
 protected:
     virtual std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code) = 0;
 
 private:
-    std::unordered_map<u32, std::unique_ptr<CachedMacro>> macro_cache;
+    struct CacheInfo {
+        std::unique_ptr<CachedMacro> lle_program{};
+        std::unique_ptr<CachedMacro> hle_program{};
+        u64 hash{};
+        bool has_hle_program{};
+    };
+
+    std::unordered_map<u32, CacheInfo> macro_cache;
     std::unordered_map<u32, std::vector<u32>> uploaded_macro_code;
+    std::unique_ptr<HLEMacro> hle_macros;
 };
 
 std::unique_ptr<MacroEngine> GetMacroEngine(Engines::Maxwell3D& maxwell3d);

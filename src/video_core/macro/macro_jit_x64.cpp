@@ -28,7 +28,8 @@ static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
     BRANCH_HOLDER,
 });
 
-MacroJITx64::MacroJITx64(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
+MacroJITx64::MacroJITx64(Engines::Maxwell3D& maxwell3d)
+    : MacroEngine::MacroEngine(maxwell3d), maxwell3d(maxwell3d) {}
 
 std::unique_ptr<CachedMacro> MacroJITx64::Compile(const std::vector<u32>& code) {
     return std::make_unique<MacroJITx64Impl>(maxwell3d, code);
