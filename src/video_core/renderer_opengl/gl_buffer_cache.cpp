@@ -26,7 +26,7 @@ Buffer::Buffer(const Device& device, VAddr cpu_addr, std::size_t size)
     : VideoCommon::BufferBlock{cpu_addr, size} {
     gl_buffer.Create();
     glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size), nullptr, GL_DYNAMIC_DRAW);
-    if (device.HasVertexBufferUnifiedMemory()) {
+    if (device.UseAssemblyShaders() || device.HasVertexBufferUnifiedMemory()) {
         glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_WRITE);
         glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
     }

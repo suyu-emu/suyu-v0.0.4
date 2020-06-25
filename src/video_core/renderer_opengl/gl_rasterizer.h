@@ -124,9 +124,9 @@ private:
     /// Configures the current global memory entries to use for the kernel invocation.
     void SetupComputeGlobalMemory(Shader* kernel);
 
-    /// Configures a constant buffer.
+    /// Configures a global memory buffer.
     void SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
-                           std::size_t size);
+                           std::size_t size, GLuint64EXT* pointer);
 
     /// Configures the current textures to use for the draw command.
     void SetupDrawTextures(std::size_t stage_index, Shader* shader);
