@@ -178,7 +178,7 @@ bool IsASTCSupported() {
         for (const GLenum format : formats) {
             for (const GLenum support : required_support) {
                 GLint value;
-                glGetInternalformativ(GL_TEXTURE_2D, format, support, 1, &value);
+                glGetInternalformativ(target, format, support, 1, &value);
                 if (value != GL_FULL_SUPPORT) {
                     return false;
                 }
