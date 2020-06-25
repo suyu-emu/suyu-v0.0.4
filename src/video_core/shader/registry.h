@@ -19,8 +19,39 @@
 
 namespace VideoCommon::Shader {
 
+struct SeparateSamplerKey {
+    std::pair<u32, u32> buffers;
+    std::pair<u32, u32> offsets;
+};
+
+} // namespace VideoCommon::Shader
+
+namespace std {
+
+template <>
+struct hash<VideoCommon::Shader::SeparateSamplerKey> {
+    std::size_t operator()(const VideoCommon::Shader::SeparateSamplerKey& key) const noexcept {
+        return std::hash<u32>{}(key.buffers.first ^ key.buffers.second ^ key.offsets.first ^
+                                key.offsets.second);
+    }
+};
+
+template <>
+struct equal_to<VideoCommon::Shader::SeparateSamplerKey> {
+    bool operator()(const VideoCommon::Shader::SeparateSamplerKey& lhs,
+                    const VideoCommon::Shader::SeparateSamplerKey& rhs) const noexcept {
+        return lhs.buffers == rhs.buffers && lhs.offsets == rhs.offsets;
+    }
+};
+
+} // namespace std
+
+namespace VideoCommon::Shader {
+
 using KeyMap = std::unordered_map<std::pair<u32, u32>, u32, Common::PairHash>;
 using BoundSamplerMap = std::unordered_map<u32, Tegra::Engines::SamplerDescriptor>;
+using SeparateSamplerMap =
+    std::unordered_map<SeparateSamplerKey, Tegra::Engines::SamplerDescriptor>;
 using BindlessSamplerMap =
     std::unordered_map<std::pair<u32, u32>, Tegra::Engines::SamplerDescriptor, Common::PairHash>;
 
@@ -72,6 +103,9 @@ public:
     std::optional<u32> ObtainKey(u32 buffer, u32 offset);
 
     std::optional<Tegra::Engines::SamplerDescriptor> ObtainBoundSampler(u32 offset);
+
+    std::optional<Tegra::Engines::SamplerDescriptor> ObtainSeparateSampler(
+        std::pair<u32, u32> buffers, std::pair<u32, u32> offsets);
 
     std::optional<Tegra::Engines::SamplerDescriptor> ObtainBindlessSampler(u32 buffer, u32 offset);
 
@@ -128,6 +162,7 @@ private:
     Tegra::Engines::ConstBufferEngineInterface* engine = nullptr;
     KeyMap keys;
     BoundSamplerMap bound_samplers;
+    SeparateSamplerMap separate_samplers;
     BindlessSamplerMap bindless_samplers;
     u32 bound_buffer;
     GraphicsInfo graphics_info;

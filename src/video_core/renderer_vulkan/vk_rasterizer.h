@@ -168,7 +168,7 @@ private:
                                  bool is_indexed, bool is_instanced);
 
     /// Setup descriptors in the graphics pipeline.
-    void SetupShaderDescriptors(const std::array<Shader, Maxwell::MaxShaderProgram>& shaders);
+    void SetupShaderDescriptors(const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders);
 
     void SetupImageTransitions(Texceptions texceptions,
                                const std::array<View, Maxwell::NumRenderTargets>& color_attachments,
@@ -193,11 +193,14 @@ private:
     /// Setup global buffers in the graphics pipeline.
     void SetupGraphicsGlobalBuffers(const ShaderEntries& entries, std::size_t stage);
 
-    /// Setup texel buffers in the graphics pipeline.
-    void SetupGraphicsTexelBuffers(const ShaderEntries& entries, std::size_t stage);
+    /// Setup uniform texels in the graphics pipeline.
+    void SetupGraphicsUniformTexels(const ShaderEntries& entries, std::size_t stage);
 
     /// Setup textures in the graphics pipeline.
     void SetupGraphicsTextures(const ShaderEntries& entries, std::size_t stage);
+
+    /// Setup storage texels in the graphics pipeline.
+    void SetupGraphicsStorageTexels(const ShaderEntries& entries, std::size_t stage);
 
     /// Setup images in the graphics pipeline.
     void SetupGraphicsImages(const ShaderEntries& entries, std::size_t stage);
@@ -209,10 +212,13 @@ private:
     void SetupComputeGlobalBuffers(const ShaderEntries& entries);
 
     /// Setup texel buffers in the compute pipeline.
-    void SetupComputeTexelBuffers(const ShaderEntries& entries);
+    void SetupComputeUniformTexels(const ShaderEntries& entries);
 
     /// Setup textures in the compute pipeline.
     void SetupComputeTextures(const ShaderEntries& entries);
+
+    /// Setup storage texels in the compute pipeline.
+    void SetupComputeStorageTexels(const ShaderEntries& entries);
 
     /// Setup images in the compute pipeline.
     void SetupComputeImages(const ShaderEntries& entries);
@@ -222,9 +228,11 @@ private:
 
     void SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAddr address);
 
-    void SetupTexelBuffer(const Tegra::Texture::TICEntry& image, const TexelBufferEntry& entry);
+    void SetupUniformTexels(const Tegra::Texture::TICEntry& image, const UniformTexelEntry& entry);
 
     void SetupTexture(const Tegra::Texture::FullTextureInfo& texture, const SamplerEntry& entry);
+
+    void SetupStorageTexel(const Tegra::Texture::TICEntry& tic, const StorageTexelEntry& entry);
 
     void SetupImage(const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);
 

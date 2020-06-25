@@ -215,10 +215,19 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
     params.num_levels = 1;
     params.emulated_levels = 1;
 
-    const bool is_layered = config.layers > 1 && params.block_depth == 0;
-    params.is_layered = is_layered;
-    params.depth = is_layered ? config.layers.Value() : 1;
-    params.target = is_layered ? SurfaceTarget::Texture2DArray : SurfaceTarget::Texture2D;
+    if (config.memory_layout.is_3d != 0) {
+        params.depth = config.layers.Value();
+        params.is_layered = false;
+        params.target = SurfaceTarget::Texture3D;
+    } else if (config.layers > 1) {
+        params.depth = config.layers.Value();
+        params.is_layered = true;
+        params.target = SurfaceTarget::Texture2DArray;
+    } else {
+        params.depth = 1;
+        params.is_layered = false;
+        params.target = SurfaceTarget::Texture2D;
+    }
     return params;
 }
 
@@ -237,7 +246,7 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.width = config.width;
     params.height = config.height;
     params.pitch = config.pitch;
-    // TODO(Rodrigo): Try to guess the surface target from depth and layer parameters
+    // TODO(Rodrigo): Try to guess texture arrays from parameters
     params.target = SurfaceTarget::Texture2D;
     params.depth = 1;
     params.num_levels = 1;

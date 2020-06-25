@@ -8,7 +8,6 @@
 
 #include "common/common_types.h"
 #include "video_core/buffer_cache/buffer_cache.h"
-#include "video_core/rasterizer_cache.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
@@ -24,21 +23,33 @@ class VKDevice;
 class VKMemoryManager;
 class VKScheduler;
 
-class CachedBufferBlock final : public VideoCommon::BufferBlock {
+class Buffer final : public VideoCommon::BufferBlock {
 public:
-    explicit CachedBufferBlock(const VKDevice& device, VKMemoryManager& memory_manager,
-                               VAddr cpu_addr, std::size_t size);
-    ~CachedBufferBlock();
+    explicit Buffer(const VKDevice& device, VKMemoryManager& memory_manager, VKScheduler& scheduler,
+                    VKStagingBufferPool& staging_pool, VAddr cpu_addr, std::size_t size);
+    ~Buffer();
 
-    VkBuffer GetHandle() const {
+    void Upload(std::size_t offset, std::size_t size, const u8* data) const;
+
+    void Download(std::size_t offset, std::size_t size, u8* data) const;
+
+    void CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
+                  std::size_t size) const;
+
+    VkBuffer Handle() const {
         return *buffer.handle;
     }
 
+    u64 Address() const {
+        return 0;
+    }
+
 private:
+    VKScheduler& scheduler;
+    VKStagingBufferPool& staging_pool;
+
     VKBuffer buffer;
 };
-
-using Buffer = std::shared_ptr<CachedBufferBlock>;
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
@@ -47,21 +58,10 @@ public:
                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
-    VkBuffer GetEmptyBuffer(std::size_t size) override;
+    BufferInfo GetEmptyBuffer(std::size_t size) override;
 
 protected:
-    VkBuffer ToHandle(const Buffer& buffer) override;
-
-    Buffer CreateBlock(VAddr cpu_addr, std::size_t size) override;
-
-    void UploadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                         const u8* data) override;
-
-    void DownloadBlockData(const Buffer& buffer, std::size_t offset, std::size_t size,
-                           u8* data) override;
-
-    void CopyBlock(const Buffer& src, const Buffer& dst, std::size_t src_offset,
-                   std::size_t dst_offset, std::size_t size) override;
+    std::shared_ptr<Buffer> CreateBlock(VAddr cpu_addr, std::size_t size) override;
 
 private:
     const VKDevice& device;

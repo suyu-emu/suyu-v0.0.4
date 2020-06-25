@@ -25,9 +25,8 @@ constexpr u32 MacroRegistersStart = 0xE00;
 Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
                      MemoryManager& memory_manager)
     : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
-      macro_interpreter{*this}, upload_state{memory_manager, regs.upload} {
+      macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
-
     InitializeRegisterDefaults();
 }
 
@@ -106,7 +105,11 @@ void Maxwell3D::InitializeRegisterDefaults() {
     regs.rasterize_enable = 1;
     regs.rt_separate_frag_data = 1;
     regs.framebuffer_srgb = 1;
+    regs.line_width_aliased = 1.0f;
+    regs.line_width_smooth = 1.0f;
     regs.front_face = Maxwell3D::Regs::FrontFace::ClockWise;
+    regs.polygon_mode_back = Maxwell3D::Regs::PolygonMode::Fill;
+    regs.polygon_mode_front = Maxwell3D::Regs::PolygonMode::Fill;
 
     shadow_state = regs;
 
@@ -116,7 +119,7 @@ void Maxwell3D::InitializeRegisterDefaults() {
     mme_inline[MAXWELL3D_REG_INDEX(index_array.count)] = true;
 }
 
-void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u32* parameters) {
+void Maxwell3D::CallMacroMethod(u32 method, const std::vector<u32>& parameters) {
     // Reset the current macro.
     executing_macro = 0;
 
@@ -125,7 +128,7 @@ void Maxwell3D::CallMacroMethod(u32 method, std::size_t num_parameters, const u3
         ((method - MacroRegistersStart) >> 1) % static_cast<u32>(macro_positions.size());
 
     // Execute the current macro.
-    macro_interpreter.Execute(macro_positions[entry], num_parameters, parameters);
+    macro_engine->Execute(*this, macro_positions[entry], parameters);
     if (mme_draw.current_mode != MMEDrawMode::Undefined) {
         FlushMMEInlineDraw();
     }
@@ -161,7 +164,7 @@ void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
 
         // Call the macro when there are no more parameters in the command buffer
         if (is_last_call) {
-            CallMacroMethod(executing_macro, macro_params.size(), macro_params.data());
+            CallMacroMethod(executing_macro, macro_params);
             macro_params.clear();
         }
         return;
@@ -197,7 +200,7 @@ void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
         break;
     }
     case MAXWELL3D_REG_INDEX(macros.data): {
-        ProcessMacroUpload(arg);
+        macro_engine->AddCode(regs.macros.upload_address, arg);
         break;
     }
     case MAXWELL3D_REG_INDEX(macros.bind): {
@@ -306,7 +309,7 @@ void Maxwell3D::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
 
         // Call the macro when there are no more parameters in the command buffer
         if (amount == methods_pending) {
-            CallMacroMethod(executing_macro, macro_params.size(), macro_params.data());
+            CallMacroMethod(executing_macro, macro_params);
             macro_params.clear();
         }
         return;
@@ -420,9 +423,7 @@ void Maxwell3D::FlushMMEInlineDraw() {
 }
 
 void Maxwell3D::ProcessMacroUpload(u32 data) {
-    ASSERT_MSG(regs.macros.upload_address < macro_memory.size(),
-               "upload_address exceeded macro_memory size!");
-    macro_memory[regs.macros.upload_address++] = data;
+    macro_engine->AddCode(regs.macros.upload_address++, data);
 }
 
 void Maxwell3D::ProcessMacroBind(u32 data) {
@@ -739,8 +740,11 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
     const auto& shader = state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& tex_info_buffer = shader.const_buffers[const_buffer];
     const GPUVAddr tex_info_address = tex_info_buffer.address + offset;
+    return AccessSampler(memory_manager.Read<u32>(tex_info_address));
+}
 
-    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
+SamplerDescriptor Maxwell3D::AccessSampler(u32 handle) const {
+    const Texture::TextureHandle tex_handle{handle};
     const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
     SamplerDescriptor result = SamplerDescriptor::FromTIC(tex_info.tic);
     result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());

@@ -98,6 +98,9 @@ EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(Core::System& system, bool fullscreen)
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
     SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
+    if (Settings::values.renderer_debug) {
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+    }
     SDL_GL_SetSwapInterval(0);
 
     std::string window_title = fmt::format("yuzu {} | {}-{}", Common::g_build_fullname,

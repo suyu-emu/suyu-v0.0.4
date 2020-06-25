@@ -51,6 +51,8 @@ endif()
 # The variable SRC_DIR must be passed into the script (since it uses the current build directory for all values of CMAKE_*_DIR)
 set(VIDEO_CORE "${SRC_DIR}/src/video_core")
 set(HASH_FILES
+    "${VIDEO_CORE}/renderer_opengl/gl_arb_decompiler.cpp"
+    "${VIDEO_CORE}/renderer_opengl/gl_arb_decompiler.h"
     "${VIDEO_CORE}/renderer_opengl/gl_shader_cache.cpp"
     "${VIDEO_CORE}/renderer_opengl/gl_shader_cache.h"
     "${VIDEO_CORE}/renderer_opengl/gl_shader_decompiler.cpp"

@@ -116,8 +116,6 @@ void Config::ReadValues() {
     Settings::values.use_multi_core = sdl2_config->GetBoolean("Core", "use_multi_core", false);
 
     // Renderer
-    Settings::values.resolution_factor =
-        static_cast<float>(sdl2_config->GetReal("Renderer", "resolution_factor", 1.0));
     Settings::values.aspect_ratio =
         static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0));
     Settings::values.max_anisotropy =

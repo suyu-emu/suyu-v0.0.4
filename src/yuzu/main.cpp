@@ -218,7 +218,20 @@ GMainWindow::GMainWindow()
     LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", yuzu_build_version, Common::g_scm_branch,
              Common::g_scm_desc);
 #ifdef ARCHITECTURE_x86_64
-    LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
+    const auto& caps = Common::GetCPUCaps();
+    std::string cpu_string = caps.cpu_string;
+    if (caps.avx || caps.avx2 || caps.avx512) {
+        cpu_string += " | AVX";
+        if (caps.avx512) {
+            cpu_string += "512";
+        } else if (caps.avx2) {
+            cpu_string += '2';
+        }
+        if (caps.fma || caps.fma4) {
+            cpu_string += " | FMA";
+        }
+    }
+    LOG_INFO(Frontend, "Host CPU: {}", cpu_string);
 #endif
     LOG_INFO(Frontend, "Host OS: {}", QSysInfo::prettyProductName().toStdString());
     LOG_INFO(Frontend, "Host RAM: {:.2f} GB",
@@ -690,10 +703,7 @@ void GMainWindow::InitializeHotkeys() {
                 Settings::values.use_frame_limit = !Settings::values.use_frame_limit;
                 UpdateStatusBar();
             });
-    // TODO: Remove this comment/static whenever the next major release of
-    // MSVC occurs and we make it a requirement (see:
-    // https://developercommunity.visualstudio.com/content/problem/93922/constexprs-are-trying-to-be-captured-in-lambda-fun.html)
-    static constexpr u16 SPEED_LIMIT_STEP = 5;
+    constexpr u16 SPEED_LIMIT_STEP = 5;
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Increase Speed Limit"), this),
             &QShortcut::activated, this, [&] {
                 if (Settings::values.frame_limit < 9999 - SPEED_LIMIT_STEP) {

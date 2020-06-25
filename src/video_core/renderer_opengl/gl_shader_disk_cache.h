@@ -57,6 +57,7 @@ struct ShaderDiskCacheEntry {
     VideoCommon::Shader::ComputeInfo compute_info;
     VideoCommon::Shader::KeyMap keys;
     VideoCommon::Shader::BoundSamplerMap bound_samplers;
+    VideoCommon::Shader::SeparateSamplerMap separate_samplers;
     VideoCommon::Shader::BindlessSamplerMap bindless_samplers;
 };
 

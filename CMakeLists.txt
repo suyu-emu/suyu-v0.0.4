@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/externals/cmake-modules")
@@ -13,7 +13,7 @@ project(yuzu)
 option(ENABLE_SDL2 "Enable the SDL2 frontend" ON)
 
 option(ENABLE_QT "Enable the Qt frontend" ON)
-CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" OFF "ENABLE_QT;MSVC" OFF)
+CMAKE_DEPENDENT_OPTION(YUZU_USE_BUNDLED_QT "Download bundled Qt binaries" ON "ENABLE_QT;MSVC" OFF)
 
 option(ENABLE_WEB_SERVICE "Enable web services (telemetry, etc.)" ON)
 
@@ -152,7 +152,6 @@ macro(yuzu_find_packages)
         "Boost             1.71        boost/1.72.0"
         "Catch2            2.11        catch2/2.11.0"
         "fmt               6.2         fmt/6.2.0"
-        "OpenSSL           1.1         openssl/1.1.1f"
     # can't use until https://github.com/bincrafters/community/issues/1173
         #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
         "lz4               1.8         lz4/1.9.2"
@@ -310,15 +309,6 @@ if (TARGET Boost::Boost)
 elseif (TARGET Boost::boost)
     set_target_properties(Boost::boost PROPERTIES IMPORTED_GLOBAL TRUE)
     add_library(boost ALIAS Boost::boost)
-endif()
-
-if (NOT TARGET OpenSSL::SSL)
-    set_target_properties(OpenSSL::OpenSSL PROPERTIES IMPORTED_GLOBAL TRUE)
-    add_library(OpenSSL::SSL ALIAS OpenSSL::OpenSSL)
-endif()
-if (NOT TARGET OpenSSL::Crypto)
-    set_target_properties(OpenSSL::OpenSSL PROPERTIES IMPORTED_GLOBAL TRUE)
-    add_library(OpenSSL::Crypto ALIAS OpenSSL::OpenSSL)
 endif()
 
 if (TARGET sdl2::sdl2)

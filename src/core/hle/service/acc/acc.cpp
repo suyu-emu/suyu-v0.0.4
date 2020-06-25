@@ -44,6 +44,218 @@ static constexpr u32 SanitizeJPEGSize(std::size_t size) {
     return static_cast<u32>(std::min(size, max_jpeg_image_size));
 }
 
+class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {
+public:
+    explicit IManagerForSystemService(Common::UUID user_id)
+        : ServiceFramework("IManagerForSystemService") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "CheckAvailability"},
+            {1, nullptr, "GetAccountId"},
+            {2, nullptr, "EnsureIdTokenCacheAsync"},
+            {3, nullptr, "LoadIdTokenCache"},
+            {100, nullptr, "SetSystemProgramIdentification"},
+            {101, nullptr, "RefreshNotificationTokenAsync"}, // 7.0.0+
+            {110, nullptr, "GetServiceEntryRequirementCache"}, // 4.0.0+
+            {111, nullptr, "InvalidateServiceEntryRequirementCache"}, // 4.0.0+
+            {112, nullptr, "InvalidateTokenCache"}, // 4.0.0 - 6.2.0
+            {113, nullptr, "GetServiceEntryRequirementCacheForOnlinePlay"}, // 6.1.0+
+            {120, nullptr, "GetNintendoAccountId"},
+            {121, nullptr, "CalculateNintendoAccountAuthenticationFingerprint"}, // 9.0.0+
+            {130, nullptr, "GetNintendoAccountUserResourceCache"},
+            {131, nullptr, "RefreshNintendoAccountUserResourceCacheAsync"},
+            {132, nullptr, "RefreshNintendoAccountUserResourceCacheAsyncIfSecondsElapsed"},
+            {133, nullptr, "GetNintendoAccountVerificationUrlCache"}, // 9.0.0+
+            {134, nullptr, "RefreshNintendoAccountVerificationUrlCache"}, // 9.0.0+
+            {135, nullptr, "RefreshNintendoAccountVerificationUrlCacheAsyncIfSecondsElapsed"}, // 9.0.0+
+            {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
+            {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
+            {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
+            {150, nullptr, "CreateAuthorizationRequest"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+// 3.0.0+
+class IFloatingRegistrationRequest final : public ServiceFramework<IFloatingRegistrationRequest> {
+public:
+    explicit IFloatingRegistrationRequest(Common::UUID user_id)
+        : ServiceFramework("IFloatingRegistrationRequest") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSessionId"},
+            {12, nullptr, "GetAccountId"},
+            {13, nullptr, "GetLinkedNintendoAccountId"},
+            {14, nullptr, "GetNickname"},
+            {15, nullptr, "GetProfileImage"},
+            {21, nullptr, "LoadIdTokenCache"},
+            {100, nullptr, "RegisterUser"}, // [1.0.0-3.0.2] RegisterAsync
+            {101, nullptr, "RegisterUserWithUid"}, // [1.0.0-3.0.2] RegisterWithUidAsync
+            {102, nullptr, "RegisterNetworkServiceAccountAsync"}, // 4.0.0+
+            {103, nullptr, "RegisterNetworkServiceAccountWithUidAsync"}, // 4.0.0+
+            {110, nullptr, "SetSystemProgramIdentification"},
+            {111, nullptr, "EnsureIdTokenCacheAsync"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IAdministrator final : public ServiceFramework<IAdministrator> {
+public:
+    explicit IAdministrator(Common::UUID user_id) : ServiceFramework("IAdministrator") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "CheckAvailability"},
+            {1, nullptr, "GetAccountId"},
+            {2, nullptr, "EnsureIdTokenCacheAsync"},
+            {3, nullptr, "LoadIdTokenCache"},
+            {100, nullptr, "SetSystemProgramIdentification"},
+            {101, nullptr, "RefreshNotificationTokenAsync"}, // 7.0.0+
+            {110, nullptr, "GetServiceEntryRequirementCache"}, // 4.0.0+
+            {111, nullptr, "InvalidateServiceEntryRequirementCache"}, // 4.0.0+
+            {112, nullptr, "InvalidateTokenCache"}, // 4.0.0 - 6.2.0
+            {113, nullptr, "GetServiceEntryRequirementCacheForOnlinePlay"}, // 6.1.0+
+            {120, nullptr, "GetNintendoAccountId"},
+            {121, nullptr, "CalculateNintendoAccountAuthenticationFingerprint"}, // 9.0.0+
+            {130, nullptr, "GetNintendoAccountUserResourceCache"},
+            {131, nullptr, "RefreshNintendoAccountUserResourceCacheAsync"},
+            {132, nullptr, "RefreshNintendoAccountUserResourceCacheAsyncIfSecondsElapsed"},
+            {133, nullptr, "GetNintendoAccountVerificationUrlCache"}, // 9.0.0+
+            {134, nullptr, "RefreshNintendoAccountVerificationUrlCacheAsync"}, // 9.0.0+
+            {135, nullptr, "RefreshNintendoAccountVerificationUrlCacheAsyncIfSecondsElapsed"}, // 9.0.0+
+            {140, nullptr, "GetNetworkServiceLicenseCache"}, // 5.0.0+
+            {141, nullptr, "RefreshNetworkServiceLicenseCacheAsync"}, // 5.0.0+
+            {142, nullptr, "RefreshNetworkServiceLicenseCacheAsyncIfSecondsElapsed"}, // 5.0.0+
+            {150, nullptr, "CreateAuthorizationRequest"},
+            {200, nullptr, "IsRegistered"},
+            {201, nullptr, "RegisterAsync"},
+            {202, nullptr, "UnregisterAsync"},
+            {203, nullptr, "DeleteRegistrationInfoLocally"},
+            {220, nullptr, "SynchronizeProfileAsync"},
+            {221, nullptr, "UploadProfileAsync"},
+            {222, nullptr, "SynchronizaProfileAsyncIfSecondsElapsed"},
+            {250, nullptr, "IsLinkedWithNintendoAccount"},
+            {251, nullptr, "CreateProcedureToLinkWithNintendoAccount"},
+            {252, nullptr, "ResumeProcedureToLinkWithNintendoAccount"},
+            {255, nullptr, "CreateProcedureToUpdateLinkageStateOfNintendoAccount"},
+            {256, nullptr, "ResumeProcedureToUpdateLinkageStateOfNintendoAccount"},
+            {260, nullptr, "CreateProcedureToLinkNnidWithNintendoAccount"}, // 3.0.0+
+            {261, nullptr, "ResumeProcedureToLinkNnidWithNintendoAccount"}, // 3.0.0+
+            {280, nullptr, "ProxyProcedureToAcquireApplicationAuthorizationForNintendoAccount"},
+            {290, nullptr, "GetRequestForNintendoAccountUserResourceView"}, // 8.0.0+
+            {300, nullptr, "TryRecoverNintendoAccountUserStateAsync"}, // 6.0.0+
+            {400, nullptr, "IsServiceEntryRequirementCacheRefreshRequiredForOnlinePlay"}, // 6.1.0+
+            {401, nullptr, "RefreshServiceEntryRequirementCacheForOnlinePlayAsync"}, // 6.1.0+
+            {900, nullptr, "GetAuthenticationInfoForWin"}, // 9.0.0+
+            {901, nullptr, "ImportAsyncForWin"}, // 9.0.0+
+            {997, nullptr, "DebugUnlinkNintendoAccountAsync"},
+            {998, nullptr, "DebugSetAvailabilityErrorDetail"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IAuthorizationRequest final : public ServiceFramework<IAuthorizationRequest> {
+public:
+    explicit IAuthorizationRequest(Common::UUID user_id)
+        : ServiceFramework("IAuthorizationRequest") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSessionId"},
+            {10, nullptr, "InvokeWithoutInteractionAsync"},
+            {19, nullptr, "IsAuthorized"},
+            {20, nullptr, "GetAuthorizationCode"},
+            {21, nullptr, "GetIdToken"},
+            {22, nullptr, "GetState"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IOAuthProcedure final : public ServiceFramework<IOAuthProcedure> {
+public:
+    explicit IOAuthProcedure(Common::UUID user_id) : ServiceFramework("IOAuthProcedure") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "PrepareAsync"},
+            {1, nullptr, "GetRequest"},
+            {2, nullptr, "ApplyResponse"},
+            {3, nullptr, "ApplyResponseAsync"},
+            {10, nullptr, "Suspend"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+// 3.0.0+
+class IOAuthProcedureForExternalNsa final : public ServiceFramework<IOAuthProcedureForExternalNsa> {
+public:
+    explicit IOAuthProcedureForExternalNsa(Common::UUID user_id)
+        : ServiceFramework("IOAuthProcedureForExternalNsa") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "PrepareAsync"},
+            {1, nullptr, "GetRequest"},
+            {2, nullptr, "ApplyResponse"},
+            {3, nullptr, "ApplyResponseAsync"},
+            {10, nullptr, "Suspend"},
+            {100, nullptr, "GetAccountId"},
+            {101, nullptr, "GetLinkedNintendoAccountId"},
+            {102, nullptr, "GetNickname"},
+            {103, nullptr, "GetProfileImage"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IOAuthProcedureForNintendoAccountLinkage final
+    : public ServiceFramework<IOAuthProcedureForNintendoAccountLinkage> {
+public:
+    explicit IOAuthProcedureForNintendoAccountLinkage(Common::UUID user_id)
+        : ServiceFramework("IOAuthProcedureForNintendoAccountLinkage") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "PrepareAsync"},
+            {1, nullptr, "GetRequest"},
+            {2, nullptr, "ApplyResponse"},
+            {3, nullptr, "ApplyResponseAsync"},
+            {10, nullptr, "Suspend"},
+            {100, nullptr, "GetRequestWithTheme"},
+            {101, nullptr, "IsNetworkServiceAccountReplaced"},
+            {199, nullptr, "GetUrlForIntroductionOfExtraMembership"}, // 2.0.0 - 5.1.0
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class INotifier final : public ServiceFramework<INotifier> {
+public:
+    explicit INotifier(Common::UUID user_id) : ServiceFramework("INotifier") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSystemEvent"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 class IProfileCommon : public ServiceFramework<IProfileCommon> {
 public:
     explicit IProfileCommon(const char* name, bool editor_commands, Common::UUID user_id,
@@ -226,6 +438,54 @@ public:
         : IProfileCommon("IProfileEditor", true, user_id, profile_manager) {}
 };
 
+class IAsyncContext final : public ServiceFramework<IAsyncContext> {
+public:
+    explicit IAsyncContext(Common::UUID user_id) : ServiceFramework("IAsyncContext") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSystemEvent"},
+            {1, nullptr, "Cancel"},
+            {2, nullptr, "HasDone"},
+            {3, nullptr, "GetResult"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class ISessionObject final : public ServiceFramework<ISessionObject> {
+public:
+    explicit ISessionObject(Common::UUID user_id) : ServiceFramework("ISessionObject") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {999, nullptr, "Dummy"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class IGuestLoginRequest final : public ServiceFramework<IGuestLoginRequest> {
+public:
+    explicit IGuestLoginRequest(Common::UUID) : ServiceFramework("IGuestLoginRequest") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSessionId"},
+            {11, nullptr, "Unknown"}, // 1.0.0 - 2.3.0 (the name is blank on Switchbrew)
+            {12, nullptr, "GetAccountId"},
+            {13, nullptr, "GetLinkedNintendoAccountId"},
+            {14, nullptr, "GetNickname"},
+            {15, nullptr, "GetProfileImage"},
+            {21, nullptr, "LoadIdTokenCache"}, // 3.0.0+
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
     explicit IManagerForApplication(Common::UUID user_id)
@@ -263,6 +523,87 @@ private:
     }
 
     Common::UUID user_id;
+};
+
+// 6.0.0+
+class IAsyncNetworkServiceLicenseKindContext final
+    : public ServiceFramework<IAsyncNetworkServiceLicenseKindContext> {
+public:
+    explicit IAsyncNetworkServiceLicenseKindContext(Common::UUID user_id)
+        : ServiceFramework("IAsyncNetworkServiceLicenseKindContext") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetSystemEvent"},
+            {1, nullptr, "Cancel"},
+            {2, nullptr, "HasDone"},
+            {3, nullptr, "GetResult"},
+            {4, nullptr, "GetNetworkServiceLicenseKind"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+// 8.0.0+
+class IOAuthProcedureForUserRegistration final
+    : public ServiceFramework<IOAuthProcedureForUserRegistration> {
+public:
+    explicit IOAuthProcedureForUserRegistration(Common::UUID user_id)
+        : ServiceFramework("IOAuthProcedureForUserRegistration") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "PrepareAsync"},
+            {1, nullptr, "GetRequest"},
+            {2, nullptr, "ApplyResponse"},
+            {3, nullptr, "ApplyResponseAsync"},
+            {10, nullptr, "Suspend"},
+            {100, nullptr, "GetAccountId"},
+            {101, nullptr, "GetLinkedNintendoAccountId"},
+            {102, nullptr, "GetNickname"},
+            {103, nullptr, "GetProfileImage"},
+            {110, nullptr, "RegisterUserAsync"},
+            {111, nullptr, "GetUid"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+class DAUTH_O final : public ServiceFramework<DAUTH_O> {
+public:
+    explicit DAUTH_O(Common::UUID) : ServiceFramework("dauth:o") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "EnsureAuthenticationTokenCacheAsync"}, // [5.0.0-5.1.0] GeneratePostData
+            {1, nullptr, "LoadAuthenticationTokenCache"}, // 6.0.0+
+            {2, nullptr, "InvalidateAuthenticationTokenCache"}, // 6.0.0+
+            {10, nullptr, "EnsureEdgeTokenCacheAsync"}, // 6.0.0+
+            {11, nullptr, "LoadEdgeTokenCache"}, // 6.0.0+
+            {12, nullptr, "InvalidateEdgeTokenCache"}, // 6.0.0+
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
+// 6.0.0+
+class IAsyncResult final : public ServiceFramework<IAsyncResult> {
+public:
+    explicit IAsyncResult(Common::UUID user_id) : ServiceFramework("IAsyncResult") {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "GetResult"},
+            {1, nullptr, "Cancel"},
+            {2, nullptr, "IsAvailable"},
+            {3, nullptr, "GetSystemEvent"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
 };
 
 void Module::Interface::GetUserCount(Kernel::HLERequestContext& ctx) {

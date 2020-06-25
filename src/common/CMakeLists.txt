@@ -32,6 +32,8 @@ add_custom_command(OUTPUT scm_rev.cpp
     DEPENDS
       # WARNING! It was too much work to try and make a common location for this list,
       # so if you need to change it, please update CMakeModules/GenerateSCMRev.cmake as well
+      "${VIDEO_CORE}/renderer_opengl/gl_arb_decompiler.cpp"
+      "${VIDEO_CORE}/renderer_opengl/gl_arb_decompiler.h"
       "${VIDEO_CORE}/renderer_opengl/gl_shader_cache.cpp"
       "${VIDEO_CORE}/renderer_opengl/gl_shader_cache.h"
       "${VIDEO_CORE}/renderer_opengl/gl_shader_decompiler.cpp"

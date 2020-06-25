@@ -17,28 +17,29 @@ ACC_U1::ACC_U1(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {3, &ACC_U1::ListOpenUsers, "ListOpenUsers"},
         {4, &ACC_U1::GetLastOpenedUser, "GetLastOpenedUser"},
         {5, &ACC_U1::GetProfile, "GetProfile"},
-        {6, nullptr, "GetProfileDigest"},
+        {6, nullptr, "GetProfileDigest"}, // 3.0.0+
         {50, &ACC_U1::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, &ACC_U1::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
-        {60, nullptr, "ListOpenContextStoredUsers"},
-        {99, nullptr, "DebugActivateOpenContextRetention"},
+        {60, nullptr, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
+        {99, nullptr, "DebugActivateOpenContextRetention"}, // 6.0.0+
         {100, nullptr, "GetUserRegistrationNotifier"},
         {101, nullptr, "GetUserStateChangeNotifier"},
         {102, nullptr, "GetBaasAccountManagerForSystemService"},
-        {103, nullptr, "GetProfileUpdateNotifier"},
-        {104, nullptr, "CheckNetworkServiceAvailabilityAsync"},
-        {105, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
-        {106, nullptr, "GetProfileSyncNotifier"},
+        {103, nullptr, "GetBaasUserAvailabilityChangeNotifier"},
+        {104, nullptr, "GetProfileUpdateNotifier"},
+        {105, nullptr, "CheckNetworkServiceAvailabilityAsync"}, // 4.0.0+
+        {106, nullptr, "GetProfileSyncNotifier"}, // 9.0.0+
         {110, nullptr, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {112, nullptr, "LoadSaveDataThumbnail"},
-        {113, nullptr, "GetSaveDataThumbnailExistence"},
-        {130, nullptr, "ActivateOpenContextRetention"},
-        {140, &ACC_U1::ListQualifiedUsers, "ListQualifiedUsers"},
-        {150, nullptr, "AuthenticateApplicationAsync"},
-        {190, nullptr, "GetUserLastOpenedApplication"},
-        {191, nullptr, "ActivateOpenContextHolder"},
-        {997, nullptr, "DebugInvalidateTokenCacheForUser"},
+        {113, nullptr, "GetSaveDataThumbnailExistence"}, // 5.0.0+
+        {120, nullptr, "ListOpenUsersInApplication"}, // 10.0.0+
+        {130, nullptr, "ActivateOpenContextRetention"}, // 6.0.0+
+        {140, &ACC_U1::ListQualifiedUsers, "ListQualifiedUsers"}, // 6.0.0+
+        {150, nullptr, "AuthenticateApplicationAsync"}, // 10.0.0+
+        {190, nullptr, "GetUserLastOpenedApplication"}, // 1.0.0 - 9.2.0
+        {191, nullptr, "ActivateOpenContextHolder"}, // 7.0.0+
+        {997, nullptr, "DebugInvalidateTokenCacheForUser"}, // 3.0.0+
         {998, nullptr, "DebugSetUserStateClose"},
         {999, nullptr, "DebugSetUserStateOpen"},
     };

@@ -779,7 +779,7 @@ public:
 
     bool GetSurfaceSupportKHR(u32 queue_family_index, VkSurfaceKHR) const;
 
-    VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR) const noexcept;
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilitiesKHR(VkSurfaceKHR) const;
 
     std::vector<VkSurfaceFormatKHR> GetSurfaceFormatsKHR(VkSurfaceKHR) const;
 

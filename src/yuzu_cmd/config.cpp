@@ -380,8 +380,6 @@ void Config::ReadValues() {
     Settings::values.renderer_debug = sdl2_config->GetBoolean("Renderer", "debug", false);
     Settings::values.vulkan_device = sdl2_config->GetInteger("Renderer", "vulkan_device", 0);
 
-    Settings::values.resolution_factor =
-        static_cast<float>(sdl2_config->GetReal("Renderer", "resolution_factor", 1.0));
     Settings::values.aspect_ratio =
         static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0));
     Settings::values.max_anisotropy =
@@ -432,6 +430,8 @@ void Config::ReadValues() {
     Settings::values.quest_flag = sdl2_config->GetBoolean("Debugging", "quest_flag", false);
     Settings::values.disable_cpu_opt =
         sdl2_config->GetBoolean("Debugging", "disable_cpu_opt", false);
+    Settings::values.disable_macro_jit =
+        sdl2_config->GetBoolean("Debugging", "disable_macro_jit", false);
 
     const auto title_list = sdl2_config->Get("AddOns", "title_ids", "");
     std::stringstream ss(title_list);

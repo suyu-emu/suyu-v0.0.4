@@ -93,6 +93,7 @@ public:
     virtual SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const = 0;
     virtual SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,
                                                     u64 offset) const = 0;
+    virtual SamplerDescriptor AccessSampler(u32 handle) const = 0;
     virtual u32 GetBoundBuffer() const = 0;
 
     virtual VideoCore::GuestDriverProfile& AccessGuestDriverProfile() = 0;

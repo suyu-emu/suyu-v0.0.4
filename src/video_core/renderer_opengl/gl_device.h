@@ -24,6 +24,10 @@ public:
     explicit Device();
     explicit Device(std::nullptr_t);
 
+    u32 GetMaxUniformBuffers(Tegra::Engines::ShaderType shader_type) const noexcept {
+        return max_uniform_buffers[static_cast<std::size_t>(shader_type)];
+    }
+
     const BaseBindings& GetBaseBindings(std::size_t stage_index) const noexcept {
         return base_bindings[stage_index];
     }
@@ -64,6 +68,14 @@ public:
         return has_image_load_formatted;
     }
 
+    bool HasTextureShadowLod() const {
+        return has_texture_shadow_lod;
+    }
+
+    bool HasVertexBufferUnifiedMemory() const {
+        return has_vertex_buffer_unified_memory;
+    }
+
     bool HasASTC() const {
         return has_astc;
     }
@@ -80,12 +92,12 @@ public:
         return has_precise_bug;
     }
 
-    bool HasBrokenCompute() const {
-        return has_broken_compute;
-    }
-
     bool HasFastBufferSubData() const {
         return has_fast_buffer_sub_data;
+    }
+
+    bool HasNvViewportArray2() const {
+        return has_nv_viewport_array2;
     }
 
     bool UseAssemblyShaders() const {
@@ -96,7 +108,8 @@ private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
 
-    std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings;
+    std::array<u32, Tegra::Engines::MaxShaderTypes> max_uniform_buffers{};
+    std::array<BaseBindings, Tegra::Engines::MaxShaderTypes> base_bindings{};
     std::size_t uniform_buffer_alignment{};
     std::size_t shader_storage_alignment{};
     u32 max_vertex_attributes{};
@@ -105,12 +118,14 @@ private:
     bool has_shader_ballot{};
     bool has_vertex_viewport_layer{};
     bool has_image_load_formatted{};
+    bool has_texture_shadow_lod{};
+    bool has_vertex_buffer_unified_memory{};
     bool has_astc{};
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
-    bool has_broken_compute{};
     bool has_fast_buffer_sub_data{};
+    bool has_nv_viewport_array2{};
     bool use_assembly_shaders{};
 };
 

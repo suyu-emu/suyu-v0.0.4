@@ -566,6 +566,14 @@ void Controller_NPad::DisconnectNPad(u32 npad_id) {
     connected_controllers[NPadIdToIndex(npad_id)].is_connected = false;
 }
 
+void Controller_NPad::SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode) {
+    gyroscope_zero_drift_mode = drift_mode;
+}
+
+Controller_NPad::GyroscopeZeroDriftMode Controller_NPad::GetGyroscopeZeroDriftMode() const {
+    return gyroscope_zero_drift_mode;
+}
+
 void Controller_NPad::StartLRAssignmentMode() {
     // Nothing internally is used for lr assignment mode. Since we have the ability to set the
     // controller types from boot, it doesn't really matter about showing a selection screen

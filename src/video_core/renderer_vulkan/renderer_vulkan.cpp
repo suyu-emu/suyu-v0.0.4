@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 
 #include "common/dynamic_library.h"
+#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/telemetry.h"
 #include "core/core.h"
@@ -76,7 +77,8 @@ Common::DynamicLibrary OpenVulkanLibrary() {
     char* libvulkan_env = getenv("LIBVULKAN_PATH");
     if (!libvulkan_env || !library.Open(libvulkan_env)) {
         // Use the libvulkan.dylib from the application bundle.
-        std::string filename = File::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+        const std::string filename =
+            FileUtil::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
         library.Open(filename.c_str());
     }
 #else

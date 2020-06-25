@@ -217,8 +217,8 @@ public:
     }
 
     bool IsProtected() const {
-        // Only 3D Slices are to be protected
-        return is_target && params.block_depth > 0;
+        // Only 3D slices are to be protected
+        return is_target && params.target == SurfaceTarget::Texture3D;
     }
 
     bool IsRenderTarget() const {
@@ -250,6 +250,11 @@ public:
         return GetView(ViewParams(overview_params.target, 0, num_layers, 0, params.num_levels));
     }
 
+    TView Emplace3DView(u32 slice, u32 depth, u32 base_level, u32 num_levels) {
+        return GetView(ViewParams(VideoCore::Surface::SurfaceTarget::Texture3D, slice, depth,
+                                  base_level, num_levels));
+    }
+
     std::optional<TView> EmplaceIrregularView(const SurfaceParams& view_params,
                                               const GPUVAddr view_addr,
                                               const std::size_t candidate_size, const u32 mipmap,
@@ -272,8 +277,8 @@ public:
     std::optional<TView> EmplaceView(const SurfaceParams& view_params, const GPUVAddr view_addr,
                                      const std::size_t candidate_size) {
         if (params.target == SurfaceTarget::Texture3D ||
-            (params.num_levels == 1 && !params.is_layered) ||
-            view_params.target == SurfaceTarget::Texture3D) {
+            view_params.target == SurfaceTarget::Texture3D ||
+            (params.num_levels == 1 && !params.is_layered)) {
             return {};
         }
         const auto layer_mipmap{GetLayerMipmap(view_addr)};

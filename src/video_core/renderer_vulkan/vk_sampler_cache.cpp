@@ -9,6 +9,8 @@
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/textures/texture.h"
 
+using Tegra::Texture::TextureMipmapFilter;
+
 namespace Vulkan {
 
 namespace {
@@ -63,8 +65,8 @@ vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) c
     ci.maxAnisotropy = tsc.GetMaxAnisotropy();
     ci.compareEnable = tsc.depth_compare_enabled;
     ci.compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func);
-    ci.minLod = tsc.GetMinLod();
-    ci.maxLod = tsc.GetMaxLod();
+    ci.minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.GetMinLod();
+    ci.maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.GetMaxLod();
     ci.borderColor = arbitrary_borders ? VK_BORDER_COLOR_INT_CUSTOM_EXT : ConvertBorderColor(color);
     ci.unnormalizedCoordinates = VK_FALSE;
     return device.GetLogical().CreateSampler(ci);

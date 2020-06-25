@@ -53,11 +53,13 @@ struct ShaderEntries {
     std::vector<GlobalMemoryEntry> global_memory_entries;
     std::vector<SamplerEntry> samplers;
     std::vector<ImageEntry> images;
-    u32 clip_distances{};
     std::size_t shader_length{};
+    u32 clip_distances{};
+    bool use_unified_uniforms{};
 };
 
-ShaderEntries MakeEntries(const VideoCommon::Shader::ShaderIR& ir);
+ShaderEntries MakeEntries(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
+                          Tegra::Engines::ShaderType stage);
 
 std::string DecompileShader(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
                             const VideoCommon::Shader::Registry& registry,

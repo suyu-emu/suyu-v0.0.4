@@ -275,10 +275,11 @@ using Node = std::shared_ptr<NodeData>;
 using Node4 = std::array<Node, 4>;
 using NodeBlock = std::vector<Node>;
 
-class BindlessSamplerNode;
-class ArraySamplerNode;
+struct ArraySamplerNode;
+struct BindlessSamplerNode;
+struct SeparateSamplerNode;
 
-using TrackSamplerData = std::variant<BindlessSamplerNode, ArraySamplerNode>;
+using TrackSamplerData = std::variant<BindlessSamplerNode, SeparateSamplerNode, ArraySamplerNode>;
 using TrackSampler = std::shared_ptr<TrackSamplerData>;
 
 struct Sampler {
@@ -288,63 +289,51 @@ struct Sampler {
         : index{index}, offset{offset}, type{type}, is_array{is_array}, is_shadow{is_shadow},
           is_buffer{is_buffer}, is_indexed{is_indexed} {}
 
+    /// Separate sampler constructor
+    constexpr explicit Sampler(u32 index, std::pair<u32, u32> offsets, std::pair<u32, u32> buffers,
+                               Tegra::Shader::TextureType type, bool is_array, bool is_shadow,
+                               bool is_buffer)
+        : index{index}, offset{offsets.first}, secondary_offset{offsets.second},
+          buffer{buffers.first}, secondary_buffer{buffers.second}, type{type}, is_array{is_array},
+          is_shadow{is_shadow}, is_buffer{is_buffer}, is_separated{true} {}
+
     /// Bindless samplers constructor
     constexpr explicit Sampler(u32 index, u32 offset, u32 buffer, Tegra::Shader::TextureType type,
                                bool is_array, bool is_shadow, bool is_buffer, bool is_indexed)
         : index{index}, offset{offset}, buffer{buffer}, type{type}, is_array{is_array},
           is_shadow{is_shadow}, is_buffer{is_buffer}, is_bindless{true}, is_indexed{is_indexed} {}
 
-    u32 index = 0;  ///< Emulated index given for the this sampler.
-    u32 offset = 0; ///< Offset in the const buffer from where the sampler is being read.
-    u32 buffer = 0; ///< Buffer where the bindless sampler is being read (unused on bound samplers).
-    u32 size = 1;   ///< Size of the sampler.
+    u32 index = 0;            ///< Emulated index given for the this sampler.
+    u32 offset = 0;           ///< Offset in the const buffer from where the sampler is being read.
+    u32 secondary_offset = 0; ///< Secondary offset in the const buffer.
+    u32 buffer = 0;           ///< Buffer where the bindless sampler is read.
+    u32 secondary_buffer = 0; ///< Secondary buffer where the bindless sampler is read.
+    u32 size = 1;             ///< Size of the sampler.
 
     Tegra::Shader::TextureType type{}; ///< The type used to sample this texture (Texture2D, etc)
-    bool is_array = false;    ///< Whether the texture is being sampled as an array texture or not.
-    bool is_shadow = false;   ///< Whether the texture is being sampled as a depth texture or not.
-    bool is_buffer = false;   ///< Whether the texture is a texture buffer without sampler.
-    bool is_bindless = false; ///< Whether this sampler belongs to a bindless texture or not.
-    bool is_indexed = false;  ///< Whether this sampler is an indexed array of textures.
+    bool is_array = false;     ///< Whether the texture is being sampled as an array texture or not.
+    bool is_shadow = false;    ///< Whether the texture is being sampled as a depth texture or not.
+    bool is_buffer = false;    ///< Whether the texture is a texture buffer without sampler.
+    bool is_bindless = false;  ///< Whether this sampler belongs to a bindless texture or not.
+    bool is_indexed = false;   ///< Whether this sampler is an indexed array of textures.
+    bool is_separated = false; ///< Whether the image and sampler is separated or not.
 };
 
 /// Represents a tracked bindless sampler into a direct const buffer
-class ArraySamplerNode final {
-public:
-    explicit ArraySamplerNode(u32 index, u32 base_offset, u32 bindless_var)
-        : index{index}, base_offset{base_offset}, bindless_var{bindless_var} {}
-
-    constexpr u32 GetIndex() const {
-        return index;
-    }
-
-    constexpr u32 GetBaseOffset() const {
-        return base_offset;
-    }
-
-    constexpr u32 GetIndexVar() const {
-        return bindless_var;
-    }
-
-private:
+struct ArraySamplerNode {
     u32 index;
     u32 base_offset;
     u32 bindless_var;
 };
 
+/// Represents a tracked separate sampler image pair that was folded statically
+struct SeparateSamplerNode {
+    std::pair<u32, u32> indices;
+    std::pair<u32, u32> offsets;
+};
+
 /// Represents a tracked bindless sampler into a direct const buffer
-class BindlessSamplerNode final {
-public:
-    explicit BindlessSamplerNode(u32 index, u32 offset) : index{index}, offset{offset} {}
-
-    constexpr u32 GetIndex() const {
-        return index;
-    }
-
-    constexpr u32 GetOffset() const {
-        return offset;
-    }
-
-private:
+struct BindlessSamplerNode {
     u32 index;
     u32 offset;
 };

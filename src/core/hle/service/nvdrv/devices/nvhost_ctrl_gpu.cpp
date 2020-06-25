@@ -25,7 +25,7 @@ u32 nvhost_ctrl_gpu::ioctl(Ioctl command, const std::vector<u8>& input,
     case IoctlCommand::IocGetCharacteristicsCommand:
         return GetCharacteristics(input, output, output2, version);
     case IoctlCommand::IocGetTPCMasksCommand:
-        return GetTPCMasks(input, output);
+        return GetTPCMasks(input, output, output2, version);
     case IoctlCommand::IocGetActiveSlotMaskCommand:
         return GetActiveSlotMask(input, output);
     case IoctlCommand::IocZcullGetCtxSizeCommand:
@@ -98,17 +98,22 @@ u32 nvhost_ctrl_gpu::GetCharacteristics(const std::vector<u8>& input, std::vecto
     return 0;
 }
 
-u32 nvhost_ctrl_gpu::GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output) {
+u32 nvhost_ctrl_gpu::GetTPCMasks(const std::vector<u8>& input, std::vector<u8>& output,
+                                 std::vector<u8>& output2, IoctlVersion version) {
     IoctlGpuGetTpcMasksArgs params{};
     std::memcpy(&params, input.data(), input.size());
-    LOG_INFO(Service_NVDRV, "called, mask=0x{:X}, mask_buf_addr=0x{:X}", params.mask_buf_size,
-             params.mask_buf_addr);
-    // TODO(ogniK): Confirm value on hardware
-    if (params.mask_buf_size)
-        params.tpc_mask_size = 4 * 1; // 4 * num_gpc
-    else
-        params.tpc_mask_size = 0;
-    std::memcpy(output.data(), &params, sizeof(params));
+    LOG_DEBUG(Service_NVDRV, "called, mask_buffer_size=0x{:X}", params.mask_buffer_size);
+    if (params.mask_buffer_size != 0) {
+        params.tcp_mask = 3;
+    }
+
+    if (version == IoctlVersion::Version3) {
+        std::memcpy(output.data(), input.data(), output.size());
+        std::memcpy(output2.data(), &params.tcp_mask, output2.size());
+    } else {
+        std::memcpy(output.data(), &params, output.size());
+    }
+
     return 0;
 }
 

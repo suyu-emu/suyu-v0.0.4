@@ -208,6 +208,10 @@ if (MSVC)
     copy_yuzu_unicorn_deps(yuzu)
 endif()
 
+if (NOT APPLE)
+    target_compile_definitions(yuzu PRIVATE HAS_OPENGL)
+endif()
+
 if (ENABLE_VULKAN)
     target_include_directories(yuzu PRIVATE ../../externals/Vulkan-Headers/include)
     target_compile_definitions(yuzu PRIVATE HAS_VULKAN)

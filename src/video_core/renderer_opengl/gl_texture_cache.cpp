@@ -263,9 +263,14 @@ CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& param
     target = GetTextureTarget(params.target);
     texture = CreateTexture(params, target, internal_format, texture_buffer);
     DecorateSurfaceName();
-    main_view = CreateViewInner(
-        ViewParams(params.target, 0, params.is_layered ? params.depth : 1, 0, params.num_levels),
-        true);
+
+    u32 num_layers = 1;
+    if (params.is_layered || params.target == SurfaceTarget::Texture3D) {
+        num_layers = params.depth;
+    }
+
+    main_view =
+        CreateViewInner(ViewParams(params.target, 0, num_layers, 0, params.num_levels), true);
 }
 
 CachedSurface::~CachedSurface() = default;
@@ -404,8 +409,7 @@ View CachedSurface::CreateViewInner(const ViewParams& view_key, const bool is_pr
 
 CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
                                      bool is_proxy)
-    : VideoCommon::ViewBase(params), surface{surface},
-      format{GetFormatTuple(surface.GetSurfaceParams().pixel_format).internal_format},
+    : VideoCommon::ViewBase(params), surface{surface}, format{surface.internal_format},
       target{GetTextureTarget(params.target)}, is_proxy{is_proxy} {
     if (!is_proxy) {
         main_view = CreateTextureView();
@@ -414,20 +418,23 @@ CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& p
 
 CachedSurfaceView::~CachedSurfaceView() = default;
 
-void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
+void CachedSurfaceView::Attach(GLenum attachment, GLenum fb_target) const {
     ASSERT(params.num_levels == 1);
 
-    if (params.num_layers > 1) {
-        // Layered framebuffer attachments
-        UNIMPLEMENTED_IF(params.base_layer != 0);
-
-        switch (params.target) {
-        case SurfaceTarget::Texture2DArray:
-            glFramebufferTexture(target, attachment, GetTexture(), 0);
-            break;
-        default:
-            UNIMPLEMENTED();
+    if (params.target == SurfaceTarget::Texture3D) {
+        if (params.num_layers > 1) {
+            ASSERT(params.base_layer == 0);
+            glFramebufferTexture(fb_target, attachment, surface.texture.handle, params.base_level);
+        } else {
+            glFramebufferTexture3D(fb_target, attachment, target, surface.texture.handle,
+                                   params.base_level, params.base_layer);
         }
+        return;
+    }
+
+    if (params.num_layers > 1) {
+        UNIMPLEMENTED_IF(params.base_layer != 0);
+        glFramebufferTexture(fb_target, attachment, GetTexture(), 0);
         return;
     }
 
@@ -435,16 +442,16 @@ void CachedSurfaceView::Attach(GLenum attachment, GLenum target) const {
     const GLuint texture = surface.GetTexture();
     switch (surface.GetSurfaceParams().target) {
     case SurfaceTarget::Texture1D:
-        glFramebufferTexture1D(target, attachment, view_target, texture, params.base_level);
+        glFramebufferTexture1D(fb_target, attachment, view_target, texture, params.base_level);
         break;
     case SurfaceTarget::Texture2D:
-        glFramebufferTexture2D(target, attachment, view_target, texture, params.base_level);
+        glFramebufferTexture2D(fb_target, attachment, view_target, texture, params.base_level);
         break;
     case SurfaceTarget::Texture1DArray:
     case SurfaceTarget::Texture2DArray:
     case SurfaceTarget::TextureCubemap:
     case SurfaceTarget::TextureCubeArray:
-        glFramebufferTextureLayer(target, attachment, texture, params.base_level,
+        glFramebufferTextureLayer(fb_target, attachment, texture, params.base_level,
                                   params.base_layer);
         break;
     default:
@@ -501,8 +508,13 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
     OGLTextureView texture_view;
     texture_view.Create();
 
-    glTextureView(texture_view.handle, target, surface.texture.handle, format, params.base_level,
-                  params.num_levels, params.base_layer, params.num_layers);
+    if (target == GL_TEXTURE_3D) {
+        glTextureView(texture_view.handle, target, surface.texture.handle, format,
+                      params.base_level, params.num_levels, 0, 1);
+    } else {
+        glTextureView(texture_view.handle, target, surface.texture.handle, format,
+                      params.base_level, params.num_levels, params.base_layer, params.num_layers);
+    }
     ApplyTextureDefaults(surface.GetSurfaceParams(), texture_view.handle);
 
     return texture_view;
@@ -545,8 +557,8 @@ void TextureCacheOpenGL::ImageBlit(View& src_view, View& dst_view,
                                    const Tegra::Engines::Fermi2D::Config& copy_config) {
     const auto& src_params{src_view->GetSurfaceParams()};
     const auto& dst_params{dst_view->GetSurfaceParams()};
-    UNIMPLEMENTED_IF(src_params.target == SurfaceTarget::Texture3D);
-    UNIMPLEMENTED_IF(dst_params.target == SurfaceTarget::Texture3D);
+    UNIMPLEMENTED_IF(src_params.depth != 1);
+    UNIMPLEMENTED_IF(dst_params.depth != 1);
 
     state_tracker.NotifyScissor0();
     state_tracker.NotifyFramebuffer();

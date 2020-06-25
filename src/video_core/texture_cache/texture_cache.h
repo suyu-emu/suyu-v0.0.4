@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <boost/container/small_vector.hpp>
 #include <boost/icl/interval_map.hpp>
 #include <boost/range/iterator_range.hpp>
 
@@ -53,6 +54,7 @@ using RenderTargetConfig = Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig;
 
 template <typename TSurface, typename TView>
 class TextureCache {
+    using VectorSurface = boost::container::small_vector<TSurface, 1>;
 
 public:
     void InvalidateRegion(VAddr addr, std::size_t size) {
@@ -296,30 +298,30 @@ public:
         const GPUVAddr src_gpu_addr = src_config.Address();
         const GPUVAddr dst_gpu_addr = dst_config.Address();
         DeduceBestBlit(src_params, dst_params, src_gpu_addr, dst_gpu_addr);
-        const std::optional<VAddr> dst_cpu_addr =
-            system.GPU().MemoryManager().GpuToCpuAddress(dst_gpu_addr);
-        const std::optional<VAddr> src_cpu_addr =
-            system.GPU().MemoryManager().GpuToCpuAddress(src_gpu_addr);
-        std::pair<TSurface, TView> dst_surface =
-            GetSurface(dst_gpu_addr, *dst_cpu_addr, dst_params, true, false);
-        std::pair<TSurface, TView> src_surface =
-            GetSurface(src_gpu_addr, *src_cpu_addr, src_params, true, false);
-        ImageBlit(src_surface.second, dst_surface.second, copy_config);
+
+        const auto& memory_manager = system.GPU().MemoryManager();
+        const std::optional<VAddr> dst_cpu_addr = memory_manager.GpuToCpuAddress(dst_gpu_addr);
+        const std::optional<VAddr> src_cpu_addr = memory_manager.GpuToCpuAddress(src_gpu_addr);
+        std::pair dst_surface = GetSurface(dst_gpu_addr, *dst_cpu_addr, dst_params, true, false);
+        TView src_surface = GetSurface(src_gpu_addr, *src_cpu_addr, src_params, true, false).second;
+        ImageBlit(src_surface, dst_surface.second, copy_config);
         dst_surface.first->MarkAsModified(true, Tick());
     }
 
-    TSurface TryFindFramebufferSurface(VAddr addr) {
+    TSurface TryFindFramebufferSurface(VAddr addr) const {
         if (!addr) {
             return nullptr;
         }
         const VAddr page = addr >> registry_page_bits;
-        std::vector<TSurface>& list = registry[page];
-        for (auto& surface : list) {
-            if (surface->GetCpuAddr() == addr) {
-                return surface;
-            }
+        const auto it = registry.find(page);
+        if (it == registry.end()) {
+            return nullptr;
         }
-        return nullptr;
+        const auto& list = it->second;
+        const auto found = std::find_if(list.begin(), list.end(), [addr](const auto& surface) {
+            return surface->GetCpuAddr() == addr;
+        });
+        return found != list.end() ? *found : nullptr;
     }
 
     u64 Tick() {
@@ -498,18 +500,18 @@ private:
      * @param untopological Indicates to the recycler that the texture has no way
      *                      to match the overlaps due to topological reasons.
      **/
-    RecycleStrategy PickStrategy(std::vector<TSurface>& overlaps, const SurfaceParams& params,
+    RecycleStrategy PickStrategy(VectorSurface& overlaps, const SurfaceParams& params,
                                  const GPUVAddr gpu_addr, const MatchTopologyResult untopological) {
         if (Settings::IsGPULevelExtreme()) {
             return RecycleStrategy::Flush;
         }
         // 3D Textures decision
-        if (params.block_depth > 1 || params.target == SurfaceTarget::Texture3D) {
+        if (params.target == SurfaceTarget::Texture3D) {
             return RecycleStrategy::Flush;
         }
         for (const auto& s : overlaps) {
             const auto& s_params = s->GetSurfaceParams();
-            if (s_params.block_depth > 1 || s_params.target == SurfaceTarget::Texture3D) {
+            if (s_params.target == SurfaceTarget::Texture3D) {
                 return RecycleStrategy::Flush;
             }
         }
@@ -538,9 +540,8 @@ private:
      * @param untopological     Indicates to the recycler that the texture has no way to match the
      *                          overlaps due to topological reasons.
      **/
-    std::pair<TSurface, TView> RecycleSurface(std::vector<TSurface>& overlaps,
-                                              const SurfaceParams& params, const GPUVAddr gpu_addr,
-                                              const bool preserve_contents,
+    std::pair<TSurface, TView> RecycleSurface(VectorSurface& overlaps, const SurfaceParams& params,
+                                              const GPUVAddr gpu_addr, const bool preserve_contents,
                                               const MatchTopologyResult untopological) {
         const bool do_load = preserve_contents && Settings::IsGPULevelExtreme();
         for (auto& surface : overlaps) {
@@ -650,47 +651,65 @@ private:
      * @param params   The parameters on the new surface.
      * @param gpu_addr The starting address of the new surface.
      **/
-    std::optional<std::pair<TSurface, TView>> TryReconstructSurface(std::vector<TSurface>& overlaps,
+    std::optional<std::pair<TSurface, TView>> TryReconstructSurface(VectorSurface& overlaps,
                                                                     const SurfaceParams& params,
-                                                                    const GPUVAddr gpu_addr) {
+                                                                    GPUVAddr gpu_addr) {
         if (params.target == SurfaceTarget::Texture3D) {
-            return {};
+            return std::nullopt;
         }
-        bool modified = false;
+        const auto test_modified = [](TSurface& surface) { return surface->IsModified(); };
         TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-        u32 passed_tests = 0;
+
+        if (std::none_of(overlaps.begin(), overlaps.end(), test_modified)) {
+            LoadSurface(new_surface);
+            for (const auto& surface : overlaps) {
+                Unregister(surface);
+            }
+            Register(new_surface);
+            return {{new_surface, new_surface->GetMainView()}};
+        }
+
+        std::size_t passed_tests = 0;
         for (auto& surface : overlaps) {
             const SurfaceParams& src_params = surface->GetSurfaceParams();
-            if (src_params.is_layered || src_params.num_levels > 1) {
-                // We send this cases to recycle as they are more complex to handle
-                return {};
-            }
-            const std::size_t candidate_size = surface->GetSizeInBytes();
-            auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
+            const auto mipmap_layer{new_surface->GetLayerMipmap(surface->GetGpuAddr())};
             if (!mipmap_layer) {
                 continue;
             }
-            const auto [layer, mipmap] = *mipmap_layer;
-            if (new_surface->GetMipmapSize(mipmap) != candidate_size) {
+            const auto [base_layer, base_mipmap] = *mipmap_layer;
+            if (new_surface->GetMipmapSize(base_mipmap) != surface->GetMipmapSize(0)) {
                 continue;
             }
-            modified |= surface->IsModified();
-            // Now we got all the data set up
-            const u32 width = SurfaceParams::IntersectWidth(src_params, params, 0, mipmap);
-            const u32 height = SurfaceParams::IntersectHeight(src_params, params, 0, mipmap);
-            const CopyParams copy_params(0, 0, 0, 0, 0, layer, 0, mipmap, width, height, 1);
-            passed_tests++;
-            ImageCopy(surface, new_surface, copy_params);
+            ++passed_tests;
+
+            // Copy all mipmaps and layers
+            const u32 block_width = params.GetDefaultBlockWidth();
+            const u32 block_height = params.GetDefaultBlockHeight();
+            for (u32 mipmap = base_mipmap; mipmap < base_mipmap + src_params.num_levels; ++mipmap) {
+                const u32 width = SurfaceParams::IntersectWidth(src_params, params, 0, mipmap);
+                const u32 height = SurfaceParams::IntersectHeight(src_params, params, 0, mipmap);
+                if (width < block_width || height < block_height) {
+                    // Current APIs forbid copying small compressed textures, avoid errors
+                    break;
+                }
+                const CopyParams copy_params(0, 0, 0, 0, 0, base_layer, 0, mipmap, width, height,
+                                             src_params.depth);
+                ImageCopy(surface, new_surface, copy_params);
+            }
         }
         if (passed_tests == 0) {
-            return {};
-            // In Accurate GPU all tests should pass, else we recycle
-        } else if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
-            return {};
+            return std::nullopt;
         }
+        if (Settings::IsGPULevelExtreme() && passed_tests != overlaps.size()) {
+            // In Accurate GPU all tests should pass, else we recycle
+            return std::nullopt;
+        }
+
+        const bool modified = std::any_of(overlaps.begin(), overlaps.end(), test_modified);
         for (const auto& surface : overlaps) {
             Unregister(surface);
         }
+
         new_surface->MarkAsModified(modified, Tick());
         Register(new_surface);
         return {{new_surface, new_surface->GetMainView()}};
@@ -708,53 +727,11 @@ private:
      * @param preserve_contents Indicates that the new surface should be loaded from memory or
      *                          left blank.
      */
-    std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(std::vector<TSurface>& overlaps,
+    std::optional<std::pair<TSurface, TView>> Manage3DSurfaces(VectorSurface& overlaps,
                                                                const SurfaceParams& params,
-                                                               const GPUVAddr gpu_addr,
-                                                               const VAddr cpu_addr,
+                                                               GPUVAddr gpu_addr, VAddr cpu_addr,
                                                                bool preserve_contents) {
-        if (params.target == SurfaceTarget::Texture3D) {
-            bool failed = false;
-            if (params.num_levels > 1) {
-                // We can't handle mipmaps in 3D textures yet, better fallback to LLE approach
-                return std::nullopt;
-            }
-            TSurface new_surface = GetUncachedSurface(gpu_addr, params);
-            bool modified = false;
-            for (auto& surface : overlaps) {
-                const SurfaceParams& src_params = surface->GetSurfaceParams();
-                if (src_params.target != SurfaceTarget::Texture2D) {
-                    failed = true;
-                    break;
-                }
-                if (src_params.height != params.height) {
-                    failed = true;
-                    break;
-                }
-                if (src_params.block_depth != params.block_depth ||
-                    src_params.block_height != params.block_height) {
-                    failed = true;
-                    break;
-                }
-                const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
-                const auto offsets = params.GetBlockOffsetXYZ(offset);
-                const auto z = std::get<2>(offsets);
-                modified |= surface->IsModified();
-                const CopyParams copy_params(0, 0, 0, 0, 0, z, 0, 0, params.width, params.height,
-                                             1);
-                ImageCopy(surface, new_surface, copy_params);
-            }
-            if (failed) {
-                return std::nullopt;
-            }
-            for (const auto& surface : overlaps) {
-                Unregister(surface);
-            }
-            new_surface->MarkAsModified(modified, Tick());
-            Register(new_surface);
-            auto view = new_surface->GetMainView();
-            return {{std::move(new_surface), view}};
-        } else {
+        if (params.target != SurfaceTarget::Texture3D) {
             for (const auto& surface : overlaps) {
                 if (!surface->MatchTarget(params.target)) {
                     if (overlaps.size() == 1 && surface->GetCpuAddr() == cpu_addr) {
@@ -770,11 +747,60 @@ private:
                     continue;
                 }
                 if (surface->MatchesStructure(params) == MatchStructureResult::FullMatch) {
-                    return {{surface, surface->GetMainView()}};
+                    return std::make_pair(surface, surface->GetMainView());
                 }
             }
             return InitializeSurface(gpu_addr, params, preserve_contents);
         }
+
+        if (params.num_levels > 1) {
+            // We can't handle mipmaps in 3D textures yet, better fallback to LLE approach
+            return std::nullopt;
+        }
+
+        if (overlaps.size() == 1) {
+            const auto& surface = overlaps[0];
+            const SurfaceParams& overlap_params = surface->GetSurfaceParams();
+            // Don't attempt to render to textures with more than one level for now
+            // The texture has to be to the right or the sample address if we want to render to it
+            if (overlap_params.num_levels == 1 && cpu_addr >= surface->GetCpuAddr()) {
+                const u32 offset = static_cast<u32>(cpu_addr - surface->GetCpuAddr());
+                const u32 slice = std::get<2>(params.GetBlockOffsetXYZ(offset));
+                if (slice < overlap_params.depth) {
+                    auto view = surface->Emplace3DView(slice, params.depth, 0, 1);
+                    return std::make_pair(std::move(surface), std::move(view));
+                }
+            }
+        }
+
+        TSurface new_surface = GetUncachedSurface(gpu_addr, params);
+        bool modified = false;
+
+        for (auto& surface : overlaps) {
+            const SurfaceParams& src_params = surface->GetSurfaceParams();
+            if (src_params.target != SurfaceTarget::Texture2D ||
+                src_params.height != params.height ||
+                src_params.block_depth != params.block_depth ||
+                src_params.block_height != params.block_height) {
+                return std::nullopt;
+            }
+            modified |= surface->IsModified();
+
+            const u32 offset = static_cast<u32>(surface->GetCpuAddr() - cpu_addr);
+            const u32 slice = std::get<2>(params.GetBlockOffsetXYZ(offset));
+            const u32 width = params.width;
+            const u32 height = params.height;
+            const CopyParams copy_params(0, 0, 0, 0, 0, slice, 0, 0, width, height, 1);
+            ImageCopy(surface, new_surface, copy_params);
+        }
+        for (const auto& surface : overlaps) {
+            Unregister(surface);
+        }
+        new_surface->MarkAsModified(modified, Tick());
+        Register(new_surface);
+
+        TView view = new_surface->GetMainView();
+        return std::make_pair(std::move(new_surface), std::move(view));
     }
 
     /**
@@ -810,7 +836,7 @@ private:
             TSurface& current_surface = iter->second;
             const auto topological_result = current_surface->MatchesTopology(params);
             if (topological_result != MatchTopologyResult::FullMatch) {
-                std::vector<TSurface> overlaps{current_surface};
+                VectorSurface overlaps{current_surface};
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       topological_result);
             }
@@ -852,7 +878,7 @@ private:
             }
         }
 
-        // Check if it's a 3D texture
+        // Manage 3D textures
         if (params.block_depth > 0) {
             auto surface =
                 Manage3DSurfaces(overlaps, params, gpu_addr, cpu_addr, preserve_contents);
@@ -868,12 +894,9 @@ private:
             // two things either the candidate surface is a supertexture of the overlap
             // or they don't match in any known way.
             if (!current_surface->IsInside(gpu_addr, gpu_addr + candidate_size)) {
-                if (current_surface->GetGpuAddr() == gpu_addr) {
-                    std::optional<std::pair<TSurface, TView>> view =
-                        TryReconstructSurface(overlaps, params, gpu_addr);
-                    if (view) {
-                        return *view;
-                    }
+                const std::optional view = TryReconstructSurface(overlaps, params, gpu_addr);
+                if (view) {
+                    return *view;
                 }
                 return RecycleSurface(overlaps, params, gpu_addr, preserve_contents,
                                       MatchTopologyResult::FullMatch);
@@ -1030,7 +1053,7 @@ private:
     void DeduceBestBlit(SurfaceParams& src_params, SurfaceParams& dst_params,
                         const GPUVAddr src_gpu_addr, const GPUVAddr dst_gpu_addr) {
         auto deduced_src = DeduceSurface(src_gpu_addr, src_params);
-        auto deduced_dst = DeduceSurface(src_gpu_addr, src_params);
+        auto deduced_dst = DeduceSurface(dst_gpu_addr, dst_params);
         if (deduced_src.Failed() || deduced_dst.Failed()) {
             return;
         }
@@ -1126,23 +1149,25 @@ private:
         }
     }
 
-    std::vector<TSurface> GetSurfacesInRegion(const VAddr cpu_addr, const std::size_t size) {
+    VectorSurface GetSurfacesInRegion(const VAddr cpu_addr, const std::size_t size) {
         if (size == 0) {
             return {};
         }
         const VAddr cpu_addr_end = cpu_addr + size;
-        VAddr start = cpu_addr >> registry_page_bits;
         const VAddr end = (cpu_addr_end - 1) >> registry_page_bits;
-        std::vector<TSurface> surfaces;
-        while (start <= end) {
-            std::vector<TSurface>& list = registry[start];
-            for (auto& surface : list) {
-                if (!surface->IsPicked() && surface->Overlaps(cpu_addr, cpu_addr_end)) {
-                    surface->MarkAsPicked(true);
-                    surfaces.push_back(surface);
-                }
+        VectorSurface surfaces;
+        for (VAddr start = cpu_addr >> registry_page_bits; start <= end; ++start) {
+            const auto it = registry.find(start);
+            if (it == registry.end()) {
+                continue;
             }
-            start++;
+            for (auto& surface : it->second) {
+                if (surface->IsPicked() || !surface->Overlaps(cpu_addr, cpu_addr_end)) {
+                    continue;
+                }
+                surface->MarkAsPicked(true);
+                surfaces.push_back(surface);
+            }
         }
         for (auto& surface : surfaces) {
             surface->MarkAsPicked(false);

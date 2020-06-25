@@ -40,7 +40,7 @@ VirtualDir MiiModel() {
     out->AddFile(std::make_shared<ArrayVfsFile<MiiModelData::SHAPE_MID.size()>>(
         MiiModelData::SHAPE_MID, "ShapeMid.dat"));
 
-    return std::move(out);
+    return out;
 }
 
 } // namespace FileSys::SystemArchive

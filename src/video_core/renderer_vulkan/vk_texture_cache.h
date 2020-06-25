@@ -91,7 +91,6 @@ protected:
     void DecorateSurfaceName();
 
     View CreateView(const ViewParams& params) override;
-    View CreateViewInner(const ViewParams& params, bool is_proxy);
 
 private:
     void UploadBuffer(const std::vector<u8>& staging_buffer);
@@ -120,21 +119,18 @@ private:
 class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
     explicit CachedSurfaceView(const VKDevice& device, CachedSurface& surface,
-                               const ViewParams& params, bool is_proxy);
+                               const ViewParams& params);
     ~CachedSurfaceView();
 
-    VkImageView GetHandle(Tegra::Texture::SwizzleSource x_source,
-                          Tegra::Texture::SwizzleSource y_source,
-                          Tegra::Texture::SwizzleSource z_source,
-                          Tegra::Texture::SwizzleSource w_source);
+    VkImageView GetImageView(Tegra::Texture::SwizzleSource x_source,
+                             Tegra::Texture::SwizzleSource y_source,
+                             Tegra::Texture::SwizzleSource z_source,
+                             Tegra::Texture::SwizzleSource w_source);
+
+    VkImageView GetAttachment();
 
     bool IsSameSurface(const CachedSurfaceView& rhs) const {
         return &surface == &rhs.surface;
-    }
-
-    VkImageView GetHandle() {
-        return GetHandle(Tegra::Texture::SwizzleSource::R, Tegra::Texture::SwizzleSource::G,
-                         Tegra::Texture::SwizzleSource::B, Tegra::Texture::SwizzleSource::A);
     }
 
     u32 GetWidth() const {
@@ -180,14 +176,6 @@ public:
     }
 
 private:
-    static u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source,
-                             Tegra::Texture::SwizzleSource y_source,
-                             Tegra::Texture::SwizzleSource z_source,
-                             Tegra::Texture::SwizzleSource w_source) {
-        return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
-               (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
-    }
-
     // Store a copy of these values to avoid double dereference when reading them
     const SurfaceParams params;
     const VkImage image;
@@ -196,15 +184,18 @@ private:
 
     const VKDevice& device;
     CachedSurface& surface;
-    const u32 base_layer;
-    const u32 num_layers;
     const u32 base_level;
     const u32 num_levels;
     const VkImageViewType image_view_type;
+    u32 base_layer = 0;
+    u32 num_layers = 0;
+    u32 base_slice = 0;
+    u32 num_slices = 0;
 
     VkImageView last_image_view = nullptr;
     u32 last_swizzle = 0;
 
+    vk::ImageView render_target;
     std::unordered_map<u32, vk::ImageView> view_cache;
 };
 

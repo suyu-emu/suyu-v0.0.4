@@ -219,6 +219,8 @@ public:
     SamplerDescriptor AccessBindlessSampler(ShaderType stage, u64 const_buffer,
                                             u64 offset) const override;
 
+    SamplerDescriptor AccessSampler(u32 handle) const override;
+
     u32 GetBoundBuffer() const override {
         return regs.tex_cb_index;
     }

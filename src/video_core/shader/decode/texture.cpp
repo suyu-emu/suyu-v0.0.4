@@ -357,13 +357,11 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
     return pc;
 }
 
-ShaderIR::SamplerInfo ShaderIR::GetSamplerInfo(SamplerInfo info, u32 offset,
-                                               std::optional<u32> buffer) {
+ShaderIR::SamplerInfo ShaderIR::GetSamplerInfo(
+    SamplerInfo info, std::optional<Tegra::Engines::SamplerDescriptor> sampler) {
     if (info.IsComplete()) {
         return info;
     }
-    const auto sampler = buffer ? registry.ObtainBindlessSampler(*buffer, offset)
-                                : registry.ObtainBoundSampler(offset);
     if (!sampler) {
         LOG_WARNING(HW_GPU, "Unknown sampler info");
         info.type = info.type.value_or(Tegra::Shader::TextureType::Texture2D);
@@ -381,8 +379,8 @@ ShaderIR::SamplerInfo ShaderIR::GetSamplerInfo(SamplerInfo info, u32 offset,
 
 std::optional<Sampler> ShaderIR::GetSampler(Tegra::Shader::Sampler sampler,
                                             SamplerInfo sampler_info) {
-    const auto offset = static_cast<u32>(sampler.index.Value());
-    const auto info = GetSamplerInfo(sampler_info, offset);
+    const u32 offset = static_cast<u32>(sampler.index.Value());
+    const auto info = GetSamplerInfo(sampler_info, registry.ObtainBoundSampler(offset));
 
     // If this sampler has already been used, return the existing mapping.
     const auto it = std::find_if(used_samplers.begin(), used_samplers.end(),
@@ -404,20 +402,19 @@ std::optional<Sampler> ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
     const Node sampler_register = GetRegister(reg);
     const auto [base_node, tracked_sampler_info] =
         TrackBindlessSampler(sampler_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT(base_node != nullptr);
-    if (base_node == nullptr) {
+    if (!base_node) {
+        UNREACHABLE();
         return std::nullopt;
     }
 
-    if (const auto bindless_sampler_info =
-            std::get_if<BindlessSamplerNode>(&*tracked_sampler_info)) {
-        const u32 buffer = bindless_sampler_info->GetIndex();
-        const u32 offset = bindless_sampler_info->GetOffset();
-        info = GetSamplerInfo(info, offset, buffer);
+    if (const auto sampler_info = std::get_if<BindlessSamplerNode>(&*tracked_sampler_info)) {
+        const u32 buffer = sampler_info->index;
+        const u32 offset = sampler_info->offset;
+        info = GetSamplerInfo(info, registry.ObtainBindlessSampler(buffer, offset));
 
         // If this sampler has already been used, return the existing mapping.
         const auto it = std::find_if(used_samplers.begin(), used_samplers.end(),
-                                     [buffer = buffer, offset = offset](const Sampler& entry) {
+                                     [buffer, offset](const Sampler& entry) {
                                          return entry.buffer == buffer && entry.offset == offset;
                                      });
         if (it != used_samplers.end()) {
@@ -431,10 +428,32 @@ std::optional<Sampler> ShaderIR::GetBindlessSampler(Tegra::Shader::Register reg,
         return used_samplers.emplace_back(next_index, offset, buffer, *info.type, *info.is_array,
                                           *info.is_shadow, *info.is_buffer, false);
     }
-    if (const auto array_sampler_info = std::get_if<ArraySamplerNode>(&*tracked_sampler_info)) {
-        const u32 base_offset = array_sampler_info->GetBaseOffset() / 4;
-        index_var = GetCustomVariable(array_sampler_info->GetIndexVar());
-        info = GetSamplerInfo(info, base_offset);
+    if (const auto sampler_info = std::get_if<SeparateSamplerNode>(&*tracked_sampler_info)) {
+        const std::pair indices = sampler_info->indices;
+        const std::pair offsets = sampler_info->offsets;
+        info = GetSamplerInfo(info, registry.ObtainSeparateSampler(indices, offsets));
+
+        // Try to use an already created sampler if it exists
+        const auto it = std::find_if(
+            used_samplers.begin(), used_samplers.end(), [indices, offsets](const Sampler& entry) {
+                return offsets == std::pair{entry.offset, entry.secondary_offset} &&
+                       indices == std::pair{entry.buffer, entry.secondary_buffer};
+            });
+        if (it != used_samplers.end()) {
+            ASSERT(it->is_separated && it->type == info.type && it->is_array == info.is_array &&
+                   it->is_shadow == info.is_shadow && it->is_buffer == info.is_buffer);
+            return *it;
+        }
+
+        // Otherwise create a new mapping for this sampler
+        const u32 next_index = static_cast<u32>(used_samplers.size());
+        return used_samplers.emplace_back(next_index, offsets, indices, *info.type, *info.is_array,
+                                          *info.is_shadow, *info.is_buffer);
+    }
+    if (const auto sampler_info = std::get_if<ArraySamplerNode>(&*tracked_sampler_info)) {
+        const u32 base_offset = sampler_info->base_offset / 4;
+        index_var = GetCustomVariable(sampler_info->bindless_var);
+        info = GetSamplerInfo(info, registry.ObtainBoundSampler(base_offset));
 
         // If this sampler has already been used, return the existing mapping.
         const auto it = std::find_if(

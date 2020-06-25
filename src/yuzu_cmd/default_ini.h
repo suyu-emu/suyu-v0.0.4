@@ -117,11 +117,6 @@ use_hw_renderer =
 # 0: Interpreter (slow), 1 (default): JIT (fast)
 use_shader_jit =
 
-# Resolution scale factor
-# 0: Auto (scales resolution to window size), 1: Native Switch screen resolution, Otherwise a scale
-# factor for the Switch resolution
-resolution_factor =
-
 # Aspect ratio
 # 0: Default (16:9), 1: Force 4:3, 2: Force 21:9, 3: Stretch to Window
 aspect_ratio =
@@ -291,6 +286,8 @@ quest_flag =
 # Determines whether or not JIT CPU optimizations are enabled
 # false: Optimizations Enabled, true: Optimizations Disabled
 disable_cpu_opt =
+# Enables/Disables the macro JIT compiler
+disable_macro_jit=false
 
 [WebService]
 # Whether or not to enable telemetry

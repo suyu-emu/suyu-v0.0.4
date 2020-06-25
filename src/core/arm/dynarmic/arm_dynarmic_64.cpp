@@ -98,8 +98,8 @@ public:
             }
             [[fallthrough]];
         default:
-            ASSERT_MSG(false, "ExceptionRaised(exception = {}, pc = {:X})",
-                       static_cast<std::size_t>(exception), pc);
+            ASSERT_MSG(false, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
+                       static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
         }
     }
 
