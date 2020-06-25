@@ -1812,7 +1812,6 @@ void GMainWindow::OnMenuReportCompatibility() {
 }
 
 void GMainWindow::OpenURL(const QUrl& url) {
-
     const bool open = QDesktopServices::openUrl(url);
     if (!open) {
         QMessageBox::warning(this, tr("Error opening URL"),
