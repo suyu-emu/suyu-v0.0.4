@@ -181,6 +181,7 @@ private slots:
     void OnPauseGame();
     void OnStopGame();
     void OnMenuReportCompatibility();
+    void OnOpenModsPage();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path);
