@@ -95,7 +95,7 @@ void Adapter::Read() {
 
     while (adapter_thread_running) {
         libusb_interrupt_transfer(usb_adapter_handle, input_endpoint, adapter_payload.data(),
-                                  sizeof(adapter_payload), &payload_size_in, 32);
+                                  sizeof(adapter_payload), &payload_size_in, 16);
         payload_size_copy = 0;
         {
             std::lock_guard<std::mutex> lk(s_mutex);
@@ -106,9 +106,9 @@ void Adapter::Read() {
 
         if (payload_size_copy != sizeof(adapter_payload_copy) ||
             adapter_payload_copy[0] != LIBUSB_DT_HID) {
-            // TODO: It might be worthwhile to Shutdown GC Adapter if we encounter errors here
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size_copy,
                       adapter_payload_copy[0]);
+            adapter_thread_running = false; // error reading from adapter, stop reading.
         } else {
             for (int port = 0; port < pads.size(); port++) {
                 pads[port] = GetPadStatus(port, adapter_payload_copy);
@@ -291,14 +291,14 @@ void Adapter::Reset() {
 
     if (adapter_thread_running) {
         adapter_thread_running = false;
-        adapter_input_thread.join();
     }
+    adapter_input_thread.join();
 
     adapter_controllers_status.fill(ControllerTypes::None);
     current_status = NO_ADAPTER_DETECTED;
 
     if (usb_adapter_handle) {
-        libusb_release_interface(usb_adapter_handle, 0);
+        libusb_release_interface(usb_adapter_handle, 1);
         libusb_close(usb_adapter_handle);
         usb_adapter_handle = nullptr;
     }
