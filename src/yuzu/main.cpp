@@ -1801,26 +1801,25 @@ void GMainWindow::OnMenuReportCompatibility() {
     }
 }
 
-void GMainWindow::OpenURL(const QString& url_str) {
+void GMainWindow::OpenURL(QUrl const& url) {
 
-    const QUrl url{url_str};
     const bool open = QDesktopServices::openUrl(url);
     if (!open) {
         QMessageBox::warning(this, tr("Error opening URL"),
-                             tr("Unable to open the URL \"%1\".").arg(url_str));
+                             tr("Unable to open the URL \"%1\".").arg(url.toString()));
     }
 }
 
 void GMainWindow::OnOpenModsPage() {
-    this->OpenURL(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods"));
+    OpenURL(QUrl(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods")));
 }
 
 void GMainWindow::OnQuickstartGuide() {
-    this->OpenURL(QStringLiteral("https://yuzu-emu.org/help/quickstart/"));
+    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
 }
 
 void GMainWindow::OnFAQ() {
-    this->OpenURL(QStringLiteral("https://yuzu-emu.org/wiki/faq/"));
+    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
 }
 
 void GMainWindow::ToggleFullscreen() {
