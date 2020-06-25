@@ -139,7 +139,6 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
     }
 
     // Only succeed if we allocated as many pages as we wanted
-    ASSERT(num_pages >= 0);
     if (num_pages) {
         return ERR_OUT_OF_MEMORY;
     }
