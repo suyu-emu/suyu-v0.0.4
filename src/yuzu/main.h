@@ -222,7 +222,7 @@ private:
     void UpdateStatusBar();
     void HideMouseCursor();
     void ShowMouseCursor();
-    void OpenURL(const QString& url_str);
+    void OpenURL(const QUrl& url);
 
     Ui::MainWindow ui;
 
