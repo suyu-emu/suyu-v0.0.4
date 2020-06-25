@@ -56,6 +56,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QShortcut>
 #include <QStatusBar>
 #include <QSysInfo>
+#include <QUrl>
 #include <QtConcurrent/QtConcurrent>
 
 #include <fmt/format.h>
@@ -826,6 +827,9 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
+    connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnOpenModsPage);
+    connect(ui.action_Open_Quickstart_Guide, &QAction::triggered, this, &GMainWindow::OnQuickstartGuide);
+    connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnFAQ);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -1795,6 +1799,28 @@ void GMainWindow::OnMenuReportCompatibility() {
                "&gt; "
                "Web."));
     }
+}
+
+void GMainWindow::OpenURL(QString const& url_str) {
+
+    const QUrl url{url_str};
+    const bool open = QDesktopServices::openUrl(url);
+    if (!open) {
+        QMessageBox::warning(this, tr("Error opening URL"),
+                             tr("Unable to open the URL \"%1\".").arg(url_str));
+    }
+}
+
+void GMainWindow::OnOpenModsPage() {
+    this->OpenURL(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods"));
+}
+
+void GMainWindow::OnQuickstartGuide() {
+    this->OpenURL(QStringLiteral("https://yuzu-emu.org/help/quickstart/"));
+}
+
+void GMainWindow::OnFAQ() {
+    this->OpenURL(QStringLiteral("https://yuzu-emu.org/wiki/faq/"));
 }
 
 void GMainWindow::ToggleFullscreen() {
