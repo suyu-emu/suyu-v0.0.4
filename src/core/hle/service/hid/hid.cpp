@@ -230,15 +230,15 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {211, nullptr, "IsVibrationDeviceMounted"},
         {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
         {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
-        {302, nullptr, "StopConsoleSixAxisSensor"},
-        {303, nullptr, "ActivateSevenSixAxisSensor"},
-        {304, nullptr, "StartSevenSixAxisSensor"},
+        {302, &Hid::StopConsoleSixAxisSensor, "StopConsoleSixAxisSensor"},
+        {303, &Hid::ActivateSevenSixAxisSensor, "ActivateSevenSixAxisSensor"},
+        {304, &Hid::StartSevenSixAxisSensor, "StartSevenSixAxisSensor"},
         {305, &Hid::StopSevenSixAxisSensor, "StopSevenSixAxisSensor"},
         {306, &Hid::InitializeSevenSixAxisSensor, "InitializeSevenSixAxisSensor"},
-        {307, nullptr, "FinalizeSevenSixAxisSensor"},
+        {307, &Hid::FinalizeSevenSixAxisSensor, "FinalizeSevenSixAxisSensor"},
         {308, nullptr, "SetSevenSixAxisSensorFusionStrength"},
         {309, nullptr, "GetSevenSixAxisSensorFusionStrength"},
-        {310, nullptr, "ResetSevenSixAxisSensorTimestamp"},
+        {310, &Hid::ResetSevenSixAxisSensorTimestamp, "ResetSevenSixAxisSensorTimestamp"},
         {400, nullptr, "IsUsbFullKeyControllerEnabled"},
         {401, nullptr, "EnableUsbFullKeyController"},
         {402, nullptr, "IsUsbFullKeyControllerConnected"},
@@ -374,6 +374,15 @@ void Hid::ActivateKeyboard(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
+void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto flags{rp.Pop<u32>()};
+    LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void Hid::ActivateGesture(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto unknown{rp.Pop<u32>()};
@@ -402,6 +411,18 @@ void Hid::ActivateNpadWithRevision(Kernel::HLERequestContext& ctx) {
 }
 
 void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}, applet_resource_user_id={}", handle,
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto handle{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
@@ -864,33 +885,35 @@ void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+void Hid::StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}", handle);
+    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}, applet_resource_user_id={}", handle,
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+void Hid::ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-    const auto unknown{rp.Pop<u32>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}, unknown={}",
-                applet_resource_user_id, unknown);
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
+void Hid::StartSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto unknown{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, unknown={}", unknown);
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -914,10 +937,46 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
+void Hid::FinalizeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto flags{rp.Pop<u32>()};
-    LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto is_palma_all_connectable{rp.Pop<bool>()};
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, applet_resource_user_id={}, is_palma_all_connectable={}",
+                applet_resource_user_id, is_palma_all_connectable);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto palma_boost_mode{rp.Pop<bool>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, palma_boost_mode={}", palma_boost_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
