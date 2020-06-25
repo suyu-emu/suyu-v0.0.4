@@ -1801,7 +1801,7 @@ void GMainWindow::OnMenuReportCompatibility() {
     }
 }
 
-void GMainWindow::OpenURL(QString const& url_str) {
+void GMainWindow::OpenURL(const QString& url_str) {
 
     const QUrl url{url_str};
     const bool open = QDesktopServices::openUrl(url);
