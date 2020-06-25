@@ -72,7 +72,7 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
 }
 
 void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
-    for (auto button : PadButtonArray) {
+    for (auto const& button : PadButtonArray) {
         u16 button_value = static_cast<u16>(button);
         state.buttons.insert_or_assign(button_value, pad.button & button_value);
     }
@@ -213,7 +213,7 @@ bool Adapter::CheckDeviceAccess(libusb_device* device) {
     }
 
     if (desc.idVendor != 0x057e || desc.idProduct != 0x0337) {
-        // This isn’t the device we are looking for.
+        // This isnÂ’t the device we are looking for.
         return false;
     }
     const int open_error = libusb_open(device, &usb_adapter_handle);
