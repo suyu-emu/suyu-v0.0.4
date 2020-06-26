@@ -130,7 +130,7 @@ template <typename Range>
 void EnableRange(FormatCompatibility::Table& compatibility, const Range& range) {
     for (auto it_a = range.begin(); it_a != range.end(); ++it_a) {
         for (auto it_b = it_a; it_b != range.end(); ++it_b) {
-            Enable(*it_a, *it_b);
+            Enable(compatibility, *it_a, *it_b);
         }
     }
 }
