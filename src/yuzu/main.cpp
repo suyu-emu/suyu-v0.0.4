@@ -1824,7 +1824,7 @@ void GMainWindow::OnOpenModsPage() {
     OpenURL(QUrl(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods")));
 }
 
-void GMainWindow::OnQuickstartGuide() {
+void GMainWindow::OnOpenQuickstartGuide() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
 }
 
