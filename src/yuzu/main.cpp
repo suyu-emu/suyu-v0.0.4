@@ -839,7 +839,7 @@ void GMainWindow::ConnectMenuEvents() {
             &GMainWindow::OnMenuReportCompatibility);
     connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnOpenModsPage);
     connect(ui.action_Open_Quickstart_Guide, &QAction::triggered, this,
-            &GMainWindow::OnQuickstartGuide);
+            &GMainWindow::OnOpenQuickstartGuide);
     connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnFAQ);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
