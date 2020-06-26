@@ -143,6 +143,49 @@ Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry
     }
 }
 
+/// @brief Determine if an attachment to be updated has to preserve contents
+/// @param is_clear True when a clear is being executed
+/// @param regs 3D registers
+/// @return True when the contents have to be preserved
+bool HasToPreserveColorContents(bool is_clear, const Maxwell& regs) {
+    if (!is_clear) {
+        return true;
+    }
+    // First we have to make sure all clear masks are enabled.
+    if (!regs.clear_buffers.R || !regs.clear_buffers.G || !regs.clear_buffers.B ||
+        !regs.clear_buffers.A) {
+        return true;
+    }
+    // If scissors are disabled, the whole screen is cleared
+    if (!regs.clear_flags.scissor) {
+        return false;
+    }
+    // Then we have to confirm scissor testing clears the whole image
+    const std::size_t index = regs.clear_buffers.RT;
+    const auto& scissor = regs.scissor_test[0];
+    return scissor.min_x > 0 || scissor.min_y > 0 || scissor.max_x < regs.rt[index].width ||
+           scissor.max_y < regs.rt[index].height;
+}
+
+/// @brief Determine if an attachment to be updated has to preserve contents
+/// @param is_clear True when a clear is being executed
+/// @param regs 3D registers
+/// @return True when the contents have to be preserved
+bool HasToPreserveDepthContents(bool is_clear, const Maxwell& regs) {
+    // If we are not clearing, the contents have to be preserved
+    if (!is_clear) {
+        return true;
+    }
+    // For depth stencil clears we only have to confirm scissor test covers the whole image
+    if (!regs.clear_flags.scissor) {
+        return false;
+    }
+    // Make sure the clear cover the whole image
+    const auto& scissor = regs.scissor_test[0];
+    return scissor.min_x > 0 || scissor.min_y > 0 || scissor.max_x < regs.zeta_width ||
+           scissor.max_y < regs.zeta_height;
+}
+
 } // Anonymous namespace
 
 class BufferBindings final {
@@ -344,7 +387,7 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     buffer_cache.Unmap();
 
-    const Texceptions texceptions = UpdateAttachments();
+    const Texceptions texceptions = UpdateAttachments(false);
     SetupImageTransitions(texceptions, color_attachments, zeta_attachment);
 
     key.renderpass_params = GetRenderPassParams(texceptions);
@@ -400,7 +443,7 @@ void RasterizerVulkan::Clear() {
         return;
     }
 
-    [[maybe_unused]] const auto texceptions = UpdateAttachments();
+    [[maybe_unused]] const auto texceptions = UpdateAttachments(true);
     DEBUG_ASSERT(texceptions.none());
     SetupImageTransitions(0, color_attachments, zeta_attachment);
 
@@ -677,9 +720,12 @@ void RasterizerVulkan::FlushWork() {
     draw_counter = 0;
 }
 
-RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
+RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments(bool is_clear) {
     MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-    auto& dirty = system.GPU().Maxwell3D().dirty.flags;
+    auto& maxwell3d = system.GPU().Maxwell3D();
+    auto& dirty = maxwell3d.dirty.flags;
+    auto& regs = maxwell3d.regs;
+
     const bool update_rendertargets = dirty[VideoCommon::Dirty::RenderTargets];
     dirty[VideoCommon::Dirty::RenderTargets] = false;
 
@@ -688,7 +734,8 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     Texceptions texceptions;
     for (std::size_t rt = 0; rt < Maxwell::NumRenderTargets; ++rt) {
         if (update_rendertargets) {
-            color_attachments[rt] = texture_cache.GetColorBufferSurface(rt, true);
+            const bool preserve_contents = HasToPreserveColorContents(is_clear, regs);
+            color_attachments[rt] = texture_cache.GetColorBufferSurface(rt, preserve_contents);
         }
         if (color_attachments[rt] && WalkAttachmentOverlaps(*color_attachments[rt])) {
             texceptions[rt] = true;
@@ -696,7 +743,8 @@ RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments() {
     }
 
     if (update_rendertargets) {
-        zeta_attachment = texture_cache.GetDepthBufferSurface(true);
+        const bool preserve_contents = HasToPreserveDepthContents(is_clear, regs);
+        zeta_attachment = texture_cache.GetDepthBufferSurface(preserve_contents);
     }
     if (zeta_attachment && WalkAttachmentOverlaps(*zeta_attachment)) {
         texceptions[ZETA_TEXCEPTION_INDEX] = true;

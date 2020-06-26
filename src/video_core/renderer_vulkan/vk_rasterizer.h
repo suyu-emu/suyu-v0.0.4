@@ -159,7 +159,10 @@ private:
 
     void FlushWork();
 
-    Texceptions UpdateAttachments();
+    /// @brief Updates the currently bound attachments
+    /// @param is_clear True when the framebuffer is updated as a clear
+    /// @return Bitfield of attachments being used as sampled textures
+    Texceptions UpdateAttachments(bool is_clear);
 
     std::tuple<VkFramebuffer, VkExtent2D> ConfigureFramebuffers(VkRenderPass renderpass);
 
