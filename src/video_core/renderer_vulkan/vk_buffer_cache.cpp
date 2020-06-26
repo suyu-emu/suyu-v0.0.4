@@ -56,7 +56,7 @@ Buffer::Buffer(const VKDevice& device, VKMemoryManager& memory_manager, VKSchedu
 
 Buffer::~Buffer() = default;
 
-void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) const {
+void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) {
     const auto& staging = staging_pool.GetUnusedBuffer(size, true);
     std::memcpy(staging.commit->Map(size), data, size);
 
@@ -81,7 +81,7 @@ void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) const 
     });
 }
 
-void Buffer::Download(std::size_t offset, std::size_t size, u8* data) const {
+void Buffer::Download(std::size_t offset, std::size_t size, u8* data) {
     const auto& staging = staging_pool.GetUnusedBuffer(size, true);
     scheduler.RequestOutsideRenderPassOperationContext();
 
@@ -110,7 +110,7 @@ void Buffer::Download(std::size_t offset, std::size_t size, u8* data) const {
 }
 
 void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                      std::size_t size) const {
+                      std::size_t size) {
     scheduler.RequestOutsideRenderPassOperationContext();
 
     const VkBuffer dst_buffer = Handle();

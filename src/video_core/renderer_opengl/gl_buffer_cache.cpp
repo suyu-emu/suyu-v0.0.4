@@ -34,20 +34,27 @@ Buffer::Buffer(const Device& device, VAddr cpu_addr, std::size_t size)
 
 Buffer::~Buffer() = default;
 
-void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) const {
+void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) {
     glNamedBufferSubData(Handle(), static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size),
                          data);
 }
 
-void Buffer::Download(std::size_t offset, std::size_t size, u8* data) const {
+void Buffer::Download(std::size_t offset, std::size_t size, u8* data) {
     MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
+    const GLsizeiptr gl_size = static_cast<GLsizeiptr>(size);
+    const GLintptr gl_offset = static_cast<GLintptr>(offset);
+    if (read_buffer.handle == 0) {
+        read_buffer.Create();
+        glNamedBufferData(read_buffer.handle, static_cast<GLsizeiptr>(Size()), nullptr,
+                          GL_STREAM_READ);
+    }
     glMemoryBarrier(GL_BUFFER_UPDATE_BARRIER_BIT);
-    glGetNamedBufferSubData(Handle(), static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size),
-                            data);
+    glCopyNamedBufferSubData(gl_buffer.handle, read_buffer.handle, gl_offset, gl_offset, gl_size);
+    glGetNamedBufferSubData(read_buffer.handle, gl_offset, gl_size, data);
 }
 
 void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                      std::size_t size) const {
+                      std::size_t size) {
     glCopyNamedBufferSubData(src.Handle(), Handle(), static_cast<GLintptr>(src_offset),
                              static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(size));
 }
