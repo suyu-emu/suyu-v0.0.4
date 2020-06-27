@@ -840,7 +840,7 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnOpenModsPage);
     connect(ui.action_Open_Quickstart_Guide, &QAction::triggered, this,
             &GMainWindow::OnOpenQuickstartGuide);
-    connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnFAQ);
+    connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnOpenFAQ);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -1828,7 +1828,7 @@ void GMainWindow::OnOpenQuickstartGuide() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
 }
 
-void GMainWindow::OnFAQ() {
+void GMainWindow::OnOpenFAQ() {
     OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
 }
 
