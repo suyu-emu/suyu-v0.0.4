@@ -19,7 +19,7 @@ public:
             {2, nullptr, "OpenGameMovieTrimmer"},
             {3, nullptr, "OpenOffscreenRecorder"},
             {101, nullptr, "CreateMovieMaker"},
-            {9903, nullptr, "SetOffscreenRecordingMaker"}
+            {9903, nullptr, "SetOffscreenRecordingMarker"}
         };
         // clang-format on
 
