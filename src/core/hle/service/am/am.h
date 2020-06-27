@@ -138,7 +138,7 @@ private:
     void SetFocusHandlingMode(Kernel::HLERequestContext& ctx);
     void SetRestartMessageEnabled(Kernel::HLERequestContext& ctx);
     void SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& ctx);
-    void SetScreenShotImageOrientation(Kernel::HLERequestContext& ctx);
+    void SetAlbumImageOrientation(Kernel::HLERequestContext& ctx);
     void CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx);
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
