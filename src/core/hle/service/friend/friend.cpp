@@ -25,9 +25,13 @@ public:
             {10101, &IFriendService::GetFriendList, "GetFriendList"},
             {10102, nullptr, "UpdateFriendInfo"},
             {10110, nullptr, "GetFriendProfileImage"},
+            {10120, nullptr, "Unknown10120"},
+            {10121, nullptr, "Unknown10121"},
             {10200, nullptr, "SendFriendRequestForApplication"},
             {10211, nullptr, "AddFacedFriendRequestForApplication"},
             {10400, &IFriendService::GetBlockedUserListIds, "GetBlockedUserListIds"},
+            {10420, nullptr, "Unknown10420"},
+            {10421, nullptr, "Unknown10421"},
             {10500, nullptr, "GetProfileList"},
             {10600, nullptr, "DeclareOpenOnlinePlaySession"},
             {10601, &IFriendService::DeclareCloseOnlinePlaySession, "DeclareCloseOnlinePlaySession"},
@@ -97,6 +101,8 @@ public:
             {30900, nullptr, "SendFriendInvitation"},
             {30910, nullptr, "ReadFriendInvitation"},
             {30911, nullptr, "ReadAllFriendInvitations"},
+            {40100, nullptr, "Unknown40100"},
+            {40400, nullptr, "Unknown40400"},
             {49900, nullptr, "DeleteNetworkServiceAccountCache"},
         };
         // clang-format on
