@@ -19,6 +19,7 @@ public:
             {1, nullptr, "ImportCrt"},
             {2, nullptr, "ImportPki"},
             {3, nullptr, "SetAutoUpload"},
+            {4, nullptr, "GetAutoUpload"},
         };
         // clang-format on
 
