@@ -60,7 +60,7 @@ void SoftwareKeyboard::Initialize() {
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
 
     const auto work_buffer_storage = broker.PopNormalDataToApplet();
-    ASSERT(work_buffer_storage != nullptr);
+    ASSERT_OR_EXECUTE(work_buffer_storage != nullptr, { return; });
     const auto& work_buffer = work_buffer_storage->GetData();
 
     if (config.initial_string_size == 0)
