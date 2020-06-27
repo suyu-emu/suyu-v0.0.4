@@ -183,7 +183,7 @@ private slots:
     void OnMenuReportCompatibility();
     void OnOpenModsPage();
     void OnOpenQuickstartGuide();
-    void OnFAQ();
+    void OnOpenFAQ();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path);
