@@ -192,11 +192,11 @@ public:
             {57, nullptr, "RegisterAppletResourceUserId"},
             {58, nullptr, "UnregisterAppletResourceUserId"},
             {59, nullptr, "SetAppletResourceUserId"},
-            {60, nullptr, "Unknown"},
-            {61, nullptr, "Unknown2"},
-            {62, nullptr, "Unknown3"},
-            {63, nullptr, "Unknown4"},
-            {64, nullptr, "Unknown5"},
+            {60, nullptr, "Unknown60"},
+            {61, nullptr, "Unknown61"},
+            {62, nullptr, "Unknown62"},
+            {63, nullptr, "Unknown63"},
+            {64, nullptr, "Unknown64"},
         };
         // clang-format on
 
