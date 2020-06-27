@@ -144,7 +144,7 @@ public:
     u64 GetTicksRemaining() override {
         if (parent.uses_wall_clock) {
             if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
-                return 1000U;
+                return minimum_run_cycles;
             }
             return 0U;
         }
@@ -159,6 +159,7 @@ public:
     std::size_t num_interpreted_instructions = 0;
     u64 tpidrro_el0 = 0;
     u64 tpidr_el0 = 0;
+    static constexpr u64 minimum_run_cycles = 1000U;
 };
 
 std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& page_table,
@@ -271,7 +272,7 @@ void ARM_Dynarmic_64::SetTPIDR_EL0(u64 value) {
     cb->tpidr_el0 = value;
 }
 
-void ARM_Dynarmic_64::ChangeProcessorId(std::size_t new_core_id) {
+void ARM_Dynarmic_64::ChangeProcessorID(std::size_t new_core_id) {
     jit->ChangeProcessorID(new_core_id);
 }
 

@@ -443,7 +443,7 @@ bool System::IsPoweredOn() const {
 }
 
 void System::PrepareReschedule() {
-    // impl->CurrentPhysicalCore().Stop();
+    // Deprecated, does nothing, kept for backward compatibility.
 }
 
 void System::PrepareReschedule(const u32 core_index) {

@@ -8,6 +8,11 @@
 
 namespace Common {
 
+/**
+ * SpinLock class
+ * a lock similar to mutex that forces a thread to spin wait instead calling the
+ * supervisor. Should be used on short sequences of code.
+ */
 class SpinLock {
 public:
     void lock();

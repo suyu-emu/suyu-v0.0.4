@@ -148,7 +148,7 @@ public:
      */
     virtual void SetTPIDR_EL0(u64 value) = 0;
 
-    virtual void ChangeProcessorId(std::size_t new_core_id) = 0;
+    virtual void ChangeProcessorID(std::size_t new_core_id) = 0;
 
     virtual void SaveContext(ThreadContext32& ctx) = 0;
     virtual void SaveContext(ThreadContext64& ctx) = 0;

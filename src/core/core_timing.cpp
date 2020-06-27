@@ -45,9 +45,9 @@ CoreTiming::CoreTiming() {
 CoreTiming::~CoreTiming() = default;
 
 void CoreTiming::ThreadEntry(CoreTiming& instance) {
-    std::string name = "yuzu:HostTiming";
-    MicroProfileOnThreadCreate(name.c_str());
-    Common::SetCurrentThreadName(name.c_str());
+    constexpr char name[] = "yuzu:HostTiming";
+    MicroProfileOnThreadCreate(name);
+    Common::SetCurrentThreadName(name);
     Common::SetCurrentThreadPriority(Common::ThreadPriority::VeryHigh);
     instance.on_thread_init();
     instance.ThreadLoop();
@@ -108,18 +108,19 @@ bool CoreTiming::HasPendingEvents() const {
 
 void CoreTiming::ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
                                u64 userdata) {
-    basic_lock.lock();
-    const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
+    {
+        std::scoped_lock scope{basic_lock};
+        const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
 
-    event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
+        event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
 
-    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
-    basic_lock.unlock();
+        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+    }
     event.Set();
 }
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata) {
-    basic_lock.lock();
+    std::scoped_lock scope{basic_lock};
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get() && e.userdata == userdata;
     });
@@ -129,7 +130,6 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
         event_queue.erase(itr, event_queue.end());
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
-    basic_lock.unlock();
 }
 
 void CoreTiming::AddTicks(u64 ticks) {
@@ -187,8 +187,8 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
 }
 
 std::optional<s64> CoreTiming::Advance() {
-    advance_lock.lock();
-    basic_lock.lock();
+    std::scoped_lock advance_scope{advance_lock};
+    std::scoped_lock basic_scope{basic_lock};
     global_timer = GetGlobalTimeNs().count();
 
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {
@@ -207,12 +207,8 @@ std::optional<s64> CoreTiming::Advance() {
 
     if (!event_queue.empty()) {
         const s64 next_time = event_queue.front().time - global_timer;
-        basic_lock.unlock();
-        advance_lock.unlock();
         return next_time;
     } else {
-        basic_lock.unlock();
-        advance_lock.unlock();
         return std::nullopt;
     }
 }

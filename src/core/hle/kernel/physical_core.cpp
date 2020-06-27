@@ -37,6 +37,10 @@ void PhysicalCore::Shutdown() {
     scheduler.Shutdown();
 }
 
+bool PhysicalCore::IsInterrupted() const {
+    return interrupt_handler.IsInterrupted();
+}
+
 void PhysicalCore::Interrupt() {
     guard->lock();
     interrupt_handler.SetInterrupt(true);

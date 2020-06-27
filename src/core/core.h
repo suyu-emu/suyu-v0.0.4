@@ -138,13 +138,13 @@ public:
 
     /**
      * Run the OS and Application
-     * This function will start emulation and run the competent devices
+     * This function will start emulation and run the relevant devices
      */
     ResultStatus Run();
 
     /**
      * Pause the OS and Application
-     * This function will pause emulation and stop the competent devices
+     * This function will pause emulation and stop the relevant devices
      */
     ResultStatus Pause();
 

@@ -240,6 +240,10 @@ public:
         return switch_fiber;
     }
 
+    const std::shared_ptr<Common::Fiber>& ControlContext() const {
+        return switch_fiber;
+    }
+
 private:
     friend class GlobalScheduler;
 

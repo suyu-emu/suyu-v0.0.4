@@ -23,7 +23,7 @@ public:
     CPUInterruptHandler(CPUInterruptHandler&&) = default;
     CPUInterruptHandler& operator=(CPUInterruptHandler&&) = default;
 
-    constexpr bool IsInterrupted() const {
+    bool IsInterrupted() const {
         return is_interrupted;
     }
 

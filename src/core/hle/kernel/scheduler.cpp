@@ -658,7 +658,7 @@ void Scheduler::Reload() {
             cpu_core.LoadContext(thread->GetContext64());
             cpu_core.SetTlsAddress(thread->GetTLSAddress());
             cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
-            cpu_core.ChangeProcessorId(this->core_id);
+            cpu_core.ChangeProcessorID(this->core_id);
             cpu_core.ClearExclusiveState();
         }
     }
@@ -691,7 +691,7 @@ void Scheduler::SwitchContextStep2() {
             cpu_core.LoadContext(new_thread->GetContext64());
             cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
             cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
-            cpu_core.ChangeProcessorId(this->core_id);
+            cpu_core.ChangeProcessorID(this->core_id);
             cpu_core.ClearExclusiveState();
         }
     }

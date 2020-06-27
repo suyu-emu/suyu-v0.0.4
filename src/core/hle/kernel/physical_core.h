@@ -7,8 +7,6 @@
 #include <cstddef>
 #include <memory>
 
-#include "core/arm/cpu_interrupt_handler.h"
-
 namespace Common {
 class SpinLock;
 }
@@ -19,6 +17,7 @@ class Scheduler;
 
 namespace Core {
 class ARM_Interface;
+class CPUInterruptHandler;
 class ExclusiveMonitor;
 class System;
 } // namespace Core
@@ -45,9 +44,7 @@ public:
     void ClearInterrupt();
 
     /// Check if this core is interrupted
-    bool IsInterrupted() const {
-        return interrupt_handler.IsInterrupted();
-    }
+    bool IsInterrupted() const;
 
     // Shutdown this physical core.
     void Shutdown();

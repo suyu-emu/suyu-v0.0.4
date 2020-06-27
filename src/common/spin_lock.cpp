@@ -20,7 +20,7 @@
 
 namespace {
 
-void thread_pause() {
+void ThreadPause() {
 #if __x86_64__
     _mm_pause();
 #elif __aarch64__ && _MSC_VER
@@ -30,13 +30,13 @@ void thread_pause() {
 #endif
 }
 
-} // namespace
+} // Anonymous namespace
 
 namespace Common {
 
 void SpinLock::lock() {
     while (lck.test_and_set(std::memory_order_acquire)) {
-        thread_pause();
+        ThreadPause();
     }
 }
 
