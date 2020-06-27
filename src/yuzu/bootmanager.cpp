@@ -360,7 +360,7 @@ QByteArray GRenderWindow::saveGeometry() {
 }
 
 qreal GRenderWindow::windowPixelRatio() const {
-    return devicePixelRatio();
+    return devicePixelRatioF();
 }
 
 std::pair<u32, u32> GRenderWindow::ScaleTouch(const QPointF& pos) const {
