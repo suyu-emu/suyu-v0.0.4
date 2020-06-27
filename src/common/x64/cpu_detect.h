@@ -6,8 +6,16 @@
 
 namespace Common {
 
+enum class Manufacturer : u32 {
+    Intel = 0,
+    AMD = 1,
+    Hygon = 2,
+    Unknown = 3,
+};
+
 /// x86/x64 CPU capabilities that may be detected by this module
 struct CPUCaps {
+    Manufacturer manufacturer;
     char cpu_string[0x21];
     char brand_string[0x41];
     bool sse;
@@ -25,6 +33,10 @@ struct CPUCaps {
     bool fma;
     bool fma4;
     bool aes;
+    bool invariant_tsc;
+    u32 base_frequency;
+    u32 max_frequency;
+    u32 bus_frequency;
 };
 
 /**

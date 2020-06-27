@@ -62,6 +62,17 @@ static CPUCaps Detect() {
     std::memcpy(&caps.brand_string[0], &cpu_id[1], sizeof(int));
     std::memcpy(&caps.brand_string[4], &cpu_id[3], sizeof(int));
     std::memcpy(&caps.brand_string[8], &cpu_id[2], sizeof(int));
+    if (cpu_id[1] == 0x756e6547 && cpu_id[2] == 0x6c65746e && cpu_id[3] == 0x49656e69)
+        caps.manufacturer = Manufacturer::Intel;
+    else if (cpu_id[1] == 0x68747541 && cpu_id[2] == 0x444d4163 && cpu_id[3] == 0x69746e65)
+        caps.manufacturer = Manufacturer::AMD;
+    else if (cpu_id[1] == 0x6f677948 && cpu_id[2] == 0x656e6975 && cpu_id[3] == 0x6e65476e)
+        caps.manufacturer = Manufacturer::Hygon;
+    else
+        caps.manufacturer = Manufacturer::Unknown;
+
+    u32 family = {};
+    u32 model = {};
 
     __cpuid(cpu_id, 0x80000000);
 
@@ -73,6 +84,14 @@ static CPUCaps Detect() {
     // Detect family and other miscellaneous features
     if (max_std_fn >= 1) {
         __cpuid(cpu_id, 0x00000001);
+        family = (cpu_id[0] >> 8) & 0xf;
+        model = (cpu_id[0] >> 4) & 0xf;
+        if (family == 0xf) {
+            family += (cpu_id[0] >> 20) & 0xff;
+        }
+        if (family >= 6) {
+            model += ((cpu_id[0] >> 16) & 0xf) << 4;
+        }
 
         if ((cpu_id[3] >> 25) & 1)
             caps.sse = true;
@@ -133,6 +152,20 @@ static CPUCaps Detect() {
         __cpuid(cpu_id, 0x80000001);
         if ((cpu_id[2] >> 16) & 1)
             caps.fma4 = true;
+    }
+
+    if (max_ex_fn >= 0x80000007) {
+        __cpuid(cpu_id, 0x80000007);
+        if (cpu_id[3] & (1 << 8)) {
+            caps.invariant_tsc = true;
+        }
+    }
+
+    if (max_std_fn >= 0x16) {
+        __cpuid(cpu_id, 0x16);
+        caps.base_frequency = cpu_id[0];
+        caps.max_frequency = cpu_id[1];
+        caps.bus_frequency = cpu_id[2];
     }
 
     return caps;
