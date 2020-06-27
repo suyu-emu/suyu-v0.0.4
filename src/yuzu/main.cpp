@@ -737,6 +737,9 @@ void GMainWindow::InitializeHotkeys() {
                                     Settings::values.use_docked_mode);
                 dock_status_button->setChecked(Settings::values.use_docked_mode);
             });
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
+            &QShortcut::activated, this,
+            [] { Settings::values.audio_muted = !Settings::values.audio_muted; });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {

@@ -459,6 +459,7 @@ struct Values {
     bool use_dev_keys;
 
     // Audio
+    bool audio_muted;
     std::string sink_id;
     bool enable_audio_stretching;
     std::string audio_device_id;
@@ -489,6 +490,8 @@ struct Values {
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
 } extern values;
+
+float Volume();
 
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();

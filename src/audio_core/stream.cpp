@@ -67,7 +67,7 @@ s64 Stream::GetBufferReleaseCycles(const Buffer& buffer) const {
 }
 
 static void VolumeAdjustSamples(std::vector<s16>& samples, float game_volume) {
-    const float volume{std::clamp(Settings::values.volume - (1.0f - game_volume), 0.0f, 1.0f)};
+    const float volume{std::clamp(Settings::Volume() - (1.0f - game_volume), 0.0f, 1.0f)};
 
     if (volume == 1.0f) {
         return;
