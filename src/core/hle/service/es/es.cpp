@@ -27,8 +27,8 @@ public:
             {8, &ETicket::GetTitleKey, "GetTitleKey"},
             {9, &ETicket::CountCommonTicket, "CountCommonTicket"},
             {10, &ETicket::CountPersonalizedTicket, "CountPersonalizedTicket"},
-            {11, &ETicket::ListCommonTicket, "ListCommonTicketRightsIds"},
-            {12, &ETicket::ListPersonalizedTicket, "ListPersonalizedTicketRightsIds"},
+            {11, &ETicket::ListCommonTicketRightsIds, "ListCommonTicketRightsIds"},
+            {12, &ETicket::ListPersonalizedTicketRightsIds, "ListPersonalizedTicketRightsIds"},
             {13, nullptr, "ListMissingPersonalizedTicket"},
             {14, &ETicket::GetCommonTicketSize, "GetCommonTicketSize"},
             {15, &ETicket::GetPersonalizedTicketSize, "GetPersonalizedTicketSize"},
@@ -186,7 +186,7 @@ private:
         rb.Push<u32>(count);
     }
 
-    void ListCommonTicket(Kernel::HLERequestContext& ctx) {
+    void ListCommonTicketRightsIds(Kernel::HLERequestContext& ctx) {
         u32 out_entries;
         if (keys.GetCommonTickets().empty())
             out_entries = 0;
@@ -209,7 +209,7 @@ private:
         rb.Push<u32>(out_entries);
     }
 
-    void ListPersonalizedTicket(Kernel::HLERequestContext& ctx) {
+    void ListPersonalizedTicketRightsIds(Kernel::HLERequestContext& ctx) {
         u32 out_entries;
         if (keys.GetPersonalizedTickets().empty())
             out_entries = 0;
