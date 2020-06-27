@@ -10,8 +10,8 @@
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 #include <thread>
+#include <vector>
 
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
