@@ -46,7 +46,7 @@ constexpr std::size_t DATA_INDEX{2};
 struct NRRCertification {
     u64_le application_id_mask;
     u64_le application_id_pattern;
-    std::array<u8, 0x10> reserved;
+    INSERT_PADDING_BYTES(0x10);
     std::array<u8, 0x100> public_key; // Also known as modulus
     std::array<u8, 0x100> signature;
 };
@@ -55,16 +55,16 @@ static_assert(sizeof(NRRCertification) == 0x220, "NRRCertification has invalid s
 struct NRRHeader {
     u32_le magic;
     u32_le certification_signature_key_generation; // 9.0.0+
-    u64_le reserved;
+    INSERT_PADDING_WORDS(2);
     NRRCertification certification;
     std::array<u8, 0x100> signature;
     u64_le application_id;
     u32_le size;
     u8 nrr_kind; // 7.0.0+
-    std::array<u8, 3> reserved_2;
+    INSERT_PADDING_BYTES(3);
     u32_le hash_offset;
     u32_le hash_count;
-    u64_le reserved_3;
+    INSERT_PADDING_WORDS(2);
 };
 static_assert(sizeof(NRRHeader) == 0x350, "NRRHeader has invalid size.");
 
@@ -76,9 +76,9 @@ static_assert(sizeof(SegmentHeader) == 0x8, "SegmentHeader has invalid size.");
 
 struct NROHeader {
     // Switchbrew calls this "Start" (0x10)
-    u32_le unused;
+    INSERT_PADDING_WORDS(1);
     u32_le mod_offset;
-    u64_le padding;
+    INSERT_PADDING_WORDS(2);
 
     // Switchbrew calls this "Header" (0x70)
     u32_le magic;
@@ -88,10 +88,10 @@ struct NROHeader {
     // .text, .ro, .data
     std::array<SegmentHeader, 3> segment_headers;
     u32_le bss_size;
-    u32_le reserved;
+    INSERT_PADDING_WORDS(1);
     std::array<u8, 0x20> build_id;
     u32_le dso_handle_offset;
-    u32_le unused_2;
+    INSERT_PADDING_WORDS(1);
     // .apiInfo, .dynstr, .dynsym
     std::array<SegmentHeader, 3> segment_headers_2;
 };
