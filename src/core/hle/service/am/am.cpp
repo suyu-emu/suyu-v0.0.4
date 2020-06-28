@@ -841,7 +841,7 @@ public:
             {110, nullptr, "NeedsToExitProcess"},
             {120, nullptr, "GetLibraryAppletInfo"},
             {150, nullptr, "RequestForAppletToGetForeground"},
-            {160, nullptr, "GetIndirectLayerConsumerHandle"},
+            {160, &ILibraryAppletAccessor::GetIndirectLayerConsumerHandle, "GetIndirectLayerConsumerHandle"},
         };
         // clang-format on
 
@@ -958,6 +958,18 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(applet->GetBroker().GetInteractiveDataEvent());
+    }
+
+    void GetIndirectLayerConsumerHandle(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_AM, "(STUBBED) called");
+
+        // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
+        // actually used anywhere
+        constexpr u64 handle = 0xdeadbeef;
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(handle);
     }
 
     std::shared_ptr<Applets::Applet> applet;
