@@ -14,7 +14,7 @@
 namespace Tools {
 namespace {
 
-constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 60);
+constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(1000000000 / 60);
 
 u64 MemoryReadWidth(Core::Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
@@ -57,7 +57,7 @@ Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& m
     : core_timing{core_timing_}, memory{memory_} {
     event = Core::Timing::CreateEvent(
         "MemoryFreezer::FrameCallback",
-        [this](u64 userdata, s64 cycles_late) { FrameCallback(userdata, cycles_late); });
+        [this](u64 userdata, s64 ns_late) { FrameCallback(userdata, ns_late); });
     core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS, event);
 }
 
@@ -158,7 +158,7 @@ std::vector<Freezer::Entry> Freezer::GetEntries() const {
     return entries;
 }
 
-void Freezer::FrameCallback(u64 userdata, s64 cycles_late) {
+void Freezer::FrameCallback(u64 userdata, s64 ns_late) {
     if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;
@@ -173,7 +173,7 @@ void Freezer::FrameCallback(u64 userdata, s64 cycles_late) {
         MemoryWriteWidth(memory, entry.width, entry.address, entry.value);
     }
 
-    core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS - cycles_late, event);
+    core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS - ns_late, event);
 }
 
 void Freezer::FillEntryReads() {

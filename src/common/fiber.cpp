@@ -54,9 +54,7 @@ Fiber::Fiber(std::function<void(void*)>&& entry_point_func, void* start_paramete
     impl->handle = CreateFiber(default_stack_size, &FiberStartFunc, this);
 }
 
-Fiber::Fiber() {
-    impl = std::make_unique<FiberImpl>();
-}
+Fiber::Fiber() : impl{std::make_unique<FiberImpl>()} {}
 
 Fiber::~Fiber() {
     if (released) {
@@ -116,8 +114,8 @@ std::shared_ptr<Fiber> Fiber::ThreadToFiber() {
 
 struct Fiber::FiberImpl {
     alignas(64) std::array<u8, default_stack_size> stack;
-    u8* stack_limit;
     alignas(64) std::array<u8, default_stack_size> rewind_stack;
+    u8* stack_limit;
     u8* rewind_stack_limit;
     boost::context::detail::fcontext_t context;
     boost::context::detail::fcontext_t rewind_context;
@@ -168,9 +166,7 @@ void Fiber::SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start
     rewind_parameter = start_parameter;
 }
 
-Fiber::Fiber() {
-    impl = std::make_unique<FiberImpl>();
-}
+Fiber::Fiber() : impl{std::make_unique<FiberImpl>()} {}
 
 Fiber::~Fiber() {
     if (released) {

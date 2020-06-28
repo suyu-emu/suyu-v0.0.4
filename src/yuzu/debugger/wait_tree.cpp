@@ -2,10 +2,13 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <fmt/format.h>
+
 #include "yuzu/debugger/wait_tree.h"
 #include "yuzu/util/util.h"
 
 #include "common/assert.h"
+#include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/mutex.h"
@@ -59,8 +62,10 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() 
     std::size_t row = 0;
     auto add_threads = [&](const std::vector<std::shared_ptr<Kernel::Thread>>& threads) {
         for (std::size_t i = 0; i < threads.size(); ++i) {
-            item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
-            item_list.back()->row = row;
+            if (!threads[i]->IsHLEThread()) {
+                item_list.push_back(std::make_unique<WaitTreeThread>(*threads[i]));
+                item_list.back()->row = row;
+            }
             ++row;
         }
     };
@@ -114,20 +119,21 @@ QString WaitTreeCallstack::GetText() const {
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    constexpr std::size_t BaseRegister = 29;
-    auto& memory = Core::System::GetInstance().Memory();
-    u64 base_pointer = thread.GetContext64().cpu_registers[BaseRegister];
+    if (thread.IsHLEThread()) {
+        return list;
+    }
 
-    while (base_pointer != 0) {
-        const u64 lr = memory.Read64(base_pointer + sizeof(u64));
-        if (lr == 0) {
-            break;
-        }
+    if (thread.GetOwnerProcess() == nullptr || !thread.GetOwnerProcess()->Is64BitProcess()) {
+        return list;
+    }
 
-        list.push_back(std::make_unique<WaitTreeText>(
-            tr("0x%1").arg(lr - sizeof(u32), 16, 16, QLatin1Char{'0'})));
+    auto backtrace = Core::ARM_Interface::GetBacktraceFromContext(Core::System::GetInstance(),
+                                                                  thread.GetContext64());
 
-        base_pointer = memory.Read64(base_pointer);
+    for (auto& entry : backtrace) {
+        std::string s = fmt::format("{:20}{:016X} {:016X} {:016X} {}", entry.module, entry.address,
+                                    entry.original_address, entry.offset, entry.name);
+        list.push_back(std::make_unique<WaitTreeText>(QString::fromStdString(s)));
     }
 
     return list;
@@ -206,7 +212,15 @@ QString WaitTreeThread::GetText() const {
         status = tr("running");
         break;
     case Kernel::ThreadStatus::Ready:
-        status = tr("ready");
+        if (!thread.IsPaused()) {
+            if (thread.WasRunning()) {
+                status = tr("running");
+            } else {
+                status = tr("ready");
+            }
+        } else {
+            status = tr("paused");
+        }
         break;
     case Kernel::ThreadStatus::Paused:
         status = tr("paused");
@@ -254,7 +268,15 @@ QColor WaitTreeThread::GetColor() const {
     case Kernel::ThreadStatus::Running:
         return QColor(Qt::GlobalColor::darkGreen);
     case Kernel::ThreadStatus::Ready:
-        return QColor(Qt::GlobalColor::darkBlue);
+        if (!thread.IsPaused()) {
+            if (thread.WasRunning()) {
+                return QColor(Qt::GlobalColor::darkGreen);
+            } else {
+                return QColor(Qt::GlobalColor::darkBlue);
+            }
+        } else {
+            return QColor(Qt::GlobalColor::lightGray);
+        }
     case Kernel::ThreadStatus::Paused:
         return QColor(Qt::GlobalColor::lightGray);
     case Kernel::ThreadStatus::WaitHLEEvent:
@@ -319,7 +341,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 
     if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynch) {
         list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetSynchronizationObjects(),
-                                                            thread.IsSleepingOnWait()));
+                                                            thread.IsWaitingSync()));
     }
 
     list.push_back(std::make_unique<WaitTreeCallstack>(thread));

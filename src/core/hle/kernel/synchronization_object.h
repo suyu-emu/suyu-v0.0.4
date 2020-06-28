@@ -12,6 +12,7 @@
 namespace Kernel {
 
 class KernelCore;
+class Synchronization;
 class Thread;
 
 /// Class that represents a Kernel object that a thread can be waiting on
@@ -49,23 +50,10 @@ public:
      */
     void RemoveWaitingThread(std::shared_ptr<Thread> thread);
 
-    /**
-     * Wake up all threads waiting on this object that can be awoken, in priority order,
-     * and set the synchronization result and output of the thread.
-     */
-    void WakeupAllWaitingThreads();
-
-    /**
-     * Wakes up a single thread waiting on this object.
-     * @param thread Thread that is waiting on this object to wakeup.
-     */
-    void WakeupWaitingThread(std::shared_ptr<Thread> thread);
-
-    /// Obtains the highest priority thread that is ready to run from this object's waiting list.
-    std::shared_ptr<Thread> GetHighestPriorityReadyThread() const;
-
     /// Get a const reference to the waiting threads list for debug use
     const std::vector<std::shared_ptr<Thread>>& GetWaitingThreads() const;
+
+    void ClearWaitingThreads();
 
 protected:
     bool is_signaled{}; // Tells if this sync object is signalled;

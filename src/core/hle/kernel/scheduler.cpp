@@ -11,11 +11,15 @@
 #include <utility>
 
 #include "common/assert.h"
+#include "common/bit_util.h"
+#include "common/fiber.h"
 #include "common/logging/log.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/core_timing.h"
+#include "core/cpu_manager.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/time_manager.h"
@@ -27,103 +31,151 @@ GlobalScheduler::GlobalScheduler(KernelCore& kernel) : kernel{kernel} {}
 GlobalScheduler::~GlobalScheduler() = default;
 
 void GlobalScheduler::AddThread(std::shared_ptr<Thread> thread) {
+    global_list_guard.lock();
     thread_list.push_back(std::move(thread));
+    global_list_guard.unlock();
 }
 
 void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
+    global_list_guard.lock();
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
+    global_list_guard.unlock();
 }
 
-void GlobalScheduler::UnloadThread(std::size_t core) {
-    Scheduler& sched = kernel.Scheduler(core);
-    sched.UnloadThread();
-}
-
-void GlobalScheduler::SelectThread(std::size_t core) {
+u32 GlobalScheduler::SelectThreads() {
+    ASSERT(is_locked);
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
-        if (thread != sched.selected_thread.get()) {
+        sched.guard.lock();
+        if (thread != sched.selected_thread_set.get()) {
             if (thread == nullptr) {
                 ++sched.idle_selection_count;
             }
-            sched.selected_thread = SharedFrom(thread);
+            sched.selected_thread_set = SharedFrom(thread);
         }
-        sched.is_context_switch_pending = sched.selected_thread != sched.current_thread;
+        const bool reschedule_pending =
+            sched.is_context_switch_pending || (sched.selected_thread_set != sched.current_thread);
+        sched.is_context_switch_pending = reschedule_pending;
         std::atomic_thread_fence(std::memory_order_seq_cst);
+        sched.guard.unlock();
+        return reschedule_pending;
     };
-    Scheduler& sched = kernel.Scheduler(core);
-    Thread* current_thread = nullptr;
+    if (!is_reselection_pending.load()) {
+        return 0;
+    }
+    std::array<Thread*, Core::Hardware::NUM_CPU_CORES> top_threads{};
+
+    u32 idle_cores{};
+
     // Step 1: Get top thread in schedule queue.
-    current_thread = scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
-    if (current_thread) {
-        update_thread(current_thread, sched);
-        return;
-    }
-    // Step 2: Try selecting a suggested thread.
-    Thread* winner = nullptr;
-    std::set<s32> sug_cores;
-    for (auto thread : suggested_queue[core]) {
-        s32 this_core = thread->GetProcessorID();
-        Thread* thread_on_core = nullptr;
-        if (this_core >= 0) {
-            thread_on_core = scheduled_queue[this_core].front();
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        Thread* top_thread =
+            scheduled_queue[core].empty() ? nullptr : scheduled_queue[core].front();
+        if (top_thread != nullptr) {
+            // TODO(Blinkhawk): Implement Thread Pinning
+        } else {
+            idle_cores |= (1ul << core);
         }
-        if (this_core < 0 || thread != thread_on_core) {
-            winner = thread;
-            break;
-        }
-        sug_cores.insert(this_core);
+        top_threads[core] = top_thread;
     }
-    // if we got a suggested thread, select it, else do a second pass.
-    if (winner && winner->GetPriority() > 2) {
-        if (winner->IsRunning()) {
-            UnloadThread(static_cast<u32>(winner->GetProcessorID()));
-        }
-        TransferToCore(winner->GetPriority(), static_cast<s32>(core), winner);
-        update_thread(winner, sched);
-        return;
-    }
-    // Step 3: Select a suggested thread from another core
-    for (auto& src_core : sug_cores) {
-        auto it = scheduled_queue[src_core].begin();
-        it++;
-        if (it != scheduled_queue[src_core].end()) {
-            Thread* thread_on_core = scheduled_queue[src_core].front();
-            Thread* to_change = *it;
-            if (thread_on_core->IsRunning() || to_change->IsRunning()) {
-                UnloadThread(static_cast<u32>(src_core));
+
+    while (idle_cores != 0) {
+        u32 core_id = Common::CountTrailingZeroes32(idle_cores);
+
+        if (!suggested_queue[core_id].empty()) {
+            std::array<s32, Core::Hardware::NUM_CPU_CORES> migration_candidates{};
+            std::size_t num_candidates = 0;
+            auto iter = suggested_queue[core_id].begin();
+            Thread* suggested = nullptr;
+            // Step 2: Try selecting a suggested thread.
+            while (iter != suggested_queue[core_id].end()) {
+                suggested = *iter;
+                iter++;
+                s32 suggested_core_id = suggested->GetProcessorID();
+                Thread* top_thread =
+                    suggested_core_id >= 0 ? top_threads[suggested_core_id] : nullptr;
+                if (top_thread != suggested) {
+                    if (top_thread != nullptr &&
+                        top_thread->GetPriority() < THREADPRIO_MAX_CORE_MIGRATION) {
+                        suggested = nullptr;
+                        break;
+                        // There's a too high thread to do core migration, cancel
+                    }
+                    TransferToCore(suggested->GetPriority(), static_cast<s32>(core_id), suggested);
+                    break;
+                }
+                suggested = nullptr;
+                migration_candidates[num_candidates++] = suggested_core_id;
             }
-            TransferToCore(thread_on_core->GetPriority(), static_cast<s32>(core), thread_on_core);
-            current_thread = thread_on_core;
-            break;
+            // Step 3: Select a suggested thread from another core
+            if (suggested == nullptr) {
+                for (std::size_t i = 0; i < num_candidates; i++) {
+                    s32 candidate_core = migration_candidates[i];
+                    suggested = top_threads[candidate_core];
+                    auto it = scheduled_queue[candidate_core].begin();
+                    it++;
+                    Thread* next = it != scheduled_queue[candidate_core].end() ? *it : nullptr;
+                    if (next != nullptr) {
+                        TransferToCore(suggested->GetPriority(), static_cast<s32>(core_id),
+                                       suggested);
+                        top_threads[candidate_core] = next;
+                        break;
+                    } else {
+                        suggested = nullptr;
+                    }
+                }
+            }
+            top_threads[core_id] = suggested;
+        }
+
+        idle_cores &= ~(1ul << core_id);
+    }
+    u32 cores_needing_context_switch{};
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        Scheduler& sched = kernel.Scheduler(core);
+        ASSERT(top_threads[core] == nullptr || top_threads[core]->GetProcessorID() == core);
+        if (update_thread(top_threads[core], sched)) {
+            cores_needing_context_switch |= (1ul << core);
         }
     }
-    update_thread(current_thread, sched);
+    return cores_needing_context_switch;
 }
 
 bool GlobalScheduler::YieldThread(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should use critical section, etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    const Thread* const winner = scheduled_queue[core_id].front(priority);
-    ASSERT_MSG(yielding_thread == winner, "Thread yielding without being in front");
-    scheduled_queue[core_id].yield(priority);
+    Reschedule(priority, core_id, yielding_thread);
+    const Thread* const winner = scheduled_queue[core_id].front();
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
+    }
 
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
     const u32 priority = yielding_thread->GetPriority();
 
     // Yield the thread
-    ASSERT_MSG(yielding_thread == scheduled_queue[core_id].front(priority),
-               "Thread yielding without being in front");
-    scheduled_queue[core_id].yield(priority);
+    Reschedule(priority, core_id, yielding_thread);
 
     std::array<Thread*, Core::Hardware::NUM_CPU_CORES> current_threads;
     for (std::size_t i = 0; i < current_threads.size(); i++) {
@@ -153,21 +205,28 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
 
     if (winner != nullptr) {
         if (winner != yielding_thread) {
-            if (winner->IsRunning()) {
-                UnloadThread(static_cast<u32>(winner->GetProcessorID()));
-            }
             TransferToCore(winner->GetPriority(), s32(core_id), winner);
         }
     } else {
         winner = next_thread;
     }
 
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
+    }
+
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread) {
+    ASSERT(is_locked);
     // Note: caller should check if !thread.IsSchedulerOperationRedundant and use critical section,
     // etc.
+    if (!yielding_thread->IsRunnable()) {
+        // Normally this case shouldn't happen except for SetThreadActivity.
+        is_reselection_pending.store(true, std::memory_order_release);
+        return false;
+    }
     Thread* winner = nullptr;
     const u32 core_id = static_cast<u32>(yielding_thread->GetProcessorID());
 
@@ -195,25 +254,31 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         }
         if (winner != nullptr) {
             if (winner != yielding_thread) {
-                if (winner->IsRunning()) {
-                    UnloadThread(static_cast<u32>(winner->GetProcessorID()));
-                }
                 TransferToCore(winner->GetPriority(), static_cast<s32>(core_id), winner);
             }
         } else {
             winner = yielding_thread;
         }
+    } else {
+        winner = scheduled_queue[core_id].front();
+    }
+
+    if (kernel.GetCurrentHostThreadID() != core_id) {
+        is_reselection_pending.store(true, std::memory_order_release);
     }
 
     return AskForReselectionOrMarkRedundant(yielding_thread, winner);
 }
 
 void GlobalScheduler::PreemptThreads() {
+    ASSERT(is_locked);
     for (std::size_t core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
         const u32 priority = preemption_priorities[core_id];
 
         if (scheduled_queue[core_id].size(priority) > 0) {
-            scheduled_queue[core_id].front(priority)->IncrementYieldCount();
+            if (scheduled_queue[core_id].size(priority) > 1) {
+                scheduled_queue[core_id].front(priority)->IncrementYieldCount();
+            }
             scheduled_queue[core_id].yield(priority);
             if (scheduled_queue[core_id].size(priority) > 1) {
                 scheduled_queue[core_id].front(priority)->IncrementYieldCount();
@@ -247,9 +312,6 @@ void GlobalScheduler::PreemptThreads() {
         }
 
         if (winner != nullptr) {
-            if (winner->IsRunning()) {
-                UnloadThread(static_cast<u32>(winner->GetProcessorID()));
-            }
             TransferToCore(winner->GetPriority(), s32(core_id), winner);
             current_thread =
                 winner->GetPriority() <= current_thread->GetPriority() ? winner : current_thread;
@@ -280,9 +342,6 @@ void GlobalScheduler::PreemptThreads() {
             }
 
             if (winner != nullptr) {
-                if (winner->IsRunning()) {
-                    UnloadThread(static_cast<u32>(winner->GetProcessorID()));
-                }
                 TransferToCore(winner->GetPriority(), s32(core_id), winner);
                 current_thread = winner;
             }
@@ -292,34 +351,65 @@ void GlobalScheduler::PreemptThreads() {
     }
 }
 
+void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
+                                                 Core::EmuThreadHandle global_thread) {
+    u32 current_core = global_thread.host_handle;
+    bool must_context_switch = global_thread.guest_handle != InvalidHandle &&
+                               (current_core < Core::Hardware::NUM_CPU_CORES);
+    while (cores_pending_reschedule != 0) {
+        u32 core = Common::CountTrailingZeroes32(cores_pending_reschedule);
+        ASSERT(core < Core::Hardware::NUM_CPU_CORES);
+        if (!must_context_switch || core != current_core) {
+            auto& phys_core = kernel.PhysicalCore(core);
+            phys_core.Interrupt();
+        } else {
+            must_context_switch = true;
+        }
+        cores_pending_reschedule &= ~(1ul << core);
+    }
+    if (must_context_switch) {
+        auto& core_scheduler = kernel.CurrentScheduler();
+        kernel.ExitSVCProfile();
+        core_scheduler.TryDoContextSwitch();
+        kernel.EnterSVCProfile();
+    }
+}
+
 void GlobalScheduler::Suggest(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     suggested_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::Unsuggest(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     suggested_queue[core].remove(thread, priority);
 }
 
 void GlobalScheduler::Schedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::SchedulePrepend(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     ASSERT_MSG(thread->GetProcessorID() == s32(core), "Thread must be assigned to this core.");
     scheduled_queue[core].add(thread, priority, false);
 }
 
 void GlobalScheduler::Reschedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     scheduled_queue[core].remove(thread, priority);
     scheduled_queue[core].add(thread, priority);
 }
 
 void GlobalScheduler::Unschedule(u32 priority, std::size_t core, Thread* thread) {
+    ASSERT(is_locked);
     scheduled_queue[core].remove(thread, priority);
 }
 
 void GlobalScheduler::TransferToCore(u32 priority, s32 destination_core, Thread* thread) {
+    ASSERT(is_locked);
     const bool schedulable = thread->GetPriority() < THREADPRIO_COUNT;
     const s32 source_core = thread->GetProcessorID();
     if (source_core == destination_core || !schedulable) {
@@ -349,6 +439,108 @@ bool GlobalScheduler::AskForReselectionOrMarkRedundant(Thread* current_thread,
     }
 }
 
+void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
+    if (old_flags == thread->scheduling_state) {
+        return;
+    }
+    ASSERT(is_locked);
+
+    if (old_flags == static_cast<u32>(ThreadSchedStatus::Runnable)) {
+        // In this case the thread was running, now it's pausing/exitting
+        if (thread->processor_id >= 0) {
+            Unschedule(thread->current_priority, static_cast<u32>(thread->processor_id), thread);
+        }
+
+        for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+            if (core != static_cast<u32>(thread->processor_id) &&
+                ((thread->affinity_mask >> core) & 1) != 0) {
+                Unsuggest(thread->current_priority, core, thread);
+            }
+        }
+    } else if (thread->scheduling_state == static_cast<u32>(ThreadSchedStatus::Runnable)) {
+        // The thread is now set to running from being stopped
+        if (thread->processor_id >= 0) {
+            Schedule(thread->current_priority, static_cast<u32>(thread->processor_id), thread);
+        }
+
+        for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+            if (core != static_cast<u32>(thread->processor_id) &&
+                ((thread->affinity_mask >> core) & 1) != 0) {
+                Suggest(thread->current_priority, core, thread);
+            }
+        }
+    }
+
+    SetReselectionPending();
+}
+
+void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priority) {
+    if (thread->scheduling_state != static_cast<u32>(ThreadSchedStatus::Runnable)) {
+        return;
+    }
+    ASSERT(is_locked);
+    if (thread->processor_id >= 0) {
+        Unschedule(old_priority, static_cast<u32>(thread->processor_id), thread);
+    }
+
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        if (core != static_cast<u32>(thread->processor_id) &&
+            ((thread->affinity_mask >> core) & 1) != 0) {
+            Unsuggest(old_priority, core, thread);
+        }
+    }
+
+    if (thread->processor_id >= 0) {
+        if (thread == kernel.CurrentScheduler().GetCurrentThread()) {
+            SchedulePrepend(thread->current_priority, static_cast<u32>(thread->processor_id),
+                            thread);
+        } else {
+            Schedule(thread->current_priority, static_cast<u32>(thread->processor_id), thread);
+        }
+    }
+
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        if (core != static_cast<u32>(thread->processor_id) &&
+            ((thread->affinity_mask >> core) & 1) != 0) {
+            Suggest(thread->current_priority, core, thread);
+        }
+    }
+    thread->IncrementYieldCount();
+    SetReselectionPending();
+}
+
+void GlobalScheduler::AdjustSchedulingOnAffinity(Thread* thread, u64 old_affinity_mask,
+                                                 s32 old_core) {
+    if (thread->scheduling_state != static_cast<u32>(ThreadSchedStatus::Runnable) ||
+        thread->current_priority >= THREADPRIO_COUNT) {
+        return;
+    }
+    ASSERT(is_locked);
+
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        if (((old_affinity_mask >> core) & 1) != 0) {
+            if (core == static_cast<u32>(old_core)) {
+                Unschedule(thread->current_priority, core, thread);
+            } else {
+                Unsuggest(thread->current_priority, core, thread);
+            }
+        }
+    }
+
+    for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
+        if (((thread->affinity_mask >> core) & 1) != 0) {
+            if (core == static_cast<u32>(thread->processor_id)) {
+                Schedule(thread->current_priority, core, thread);
+            } else {
+                Suggest(thread->current_priority, core, thread);
+            }
+        }
+    }
+
+    thread->IncrementYieldCount();
+    SetReselectionPending();
+}
+
 void GlobalScheduler::Shutdown() {
     for (std::size_t core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         scheduled_queue[core].clear();
@@ -359,10 +551,12 @@ void GlobalScheduler::Shutdown() {
 
 void GlobalScheduler::Lock() {
     Core::EmuThreadHandle current_thread = kernel.GetCurrentEmuThreadID();
+    ASSERT(!current_thread.IsInvalid());
     if (current_thread == current_owner) {
         ++scope_lock;
     } else {
         inner_lock.lock();
+        is_locked = true;
         current_owner = current_thread;
         ASSERT(current_owner != Core::EmuThreadHandle::InvalidHandle());
         scope_lock = 1;
@@ -374,17 +568,18 @@ void GlobalScheduler::Unlock() {
         ASSERT(scope_lock > 0);
         return;
     }
-    for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-        SelectThread(i);
-    }
+    u32 cores_pending_reschedule = SelectThreads();
+    Core::EmuThreadHandle leaving_thread = current_owner;
     current_owner = Core::EmuThreadHandle::InvalidHandle();
     scope_lock = 1;
+    is_locked = false;
     inner_lock.unlock();
-    // TODO(Blinkhawk): Setup the interrupts and change context on current core.
+    EnableInterruptAndSchedule(cores_pending_reschedule, leaving_thread);
 }
 
-Scheduler::Scheduler(Core::System& system, std::size_t core_id)
-    : system{system}, core_id{core_id} {}
+Scheduler::Scheduler(Core::System& system, std::size_t core_id) : system(system), core_id(core_id) {
+    switch_fiber = std::make_shared<Common::Fiber>(std::function<void(void*)>(OnSwitch), this);
+}
 
 Scheduler::~Scheduler() = default;
 
@@ -393,15 +588,14 @@ bool Scheduler::HaveReadyThreads() const {
 }
 
 Thread* Scheduler::GetCurrentThread() const {
-    return current_thread.get();
+    if (current_thread) {
+        return current_thread.get();
+    }
+    return idle_thread.get();
 }
 
 Thread* Scheduler::GetSelectedThread() const {
     return selected_thread.get();
-}
-
-void Scheduler::SelectThreads() {
-    system.GlobalScheduler().SelectThread(core_id);
 }
 
 u64 Scheduler::GetLastContextSwitchTicks() const {
@@ -409,40 +603,113 @@ u64 Scheduler::GetLastContextSwitchTicks() const {
 }
 
 void Scheduler::TryDoContextSwitch() {
+    auto& phys_core = system.Kernel().CurrentPhysicalCore();
+    if (phys_core.IsInterrupted()) {
+        phys_core.ClearInterrupt();
+    }
+    guard.lock();
     if (is_context_switch_pending) {
         SwitchContext();
+    } else {
+        guard.unlock();
     }
 }
 
-void Scheduler::UnloadThread() {
-    Thread* const previous_thread = GetCurrentThread();
-    Process* const previous_process = system.Kernel().CurrentProcess();
+void Scheduler::OnThreadStart() {
+    SwitchContextStep2();
+}
 
-    UpdateLastContextSwitchTime(previous_thread, previous_process);
-
-    // Save context for previous thread
-    if (previous_thread) {
-        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext32());
-        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext64());
-        // Save the TPIDR_EL0 system register in case it was modified.
-        previous_thread->SetTPIDR_EL0(system.ArmInterface(core_id).GetTPIDR_EL0());
-
-        if (previous_thread->GetStatus() == ThreadStatus::Running) {
-            // This is only the case when a reschedule is triggered without the current thread
-            // yielding execution (i.e. an event triggered, system core time-sliced, etc)
-            previous_thread->SetStatus(ThreadStatus::Ready);
+void Scheduler::Unload() {
+    Thread* thread = current_thread.get();
+    if (thread) {
+        thread->SetContinuousOnSVC(false);
+        thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+        thread->SetIsRunning(false);
+        if (!thread->IsHLEThread() && !thread->HasExited()) {
+            Core::ARM_Interface& cpu_core = thread->ArmInterface();
+            cpu_core.SaveContext(thread->GetContext32());
+            cpu_core.SaveContext(thread->GetContext64());
+            // Save the TPIDR_EL0 system register in case it was modified.
+            thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+            cpu_core.ClearExclusiveState();
         }
-        previous_thread->SetIsRunning(false);
+        thread->context_guard.unlock();
     }
-    current_thread = nullptr;
+}
+
+void Scheduler::Reload() {
+    Thread* thread = current_thread.get();
+    if (thread) {
+        ASSERT_MSG(thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
+                   "Thread must be runnable.");
+
+        // Cancel any outstanding wakeup events for this thread
+        thread->SetIsRunning(true);
+        thread->SetWasRunning(false);
+        thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+
+        auto* const thread_owner_process = thread->GetOwnerProcess();
+        if (thread_owner_process != nullptr) {
+            system.Kernel().MakeCurrentProcess(thread_owner_process);
+        }
+        if (!thread->IsHLEThread()) {
+            Core::ARM_Interface& cpu_core = thread->ArmInterface();
+            cpu_core.LoadContext(thread->GetContext32());
+            cpu_core.LoadContext(thread->GetContext64());
+            cpu_core.SetTlsAddress(thread->GetTLSAddress());
+            cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+            cpu_core.ChangeProcessorID(this->core_id);
+            cpu_core.ClearExclusiveState();
+        }
+    }
+}
+
+void Scheduler::SwitchContextStep2() {
+    Thread* previous_thread = current_thread_prev.get();
+    Thread* new_thread = selected_thread.get();
+
+    // Load context of new thread
+    Process* const previous_process =
+        previous_thread != nullptr ? previous_thread->GetOwnerProcess() : nullptr;
+
+    if (new_thread) {
+        ASSERT_MSG(new_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
+                   "Thread must be runnable.");
+
+        // Cancel any outstanding wakeup events for this thread
+        new_thread->SetIsRunning(true);
+        new_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+        new_thread->SetWasRunning(false);
+
+        auto* const thread_owner_process = current_thread->GetOwnerProcess();
+        if (thread_owner_process != nullptr) {
+            system.Kernel().MakeCurrentProcess(thread_owner_process);
+        }
+        if (!new_thread->IsHLEThread()) {
+            Core::ARM_Interface& cpu_core = new_thread->ArmInterface();
+            cpu_core.LoadContext(new_thread->GetContext32());
+            cpu_core.LoadContext(new_thread->GetContext64());
+            cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
+            cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
+            cpu_core.ChangeProcessorID(this->core_id);
+            cpu_core.ClearExclusiveState();
+        }
+    }
+
+    TryDoContextSwitch();
 }
 
 void Scheduler::SwitchContext() {
-    Thread* const previous_thread = GetCurrentThread();
-    Thread* const new_thread = GetSelectedThread();
+    current_thread_prev = current_thread;
+    selected_thread = selected_thread_set;
+    Thread* previous_thread = current_thread_prev.get();
+    Thread* new_thread = selected_thread.get();
+    current_thread = selected_thread;
 
     is_context_switch_pending = false;
+
     if (new_thread == previous_thread) {
+        guard.unlock();
         return;
     }
 
@@ -452,51 +719,75 @@ void Scheduler::SwitchContext() {
 
     // Save context for previous thread
     if (previous_thread) {
-        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext32());
-        system.ArmInterface(core_id).SaveContext(previous_thread->GetContext64());
-        // Save the TPIDR_EL0 system register in case it was modified.
-        previous_thread->SetTPIDR_EL0(system.ArmInterface(core_id).GetTPIDR_EL0());
-
-        if (previous_thread->GetStatus() == ThreadStatus::Running) {
-            // This is only the case when a reschedule is triggered without the current thread
-            // yielding execution (i.e. an event triggered, system core time-sliced, etc)
-            previous_thread->SetStatus(ThreadStatus::Ready);
+        if (new_thread != nullptr && new_thread->IsSuspendThread()) {
+            previous_thread->SetWasRunning(true);
         }
+        previous_thread->SetContinuousOnSVC(false);
+        previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         previous_thread->SetIsRunning(false);
+        if (!previous_thread->IsHLEThread() && !previous_thread->HasExited()) {
+            Core::ARM_Interface& cpu_core = previous_thread->ArmInterface();
+            cpu_core.SaveContext(previous_thread->GetContext32());
+            cpu_core.SaveContext(previous_thread->GetContext64());
+            // Save the TPIDR_EL0 system register in case it was modified.
+            previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
+            cpu_core.ClearExclusiveState();
+        }
+        previous_thread->context_guard.unlock();
     }
 
-    // Load context of new thread
-    if (new_thread) {
-        ASSERT_MSG(new_thread->GetProcessorID() == s32(this->core_id),
-                   "Thread must be assigned to this core.");
-        ASSERT_MSG(new_thread->GetStatus() == ThreadStatus::Ready,
-                   "Thread must be ready to become running.");
-
-        // Cancel any outstanding wakeup events for this thread
-        new_thread->CancelWakeupTimer();
-        current_thread = SharedFrom(new_thread);
-        new_thread->SetStatus(ThreadStatus::Running);
-        new_thread->SetIsRunning(true);
-
-        auto* const thread_owner_process = current_thread->GetOwnerProcess();
-        if (previous_process != thread_owner_process) {
-            system.Kernel().MakeCurrentProcess(thread_owner_process);
-        }
-
-        system.ArmInterface(core_id).LoadContext(new_thread->GetContext32());
-        system.ArmInterface(core_id).LoadContext(new_thread->GetContext64());
-        system.ArmInterface(core_id).SetTlsAddress(new_thread->GetTLSAddress());
-        system.ArmInterface(core_id).SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
+    std::shared_ptr<Common::Fiber>* old_context;
+    if (previous_thread != nullptr) {
+        old_context = &previous_thread->GetHostContext();
     } else {
-        current_thread = nullptr;
-        // Note: We do not reset the current process and current page table when idling because
-        // technically we haven't changed processes, our threads are just paused.
+        old_context = &idle_thread->GetHostContext();
+    }
+    guard.unlock();
+
+    Common::Fiber::YieldTo(*old_context, switch_fiber);
+    /// When a thread wakes up, the scheduler may have changed to other in another core.
+    auto& next_scheduler = system.Kernel().CurrentScheduler();
+    next_scheduler.SwitchContextStep2();
+}
+
+void Scheduler::OnSwitch(void* this_scheduler) {
+    Scheduler* sched = static_cast<Scheduler*>(this_scheduler);
+    sched->SwitchToCurrent();
+}
+
+void Scheduler::SwitchToCurrent() {
+    while (true) {
+        guard.lock();
+        selected_thread = selected_thread_set;
+        current_thread = selected_thread;
+        is_context_switch_pending = false;
+        guard.unlock();
+        while (!is_context_switch_pending) {
+            if (current_thread != nullptr && !current_thread->IsHLEThread()) {
+                current_thread->context_guard.lock();
+                if (!current_thread->IsRunnable()) {
+                    current_thread->context_guard.unlock();
+                    break;
+                }
+                if (current_thread->GetProcessorID() != core_id) {
+                    current_thread->context_guard.unlock();
+                    break;
+                }
+            }
+            std::shared_ptr<Common::Fiber>* next_context;
+            if (current_thread != nullptr) {
+                next_context = &current_thread->GetHostContext();
+            } else {
+                next_context = &idle_thread->GetHostContext();
+            }
+            Common::Fiber::YieldTo(switch_fiber, *next_context);
+        }
     }
 }
 
 void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
     const u64 prev_switch_ticks = last_context_switch_time;
-    const u64 most_recent_switch_ticks = system.CoreTiming().GetTicks();
+    const u64 most_recent_switch_ticks = system.CoreTiming().GetCPUTicks();
     const u64 update_ticks = most_recent_switch_ticks - prev_switch_ticks;
 
     if (thread != nullptr) {
@@ -508,6 +799,16 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
     }
 
     last_context_switch_time = most_recent_switch_ticks;
+}
+
+void Scheduler::Initialize() {
+    std::string name = "Idle Thread Id:" + std::to_string(core_id);
+    std::function<void(void*)> init_func = system.GetCpuManager().GetIdleThreadStartFunc();
+    void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
+    ThreadType type = static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_IDLE);
+    auto thread_res = Thread::Create(system, type, name, 0, 64, 0, static_cast<u32>(core_id), 0,
+                                     nullptr, std::move(init_func), init_func_parameter);
+    idle_thread = std::move(thread_res).Unwrap();
 }
 
 void Scheduler::Shutdown() {
@@ -536,6 +837,15 @@ SchedulerLockAndSleep::~SchedulerLockAndSleep() {
     }
     auto& time_manager = kernel.TimeManager();
     time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
+}
+
+void SchedulerLockAndSleep::Release() {
+    if (sleep_cancelled) {
+        return;
+    }
+    auto& time_manager = kernel.TimeManager();
+    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
+    sleep_cancelled = true;
 }
 
 } // namespace Kernel

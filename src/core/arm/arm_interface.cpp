@@ -139,6 +139,63 @@ std::optional<std::string> GetSymbolName(const Symbols& symbols, VAddr func_addr
 
 constexpr u64 SEGMENT_BASE = 0x7100000000ull;
 
+std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktraceFromContext(
+    System& system, const ThreadContext64& ctx) {
+    std::vector<BacktraceEntry> out;
+    auto& memory = system.Memory();
+
+    auto fp = ctx.cpu_registers[29];
+    auto lr = ctx.cpu_registers[30];
+    while (true) {
+        out.push_back({"", 0, lr, 0});
+        if (!fp) {
+            break;
+        }
+        lr = memory.Read64(fp + 8) - 4;
+        fp = memory.Read64(fp);
+    }
+
+    std::map<VAddr, std::string> modules;
+    auto& loader{system.GetAppLoader()};
+    if (loader.ReadNSOModules(modules) != Loader::ResultStatus::Success) {
+        return {};
+    }
+
+    std::map<std::string, Symbols> symbols;
+    for (const auto& module : modules) {
+        symbols.insert_or_assign(module.second, GetSymbols(module.first, memory));
+    }
+
+    for (auto& entry : out) {
+        VAddr base = 0;
+        for (auto iter = modules.rbegin(); iter != modules.rend(); ++iter) {
+            const auto& module{*iter};
+            if (entry.original_address >= module.first) {
+                entry.module = module.second;
+                base = module.first;
+                break;
+            }
+        }
+
+        entry.offset = entry.original_address - base;
+        entry.address = SEGMENT_BASE + entry.offset;
+
+        if (entry.module.empty())
+            entry.module = "unknown";
+
+        const auto symbol_set = symbols.find(entry.module);
+        if (symbol_set != symbols.end()) {
+            const auto symbol = GetSymbolName(symbol_set->second, entry.offset);
+            if (symbol.has_value()) {
+                // TODO(DarkLordZach): Add demangling of symbol names.
+                entry.name = *symbol;
+            }
+        }
+    }
+
+    return out;
+}
+
 std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
     std::vector<BacktraceEntry> out;
     auto& memory = system.Memory();

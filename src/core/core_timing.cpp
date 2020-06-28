@@ -1,8 +1,6 @@
-// Copyright 2008 Dolphin Emulator Project / 2017 Citra Emulator Project
-// Licensed under GPLv2+
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
-
-#include "core/core_timing.h"
 
 #include <algorithm>
 #include <mutex>
@@ -10,20 +8,20 @@
 #include <tuple>
 
 #include "common/assert.h"
-#include "common/thread.h"
+#include "common/microprofile.h"
+#include "core/core_timing.h"
 #include "core/core_timing_util.h"
-#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
-constexpr int MAX_SLICE_LENGTH = 10000;
+constexpr u64 MAX_SLICE_LENGTH = 4000;
 
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
     return std::make_shared<EventType>(std::move(callback), std::move(name));
 }
 
 struct CoreTiming::Event {
-    s64 time;
+    u64 time;
     u64 fifo_order;
     u64 userdata;
     std::weak_ptr<EventType> type;
@@ -39,51 +37,90 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming() = default;
+CoreTiming::CoreTiming() {
+    clock =
+        Common::CreateBestMatchingClock(Core::Hardware::BASE_CLOCK_RATE, Core::Hardware::CNTFREQ);
+}
+
 CoreTiming::~CoreTiming() = default;
 
-void CoreTiming::Initialize() {
-    downcounts.fill(MAX_SLICE_LENGTH);
-    time_slice.fill(MAX_SLICE_LENGTH);
-    slice_length = MAX_SLICE_LENGTH;
-    global_timer = 0;
-    idled_cycles = 0;
-    current_context = 0;
+void CoreTiming::ThreadEntry(CoreTiming& instance) {
+    constexpr char name[] = "yuzu:HostTiming";
+    MicroProfileOnThreadCreate(name);
+    Common::SetCurrentThreadName(name);
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::VeryHigh);
+    instance.on_thread_init();
+    instance.ThreadLoop();
+}
 
-    // The time between CoreTiming being initialized and the first call to Advance() is considered
-    // the slice boundary between slice -1 and slice 0. Dispatcher loops must call Advance() before
-    // executing the first cycle of each slice to prepare the slice length and downcount for
-    // that slice.
-    is_global_timer_sane = true;
-
+void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
+    on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
-
+    shutting_down = false;
+    ticks = 0;
     const auto empty_timed_callback = [](u64, s64) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
+    if (is_multicore) {
+        timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
+    }
 }
 
 void CoreTiming::Shutdown() {
+    paused = true;
+    shutting_down = true;
+    pause_event.Set();
+    event.Set();
+    if (timer_thread) {
+        timer_thread->join();
+    }
     ClearPendingEvents();
+    timer_thread.reset();
+    has_started = false;
 }
 
-void CoreTiming::ScheduleEvent(s64 cycles_into_future, const std::shared_ptr<EventType>& event_type,
-                               u64 userdata) {
-    std::lock_guard guard{inner_mutex};
-    const s64 timeout = GetTicks() + cycles_into_future;
+void CoreTiming::Pause(bool is_paused) {
+    paused = is_paused;
+    pause_event.Set();
+}
 
-    // If this event needs to be scheduled before the next advance(), force one early
-    if (!is_global_timer_sane) {
-        ForceExceptionCheck(cycles_into_future);
+void CoreTiming::SyncPause(bool is_paused) {
+    if (is_paused == paused && paused_set == paused) {
+        return;
     }
+    Pause(is_paused);
+    if (timer_thread) {
+        if (!is_paused) {
+            pause_event.Set();
+        }
+        event.Set();
+        while (paused_set != is_paused)
+            ;
+    }
+}
 
-    event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
+bool CoreTiming::IsRunning() const {
+    return !paused_set;
+}
 
-    std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+bool CoreTiming::HasPendingEvents() const {
+    return !(wait_set && event_queue.empty());
+}
+
+void CoreTiming::ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
+                               u64 userdata) {
+    {
+        std::scoped_lock scope{basic_lock};
+        const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
+
+        event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
+
+        std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
+    }
+    event.Set();
 }
 
 void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata) {
-    std::lock_guard guard{inner_mutex};
-
+    std::scoped_lock scope{basic_lock};
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get() && e.userdata == userdata;
     });
@@ -95,21 +132,39 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u
     }
 }
 
-u64 CoreTiming::GetTicks() const {
-    u64 ticks = static_cast<u64>(global_timer);
-    if (!is_global_timer_sane) {
-        ticks += accumulated_ticks;
+void CoreTiming::AddTicks(u64 ticks) {
+    this->ticks += ticks;
+    downcount -= ticks;
+}
+
+void CoreTiming::Idle() {
+    if (!event_queue.empty()) {
+        const u64 next_event_time = event_queue.front().time;
+        const u64 next_ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        if (next_ticks > ticks) {
+            ticks = next_ticks;
+        }
+        return;
+    }
+    ticks += 1000U;
+}
+
+void CoreTiming::ResetTicks() {
+    downcount = MAX_SLICE_LENGTH;
+}
+
+u64 CoreTiming::GetCPUTicks() const {
+    if (is_multicore) {
+        return clock->GetCPUCycles();
     }
     return ticks;
 }
 
-u64 CoreTiming::GetIdleTicks() const {
-    return static_cast<u64>(idled_cycles);
-}
-
-void CoreTiming::AddTicks(u64 ticks) {
-    accumulated_ticks += ticks;
-    downcounts[current_context] -= static_cast<s64>(ticks);
+u64 CoreTiming::GetClockTicks() const {
+    if (is_multicore) {
+        return clock->GetClockCycles();
+    }
+    return CpuCyclesToClockCycles(ticks);
 }
 
 void CoreTiming::ClearPendingEvents() {
@@ -117,7 +172,7 @@ void CoreTiming::ClearPendingEvents() {
 }
 
 void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
-    std::lock_guard guard{inner_mutex};
+    basic_lock.lock();
 
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get();
@@ -128,99 +183,72 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
         event_queue.erase(itr, event_queue.end());
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
+    basic_lock.unlock();
 }
 
-void CoreTiming::ForceExceptionCheck(s64 cycles) {
-    cycles = std::max<s64>(0, cycles);
-    if (downcounts[current_context] <= cycles) {
-        return;
-    }
-
-    // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int
-    // here. Account for cycles already executed by adjusting the g.slice_length
-    downcounts[current_context] = static_cast<int>(cycles);
-}
-
-std::optional<u64> CoreTiming::NextAvailableCore(const s64 needed_ticks) const {
-    const u64 original_context = current_context;
-    u64 next_context = (original_context + 1) % num_cpu_cores;
-    while (next_context != original_context) {
-        if (time_slice[next_context] >= needed_ticks) {
-            return {next_context};
-        } else if (time_slice[next_context] >= 0) {
-            return std::nullopt;
-        }
-        next_context = (next_context + 1) % num_cpu_cores;
-    }
-    return std::nullopt;
-}
-
-void CoreTiming::Advance() {
-    std::unique_lock<std::mutex> guard(inner_mutex);
-
-    const u64 cycles_executed = accumulated_ticks;
-    time_slice[current_context] = std::max<s64>(0, time_slice[current_context] - accumulated_ticks);
-    global_timer += cycles_executed;
-
-    is_global_timer_sane = true;
+std::optional<s64> CoreTiming::Advance() {
+    std::scoped_lock advance_scope{advance_lock};
+    std::scoped_lock basic_scope{basic_lock};
+    global_timer = GetGlobalTimeNs().count();
 
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {
         Event evt = std::move(event_queue.front());
         std::pop_heap(event_queue.begin(), event_queue.end(), std::greater<>());
         event_queue.pop_back();
-        inner_mutex.unlock();
+        basic_lock.unlock();
 
         if (auto event_type{evt.type.lock()}) {
             event_type->callback(evt.userdata, global_timer - evt.time);
         }
 
-        inner_mutex.lock();
+        basic_lock.lock();
+        global_timer = GetGlobalTimeNs().count();
     }
 
-    is_global_timer_sane = false;
-
-    // Still events left (scheduled in the future)
     if (!event_queue.empty()) {
-        const s64 needed_ticks =
-            std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
-        const auto next_core = NextAvailableCore(needed_ticks);
-        if (next_core) {
-            downcounts[*next_core] = needed_ticks;
+        const s64 next_time = event_queue.front().time - global_timer;
+        return next_time;
+    } else {
+        return std::nullopt;
+    }
+}
+
+void CoreTiming::ThreadLoop() {
+    has_started = true;
+    while (!shutting_down) {
+        while (!paused) {
+            paused_set = false;
+            const auto next_time = Advance();
+            if (next_time) {
+                if (*next_time > 0) {
+                    std::chrono::nanoseconds next_time_ns = std::chrono::nanoseconds(*next_time);
+                    event.WaitFor(next_time_ns);
+                }
+            } else {
+                wait_set = true;
+                event.Wait();
+            }
+            wait_set = false;
         }
+        paused_set = true;
+        clock->Pause(true);
+        pause_event.Wait();
+        clock->Pause(false);
     }
-
-    accumulated_ticks = 0;
-
-    downcounts[current_context] = time_slice[current_context];
 }
 
-void CoreTiming::ResetRun() {
-    downcounts.fill(MAX_SLICE_LENGTH);
-    time_slice.fill(MAX_SLICE_LENGTH);
-    current_context = 0;
-    // Still events left (scheduled in the future)
-    if (!event_queue.empty()) {
-        const s64 needed_ticks =
-            std::min<s64>(event_queue.front().time - global_timer, MAX_SLICE_LENGTH);
-        downcounts[current_context] = needed_ticks;
+std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
+    if (is_multicore) {
+        return clock->GetTimeNS();
     }
-
-    is_global_timer_sane = false;
-    accumulated_ticks = 0;
-}
-
-void CoreTiming::Idle() {
-    accumulated_ticks += downcounts[current_context];
-    idled_cycles += downcounts[current_context];
-    downcounts[current_context] = 0;
+    return CyclesToNs(ticks);
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
-    return std::chrono::microseconds{GetTicks() * 1000000 / Hardware::BASE_CLOCK_RATE};
-}
-
-s64 CoreTiming::GetDowncount() const {
-    return downcounts[current_context];
+    if (is_multicore) {
+        return clock->GetTimeUS();
+    }
+    return CyclesToUs(ticks);
 }
 
 } // namespace Core::Timing

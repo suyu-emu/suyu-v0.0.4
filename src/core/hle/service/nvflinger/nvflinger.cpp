@@ -9,6 +9,7 @@
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/scope_exit.h"
+#include "common/thread.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
@@ -27,8 +28,35 @@
 
 namespace Service::NVFlinger {
 
-constexpr s64 frame_ticks = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 60);
-constexpr s64 frame_ticks_30fps = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 30);
+constexpr s64 frame_ticks = static_cast<s64>(1000000000 / 60);
+constexpr s64 frame_ticks_30fps = static_cast<s64>(1000000000 / 30);
+
+void NVFlinger::VSyncThread(NVFlinger& nv_flinger) {
+    nv_flinger.SplitVSync();
+}
+
+void NVFlinger::SplitVSync() {
+    system.RegisterHostThread();
+    std::string name = "yuzu:VSyncThread";
+    MicroProfileOnThreadCreate(name.c_str());
+    Common::SetCurrentThreadName(name.c_str());
+    Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
+    s64 delay = 0;
+    while (is_running) {
+        guard->lock();
+        const s64 time_start = system.CoreTiming().GetGlobalTimeNs().count();
+        Compose();
+        const auto ticks = GetNextTicks();
+        const s64 time_end = system.CoreTiming().GetGlobalTimeNs().count();
+        const s64 time_passed = time_end - time_start;
+        const s64 next_time = std::max<s64>(0, ticks - time_passed - delay);
+        guard->unlock();
+        if (next_time > 0) {
+            wait_event->WaitFor(std::chrono::nanoseconds{next_time});
+        }
+        delay = (system.CoreTiming().GetGlobalTimeNs().count() - time_end) - next_time;
+    }
+}
 
 NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(0, "Default", system);
@@ -36,22 +64,36 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     displays.emplace_back(2, "Edid", system);
     displays.emplace_back(3, "Internal", system);
     displays.emplace_back(4, "Null", system);
+    guard = std::make_shared<std::mutex>();
 
     // Schedule the screen composition events
     composition_event =
-        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 cycles_late) {
+        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 ns_late) {
+            Lock();
             Compose();
-            const auto ticks =
-                Settings::values.force_30fps_mode ? frame_ticks_30fps : GetNextTicks();
-            this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - cycles_late),
+            const auto ticks = GetNextTicks();
+            this->system.CoreTiming().ScheduleEvent(std::max<s64>(0LL, ticks - ns_late),
                                                     composition_event);
         });
-
-    system.CoreTiming().ScheduleEvent(frame_ticks, composition_event);
+    if (system.IsMulticore()) {
+        is_running = true;
+        wait_event = std::make_unique<Common::Event>();
+        vsync_thread = std::make_unique<std::thread>(VSyncThread, std::ref(*this));
+    } else {
+        system.CoreTiming().ScheduleEvent(frame_ticks, composition_event);
+    }
 }
 
 NVFlinger::~NVFlinger() {
-    system.CoreTiming().UnscheduleEvent(composition_event, 0);
+    if (system.IsMulticore()) {
+        is_running = false;
+        wait_event->Set();
+        vsync_thread->join();
+        vsync_thread.reset();
+        wait_event.reset();
+    } else {
+        system.CoreTiming().UnscheduleEvent(composition_event, 0);
+    }
 }
 
 void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
@@ -199,10 +241,12 @@ void NVFlinger::Compose() {
 
         auto& gpu = system.GPU();
         const auto& multi_fence = buffer->get().multi_fence;
+        guard->unlock();
         for (u32 fence_id = 0; fence_id < multi_fence.num_fences; fence_id++) {
             const auto& fence = multi_fence.fences[fence_id];
             gpu.WaitFence(fence.id, fence.value);
         }
+        guard->lock();
 
         MicroProfileFlip();
 
@@ -223,7 +267,7 @@ void NVFlinger::Compose() {
 
 s64 NVFlinger::GetNextTicks() const {
     constexpr s64 max_hertz = 120LL;
-    return (Core::Hardware::BASE_CLOCK_RATE * (1LL << swap_interval)) / max_hertz;
+    return (1000000000 * (1LL << swap_interval)) / max_hertz;
 }
 
 } // namespace Service::NVFlinger

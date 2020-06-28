@@ -7,15 +7,17 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
-#include "common/microprofile.h"
+#include "common/logging/log.h"
+#include "common/page_table.h"
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/arm/dynarmic/arm_dynarmic_cp15.h"
+#include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #include "core/core.h"
-#include "core/core_manager.h"
 #include "core/core_timing.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace Core {
 
@@ -49,6 +51,19 @@ public:
         parent.system.Memory().Write64(vaddr, value);
     }
 
+    bool MemoryWriteExclusive8(u32 vaddr, u8 value, u8 expected) override {
+        return parent.system.Memory().WriteExclusive8(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive16(u32 vaddr, u16 value, u16 expected) override {
+        return parent.system.Memory().WriteExclusive16(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive32(u32 vaddr, u32 value, u32 expected) override {
+        return parent.system.Memory().WriteExclusive32(vaddr, value, expected);
+    }
+    bool MemoryWriteExclusive64(u32 vaddr, u64 value, u64 expected) override {
+        return parent.system.Memory().WriteExclusive64(vaddr, value, expected);
+    }
+
     void InterpreterFallback(u32 pc, std::size_t num_instructions) override {
         UNIMPLEMENTED_MSG("This should never happen, pc = {:08X}, code = {:08X}", pc,
                           MemoryReadCode(pc));
@@ -72,24 +87,36 @@ public:
     }
 
     void AddTicks(u64 ticks) override {
+        if (parent.uses_wall_clock) {
+            return;
+        }
         // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
         // rough approximation of the amount of executed ticks in the system, it may be thrown off
         // if not all cores are doing a similar amount of work. Instead of doing this, we should
         // device a way so that timing is consistent across all cores without increasing the ticks 4
         // times.
-        u64 amortized_ticks = (ticks - num_interpreted_instructions) / Core::NUM_CPU_CORES;
+        u64 amortized_ticks =
+            (ticks - num_interpreted_instructions) / Core::Hardware::NUM_CPU_CORES;
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
         parent.system.CoreTiming().AddTicks(amortized_ticks);
         num_interpreted_instructions = 0;
     }
+
     u64 GetTicksRemaining() override {
-        return std::max(parent.system.CoreTiming().GetDowncount(), {});
+        if (parent.uses_wall_clock) {
+            if (!parent.interrupt_handlers[parent.core_index].IsInterrupted()) {
+                return minimum_run_cycles;
+            }
+            return 0U;
+        }
+        return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
     }
 
     ARM_Dynarmic_32& parent;
     std::size_t num_interpreted_instructions{};
+    static constexpr u64 minimum_run_cycles = 1000U;
 };
 
 std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& page_table,
@@ -100,13 +127,31 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     // config.page_table = &page_table.pointers;
     config.coprocessors[15] = cp15;
     config.define_unpredictable_behaviour = true;
+    static constexpr std::size_t PAGE_BITS = 12;
+    static constexpr std::size_t NUM_PAGE_TABLE_ENTRIES = 1 << (32 - PAGE_BITS);
+    config.page_table = reinterpret_cast<std::array<std::uint8_t*, NUM_PAGE_TABLE_ENTRIES>*>(
+        page_table.pointers.data());
+    config.absolute_offset_page_table = true;
+    config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
+    config.only_detect_misalignment_via_page_table_on_page_boundary = true;
+
+    // Multi-process state
+    config.processor_id = core_index;
+    config.global_monitor = &exclusive_monitor.monitor;
+
+    // Timing
+    config.wall_clock_cntpct = uses_wall_clock;
+
+    // Optimizations
+    if (Settings::values.disable_cpu_opt) {
+        config.enable_optimizations = false;
+        config.enable_fast_dispatch = false;
+    }
+
     return std::make_unique<Dynarmic::A32::Jit>(config);
 }
 
-MICROPROFILE_DEFINE(ARM_Jit_Dynarmic_32, "ARM JIT", "Dynarmic", MP_RGB(255, 64, 64));
-
 void ARM_Dynarmic_32::Run() {
-    MICROPROFILE_SCOPE(ARM_Jit_Dynarmic_32);
     jit->Run();
 }
 
@@ -114,9 +159,11 @@ void ARM_Dynarmic_32::Step() {
     jit->Step();
 }
 
-ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, ExclusiveMonitor& exclusive_monitor,
+ARM_Dynarmic_32::ARM_Dynarmic_32(System& system, CPUInterrupts& interrupt_handlers,
+                                 bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
-    : ARM_Interface{system}, cb(std::make_unique<DynarmicCallbacks32>(*this)),
+    : ARM_Interface{system, interrupt_handlers, uses_wall_clock},
+      cb(std::make_unique<DynarmicCallbacks32>(*this)),
       cp15(std::make_shared<DynarmicCP15>(*this)), core_index{core_index},
       exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
@@ -168,17 +215,25 @@ void ARM_Dynarmic_32::SetTPIDR_EL0(u64 value) {
     cp15->uprw = static_cast<u32>(value);
 }
 
+void ARM_Dynarmic_32::ChangeProcessorID(std::size_t new_core_id) {
+    jit->ChangeProcessorID(new_core_id);
+}
+
 void ARM_Dynarmic_32::SaveContext(ThreadContext32& ctx) {
     Dynarmic::A32::Context context;
     jit->SaveContext(context);
     ctx.cpu_registers = context.Regs();
+    ctx.extension_registers = context.ExtRegs();
     ctx.cpsr = context.Cpsr();
+    ctx.fpscr = context.Fpscr();
 }
 
 void ARM_Dynarmic_32::LoadContext(const ThreadContext32& ctx) {
     Dynarmic::A32::Context context;
     context.Regs() = ctx.cpu_registers;
+    context.ExtRegs() = ctx.extension_registers;
     context.SetCpsr(ctx.cpsr);
+    context.SetFpscr(ctx.fpscr);
     jit->LoadContext(context);
 }
 
@@ -187,10 +242,15 @@ void ARM_Dynarmic_32::PrepareReschedule() {
 }
 
 void ARM_Dynarmic_32::ClearInstructionCache() {
+    if (!jit) {
+        return;
+    }
     jit->ClearCache();
 }
 
-void ARM_Dynarmic_32::ClearExclusiveState() {}
+void ARM_Dynarmic_32::ClearExclusiveState() {
+    jit->ClearExclusiveState();
+}
 
 void ARM_Dynarmic_32::PageTableChanged(Common::PageTable& page_table,
                                        std::size_t new_address_space_size_in_bits) {

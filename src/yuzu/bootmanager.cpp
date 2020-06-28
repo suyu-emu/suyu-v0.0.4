@@ -44,20 +44,32 @@ EmuThread::EmuThread() = default;
 EmuThread::~EmuThread() = default;
 
 void EmuThread::run() {
-    MicroProfileOnThreadCreate("EmuThread");
+    std::string name = "yuzu:EmuControlThread";
+    MicroProfileOnThreadCreate(name.c_str());
+    Common::SetCurrentThreadName(name.c_str());
+
+    auto& system = Core::System::GetInstance();
+
+    system.RegisterHostThread();
+
+    auto& gpu = system.GPU();
 
     // Main process has been loaded. Make the context current to this thread and begin GPU and CPU
     // execution.
-    Core::System::GetInstance().GPU().Start();
+    gpu.Start();
+
+    gpu.ObtainContext();
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
-    Core::System::GetInstance().Renderer().Rasterizer().LoadDiskResources(
+    system.Renderer().Rasterizer().LoadDiskResources(
         stop_run, [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             emit LoadProgress(stage, value, total);
         });
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Complete, 0, 0);
+
+    gpu.ReleaseContext();
 
     // Holds whether the cpu was running during the last iteration,
     // so that the DebugModeLeft signal can be emitted before the
@@ -65,28 +77,32 @@ void EmuThread::run() {
     bool was_active = false;
     while (!stop_run) {
         if (running) {
-            if (!was_active)
+            if (was_active) {
                 emit DebugModeLeft();
-
-            Core::System::ResultStatus result = Core::System::GetInstance().RunLoop();
-            if (result != Core::System::ResultStatus::Success) {
-                this->SetRunning(false);
-                emit ErrorThrown(result, Core::System::GetInstance().GetStatusDetails());
             }
 
-            was_active = running || exec_step;
-            if (!was_active && !stop_run)
+            running_guard = true;
+            Core::System::ResultStatus result = system.Run();
+            if (result != Core::System::ResultStatus::Success) {
+                running_guard = false;
+                this->SetRunning(false);
+                emit ErrorThrown(result, system.GetStatusDetails());
+            }
+            running_wait.Wait();
+            result = system.Pause();
+            if (result != Core::System::ResultStatus::Success) {
+                running_guard = false;
+                this->SetRunning(false);
+                emit ErrorThrown(result, system.GetStatusDetails());
+            }
+            running_guard = false;
+
+            if (!stop_run) {
+                was_active = true;
                 emit DebugModeEntered();
+            }
         } else if (exec_step) {
-            if (!was_active)
-                emit DebugModeLeft();
-
-            exec_step = false;
-            Core::System::GetInstance().SingleStep();
-            emit DebugModeEntered();
-            yieldCurrentThread();
-
-            was_active = false;
+            UNIMPLEMENTED();
         } else {
             std::unique_lock lock{running_mutex};
             running_cv.wait(lock, [this] { return IsRunning() || exec_step || stop_run; });
@@ -94,7 +110,7 @@ void EmuThread::run() {
     }
 
     // Shutdown the core emulation
-    Core::System::GetInstance().Shutdown();
+    system.Shutdown();
 
 #if MICROPROFILE_ENABLED
     MicroProfileOnThreadExit();

@@ -11,9 +11,8 @@
 namespace Service::Time::Clock {
 
 TimeSpanType StandardSteadyClockCore::GetCurrentRawTimePoint(Core::System& system) {
-    const TimeSpanType ticks_time_span{TimeSpanType::FromTicks(
-        Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-        Core::Hardware::CNTFREQ)};
+    const TimeSpanType ticks_time_span{
+        TimeSpanType::FromTicks(system.CoreTiming().GetClockTicks(), Core::Hardware::CNTFREQ)};
     TimeSpanType raw_time_point{setup_value.nanoseconds + ticks_time_span.nanoseconds};
 
     if (raw_time_point.nanoseconds < cached_raw_time_point.nanoseconds) {

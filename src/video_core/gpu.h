@@ -284,6 +284,12 @@ public:
     /// core timing events.
     virtual void Start() = 0;
 
+    /// Obtain the CPU Context
+    virtual void ObtainContext() = 0;
+
+    /// Release the CPU Context
+    virtual void ReleaseContext() = 0;
+
     /// Push GPU command entries to be processed
     virtual void PushGPUEntries(Tegra::CommandList&& entries) = 0;
 

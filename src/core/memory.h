@@ -64,7 +64,7 @@ public:
      *
      * @param process The process to use the page table of.
      */
-    void SetCurrentPageTable(Kernel::Process& process);
+    void SetCurrentPageTable(Kernel::Process& process, u32 core_id);
 
     /**
      * Maps an allocated buffer onto a region of the emulated process address space.
@@ -243,6 +243,71 @@ public:
      * @post The memory range [addr, sizeof(data)) contains the given data value.
      */
     void Write64(VAddr addr, u64 data);
+
+    /**
+     * Writes a 8-bit unsigned integer to the given virtual address in
+     * the current process' address space if and only if the address contains
+     * the expected value. This operation is atomic.
+     *
+     * @param addr The virtual address to write the 8-bit unsigned integer to.
+     * @param data The 8-bit unsigned integer to write to the given virtual address.
+     * @param expected The 8-bit unsigned integer to check against the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    bool WriteExclusive8(VAddr addr, u8 data, u8 expected);
+
+    /**
+     * Writes a 16-bit unsigned integer to the given virtual address in
+     * the current process' address space if and only if the address contains
+     * the expected value. This operation is atomic.
+     *
+     * @param addr The virtual address to write the 16-bit unsigned integer to.
+     * @param data The 16-bit unsigned integer to write to the given virtual address.
+     * @param expected The 16-bit unsigned integer to check against the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    bool WriteExclusive16(VAddr addr, u16 data, u16 expected);
+
+    /**
+     * Writes a 32-bit unsigned integer to the given virtual address in
+     * the current process' address space if and only if the address contains
+     * the expected value. This operation is atomic.
+     *
+     * @param addr The virtual address to write the 32-bit unsigned integer to.
+     * @param data The 32-bit unsigned integer to write to the given virtual address.
+     * @param expected The 32-bit unsigned integer to check against the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    bool WriteExclusive32(VAddr addr, u32 data, u32 expected);
+
+    /**
+     * Writes a 64-bit unsigned integer to the given virtual address in
+     * the current process' address space if and only if the address contains
+     * the expected value. This operation is atomic.
+     *
+     * @param addr The virtual address to write the 64-bit unsigned integer to.
+     * @param data The 64-bit unsigned integer to write to the given virtual address.
+     * @param expected The 64-bit unsigned integer to check against the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    bool WriteExclusive64(VAddr addr, u64 data, u64 expected);
+
+    /**
+     * Writes a 128-bit unsigned integer to the given virtual address in
+     * the current process' address space if and only if the address contains
+     * the expected value. This operation is atomic.
+     *
+     * @param addr The virtual address to write the 128-bit unsigned integer to.
+     * @param data The 128-bit unsigned integer to write to the given virtual address.
+     * @param expected The 128-bit unsigned integer to check against the given virtual address.
+     *
+     * @post The memory range [addr, sizeof(data)) contains the given data value.
+     */
+    bool WriteExclusive128(VAddr addr, u128 data, u128 expected);
 
     /**
      * Reads a null-terminated string from the given virtual address.

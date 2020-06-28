@@ -511,6 +511,7 @@ private:
         LOG_DEBUG(Service_VI, "called. id=0x{:08X} transaction={:X}, flags=0x{:08X}", id,
                   static_cast<u32>(transaction), flags);
 
+        nv_flinger->Lock();
         auto& buffer_queue = nv_flinger->FindBufferQueue(id);
 
         switch (transaction) {
@@ -550,6 +551,7 @@ private:
                     [=](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
                         Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
+                        nv_flinger->Lock();
                         auto& buffer_queue = nv_flinger->FindBufferQueue(id);
                         auto result = buffer_queue.DequeueBuffer(width, height);
                         ASSERT_MSG(result != std::nullopt, "Could not dequeue buffer.");

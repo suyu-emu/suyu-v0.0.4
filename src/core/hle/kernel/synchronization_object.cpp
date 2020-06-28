@@ -38,68 +38,8 @@ void SynchronizationObject::RemoveWaitingThread(std::shared_ptr<Thread> thread) 
         waiting_threads.erase(itr);
 }
 
-std::shared_ptr<Thread> SynchronizationObject::GetHighestPriorityReadyThread() const {
-    Thread* candidate = nullptr;
-    u32 candidate_priority = THREADPRIO_LOWEST + 1;
-
-    for (const auto& thread : waiting_threads) {
-        const ThreadStatus thread_status = thread->GetStatus();
-
-        // The list of waiting threads must not contain threads that are not waiting to be awakened.
-        ASSERT_MSG(thread_status == ThreadStatus::WaitSynch ||
-                       thread_status == ThreadStatus::WaitHLEEvent,
-                   "Inconsistent thread statuses in waiting_threads");
-
-        if (thread->GetPriority() >= candidate_priority)
-            continue;
-
-        if (ShouldWait(thread.get()))
-            continue;
-
-        candidate = thread.get();
-        candidate_priority = thread->GetPriority();
-    }
-
-    return SharedFrom(candidate);
-}
-
-void SynchronizationObject::WakeupWaitingThread(std::shared_ptr<Thread> thread) {
-    ASSERT(!ShouldWait(thread.get()));
-
-    if (!thread) {
-        return;
-    }
-
-    if (thread->IsSleepingOnWait()) {
-        for (const auto& object : thread->GetSynchronizationObjects()) {
-            ASSERT(!object->ShouldWait(thread.get()));
-            object->Acquire(thread.get());
-        }
-    } else {
-        Acquire(thread.get());
-    }
-
-    const std::size_t index = thread->GetSynchronizationObjectIndex(SharedFrom(this));
-
-    thread->ClearSynchronizationObjects();
-
-    thread->CancelWakeupTimer();
-
-    bool resume = true;
-    if (thread->HasWakeupCallback()) {
-        resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Signal, thread, SharedFrom(this),
-                                              index);
-    }
-    if (resume) {
-        thread->ResumeFromWait();
-        kernel.PrepareReschedule(thread->GetProcessorID());
-    }
-}
-
-void SynchronizationObject::WakeupAllWaitingThreads() {
-    while (auto thread = GetHighestPriorityReadyThread()) {
-        WakeupWaitingThread(thread);
-    }
+void SynchronizationObject::ClearWaitingThreads() {
+    waiting_threads.clear();
 }
 
 const std::vector<std::shared_ptr<Thread>>& SynchronizationObject::GetWaitingThreads() const {

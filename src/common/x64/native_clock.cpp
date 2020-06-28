@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <chrono>
+#include <mutex>
 #include <thread>
 
 #ifdef _MSC_VER
@@ -52,7 +53,7 @@ NativeClock::NativeClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequenc
 }
 
 u64 NativeClock::GetRTSC() {
-    rtsc_serialize.lock();
+    std::scoped_lock scope{rtsc_serialize};
     _mm_mfence();
     const u64 current_measure = __rdtsc();
     u64 diff = current_measure - last_measure;
@@ -61,8 +62,15 @@ u64 NativeClock::GetRTSC() {
         last_measure = current_measure;
     }
     accumulated_ticks += diff;
-    rtsc_serialize.unlock();
-    return accumulated_ticks;
+    /// The clock cannot be more precise than the guest timer, remove the lower bits
+    return accumulated_ticks & inaccuracy_mask;
+}
+
+void NativeClock::Pause(bool is_paused) {
+    if (!is_paused) {
+        _mm_mfence();
+        last_measure = __rdtsc();
+    }
 }
 
 std::chrono::nanoseconds NativeClock::GetTimeNS() {

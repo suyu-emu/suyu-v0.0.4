@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
+#include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #endif
 #include "core/arm/exclusive_monitor.h"
 #include "core/memory.h"

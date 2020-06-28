@@ -7,6 +7,16 @@ endif()
 add_library(core STATIC
     arm/arm_interface.h
     arm/arm_interface.cpp
+    arm/cpu_interrupt_handler.cpp
+    arm/cpu_interrupt_handler.h
+    arm/dynarmic/arm_dynarmic_32.cpp
+    arm/dynarmic/arm_dynarmic_32.h
+    arm/dynarmic/arm_dynarmic_64.cpp
+    arm/dynarmic/arm_dynarmic_64.h
+    arm/dynarmic/arm_dynarmic_cp15.cpp
+    arm/dynarmic/arm_dynarmic_cp15.h
+    arm/dynarmic/arm_exclusive_monitor.cpp
+    arm/dynarmic/arm_exclusive_monitor.h
     arm/exclusive_monitor.cpp
     arm/exclusive_monitor.h
     arm/unicorn/arm_unicorn.cpp
@@ -15,8 +25,6 @@ add_library(core STATIC
     constants.h
     core.cpp
     core.h
-    core_manager.cpp
-    core_manager.h
     core_timing.cpp
     core_timing.h
     core_timing_util.cpp
@@ -547,8 +555,6 @@ add_library(core STATIC
     hle/service/vi/vi_u.h
     hle/service/wlan/wlan.cpp
     hle/service/wlan/wlan.h
-    host_timing.cpp
-    host_timing.h
     loader/deconstructed_rom_directory.cpp
     loader/deconstructed_rom_directory.h
     loader/elf.cpp

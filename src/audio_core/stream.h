@@ -96,7 +96,10 @@ private:
     void ReleaseActiveBuffer();
 
     /// Gets the number of core cycles when the specified buffer will be released
-    s64 GetBufferReleaseCycles(const Buffer& buffer) const;
+    s64 GetBufferReleaseNS(const Buffer& buffer) const;
+
+    /// Gets the number of core cycles when the specified buffer will be released
+    s64 GetBufferReleaseNSHostTiming(const Buffer& buffer) const;
 
     u32 sample_rate;                  ///< Sample rate of the stream
     Format format;                    ///< Format of the stream

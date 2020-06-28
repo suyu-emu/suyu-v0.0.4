@@ -4,14 +4,21 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 #include "common/common_types.h"
 #include "core/hle/kernel/object.h"
+
+namespace Common {
+class Event;
+} // namespace Common
 
 namespace Core::Timing {
 class CoreTiming;
@@ -79,6 +86,10 @@ public:
 
     s64 GetNextTicks() const;
 
+    std::unique_lock<std::mutex> Lock() {
+        return std::unique_lock{*guard};
+    }
+
 private:
     /// Finds the display identified by the specified ID.
     VI::Display* FindDisplay(u64 display_id);
@@ -91,6 +102,10 @@ private:
 
     /// Finds the layer identified by the specified ID in the desired display.
     const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
+
+    static void VSyncThread(NVFlinger& nv_flinger);
+
+    void SplitVSync();
 
     std::shared_ptr<Nvidia::Module> nvdrv;
 
@@ -108,7 +123,13 @@ private:
     /// Event that handles screen composition.
     std::shared_ptr<Core::Timing::EventType> composition_event;
 
+    std::shared_ptr<std::mutex> guard;
+
     Core::System& system;
+
+    std::unique_ptr<std::thread> vsync_thread;
+    std::unique_ptr<Common::Event> wait_event;
+    std::atomic<bool> is_running{};
 };
 
 } // namespace Service::NVFlinger

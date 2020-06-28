@@ -12,6 +12,7 @@ namespace Kernel {
 
 constexpr ResultCode ERR_MAX_CONNECTIONS_REACHED{ErrorModule::Kernel, 7};
 constexpr ResultCode ERR_INVALID_CAPABILITY_DESCRIPTOR{ErrorModule::Kernel, 14};
+constexpr ResultCode ERR_THREAD_TERMINATING{ErrorModule::Kernel, 59};
 constexpr ResultCode ERR_INVALID_SIZE{ErrorModule::Kernel, 101};
 constexpr ResultCode ERR_INVALID_ADDRESS{ErrorModule::Kernel, 102};
 constexpr ResultCode ERR_OUT_OF_RESOURCES{ErrorModule::Kernel, 103};

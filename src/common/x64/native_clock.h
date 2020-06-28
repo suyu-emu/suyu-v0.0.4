@@ -26,8 +26,15 @@ public:
 
     u64 GetCPUCycles() override;
 
+    void Pause(bool is_paused) override;
+
 private:
     u64 GetRTSC();
+
+    /// value used to reduce the native clocks accuracy as some apss rely on
+    /// undefined behavior where the level of accuracy in the clock shouldn't
+    /// be higher.
+    static constexpr u64 inaccuracy_mask = ~(0x400 - 1);
 
     SpinLock rtsc_serialize{};
     u64 last_measure{};

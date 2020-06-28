@@ -52,6 +52,13 @@
            </layout>
           </item>
           <item>
+           <widget class="QCheckBox" name="use_multi_core">
+            <property name="text">
+             <string>Multicore CPU Emulation</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QCheckBox" name="toggle_check_exit">
             <property name="text">
              <string>Confirm exit while emulation is running</string>
