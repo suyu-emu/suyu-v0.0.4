@@ -20,7 +20,7 @@ ACC_SU::ACC_SU(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {6, nullptr, "GetProfileDigest"}, // 3.0.0+
         {50, &ACC_SU::IsUserRegistrationRequestPermitted, "IsUserRegistrationRequestPermitted"},
         {51, &ACC_SU::TrySelectUserWithoutInteraction, "TrySelectUserWithoutInteraction"},
-        {60, nullptr, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
+        {60, &ACC_SU::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 5.0.0 - 5.1.0
         {99, nullptr, "DebugActivateOpenContextRetention"}, // 6.0.0+
         {100, nullptr, "GetUserRegistrationNotifier"},
         {101, nullptr, "GetUserStateChangeNotifier"},
