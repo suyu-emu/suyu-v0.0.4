@@ -90,6 +90,13 @@ public:
         : ServiceFramework("ISteadyClock"), clock_core{clock_core}, system{system} {
         static const FunctionInfo functions[] = {
             {0, &ISteadyClock::GetCurrentTimePoint, "GetCurrentTimePoint"},
+            {2, nullptr, "GetTestOffset"},
+            {3, nullptr, "SetTestOffset"},
+            {100, nullptr, "GetRtcValue"},
+            {101, nullptr, "IsRtcResetDetected"},
+            {102, nullptr, "GetSetupResultValue"},
+            {200, nullptr, "GetInternalOffset"},
+            {201, nullptr, "SetInternalOffset"},
         };
         RegisterHandlers(functions);
     }

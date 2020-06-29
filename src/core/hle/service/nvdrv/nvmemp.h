@@ -14,8 +14,8 @@ public:
     ~NVMEMP() override;
 
 private:
-    void Cmd0(Kernel::HLERequestContext& ctx);
-    void Cmd1(Kernel::HLERequestContext& ctx);
+    void Open(Kernel::HLERequestContext& ctx);
+    void GetAruid(Kernel::HLERequestContext& ctx);
 };
 
 } // namespace Service::Nvidia

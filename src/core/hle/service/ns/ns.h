@@ -40,10 +40,10 @@ public:
     ~IApplicationVersionInterface() override;
 };
 
-class IContentManagerInterface final : public ServiceFramework<IContentManagerInterface> {
+class IContentManagementInterface final : public ServiceFramework<IContentManagementInterface> {
 public:
-    explicit IContentManagerInterface();
-    ~IContentManagerInterface() override;
+    explicit IContentManagementInterface();
+    ~IContentManagementInterface() override;
 };
 
 class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {

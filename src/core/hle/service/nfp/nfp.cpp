@@ -55,7 +55,7 @@ public:
             {19, &IUser::GetState, "GetState"},
             {20, &IUser::GetDeviceState, "GetDeviceState"},
             {21, &IUser::GetNpadId, "GetNpadId"},
-            {22, &IUser::GetApplicationAreaSize, "GetApplicationAreaSize"},
+            {22, &IUser::GetApplicationArea2, "GetApplicationArea2"},
             {23, &IUser::AttachAvailabilityChangeEvent, "AttachAvailabilityChangeEvent"},
             {24, nullptr, "RecreateApplicationArea"},
         };
@@ -295,7 +295,7 @@ private:
         rb.Push(ErrCodes::ERR_NO_APPLICATION_AREA);
     }
 
-    void GetApplicationAreaSize(Kernel::HLERequestContext& ctx) {
+    void GetApplicationArea2(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NFP, "(STUBBED) called");
         // We don't need to worry about this since we can just open the file
         IPC::ResponseBuilder rb{ctx, 3};

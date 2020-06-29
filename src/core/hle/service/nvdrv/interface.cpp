@@ -144,7 +144,7 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
     }
 }
 
-void NVDRV::SetClientPID(Kernel::HLERequestContext& ctx) {
+void NVDRV::SetAruid(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     pid = rp.Pop<u64>();
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, pid=0x{:X}", pid);
@@ -154,7 +154,7 @@ void NVDRV::SetClientPID(Kernel::HLERequestContext& ctx) {
     rb.Push<u32>(0);
 }
 
-void NVDRV::FinishInitialize(Kernel::HLERequestContext& ctx) {
+void NVDRV::SetGraphicsFirmwareMemoryMarginEnabled(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -187,13 +187,14 @@ NVDRV::NVDRV(std::shared_ptr<Module> nvdrv, const char* name)
         {4, &NVDRV::QueryEvent, "QueryEvent"},
         {5, nullptr, "MapSharedMem"},
         {6, &NVDRV::GetStatus, "GetStatus"},
-        {7, nullptr, "ForceSetClientPID"},
-        {8, &NVDRV::SetClientPID, "SetClientPID"},
+        {7, nullptr, "SetAruidForTest"},
+        {8, &NVDRV::SetAruid, "SetAruid"},
         {9, &NVDRV::DumpGraphicsMemoryInfo, "DumpGraphicsMemoryInfo"},
         {10, nullptr, "InitializeDevtools"},
         {11, &NVDRV::Ioctl2, "Ioctl2"},
         {12, &NVDRV::Ioctl3, "Ioctl3"},
-        {13, &NVDRV::FinishInitialize, "FinishInitialize"},
+        {13, &NVDRV::SetGraphicsFirmwareMemoryMarginEnabled,
+         "SetGraphicsFirmwareMemoryMarginEnabled"},
     };
     RegisterHandlers(functions);
 }

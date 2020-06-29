@@ -24,6 +24,8 @@ public:
             {4, nullptr, "Cancel"},
             {5, nullptr, "PrintModuleInformation"},
             {6, nullptr, "GetModuleInformation"},
+            {10, nullptr, "Unknown10"},
+            {11, nullptr, "Unknown11"},
         };
         // clang-format on
 

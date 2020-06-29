@@ -29,8 +29,8 @@ private:
     void Close(Kernel::HLERequestContext& ctx);
     void Initialize(Kernel::HLERequestContext& ctx);
     void QueryEvent(Kernel::HLERequestContext& ctx);
-    void SetClientPID(Kernel::HLERequestContext& ctx);
-    void FinishInitialize(Kernel::HLERequestContext& ctx);
+    void SetAruid(Kernel::HLERequestContext& ctx);
+    void SetGraphicsFirmwareMemoryMarginEnabled(Kernel::HLERequestContext& ctx);
     void GetStatus(Kernel::HLERequestContext& ctx);
     void DumpGraphicsMemoryInfo(Kernel::HLERequestContext& ctx);
     void IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version);

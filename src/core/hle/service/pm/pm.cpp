@@ -78,13 +78,13 @@ public:
         : ServiceFramework{"pm:dmnt"}, kernel(kernel) {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "GetDebugProcesses"},
-            {1, nullptr, "StartDebugProcess"},
-            {2, &DebugMonitor::GetTitlePid, "GetTitlePid"},
-            {3, nullptr, "EnableDebugForTitleId"},
-            {4, &DebugMonitor::GetApplicationPid, "GetApplicationPid"},
-            {5, nullptr, "EnableDebugForApplication"},
-            {6, nullptr, "DisableDebug"},
+            {0, nullptr, "GetJitDebugProcessIdList"},
+            {1, nullptr, "StartProcess"},
+            {2, &DebugMonitor::GetProcessId, "GetProcessId"},
+            {3, nullptr, "HookToCreateProcess"},
+            {4, &DebugMonitor::GetApplicationProcessId, "GetApplicationProcessId"},
+            {5, nullptr, "HookToCreateApplicationProgress"},
+            {6, nullptr, "ClearHook"},
         };
         // clang-format on
 
@@ -92,7 +92,7 @@ public:
     }
 
 private:
-    void GetTitlePid(Kernel::HLERequestContext& ctx) {
+    void GetProcessId(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto title_id = rp.PopRaw<u64>();
 
@@ -114,7 +114,7 @@ private:
         rb.Push((*process)->GetProcessID());
     }
 
-    void GetApplicationPid(Kernel::HLERequestContext& ctx) {
+    void GetApplicationProcessId(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_PM, "called");
         GetApplicationPidGeneric(ctx, kernel.GetProcessList());
     }
@@ -163,15 +163,15 @@ public:
         : ServiceFramework{"pm:shell"}, kernel(kernel) {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "LaunchProcess"},
-            {1, nullptr, "TerminateProcessByPid"},
-            {2, nullptr, "TerminateProcessByTitleId"},
-            {3, nullptr, "GetProcessEventWaiter"},
-            {4, nullptr, "GetProcessEventType"},
+            {0, nullptr, "LaunchProgram"},
+            {1, nullptr, "TerminateProcess"},
+            {2, nullptr, "TerminateProgram"},
+            {3, nullptr, "GetProcessEventHandle"},
+            {4, nullptr, "GetProcessEventInfo"},
             {5, nullptr, "NotifyBootFinished"},
-            {6, &Shell::GetApplicationPid, "GetApplicationPid"},
+            {6, &Shell::GetApplicationProcessIdForShell, "GetApplicationProcessIdForShell"},
             {7, nullptr, "BoostSystemMemoryResourceLimit"},
-            {8, nullptr, "EnableAdditionalSystemThreads"},
+            {8, nullptr, "BoostApplicationThreadResourceLimit"},
             {9, nullptr, "GetBootFinishedEventHandle"},
         };
         // clang-format on
@@ -180,7 +180,7 @@ public:
     }
 
 private:
-    void GetApplicationPid(Kernel::HLERequestContext& ctx) {
+    void GetApplicationProcessIdForShell(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_PM, "called");
         GetApplicationPidGeneric(ctx, kernel.GetProcessList());
     }
