@@ -213,9 +213,10 @@ void RasterizerOpenGL::SetupVertexFormat() {
         if (attrib.type == Maxwell::VertexAttribute::Type::SignedInt ||
             attrib.type == Maxwell::VertexAttribute::Type::UnsignedInt) {
             glVertexAttribIFormat(gl_index, attrib.ComponentCount(),
-                                  MaxwellToGL::VertexType(attrib), attrib.offset);
+                                  MaxwellToGL::VertexFormat(attrib), attrib.offset);
         } else {
-            glVertexAttribFormat(gl_index, attrib.ComponentCount(), MaxwellToGL::VertexType(attrib),
+            glVertexAttribFormat(gl_index, attrib.ComponentCount(),
+                                 MaxwellToGL::VertexFormat(attrib),
                                  attrib.IsNormalized() ? GL_TRUE : GL_FALSE, attrib.offset);
         }
         glVertexAttribBinding(gl_index, attrib.buffer);

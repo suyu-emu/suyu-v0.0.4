@@ -24,7 +24,7 @@ namespace MaxwellToGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
+inline GLenum VertexFormat(Maxwell::VertexAttribute attrib) {
     switch (attrib.type) {
     case Maxwell::VertexAttribute::Type::UnsignedNorm:
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
@@ -87,7 +87,7 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
         }
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented vertex type={} and size={}", attrib.TypeString(),
+    UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", attrib.TypeString(),
                       attrib.SizeString());
     return {};
 }
