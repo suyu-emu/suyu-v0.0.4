@@ -180,7 +180,10 @@ vk::Instance CreateInstance(Common::DynamicLibrary& library, vk::InstanceDispatc
         }
     }
 
-    vk::Instance instance = vk::Instance::Create(layers, extensions, dld);
+    // Limit the maximum version of Vulkan to avoid using untested version.
+    const u32 version = std::min(vk::AvailableVersion(dld), static_cast<u32>(VK_API_VERSION_1_1));
+
+    vk::Instance instance = vk::Instance::Create(version, layers, extensions, dld);
     if (!instance) {
         LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
         return {};
