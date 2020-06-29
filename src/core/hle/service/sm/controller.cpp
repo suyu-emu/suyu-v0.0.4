@@ -55,8 +55,6 @@ Controller::Controller() : ServiceFramework("IpcController") {
         {2, &Controller::CloneCurrentObject, "CloneCurrentObject"},
         {3, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
         {4, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
-        {0x00000003, &Controller::QueryPointerBufferSize, "QueryPointerBufferSize"},
-        {0x00000004, &Controller::CloneCurrentObjectEx, "CloneCurrentObjectEx"},
     };
     RegisterHandlers(functions);
 }
