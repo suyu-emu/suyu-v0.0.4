@@ -38,7 +38,7 @@ SPL::SPL(std::shared_ptr<Module> module) : Module::Interface(std::move(module), 
         {29, nullptr, "ModularExponentiateWithDrmDeviceCertKey"},
         {30, nullptr, "ReencryptDeviceUniqueData "},
         {31, nullptr, "PrepareEsArchiveKey"}, // This is also GetPackage2Hash?
-        {32, nullptr, "LoadPreparedAesKey"}
+        {32, nullptr, "LoadPreparedAesKey"},
     };
     RegisterHandlers(functions);
 }
