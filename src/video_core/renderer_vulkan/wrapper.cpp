@@ -153,7 +153,8 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
 
 bool Load(InstanceDispatch& dld) noexcept {
 #define X(name) Proc(dld.name, dld, #name)
-    return X(vkCreateInstance) && X(vkEnumerateInstanceExtensionProperties);
+    return X(vkCreateInstance) && X(vkEnumerateInstanceExtensionProperties) &&
+           X(vkEnumerateInstanceLayerProperties);
 #undef X
 }
 
@@ -765,6 +766,19 @@ std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProp
     std::vector<VkExtensionProperties> properties(num);
     if (dld.vkEnumerateInstanceExtensionProperties(nullptr, &num, properties.data()) !=
         VK_SUCCESS) {
+        return std::nullopt;
+    }
+    return properties;
+}
+
+std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
+    const InstanceDispatch& dld) {
+    u32 num;
+    if (dld.vkEnumerateInstanceLayerProperties(&num, nullptr) != VK_SUCCESS) {
+        return std::nullopt;
+    }
+    std::vector<VkLayerProperties> properties(num);
+    if (dld.vkEnumerateInstanceLayerProperties(&num, properties.data()) != VK_SUCCESS) {
         return std::nullopt;
     }
     return properties;

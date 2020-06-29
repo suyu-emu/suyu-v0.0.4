@@ -141,6 +141,7 @@ struct InstanceDispatch {
     PFN_vkCreateInstance vkCreateInstance;
     PFN_vkDestroyInstance vkDestroyInstance;
     PFN_vkEnumerateInstanceExtensionProperties vkEnumerateInstanceExtensionProperties;
+    PFN_vkEnumerateInstanceLayerProperties vkEnumerateInstanceLayerProperties;
 
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT;
     PFN_vkCreateDevice vkCreateDevice;
@@ -994,6 +995,9 @@ private:
 };
 
 std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
+    const InstanceDispatch& dld);
+
+std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(
     const InstanceDispatch& dld);
 
 } // namespace Vulkan::vk
