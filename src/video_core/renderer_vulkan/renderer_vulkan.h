@@ -63,6 +63,8 @@ private:
     vk::InstanceDispatch dld;
 
     vk::Instance instance;
+    u32 instance_version{};
+
     vk::SurfaceKHR surface;
 
     VKScreenInfo screen_info;

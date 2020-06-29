@@ -92,9 +92,9 @@ Common::DynamicLibrary OpenVulkanLibrary() {
     return library;
 }
 
-vk::Instance CreateInstance(Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
-                            WindowSystemType window_type = WindowSystemType::Headless,
-                            bool enable_layers = false) {
+std::pair<vk::Instance, u32> CreateInstance(
+    Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
+    WindowSystemType window_type = WindowSystemType::Headless, bool enable_layers = false) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
         return {};
@@ -191,7 +191,7 @@ vk::Instance CreateInstance(Common::DynamicLibrary& library, vk::InstanceDispatc
     if (!vk::Load(*instance, dld)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
     }
-    return instance;
+    return std::make_pair(std::move(instance), version);
 }
 
 std::string GetReadableVersion(u32 version) {
@@ -289,8 +289,8 @@ bool RendererVulkan::TryPresent(int /*timeout_ms*/) {
 
 bool RendererVulkan::Init() {
     library = OpenVulkanLibrary();
-    instance = CreateInstance(library, dld, render_window.GetWindowInfo().type,
-                              Settings::values.renderer_debug);
+    std::tie(instance, instance_version) = CreateInstance(
+        library, dld, render_window.GetWindowInfo().type, Settings::values.renderer_debug);
     if (!instance || !CreateDebugCallback() || !CreateSurface() || !PickDevices()) {
         return false;
     }
@@ -423,7 +423,8 @@ bool RendererVulkan::PickDevices() {
         return false;
     }
 
-    device = std::make_unique<VKDevice>(*instance, physical_device, *surface, dld);
+    device =
+        std::make_unique<VKDevice>(*instance, instance_version, physical_device, *surface, dld);
     return device->Create();
 }
 
@@ -433,7 +434,7 @@ void RendererVulkan::Report() const {
     const std::string driver_version = GetDriverVersion(*device);
     const std::string driver_name = fmt::format("{} {}", vendor_name, driver_version);
 
-    const std::string api_version = GetReadableVersion(device->GetApiVersion());
+    const std::string api_version = GetReadableVersion(device->ApiVersion());
 
     const std::string extensions = BuildCommaSeparatedExtensions(device->GetAvailableExtensions());
 
@@ -453,7 +454,7 @@ void RendererVulkan::Report() const {
 std::vector<std::string> RendererVulkan::EnumerateDevices() {
     vk::InstanceDispatch dld;
     Common::DynamicLibrary library = OpenVulkanLibrary();
-    vk::Instance instance = CreateInstance(library, dld);
+    vk::Instance instance = CreateInstance(library, dld).first;
     if (!instance) {
         return {};
     }
