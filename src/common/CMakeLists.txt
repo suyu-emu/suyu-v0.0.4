@@ -191,5 +191,5 @@ endif()
 create_target_directory_groups(common)
 find_package(Boost 1.71 COMPONENTS context headers REQUIRED)
 
-target_link_libraries(common PUBLIC ${Boost_LIBRARIES} fmt::fmt microprofile)
+target_link_libraries(common PUBLIC ${Boost_LIBRARIES} fmt microprofile)
 target_link_libraries(common PRIVATE lz4::lz4 zstd::zstd xbyak)
