@@ -122,7 +122,7 @@ public:
             {40, nullptr, "ListApplyDeltaTask"},
             {41, nullptr, "ClearNotEnoughSpaceStateOfApplyDeltaTask"},
             {42, nullptr, "Unknown42"},
-            {43, nullptr, "Unknown42"},
+            {43, nullptr, "Unknown43"},
             {44, nullptr, "Unknown44"},
             {45, nullptr, "Unknown45"},
             {46, nullptr, "Unknown46"},
