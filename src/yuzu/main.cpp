@@ -689,6 +689,11 @@ void GMainWindow::InitializeHotkeys() {
     ui.action_Capture_Screenshot->setShortcutContext(
         hotkey_registry.GetShortcutContext(main_window, capture_screenshot));
 
+    ui.action_Fullscreen->setShortcut(
+        hotkey_registry.GetHotkey(main_window, fullscreen, this)->key());
+    ui.action_Fullscreen->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, fullscreen));
+
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load File"), this),
             &QShortcut::activated, this, &GMainWindow::OnMenuLoadFile);
     connect(
@@ -876,10 +881,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Reset_Window_Size, &QAction::triggered, this, &GMainWindow::ResetWindowSize);
 
     // Fullscreen
-    ui.action_Fullscreen->setShortcut(
-        hotkey_registry
-            .GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Fullscreen"), this)
-            ->key());
     connect(ui.action_Fullscreen, &QAction::triggered, this, &GMainWindow::ToggleFullscreen);
 
     // Movie
