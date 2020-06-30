@@ -87,6 +87,7 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(
         VK_FORMAT_R32G32_SFLOAT,
         VK_FORMAT_R32G32_SINT,
         VK_FORMAT_R32G32_UINT,
+        VK_FORMAT_R16G16B16A16_SINT,
         VK_FORMAT_R16G16B16A16_UINT,
         VK_FORMAT_R16G16B16A16_SNORM,
         VK_FORMAT_R16G16B16A16_UNORM,
