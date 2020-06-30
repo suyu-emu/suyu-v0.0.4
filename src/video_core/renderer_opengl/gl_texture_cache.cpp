@@ -43,6 +43,7 @@ struct FormatTuple {
 constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format_tuples = {{
     {GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV},             // ABGR8U
     {GL_RGBA8_SNORM, GL_RGBA, GL_BYTE},                           // ABGR8S
+    {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE},                        // ABGR8I
     {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE},              // ABGR8UI
     {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV},             // B5G6R5U
     {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV},       // A2B10G10R10U

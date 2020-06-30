@@ -43,6 +43,7 @@ static void MortonCopy(u32 stride, u32 block_height, u32 height, u32 block_depth
 static constexpr ConversionArray morton_to_linear_fns = {
     MortonCopy<true, PixelFormat::ABGR8U>,
     MortonCopy<true, PixelFormat::ABGR8S>,
+    MortonCopy<true, PixelFormat::ABGR8I>,
     MortonCopy<true, PixelFormat::ABGR8UI>,
     MortonCopy<true, PixelFormat::B5G6R5U>,
     MortonCopy<true, PixelFormat::A2B10G10R10U>,
@@ -130,6 +131,7 @@ static constexpr ConversionArray morton_to_linear_fns = {
 static constexpr ConversionArray linear_to_morton_fns = {
     MortonCopy<false, PixelFormat::ABGR8U>,
     MortonCopy<false, PixelFormat::ABGR8S>,
+    MortonCopy<false, PixelFormat::ABGR8I>,
     MortonCopy<false, PixelFormat::ABGR8UI>,
     MortonCopy<false, PixelFormat::B5G6R5U>,
     MortonCopy<false, PixelFormat::A2B10G10R10U>,

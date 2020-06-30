@@ -119,6 +119,7 @@ struct FormatTuple {
 } constexpr tex_format_tuples[] = {
     {VK_FORMAT_A8B8G8R8_UNORM_PACK32, Attachable | Storage},    // ABGR8U
     {VK_FORMAT_A8B8G8R8_SNORM_PACK32, Attachable | Storage},    // ABGR8S
+    {VK_FORMAT_A8B8G8R8_SINT_PACK32, Attachable | Storage},     // ABGR8I
     {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // ABGR8UI
     {VK_FORMAT_B5G6R5_UNORM_PACK16},                            // B5G6R5U
     {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10U
