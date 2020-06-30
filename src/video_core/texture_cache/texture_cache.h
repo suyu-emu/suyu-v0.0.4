@@ -24,6 +24,7 @@
 #include "core/core.h"
 #include "core/memory.h"
 #include "core/settings.h"
+#include "video_core/compatible_formats.h"
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/fermi_2d.h"
 #include "video_core/engines/maxwell_3d.h"
@@ -47,8 +48,8 @@ class RasterizerInterface;
 
 namespace VideoCommon {
 
+using VideoCore::Surface::FormatCompatibility;
 using VideoCore::Surface::PixelFormat;
-
 using VideoCore::Surface::SurfaceTarget;
 using RenderTargetConfig = Tegra::Engines::Maxwell3D::Regs::RenderTargetConfig;
 
@@ -595,7 +596,7 @@ private:
         } else {
             new_surface = GetUncachedSurface(gpu_addr, params);
         }
-        const auto& final_params = new_surface->GetSurfaceParams();
+        const SurfaceParams& final_params = new_surface->GetSurfaceParams();
         if (cr_params.type != final_params.type) {
             if (Settings::IsGPULevelExtreme()) {
                 BufferCopy(current_surface, new_surface);
@@ -603,7 +604,7 @@ private:
         } else {
             std::vector<CopyParams> bricks = current_surface->BreakDown(final_params);
             for (auto& brick : bricks) {
-                ImageCopy(current_surface, new_surface, brick);
+                TryCopyImage(current_surface, new_surface, brick);
             }
         }
         Unregister(current_surface);
@@ -694,7 +695,7 @@ private:
                 }
                 const CopyParams copy_params(0, 0, 0, 0, 0, base_layer, 0, mipmap, width, height,
                                              src_params.depth);
-                ImageCopy(surface, new_surface, copy_params);
+                TryCopyImage(surface, new_surface, copy_params);
             }
         }
         if (passed_tests == 0) {
@@ -791,7 +792,7 @@ private:
             const u32 width = params.width;
             const u32 height = params.height;
             const CopyParams copy_params(0, 0, 0, 0, 0, slice, 0, 0, width, height, 1);
-            ImageCopy(surface, new_surface, copy_params);
+            TryCopyImage(surface, new_surface, copy_params);
         }
         for (const auto& surface : overlaps) {
             Unregister(surface);
@@ -1192,6 +1193,19 @@ private:
         return {};
     }
 
+    /// Try to do an image copy logging when formats are incompatible.
+    void TryCopyImage(TSurface& src, TSurface& dst, const CopyParams& copy) {
+        const SurfaceParams& src_params = src->GetSurfaceParams();
+        const SurfaceParams& dst_params = dst->GetSurfaceParams();
+        if (!format_compatibility.TestCopy(src_params.pixel_format, dst_params.pixel_format)) {
+            LOG_ERROR(HW_GPU, "Illegal copy between formats={{{}, {}}}",
+                      static_cast<int>(dst_params.pixel_format),
+                      static_cast<int>(src_params.pixel_format));
+            return;
+        }
+        ImageCopy(src, dst, copy);
+    }
+
     constexpr PixelFormat GetSiblingFormat(PixelFormat format) const {
         return siblings_table[static_cast<std::size_t>(format)];
     }
@@ -1241,6 +1255,7 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
 
     FormatLookupTable format_lookup_table;
+    FormatCompatibility format_compatibility;
 
     u64 ticks{};
 
