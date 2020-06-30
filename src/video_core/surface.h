@@ -59,6 +59,7 @@ enum class PixelFormat {
     RGBA8_SRGB,
     RG8U,
     RG8S,
+    RG8I,
     RG8UI,
     RG32UI,
     RGBX16F,
@@ -176,6 +177,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     0, // RGBA8_SRGB
     0, // RG8U
     0, // RG8S
+    0, // RG8I
     0, // RG8UI
     0, // RG32UI
     0, // RGBX16F
@@ -277,6 +279,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     1,  // RGBA8_SRGB
     1,  // RG8U
     1,  // RG8S
+    1,  // RG8I
     1,  // RG8UI
     1,  // RG32UI
     1,  // RGBX16F
@@ -370,6 +373,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     1,  // RGBA8_SRGB
     1,  // RG8U
     1,  // RG8S
+    1,  // RG8I
     1,  // RG8UI
     1,  // RG32UI
     1,  // RGBX16F
@@ -463,6 +467,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     32,  // RGBA8_SRGB
     16,  // RG8U
     16,  // RG8S
+    16,  // RG8I
     16,  // RG8UI
     64,  // RG32UI
     64,  // RGBX16F
