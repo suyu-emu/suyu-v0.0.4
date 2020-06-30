@@ -191,7 +191,7 @@ void Adapter::Setup() {
 
     libusb_device** devs; // pointer to list of connected usb devices
 
-    const int cnt = libusb_get_device_list(libusb_ctx, &devs); // get the list of devices
+    const std::size_t cnt = libusb_get_device_list(libusb_ctx, &devs); // get the list of devices
 
     for (int i = 0; i < cnt; i++) {
         if (CheckDeviceAccess(devs[i])) {
