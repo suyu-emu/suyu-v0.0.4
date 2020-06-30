@@ -182,6 +182,8 @@ private slots:
     void OnStopGame();
     void OnMenuReportCompatibility();
     void OnOpenModsPage();
+    void OnOpenQuickstartGuide();
+    void OnOpenFAQ();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path);
@@ -220,6 +222,7 @@ private:
     void UpdateStatusBar();
     void HideMouseCursor();
     void ShowMouseCursor();
+    void OpenURL(const QUrl& url);
 
     Ui::MainWindow ui;
 
