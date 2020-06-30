@@ -123,6 +123,7 @@ struct FormatTuple {
     {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // ABGR8UI
     {VK_FORMAT_B5G6R5_UNORM_PACK16},                            // B5G6R5U
     {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10U
+    {VK_FORMAT_A2B10G10R10_UINT_PACK32, Attachable | Storage},  // A2B10G10R10UI
     {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1B5G5R5U (flipped with swizzle)
     {VK_FORMAT_R8_UNORM, Attachable | Storage},                 // R8U
     {VK_FORMAT_R8_SNORM, Attachable | Storage},                 // R8S

@@ -41,64 +41,65 @@ struct FormatTuple {
 };
 
 constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format_tuples = {{
-    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV},             // ABGR8U
-    {GL_RGBA8_SNORM, GL_RGBA, GL_BYTE},                           // ABGR8S
-    {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE},                        // ABGR8I
-    {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE},              // ABGR8UI
-    {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV},             // B5G6R5U
-    {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV},       // A2B10G10R10U
-    {GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV},         // A1B5G5R5U
-    {GL_R8, GL_RED, GL_UNSIGNED_BYTE},                            // R8U
-    {GL_R8_SNORM, GL_RED, GL_BYTE},                               // R8S
-    {GL_R8I, GL_RED_INTEGER, GL_BYTE},                            // R8I
-    {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE},                  // R8UI
-    {GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT},                         // RGBA16F
-    {GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT},                      // RGBA16U
-    {GL_RGBA16_SNORM, GL_RGBA, GL_SHORT},                         // RGBA16S
-    {GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT},                      // RGBA16I
-    {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT},            // RGBA16UI
-    {GL_R11F_G11F_B10F, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV}, // R11FG11FB10F
-    {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT},              // RGBA32UI
-    {GL_COMPRESSED_RGBA_S3TC_DXT1_EXT},                           // DXT1
-    {GL_COMPRESSED_RGBA_S3TC_DXT3_EXT},                           // DXT23
-    {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT},                           // DXT45
-    {GL_COMPRESSED_RED_RGTC1},                                    // DXN1
-    {GL_COMPRESSED_RG_RGTC2},                                     // DXN2UNORM
-    {GL_COMPRESSED_SIGNED_RG_RGTC2},                              // DXN2SNORM
-    {GL_COMPRESSED_RGBA_BPTC_UNORM},                              // BC7U
-    {GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT},                      // BC6H_UF16
-    {GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT},                        // BC6H_SF16
-    {GL_COMPRESSED_RGBA_ASTC_4x4_KHR},                            // ASTC_2D_4X4
-    {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE},                        // BGRA8
-    {GL_RGBA32F, GL_RGBA, GL_FLOAT},                              // RGBA32F
-    {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT},                        // RGBA32I
-    {GL_RG32F, GL_RG, GL_FLOAT},                                  // RG32F
-    {GL_RG32I, GL_RG_INTEGER, GL_INT},                            // RG32I
-    {GL_R32F, GL_RED, GL_FLOAT},                                  // R32F
-    {GL_R16F, GL_RED, GL_HALF_FLOAT},                             // R16F
-    {GL_R16, GL_RED, GL_UNSIGNED_SHORT},                          // R16U
-    {GL_R16_SNORM, GL_RED, GL_SHORT},                             // R16S
-    {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT},                // R16UI
-    {GL_R16I, GL_RED_INTEGER, GL_SHORT},                          // R16I
-    {GL_RG16, GL_RG, GL_UNSIGNED_SHORT},                          // RG16
-    {GL_RG16F, GL_RG, GL_HALF_FLOAT},                             // RG16F
-    {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT},                // RG16UI
-    {GL_RG16I, GL_RG_INTEGER, GL_SHORT},                          // RG16I
-    {GL_RG16_SNORM, GL_RG, GL_SHORT},                             // RG16S
-    {GL_RGB32F, GL_RGB, GL_FLOAT},                                // RGB32F
-    {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV},      // RGBA8_SRGB
-    {GL_RG8, GL_RG, GL_UNSIGNED_BYTE},                            // RG8U
-    {GL_RG8_SNORM, GL_RG, GL_BYTE},                               // RG8S
-    {GL_RG8I, GL_RG_INTEGER, GL_BYTE},                            // RG8I
-    {GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE},                  // RG8UI
-    {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT},                  // RG32UI
-    {GL_RGB16F, GL_RGBA, GL_HALF_FLOAT},                          // RGBX16F
-    {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT},                  // R32UI
-    {GL_R32I, GL_RED_INTEGER, GL_INT},                            // R32I
-    {GL_COMPRESSED_RGBA_ASTC_8x8_KHR},                            // ASTC_2D_8X8
-    {GL_COMPRESSED_RGBA_ASTC_8x5_KHR},                            // ASTC_2D_8X5
-    {GL_COMPRESSED_RGBA_ASTC_5x4_KHR},                            // ASTC_2D_5X4
-    {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE},                 // BGRA8
+    {GL_RGBA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV},                 // ABGR8U
+    {GL_RGBA8_SNORM, GL_RGBA, GL_BYTE},                               // ABGR8S
+    {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE},                            // ABGR8I
+    {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE},                  // ABGR8UI
+    {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV},                 // B5G6R5U
+    {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV},           // A2B10G10R10U
+    {GL_RGB10_A2UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT_2_10_10_10_REV}, // A2B10G10R10UI
+    {GL_RGB5_A1, GL_RGBA, GL_UNSIGNED_SHORT_1_5_5_5_REV},             // A1B5G5R5U
+    {GL_R8, GL_RED, GL_UNSIGNED_BYTE},                                // R8U
+    {GL_R8_SNORM, GL_RED, GL_BYTE},                                   // R8S
+    {GL_R8I, GL_RED_INTEGER, GL_BYTE},                                // R8I
+    {GL_R8UI, GL_RED_INTEGER, GL_UNSIGNED_BYTE},                      // R8UI
+    {GL_RGBA16F, GL_RGBA, GL_HALF_FLOAT},                             // RGBA16F
+    {GL_RGBA16, GL_RGBA, GL_UNSIGNED_SHORT},                          // RGBA16U
+    {GL_RGBA16_SNORM, GL_RGBA, GL_SHORT},                             // RGBA16S
+    {GL_RGBA16I, GL_RGBA_INTEGER, GL_SHORT},                          // RGBA16I
+    {GL_RGBA16UI, GL_RGBA_INTEGER, GL_UNSIGNED_SHORT},                // RGBA16UI
+    {GL_R11F_G11F_B10F, GL_RGB, GL_UNSIGNED_INT_10F_11F_11F_REV},     // R11FG11FB10F
+    {GL_RGBA32UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT},                  // RGBA32UI
+    {GL_COMPRESSED_RGBA_S3TC_DXT1_EXT},                               // DXT1
+    {GL_COMPRESSED_RGBA_S3TC_DXT3_EXT},                               // DXT23
+    {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT},                               // DXT45
+    {GL_COMPRESSED_RED_RGTC1},                                        // DXN1
+    {GL_COMPRESSED_RG_RGTC2},                                         // DXN2UNORM
+    {GL_COMPRESSED_SIGNED_RG_RGTC2},                                  // DXN2SNORM
+    {GL_COMPRESSED_RGBA_BPTC_UNORM},                                  // BC7U
+    {GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT},                          // BC6H_UF16
+    {GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT},                            // BC6H_SF16
+    {GL_COMPRESSED_RGBA_ASTC_4x4_KHR},                                // ASTC_2D_4X4
+    {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE},                            // BGRA8
+    {GL_RGBA32F, GL_RGBA, GL_FLOAT},                                  // RGBA32F
+    {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT},                            // RGBA32I
+    {GL_RG32F, GL_RG, GL_FLOAT},                                      // RG32F
+    {GL_RG32I, GL_RG_INTEGER, GL_INT},                                // RG32I
+    {GL_R32F, GL_RED, GL_FLOAT},                                      // R32F
+    {GL_R16F, GL_RED, GL_HALF_FLOAT},                                 // R16F
+    {GL_R16, GL_RED, GL_UNSIGNED_SHORT},                              // R16U
+    {GL_R16_SNORM, GL_RED, GL_SHORT},                                 // R16S
+    {GL_R16UI, GL_RED_INTEGER, GL_UNSIGNED_SHORT},                    // R16UI
+    {GL_R16I, GL_RED_INTEGER, GL_SHORT},                              // R16I
+    {GL_RG16, GL_RG, GL_UNSIGNED_SHORT},                              // RG16
+    {GL_RG16F, GL_RG, GL_HALF_FLOAT},                                 // RG16F
+    {GL_RG16UI, GL_RG_INTEGER, GL_UNSIGNED_SHORT},                    // RG16UI
+    {GL_RG16I, GL_RG_INTEGER, GL_SHORT},                              // RG16I
+    {GL_RG16_SNORM, GL_RG, GL_SHORT},                                 // RG16S
+    {GL_RGB32F, GL_RGB, GL_FLOAT},                                    // RGB32F
+    {GL_SRGB8_ALPHA8, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV},          // RGBA8_SRGB
+    {GL_RG8, GL_RG, GL_UNSIGNED_BYTE},                                // RG8U
+    {GL_RG8_SNORM, GL_RG, GL_BYTE},                                   // RG8S
+    {GL_RG8I, GL_RG_INTEGER, GL_BYTE},                                // RG8I
+    {GL_RG8UI, GL_RG_INTEGER, GL_UNSIGNED_BYTE},                      // RG8UI
+    {GL_RG32UI, GL_RG_INTEGER, GL_UNSIGNED_INT},                      // RG32UI
+    {GL_RGB16F, GL_RGBA, GL_HALF_FLOAT},                              // RGBX16F
+    {GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT},                      // R32UI
+    {GL_R32I, GL_RED_INTEGER, GL_INT},                                // R32I
+    {GL_COMPRESSED_RGBA_ASTC_8x8_KHR},                                // ASTC_2D_8X8
+    {GL_COMPRESSED_RGBA_ASTC_8x5_KHR},                                // ASTC_2D_8X5
+    {GL_COMPRESSED_RGBA_ASTC_5x4_KHR},                                // ASTC_2D_5X4
+    {GL_SRGB8_ALPHA8, GL_BGRA, GL_UNSIGNED_BYTE},                     // BGRA8
     // Compressed sRGB formats
     {GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT1_EXT},           // DXT1_SRGB
     {GL_COMPRESSED_SRGB_ALPHA_S3TC_DXT3_EXT},           // DXT23_SRGB
