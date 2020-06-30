@@ -24,10 +24,11 @@ namespace MaxwellToGL {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
+inline GLenum VertexFormat(Maxwell::VertexAttribute attrib) {
     switch (attrib.type) {
-    case Maxwell::VertexAttribute::Type::UnsignedInt:
     case Maxwell::VertexAttribute::Type::UnsignedNorm:
+    case Maxwell::VertexAttribute::Type::UnsignedScaled:
+    case Maxwell::VertexAttribute::Type::UnsignedInt:
         switch (attrib.size) {
         case Maxwell::VertexAttribute::Size::Size_8:
         case Maxwell::VertexAttribute::Size::Size_8_8:
@@ -48,8 +49,9 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
             return GL_UNSIGNED_INT_2_10_10_10_REV;
         }
         break;
-    case Maxwell::VertexAttribute::Type::SignedInt:
     case Maxwell::VertexAttribute::Type::SignedNorm:
+    case Maxwell::VertexAttribute::Type::SignedScaled:
+    case Maxwell::VertexAttribute::Type::SignedInt:
         switch (attrib.size) {
         case Maxwell::VertexAttribute::Size::Size_8:
         case Maxwell::VertexAttribute::Size::Size_8_8:
@@ -84,36 +86,8 @@ inline GLenum VertexType(Maxwell::VertexAttribute attrib) {
             return GL_FLOAT;
         }
         break;
-    case Maxwell::VertexAttribute::Type::UnsignedScaled:
-        switch (attrib.size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return GL_UNSIGNED_BYTE;
-        case Maxwell::VertexAttribute::Size::Size_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return GL_UNSIGNED_SHORT;
-        }
-        break;
-    case Maxwell::VertexAttribute::Type::SignedScaled:
-        switch (attrib.size) {
-        case Maxwell::VertexAttribute::Size::Size_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8_8:
-        case Maxwell::VertexAttribute::Size::Size_8_8_8_8:
-            return GL_BYTE;
-        case Maxwell::VertexAttribute::Size::Size_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16_16:
-        case Maxwell::VertexAttribute::Size::Size_16_16_16_16:
-            return GL_SHORT;
-        }
-        break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented vertex type={} and size={}", attrib.TypeString(),
+    UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", attrib.TypeString(),
                       attrib.SizeString());
     return {};
 }
