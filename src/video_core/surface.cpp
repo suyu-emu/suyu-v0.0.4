@@ -85,92 +85,90 @@ PixelFormat PixelFormatFromDepthFormat(Tegra::DepthFormat format) {
     case Tegra::DepthFormat::Z32_S8_X24_FLOAT:
         return PixelFormat::Z32FS8;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
-        UNREACHABLE();
+        UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<u32>(format));
         return PixelFormat::S8Z24;
     }
 }
 
 PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) {
     switch (format) {
-    case Tegra::RenderTargetFormat::RGBA8_SRGB:
-        return PixelFormat::RGBA8_SRGB;
-    case Tegra::RenderTargetFormat::RGBA8_UNORM:
-        return PixelFormat::ABGR8U;
-    case Tegra::RenderTargetFormat::RGBA8_SNORM:
-        return PixelFormat::ABGR8S;
-    case Tegra::RenderTargetFormat::RGBA8_UINT:
-        return PixelFormat::ABGR8UI;
-    case Tegra::RenderTargetFormat::BGRA8_SRGB:
-        return PixelFormat::BGRA8_SRGB;
-    case Tegra::RenderTargetFormat::BGRA8_UNORM:
-        return PixelFormat::BGRA8;
-    case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
-        return PixelFormat::A2B10G10R10U;
-    case Tegra::RenderTargetFormat::RGBA16_FLOAT:
-        return PixelFormat::RGBA16F;
+    case Tegra::RenderTargetFormat::RGBA32_FLOAT:
+        return PixelFormat::RGBA32F;
+    case Tegra::RenderTargetFormat::RGBA32_UINT:
+        return PixelFormat::RGBA32UI;
     case Tegra::RenderTargetFormat::RGBA16_UNORM:
         return PixelFormat::RGBA16U;
     case Tegra::RenderTargetFormat::RGBA16_SNORM:
         return PixelFormat::RGBA16S;
     case Tegra::RenderTargetFormat::RGBA16_UINT:
         return PixelFormat::RGBA16UI;
-    case Tegra::RenderTargetFormat::RGBA32_FLOAT:
-        return PixelFormat::RGBA32F;
+    case Tegra::RenderTargetFormat::RGBA16_FLOAT:
+        return PixelFormat::RGBA16F;
     case Tegra::RenderTargetFormat::RG32_FLOAT:
         return PixelFormat::RG32F;
-    case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
-        return PixelFormat::R11FG11FB10F;
-    case Tegra::RenderTargetFormat::B5G6R5_UNORM:
-        return PixelFormat::B5G6R5U;
-    case Tegra::RenderTargetFormat::BGR5A1_UNORM:
-        return PixelFormat::A1B5G5R5U;
-    case Tegra::RenderTargetFormat::RGBA32_UINT:
-        return PixelFormat::RGBA32UI;
-    case Tegra::RenderTargetFormat::R8_UNORM:
-        return PixelFormat::R8U;
-    case Tegra::RenderTargetFormat::R8_UINT:
-        return PixelFormat::R8UI;
-    case Tegra::RenderTargetFormat::RG16_FLOAT:
-        return PixelFormat::RG16F;
-    case Tegra::RenderTargetFormat::RG16_UINT:
-        return PixelFormat::RG16UI;
-    case Tegra::RenderTargetFormat::RG16_SINT:
-        return PixelFormat::RG16I;
+    case Tegra::RenderTargetFormat::RG32_UINT:
+        return PixelFormat::RG32UI;
+    case Tegra::RenderTargetFormat::RGBX16_FLOAT:
+        return PixelFormat::RGBX16F;
+    case Tegra::RenderTargetFormat::BGRA8_UNORM:
+        return PixelFormat::BGRA8;
+    case Tegra::RenderTargetFormat::BGRA8_SRGB:
+        return PixelFormat::BGRA8_SRGB;
+    case Tegra::RenderTargetFormat::RGB10_A2_UNORM:
+        return PixelFormat::A2B10G10R10U;
+    case Tegra::RenderTargetFormat::RGBA8_UNORM:
+        return PixelFormat::ABGR8U;
+    case Tegra::RenderTargetFormat::RGBA8_SRGB:
+        return PixelFormat::RGBA8_SRGB;
+    case Tegra::RenderTargetFormat::RGBA8_SNORM:
+        return PixelFormat::ABGR8S;
+    case Tegra::RenderTargetFormat::RGBA8_UINT:
+        return PixelFormat::ABGR8UI;
     case Tegra::RenderTargetFormat::RG16_UNORM:
         return PixelFormat::RG16;
     case Tegra::RenderTargetFormat::RG16_SNORM:
         return PixelFormat::RG16S;
+    case Tegra::RenderTargetFormat::RG16_SINT:
+        return PixelFormat::RG16I;
+    case Tegra::RenderTargetFormat::RG16_UINT:
+        return PixelFormat::RG16UI;
+    case Tegra::RenderTargetFormat::RG16_FLOAT:
+        return PixelFormat::RG16F;
+    case Tegra::RenderTargetFormat::R11G11B10_FLOAT:
+        return PixelFormat::R11FG11FB10F;
+    case Tegra::RenderTargetFormat::R32_SINT:
+        return PixelFormat::R32I;
+    case Tegra::RenderTargetFormat::R32_UINT:
+        return PixelFormat::R32UI;
+    case Tegra::RenderTargetFormat::R32_FLOAT:
+        return PixelFormat::R32F;
+    case Tegra::RenderTargetFormat::B5G6R5_UNORM:
+        return PixelFormat::B5G6R5U;
+    case Tegra::RenderTargetFormat::BGR5A1_UNORM:
+        return PixelFormat::A1B5G5R5U;
     case Tegra::RenderTargetFormat::RG8_UNORM:
         return PixelFormat::RG8U;
     case Tegra::RenderTargetFormat::RG8_SNORM:
         return PixelFormat::RG8S;
     case Tegra::RenderTargetFormat::RG8_UINT:
         return PixelFormat::RG8UI;
-    case Tegra::RenderTargetFormat::R16_FLOAT:
-        return PixelFormat::R16F;
     case Tegra::RenderTargetFormat::R16_UNORM:
         return PixelFormat::R16U;
     case Tegra::RenderTargetFormat::R16_SNORM:
         return PixelFormat::R16S;
-    case Tegra::RenderTargetFormat::R16_UINT:
-        return PixelFormat::R16UI;
     case Tegra::RenderTargetFormat::R16_SINT:
         return PixelFormat::R16I;
-    case Tegra::RenderTargetFormat::R32_FLOAT:
-        return PixelFormat::R32F;
-    case Tegra::RenderTargetFormat::R32_SINT:
-        return PixelFormat::R32I;
-    case Tegra::RenderTargetFormat::R32_UINT:
-        return PixelFormat::R32UI;
-    case Tegra::RenderTargetFormat::RG32_UINT:
-        return PixelFormat::RG32UI;
-    case Tegra::RenderTargetFormat::RGBX16_FLOAT:
-        return PixelFormat::RGBX16F;
+    case Tegra::RenderTargetFormat::R16_UINT:
+        return PixelFormat::R16UI;
+    case Tegra::RenderTargetFormat::R16_FLOAT:
+        return PixelFormat::R16F;
+    case Tegra::RenderTargetFormat::R8_UNORM:
+        return PixelFormat::R8U;
+    case Tegra::RenderTargetFormat::R8_UINT:
+        return PixelFormat::R8UI;
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented format={}", static_cast<u32>(format));
-        UNREACHABLE();
-        return PixelFormat::RGBA8_SRGB;
+        UNIMPLEMENTED_MSG("Unimplemented format={}", static_cast<int>(format));
+        return PixelFormat::ABGR8U;
     }
 }
 
