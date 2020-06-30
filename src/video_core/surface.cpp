@@ -164,6 +164,8 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
         return PixelFormat::R16F;
     case Tegra::RenderTargetFormat::R8_UNORM:
         return PixelFormat::R8U;
+    case Tegra::RenderTargetFormat::R8_SNORM:
+        return PixelFormat::R8S;
     case Tegra::RenderTargetFormat::R8_UINT:
         return PixelFormat::R8UI;
     default:
