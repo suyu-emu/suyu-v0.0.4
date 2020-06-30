@@ -20,6 +20,7 @@ enum class PixelFormat {
     ABGR8I,
     ABGR8UI,
     B5G6R5U,
+    B5G5R5A1U,
     A2B10G10R10U,
     A2B10G10R10UI,
     A1B5G5R5U,
@@ -143,6 +144,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     0, // ABGR8I
     0, // ABGR8UI
     0, // B5G6R5U
+    0, // B5G5R5A1U
     0, // A2B10G10R10U
     0, // A2B10G10R10UI
     0, // A1B5G5R5U
@@ -250,6 +252,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     1,  // ABGR8I
     1,  // ABGR8UI
     1,  // B5G6R5U
+    1,  // B5G5R5A1U
     1,  // A2B10G10R10U
     1,  // A2B10G10R10UI
     1,  // A1B5G5R5U
@@ -349,6 +352,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     1,  // ABGR8I
     1,  // ABGR8UI
     1,  // B5G6R5U
+    1,  // B5G5R5A1U
     1,  // A2B10G10R10U
     1,  // A2B10G10R10UI
     1,  // A1B5G5R5U
@@ -448,6 +452,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     32,  // ABGR8I
     32,  // ABGR8UI
     16,  // B5G6R5U
+    16,  // B5G5R5A1U
     32,  // A2B10G10R10U
     32,  // A2B10G10R10UI
     16,  // A1B5G5R5U

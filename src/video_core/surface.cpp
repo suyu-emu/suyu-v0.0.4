@@ -155,7 +155,7 @@ PixelFormat PixelFormatFromRenderTargetFormat(Tegra::RenderTargetFormat format) 
     case Tegra::RenderTargetFormat::B5G6R5_UNORM:
         return PixelFormat::B5G6R5U;
     case Tegra::RenderTargetFormat::BGR5A1_UNORM:
-        return PixelFormat::A1B5G5R5U;
+        return PixelFormat::B5G5R5A1U;
     case Tegra::RenderTargetFormat::RG8_UNORM:
         return PixelFormat::RG8U;
     case Tegra::RenderTargetFormat::RG8_SNORM:
