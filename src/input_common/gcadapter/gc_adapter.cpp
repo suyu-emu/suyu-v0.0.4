@@ -45,13 +45,13 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
         const u8 b1 = adapter_payload[1 + (9 * port) + 1];
         const u8 b2 = adapter_payload[1 + (9 * port) + 2];
 
-        for (int i = 0; i < b1_buttons.size(); i++) {
+        for (std::size_t i = 0; i < b1_buttons.size(); ++i) {
             if (b1 & (1 << i)) {
                 pad.button |= static_cast<u16>(b1_buttons[i]);
             }
         }
 
-        for (int j = 0; j < b2_buttons.size(); j++) {
+        for (std::size_t j = 0; j < b2_buttons.size(); ++j) {
             if (b2 & (1 << j)) {
                 pad.button |= static_cast<u16>(b2_buttons[j]);
             }
@@ -73,7 +73,7 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
 
 void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
     for (const auto& button : PadButtonArray) {
-        u16 button_value = static_cast<u16>(button);
+        const u16 button_value = static_cast<u16>(button);
         state.buttons.insert_or_assign(button_value, pad.button & button_value);
     }
 
@@ -86,7 +86,7 @@ void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
 }
 
 void Adapter::Read() {
-    LOG_INFO(Input, "GC Adapter Read() thread started");
+    LOG_DEBUG(Input, "GC Adapter Read() thread started");
 
     int payload_size_in, payload_size_copy;
     std::array<u8, 37> adapter_payload;
@@ -109,12 +109,10 @@ void Adapter::Read() {
             LOG_ERROR(Input, "error reading payload (size: %d, type: %02x)", payload_size_copy,
                       adapter_payload_copy[0]);
             adapter_thread_running = false; // error reading from adapter, stop reading.
-        } else {
-            for (int port = 0; port < pads.size(); port++) {
-                pads[port] = GetPadStatus(port, adapter_payload_copy);
-            }
+            break;
         }
-        for (int port = 0; port < pads.size(); port++) {
+        for (std::size_t port = 0; port < pads.size(); ++port) {
+            pads[port] = GetPadStatus(port, adapter_payload_copy);
             if (DeviceConnected(port) && configuring) {
                 if (pads[port].button != PAD_GET_ORIGIN) {
                     pad_queue[port].Push(pads[port]);
@@ -189,14 +187,16 @@ void Adapter::Setup() {
 
     adapter_controllers_status.fill(ControllerTypes::None);
 
-    libusb_device** devs; // pointer to list of connected usb devices
+    // pointer to list of connected usb devices
+    libusb_device** devices;
 
-    const std::size_t cnt = libusb_get_device_list(libusb_ctx, &devs); // get the list of devices
+    // populate the list of devices, get the count
+    const std::size_t device_count = libusb_get_device_list(libusb_ctx, &devices);
 
-    for (int i = 0; i < cnt; i++) {
-        if (CheckDeviceAccess(devs[i])) {
+    for (std::size_t index = 0; index < device_count; ++index) {
+        if (CheckDeviceAccess(devices[index])) {
             // GC Adapter found and accessible, registering it
-            GetGCEndpoint(devs[i]);
+            GetGCEndpoint(devices[index]);
             break;
         }
     }

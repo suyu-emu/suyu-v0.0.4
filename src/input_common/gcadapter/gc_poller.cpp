@@ -39,9 +39,9 @@ public:
     bool GetStatus() const override {
         const float axis_value = (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 128.0f;
         if (trigger_if_greater) {
-            return axis_value > 0.10f; // TODO(ameerj) : Fix threshold.
+            return axis_value > threshold; // TODO(ameerj) : Fix threshold.
         }
-        return axis_value < -0.10f;
+        return axis_value < -threshold;
     }
 
 private:
@@ -87,16 +87,13 @@ Common::ParamPackage GCButtonFactory::GetNextInput() {
     Common::ParamPackage params;
     GCAdapter::GCPadStatus pad;
     auto& queue = adapter->GetPadQueue();
-    for (int port = 0; port < queue.size(); port++) {
+    for (std::size_t port = 0; port < queue.size(); ++port) {
         while (queue[port].Pop(pad)) {
             // This while loop will break on the earliest detected button
             params.Set("engine", "gcpad");
-            params.Set("port", port);
-            // I was debating whether to keep these verbose for ease of reading
-            // or to use a while loop shifting the bits to test and set the value.
-
-            for (auto button : GCAdapter::PadButtonArray) {
-                u16 button_value = static_cast<u16>(button);
+            params.Set("port", static_cast<int>(port));
+            for (const auto& button : GCAdapter::PadButtonArray) {
+                const u16 button_value = static_cast<u16>(button);
                 if (pad.button & button_value) {
                     params.Set("button", button_value);
                     break;
@@ -228,7 +225,7 @@ void GCAnalogFactory::EndConfiguration() {
 Common::ParamPackage GCAnalogFactory::GetNextInput() {
     GCAdapter::GCPadStatus pad;
     auto& queue = adapter->GetPadQueue();
-    for (int port = 0; port < queue.size(); port++) {
+    for (std::size_t port = 0; port < queue.size(); ++port) {
         while (queue[port].Pop(pad)) {
             if (pad.axis == GCAdapter::PadAxes::Undefined ||
                 std::abs((pad.axis_value - 128.0f) / 128.0f) < 0.1) {
