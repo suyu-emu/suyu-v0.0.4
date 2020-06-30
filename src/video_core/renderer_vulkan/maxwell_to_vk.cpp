@@ -125,6 +125,7 @@ struct FormatTuple {
     {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1B5G5R5U (flipped with swizzle)
     {VK_FORMAT_R8_UNORM, Attachable | Storage},                 // R8U
     {VK_FORMAT_R8_SNORM, Attachable | Storage},                 // R8S
+    {VK_FORMAT_R8_SINT, Attachable | Storage},                  // R8I
     {VK_FORMAT_R8_UINT, Attachable | Storage},                  // R8UI
     {VK_FORMAT_R16G16B16A16_SFLOAT, Attachable | Storage},      // RGBA16F
     {VK_FORMAT_R16G16B16A16_UNORM, Attachable | Storage},       // RGBA16U
