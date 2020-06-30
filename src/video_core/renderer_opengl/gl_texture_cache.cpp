@@ -71,6 +71,7 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
     {GL_COMPRESSED_RGBA_ASTC_4x4_KHR},                            // ASTC_2D_4X4
     {GL_RGBA8, GL_BGRA, GL_UNSIGNED_BYTE},                        // BGRA8
     {GL_RGBA32F, GL_RGBA, GL_FLOAT},                              // RGBA32F
+    {GL_RGBA32I, GL_RGBA_INTEGER, GL_INT},                        // RGBA32I
     {GL_RG32F, GL_RG, GL_FLOAT},                                  // RG32F
     {GL_RG32I, GL_RG_INTEGER, GL_INT},                            // RG32I
     {GL_R32F, GL_RED, GL_FLOAT},                                  // R32F

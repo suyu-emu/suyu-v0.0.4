@@ -45,6 +45,7 @@ enum class PixelFormat {
     ASTC_2D_4X4,
     BGRA8,
     RGBA32F,
+    RGBA32I,
     RG32F,
     RG32I,
     R32F,
@@ -166,6 +167,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     2, // ASTC_2D_4X4
     0, // BGRA8
     0, // RGBA32F
+    0, // RGBA32I
     0, // RG32F
     0, // RG32I
     0, // R32F
@@ -271,6 +273,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     4,  // ASTC_2D_4X4
     1,  // BGRA8
     1,  // RGBA32F
+    1,  // RGBA32I
     1,  // RG32F
     1,  // RG32I
     1,  // R32F
@@ -368,6 +371,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     4,  // ASTC_2D_4X4
     1,  // BGRA8
     1,  // RGBA32F
+    1,  // RGBA32I
     1,  // RG32F
     1,  // RG32I
     1,  // R32F
@@ -465,6 +469,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     128, // ASTC_2D_4X4
     32,  // BGRA8
     128, // RGBA32F
+    128, // RGBA32I
     64,  // RG32F
     64,  // RG32I
     32,  // R32F

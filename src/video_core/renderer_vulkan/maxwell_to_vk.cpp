@@ -147,6 +147,7 @@ struct FormatTuple {
     {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},                           // ASTC_2D_4X4
     {VK_FORMAT_B8G8R8A8_UNORM, Attachable},                     // BGRA8
     {VK_FORMAT_R32G32B32A32_SFLOAT, Attachable | Storage},      // RGBA32F
+    {VK_FORMAT_R32G32B32A32_SINT, Attachable | Storage},        // RGBA32I
     {VK_FORMAT_R32G32_SFLOAT, Attachable | Storage},            // RG32F
     {VK_FORMAT_R32G32_SINT, Attachable | Storage},              // RG32I
     {VK_FORMAT_R32_SFLOAT, Attachable | Storage},               // R32F
