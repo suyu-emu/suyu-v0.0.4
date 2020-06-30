@@ -41,31 +41,37 @@ struct Table {
     ComponentType alpha_component;
     bool is_srgb;
 };
-constexpr std::array<Table, 78> DefinitionTable = {{
+constexpr std::array<Table, 86> DefinitionTable = {{
     {TextureFormat::A8R8G8B8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ABGR8U},
     {TextureFormat::A8R8G8B8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::ABGR8S},
     {TextureFormat::A8R8G8B8, C, UINT, UINT, UINT, UINT, PixelFormat::ABGR8UI},
+    {TextureFormat::A8R8G8B8, C, SINT, SINT, SINT, SINT, PixelFormat::ABGR8I},
     {TextureFormat::A8R8G8B8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::RGBA8_SRGB},
 
     {TextureFormat::B5G6R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::B5G6R5U},
 
     {TextureFormat::A2B10G10R10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A2B10G10R10U},
+    {TextureFormat::A2B10G10R10, C, UINT, UINT, UINT, UINT, PixelFormat::A2B10G10R10UI},
 
     {TextureFormat::A1B5G5R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A1B5G5R5U},
 
     {TextureFormat::A4B4G4R4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R4G4B4A4U},
 
     {TextureFormat::R8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R8U},
+    {TextureFormat::R8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R8S},
     {TextureFormat::R8, C, UINT, UINT, UINT, UINT, PixelFormat::R8UI},
+    {TextureFormat::R8, C, SINT, SINT, SINT, SINT, PixelFormat::R8I},
 
     {TextureFormat::G8R8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RG8U},
     {TextureFormat::G8R8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::RG8S},
     {TextureFormat::G8R8, C, UINT, UINT, UINT, UINT, PixelFormat::RG8UI},
+    {TextureFormat::G8R8, C, SINT, SINT, SINT, SINT, PixelFormat::RG8I},
 
     {TextureFormat::R16_G16_B16_A16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::RGBA16S},
     {TextureFormat::R16_G16_B16_A16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RGBA16U},
     {TextureFormat::R16_G16_B16_A16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGBA16F},
     {TextureFormat::R16_G16_B16_A16, C, UINT, UINT, UINT, UINT, PixelFormat::RGBA16UI},
+    {TextureFormat::R16_G16_B16_A16, C, SINT, SINT, SINT, SINT, PixelFormat::RGBA16I},
 
     {TextureFormat::R16_G16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RG16F},
     {TextureFormat::R16_G16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RG16},
@@ -83,11 +89,13 @@ constexpr std::array<Table, 78> DefinitionTable = {{
 
     {TextureFormat::R32_G32_B32_A32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGBA32F},
     {TextureFormat::R32_G32_B32_A32, C, UINT, UINT, UINT, UINT, PixelFormat::RGBA32UI},
+    {TextureFormat::R32_G32_B32_A32, C, SINT, SINT, SINT, SINT, PixelFormat::RGBA32I},
 
     {TextureFormat::R32_G32_B32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGB32F},
 
     {TextureFormat::R32_G32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RG32F},
     {TextureFormat::R32_G32, C, UINT, UINT, UINT, UINT, PixelFormat::RG32UI},
+    {TextureFormat::R32_G32, C, SINT, SINT, SINT, SINT, PixelFormat::RG32I},
 
     {TextureFormat::R32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32F},
     {TextureFormat::R32, C, UINT, UINT, UINT, UINT, PixelFormat::R32UI},
