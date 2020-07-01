@@ -302,7 +302,7 @@ private:
         rb.Push<u64>(write_size);
     }
 
-    Core::Crypto::KeyManager keys;
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::instance();
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {

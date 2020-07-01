@@ -178,7 +178,7 @@ u32 XCI::GetSystemUpdateVersion() {
         return 0;
 
     for (const auto& file : update->GetFiles()) {
-        NCA nca{file, nullptr, 0, keys};
+        NCA nca{file, nullptr, 0};
 
         if (nca.GetStatus() != Loader::ResultStatus::Success)
             continue;
@@ -286,7 +286,7 @@ Loader::ResultStatus XCI::AddNCAFromPartition(XCIPartition part) {
             continue;
         }
 
-        auto nca = std::make_shared<NCA>(file, nullptr, 0, keys);
+        auto nca = std::make_shared<NCA>(file, nullptr, 0);
         if (nca->IsUpdate()) {
             continue;
         }
