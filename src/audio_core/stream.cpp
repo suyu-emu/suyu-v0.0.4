@@ -105,7 +105,9 @@ void Stream::PlayNextBuffer(s64 cycles_late) {
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 
-    core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer) - cycles_late, release_event, {});
+    core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer) -
+                                  (Settings::values.enable_audio_stretching ? 0 : cycles_late),
+                              release_event, {});
 }
 
 void Stream::ReleaseActiveBuffer(s64 cycles_late) {
