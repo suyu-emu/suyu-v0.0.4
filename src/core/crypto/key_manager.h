@@ -223,7 +223,7 @@ bool operator<(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
 
 class KeyManager {
 public:
-    static KeyManager& instance() {
+    static KeyManager& Instance() {
         static KeyManager instance;
         return instance;
     }

@@ -21,7 +21,7 @@
 namespace FileSys {
 namespace {
 void SetTicketKeys(const std::vector<VirtualFile>& files) {
-    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::instance();
+    auto& keys = Core::Crypto::KeyManager::Instance();
 
     for (const auto& ticket_file : files) {
         if (ticket_file == nullptr) {
