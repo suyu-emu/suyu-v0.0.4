@@ -228,8 +228,8 @@ public:
         return instance;
     }
 
-    KeyManager(KeyManager const&) = delete;
-    void operator=(KeyManager const&) = delete;
+    KeyManager(const KeyManager&) = delete;
+    KeyManager& operator=(const KeyManager&) = delete;
 
     bool HasKey(S128KeyType id, u64 field1 = 0, u64 field2 = 0) const;
     bool HasKey(S256KeyType id, u64 field1 = 0, u64 field2 = 0) const;
