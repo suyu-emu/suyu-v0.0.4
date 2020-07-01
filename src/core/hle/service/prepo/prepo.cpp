@@ -75,8 +75,13 @@ private:
         const auto user_id = rp.PopRaw<u128>();
         const auto process_id = rp.PopRaw<u64>();
         std::vector<std::vector<u8>> data{ctx.ReadBuffer(0)};
+
         if constexpr (Type == Core::Reporter::PlayReportType::Old2) {
-            data.emplace_back(ctx.ReadBuffer(1));
+            const auto read_buffer_count =
+                ctx.BufferDescriptorX().size() + ctx.BufferDescriptorA().size();
+            if (read_buffer_count > 1) {
+                data.emplace_back(ctx.ReadBuffer(1));
+            }
         }
 
         LOG_DEBUG(
