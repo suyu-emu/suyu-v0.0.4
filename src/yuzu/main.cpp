@@ -1081,17 +1081,19 @@ void GMainWindow::BootGame(const QString& filename) {
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
     std::string title_name;
+    std::string title_version;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
-    if (res != Loader::ResultStatus::Success) {
-        const auto metadata = FileSys::PatchManager(title_id).GetControlMetadata();
-        if (metadata.first != nullptr)
-            title_name = metadata.first->GetApplicationName();
 
-        if (title_name.empty())
-            title_name = FileUtil::GetFilename(filename.toStdString());
+    const auto metadata = FileSys::PatchManager(title_id).GetControlMetadata();
+    if (metadata.first != nullptr) {
+        title_version = metadata.first->GetVersionString();
+        title_name = metadata.first->GetApplicationName();
     }
-    LOG_INFO(Frontend, "Booting game: {:016X} | {}", title_id, title_name);
-    UpdateWindowTitle(QString::fromStdString(title_name));
+    if (res != Loader::ResultStatus::Success || title_name.empty()) {
+        title_name = FileUtil::GetFilename(filename.toStdString());
+    }
+    LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
+    UpdateWindowTitle(title_name, title_version);
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
     loading_screen->show();
@@ -2064,7 +2066,8 @@ void GMainWindow::OnCaptureScreenshot() {
     OnStartGame();
 }
 
-void GMainWindow::UpdateWindowTitle(const QString& title_name) {
+void GMainWindow::UpdateWindowTitle(const std::string& title_name,
+                                    const std::string& title_version) {
     const auto full_name = std::string(Common::g_build_fullname);
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -2073,7 +2076,7 @@ void GMainWindow::UpdateWindowTitle(const QString& title_name) {
     const auto date =
         QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd")).toStdString();
 
-    if (title_name.isEmpty()) {
+    if (title_name.empty()) {
         const auto fmt = std::string(Common::g_title_bar_format_idle);
         setWindowTitle(QString::fromStdString(fmt::format(fmt.empty() ? "yuzu {0}| {1}-{2}" : fmt,
                                                           full_name, branch_name, description,
@@ -2081,8 +2084,8 @@ void GMainWindow::UpdateWindowTitle(const QString& title_name) {
     } else {
         const auto fmt = std::string(Common::g_title_bar_format_running);
         setWindowTitle(QString::fromStdString(
-            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {1}-{2}" : fmt, full_name, branch_name,
-                        description, title_name.toStdString(), date, build_id)));
+            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {6} | {1}-{2}" : fmt, full_name, branch_name,
+                        description, title_name, date, build_id, title_version)));
     }
 }
 

@@ -218,7 +218,8 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
-    void UpdateWindowTitle(const QString& title_name = {});
+    void UpdateWindowTitle(const std::string& title_name = {},
+                           const std::string& title_version = {});
     void UpdateStatusBar();
     void HideMouseCursor();
     void ShowMouseCursor();
