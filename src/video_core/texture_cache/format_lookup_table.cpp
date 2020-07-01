@@ -48,7 +48,7 @@ constexpr std::array<Table, 86> DefinitionTable = {{
     {TextureFormat::A8R8G8B8, C, SINT, SINT, SINT, SINT, PixelFormat::ABGR8I},
     {TextureFormat::A8R8G8B8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::RGBA8_SRGB},
 
-    {TextureFormat::B5G6R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::B5G6R5U},
+    {TextureFormat::B5G6R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R5G6B5U},
 
     {TextureFormat::A2B10G10R10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A2B10G10R10U},
     {TextureFormat::A2B10G10R10, C, UINT, UINT, UINT, UINT, PixelFormat::A2B10G10R10UI},
@@ -118,9 +118,8 @@ constexpr std::array<Table, 86> DefinitionTable = {{
     {TextureFormat::DXT45, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT45},
     {TextureFormat::DXT45, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT45_SRGB},
 
-    // TODO: Use a different pixel format for SNORM
-    {TextureFormat::DXN1, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXN1},
-    {TextureFormat::DXN1, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::DXN1},
+    {TextureFormat::DXN1, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXN1UNORM},
+    {TextureFormat::DXN1, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::DXN1SNORM},
 
     {TextureFormat::DXN2, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXN2UNORM},
     {TextureFormat::DXN2, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::DXN2SNORM},

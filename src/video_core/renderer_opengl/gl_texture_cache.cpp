@@ -46,6 +46,7 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
     {GL_RGBA8I, GL_RGBA_INTEGER, GL_BYTE},                            // ABGR8I
     {GL_RGBA8UI, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE},                  // ABGR8UI
     {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5},                     // B5G6R5U
+    {GL_RGB565, GL_RGB, GL_UNSIGNED_SHORT_5_6_5_REV},                 // R5G6B5U
     {GL_RGB5_A1, GL_BGRA, GL_UNSIGNED_SHORT_1_5_5_5_REV},             // B5G5R5A1U
     {GL_RGB10_A2, GL_RGBA, GL_UNSIGNED_INT_2_10_10_10_REV},           // A2B10G10R10U
     {GL_RGB10_A2UI, GL_RGBA_INTEGER, GL_UNSIGNED_INT_2_10_10_10_REV}, // A2B10G10R10UI
@@ -64,7 +65,8 @@ constexpr std::array<FormatTuple, VideoCore::Surface::MaxPixelFormat> tex_format
     {GL_COMPRESSED_RGBA_S3TC_DXT1_EXT},                               // DXT1
     {GL_COMPRESSED_RGBA_S3TC_DXT3_EXT},                               // DXT23
     {GL_COMPRESSED_RGBA_S3TC_DXT5_EXT},                               // DXT45
-    {GL_COMPRESSED_RED_RGTC1},                                        // DXN1
+    {GL_COMPRESSED_RED_RGTC1},                                        // DXN1UNORM
+    {GL_COMPRESSED_SIGNED_RED_RGTC1},                                 // DXN1SNORM
     {GL_COMPRESSED_RG_RGTC2},                                         // DXN2UNORM
     {GL_COMPRESSED_SIGNED_RG_RGTC2},                                  // DXN2SNORM
     {GL_COMPRESSED_RGBA_BPTC_UNORM},                                  // BC7U

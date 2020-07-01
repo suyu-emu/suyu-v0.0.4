@@ -283,25 +283,4 @@ std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
     return {GetDefaultBlockWidth(format), GetDefaultBlockHeight(format)};
 }
 
-bool IsFormatBCn(PixelFormat format) {
-    switch (format) {
-    case PixelFormat::DXT1:
-    case PixelFormat::DXT23:
-    case PixelFormat::DXT45:
-    case PixelFormat::DXN1:
-    case PixelFormat::DXN2SNORM:
-    case PixelFormat::DXN2UNORM:
-    case PixelFormat::BC7U:
-    case PixelFormat::BC6H_UF16:
-    case PixelFormat::BC6H_SF16:
-    case PixelFormat::DXT1_SRGB:
-    case PixelFormat::DXT23_SRGB:
-    case PixelFormat::DXT45_SRGB:
-    case PixelFormat::BC7U_SRGB:
-        return true;
-    default:
-        return false;
-    }
-}
-
 } // namespace VideoCore::Surface

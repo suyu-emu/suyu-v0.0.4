@@ -20,6 +20,7 @@ enum class PixelFormat {
     ABGR8I,
     ABGR8UI,
     B5G6R5U,
+    R5G6B5U,
     B5G5R5A1U,
     A2B10G10R10U,
     A2B10G10R10UI,
@@ -38,7 +39,8 @@ enum class PixelFormat {
     DXT1,
     DXT23,
     DXT45,
-    DXN1, // This is also known as BC4
+    DXN1UNORM, // This is also known as BC4
+    DXN1SNORM,
     DXN2UNORM,
     DXN2SNORM,
     BC7U,
@@ -144,6 +146,7 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     0, // ABGR8I
     0, // ABGR8UI
     0, // B5G6R5U
+    0, // R5G6B5U
     0, // B5G5R5A1U
     0, // A2B10G10R10U
     0, // A2B10G10R10UI
@@ -162,7 +165,8 @@ constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
     2, // DXT1
     2, // DXT23
     2, // DXT45
-    2, // DXN1
+    2, // DXN1UNORM
+    2, // DXN1SNORM
     2, // DXN2UNORM
     2, // DXN2SNORM
     2, // BC7U
@@ -252,6 +256,7 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     1,  // ABGR8I
     1,  // ABGR8UI
     1,  // B5G6R5U
+    1,  // R5G6B5U
     1,  // B5G5R5A1U
     1,  // A2B10G10R10U
     1,  // A2B10G10R10UI
@@ -270,7 +275,8 @@ constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
     4,  // DXT1
     4,  // DXT23
     4,  // DXT45
-    4,  // DXN1
+    4,  // DXN1UNORM
+    4,  // DXN1SNORM
     4,  // DXN2UNORM
     4,  // DXN2SNORM
     4,  // BC7U
@@ -352,6 +358,7 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     1,  // ABGR8I
     1,  // ABGR8UI
     1,  // B5G6R5U
+    1,  // R5G6B5U
     1,  // B5G5R5A1U
     1,  // A2B10G10R10U
     1,  // A2B10G10R10UI
@@ -370,7 +377,8 @@ constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
     4,  // DXT1
     4,  // DXT23
     4,  // DXT45
-    4,  // DXN1
+    4,  // DXN1UNORM
+    4,  // DXN1SNORM
     4,  // DXN2UNORM
     4,  // DXN2SNORM
     4,  // BC7U
@@ -452,6 +460,7 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     32,  // ABGR8I
     32,  // ABGR8UI
     16,  // B5G6R5U
+    16,  // R5G6B5U
     16,  // B5G5R5A1U
     32,  // A2B10G10R10U
     32,  // A2B10G10R10UI
@@ -470,7 +479,8 @@ constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
     64,  // DXT1
     128, // DXT23
     128, // DXT45
-    64,  // DXN1
+    64,  // DXN1UNORM
+    64,  // DXN1SNORM
     128, // DXN2UNORM
     128, // DXN2SNORM
     128, // BC7U
@@ -573,8 +583,5 @@ bool IsPixelFormatASTC(PixelFormat format);
 bool IsPixelFormatSRGB(PixelFormat format);
 
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format);
-
-/// Returns true if the specified PixelFormat is a BCn format, e.g. DXT or DXN
-bool IsFormatBCn(PixelFormat format);
 
 } // namespace VideoCore::Surface

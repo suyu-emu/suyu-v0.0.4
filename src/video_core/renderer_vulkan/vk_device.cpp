@@ -125,6 +125,7 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(
         VK_FORMAT_BC2_UNORM_BLOCK,
         VK_FORMAT_BC3_UNORM_BLOCK,
         VK_FORMAT_BC4_UNORM_BLOCK,
+        VK_FORMAT_BC4_SNORM_BLOCK,
         VK_FORMAT_BC5_UNORM_BLOCK,
         VK_FORMAT_BC5_SNORM_BLOCK,
         VK_FORMAT_BC7_UNORM_BLOCK,

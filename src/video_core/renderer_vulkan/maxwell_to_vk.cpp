@@ -122,6 +122,7 @@ struct FormatTuple {
     {VK_FORMAT_A8B8G8R8_SINT_PACK32, Attachable | Storage},     // ABGR8I
     {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // ABGR8UI
     {VK_FORMAT_R5G6B5_UNORM_PACK16, Attachable},                // B5G6R5U
+    {VK_FORMAT_B5G6R5_UNORM_PACK16, Attachable},                // R5G6B5U
     {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // B5G5R5A1U
     {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10U
     {VK_FORMAT_A2B10G10R10_UINT_PACK32, Attachable | Storage},  // A2B10G10R10UI
@@ -140,7 +141,8 @@ struct FormatTuple {
     {VK_FORMAT_BC1_RGBA_UNORM_BLOCK},                           // DXT1
     {VK_FORMAT_BC2_UNORM_BLOCK},                                // DXT23
     {VK_FORMAT_BC3_UNORM_BLOCK},                                // DXT45
-    {VK_FORMAT_BC4_UNORM_BLOCK},                                // DXN1
+    {VK_FORMAT_BC4_UNORM_BLOCK},                                // DXN1UNORM
+    {VK_FORMAT_BC4_SNORM_BLOCK},                                // DXN1SNORM
     {VK_FORMAT_BC5_UNORM_BLOCK},                                // DXN2UNORM
     {VK_FORMAT_BC5_SNORM_BLOCK},                                // DXN2SNORM
     {VK_FORMAT_BC7_UNORM_BLOCK},                                // BC7U
