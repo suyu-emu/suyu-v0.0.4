@@ -97,6 +97,7 @@ void Adapter::Read() {
         libusb_interrupt_transfer(usb_adapter_handle, input_endpoint, adapter_payload.data(),
                                   sizeof(adapter_payload), &payload_size_in, 16);
         payload_size_copy = 0;
+        // this mutex might be redundant?
         {
             std::lock_guard<std::mutex> lk(s_mutex);
             std::copy(std::begin(adapter_payload), std::end(adapter_payload),
@@ -265,10 +266,17 @@ void Adapter::GetGCEndpoint(libusb_device* device) {
                 const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
                 if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) {
                     input_endpoint = endpoint->bEndpointAddress;
+                } else {
+                    output_endpoint = endpoint->bEndpointAddress;
                 }
             }
         }
     }
+    // This transfer seems to be responsible for clearing the state of the adapter
+    // Used to clear the "busy" state of when the device is unexpectedly unplugged
+    unsigned char clear_payload = 0x13;
+    libusb_interrupt_transfer(usb_adapter_handle, output_endpoint, &clear_payload,
+                              sizeof(clear_payload), nullptr, 16);
 
     adapter_thread_running = true;
     current_status = ADAPTER_DETECTED;

@@ -152,6 +152,7 @@ private:
     libusb_context* libusb_ctx;
 
     u8 input_endpoint = 0;
+    u8 output_endpoint = 0;
 
     bool configuring = false;
 
