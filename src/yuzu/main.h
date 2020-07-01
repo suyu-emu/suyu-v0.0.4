@@ -48,6 +48,13 @@ enum class EmulatedDirectoryTarget {
     SDMC,
 };
 
+enum class InstallResult {
+    Success,
+    Overwrite,
+    AlreadyExists,
+    Failure,
+};
+
 enum class ReinitializeKeyBehavior {
     NoWarning,
     Warning,
@@ -219,6 +226,10 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
+    InstallResult InstallNSPXCI(const QString& filename, bool overwrite_files,
+                                QProgressDialog& install_progress);
+    InstallResult InstallNCA(const QString& filename, bool overwrite_files,
+                             QProgressDialog& install_progress);
     void UpdateWindowTitle(const std::string& title_name = {},
                            const std::string& title_version = {});
     void UpdateStatusBar();
@@ -272,9 +283,6 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
-
-    // Install to NAND progress dialog
-    QProgressDialog* install_progress;
 
 protected:
     void dropEvent(QDropEvent* event) override;

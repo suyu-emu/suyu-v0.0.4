@@ -22,7 +22,7 @@ InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialo
         item->setCheckState(Qt::Checked);
     }
 
-    file_list->setMinimumWidth((file_list->sizeHintForColumn(0) * 6) / 5);
+    file_list->setMinimumWidth((file_list->sizeHintForColumn(0) * 10) / 9);
 
     vbox_layout = new QVBoxLayout;
 
@@ -54,19 +54,23 @@ InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialo
 
 InstallDialog::~InstallDialog() = default;
 
-QStringList InstallDialog::GetFilenames() const {
-    QStringList filenames;
+QStringList InstallDialog::GetFiles() const {
+    QStringList files;
 
     for (int i = 0; i < file_list->count(); ++i) {
         const QListWidgetItem* item = file_list->item(i);
         if (item->checkState() == Qt::Checked) {
-            filenames.append(item->data(Qt::UserRole).toString());
+            files.append(item->data(Qt::UserRole).toString());
         }
     }
 
-    return filenames;
+    return files;
 }
 
 bool InstallDialog::ShouldOverwriteFiles() const {
     return overwrite_files->isChecked();
+}
+
+int InstallDialog::GetMinimumWidth() const {
+    return file_list->width();
 }
