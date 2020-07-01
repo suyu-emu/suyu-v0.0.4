@@ -373,9 +373,9 @@ protected:
             siblings_table[static_cast<std::size_t>(b)] = a;
         };
         std::fill(siblings_table.begin(), siblings_table.end(), PixelFormat::Invalid);
-        make_siblings(PixelFormat::Z16, PixelFormat::R16U);
-        make_siblings(PixelFormat::Z32F, PixelFormat::R32F);
-        make_siblings(PixelFormat::Z32FS8, PixelFormat::RG32F);
+        make_siblings(PixelFormat::D16_UNORM, PixelFormat::R16_UNORM);
+        make_siblings(PixelFormat::D32_FLOAT, PixelFormat::R32_FLOAT);
+        make_siblings(PixelFormat::D32_FLOAT_S8_UINT, PixelFormat::R32G32_FLOAT);
 
         sampled_textures.reserve(64);
     }
@@ -1031,7 +1031,7 @@ private:
         params.pitch = 4;
         params.num_levels = 1;
         params.emulated_levels = 1;
-        params.pixel_format = VideoCore::Surface::PixelFormat::R8U;
+        params.pixel_format = VideoCore::Surface::PixelFormat::R8_UNORM;
         params.type = VideoCore::Surface::SurfaceType::ColorTexture;
         auto surface = CreateSurface(0ULL, params);
         invalid_memory.resize(surface->GetHostSizeInBytes(), 0U);

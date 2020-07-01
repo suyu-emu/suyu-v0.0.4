@@ -15,105 +15,105 @@
 namespace VideoCore::Surface {
 
 enum class PixelFormat {
-    ABGR8U,
-    ABGR8S,
-    ABGR8I,
-    ABGR8UI,
-    B5G6R5U,
-    R5G6B5U,
-    B5G5R5A1U,
-    A2B10G10R10U,
-    A2B10G10R10UI,
-    A1B5G5R5U,
-    R8U,
-    R8S,
-    R8I,
-    R8UI,
-    RGBA16F,
-    RGBA16U,
-    RGBA16S,
-    RGBA16I,
-    RGBA16UI,
-    R11FG11FB10F,
-    RGBA32UI,
-    DXT1,
-    DXT23,
-    DXT45,
-    DXN1UNORM, // This is also known as BC4
-    DXN1SNORM,
-    DXN2UNORM,
-    DXN2SNORM,
-    BC7U,
-    BC6H_UF16,
-    BC6H_SF16,
-    ASTC_2D_4X4,
-    BGRA8,
-    RGBA32F,
-    RGBA32I,
-    RG32F,
-    RG32I,
-    R32F,
-    R16F,
-    R16U,
-    R16S,
-    R16UI,
-    R16I,
-    RG16,
-    RG16F,
-    RG16UI,
-    RG16I,
-    RG16S,
-    RGB32F,
-    RGBA8_SRGB,
-    RG8U,
-    RG8S,
-    RG8I,
-    RG8UI,
-    RG32UI,
-    RGBX16F,
-    R32UI,
-    R32I,
-    ASTC_2D_8X8,
-    ASTC_2D_8X5,
-    ASTC_2D_5X4,
-    BGRA8_SRGB,
-    DXT1_SRGB,
-    DXT23_SRGB,
-    DXT45_SRGB,
-    BC7U_SRGB,
-    R4G4B4A4U,
+    A8B8G8R8_UNORM,
+    A8B8G8R8_SNORM,
+    A8B8G8R8_SINT,
+    A8B8G8R8_UINT,
+    R5G6B5_UNORM,
+    B5G6R5_UNORM,
+    A1R5G5B5_UNORM,
+    A2B10G10R10_UNORM,
+    A2B10G10R10_UINT,
+    A1B5G5R5_UNORM,
+    R8_UNORM,
+    R8_SNORM,
+    R8_SINT,
+    R8_UINT,
+    R16G16B16A16_FLOAT,
+    R16G16B16A16_UNORM,
+    R16G16B16A16_SNORM,
+    R16G16B16A16_SINT,
+    R16G16B16A16_UINT,
+    B10G11R11_FLOAT,
+    R32G32B32A32_UINT,
+    BC1_RGBA_UNORM,
+    BC2_UNORM,
+    BC3_UNORM,
+    BC4_UNORM,
+    BC4_SNORM,
+    BC5_UNORM,
+    BC5_SNORM,
+    BC7_UNORM,
+    BC6H_UFLOAT,
+    BC6H_SFLOAT,
+    ASTC_2D_4X4_UNORM,
+    B8G8R8A8_UNORM,
+    R32G32B32A32_FLOAT,
+    R32G32B32A32_SINT,
+    R32G32_FLOAT,
+    R32G32_SINT,
+    R32_FLOAT,
+    R16_FLOAT,
+    R16_UNORM,
+    R16_SNORM,
+    R16_UINT,
+    R16_SINT,
+    R16G16_UNORM,
+    R16G16_FLOAT,
+    R16G16_UINT,
+    R16G16_SINT,
+    R16G16_SNORM,
+    R32G32B32_FLOAT,
+    A8B8G8R8_SRGB,
+    R8G8_UNORM,
+    R8G8_SNORM,
+    R8G8_SINT,
+    R8G8_UINT,
+    R32G32_UINT,
+    R16G16B16X16_FLOAT,
+    R32_UINT,
+    R32_SINT,
+    ASTC_2D_8X8_UNORM,
+    ASTC_2D_8X5_UNORM,
+    ASTC_2D_5X4_UNORM,
+    B8G8R8A8_SRGB,
+    BC1_RGBA_SRGB,
+    BC2_SRGB,
+    BC3_SRGB,
+    BC7_SRGB,
+    A4B4G4R4_UNORM,
     ASTC_2D_4X4_SRGB,
     ASTC_2D_8X8_SRGB,
     ASTC_2D_8X5_SRGB,
     ASTC_2D_5X4_SRGB,
-    ASTC_2D_5X5,
+    ASTC_2D_5X5_UNORM,
     ASTC_2D_5X5_SRGB,
-    ASTC_2D_10X8,
+    ASTC_2D_10X8_UNORM,
     ASTC_2D_10X8_SRGB,
-    ASTC_2D_6X6,
+    ASTC_2D_6X6_UNORM,
     ASTC_2D_6X6_SRGB,
-    ASTC_2D_10X10,
+    ASTC_2D_10X10_UNORM,
     ASTC_2D_10X10_SRGB,
-    ASTC_2D_12X12,
+    ASTC_2D_12X12_UNORM,
     ASTC_2D_12X12_SRGB,
-    ASTC_2D_8X6,
+    ASTC_2D_8X6_UNORM,
     ASTC_2D_8X6_SRGB,
-    ASTC_2D_6X5,
+    ASTC_2D_6X5_UNORM,
     ASTC_2D_6X5_SRGB,
-    E5B9G9R9F,
+    E5B9G9R9_FLOAT,
 
     MaxColorFormat,
 
     // Depth formats
-    Z32F = MaxColorFormat,
-    Z16,
+    D32_FLOAT = MaxColorFormat,
+    D16_UNORM,
 
     MaxDepthFormat,
 
     // DepthStencil formats
-    Z24S8 = MaxDepthFormat,
-    S8Z24,
-    Z32FS8,
+    D24_UNORM_S8_UINT = MaxDepthFormat,
+    S8_UINT_D24_UNORM,
+    D32_FLOAT_S8_UINT,
 
     MaxDepthStencilFormat,
 
@@ -141,97 +141,97 @@ enum class SurfaceTarget {
 };
 
 constexpr std::array<u32, MaxPixelFormat> compression_factor_shift_table = {{
-    0, // ABGR8U
-    0, // ABGR8S
-    0, // ABGR8I
-    0, // ABGR8UI
-    0, // B5G6R5U
-    0, // R5G6B5U
-    0, // B5G5R5A1U
-    0, // A2B10G10R10U
-    0, // A2B10G10R10UI
-    0, // A1B5G5R5U
-    0, // R8U
-    0, // R8S
-    0, // R8I
-    0, // R8UI
-    0, // RGBA16F
-    0, // RGBA16U
-    0, // RGBA16S
-    0, // RGBA16I
-    0, // RGBA16UI
-    0, // R11FG11FB10F
-    0, // RGBA32UI
-    2, // DXT1
-    2, // DXT23
-    2, // DXT45
-    2, // DXN1UNORM
-    2, // DXN1SNORM
-    2, // DXN2UNORM
-    2, // DXN2SNORM
-    2, // BC7U
-    2, // BC6H_UF16
-    2, // BC6H_SF16
-    2, // ASTC_2D_4X4
-    0, // BGRA8
-    0, // RGBA32F
-    0, // RGBA32I
-    0, // RG32F
-    0, // RG32I
-    0, // R32F
-    0, // R16F
-    0, // R16U
-    0, // R16S
-    0, // R16UI
-    0, // R16I
-    0, // RG16
-    0, // RG16F
-    0, // RG16UI
-    0, // RG16I
-    0, // RG16S
-    0, // RGB32F
-    0, // RGBA8_SRGB
-    0, // RG8U
-    0, // RG8S
-    0, // RG8I
-    0, // RG8UI
-    0, // RG32UI
-    0, // RGBX16F
-    0, // R32UI
-    0, // R32I
-    2, // ASTC_2D_8X8
-    2, // ASTC_2D_8X5
-    2, // ASTC_2D_5X4
-    0, // BGRA8_SRGB
-    2, // DXT1_SRGB
-    2, // DXT23_SRGB
-    2, // DXT45_SRGB
-    2, // BC7U_SRGB
-    0, // R4G4B4A4U
+    0, // A8B8G8R8_UNORM
+    0, // A8B8G8R8_SNORM
+    0, // A8B8G8R8_SINT
+    0, // A8B8G8R8_UINT
+    0, // R5G6B5_UNORM
+    0, // B5G6R5_UNORM
+    0, // A1R5G5B5_UNORM
+    0, // A2B10G10R10_UNORM
+    0, // A2B10G10R10_UINT
+    0, // A1B5G5R5_UNORM
+    0, // R8_UNORM
+    0, // R8_SNORM
+    0, // R8_SINT
+    0, // R8_UINT
+    0, // R16G16B16A16_FLOAT
+    0, // R16G16B16A16_UNORM
+    0, // R16G16B16A16_SNORM
+    0, // R16G16B16A16_SINT
+    0, // R16G16B16A16_UINT
+    0, // B10G11R11_FLOAT
+    0, // R32G32B32A32_UINT
+    2, // BC1_RGBA_UNORM
+    2, // BC2_UNORM
+    2, // BC3_UNORM
+    2, // BC4_UNORM
+    2, // BC4_SNORM
+    2, // BC5_UNORM
+    2, // BC5_SNORM
+    2, // BC7_UNORM
+    2, // BC6H_UFLOAT
+    2, // BC6H_SFLOAT
+    2, // ASTC_2D_4X4_UNORM
+    0, // B8G8R8A8_UNORM
+    0, // R32G32B32A32_FLOAT
+    0, // R32G32B32A32_SINT
+    0, // R32G32_FLOAT
+    0, // R32G32_SINT
+    0, // R32_FLOAT
+    0, // R16_FLOAT
+    0, // R16_UNORM
+    0, // R16_SNORM
+    0, // R16_UINT
+    0, // R16_SINT
+    0, // R16G16_UNORM
+    0, // R16G16_FLOAT
+    0, // R16G16_UINT
+    0, // R16G16_SINT
+    0, // R16G16_SNORM
+    0, // R32G32B32_FLOAT
+    0, // A8B8G8R8_SRGB
+    0, // R8G8_UNORM
+    0, // R8G8_SNORM
+    0, // R8G8_SINT
+    0, // R8G8_UINT
+    0, // R32G32_UINT
+    0, // R16G16B16X16_FLOAT
+    0, // R32_UINT
+    0, // R32_SINT
+    2, // ASTC_2D_8X8_UNORM
+    2, // ASTC_2D_8X5_UNORM
+    2, // ASTC_2D_5X4_UNORM
+    0, // B8G8R8A8_SRGB
+    2, // BC1_RGBA_SRGB
+    2, // BC2_SRGB
+    2, // BC3_SRGB
+    2, // BC7_SRGB
+    0, // A4B4G4R4_UNORM
     2, // ASTC_2D_4X4_SRGB
     2, // ASTC_2D_8X8_SRGB
     2, // ASTC_2D_8X5_SRGB
     2, // ASTC_2D_5X4_SRGB
-    2, // ASTC_2D_5X5
+    2, // ASTC_2D_5X5_UNORM
     2, // ASTC_2D_5X5_SRGB
-    2, // ASTC_2D_10X8
+    2, // ASTC_2D_10X8_UNORM
     2, // ASTC_2D_10X8_SRGB
-    2, // ASTC_2D_6X6
+    2, // ASTC_2D_6X6_UNORM
     2, // ASTC_2D_6X6_SRGB
-    2, // ASTC_2D_10X10
+    2, // ASTC_2D_10X10_UNORM
     2, // ASTC_2D_10X10_SRGB
-    2, // ASTC_2D_12X12
+    2, // ASTC_2D_12X12_UNORM
     2, // ASTC_2D_12X12_SRGB
-    2, // ASTC_2D_8X6
+    2, // ASTC_2D_8X6_UNORM
     2, // ASTC_2D_8X6_SRGB
-    2, // ASTC_2D_6X5
+    2, // ASTC_2D_6X5_UNORM
     2, // ASTC_2D_6X5_SRGB
-    0, // E5B9G9R9F
-    0, // Z32F
-    0, // Z16
-    0, // Z24S8
-    0, // S8Z24
-    0, // Z32FS8
+    0, // E5B9G9R9_FLOAT
+    0, // D32_FLOAT
+    0, // D16_UNORM
+    0, // D24_UNORM_S8_UINT
+    0, // S8_UINT_D24_UNORM
+    0, // D32_FLOAT_S8_UINT
 }};
 
 /**
@@ -251,97 +251,97 @@ inline constexpr u32 GetCompressionFactor(PixelFormat format) {
 }
 
 constexpr std::array<u32, MaxPixelFormat> block_width_table = {{
-    1,  // ABGR8U
-    1,  // ABGR8S
-    1,  // ABGR8I
-    1,  // ABGR8UI
-    1,  // B5G6R5U
-    1,  // R5G6B5U
-    1,  // B5G5R5A1U
-    1,  // A2B10G10R10U
-    1,  // A2B10G10R10UI
-    1,  // A1B5G5R5U
-    1,  // R8U
-    1,  // R8S
-    1,  // R8I
-    1,  // R8UI
-    1,  // RGBA16F
-    1,  // RGBA16U
-    1,  // RGBA16S
-    1,  // RGBA16I
-    1,  // RGBA16UI
-    1,  // R11FG11FB10F
-    1,  // RGBA32UI
-    4,  // DXT1
-    4,  // DXT23
-    4,  // DXT45
-    4,  // DXN1UNORM
-    4,  // DXN1SNORM
-    4,  // DXN2UNORM
-    4,  // DXN2SNORM
-    4,  // BC7U
-    4,  // BC6H_UF16
-    4,  // BC6H_SF16
-    4,  // ASTC_2D_4X4
-    1,  // BGRA8
-    1,  // RGBA32F
-    1,  // RGBA32I
-    1,  // RG32F
-    1,  // RG32I
-    1,  // R32F
-    1,  // R16F
-    1,  // R16U
-    1,  // R16S
-    1,  // R16UI
-    1,  // R16I
-    1,  // RG16
-    1,  // RG16F
-    1,  // RG16UI
-    1,  // RG16I
-    1,  // RG16S
-    1,  // RGB32F
-    1,  // RGBA8_SRGB
-    1,  // RG8U
-    1,  // RG8S
-    1,  // RG8I
-    1,  // RG8UI
-    1,  // RG32UI
-    1,  // RGBX16F
-    1,  // R32UI
-    1,  // R32I
-    8,  // ASTC_2D_8X8
-    8,  // ASTC_2D_8X5
-    5,  // ASTC_2D_5X4
-    1,  // BGRA8_SRGB
-    4,  // DXT1_SRGB
-    4,  // DXT23_SRGB
-    4,  // DXT45_SRGB
-    4,  // BC7U_SRGB
-    1,  // R4G4B4A4U
+    1,  // A8B8G8R8_UNORM
+    1,  // A8B8G8R8_SNORM
+    1,  // A8B8G8R8_SINT
+    1,  // A8B8G8R8_UINT
+    1,  // R5G6B5_UNORM
+    1,  // B5G6R5_UNORM
+    1,  // A1R5G5B5_UNORM
+    1,  // A2B10G10R10_UNORM
+    1,  // A2B10G10R10_UINT
+    1,  // A1B5G5R5_UNORM
+    1,  // R8_UNORM
+    1,  // R8_SNORM
+    1,  // R8_SINT
+    1,  // R8_UINT
+    1,  // R16G16B16A16_FLOAT
+    1,  // R16G16B16A16_UNORM
+    1,  // R16G16B16A16_SNORM
+    1,  // R16G16B16A16_SINT
+    1,  // R16G16B16A16_UINT
+    1,  // B10G11R11_FLOAT
+    1,  // R32G32B32A32_UINT
+    4,  // BC1_RGBA_UNORM
+    4,  // BC2_UNORM
+    4,  // BC3_UNORM
+    4,  // BC4_UNORM
+    4,  // BC4_SNORM
+    4,  // BC5_UNORM
+    4,  // BC5_SNORM
+    4,  // BC7_UNORM
+    4,  // BC6H_UFLOAT
+    4,  // BC6H_SFLOAT
+    4,  // ASTC_2D_4X4_UNORM
+    1,  // B8G8R8A8_UNORM
+    1,  // R32G32B32A32_FLOAT
+    1,  // R32G32B32A32_SINT
+    1,  // R32G32_FLOAT
+    1,  // R32G32_SINT
+    1,  // R32_FLOAT
+    1,  // R16_FLOAT
+    1,  // R16_UNORM
+    1,  // R16_SNORM
+    1,  // R16_UINT
+    1,  // R16_SINT
+    1,  // R16G16_UNORM
+    1,  // R16G16_FLOAT
+    1,  // R16G16_UINT
+    1,  // R16G16_SINT
+    1,  // R16G16_SNORM
+    1,  // R32G32B32_FLOAT
+    1,  // A8B8G8R8_SRGB
+    1,  // R8G8_UNORM
+    1,  // R8G8_SNORM
+    1,  // R8G8_SINT
+    1,  // R8G8_UINT
+    1,  // R32G32_UINT
+    1,  // R16G16B16X16_FLOAT
+    1,  // R32_UINT
+    1,  // R32_SINT
+    8,  // ASTC_2D_8X8_UNORM
+    8,  // ASTC_2D_8X5_UNORM
+    5,  // ASTC_2D_5X4_UNORM
+    1,  // B8G8R8A8_SRGB
+    4,  // BC1_RGBA_SRGB
+    4,  // BC2_SRGB
+    4,  // BC3_SRGB
+    4,  // BC7_SRGB
+    1,  // A4B4G4R4_UNORM
     4,  // ASTC_2D_4X4_SRGB
     8,  // ASTC_2D_8X8_SRGB
     8,  // ASTC_2D_8X5_SRGB
     5,  // ASTC_2D_5X4_SRGB
-    5,  // ASTC_2D_5X5
+    5,  // ASTC_2D_5X5_UNORM
     5,  // ASTC_2D_5X5_SRGB
-    10, // ASTC_2D_10X8
+    10, // ASTC_2D_10X8_UNORM
     10, // ASTC_2D_10X8_SRGB
-    6,  // ASTC_2D_6X6
+    6,  // ASTC_2D_6X6_UNORM
     6,  // ASTC_2D_6X6_SRGB
-    10, // ASTC_2D_10X10
+    10, // ASTC_2D_10X10_UNORM
     10, // ASTC_2D_10X10_SRGB
-    12, // ASTC_2D_12X12
+    12, // ASTC_2D_12X12_UNORM
     12, // ASTC_2D_12X12_SRGB
-    8,  // ASTC_2D_8X6
+    8,  // ASTC_2D_8X6_UNORM
     8,  // ASTC_2D_8X6_SRGB
-    6,  // ASTC_2D_6X5
+    6,  // ASTC_2D_6X5_UNORM
     6,  // ASTC_2D_6X5_SRGB
-    1,  // E5B9G9R9F
-    1,  // Z32F
-    1,  // Z16
-    1,  // Z24S8
-    1,  // S8Z24
-    1,  // Z32FS8
+    1,  // E5B9G9R9_FLOAT
+    1,  // D32_FLOAT
+    1,  // D16_UNORM
+    1,  // D24_UNORM_S8_UINT
+    1,  // S8_UINT_D24_UNORM
+    1,  // D32_FLOAT_S8_UINT
 }};
 
 static constexpr u32 GetDefaultBlockWidth(PixelFormat format) {
@@ -353,97 +353,97 @@ static constexpr u32 GetDefaultBlockWidth(PixelFormat format) {
 }
 
 constexpr std::array<u32, MaxPixelFormat> block_height_table = {{
-    1,  // ABGR8U
-    1,  // ABGR8S
-    1,  // ABGR8I
-    1,  // ABGR8UI
-    1,  // B5G6R5U
-    1,  // R5G6B5U
-    1,  // B5G5R5A1U
-    1,  // A2B10G10R10U
-    1,  // A2B10G10R10UI
-    1,  // A1B5G5R5U
-    1,  // R8U
-    1,  // R8S
-    1,  // R8I
-    1,  // R8UI
-    1,  // RGBA16F
-    1,  // RGBA16U
-    1,  // RGBA16S
-    1,  // RGBA16I
-    1,  // RGBA16UI
-    1,  // R11FG11FB10F
-    1,  // RGBA32UI
-    4,  // DXT1
-    4,  // DXT23
-    4,  // DXT45
-    4,  // DXN1UNORM
-    4,  // DXN1SNORM
-    4,  // DXN2UNORM
-    4,  // DXN2SNORM
-    4,  // BC7U
-    4,  // BC6H_UF16
-    4,  // BC6H_SF16
-    4,  // ASTC_2D_4X4
-    1,  // BGRA8
-    1,  // RGBA32F
-    1,  // RGBA32I
-    1,  // RG32F
-    1,  // RG32I
-    1,  // R32F
-    1,  // R16F
-    1,  // R16U
-    1,  // R16S
-    1,  // R16UI
-    1,  // R16I
-    1,  // RG16
-    1,  // RG16F
-    1,  // RG16UI
-    1,  // RG16I
-    1,  // RG16S
-    1,  // RGB32F
-    1,  // RGBA8_SRGB
-    1,  // RG8U
-    1,  // RG8S
-    1,  // RG8I
-    1,  // RG8UI
-    1,  // RG32UI
-    1,  // RGBX16F
-    1,  // R32UI
-    1,  // R32I
-    8,  // ASTC_2D_8X8
-    5,  // ASTC_2D_8X5
-    4,  // ASTC_2D_5X4
-    1,  // BGRA8_SRGB
-    4,  // DXT1_SRGB
-    4,  // DXT23_SRGB
-    4,  // DXT45_SRGB
-    4,  // BC7U_SRGB
-    1,  // R4G4B4A4U
+    1,  // A8B8G8R8_UNORM
+    1,  // A8B8G8R8_SNORM
+    1,  // A8B8G8R8_SINT
+    1,  // A8B8G8R8_UINT
+    1,  // R5G6B5_UNORM
+    1,  // B5G6R5_UNORM
+    1,  // A1R5G5B5_UNORM
+    1,  // A2B10G10R10_UNORM
+    1,  // A2B10G10R10_UINT
+    1,  // A1B5G5R5_UNORM
+    1,  // R8_UNORM
+    1,  // R8_SNORM
+    1,  // R8_SINT
+    1,  // R8_UINT
+    1,  // R16G16B16A16_FLOAT
+    1,  // R16G16B16A16_UNORM
+    1,  // R16G16B16A16_SNORM
+    1,  // R16G16B16A16_SINT
+    1,  // R16G16B16A16_UINT
+    1,  // B10G11R11_FLOAT
+    1,  // R32G32B32A32_UINT
+    4,  // BC1_RGBA_UNORM
+    4,  // BC2_UNORM
+    4,  // BC3_UNORM
+    4,  // BC4_UNORM
+    4,  // BC4_SNORM
+    4,  // BC5_UNORM
+    4,  // BC5_SNORM
+    4,  // BC7_UNORM
+    4,  // BC6H_UFLOAT
+    4,  // BC6H_SFLOAT
+    4,  // ASTC_2D_4X4_UNORM
+    1,  // B8G8R8A8_UNORM
+    1,  // R32G32B32A32_FLOAT
+    1,  // R32G32B32A32_SINT
+    1,  // R32G32_FLOAT
+    1,  // R32G32_SINT
+    1,  // R32_FLOAT
+    1,  // R16_FLOAT
+    1,  // R16_UNORM
+    1,  // R16_SNORM
+    1,  // R16_UINT
+    1,  // R16_SINT
+    1,  // R16G16_UNORM
+    1,  // R16G16_FLOAT
+    1,  // R16G16_UINT
+    1,  // R16G16_SINT
+    1,  // R16G16_SNORM
+    1,  // R32G32B32_FLOAT
+    1,  // A8B8G8R8_SRGB
+    1,  // R8G8_UNORM
+    1,  // R8G8_SNORM
+    1,  // R8G8_SINT
+    1,  // R8G8_UINT
+    1,  // R32G32_UINT
+    1,  // R16G16B16X16_FLOAT
+    1,  // R32_UINT
+    1,  // R32_SINT
+    8,  // ASTC_2D_8X8_UNORM
+    5,  // ASTC_2D_8X5_UNORM
+    4,  // ASTC_2D_5X4_UNORM
+    1,  // B8G8R8A8_SRGB
+    4,  // BC1_RGBA_SRGB
+    4,  // BC2_SRGB
+    4,  // BC3_SRGB
+    4,  // BC7_SRGB
+    1,  // A4B4G4R4_UNORM
     4,  // ASTC_2D_4X4_SRGB
     8,  // ASTC_2D_8X8_SRGB
     5,  // ASTC_2D_8X5_SRGB
     4,  // ASTC_2D_5X4_SRGB
-    5,  // ASTC_2D_5X5
+    5,  // ASTC_2D_5X5_UNORM
     5,  // ASTC_2D_5X5_SRGB
-    8,  // ASTC_2D_10X8
+    8,  // ASTC_2D_10X8_UNORM
     8,  // ASTC_2D_10X8_SRGB
-    6,  // ASTC_2D_6X6
+    6,  // ASTC_2D_6X6_UNORM
     6,  // ASTC_2D_6X6_SRGB
-    10, // ASTC_2D_10X10
+    10, // ASTC_2D_10X10_UNORM
     10, // ASTC_2D_10X10_SRGB
-    12, // ASTC_2D_12X12
+    12, // ASTC_2D_12X12_UNORM
     12, // ASTC_2D_12X12_SRGB
-    6,  // ASTC_2D_8X6
+    6,  // ASTC_2D_8X6_UNORM
     6,  // ASTC_2D_8X6_SRGB
-    5,  // ASTC_2D_6X5
+    5,  // ASTC_2D_6X5_UNORM
     5,  // ASTC_2D_6X5_SRGB
-    1,  // E5B9G9R9F
-    1,  // Z32F
-    1,  // Z16
-    1,  // Z24S8
-    1,  // S8Z24
-    1,  // Z32FS8
+    1,  // E5B9G9R9_FLOAT
+    1,  // D32_FLOAT
+    1,  // D16_UNORM
+    1,  // D24_UNORM_S8_UINT
+    1,  // S8_UINT_D24_UNORM
+    1,  // D32_FLOAT_S8_UINT
 }};
 
 static constexpr u32 GetDefaultBlockHeight(PixelFormat format) {
@@ -455,97 +455,97 @@ static constexpr u32 GetDefaultBlockHeight(PixelFormat format) {
 }
 
 constexpr std::array<u32, MaxPixelFormat> bpp_table = {{
-    32,  // ABGR8U
-    32,  // ABGR8S
-    32,  // ABGR8I
-    32,  // ABGR8UI
-    16,  // B5G6R5U
-    16,  // R5G6B5U
-    16,  // B5G5R5A1U
-    32,  // A2B10G10R10U
-    32,  // A2B10G10R10UI
-    16,  // A1B5G5R5U
-    8,   // R8U
-    8,   // R8S
-    8,   // R8I
-    8,   // R8UI
-    64,  // RGBA16F
-    64,  // RGBA16U
-    64,  // RGBA16S
-    64,  // RGBA16I
-    64,  // RGBA16UI
-    32,  // R11FG11FB10F
-    128, // RGBA32UI
-    64,  // DXT1
-    128, // DXT23
-    128, // DXT45
-    64,  // DXN1UNORM
-    64,  // DXN1SNORM
-    128, // DXN2UNORM
-    128, // DXN2SNORM
-    128, // BC7U
-    128, // BC6H_UF16
-    128, // BC6H_SF16
-    128, // ASTC_2D_4X4
-    32,  // BGRA8
-    128, // RGBA32F
-    128, // RGBA32I
-    64,  // RG32F
-    64,  // RG32I
-    32,  // R32F
-    16,  // R16F
-    16,  // R16U
-    16,  // R16S
-    16,  // R16UI
-    16,  // R16I
-    32,  // RG16
-    32,  // RG16F
-    32,  // RG16UI
-    32,  // RG16I
-    32,  // RG16S
-    96,  // RGB32F
-    32,  // RGBA8_SRGB
-    16,  // RG8U
-    16,  // RG8S
-    16,  // RG8I
-    16,  // RG8UI
-    64,  // RG32UI
-    64,  // RGBX16F
-    32,  // R32UI
-    32,  // R32I
-    128, // ASTC_2D_8X8
-    128, // ASTC_2D_8X5
-    128, // ASTC_2D_5X4
-    32,  // BGRA8_SRGB
-    64,  // DXT1_SRGB
-    128, // DXT23_SRGB
-    128, // DXT45_SRGB
-    128, // BC7U
-    16,  // R4G4B4A4U
+    32,  // A8B8G8R8_UNORM
+    32,  // A8B8G8R8_SNORM
+    32,  // A8B8G8R8_SINT
+    32,  // A8B8G8R8_UINT
+    16,  // R5G6B5_UNORM
+    16,  // B5G6R5_UNORM
+    16,  // A1R5G5B5_UNORM
+    32,  // A2B10G10R10_UNORM
+    32,  // A2B10G10R10_UINT
+    16,  // A1B5G5R5_UNORM
+    8,   // R8_UNORM
+    8,   // R8_SNORM
+    8,   // R8_SINT
+    8,   // R8_UINT
+    64,  // R16G16B16A16_FLOAT
+    64,  // R16G16B16A16_UNORM
+    64,  // R16G16B16A16_SNORM
+    64,  // R16G16B16A16_SINT
+    64,  // R16G16B16A16_UINT
+    32,  // B10G11R11_FLOAT
+    128, // R32G32B32A32_UINT
+    64,  // BC1_RGBA_UNORM
+    128, // BC2_UNORM
+    128, // BC3_UNORM
+    64,  // BC4_UNORM
+    64,  // BC4_SNORM
+    128, // BC5_UNORM
+    128, // BC5_SNORM
+    128, // BC7_UNORM
+    128, // BC6H_UFLOAT
+    128, // BC6H_SFLOAT
+    128, // ASTC_2D_4X4_UNORM
+    32,  // B8G8R8A8_UNORM
+    128, // R32G32B32A32_FLOAT
+    128, // R32G32B32A32_SINT
+    64,  // R32G32_FLOAT
+    64,  // R32G32_SINT
+    32,  // R32_FLOAT
+    16,  // R16_FLOAT
+    16,  // R16_UNORM
+    16,  // R16_SNORM
+    16,  // R16_UINT
+    16,  // R16_SINT
+    32,  // R16G16_UNORM
+    32,  // R16G16_FLOAT
+    32,  // R16G16_UINT
+    32,  // R16G16_SINT
+    32,  // R16G16_SNORM
+    96,  // R32G32B32_FLOAT
+    32,  // A8B8G8R8_SRGB
+    16,  // R8G8_UNORM
+    16,  // R8G8_SNORM
+    16,  // R8G8_SINT
+    16,  // R8G8_UINT
+    64,  // R32G32_UINT
+    64,  // R16G16B16X16_FLOAT
+    32,  // R32_UINT
+    32,  // R32_SINT
+    128, // ASTC_2D_8X8_UNORM
+    128, // ASTC_2D_8X5_UNORM
+    128, // ASTC_2D_5X4_UNORM
+    32,  // B8G8R8A8_SRGB
+    64,  // BC1_RGBA_SRGB
+    128, // BC2_SRGB
+    128, // BC3_SRGB
+    128, // BC7_UNORM
+    16,  // A4B4G4R4_UNORM
     128, // ASTC_2D_4X4_SRGB
     128, // ASTC_2D_8X8_SRGB
     128, // ASTC_2D_8X5_SRGB
     128, // ASTC_2D_5X4_SRGB
-    128, // ASTC_2D_5X5
+    128, // ASTC_2D_5X5_UNORM
     128, // ASTC_2D_5X5_SRGB
-    128, // ASTC_2D_10X8
+    128, // ASTC_2D_10X8_UNORM
     128, // ASTC_2D_10X8_SRGB
-    128, // ASTC_2D_6X6
+    128, // ASTC_2D_6X6_UNORM
     128, // ASTC_2D_6X6_SRGB
-    128, // ASTC_2D_10X10
+    128, // ASTC_2D_10X10_UNORM
     128, // ASTC_2D_10X10_SRGB
-    128, // ASTC_2D_12X12
+    128, // ASTC_2D_12X12_UNORM
     128, // ASTC_2D_12X12_SRGB
-    128, // ASTC_2D_8X6
+    128, // ASTC_2D_8X6_UNORM
     128, // ASTC_2D_8X6_SRGB
-    128, // ASTC_2D_6X5
+    128, // ASTC_2D_6X5_UNORM
     128, // ASTC_2D_6X5_SRGB
-    32,  // E5B9G9R9F
-    32,  // Z32F
-    16,  // Z16
-    32,  // Z24S8
-    32,  // S8Z24
-    64,  // Z32FS8
+    32,  // E5B9G9R9_FLOAT
+    32,  // D32_FLOAT
+    16,  // D16_UNORM
+    32,  // D24_UNORM_S8_UINT
+    32,  // S8_UINT_D24_UNORM
+    64,  // D32_FLOAT_S8_UINT
 }};
 
 static constexpr u32 GetFormatBpp(PixelFormat format) {

@@ -38,10 +38,6 @@ void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
                       u32 out_bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
                       bool unswizzle, u32 block_height, u32 block_depth, u32 width_spacing);
 
-/// Decodes an unswizzled texture into a A8R8G8B8 texture.
-std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat format, u32 width,
-                              u32 height);
-
 /// This function calculates the correct size of a texture depending if it's tiled or not.
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
                           u32 block_height, u32 block_depth);

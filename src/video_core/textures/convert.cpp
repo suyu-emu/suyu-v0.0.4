@@ -35,7 +35,7 @@ void SwapS8Z24ToZ24S8(u8* data, u32 width, u32 height) {
     S8Z24 s8z24_pixel{};
     Z24S8 z24s8_pixel{};
     constexpr auto bpp{
-        VideoCore::Surface::GetBytesPerPixel(VideoCore::Surface::PixelFormat::S8Z24)};
+        VideoCore::Surface::GetBytesPerPixel(VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM)};
     for (std::size_t y = 0; y < height; ++y) {
         for (std::size_t x = 0; x < width; ++x) {
             const std::size_t offset{bpp * (y * width + x)};
@@ -73,7 +73,7 @@ void ConvertFromGuestToHost(u8* in_data, u8* out_data, PixelFormat pixel_format,
             in_data, width, height, depth, block_width, block_height);
         std::copy(rgba8_data.begin(), rgba8_data.end(), out_data);
 
-    } else if (convert_s8z24 && pixel_format == PixelFormat::S8Z24) {
+    } else if (convert_s8z24 && pixel_format == PixelFormat::S8_UINT_D24_UNORM) {
         Tegra::Texture::ConvertS8Z24ToZ24S8(in_data, width, height);
     }
 }
@@ -85,7 +85,7 @@ void ConvertFromHostToGuest(u8* data, PixelFormat pixel_format, u32 width, u32 h
                      static_cast<u32>(pixel_format));
         UNREACHABLE();
 
-    } else if (convert_s8z24 && pixel_format == PixelFormat::S8Z24) {
+    } else if (convert_s8z24 && pixel_format == PixelFormat::S8_UINT_D24_UNORM) {
         Tegra::Texture::ConvertZ24S8ToS8Z24(data, width, height);
     }
 }
