@@ -444,7 +444,6 @@ private:
 class SDLAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
     explicit SDLAnalogFactory(SDLState& state_) : state(state_) {}
-
     /**
      * Creates analog device from joystick axes
      * @param params contains parameters for creating the device:

@@ -45,6 +45,7 @@ void Init() {
 #ifdef HAVE_SDL2
     sdl = SDL::Init();
 #endif
+
     udp = CemuhookUDP::Init();
 }
 
@@ -111,6 +112,7 @@ std::vector<std::unique_ptr<DevicePoller>> GetPollers(DeviceType type) {
 #ifdef HAVE_SDL2
     pollers = sdl->GetPollers(type);
 #endif
+
     return pollers;
 }
 
