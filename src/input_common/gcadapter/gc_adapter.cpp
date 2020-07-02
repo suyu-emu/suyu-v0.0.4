@@ -144,6 +144,18 @@ void Adapter::Read() {
                     pads[port].axis_value = pads[port].substick_y;
                     pad_queue[port].Push(pads[port]);
                 }
+                if (pads[port].trigger_left > pads[port].TRIGGER_CENTER + pads[port].THRESHOLD ||
+                    pads[port].trigger_left < pads[port].TRIGGER_CENTER - pads[port].THRESHOLD) {
+                    pads[port].axis = GCAdapter::PadAxes::TriggerLeft;
+                    pads[port].axis_value = pads[port].trigger_left;
+                    pad_queue[port].Push(pads[port]);
+                }
+                if (pads[port].trigger_right > pads[port].TRIGGER_CENTER + pads[port].THRESHOLD ||
+                    pads[port].trigger_right < pads[port].TRIGGER_CENTER - pads[port].THRESHOLD) {
+                    pads[port].axis = GCAdapter::PadAxes::TriggerRight;
+                    pads[port].axis_value = pads[port].trigger_right;
+                    pad_queue[port].Push(pads[port]);
+                }
             }
             PadToState(pads[port], state[port]);
         }
