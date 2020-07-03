@@ -14,7 +14,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, int axis_, GCAdapter::Adapter* adapter)
+    explicit GCButton(int port_, int button_, GCAdapter::Adapter* adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -45,7 +45,9 @@ public:
     bool GetStatus() const override {
         const float axis_value = (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 128.0f;
         if (trigger_if_greater) {
-            return axis_value > threshold; // TODO(ameerj) : Fix threshold.
+            // TODO: Might be worthwile to set a slider for the trigger threshold. It is currently
+            // always set to 0.5 in configure_input_player.cpp ZL/ZR HandleClick
+            return axis_value > threshold;
         }
         return axis_value < -threshold;
     }
@@ -71,8 +73,7 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
 
     // button is not an axis/stick button
     if (button_id != PAD_STICK_ID) {
-        std::unique_ptr<GCButton> button =
-            std::make_unique<GCButton>(port, button_id, params.Get("axis", 0), adapter.get());
+        auto button = std::make_unique<GCButton>(port, button_id, adapter.get());
         return std::move(button);
     }
 

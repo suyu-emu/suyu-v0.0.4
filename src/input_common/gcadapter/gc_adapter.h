@@ -36,12 +36,7 @@ enum class PadButton {
     PAD_STICK = 0x2000,
 };
 
-/// Used to loop through the and assign button in poller
-static constexpr std::array<PadButton, 12> PadButtonArray{
-    PadButton::PAD_BUTTON_LEFT, PadButton::PAD_BUTTON_RIGHT, PadButton::PAD_BUTTON_DOWN,
-    PadButton::PAD_BUTTON_UP,   PadButton::PAD_TRIGGER_Z,    PadButton::PAD_TRIGGER_R,
-    PadButton::PAD_TRIGGER_L,   PadButton::PAD_BUTTON_A,     PadButton::PAD_BUTTON_B,
-    PadButton::PAD_BUTTON_X,    PadButton::PAD_BUTTON_Y,     PadButton::PAD_BUTTON_START};
+extern const std::array<PadButton, 12> PadButtonArray;
 
 enum class PadAxes : u8 {
     StickX,
