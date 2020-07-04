@@ -70,6 +70,20 @@ static QString ButtonToText(const Common::ParamPackage& param) {
         return GetKeyName(param.Get("code", 0));
     }
 
+    if (param.Get("engine", "") == "gcpad") {
+        if (param.Has("axis")) {
+            const QString axis_str = QString::fromStdString(param.Get("axis", ""));
+            const QString direction_str = QString::fromStdString(param.Get("direction", ""));
+
+            return QObject::tr("GC Axis %1%2").arg(axis_str, direction_str);
+        }
+        if (param.Has("button")) {
+            const QString button_str = QString::number(int(std::log2(param.Get("button", 0))));
+            return QObject::tr("GC Button %1").arg(button_str);
+        }
+        return GetKeyName(param.Get("code", 0));
+    }
+
     if (param.Get("engine", "") == "sdl") {
         if (param.Has("hat")) {
             const QString hat_str = QString::fromStdString(param.Get("hat", ""));
@@ -126,6 +140,25 @@ static QString AnalogToText(const Common::ParamPackage& param, const std::string
         return {};
     }
 
+    if (param.Get("engine", "") == "gcpad") {
+        if (dir == "modifier") {
+            return QObject::tr("[unused]");
+        }
+
+        if (dir == "left" || dir == "right") {
+            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
+
+            return QObject::tr("GC Axis %1").arg(axis_x_str);
+        }
+
+        if (dir == "up" || dir == "down") {
+            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
+
+            return QObject::tr("GC Axis %1").arg(axis_y_str);
+        }
+
+        return {};
+    }
     return QObject::tr("[unknown]");
 }
 
@@ -332,7 +365,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
         connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged, [=] {
             const float slider_value = analog_map_deadzone_and_modifier_slider[analog_id]->value();
-            if (analogs_param[analog_id].Get("engine", "") == "sdl") {
+            if (analogs_param[analog_id].Get("engine", "") == "sdl" ||
+                analogs_param[analog_id].Get("engine", "") == "gcpad") {
                 analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
                     tr("Deadzone: %1%").arg(slider_value));
                 analogs_param[analog_id].Set("deadzone", slider_value / 100.0f);
@@ -352,6 +386,20 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
+        if (InputCommon::GetGCButtons()->IsPolling()) {
+            params = InputCommon::GetGCButtons()->GetNextInput();
+            if (params.Has("engine")) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (InputCommon::GetGCAnalogs()->IsPolling()) {
+            params = InputCommon::GetGCAnalogs()->GetNextInput();
+            if (params.Has("engine")) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine")) {
@@ -534,7 +582,7 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
             analog_map_deadzone_and_modifier_slider_label[analog_id];
 
         if (param.Has("engine")) {
-            if (param.Get("engine", "") == "sdl") {
+            if (param.Get("engine", "") == "sdl" || param.Get("engine", "") == "gcpad") {
                 if (!param.Has("deadzone")) {
                     param.Set("deadzone", 0.1f);
                 }
@@ -583,6 +631,11 @@ void ConfigureInputPlayer::HandleClick(
 
     grabKeyboard();
     grabMouse();
+    if (type == InputCommon::Polling::DeviceType::Button) {
+        InputCommon::GetGCButtons()->BeginConfiguration();
+    } else {
+        InputCommon::GetGCAnalogs()->BeginConfiguration();
+    }
     timeout_timer->start(5000); // Cancel after 5 seconds
     poll_timer->start(200);     // Check for new inputs every 200ms
 }
@@ -595,6 +648,9 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
     for (auto& poller : device_pollers) {
         poller->Stop();
     }
+
+    InputCommon::GetGCButtons()->EndConfiguration();
+    InputCommon::GetGCAnalogs()->EndConfiguration();
 
     if (!abort) {
         (*input_setter)(params);

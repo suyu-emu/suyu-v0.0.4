@@ -4,8 +4,11 @@
 
 #include <memory>
 #include <thread>
+#include <libusb.h>
 #include "common/param_package.h"
 #include "input_common/analog_from_button.h"
+#include "input_common/gcadapter/gc_adapter.h"
+#include "input_common/gcadapter/gc_poller.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
@@ -22,8 +25,16 @@ static std::shared_ptr<MotionEmu> motion_emu;
 static std::unique_ptr<SDL::State> sdl;
 #endif
 static std::unique_ptr<CemuhookUDP::State> udp;
+static std::shared_ptr<GCButtonFactory> gcbuttons;
+static std::shared_ptr<GCAnalogFactory> gcanalog;
 
 void Init() {
+    auto gcadapter = std::make_shared<GCAdapter::Adapter>();
+    gcbuttons = std::make_shared<GCButtonFactory>(gcadapter);
+    Input::RegisterFactory<Input::ButtonDevice>("gcpad", gcbuttons);
+    gcanalog = std::make_shared<GCAnalogFactory>(gcadapter);
+    Input::RegisterFactory<Input::AnalogDevice>("gcpad", gcanalog);
+
     keyboard = std::make_shared<Keyboard>();
     Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
     Input::RegisterFactory<Input::AnalogDevice>("analog_from_button",
@@ -48,6 +59,11 @@ void Shutdown() {
     sdl.reset();
 #endif
     udp.reset();
+    Input::UnregisterFactory<Input::ButtonDevice>("gcpad");
+    Input::UnregisterFactory<Input::AnalogDevice>("gcpad");
+
+    gcbuttons.reset();
+    gcanalog.reset();
 }
 
 Keyboard* GetKeyboard() {
@@ -56,6 +72,14 @@ Keyboard* GetKeyboard() {
 
 MotionEmu* GetMotionEmu() {
     return motion_emu.get();
+}
+
+GCButtonFactory* GetGCButtons() {
+    return gcbuttons.get();
+}
+
+GCAnalogFactory* GetGCAnalogs() {
+    return gcanalog.get();
 }
 
 std::string GenerateKeyboardParam(int key_code) {

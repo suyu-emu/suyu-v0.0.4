@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "input_common/gcadapter/gc_poller.h"
 
 namespace Common {
 class ParamPackage;
@@ -29,6 +30,10 @@ class MotionEmu;
 
 /// Gets the motion emulation factory.
 MotionEmu* GetMotionEmu();
+
+GCButtonFactory* GetGCButtons();
+
+GCAnalogFactory* GetGCAnalogs();
 
 /// Generates a serialized param package for creating a keyboard button device
 std::string GenerateKeyboardParam(int key_code);

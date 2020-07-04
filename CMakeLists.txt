@@ -329,6 +329,12 @@ elseif(SDL2_FOUND)
     target_link_libraries(SDL2 INTERFACE "${SDL2_LIBRARIES}")
 endif()
 
+# Ensure libusb is properly configured (based on dolphin libusb include)
+find_package(LibUSB)
+add_subdirectory(externals/libusb)
+set(LIBUSB_LIBRARIES usb)
+
+
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
