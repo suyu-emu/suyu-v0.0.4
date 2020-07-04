@@ -63,8 +63,10 @@ struct GCPadStatus {
     static constexpr u8 C_STICK_CENTER_X = 0x80;
     static constexpr u8 C_STICK_CENTER_Y = 0x80;
     static constexpr u8 C_STICK_RADIUS = 0x7f;
-    static constexpr u8 TRIGGER_CENTER = 20;
     static constexpr u8 THRESHOLD = 10;
+
+    // 256/4, at least a quarter press to count as a press. For polling mostly
+    static constexpr u8 TRIGGER_THRESHOLD = 64;
 
     u8 port{};
     PadAxes axis{PadAxes::Undefined};
