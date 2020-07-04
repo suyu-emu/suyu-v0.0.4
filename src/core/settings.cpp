@@ -127,6 +127,13 @@ void LogSettings() {
     LogSetting("Services_BCATBoxcatLocal", Settings::values.bcat_boxcat_local);
 }
 
+float Volume() {
+    if (values.audio_muted) {
+        return 0.0f;
+    }
+    return values.volume;
+}
+
 bool IsGPULevelExtreme() {
     return values.gpu_accuracy == GPUAccuracy::Extreme;
 }

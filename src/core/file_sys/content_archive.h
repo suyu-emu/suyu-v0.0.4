@@ -99,8 +99,7 @@ inline bool IsDirectoryLogoPartition(const VirtualDir& pfs) {
 class NCA : public ReadOnlyVfsDirectory {
 public:
     explicit NCA(VirtualFile file, VirtualFile bktr_base_romfs = nullptr,
-                 u64 bktr_base_ivfc_offset = 0,
-                 Core::Crypto::KeyManager keys = Core::Crypto::KeyManager());
+                 u64 bktr_base_ivfc_offset = 0);
     ~NCA() override;
 
     Loader::ResultStatus GetStatus() const;
@@ -159,7 +158,7 @@ private:
     bool encrypted = false;
     bool is_update = false;
 
-    Core::Crypto::KeyManager keys;
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 
 } // namespace FileSys

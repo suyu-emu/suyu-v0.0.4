@@ -21,7 +21,7 @@
 namespace FileSys {
 namespace {
 void SetTicketKeys(const std::vector<VirtualFile>& files) {
-    Core::Crypto::KeyManager keys;
+    auto& keys = Core::Crypto::KeyManager::Instance();
 
     for (const auto& ticket_file : files) {
         if (ticket_file == nullptr) {
@@ -285,7 +285,7 @@ void NSP::ReadNCAs(const std::vector<VirtualFile>& files) {
                     continue;
                 }
 
-                auto next_nca = std::make_shared<NCA>(std::move(next_file), nullptr, 0, keys);
+                auto next_nca = std::make_shared<NCA>(std::move(next_file), nullptr, 0);
                 if (next_nca->GetType() == NCAContentType::Program) {
                     program_status[cnmt.GetTitleID()] = next_nca->GetStatus();
                 }

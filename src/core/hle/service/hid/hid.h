@@ -91,10 +91,14 @@ private:
     void ActivateTouchScreen(Kernel::HLERequestContext& ctx);
     void ActivateMouse(Kernel::HLERequestContext& ctx);
     void ActivateKeyboard(Kernel::HLERequestContext& ctx);
+    void SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx);
     void ActivateGesture(Kernel::HLERequestContext& ctx);
     void ActivateNpadWithRevision(Kernel::HLERequestContext& ctx);
     void StartSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void StopSixAxisSensor(Kernel::HLERequestContext& ctx);
     void SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
+    void GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
+    void ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx);
     void IsSixAxisSensorAtRest(Kernel::HLERequestContext& ctx);
     void SetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
     void GetSupportedNpadStyleSet(Kernel::HLERequestContext& ctx);
@@ -126,12 +130,15 @@ private:
     void IsVibrationPermitted(Kernel::HLERequestContext& ctx);
     void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
-    void StopSixAxisSensor(Kernel::HLERequestContext& ctx);
-    void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx);
-    void SetPalmaBoostMode(Kernel::HLERequestContext& ctx);
+    void StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void StartSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StopSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
     void InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
-    void SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx);
+    void FinalizeSevenSixAxisSensor(Kernel::HLERequestContext& ctx);
+    void ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx);
+    void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx);
+    void SetPalmaBoostMode(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<IAppletResource> applet_resource;
     Core::System& system;

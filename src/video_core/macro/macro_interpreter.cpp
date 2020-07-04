@@ -11,7 +11,8 @@
 MICROPROFILE_DEFINE(MacroInterp, "GPU", "Execute macro interpreter", MP_RGB(128, 128, 192));
 
 namespace Tegra {
-MacroInterpreter::MacroInterpreter(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
+MacroInterpreter::MacroInterpreter(Engines::Maxwell3D& maxwell3d)
+    : MacroEngine::MacroEngine(maxwell3d), maxwell3d(maxwell3d) {}
 
 std::unique_ptr<CachedMacro> MacroInterpreter::Compile(const std::vector<u32>& code) {
     return std::make_unique<MacroInterpreterImpl>(maxwell3d, code);

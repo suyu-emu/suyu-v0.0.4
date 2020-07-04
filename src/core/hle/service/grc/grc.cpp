@@ -17,6 +17,9 @@ public:
         static const FunctionInfo functions[] = {
             {1, nullptr, "OpenContinuousRecorder"},
             {2, nullptr, "OpenGameMovieTrimmer"},
+            {3, nullptr, "OpenOffscreenRecorder"},
+            {101, nullptr, "CreateMovieMaker"},
+            {9903, nullptr, "SetOffscreenRecordingMarker"}
         };
         // clang-format on
 

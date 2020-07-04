@@ -11,8 +11,13 @@
 
 #include "common/common_types.h"
 #include "common/multi_level_queue.h"
+#include "common/spin_lock.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/thread.h"
+
+namespace Common {
+class Fiber;
+}
 
 namespace Core {
 class ARM_Interface;
@@ -41,41 +46,17 @@ public:
         return thread_list;
     }
 
-    /**
-     * Add a thread to the suggested queue of a cpu core. Suggested threads may be
-     * picked if no thread is scheduled to run on the core.
-     */
-    void Suggest(u32 priority, std::size_t core, Thread* thread);
+    /// Notify the scheduler a thread's status has changed.
+    void AdjustSchedulingOnStatus(Thread* thread, u32 old_flags);
+
+    /// Notify the scheduler a thread's priority has changed.
+    void AdjustSchedulingOnPriority(Thread* thread, u32 old_priority);
+
+    /// Notify the scheduler a thread's core and/or affinity mask has changed.
+    void AdjustSchedulingOnAffinity(Thread* thread, u64 old_affinity_mask, s32 old_core);
 
     /**
-     * Remove a thread to the suggested queue of a cpu core. Suggested threads may be
-     * picked if no thread is scheduled to run on the core.
-     */
-    void Unsuggest(u32 priority, std::size_t core, Thread* thread);
-
-    /**
-     * Add a thread to the scheduling queue of a cpu core. The thread is added at the
-     * back the queue in its priority level.
-     */
-    void Schedule(u32 priority, std::size_t core, Thread* thread);
-
-    /**
-     * Add a thread to the scheduling queue of a cpu core. The thread is added at the
-     * front the queue in its priority level.
-     */
-    void SchedulePrepend(u32 priority, std::size_t core, Thread* thread);
-
-    /// Reschedule an already scheduled thread based on a new priority
-    void Reschedule(u32 priority, std::size_t core, Thread* thread);
-
-    /// Unschedules a thread.
-    void Unschedule(u32 priority, std::size_t core, Thread* thread);
-
-    /// Selects a core and forces it to unload its current thread's context
-    void UnloadThread(std::size_t core);
-
-    /**
-     * Takes care of selecting the new scheduled thread in three steps:
+     * Takes care of selecting the new scheduled threads in three steps:
      *
      * 1. First a thread is selected from the top of the priority queue. If no thread
      *    is obtained then we move to step two, else we are done.
@@ -85,8 +66,10 @@ public:
      *
      * 3. Third is no suggested thread is found, we do a second pass and pick a running
      *    thread in another core and swap it with its current thread.
+     *
+     * returns the cores needing scheduling.
      */
-    void SelectThread(std::size_t core);
+    u32 SelectThreads();
 
     bool HaveReadyThreads(std::size_t core_id) const {
         return !scheduled_queue[core_id].empty();
@@ -149,6 +132,40 @@ private:
     /// Unlocks the scheduler, reselects threads, interrupts cores for rescheduling
     /// and reschedules current core if needed.
     void Unlock();
+
+    void EnableInterruptAndSchedule(u32 cores_pending_reschedule,
+                                    Core::EmuThreadHandle global_thread);
+
+    /**
+     * Add a thread to the suggested queue of a cpu core. Suggested threads may be
+     * picked if no thread is scheduled to run on the core.
+     */
+    void Suggest(u32 priority, std::size_t core, Thread* thread);
+
+    /**
+     * Remove a thread to the suggested queue of a cpu core. Suggested threads may be
+     * picked if no thread is scheduled to run on the core.
+     */
+    void Unsuggest(u32 priority, std::size_t core, Thread* thread);
+
+    /**
+     * Add a thread to the scheduling queue of a cpu core. The thread is added at the
+     * back the queue in its priority level.
+     */
+    void Schedule(u32 priority, std::size_t core, Thread* thread);
+
+    /**
+     * Add a thread to the scheduling queue of a cpu core. The thread is added at the
+     * front the queue in its priority level.
+     */
+    void SchedulePrepend(u32 priority, std::size_t core, Thread* thread);
+
+    /// Reschedule an already scheduled thread based on a new priority
+    void Reschedule(u32 priority, std::size_t core, Thread* thread);
+
+    /// Unschedules a thread.
+    void Unschedule(u32 priority, std::size_t core, Thread* thread);
+
     /**
      * Transfers a thread into an specific core. If the destination_core is -1
      * it will be unscheduled from its source code and added into its suggested
@@ -170,9 +187,12 @@ private:
     std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 62};
 
     /// Scheduler lock mechanisms.
-    std::mutex inner_lock{}; // TODO(Blinkhawk): Replace for a SpinLock
+    bool is_locked{};
+    Common::SpinLock inner_lock{};
     std::atomic<s64> scope_lock{};
     Core::EmuThreadHandle current_owner{Core::EmuThreadHandle::InvalidHandle()};
+
+    Common::SpinLock global_list_guard{};
 
     /// Lists all thread ids that aren't deleted/etc.
     std::vector<std::shared_ptr<Thread>> thread_list;
@@ -190,11 +210,11 @@ public:
     /// Reschedules to the next available thread (call after current thread is suspended)
     void TryDoContextSwitch();
 
-    /// Unloads currently running thread
-    void UnloadThread();
-
-    /// Select the threads in top of the scheduling multilist.
-    void SelectThreads();
+    /// The next two are for SingleCore Only.
+    /// Unload current thread before preempting core.
+    void Unload();
+    /// Reload current thread after core preemption.
+    void Reload();
 
     /// Gets the current running thread
     Thread* GetCurrentThread() const;
@@ -209,14 +229,29 @@ public:
         return is_context_switch_pending;
     }
 
+    void Initialize();
+
     /// Shutdowns the scheduler.
     void Shutdown();
+
+    void OnThreadStart();
+
+    std::shared_ptr<Common::Fiber>& ControlContext() {
+        return switch_fiber;
+    }
+
+    const std::shared_ptr<Common::Fiber>& ControlContext() const {
+        return switch_fiber;
+    }
 
 private:
     friend class GlobalScheduler;
 
     /// Switches the CPU's active thread context to that of the specified thread
     void SwitchContext();
+
+    /// When a thread wakes up, it must run this through it's new scheduler
+    void SwitchContextStep2();
 
     /**
      * Called on every context switch to update the internal timestamp
@@ -231,13 +266,23 @@ private:
      */
     void UpdateLastContextSwitchTime(Thread* thread, Process* process);
 
+    static void OnSwitch(void* this_scheduler);
+    void SwitchToCurrent();
+
     std::shared_ptr<Thread> current_thread = nullptr;
     std::shared_ptr<Thread> selected_thread = nullptr;
+    std::shared_ptr<Thread> current_thread_prev = nullptr;
+    std::shared_ptr<Thread> selected_thread_set = nullptr;
+    std::shared_ptr<Thread> idle_thread = nullptr;
+
+    std::shared_ptr<Common::Fiber> switch_fiber = nullptr;
 
     Core::System& system;
     u64 last_context_switch_time = 0;
     u64 idle_selection_count = 0;
     const std::size_t core_id;
+
+    Common::SpinLock guard{};
 
     bool is_context_switch_pending = false;
 };
@@ -260,6 +305,8 @@ public:
     void CancelSleep() {
         sleep_cancelled = true;
     }
+
+    void Release();
 
 private:
     Handle& event_handle;

@@ -34,6 +34,7 @@ public:
         void IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx);
         void GetProfileEditor(Kernel::HLERequestContext& ctx);
         void ListQualifiedUsers(Kernel::HLERequestContext& ctx);
+        void ListOpenContextStoredUsers(Kernel::HLERequestContext& ctx);
 
     private:
         ResultCode InitializeApplicationInfoBase();

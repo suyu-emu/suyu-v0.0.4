@@ -14,14 +14,14 @@ public:
     explicit MM_U() : ServiceFramework{"mm:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &MM_U::Initialize, "Initialize"},
-            {1, &MM_U::Finalize, "Finalize"},
-            {2, &MM_U::SetAndWait, "SetAndWait"},
-            {3, &MM_U::Get, "Get"},
-            {4, &MM_U::InitializeWithId, "InitializeWithId"},
-            {5, &MM_U::FinalizeWithId, "FinalizeWithId"},
-            {6, &MM_U::SetAndWaitWithId, "SetAndWaitWithId"},
-            {7, &MM_U::GetWithId, "GetWithId"},
+            {0, &MM_U::InitializeOld, "InitializeOld"},
+            {1, &MM_U::FinalizeOld, "FinalizeOld"},
+            {2, &MM_U::SetAndWaitOld, "SetAndWaitOld"},
+            {3, &MM_U::GetOld, "GetOld"},
+            {4, &MM_U::Initialize, "Initialize"},
+            {5, &MM_U::Finalize, "Finalize"},
+            {6, &MM_U::SetAndWait, "SetAndWait"},
+            {7, &MM_U::Get, "Get"},
         };
         // clang-format on
 
@@ -29,21 +29,21 @@ public:
     }
 
 private:
-    void Initialize(Kernel::HLERequestContext& ctx) {
+    void InitializeOld(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
-    void Finalize(Kernel::HLERequestContext& ctx) {
+    void FinalizeOld(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
-    void SetAndWait(Kernel::HLERequestContext& ctx) {
+    void SetAndWaitOld(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         min = rp.Pop<u32>();
         max = rp.Pop<u32>();
@@ -54,7 +54,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    void Get(Kernel::HLERequestContext& ctx) {
+    void GetOld(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -62,7 +62,7 @@ private:
         rb.Push(current);
     }
 
-    void InitializeWithId(Kernel::HLERequestContext& ctx) {
+    void Initialize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};
@@ -70,14 +70,14 @@ private:
         rb.Push<u32>(id); // Any non zero value
     }
 
-    void FinalizeWithId(Kernel::HLERequestContext& ctx) {
+    void Finalize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
 
-    void SetAndWaitWithId(Kernel::HLERequestContext& ctx) {
+    void SetAndWait(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         u32 input_id = rp.Pop<u32>();
         min = rp.Pop<u32>();
@@ -90,7 +90,7 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    void GetWithId(Kernel::HLERequestContext& ctx) {
+    void Get(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_MM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 3};

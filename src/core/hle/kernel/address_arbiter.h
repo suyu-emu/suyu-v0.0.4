@@ -73,9 +73,6 @@ private:
     /// Waits on an address if the value passed is equal to the argument value.
     ResultCode WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout);
 
-    // Waits on the given address with a timeout in nanoseconds
-    ResultCode WaitForAddressImpl(VAddr address, s64 timeout);
-
     /// Wake up num_to_wake (or all) threads in a vector.
     void WakeThreads(const std::vector<std::shared_ptr<Thread>>& waiting_threads, s32 num_to_wake);
 

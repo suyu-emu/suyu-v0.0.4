@@ -140,6 +140,6 @@ private:
 
     u64 update_normal_partition_end;
 
-    Core::Crypto::KeyManager keys;
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 } // namespace FileSys

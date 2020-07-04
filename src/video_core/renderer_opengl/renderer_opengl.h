@@ -107,6 +107,9 @@ private:
     OGLPipeline pipeline;
     OGLFramebuffer screenshot_framebuffer;
 
+    // GPU address of the vertex buffer
+    GLuint64EXT vertex_buffer_address = 0;
+
     /// Display information for Switch screen
     ScreenInfo screen_info;
 

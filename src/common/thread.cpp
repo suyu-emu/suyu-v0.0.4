@@ -25,6 +25,52 @@
 
 namespace Common {
 
+#ifdef _WIN32
+
+void SetCurrentThreadPriority(ThreadPriority new_priority) {
+    auto handle = GetCurrentThread();
+    int windows_priority = 0;
+    switch (new_priority) {
+    case ThreadPriority::Low:
+        windows_priority = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+    case ThreadPriority::Normal:
+        windows_priority = THREAD_PRIORITY_NORMAL;
+        break;
+    case ThreadPriority::High:
+        windows_priority = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+    case ThreadPriority::VeryHigh:
+        windows_priority = THREAD_PRIORITY_HIGHEST;
+        break;
+    default:
+        windows_priority = THREAD_PRIORITY_NORMAL;
+        break;
+    }
+    SetThreadPriority(handle, windows_priority);
+}
+
+#else
+
+void SetCurrentThreadPriority(ThreadPriority new_priority) {
+    pthread_t this_thread = pthread_self();
+
+    s32 max_prio = sched_get_priority_max(SCHED_OTHER);
+    s32 min_prio = sched_get_priority_min(SCHED_OTHER);
+    u32 level = static_cast<u32>(new_priority) + 1;
+
+    struct sched_param params;
+    if (max_prio > min_prio) {
+        params.sched_priority = min_prio + ((max_prio - min_prio) * level) / 4;
+    } else {
+        params.sched_priority = min_prio - ((min_prio - max_prio) * level) / 4;
+    }
+
+    pthread_setschedparam(this_thread, SCHED_OTHER, &params);
+}
+
+#endif
+
 #ifdef _MSC_VER
 
 // Sets the debugger-visible name of the current thread.
@@ -67,6 +113,12 @@ void SetCurrentThreadName(const char* name) {
 #else
     pthread_setname_np(pthread_self(), name);
 #endif
+}
+#endif
+
+#if defined(_WIN32)
+void SetCurrentThreadName(const char* name) {
+    // Do Nothing on MingW
 }
 #endif
 

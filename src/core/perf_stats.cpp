@@ -119,7 +119,7 @@ double PerfStats::GetLastFrameTimeScale() {
 }
 
 void FrameLimiter::DoFrameLimiting(microseconds current_system_time_us) {
-    if (!Settings::values.use_frame_limit) {
+    if (!Settings::values.use_frame_limit || Settings::values.use_multi_core) {
         return;
     }
 

@@ -20,6 +20,12 @@ public:
             {101, nullptr, "ResumeServer"},
             {200, nullptr, "CreateClient"},
             {201, nullptr, "ResumeClient"},
+            {1001, nullptr, "Unknown1001"},
+            {1010, nullptr, "Unknown1010"},
+            {1100, nullptr, "Unknown1100"},
+            {1101, nullptr, "Unknown1101"},
+            {1200, nullptr, "Unknown1200"},
+            {1201, nullptr, "Unknown1201"}
         };
         // clang-format on
 

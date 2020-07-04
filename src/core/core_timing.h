@@ -1,19 +1,25 @@
-// Copyright 2008 Dolphin Emulator Project / 2017 Citra Emulator Project
-// Licensed under GPLv2+
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/spin_lock.h"
+#include "common/thread.h"
 #include "common/threadsafe_queue.h"
+#include "common/wall_clock.h"
+#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
@@ -56,16 +62,40 @@ public:
 
     /// CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
     /// required to end slice - 1 and start slice 0 before the first cycle of code is executed.
-    void Initialize();
+    void Initialize(std::function<void(void)>&& on_thread_init_);
 
     /// Tears down all timing related functionality.
     void Shutdown();
 
-    /// After the first Advance, the slice lengths and the downcount will be reduced whenever an
-    /// event is scheduled earlier than the current values.
-    ///
-    /// Scheduling from a callback will not update the downcount until the Advance() completes.
-    void ScheduleEvent(s64 cycles_into_future, const std::shared_ptr<EventType>& event_type,
+    /// Sets if emulation is multicore or single core, must be set before Initialize
+    void SetMulticore(bool is_multicore) {
+        this->is_multicore = is_multicore;
+    }
+
+    /// Check if it's using host timing.
+    bool IsHostTiming() const {
+        return is_multicore;
+    }
+
+    /// Pauses/Unpauses the execution of the timer thread.
+    void Pause(bool is_paused);
+
+    /// Pauses/Unpauses the execution of the timer thread and waits until paused.
+    void SyncPause(bool is_paused);
+
+    /// Checks if core timing is running.
+    bool IsRunning() const;
+
+    /// Checks if the timer thread has started.
+    bool HasStarted() const {
+        return has_started;
+    }
+
+    /// Checks if there are any pending time events.
+    bool HasPendingEvents() const;
+
+    /// Schedules an event in core timing
+    void ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
                        u64 userdata = 0);
 
     void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata);
@@ -73,41 +103,30 @@ public:
     /// We only permit one event of each type in the queue at a time.
     void RemoveEvent(const std::shared_ptr<EventType>& event_type);
 
-    void ForceExceptionCheck(s64 cycles);
-
-    /// This should only be called from the emu thread, if you are calling it any other thread,
-    /// you are doing something evil
-    u64 GetTicks() const;
-
-    u64 GetIdleTicks() const;
-
     void AddTicks(u64 ticks);
 
-    /// Advance must be called at the beginning of dispatcher loops, not the end. Advance() ends
-    /// the previous timing slice and begins the next one, you must Advance from the previous
-    /// slice to the current one before executing any cycles. CoreTiming starts in slice -1 so an
-    /// Advance() is required to initialize the slice length before the first cycle of emulated
-    /// instructions is executed.
-    void Advance();
+    void ResetTicks();
 
-    /// Pretend that the main CPU has executed enough cycles to reach the next event.
     void Idle();
 
+    s64 GetDowncount() const {
+        return downcount;
+    }
+
+    /// Returns current time in emulated CPU cycles
+    u64 GetCPUTicks() const;
+
+    /// Returns current time in emulated in Clock cycles
+    u64 GetClockTicks() const;
+
+    /// Returns current time in microseconds.
     std::chrono::microseconds GetGlobalTimeUs() const;
 
-    void ResetRun();
+    /// Returns current time in nanoseconds.
+    std::chrono::nanoseconds GetGlobalTimeNs() const;
 
-    s64 GetDowncount() const;
-
-    void SwitchContext(u64 new_context) {
-        current_context = new_context;
-    }
-
-    bool CanCurrentContextRun() const {
-        return time_slice[current_context] > 0;
-    }
-
-    std::optional<u64> NextAvailableCore(const s64 needed_ticks) const;
+    /// Checks for events manually and returns time in nanoseconds for next event, threadsafe.
+    std::optional<s64> Advance();
 
 private:
     struct Event;
@@ -115,21 +134,14 @@ private:
     /// Clear all pending events. This should ONLY be done on exit.
     void ClearPendingEvents();
 
-    static constexpr u64 num_cpu_cores = 4;
+    static void ThreadEntry(CoreTiming& instance);
+    void ThreadLoop();
 
-    s64 global_timer = 0;
-    s64 idled_cycles = 0;
-    s64 slice_length = 0;
-    u64 accumulated_ticks = 0;
-    std::array<s64, num_cpu_cores> downcounts{};
-    // Slice of time assigned to each core per run.
-    std::array<s64, num_cpu_cores> time_slice{};
-    u64 current_context = 0;
+    std::unique_ptr<Common::WallClock> clock;
 
-    // Are we in a function that has been called from Advance()
-    // If events are scheduled from a function that gets called from Advance(),
-    // don't change slice_length and downcount.
-    bool is_global_timer_sane = false;
+    u64 global_timer = 0;
+
+    std::chrono::nanoseconds start_point;
 
     // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
     // We don't use std::priority_queue because we need to be able to serialize, unserialize and
@@ -139,8 +151,23 @@ private:
     u64 event_fifo_id = 0;
 
     std::shared_ptr<EventType> ev_lost;
+    Common::Event event{};
+    Common::Event pause_event{};
+    Common::SpinLock basic_lock{};
+    Common::SpinLock advance_lock{};
+    std::unique_ptr<std::thread> timer_thread;
+    std::atomic<bool> paused{};
+    std::atomic<bool> paused_set{};
+    std::atomic<bool> wait_set{};
+    std::atomic<bool> shutting_down{};
+    std::atomic<bool> has_started{};
+    std::function<void(void)> on_thread_init{};
 
-    std::mutex inner_mutex;
+    bool is_multicore{};
+
+    /// Cycle timing
+    u64 ticks{};
+    s64 downcount{};
 };
 
 /// Creates a core timing event with the given name and callback.

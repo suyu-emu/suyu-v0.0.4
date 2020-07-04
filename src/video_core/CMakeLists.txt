@@ -3,6 +3,8 @@ add_library(video_core STATIC
     buffer_cache/buffer_cache.h
     buffer_cache/map_interval.cpp
     buffer_cache/map_interval.h
+    compatible_formats.cpp
+    compatible_formats.h
     dirty_flags.cpp
     dirty_flags.h
     dma_pusher.cpp
@@ -27,6 +29,8 @@ add_library(video_core STATIC
     engines/shader_type.h
     macro/macro.cpp
     macro/macro.h
+    macro/macro_hle.cpp
+    macro/macro_hle.h
     macro/macro_interpreter.cpp
     macro/macro_interpreter.h
     macro/macro_jit_x64.cpp

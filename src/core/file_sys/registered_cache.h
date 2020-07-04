@@ -88,7 +88,7 @@ public:
 
 protected:
     // A single instance of KeyManager to be used by GetEntry()
-    Core::Crypto::KeyManager keys;
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 
 class PlaceholderCache {

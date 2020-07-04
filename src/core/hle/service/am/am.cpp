@@ -68,6 +68,7 @@ IWindowController::IWindowController(Core::System& system_)
     static const FunctionInfo functions[] = {
         {0, nullptr, "CreateWindow"},
         {1, &IWindowController::GetAppletResourceUserId, "GetAppletResourceUserId"},
+        {2, nullptr, "GetAppletResourceUserIdOfCallerApplet"},
         {10, &IWindowController::AcquireForegroundRights, "AcquireForegroundRights"},
         {11, nullptr, "ReleaseForegroundRights"},
         {12, nullptr, "RejectToChangeIntoBackground"},
@@ -189,8 +190,8 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
         {5, nullptr, "GetLastForegroundCaptureImageEx"},
         {6, nullptr, "GetLastApplicationCaptureImageEx"},
         {7, nullptr, "GetCallerAppletCaptureImageEx"},
-        {8, nullptr, "TakeScreenShotOfOwnLayer"},  // 2.0.0+
-        {9, nullptr, "CopyBetweenCaptureBuffers"}, // 5.0.0+
+        {8, nullptr, "TakeScreenShotOfOwnLayer"},
+        {9, nullptr, "CopyBetweenCaptureBuffers"},
         {10, nullptr, "AcquireLastApplicationCaptureBuffer"},
         {11, nullptr, "ReleaseLastApplicationCaptureBuffer"},
         {12, nullptr, "AcquireLastForegroundCaptureBuffer"},
@@ -200,17 +201,14 @@ IDisplayController::IDisplayController() : ServiceFramework("IDisplayController"
         {16, nullptr, "AcquireLastApplicationCaptureBufferEx"},
         {17, nullptr, "AcquireLastForegroundCaptureBufferEx"},
         {18, nullptr, "AcquireCallerAppletCaptureBufferEx"},
-        // 2.0.0+
         {20, nullptr, "ClearCaptureBuffer"},
         {21, nullptr, "ClearAppletTransitionBuffer"},
-        // 4.0.0+
         {22, nullptr, "AcquireLastApplicationCaptureSharedBuffer"},
         {23, nullptr, "ReleaseLastApplicationCaptureSharedBuffer"},
         {24, nullptr, "AcquireLastForegroundCaptureSharedBuffer"},
         {25, nullptr, "ReleaseLastForegroundCaptureSharedBuffer"},
         {26, nullptr, "AcquireCallerAppletCaptureSharedBuffer"},
         {27, nullptr, "ReleaseCallerAppletCaptureSharedBuffer"},
-        // 6.0.0+
         {28, nullptr, "TakeScreenShotOfOwnLayerEx"},
     };
     // clang-format on
@@ -225,7 +223,7 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
     static const FunctionInfo functions[] = {
         {0, nullptr, "NotifyMessageToHomeMenuForDebug"},
         {1, nullptr, "OpenMainApplication"},
-        {10, nullptr, "EmulateButtonEvent"},
+        {10, nullptr, "PerformSystemButtonPressing"},
         {20, nullptr, "InvalidateTransitionLayer"},
         {30, nullptr, "RequestLaunchApplicationWithUserAndArgumentForDebug"},
         {40, nullptr, "GetAppletResourceUsageInfo"},
@@ -267,7 +265,7 @@ ISelfController::ISelfController(Core::System& system,
         {16, &ISelfController::SetOutOfFocusSuspendingEnabled, "SetOutOfFocusSuspendingEnabled"},
         {17, nullptr, "SetControllerFirmwareUpdateSection"},
         {18, nullptr, "SetRequiresCaptureButtonShortPressedMessage"},
-        {19, &ISelfController::SetScreenShotImageOrientation, "SetScreenShotImageOrientation"},
+        {19, &ISelfController::SetAlbumImageOrientation, "SetAlbumImageOrientation"},
         {20, nullptr, "SetDesirableKeyboardLayout"},
         {40, &ISelfController::CreateManagedDisplayLayer, "CreateManagedDisplayLayer"},
         {41, nullptr, "IsSystemBufferSharingEnabled"},
@@ -443,7 +441,7 @@ void ISelfController::SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& 
     rb.Push(RESULT_SUCCESS);
 }
 
-void ISelfController::SetScreenShotImageOrientation(Kernel::HLERequestContext& ctx) {
+void ISelfController::SetAlbumImageOrientation(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_AM, "(STUBBED) called");
 
     IPC::ResponseBuilder rb{ctx, 2};
@@ -607,6 +605,7 @@ ICommonStateGetter::ICommonStateGetter(Core::System& system,
         {20, nullptr, "PushToGeneralChannel"},
         {30, nullptr, "GetHomeButtonReaderLockAccessor"},
         {31, nullptr, "GetReaderLockAccessorEx"},
+        {32, nullptr, "GetWriterLockAccessorEx"},
         {40, nullptr, "GetCradleFwVersion"},
         {50, &ICommonStateGetter::IsVrModeEnabled, "IsVrModeEnabled"},
         {51, &ICommonStateGetter::SetVrModeEnabled, "SetVrModeEnabled"},
@@ -842,7 +841,7 @@ public:
             {110, nullptr, "NeedsToExitProcess"},
             {120, nullptr, "GetLibraryAppletInfo"},
             {150, nullptr, "RequestForAppletToGetForeground"},
-            {160, nullptr, "GetIndirectLayerConsumerHandle"},
+            {160, &ILibraryAppletAccessor::GetIndirectLayerConsumerHandle, "GetIndirectLayerConsumerHandle"},
         };
         // clang-format on
 
@@ -959,6 +958,18 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushCopyObjects(applet->GetBroker().GetInteractiveDataEvent());
+    }
+
+    void GetIndirectLayerConsumerHandle(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_AM, "(STUBBED) called");
+
+        // We require a non-zero handle to be valid. Using 0xdeadbeef allows us to trace if this is
+        // actually used anywhere
+        constexpr u64 handle = 0xdeadbeef;
+
+        IPC::ResponseBuilder rb{ctx, 4};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(handle);
     }
 
     std::shared_ptr<Applets::Applet> applet;
@@ -1132,6 +1143,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {24, nullptr, "GetLaunchStorageInfoForDebug"},
         {25, &IApplicationFunctions::ExtendSaveData, "ExtendSaveData"},
         {26, &IApplicationFunctions::GetSaveDataSize, "GetSaveDataSize"},
+        {27, nullptr, "CreateCacheStorage"},
         {30, &IApplicationFunctions::BeginBlockingHomeButtonShortAndLongPressed, "BeginBlockingHomeButtonShortAndLongPressed"},
         {31, &IApplicationFunctions::EndBlockingHomeButtonShortAndLongPressed, "EndBlockingHomeButtonShortAndLongPressed"},
         {32, &IApplicationFunctions::BeginBlockingHomeButton, "BeginBlockingHomeButton"},
@@ -1157,6 +1169,8 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {120, nullptr, "ExecuteProgram"},
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
+        {123, nullptr, "GetPreviousProgramIndex"},
+        {124, nullptr, "EnableApplicationAllThreadDumpOnCrash"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
         {140, &IApplicationFunctions::GetFriendInvitationStorageChannelEvent, "GetFriendInvitationStorageChannelEvent"},
         {141, nullptr, "TryPopFromFriendInvitationStorageChannel"},

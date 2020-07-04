@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <mutex>
 #include <thread>
+#include "common/common_types.h"
 
 namespace Common {
 
@@ -28,8 +29,7 @@ public:
         is_set = false;
     }
 
-    template <class Duration>
-    bool WaitFor(const std::chrono::duration<Duration>& time) {
+    bool WaitFor(const std::chrono::nanoseconds& time) {
         std::unique_lock lk{mutex};
         if (!condvar.wait_for(lk, time, [this] { return is_set; }))
             return false;
@@ -85,6 +85,15 @@ private:
     std::size_t waiting = 0;
     std::size_t generation = 0; // Incremented once each time the barrier is used
 };
+
+enum class ThreadPriority : u32 {
+    Low = 0,
+    Normal = 1,
+    High = 2,
+    VeryHigh = 3,
+};
+
+void SetCurrentThreadPriority(ThreadPriority new_priority);
 
 void SetCurrentThreadName(const char* name);
 

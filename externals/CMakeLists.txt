@@ -91,3 +91,6 @@ if (ENABLE_WEB_SERVICE)
     target_compile_definitions(httplib INTERFACE -DCPPHTTPLIB_OPENSSL_SUPPORT)
     target_link_libraries(httplib INTERFACE ${OPENSSL_LIBRARIES})
 endif()
+
+# Opus
+add_subdirectory(opus)

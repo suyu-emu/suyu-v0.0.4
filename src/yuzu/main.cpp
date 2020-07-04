@@ -56,6 +56,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QShortcut>
 #include <QStatusBar>
 #include <QSysInfo>
+#include <QUrl>
 #include <QtConcurrent/QtConcurrent>
 
 #include <fmt/format.h>
@@ -217,7 +218,20 @@ GMainWindow::GMainWindow()
     LOG_INFO(Frontend, "yuzu Version: {} | {}-{}", yuzu_build_version, Common::g_scm_branch,
              Common::g_scm_desc);
 #ifdef ARCHITECTURE_x86_64
-    LOG_INFO(Frontend, "Host CPU: {}", Common::GetCPUCaps().cpu_string);
+    const auto& caps = Common::GetCPUCaps();
+    std::string cpu_string = caps.cpu_string;
+    if (caps.avx || caps.avx2 || caps.avx512) {
+        cpu_string += " | AVX";
+        if (caps.avx512) {
+            cpu_string += "512";
+        } else if (caps.avx2) {
+            cpu_string += '2';
+        }
+        if (caps.fma || caps.fma4) {
+            cpu_string += " | FMA";
+        }
+    }
+    LOG_INFO(Frontend, "Host CPU: {}", cpu_string);
 #endif
     LOG_INFO(Frontend, "Host OS: {}", QSysInfo::prettyProductName().toStdString());
     LOG_INFO(Frontend, "Host RAM: {:.2f} GB",
@@ -520,14 +534,36 @@ void GMainWindow::InitializeWidgets() {
         if (emulation_running) {
             return;
         }
-        Settings::values.use_asynchronous_gpu_emulation =
-            !Settings::values.use_asynchronous_gpu_emulation;
+        bool is_async =
+            !Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        Settings::values.use_asynchronous_gpu_emulation = is_async;
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
         Settings::Apply();
     });
     async_status_button->setText(tr("ASYNC"));
     async_status_button->setCheckable(true);
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+
+    // Setup Multicore button
+    multicore_status_button = new QPushButton();
+    multicore_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
+    multicore_status_button->setFocusPolicy(Qt::NoFocus);
+    connect(multicore_status_button, &QPushButton::clicked, [&] {
+        if (emulation_running) {
+            return;
+        }
+        Settings::values.use_multi_core = !Settings::values.use_multi_core;
+        bool is_async =
+            Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
+        Settings::values.use_asynchronous_gpu_emulation = is_async;
+        async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+        multicore_status_button->setChecked(Settings::values.use_multi_core);
+        Settings::Apply();
+    });
+    multicore_status_button->setText(tr("MULTICORE"));
+    multicore_status_button->setCheckable(true);
+    multicore_status_button->setChecked(Settings::values.use_multi_core);
+    statusBar()->insertPermanentWidget(0, multicore_status_button);
     statusBar()->insertPermanentWidget(0, async_status_button);
 
     // Setup Renderer API button
@@ -653,6 +689,11 @@ void GMainWindow::InitializeHotkeys() {
     ui.action_Capture_Screenshot->setShortcutContext(
         hotkey_registry.GetShortcutContext(main_window, capture_screenshot));
 
+    ui.action_Fullscreen->setShortcut(
+        hotkey_registry.GetHotkey(main_window, fullscreen, this)->key());
+    ui.action_Fullscreen->setShortcutContext(
+        hotkey_registry.GetShortcutContext(main_window, fullscreen));
+
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Load File"), this),
             &QShortcut::activated, this, &GMainWindow::OnMenuLoadFile);
     connect(
@@ -723,6 +764,9 @@ void GMainWindow::InitializeHotkeys() {
                                     Settings::values.use_docked_mode);
                 dock_status_button->setChecked(Settings::values.use_docked_mode);
             });
+    connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
+            &QShortcut::activated, this,
+            [] { Settings::values.audio_muted = !Settings::values.audio_muted; });
 }
 
 void GMainWindow::SetDefaultUIGeometry() {
@@ -823,6 +867,10 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Stop, &QAction::triggered, this, &GMainWindow::OnStopGame);
     connect(ui.action_Report_Compatibility, &QAction::triggered, this,
             &GMainWindow::OnMenuReportCompatibility);
+    connect(ui.action_Open_Mods_Page, &QAction::triggered, this, &GMainWindow::OnOpenModsPage);
+    connect(ui.action_Open_Quickstart_Guide, &QAction::triggered, this,
+            &GMainWindow::OnOpenQuickstartGuide);
+    connect(ui.action_Open_FAQ, &QAction::triggered, this, &GMainWindow::OnOpenFAQ);
     connect(ui.action_Restart, &QAction::triggered, this, [this] { BootGame(QString(game_path)); });
     connect(ui.action_Configure, &QAction::triggered, this, &GMainWindow::OnConfigure);
 
@@ -836,10 +884,6 @@ void GMainWindow::ConnectMenuEvents() {
     connect(ui.action_Reset_Window_Size, &QAction::triggered, this, &GMainWindow::ResetWindowSize);
 
     // Fullscreen
-    ui.action_Fullscreen->setShortcut(
-        hotkey_registry
-            .GetHotkey(QStringLiteral("Main Window"), QStringLiteral("Fullscreen"), this)
-            ->key());
     connect(ui.action_Fullscreen, &QAction::triggered, this, &GMainWindow::ToggleFullscreen);
 
     // Movie
@@ -906,6 +950,8 @@ bool GMainWindow::LoadROM(const QString& filename) {
         std::make_unique<QtWebBrowser>(*this),       //
         nullptr,                                     // E-Commerce
     });
+
+    system.RegisterHostThread();
 
     const Core::System::ResultStatus result{system.Load(*render_window, filename.toStdString())};
 
@@ -1023,6 +1069,7 @@ void GMainWindow::BootGame(const QString& filename) {
     }
     status_bar_update_timer.start(2000);
     async_status_button->setDisabled(true);
+    multicore_status_button->setDisabled(true);
     renderer_status_button->setDisabled(true);
 
     if (UISettings::values.hide_mouse) {
@@ -1034,17 +1081,19 @@ void GMainWindow::BootGame(const QString& filename) {
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
 
     std::string title_name;
+    std::string title_version;
     const auto res = Core::System::GetInstance().GetGameName(title_name);
-    if (res != Loader::ResultStatus::Success) {
-        const auto metadata = FileSys::PatchManager(title_id).GetControlMetadata();
-        if (metadata.first != nullptr)
-            title_name = metadata.first->GetApplicationName();
 
-        if (title_name.empty())
-            title_name = FileUtil::GetFilename(filename.toStdString());
+    const auto metadata = FileSys::PatchManager(title_id).GetControlMetadata();
+    if (metadata.first != nullptr) {
+        title_version = metadata.first->GetVersionString();
+        title_name = metadata.first->GetApplicationName();
     }
-    LOG_INFO(Frontend, "Booting game: {:016X} | {}", title_id, title_name);
-    UpdateWindowTitle(QString::fromStdString(title_name));
+    if (res != Loader::ResultStatus::Success || title_name.empty()) {
+        title_name = FileUtil::GetFilename(filename.toStdString());
+    }
+    LOG_INFO(Frontend, "Booting game: {:016X} | {} | {}", title_id, title_name, title_version);
+    UpdateWindowTitle(title_name, title_version);
 
     loading_screen->Prepare(Core::System::GetInstance().GetAppLoader());
     loading_screen->show();
@@ -1110,6 +1159,7 @@ void GMainWindow::ShutdownGame() {
     game_fps_label->setVisible(false);
     emu_frametime_label->setVisible(false);
     async_status_button->setEnabled(true);
+    multicore_status_button->setEnabled(true);
 #ifdef HAS_VULKAN
     renderer_status_button->setEnabled(true);
 #endif
@@ -1794,6 +1844,26 @@ void GMainWindow::OnMenuReportCompatibility() {
     }
 }
 
+void GMainWindow::OpenURL(const QUrl& url) {
+    const bool open = QDesktopServices::openUrl(url);
+    if (!open) {
+        QMessageBox::warning(this, tr("Error opening URL"),
+                             tr("Unable to open the URL \"%1\".").arg(url.toString()));
+    }
+}
+
+void GMainWindow::OnOpenModsPage() {
+    OpenURL(QUrl(QStringLiteral("https://github.com/yuzu-emu/yuzu/wiki/Switch-Mods")));
+}
+
+void GMainWindow::OnOpenQuickstartGuide() {
+    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/help/quickstart/")));
+}
+
+void GMainWindow::OnOpenFAQ() {
+    OpenURL(QUrl(QStringLiteral("https://yuzu-emu.org/wiki/faq/")));
+}
+
 void GMainWindow::ToggleFullscreen() {
     if (!emulation_running) {
         return;
@@ -1905,7 +1975,11 @@ void GMainWindow::OnConfigure() {
     }
 
     dock_status_button->setChecked(Settings::values.use_docked_mode);
+    multicore_status_button->setChecked(Settings::values.use_multi_core);
+    Settings::values.use_asynchronous_gpu_emulation =
+        Settings::values.use_asynchronous_gpu_emulation || Settings::values.use_multi_core;
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation);
+
 #ifdef HAS_VULKAN
     renderer_status_button->setChecked(Settings::values.renderer_backend ==
                                        Settings::RendererBackend::Vulkan);
@@ -1992,7 +2066,8 @@ void GMainWindow::OnCaptureScreenshot() {
     OnStartGame();
 }
 
-void GMainWindow::UpdateWindowTitle(const QString& title_name) {
+void GMainWindow::UpdateWindowTitle(const std::string& title_name,
+                                    const std::string& title_version) {
     const auto full_name = std::string(Common::g_build_fullname);
     const auto branch_name = std::string(Common::g_scm_branch);
     const auto description = std::string(Common::g_scm_desc);
@@ -2001,7 +2076,7 @@ void GMainWindow::UpdateWindowTitle(const QString& title_name) {
     const auto date =
         QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd")).toStdString();
 
-    if (title_name.isEmpty()) {
+    if (title_name.empty()) {
         const auto fmt = std::string(Common::g_title_bar_format_idle);
         setWindowTitle(QString::fromStdString(fmt::format(fmt.empty() ? "yuzu {0}| {1}-{2}" : fmt,
                                                           full_name, branch_name, description,
@@ -2009,8 +2084,8 @@ void GMainWindow::UpdateWindowTitle(const QString& title_name) {
     } else {
         const auto fmt = std::string(Common::g_title_bar_format_running);
         setWindowTitle(QString::fromStdString(
-            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {1}-{2}" : fmt, full_name, branch_name,
-                        description, title_name.toStdString(), date, build_id)));
+            fmt::format(fmt.empty() ? "yuzu {0}| {3} | {6} | {1}-{2}" : fmt, full_name, branch_name,
+                        description, title_name, date, build_id, title_version)));
     }
 }
 
@@ -2032,7 +2107,7 @@ void GMainWindow::UpdateStatusBar() {
     game_fps_label->setText(tr("Game: %1 FPS").arg(results.game_fps, 0, 'f', 0));
     emu_frametime_label->setText(tr("Frame: %1 ms").arg(results.frametime * 1000.0, 0, 'f', 2));
 
-    emu_speed_label->setVisible(true);
+    emu_speed_label->setVisible(!Settings::values.use_multi_core);
     game_fps_label->setVisible(true);
     emu_frametime_label->setVisible(true);
 }
@@ -2151,7 +2226,7 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
                          "title.keys_autogenerated");
     }
 
-    Core::Crypto::KeyManager keys{};
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
     if (keys.BaseDeriveNecessary()) {
         Core::Crypto::PartitionDataManager pdm{vfs->OpenDirectory(
             FileUtil::GetUserPath(FileUtil::UserPath::SysDataDir), FileSys::Mode::Read)};

@@ -19,8 +19,15 @@ GPUAsynch::GPUAsynch(Core::System& system, std::unique_ptr<VideoCore::RendererBa
 GPUAsynch::~GPUAsynch() = default;
 
 void GPUAsynch::Start() {
-    cpu_context->MakeCurrent();
     gpu_thread.StartThread(*renderer, *gpu_context, *dma_pusher);
+}
+
+void GPUAsynch::ObtainContext() {
+    cpu_context->MakeCurrent();
+}
+
+void GPUAsynch::ReleaseContext() {
+    cpu_context->DoneCurrent();
 }
 
 void GPUAsynch::PushGPUEntries(Tegra::CommandList&& entries) {

@@ -113,6 +113,9 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="action_Report_Compatibility"/>
+    <addaction name="action_Open_Mods_Page"/>
+    <addaction name="action_Open_Quickstart_Guide"/>
+    <addaction name="action_Open_FAQ"/>
     <addaction name="separator"/>
     <addaction name="action_About"/>
    </widget>
@@ -254,6 +257,21 @@
    </property>
    <property name="visible">
     <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_Open_Mods_Page">
+   <property name="text">
+    <string>Open Mods Page</string>
+   </property>
+  </action>
+  <action name="action_Open_Quickstart_Guide">
+   <property name="text">
+    <string>Open Quickstart Guide</string>
+   </property>
+  </action>
+  <action name="action_Open_FAQ">
+   <property name="text">
+    <string>FAQ</string>
    </property>
   </action>
   <action name="action_Open_yuzu_Folder">

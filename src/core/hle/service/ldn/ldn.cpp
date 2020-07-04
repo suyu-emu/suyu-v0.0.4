@@ -69,6 +69,7 @@ public:
             {101, nullptr, "GetNetworkInfoLatestUpdate"},
             {102, nullptr, "Scan"},
             {103, nullptr, "ScanPrivate"},
+            {104, nullptr, "SetWirelessControllerRestriction"},
             {200, nullptr, "OpenAccessPoint"},
             {201, nullptr, "CloseAccessPoint"},
             {202, nullptr, "CreateNetwork"},

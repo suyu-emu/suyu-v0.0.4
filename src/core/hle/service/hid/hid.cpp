@@ -39,11 +39,9 @@ namespace Service::HID {
 
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
-constexpr s64 pad_update_ticks = static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 66);
-[[maybe_unused]] constexpr s64 accelerometer_update_ticks =
-    static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 100);
-[[maybe_unused]] constexpr s64 gyroscope_update_ticks =
-    static_cast<s64>(Core::Hardware::BASE_CLOCK_RATE / 100);
+constexpr s64 pad_update_ticks = static_cast<s64>(1000000000 / 66);
+[[maybe_unused]] constexpr s64 accelerometer_update_ticks = static_cast<s64>(1000000000 / 100);
+[[maybe_unused]] constexpr s64 gyroscope_update_ticks = static_cast<s64>(1000000000 / 100);
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
@@ -78,8 +76,8 @@ IAppletResource::IAppletResource(Core::System& system)
 
     // Register update callbacks
     pad_update_event =
-        Core::Timing::CreateEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 cycles_late) {
-            UpdateControllers(userdata, cycles_late);
+        Core::Timing::CreateEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 ns_late) {
+            UpdateControllers(userdata, ns_late);
         });
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
@@ -109,7 +107,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(shared_mem);
 }
 
-void IAppletResource::UpdateControllers(u64 userdata, s64 cycles_late) {
+void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
     auto& core_timing = system.CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
@@ -120,7 +118,7 @@ void IAppletResource::UpdateControllers(u64 userdata, s64 cycles_late) {
         controller->OnUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
-    core_timing.ScheduleEvent(pad_update_ticks - cycles_late, pad_update_event);
+    core_timing.ScheduleEvent(pad_update_ticks - ns_late, pad_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
@@ -185,8 +183,8 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {77, nullptr, "GetAccelerometerPlayMode"},
         {78, nullptr, "ResetAccelerometerPlayMode"},
         {79, &Hid::SetGyroscopeZeroDriftMode, "SetGyroscopeZeroDriftMode"},
-        {80, nullptr, "GetGyroscopeZeroDriftMode"},
-        {81, nullptr, "ResetGyroscopeZeroDriftMode"},
+        {80, &Hid::GetGyroscopeZeroDriftMode, "GetGyroscopeZeroDriftMode"},
+        {81, &Hid::ResetGyroscopeZeroDriftMode, "ResetGyroscopeZeroDriftMode"},
         {82, &Hid::IsSixAxisSensorAtRest, "IsSixAxisSensorAtRest"},
         {83, nullptr, "IsFirmwareUpdateAvailableForSixAxisSensor"},
         {91, &Hid::ActivateGesture, "ActivateGesture"},
@@ -230,15 +228,15 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {211, nullptr, "IsVibrationDeviceMounted"},
         {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
         {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
-        {302, nullptr, "StopConsoleSixAxisSensor"},
-        {303, nullptr, "ActivateSevenSixAxisSensor"},
-        {304, nullptr, "StartSevenSixAxisSensor"},
+        {302, &Hid::StopConsoleSixAxisSensor, "StopConsoleSixAxisSensor"},
+        {303, &Hid::ActivateSevenSixAxisSensor, "ActivateSevenSixAxisSensor"},
+        {304, &Hid::StartSevenSixAxisSensor, "StartSevenSixAxisSensor"},
         {305, &Hid::StopSevenSixAxisSensor, "StopSevenSixAxisSensor"},
         {306, &Hid::InitializeSevenSixAxisSensor, "InitializeSevenSixAxisSensor"},
-        {307, nullptr, "FinalizeSevenSixAxisSensor"},
+        {307, &Hid::FinalizeSevenSixAxisSensor, "FinalizeSevenSixAxisSensor"},
         {308, nullptr, "SetSevenSixAxisSensorFusionStrength"},
         {309, nullptr, "GetSevenSixAxisSensorFusionStrength"},
-        {310, nullptr, "ResetSevenSixAxisSensorTimestamp"},
+        {310, &Hid::ResetSevenSixAxisSensorTimestamp, "ResetSevenSixAxisSensorTimestamp"},
         {400, nullptr, "IsUsbFullKeyControllerEnabled"},
         {401, nullptr, "EnableUsbFullKeyController"},
         {402, nullptr, "IsUsbFullKeyControllerConnected"},
@@ -374,6 +372,15 @@ void Hid::ActivateKeyboard(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
+void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto flags{rp.Pop<u32>()};
+    LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void Hid::ActivateGesture(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto unknown{rp.Pop<u32>()};
@@ -413,15 +420,59 @@ void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
+void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}, applet_resource_user_id={}", handle,
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
 void Hid::SetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto handle{rp.Pop<u32>()};
     const auto drift_mode{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, handle={}, drift_mode={}, applet_resource_user_id={}", handle,
-                drift_mode, applet_resource_user_id);
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetGyroscopeZeroDriftMode(Controller_NPad::GyroscopeZeroDriftMode{drift_mode});
+
+    LOG_DEBUG(Service_HID, "called, handle={}, drift_mode={}, applet_resource_user_id={}", handle,
+              drift_mode, applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_DEBUG(Service_HID, "called, handle={}, applet_resource_user_id={}", handle,
+              applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<u32>(
+        static_cast<u32>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                             .GetGyroscopeZeroDriftMode()));
+}
+
+void Hid::ResetGyroscopeZeroDriftMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetGyroscopeZeroDriftMode(Controller_NPad::GyroscopeZeroDriftMode::Standard);
+
+    LOG_DEBUG(Service_HID, "called, handle={}, applet_resource_user_id={}", handle,
+              applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -832,33 +883,35 @@ void Hid::StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
+void Hid::StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}", handle);
+    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}, applet_resource_user_id={}", handle,
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+void Hid::ActivateSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
-    const auto unknown{rp.Pop<u32>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}, unknown={}",
-                applet_resource_user_id, unknown);
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
+void Hid::StartSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto unknown{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, unknown={}", unknown);
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -882,10 +935,46 @@ void Hid::InitializeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-void Hid::SendKeyboardLockKeyEvent(Kernel::HLERequestContext& ctx) {
+void Hid::FinalizeSevenSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto flags{rp.Pop<u32>()};
-    LOG_WARNING(Service_HID, "(STUBBED) called. flags={}", flags);
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto is_palma_all_connectable{rp.Pop<bool>()};
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, applet_resource_user_id={}, is_palma_all_connectable={}",
+                applet_resource_user_id, is_palma_all_connectable);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto palma_boost_mode{rp.Pop<bool>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, palma_boost_mode={}", palma_boost_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

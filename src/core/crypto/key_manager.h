@@ -223,7 +223,16 @@ bool operator<(const KeyIndex<KeyType>& lhs, const KeyIndex<KeyType>& rhs) {
 
 class KeyManager {
 public:
-    KeyManager();
+    static KeyManager& Instance() {
+        static KeyManager instance;
+        return instance;
+    }
+
+    KeyManager(const KeyManager&) = delete;
+    KeyManager& operator=(const KeyManager&) = delete;
+
+    KeyManager(KeyManager&&) = delete;
+    KeyManager& operator=(KeyManager&&) = delete;
 
     bool HasKey(S128KeyType id, u64 field1 = 0, u64 field2 = 0) const;
     bool HasKey(S256KeyType id, u64 field1 = 0, u64 field2 = 0) const;
@@ -257,6 +266,8 @@ public:
     bool AddTicketPersonalized(Ticket raw);
 
 private:
+    KeyManager();
+
     std::map<KeyIndex<S128KeyType>, Key128> s128_keys;
     std::map<KeyIndex<S256KeyType>, Key256> s256_keys;
 

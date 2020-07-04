@@ -156,8 +156,6 @@ macro(yuzu_find_packages)
         #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
         "lz4               1.8         lz4/1.9.2"
         "nlohmann_json     3.7         nlohmann_json/3.7.3"
-    # we need to be careful as the version check might be broken https://github.com/xiph/opus/issues/110
-        "opus              1.3         opus/1.3.1"
         "ZLIB              1.2         zlib/1.2.11"
         "zstd              1.4         zstd/1.4.4"
     )
@@ -214,6 +212,9 @@ if(ENABLE_QT)
         set(QT_PREFIX_HINT HINTS "${QT_PREFIX}")
     endif()
     find_package(Qt5 5.9 COMPONENTS Widgets OpenGL ${QT_PREFIX_HINT})
+    if (YUZU_USE_QT_WEB_ENGINE)
+        find_package(Qt5 COMPONENTS WebEngineCore WebEngineWidgets)
+    endif()
     if (NOT Qt5_FOUND)
         list(APPEND CONAN_REQUIRED_LIBS "qt/5.14.1@bincrafters/stable")
     endif()

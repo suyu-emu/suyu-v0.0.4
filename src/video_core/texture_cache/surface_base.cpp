@@ -120,6 +120,9 @@ std::optional<std::pair<u32, u32>> SurfaceBaseImpl::GetLayerMipmap(
     }
     const auto relative_address{static_cast<GPUVAddr>(candidate_gpu_addr - gpu_addr)};
     const auto layer{static_cast<u32>(relative_address / layer_size)};
+    if (layer >= params.depth) {
+        return {};
+    }
     const GPUVAddr mipmap_address = relative_address - layer_size * layer;
     const auto mipmap_it =
         Common::BinaryFind(mipmap_offsets.begin(), mipmap_offsets.end(), mipmap_address);

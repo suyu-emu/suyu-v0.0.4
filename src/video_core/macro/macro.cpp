@@ -2,32 +2,78 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <optional>
+#include <boost/container_hash/hash.hpp>
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/settings.h"
+#include "video_core/engines/maxwell_3d.h"
 #include "video_core/macro/macro.h"
+#include "video_core/macro/macro_hle.h"
 #include "video_core/macro/macro_interpreter.h"
 #include "video_core/macro/macro_jit_x64.h"
 
 namespace Tegra {
 
+MacroEngine::MacroEngine(Engines::Maxwell3D& maxwell3d)
+    : hle_macros{std::make_unique<Tegra::HLEMacro>(maxwell3d)} {}
+
+MacroEngine::~MacroEngine() = default;
+
 void MacroEngine::AddCode(u32 method, u32 data) {
     uploaded_macro_code[method].push_back(data);
 }
 
-void MacroEngine::Execute(u32 method, const std::vector<u32>& parameters) {
+void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method,
+                          const std::vector<u32>& parameters) {
     auto compiled_macro = macro_cache.find(method);
     if (compiled_macro != macro_cache.end()) {
-        compiled_macro->second->Execute(parameters, method);
+        const auto& cache_info = compiled_macro->second;
+        if (cache_info.has_hle_program) {
+            cache_info.hle_program->Execute(parameters, method);
+        } else {
+            cache_info.lle_program->Execute(parameters, method);
+        }
     } else {
         // Macro not compiled, check if it's uploaded and if so, compile it
-        auto macro_code = uploaded_macro_code.find(method);
+        std::optional<u32> mid_method = std::nullopt;
+        const auto macro_code = uploaded_macro_code.find(method);
         if (macro_code == uploaded_macro_code.end()) {
-            UNREACHABLE_MSG("Macro 0x{0:x} was not uploaded", method);
-            return;
+            for (const auto& [method_base, code] : uploaded_macro_code) {
+                if (method >= method_base && (method - method_base) < code.size()) {
+                    mid_method = method_base;
+                    break;
+                }
+            }
+            if (!mid_method.has_value()) {
+                UNREACHABLE_MSG("Macro 0x{0:x} was not uploaded", method);
+                return;
+            }
         }
-        macro_cache[method] = Compile(macro_code->second);
-        macro_cache[method]->Execute(parameters, method);
+        auto& cache_info = macro_cache[method];
+
+        if (!mid_method.has_value()) {
+            cache_info.lle_program = Compile(macro_code->second);
+            cache_info.hash = boost::hash_value(macro_code->second);
+        } else {
+            const auto& macro_cached = uploaded_macro_code[mid_method.value()];
+            const auto rebased_method = method - mid_method.value();
+            auto& code = uploaded_macro_code[method];
+            code.resize(macro_cached.size() - rebased_method);
+            std::memcpy(code.data(), macro_cached.data() + rebased_method,
+                        code.size() * sizeof(u32));
+            cache_info.hash = boost::hash_value(code);
+            cache_info.lle_program = Compile(code);
+        }
+
+        auto hle_program = hle_macros->GetHLEProgram(cache_info.hash);
+        if (hle_program.has_value()) {
+            cache_info.has_hle_program = true;
+            cache_info.hle_program = std::move(hle_program.value());
+            cache_info.hle_program->Execute(parameters, method);
+        } else {
+            cache_info.lle_program->Execute(parameters, method);
+        }
     }
 }
 

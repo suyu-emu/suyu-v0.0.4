@@ -97,7 +97,7 @@ CallbackOrAccessTwoWords DynarmicCP15::CompileGetTwoWords(bool two, unsigned opc
         const auto callback = static_cast<u64 (*)(Dynarmic::A32::Jit*, void*, u32, u32)>(
             [](Dynarmic::A32::Jit*, void* arg, u32, u32) -> u64 {
                 ARM_Dynarmic_32& parent = *(ARM_Dynarmic_32*)arg;
-                return Timing::CpuCyclesToClockCycles(parent.system.CoreTiming().GetTicks());
+                return parent.system.CoreTiming().GetClockTicks();
             });
         return Dynarmic::A32::Coprocessor::Callback{callback, (void*)&parent};
     }

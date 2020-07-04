@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <atomic>
 #include <bitset>
 #include <functional>
@@ -13,11 +14,15 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
+#include "common/microprofile.h"
+#include "common/thread.h"
 #include "core/arm/arm_interface.h"
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/cpu_manager.h"
 #include "core/device_memory.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/client_port.h"
@@ -39,85 +44,28 @@
 #include "core/hle/result.h"
 #include "core/memory.h"
 
+MICROPROFILE_DEFINE(Kernel_SVC, "Kernel", "SVC", MP_RGB(70, 200, 70));
+
 namespace Kernel {
-
-/**
- * Callback that will wake up the thread it was scheduled for
- * @param thread_handle The handle of the thread that's been awoken
- * @param cycles_late The number of CPU cycles that have passed since the desired wakeup time
- */
-static void ThreadWakeupCallback(u64 thread_handle, [[maybe_unused]] s64 cycles_late) {
-    const auto proper_handle = static_cast<Handle>(thread_handle);
-    const auto& system = Core::System::GetInstance();
-
-    // Lock the global kernel mutex when we enter the kernel HLE.
-    std::lock_guard lock{HLE::g_hle_lock};
-
-    std::shared_ptr<Thread> thread =
-        system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
-    if (thread == nullptr) {
-        LOG_CRITICAL(Kernel, "Callback fired for invalid thread {:08X}", proper_handle);
-        return;
-    }
-
-    bool resume = true;
-
-    if (thread->GetStatus() == ThreadStatus::WaitSynch ||
-        thread->GetStatus() == ThreadStatus::WaitHLEEvent) {
-        // Remove the thread from each of its waiting objects' waitlists
-        for (const auto& object : thread->GetSynchronizationObjects()) {
-            object->RemoveWaitingThread(thread);
-        }
-        thread->ClearSynchronizationObjects();
-
-        // Invoke the wakeup callback before clearing the wait objects
-        if (thread->HasWakeupCallback()) {
-            resume = thread->InvokeWakeupCallback(ThreadWakeupReason::Timeout, thread, nullptr, 0);
-        }
-    } else if (thread->GetStatus() == ThreadStatus::WaitMutex ||
-               thread->GetStatus() == ThreadStatus::WaitCondVar) {
-        thread->SetMutexWaitAddress(0);
-        thread->SetWaitHandle(0);
-        if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
-            thread->GetOwnerProcess()->RemoveConditionVariableThread(thread);
-            thread->SetCondVarWaitAddress(0);
-        }
-
-        auto* const lock_owner = thread->GetLockOwner();
-        // Threads waking up by timeout from WaitProcessWideKey do not perform priority inheritance
-        // and don't have a lock owner unless SignalProcessWideKey was called first and the thread
-        // wasn't awakened due to the mutex already being acquired.
-        if (lock_owner != nullptr) {
-            lock_owner->RemoveMutexWaiter(thread);
-        }
-    }
-
-    if (thread->GetStatus() == ThreadStatus::WaitArb) {
-        auto& address_arbiter = thread->GetOwnerProcess()->GetAddressArbiter();
-        address_arbiter.HandleWakeupThread(thread);
-    }
-
-    if (resume) {
-        if (thread->GetStatus() == ThreadStatus::WaitCondVar ||
-            thread->GetStatus() == ThreadStatus::WaitArb) {
-            thread->SetWaitSynchronizationResult(RESULT_TIMEOUT);
-        }
-        thread->ResumeFromWait();
-    }
-}
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
         : global_scheduler{kernel}, synchronization{system}, time_manager{system}, system{system} {}
 
+    void SetMulticore(bool is_multicore) {
+        this->is_multicore = is_multicore;
+    }
+
     void Initialize(KernelCore& kernel) {
         Shutdown();
+        RegisterHostThread();
 
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
         InitializeMemoryLayout();
-        InitializeThreads();
-        InitializePreemption();
+        InitializePreemption(kernel);
+        InitializeSchedulers();
+        InitializeSuspendThreads();
     }
 
     void Shutdown() {
@@ -126,13 +74,26 @@ struct KernelCore::Impl {
         next_user_process_id = Process::ProcessIDMin;
         next_thread_id = 1;
 
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            if (suspend_threads[i]) {
+                suspend_threads[i].reset();
+            }
+        }
+
+        for (std::size_t i = 0; i < cores.size(); i++) {
+            cores[i].Shutdown();
+            schedulers[i].reset();
+        }
+        cores.clear();
+
+        registered_core_threads.reset();
+
         process_list.clear();
         current_process = nullptr;
 
         system_resource_limit = nullptr;
 
         global_handle_table.Clear();
-        thread_wakeup_event_type = nullptr;
         preemption_event = nullptr;
 
         global_scheduler.Shutdown();
@@ -145,13 +106,21 @@ struct KernelCore::Impl {
         cores.clear();
 
         exclusive_monitor.reset();
+        host_thread_ids.clear();
     }
 
     void InitializePhysicalCores() {
         exclusive_monitor =
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            cores.emplace_back(system, i, *exclusive_monitor);
+            schedulers[i] = std::make_unique<Kernel::Scheduler>(system, i);
+            cores.emplace_back(system, i, *schedulers[i], interrupts[i]);
+        }
+    }
+
+    void InitializeSchedulers() {
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            cores[i].Scheduler().Initialize();
         }
     }
 
@@ -173,21 +142,33 @@ struct KernelCore::Impl {
         }
     }
 
-    void InitializeThreads() {
-        thread_wakeup_event_type =
-            Core::Timing::CreateEvent("ThreadWakeupCallback", ThreadWakeupCallback);
-    }
-
-    void InitializePreemption() {
-        preemption_event =
-            Core::Timing::CreateEvent("PreemptionCallback", [this](u64 userdata, s64 cycles_late) {
-                global_scheduler.PreemptThreads();
+    void InitializePreemption(KernelCore& kernel) {
+        preemption_event = Core::Timing::CreateEvent(
+            "PreemptionCallback", [this, &kernel](u64 userdata, s64 cycles_late) {
+                {
+                    SchedulerLock lock(kernel);
+                    global_scheduler.PreemptThreads();
+                }
                 s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
             });
 
         s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
+    }
+
+    void InitializeSuspendThreads() {
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            std::string name = "Suspend Thread Id:" + std::to_string(i);
+            std::function<void(void*)> init_func =
+                system.GetCpuManager().GetSuspendThreadStartFunc();
+            void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
+            ThreadType type =
+                static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_SUSPEND);
+            auto thread_res = Thread::Create(system, type, name, 0, 0, 0, static_cast<u32>(i), 0,
+                                             nullptr, std::move(init_func), init_func_parameter);
+            suspend_threads[i] = std::move(thread_res).Unwrap();
+        }
     }
 
     void MakeCurrentProcess(Process* process) {
@@ -197,15 +178,17 @@ struct KernelCore::Impl {
             return;
         }
 
-        for (auto& core : cores) {
-            core.SetIs64Bit(process->Is64BitProcess());
+        u32 core_id = GetCurrentHostThreadID();
+        if (core_id < Core::Hardware::NUM_CPU_CORES) {
+            system.Memory().SetCurrentPageTable(*process, core_id);
         }
-
-        system.Memory().SetCurrentPageTable(*process);
     }
 
     void RegisterCoreThread(std::size_t core_id) {
         std::unique_lock lock{register_thread_mutex};
+        if (!is_multicore) {
+            single_core_thread_id = std::this_thread::get_id();
+        }
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
@@ -219,12 +202,19 @@ struct KernelCore::Impl {
         std::unique_lock lock{register_thread_mutex};
         const std::thread::id this_id = std::this_thread::get_id();
         const auto it = host_thread_ids.find(this_id);
-        ASSERT(it == host_thread_ids.end());
+        if (it != host_thread_ids.end()) {
+            return;
+        }
         host_thread_ids[this_id] = registered_thread_ids++;
     }
 
     u32 GetCurrentHostThreadID() const {
         const std::thread::id this_id = std::this_thread::get_id();
+        if (!is_multicore) {
+            if (single_core_thread_id == this_id) {
+                return static_cast<u32>(system.GetCpuManager().CurrentCore());
+            }
+        }
         const auto it = host_thread_ids.find(this_id);
         if (it == host_thread_ids.end()) {
             return Core::INVALID_HOST_THREAD_ID;
@@ -240,7 +230,7 @@ struct KernelCore::Impl {
         }
         const Kernel::Scheduler& sched = cores[result.host_handle].Scheduler();
         const Kernel::Thread* current = sched.GetCurrentThread();
-        if (current != nullptr) {
+        if (current != nullptr && !current->IsPhantomMode()) {
             result.guest_handle = current->GetGlobalHandle();
         } else {
             result.guest_handle = InvalidHandle;
@@ -313,7 +303,6 @@ struct KernelCore::Impl {
 
     std::shared_ptr<ResourceLimit> system_resource_limit;
 
-    std::shared_ptr<Core::Timing::EventType> thread_wakeup_event_type;
     std::shared_ptr<Core::Timing::EventType> preemption_event;
 
     // This is the kernel's handle table or supervisor handle table which
@@ -343,6 +332,15 @@ struct KernelCore::Impl {
     std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
 
+    std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+    std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
+    std::array<std::unique_ptr<Kernel::Scheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
+
+    bool is_multicore{};
+    std::thread::id single_core_thread_id{};
+
+    std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
+
     // System context
     Core::System& system;
 };
@@ -350,6 +348,10 @@ struct KernelCore::Impl {
 KernelCore::KernelCore(Core::System& system) : impl{std::make_unique<Impl>(system, *this)} {}
 KernelCore::~KernelCore() {
     Shutdown();
+}
+
+void KernelCore::SetMulticore(bool is_multicore) {
+    impl->SetMulticore(is_multicore);
 }
 
 void KernelCore::Initialize() {
@@ -397,11 +399,11 @@ const Kernel::GlobalScheduler& KernelCore::GlobalScheduler() const {
 }
 
 Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) {
-    return impl->cores[id].Scheduler();
+    return *impl->schedulers[id];
 }
 
 const Kernel::Scheduler& KernelCore::Scheduler(std::size_t id) const {
-    return impl->cores[id].Scheduler();
+    return *impl->schedulers[id];
 }
 
 Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
@@ -410,6 +412,39 @@ Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) {
 
 const Kernel::PhysicalCore& KernelCore::PhysicalCore(std::size_t id) const {
     return impl->cores[id];
+}
+
+Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return impl->cores[core_id];
+}
+
+const Kernel::PhysicalCore& KernelCore::CurrentPhysicalCore() const {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return impl->cores[core_id];
+}
+
+Kernel::Scheduler& KernelCore::CurrentScheduler() {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return *impl->schedulers[core_id];
+}
+
+const Kernel::Scheduler& KernelCore::CurrentScheduler() const {
+    u32 core_id = impl->GetCurrentHostThreadID();
+    ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+    return *impl->schedulers[core_id];
+}
+
+std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts() {
+    return impl->interrupts;
+}
+
+const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& KernelCore::Interrupts()
+    const {
+    return impl->interrupts;
 }
 
 Kernel::Synchronization& KernelCore::Synchronization() {
@@ -437,15 +472,17 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
-    for (std::size_t i = 0; i < impl->global_scheduler.CpuCoresCount(); i++) {
-        PhysicalCore(i).ArmInterface().ClearInstructionCache();
+    auto& threads = GlobalScheduler().GetThreadList();
+    for (auto& thread : threads) {
+        if (!thread->IsHLEThread()) {
+            auto& arm_interface = thread->ArmInterface();
+            arm_interface.ClearInstructionCache();
+        }
     }
 }
 
 void KernelCore::PrepareReschedule(std::size_t id) {
-    if (id < impl->global_scheduler.CpuCoresCount()) {
-        impl->cores[id].Stop();
-    }
+    // TODO: Reimplement, this
 }
 
 void KernelCore::AddNamedPort(std::string name, std::shared_ptr<ClientPort> port) {
@@ -479,10 +516,6 @@ u64 KernelCore::CreateNewKernelProcessID() {
 
 u64 KernelCore::CreateNewUserProcessID() {
     return impl->next_user_process_id++;
-}
-
-const std::shared_ptr<Core::Timing::EventType>& KernelCore::ThreadWakeupCallbackEventType() const {
-    return impl->thread_wakeup_event_type;
 }
 
 Kernel::HandleTable& KernelCore::GlobalHandleTable() {
@@ -555,6 +588,36 @@ Kernel::SharedMemory& KernelCore::GetTimeSharedMem() {
 
 const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
     return *impl->time_shared_mem;
+}
+
+void KernelCore::Suspend(bool in_suspention) {
+    const bool should_suspend = exception_exited || in_suspention;
+    {
+        SchedulerLock lock(*this);
+        ThreadStatus status = should_suspend ? ThreadStatus::Ready : ThreadStatus::WaitSleep;
+        for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
+            impl->suspend_threads[i]->SetStatus(status);
+        }
+    }
+}
+
+bool KernelCore::IsMulticore() const {
+    return impl->is_multicore;
+}
+
+void KernelCore::ExceptionalExit() {
+    exception_exited = true;
+    Suspend(true);
+}
+
+void KernelCore::EnterSVCProfile() {
+    std::size_t core = impl->GetCurrentHostThreadID();
+    impl->svc_ticks[core] = MicroProfileEnter(MICROPROFILE_TOKEN(Kernel_SVC));
+}
+
+void KernelCore::ExitSVCProfile() {
+    std::size_t core = impl->GetCurrentHostThreadID();
+    MicroProfileLeave(MICROPROFILE_TOKEN(Kernel_SVC), impl->svc_ticks[core]);
 }
 
 } // namespace Kernel

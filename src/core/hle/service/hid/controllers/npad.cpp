@@ -328,7 +328,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             const auto& last_entry =
                 main_controller->npad[main_controller->common.last_entry_index];
 
-            main_controller->common.timestamp = core_timing.GetTicks();
+            main_controller->common.timestamp = core_timing.GetCPUTicks();
             main_controller->common.last_entry_index =
                 (main_controller->common.last_entry_index + 1) % 17;
 
@@ -564,6 +564,14 @@ void Controller_NPad::ConnectNPad(u32 npad_id) {
 
 void Controller_NPad::DisconnectNPad(u32 npad_id) {
     connected_controllers[NPadIdToIndex(npad_id)].is_connected = false;
+}
+
+void Controller_NPad::SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode) {
+    gyroscope_zero_drift_mode = drift_mode;
+}
+
+Controller_NPad::GyroscopeZeroDriftMode Controller_NPad::GetGyroscopeZeroDriftMode() const {
+    return gyroscope_zero_drift_mode;
 }
 
 void Controller_NPad::StartLRAssignmentMode() {

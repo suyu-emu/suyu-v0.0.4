@@ -178,7 +178,7 @@ bool IsASTCSupported() {
         for (const GLenum format : formats) {
             for (const GLenum support : required_support) {
                 GLint value;
-                glGetInternalformativ(GL_TEXTURE_2D, format, support, 1, &value);
+                glGetInternalformativ(target, format, support, 1, &value);
                 if (value != GL_FULL_SUPPORT) {
                     return false;
                 }
@@ -193,6 +193,7 @@ bool IsASTCSupported() {
 Device::Device()
     : max_uniform_buffers{BuildMaxUniformBuffers()}, base_bindings{BuildBaseBindings()} {
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
 
@@ -216,12 +217,18 @@ Device::Device()
     has_shader_ballot = GLAD_GL_ARB_shader_ballot;
     has_vertex_viewport_layer = GLAD_GL_ARB_shader_viewport_layer_array;
     has_image_load_formatted = HasExtension(extensions, "GL_EXT_shader_image_load_formatted");
+    has_texture_shadow_lod = HasExtension(extensions, "GL_EXT_texture_shadow_lod");
     has_astc = IsASTCSupported();
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
-    has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
+    has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
+
+    // At the moment of writing this, only Nvidia's driver optimizes BufferSubData on exclusive
+    // uniform buffers as "push constants"
+    has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
+
     use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
                            GLAD_GL_NV_compute_program5 && GLAD_GL_NV_transform_feedback &&
                            GLAD_GL_NV_transform_feedback2;
@@ -245,6 +252,7 @@ Device::Device(std::nullptr_t) {
     has_shader_ballot = true;
     has_vertex_viewport_layer = true;
     has_image_load_formatted = true;
+    has_texture_shadow_lod = true;
     has_variable_aoffi = true;
 }
 

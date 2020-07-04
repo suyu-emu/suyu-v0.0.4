@@ -24,6 +24,8 @@ public:
     ~GPUSynch() override;
 
     void Start() override;
+    void ObtainContext() override;
+    void ReleaseContext() override;
     void PushGPUEntries(Tegra::CommandList&& entries) override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
     void FlushRegion(VAddr addr, u64 size) override;

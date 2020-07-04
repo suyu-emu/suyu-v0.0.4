@@ -234,9 +234,8 @@ void Module::Interface::CalculateMonotonicSystemClockBaseTimePoint(Kernel::HLERe
     const auto current_time_point{steady_clock_core.GetCurrentTimePoint(system)};
 
     if (current_time_point.clock_source_id == context.steady_time_point.clock_source_id) {
-        const auto ticks{Clock::TimeSpanType::FromTicks(
-            Core::Timing::CpuCyclesToClockCycles(system.CoreTiming().GetTicks()),
-            Core::Hardware::CNTFREQ)};
+        const auto ticks{Clock::TimeSpanType::FromTicks(system.CoreTiming().GetClockTicks(),
+                                                        Core::Hardware::CNTFREQ)};
         const s64 base_time_point{context.offset + current_time_point.time_point -
                                   ticks.ToSeconds()};
         IPC::ResponseBuilder rb{ctx, (sizeof(s64) / 4) + 2};

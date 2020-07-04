@@ -181,6 +181,9 @@ private slots:
     void OnPauseGame();
     void OnStopGame();
     void OnMenuReportCompatibility();
+    void OnOpenModsPage();
+    void OnOpenQuickstartGuide();
+    void OnOpenFAQ();
     /// Called whenever a user selects a game in the game list widget.
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path);
@@ -215,10 +218,12 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
-    void UpdateWindowTitle(const QString& title_name = {});
+    void UpdateWindowTitle(const std::string& title_name = {},
+                           const std::string& title_version = {});
     void UpdateStatusBar();
     void HideMouseCursor();
     void ShowMouseCursor();
+    void OpenURL(const QUrl& url);
 
     Ui::MainWindow ui;
 
@@ -234,6 +239,7 @@ private:
     QLabel* game_fps_label = nullptr;
     QLabel* emu_frametime_label = nullptr;
     QPushButton* async_status_button = nullptr;
+    QPushButton* multicore_status_button = nullptr;
     QPushButton* renderer_status_button = nullptr;
     QPushButton* dock_status_button = nullptr;
     QTimer status_bar_update_timer;

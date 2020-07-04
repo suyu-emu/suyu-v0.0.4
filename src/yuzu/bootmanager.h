@@ -59,6 +59,12 @@ public:
         this->running = running;
         lock.unlock();
         running_cv.notify_all();
+        if (!running) {
+            running_wait.Set();
+            /// Wait until effectively paused
+            while (running_guard)
+                ;
+        }
     }
 
     /**
@@ -84,6 +90,8 @@ private:
     std::atomic_bool stop_run{false};
     std::mutex running_mutex;
     std::condition_variable running_cv;
+    Common::Event running_wait{};
+    std::atomic_bool running_guard{false};
 
 signals:
     /**

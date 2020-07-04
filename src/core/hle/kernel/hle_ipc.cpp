@@ -14,14 +14,17 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/hle/ipc_helpers.h"
+#include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/thread.h"
+#include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
 
@@ -46,15 +49,6 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
     const std::string& reason, u64 timeout, WakeupCallback&& callback,
     std::shared_ptr<WritableEvent> writable_event) {
     // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-    thread->SetWakeupCallback(
-        [context = *this, callback](ThreadWakeupReason reason, std::shared_ptr<Thread> thread,
-                                    std::shared_ptr<SynchronizationObject> object,
-                                    std::size_t index) mutable -> bool {
-            ASSERT(thread->GetStatus() == ThreadStatus::WaitHLEEvent);
-            callback(thread, context, reason);
-            context.WriteToOutgoingCommandBuffer(*thread);
-            return true;
-        });
 
     if (!writable_event) {
         // Create event if not provided
@@ -62,14 +56,26 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
         writable_event = pair.writable;
     }
 
-    const auto readable_event{writable_event->GetReadableEvent()};
-    writable_event->Clear();
-    thread->SetStatus(ThreadStatus::WaitHLEEvent);
-    thread->SetSynchronizationObjects({readable_event});
-    readable_event->AddWaitingThread(thread);
-
-    if (timeout > 0) {
-        thread->WakeAfterDelay(timeout);
+    {
+        Handle event_handle = InvalidHandle;
+        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
+        thread->SetHLECallback(
+            [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
+                ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT
+                                                ? ThreadWakeupReason::Timeout
+                                                : ThreadWakeupReason::Signal;
+                callback(thread, context, reason);
+                context.WriteToOutgoingCommandBuffer(*thread);
+                return true;
+            });
+        const auto readable_event{writable_event->GetReadableEvent()};
+        writable_event->Clear();
+        thread->SetHLESyncObject(readable_event.get());
+        thread->SetStatus(ThreadStatus::WaitHLEEvent);
+        thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
+        readable_event->AddWaitingThread(thread);
+        lock.Release();
+        thread->SetHLETimeEvent(event_handle);
     }
 
     is_thread_waiting = true;
@@ -282,18 +288,18 @@ ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
 }
 
 std::vector<u8> HLERequestContext::ReadBuffer(std::size_t buffer_index) const {
-    std::vector<u8> buffer;
+    std::vector<u8> buffer{};
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
 
     if (is_buffer_a) {
-        ASSERT_MSG(BufferDescriptorA().size() > buffer_index,
-                   "BufferDescriptorA invalid buffer_index {}", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorA().size() > buffer_index, { return buffer; },
+                              "BufferDescriptorA invalid buffer_index {}", buffer_index);
         buffer.resize(BufferDescriptorA()[buffer_index].Size());
         memory.ReadBlock(BufferDescriptorA()[buffer_index].Address(), buffer.data(), buffer.size());
     } else {
-        ASSERT_MSG(BufferDescriptorX().size() > buffer_index,
-                   "BufferDescriptorX invalid buffer_index {}", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorX().size() > buffer_index, { return buffer; },
+                              "BufferDescriptorX invalid buffer_index {}", buffer_index);
         buffer.resize(BufferDescriptorX()[buffer_index].Size());
         memory.ReadBlock(BufferDescriptorX()[buffer_index].Address(), buffer.data(), buffer.size());
     }
@@ -318,16 +324,16 @@ std::size_t HLERequestContext::WriteBuffer(const void* buffer, std::size_t size,
     }
 
     if (is_buffer_b) {
-        ASSERT_MSG(BufferDescriptorB().size() > buffer_index,
-                   "BufferDescriptorB invalid buffer_index {}", buffer_index);
-        ASSERT_MSG(BufferDescriptorB()[buffer_index].Size() >= size,
-                   "BufferDescriptorB buffer_index {} is not large enough", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorB().size() > buffer_index &&
+                                  BufferDescriptorB()[buffer_index].Size() >= size,
+                              { return 0; }, "BufferDescriptorB is invalid, index={}, size={}",
+                              buffer_index, size);
         memory.WriteBlock(BufferDescriptorB()[buffer_index].Address(), buffer, size);
     } else {
-        ASSERT_MSG(BufferDescriptorC().size() > buffer_index,
-                   "BufferDescriptorC invalid buffer_index {}", buffer_index);
-        ASSERT_MSG(BufferDescriptorC()[buffer_index].Size() >= size,
-                   "BufferDescriptorC buffer_index {} is not large enough", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorC().size() > buffer_index &&
+                                  BufferDescriptorC()[buffer_index].Size() >= size,
+                              { return 0; }, "BufferDescriptorC is invalid, index={}, size={}",
+                              buffer_index, size);
         memory.WriteBlock(BufferDescriptorC()[buffer_index].Address(), buffer, size);
     }
 
@@ -338,16 +344,12 @@ std::size_t HLERequestContext::GetReadBufferSize(std::size_t buffer_index) const
     const bool is_buffer_a{BufferDescriptorA().size() > buffer_index &&
                            BufferDescriptorA()[buffer_index].Size()};
     if (is_buffer_a) {
-        ASSERT_MSG(BufferDescriptorA().size() > buffer_index,
-                   "BufferDescriptorA invalid buffer_index {}", buffer_index);
-        ASSERT_MSG(BufferDescriptorA()[buffer_index].Size() > 0,
-                   "BufferDescriptorA buffer_index {} is empty", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorA().size() > buffer_index, { return 0; },
+                              "BufferDescriptorA invalid buffer_index {}", buffer_index);
         return BufferDescriptorA()[buffer_index].Size();
     } else {
-        ASSERT_MSG(BufferDescriptorX().size() > buffer_index,
-                   "BufferDescriptorX invalid buffer_index {}", buffer_index);
-        ASSERT_MSG(BufferDescriptorX()[buffer_index].Size() > 0,
-                   "BufferDescriptorX buffer_index {} is empty", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorX().size() > buffer_index, { return 0; },
+                              "BufferDescriptorX invalid buffer_index {}", buffer_index);
         return BufferDescriptorX()[buffer_index].Size();
     }
 }
@@ -356,14 +358,15 @@ std::size_t HLERequestContext::GetWriteBufferSize(std::size_t buffer_index) cons
     const bool is_buffer_b{BufferDescriptorB().size() > buffer_index &&
                            BufferDescriptorB()[buffer_index].Size()};
     if (is_buffer_b) {
-        ASSERT_MSG(BufferDescriptorB().size() > buffer_index,
-                   "BufferDescriptorB invalid buffer_index {}", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorB().size() > buffer_index, { return 0; },
+                              "BufferDescriptorB invalid buffer_index {}", buffer_index);
         return BufferDescriptorB()[buffer_index].Size();
     } else {
-        ASSERT_MSG(BufferDescriptorC().size() > buffer_index,
-                   "BufferDescriptorC invalid buffer_index {}", buffer_index);
+        ASSERT_OR_EXECUTE_MSG(BufferDescriptorC().size() > buffer_index, { return 0; },
+                              "BufferDescriptorC invalid buffer_index {}", buffer_index);
         return BufferDescriptorC()[buffer_index].Size();
     }
+    return 0;
 }
 
 std::string HLERequestContext::Description() const {

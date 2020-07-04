@@ -14,6 +14,8 @@ BCAT::BCAT(Core::System& system, std::shared_ptr<Module> module,
         {0, &BCAT::CreateBcatService, "CreateBcatService"},
         {1, &BCAT::CreateDeliveryCacheStorageService, "CreateDeliveryCacheStorageService"},
         {2, &BCAT::CreateDeliveryCacheStorageServiceWithApplicationId, "CreateDeliveryCacheStorageServiceWithApplicationId"},
+        {3, nullptr, "CreateDeliveryCacheProgressService"},
+        {4, nullptr, "CreateDeliveryCacheProgressServiceWithApplicationId"},
     };
     // clang-format on
     RegisterHandlers(functions);

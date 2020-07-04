@@ -24,35 +24,25 @@ void VKUpdateDescriptorQueue::TickFrame() {
 }
 
 void VKUpdateDescriptorQueue::Acquire() {
-    entries.clear();
-}
+    // Minimum number of entries required.
+    // This is the maximum number of entries a single draw call migth use.
+    static constexpr std::size_t MIN_ENTRIES = 0x400;
 
-void VKUpdateDescriptorQueue::Send(VkDescriptorUpdateTemplateKHR update_template,
-                                   VkDescriptorSet set) {
-    if (payload.size() + entries.size() >= payload.max_size()) {
+    if (payload.size() + MIN_ENTRIES >= payload.max_size()) {
         LOG_WARNING(Render_Vulkan, "Payload overflow, waiting for worker thread");
         scheduler.WaitWorker();
         payload.clear();
     }
+    upload_start = &*payload.end();
+}
 
-    // TODO(Rodrigo): Rework to write the payload directly
-    const auto payload_start = payload.data() + payload.size();
-    for (const auto& entry : entries) {
-        if (const auto image = std::get_if<VkDescriptorImageInfo>(&entry)) {
-            payload.push_back(*image);
-        } else if (const auto buffer = std::get_if<VkDescriptorBufferInfo>(&entry)) {
-            payload.push_back(*buffer);
-        } else if (const auto texel = std::get_if<VkBufferView>(&entry)) {
-            payload.push_back(*texel);
-        } else {
-            UNREACHABLE();
-        }
-    }
-
-    scheduler.Record(
-        [payload_start, set, update_template, logical = &device.GetLogical()](vk::CommandBuffer) {
-            logical->UpdateDescriptorSet(set, update_template, payload_start);
-        });
+void VKUpdateDescriptorQueue::Send(VkDescriptorUpdateTemplateKHR update_template,
+                                   VkDescriptorSet set) {
+    const void* const data = upload_start;
+    const vk::Device* const logical = &device.GetLogical();
+    scheduler.Record([data, logical, set, update_template](vk::CommandBuffer) {
+        logical->UpdateDescriptorSet(set, update_template, data);
+    });
 }
 
 } // namespace Vulkan

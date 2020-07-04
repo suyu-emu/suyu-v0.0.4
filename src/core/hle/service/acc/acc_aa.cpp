@@ -13,8 +13,8 @@ ACC_AA::ACC_AA(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {0, nullptr, "EnsureCacheAsync"},
         {1, nullptr, "LoadCache"},
         {2, nullptr, "GetDeviceAccountId"},
-        {50, nullptr, "RegisterNotificationTokenAsync"},
-        {51, nullptr, "UnregisterNotificationTokenAsync"},
+        {50, nullptr, "RegisterNotificationTokenAsync"},   // 1.0.0 - 6.2.0
+        {51, nullptr, "UnregisterNotificationTokenAsync"}, // 1.0.0 - 6.2.0
     };
     RegisterHandlers(functions);
 }

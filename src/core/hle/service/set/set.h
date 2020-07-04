@@ -44,6 +44,8 @@ private:
     void GetAvailableLanguageCodeCount2(Kernel::HLERequestContext& ctx);
     void GetQuestFlag(Kernel::HLERequestContext& ctx);
     void GetRegionCode(Kernel::HLERequestContext& ctx);
+    void GetKeyCodeMap(Kernel::HLERequestContext& ctx);
+    void GetKeyCodeMap2(Kernel::HLERequestContext& ctx);
 };
 
 } // namespace Service::Set

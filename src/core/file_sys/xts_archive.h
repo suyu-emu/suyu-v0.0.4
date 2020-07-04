@@ -62,6 +62,6 @@ private:
 
     VirtualFile dec_file;
 
-    Core::Crypto::KeyManager keys;
+    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 } // namespace FileSys

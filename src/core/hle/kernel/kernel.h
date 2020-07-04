@@ -4,15 +4,17 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "core/hardware_properties.h"
 #include "core/hle/kernel/memory/memory_types.h"
 #include "core/hle/kernel/object.h"
 
 namespace Core {
-struct EmuThreadHandle;
+class CPUInterruptHandler;
 class ExclusiveMonitor;
 class System;
 } // namespace Core
@@ -65,6 +67,9 @@ public:
     KernelCore(KernelCore&&) = delete;
     KernelCore& operator=(KernelCore&&) = delete;
 
+    /// Sets if emulation is multicore or single core, must be set before Initialize
+    void SetMulticore(bool is_multicore);
+
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 
@@ -110,6 +115,18 @@ public:
     /// Gets the an instance of the respective physical CPU core.
     const Kernel::PhysicalCore& PhysicalCore(std::size_t id) const;
 
+    /// Gets the sole instance of the Scheduler at the current running core.
+    Kernel::Scheduler& CurrentScheduler();
+
+    /// Gets the sole instance of the Scheduler at the current running core.
+    const Kernel::Scheduler& CurrentScheduler() const;
+
+    /// Gets the an instance of the current physical CPU core.
+    Kernel::PhysicalCore& CurrentPhysicalCore();
+
+    /// Gets the an instance of the current physical CPU core.
+    const Kernel::PhysicalCore& CurrentPhysicalCore() const;
+
     /// Gets the an instance of the Synchronization Interface.
     Kernel::Synchronization& Synchronization();
 
@@ -128,6 +145,10 @@ public:
     Core::ExclusiveMonitor& GetExclusiveMonitor();
 
     const Core::ExclusiveMonitor& GetExclusiveMonitor() const;
+
+    std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts();
+
+    const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts() const;
 
     void InvalidateAllInstructionCaches();
 
@@ -191,6 +212,18 @@ public:
     /// Gets the shared memory object for Time services.
     const Kernel::SharedMemory& GetTimeSharedMem() const;
 
+    /// Suspend/unsuspend the OS.
+    void Suspend(bool in_suspention);
+
+    /// Exceptional exit the OS.
+    void ExceptionalExit();
+
+    bool IsMulticore() const;
+
+    void EnterSVCProfile();
+
+    void ExitSVCProfile();
+
 private:
     friend class Object;
     friend class Process;
@@ -208,9 +241,6 @@ private:
     /// Creates a new thread ID, incrementing the internal thread ID counter.
     u64 CreateNewThreadID();
 
-    /// Retrieves the event type used for thread wakeup callbacks.
-    const std::shared_ptr<Core::Timing::EventType>& ThreadWakeupCallbackEventType() const;
-
     /// Provides a reference to the global handle table.
     Kernel::HandleTable& GlobalHandleTable();
 
@@ -219,6 +249,7 @@ private:
 
     struct Impl;
     std::unique_ptr<Impl> impl;
+    bool exception_exited{};
 };
 
 } // namespace Kernel

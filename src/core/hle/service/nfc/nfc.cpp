@@ -198,9 +198,9 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
             {1, nullptr, "Finalize"},
-            {2, nullptr, "GetState"},
-            {3, nullptr, "IsNfcEnabled"},
-            {100, nullptr, "SetNfcEnabled"},
+            {2, nullptr, "GetStateOld"},
+            {3, nullptr, "IsNfcEnabledOld"},
+            {100, nullptr, "SetNfcEnabledOld"},
             {400, nullptr, "InitializeSystem"},
             {401, nullptr, "FinalizeSystem"},
             {402, nullptr, "GetState"},

@@ -60,6 +60,7 @@ AOC_U::AOC_U(Core::System& system)
         {6, nullptr, "PrepareAddOnContentByApplicationId"},
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
         {8, &AOC_U::GetAddOnContentListChangedEvent, "GetAddOnContentListChangedEvent"},
+        {9, nullptr, "GetAddOnContentLostErrorCode"},
         {100, nullptr, "CreateEcPurchasedEventManager"},
         {101, nullptr, "CreatePermanentEcPurchasedEventManager"},
     };

@@ -58,6 +58,12 @@ public:
     };
     static_assert(sizeof(Vibration) == 0x10, "Vibration is an invalid size");
 
+    enum class GyroscopeZeroDriftMode : u32 {
+        Loose = 0,
+        Standard = 1,
+        Tight = 2,
+    };
+
     enum class NpadHoldType : u64 {
         Vertical = 0,
         Horizontal = 1,
@@ -117,6 +123,8 @@ public:
 
     void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
+    void SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode);
+    GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
     LedPattern GetLedPattern(u32 npad_id);
     void SetVibrationEnabled(bool can_vibrate);
     bool IsVibrationEnabled() const;
@@ -324,8 +332,8 @@ private:
     std::array<Kernel::EventPair, 10> styleset_changed_events;
     Vibration last_processed_vibration{};
     std::array<ControllerHolder, 10> connected_controllers{};
+    GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};
     bool can_controllers_vibrate{true};
-
     std::array<ControllerPad, 10> npad_pad_states{};
     bool is_in_lr_assignment_mode{false};
     Core::System& system;
