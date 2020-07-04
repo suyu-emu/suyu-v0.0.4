@@ -37,7 +37,8 @@ void MaxwellDMA::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
 }
 
 void MaxwellDMA::Launch() {
-    LOG_TRACE(HW_GPU, "Requested a DMA copy");
+    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in),
+              static_cast<GPUVAddr>(regs.offset_out));
 
     // TODO(Subv): Perform more research and implement all features of this engine.
     const LaunchDMA& launch = regs.launch_dma;
@@ -97,7 +98,7 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 
     // Optimized path for micro copies.
     const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
-    if (dst_size < GetGOBSize() && regs.pitch_out <= 64) {
+    if (dst_size < GOB_SIZE && regs.pitch_out <= GOB_SIZE_X) {
         FastCopyBlockLinearToPitch();
         return;
     }
@@ -130,18 +131,15 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
         memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
     }
 
-    UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, src_params.width,
-                     bytes_per_pixel, read_buffer.data() + src_layer_size * src_params.layer,
-                     write_buffer.data(), src_params.block_size.height, src_params.origin.x,
-                     src_params.origin.y);
+    UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, width, bytes_per_pixel,
+                     read_buffer.data() + src_layer_size * src_params.layer, write_buffer.data(),
+                     block_height, src_params.origin.x, src_params.origin.y);
 
     memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
 }
 
 void MaxwellDMA::CopyPitchToBlockLinear() {
     const auto& dst_params = regs.dst_params;
-    ASSERT(dst_params.block_size.depth == 0);
-
     const u32 bytes_per_pixel = regs.pitch_in / regs.line_length_in;
     const u32 width = dst_params.width;
     const u32 height = dst_params.height;
@@ -171,17 +169,23 @@ void MaxwellDMA::CopyPitchToBlockLinear() {
     }
 
     // If the input is linear and the output is tiled, swizzle the input and copy it over.
-    SwizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_in, dst_params.width,
-                   bytes_per_pixel, write_buffer.data() + dst_layer_size * dst_params.layer,
-                   read_buffer.data(), dst_params.block_size.height, dst_params.origin.x,
-                   dst_params.origin.y);
+    if (regs.dst_params.block_size.depth > 0) {
+        ASSERT(dst_params.layer == 0);
+        SwizzleSliceToVoxel(regs.line_length_in, regs.line_count, regs.pitch_in, width, height,
+                            bytes_per_pixel, block_height, block_depth, dst_params.origin.x,
+                            dst_params.origin.y, write_buffer.data(), read_buffer.data());
+    } else {
+        SwizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_in, width, bytes_per_pixel,
+                       write_buffer.data() + dst_layer_size * dst_params.layer, read_buffer.data(),
+                       block_height, dst_params.origin.x, dst_params.origin.y);
+    }
 
     memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
 }
 
 void MaxwellDMA::FastCopyBlockLinearToPitch() {
     const u32 bytes_per_pixel = regs.pitch_out / regs.line_length_in;
-    const size_t src_size = GetGOBSize();
+    const size_t src_size = GOB_SIZE;
     const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
     u32 pos_x = regs.src_params.origin.x;
     u32 pos_y = regs.src_params.origin.y;

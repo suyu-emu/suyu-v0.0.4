@@ -343,8 +343,7 @@ std::size_t SurfaceParams::GetLayerSize(bool as_host_size, bool uncompressed) co
         size += GetInnerMipmapMemorySize(level, as_host_size, uncompressed);
     }
     if (is_tiled && is_layered) {
-        return Common::AlignBits(size,
-                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
+        return Common::AlignBits(size, Tegra::Texture::GOB_SIZE_SHIFT + block_height + block_depth);
     }
     return size;
 }
@@ -418,7 +417,7 @@ std::tuple<u32, u32, u32> SurfaceParams::GetBlockOffsetXYZ(u32 offset) const {
     const u32 block_size = GetBlockSize();
     const u32 block_index = offset / block_size;
     const u32 gob_offset = offset % block_size;
-    const u32 gob_index = gob_offset / static_cast<u32>(Tegra::Texture::GetGOBSize());
+    const u32 gob_index = gob_offset / static_cast<u32>(Tegra::Texture::GOB_SIZE);
     const u32 x_gob_pixels = 64U / GetBytesPerPixel();
     const u32 x_block_pixels = x_gob_pixels << block_width;
     const u32 y_block_pixels = 8U << block_height;

@@ -204,7 +204,7 @@ public:
     static std::size_t AlignLayered(const std::size_t out_size, const u32 block_height,
                                     const u32 block_depth) {
         return Common::AlignBits(out_size,
-                                 Tegra::Texture::GetGOBSizeShift() + block_height + block_depth);
+                                 Tegra::Texture::GOB_SIZE_SHIFT + block_height + block_depth);
     }
 
     /// Converts a width from a type of surface into another. This helps represent the
