@@ -271,7 +271,7 @@ ISelfController::ISelfController(Core::System& system,
         {41, nullptr, "IsSystemBufferSharingEnabled"},
         {42, nullptr, "GetSystemSharedLayerHandle"},
         {43, nullptr, "GetSystemSharedBufferHandle"},
-        {44, nullptr, "CreateManagedDisplaySeparableLayer"},
+        {44, &ISelfController::CreateManagedDisplaySeparableLayer, "CreateManagedDisplaySeparableLayer"},
         {45, nullptr, "SetManagedDisplayLayerSeparationMode"},
         {50, &ISelfController::SetHandlesRequestToDisplay, "SetHandlesRequestToDisplay"},
         {51, nullptr, "ApproveToDisplay"},
@@ -453,6 +453,24 @@ void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) 
 
     // TODO(Subv): Find out how AM determines the display to use, for now just
     // create the layer in the Default display.
+    const auto display_id = nvflinger->OpenDisplay("Default");
+    const auto layer_id = nvflinger->CreateLayer(*display_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(*layer_id);
+}
+
+void ISelfController::CreateManagedDisplaySeparableLayer(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    // TODO(Subv): Find out how AM determines the display to use, for now just
+    // create the layer in the Default display.
+    // This calls nn::vi::CreateRecordingLayer() which creates another layer.
+    // Currently we do not support more than 1 layer per display, output 1 layer id for now.
+    // Outputting 1 layer id instead of the expected 2 has not been observed to cause any adverse
+    // side effects.
+    // TODO: Support multiple layers
     const auto display_id = nvflinger->OpenDisplay("Default");
     const auto layer_id = nvflinger->CreateLayer(*display_id);
 

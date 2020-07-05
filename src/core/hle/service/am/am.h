@@ -140,6 +140,7 @@ private:
     void SetOutOfFocusSuspendingEnabled(Kernel::HLERequestContext& ctx);
     void SetAlbumImageOrientation(Kernel::HLERequestContext& ctx);
     void CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx);
+    void CreateManagedDisplaySeparableLayer(Kernel::HLERequestContext& ctx);
     void SetHandlesRequestToDisplay(Kernel::HLERequestContext& ctx);
     void SetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
     void GetIdleTimeDetectionExtension(Kernel::HLERequestContext& ctx);
