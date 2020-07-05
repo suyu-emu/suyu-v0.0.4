@@ -34,6 +34,7 @@ using VfsCopyFunction = std::function<bool(const VirtualFile&, const VirtualFile
 
 enum class InstallResult {
     Success,
+    OverwriteExisting,
     ErrorAlreadyExists,
     ErrorCopyFailed,
     ErrorMetaFailed,
@@ -132,9 +133,9 @@ public:
     // Parsing function defines the conversion from raw file to NCA. If there are other steps
     // besides creating the NCA from the file (e.g. NAX0 on SD Card), that should go in a custom
     // parsing function.
-    explicit RegisteredCache(VirtualDir dir,
-                             ContentProviderParsingFunction parsing_function =
-                                 [](const VirtualFile& file, const NcaID& id) { return file; });
+    explicit RegisteredCache(
+        VirtualDir dir, ContentProviderParsingFunction parsing_function =
+                            [](const VirtualFile& file, const NcaID& id) { return file; });
     ~RegisteredCache() override;
 
     void Refresh() override;
@@ -153,6 +154,9 @@ public:
     std::vector<ContentProviderEntry> ListEntriesFilter(
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
         std::optional<u64> title_id = {}) const override;
+
+    // Removes an existing entry based on title id
+    bool RemoveExistingEntry(const u64 title_id);
 
     // Raw copies all the ncas from the xci/nsp to the csache. Does some quick checks to make sure
     // there is a meta NCA and all of them are accessible.
