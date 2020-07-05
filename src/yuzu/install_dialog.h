@@ -31,6 +31,6 @@ private:
     QHBoxLayout* hbox_layout;
 
     QLabel* description;
-    QCheckBox* overwrite_files;
+    QLabel* update_description;
     QDialogButtonBox* buttons;
 };

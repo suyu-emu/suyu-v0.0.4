@@ -22,7 +22,7 @@ InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialo
         item->setCheckState(Qt::Checked);
     }
 
-    file_list->setMinimumWidth((file_list->sizeHintForColumn(0) * 10) / 9);
+    file_list->setMinimumWidth((file_list->sizeHintForColumn(0) * 11) / 10);
 
     vbox_layout = new QVBoxLayout;
 
@@ -30,8 +30,8 @@ InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialo
 
     description = new QLabel(tr("Please confirm these are the files you wish to install."));
 
-    overwrite_files = new QCheckBox(tr("Overwrite Existing Files"));
-    overwrite_files->setCheckState(Qt::Unchecked);
+    update_description =
+        new QLabel(tr("Installing an Update or DLC will overwrite the previously installed one."));
 
     buttons = new QDialogButtonBox;
     buttons->addButton(QDialogButtonBox::Cancel);
@@ -40,10 +40,10 @@ InstallDialog::InstallDialog(QWidget* parent, const QStringList& files) : QDialo
     connect(buttons, &QDialogButtonBox::accepted, this, &InstallDialog::accept);
     connect(buttons, &QDialogButtonBox::rejected, this, &InstallDialog::reject);
 
-    hbox_layout->addWidget(overwrite_files);
     hbox_layout->addWidget(buttons);
 
     vbox_layout->addWidget(description);
+    vbox_layout->addWidget(update_description);
     vbox_layout->addWidget(file_list);
     vbox_layout->addLayout(hbox_layout);
 
@@ -65,10 +65,6 @@ QStringList InstallDialog::GetFiles() const {
     }
 
     return files;
-}
-
-bool InstallDialog::ShouldOverwriteFiles() const {
-    return overwrite_files->isChecked();
 }
 
 int InstallDialog::GetMinimumWidth() const {

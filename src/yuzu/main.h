@@ -51,7 +51,6 @@ enum class EmulatedDirectoryTarget {
 enum class InstallResult {
     Success,
     Overwrite,
-    AlreadyExists,
     Failure,
 };
 
@@ -109,6 +108,8 @@ signals:
 
     // Signal that tells widgets to update icons to use the current theme
     void UpdateThemedIcons();
+
+    void UpdateInstallProgress();
 
     void ErrorDisplayFinished();
 
@@ -206,6 +207,7 @@ private slots:
     void OnGameListOpenPerGameProperties(const std::string& file);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
+    void IncrementInstallProgress();
     void OnMenuInstallToNAND();
     void OnMenuRecentFile();
     void OnConfigure();
@@ -226,10 +228,8 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
-    InstallResult InstallNSPXCI(const QString& filename, bool overwrite_files,
-                                QProgressDialog& install_progress);
-    InstallResult InstallNCA(const QString& filename, bool overwrite_files,
-                             QProgressDialog& install_progress);
+    InstallResult InstallNSPXCI(const QString& filename);
+    InstallResult InstallNCA(const QString& filename);
     void UpdateWindowTitle(const std::string& title_name = {},
                            const std::string& title_version = {});
     void UpdateStatusBar();
@@ -283,6 +283,9 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
+
+    // Install progress dialog
+    QProgressDialog* install_progress;
 
 protected:
     void dropEvent(QDropEvent* event) override;
