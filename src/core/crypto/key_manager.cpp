@@ -695,8 +695,9 @@ void KeyManager::WriteKeyToFile(KeyCategory category, std::string_view keyname,
 }
 
 void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
-    if (s128_keys.find({id, field1, field2}) != s128_keys.end())
+    if (s128_keys.find({id, field1, field2}) != s128_keys.end() || key == Key128{}) {
         return;
+    }
     if (id == S128KeyType::Titlekey) {
         Key128 rights_id;
         std::memcpy(rights_id.data(), &field2, sizeof(u64));
@@ -716,8 +717,9 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
             return std::tie(elem.second.type, elem.second.field1, elem.second.field2) ==
                    std::tie(id, field1, field2);
         });
-    if (iter2 != s128_file_id.end())
+    if (iter2 != s128_file_id.end()) {
         WriteKeyToFile(category, iter2->first, key);
+    }
 
     // Variable cases
     if (id == S128KeyType::KeyArea) {
@@ -745,16 +747,18 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
 }
 
 void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
-    if (s256_keys.find({id, field1, field2}) != s256_keys.end())
+    if (s256_keys.find({id, field1, field2}) != s256_keys.end() || key == Key256{}) {
         return;
+    }
     const auto iter = std::find_if(
         s256_file_id.begin(), s256_file_id.end(),
         [&id, &field1, &field2](const std::pair<std::string, KeyIndex<S256KeyType>> elem) {
             return std::tie(elem.second.type, elem.second.field1, elem.second.field2) ==
                    std::tie(id, field1, field2);
         });
-    if (iter != s256_file_id.end())
+    if (iter != s256_file_id.end()) {
         WriteKeyToFile(KeyCategory::Standard, iter->first, key);
+    }
     s256_keys[{id, field1, field2}] = key;
 }
 
