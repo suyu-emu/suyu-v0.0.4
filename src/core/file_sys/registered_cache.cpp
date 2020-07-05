@@ -547,7 +547,7 @@ InstallResult RegisteredCache::InstallEntry(const XCI& xci, bool overwrite_if_ex
     return InstallEntry(*xci.GetSecurePartitionNSP(), overwrite_if_exists, copy);
 }
 
-bool RegisteredCache::RemoveExistingEntry(const u64 title_id) {
+bool RegisteredCache::RemoveExistingEntry(u64 title_id) {
     const auto delete_nca = [this](const NcaID& id) {
         const auto path = GetRelativePathFromNcaID(id, false, true, false);
 
@@ -566,25 +566,23 @@ bool RegisteredCache::RemoveExistingEntry(const u64 title_id) {
         return res;
     };
 
-    // Get the Content Provider
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
     // If an update exists, remove
-    if (installed.HasEntry(title_id, ContentRecordType::Meta)) {
+    if (HasEntry(title_id, ContentRecordType::Meta)) {
         LOG_INFO(Loader,
                  "Previous Update (v{}) for title_id={:016X} detected! Attempting to remove...",
-                 installed.GetEntryVersion(title_id).value_or(0), title_id);
+                 GetEntryVersion(title_id).value_or(0), title_id);
         // Get all the ncas associated with the current update CNMT and delete them
-        const auto& meta_old_id =
+        const auto meta_old_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::Meta).value_or(NcaID{});
-        const auto& program_id =
+        const auto program_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::Program).value_or(NcaID{});
-        const auto& data_id =
+        const auto data_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::Data).value_or(NcaID{});
-        const auto& control_id =
+        const auto control_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::Control).value_or(NcaID{});
-        const auto& html_id =
+        const auto html_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::HtmlDocument).value_or(NcaID{});
-        const auto& legal_id =
+        const auto legal_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::LegalInformation).value_or(NcaID{});
 
         delete_nca(meta_old_id);
@@ -618,9 +616,7 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
 
-    // Get the title id stored within the CNMT
     const auto title_id = cnmt.GetTitleID();
-    // Removes an entry if it exists
     const auto result = RemoveExistingEntry(title_id);
 
     // Install Metadata File

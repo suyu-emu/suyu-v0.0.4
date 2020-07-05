@@ -156,7 +156,7 @@ public:
         std::optional<u64> title_id = {}) const override;
 
     // Removes an existing entry based on title id
-    bool RemoveExistingEntry(const u64 title_id);
+    bool RemoveExistingEntry(u64 title_id);
 
     // Raw copies all the ncas from the xci/nsp to the csache. Does some quick checks to make sure
     // there is a meta NCA and all of them are accessible.
