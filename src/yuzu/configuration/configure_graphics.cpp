@@ -112,7 +112,7 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
         enabled = false;
         break;
     case Settings::RendererBackend::Vulkan:
-        for (const auto device : vulkan_devices) {
+        for (const auto& device : vulkan_devices) {
             ui->device->addItem(device);
         }
         ui->device->setCurrentIndex(vulkan_device);
