@@ -116,12 +116,12 @@ u32 FillDescriptorLayout(const ShaderEntries& entries,
 } // Anonymous namespace
 
 std::size_t GraphicsPipelineCacheKey::Hash() const noexcept {
-    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), sizeof *this);
+    const u64 hash = Common::CityHash64(reinterpret_cast<const char*>(this), Size());
     return static_cast<std::size_t>(hash);
 }
 
 bool GraphicsPipelineCacheKey::operator==(const GraphicsPipelineCacheKey& rhs) const noexcept {
-    return std::memcmp(&rhs, this, sizeof *this) == 0;
+    return std::memcmp(&rhs, this, Size()) == 0;
 }
 
 std::size_t ComputePipelineCacheKey::Hash() const noexcept {
@@ -312,18 +312,19 @@ VKPipelineCache::DecompileShaders(const GraphicsPipelineCacheKey& key) {
     const auto& gpu = system.GPU().Maxwell3D();
 
     Specialization specialization;
-    if (fixed_state.rasterizer.Topology() == Maxwell::PrimitiveTopology::Points) {
+    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points ||
+        device.IsExtExtendedDynamicStateSupported()) {
         float point_size;
-        std::memcpy(&point_size, &fixed_state.rasterizer.point_size, sizeof(float));
+        std::memcpy(&point_size, &fixed_state.point_size, sizeof(float));
         specialization.point_size = point_size;
         ASSERT(point_size != 0.0f);
     }
     for (std::size_t i = 0; i < Maxwell::NumVertexAttributes; ++i) {
-        const auto& attribute = fixed_state.vertex_input.attributes[i];
+        const auto& attribute = fixed_state.attributes[i];
         specialization.enabled_attributes[i] = attribute.enabled.Value() != 0;
         specialization.attribute_types[i] = attribute.Type();
     }
-    specialization.ndc_minus_one_to_one = fixed_state.rasterizer.ndc_minus_one_to_one;
+    specialization.ndc_minus_one_to_one = fixed_state.ndc_minus_one_to_one;
 
     SPIRVProgram program;
     std::vector<VkDescriptorSetLayoutBinding> bindings;

@@ -60,14 +60,6 @@ struct FixedPipelineState {
 
         void Fill(const Maxwell& regs, std::size_t index);
 
-        std::size_t Hash() const noexcept;
-
-        bool operator==(const BlendingAttachment& rhs) const noexcept;
-
-        bool operator!=(const BlendingAttachment& rhs) const noexcept {
-            return !operator==(rhs);
-        }
-
         constexpr std::array<bool, 4> Mask() const noexcept {
             return {mask_r != 0, mask_g != 0, mask_b != 0, mask_a != 0};
         }
@@ -97,83 +89,77 @@ struct FixedPipelineState {
         }
     };
 
-    struct VertexInput {
-        union Binding {
-            u16 raw;
-            BitField<0, 1, u16> enabled;
-            BitField<1, 12, u16> stride;
-        };
+    union VertexAttribute {
+        u32 raw;
+        BitField<0, 1, u32> enabled;
+        BitField<1, 5, u32> buffer;
+        BitField<6, 14, u32> offset;
+        BitField<20, 3, u32> type;
+        BitField<23, 6, u32> size;
 
-        union Attribute {
-            u32 raw;
-            BitField<0, 1, u32> enabled;
-            BitField<1, 5, u32> buffer;
-            BitField<6, 14, u32> offset;
-            BitField<20, 3, u32> type;
-            BitField<23, 6, u32> size;
-
-            constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
-                return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
-            }
-
-            constexpr Maxwell::VertexAttribute::Size Size() const noexcept {
-                return static_cast<Maxwell::VertexAttribute::Size>(size.Value());
-            }
-        };
-
-        std::array<Binding, Maxwell::NumVertexArrays> bindings;
-        std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
-        std::array<Attribute, Maxwell::NumVertexAttributes> attributes;
-
-        void SetBinding(std::size_t index, bool enabled, u32 stride, u32 divisor) noexcept {
-            auto& binding = bindings[index];
-            binding.raw = 0;
-            binding.enabled.Assign(enabled ? 1 : 0);
-            binding.stride.Assign(static_cast<u16>(stride));
-            binding_divisors[index] = divisor;
+        constexpr Maxwell::VertexAttribute::Type Type() const noexcept {
+            return static_cast<Maxwell::VertexAttribute::Type>(type.Value());
         }
 
-        void SetAttribute(std::size_t index, bool enabled, u32 buffer, u32 offset,
-                          Maxwell::VertexAttribute::Type type,
-                          Maxwell::VertexAttribute::Size size) noexcept {
-            auto& attribute = attributes[index];
-            attribute.raw = 0;
-            attribute.enabled.Assign(enabled ? 1 : 0);
-            attribute.buffer.Assign(buffer);
-            attribute.offset.Assign(offset);
-            attribute.type.Assign(static_cast<u32>(type));
-            attribute.size.Assign(static_cast<u32>(size));
+        constexpr Maxwell::VertexAttribute::Size Size() const noexcept {
+            return static_cast<Maxwell::VertexAttribute::Size>(size.Value());
         }
     };
 
-    struct Rasterizer {
+    template <std::size_t Position>
+    union StencilFace {
+        BitField<Position + 0, 3, u32> action_stencil_fail;
+        BitField<Position + 3, 3, u32> action_depth_fail;
+        BitField<Position + 6, 3, u32> action_depth_pass;
+        BitField<Position + 9, 3, u32> test_func;
+
+        Maxwell::StencilOp ActionStencilFail() const noexcept {
+            return UnpackStencilOp(action_stencil_fail);
+        }
+
+        Maxwell::StencilOp ActionDepthFail() const noexcept {
+            return UnpackStencilOp(action_depth_fail);
+        }
+
+        Maxwell::StencilOp ActionDepthPass() const noexcept {
+            return UnpackStencilOp(action_depth_pass);
+        }
+
+        Maxwell::ComparisonOp TestFunc() const noexcept {
+            return UnpackComparisonOp(test_func);
+        }
+    };
+
+    union VertexBinding {
+        u16 raw;
+        BitField<0, 12, u16> stride;
+        BitField<12, 1, u16> enabled;
+    };
+
+    struct DynamicState {
         union {
-            u32 raw;
-            BitField<0, 4, u32> topology;
-            BitField<4, 1, u32> primitive_restart_enable;
-            BitField<5, 1, u32> cull_enable;
-            BitField<6, 1, u32> depth_bias_enable;
-            BitField<7, 1, u32> depth_clamp_disabled;
-            BitField<8, 1, u32> ndc_minus_one_to_one;
-            BitField<9, 2, u32> cull_face;
-            BitField<11, 1, u32> front_face;
-            BitField<12, 2, u32> polygon_mode;
-            BitField<14, 5, u32> patch_control_points_minus_one;
-            BitField<19, 2, u32> tessellation_primitive;
-            BitField<21, 2, u32> tessellation_spacing;
-            BitField<23, 1, u32> tessellation_clockwise;
-            BitField<24, 1, u32> logic_op_enable;
-            BitField<25, 4, u32> logic_op;
-            BitField<29, 1, u32> rasterize_enable;
+            u32 raw1;
+            StencilFace<0> front;
+            StencilFace<12> back;
+            BitField<24, 1, u32> stencil_enable;
+            BitField<25, 1, u32> depth_write_enable;
+            BitField<26, 1, u32> depth_bounds_enable;
+            BitField<27, 1, u32> depth_test_enable;
+            BitField<28, 1, u32> front_face;
+            BitField<29, 3, u32> depth_test_func;
         };
+        union {
+            u32 raw2;
+            BitField<0, 4, u32> topology;
+            BitField<4, 2, u32> cull_face;
+            BitField<6, 1, u32> cull_enable;
+        };
+        std::array<VertexBinding, Maxwell::NumVertexArrays> vertex_bindings;
 
-        // TODO(Rodrigo): Move this to push constants
-        u32 point_size;
+        void Fill(const Maxwell& regs);
 
-        void Fill(const Maxwell& regs) noexcept;
-
-        constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
-            return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
+        Maxwell::ComparisonOp DepthTestFunc() const noexcept {
+            return UnpackComparisonOp(depth_test_func);
         }
 
         Maxwell::CullFace CullFace() const noexcept {
@@ -183,70 +169,36 @@ struct FixedPipelineState {
         Maxwell::FrontFace FrontFace() const noexcept {
             return UnpackFrontFace(front_face.Value());
         }
-    };
 
-    struct DepthStencil {
-        template <std::size_t Position>
-        union StencilFace {
-            BitField<Position + 0, 3, u32> action_stencil_fail;
-            BitField<Position + 3, 3, u32> action_depth_fail;
-            BitField<Position + 6, 3, u32> action_depth_pass;
-            BitField<Position + 9, 3, u32> test_func;
-
-            Maxwell::StencilOp ActionStencilFail() const noexcept {
-                return UnpackStencilOp(action_stencil_fail);
-            }
-
-            Maxwell::StencilOp ActionDepthFail() const noexcept {
-                return UnpackStencilOp(action_depth_fail);
-            }
-
-            Maxwell::StencilOp ActionDepthPass() const noexcept {
-                return UnpackStencilOp(action_depth_pass);
-            }
-
-            Maxwell::ComparisonOp TestFunc() const noexcept {
-                return UnpackComparisonOp(test_func);
-            }
-        };
-
-        union {
-            u32 raw;
-            StencilFace<0> front;
-            StencilFace<12> back;
-            BitField<24, 1, u32> depth_test_enable;
-            BitField<25, 1, u32> depth_write_enable;
-            BitField<26, 1, u32> depth_bounds_enable;
-            BitField<27, 1, u32> stencil_enable;
-            BitField<28, 3, u32> depth_test_func;
-        };
-
-        void Fill(const Maxwell& regs) noexcept;
-
-        Maxwell::ComparisonOp DepthTestFunc() const noexcept {
-            return UnpackComparisonOp(depth_test_func);
+        constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
+            return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
         }
     };
 
-    struct ColorBlending {
-        std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
-
-        void Fill(const Maxwell& regs) noexcept;
+    union {
+        u32 raw;
+        BitField<0, 1, u32> no_extended_dynamic_state;
+        BitField<2, 1, u32> primitive_restart_enable;
+        BitField<3, 1, u32> depth_bias_enable;
+        BitField<4, 1, u32> depth_clamp_disabled;
+        BitField<5, 1, u32> ndc_minus_one_to_one;
+        BitField<6, 2, u32> polygon_mode;
+        BitField<8, 5, u32> patch_control_points_minus_one;
+        BitField<13, 2, u32> tessellation_primitive;
+        BitField<15, 2, u32> tessellation_spacing;
+        BitField<17, 1, u32> tessellation_clockwise;
+        BitField<18, 1, u32> logic_op_enable;
+        BitField<19, 4, u32> logic_op;
+        BitField<23, 1, u32> rasterize_enable;
     };
+    u32 point_size;
+    std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
+    std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;
+    std::array<BlendingAttachment, Maxwell::NumRenderTargets> attachments;
+    std::array<u16, Maxwell::NumViewports> viewport_swizzles;
+    DynamicState dynamic_state;
 
-    struct ViewportSwizzles {
-        std::array<u16, Maxwell::NumViewports> swizzles;
-
-        void Fill(const Maxwell& regs) noexcept;
-    };
-
-    VertexInput vertex_input;
-    Rasterizer rasterizer;
-    DepthStencil depth_stencil;
-    ColorBlending color_blending;
-    ViewportSwizzles viewport_swizzles;
-
-    void Fill(const Maxwell& regs);
+    void Fill(const Maxwell& regs, bool has_extended_dynamic_state);
 
     std::size_t Hash() const noexcept;
 
@@ -254,6 +206,11 @@ struct FixedPipelineState {
 
     bool operator!=(const FixedPipelineState& rhs) const noexcept {
         return !operator==(rhs);
+    }
+
+    std::size_t Size() const noexcept {
+        const std::size_t total_size = sizeof *this;
+        return total_size - (no_extended_dynamic_state != 0 ? 0 : sizeof(DynamicState));
     }
 };
 static_assert(std::has_unique_object_representations_v<FixedPipelineState>);

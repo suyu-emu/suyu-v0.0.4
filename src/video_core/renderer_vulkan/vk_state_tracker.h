@@ -26,6 +26,16 @@ enum : u8 {
     DepthBounds,
     StencilProperties,
 
+    CullMode,
+    DepthBoundsEnable,
+    DepthTestEnable,
+    DepthWriteEnable,
+    DepthCompareOp,
+    FrontFace,
+    PrimitiveTopology,
+    StencilOp,
+    StencilTestEnable,
+
     Last
 };
 static_assert(Last <= std::numeric_limits<u8>::max());
@@ -62,6 +72,46 @@ public:
 
     bool TouchStencilProperties() {
         return Exchange(Dirty::StencilProperties, false);
+    }
+
+    bool TouchCullMode() {
+        return Exchange(Dirty::CullMode, false);
+    }
+
+    bool TouchDepthBoundsTestEnable() {
+        return Exchange(Dirty::DepthBoundsEnable, false);
+    }
+
+    bool TouchDepthTestEnable() {
+        return Exchange(Dirty::DepthTestEnable, false);
+    }
+
+    bool TouchDepthBoundsEnable() {
+        return Exchange(Dirty::DepthBoundsEnable, false);
+    }
+
+    bool TouchDepthWriteEnable() {
+        return Exchange(Dirty::DepthWriteEnable, false);
+    }
+
+    bool TouchDepthCompareOp() {
+        return Exchange(Dirty::DepthCompareOp, false);
+    }
+
+    bool TouchFrontFace() {
+        return Exchange(Dirty::FrontFace, false);
+    }
+
+    bool TouchPrimitiveTopology() {
+        return Exchange(Dirty::PrimitiveTopology, false);
+    }
+
+    bool TouchStencilOp() {
+        return Exchange(Dirty::StencilOp, false);
+    }
+
+    bool TouchStencilTestEnable() {
+        return Exchange(Dirty::StencilTestEnable, false);
     }
 
 private:
