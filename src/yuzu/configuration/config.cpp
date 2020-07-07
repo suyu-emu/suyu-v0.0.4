@@ -212,7 +212,7 @@ const std::array<int, Settings::NativeKeyboard::NumKeyboardMods> Config::default
 // UISetting::values.shortcuts, which is alphabetically ordered.
 // clang-format off
 const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
-    {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::ApplicationShortcut}},
+    {QStringLiteral("Capture Screenshot"),       QStringLiteral("Main Window"), {QStringLiteral("Ctrl+P"), Qt::WidgetWithChildrenShortcut}},
     {QStringLiteral("Change Docked Mode"),       QStringLiteral("Main Window"), {QStringLiteral("F10"), Qt::ApplicationShortcut}},
     {QStringLiteral("Continue/Pause Emulation"), QStringLiteral("Main Window"), {QStringLiteral("F4"), Qt::WindowShortcut}},
     {QStringLiteral("Decrease Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("-"), Qt::ApplicationShortcut}},
@@ -220,8 +220,8 @@ const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
     {QStringLiteral("Exit yuzu"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+Q"), Qt::WindowShortcut}},
     {QStringLiteral("Fullscreen"),               QStringLiteral("Main Window"), {QStringLiteral("F11"), Qt::WindowShortcut}},
     {QStringLiteral("Increase Speed Limit"),     QStringLiteral("Main Window"), {QStringLiteral("+"), Qt::ApplicationShortcut}},
-    {QStringLiteral("Load Amiibo"),              QStringLiteral("Main Window"), {QStringLiteral("F2"), Qt::ApplicationShortcut}},
-    {QStringLiteral("Load File"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+O"), Qt::WindowShortcut}},
+    {QStringLiteral("Load Amiibo"),              QStringLiteral("Main Window"), {QStringLiteral("F2"), Qt::WidgetWithChildrenShortcut}},
+    {QStringLiteral("Load File"),                QStringLiteral("Main Window"), {QStringLiteral("Ctrl+O"), Qt::WidgetWithChildrenShortcut}},
     {QStringLiteral("Mute Audio"),               QStringLiteral("Main Window"), {QStringLiteral("Ctrl+M"), Qt::WindowShortcut}},
     {QStringLiteral("Restart Emulation"),        QStringLiteral("Main Window"), {QStringLiteral("F6"), Qt::WindowShortcut}},
     {QStringLiteral("Stop Emulation"),           QStringLiteral("Main Window"), {QStringLiteral("F5"), Qt::WindowShortcut}},
@@ -665,11 +665,13 @@ void Config::ReadShortcutValues() {
         const auto& [keyseq, context] = shortcut;
         qt_config->beginGroup(group);
         qt_config->beginGroup(name);
+        // No longer using ReadSetting for shortcut.second as it innacurately returns a value of 1
+        // for WidgetWithChildrenShortcut which is a value of 3. Needed to fix shortcuts the open
+        // a file dialog in windowed mode
         UISettings::values.shortcuts.push_back(
             {name,
              group,
-             {ReadSetting(QStringLiteral("KeySeq"), keyseq).toString(),
-              ReadSetting(QStringLiteral("Context"), context).toInt()}});
+             {ReadSetting(QStringLiteral("KeySeq"), keyseq).toString(), shortcut.second}});
         qt_config->endGroup();
         qt_config->endGroup();
     }
