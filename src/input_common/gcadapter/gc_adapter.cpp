@@ -49,6 +49,11 @@ GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_pa
         PadButton::PAD_TRIGGER_L,
     };
 
+    if (adapter_controllers_status[port] == ControllerTypes::None && !get_origin[port]) {
+        // Controller may have been disconnected, recalibrate if reconnected.
+        get_origin[port] = true;
+    }
+
     if (adapter_controllers_status[port] != ControllerTypes::None) {
         const u8 b1 = adapter_payload[1 + (9 * port) + 1];
         const u8 b2 = adapter_payload[1 + (9 * port) + 2];
