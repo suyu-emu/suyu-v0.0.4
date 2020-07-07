@@ -2155,12 +2155,14 @@ void GMainWindow::OnCaptureScreenshot() {
     OnPauseGame();
 
     const u64 title_id = Core::System::GetInstance().CurrentProcess()->GetTitleID();
-    const auto screenshot_path = FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir);
-    const auto date = QDateTime::currentDateTime()
-                          .toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"))
-                          .toStdString();
-    QString filename = QString::fromStdString(screenshot_path + fmt::format("{:016X}", title_id) +
-                                              "_" + date + ".png");
+    const auto screenshot_path =
+        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir));
+    const auto date =
+        QDateTime::currentDateTime().toString(QStringLiteral("yyyy-MM-dd_hh-mm-ss-zzz"));
+    QString filename = QStringLiteral("%1%2_%3.png")
+                           .arg(screenshot_path)
+                           .arg(title_id, 16, 16, QLatin1Char{'0'})
+                           .arg(date);
 
 #ifdef _WIN32
     if (UISettings::values.enable_screenshot_save_as) {
