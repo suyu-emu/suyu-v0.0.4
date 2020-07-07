@@ -155,10 +155,11 @@ public:
         // division is not by a perfect 128 to account for some variance in center location
         // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
         // [20-230]
-        if (axis % 2 == 0)
+        if (axis % 2 == 0) {
             return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value_x) / 95.0f;
-        else
+        } else {
             return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value_y) / 95.0f;
+        }
     }
 
     std::pair<float, float> GetAnalog(int axis_x, int axis_y) const {
@@ -208,10 +209,10 @@ private:
     const int axis_x;
     const int axis_y;
     const float deadzone;
+    GCAdapter::Adapter* gcadapter;
     const float origin_value_x;
     const float origin_value_y;
     mutable std::mutex mutex;
-    GCAdapter::Adapter* gcadapter;
 };
 
 /// An analog device factory that creates analog devices from GC Adapter

@@ -386,35 +386,50 @@ const std::array<GCState, 4>& Adapter::GetPadState() const {
 }
 
 int Adapter::GetOriginValue(int port, int axis) {
+    // TODO: perhaps place stick statuses into an array in PadStatus
     const PadAxes padaxis = static_cast<PadAxes>(axis);
-    if (padaxis == PadAxes::StickX)
+    if (padaxis == PadAxes::StickX) {
         return origin_status[port].stick_x;
-    if (padaxis == PadAxes::StickY)
+    }
+    if (padaxis == PadAxes::StickY) {
         return origin_status[port].stick_y;
-    if (padaxis == PadAxes::SubstickX)
+    }
+    if (padaxis == PadAxes::SubstickX) {
         return origin_status[port].substick_x;
-    if (padaxis == PadAxes::SubstickY)
+    }
+    if (padaxis == PadAxes::SubstickY) {
         return origin_status[port].substick_x;
-    if (padaxis == PadAxes::TriggerLeft)
+    }
+    if (padaxis == PadAxes::TriggerLeft) {
         return origin_status[port].trigger_left;
-    if (padaxis == PadAxes::TriggerRight)
+    }
+    if (padaxis == PadAxes::TriggerRight) {
         return origin_status[port].trigger_right;
+    }
+    return 0;
 }
 
 const int Adapter::GetOriginValue(int port, int axis) const {
     const PadAxes padaxis = static_cast<PadAxes>(axis);
-    if (padaxis == PadAxes::StickX)
+    if (padaxis == PadAxes::StickX) {
         return origin_status[port].stick_x;
-    if (padaxis == PadAxes::StickY)
+    }
+    if (padaxis == PadAxes::StickY) {
         return origin_status[port].stick_y;
-    if (padaxis == PadAxes::SubstickX)
+    }
+    if (padaxis == PadAxes::SubstickX) {
         return origin_status[port].substick_x;
-    if (padaxis == PadAxes::SubstickY)
+    }
+    if (padaxis == PadAxes::SubstickY) {
         return origin_status[port].substick_x;
-    if (padaxis == PadAxes::TriggerLeft)
+    }
+    if (padaxis == PadAxes::TriggerLeft) {
         return origin_status[port].trigger_left;
-    if (padaxis == PadAxes::TriggerRight)
+    }
+    if (padaxis == PadAxes::TriggerRight) {
         return origin_status[port].trigger_right;
+    }
+    return 0;
 }
 
 } // namespace GCAdapter
