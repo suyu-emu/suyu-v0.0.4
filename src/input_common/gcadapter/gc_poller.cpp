@@ -34,13 +34,7 @@ public:
     explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
                           GCAdapter::Adapter* adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
-          gcadapter(adapter), origin_value(adapter->GetOriginValue(port_, axis_)) {
-        // L/R triggers range is only in positive direction beginning near 0
-        // 0.0 threshold equates to near half trigger press, but threshold accounts for variability.
-        if (axis > 3) {
-            threshold *= -0.5;
-        }
-    }
+          gcadapter(adapter), origin_value(adapter->GetOriginValue(port_, axis_)) {}
 
     bool GetStatus() const override {
         const float current_axis_value = gcadapter->GetPadState()[port].axes.at(axis);
@@ -152,14 +146,11 @@ public:
 
     float GetAxis(int axis) const {
         std::lock_guard lock{mutex};
+        const auto origin_value = axis % 2 == 0 ? origin_value_x : origin_value_y;
         // division is not by a perfect 128 to account for some variance in center location
         // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
         // [20-230]
-        if (axis % 2 == 0) {
-            return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value_x) / 95.0f;
-        } else {
-            return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value_y) / 95.0f;
-        }
+        return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value) / 95.0f;
     }
 
     std::pair<float, float> GetAnalog(int axis_x, int axis_y) const {

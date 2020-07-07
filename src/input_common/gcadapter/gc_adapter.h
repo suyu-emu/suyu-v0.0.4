@@ -96,8 +96,7 @@ public:
     std::array<GCState, 4>& GetPadState();
     const std::array<GCState, 4>& GetPadState() const;
 
-    int GetOriginValue(int port, int axis);
-    const int GetOriginValue(int port, int axis) const;
+    int GetOriginValue(int port, int axis) const;
 
 private:
     GCPadStatus GetPadStatus(int port, const std::array<u8, 37>& adapter_payload);

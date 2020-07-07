@@ -385,51 +385,25 @@ const std::array<GCState, 4>& Adapter::GetPadState() const {
     return state;
 }
 
-int Adapter::GetOriginValue(int port, int axis) {
-    // TODO: perhaps place stick statuses into an array in PadStatus
-    const PadAxes padaxis = static_cast<PadAxes>(axis);
-    if (padaxis == PadAxes::StickX) {
-        return origin_status[port].stick_x;
-    }
-    if (padaxis == PadAxes::StickY) {
-        return origin_status[port].stick_y;
-    }
-    if (padaxis == PadAxes::SubstickX) {
-        return origin_status[port].substick_x;
-    }
-    if (padaxis == PadAxes::SubstickY) {
-        return origin_status[port].substick_x;
-    }
-    if (padaxis == PadAxes::TriggerLeft) {
-        return origin_status[port].trigger_left;
-    }
-    if (padaxis == PadAxes::TriggerRight) {
-        return origin_status[port].trigger_right;
-    }
-    return 0;
-}
+int Adapter::GetOriginValue(int port, int axis) const {
+    const auto& status = origin_status[port];
 
-const int Adapter::GetOriginValue(int port, int axis) const {
-    const PadAxes padaxis = static_cast<PadAxes>(axis);
-    if (padaxis == PadAxes::StickX) {
-        return origin_status[port].stick_x;
+    switch (static_cast<PadAxes>(axis)) {
+    case PadAxes::StickX:
+        return status.stick_x;
+    case PadAxes::StickY:
+        return status.stick_y;
+    case PadAxes::SubstickX:
+        return status.substick_x;
+    case PadAxes::SubstickY:
+        return status.substick_y;
+    case PadAxes::TriggerLeft:
+        return status.trigger_left;
+    case PadAxes::TriggerRight:
+        return status.trigger_right;
+    default:
+        return 0;
     }
-    if (padaxis == PadAxes::StickY) {
-        return origin_status[port].stick_y;
-    }
-    if (padaxis == PadAxes::SubstickX) {
-        return origin_status[port].substick_x;
-    }
-    if (padaxis == PadAxes::SubstickY) {
-        return origin_status[port].substick_x;
-    }
-    if (padaxis == PadAxes::TriggerLeft) {
-        return origin_status[port].trigger_left;
-    }
-    if (padaxis == PadAxes::TriggerRight) {
-        return origin_status[port].trigger_right;
-    }
-    return 0;
 }
 
 } // namespace GCAdapter
