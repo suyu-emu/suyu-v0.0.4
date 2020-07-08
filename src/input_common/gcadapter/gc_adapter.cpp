@@ -24,9 +24,13 @@ Adapter::Adapter() {
     LOG_INFO(Input, "GC Adapter Initialization started");
 
     current_status = NO_ADAPTER_DETECTED;
-    libusb_init(&libusb_ctx);
 
-    StartScanThread();
+    const int init_res = libusb_init(&libusb_ctx);
+    if (init_res == LIBUSB_SUCCESS) {
+        StartScanThread();
+    } else {
+        LOG_ERROR(Input, "libusb could not be initialized. failed with error = {}", init_res);
+    }
 }
 
 GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_payload) {
@@ -215,6 +219,10 @@ void Adapter::Setup() {
 
     // populate the list of devices, get the count
     const std::size_t device_count = libusb_get_device_list(libusb_ctx, &devices);
+    if (device_count < 0) {
+        LOG_ERROR(Input, "libusb_get_device_list failed with error: {}", device_count);
+        return;
+    }
 
     for (std::size_t index = 0; index < device_count; ++index) {
         if (CheckDeviceAccess(devices[index])) {
@@ -223,6 +231,7 @@ void Adapter::Setup() {
             break;
         }
     }
+    libusb_free_device_list(devices, 1);
 }
 
 bool Adapter::CheckDeviceAccess(libusb_device* device) {
@@ -279,7 +288,13 @@ bool Adapter::CheckDeviceAccess(libusb_device* device) {
 
 void Adapter::GetGCEndpoint(libusb_device* device) {
     libusb_config_descriptor* config = nullptr;
-    libusb_get_config_descriptor(device, 0, &config);
+    const int config_descriptor_error = libusb_get_config_descriptor(device, 0, &config);
+    if (config_descriptor_error) {
+        LOG_ERROR(Input, "libusb_get_config_descriptor failed with error = {}",
+                  config_descriptor_error);
+        return;
+    }
+
     for (u8 ic = 0; ic < config->bNumInterfaces; ic++) {
         const libusb_interface* interfaceContainer = &config->interface[ic];
         for (int i = 0; i < interfaceContainer->num_altsetting; i++) {
