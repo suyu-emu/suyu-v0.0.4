@@ -1621,6 +1621,10 @@ void GMainWindow::OnMenuInstallToNAND() {
 
     const QStringList files = installDialog.GetFiles();
 
+    if (files.isEmpty()) {
+        return;
+    }
+
     int remaining = filenames.size();
 
     // This would only overflow above 2^43 bytes (8.796 TB)
