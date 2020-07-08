@@ -215,23 +215,27 @@ void Adapter::Setup() {
     adapter_controllers_status.fill(ControllerTypes::None);
 
     // pointer to list of connected usb devices
-    libusb_device** devices;
+    libusb_device** devices{};
 
     // populate the list of devices, get the count
-    const std::size_t device_count = libusb_get_device_list(libusb_ctx, &devices);
+    const ssize_t device_count = libusb_get_device_list(libusb_ctx, &devices);
     if (device_count < 0) {
         LOG_ERROR(Input, "libusb_get_device_list failed with error: {}", device_count);
+        detect_thread_running = false; // Stop the loop constantly checking for gc adapter
+        // TODO: For hotplug+gc adapter checkbox implementation, revert this.
         return;
     }
 
-    for (std::size_t index = 0; index < device_count; ++index) {
-        if (CheckDeviceAccess(devices[index])) {
-            // GC Adapter found and accessible, registering it
-            GetGCEndpoint(devices[index]);
-            break;
+    if (devices != nullptr) {
+        for (std::size_t index = 0; index < device_count; ++index) {
+            if (CheckDeviceAccess(devices[index])) {
+                // GC Adapter found and accessible, registering it
+                GetGCEndpoint(devices[index]);
+                break;
+            }
         }
+        libusb_free_device_list(devices, 1);
     }
-    libusb_free_device_list(devices, 1);
 }
 
 bool Adapter::CheckDeviceAccess(libusb_device* device) {
@@ -288,10 +292,10 @@ bool Adapter::CheckDeviceAccess(libusb_device* device) {
 
 void Adapter::GetGCEndpoint(libusb_device* device) {
     libusb_config_descriptor* config = nullptr;
-    const int config_descriptor_error = libusb_get_config_descriptor(device, 0, &config);
-    if (config_descriptor_error) {
+    const int config_descriptor_return = libusb_get_config_descriptor(device, 0, &config);
+    if (config_descriptor_return != LIBUSB_SUCCESS) {
         LOG_ERROR(Input, "libusb_get_config_descriptor failed with error = {}",
-                  config_descriptor_error);
+                  config_descriptor_return);
         return;
     }
 
