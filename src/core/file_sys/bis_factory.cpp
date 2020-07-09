@@ -126,7 +126,9 @@ u64 BISFactory::GetSystemNANDTotalSpace() const {
 }
 
 u64 BISFactory::GetUserNANDFreeSpace() const {
-    return GetUserNANDTotalSpace();
+    // For some reason games such as BioShock 1 checks whether this is exactly 0x680000000 bytes.
+    // Set the free space to be 1 MiB less than the total as a workaround to this issue.
+    return GetUserNANDTotalSpace() - 0x100000;
 }
 
 u64 BISFactory::GetUserNANDTotalSpace() const {
