@@ -30,6 +30,7 @@ if(SDL2_FOUND)
     target_compile_definitions(input_common PRIVATE HAVE_SDL2)
 endif()
 
+target_include_directories(input_common SYSTEM PUBLIC ${LIBUSB_INCLUDE_DIR})
 target_link_libraries(input_common PUBLIC ${LIBUSB_LIBRARIES})
 
 create_target_directory_groups(input_common)
