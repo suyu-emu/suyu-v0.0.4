@@ -11,19 +11,6 @@
 #include "yuzu/configuration/configure_filesystem.h"
 #include "yuzu/uisettings.h"
 
-namespace {
-
-template <typename T>
-void SetComboBoxFromData(QComboBox* combo_box, T data) {
-    const auto index = combo_box->findData(QVariant::fromValue(static_cast<u64>(data)));
-    if (index >= combo_box->count() || index < 0)
-        return;
-
-    combo_box->setCurrentIndex(index);
-}
-
-} // Anonymous namespace
-
 ConfigureFilesystem::ConfigureFilesystem(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureFilesystem>()) {
     ui->setupUi(this);
@@ -73,11 +60,6 @@ void ConfigureFilesystem::setConfiguration() {
 
     ui->cache_game_list->setChecked(UISettings::values.cache_game_list);
 
-    SetComboBoxFromData(ui->nand_size, Settings::values.nand_total_size);
-    SetComboBoxFromData(ui->usrnand_size, Settings::values.nand_user_size);
-    SetComboBoxFromData(ui->sysnand_size, Settings::values.nand_system_size);
-    SetComboBoxFromData(ui->sdmc_size, Settings::values.sdmc_size);
-
     UpdateEnabledControls();
 }
 
@@ -98,15 +80,6 @@ void ConfigureFilesystem::applyConfiguration() {
     Settings::values.dump_nso = ui->dump_nso->isChecked();
 
     UISettings::values.cache_game_list = ui->cache_game_list->isChecked();
-
-    Settings::values.nand_total_size = static_cast<Settings::NANDTotalSize>(
-        ui->nand_size->itemData(ui->nand_size->currentIndex()).toULongLong());
-    Settings::values.nand_system_size = static_cast<Settings::NANDSystemSize>(
-        ui->nand_size->itemData(ui->sysnand_size->currentIndex()).toULongLong());
-    Settings::values.nand_user_size = static_cast<Settings::NANDUserSize>(
-        ui->nand_size->itemData(ui->usrnand_size->currentIndex()).toULongLong());
-    Settings::values.sdmc_size = static_cast<Settings::SDMCSize>(
-        ui->nand_size->itemData(ui->sdmc_size->currentIndex()).toULongLong());
 }
 
 void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) {
