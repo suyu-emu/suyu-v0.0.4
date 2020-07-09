@@ -331,8 +331,10 @@ endif()
 
 # Ensure libusb is properly configured (based on dolphin libusb include)
 find_package(LibUSB)
-add_subdirectory(externals/libusb)
-set(LIBUSB_LIBRARIES usb)
+if (NOT LIBUSB_FOUND)
+    add_subdirectory(externals/libusb)
+    set(LIBUSB_LIBRARIES usb)
+endif()
 
 
 # Prefer the -pthread flag on Linux.

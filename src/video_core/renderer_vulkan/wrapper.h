@@ -207,6 +207,16 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkCmdSetStencilWriteMask vkCmdSetStencilWriteMask;
     PFN_vkCmdSetViewport vkCmdSetViewport;
     PFN_vkCmdWaitEvents vkCmdWaitEvents;
+    PFN_vkCmdBindVertexBuffers2EXT vkCmdBindVertexBuffers2EXT;
+    PFN_vkCmdSetCullModeEXT vkCmdSetCullModeEXT;
+    PFN_vkCmdSetDepthBoundsTestEnableEXT vkCmdSetDepthBoundsTestEnableEXT;
+    PFN_vkCmdSetDepthCompareOpEXT vkCmdSetDepthCompareOpEXT;
+    PFN_vkCmdSetDepthTestEnableEXT vkCmdSetDepthTestEnableEXT;
+    PFN_vkCmdSetDepthWriteEnableEXT vkCmdSetDepthWriteEnableEXT;
+    PFN_vkCmdSetFrontFaceEXT vkCmdSetFrontFaceEXT;
+    PFN_vkCmdSetPrimitiveTopologyEXT vkCmdSetPrimitiveTopologyEXT;
+    PFN_vkCmdSetStencilOpEXT vkCmdSetStencilOpEXT;
+    PFN_vkCmdSetStencilTestEnableEXT vkCmdSetStencilTestEnableEXT;
     PFN_vkCreateBuffer vkCreateBuffer;
     PFN_vkCreateBufferView vkCreateBufferView;
     PFN_vkCreateCommandPool vkCreateCommandPool;
@@ -967,6 +977,50 @@ public:
         dld->vkCmdWaitEvents(handle, events.size(), events.data(), src_stage_mask, dst_stage_mask,
                              memory_barriers.size(), memory_barriers.data(), buffer_barriers.size(),
                              buffer_barriers.data(), image_barriers.size(), image_barriers.data());
+    }
+
+    void BindVertexBuffers2EXT(u32 first_binding, u32 binding_count, const VkBuffer* buffers,
+                               const VkDeviceSize* offsets, const VkDeviceSize* sizes,
+                               const VkDeviceSize* strides) const noexcept {
+        dld->vkCmdBindVertexBuffers2EXT(handle, first_binding, binding_count, buffers, offsets,
+                                        sizes, strides);
+    }
+
+    void SetCullModeEXT(VkCullModeFlags cull_mode) const noexcept {
+        dld->vkCmdSetCullModeEXT(handle, cull_mode);
+    }
+
+    void SetDepthBoundsTestEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetDepthBoundsTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetDepthCompareOpEXT(VkCompareOp compare_op) const noexcept {
+        dld->vkCmdSetDepthCompareOpEXT(handle, compare_op);
+    }
+
+    void SetDepthTestEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetDepthTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetDepthWriteEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetDepthWriteEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
+    }
+
+    void SetFrontFaceEXT(VkFrontFace front_face) const noexcept {
+        dld->vkCmdSetFrontFaceEXT(handle, front_face);
+    }
+
+    void SetPrimitiveTopologyEXT(VkPrimitiveTopology primitive_topology) const noexcept {
+        dld->vkCmdSetPrimitiveTopologyEXT(handle, primitive_topology);
+    }
+
+    void SetStencilOpEXT(VkStencilFaceFlags face_mask, VkStencilOp fail_op, VkStencilOp pass_op,
+                         VkStencilOp depth_fail_op, VkCompareOp compare_op) const noexcept {
+        dld->vkCmdSetStencilOpEXT(handle, face_mask, fail_op, pass_op, depth_fail_op, compare_op);
+    }
+
+    void SetStencilTestEnableEXT(bool enable) const noexcept {
+        dld->vkCmdSetStencilTestEnableEXT(handle, enable ? VK_TRUE : VK_FALSE);
     }
 
     void BindTransformFeedbackBuffersEXT(u32 first, u32 count, const VkBuffer* buffers,

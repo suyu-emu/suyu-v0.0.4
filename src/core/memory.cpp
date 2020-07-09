@@ -548,9 +548,9 @@ struct Memory::Impl {
                         // longer exist, and we should just leave the pagetable entry blank.
                         page_type = Common::PageType::Unmapped;
                     } else {
-                        page_type = Common::PageType::Memory;
                         current_page_table->pointers[vaddr >> PAGE_BITS] =
                             pointer - (vaddr & ~PAGE_MASK);
+                        page_type = Common::PageType::Memory;
                     }
                     break;
                 }
@@ -591,9 +591,12 @@ struct Memory::Impl {
                    base + page_table.pointers.size());
 
         if (!target) {
+            ASSERT_MSG(type != Common::PageType::Memory,
+                       "Mapping memory page without a pointer @ {:016x}", base * PAGE_SIZE);
+
             while (base != end) {
-                page_table.pointers[base] = nullptr;
                 page_table.attributes[base] = type;
+                page_table.pointers[base] = nullptr;
                 page_table.backing_addr[base] = 0;
 
                 base += 1;

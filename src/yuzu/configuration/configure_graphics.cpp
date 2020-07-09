@@ -28,9 +28,9 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->api, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this,
             [this] { UpdateDeviceComboBox(); });
-    connect(ui->device, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
+    connect(ui->device, qOverload<int>(&QComboBox::activated), this,
             [this](int device) { UpdateDeviceSelection(device); });
 
     connect(ui->bg_button, &QPushButton::clicked, this, [this] {
@@ -112,7 +112,7 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
         enabled = false;
         break;
     case Settings::RendererBackend::Vulkan:
-        for (const auto device : vulkan_devices) {
+        for (const auto& device : vulkan_devices) {
             ui->device->addItem(device);
         }
         ui->device->setCurrentIndex(vulkan_device);

@@ -313,6 +313,16 @@ bool VKDevice::Create() {
         LOG_INFO(Render_Vulkan, "Device doesn't support custom border colors");
     }
 
+    VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state;
+    if (ext_extended_dynamic_state) {
+        dynamic_state.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+        dynamic_state.pNext = nullptr;
+        dynamic_state.extendedDynamicState = VK_TRUE;
+        SetNext(next, dynamic_state);
+    } else {
+        LOG_INFO(Render_Vulkan, "Device doesn't support extended dynamic state");
+    }
+
     if (!ext_depth_range_unrestricted) {
         LOG_INFO(Render_Vulkan, "Device doesn't support depth range unrestricted");
     }
@@ -541,6 +551,7 @@ std::vector<const char*> VKDevice::LoadExtensions() {
     bool has_ext_subgroup_size_control{};
     bool has_ext_transform_feedback{};
     bool has_ext_custom_border_color{};
+    bool has_ext_extended_dynamic_state{};
     for (const auto& extension : physical.EnumerateDeviceExtensionProperties()) {
         Test(extension, nv_viewport_swizzle, VK_NV_VIEWPORT_SWIZZLE_EXTENSION_NAME, true);
         Test(extension, khr_uniform_buffer_standard_layout,
@@ -558,6 +569,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
              false);
         Test(extension, has_ext_custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME,
              false);
+        Test(extension, has_ext_extended_dynamic_state,
+             VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, false);
         if (Settings::values.renderer_debug) {
             Test(extension, nv_device_diagnostics_config,
                  VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME, true);
@@ -640,6 +653,19 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         if (border_features.customBorderColors && border_features.customBorderColorWithoutFormat) {
             extensions.push_back(VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME);
             ext_custom_border_color = true;
+        }
+    }
+
+    if (has_ext_extended_dynamic_state) {
+        VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state;
+        dynamic_state.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
+        dynamic_state.pNext = nullptr;
+        features.pNext = &dynamic_state;
+        physical.GetFeatures2KHR(features);
+
+        if (dynamic_state.extendedDynamicState) {
+            extensions.push_back(VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME);
+            ext_extended_dynamic_state = true;
         }
     }
 

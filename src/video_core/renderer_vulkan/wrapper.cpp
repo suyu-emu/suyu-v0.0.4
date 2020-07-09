@@ -88,6 +88,16 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetStencilWriteMask);
     X(vkCmdSetViewport);
     X(vkCmdWaitEvents);
+    X(vkCmdBindVertexBuffers2EXT);
+    X(vkCmdSetCullModeEXT);
+    X(vkCmdSetDepthBoundsTestEnableEXT);
+    X(vkCmdSetDepthCompareOpEXT);
+    X(vkCmdSetDepthTestEnableEXT);
+    X(vkCmdSetDepthWriteEnableEXT);
+    X(vkCmdSetFrontFaceEXT);
+    X(vkCmdSetPrimitiveTopologyEXT);
+    X(vkCmdSetStencilOpEXT);
+    X(vkCmdSetStencilTestEnableEXT);
     X(vkCreateBuffer);
     X(vkCreateBufferView);
     X(vkCreateCommandPool);

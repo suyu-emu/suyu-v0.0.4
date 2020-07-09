@@ -185,8 +185,7 @@ private:
 
     bool WalkAttachmentOverlaps(const CachedSurfaceView& attachment);
 
-    void SetupVertexArrays(FixedPipelineState::VertexInput& vertex_input,
-                           BufferBindings& buffer_bindings);
+    void SetupVertexArrays(BufferBindings& buffer_bindings);
 
     void SetupIndexBuffer(BufferBindings& buffer_bindings, DrawParameters& params, bool is_indexed);
 
@@ -245,6 +244,16 @@ private:
     void UpdateBlendConstants(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthBounds(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilFaces(Tegra::Engines::Maxwell3D::Regs& regs);
+
+    void UpdateCullMode(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthBoundsTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthWriteEnable(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateDepthCompareOp(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdatePrimitiveTopology(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs);
+    void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
 
     std::size_t CalculateGraphicsStreamBufferSize(bool is_indexed) const;
 

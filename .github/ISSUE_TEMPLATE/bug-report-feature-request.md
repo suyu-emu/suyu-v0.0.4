@@ -1,4 +1,13 @@
-<!--
+---
+name: Bug Report / Feature Request
+about: Tech support does not belong here. You should only file an issue here if you think you have experienced an actual bug with yuzu or you are requesting a feature you believe would make yuzu better.
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+<!---
 Please keep in mind yuzu is EXPERIMENTAL SOFTWARE.
 
 Please read the FAQ:
