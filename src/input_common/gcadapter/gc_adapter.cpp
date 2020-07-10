@@ -243,6 +243,9 @@ void Adapter::Setup() {
         }
         libusb_free_device_list(devices, 1);
     }
+    // Break out of the ScanThreadFunc() loop that is constantly looking for the device
+    // Assumes user has GC adapter plugged in before launch to use the adapter
+    detect_thread_running = false;
 }
 
 bool Adapter::CheckDeviceAccess(libusb_device* device) {
