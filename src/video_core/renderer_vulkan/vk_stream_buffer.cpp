@@ -121,7 +121,7 @@ void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
 
     // Substract from the preferred heap size some bytes to avoid getting out of memory.
     const VkDeviceSize heap_size = memory_properties.memoryHeaps[preferred_heap].size;
-    const VkDeviceSize allocable_size = heap_size - 4 * 1024 * 1024;
+    const VkDeviceSize allocable_size = heap_size - 9 * 1024 * 1024;
 
     VkBufferCreateInfo buffer_ci;
     buffer_ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
