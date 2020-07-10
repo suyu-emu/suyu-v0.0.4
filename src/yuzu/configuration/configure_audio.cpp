@@ -11,6 +11,7 @@
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_audio.h"
+#include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_audio.h"
 
 ConfigureAudio::ConfigureAudio(QWidget* parent)
@@ -23,6 +24,11 @@ ConfigureAudio::ConfigureAudio(QWidget* parent)
             &ConfigureAudio::SetVolumeIndicatorText);
     connect(ui->output_sink_combo_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ConfigureAudio::UpdateAudioDevices);
+
+    ui->volume_label->setVisible(Settings::configuring_global);
+    ui->volume_combo_box->setVisible(!Settings::configuring_global);
+
+    SetupPerGameUI();
 
     SetConfiguration();
 
@@ -41,8 +47,22 @@ void ConfigureAudio::SetConfiguration() {
 
     SetAudioDeviceFromDeviceID();
 
-    ui->toggle_audio_stretching->setChecked(Settings::values.enable_audio_stretching);
-    ui->volume_slider->setValue(Settings::values.volume * ui->volume_slider->maximum());
+    ui->volume_slider->setValue(Settings::values.volume.GetValue() * ui->volume_slider->maximum());
+
+    if (Settings::configuring_global) {
+        ui->toggle_audio_stretching->setChecked(
+            Settings::values.enable_audio_stretching.GetValue());
+    } else {
+        ConfigurationShared::SetPerGameSetting(ui->toggle_audio_stretching,
+                                               &Settings::values.enable_audio_stretching);
+        if (Settings::values.volume.UsingGlobal()) {
+            ui->volume_combo_box->setCurrentIndex(0);
+            ui->volume_slider->setEnabled(false);
+        } else {
+            ui->volume_combo_box->setCurrentIndex(1);
+            ui->volume_slider->setEnabled(true);
+        }
+    }
     SetVolumeIndicatorText(ui->volume_slider->sliderPosition());
 }
 
@@ -80,15 +100,36 @@ void ConfigureAudio::SetVolumeIndicatorText(int percentage) {
 }
 
 void ConfigureAudio::ApplyConfiguration() {
-    Settings::values.sink_id =
-        ui->output_sink_combo_box->itemText(ui->output_sink_combo_box->currentIndex())
-            .toStdString();
-    Settings::values.enable_audio_stretching = ui->toggle_audio_stretching->isChecked();
-    Settings::values.audio_device_id =
-        ui->audio_device_combo_box->itemText(ui->audio_device_combo_box->currentIndex())
-            .toStdString();
-    Settings::values.volume =
-        static_cast<float>(ui->volume_slider->sliderPosition()) / ui->volume_slider->maximum();
+    if (Settings::configuring_global) {
+        Settings::values.sink_id =
+            ui->output_sink_combo_box->itemText(ui->output_sink_combo_box->currentIndex())
+                .toStdString();
+        Settings::values.audio_device_id =
+            ui->audio_device_combo_box->itemText(ui->audio_device_combo_box->currentIndex())
+                .toStdString();
+
+        // Guard if during game and set to game-specific value
+        if (Settings::values.enable_audio_stretching.UsingGlobal()) {
+            Settings::values.enable_audio_stretching.SetValue(
+                ui->toggle_audio_stretching->isChecked());
+        }
+        if (Settings::values.volume.UsingGlobal()) {
+            Settings::values.volume.SetValue(
+                static_cast<float>(ui->volume_slider->sliderPosition()) /
+                ui->volume_slider->maximum());
+        }
+    } else {
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.enable_audio_stretching,
+                                                 ui->toggle_audio_stretching);
+        if (ui->volume_combo_box->currentIndex() == 0) {
+            Settings::values.volume.SetGlobal(true);
+        } else {
+            Settings::values.volume.SetGlobal(false);
+            Settings::values.volume.SetValue(
+                static_cast<float>(ui->volume_slider->sliderPosition()) /
+                ui->volume_slider->maximum());
+        }
+    }
 }
 
 void ConfigureAudio::changeEvent(QEvent* event) {
@@ -121,4 +162,23 @@ void ConfigureAudio::InitializeAudioOutputSinkComboBox() {
 void ConfigureAudio::RetranslateUI() {
     ui->retranslateUi(this);
     SetVolumeIndicatorText(ui->volume_slider->sliderPosition());
+}
+
+void ConfigureAudio::SetupPerGameUI() {
+    if (Settings::configuring_global) {
+        ui->volume_slider->setEnabled(Settings::values.volume.UsingGlobal());
+        ui->toggle_audio_stretching->setEnabled(
+            Settings::values.enable_audio_stretching.UsingGlobal());
+
+        return;
+    }
+
+    ui->toggle_audio_stretching->setTristate(true);
+    connect(ui->volume_combo_box, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+            this, [this](int index) { ui->volume_slider->setEnabled(index == 1); });
+
+    ui->output_sink_combo_box->setVisible(false);
+    ui->output_sink_label->setVisible(false);
+    ui->audio_device_combo_box->setVisible(false);
+    ui->audio_device_label->setVisible(false);
 }

@@ -221,6 +221,7 @@ private:
     void UpdateWindowTitle(const std::string& title_name = {},
                            const std::string& title_version = {});
     void UpdateStatusBar();
+    void UpdateStatusButtons();
     void HideMouseCursor();
     void ShowMouseCursor();
     void OpenURL(const QUrl& url);

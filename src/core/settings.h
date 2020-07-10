@@ -382,20 +382,85 @@ enum class GPUAccuracy : u32 {
     Extreme = 2,
 };
 
+extern bool configuring_global;
+
+template <typename Type>
+class Setting final {
+public:
+    Setting() = default;
+    explicit Setting(Type val) : global{val} {}
+    ~Setting() = default;
+    void SetGlobal(bool to_global) {
+        use_global = to_global;
+    }
+    bool UsingGlobal() const {
+        return use_global;
+    }
+    Type GetValue(bool need_global = false) const {
+        if (use_global || need_global) {
+            return global;
+        }
+        return local;
+    }
+    void SetValue(const Type& value) {
+        if (use_global) {
+            global = value;
+        } else {
+            local = value;
+        }
+    }
+
+private:
+    bool use_global = true;
+    Type global{};
+    Type local{};
+};
+
 struct Values {
+    // Audio
+    std::string audio_device_id;
+    std::string sink_id;
+    bool audio_muted;
+    Setting<bool> enable_audio_stretching;
+    Setting<float> volume;
+
+    // Core
+    Setting<bool> use_multi_core;
+
+    // Renderer
+    Setting<RendererBackend> renderer_backend;
+    bool renderer_debug;
+    Setting<int> vulkan_device;
+
+    Setting<u16> resolution_factor = Setting(static_cast<u16>(1));
+    Setting<int> aspect_ratio;
+    Setting<int> max_anisotropy;
+    Setting<bool> use_frame_limit;
+    Setting<u16> frame_limit;
+    Setting<bool> use_disk_shader_cache;
+    Setting<GPUAccuracy> gpu_accuracy;
+    Setting<bool> use_asynchronous_gpu_emulation;
+    Setting<bool> use_vsync;
+    Setting<bool> use_assembly_shaders;
+    Setting<bool> force_30fps_mode;
+    Setting<bool> use_fast_gpu_time;
+
+    Setting<float> bg_red;
+    Setting<float> bg_green;
+    Setting<float> bg_blue;
+
     // System
-    bool use_docked_mode;
-    std::optional<u32> rng_seed;
+    Setting<std::optional<u32>> rng_seed;
     // Measured in seconds since epoch
-    std::optional<std::chrono::seconds> custom_rtc;
+    Setting<std::optional<std::chrono::seconds>> custom_rtc;
     // Set on game boot, reset on stop. Seconds difference between current time and `custom_rtc`
     std::chrono::seconds custom_rtc_differential;
 
     s32 current_user;
-    s32 language_index;
-    s32 region_index;
-    s32 time_zone_index;
-    s32 sound_index;
+    Setting<s32> language_index;
+    Setting<s32> region_index;
+    Setting<s32> time_zone_index;
+    Setting<s32> sound_index;
 
     // Controls
     std::array<PlayerInput, 10> players;
@@ -419,8 +484,7 @@ struct Values {
     u16 udp_input_port;
     u8 udp_pad_index;
 
-    // Core
-    bool use_multi_core;
+    bool use_docked_mode;
 
     // Data Storage
     bool use_virtual_sd;
@@ -431,39 +495,6 @@ struct Values {
     NANDSystemSize nand_system_size;
     NANDUserSize nand_user_size;
     SDMCSize sdmc_size;
-
-    // Renderer
-    RendererBackend renderer_backend;
-    bool renderer_debug;
-    int vulkan_device;
-
-    u16 resolution_factor{1};
-    int aspect_ratio;
-    int max_anisotropy;
-    bool use_frame_limit;
-    u16 frame_limit;
-    bool use_disk_shader_cache;
-    GPUAccuracy gpu_accuracy;
-    bool use_asynchronous_gpu_emulation;
-    bool use_vsync;
-    bool use_assembly_shaders;
-    bool force_30fps_mode;
-    bool use_fast_gpu_time;
-
-    float bg_red;
-    float bg_green;
-    float bg_blue;
-
-    std::string log_filter;
-
-    bool use_dev_keys;
-
-    // Audio
-    bool audio_muted;
-    std::string sink_id;
-    bool enable_audio_stretching;
-    std::string audio_device_id;
-    float volume;
 
     // Debugging
     bool record_frame_times;
@@ -477,7 +508,11 @@ struct Values {
     bool disable_cpu_opt;
     bool disable_macro_jit;
 
-    // BCAT
+    // Misceallaneous
+    std::string log_filter;
+    bool use_dev_keys;
+
+    // Services
     std::string bcat_backend;
     bool bcat_boxcat_local;
 
@@ -500,5 +535,8 @@ std::string GetTimeZoneString();
 
 void Apply();
 void LogSettings();
+
+// Restore the global state of all applicable settings in the Values struct
+void RestoreGlobalState();
 
 } // namespace Settings

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>188</width>
-    <height>246</height>
+    <width>367</width>
+    <height>368</height>
    </rect>
   </property>
   <layout class="QVBoxLayout">
@@ -18,9 +18,9 @@
      </property>
      <layout class="QVBoxLayout">
       <item>
-       <layout class="QHBoxLayout">
+       <layout class="QHBoxLayout" name="_3">
         <item>
-         <widget class="QLabel" name="label_1">
+         <widget class="QLabel" name="output_sink_label">
           <property name="text">
            <string>Output Engine:</string>
           </property>
@@ -31,20 +31,20 @@
         </item>
        </layout>
       </item>
-       <item>
-         <widget class="QCheckBox" name="toggle_audio_stretching">
-           <property name="toolTip">
-             <string>This post-processing effect adjusts audio speed to match emulation speed and helps prevent audio stutter. This however increases audio latency.</string>
-           </property>
-           <property name="text">
-             <string>Enable audio stretching</string>
-           </property>
-         </widget>
-       </item>
       <item>
-       <layout class="QHBoxLayout">
+       <widget class="QCheckBox" name="toggle_audio_stretching">
+        <property name="toolTip">
+         <string>This post-processing effect adjusts audio speed to match emulation speed and helps prevent audio stutter. This however increases audio latency.</string>
+        </property>
+        <property name="text">
+         <string>Enable audio stretching</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="_2">
         <item>
-         <widget class="QLabel" name="label_2">
+         <widget class="QLabel" name="audio_device_label">
           <property name="text">
            <string>Audio Device:</string>
           </property>
@@ -61,7 +61,21 @@
          <number>0</number>
         </property>
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QComboBox" name="volume_combo_box">
+          <item>
+           <property name="text">
+            <string>Use global volume</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Set volume:</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="volume_label">
           <property name="text">
            <string>Volume:</string>
           </property>
@@ -74,7 +88,7 @@
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>40</width>
+            <width>30</width>
             <height>20</height>
            </size>
           </property>

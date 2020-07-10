@@ -26,5 +26,7 @@ private:
 
     void SetConfiguration();
 
+    void SetupPerGameUI();
+
     std::unique_ptr<Ui::ConfigureGraphicsAdvanced> ui;
 };

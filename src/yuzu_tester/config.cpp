@@ -81,6 +81,9 @@ void Config::ReadValues() {
     Settings::values.touchscreen.diameter_x = 15;
     Settings::values.touchscreen.diameter_y = 15;
 
+    Settings::values.use_docked_mode =
+        sdl2_config->GetBoolean("Controls", "use_docked_mode", false);
+
     // Data Storage
     Settings::values.use_virtual_sd =
         sdl2_config->GetBoolean("Data Storage", "use_virtual_sd", true);
@@ -92,57 +95,59 @@ void Config::ReadValues() {
                                            FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
 
     // System
-    Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);
-
     Settings::values.current_user = std::clamp<int>(
         sdl2_config->GetInteger("System", "current_user", 0), 0, Service::Account::MAX_USERS - 1);
 
     const auto rng_seed_enabled = sdl2_config->GetBoolean("System", "rng_seed_enabled", false);
     if (rng_seed_enabled) {
-        Settings::values.rng_seed = sdl2_config->GetInteger("System", "rng_seed", 0);
+        Settings::values.rng_seed.SetValue(sdl2_config->GetInteger("System", "rng_seed", 0));
     } else {
-        Settings::values.rng_seed = std::nullopt;
+        Settings::values.rng_seed.SetValue(std::nullopt);
     }
 
     const auto custom_rtc_enabled = sdl2_config->GetBoolean("System", "custom_rtc_enabled", false);
     if (custom_rtc_enabled) {
-        Settings::values.custom_rtc =
-            std::chrono::seconds(sdl2_config->GetInteger("System", "custom_rtc", 0));
+        Settings::values.custom_rtc.SetValue(
+            std::chrono::seconds(sdl2_config->GetInteger("System", "custom_rtc", 0)));
     } else {
-        Settings::values.custom_rtc = std::nullopt;
+        Settings::values.custom_rtc.SetValue(std::nullopt);
     }
 
     // Core
-    Settings::values.use_multi_core = sdl2_config->GetBoolean("Core", "use_multi_core", false);
+    Settings::values.use_multi_core.SetValue(
+        sdl2_config->GetBoolean("Core", "use_multi_core", false));
 
     // Renderer
-    Settings::values.aspect_ratio =
-        static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0));
-    Settings::values.max_anisotropy =
-        static_cast<int>(sdl2_config->GetInteger("Renderer", "max_anisotropy", 0));
-    Settings::values.use_frame_limit = false;
-    Settings::values.frame_limit = 100;
-    Settings::values.use_disk_shader_cache =
-        sdl2_config->GetBoolean("Renderer", "use_disk_shader_cache", false);
+    Settings::values.aspect_ratio.SetValue(
+        static_cast<int>(sdl2_config->GetInteger("Renderer", "aspect_ratio", 0)));
+    Settings::values.max_anisotropy.SetValue(
+        static_cast<int>(sdl2_config->GetInteger("Renderer", "max_anisotropy", 0)));
+    Settings::values.use_frame_limit.SetValue(false);
+    Settings::values.frame_limit.SetValue(100);
+    Settings::values.use_disk_shader_cache.SetValue(
+        sdl2_config->GetBoolean("Renderer", "use_disk_shader_cache", false));
     const int gpu_accuracy_level = sdl2_config->GetInteger("Renderer", "gpu_accuracy", 0);
-    Settings::values.gpu_accuracy = static_cast<Settings::GPUAccuracy>(gpu_accuracy_level);
-    Settings::values.use_asynchronous_gpu_emulation =
-        sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false);
-    Settings::values.use_fast_gpu_time =
-        sdl2_config->GetBoolean("Renderer", "use_fast_gpu_time", true);
+    Settings::values.gpu_accuracy.SetValue(static_cast<Settings::GPUAccuracy>(gpu_accuracy_level));
+    Settings::values.use_asynchronous_gpu_emulation.SetValue(
+        sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false));
+    Settings::values.use_fast_gpu_time.SetValue(
+        sdl2_config->GetBoolean("Renderer", "use_fast_gpu_time", true));
 
-    Settings::values.bg_red = static_cast<float>(sdl2_config->GetReal("Renderer", "bg_red", 0.0));
-    Settings::values.bg_green =
-        static_cast<float>(sdl2_config->GetReal("Renderer", "bg_green", 0.0));
-    Settings::values.bg_blue = static_cast<float>(sdl2_config->GetReal("Renderer", "bg_blue", 0.0));
+    Settings::values.bg_red.SetValue(
+        static_cast<float>(sdl2_config->GetReal("Renderer", "bg_red", 0.0)));
+    Settings::values.bg_green.SetValue(
+        static_cast<float>(sdl2_config->GetReal("Renderer", "bg_green", 0.0)));
+    Settings::values.bg_blue.SetValue(
+        static_cast<float>(sdl2_config->GetReal("Renderer", "bg_blue", 0.0)));
 
     // Audio
     Settings::values.sink_id = "null";
-    Settings::values.enable_audio_stretching = false;
+    Settings::values.enable_audio_stretching.SetValue(false);
     Settings::values.audio_device_id = "auto";
-    Settings::values.volume = 0;
+    Settings::values.volume.SetValue(0);
 
-    Settings::values.language_index = sdl2_config->GetInteger("System", "language_index", 1);
+    Settings::values.language_index.SetValue(
+        sdl2_config->GetInteger("System", "language_index", 1));
 
     // Miscellaneous
     Settings::values.log_filter = sdl2_config->Get("Miscellaneous", "log_filter", "*:Trace");

@@ -132,7 +132,7 @@ public:
         }
 
         query->BindCounter(Stream(type).Current(), timestamp);
-        if (Settings::values.use_asynchronous_gpu_emulation) {
+        if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
             AsyncFlushQuery(cpu_addr);
         }
     }

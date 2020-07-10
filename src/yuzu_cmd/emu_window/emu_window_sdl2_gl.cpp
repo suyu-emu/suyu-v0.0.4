@@ -165,7 +165,7 @@ std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateShared
 
 void EmuWindow_SDL2_GL::Present() {
     SDL_GL_MakeCurrent(render_window, window_context);
-    SDL_GL_SetSwapInterval(Settings::values.use_vsync ? 1 : 0);
+    SDL_GL_SetSwapInterval(Settings::values.use_vsync.GetValue() ? 1 : 0);
     while (IsOpen()) {
         system.Renderer().TryPresent(100);
         SDL_GL_SwapWindow(render_window);

@@ -229,15 +229,15 @@ Device::Device()
     // uniform buffers as "push constants"
     has_fast_buffer_sub_data = is_nvidia && !disable_fast_buffer_sub_data;
 
-    use_assembly_shaders = Settings::values.use_assembly_shaders && GLAD_GL_NV_gpu_program5 &&
-                           GLAD_GL_NV_compute_program5 && GLAD_GL_NV_transform_feedback &&
-                           GLAD_GL_NV_transform_feedback2;
+    use_assembly_shaders = Settings::values.use_assembly_shaders.GetValue() &&
+                           GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
+                           GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
 
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
     LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);
 
-    if (Settings::values.use_assembly_shaders && !use_assembly_shaders) {
+    if (Settings::values.use_assembly_shaders.GetValue() && !use_assembly_shaders) {
         LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");
     }
 }

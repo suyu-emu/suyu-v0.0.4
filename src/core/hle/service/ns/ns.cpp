@@ -366,7 +366,8 @@ ResultVal<u8> IApplicationManagerInterface::GetApplicationDesiredLanguage(
     LOG_DEBUG(Service_NS, "called with supported_languages={:08X}", supported_languages);
 
     // Get language code from settings
-    const auto language_code = Set::GetLanguageCodeFromIndex(Settings::values.language_index);
+    const auto language_code =
+        Set::GetLanguageCodeFromIndex(Settings::values.language_index.GetValue());
 
     // Convert to application language, get priority list
     const auto application_language = ConvertToApplicationLanguage(language_code);

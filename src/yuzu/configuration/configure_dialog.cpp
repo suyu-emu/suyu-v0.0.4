@@ -14,6 +14,8 @@
 
 ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
+    Settings::configuring_global = true;
+
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
