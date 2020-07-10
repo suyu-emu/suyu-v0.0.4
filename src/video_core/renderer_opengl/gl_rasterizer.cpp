@@ -166,7 +166,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
 
     if (device.UseAsynchronousShaders()) {
         // Max worker threads we should allow
-        constexpr auto MAX_THREADS = 8u;
+        constexpr auto MAX_THREADS = 2u;
         // Amount of threads we should reserve for other parts of yuzu
         constexpr auto RESERVED_THREADS = 6u;
         // Get the amount of threads we can use(this can return zero)
