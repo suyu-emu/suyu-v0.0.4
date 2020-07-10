@@ -152,7 +152,7 @@ endif()
 create_target_directory_groups(yuzu)
 
 target_link_libraries(yuzu PRIVATE common core input_common video_core)
-target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::OpenGL Qt5::Widgets)
+target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (ENABLE_VULKAN AND NOT WIN32)

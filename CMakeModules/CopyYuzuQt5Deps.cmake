@@ -15,7 +15,6 @@ function(copy_yuzu_Qt5_deps target_dir)
         icuuc*.dll
         Qt5Core$<$<CONFIG:Debug>:d>.*
         Qt5Gui$<$<CONFIG:Debug>:d>.*
-        Qt5OpenGL$<$<CONFIG:Debug>:d>.*
         Qt5Widgets$<$<CONFIG:Debug>:d>.*
     )
 
