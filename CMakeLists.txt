@@ -330,6 +330,7 @@ elseif(SDL2_FOUND)
 endif()
 
 # Ensure libusb is properly configured (based on dolphin libusb include)
+INCLUDE(FindPkgConfig)
 find_package(LibUSB)
 if (NOT LIBUSB_FOUND)
     add_subdirectory(externals/libusb)
