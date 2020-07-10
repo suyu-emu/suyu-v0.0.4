@@ -166,6 +166,10 @@ use_vsync =
 # 0 (default): Off, 1: On
 use_assembly_shaders =
 
+# Whether to allow asynchronous shader building.
+# 0 (default): Off, 1: On
+use_asynchronous_shaders =
+
 # Turns on the frame limiter, which will limit frames output to the target game speed
 # 0: Off, 1: On (default)
 use_frame_limit =
