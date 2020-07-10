@@ -20,6 +20,7 @@
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
+#include "video_core/shader_notify.h"
 #include "video_core/video_core.h"
 
 namespace Tegra {
@@ -36,6 +37,7 @@ GPU::GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& render
     kepler_compute = std::make_unique<Engines::KeplerCompute>(system, rasterizer, *memory_manager);
     maxwell_dma = std::make_unique<Engines::MaxwellDMA>(system, *memory_manager);
     kepler_memory = std::make_unique<Engines::KeplerMemory>(system, *memory_manager);
+    shader_notify = std::make_unique<VideoCore::ShaderNotify>();
 }
 
 GPU::~GPU() = default;

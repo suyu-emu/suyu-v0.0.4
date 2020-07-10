@@ -104,6 +104,10 @@ public:
         return use_assembly_shaders;
     }
 
+    bool UseAsynchronousShaders() const {
+        return use_asynchronous_shaders;
+    }
+
 private:
     static bool TestVariableAoffi();
     static bool TestPreciseBug();
@@ -127,6 +131,7 @@ private:
     bool has_fast_buffer_sub_data{};
     bool has_nv_viewport_array2{};
     bool use_assembly_shaders{};
+    bool use_asynchronous_shaders{};
 };
 
 } // namespace OpenGL

@@ -33,6 +33,7 @@ class System;
 
 namespace VideoCore {
 class RendererBase;
+class ShaderNotify;
 } // namespace VideoCore
 
 namespace Tegra {
@@ -207,6 +208,14 @@ public:
         return *renderer;
     }
 
+    VideoCore::ShaderNotify& ShaderNotify() {
+        return *shader_notify;
+    }
+
+    const VideoCore::ShaderNotify& ShaderNotify() const {
+        return *shader_notify;
+    }
+
     // Waits for the GPU to finish working
     virtual void WaitIdle() const = 0;
 
@@ -347,6 +356,8 @@ private:
     std::unique_ptr<Engines::MaxwellDMA> maxwell_dma;
     /// Inline memory engine
     std::unique_ptr<Engines::KeplerMemory> kepler_memory;
+    /// Shader build notifier
+    std::unique_ptr<VideoCore::ShaderNotify> shader_notify;
 
     std::array<std::atomic<u32>, Service::Nvidia::MaxSyncPoints> syncpoints{};
 
