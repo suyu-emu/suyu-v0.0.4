@@ -25,6 +25,8 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
+    void UpdateGroups(int index);
+
     void SetConfiguration();
 
     std::unique_ptr<Ui::ConfigureCpu> ui;

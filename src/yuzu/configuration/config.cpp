@@ -635,6 +635,9 @@ void Config::ReadCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     if (global) {
+        Settings::values.cpu_accuracy = static_cast<Settings::CPUAccuracy>(
+            ReadSetting(QStringLiteral("cpu_accuracy"), 0).toInt());
+
         Settings::values.cpuopt_page_tables =
             ReadSetting(QStringLiteral("cpuopt_page_tables"), true).toBool();
         Settings::values.cpuopt_block_linking =
@@ -1125,6 +1128,9 @@ void Config::SaveCpuValues() {
     qt_config->beginGroup(QStringLiteral("Cpu"));
 
     if (global) {
+        WriteSetting(QStringLiteral("cpu_accuracy"),
+                     static_cast<int>(Settings::values.cpu_accuracy), 0);
+
         WriteSetting(QStringLiteral("cpuopt_page_tables"), Settings::values.cpuopt_page_tables,
                      true);
         WriteSetting(QStringLiteral("cpuopt_block_linking"), Settings::values.cpuopt_block_linking,

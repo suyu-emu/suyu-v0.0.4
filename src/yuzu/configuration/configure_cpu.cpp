@@ -15,12 +15,19 @@ ConfigureCpu::ConfigureCpu(QWidget* parent) : QWidget(parent), ui(new Ui::Config
     ui->setupUi(this);
 
     SetConfiguration();
+
+    connect(ui->accuracy, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &ConfigureCpu::UpdateGroups);
 }
 
 ConfigureCpu::~ConfigureCpu() = default;
 
 void ConfigureCpu::SetConfiguration() {
     const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
+
+    ui->accuracy->setEnabled(runtime_lock);
+    ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy));
+    UpdateGroups(static_cast<int>(Settings::values.cpu_accuracy));
 
     ui->cpuopt_page_tables->setEnabled(runtime_lock);
     ui->cpuopt_page_tables->setChecked(Settings::values.cpuopt_page_tables);
@@ -40,7 +47,22 @@ void ConfigureCpu::SetConfiguration() {
     ui->cpuopt_reduce_misalign_checks->setChecked(Settings::values.cpuopt_reduce_misalign_checks);
 }
 
+void ConfigureCpu::UpdateGroups(int index) {
+    switch (index) {
+    case 0:
+    default:
+        ui->group_safe->setVisible(false);
+        break;
+    case 1:
+        ui->group_safe->setVisible(true);
+        break;
+    }
+}
+
 void ConfigureCpu::ApplyConfiguration() {
+    Settings::values.cpu_accuracy =
+        static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex());
+
     Settings::values.cpuopt_page_tables = ui->cpuopt_page_tables->isChecked();
     Settings::values.cpuopt_block_linking = ui->cpuopt_block_linking->isChecked();
     Settings::values.cpuopt_return_stack_buffer = ui->cpuopt_return_stack_buffer->isChecked();

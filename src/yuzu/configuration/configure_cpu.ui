@@ -19,6 +19,54 @@
      <item>
       <widget class="QGroupBox">
        <property name="title">
+        <string>General</string>
+       </property>
+       <layout class="QVBoxLayout">
+        <item>
+         <layout class="QHBoxLayout">
+          <item>
+           <widget class="QLabel">
+            <property name="text">
+             <string>Accuracy:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="accuracy">
+            <item>
+             <property name="text">
+              <string>Accurate</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Debugging Mode (Debugging ONLY)</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QLabel">
+          <property name="wordWrap">
+            <bool>1</bool>
+          </property>
+          <property name="text">
+           <string>We recommend setting accuracy to "Accurate".</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout">
+     <item>
+      <widget class="QGroupBox" name="group_safe">
+       <property name="title">
         <string>Safe CPU Optimizations</string>
        </property>
        <layout class="QVBoxLayout">

@@ -382,6 +382,11 @@ enum class GPUAccuracy : u32 {
     Extreme = 2,
 };
 
+enum class CPUAccuracy {
+    Accurate = 0,
+    DebugMode = 1,
+};
+
 extern bool configuring_global;
 
 template <typename Type>
@@ -428,6 +433,8 @@ struct Values {
     Setting<bool> use_multi_core;
 
     // Cpu
+    CPUAccuracy cpu_accuracy;
+
     bool cpuopt_page_tables;
     bool cpuopt_block_linking;
     bool cpuopt_return_stack_buffer;
