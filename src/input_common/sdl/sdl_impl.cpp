@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cmath>
 #include <functional>
 #include <mutex>
@@ -78,6 +79,33 @@ public:
         return state.axes.at(axis) / (32767.0f * range);
     }
 
+    bool RumblePlay(f32 amp_low, f32 amp_high, int time) {
+        const u16 raw_amp_low = static_cast<u16>(amp_low * 0xFFFF);
+        const u16 raw_amp_high = static_cast<u16>(amp_high * 0xFFFF);
+        // Lower drastically the number of state changes
+        if (raw_amp_low >> 11 == last_state_rumble_low >> 11 &&
+            raw_amp_high >> 11 == last_state_rumble_high >> 11) {
+            if (raw_amp_low + raw_amp_high != 0 ||
+                last_state_rumble_low + last_state_rumble_high == 0) {
+                return false;
+            }
+        }
+        // Don't change state if last vibration was < 20ms
+        const auto now = std::chrono::system_clock::now();
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_vibration) <
+            std::chrono::milliseconds(20)) {
+            return raw_amp_low + raw_amp_high == 0;
+        }
+
+        last_vibration = now;
+        last_state_rumble_low = raw_amp_low;
+        last_state_rumble_high = raw_amp_high;
+        if (sdl_joystick) {
+            SDL_JoystickRumble(sdl_joystick.get(), raw_amp_low, raw_amp_high, time);
+        }
+        return false;
+    }
+
     std::tuple<float, float> GetAnalog(int axis_x, int axis_y, float range) const {
         float x = GetAxis(axis_x, range);
         float y = GetAxis(axis_y, range);
@@ -139,6 +167,9 @@ private:
     } state;
     std::string guid;
     int port;
+    u16 last_state_rumble_high;
+    u16 last_state_rumble_low;
+    std::chrono::time_point<std::chrono::system_clock> last_vibration;
     std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)> sdl_joystick;
     std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)> sdl_controller;
     mutable std::mutex mutex;
@@ -207,7 +238,7 @@ void SDLState::InitJoystick(int joystick_index) {
         sdl_gamecontroller = SDL_GameControllerOpen(joystick_index);
     }
     if (!sdl_joystick) {
-        LOG_ERROR(Input, "failed to open joystick {}", joystick_index);
+        LOG_ERROR(Input, "Failed to open joystick {}", joystick_index);
         return;
     }
     const std::string guid = GetGUID(sdl_joystick);
@@ -301,6 +332,12 @@ public:
 
     bool GetStatus() const override {
         return joystick->GetButton(button);
+    }
+
+    bool SetRumblePlay(f32 amp_high, f32 amp_low, f32 freq_high, f32 freq_low) const override {
+        const f32 new_amp_low = pow(amp_low, 0.5f) * (3.0f - 2.0f * pow(amp_low, 0.15f));
+        const f32 new_amp_high = pow(amp_high, 0.5f) * (3.0f - 2.0f * pow(amp_high, 0.15f));
+        return joystick->RumblePlay(new_amp_low, new_amp_high, 250);
     }
 
 private:
