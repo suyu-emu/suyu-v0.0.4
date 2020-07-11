@@ -437,8 +437,6 @@ void Config::ReadValues() {
     Settings::values.reporting_services =
         sdl2_config->GetBoolean("Debugging", "reporting_services", false);
     Settings::values.quest_flag = sdl2_config->GetBoolean("Debugging", "quest_flag", false);
-    Settings::values.disable_cpu_opt =
-        sdl2_config->GetBoolean("Debugging", "disable_cpu_opt", false);
     Settings::values.disable_macro_jit =
         sdl2_config->GetBoolean("Debugging", "disable_macro_jit", false);
 

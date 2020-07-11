@@ -49,6 +49,7 @@ private:
     void ReadDisabledAddOnValues();
     void ReadMiscellaneousValues();
     void ReadPathValues();
+    void ReadCpuValues();
     void ReadRendererValues();
     void ReadShortcutValues();
     void ReadSystemValues();
@@ -73,6 +74,7 @@ private:
     void SaveDisabledAddOnValues();
     void SaveMiscellaneousValues();
     void SavePathValues();
+    void SaveCpuValues();
     void SaveRendererValues();
     void SaveShortcutValues();
     void SaveSystemValues();

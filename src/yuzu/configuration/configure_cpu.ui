@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConfigureCpu</class>
+ <widget class="QWidget" name="ConfigureCpu">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>321</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout">
+   <item>
+    <layout class="QVBoxLayout">
+     <item>
+      <widget class="QGroupBox">
+       <property name="title">
+        <string>Safe CPU Optimizations</string>
+       </property>
+       <layout class="QVBoxLayout">
+        <item>
+         <widget class="QLabel">
+          <property name="wordWrap">
+            <bool>1</bool>
+          </property>
+          <property name="text">
+           <string>Keep these enabled. For debugging only.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_page_tables">
+          <property name="text">
+           <string>Enable inline page tables</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_block_linking">
+          <property name="text">
+           <string>Enable block linking</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_return_stack_buffer">
+          <property name="text">
+           <string>Enable return stack buffer</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_fast_dispatcher">
+          <property name="text">
+           <string>Enable fast dispatcher</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_context_elimination">
+          <property name="text">
+           <string>Enable context elimination</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_const_prop">
+          <property name="text">
+           <string>Enable constant propagation</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_misc_ir">
+          <property name="text">
+           <string>Enable miscellaneous optimizations</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_reduce_misalign_checks">
+          <property name="text">
+           <string>Enable misalignment check reduction</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

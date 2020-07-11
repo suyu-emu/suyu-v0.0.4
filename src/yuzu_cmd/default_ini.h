@@ -97,6 +97,39 @@ udp_pad_index=
 # 0 (default): Disabled, 1: Enabled
 use_multi_core=
 
+[Cpu]
+# Enable inline page tables optimization (faster guest memory access)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_page_tables =
+
+# Enable block linking CPU optimization (reduce block dispatcher use during predictable jumps)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_block_linking =
+
+# Enable return stack buffer CPU optimization (reduce block dispatcher use during predictable returns)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_return_stack_buffer =
+
+# Enable fast dispatcher CPU optimization (use a two-tiered dispatcher architecture)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_fast_dispatcher =
+
+# Enable context elimination CPU Optimization (reduce host memory use for guest context)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_context_elimination =
+
+# Enable constant propagation CPU optimization (basic IR optimization)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_const_prop =
+
+# Enable miscellaneous CPU optimizations (basic IR optimization)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_misc_ir =
+
+# Enable reduction of memory misalignment checks (reduce memory fallbacks for misaligned access)
+# 0: Disabled, 1 (default): Enabled
+cpuopt_reduce_misalign_checks =
+
 [Renderer]
 # Which backend API to use.
 # 0 (default): OpenGL, 1: Vulkan
@@ -283,9 +316,6 @@ dump_nso=false
 # Determines whether or not yuzu will report to the game that the emulated console is in Kiosk Mode
 # false: Retail/Normal Mode (default), true: Kiosk Mode
 quest_flag =
-# Determines whether or not JIT CPU optimizations are enabled
-# false: Optimizations Enabled, true: Optimizations Disabled
-disable_cpu_opt =
 # Enables/Disables the macro JIT compiler
 disable_macro_jit=false
 

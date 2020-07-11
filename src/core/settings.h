@@ -427,6 +427,16 @@ struct Values {
     // Core
     Setting<bool> use_multi_core;
 
+    // Cpu
+    bool cpuopt_page_tables;
+    bool cpuopt_block_linking;
+    bool cpuopt_return_stack_buffer;
+    bool cpuopt_fast_dispatcher;
+    bool cpuopt_context_elimination;
+    bool cpuopt_const_prop;
+    bool cpuopt_misc_ir;
+    bool cpuopt_reduce_misalign_checks;
+
     // Renderer
     Setting<RendererBackend> renderer_backend;
     bool renderer_debug;
@@ -505,7 +515,6 @@ struct Values {
     bool dump_nso;
     bool reporting_services;
     bool quest_flag;
-    bool disable_cpu_opt;
     bool disable_macro_jit;
 
     // Misceallaneous
