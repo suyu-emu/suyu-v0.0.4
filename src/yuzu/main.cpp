@@ -278,17 +278,21 @@ GMainWindow::~GMainWindow() {
 }
 
 void GMainWindow::ProfileSelectorSelectProfile() {
-    QtProfileSelectionDialog dialog(this);
-    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                          Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
-    dialog.setWindowModality(Qt::WindowModal);
-    if (dialog.exec() == QDialog::Rejected) {
-        emit ProfileSelectorFinishedSelection(std::nullopt);
-        return;
+    const Service::Account::ProfileManager manager;
+    int index = 0;
+    if (manager.GetUserCount() != 1) {
+        QtProfileSelectionDialog dialog(this);
+        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                              Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+        dialog.setWindowModality(Qt::WindowModal);
+        if (dialog.exec() == QDialog::Rejected) {
+            emit ProfileSelectorFinishedSelection(std::nullopt);
+            return;
+        }
+        index = dialog.GetIndex();
     }
 
-    Service::Account::ProfileManager manager;
-    const auto uuid = manager.GetUser(static_cast<std::size_t>(dialog.GetIndex()));
+    const auto uuid = manager.GetUser(static_cast<std::size_t>(index));
     if (!uuid.has_value()) {
         emit ProfileSelectorFinishedSelection(std::nullopt);
         return;
