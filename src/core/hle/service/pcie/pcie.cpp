@@ -36,6 +36,9 @@ public:
             {18, nullptr, "ReleaseIrq"},
             {19, nullptr, "SetIrqEnable"},
             {20, nullptr, "SetAspmEnable"},
+            {21, nullptr, "SetResetUponResumeEnable"},
+            {22, nullptr, "Unknown22"},
+            {23, nullptr, "Unknown23"},
         };
         // clang-format on
 

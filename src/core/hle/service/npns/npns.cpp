@@ -30,6 +30,7 @@ public:
             {23, nullptr, "DestroyToken"},
             {24, nullptr, "DestroyTokenWithApplicationId"},
             {25, nullptr, "QueryIsTokenValid"},
+            {26, nullptr, "ListenToMyApplicationId"},
             {31, nullptr, "UploadTokenToBaaS"},
             {32, nullptr, "DestroyTokenForBaaS"},
             {33, nullptr, "CreateTokenForBaaS"},

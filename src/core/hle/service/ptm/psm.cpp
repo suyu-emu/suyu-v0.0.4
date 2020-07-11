@@ -35,6 +35,7 @@ public:
             {15, nullptr, "GetBatteryAgePercentage"},
             {16, nullptr, "GetBatteryChargeInfoEvent"},
             {17, nullptr, "GetBatteryChargeInfoFields"},
+            {18, nullptr, "GetBatteryChargeCalibratedEvent"},
         };
         // clang-format on
 

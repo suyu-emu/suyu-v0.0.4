@@ -104,7 +104,7 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {94, nullptr, "LaunchApplication"},
         {95, nullptr, "GetApplicationLaunchInfo"},
         {96, nullptr, "AcquireApplicationLaunchInfo"},
-        {97, nullptr, "GetMainApplicationProgramIndex2"},
+        {97, nullptr, "GetMainApplicationProgramIndexByApplicationLaunchInfo"},
         {98, nullptr, "EnableApplicationAllThreadDumpOnCrash"},
         {99, nullptr, "LaunchDevMenu"},
         {100, nullptr, "ResetToFactorySettings"},
@@ -254,7 +254,7 @@ IApplicationManagerInterface::IApplicationManagerInterface()
         {2170, nullptr, "GetRightsEnvironmentStatus"},
         {2171, nullptr, "GetRightsEnvironmentStatusChangedEvent"},
         {2180, nullptr, "RequestExtendRightsInRightsEnvironment"},
-        {2181, nullptr, "GetLastResultOfExtendRightsInRightsEnvironment"},
+        {2181, nullptr, "GetResultOfExtendRightsInRightsEnvironment"},
         {2182, nullptr, "SetActiveRightsContextUsingStateToRightsEnvironment"},
         {2190, nullptr, "GetRightsEnvironmentHandleForApplication"},
         {2199, nullptr, "GetRightsEnvironmentCountForDebug"},
@@ -446,8 +446,8 @@ IApplicationVersionInterface::IApplicationVersionInterface()
 
 IApplicationVersionInterface::~IApplicationVersionInterface() = default;
 
-IContentManagerInterface::IContentManagerInterface()
-    : ServiceFramework{"IContentManagerInterface"} {
+IContentManagementInterface::IContentManagementInterface()
+    : ServiceFramework{"IContentManagementInterface"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {11, nullptr, "CalculateApplicationOccupiedSize"},
@@ -464,7 +464,7 @@ IContentManagerInterface::IContentManagerInterface()
     RegisterHandlers(functions);
 }
 
-IContentManagerInterface::~IContentManagerInterface() = default;
+IContentManagementInterface::~IContentManagementInterface() = default;
 
 IDocumentInterface::IDocumentInterface() : ServiceFramework{"IDocumentInterface"} {
     // clang-format off
@@ -546,7 +546,7 @@ NS::NS(const char* name) : ServiceFramework{name} {
         {7995, &NS::PushInterface<IAccountProxyInterface>, "GetAccountProxyInterface"},
         {7996, &NS::PushInterface<IApplicationManagerInterface>, "GetApplicationManagerInterface"},
         {7997, &NS::PushInterface<IDownloadTaskInterface>, "GetDownloadTaskInterface"},
-        {7998, &NS::PushInterface<IContentManagerInterface>, "GetContentManagementInterface"},
+        {7998, &NS::PushInterface<IContentManagementInterface>, "GetContentManagementInterface"},
         {7999, &NS::PushInterface<IDocumentInterface>, "GetDocumentInterface"},
     };
     // clang-format on
@@ -573,9 +573,9 @@ public:
             {6, nullptr, "TerminateApplication"},
             {7, nullptr, "PrepareLaunchProgramFromHost"},
             {8, nullptr, "LaunchApplication"},
-            {9, nullptr, "LaunchApplicationWithStorageId"},
-            {10, nullptr, "TerminateApplication2"},
-            {11, nullptr, "GetRunningApplicationProcessId"},
+            {9, nullptr, "LaunchApplicationWithStorageIdForDevelop"},
+            {10, nullptr, "IsSystemMemoryResourceLimitBoosted"},
+            {11, nullptr, "GetRunningApplicationProcessIdForDevelop"},
             {12, nullptr, "SetCurrentApplicationRightsEnvironmentCanBeActive"},
             {13, nullptr, "CreateApplicationResourceForDevelop"},
             {14, nullptr, "IsPreomiaForDevelop"},
@@ -637,6 +637,10 @@ public:
             {9, nullptr, "GetSystemUpdateNotificationEventForContentDelivery"},
             {10, nullptr, "NotifySystemUpdateForContentDelivery"},
             {11, nullptr, "PrepareShutdown"},
+            {12, nullptr, "Unknown12"},
+            {13, nullptr, "Unknown13"},
+            {14, nullptr, "Unknown14"},
+            {15, nullptr, "Unknown15"},
             {16, nullptr, "DestroySystemUpdateTask"},
             {17, nullptr, "RequestSendSystemUpdate"},
             {18, nullptr, "GetSendSystemUpdateProgress"},

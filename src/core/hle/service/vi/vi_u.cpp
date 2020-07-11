@@ -12,6 +12,7 @@ VI_U::VI_U(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
     : ServiceFramework{"vi:u"}, nv_flinger{std::move(nv_flinger)} {
     static const FunctionInfo functions[] = {
         {0, &VI_U::GetDisplayService, "GetDisplayService"},
+        {1, nullptr, "GetDisplayServiceWithProxyNameExchange"},
     };
     RegisterHandlers(functions);
 }
