@@ -501,6 +501,8 @@ add_library(core STATIC
     hle/service/sockets/sfdnsres.h
     hle/service/sockets/sockets.cpp
     hle/service/sockets/sockets.h
+    hle/service/sockets/sockets_translate.cpp
+    hle/service/sockets/sockets_translate.h
     hle/service/spl/csrng.cpp
     hle/service/spl/csrng.h
     hle/service/spl/module.cpp
