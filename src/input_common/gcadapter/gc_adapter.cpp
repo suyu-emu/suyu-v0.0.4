@@ -198,7 +198,7 @@ void Adapter::StartScanThread() {
     }
 
     detect_thread_running = true;
-    detect_thread = std::thread([=] { ScanThreadFunc(); });
+    detect_thread = std::thread(&Adapter::ScanThreadFunc, this);
 }
 
 void Adapter::StopScanThread() {
