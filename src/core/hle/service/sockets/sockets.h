@@ -7,6 +7,10 @@
 #include "common/common_types.h"
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Sockets {
 
 enum class Errno : u32 {
@@ -88,6 +92,6 @@ constexpr u32 FLAG_MSG_DONTWAIT = 0x80;
 constexpr u32 FLAG_O_NONBLOCK = 0x800;
 
 /// Registers all Sockets services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::Sockets
