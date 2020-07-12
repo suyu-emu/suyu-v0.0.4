@@ -6,6 +6,7 @@
 #include <list>
 #include <mutex>
 #include <utility>
+#include "common/assert.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
@@ -94,6 +95,9 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
         return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater,
                                               adapter.get());
     }
+
+    UNREACHABLE();
+    return nullptr;
 }
 
 Common::ParamPackage GCButtonFactory::GetNextInput() {
