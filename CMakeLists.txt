@@ -124,7 +124,7 @@ if (MSVC)
     # cubeb and boost still make use of deprecated result_of.
     add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
     # boost asio's concept usage doesn't play nicely with MSVC yet.
-    add_definitions(-DASIO_DISABLE_CONCEPTS)
+    add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 else()
     set(CMAKE_CXX_STANDARD 17)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
