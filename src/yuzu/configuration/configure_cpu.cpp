@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <QComboBox>
+#include <QMessageBox>
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
@@ -16,8 +17,8 @@ ConfigureCpu::ConfigureCpu(QWidget* parent) : QWidget(parent), ui(new Ui::Config
 
     SetConfiguration();
 
-    connect(ui->accuracy, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            &ConfigureCpu::UpdateGroups);
+    connect(ui->accuracy, qOverload<int>(&QComboBox::activated), this,
+            &ConfigureCpu::AccuracyUpdated);
 }
 
 ConfigureCpu::~ConfigureCpu() = default;
@@ -27,50 +28,24 @@ void ConfigureCpu::SetConfiguration() {
 
     ui->accuracy->setEnabled(runtime_lock);
     ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy));
-    UpdateGroups(static_cast<int>(Settings::values.cpu_accuracy));
-
-    ui->cpuopt_page_tables->setEnabled(runtime_lock);
-    ui->cpuopt_page_tables->setChecked(Settings::values.cpuopt_page_tables);
-    ui->cpuopt_block_linking->setEnabled(runtime_lock);
-    ui->cpuopt_block_linking->setChecked(Settings::values.cpuopt_block_linking);
-    ui->cpuopt_return_stack_buffer->setEnabled(runtime_lock);
-    ui->cpuopt_return_stack_buffer->setChecked(Settings::values.cpuopt_return_stack_buffer);
-    ui->cpuopt_fast_dispatcher->setEnabled(runtime_lock);
-    ui->cpuopt_fast_dispatcher->setChecked(Settings::values.cpuopt_fast_dispatcher);
-    ui->cpuopt_context_elimination->setEnabled(runtime_lock);
-    ui->cpuopt_context_elimination->setChecked(Settings::values.cpuopt_context_elimination);
-    ui->cpuopt_const_prop->setEnabled(runtime_lock);
-    ui->cpuopt_const_prop->setChecked(Settings::values.cpuopt_const_prop);
-    ui->cpuopt_misc_ir->setEnabled(runtime_lock);
-    ui->cpuopt_misc_ir->setChecked(Settings::values.cpuopt_misc_ir);
-    ui->cpuopt_reduce_misalign_checks->setEnabled(runtime_lock);
-    ui->cpuopt_reduce_misalign_checks->setChecked(Settings::values.cpuopt_reduce_misalign_checks);
 }
 
-void ConfigureCpu::UpdateGroups(int index) {
-    switch (index) {
-    case 0:
-    default:
-        ui->group_safe->setVisible(false);
-        break;
-    case 1:
-        ui->group_safe->setVisible(true);
-        break;
+void ConfigureCpu::AccuracyUpdated(int index) {
+    if (static_cast<Settings::CPUAccuracy>(index) == Settings::CPUAccuracy::DebugMode) {
+        const auto result = QMessageBox::warning(this, tr("Setting CPU to Debug Mode"),
+                                                 tr("CPU Debug Mode is only intended for developer "
+                                                    "use. Are you sure you want to enable this?"),
+                                                 QMessageBox::Yes | QMessageBox::No);
+        if (result == QMessageBox::No) {
+            ui->accuracy->setCurrentIndex(static_cast<int>(Settings::CPUAccuracy::Accurate));
+            return;
+        }
     }
 }
 
 void ConfigureCpu::ApplyConfiguration() {
     Settings::values.cpu_accuracy =
         static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex());
-
-    Settings::values.cpuopt_page_tables = ui->cpuopt_page_tables->isChecked();
-    Settings::values.cpuopt_block_linking = ui->cpuopt_block_linking->isChecked();
-    Settings::values.cpuopt_return_stack_buffer = ui->cpuopt_return_stack_buffer->isChecked();
-    Settings::values.cpuopt_fast_dispatcher = ui->cpuopt_fast_dispatcher->isChecked();
-    Settings::values.cpuopt_context_elimination = ui->cpuopt_context_elimination->isChecked();
-    Settings::values.cpuopt_const_prop = ui->cpuopt_const_prop->isChecked();
-    Settings::values.cpuopt_misc_ir = ui->cpuopt_misc_ir->isChecked();
-    Settings::values.cpuopt_reduce_misalign_checks = ui->cpuopt_reduce_misalign_checks->isChecked();
 }
 
 void ConfigureCpu::changeEvent(QEvent* event) {

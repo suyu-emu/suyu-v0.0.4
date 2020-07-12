@@ -9,15 +9,15 @@
 #include "core/settings.h"
 
 namespace Ui {
-class ConfigureCpu;
+class ConfigureCpuDebug;
 }
 
-class ConfigureCpu : public QWidget {
+class ConfigureCpuDebug : public QWidget {
     Q_OBJECT
 
 public:
-    explicit ConfigureCpu(QWidget* parent = nullptr);
-    ~ConfigureCpu() override;
+    explicit ConfigureCpuDebug(QWidget* parent = nullptr);
+    ~ConfigureCpuDebug() override;
 
     void ApplyConfiguration();
 
@@ -25,9 +25,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    void AccuracyUpdated(int index);
-
     void SetConfiguration();
 
-    std::unique_ptr<Ui::ConfigureCpu> ui;
+    std::unique_ptr<Ui::ConfigureCpuDebug> ui;
 };
