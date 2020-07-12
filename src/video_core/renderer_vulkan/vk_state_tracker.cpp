@@ -158,6 +158,7 @@ void StateTracker::Initialize() {
     SetupDirtyFrontFace(tables);
     SetupDirtyPrimitiveTopology(tables);
     SetupDirtyStencilOp(tables);
+    SetupDirtyStencilTestEnable(tables);
 }
 
 void StateTracker::InvalidateCommandBufferState() {
