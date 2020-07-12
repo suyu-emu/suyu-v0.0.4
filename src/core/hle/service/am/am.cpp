@@ -1407,7 +1407,19 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     u32 supported_languages = 0;
     FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
 
-    const auto res = pm.GetControlMetadata();
+    const auto res = [this] {
+        const auto title_id = system.CurrentProcess()->GetTitleID();
+
+        FileSys::PatchManager pm{title_id};
+        auto res = pm.GetControlMetadata();
+        if (res.first != nullptr) {
+            return res;
+        }
+
+        FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id)};
+        return pm_update.GetControlMetadata();
+    }();
+
     if (res.first != nullptr) {
         supported_languages = res.first->GetSupportedLanguages();
     }
