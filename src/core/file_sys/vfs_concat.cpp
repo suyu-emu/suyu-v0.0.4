@@ -11,7 +11,7 @@
 
 namespace FileSys {
 
-static bool VerifyConcatenationMapContinuity(const std::map<u64, VirtualFile>& map) {
+static bool VerifyConcatenationMapContinuity(const std::multimap<u64, VirtualFile>& map) {
     const auto last_valid = --map.end();
     for (auto iter = map.begin(); iter != last_valid;) {
         const auto old = iter++;
@@ -27,12 +27,12 @@ ConcatenatedVfsFile::ConcatenatedVfsFile(std::vector<VirtualFile> files_, std::s
     : name(std::move(name)) {
     std::size_t next_offset = 0;
     for (const auto& file : files_) {
-        files[next_offset] = file;
+        files.emplace(next_offset, file);
         next_offset += file->GetSize();
     }
 }
 
-ConcatenatedVfsFile::ConcatenatedVfsFile(std::map<u64, VirtualFile> files_, std::string name)
+ConcatenatedVfsFile::ConcatenatedVfsFile(std::multimap<u64, VirtualFile> files_, std::string name)
     : files(std::move(files_)), name(std::move(name)) {
     ASSERT(VerifyConcatenationMapContinuity(files));
 }
@@ -50,7 +50,7 @@ VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(std::vector<VirtualFile> f
 }
 
 VirtualFile ConcatenatedVfsFile::MakeConcatenatedFile(u8 filler_byte,
-                                                      std::map<u64, VirtualFile> files,
+                                                      std::multimap<u64, VirtualFile> files,
                                                       std::string name) {
     if (files.empty())
         return nullptr;

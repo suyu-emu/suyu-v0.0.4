@@ -43,7 +43,7 @@ public:
     ~RomFSBuildContext();
 
     // This finalizes the context.
-    std::map<u64, VirtualFile> Build();
+    std::multimap<u64, VirtualFile> Build();
 
 private:
     VirtualDir base;
