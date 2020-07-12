@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include "common/common_types.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/service.h"
+#include "core/hle/service/sockets/sockets.h"
 
 namespace Service::Sockets {
 
