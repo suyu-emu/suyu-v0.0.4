@@ -25,7 +25,7 @@ public:
      */
     std::unique_ptr<Input::ButtonDevice> Create(const Common::ParamPackage& params) override;
 
-    Common::ParamPackage GetNextInput();
+    Common::ParamPackage GetNextInput() const;
 
     /// For device input configuration/polling
     void BeginConfiguration();

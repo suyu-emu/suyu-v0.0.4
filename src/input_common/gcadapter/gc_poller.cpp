@@ -100,7 +100,7 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
     return nullptr;
 }
 
-Common::ParamPackage GCButtonFactory::GetNextInput() {
+Common::ParamPackage GCButtonFactory::GetNextInput() const {
     Common::ParamPackage params;
     GCAdapter::GCPadStatus pad;
     auto& queue = adapter->GetPadQueue();
