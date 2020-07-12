@@ -643,7 +643,7 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
 
     Refresh();
     if (result) {
-        return InstallResult::ErrorAlreadyExists;
+        return InstallResult::OverwriteExisting;
     }
     return InstallResult::Success;
 }
