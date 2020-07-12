@@ -203,6 +203,7 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
     const std::size_t samples_to_write = num_channels * num_frames;
     std::size_t samples_written;
 
+    /*
     if (Settings::values.enable_audio_stretching.GetValue()) {
         const std::vector<s16> in{impl->queue.Pop()};
         const std::size_t num_in{in.size() / num_channels};
@@ -217,7 +218,8 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
         }
     } else {
         samples_written = impl->queue.Pop(buffer, samples_to_write);
-    }
+    }*/
+    samples_written = impl->queue.Pop(buffer, samples_to_write);
 
     if (samples_written >= num_channels) {
         std::memcpy(&impl->last_frame[0], buffer + (samples_written - num_channels) * sizeof(s16),
