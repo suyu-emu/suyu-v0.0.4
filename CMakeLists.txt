@@ -330,13 +330,14 @@ elseif(SDL2_FOUND)
 endif()
 
 # Ensure libusb is properly configured (based on dolphin libusb include)
-include(FindPkgConfig)
-find_package(LibUSB)
+if(NOT APPLE)
+    include(FindPkgConfig)
+    find_package(LibUSB)
+endif()
 if (NOT LIBUSB_FOUND)
     add_subdirectory(externals/libusb)
     set(LIBUSB_LIBRARIES usb)
 endif()
-
 
 # Prefer the -pthread flag on Linux.
 set(THREADS_PREFER_PTHREAD_FLAG ON)
