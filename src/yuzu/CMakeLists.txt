@@ -98,11 +98,13 @@ add_executable(yuzu
     game_list_p.h
     game_list_worker.cpp
     game_list_worker.h
+    hotkeys.cpp
+    hotkeys.h
+    install_dialog.cpp
+    install_dialog.h
     loading_screen.cpp
     loading_screen.h
     loading_screen.ui
-    hotkeys.cpp
-    hotkeys.h
     main.cpp
     main.h
     main.ui

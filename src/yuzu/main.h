@@ -28,6 +28,7 @@ class MicroProfileDialog;
 class ProfilerWidget;
 class QLabel;
 class QPushButton;
+class QProgressDialog;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
 class GameListPlaceholder;
@@ -45,6 +46,12 @@ class VfsFilesystem;
 enum class EmulatedDirectoryTarget {
     NAND,
     SDMC,
+};
+
+enum class InstallResult {
+    Success,
+    Overwrite,
+    Failure,
 };
 
 enum class ReinitializeKeyBehavior {
@@ -101,6 +108,8 @@ signals:
 
     // Signal that tells widgets to update icons to use the current theme
     void UpdateThemedIcons();
+
+    void UpdateInstallProgress();
 
     void ErrorDisplayFinished();
 
@@ -198,6 +207,7 @@ private slots:
     void OnGameListOpenPerGameProperties(const std::string& file);
     void OnMenuLoadFile();
     void OnMenuLoadFolder();
+    void IncrementInstallProgress();
     void OnMenuInstallToNAND();
     void OnMenuRecentFile();
     void OnConfigure();
@@ -218,6 +228,8 @@ private slots:
 
 private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
+    InstallResult InstallNSPXCI(const QString& filename);
+    InstallResult InstallNCA(const QString& filename);
     void UpdateWindowTitle(const std::string& title_name = {},
                            const std::string& title_version = {});
     void UpdateStatusBar();
@@ -271,6 +283,9 @@ private:
     QStringList default_theme_paths;
 
     HotkeyRegistry hotkey_registry;
+
+    // Install progress dialog
+    QProgressDialog* install_progress;
 
 protected:
     void dropEvent(QDropEvent* event) override;

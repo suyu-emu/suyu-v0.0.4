@@ -130,7 +130,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Install File to NAND...</string>
+    <string>Install Files to NAND...</string>
    </property>
   </action>
   <action name="action_Load_File">

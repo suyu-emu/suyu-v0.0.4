@@ -107,6 +107,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/game_list.h"
 #include "yuzu/game_list_p.h"
 #include "yuzu/hotkeys.h"
+#include "yuzu/install_dialog.h"
 #include "yuzu/loading_screen.h"
 #include "yuzu/main.h"
 #include "yuzu/uisettings.h"
@@ -846,6 +847,9 @@ void GMainWindow::ConnectWidgetEvents() {
 
     connect(game_list, &GameList::OpenPerGameGeneralRequested, this,
             &GMainWindow::OnGameListOpenPerGameProperties);
+
+    connect(this, &GMainWindow::UpdateInstallProgress, this,
+            &GMainWindow::IncrementInstallProgress);
 
     connect(this, &GMainWindow::EmulationStarting, render_window,
             &GRenderWindow::OnEmulationStarting);
@@ -1593,187 +1597,255 @@ void GMainWindow::OnMenuLoadFolder() {
     }
 }
 
+void GMainWindow::IncrementInstallProgress() {
+    install_progress->setValue(install_progress->value() + 1);
+}
+
 void GMainWindow::OnMenuInstallToNAND() {
     const QString file_filter =
         tr("Installable Switch File (*.nca *.nsp *.xci);;Nintendo Content Archive "
-           "(*.nca);;Nintendo Submissions Package (*.nsp);;NX Cartridge "
+           "(*.nca);;Nintendo Submission Package (*.nsp);;NX Cartridge "
            "Image (*.xci)");
-    QString filename = QFileDialog::getOpenFileName(this, tr("Install File"),
-                                                    UISettings::values.roms_path, file_filter);
 
-    if (filename.isEmpty()) {
+    QStringList filenames = QFileDialog::getOpenFileNames(
+        this, tr("Install Files"), UISettings::values.roms_path, file_filter);
+
+    if (filenames.isEmpty()) {
         return;
     }
 
+    InstallDialog installDialog(this, filenames);
+    if (installDialog.exec() == QDialog::Rejected) {
+        return;
+    }
+
+    const QStringList files = installDialog.GetFiles();
+
+    if (files.isEmpty()) {
+        return;
+    }
+
+    int remaining = filenames.size();
+
+    // This would only overflow above 2^43 bytes (8.796 TB)
+    int total_size = 0;
+    for (const QString& file : files) {
+        total_size += static_cast<int>(QFile(file).size() / 0x1000);
+    }
+    if (total_size < 0) {
+        LOG_CRITICAL(Frontend, "Attempting to install too many files, aborting.");
+        return;
+    }
+
+    QStringList new_files{};         // Newly installed files that do not yet exist in the NAND
+    QStringList overwritten_files{}; // Files that overwrote those existing in the NAND
+    QStringList failed_files{};      // Files that failed to install due to errors
+
+    ui.action_Install_File_NAND->setEnabled(false);
+
+    install_progress = new QProgressDialog(QStringLiteral(""), tr("Cancel"), 0, total_size, this);
+    install_progress->setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint &
+                                     ~Qt::WindowMaximizeButtonHint);
+    install_progress->setAttribute(Qt::WA_DeleteOnClose, true);
+    install_progress->setFixedWidth(installDialog.GetMinimumWidth() + 40);
+    install_progress->show();
+
+    for (const QString& file : files) {
+        install_progress->setWindowTitle(tr("%n file(s) remaining", "", remaining));
+        install_progress->setLabelText(
+            tr("Installing file \"%1\"...").arg(QFileInfo(file).fileName()));
+
+        QFuture<InstallResult> future;
+        InstallResult result;
+
+        if (file.endsWith(QStringLiteral("xci"), Qt::CaseInsensitive) ||
+            file.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
+
+            future = QtConcurrent::run([this, &file] { return InstallNSPXCI(file); });
+
+            while (!future.isFinished()) {
+                QCoreApplication::processEvents();
+            }
+
+            result = future.result();
+
+        } else {
+            result = InstallNCA(file);
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+
+        switch (result) {
+        case InstallResult::Success:
+            new_files.append(QFileInfo(file).fileName());
+            break;
+        case InstallResult::Overwrite:
+            overwritten_files.append(QFileInfo(file).fileName());
+            break;
+        case InstallResult::Failure:
+            failed_files.append(QFileInfo(file).fileName());
+            break;
+        }
+
+        --remaining;
+    }
+
+    install_progress->close();
+
+    const QString install_results =
+        (new_files.isEmpty() ? QStringLiteral("")
+                             : tr("%n file(s) were newly installed\n", "", new_files.size())) +
+        (overwritten_files.isEmpty()
+             ? QStringLiteral("")
+             : tr("%n file(s) were overwritten\n", "", overwritten_files.size())) +
+        (failed_files.isEmpty() ? QStringLiteral("")
+                                : tr("%n file(s) failed to install\n", "", failed_files.size()));
+
+    QMessageBox::information(this, tr("Install Results"), install_results);
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+    FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
+                                   "game_list");
+    ui.action_Install_File_NAND->setEnabled(true);
+}
+
+InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
     const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
                                     const FileSys::VirtualFile& dest, std::size_t block_size) {
-        if (src == nullptr || dest == nullptr)
+        if (src == nullptr || dest == nullptr) {
             return false;
-        if (!dest->Resize(src->GetSize()))
+        }
+        if (!dest->Resize(src->GetSize())) {
             return false;
+        }
 
         std::array<u8, 0x1000> buffer{};
-        const int progress_maximum = static_cast<int>(src->GetSize() / buffer.size());
-
-        QProgressDialog progress(
-            tr("Installing file \"%1\"...").arg(QString::fromStdString(src->GetName())),
-            tr("Cancel"), 0, progress_maximum, this);
-        progress.setWindowModality(Qt::WindowModal);
 
         for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
-            if (progress.wasCanceled()) {
+            if (install_progress->wasCanceled()) {
                 dest->Resize(0);
                 return false;
             }
 
-            const int progress_value = static_cast<int>(i / buffer.size());
-            progress.setValue(progress_value);
+            emit UpdateInstallProgress();
 
             const auto read = src->Read(buffer.data(), buffer.size(), i);
             dest->Write(buffer.data(), read, i);
         }
-
         return true;
     };
 
-    const auto success = [this]() {
-        QMessageBox::information(this, tr("Successfully Installed"),
-                                 tr("The file was successfully installed."));
-        game_list->PopulateAsync(UISettings::values.game_dirs);
-        FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) +
-                                       DIR_SEP + "game_list");
-    };
-
-    const auto failed = [this]() {
-        QMessageBox::warning(
-            this, tr("Failed to Install"),
-            tr("There was an error while attempting to install the provided file. It "
-               "could have an incorrect format or be missing metadata. Please "
-               "double-check your file and try again."));
-    };
-
-    const auto overwrite = [this]() {
-        return QMessageBox::question(this, tr("Failed to Install"),
-                                     tr("The file you are attempting to install already exists "
-                                        "in the cache. Would you like to overwrite it?")) ==
-               QMessageBox::Yes;
-    };
-
-    if (filename.endsWith(QStringLiteral("xci"), Qt::CaseInsensitive) ||
-        filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
-        std::shared_ptr<FileSys::NSP> nsp;
-        if (filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
-            nsp = std::make_shared<FileSys::NSP>(
-                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-            if (nsp->IsExtractedType())
-                failed();
-        } else {
-            const auto xci = std::make_shared<FileSys::XCI>(
-                vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-            nsp = xci->GetSecurePartitionNSP();
-        }
-
-        if (nsp->GetStatus() != Loader::ResultStatus::Success) {
-            failed();
-            return;
-        }
-        const auto res = Core::System::GetInstance()
-                             .GetFileSystemController()
-                             .GetUserNANDContents()
-                             ->InstallEntry(*nsp, false, qt_raw_copy);
-        if (res == FileSys::InstallResult::Success) {
-            success();
-        } else {
-            if (res == FileSys::InstallResult::ErrorAlreadyExists) {
-                if (overwrite()) {
-                    const auto res2 = Core::System::GetInstance()
-                                          .GetFileSystemController()
-                                          .GetUserNANDContents()
-                                          ->InstallEntry(*nsp, true, qt_raw_copy);
-                    if (res2 == FileSys::InstallResult::Success) {
-                        success();
-                    } else {
-                        failed();
-                    }
-                }
-            } else {
-                failed();
-            }
+    std::shared_ptr<FileSys::NSP> nsp;
+    if (filename.endsWith(QStringLiteral("nsp"), Qt::CaseInsensitive)) {
+        nsp = std::make_shared<FileSys::NSP>(
+            vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+        if (nsp->IsExtractedType()) {
+            return InstallResult::Failure;
         }
     } else {
-        const auto nca = std::make_shared<FileSys::NCA>(
+        const auto xci = std::make_shared<FileSys::XCI>(
             vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
-        const auto id = nca->GetStatus();
+        nsp = xci->GetSecurePartitionNSP();
+    }
 
-        // Game updates necessary are missing base RomFS
-        if (id != Loader::ResultStatus::Success &&
-            id != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
-            failed();
-            return;
+    if (nsp->GetStatus() != Loader::ResultStatus::Success) {
+        return InstallResult::Failure;
+    }
+    const auto res =
+        Core::System::GetInstance().GetFileSystemController().GetUserNANDContents()->InstallEntry(
+            *nsp, true, qt_raw_copy);
+    if (res == FileSys::InstallResult::Success) {
+        return InstallResult::Success;
+    } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+        return InstallResult::Overwrite;
+    } else {
+        return InstallResult::Failure;
+    }
+}
+
+InstallResult GMainWindow::InstallNCA(const QString& filename) {
+    const auto qt_raw_copy = [this](const FileSys::VirtualFile& src,
+                                    const FileSys::VirtualFile& dest, std::size_t block_size) {
+        if (src == nullptr || dest == nullptr) {
+            return false;
+        }
+        if (!dest->Resize(src->GetSize())) {
+            return false;
         }
 
-        const QStringList tt_options{tr("System Application"),
-                                     tr("System Archive"),
-                                     tr("System Application Update"),
-                                     tr("Firmware Package (Type A)"),
-                                     tr("Firmware Package (Type B)"),
-                                     tr("Game"),
-                                     tr("Game Update"),
-                                     tr("Game DLC"),
-                                     tr("Delta Title")};
-        bool ok;
-        const auto item = QInputDialog::getItem(
-            this, tr("Select NCA Install Type..."),
-            tr("Please select the type of title you would like to install this NCA as:\n(In "
-               "most instances, the default 'Game' is fine.)"),
-            tt_options, 5, false, &ok);
+        std::array<u8, 0x1000> buffer{};
 
-        auto index = tt_options.indexOf(item);
-        if (!ok || index == -1) {
-            QMessageBox::warning(this, tr("Failed to Install"),
-                                 tr("The title type you selected for the NCA is invalid."));
-            return;
-        }
-
-        // If index is equal to or past Game, add the jump in TitleType.
-        if (index >= 5) {
-            index += static_cast<size_t>(FileSys::TitleType::Application) -
-                     static_cast<size_t>(FileSys::TitleType::FirmwarePackageB);
-        }
-
-        FileSys::InstallResult res;
-        if (index >= static_cast<s32>(FileSys::TitleType::Application)) {
-            res = Core::System::GetInstance()
-                      .GetFileSystemController()
-                      .GetUserNANDContents()
-                      ->InstallEntry(*nca, static_cast<FileSys::TitleType>(index), false,
-                                     qt_raw_copy);
-        } else {
-            res = Core::System::GetInstance()
-                      .GetFileSystemController()
-                      .GetSystemNANDContents()
-                      ->InstallEntry(*nca, static_cast<FileSys::TitleType>(index), false,
-                                     qt_raw_copy);
-        }
-
-        if (res == FileSys::InstallResult::Success) {
-            success();
-        } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
-            if (overwrite()) {
-                const auto res2 = Core::System::GetInstance()
-                                      .GetFileSystemController()
-                                      .GetUserNANDContents()
-                                      ->InstallEntry(*nca, static_cast<FileSys::TitleType>(index),
-                                                     true, qt_raw_copy);
-                if (res2 == FileSys::InstallResult::Success) {
-                    success();
-                } else {
-                    failed();
-                }
+        for (std::size_t i = 0; i < src->GetSize(); i += buffer.size()) {
+            if (install_progress->wasCanceled()) {
+                dest->Resize(0);
+                return false;
             }
-        } else {
-            failed();
+
+            emit UpdateInstallProgress();
+
+            const auto read = src->Read(buffer.data(), buffer.size(), i);
+            dest->Write(buffer.data(), read, i);
         }
+        return true;
+    };
+
+    const auto nca =
+        std::make_shared<FileSys::NCA>(vfs->OpenFile(filename.toStdString(), FileSys::Mode::Read));
+    const auto id = nca->GetStatus();
+
+    // Game updates necessary are missing base RomFS
+    if (id != Loader::ResultStatus::Success &&
+        id != Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
+        return InstallResult::Failure;
+    }
+
+    const QStringList tt_options{tr("System Application"),
+                                 tr("System Archive"),
+                                 tr("System Application Update"),
+                                 tr("Firmware Package (Type A)"),
+                                 tr("Firmware Package (Type B)"),
+                                 tr("Game"),
+                                 tr("Game Update"),
+                                 tr("Game DLC"),
+                                 tr("Delta Title")};
+    bool ok;
+    const auto item = QInputDialog::getItem(
+        this, tr("Select NCA Install Type..."),
+        tr("Please select the type of title you would like to install this NCA as:\n(In "
+           "most instances, the default 'Game' is fine.)"),
+        tt_options, 5, false, &ok);
+
+    auto index = tt_options.indexOf(item);
+    if (!ok || index == -1) {
+        QMessageBox::warning(this, tr("Failed to Install"),
+                             tr("The title type you selected for the NCA is invalid."));
+        return InstallResult::Failure;
+    }
+
+    // If index is equal to or past Game, add the jump in TitleType.
+    if (index >= 5) {
+        index += static_cast<size_t>(FileSys::TitleType::Application) -
+                 static_cast<size_t>(FileSys::TitleType::FirmwarePackageB);
+    }
+
+    FileSys::InstallResult res;
+    if (index >= static_cast<s32>(FileSys::TitleType::Application)) {
+        res = Core::System::GetInstance()
+                  .GetFileSystemController()
+                  .GetUserNANDContents()
+                  ->InstallEntry(*nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
+    } else {
+        res = Core::System::GetInstance()
+                  .GetFileSystemController()
+                  .GetSystemNANDContents()
+                  ->InstallEntry(*nca, static_cast<FileSys::TitleType>(index), true, qt_raw_copy);
+    }
+
+    if (res == FileSys::InstallResult::Success) {
+        return InstallResult::Success;
+    } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+        return InstallResult::Overwrite;
+    } else {
+        return InstallResult::Failure;
     }
 }
 
