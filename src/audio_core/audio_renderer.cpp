@@ -43,6 +43,7 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory
     QueueMixedBuffer(0);
     QueueMixedBuffer(1);
     QueueMixedBuffer(2);
+    QueueMixedBuffer(3);
 }
 
 AudioRenderer::~AudioRenderer() = default;
