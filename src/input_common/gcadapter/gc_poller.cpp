@@ -249,7 +249,7 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
             const u8 axis = static_cast<u8>(pad.axis);
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
-                controller_number = port;
+                controller_number = static_cast<int>(port);
             } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == port) {
                 analog_y_axis = axis;
             }
