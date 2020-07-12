@@ -118,8 +118,15 @@ message(STATUS "Target architecture: ${ARCHITECTURE}")
 # Configure C++ standard
 # ===========================
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (MSVC)
+    add_compile_options(/std:c++latest)
+
+    # cubeb and boost still make use of deprecated result_of.
+    add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
+else()
+    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 # Output binaries to bin/
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
