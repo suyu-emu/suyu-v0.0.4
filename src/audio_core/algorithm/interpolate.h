@@ -38,4 +38,7 @@ inline std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> 
     return Interpolate(state, std::move(input), ratio);
 }
 
+/// Nintendo Switchs DSP resampling algorithm. Based on a single channel
+void Resample(s32* output, const s32* input, s32 pitch, s32& fraction, std::size_t sample_count);
+
 } // namespace AudioCore

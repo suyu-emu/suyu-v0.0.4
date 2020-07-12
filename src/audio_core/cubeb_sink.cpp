@@ -23,14 +23,24 @@ class CubebSinkStream final : public SinkStream {
 public:
     CubebSinkStream(cubeb* ctx, u32 sample_rate, u32 num_channels_, cubeb_devid output_device,
                     const std::string& name)
-        : ctx{ctx}, num_channels{std::min(num_channels_, 2u)}, time_stretch{sample_rate,
+        : ctx{ctx}, num_channels{std::min(num_channels_, 6u)}, time_stretch{sample_rate,
                                                                             num_channels} {
 
         cubeb_stream_params params{};
         params.rate = sample_rate;
         params.channels = num_channels;
         params.format = CUBEB_SAMPLE_S16NE;
-        params.layout = num_channels == 1 ? CUBEB_LAYOUT_MONO : CUBEB_LAYOUT_STEREO;
+        switch (num_channels) {
+        case 1:
+            params.layout = CUBEB_LAYOUT_MONO;
+            break;
+        case 2:
+            params.layout = CUBEB_LAYOUT_STEREO;
+            break;
+        case 6:
+            params.layout = CUBEB_LAYOUT_3F2_LFE;
+            break;
+        }
 
         u32 minimum_latency{};
         if (cubeb_get_min_latency(ctx, &params, &minimum_latency) != CUBEB_OK) {
