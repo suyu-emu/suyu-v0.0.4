@@ -118,15 +118,15 @@ message(STATUS "Target architecture: ${ARCHITECTURE}")
 # Configure C++ standard
 # ===========================
 
+# boost asio's concept usage doesn't play nicely with some compilers yet.
+add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 if (MSVC)
     add_compile_options(/std:c++latest)
 
     # cubeb and boost still make use of deprecated result_of.
     add_definitions(-D_HAS_DEPRECATED_RESULT_OF)
-    # boost asio's concept usage doesn't play nicely with MSVC yet.
-    add_definitions(-DBOOST_ASIO_DISABLE_CONCEPTS)
 else()
-    set(CMAKE_CXX_STANDARD 17)
+    set(CMAKE_CXX_STANDARD 20)
     set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
