@@ -43,6 +43,7 @@
 #include "core/loader/loader.h"
 #include "core/memory.h"
 #include "core/memory/cheat_engine.h"
+#include "core/network/network.h"
 #include "core/perf_stats.h"
 #include "core/reporter.h"
 #include "core/settings.h"
@@ -393,6 +394,9 @@ struct System::Impl {
 
     /// Telemetry session for this emulation session
     std::unique_ptr<Core::TelemetrySession> telemetry_session;
+
+    /// Network instance
+    Network::NetworkInstance network_instance;
 
     ResultStatus status = ResultStatus::Success;
     std::string status_details = "";
