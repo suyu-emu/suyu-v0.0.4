@@ -33,7 +33,7 @@ Adapter::Adapter() {
     }
 }
 
-GCPadStatus Adapter::GetPadStatus(int port, const std::array<u8, 37>& adapter_payload) {
+GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& adapter_payload) {
     GCPadStatus pad = {};
     bool get_origin = false;
 
@@ -227,7 +227,7 @@ void Adapter::Setup() {
     }
 
     if (devices != nullptr) {
-        for (std::size_t index = 0; index < device_count; ++index) {
+        for (std::size_t index = 0; index < static_cast<std::size_t>(device_count); ++index) {
             if (CheckDeviceAccess(devices[index])) {
                 // GC Adapter found and accessible, registering it
                 GetGCEndpoint(devices[index]);
@@ -357,11 +357,11 @@ void Adapter::Reset() {
     }
 }
 
-bool Adapter::DeviceConnected(int port) {
+bool Adapter::DeviceConnected(std::size_t port) {
     return adapter_controllers_status[port] != ControllerTypes::None;
 }
 
-void Adapter::ResetDeviceType(int port) {
+void Adapter::ResetDeviceType(std::size_t port) {
     adapter_controllers_status[port] = ControllerTypes::None;
 }
 
