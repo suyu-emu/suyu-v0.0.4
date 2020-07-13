@@ -23,6 +23,8 @@ enum CheckState {
 };
 
 struct Trackers {
+    CheckState use_frame_limit;
+    CheckState use_multi_core;
 } extern trackers;
 
 // Global-aware apply and set functions
