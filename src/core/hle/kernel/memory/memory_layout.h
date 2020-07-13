@@ -66,8 +66,6 @@ private:
     const MemoryRegion application;
     const MemoryRegion applet;
     const MemoryRegion system;
-
-    const PAddr start_address{};
 };
 
 } // namespace Kernel::Memory
