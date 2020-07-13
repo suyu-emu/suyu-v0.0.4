@@ -11,8 +11,7 @@
 
 namespace Kernel::Memory {
 
-class AddressSpaceInfo final : NonCopyable {
-public:
+struct AddressSpaceInfo final {
     enum class Type : u32 {
         Is32Bit = 0,
         Small64Bit = 1,
@@ -23,31 +22,13 @@ public:
         Count,
     };
 
-private:
-    std::size_t bit_width{};
-    std::size_t addr{};
-    std::size_t size{};
-    Type type{};
-
-public:
     static u64 GetAddressSpaceStart(std::size_t width, Type type);
     static std::size_t GetAddressSpaceSize(std::size_t width, Type type);
 
-    constexpr AddressSpaceInfo(std::size_t bit_width, std::size_t addr, std::size_t size, Type type)
-        : bit_width{bit_width}, addr{addr}, size{size}, type{type} {}
-
-    constexpr std::size_t GetWidth() const {
-        return bit_width;
-    }
-    constexpr std::size_t GetAddress() const {
-        return addr;
-    }
-    constexpr std::size_t GetSize() const {
-        return size;
-    }
-    constexpr Type GetType() const {
-        return type;
-    }
+    const std::size_t bit_width{};
+    const std::size_t address{};
+    const std::size_t size{};
+    const Type type{};
 };
 
 } // namespace Kernel::Memory
