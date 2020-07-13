@@ -101,6 +101,8 @@ private:
         analog_map_deadzone_and_modifier_slider;
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs>
         analog_map_deadzone_and_modifier_slider_label;
+    std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_range_slider;
+    std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_range_slider_label;
 
     static const std::array<std::string, ANALOG_SUB_BUTTONS_NUM> analog_sub_buttons;
 
