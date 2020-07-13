@@ -45,7 +45,7 @@ void SetPerGameSetting(QComboBox* combobox,
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
 
-void SetBGColor(QWidget* widget, bool highlighted);
+void SetHighlight(QWidget* widget, bool highlighted);
 void SetColoredTristate(QCheckBox* checkbox, Settings::Setting<bool>& setting,
                         ConfigurationShared::CheckState& tracker);
 
