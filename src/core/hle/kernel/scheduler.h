@@ -188,7 +188,7 @@ private:
 
     /// Scheduler lock mechanisms.
     bool is_locked{};
-    Common::SpinLock inner_lock{};
+    std::mutex inner_lock;
     std::atomic<s64> scope_lock{};
     Core::EmuThreadHandle current_owner{Core::EmuThreadHandle::InvalidHandle()};
 
