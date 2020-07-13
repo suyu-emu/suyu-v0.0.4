@@ -611,10 +611,10 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
                 if (!param.Has("range")) {
                     param.Set("range", 0.50f);
                 }
-
+                // QtSlider returns values from 0.0-0.99. We want range to be from 50% to 150%
                 analog_stick_range->setValue(static_cast<int>(param.Get("range", 0.1f) * 100));
                 if (analog_stick_range->value() == 0) {
-                    analog_stick_range_label->setText(tr("Range: 0%"));
+                    analog_stick_range_label->setText(tr("Range: 50%"));
                 }
             } else {
                 if (!param.Has("modifier_scale")) {
