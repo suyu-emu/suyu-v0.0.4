@@ -15,8 +15,20 @@ constexpr int USE_GLOBAL_INDEX = 0;
 constexpr int USE_GLOBAL_SEPARATOR_INDEX = 1;
 constexpr int USE_GLOBAL_OFFSET = 2;
 
+enum CheckState {
+    Off,
+    On,
+    Global,
+    Count,
+};
+
+struct Trackers {
+} extern trackers;
+
 // Global-aware apply and set functions
 
+void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox,
+                         const CheckState& tracker);
 void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox);
 void ApplyPerGameSetting(Settings::Setting<int>* setting, const QComboBox* combobox);
 void ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
@@ -30,6 +42,10 @@ void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::RendererBackend>* setting);
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
+
+void SetBGColor(QWidget* widget, bool highlighted);
+void SetColoredTristate(QCheckBox* checkbox, Settings::Setting<bool>& setting,
+                        ConfigurationShared::CheckState& tracker);
 
 void InsertGlobalItem(QComboBox* combobox);
 

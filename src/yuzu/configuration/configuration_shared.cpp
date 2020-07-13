@@ -4,9 +4,14 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QObject>
 #include "core/settings.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_per_game.h"
+
+namespace ConfigurationShared {
+Trackers trackers = {};
+}
 
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
                                               const QCheckBox* checkbox) {
@@ -15,6 +20,17 @@ void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
     } else {
         setting->SetGlobal(false);
         setting->SetValue(checkbox->checkState() == Qt::Checked);
+    }
+}
+
+void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
+                                              const QCheckBox* checkbox,
+                                              const CheckState& tracker) {
+    if (tracker == CheckState::Global) {
+        setting->SetGlobal(true);
+    } else {
+        setting->SetGlobal(false);
+        setting->SetValue(checkbox->checkState());
     }
 }
 
@@ -67,6 +83,32 @@ void ConfigurationShared::SetPerGameSetting(
     combobox->setCurrentIndex(setting->UsingGlobal() ? ConfigurationShared::USE_GLOBAL_INDEX
                                                      : static_cast<int>(setting->GetValue()) +
                                                            ConfigurationShared::USE_GLOBAL_OFFSET);
+}
+
+void ConfigurationShared::SetBGColor(QWidget* widget, bool highlighted) {
+    if (highlighted) {
+        widget->setStyleSheet(QStringLiteral("background-color:rgba(0,203,255,0.5);"));
+    } else {
+        widget->setStyleSheet(QStringLiteral("background-color:rgba(0,0,0,0);"));
+    }
+    widget->show();
+}
+
+void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, Settings::Setting<bool>& setting,
+                                             ConfigurationShared::CheckState& tracker) {
+    if (setting.UsingGlobal()) {
+        tracker = CheckState::Global;
+    } else {
+        tracker = (setting.GetValue() == setting.GetValue(true)) ? CheckState::On : CheckState::Off;
+    }
+    SetBGColor(checkbox, tracker != CheckState::Global);
+    QObject::connect(checkbox, &QCheckBox::clicked, checkbox, [checkbox, setting, &tracker]() {
+        tracker = static_cast<ConfigurationShared::CheckState>((tracker + 1) % CheckState::Count);
+        if (tracker == CheckState::Global) {
+            checkbox->setChecked(setting.GetValue(true));
+        }
+        SetBGColor(checkbox, tracker != CheckState::Global);
+    });
 }
 
 void ConfigurationShared::InsertGlobalItem(QComboBox* combobox) {
