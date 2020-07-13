@@ -8,9 +8,12 @@
 #include <mutex>
 #include <thread>
 #include <unordered_map>
-#include <libusb.h>
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
+
+struct libusb_context;
+struct libusb_device;
+struct libusb_device_handle;
 
 namespace GCAdapter {
 
