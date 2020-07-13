@@ -49,20 +49,19 @@ constexpr bool IsAllowedIndexForAddress(std::size_t index) {
     return index < AddressSpaceInfos.size() && AddressSpaceInfos[index].address != Invalid;
 }
 
-constexpr std::array<std::size_t, static_cast<std::size_t>(AddressSpaceInfo::Type::Count)>
-    AddressSpaceIndices32Bit{
-        0, 1, 0, 2, 0, 3,
-    };
+using IndexArray = std::array<std::size_t, static_cast<std::size_t>(AddressSpaceInfo::Type::Count)>;
 
-constexpr std::array<std::size_t, static_cast<std::size_t>(AddressSpaceInfo::Type::Count)>
-    AddressSpaceIndices36Bit{
-        4, 5, 4, 6, 4, 7,
-    };
+constexpr IndexArray AddressSpaceIndices32Bit{
+    0, 1, 0, 2, 0, 3,
+};
 
-constexpr std::array<std::size_t, static_cast<std::size_t>(AddressSpaceInfo::Type::Count)>
-    AddressSpaceIndices39Bit{
-        9, 8, 8, 10, 12, 11,
-    };
+constexpr IndexArray AddressSpaceIndices36Bit{
+    4, 5, 4, 6, 4, 7,
+};
+
+constexpr IndexArray AddressSpaceIndices39Bit{
+    9, 8, 8, 10, 12, 11,
+};
 
 constexpr bool IsAllowed32BitType(AddressSpaceInfo::Type type) {
     return type < AddressSpaceInfo::Type::Count && type != AddressSpaceInfo::Type::Large64Bit &&
