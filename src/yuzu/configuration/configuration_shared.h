@@ -25,6 +25,8 @@ enum CheckState {
 struct Trackers {
     CheckState use_frame_limit;
     CheckState use_multi_core;
+
+    CheckState enable_audio_stretching;
 } extern trackers;
 
 // Global-aware apply and set functions
@@ -45,8 +47,8 @@ void SetPerGameSetting(QComboBox* combobox,
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
 
-void SetHighlight(QWidget* widget, bool highlighted);
-void SetColoredTristate(QCheckBox* checkbox, Settings::Setting<bool>& setting,
+void SetHighlight(QWidget* widget, const std::string& name, bool highlighted);
+void SetColoredTristate(QCheckBox* checkbox, const std::string& name, const Settings::Setting<bool>& setting,
                         ConfigurationShared::CheckState& tracker);
 
 void InsertGlobalItem(QComboBox* combobox);
