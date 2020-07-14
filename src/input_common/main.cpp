@@ -4,7 +4,6 @@
 
 #include <memory>
 #include <thread>
-#include <libusb.h>
 #include "common/param_package.h"
 #include "input_common/analog_from_button.h"
 #include "input_common/gcadapter/gc_adapter.h"
