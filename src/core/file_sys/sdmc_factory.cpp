@@ -10,6 +10,8 @@
 
 namespace FileSys {
 
+constexpr u64 SDMC_TOTAL_SIZE = 0x10000000000; // 1 TiB
+
 SDMCFactory::SDMCFactory(VirtualDir dir_)
     : dir(std::move(dir_)), contents(std::make_unique<RegisteredCache>(
                                 GetOrCreateDirectoryRelative(dir, "/Nintendo/Contents/registered"),
@@ -46,7 +48,7 @@ u64 SDMCFactory::GetSDMCFreeSpace() const {
 }
 
 u64 SDMCFactory::GetSDMCTotalSpace() const {
-    return static_cast<u64>(Settings::values.sdmc_size);
+    return SDMC_TOTAL_SIZE;
 }
 
 } // namespace FileSys

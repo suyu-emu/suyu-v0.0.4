@@ -335,15 +335,6 @@ void Config::ReadValues() {
     Settings::values.gamecard_current_game =
         sdl2_config->GetBoolean("Data Storage", "gamecard_current_game", false);
     Settings::values.gamecard_path = sdl2_config->Get("Data Storage", "gamecard_path", "");
-    Settings::values.nand_total_size = static_cast<Settings::NANDTotalSize>(sdl2_config->GetInteger(
-        "Data Storage", "nand_total_size", static_cast<long>(Settings::NANDTotalSize::S29_1GB)));
-    Settings::values.nand_user_size = static_cast<Settings::NANDUserSize>(sdl2_config->GetInteger(
-        "Data Storage", "nand_user_size", static_cast<long>(Settings::NANDUserSize::S26GB)));
-    Settings::values.nand_system_size = static_cast<Settings::NANDSystemSize>(
-        sdl2_config->GetInteger("Data Storage", "nand_system_size",
-                                static_cast<long>(Settings::NANDSystemSize::S2_5GB)));
-    Settings::values.sdmc_size = static_cast<Settings::SDMCSize>(sdl2_config->GetInteger(
-        "Data Storage", "sdmc_size", static_cast<long>(Settings::SDMCSize::S16GB)));
 
     // System
     Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);
