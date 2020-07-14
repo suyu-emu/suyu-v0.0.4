@@ -89,11 +89,11 @@ void ConfigurationShared::SetPerGameSetting(
 void ConfigurationShared::SetHighlight(QWidget* widget, const std::string& name, bool highlighted) {
     if (highlighted) {
         widget->setStyleSheet(
-            QStringLiteral("QWidget#%1 { border:2px solid;border-color:rgba(0,203,255,0.5) }")
+            QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")
                 .arg(QString::fromStdString(name)));
     } else {
         widget->setStyleSheet(
-            QStringLiteral("QWidget#%1 { border:2px solid;border-color:rgba(0,0,0,0) }")
+            QStringLiteral("QWidget#%1 { background-color:rgba(0,0,0,0) }")
                 .arg(QString::fromStdString(name)));
     }
     widget->show();
