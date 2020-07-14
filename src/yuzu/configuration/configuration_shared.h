@@ -27,6 +27,14 @@ struct Trackers {
     CheckState use_multi_core;
 
     CheckState enable_audio_stretching;
+
+    CheckState use_disk_shader_cache;
+    CheckState use_asynchronous_gpu_emulation;
+
+    CheckState use_vsync;
+    CheckState use_assembly_shaders;
+    CheckState use_fast_gpu_time;
+    CheckState force_30fps_mode;
 } extern trackers;
 
 // Global-aware apply and set functions
@@ -52,5 +60,6 @@ void SetColoredTristate(QCheckBox* checkbox, const std::string& name, const Sett
                         ConfigurationShared::CheckState& tracker);
 
 void InsertGlobalItem(QComboBox* combobox);
+void InsertGlobalItem(QComboBox* combobox, const QString& global);
 
 } // namespace ConfigurationShared
