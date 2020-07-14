@@ -14,50 +14,45 @@
 
 namespace Tegra::Engines {
 
+using namespace Texture;
+
 MaxwellDMA::MaxwellDMA(Core::System& system, MemoryManager& memory_manager)
     : system{system}, memory_manager{memory_manager} {}
 
 void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
-    ASSERT_MSG(method < Regs::NUM_REGS,
-               "Invalid MaxwellDMA register, increase the size of the Regs structure");
+    ASSERT_MSG(method < NUM_REGS, "Invalid MaxwellDMA register");
 
     regs.reg_array[method] = method_argument;
 
-#define MAXWELLDMA_REG_INDEX(field_name)                                                           \
-    (offsetof(Tegra::Engines::MaxwellDMA::Regs, field_name) / sizeof(u32))
-
-    switch (method) {
-    case MAXWELLDMA_REG_INDEX(exec): {
-        HandleCopy();
-        break;
+    if (method == offsetof(Regs, launch_dma) / sizeof(u32)) {
+        Launch();
     }
-    }
-
-#undef MAXWELLDMA_REG_INDEX
 }
 
 void MaxwellDMA::CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                                  u32 methods_pending) {
-    for (std::size_t i = 0; i < amount; i++) {
+    for (size_t i = 0; i < amount; ++i) {
         CallMethod(method, base_start[i], methods_pending - static_cast<u32>(i) <= 1);
     }
 }
 
-void MaxwellDMA::HandleCopy() {
-    LOG_TRACE(HW_GPU, "Requested a DMA copy");
-
-    const GPUVAddr source = regs.src_address.Address();
-    const GPUVAddr dest = regs.dst_address.Address();
+void MaxwellDMA::Launch() {
+    LOG_TRACE(Render_OpenGL, "DMA copy 0x{:x} -> 0x{:x}", static_cast<GPUVAddr>(regs.offset_in),
+              static_cast<GPUVAddr>(regs.offset_out));
 
     // TODO(Subv): Perform more research and implement all features of this engine.
-    ASSERT(regs.exec.enable_swizzle == 0);
-    ASSERT(regs.exec.query_mode == Regs::QueryMode::None);
-    ASSERT(regs.exec.query_intr == Regs::QueryIntr::None);
-    ASSERT(regs.exec.copy_mode == Regs::CopyMode::Unk2);
-    ASSERT(regs.dst_params.pos_x == 0);
-    ASSERT(regs.dst_params.pos_y == 0);
+    const LaunchDMA& launch = regs.launch_dma;
+    ASSERT(launch.remap_enable == 0);
+    ASSERT(launch.semaphore_type == LaunchDMA::SemaphoreType::NONE);
+    ASSERT(launch.interrupt_type == LaunchDMA::InterruptType::NONE);
+    ASSERT(launch.data_transfer_type == LaunchDMA::DataTransferType::NON_PIPELINED);
+    ASSERT(regs.dst_params.origin.x == 0);
+    ASSERT(regs.dst_params.origin.y == 0);
 
-    if (!regs.exec.is_dst_linear && !regs.exec.is_src_linear) {
+    const bool is_src_pitch = launch.src_memory_layout == LaunchDMA::MemoryLayout::PITCH;
+    const bool is_dst_pitch = launch.dst_memory_layout == LaunchDMA::MemoryLayout::PITCH;
+
+    if (!is_src_pitch && !is_dst_pitch) {
         // If both the source and the destination are in block layout, assert.
         UNREACHABLE_MSG("Tiled->Tiled DMA transfers are not yet implemented");
         return;
@@ -66,144 +61,161 @@ void MaxwellDMA::HandleCopy() {
     // All copies here update the main memory, so mark all rasterizer states as invalid.
     system.GPU().Maxwell3D().OnMemoryWrite();
 
-    if (regs.exec.is_dst_linear && regs.exec.is_src_linear) {
-        // When the enable_2d bit is disabled, the copy is performed as if we were copying a 1D
-        // buffer of length `x_count`, otherwise we copy a 2D image of dimensions (x_count,
-        // y_count).
-        if (!regs.exec.enable_2d) {
-            memory_manager.CopyBlock(dest, source, regs.x_count);
-            return;
-        }
+    if (is_src_pitch && is_dst_pitch) {
+        CopyPitchToPitch();
+    } else {
+        ASSERT(launch.multi_line_enable == 1);
 
-        // If both the source and the destination are in linear layout, perform a line-by-line
-        // copy. We're going to take a subrect of size (x_count, y_count) from the source
-        // rectangle. There is no need to manually flush/invalidate the regions because
-        // CopyBlock does that for us.
-        for (u32 line = 0; line < regs.y_count; ++line) {
-            const GPUVAddr source_line = source + line * regs.src_pitch;
-            const GPUVAddr dest_line = dest + line * regs.dst_pitch;
-            memory_manager.CopyBlock(dest_line, source_line, regs.x_count);
+        if (!is_src_pitch && is_dst_pitch) {
+            CopyBlockLinearToPitch();
+        } else {
+            CopyPitchToBlockLinear();
         }
+    }
+}
+
+void MaxwellDMA::CopyPitchToPitch() {
+    // When `multi_line_enable` bit is disabled the copy is performed as if we were copying a 1D
+    // buffer of length `line_length_in`.
+    // Otherwise we copy a 2D image of dimensions (line_length_in, line_count).
+    if (!regs.launch_dma.multi_line_enable) {
+        memory_manager.CopyBlock(regs.offset_out, regs.offset_in, regs.line_length_in);
         return;
     }
 
-    ASSERT(regs.exec.enable_2d == 1);
-
-    if (regs.exec.is_dst_linear && !regs.exec.is_src_linear) {
-
-        ASSERT(regs.src_params.BlockDepth() == 0);
-        // Optimized path for micro copies.
-        if (regs.dst_pitch * regs.y_count < Texture::GetGOBSize() && regs.dst_pitch <= 64) {
-            const u32 bytes_per_pixel = regs.dst_pitch / regs.x_count;
-            const std::size_t src_size = Texture::GetGOBSize();
-            const std::size_t dst_size = regs.dst_pitch * regs.y_count;
-            u32 pos_x = regs.src_params.pos_x;
-            u32 pos_y = regs.src_params.pos_y;
-            const u64 offset =
-                Texture::GetGOBOffset(regs.src_params.size_x, regs.src_params.size_y, pos_x, pos_y,
-                                      regs.src_params.BlockDepth(), bytes_per_pixel);
-            const u32 x_in_gob = 64 / bytes_per_pixel;
-            pos_x = pos_x % x_in_gob;
-            pos_y = pos_y % 8;
-
-            if (read_buffer.size() < src_size) {
-                read_buffer.resize(src_size);
-            }
-
-            if (write_buffer.size() < dst_size) {
-                write_buffer.resize(dst_size);
-            }
-
-            if (Settings::IsGPULevelExtreme()) {
-                memory_manager.ReadBlock(source + offset, read_buffer.data(), src_size);
-                memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
-            } else {
-                memory_manager.ReadBlockUnsafe(source + offset, read_buffer.data(), src_size);
-                memory_manager.ReadBlockUnsafe(dest, write_buffer.data(), dst_size);
-            }
-
-            Texture::UnswizzleSubrect(regs.x_count, regs.y_count, regs.dst_pitch,
-                                      regs.src_params.size_x, bytes_per_pixel, read_buffer.data(),
-                                      write_buffer.data(), regs.src_params.BlockHeight(), pos_x,
-                                      pos_y);
-
-            memory_manager.WriteBlock(dest, write_buffer.data(), dst_size);
-
-            return;
-        }
-        // If the input is tiled and the output is linear, deswizzle the input and copy it over.
-        const u32 bytes_per_pixel = regs.dst_pitch / regs.x_count;
-        const std::size_t src_size = Texture::CalculateSize(
-            true, bytes_per_pixel, regs.src_params.size_x, regs.src_params.size_y,
-            regs.src_params.size_z, regs.src_params.BlockHeight(), regs.src_params.BlockDepth());
-
-        const std::size_t src_layer_size = Texture::CalculateSize(
-            true, bytes_per_pixel, regs.src_params.size_x, regs.src_params.size_y, 1,
-            regs.src_params.BlockHeight(), regs.src_params.BlockDepth());
-
-        const std::size_t dst_size = regs.dst_pitch * regs.y_count;
-
-        if (read_buffer.size() < src_size) {
-            read_buffer.resize(src_size);
-        }
-
-        if (write_buffer.size() < dst_size) {
-            write_buffer.resize(dst_size);
-        }
-
-        if (Settings::IsGPULevelExtreme()) {
-            memory_manager.ReadBlock(source, read_buffer.data(), src_size);
-            memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
-        } else {
-            memory_manager.ReadBlockUnsafe(source, read_buffer.data(), src_size);
-            memory_manager.ReadBlockUnsafe(dest, write_buffer.data(), dst_size);
-        }
-
-        Texture::UnswizzleSubrect(
-            regs.x_count, regs.y_count, regs.dst_pitch, regs.src_params.size_x, bytes_per_pixel,
-            read_buffer.data() + src_layer_size * regs.src_params.pos_z, write_buffer.data(),
-            regs.src_params.BlockHeight(), regs.src_params.pos_x, regs.src_params.pos_y);
-
-        memory_manager.WriteBlock(dest, write_buffer.data(), dst_size);
-    } else {
-        ASSERT(regs.dst_params.BlockDepth() == 0);
-
-        const u32 bytes_per_pixel = regs.src_pitch / regs.x_count;
-
-        const std::size_t dst_size = Texture::CalculateSize(
-            true, bytes_per_pixel, regs.dst_params.size_x, regs.dst_params.size_y,
-            regs.dst_params.size_z, regs.dst_params.BlockHeight(), regs.dst_params.BlockDepth());
-
-        const std::size_t dst_layer_size = Texture::CalculateSize(
-            true, bytes_per_pixel, regs.dst_params.size_x, regs.dst_params.size_y, 1,
-            regs.dst_params.BlockHeight(), regs.dst_params.BlockDepth());
-
-        const std::size_t src_size = regs.src_pitch * regs.y_count;
-
-        if (read_buffer.size() < src_size) {
-            read_buffer.resize(src_size);
-        }
-
-        if (write_buffer.size() < dst_size) {
-            write_buffer.resize(dst_size);
-        }
-
-        if (Settings::IsGPULevelExtreme()) {
-            memory_manager.ReadBlock(source, read_buffer.data(), src_size);
-            memory_manager.ReadBlock(dest, write_buffer.data(), dst_size);
-        } else {
-            memory_manager.ReadBlockUnsafe(source, read_buffer.data(), src_size);
-            memory_manager.ReadBlockUnsafe(dest, write_buffer.data(), dst_size);
-        }
-
-        // If the input is linear and the output is tiled, swizzle the input and copy it over.
-        Texture::SwizzleSubrect(
-            regs.x_count, regs.y_count, regs.src_pitch, regs.dst_params.size_x, bytes_per_pixel,
-            write_buffer.data() + dst_layer_size * regs.dst_params.pos_z, read_buffer.data(),
-            regs.dst_params.BlockHeight(), regs.dst_params.pos_x, regs.dst_params.pos_y);
-
-        memory_manager.WriteBlock(dest, write_buffer.data(), dst_size);
+    // Perform a line-by-line copy.
+    // We're going to take a subrect of size (line_length_in, line_count) from the source rectangle.
+    // There is no need to manually flush/invalidate the regions because CopyBlock does that for us.
+    for (u32 line = 0; line < regs.line_count; ++line) {
+        const GPUVAddr source_line = regs.offset_in + static_cast<size_t>(line) * regs.pitch_in;
+        const GPUVAddr dest_line = regs.offset_out + static_cast<size_t>(line) * regs.pitch_out;
+        memory_manager.CopyBlock(dest_line, source_line, regs.line_length_in);
     }
+}
+
+void MaxwellDMA::CopyBlockLinearToPitch() {
+    ASSERT(regs.src_params.block_size.depth == 0);
+
+    // Optimized path for micro copies.
+    const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
+    if (dst_size < GOB_SIZE && regs.pitch_out <= GOB_SIZE_X) {
+        FastCopyBlockLinearToPitch();
+        return;
+    }
+
+    // Deswizzle the input and copy it over.
+    const u32 bytes_per_pixel = regs.pitch_out / regs.line_length_in;
+    const Parameters& src_params = regs.src_params;
+    const u32 width = src_params.width;
+    const u32 height = src_params.height;
+    const u32 depth = src_params.depth;
+    const u32 block_height = src_params.block_size.height;
+    const u32 block_depth = src_params.block_size.depth;
+    const size_t src_size =
+        CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
+    const size_t src_layer_size =
+        CalculateSize(true, bytes_per_pixel, width, height, 1, block_height, block_depth);
+
+    if (read_buffer.size() < src_size) {
+        read_buffer.resize(src_size);
+    }
+    if (write_buffer.size() < dst_size) {
+        write_buffer.resize(dst_size);
+    }
+
+    if (Settings::IsGPULevelExtreme()) {
+        memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
+        memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
+    } else {
+        memory_manager.ReadBlockUnsafe(regs.offset_in, read_buffer.data(), src_size);
+        memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
+    }
+
+    UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, width, bytes_per_pixel,
+                     read_buffer.data() + src_layer_size * src_params.layer, write_buffer.data(),
+                     block_height, src_params.origin.x, src_params.origin.y);
+
+    memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
+}
+
+void MaxwellDMA::CopyPitchToBlockLinear() {
+    const auto& dst_params = regs.dst_params;
+    const u32 bytes_per_pixel = regs.pitch_in / regs.line_length_in;
+    const u32 width = dst_params.width;
+    const u32 height = dst_params.height;
+    const u32 depth = dst_params.depth;
+    const u32 block_height = dst_params.block_size.height;
+    const u32 block_depth = dst_params.block_size.depth;
+    const size_t dst_size =
+        CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
+    const size_t dst_layer_size =
+        CalculateSize(true, bytes_per_pixel, width, height, 1, block_height, block_depth);
+
+    const size_t src_size = static_cast<size_t>(regs.pitch_in) * regs.line_count;
+
+    if (read_buffer.size() < src_size) {
+        read_buffer.resize(src_size);
+    }
+    if (write_buffer.size() < dst_size) {
+        write_buffer.resize(dst_size);
+    }
+
+    if (Settings::IsGPULevelExtreme()) {
+        memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
+        memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
+    } else {
+        memory_manager.ReadBlockUnsafe(regs.offset_in, read_buffer.data(), src_size);
+        memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
+    }
+
+    // If the input is linear and the output is tiled, swizzle the input and copy it over.
+    if (regs.dst_params.block_size.depth > 0) {
+        ASSERT(dst_params.layer == 0);
+        SwizzleSliceToVoxel(regs.line_length_in, regs.line_count, regs.pitch_in, width, height,
+                            bytes_per_pixel, block_height, block_depth, dst_params.origin.x,
+                            dst_params.origin.y, write_buffer.data(), read_buffer.data());
+    } else {
+        SwizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_in, width, bytes_per_pixel,
+                       write_buffer.data() + dst_layer_size * dst_params.layer, read_buffer.data(),
+                       block_height, dst_params.origin.x, dst_params.origin.y);
+    }
+
+    memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
+}
+
+void MaxwellDMA::FastCopyBlockLinearToPitch() {
+    const u32 bytes_per_pixel = regs.pitch_out / regs.line_length_in;
+    const size_t src_size = GOB_SIZE;
+    const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
+    u32 pos_x = regs.src_params.origin.x;
+    u32 pos_y = regs.src_params.origin.y;
+    const u64 offset = GetGOBOffset(regs.src_params.width, regs.src_params.height, pos_x, pos_y,
+                                    regs.src_params.block_size.height, bytes_per_pixel);
+    const u32 x_in_gob = 64 / bytes_per_pixel;
+    pos_x = pos_x % x_in_gob;
+    pos_y = pos_y % 8;
+
+    if (read_buffer.size() < src_size) {
+        read_buffer.resize(src_size);
+    }
+
+    if (write_buffer.size() < dst_size) {
+        write_buffer.resize(dst_size);
+    }
+
+    if (Settings::IsGPULevelExtreme()) {
+        memory_manager.ReadBlock(regs.offset_in + offset, read_buffer.data(), src_size);
+        memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
+    } else {
+        memory_manager.ReadBlockUnsafe(regs.offset_in + offset, read_buffer.data(), src_size);
+        memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
+    }
+
+    UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, regs.src_params.width,
+                     bytes_per_pixel, read_buffer.data(), write_buffer.data(),
+                     regs.src_params.block_size.height, pos_x, pos_y);
+
+    memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
 }
 
 } // namespace Tegra::Engines
