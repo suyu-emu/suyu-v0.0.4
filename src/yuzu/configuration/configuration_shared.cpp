@@ -11,16 +11,6 @@
 #include "yuzu/configuration/configure_per_game.h"
 
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
-                                              const QCheckBox* checkbox) {
-    if (checkbox->checkState() == Qt::PartiallyChecked) {
-        setting->SetGlobal(true);
-    } else {
-        setting->SetGlobal(false);
-        setting->SetValue(checkbox->checkState() == Qt::Checked);
-    }
-}
-
-void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
                                               const QCheckBox* checkbox,
                                               const CheckState& tracker) {
     if (tracker == CheckState::Global) {
@@ -140,12 +130,6 @@ void ConfigurationShared::SetColoredComboBox(QComboBox* combobox, QWidget* targe
                      [target, target_name](int index) {
                          ConfigurationShared::SetHighlight(target, target_name, index != 0);
                      });
-}
-
-void ConfigurationShared::InsertGlobalItem(QComboBox* combobox) {
-    const QString use_global_text = ConfigurePerGame::tr("Use global configuration");
-    combobox->insertItem(ConfigurationShared::USE_GLOBAL_INDEX, use_global_text);
-    combobox->insertSeparator(ConfigurationShared::USE_GLOBAL_SEPARATOR_INDEX);
 }
 
 void ConfigurationShared::InsertGlobalItem(QComboBox* combobox, int global_index) {

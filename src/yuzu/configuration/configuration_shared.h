@@ -26,7 +26,6 @@ enum class CheckState {
 
 void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox,
                          const CheckState& tracker);
-void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox);
 void ApplyPerGameSetting(Settings::Setting<int>* setting, const QComboBox* combobox);
 void ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
                          const QComboBox* combobox);
@@ -48,7 +47,6 @@ void SetColoredTristate(QCheckBox* checkbox, const std::string& name, bool globa
 void SetColoredComboBox(QComboBox* combobox, QWidget* target, const std::string& target_name,
                         int global);
 
-void InsertGlobalItem(QComboBox* combobox);
 void InsertGlobalItem(QComboBox* combobox, int global_index);
 
 } // namespace ConfigurationShared
