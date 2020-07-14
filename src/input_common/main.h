@@ -21,6 +21,9 @@ namespace Settings::NativeButton {
 enum Values : int;
 }
 
+/// Reloads the input devices
+void ReloadInputDevices();
+
 namespace InputCommon {
 namespace Polling {
 

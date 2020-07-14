@@ -20,6 +20,7 @@
 #include "yuzu/configuration/configure_input.h"
 #include "yuzu/configuration/configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_player.h"
+#include "yuzu/configuration/configure_motion_touch.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
 #include "yuzu/configuration/configure_touchscreen_advanced.h"
 
@@ -130,6 +131,11 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem) {
 
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });
     connect(ui->buttonRestoreDefaults, &QPushButton::clicked, [this] { RestoreDefaults(); });
+
+    connect(ui->buttonMotionTouch, &QPushButton::clicked, [this] {
+        QDialog* motion_touch_dialog = new ConfigureMotionTouch(this);
+        return motion_touch_dialog->exec();
+    });
 
     RetranslateUI();
     LoadConfiguration();

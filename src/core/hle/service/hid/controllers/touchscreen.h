@@ -68,6 +68,7 @@ private:
                   "TouchScreenSharedMemory is an invalid size");
     TouchScreenSharedMemory shared_memory{};
     std::unique_ptr<Input::TouchDevice> touch_device;
+    std::unique_ptr<Input::TouchDevice> touch_btn_device;
     s64_le last_touch{};
 };
 } // namespace Service::HID
