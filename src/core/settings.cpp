@@ -62,6 +62,7 @@ const std::array<const char*, NumMouseButtons> mapping = {{
 }
 
 Values values = {};
+bool configuring_global = true;
 
 std::string GetTimeZoneString() {
     static constexpr std::array<const char*, 46> timezones{{
@@ -73,9 +74,9 @@ std::string GetTimeZoneString() {
         "UCT",       "Universal", "UTC", "W-SU",    "WET",     "Zulu",
     }};
 
-    ASSERT(Settings::values.time_zone_index < timezones.size());
+    ASSERT(Settings::values.time_zone_index.GetValue() < timezones.size());
 
-    return timezones[Settings::values.time_zone_index];
+    return timezones[Settings::values.time_zone_index.GetValue()];
 }
 
 void Apply() {
@@ -97,25 +98,25 @@ void LogSetting(const std::string& name, const T& value) {
 
 void LogSettings() {
     LOG_INFO(Config, "yuzu Configuration:");
-    LogSetting("System_UseDockedMode", Settings::values.use_docked_mode);
-    LogSetting("System_RngSeed", Settings::values.rng_seed.value_or(0));
+    LogSetting("Controls_UseDockedMode", Settings::values.use_docked_mode);
+    LogSetting("System_RngSeed", Settings::values.rng_seed.GetValue().value_or(0));
     LogSetting("System_CurrentUser", Settings::values.current_user);
-    LogSetting("System_LanguageIndex", Settings::values.language_index);
-    LogSetting("System_RegionIndex", Settings::values.region_index);
-    LogSetting("System_TimeZoneIndex", Settings::values.time_zone_index);
-    LogSetting("Core_UseMultiCore", Settings::values.use_multi_core);
-    LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor);
-    LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit);
-    LogSetting("Renderer_FrameLimit", Settings::values.frame_limit);
-    LogSetting("Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache);
-    LogSetting("Renderer_GPUAccuracyLevel", Settings::values.gpu_accuracy);
+    LogSetting("System_LanguageIndex", Settings::values.language_index.GetValue());
+    LogSetting("System_RegionIndex", Settings::values.region_index.GetValue());
+    LogSetting("System_TimeZoneIndex", Settings::values.time_zone_index.GetValue());
+    LogSetting("Core_UseMultiCore", Settings::values.use_multi_core.GetValue());
+    LogSetting("Renderer_UseResolutionFactor", Settings::values.resolution_factor.GetValue());
+    LogSetting("Renderer_UseFrameLimit", Settings::values.use_frame_limit.GetValue());
+    LogSetting("Renderer_FrameLimit", Settings::values.frame_limit.GetValue());
+    LogSetting("Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache.GetValue());
+    LogSetting("Renderer_GPUAccuracyLevel", Settings::values.gpu_accuracy.GetValue());
     LogSetting("Renderer_UseAsynchronousGpuEmulation",
-               Settings::values.use_asynchronous_gpu_emulation);
-    LogSetting("Renderer_UseVsync", Settings::values.use_vsync);
-    LogSetting("Renderer_UseAssemblyShaders", Settings::values.use_assembly_shaders);
-    LogSetting("Renderer_AnisotropicFilteringLevel", Settings::values.max_anisotropy);
+               Settings::values.use_asynchronous_gpu_emulation.GetValue());
+    LogSetting("Renderer_UseVsync", Settings::values.use_vsync.GetValue());
+    LogSetting("Renderer_UseAssemblyShaders", Settings::values.use_assembly_shaders.GetValue());
+    LogSetting("Renderer_AnisotropicFilteringLevel", Settings::values.max_anisotropy.GetValue());
     LogSetting("Audio_OutputEngine", Settings::values.sink_id);
-    LogSetting("Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
+    LogSetting("Audio_EnableAudioStretching", Settings::values.enable_audio_stretching.GetValue());
     LogSetting("Audio_OutputDevice", Settings::values.audio_device_id);
     LogSetting("DataStorage_UseVirtualSd", Settings::values.use_virtual_sd);
     LogSetting("DataStorage_NandDir", FileUtil::GetUserPath(FileUtil::UserPath::NANDDir));
@@ -131,15 +132,56 @@ float Volume() {
     if (values.audio_muted) {
         return 0.0f;
     }
-    return values.volume;
+    return values.volume.GetValue();
 }
 
 bool IsGPULevelExtreme() {
-    return values.gpu_accuracy == GPUAccuracy::Extreme;
+    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme;
 }
 
 bool IsGPULevelHigh() {
-    return values.gpu_accuracy == GPUAccuracy::Extreme || values.gpu_accuracy == GPUAccuracy::High;
+    return values.gpu_accuracy.GetValue() == GPUAccuracy::Extreme ||
+           values.gpu_accuracy.GetValue() == GPUAccuracy::High;
+}
+
+void RestoreGlobalState() {
+    // If a game is running, DO NOT restore the global settings state
+    if (Core::System::GetInstance().IsPoweredOn()) {
+        return;
+    }
+
+    // Audio
+    values.enable_audio_stretching.SetGlobal(true);
+    values.volume.SetGlobal(true);
+
+    // Core
+    values.use_multi_core.SetGlobal(true);
+
+    // Renderer
+    values.renderer_backend.SetGlobal(true);
+    values.vulkan_device.SetGlobal(true);
+    values.aspect_ratio.SetGlobal(true);
+    values.max_anisotropy.SetGlobal(true);
+    values.use_frame_limit.SetGlobal(true);
+    values.frame_limit.SetGlobal(true);
+    values.use_disk_shader_cache.SetGlobal(true);
+    values.gpu_accuracy.SetGlobal(true);
+    values.use_asynchronous_gpu_emulation.SetGlobal(true);
+    values.use_vsync.SetGlobal(true);
+    values.use_assembly_shaders.SetGlobal(true);
+    values.use_fast_gpu_time.SetGlobal(true);
+    values.force_30fps_mode.SetGlobal(true);
+    values.bg_red.SetGlobal(true);
+    values.bg_green.SetGlobal(true);
+    values.bg_blue.SetGlobal(true);
+
+    // System
+    values.language_index.SetGlobal(true);
+    values.region_index.SetGlobal(true);
+    values.time_zone_index.SetGlobal(true);
+    values.rng_seed.SetGlobal(true);
+    values.custom_rtc.SetGlobal(true);
+    values.sound_index.SetGlobal(true);
 }
 
 } // namespace Settings

@@ -10,19 +10,19 @@ namespace Service::Nvidia {
 
 NVMEMP::NVMEMP() : ServiceFramework("nvmemp") {
     static const FunctionInfo functions[] = {
-        {0, &NVMEMP::Cmd0, "Cmd0"},
-        {1, &NVMEMP::Cmd1, "Cmd1"},
+        {0, &NVMEMP::Open, "Open"},
+        {1, &NVMEMP::GetAruid, "GetAruid"},
     };
     RegisterHandlers(functions);
 }
 
 NVMEMP::~NVMEMP() = default;
 
-void NVMEMP::Cmd0(Kernel::HLERequestContext& ctx) {
+void NVMEMP::Open(Kernel::HLERequestContext& ctx) {
     UNIMPLEMENTED();
 }
 
-void NVMEMP::Cmd1(Kernel::HLERequestContext& ctx) {
+void NVMEMP::GetAruid(Kernel::HLERequestContext& ctx) {
     UNIMPLEMENTED();
 }
 

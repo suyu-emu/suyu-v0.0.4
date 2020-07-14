@@ -332,23 +332,23 @@ private:
 
         if constexpr (has_extended_dynamic_state) {
             // With extended dynamic states we can specify the length and stride of a vertex buffer
-            // std::array<VkDeviceSize, N> sizes;
+            std::array<VkDeviceSize, N> sizes;
             std::array<u16, N> strides;
-            // std::copy(vertex.sizes.begin(), vertex.sizes.begin() + N, sizes.begin());
+            std::copy(vertex.sizes.begin(), vertex.sizes.begin() + N, sizes.begin());
             std::copy(vertex.strides.begin(), vertex.strides.begin() + N, strides.begin());
 
             if constexpr (is_indexed) {
                 scheduler.Record(
-                    [buffers, offsets, strides, index = index](vk::CommandBuffer cmdbuf) {
+                    [buffers, offsets, sizes, strides, index = index](vk::CommandBuffer cmdbuf) {
                         cmdbuf.BindIndexBuffer(index.buffer, index.offset, index.type);
                         cmdbuf.BindVertexBuffers2EXT(0, static_cast<u32>(N), buffers.data(),
-                                                     offsets.data(), nullptr,
+                                                     offsets.data(), sizes.data(),
                                                      ExpandStrides(strides).data());
                     });
             } else {
-                scheduler.Record([buffers, offsets, strides](vk::CommandBuffer cmdbuf) {
+                scheduler.Record([buffers, offsets, sizes, strides](vk::CommandBuffer cmdbuf) {
                     cmdbuf.BindVertexBuffers2EXT(0, static_cast<u32>(N), buffers.data(),
-                                                 offsets.data(), nullptr,
+                                                 offsets.data(), sizes.data(),
                                                  ExpandStrides(strides).data());
                 });
             }

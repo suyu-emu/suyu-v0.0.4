@@ -189,19 +189,24 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
     // Log user configuration information
     constexpr auto field_type = Telemetry::FieldType::UserConfig;
     AddField(field_type, "Audio_SinkId", Settings::values.sink_id);
-    AddField(field_type, "Audio_EnableAudioStretching", Settings::values.enable_audio_stretching);
-    AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core);
-    AddField(field_type, "Renderer_Backend", TranslateRenderer(Settings::values.renderer_backend));
-    AddField(field_type, "Renderer_ResolutionFactor", Settings::values.resolution_factor);
-    AddField(field_type, "Renderer_UseFrameLimit", Settings::values.use_frame_limit);
-    AddField(field_type, "Renderer_FrameLimit", Settings::values.frame_limit);
-    AddField(field_type, "Renderer_UseDiskShaderCache", Settings::values.use_disk_shader_cache);
+    AddField(field_type, "Audio_EnableAudioStretching",
+             Settings::values.enable_audio_stretching.GetValue());
+    AddField(field_type, "Core_UseMultiCore", Settings::values.use_multi_core.GetValue());
+    AddField(field_type, "Renderer_Backend",
+             TranslateRenderer(Settings::values.renderer_backend.GetValue()));
+    AddField(field_type, "Renderer_ResolutionFactor",
+             Settings::values.resolution_factor.GetValue());
+    AddField(field_type, "Renderer_UseFrameLimit", Settings::values.use_frame_limit.GetValue());
+    AddField(field_type, "Renderer_FrameLimit", Settings::values.frame_limit.GetValue());
+    AddField(field_type, "Renderer_UseDiskShaderCache",
+             Settings::values.use_disk_shader_cache.GetValue());
     AddField(field_type, "Renderer_GPUAccuracyLevel",
-             TranslateGPUAccuracyLevel(Settings::values.gpu_accuracy));
+             TranslateGPUAccuracyLevel(Settings::values.gpu_accuracy.GetValue()));
     AddField(field_type, "Renderer_UseAsynchronousGpuEmulation",
-             Settings::values.use_asynchronous_gpu_emulation);
-    AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync);
-    AddField(field_type, "Renderer_UseAssemblyShaders", Settings::values.use_assembly_shaders);
+             Settings::values.use_asynchronous_gpu_emulation.GetValue());
+    AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync.GetValue());
+    AddField(field_type, "Renderer_UseAssemblyShaders",
+             Settings::values.use_assembly_shaders.GetValue());
     AddField(field_type, "System_UseDockedMode", Settings::values.use_docked_mode);
 }
 

@@ -19,7 +19,7 @@ namespace Service::SPL {
 
 Module::Interface::Interface(std::shared_ptr<Module> module, const char* name)
     : ServiceFramework(name), module(std::move(module)),
-      rng(Settings::values.rng_seed.value_or(std::time(nullptr))) {}
+      rng(Settings::values.rng_seed.GetValue().value_or(std::time(nullptr))) {}
 
 Module::Interface::~Interface() = default;
 

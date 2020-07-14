@@ -6,6 +6,7 @@
 // licensed under GPLv2 or later under exception provided by the author.
 
 #include <algorithm>
+#include <mutex>
 #include <set>
 #include <unordered_set>
 #include <utility>
@@ -31,22 +32,20 @@ GlobalScheduler::GlobalScheduler(KernelCore& kernel) : kernel{kernel} {}
 GlobalScheduler::~GlobalScheduler() = default;
 
 void GlobalScheduler::AddThread(std::shared_ptr<Thread> thread) {
-    global_list_guard.lock();
+    std::scoped_lock lock{global_list_guard};
     thread_list.push_back(std::move(thread));
-    global_list_guard.unlock();
 }
 
 void GlobalScheduler::RemoveThread(std::shared_ptr<Thread> thread) {
-    global_list_guard.lock();
+    std::scoped_lock lock{global_list_guard};
     thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
                       thread_list.end());
-    global_list_guard.unlock();
 }
 
 u32 GlobalScheduler::SelectThreads() {
     ASSERT(is_locked);
     const auto update_thread = [](Thread* thread, Scheduler& sched) {
-        sched.guard.lock();
+        std::scoped_lock lock{sched.guard};
         if (thread != sched.selected_thread_set.get()) {
             if (thread == nullptr) {
                 ++sched.idle_selection_count;
@@ -57,7 +56,6 @@ u32 GlobalScheduler::SelectThreads() {
             sched.is_context_switch_pending || (sched.selected_thread_set != sched.current_thread);
         sched.is_context_switch_pending = reschedule_pending;
         std::atomic_thread_fence(std::memory_order_seq_cst);
-        sched.guard.unlock();
         return reschedule_pending;
     };
     if (!is_reselection_pending.load()) {
@@ -757,11 +755,12 @@ void Scheduler::OnSwitch(void* this_scheduler) {
 
 void Scheduler::SwitchToCurrent() {
     while (true) {
-        guard.lock();
-        selected_thread = selected_thread_set;
-        current_thread = selected_thread;
-        is_context_switch_pending = false;
-        guard.unlock();
+        {
+            std::scoped_lock lock{guard};
+            selected_thread = selected_thread_set;
+            current_thread = selected_thread;
+            is_context_switch_pending = false;
+        }
         while (!is_context_switch_pending) {
             if (current_thread != nullptr && !current_thread->IsHLEThread()) {
                 current_thread->context_guard.lock();

@@ -142,10 +142,32 @@ std::shared_ptr<Dynarmic::A32::Jit> ARM_Dynarmic_32::MakeJit(Common::PageTable& 
     // Timing
     config.wall_clock_cntpct = uses_wall_clock;
 
-    // Optimizations
-    if (Settings::values.disable_cpu_opt) {
-        config.enable_optimizations = false;
-        config.enable_fast_dispatch = false;
+    // Safe optimizations
+    if (Settings::values.cpu_accuracy != Settings::CPUAccuracy::Accurate) {
+        if (!Settings::values.cpuopt_page_tables) {
+            config.page_table = nullptr;
+        }
+        if (!Settings::values.cpuopt_block_linking) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::BlockLinking;
+        }
+        if (!Settings::values.cpuopt_return_stack_buffer) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::ReturnStackBuffer;
+        }
+        if (!Settings::values.cpuopt_fast_dispatcher) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::FastDispatch;
+        }
+        if (!Settings::values.cpuopt_context_elimination) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::GetSetElimination;
+        }
+        if (!Settings::values.cpuopt_const_prop) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::ConstProp;
+        }
+        if (!Settings::values.cpuopt_misc_ir) {
+            config.optimizations &= ~Dynarmic::OptimizationFlag::MiscIROpt;
+        }
+        if (!Settings::values.cpuopt_reduce_misalign_checks) {
+            config.only_detect_misalignment_via_page_table_on_page_boundary = false;
+        }
     }
 
     return std::make_unique<Dynarmic::A32::Jit>(config);

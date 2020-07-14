@@ -112,19 +112,26 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
     const auto new_path =
         FileUtil::SanitizePath(new_path_, FileUtil::DirectorySeparator::PlatformDefault);
 
-    if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
-        FileUtil::IsDirectory(old_path) || !FileUtil::Rename(old_path, new_path))
-        return nullptr;
-
     if (cache.find(old_path) != cache.end()) {
-        auto cached = cache[old_path];
-        if (!cached.expired()) {
-            auto file = cached.lock();
-            file->Open(new_path, "r+b");
-            cache.erase(old_path);
-            cache[new_path] = file;
+        auto file = cache[old_path].lock();
+
+        if (!cache[old_path].expired()) {
+            file->Close();
         }
+
+        if (!FileUtil::Exists(old_path) || FileUtil::Exists(new_path) ||
+            FileUtil::IsDirectory(old_path) || !FileUtil::Rename(old_path, new_path)) {
+            return nullptr;
+        }
+
+        cache.erase(old_path);
+        file->Open(new_path, "r+b");
+        cache[new_path] = file;
+    } else {
+        UNREACHABLE();
+        return nullptr;
     }
+
     return OpenFile(new_path, Mode::ReadWrite);
 }
 

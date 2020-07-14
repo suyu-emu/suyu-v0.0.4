@@ -213,7 +213,7 @@ ShaderDiskCacheOpenGL::~ShaderDiskCacheOpenGL() = default;
 std::optional<std::vector<ShaderDiskCacheEntry>> ShaderDiskCacheOpenGL::LoadTransferable() {
     // Skip games without title id
     const bool has_title_id = system.CurrentProcess()->GetTitleID() != 0;
-    if (!Settings::values.use_disk_shader_cache || !has_title_id) {
+    if (!Settings::values.use_disk_shader_cache.GetValue() || !has_title_id) {
         return {};
     }
 

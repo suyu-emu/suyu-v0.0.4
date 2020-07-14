@@ -249,7 +249,7 @@ public:
             auto& surface = render_targets[index].target;
             surface->MarkAsRenderTarget(false, NO_RT);
             const auto& cr_params = surface->GetSurfaceParams();
-            if (!cr_params.is_tiled && Settings::values.use_asynchronous_gpu_emulation) {
+            if (!cr_params.is_tiled && Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
                 AsyncFlushSurface(surface);
             }
         }

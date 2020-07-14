@@ -32,6 +32,8 @@ private:
 
     void RefreshConsoleID();
 
+    void SetupPerGameUI();
+
     std::unique_ptr<Ui::ConfigureSystem> ui;
     bool enabled = false;
 

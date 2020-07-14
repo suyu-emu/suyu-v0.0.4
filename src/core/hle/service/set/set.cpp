@@ -91,7 +91,7 @@ void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t m
 }
 
 void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
-    const auto language_code = available_language_codes[Settings::values.language_index];
+    const auto language_code = available_language_codes[Settings::values.language_index.GetValue()];
     const auto key_code =
         std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
                      [=](const auto& element) { return element.first == language_code; });
@@ -99,7 +99,7 @@ void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
     if (key_code == language_to_layout.cend()) {
         LOG_ERROR(Service_SET,
                   "Could not find keyboard layout for language index {}, defaulting to English us",
-                  Settings::values.language_index);
+                  Settings::values.language_index.GetValue());
     } else {
         layout = key_code->second;
     }
@@ -163,11 +163,11 @@ void SET::GetQuestFlag(Kernel::HLERequestContext& ctx) {
 }
 
 void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index);
+    LOG_DEBUG(Service_SET, "called {}", Settings::values.language_index.GetValue());
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.PushEnum(available_language_codes[Settings::values.language_index]);
+    rb.PushEnum(available_language_codes[Settings::values.language_index.GetValue()]);
 }
 
 void SET::GetRegionCode(Kernel::HLERequestContext& ctx) {
@@ -175,7 +175,7 @@ void SET::GetRegionCode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(Settings::values.region_index);
+    rb.Push(Settings::values.region_index.GetValue());
 }
 
 void SET::GetKeyCodeMap(Kernel::HLERequestContext& ctx) {

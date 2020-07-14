@@ -24,10 +24,18 @@ add_executable(yuzu
     compatibility_list.h
     configuration/config.cpp
     configuration/config.h
+    configuration/configuration_shared.cpp
+    configuration/configuration_shared.h
     configuration/configure.ui
     configuration/configure_audio.cpp
     configuration/configure_audio.h
     configuration/configure_audio.ui
+    configuration/configure_cpu.cpp
+    configuration/configure_cpu.h
+    configuration/configure_cpu.ui
+    configuration/configure_cpu_debug.cpp
+    configuration/configure_cpu_debug.h
+    configuration/configure_cpu_debug.ui
     configuration/configure_debug.cpp
     configuration/configure_debug.h
     configuration/configure_debug.ui
@@ -60,9 +68,12 @@ add_executable(yuzu
     configuration/configure_mouse_advanced.cpp
     configuration/configure_mouse_advanced.h
     configuration/configure_mouse_advanced.ui
-    configuration/configure_per_general.cpp
-    configuration/configure_per_general.h
-    configuration/configure_per_general.ui
+    configuration/configure_per_game.cpp
+    configuration/configure_per_game.h
+    configuration/configure_per_game.ui
+    configuration/configure_per_game_addons.cpp
+    configuration/configure_per_game_addons.h
+    configuration/configure_per_game_addons.ui
     configuration/configure_profile_manager.cpp
     configuration/configure_profile_manager.h
     configuration/configure_profile_manager.ui
@@ -93,11 +104,13 @@ add_executable(yuzu
     game_list_p.h
     game_list_worker.cpp
     game_list_worker.h
+    hotkeys.cpp
+    hotkeys.h
+    install_dialog.cpp
+    install_dialog.h
     loading_screen.cpp
     loading_screen.h
     loading_screen.ui
-    hotkeys.cpp
-    hotkeys.h
     main.cpp
     main.h
     main.ui
@@ -147,7 +160,7 @@ endif()
 create_target_directory_groups(yuzu)
 
 target_link_libraries(yuzu PRIVATE common core input_common video_core)
-target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::OpenGL Qt5::Widgets)
+target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
 if (ENABLE_VULKAN AND NOT WIN32)

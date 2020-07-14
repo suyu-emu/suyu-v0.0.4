@@ -34,5 +34,7 @@ private:
     void SetAudioDeviceFromDeviceID();
     void SetVolumeIndicatorText(int percentage);
 
+    void SetupPerGameUI();
+
     std::unique_ptr<Ui::ConfigureAudio> ui;
 };

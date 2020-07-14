@@ -157,7 +157,7 @@ u64 GPU::GetTicks() const {
     constexpr u64 gpu_ticks_den = 625;
 
     u64 nanoseconds = system.CoreTiming().GetGlobalTimeNs().count();
-    if (Settings::values.use_fast_gpu_time) {
+    if (Settings::values.use_fast_gpu_time.GetValue()) {
         nanoseconds /= 256;
     }
     const u64 nanoseconds_num = nanoseconds / gpu_ticks_den;

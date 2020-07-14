@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
     Core::System& system{Core::System::GetInstance()};
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
-    switch (Settings::values.renderer_backend) {
+    switch (Settings::values.renderer_backend.GetValue()) {
     case Settings::RendererBackend::OpenGL:
         emu_window = std::make_unique<EmuWindow_SDL2_GL>(system, fullscreen);
         break;

@@ -42,6 +42,11 @@ public:
             {40101, nullptr, "SetUserAgreementCheckEnabled"},
             {50100, nullptr, "ReadAllApplicationReportFiles"},
             {90100, nullptr, "ReadAllReportFiles"},
+            {90101, nullptr, "Unknown90101"},
+            {90102, nullptr, "Unknown90102"},
+            {90200, nullptr, "GetStatistics"},
+            {90201, nullptr, "GetThroughputHistory"},
+            {90300, nullptr, "GetLastUploadError"},
         };
         // clang-format on
 

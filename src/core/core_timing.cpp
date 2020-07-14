@@ -172,7 +172,7 @@ void CoreTiming::ClearPendingEvents() {
 }
 
 void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
-    basic_lock.lock();
+    std::scoped_lock lock{basic_lock};
 
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
         return e.type.lock().get() == event_type.get();
@@ -183,12 +183,10 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
         event_queue.erase(itr, event_queue.end());
         std::make_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
-    basic_lock.unlock();
 }
 
 std::optional<s64> CoreTiming::Advance() {
-    std::scoped_lock advance_scope{advance_lock};
-    std::scoped_lock basic_scope{basic_lock};
+    std::scoped_lock lock{advance_lock, basic_lock};
     global_timer = GetGlobalTimeNs().count();
 
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {

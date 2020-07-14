@@ -42,6 +42,9 @@ public:
             {24, nullptr, "GetModuleStateTable"},
             {25, nullptr, "GetPowerDomainStateTable"},
             {26, nullptr, "GetFuseInfo"},
+            {27, nullptr, "GetDramId"},
+            {28, nullptr, "IsPoweredOn"},
+            {29, nullptr, "GetVoltage"},
         };
         // clang-format on
 

@@ -15,23 +15,20 @@
 
 #include "common/common_paths.h"
 #include "common/file_util.h"
-#include "core/file_sys/control_metadata.h"
+#include "core/core.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/xts_archive.h"
 #include "core/loader/loader.h"
-#include "ui_configure_per_general.h"
+#include "ui_configure_per_game_addons.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input.h"
-#include "yuzu/configuration/configure_per_general.h"
+#include "yuzu/configuration/configure_per_game_addons.h"
 #include "yuzu/uisettings.h"
 #include "yuzu/util/util.h"
 
-ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGameGeneral>()), title_id(title_id) {
-
+ConfigurePerGameAddons::ConfigurePerGameAddons(QWidget* parent)
+    : QWidget(parent), ui(new Ui::ConfigurePerGameAddons) {
     ui->setupUi(this);
-    setFocusPolicy(Qt::ClickFocus);
-    setWindowTitle(tr("Properties"));
 
     layout = new QVBoxLayout;
     tree_view = new QTreeView;
@@ -52,7 +49,7 @@ ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
     item_model->setHeaderData(1, Qt::Horizontal, tr("Version"));
 
     // We must register all custom types with the Qt Automoc system so that we are able to use it
-    // with signals/slots. In this case, QList falls under the umbrells of custom types.
+    // with signals/slots. In this case, QList falls under the umbrella of custom types.
     qRegisterMetaType<QList<QStandardItem*>>("QList<QStandardItem*>");
 
     layout->setContentsMargins(0, 0, 0, 0);
@@ -61,18 +58,15 @@ ConfigurePerGameGeneral::ConfigurePerGameGeneral(QWidget* parent, u64 title_id)
 
     ui->scrollArea->setLayout(layout);
 
-    scene = new QGraphicsScene;
-    ui->icon_view->setScene(scene);
+    ui->scrollArea->setEnabled(!Core::System::GetInstance().IsPoweredOn());
 
     connect(item_model, &QStandardItemModel::itemChanged,
             [] { UISettings::values.is_game_list_reload_pending.exchange(true); });
-
-    LoadConfiguration();
 }
 
-ConfigurePerGameGeneral::~ConfigurePerGameGeneral() = default;
+ConfigurePerGameAddons::~ConfigurePerGameAddons() = default;
 
-void ConfigurePerGameGeneral::ApplyConfiguration() {
+void ConfigurePerGameAddons::ApplyConfiguration() {
     std::vector<std::string> disabled_addons;
 
     for (const auto& item : list_items) {
@@ -92,71 +86,34 @@ void ConfigurePerGameGeneral::ApplyConfiguration() {
     Settings::values.disabled_addons[title_id] = disabled_addons;
 }
 
-void ConfigurePerGameGeneral::changeEvent(QEvent* event) {
-    if (event->type() == QEvent::LanguageChange) {
-        RetranslateUI();
-    }
-
-    QDialog::changeEvent(event);
-}
-
-void ConfigurePerGameGeneral::RetranslateUI() {
-    ui->retranslateUi(this);
-}
-
-void ConfigurePerGameGeneral::LoadFromFile(FileSys::VirtualFile file) {
+void ConfigurePerGameAddons::LoadFromFile(FileSys::VirtualFile file) {
     this->file = std::move(file);
     LoadConfiguration();
 }
 
-void ConfigurePerGameGeneral::LoadConfiguration() {
+void ConfigurePerGameAddons::SetTitleId(u64 id) {
+    this->title_id = id;
+}
+
+void ConfigurePerGameAddons::changeEvent(QEvent* event) {
+    if (event->type() == QEvent::LanguageChange) {
+        RetranslateUI();
+    }
+
+    QWidget::changeEvent(event);
+}
+
+void ConfigurePerGameAddons::RetranslateUI() {
+    ui->retranslateUi(this);
+}
+
+void ConfigurePerGameAddons::LoadConfiguration() {
     if (file == nullptr) {
         return;
     }
 
-    ui->display_title_id->setText(QString::fromStdString(fmt::format("{:016X}", title_id)));
-
     FileSys::PatchManager pm{title_id};
-    const auto control = pm.GetControlMetadata();
     const auto loader = Loader::GetLoader(file);
-
-    if (control.first != nullptr) {
-        ui->display_version->setText(QString::fromStdString(control.first->GetVersionString()));
-        ui->display_name->setText(QString::fromStdString(control.first->GetApplicationName()));
-        ui->display_developer->setText(QString::fromStdString(control.first->GetDeveloperName()));
-    } else {
-        std::string title;
-        if (loader->ReadTitle(title) == Loader::ResultStatus::Success)
-            ui->display_name->setText(QString::fromStdString(title));
-
-        FileSys::NACP nacp;
-        if (loader->ReadControlData(nacp) == Loader::ResultStatus::Success)
-            ui->display_developer->setText(QString::fromStdString(nacp.GetDeveloperName()));
-
-        ui->display_version->setText(QStringLiteral("1.0.0"));
-    }
-
-    if (control.second != nullptr) {
-        scene->clear();
-
-        QPixmap map;
-        const auto bytes = control.second->ReadAllBytes();
-        map.loadFromData(bytes.data(), static_cast<u32>(bytes.size()));
-
-        scene->addPixmap(map.scaled(ui->icon_view->width(), ui->icon_view->height(),
-                                    Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-    } else {
-        std::vector<u8> bytes;
-        if (loader->ReadIcon(bytes) == Loader::ResultStatus::Success) {
-            scene->clear();
-
-            QPixmap map;
-            map.loadFromData(bytes.data(), static_cast<u32>(bytes.size()));
-
-            scene->addPixmap(map.scaled(ui->icon_view->width(), ui->icon_view->height(),
-                                        Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
-        }
-    }
 
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);
@@ -182,12 +139,4 @@ void ConfigurePerGameGeneral::LoadConfiguration() {
     }
 
     tree_view->setColumnWidth(0, 5 * tree_view->width() / 16);
-
-    ui->display_filename->setText(QString::fromStdString(file->GetName()));
-
-    ui->display_format->setText(
-        QString::fromStdString(Loader::GetFileTypeString(loader->GetFileType())));
-
-    const auto valueText = ReadableByteSize(file->GetSize());
-    ui->display_size->setText(valueText);
 }

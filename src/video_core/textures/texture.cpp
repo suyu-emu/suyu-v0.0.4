@@ -48,7 +48,7 @@ constexpr std::array<float, 256> SRGB_CONVERSION_LUT = {
 };
 
 unsigned SettingsMinimumAnisotropy() noexcept {
-    switch (static_cast<Anisotropy>(Settings::values.max_anisotropy)) {
+    switch (static_cast<Anisotropy>(Settings::values.max_anisotropy.GetValue())) {
     default:
     case Anisotropy::Default:
         return 1U;

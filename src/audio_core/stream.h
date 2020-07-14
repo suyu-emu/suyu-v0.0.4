@@ -90,10 +90,10 @@ public:
 
 private:
     /// Plays the next queued buffer in the audio stream, starting playback if necessary
-    void PlayNextBuffer();
+    void PlayNextBuffer(s64 cycles_late = 0);
 
     /// Releases the actively playing buffer, signalling that it has been completed
-    void ReleaseActiveBuffer();
+    void ReleaseActiveBuffer(s64 cycles_late = 0);
 
     /// Gets the number of core cycles when the specified buffer will be released
     s64 GetBufferReleaseNS(const Buffer& buffer) const;

@@ -36,7 +36,6 @@ void ConfigureDebug::SetConfiguration() {
     ui->homebrew_args_edit->setText(QString::fromStdString(Settings::values.program_args));
     ui->reporting_services->setChecked(Settings::values.reporting_services);
     ui->quest_flag->setChecked(Settings::values.quest_flag);
-    ui->disable_cpu_opt->setChecked(Settings::values.disable_cpu_opt);
     ui->enable_graphics_debugging->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug);
     ui->disable_macro_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
@@ -51,7 +50,6 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();
     Settings::values.reporting_services = ui->reporting_services->isChecked();
     Settings::values.quest_flag = ui->quest_flag->isChecked();
-    Settings::values.disable_cpu_opt = ui->disable_cpu_opt->isChecked();
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();
     Debugger::ToggleConsole();

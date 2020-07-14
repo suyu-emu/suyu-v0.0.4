@@ -19,7 +19,7 @@ namespace {
 std::unique_ptr<VideoCore::RendererBase> CreateRenderer(Core::Frontend::EmuWindow& emu_window,
                                                         Core::System& system,
                                                         Core::Frontend::GraphicsContext& context) {
-    switch (Settings::values.renderer_backend) {
+    switch (Settings::values.renderer_backend.GetValue()) {
     case Settings::RendererBackend::OpenGL:
         return std::make_unique<OpenGL::RendererOpenGL>(emu_window, system, context);
 #ifdef HAS_VULKAN
@@ -42,7 +42,7 @@ std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Cor
         return nullptr;
     }
 
-    if (Settings::values.use_asynchronous_gpu_emulation) {
+    if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
         return std::make_unique<VideoCommon::GPUAsynch>(system, std::move(renderer),
                                                         std::move(context));
     }
@@ -51,8 +51,8 @@ std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Cor
 
 u16 GetResolutionScaleFactor(const RendererBase& renderer) {
     return static_cast<u16>(
-        Settings::values.resolution_factor != 0
-            ? Settings::values.resolution_factor
+        Settings::values.resolution_factor.GetValue() != 0
+            ? Settings::values.resolution_factor.GetValue()
             : renderer.GetRenderWindow().GetFramebufferLayout().GetScalingRatio());
 }
 

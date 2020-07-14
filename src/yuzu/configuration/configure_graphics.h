@@ -35,6 +35,8 @@ private:
 
     void RetrieveVulkanDevices();
 
+    void SetupPerGameUI();
+
     Settings::RendererBackend GetCurrentGraphicsBackend() const;
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;

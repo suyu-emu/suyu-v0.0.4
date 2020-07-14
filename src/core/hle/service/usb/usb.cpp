@@ -20,7 +20,7 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetDsEndpoint"},
             {1, nullptr, "GetSetupEvent"},
-            {2, nullptr, "Unknown"},
+            {2, nullptr, "Unknown2"},
             {3, nullptr, "EnableInterface"},
             {4, nullptr, "DisableInterface"},
             {5, nullptr, "CtrlInPostBufferAsync"},
@@ -55,6 +55,7 @@ public:
             {9, nullptr, "SetBinaryObjectStore"},
             {10, nullptr, "Enable"},
             {11, nullptr, "Disable"},
+            {12, nullptr, "Unknown12"},
         };
         // clang-format on
 
@@ -69,13 +70,13 @@ public:
         static const FunctionInfo functions[] = {
             {0, nullptr, "Open"},
             {1, nullptr, "Close"},
-            {2, nullptr, "Unknown1"},
+            {2, nullptr, "Unknown2"},
             {3, nullptr, "Populate"},
             {4, nullptr, "PostBufferAsync"},
             {5, nullptr, "GetXferReport"},
             {6, nullptr, "PostBufferMultiAsync"},
-            {7, nullptr, "Unknown3"},
-            {8, nullptr, "Unknown4"},
+            {7, nullptr, "Unknown7"},
+            {8, nullptr, "Unknown8"},
         };
         // clang-format on
 
@@ -88,13 +89,13 @@ public:
     explicit IClientIfSession() : ServiceFramework{"IClientIfSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown1"},
+            {0, nullptr, "Unknown0"},
             {1, nullptr, "SetInterface"},
             {2, nullptr, "GetInterface"},
             {3, nullptr, "GetAlternateInterface"},
             {4, nullptr, "GetCurrentFrame"},
             {5, nullptr, "CtrlXferAsync"},
-            {6, nullptr, "Unknown2"},
+            {6, nullptr, "Unknown6"},
             {7, nullptr, "GetCtrlXferReport"},
             {8, nullptr, "ResetDevice"},
             {9, nullptr, "OpenUsbEp"},
@@ -118,7 +119,7 @@ public:
             {5, nullptr, "DestroyInterfaceAvailableEvent"},
             {6, nullptr, "GetInterfaceStateChangeEvent"},
             {7, nullptr, "AcquireUsbIf"},
-            {8, nullptr, "Unknown1"},
+            {8, nullptr, "Unknown8"},
         };
         // clang-format on
 
@@ -179,8 +180,8 @@ public:
             {4, nullptr, "GetFwRevision"},
             {5, nullptr, "GetManufacturerId"},
             {6, nullptr, "GetDeviceId"},
-            {7, nullptr, "Unknown1"},
-            {8, nullptr, "Unknown2"},
+            {7, nullptr, "Unknown7"},
+            {8, nullptr, "Unknown8"},
         };
         // clang-format on
 
@@ -215,12 +216,12 @@ public:
     explicit USB_PM() : ServiceFramework{"usb:pm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "Unknown1"},
-            {1, nullptr, "Unknown2"},
-            {2, nullptr, "Unknown3"},
-            {3, nullptr, "Unknown4"},
-            {4, nullptr, "Unknown5"},
-            {5, nullptr, "Unknown6"},
+            {0, nullptr, "Unknown0"},
+            {1, nullptr, "Unknown1"},
+            {2, nullptr, "Unknown2"},
+            {3, nullptr, "Unknown3"},
+            {4, nullptr, "Unknown4"},
+            {5, nullptr, "Unknown5"},
         };
         // clang-format on
 

@@ -163,7 +163,7 @@ PL_U::PL_U(Core::System& system)
         {5, &PL_U::GetSharedFontInOrderOfPriority, "GetSharedFontInOrderOfPriority"},
         {6, nullptr, "GetSharedFontInOrderOfPriorityForSystem"},
         {100, nullptr, "RequestApplicationFunctionAuthorization"},
-        {101, nullptr, "RequestApplicationFunctionAuthorizationForSystem"},
+        {101, nullptr, "RequestApplicationFunctionAuthorizationByProcessId"},
         {102, nullptr, "RequestApplicationFunctionAuthorizationByApplicationId"},
         {1000, nullptr, "LoadNgWordDataForPlatformRegionChina"},
         {1001, nullptr, "GetNgWordDataSizeForPlatformRegionChina"},

@@ -409,7 +409,7 @@ bool RendererVulkan::PickDevices() {
         return false;
     }
 
-    const s32 device_index = Settings::values.vulkan_device;
+    const s32 device_index = Settings::values.vulkan_device.GetValue();
     if (device_index < 0 || device_index >= static_cast<s32>(devices->size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
         return false;
