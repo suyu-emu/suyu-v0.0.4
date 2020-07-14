@@ -45,8 +45,7 @@ void ConfigureGeneral::SetConfiguration() {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue());
     } else {
         ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue() &&
-                                    trackers.use_frame_limit !=
-                                        ConfigurationShared::CheckState::Global);
+                                    use_frame_limit != ConfigurationShared::CheckState::Global);
     }
 }
 
@@ -68,10 +67,9 @@ void ConfigureGeneral::ApplyConfiguration() {
         }
     } else {
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core,
-                                                 ui->use_multi_core, trackers.use_multi_core);
+                                                 ui->use_multi_core, use_multi_core);
 
-        bool global_frame_limit =
-            trackers.use_frame_limit == ConfigurationShared::CheckState::Global;
+        bool global_frame_limit = use_frame_limit == ConfigurationShared::CheckState::Global;
         Settings::values.use_frame_limit.SetGlobal(global_frame_limit);
         Settings::values.frame_limit.SetGlobal(global_frame_limit);
         if (!global_frame_limit) {
@@ -108,15 +106,12 @@ void ConfigureGeneral::SetupPerGameUI() {
     ui->toggle_hide_mouse->setVisible(false);
 
     ConfigurationShared::SetColoredTristate(ui->toggle_frame_limit, "toggle_frame_limit",
-                                            Settings::values.use_frame_limit,
-                                            trackers.use_frame_limit);
+                                            Settings::values.use_frame_limit, use_frame_limit);
     ConfigurationShared::SetColoredTristate(ui->use_multi_core, "use_multi_core",
-                                            Settings::values.use_multi_core,
-                                            trackers.use_multi_core);
+                                            Settings::values.use_multi_core, use_multi_core);
 
     connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit, [this]() {
-        ui->frame_limit->setEnabled(
-            ui->toggle_frame_limit->isChecked() &&
-            (trackers.use_frame_limit != ConfigurationShared::CheckState::Global));
+        ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked() &&
+                                    (use_frame_limit != ConfigurationShared::CheckState::Global));
     });
 }

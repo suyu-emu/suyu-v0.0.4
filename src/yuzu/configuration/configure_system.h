@@ -8,7 +8,10 @@
 
 #include <QList>
 #include <QWidget>
-#include "yuzu/configuration/configuration_shared.h"
+
+namespace ConfigurationShared {
+enum class CheckState;
+}
 
 namespace Ui {
 class ConfigureSystem;
@@ -43,8 +46,6 @@ private:
     int time_zone_index = 0;
     int sound_index = 0;
 
-    struct Trackers {
-        ConfigurationShared::CheckState use_rng_seed;
-        ConfigurationShared::CheckState use_custom_rtc;
-    } trackers;
+    ConfigurationShared::CheckState use_rng_seed;
+    ConfigurationShared::CheckState use_custom_rtc;
 };

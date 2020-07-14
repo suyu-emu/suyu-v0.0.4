@@ -148,7 +148,7 @@ void ConfigureSystem::ApplyConfiguration() {
                                                  ui->combo_time_zone);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.sound_index, ui->combo_sound);
 
-        switch (trackers.use_rng_seed) {
+        switch (use_rng_seed) {
         case ConfigurationShared::CheckState::On:
         case ConfigurationShared::CheckState::Off:
             Settings::values.rng_seed.SetGlobal(false);
@@ -168,7 +168,7 @@ void ConfigureSystem::ApplyConfiguration() {
             break;
         }
 
-        switch (trackers.use_custom_rtc) {
+        switch (use_custom_rtc) {
         case ConfigurationShared::CheckState::On:
         case ConfigurationShared::CheckState::Off:
             Settings::values.custom_rtc.SetGlobal(false);
@@ -237,9 +237,9 @@ void ConfigureSystem::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(
         ui->rng_seed_checkbox, "rng_seed_checkbox", Settings::values.rng_seed.UsingGlobal(),
         Settings::values.rng_seed.GetValue().has_value(),
-        Settings::values.rng_seed.GetValue(true).has_value(), trackers.use_rng_seed);
+        Settings::values.rng_seed.GetValue(true).has_value(), use_rng_seed);
     ConfigurationShared::SetColoredTristate(
         ui->custom_rtc_checkbox, "custom_rtc_checkbox", Settings::values.custom_rtc.UsingGlobal(),
         Settings::values.custom_rtc.GetValue().has_value(),
-        Settings::values.custom_rtc.GetValue(true).has_value(), trackers.use_custom_rtc);
+        Settings::values.custom_rtc.GetValue(true).has_value(), use_custom_rtc);
 }

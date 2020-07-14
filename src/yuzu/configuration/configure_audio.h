@@ -6,7 +6,10 @@
 
 #include <memory>
 #include <QWidget>
-#include "yuzu/configuration/configuration_shared.h"
+
+namespace ConfigurationShared {
+enum class CheckState;
+}
 
 namespace Ui {
 class ConfigureAudio;
@@ -39,7 +42,5 @@ private:
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
 
-    struct Trackers {
-        ConfigurationShared::CheckState enable_audio_stretching;
-    } trackers;
+    ConfigurationShared::CheckState enable_audio_stretching;
 };

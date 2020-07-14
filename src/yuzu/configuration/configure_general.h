@@ -6,7 +6,10 @@
 
 #include <memory>
 #include <QWidget>
-#include "yuzu/configuration/configuration_shared.h"
+
+namespace ConfigurationShared {
+enum class CheckState;
+}
 
 class HotkeyRegistry;
 
@@ -33,8 +36,6 @@ private:
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
 
-    struct Trackers {
-        ConfigurationShared::CheckState use_frame_limit;
-        ConfigurationShared::CheckState use_multi_core;
-    } trackers;
+    ConfigurationShared::CheckState use_frame_limit;
+    ConfigurationShared::CheckState use_multi_core;
 };
