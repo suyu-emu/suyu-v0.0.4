@@ -15,7 +15,7 @@ constexpr int USE_GLOBAL_INDEX = 0;
 constexpr int USE_GLOBAL_SEPARATOR_INDEX = 1;
 constexpr int USE_GLOBAL_OFFSET = 2;
 
-enum CheckState {
+enum class CheckState {
     Off,
     On,
     Global,
@@ -42,10 +42,9 @@ void SetPerGameSetting(QComboBox* combobox,
 
 void SetHighlight(QWidget* widget, const std::string& name, bool highlighted);
 void SetColoredTristate(QCheckBox* checkbox, const std::string& name,
-                        const Settings::Setting<bool>& setting,
-                        ConfigurationShared::CheckState& tracker);
+                        const Settings::Setting<bool>& setting, CheckState& tracker);
 void SetColoredTristate(QCheckBox* checkbox, const std::string& name, bool global, bool state,
-                        bool global_state, ConfigurationShared::CheckState& tracker);
+                        bool global_state, CheckState& tracker);
 void SetColoredComboBox(QComboBox* combobox, QWidget* target, const std::string& target_name,
                         int global);
 
