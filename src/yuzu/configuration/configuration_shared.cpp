@@ -88,13 +88,11 @@ void ConfigurationShared::SetPerGameSetting(
 
 void ConfigurationShared::SetHighlight(QWidget* widget, const std::string& name, bool highlighted) {
     if (highlighted) {
-        widget->setStyleSheet(
-            QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")
-                .arg(QString::fromStdString(name)));
+        widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")
+                                  .arg(QString::fromStdString(name)));
     } else {
-        widget->setStyleSheet(
-            QStringLiteral("QWidget#%1 { background-color:rgba(0,0,0,0) }")
-                .arg(QString::fromStdString(name)));
+        widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,0,0,0) }")
+                                  .arg(QString::fromStdString(name)));
     }
     widget->show();
 }
@@ -119,6 +117,35 @@ void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::str
         });
 }
 
+void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::string& name,
+                                             bool global, bool state, bool global_state,
+                                             ConfigurationShared::CheckState& tracker) {
+    if (global) {
+        tracker = CheckState::Global;
+    } else {
+        tracker = (state == global_state) ? CheckState::On : CheckState::Off;
+    }
+    SetHighlight(checkbox, name, tracker != CheckState::Global);
+    QObject::connect(
+        checkbox, &QCheckBox::clicked, checkbox, [checkbox, name, global_state, &tracker]() {
+            tracker =
+                static_cast<ConfigurationShared::CheckState>((tracker + 1) % CheckState::Count);
+            if (tracker == CheckState::Global) {
+                checkbox->setChecked(global_state);
+            }
+            SetHighlight(checkbox, name, tracker != CheckState::Global);
+        });
+}
+
+void ConfigurationShared::SetColoredComboBox(QComboBox* combobox, QWidget* target,
+                                             const std::string& target_name, int global) {
+    InsertGlobalItem(combobox, global);
+    QObject::connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+                     target, [target, target_name](int index) {
+                         ConfigurationShared::SetHighlight(target, target_name, index != 0);
+                     });
+}
+
 void ConfigurationShared::InsertGlobalItem(QComboBox* combobox) {
     const QString use_global_text = ConfigurePerGame::tr("Use global configuration");
     combobox->insertItem(ConfigurationShared::USE_GLOBAL_INDEX, use_global_text);
@@ -126,7 +153,8 @@ void ConfigurationShared::InsertGlobalItem(QComboBox* combobox) {
 }
 
 void ConfigurationShared::InsertGlobalItem(QComboBox* combobox, int global_index) {
-    const QString use_global_text = ConfigurePerGame::tr("Use global configuration (%1)").arg(combobox->itemText(global_index));
+    const QString use_global_text =
+        ConfigurePerGame::tr("Use global configuration (%1)").arg(combobox->itemText(global_index));
     combobox->insertItem(ConfigurationShared::USE_GLOBAL_INDEX, use_global_text);
     combobox->insertSeparator(ConfigurationShared::USE_GLOBAL_SEPARATOR_INDEX);
 }
