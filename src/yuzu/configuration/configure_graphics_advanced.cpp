@@ -43,9 +43,9 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
         ConfigurationShared::SetPerGameSetting(ui->gpu_accuracy, &Settings::values.gpu_accuracy);
         ConfigurationShared::SetPerGameSetting(ui->anisotropic_filtering_combobox,
                                                &Settings::values.max_anisotropy);
-        ConfigurationShared::SetHighlight(ui->gpu_accuracy_layout, "gpu_accuracy_layout",
+        ConfigurationShared::SetHighlight(ui->label_gpu_accuracy, "label_gpu_accuracy",
                                           !Settings::values.gpu_accuracy.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->af_layout, "af_layout",
+        ConfigurationShared::SetHighlight(ui->af_label, "af_label",
                                           !Settings::values.max_anisotropy.UsingGlobal());
     }
 }
@@ -156,20 +156,10 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->force_30fps_mode, "force_30fps_mode",
                                             Settings::values.force_30fps_mode,
                                             ConfigurationShared::trackers.force_30fps_mode);
-    ConfigurationShared::InsertGlobalItem(
-        ui->gpu_accuracy, static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));
-    ConfigurationShared::InsertGlobalItem(
-        ui->anisotropic_filtering_combobox,
+    ConfigurationShared::SetColoredComboBox(
+        ui->gpu_accuracy, ui->label_gpu_accuracy, "label_gpu_accuracy",
+        static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));
+    ConfigurationShared::SetColoredComboBox(
+        ui->anisotropic_filtering_combobox, ui->af_label, "af_label",
         static_cast<int>(Settings::values.max_anisotropy.GetValue(true)));
-
-    connect(ui->gpu_accuracy, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
-            [this](int index) {
-                ConfigurationShared::SetHighlight(ui->gpu_accuracy_layout, "gpu_accuracy_layout",
-                                                  index != 0);
-            });
-
-    connect(ui->anisotropic_filtering_combobox,
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, [this](int index) {
-                ConfigurationShared::SetHighlight(ui->af_layout, "af_layout", index != 0);
-            });
 }

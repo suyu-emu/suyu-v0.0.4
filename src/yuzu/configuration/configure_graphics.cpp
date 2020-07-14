@@ -87,7 +87,7 @@ void ConfigureGraphics::SetConfiguration() {
 
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->aspect_ratio_layout, "aspect_ratio_layout",
+        ConfigurationShared::SetHighlight(ui->ar_label, "ar_label",
                                           !Settings::values.aspect_ratio.UsingGlobal());
         ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout",
                                           !Settings::values.bg_red.UsingGlobal());
@@ -263,8 +263,8 @@ void ConfigureGraphics::SetupPerGameUI() {
         Settings::values.use_asynchronous_gpu_emulation,
         ConfigurationShared::trackers.use_asynchronous_gpu_emulation);
 
-    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->aspect_ratio_layout,
-                                            "aspect_ratio_layout",
+    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label,
+                                            "ar_label",
                                             Settings::values.aspect_ratio.GetValue(true));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
