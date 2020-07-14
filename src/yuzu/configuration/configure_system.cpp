@@ -164,7 +164,8 @@ void ConfigureSystem::ApplyConfiguration() {
             Settings::values.rng_seed.SetValue(std::nullopt);
             Settings::values.rng_seed.SetGlobal(true);
             break;
-        case ConfigurationShared::CheckState::Count:;
+        case ConfigurationShared::CheckState::Count:
+            break;
         }
 
         switch (ConfigurationShared::trackers.use_custom_rtc) {
@@ -183,7 +184,8 @@ void ConfigureSystem::ApplyConfiguration() {
             Settings::values.custom_rtc.SetValue(std::nullopt);
             Settings::values.custom_rtc.SetGlobal(true);
             break;
-        case ConfigurationShared::CheckState::Count:;
+        case ConfigurationShared::CheckState::Count:
+            break;
         }
     }
 
