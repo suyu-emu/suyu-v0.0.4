@@ -357,6 +357,11 @@ enum class GPUAccuracy : u32 {
     Extreme = 2,
 };
 
+enum class CPUAccuracy {
+    Accurate = 0,
+    DebugMode = 1,
+};
+
 extern bool configuring_global;
 
 template <typename Type>
@@ -401,6 +406,18 @@ struct Values {
 
     // Core
     Setting<bool> use_multi_core;
+
+    // Cpu
+    CPUAccuracy cpu_accuracy;
+
+    bool cpuopt_page_tables;
+    bool cpuopt_block_linking;
+    bool cpuopt_return_stack_buffer;
+    bool cpuopt_fast_dispatcher;
+    bool cpuopt_context_elimination;
+    bool cpuopt_const_prop;
+    bool cpuopt_misc_ir;
+    bool cpuopt_reduce_misalign_checks;
 
     // Renderer
     Setting<RendererBackend> renderer_backend;
@@ -476,7 +493,6 @@ struct Values {
     bool dump_nso;
     bool reporting_services;
     bool quest_flag;
-    bool disable_cpu_opt;
     bool disable_macro_jit;
 
     // Misceallaneous

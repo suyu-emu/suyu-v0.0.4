@@ -30,6 +30,12 @@ add_executable(yuzu
     configuration/configure_audio.cpp
     configuration/configure_audio.h
     configuration/configure_audio.ui
+    configuration/configure_cpu.cpp
+    configuration/configure_cpu.h
+    configuration/configure_cpu.ui
+    configuration/configure_cpu_debug.cpp
+    configuration/configure_cpu_debug.h
+    configuration/configure_cpu_debug.ui
     configuration/configure_debug.cpp
     configuration/configure_debug.h
     configuration/configure_debug.ui

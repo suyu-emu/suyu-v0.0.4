@@ -78,6 +78,16 @@
          <string>Hotkeys</string>
         </attribute>
        </widget>
+       <widget class="ConfigureCpu" name="cpuTab">
+        <attribute name="title">
+         <string>CPU</string>
+        </attribute>
+       </widget>
+       <widget class="ConfigureCpuDebug" name="cpuDebugTab">
+        <attribute name="title">
+         <string>Debug</string>
+        </attribute>
+       </widget>
        <widget class="ConfigureGraphics" name="graphicsTab">
         <attribute name="title">
          <string>Graphics</string>
@@ -156,6 +166,18 @@
    <class>ConfigureDebug</class>
    <extends>QWidget</extends>
    <header>configuration/configure_debug.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureCpu</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_cpu.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ConfigureCpuDebug</class>
+   <extends>QWidget</extends>
+   <header>configuration/configure_cpu_debug.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
