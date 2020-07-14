@@ -1173,7 +1173,8 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                     }
                 }
             }
-        } else if (auto rw_static_reg = std::get_if<ReadWriteStaticRegisterOpcode>(&cur_opcode.opcode)) {
+        } else if (auto rw_static_reg =
+                       std::get_if<ReadWriteStaticRegisterOpcode>(&cur_opcode.opcode)) {
             if (rw_static_reg->static_idx < NumReadableStaticRegisters) {
                 // Load a register with a static register.
                 registers[rw_static_reg->idx] = static_registers[rw_static_reg->static_idx];
