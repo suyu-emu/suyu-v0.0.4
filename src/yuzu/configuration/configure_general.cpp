@@ -65,6 +65,8 @@ void ConfigureGeneral::ApplyConfiguration() {
             Settings::values.use_frame_limit.SetValue(ui->toggle_frame_limit->checkState() ==
                                                       Qt::Checked);
             Settings::values.frame_limit.SetValue(ui->frame_limit->value());
+        }
+        if (Settings::values.use_multi_core.UsingGlobal()) {
             Settings::values.use_multi_core.SetValue(ui->use_multi_core->isChecked());
         }
     } else {
