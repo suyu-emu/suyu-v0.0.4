@@ -36,6 +36,9 @@ struct Trackers {
     CheckState use_asynchronous_shaders;
     CheckState use_fast_gpu_time;
     CheckState force_30fps_mode;
+
+    CheckState use_rng_seed;
+    CheckState use_custom_rtc;
 } extern trackers;
 
 // Global-aware apply and set functions
