@@ -33,6 +33,7 @@ struct Trackers {
 
     CheckState use_vsync;
     CheckState use_assembly_shaders;
+    CheckState use_asynchronous_shaders;
     CheckState use_fast_gpu_time;
     CheckState force_30fps_mode;
 } extern trackers;
