@@ -89,6 +89,11 @@ void ConfigureSystem::SetConfiguration() {
         ConfigurationShared::SetPerGameSetting(ui->combo_time_zone,
                                                &Settings::values.time_zone_index);
         ConfigurationShared::SetPerGameSetting(ui->combo_sound, &Settings::values.sound_index);
+
+        ConfigurationShared::SetHighlight(ui->label_language, "label_language", !Settings::values.language_index.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->label_region, "label_region", !Settings::values.region_index.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->label_timezone, "label_timezone", !Settings::values.time_zone_index.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->label_sound, "label_sound", !Settings::values.sound_index.UsingGlobal());
     }
 }
 
