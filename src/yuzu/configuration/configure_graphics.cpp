@@ -263,8 +263,7 @@ void ConfigureGraphics::SetupPerGameUI() {
         Settings::values.use_asynchronous_gpu_emulation,
         ConfigurationShared::trackers.use_asynchronous_gpu_emulation);
 
-    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label,
-                                            "ar_label",
+    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label, "ar_label",
                                             Settings::values.aspect_ratio.GetValue(true));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));

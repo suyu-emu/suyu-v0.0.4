@@ -140,8 +140,8 @@ void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::str
 void ConfigurationShared::SetColoredComboBox(QComboBox* combobox, QWidget* target,
                                              const std::string& target_name, int global) {
     InsertGlobalItem(combobox, global);
-    QObject::connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-                     target, [target, target_name](int index) {
+    QObject::connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), target,
+                     [target, target_name](int index) {
                          ConfigurationShared::SetHighlight(target, target_name, index != 0);
                      });
 }
