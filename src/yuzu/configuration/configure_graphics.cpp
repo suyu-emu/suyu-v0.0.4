@@ -143,10 +143,10 @@ void ConfigureGraphics::ApplyConfiguration() {
 
         ConfigurationShared::ApplyPerGameSetting(
             &Settings::values.use_disk_shader_cache, ui->use_disk_shader_cache,
-            ConfigurationShared::trackers.use_disk_shader_cache);
+            trackers.use_disk_shader_cache);
         ConfigurationShared::ApplyPerGameSetting(
             &Settings::values.use_asynchronous_gpu_emulation, ui->use_asynchronous_gpu_emulation,
-            ConfigurationShared::trackers.use_asynchronous_gpu_emulation);
+            trackers.use_asynchronous_gpu_emulation);
 
         if (ui->bg_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.bg_red.SetGlobal(true);
@@ -257,11 +257,11 @@ void ConfigureGraphics::SetupPerGameUI() {
 
     ConfigurationShared::SetColoredTristate(ui->use_disk_shader_cache, "use_disk_shader_cache",
                                             Settings::values.use_disk_shader_cache,
-                                            ConfigurationShared::trackers.use_disk_shader_cache);
+                                            trackers.use_disk_shader_cache);
     ConfigurationShared::SetColoredTristate(
         ui->use_asynchronous_gpu_emulation, "use_asynchronous_gpu_emulation",
         Settings::values.use_asynchronous_gpu_emulation,
-        ConfigurationShared::trackers.use_asynchronous_gpu_emulation);
+        trackers.use_asynchronous_gpu_emulation);
 
     ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label, "ar_label",
                                             Settings::values.aspect_ratio.GetValue(true));

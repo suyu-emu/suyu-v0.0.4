@@ -120,7 +120,7 @@ void ConfigureAudio::ApplyConfiguration() {
     } else {
         ConfigurationShared::ApplyPerGameSetting(
             &Settings::values.enable_audio_stretching, ui->toggle_audio_stretching,
-            ConfigurationShared::trackers.enable_audio_stretching);
+            trackers.enable_audio_stretching);
         if (ui->volume_combo_box->currentIndex() == 0) {
             Settings::values.volume.SetGlobal(true);
         } else {
@@ -175,7 +175,7 @@ void ConfigureAudio::SetupPerGameUI() {
 
     ConfigurationShared::SetColoredTristate(ui->toggle_audio_stretching, "toggle_audio_stretching",
                                             Settings::values.enable_audio_stretching,
-                                            ConfigurationShared::trackers.enable_audio_stretching);
+                                            trackers.enable_audio_stretching);
     connect(ui->volume_combo_box, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
             this, [this](int index) {
                 ui->volume_slider->setEnabled(index == 1);

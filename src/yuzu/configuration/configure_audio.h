@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Ui {
 class ConfigureAudio;
@@ -37,4 +38,8 @@ private:
     void SetupPerGameUI();
 
     std::unique_ptr<Ui::ConfigureAudio> ui;
+
+    struct Trackers {
+        ConfigurationShared::CheckState enable_audio_stretching;
+    } trackers;
 };

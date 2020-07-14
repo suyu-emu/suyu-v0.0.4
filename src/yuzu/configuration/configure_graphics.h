@@ -9,6 +9,7 @@
 #include <QString>
 #include <QWidget>
 #include "core/settings.h"
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Ui {
 class ConfigureGraphics;
@@ -41,6 +42,11 @@ private:
 
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
+
+    struct Trackers {
+        ConfigurationShared::CheckState use_disk_shader_cache;
+        ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
+    } trackers;
 
     std::vector<QString> vulkan_devices;
     u32 vulkan_device{};

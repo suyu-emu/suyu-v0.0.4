@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 namespace Ui {
 class ConfigureGraphicsAdvanced;
@@ -29,4 +30,12 @@ private:
     void SetupPerGameUI();
 
     std::unique_ptr<Ui::ConfigureGraphicsAdvanced> ui;
+
+    struct Trackers {
+        ConfigurationShared::CheckState use_vsync;
+        ConfigurationShared::CheckState use_assembly_shaders;
+        ConfigurationShared::CheckState use_asynchronous_shaders;
+        ConfigurationShared::CheckState use_fast_gpu_time;
+        ConfigurationShared::CheckState force_30fps_mode;
+    } trackers;
 };

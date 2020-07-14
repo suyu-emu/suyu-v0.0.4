@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <QWidget>
+#include "yuzu/configuration/configuration_shared.h"
 
 class HotkeyRegistry;
 
@@ -31,4 +32,9 @@ private:
     void SetupPerGameUI();
 
     std::unique_ptr<Ui::ConfigureGeneral> ui;
+
+    struct Trackers {
+        ConfigurationShared::CheckState use_frame_limit;
+        ConfigurationShared::CheckState use_multi_core;
+    } trackers;
 };

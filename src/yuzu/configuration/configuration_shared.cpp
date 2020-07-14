@@ -10,10 +10,6 @@
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_per_game.h"
 
-namespace ConfigurationShared {
-Trackers trackers = {};
-}
-
 void ConfigurationShared::ApplyPerGameSetting(Settings::Setting<bool>* setting,
                                               const QCheckBox* checkbox) {
     if (checkbox->checkState() == Qt::PartiallyChecked) {
