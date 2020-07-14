@@ -1053,6 +1053,10 @@ void GMainWindow::BootGame(const QString& filename) {
     if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
         // Load per game settings
         Config per_game_config(fmt::format("{:016X}.ini", title_id), false);
+
+        Settings::values.use_asynchronous_gpu_emulation.SetValue(
+            Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
+            Settings::values.use_multi_core.GetValue());
     }
 
     Settings::LogSettings();
