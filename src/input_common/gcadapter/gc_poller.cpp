@@ -21,7 +21,10 @@ public:
     ~GCButton() override;
 
     bool GetStatus() const override {
-        return gcadapter->GetPadState()[port].buttons.at(button);
+        if (gcadapter->DeviceConnected(port)) {
+            return gcadapter->GetPadState()[port].buttons.at(button);
+        }
+        return false;
     }
 
 private:
@@ -44,13 +47,17 @@ public:
     }
 
     bool GetStatus() const override {
-        const float axis_value = (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 128.0f;
-        if (trigger_if_greater) {
-            // TODO: Might be worthwile to set a slider for the trigger threshold. It is currently
-            // always set to 0.5 in configure_input_player.cpp ZL/ZR HandleClick
-            return axis_value > threshold;
+        if (gcadapter->DeviceConnected(port)) {
+            const float axis_value =
+                (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 128.0f;
+            if (trigger_if_greater) {
+                // TODO: Might be worthwile to set a slider for the trigger threshold. It is
+                // currently always set to 0.5 in configure_input_player.cpp ZL/ZR HandleClick
+                return axis_value > threshold;
+            }
+            return axis_value < -threshold;
         }
-        return axis_value < -threshold;
+        return false;
     }
 
 private:
@@ -151,11 +158,14 @@ public:
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter) {}
 
     float GetAxis(int axis) const {
-        std::lock_guard lock{mutex};
-        // division is not by a perfect 128 to account for some variance in center location
-        // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
-        // [20-230]
-        return (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 95.0f;
+        if (gcadapter->DeviceConnected(port)) {
+            std::lock_guard lock{mutex};
+            // division is not by a perfect 128 to account for some variance in center location
+            // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
+            // [20-230]
+            return (gcadapter->GetPadState()[port].axes.at(axis) - 128.0f) / 95.0f;
+        }
+        return 0.0f;
     }
 
     std::pair<float, float> GetAnalog(int axis_x, int axis_y) const {

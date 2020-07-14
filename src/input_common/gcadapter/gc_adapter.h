@@ -100,6 +100,9 @@ public:
     void BeginConfiguration();
     void EndConfiguration();
 
+    /// Returns true if there is a device connected to port
+    bool DeviceConnected(std::size_t port);
+
     std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
     const std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue() const;
 
@@ -118,9 +121,6 @@ private:
 
     /// Stop scanning for the adapter
     void StopScanThread();
-
-    /// Returns true if there is a device connected to port
-    bool DeviceConnected(std::size_t port);
 
     /// Resets status of device connected to port
     void ResetDeviceType(std::size_t port);
