@@ -61,6 +61,6 @@ void SetColoredTristate(QCheckBox* checkbox, const std::string& name, const Sett
                         ConfigurationShared::CheckState& tracker);
 
 void InsertGlobalItem(QComboBox* combobox);
-void InsertGlobalItem(QComboBox* combobox, const QString& global);
+void InsertGlobalItem(QComboBox* combobox, int global_index);
 
 } // namespace ConfigurationShared

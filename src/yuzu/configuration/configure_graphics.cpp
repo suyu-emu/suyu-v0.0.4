@@ -31,13 +31,14 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [this] {
-                UpdateDeviceComboBox();
-                if (!Settings::configuring_global) {
-                    ConfigurationShared::SetHighlight(ui->api_layout, "api_layout", ui->api->currentIndex() != ConfigurationShared::USE_GLOBAL_INDEX);
-                }
-            });
+    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+        UpdateDeviceComboBox();
+        if (!Settings::configuring_global) {
+            ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
+                                              ui->api->currentIndex() !=
+                                                  ConfigurationShared::USE_GLOBAL_INDEX);
+        }
+    });
     connect(ui->device, qOverload<int>(&QComboBox::activated), this,
             [this](int device) { UpdateDeviceSelection(device); });
 
@@ -84,9 +85,12 @@ void ConfigureGraphics::SetConfiguration() {
 
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->aspect_ratio_layout, "aspect_ratio_layout", !Settings::values.aspect_ratio.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout", !Settings::values.bg_red.UsingGlobal());
-        // FIXME: ConfigurationShared::SetHighlight(ui->api_layout, "api_layout", !Settings::values.renderer_backend.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->aspect_ratio_layout, "aspect_ratio_layout",
+                                          !Settings::values.aspect_ratio.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout",
+                                          !Settings::values.bg_red.UsingGlobal());
+        // FIXME: ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
+        // !Settings::values.renderer_backend.UsingGlobal());
     }
 
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red.GetValue(),
@@ -243,9 +247,11 @@ void ConfigureGraphics::SetupPerGameUI() {
         return;
     }
 
-    connect(ui->aspect_ratio_combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this, [this](int index) {
-        ConfigurationShared::SetHighlight(ui->aspect_ratio_layout, "aspect_ratio_layout", index != 0);
-    });
+    connect(ui->aspect_ratio_combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
+            this, [this](int index) {
+                ConfigurationShared::SetHighlight(ui->aspect_ratio_layout, "aspect_ratio_layout",
+                                                  index != 0);
+            });
     connect(ui->bg_combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
             [this](int index) {
                 ui->bg_button->setEnabled(index == 1);
@@ -260,6 +266,8 @@ void ConfigureGraphics::SetupPerGameUI() {
         Settings::values.use_asynchronous_gpu_emulation,
         ConfigurationShared::trackers.use_asynchronous_gpu_emulation);
 
-    ConfigurationShared::InsertGlobalItem(ui->aspect_ratio_combobox, ui->aspect_ratio_combobox->itemText(Settings::values.aspect_ratio.GetValue(true)));
-    ConfigurationShared::InsertGlobalItem(ui->api, ui->api->itemText(static_cast<int>(Settings::values.renderer_backend.GetValue(true))));
+    ConfigurationShared::InsertGlobalItem(ui->aspect_ratio_combobox,
+                                          Settings::values.aspect_ratio.GetValue(true));
+    ConfigurationShared::InsertGlobalItem(
+        ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
 }

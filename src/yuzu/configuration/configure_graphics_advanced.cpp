@@ -157,12 +157,10 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
                                             Settings::values.force_30fps_mode,
                                             ConfigurationShared::trackers.force_30fps_mode);
     ConfigurationShared::InsertGlobalItem(
-        ui->gpu_accuracy,
-        ui->gpu_accuracy->itemText(static_cast<int>(Settings::values.gpu_accuracy.GetValue(true))));
+        ui->gpu_accuracy, static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));
     ConfigurationShared::InsertGlobalItem(
         ui->anisotropic_filtering_combobox,
-        ui->anisotropic_filtering_combobox->itemText(
-            static_cast<int>(Settings::values.max_anisotropy.GetValue(true))));
+        static_cast<int>(Settings::values.max_anisotropy.GetValue(true)));
 
     connect(ui->gpu_accuracy, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
             [this](int index) {
