@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <thread>
+#include <libusb.h>
 #include "common/logging/log.h"
 #include "input_common/gcadapter/gc_adapter.h"
 

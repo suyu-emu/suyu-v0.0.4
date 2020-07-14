@@ -345,6 +345,7 @@ if(NOT APPLE)
 endif()
 if (NOT LIBUSB_FOUND)
     add_subdirectory(externals/libusb)
+    set(LIBUSB_INCLUDE_DIR "")
     set(LIBUSB_LIBRARIES usb)
 endif()
 
