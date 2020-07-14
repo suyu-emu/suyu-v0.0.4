@@ -6,6 +6,7 @@
 #include <list>
 #include <mutex>
 #include <utility>
+#include "common/assert.h"
 #include "common/threadsafe_queue.h"
 #include "input_common/gcadapter/gc_adapter.h"
 #include "input_common/gcadapter/gc_poller.h"
@@ -94,9 +95,12 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
         return std::make_unique<GCAxisButton>(port, axis, threshold, trigger_if_greater,
                                               adapter.get());
     }
+
+    UNREACHABLE();
+    return nullptr;
 }
 
-Common::ParamPackage GCButtonFactory::GetNextInput() {
+Common::ParamPackage GCButtonFactory::GetNextInput() const {
     Common::ParamPackage params;
     GCAdapter::GCPadStatus pad;
     auto& queue = adapter->GetPadQueue();
@@ -249,7 +253,7 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
             const u8 axis = static_cast<u8>(pad.axis);
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
-                controller_number = port;
+                controller_number = static_cast<int>(port);
             } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == port) {
                 analog_y_axis = axis;
             }

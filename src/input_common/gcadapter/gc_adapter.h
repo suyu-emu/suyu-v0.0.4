@@ -107,7 +107,7 @@ public:
     const std::array<GCState, 4>& GetPadState() const;
 
 private:
-    GCPadStatus GetPadStatus(int port, const std::array<u8, 37>& adapter_payload);
+    GCPadStatus GetPadStatus(std::size_t port, const std::array<u8, 37>& adapter_payload);
 
     void PadToState(const GCPadStatus& pad, GCState& state);
 
@@ -120,10 +120,10 @@ private:
     void StopScanThread();
 
     /// Returns true if there is a device connected to port
-    bool DeviceConnected(int port);
+    bool DeviceConnected(std::size_t port);
 
     /// Resets status of device connected to port
-    void ResetDeviceType(int port);
+    void ResetDeviceType(std::size_t port);
 
     /// Returns true if we successfully gain access to GC Adapter
     bool CheckDeviceAccess(libusb_device* device);
