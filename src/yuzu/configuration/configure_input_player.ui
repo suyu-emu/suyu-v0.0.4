@@ -222,7 +222,6 @@
                </widget>
              </item>
            </layout>
-
          </item>
         <item row="6" column="0">
          <spacer name="RStick_verticalSpacer">
@@ -840,7 +839,6 @@
           </item>
          </layout>
         </item>
-
         <item row="6" column="1" colspan="2">
             <layout class="QVBoxLayout" name="sliderLStickRangeVerticalLayout">
             <property name="sizeConstraint">
@@ -868,7 +866,6 @@
               </widget>
             </item>
           </layout>
-
         </item>
         <item row="7" column="1">
          <spacer name="LStick_verticalSpacer">

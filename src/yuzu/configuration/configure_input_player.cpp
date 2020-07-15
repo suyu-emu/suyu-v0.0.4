@@ -272,6 +272,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                                                ui->sliderRStickDeadzoneAndModifier};
     analog_map_deadzone_and_modifier_slider_label = {ui->labelLStickDeadzoneAndModifier,
                                                      ui->labelRStickDeadzoneAndModifier};
+    ui->sliderLStickRange->setRange(50, 150);
+    ui->sliderRStickRange->setRange(50, 150);
     analog_map_range_slider = {ui->sliderLStickRange, ui->sliderRStickRange};
     analog_map_range_slider_label = {ui->labelLStickRange, ui->labelRStickRange};
 
@@ -386,7 +388,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             const auto engine = analogs_param[analog_id].Get("engine", "");
             if (engine == "sdl" || engine == "gcpad") {
                 analog_map_range_slider_label[analog_id]->setText(
-                    tr("Range: %1%").arg(slider_value + 50.0f));
+                    tr("Range: %1%").arg(slider_value));
                 analogs_param[analog_id].Set("range", slider_value / 100.0f);
             }
         });
@@ -613,7 +615,7 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
                 }
                 // QtSlider returns values from 0.0-0.99. We want range to be from 50% to 150%
                 analog_stick_range->setValue(static_cast<int>(param.Get("range", 0.1f) * 100));
-                if (analog_stick_range->value() == 0) {
+                if (analog_stick_range->value() == 50) {
                     analog_stick_range_label->setText(tr("Range: 50%"));
                 }
             } else {

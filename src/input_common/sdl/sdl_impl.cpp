@@ -461,7 +461,7 @@ public:
         const int axis_x = params.Get("axis_x", 0);
         const int axis_y = params.Get("axis_y", 1);
         const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
-        const float range = std::clamp(params.Get("range", 0.0f), 0.0f, .99f) + 0.50f;
+        const float range = std::clamp(params.Get("range", 0.0f), 0.50f, 1.50f);
         auto joystick = state.GetSDLJoystickByGUID(guid, port);
 
         // This is necessary so accessing GetAxis with axis_x and axis_y won't crash
