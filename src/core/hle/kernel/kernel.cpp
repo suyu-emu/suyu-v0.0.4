@@ -50,7 +50,8 @@ namespace Kernel {
 
 struct KernelCore::Impl {
     explicit Impl(Core::System& system, KernelCore& kernel)
-        : global_scheduler{kernel}, synchronization{system}, time_manager{system}, system{system} {}
+        : global_scheduler{kernel}, synchronization{system}, time_manager{system},
+          global_handle_table{kernel}, system{system} {}
 
     void SetMulticore(bool is_multicore) {
         this->is_multicore = is_multicore;
@@ -307,7 +308,7 @@ struct KernelCore::Impl {
 
     // This is the kernel's handle table or supervisor handle table which
     // stores all the objects in place.
-    Kernel::HandleTable global_handle_table;
+    HandleTable global_handle_table;
 
     /// Map of named ports managed by the kernel, which can be retrieved using
     /// the ConnectToPort SVC.

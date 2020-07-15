@@ -14,6 +14,8 @@
 
 namespace Kernel {
 
+class KernelCore;
+
 enum KernelHandle : Handle {
     InvalidHandle = 0,
     CurrentThread = 0xFFFF8000,
@@ -48,7 +50,7 @@ public:
     /// This is the maximum limit of handles allowed per process in Horizon
     static constexpr std::size_t MAX_COUNT = 1024;
 
-    HandleTable();
+    explicit HandleTable(KernelCore& kernel);
     ~HandleTable();
 
     /**
@@ -134,6 +136,9 @@ private:
 
     /// Head of the free slots linked list.
     u16 next_free_slot = 0;
+
+    /// Underlying kernel instance that this handle table operates under.
+    KernelCore& kernel;
 };
 
 } // namespace Kernel
