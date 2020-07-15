@@ -139,8 +139,6 @@ private:
 
     u64 global_timer = 0;
 
-    std::chrono::nanoseconds start_point;
-
     // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
     // We don't use std::priority_queue because we need to be able to serialize, unserialize and
     // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't
