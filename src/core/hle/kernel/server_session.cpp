@@ -34,7 +34,7 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
     std::shared_ptr<ServerSession> session{std::make_shared<ServerSession>(kernel)};
 
     session->request_event = Core::Timing::CreateEvent(
-        name, [session](u64 userdata, s64 cycles_late) { session->CompleteSyncRequest(); });
+        name, [session](u64, std::chrono::nanoseconds) { session->CompleteSyncRequest(); });
     session->name = std::move(name);
     session->parent = std::move(parent);
 

@@ -91,10 +91,10 @@ public:
 
 private:
     /// Plays the next queued buffer in the audio stream, starting playback if necessary
-    void PlayNextBuffer(s64 cycles_late = 0);
+    void PlayNextBuffer(std::chrono::nanoseconds ns_late = {});
 
     /// Releases the actively playing buffer, signalling that it has been completed
-    void ReleaseActiveBuffer(s64 cycles_late = 0);
+    void ReleaseActiveBuffer(std::chrono::nanoseconds ns_late = {});
 
     /// Gets the number of core cycles when the specified buffer will be released
     std::chrono::nanoseconds GetBufferReleaseNS(const Buffer& buffer) const;

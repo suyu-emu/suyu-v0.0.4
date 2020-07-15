@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <vector>
 #include "common/common_types.h"
@@ -71,7 +72,7 @@ public:
     void Reload(std::vector<CheatEntry> cheats);
 
 private:
-    void FrameCallback(u64 userdata, s64 cycles_late);
+    void FrameCallback(u64 userdata, std::chrono::nanoseconds ns_late);
 
     DmntCheatVm vm;
     CheatProcessMetadata metadata;

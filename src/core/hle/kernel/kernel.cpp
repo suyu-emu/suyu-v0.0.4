@@ -144,7 +144,7 @@ struct KernelCore::Impl {
 
     void InitializePreemption(KernelCore& kernel) {
         preemption_event = Core::Timing::CreateEvent(
-            "PreemptionCallback", [this, &kernel](u64 userdata, s64 cycles_late) {
+            "PreemptionCallback", [this, &kernel](u64, std::chrono::nanoseconds) {
                 {
                     SchedulerLock lock(kernel);
                     global_scheduler.PreemptThreads();

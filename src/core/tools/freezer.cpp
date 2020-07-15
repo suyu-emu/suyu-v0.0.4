@@ -55,9 +55,10 @@ void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 v
 
 Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
-    event = Core::Timing::CreateEvent(
-        "MemoryFreezer::FrameCallback",
-        [this](u64 userdata, s64 ns_late) { FrameCallback(userdata, ns_late); });
+    event = Core::Timing::CreateEvent("MemoryFreezer::FrameCallback",
+                                      [this](u64 userdata, std::chrono::nanoseconds ns_late) {
+                                          FrameCallback(userdata, ns_late);
+                                      });
     core_timing.ScheduleEvent(memory_freezer_ns, event);
 }
 
@@ -158,7 +159,7 @@ std::vector<Freezer::Entry> Freezer::GetEntries() const {
     return entries;
 }
 
-void Freezer::FrameCallback(u64 userdata, s64 ns_late) {
+void Freezer::FrameCallback(u64, std::chrono::nanoseconds ns_late) {
     if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;
@@ -173,8 +174,7 @@ void Freezer::FrameCallback(u64 userdata, s64 ns_late) {
         MemoryWriteWidth(memory, entry.width, entry.address, entry.value);
     }
 
-    const auto future_ns = memory_freezer_ns - std::chrono::nanoseconds{ns_late};
-    core_timing.ScheduleEvent(future_ns, event);
+    core_timing.ScheduleEvent(memory_freezer_ns - ns_late, event);
 }
 
 void Freezer::FillEntryReads() {

@@ -4,10 +4,9 @@
 
 #pragma once
 
-#include "core/hle/service/hid/controllers/controller_base.h"
-#include "core/hle/service/service.h"
+#include <chrono>
 
-#include "controllers/controller_base.h"
+#include "core/hle/service/hid/controllers/controller_base.h"
 #include "core/hle/service/service.h"
 
 namespace Core::Timing {
@@ -65,7 +64,7 @@ private:
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
-    void UpdateControllers(u64 userdata, s64 cycles_late);
+    void UpdateControllers(u64 userdata, std::chrono::nanoseconds ns_late);
 
     std::shared_ptr<Kernel::SharedMemory> shared_mem;
 

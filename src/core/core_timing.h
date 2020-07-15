@@ -17,14 +17,12 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 #include "common/thread.h"
-#include "common/threadsafe_queue.h"
 #include "common/wall_clock.h"
-#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
-using TimedCallback = std::function<void(u64 userdata, s64 cycles_late)>;
+using TimedCallback = std::function<void(u64 userdata, std::chrono::nanoseconds ns_late)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -42,12 +40,12 @@ struct EventType {
  * in main CPU clock cycles.
  *
  * To schedule an event, you first have to register its type. This is where you pass in the
- * callback. You then schedule events using the type id you get back.
+ * callback. You then schedule events using the type ID you get back.
  *
- * The int cyclesLate that the callbacks get is how many cycles late it was.
+ * The s64 ns_late that the callbacks get is how many ns late it was.
  * So to schedule a new event on a regular basis:
  * inside callback:
- *   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
+ *   ScheduleEvent(period_in_ns - ns_late, callback, "whatever")
  */
 class CoreTiming {
 public:

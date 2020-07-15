@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -72,7 +73,7 @@ public:
     std::vector<Entry> GetEntries() const;
 
 private:
-    void FrameCallback(u64 userdata, s64 cycles_late);
+    void FrameCallback(u64 userdata, std::chrono::nanoseconds ns_late);
     void FillEntryReads();
 
     std::atomic_bool active{false};

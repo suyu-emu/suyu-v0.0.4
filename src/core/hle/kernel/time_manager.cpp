@@ -16,7 +16,7 @@ namespace Kernel {
 
 TimeManager::TimeManager(Core::System& system_) : system{system_} {
     time_manager_event_type = Core::Timing::CreateEvent(
-        "Kernel::TimeManagerCallback", [this](u64 thread_handle, [[maybe_unused]] s64 cycles_late) {
+        "Kernel::TimeManagerCallback", [this](u64 thread_handle, std::chrono::nanoseconds) {
             SchedulerLock lock(system.Kernel());
             Handle proper_handle = static_cast<Handle>(thread_handle);
             if (cancelled_events[proper_handle]) {

@@ -66,13 +66,13 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
     guard = std::make_shared<std::mutex>();
 
     // Schedule the screen composition events
-    composition_event =
-        Core::Timing::CreateEvent("ScreenComposition", [this](u64 userdata, s64 ns_late) {
+    composition_event = Core::Timing::CreateEvent(
+        "ScreenComposition", [this](u64, std::chrono::nanoseconds ns_late) {
             Lock();
             Compose();
 
             const auto ticks = std::chrono::nanoseconds{GetNextTicks()};
-            const auto ticks_delta = ticks - std::chrono::nanoseconds{ns_late};
+            const auto ticks_delta = ticks - ns_late;
             const auto future_ns = std::max(std::chrono::nanoseconds::zero(), ticks_delta);
 
             this->system.CoreTiming().ScheduleEvent(future_ns, composition_event);

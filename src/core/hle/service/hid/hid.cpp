@@ -76,8 +76,8 @@ IAppletResource::IAppletResource(Core::System& system)
     GetController<Controller_Stubbed>(HidController::Unknown3).SetCommonHeaderOffset(0x5000);
 
     // Register update callbacks
-    pad_update_event =
-        Core::Timing::CreateEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 ns_late) {
+    pad_update_event = Core::Timing::CreateEvent(
+        "HID::UpdatePadCallback", [this](u64 userdata, std::chrono::nanoseconds ns_late) {
             UpdateControllers(userdata, ns_late);
         });
 
@@ -108,7 +108,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(shared_mem);
 }
 
-void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
+void IAppletResource::UpdateControllers(u64 userdata, std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
@@ -119,8 +119,7 @@ void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
         controller->OnUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
-    const auto future_ns = pad_update_ns - std::chrono::nanoseconds{ns_late};
-    core_timing.ScheduleEvent(future_ns, pad_update_event);
+    core_timing.ScheduleEvent(pad_update_ns - ns_late, pad_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
