@@ -53,7 +53,7 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
     instance.ThreadLoop();
 }
 
-void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
+void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
     shutting_down = false;
@@ -106,11 +106,11 @@ bool CoreTiming::HasPendingEvents() const {
     return !(wait_set && event_queue.empty());
 }
 
-void CoreTiming::ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
-                               u64 userdata) {
+void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
+                               const std::shared_ptr<EventType>& event_type, u64 userdata) {
     {
         std::scoped_lock scope{basic_lock};
-        const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
+        const u64 timeout = static_cast<u64>((GetGlobalTimeNs() + ns_into_future).count());
 
         event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
 

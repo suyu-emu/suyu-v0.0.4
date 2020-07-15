@@ -20,7 +20,7 @@
 
 namespace Core::Memory {
 
-constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(1000000000 / 12);
+constexpr auto CHEAT_ENGINE_NS = std::chrono::nanoseconds{1000000000 / 12};
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 StandardVmCallbacks::StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata)
@@ -191,7 +191,7 @@ void CheatEngine::Initialize() {
     event = Core::Timing::CreateEvent(
         "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
         [this](u64 userdata, s64 ns_late) { FrameCallback(userdata, ns_late); });
-    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);
+    core_timing.ScheduleEvent(CHEAT_ENGINE_NS, event);
 
     metadata.process_id = system.CurrentProcess()->GetProcessID();
     metadata.title_id = system.CurrentProcess()->GetTitleID();
@@ -230,7 +230,8 @@ void CheatEngine::FrameCallback(u64 userdata, s64 ns_late) {
 
     vm.Execute(metadata);
 
-    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS - ns_late, event);
+    const auto future_ns = CHEAT_ENGINE_NS - std::chrono::nanoseconds{ns_late};
+    core_timing.ScheduleEvent(future_ns, event);
 }
 
 } // namespace Core::Memory

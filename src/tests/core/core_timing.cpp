@@ -116,13 +116,16 @@ TEST_CASE("CoreTiming[BasicOrderNoPausing]", "[core]") {
 
     expected_callback = 0;
 
-    u64 start = core_timing.GetGlobalTimeNs().count();
-    u64 one_micro = 1000U;
+    const u64 start = core_timing.GetGlobalTimeNs().count();
+    const u64 one_micro = 1000U;
+
     for (std::size_t i = 0; i < events.size(); i++) {
-        u64 order = calls_order[i];
-        core_timing.ScheduleEvent(i * one_micro + 100U, events[order], CB_IDS[order]);
+        const u64 order = calls_order[i];
+        const auto future_ns = std::chrono::nanoseconds{static_cast<s64>(i * one_micro + 100)};
+        core_timing.ScheduleEvent(future_ns, events[order], CB_IDS[order]);
     }
-    u64 end = core_timing.GetGlobalTimeNs().count();
+
+    const u64 end = core_timing.GetGlobalTimeNs().count();
     const double scheduling_time = static_cast<double>(end - start);
     const double timer_time = static_cast<double>(TestTimerSpeed(core_timing));
 

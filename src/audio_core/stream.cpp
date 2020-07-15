@@ -59,11 +59,9 @@ Stream::State Stream::GetState() const {
     return state;
 }
 
-s64 Stream::GetBufferReleaseNS(const Buffer& buffer) const {
+std::chrono::nanoseconds Stream::GetBufferReleaseNS(const Buffer& buffer) const {
     const std::size_t num_samples{buffer.GetSamples().size() / GetNumChannels()};
-    const auto ns =
-        std::chrono::nanoseconds((static_cast<u64>(num_samples) * 1000000000ULL) / sample_rate);
-    return ns.count();
+    return std::chrono::nanoseconds((static_cast<u64>(num_samples) * 1000000000ULL) / sample_rate);
 }
 
 static void VolumeAdjustSamples(std::vector<s16>& samples, float game_volume) {
@@ -105,10 +103,10 @@ void Stream::PlayNextBuffer(s64 cycles_late) {
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 
-    core_timing.ScheduleEvent(
-        GetBufferReleaseNS(*active_buffer) -
-            (Settings::values.enable_audio_stretching.GetValue() ? 0 : cycles_late),
-        release_event, {});
+    const auto time_stretch_delta = std::chrono::nanoseconds{
+        Settings::values.enable_audio_stretching.GetValue() ? 0 : cycles_late};
+    const auto future_time = GetBufferReleaseNS(*active_buffer) - time_stretch_delta;
+    core_timing.ScheduleEvent(future_time, release_event, {});
 }
 
 void Stream::ReleaseActiveBuffer(s64 cycles_late) {

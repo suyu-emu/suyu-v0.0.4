@@ -184,8 +184,8 @@ ResultCode ServerSession::CompleteSyncRequest() {
 
 ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
                                             Core::Memory::Memory& memory) {
-    ResultCode result = QueueSyncRequest(std::move(thread), memory);
-    const u64 delay = kernel.IsMulticore() ? 0U : 20000U;
+    const ResultCode result = QueueSyncRequest(std::move(thread), memory);
+    const auto delay = std::chrono::nanoseconds{kernel.IsMulticore() ? 0 : 20000};
     Core::System::GetInstance().CoreTiming().ScheduleEvent(delay, request_event, {});
     return result;
 }

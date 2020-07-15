@@ -62,7 +62,7 @@ public:
 
     /// CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
     /// required to end slice - 1 and start slice 0 before the first cycle of code is executed.
-    void Initialize(std::function<void(void)>&& on_thread_init_);
+    void Initialize(std::function<void()>&& on_thread_init_);
 
     /// Tears down all timing related functionality.
     void Shutdown();
@@ -95,8 +95,8 @@ public:
     bool HasPendingEvents() const;
 
     /// Schedules an event in core timing
-    void ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
-                       u64 userdata = 0);
+    void ScheduleEvent(std::chrono::nanoseconds ns_into_future,
+                       const std::shared_ptr<EventType>& event_type, u64 userdata = 0);
 
     void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata);
 
@@ -161,7 +161,7 @@ private:
     std::atomic<bool> wait_set{};
     std::atomic<bool> shutting_down{};
     std::atomic<bool> has_started{};
-    std::function<void(void)> on_thread_init{};
+    std::function<void()> on_thread_init{};
 
     bool is_multicore{};
 

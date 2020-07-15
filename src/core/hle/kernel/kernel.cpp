@@ -149,11 +149,13 @@ struct KernelCore::Impl {
                     SchedulerLock lock(kernel);
                     global_scheduler.PreemptThreads();
                 }
-                s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
+                const auto time_interval = std::chrono::nanoseconds{
+                    Core::Timing::msToCycles(std::chrono::milliseconds(10))};
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
             });
 
-        s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
+        const auto time_interval =
+            std::chrono::nanoseconds{Core::Timing::msToCycles(std::chrono::milliseconds(10))};
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
     }
 

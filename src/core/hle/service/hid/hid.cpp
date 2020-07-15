@@ -39,9 +39,10 @@ namespace Service::HID {
 
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
-constexpr s64 pad_update_ticks = static_cast<s64>(1000000000 / 66);
-[[maybe_unused]] constexpr s64 accelerometer_update_ticks = static_cast<s64>(1000000000 / 100);
-[[maybe_unused]] constexpr s64 gyroscope_update_ticks = static_cast<s64>(1000000000 / 100);
+constexpr auto pad_update_ns = std::chrono::nanoseconds{1000000000 / 66};
+[[maybe_unused]] constexpr auto accelerometer_update_ns =
+    std::chrono::nanoseconds{1000000000 / 100};
+[[maybe_unused]] constexpr auto gyroscope_update_ticks = std::chrono::nanoseconds{1000000000 / 100};
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
@@ -82,7 +83,7 @@ IAppletResource::IAppletResource(Core::System& system)
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
 
-    system.CoreTiming().ScheduleEvent(pad_update_ticks, pad_update_event);
+    system.CoreTiming().ScheduleEvent(pad_update_ns, pad_update_event);
 
     ReloadInputDevices();
 }
@@ -118,7 +119,8 @@ void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
         controller->OnUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
-    core_timing.ScheduleEvent(pad_update_ticks - ns_late, pad_update_event);
+    const auto future_ns = pad_update_ns - std::chrono::nanoseconds{ns_late};
+    core_timing.ScheduleEvent(future_ns, pad_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {

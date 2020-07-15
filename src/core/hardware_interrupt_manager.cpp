@@ -23,7 +23,7 @@ InterruptManager::~InterruptManager() = default;
 
 void InterruptManager::GPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
     const u64 msg = (static_cast<u64>(syncpoint_id) << 32ULL) | value;
-    system.CoreTiming().ScheduleEvent(10, gpu_interrupt_event, msg);
+    system.CoreTiming().ScheduleEvent(std::chrono::nanoseconds{10}, gpu_interrupt_event, msg);
 }
 
 } // namespace Core::Hardware
