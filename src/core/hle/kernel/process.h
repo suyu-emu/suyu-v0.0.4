@@ -382,12 +382,6 @@ private:
     /// List of threads waiting for a condition variable
     std::unordered_map<VAddr, std::list<std::shared_ptr<Thread>>> cond_var_threads;
 
-    /// System context
-    Core::System& system;
-
-    /// Name of this process
-    std::string name;
-
     /// Address of the top of the main thread's stack
     VAddr main_thread_stack_top{};
 
@@ -399,6 +393,12 @@ private:
 
     /// Process total image size
     std::size_t image_size{};
+
+    /// Name of this process
+    std::string name;
+
+    /// System context
+    Core::System& system;
 };
 
 } // namespace Kernel
