@@ -67,18 +67,18 @@ Values values = {};
 bool configuring_global = true;
 
 std::string GetTimeZoneString() {
-    static constexpr std::array<const char*, 46> timezones{{
+    static constexpr std::array timezones{
         "auto",      "default",   "CET", "CST6CDT", "Cuba",    "EET",    "Egypt",     "Eire",
         "EST",       "EST5EDT",   "GB",  "GB-Eire", "GMT",     "GMT+0",  "GMT-0",     "GMT0",
         "Greenwich", "Hongkong",  "HST", "Iceland", "Iran",    "Israel", "Jamaica",   "Japan",
         "Kwajalein", "Libya",     "MET", "MST",     "MST7MDT", "Navajo", "NZ",        "NZ-CHAT",
         "Poland",    "Portugal",  "PRC", "PST8PDT", "ROC",     "ROK",    "Singapore", "Turkey",
         "UCT",       "Universal", "UTC", "W-SU",    "WET",     "Zulu",
-    }};
+    };
 
-    ASSERT(Settings::values.time_zone_index.GetValue() < timezones.size());
-
-    return timezones[Settings::values.time_zone_index.GetValue()];
+    const auto time_zone_index = static_cast<std::size_t>(values.time_zone_index.GetValue());
+    ASSERT(time_zone_index < timezones.size());
+    return timezones[time_zone_index];
 }
 
 void Apply() {
