@@ -64,20 +64,22 @@ VkViewport GetViewportState(const VKDevice& device, const Maxwell& regs, std::si
     const auto& src = regs.viewport_transform[index];
     const float width = src.scale_x * 2.0f;
     const float height = src.scale_y * 2.0f;
-
-    VkViewport viewport;
-    viewport.x = src.translate_x - src.scale_x;
-    viewport.y = src.translate_y - src.scale_y;
-    viewport.width = width != 0.0f ? width : 1.0f;
-    viewport.height = height != 0.0f ? height : 1.0f;
-
     const float reduce_z = regs.depth_mode == Maxwell::DepthMode::MinusOneToOne ? 1.0f : 0.0f;
-    viewport.minDepth = src.translate_z - src.scale_z * reduce_z;
-    viewport.maxDepth = src.translate_z + src.scale_z;
+
+    VkViewport viewport{
+        .x = src.translate_x - src.scale_x,
+        .y = src.translate_y - src.scale_y,
+        .width = width != 0.0f ? width : 1.0f,
+        .height = height != 0.0f ? height : 1.0f,
+        .minDepth = src.translate_z - src.scale_z * reduce_z,
+        .maxDepth = src.translate_z + src.scale_z,
+    };
+
     if (!device.IsExtDepthRangeUnrestrictedSupported()) {
         viewport.minDepth = std::clamp(viewport.minDepth, 0.0f, 1.0f);
         viewport.maxDepth = std::clamp(viewport.maxDepth, 0.0f, 1.0f);
     }
+
     return viewport;
 }
 
@@ -508,10 +510,11 @@ void RasterizerVulkan::Clear() {
 
         const u32 color_attachment = regs.clear_buffers.RT;
         scheduler.Record([color_attachment, clear_value, clear_rect](vk::CommandBuffer cmdbuf) {
-            VkClearAttachment attachment;
-            attachment.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            attachment.colorAttachment = color_attachment;
-            attachment.clearValue = clear_value;
+            const VkClearAttachment attachment{
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .colorAttachment = color_attachment,
+                .clearValue = clear_value,
+            };
             cmdbuf.ClearAttachments(attachment, clear_rect);
         });
     }
@@ -551,13 +554,16 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
     query_cache.UpdateCounters();
 
     const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
-    ComputePipelineCacheKey key;
-    key.shader = code_addr;
-    key.shared_memory_size = launch_desc.shared_alloc;
-    key.workgroup_size = {launch_desc.block_dim_x, launch_desc.block_dim_y,
-                          launch_desc.block_dim_z};
-
-    auto& pipeline = pipeline_cache.GetComputePipeline(key);
+    auto& pipeline = pipeline_cache.GetComputePipeline({
+        .shader = code_addr,
+        .shared_memory_size = launch_desc.shared_alloc,
+        .workgroup_size =
+            {
+                launch_desc.block_dim_x,
+                launch_desc.block_dim_y,
+                launch_desc.block_dim_z,
+            },
+    });
 
     // Compute dispatches can't be executed inside a renderpass
     scheduler.RequestOutsideRenderPassOperationContext();
@@ -841,17 +847,17 @@ std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
     const auto [fbentry, is_cache_miss] = framebuffer_cache.try_emplace(key);
     auto& framebuffer = fbentry->second;
     if (is_cache_miss) {
-        VkFramebufferCreateInfo framebuffer_ci;
-        framebuffer_ci.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebuffer_ci.pNext = nullptr;
-        framebuffer_ci.flags = 0;
-        framebuffer_ci.renderPass = key.renderpass;
-        framebuffer_ci.attachmentCount = static_cast<u32>(key.views.size());
-        framebuffer_ci.pAttachments = key.views.data();
-        framebuffer_ci.width = key.width;
-        framebuffer_ci.height = key.height;
-        framebuffer_ci.layers = key.layers;
-        framebuffer = device.GetLogical().CreateFramebuffer(framebuffer_ci);
+        framebuffer = device.GetLogical().CreateFramebuffer({
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .renderPass = key.renderpass,
+            .attachmentCount = static_cast<u32>(key.views.size()),
+            .pAttachments = key.views.data(),
+            .width = key.width,
+            .height = key.height,
+            .layers = key.layers,
+        });
     }
 
     return {*framebuffer, VkExtent2D{key.width, key.height}};
@@ -1553,17 +1559,17 @@ VkBuffer RasterizerVulkan::DefaultBuffer() {
         return *default_buffer;
     }
 
-    VkBufferCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.size = DEFAULT_BUFFER_SIZE;
-    ci.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-               VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    ci.queueFamilyIndexCount = 0;
-    ci.pQueueFamilyIndices = nullptr;
-    default_buffer = device.GetLogical().CreateBuffer(ci);
+    default_buffer = device.GetLogical().CreateBuffer({
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = DEFAULT_BUFFER_SIZE,
+        .usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
+                 VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    });
     default_buffer_commit = memory_manager.Commit(default_buffer, false);
 
     scheduler.RequestOutsideRenderPassOperationContext();
