@@ -526,4 +526,7 @@ void LogSettings();
 // Restore the global state of all applicable settings in the Values struct
 void RestoreGlobalState();
 
+// Fixes settings that are known to cause issues with the emulator
+void Sanitize();
+
 } // namespace Settings
