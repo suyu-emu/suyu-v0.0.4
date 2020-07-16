@@ -307,8 +307,10 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .depthClampEnable = state.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE,
-        .rasterizerDiscardEnable = state.rasterize_enable == 0 ? VK_TRUE : VK_FALSE,
+        .depthClampEnable =
+            static_cast<VkBool32>(state.depth_clamp_disabled == 0 ? VK_TRUE : VK_FALSE),
+        .rasterizerDiscardEnable =
+            static_cast<VkBool32>(state.rasterize_enable == 0 ? VK_TRUE : VK_FALSE),
         .polygonMode = VK_POLYGON_MODE_FILL,
         .cullMode =
             dynamic.cull_enable ? MaxwellToVK::CullFace(dynamic.CullFace()) : VK_CULL_MODE_NONE,
