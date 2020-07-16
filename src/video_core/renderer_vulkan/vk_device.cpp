@@ -22,14 +22,21 @@ namespace {
 
 namespace Alternatives {
 
-constexpr std::array Depth24UnormS8_UINT = {VK_FORMAT_D32_SFLOAT_S8_UINT,
-                                            VK_FORMAT_D16_UNORM_S8_UINT, VkFormat{}};
-constexpr std::array Depth16UnormS8_UINT = {VK_FORMAT_D24_UNORM_S8_UINT,
-                                            VK_FORMAT_D32_SFLOAT_S8_UINT, VkFormat{}};
+constexpr std::array Depth24UnormS8_UINT{
+    VK_FORMAT_D32_SFLOAT_S8_UINT,
+    VK_FORMAT_D16_UNORM_S8_UINT,
+    VkFormat{},
+};
+
+constexpr std::array Depth16UnormS8_UINT{
+    VK_FORMAT_D24_UNORM_S8_UINT,
+    VK_FORMAT_D32_SFLOAT_S8_UINT,
+    VkFormat{},
+};
 
 } // namespace Alternatives
 
-constexpr std::array REQUIRED_EXTENSIONS = {
+constexpr std::array REQUIRED_EXTENSIONS{
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
     VK_KHR_16BIT_STORAGE_EXTENSION_NAME,
     VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
@@ -169,97 +176,104 @@ bool VKDevice::Create() {
     const auto queue_cis = GetDeviceQueueCreateInfos();
     const std::vector extensions = LoadExtensions();
 
-    VkPhysicalDeviceFeatures2 features2;
-    features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    features2.pNext = nullptr;
+    VkPhysicalDeviceFeatures2 features2{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+        .pNext = nullptr,
+    };
     const void* first_next = &features2;
     void** next = &features2.pNext;
 
-    auto& features = features2.features;
-    features.robustBufferAccess = false;
-    features.fullDrawIndexUint32 = false;
-    features.imageCubeArray = false;
-    features.independentBlend = true;
-    features.geometryShader = true;
-    features.tessellationShader = true;
-    features.sampleRateShading = false;
-    features.dualSrcBlend = false;
-    features.logicOp = false;
-    features.multiDrawIndirect = false;
-    features.drawIndirectFirstInstance = false;
-    features.depthClamp = true;
-    features.depthBiasClamp = true;
-    features.fillModeNonSolid = false;
-    features.depthBounds = false;
-    features.wideLines = false;
-    features.largePoints = true;
-    features.alphaToOne = false;
-    features.multiViewport = true;
-    features.samplerAnisotropy = true;
-    features.textureCompressionETC2 = false;
-    features.textureCompressionASTC_LDR = is_optimal_astc_supported;
-    features.textureCompressionBC = false;
-    features.occlusionQueryPrecise = true;
-    features.pipelineStatisticsQuery = false;
-    features.vertexPipelineStoresAndAtomics = true;
-    features.fragmentStoresAndAtomics = true;
-    features.shaderTessellationAndGeometryPointSize = false;
-    features.shaderImageGatherExtended = true;
-    features.shaderStorageImageExtendedFormats = false;
-    features.shaderStorageImageMultisample = false;
-    features.shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported;
-    features.shaderStorageImageWriteWithoutFormat = true;
-    features.shaderUniformBufferArrayDynamicIndexing = false;
-    features.shaderSampledImageArrayDynamicIndexing = false;
-    features.shaderStorageBufferArrayDynamicIndexing = false;
-    features.shaderStorageImageArrayDynamicIndexing = false;
-    features.shaderClipDistance = false;
-    features.shaderCullDistance = false;
-    features.shaderFloat64 = false;
-    features.shaderInt64 = false;
-    features.shaderInt16 = false;
-    features.shaderResourceResidency = false;
-    features.shaderResourceMinLod = false;
-    features.sparseBinding = false;
-    features.sparseResidencyBuffer = false;
-    features.sparseResidencyImage2D = false;
-    features.sparseResidencyImage3D = false;
-    features.sparseResidency2Samples = false;
-    features.sparseResidency4Samples = false;
-    features.sparseResidency8Samples = false;
-    features.sparseResidency16Samples = false;
-    features.sparseResidencyAliased = false;
-    features.variableMultisampleRate = false;
-    features.inheritedQueries = false;
+    features2.features = {
+        .robustBufferAccess = false,
+        .fullDrawIndexUint32 = false,
+        .imageCubeArray = false,
+        .independentBlend = true,
+        .geometryShader = true,
+        .tessellationShader = true,
+        .sampleRateShading = false,
+        .dualSrcBlend = false,
+        .logicOp = false,
+        .multiDrawIndirect = false,
+        .drawIndirectFirstInstance = false,
+        .depthClamp = true,
+        .depthBiasClamp = true,
+        .fillModeNonSolid = false,
+        .depthBounds = false,
+        .wideLines = false,
+        .largePoints = true,
+        .alphaToOne = false,
+        .multiViewport = true,
+        .samplerAnisotropy = true,
+        .textureCompressionETC2 = false,
+        .textureCompressionASTC_LDR = is_optimal_astc_supported,
+        .textureCompressionBC = false,
+        .occlusionQueryPrecise = true,
+        .pipelineStatisticsQuery = false,
+        .vertexPipelineStoresAndAtomics = true,
+        .fragmentStoresAndAtomics = true,
+        .shaderTessellationAndGeometryPointSize = false,
+        .shaderImageGatherExtended = true,
+        .shaderStorageImageExtendedFormats = false,
+        .shaderStorageImageMultisample = false,
+        .shaderStorageImageReadWithoutFormat = is_formatless_image_load_supported,
+        .shaderStorageImageWriteWithoutFormat = true,
+        .shaderUniformBufferArrayDynamicIndexing = false,
+        .shaderSampledImageArrayDynamicIndexing = false,
+        .shaderStorageBufferArrayDynamicIndexing = false,
+        .shaderStorageImageArrayDynamicIndexing = false,
+        .shaderClipDistance = false,
+        .shaderCullDistance = false,
+        .shaderFloat64 = false,
+        .shaderInt64 = false,
+        .shaderInt16 = false,
+        .shaderResourceResidency = false,
+        .shaderResourceMinLod = false,
+        .sparseBinding = false,
+        .sparseResidencyBuffer = false,
+        .sparseResidencyImage2D = false,
+        .sparseResidencyImage3D = false,
+        .sparseResidency2Samples = false,
+        .sparseResidency4Samples = false,
+        .sparseResidency8Samples = false,
+        .sparseResidency16Samples = false,
+        .sparseResidencyAliased = false,
+        .variableMultisampleRate = false,
+        .inheritedQueries = false,
+    };
 
-    VkPhysicalDevice16BitStorageFeaturesKHR bit16_storage;
-    bit16_storage.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES_KHR;
-    bit16_storage.pNext = nullptr;
-    bit16_storage.storageBuffer16BitAccess = false;
-    bit16_storage.uniformAndStorageBuffer16BitAccess = true;
-    bit16_storage.storagePushConstant16 = false;
-    bit16_storage.storageInputOutput16 = false;
+    VkPhysicalDevice16BitStorageFeaturesKHR bit16_storage{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES_KHR,
+        .pNext = nullptr,
+        .storageBuffer16BitAccess = false,
+        .uniformAndStorageBuffer16BitAccess = true,
+        .storagePushConstant16 = false,
+        .storageInputOutput16 = false,
+    };
     SetNext(next, bit16_storage);
 
-    VkPhysicalDevice8BitStorageFeaturesKHR bit8_storage;
-    bit8_storage.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR;
-    bit8_storage.pNext = nullptr;
-    bit8_storage.storageBuffer8BitAccess = false;
-    bit8_storage.uniformAndStorageBuffer8BitAccess = true;
-    bit8_storage.storagePushConstant8 = false;
+    VkPhysicalDevice8BitStorageFeaturesKHR bit8_storage{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_8BIT_STORAGE_FEATURES_KHR,
+        .pNext = nullptr,
+        .storageBuffer8BitAccess = false,
+        .uniformAndStorageBuffer8BitAccess = true,
+        .storagePushConstant8 = false,
+    };
     SetNext(next, bit8_storage);
 
-    VkPhysicalDeviceHostQueryResetFeaturesEXT host_query_reset;
-    host_query_reset.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT;
-    host_query_reset.hostQueryReset = true;
+    VkPhysicalDeviceHostQueryResetFeaturesEXT host_query_reset{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_HOST_QUERY_RESET_FEATURES_EXT,
+        .hostQueryReset = true,
+    };
     SetNext(next, host_query_reset);
 
     VkPhysicalDeviceFloat16Int8FeaturesKHR float16_int8;
     if (is_float16_supported) {
-        float16_int8.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR;
-        float16_int8.pNext = nullptr;
-        float16_int8.shaderFloat16 = true;
-        float16_int8.shaderInt8 = false;
+        float16_int8 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FLOAT16_INT8_FEATURES_KHR,
+            .pNext = nullptr,
+            .shaderFloat16 = true,
+            .shaderInt8 = false,
+        };
         SetNext(next, float16_int8);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support float16 natively");
@@ -271,10 +285,11 @@ bool VKDevice::Create() {
 
     VkPhysicalDeviceUniformBufferStandardLayoutFeaturesKHR std430_layout;
     if (khr_uniform_buffer_standard_layout) {
-        std430_layout.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES_KHR;
-        std430_layout.pNext = nullptr;
-        std430_layout.uniformBufferStandardLayout = true;
+        std430_layout = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_UNIFORM_BUFFER_STANDARD_LAYOUT_FEATURES_KHR,
+            .pNext = nullptr,
+            .uniformBufferStandardLayout = true,
+        };
         SetNext(next, std430_layout);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support packed UBOs");
@@ -282,9 +297,11 @@ bool VKDevice::Create() {
 
     VkPhysicalDeviceIndexTypeUint8FeaturesEXT index_type_uint8;
     if (ext_index_type_uint8) {
-        index_type_uint8.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT;
-        index_type_uint8.pNext = nullptr;
-        index_type_uint8.indexTypeUint8 = true;
+        index_type_uint8 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_INDEX_TYPE_UINT8_FEATURES_EXT,
+            .pNext = nullptr,
+            .indexTypeUint8 = true,
+        };
         SetNext(next, index_type_uint8);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support uint8 indexes");
@@ -292,11 +309,12 @@ bool VKDevice::Create() {
 
     VkPhysicalDeviceTransformFeedbackFeaturesEXT transform_feedback;
     if (ext_transform_feedback) {
-        transform_feedback.sType =
-            VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT;
-        transform_feedback.pNext = nullptr;
-        transform_feedback.transformFeedback = true;
-        transform_feedback.geometryStreams = true;
+        transform_feedback = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_FEATURES_EXT,
+            .pNext = nullptr,
+            .transformFeedback = true,
+            .geometryStreams = true,
+        };
         SetNext(next, transform_feedback);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support transform feedbacks");
@@ -304,10 +322,12 @@ bool VKDevice::Create() {
 
     VkPhysicalDeviceCustomBorderColorFeaturesEXT custom_border;
     if (ext_custom_border_color) {
-        custom_border.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT;
-        custom_border.pNext = nullptr;
-        custom_border.customBorderColors = VK_TRUE;
-        custom_border.customBorderColorWithoutFormat = VK_TRUE;
+        custom_border = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_CUSTOM_BORDER_COLOR_FEATURES_EXT,
+            .pNext = nullptr,
+            .customBorderColors = VK_TRUE,
+            .customBorderColorWithoutFormat = VK_TRUE,
+        };
         SetNext(next, custom_border);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support custom border colors");
@@ -315,9 +335,11 @@ bool VKDevice::Create() {
 
     VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state;
     if (ext_extended_dynamic_state) {
-        dynamic_state.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
-        dynamic_state.pNext = nullptr;
-        dynamic_state.extendedDynamicState = VK_TRUE;
+        dynamic_state = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
+            .pNext = nullptr,
+            .extendedDynamicState = VK_TRUE,
+        };
         SetNext(next, dynamic_state);
     } else {
         LOG_INFO(Render_Vulkan, "Device doesn't support extended dynamic state");
@@ -331,11 +353,13 @@ bool VKDevice::Create() {
     if (nv_device_diagnostics_config) {
         nsight_aftermath_tracker.Initialize();
 
-        diagnostics_nv.sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV;
-        diagnostics_nv.pNext = &features2;
-        diagnostics_nv.flags = VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV |
-                               VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
-                               VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV;
+        diagnostics_nv = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV,
+            .pNext = &features2,
+            .flags = VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_SHADER_DEBUG_INFO_BIT_NV |
+                     VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_RESOURCE_TRACKING_BIT_NV |
+                     VK_DEVICE_DIAGNOSTICS_CONFIG_ENABLE_AUTOMATIC_CHECKPOINTS_BIT_NV,
+        };
         first_next = &diagnostics_nv;
     }
 
@@ -704,13 +728,15 @@ void VKDevice::SetupFeatures() {
 }
 
 void VKDevice::CollectTelemetryParameters() {
-    VkPhysicalDeviceDriverPropertiesKHR driver;
-    driver.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR;
-    driver.pNext = nullptr;
+    VkPhysicalDeviceDriverPropertiesKHR driver{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
+        .pNext = nullptr,
+    };
 
-    VkPhysicalDeviceProperties2KHR properties;
-    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
-    properties.pNext = &driver;
+    VkPhysicalDeviceProperties2KHR properties{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
+        .pNext = &driver,
+    };
     physical.GetProperties2KHR(properties);
 
     driver_id = driver.driverID;
@@ -719,24 +745,26 @@ void VKDevice::CollectTelemetryParameters() {
     const std::vector extensions = physical.EnumerateDeviceExtensionProperties();
     reported_extensions.reserve(std::size(extensions));
     for (const auto& extension : extensions) {
-        reported_extensions.push_back(extension.extensionName);
+        reported_extensions.emplace_back(extension.extensionName);
     }
 }
 
 std::vector<VkDeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() const {
     static constexpr float QUEUE_PRIORITY = 1.0f;
 
-    std::unordered_set<u32> unique_queue_families = {graphics_family, present_family};
+    std::unordered_set<u32> unique_queue_families{graphics_family, present_family};
     std::vector<VkDeviceQueueCreateInfo> queue_cis;
+    queue_cis.reserve(unique_queue_families.size());
 
     for (const u32 queue_family : unique_queue_families) {
-        VkDeviceQueueCreateInfo& ci = queue_cis.emplace_back();
-        ci.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        ci.pNext = nullptr;
-        ci.flags = 0;
-        ci.queueFamilyIndex = queue_family;
-        ci.queueCount = 1;
-        ci.pQueuePriorities = &QUEUE_PRIORITY;
+        queue_cis.push_back({
+            .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = 0,
+            .queueFamilyIndex = queue_family,
+            .queueCount = 1,
+            .pQueuePriorities = &QUEUE_PRIORITY,
+        });
     }
 
     return queue_cis;
