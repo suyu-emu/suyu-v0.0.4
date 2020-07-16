@@ -122,30 +122,27 @@ void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
     // Substract from the preferred heap size some bytes to avoid getting out of memory.
     const VkDeviceSize heap_size = memory_properties.memoryHeaps[preferred_heap].size;
     const VkDeviceSize allocable_size = heap_size - 9 * 1024 * 1024;
-
-    VkBufferCreateInfo buffer_ci;
-    buffer_ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    buffer_ci.pNext = nullptr;
-    buffer_ci.flags = 0;
-    buffer_ci.size = std::min(PREFERRED_STREAM_BUFFER_SIZE, allocable_size);
-    buffer_ci.usage = usage;
-    buffer_ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    buffer_ci.queueFamilyIndexCount = 0;
-    buffer_ci.pQueueFamilyIndices = nullptr;
-
-    buffer = device.GetLogical().CreateBuffer(buffer_ci);
+    buffer = device.GetLogical().CreateBuffer({
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = std::min(PREFERRED_STREAM_BUFFER_SIZE, allocable_size),
+        .usage = usage,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    });
 
     const auto requirements = device.GetLogical().GetBufferMemoryRequirements(*buffer);
     const u32 required_flags = requirements.memoryTypeBits;
     stream_buffer_size = static_cast<u64>(requirements.size);
 
-    VkMemoryAllocateInfo memory_ai;
-    memory_ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memory_ai.pNext = nullptr;
-    memory_ai.allocationSize = requirements.size;
-    memory_ai.memoryTypeIndex = GetMemoryType(memory_properties, required_flags);
-
-    memory = device.GetLogical().AllocateMemory(memory_ai);
+    memory = device.GetLogical().AllocateMemory({
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = requirements.size,
+        .memoryTypeIndex = GetMemoryType(memory_properties, required_flags),
+    });
     buffer.BindMemory(*memory, 0);
 }
 
