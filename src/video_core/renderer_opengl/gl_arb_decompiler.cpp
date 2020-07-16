@@ -892,11 +892,19 @@ void ARBDecompiler::DeclareCompute() {
     const ComputeInfo& info = registry.GetComputeInfo();
     AddLine("GROUP_SIZE {} {} {};", info.workgroup_size[0], info.workgroup_size[1],
             info.workgroup_size[2]);
-    if (info.shared_memory_size_in_words > 0) {
-        const u32 size_in_bytes = info.shared_memory_size_in_words * 4;
-        AddLine("SHARED_MEMORY {};", size_in_bytes);
-        AddLine("SHARED shared_mem[] = {{program.sharedmem}};");
+    if (info.shared_memory_size_in_words == 0) {
+        return;
     }
+    const u32 limit = device.GetMaxComputeSharedMemorySize();
+    u32 size_in_bytes = info.shared_memory_size_in_words * 4;
+    if (size_in_bytes > limit) {
+        LOG_ERROR(Render_OpenGL, "Shared memory size {} is clamped to host's limit {}",
+                  size_in_bytes, limit);
+        size_in_bytes = limit;
+    }
+
+    AddLine("SHARED_MEMORY {};", size_in_bytes);
+    AddLine("SHARED shared_mem[] = {{program.sharedmem}};");
 }
 
 void ARBDecompiler::DeclareInputAttributes() {

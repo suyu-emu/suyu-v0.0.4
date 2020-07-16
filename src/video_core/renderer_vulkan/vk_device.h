@@ -122,6 +122,11 @@ public:
         return properties.limits.maxPushConstantsSize;
     }
 
+    /// Returns the maximum size for shared memory.
+    u32 GetMaxComputeSharedMemorySize() const {
+        return properties.limits.maxComputeSharedMemorySize;
+    }
+
     /// Returns true if ASTC is natively supported.
     bool IsOptimalAstcSupported() const {
         return is_optimal_astc_supported;

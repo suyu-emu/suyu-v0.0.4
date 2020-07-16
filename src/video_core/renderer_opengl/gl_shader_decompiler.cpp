@@ -602,8 +602,15 @@ private:
             return;
         }
         const auto& info = registry.GetComputeInfo();
-        if (const u32 size = info.shared_memory_size_in_words; size > 0) {
-            code.AddLine("shared uint smem[{}];", size);
+        if (u32 size = info.shared_memory_size_in_words * 4; size > 0) {
+            const u32 limit = device.GetMaxComputeSharedMemorySize();
+            if (size > limit) {
+                LOG_ERROR(Render_OpenGL, "Shared memory size {} is clamped to host's limit {}",
+                          size, limit);
+                size = limit;
+            }
+
+            code.AddLine("shared uint smem[{}];", size / 4);
             code.AddNewLine();
         }
         code.AddLine("layout (local_size_x = {}, local_size_y = {}, local_size_z = {}) in;",
