@@ -43,12 +43,13 @@ vk::DescriptorSetLayout VKComputePipeline::CreateDescriptorSetLayout() const {
     const auto add_bindings = [&](VkDescriptorType descriptor_type, std::size_t num_entries) {
         // TODO(Rodrigo): Maybe make individual bindings here?
         for (u32 bindpoint = 0; bindpoint < static_cast<u32>(num_entries); ++bindpoint) {
-            VkDescriptorSetLayoutBinding& entry = bindings.emplace_back();
-            entry.binding = binding++;
-            entry.descriptorType = descriptor_type;
-            entry.descriptorCount = 1;
-            entry.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-            entry.pImmutableSamplers = nullptr;
+            bindings.push_back({
+                .binding = binding++,
+                .descriptorType = descriptor_type,
+                .descriptorCount = 1,
+                .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+                .pImmutableSamplers = nullptr,
+            });
         }
     };
     add_bindings(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, entries.const_buffers.size());
@@ -58,25 +59,25 @@ vk::DescriptorSetLayout VKComputePipeline::CreateDescriptorSetLayout() const {
     add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, entries.storage_texels.size());
     add_bindings(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, entries.images.size());
 
-    VkDescriptorSetLayoutCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.bindingCount = static_cast<u32>(bindings.size());
-    ci.pBindings = bindings.data();
-    return device.GetLogical().CreateDescriptorSetLayout(ci);
+    return device.GetLogical().CreateDescriptorSetLayout({
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = static_cast<u32>(bindings.size()),
+        .pBindings = bindings.data(),
+    });
 }
 
 vk::PipelineLayout VKComputePipeline::CreatePipelineLayout() const {
-    VkPipelineLayoutCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.setLayoutCount = 1;
-    ci.pSetLayouts = descriptor_set_layout.address();
-    ci.pushConstantRangeCount = 0;
-    ci.pPushConstantRanges = nullptr;
-    return device.GetLogical().CreatePipelineLayout(ci);
+    return device.GetLogical().CreatePipelineLayout({
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .setLayoutCount = 1,
+        .pSetLayouts = descriptor_set_layout.address(),
+        .pushConstantRangeCount = 0,
+        .pPushConstantRanges = nullptr,
+    });
 }
 
 vk::DescriptorUpdateTemplateKHR VKComputePipeline::CreateDescriptorUpdateTemplate() const {
@@ -89,59 +90,63 @@ vk::DescriptorUpdateTemplateKHR VKComputePipeline::CreateDescriptorUpdateTemplat
         return {};
     }
 
-    VkDescriptorUpdateTemplateCreateInfoKHR ci;
-    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.descriptorUpdateEntryCount = static_cast<u32>(template_entries.size());
-    ci.pDescriptorUpdateEntries = template_entries.data();
-    ci.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR;
-    ci.descriptorSetLayout = *descriptor_set_layout;
-    ci.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    ci.pipelineLayout = *layout;
-    ci.set = DESCRIPTOR_SET;
-    return device.GetLogical().CreateDescriptorUpdateTemplateKHR(ci);
+    return device.GetLogical().CreateDescriptorUpdateTemplateKHR({
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .descriptorUpdateEntryCount = static_cast<u32>(template_entries.size()),
+        .pDescriptorUpdateEntries = template_entries.data(),
+        .templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR,
+        .descriptorSetLayout = *descriptor_set_layout,
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .pipelineLayout = *layout,
+        .set = DESCRIPTOR_SET,
+    });
 }
 
 vk::ShaderModule VKComputePipeline::CreateShaderModule(const std::vector<u32>& code) const {
     device.SaveShader(code);
 
-    VkShaderModuleCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.codeSize = code.size() * sizeof(u32);
-    ci.pCode = code.data();
-    return device.GetLogical().CreateShaderModule(ci);
+    return device.GetLogical().CreateShaderModule({
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .codeSize = code.size() * sizeof(u32),
+        .pCode = code.data(),
+    });
 }
 
 vk::Pipeline VKComputePipeline::CreatePipeline() const {
-    VkComputePipelineCreateInfo ci;
-    VkPipelineShaderStageCreateInfo& stage_ci = ci.stage;
-    stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stage_ci.pNext = nullptr;
-    stage_ci.flags = 0;
-    stage_ci.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    stage_ci.module = *shader_module;
-    stage_ci.pName = "main";
-    stage_ci.pSpecializationInfo = nullptr;
 
-    VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci;
-    subgroup_size_ci.sType =
-        VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT;
-    subgroup_size_ci.pNext = nullptr;
-    subgroup_size_ci.requiredSubgroupSize = GuestWarpSize;
+    VkComputePipelineCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = *shader_module,
+                .pName = "main",
+                .pSpecializationInfo = nullptr,
+            },
+        .layout = *layout,
+        .basePipelineHandle = nullptr,
+        .basePipelineIndex = 0,
+    };
+
+    const VkPipelineShaderStageRequiredSubgroupSizeCreateInfoEXT subgroup_size_ci{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_REQUIRED_SUBGROUP_SIZE_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .requiredSubgroupSize = GuestWarpSize,
+    };
 
     if (entries.uses_warps && device.IsGuestWarpSizeSupported(VK_SHADER_STAGE_COMPUTE_BIT)) {
-        stage_ci.pNext = &subgroup_size_ci;
+        ci.stage.pNext = &subgroup_size_ci;
     }
 
-    ci.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.layout = *layout;
-    ci.basePipelineHandle = nullptr;
-    ci.basePipelineIndex = 0;
     return device.GetLogical().CreateComputePipeline(ci);
 }
 
