@@ -583,8 +583,6 @@ private:
 
     void SetCurrentPriority(u32 new_priority);
 
-    void AdjustSchedulingOnAffinity(u64 old_affinity_mask, s32 old_core);
-
     Common::SpinLock context_guard{};
     ThreadContext32 context_32{};
     ThreadContext64 context_64{};
