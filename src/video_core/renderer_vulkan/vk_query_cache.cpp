@@ -47,14 +47,14 @@ std::pair<VkQueryPool, u32> QueryPool::Commit(VKFence& fence) {
 void QueryPool::Allocate(std::size_t begin, std::size_t end) {
     usage.resize(end);
 
-    VkQueryPoolCreateInfo query_pool_ci;
-    query_pool_ci.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO;
-    query_pool_ci.pNext = nullptr;
-    query_pool_ci.flags = 0;
-    query_pool_ci.queryType = GetTarget(type);
-    query_pool_ci.queryCount = static_cast<u32>(end - begin);
-    query_pool_ci.pipelineStatistics = 0;
-    pools.push_back(device->GetLogical().CreateQueryPool(query_pool_ci));
+    pools.push_back(device->GetLogical().CreateQueryPool({
+        .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .queryType = GetTarget(type),
+        .queryCount = static_cast<u32>(end - begin),
+        .pipelineStatistics = 0,
+    }));
 }
 
 void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
