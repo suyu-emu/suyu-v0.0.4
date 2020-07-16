@@ -39,16 +39,17 @@ std::unique_ptr<VKStreamBuffer> CreateStreamBuffer(const VKDevice& device, VKSch
 
 Buffer::Buffer(const VKDevice& device, VKMemoryManager& memory_manager, VKScheduler& scheduler_,
                VKStagingBufferPool& staging_pool_, VAddr cpu_addr, std::size_t size)
-    : VideoCommon::BufferBlock{cpu_addr, size}, scheduler{scheduler_}, staging_pool{staging_pool_} {
-    VkBufferCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.size = static_cast<VkDeviceSize>(size);
-    ci.usage = BUFFER_USAGE | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    ci.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    ci.queueFamilyIndexCount = 0;
-    ci.pQueueFamilyIndices = nullptr;
+    : BufferBlock{cpu_addr, size}, scheduler{scheduler_}, staging_pool{staging_pool_} {
+    const VkBufferCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .size = static_cast<VkDeviceSize>(size),
+        .usage = BUFFER_USAGE | VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+        .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+    };
 
     buffer.handle = device.GetLogical().CreateBuffer(ci);
     buffer.commit = memory_manager.Commit(buffer.handle, false);
@@ -66,16 +67,17 @@ void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) {
     scheduler.Record([staging = *staging.handle, handle, offset, size](vk::CommandBuffer cmdbuf) {
         cmdbuf.CopyBuffer(staging, handle, VkBufferCopy{0, offset, size});
 
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = UPLOAD_ACCESS_BARRIERS;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = handle;
-        barrier.offset = offset;
-        barrier.size = size;
+        const VkBufferMemoryBarrier barrier{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = UPLOAD_ACCESS_BARRIERS,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .buffer = handle,
+            .offset = offset,
+            .size = size,
+        };
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_TRANSFER_BIT, UPLOAD_PIPELINE_STAGE, 0, {},
                                barrier, {});
     });
@@ -87,16 +89,17 @@ void Buffer::Download(std::size_t offset, std::size_t size, u8* data) {
 
     const VkBuffer handle = Handle();
     scheduler.Record([staging = *staging.handle, handle, offset, size](vk::CommandBuffer cmdbuf) {
-        VkBufferMemoryBarrier barrier;
-        barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
-        barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.buffer = handle;
-        barrier.offset = offset;
-        barrier.size = size;
+        const VkBufferMemoryBarrier barrier{
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+            .pNext = nullptr,
+            .srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .buffer = handle,
+            .offset = offset,
+            .size = size,
+        };
 
         cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_VERTEX_SHADER_BIT |
                                    VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT |
