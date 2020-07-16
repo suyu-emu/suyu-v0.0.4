@@ -95,15 +95,16 @@ bool VKSwapchain::Present(VkSemaphore render_semaphore, VKFence& fence) {
     const auto present_queue{device.GetPresentQueue()};
     bool recreated = false;
 
-    VkPresentInfoKHR present_info;
-    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = nullptr;
-    present_info.waitSemaphoreCount = render_semaphore ? 2U : 1U;
-    present_info.pWaitSemaphores = semaphores.data();
-    present_info.swapchainCount = 1;
-    present_info.pSwapchains = swapchain.address();
-    present_info.pImageIndices = &image_index;
-    present_info.pResults = nullptr;
+    const VkPresentInfoKHR present_info{
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreCount = render_semaphore ? 2U : 1U,
+        .pWaitSemaphores = semaphores.data(),
+        .swapchainCount = 1,
+        .pSwapchains = swapchain.address(),
+        .pImageIndices = &image_index,
+        .pResults = nullptr,
+    };
 
     switch (const VkResult result = present_queue.Present(present_info)) {
     case VK_SUCCESS:
@@ -147,24 +148,25 @@ void VKSwapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, 
         requested_image_count = capabilities.maxImageCount;
     }
 
-    VkSwapchainCreateInfoKHR swapchain_ci;
-    swapchain_ci.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    swapchain_ci.pNext = nullptr;
-    swapchain_ci.flags = 0;
-    swapchain_ci.surface = surface;
-    swapchain_ci.minImageCount = requested_image_count;
-    swapchain_ci.imageFormat = surface_format.format;
-    swapchain_ci.imageColorSpace = surface_format.colorSpace;
-    swapchain_ci.imageArrayLayers = 1;
-    swapchain_ci.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    swapchain_ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    swapchain_ci.queueFamilyIndexCount = 0;
-    swapchain_ci.pQueueFamilyIndices = nullptr;
-    swapchain_ci.preTransform = capabilities.currentTransform;
-    swapchain_ci.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchain_ci.presentMode = present_mode;
-    swapchain_ci.clipped = VK_FALSE;
-    swapchain_ci.oldSwapchain = nullptr;
+    VkSwapchainCreateInfoKHR swapchain_ci{
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = nullptr,
+        .flags = 0,
+        .surface = surface,
+        .minImageCount = requested_image_count,
+        .imageFormat = surface_format.format,
+        .imageColorSpace = surface_format.colorSpace,
+        .imageArrayLayers = 1,
+        .imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = nullptr,
+        .preTransform = capabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = present_mode,
+        .clipped = VK_FALSE,
+        .oldSwapchain = nullptr,
+    };
 
     const u32 graphics_family{device.GetGraphicsFamily()};
     const u32 present_family{device.GetPresentFamily()};
@@ -173,8 +175,6 @@ void VKSwapchain::CreateSwapchain(const VkSurfaceCapabilitiesKHR& capabilities, 
         swapchain_ci.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
         swapchain_ci.queueFamilyIndexCount = static_cast<u32>(queue_indices.size());
         swapchain_ci.pQueueFamilyIndices = queue_indices.data();
-    } else {
-        swapchain_ci.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
     }
 
     // Request the size again to reduce the possibility of a TOCTOU race condition.
@@ -200,20 +200,28 @@ void VKSwapchain::CreateSemaphores() {
 }
 
 void VKSwapchain::CreateImageViews() {
-    VkImageViewCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    // ci.image
-    ci.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    ci.format = image_format;
-    ci.components = {VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
-                     VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY};
-    ci.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    ci.subresourceRange.baseMipLevel = 0;
-    ci.subresourceRange.levelCount = 1;
-    ci.subresourceRange.baseArrayLayer = 0;
-    ci.subresourceRange.layerCount = 1;
+    VkImageViewCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .viewType = VK_IMAGE_VIEW_TYPE_2D,
+        .format = image_format,
+        .components =
+            {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+        .subresourceRange =
+            {
+                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                .baseMipLevel = 0,
+                .levelCount = 1,
+                .baseArrayLayer = 0,
+                .layerCount = 1,
+            },
+    };
 
     image_views.resize(image_count);
     for (std::size_t i = 0; i < image_count; i++) {
