@@ -36,6 +36,7 @@ void AsyncShaders::AllocateWorkers(std::size_t num_workers) {
 void AsyncShaders::FreeWorkers() {
     // Mark all threads to quit
     is_thread_exiting.store(true);
+    cv.notify_all();
     for (auto& thread : worker_threads) {
         thread.join();
     }

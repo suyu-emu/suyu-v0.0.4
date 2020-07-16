@@ -1149,8 +1149,6 @@ void Config::SaveRendererValues() {
                        Settings::values.use_assembly_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
                        Settings::values.use_asynchronous_shaders, false);
-    WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
-                       Settings::values.use_asynchronous_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time,
                        true);
     WriteSettingGlobal(QStringLiteral("force_30fps_mode"), Settings::values.force_30fps_mode,
