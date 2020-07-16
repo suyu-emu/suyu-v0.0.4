@@ -19,7 +19,6 @@ Synchronization::Synchronization(Core::System& system) : system{system} {}
 void Synchronization::SignalObject(SynchronizationObject& obj) const {
     auto& kernel = system.Kernel();
     SchedulerLock lock(kernel);
-    auto& time_manager = kernel.TimeManager();
     if (obj.IsSignaled()) {
         for (auto thread : obj.GetWaitingThreads()) {
             if (thread->GetSchedulingStatus() == ThreadSchedStatus::Paused) {

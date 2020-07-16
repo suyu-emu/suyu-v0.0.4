@@ -458,9 +458,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
         return ERR_OUT_OF_RANGE;
     }
 
-    auto* const thread = system.CurrentScheduler().GetCurrentThread();
     auto& kernel = system.Kernel();
-    using ObjectPtr = Thread::ThreadSynchronizationObjects::value_type;
     Thread::ThreadSynchronizationObjects objects(handle_count);
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
@@ -1750,9 +1748,9 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
     // Only process up to 'target' threads, unless 'target' is less equal 0, in which case process
     // them all.
     std::size_t last = waiting_threads.size();
-    if (target > 0)
+    if (target > 0) {
         last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
-    auto& time_manager = kernel.TimeManager();
+    }
     for (std::size_t index = 0; index < last; ++index) {
         auto& thread = waiting_threads[index];
 
@@ -1763,7 +1761,6 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
 
         const std::size_t current_core = system.CurrentCoreIndex();
         auto& monitor = system.Monitor();
-        auto& memory = system.Memory();
 
         // Atomically read the value of the mutex.
         u32 mutex_val = 0;
