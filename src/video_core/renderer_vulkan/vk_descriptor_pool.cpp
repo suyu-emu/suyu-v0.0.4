@@ -43,27 +43,30 @@ vk::DescriptorPool* VKDescriptorPool::AllocateNewPool() {
         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, num_sets * 64},
         {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, num_sets * 64},
         {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, num_sets * 64},
-        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, num_sets * 40}};
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, num_sets * 40},
+    };
 
-    VkDescriptorPoolCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-    ci.maxSets = num_sets;
-    ci.poolSizeCount = static_cast<u32>(std::size(pool_sizes));
-    ci.pPoolSizes = std::data(pool_sizes);
+    const VkDescriptorPoolCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
+        .maxSets = num_sets,
+        .poolSizeCount = static_cast<u32>(std::size(pool_sizes)),
+        .pPoolSizes = std::data(pool_sizes),
+    };
     return &pools.emplace_back(device.GetLogical().CreateDescriptorPool(ci));
 }
 
 vk::DescriptorSets VKDescriptorPool::AllocateDescriptors(VkDescriptorSetLayout layout,
                                                          std::size_t count) {
     const std::vector layout_copies(count, layout);
-    VkDescriptorSetAllocateInfo ai;
-    ai.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    ai.pNext = nullptr;
-    ai.descriptorPool = **active_pool;
-    ai.descriptorSetCount = static_cast<u32>(count);
-    ai.pSetLayouts = layout_copies.data();
+    VkDescriptorSetAllocateInfo ai{
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .descriptorPool = **active_pool,
+        .descriptorSetCount = static_cast<u32>(count),
+        .pSetLayouts = layout_copies.data(),
+    };
 
     vk::DescriptorSets sets = active_pool->Allocate(ai);
     if (!sets.IsOutOfPoolMemory()) {
