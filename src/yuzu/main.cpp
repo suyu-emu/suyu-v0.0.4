@@ -1755,7 +1755,7 @@ InstallResult GMainWindow::InstallNSPXCI(const QString& filename) {
             *nsp, true, qt_raw_copy);
     if (res == FileSys::InstallResult::Success) {
         return InstallResult::Success;
-    } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+    } else if (res == FileSys::InstallResult::OverwriteExisting) {
         return InstallResult::Overwrite;
     } else {
         return InstallResult::Failure;
@@ -1842,7 +1842,7 @@ InstallResult GMainWindow::InstallNCA(const QString& filename) {
 
     if (res == FileSys::InstallResult::Success) {
         return InstallResult::Success;
-    } else if (res == FileSys::InstallResult::ErrorAlreadyExists) {
+    } else if (res == FileSys::InstallResult::OverwriteExisting) {
         return InstallResult::Overwrite;
     } else {
         return InstallResult::Failure;

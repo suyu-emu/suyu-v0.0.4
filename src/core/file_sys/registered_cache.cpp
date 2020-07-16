@@ -547,6 +547,56 @@ InstallResult RegisteredCache::InstallEntry(const XCI& xci, bool overwrite_if_ex
     return InstallEntry(*xci.GetSecurePartitionNSP(), overwrite_if_exists, copy);
 }
 
+bool RegisteredCache::RemoveExistingEntry(u64 title_id) {
+    const auto delete_nca = [this](const NcaID& id) {
+        const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+        if (dir->GetFileRelative(path) == nullptr) {
+            return false;
+        }
+
+        Core::Crypto::SHA256Hash hash{};
+        mbedtls_sha256_ret(id.data(), id.size(), hash.data(), 0);
+        const auto dirname = fmt::format("000000{:02X}", hash[0]);
+
+        const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
+
+        const auto res = dir2->DeleteFile(fmt::format("{}.nca", Common::HexToString(id, false)));
+
+        return res;
+    };
+
+    // If an entry exists in the registered cache, remove it
+    if (HasEntry(title_id, ContentRecordType::Meta)) {
+        LOG_INFO(Loader,
+                 "Previously installed entry (v{}) for title_id={:016X} detected! "
+                 "Attempting to remove...",
+                 GetEntryVersion(title_id).value_or(0), title_id);
+        // Get all the ncas associated with the current CNMT and delete them
+        const auto meta_old_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Meta).value_or(NcaID{});
+        const auto program_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Program).value_or(NcaID{});
+        const auto data_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Data).value_or(NcaID{});
+        const auto control_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Control).value_or(NcaID{});
+        const auto html_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::HtmlDocument).value_or(NcaID{});
+        const auto legal_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::LegalInformation).value_or(NcaID{});
+
+        delete_nca(meta_old_id);
+        delete_nca(program_id);
+        delete_nca(data_id);
+        delete_nca(control_id);
+        delete_nca(html_id);
+        delete_nca(legal_id);
+        return true;
+    }
+    return false;
+}
+
 InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_exists,
                                             const VfsCopyFunction& copy) {
     const auto ncas = nsp.GetNCAsCollapsed();
@@ -560,31 +610,57 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
         return InstallResult::ErrorMetaFailed;
     }
 
-    // Install Metadata File
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
     const auto meta_id = Common::HexStringToArray<16>(meta_id_raw);
 
-    const auto res = RawInstallNCA(**meta_iter, copy, overwrite_if_exists, meta_id);
-    if (res != InstallResult::Success)
-        return res;
+    if ((*meta_iter)->GetSubdirectories().empty()) {
+        LOG_ERROR(Loader,
+                  "The file you are attempting to install does not contain a section0 within the "
+                  "metadata NCA and is therefore malformed. Verify that the file is valid.");
+        return InstallResult::ErrorMetaFailed;
+    }
 
-    // Install all the other NCAs
     const auto section0 = (*meta_iter)->GetSubdirectories()[0];
+
+    if (section0->GetFiles().empty()) {
+        LOG_ERROR(Loader,
+                  "The file you are attempting to install does not contain a CNMT within the "
+                  "metadata NCA and is therefore malformed. Verify that the file is valid.");
+        return InstallResult::ErrorMetaFailed;
+    }
+
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
+
+    const auto title_id = cnmt.GetTitleID();
+    const auto result = RemoveExistingEntry(title_id);
+
+    // Install Metadata File
+    const auto res = RawInstallNCA(**meta_iter, copy, overwrite_if_exists, meta_id);
+    if (res != InstallResult::Success) {
+        return res;
+    }
+
+    // Install all the other NCAs
     for (const auto& record : cnmt.GetContentRecords()) {
         // Ignore DeltaFragments, they are not useful to us
-        if (record.type == ContentRecordType::DeltaFragment)
+        if (record.type == ContentRecordType::DeltaFragment) {
             continue;
+        }
         const auto nca = GetNCAFromNSPForID(nsp, record.nca_id);
-        if (nca == nullptr)
+        if (nca == nullptr) {
             return InstallResult::ErrorCopyFailed;
+        }
         const auto res2 = RawInstallNCA(*nca, copy, overwrite_if_exists, record.nca_id);
-        if (res2 != InstallResult::Success)
+        if (res2 != InstallResult::Success) {
             return res2;
+        }
     }
 
     Refresh();
+    if (result) {
+        return InstallResult::OverwriteExisting;
+    }
     return InstallResult::Success;
 }
 
@@ -610,8 +686,9 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
     mbedtls_sha256_ret(data.data(), data.size(), c_rec.hash.data(), 0);
     memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
-    if (!RawInstallYuzuMeta(new_cnmt))
+    if (!RawInstallYuzuMeta(new_cnmt)) {
         return InstallResult::ErrorMetaFailed;
+    }
     return RawInstallNCA(nca, copy, overwrite_if_exists, c_rec.nca_id);
 }
 
@@ -649,8 +726,9 @@ InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFuncti
     }
 
     auto out = dir->CreateFileRelative(path);
-    if (out == nullptr)
+    if (out == nullptr) {
         return InstallResult::ErrorCopyFailed;
+    }
     return copy(in, out, VFS_RC_LARGE_COPY_BLOCK) ? InstallResult::Success
                                                   : InstallResult::ErrorCopyFailed;
 }
