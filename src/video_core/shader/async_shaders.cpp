@@ -59,7 +59,6 @@ void AsyncShaders::KillWorkers() {
 }
 
 bool AsyncShaders::HasWorkQueued() {
-    std::shared_lock lock(queue_mutex);
     return !pending_queue.empty();
 }
 
@@ -118,26 +117,31 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                         cpu_addr};
     std::unique_lock lock(queue_mutex);
     pending_queue.push_back(std::move(params));
+    cv.notify_one();
 }
 
 void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context) {
     using namespace std::chrono_literals;
     while (!is_thread_exiting.load(std::memory_order_relaxed)) {
+        std::unique_lock<std::mutex> lock(queue_mutex);
+        cv.wait(lock, [&] { return HasWorkQueued() || is_thread_exiting; });
+        if (is_thread_exiting) {
+            return;
+        }
+
         // Partial lock to allow all threads to read at the same time
         if (!HasWorkQueued()) {
             continue;
         }
-        // Complete lock for pulling workload
-        queue_mutex.lock();
         // Another thread beat us, just unlock and wait for the next load
         if (pending_queue.empty()) {
-            queue_mutex.unlock();
             continue;
         }
         // Pull work from queue
         WorkerParams work = std::move(pending_queue.front());
         pending_queue.pop_front();
-        queue_mutex.unlock();
+
+        lock.unlock();
 
         if (work.backend == AsyncShaders::Backend::OpenGL ||
             work.backend == AsyncShaders::Backend::GLASM) {

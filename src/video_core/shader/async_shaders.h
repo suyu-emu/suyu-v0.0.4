@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <deque>
 #include <memory>
 #include <shared_mutex>
@@ -59,9 +60,6 @@ public:
     // Force end all threads
     void KillWorkers();
 
-    /// Check our worker queue to see if we have any work queued already
-    bool HasWorkQueued();
-
     /// Check to see if any shaders have actually been compiled
     bool HasCompletedWork();
 
@@ -81,6 +79,9 @@ public:
 private:
     void ShaderCompilerThread(Core::Frontend::GraphicsContext* context);
 
+    /// Check our worker queue to see if we have any work queued already
+    bool HasWorkQueued();
+
     struct WorkerParams {
         AsyncShaders::Backend backend;
         OpenGL::Device device;
@@ -94,7 +95,8 @@ private:
         VAddr cpu_address;
     };
 
-    std::shared_mutex queue_mutex;
+    std::condition_variable cv;
+    std::mutex queue_mutex;
     std::shared_mutex completed_mutex;
     std::atomic<bool> is_thread_exiting{};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> context_list;
