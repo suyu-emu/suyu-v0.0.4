@@ -802,7 +802,7 @@ void Scheduler::UpdateLastContextSwitchTime(Thread* thread, Process* process) {
 
 void Scheduler::Initialize() {
     std::string name = "Idle Thread Id:" + std::to_string(core_id);
-    std::function<void(void*)> init_func = system.GetCpuManager().GetIdleThreadStartFunc();
+    std::function<void(void*)> init_func = Core::CpuManager::GetIdleThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
     ThreadType type = static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_IDLE);
     auto thread_res = Thread::Create(system, type, name, 0, 64, 0, static_cast<u32>(core_id), 0,

@@ -49,9 +49,9 @@ public:
 
     void Pause(bool paused);
 
-    std::function<void(void*)> GetGuestThreadStartFunc();
-    std::function<void(void*)> GetIdleThreadStartFunc();
-    std::function<void(void*)> GetSuspendThreadStartFunc();
+    static std::function<void(void*)> GetGuestThreadStartFunc();
+    static std::function<void(void*)> GetIdleThreadStartFunc();
+    static std::function<void(void*)> GetSuspendThreadStartFunc();
     void* GetStartFuncParamater();
 
     void PreemptSingleCore(bool from_running_enviroment = true);
