@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "core/arm/cpu_interrupt_handler.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/memory/memory_types.h"
 #include "core/hle/kernel/object.h"
