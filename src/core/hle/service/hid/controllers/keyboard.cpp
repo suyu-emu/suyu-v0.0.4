@@ -40,15 +40,16 @@ void Controller_Keyboard::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
 
     cur_entry.key.fill(0);
     cur_entry.modifier = 0;
+    if (Settings::values.keyboard_enabled) {
+        for (std::size_t i = 0; i < keyboard_keys.size(); ++i) {
+            cur_entry.key[i / KEYS_PER_BYTE] |=
+                (keyboard_keys[i]->GetStatus() << (i % KEYS_PER_BYTE));
+        }
 
-    for (std::size_t i = 0; i < keyboard_keys.size(); ++i) {
-        cur_entry.key[i / KEYS_PER_BYTE] |= (keyboard_keys[i]->GetStatus() << (i % KEYS_PER_BYTE));
+        for (std::size_t i = 0; i < keyboard_mods.size(); ++i) {
+            cur_entry.modifier |= (keyboard_mods[i]->GetStatus() << i);
+        }
     }
-
-    for (std::size_t i = 0; i < keyboard_mods.size(); ++i) {
-        cur_entry.modifier |= (keyboard_mods[i]->GetStatus() << i);
-    }
-
     std::memcpy(data + SHARED_MEMORY_OFFSET, &shared_memory, sizeof(SharedMemory));
 }
 
