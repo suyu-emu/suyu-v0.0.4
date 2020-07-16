@@ -566,12 +566,13 @@ bool RegisteredCache::RemoveExistingEntry(u64 title_id) {
         return res;
     };
 
-    // If an update exists, remove
+    // If an entry exists in the registered cache, remove it
     if (HasEntry(title_id, ContentRecordType::Meta)) {
         LOG_INFO(Loader,
-                 "Previous Update (v{}) for title_id={:016X} detected! Attempting to remove...",
+                 "Previously installed entry (v{}) for title_id={:016X} detected! "
+                 "Attempting to remove...",
                  GetEntryVersion(title_id).value_or(0), title_id);
-        // Get all the ncas associated with the current update CNMT and delete them
+        // Get all the ncas associated with the current CNMT and delete them
         const auto meta_old_id =
             GetNcaIDFromMetadata(title_id, ContentRecordType::Meta).value_or(NcaID{});
         const auto program_id =
@@ -612,7 +613,22 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
     const auto meta_id_raw = (*meta_iter)->GetName().substr(0, 32);
     const auto meta_id = Common::HexStringToArray<16>(meta_id_raw);
 
+    if ((*meta_iter)->GetSubdirectories().empty()) {
+        LOG_ERROR(Loader,
+                  "The file you are attempting to install does not contain a section0 within the "
+                  "metadata NCA and is therefore malformed. Verify that the file is valid.");
+        return InstallResult::ErrorMetaFailed;
+    }
+
     const auto section0 = (*meta_iter)->GetSubdirectories()[0];
+
+    if (section0->GetFiles().empty()) {
+        LOG_ERROR(Loader,
+                  "The file you are attempting to install does not contain a CNMT within the "
+                  "metadata NCA and is therefore malformed. Verify that the file is valid.");
+        return InstallResult::ErrorMetaFailed;
+    }
+
     const auto cnmt_file = section0->GetFiles()[0];
     const CNMT cnmt(cnmt_file);
 
