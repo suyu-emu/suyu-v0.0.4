@@ -44,32 +44,35 @@ vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) c
     const bool arbitrary_borders = device.IsExtCustomBorderColorSupported();
     const std::array color = tsc.GetBorderColor();
 
-    VkSamplerCustomBorderColorCreateInfoEXT border;
-    border.sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT;
-    border.pNext = nullptr;
-    border.format = VK_FORMAT_UNDEFINED;
+    VkSamplerCustomBorderColorCreateInfoEXT border{
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .format = VK_FORMAT_UNDEFINED,
+    };
     std::memcpy(&border.customBorderColor, color.data(), sizeof(color));
 
-    VkSamplerCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    ci.pNext = arbitrary_borders ? &border : nullptr;
-    ci.flags = 0;
-    ci.magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter);
-    ci.minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter);
-    ci.mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter);
-    ci.addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter);
-    ci.addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter);
-    ci.addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter);
-    ci.mipLodBias = tsc.GetLodBias();
-    ci.anisotropyEnable = tsc.GetMaxAnisotropy() > 1.0f ? VK_TRUE : VK_FALSE;
-    ci.maxAnisotropy = tsc.GetMaxAnisotropy();
-    ci.compareEnable = tsc.depth_compare_enabled;
-    ci.compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func);
-    ci.minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.GetMinLod();
-    ci.maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.GetMaxLod();
-    ci.borderColor = arbitrary_borders ? VK_BORDER_COLOR_INT_CUSTOM_EXT : ConvertBorderColor(color);
-    ci.unnormalizedCoordinates = VK_FALSE;
-    return device.GetLogical().CreateSampler(ci);
+    return device.GetLogical().CreateSampler({
+        .sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+        .pNext = arbitrary_borders ? &border : nullptr,
+        .flags = 0,
+        .magFilter = MaxwellToVK::Sampler::Filter(tsc.mag_filter),
+        .minFilter = MaxwellToVK::Sampler::Filter(tsc.min_filter),
+        .mipmapMode = MaxwellToVK::Sampler::MipmapMode(tsc.mipmap_filter),
+        .addressModeU = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_u, tsc.mag_filter),
+        .addressModeV = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_v, tsc.mag_filter),
+        .addressModeW = MaxwellToVK::Sampler::WrapMode(device, tsc.wrap_p, tsc.mag_filter),
+        .mipLodBias = tsc.GetLodBias(),
+        .anisotropyEnable =
+            static_cast<VkBool32>(tsc.GetMaxAnisotropy() > 1.0f ? VK_TRUE : VK_FALSE),
+        .maxAnisotropy = tsc.GetMaxAnisotropy(),
+        .compareEnable = tsc.depth_compare_enabled,
+        .compareOp = MaxwellToVK::Sampler::DepthCompareFunction(tsc.depth_compare_func),
+        .minLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.0f : tsc.GetMinLod(),
+        .maxLod = tsc.mipmap_filter == TextureMipmapFilter::None ? 0.25f : tsc.GetMaxLod(),
+        .borderColor =
+            arbitrary_borders ? VK_BORDER_COLOR_INT_CUSTOM_EXT : ConvertBorderColor(color),
+        .unnormalizedCoordinates = VK_FALSE,
+    });
 }
 
 VkSampler VKSamplerCache::ToSamplerType(const vk::Sampler& sampler) const {
