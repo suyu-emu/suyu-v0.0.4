@@ -408,7 +408,7 @@ void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
 Process::Process(Core::System& system)
     : SynchronizationObject{system.Kernel()}, page_table{std::make_unique<Memory::PageTable>(
                                                   system)},
-      address_arbiter{system}, mutex{system}, system{system} {}
+      handle_table{system.Kernel()}, address_arbiter{system}, mutex{system}, system{system} {}
 
 Process::~Process() = default;
 

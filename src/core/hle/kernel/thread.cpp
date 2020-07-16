@@ -13,16 +13,8 @@
 #include "common/logging/log.h"
 #include "common/thread_queue_list.h"
 #include "core/arm/arm_interface.h"
-#ifdef ARCHITECTURE_x86_64
-#include "core/arm/dynarmic/arm_dynarmic_32.h"
-#include "core/arm/dynarmic/arm_dynarmic_64.h"
-#endif
-#include "core/arm/cpu_interrupt_handler.h"
-#include "core/arm/exclusive_monitor.h"
 #include "core/arm/unicorn/arm_unicorn.h"
 #include "core/core.h"
-#include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/errors.h"
@@ -35,6 +27,11 @@
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
+
+#ifdef ARCHITECTURE_x86_64
+#include "core/arm/dynarmic/arm_dynarmic_32.h"
+#include "core/arm/dynarmic/arm_dynarmic_64.h"
+#endif
 
 namespace Kernel {
 
@@ -538,15 +535,6 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
         }
     }
     return RESULT_SUCCESS;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/**
- * Gets the current thread
- */
-Thread* GetCurrentThread() {
-    return Core::System::GetInstance().CurrentScheduler().GetCurrentThread();
 }
 
 } // namespace Kernel
