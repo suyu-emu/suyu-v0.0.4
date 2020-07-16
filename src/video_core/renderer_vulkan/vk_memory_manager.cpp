@@ -178,13 +178,12 @@ bool VKMemoryManager::AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 t
     }();
 
     // Try to allocate found type.
-    VkMemoryAllocateInfo memory_ai;
-    memory_ai.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memory_ai.pNext = nullptr;
-    memory_ai.allocationSize = size;
-    memory_ai.memoryTypeIndex = type;
-
-    vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory(memory_ai);
+    vk::DeviceMemory memory = device.GetLogical().TryAllocateMemory({
+        .sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .allocationSize = size,
+        .memoryTypeIndex = type,
+    });
     if (!memory) {
         LOG_CRITICAL(Render_Vulkan, "Device allocation failed!");
         return false;
