@@ -47,20 +47,9 @@ enum class PadAxes : u8 {
 };
 
 struct GCPadStatus {
-    u16 button{};       // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
-    u8 stick_x{};       // 0 <= stick_x       <= 255
-    u8 stick_y{};       // 0 <= stick_y       <= 255
-    u8 substick_x{};    // 0 <= substick_x    <= 255
-    u8 substick_y{};    // 0 <= substick_y    <= 255
-    u8 trigger_left{};  // 0 <= trigger_left  <= 255
-    u8 trigger_right{}; // 0 <= trigger_right <= 255
+    u16 button{}; // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
 
-    static constexpr u8 MAIN_STICK_CENTER_X = 0x80;
-    static constexpr u8 MAIN_STICK_CENTER_Y = 0x80;
-    static constexpr u8 MAIN_STICK_RADIUS = 0x7f;
-    static constexpr u8 C_STICK_CENTER_X = 0x80;
-    static constexpr u8 C_STICK_CENTER_Y = 0x80;
-    static constexpr u8 C_STICK_RADIUS = 0x7f;
+    std::array<u8, 6> axis_values{}; // Triggers and sticks, following indices defined in PadAxes
     static constexpr u8 THRESHOLD = 10;
 
     // 256/4, at least a quarter press to count as a press. For polling mostly
@@ -77,11 +66,6 @@ struct GCState {
 };
 
 enum class ControllerTypes { None, Wired, Wireless };
-
-enum {
-    NO_ADAPTER_DETECTED = 0,
-    ADAPTER_DETECTED = 1,
-};
 
 class Adapter {
 public:
@@ -111,12 +95,6 @@ private:
     void PadToState(const GCPadStatus& pad, GCState& state);
 
     void Read();
-    void ScanThreadFunc();
-    /// Begin scanning for the GC Adapter.
-    void StartScanThread();
-
-    /// Stop scanning for the adapter
-    void StopScanThread();
 
     /// Resets status of device connected to port
     void ResetDeviceType(std::size_t port);
@@ -133,18 +111,10 @@ private:
     /// For use in initialization, querying devices to find the adapter
     void Setup();
 
-    int current_status = NO_ADAPTER_DETECTED;
     libusb_device_handle* usb_adapter_handle = nullptr;
-    std::array<ControllerTypes, 4> adapter_controllers_status{};
-
-    std::mutex s_mutex;
 
     std::thread adapter_input_thread;
     bool adapter_thread_running;
-
-    std::mutex initialization_mutex;
-    std::thread detect_thread;
-    bool detect_thread_running = false;
 
     libusb_context* libusb_ctx;
 
@@ -153,10 +123,11 @@ private:
 
     bool configuring = false;
 
-    std::array<Common::SPSCQueue<GCPadStatus>, 4> pad_queue;
     std::array<GCState, 4> state;
     std::array<bool, 4> get_origin;
     std::array<GCPadStatus, 4> origin_status;
+    std::array<Common::SPSCQueue<GCPadStatus>, 4> pad_queue;
+    std::array<ControllerTypes, 4> adapter_controllers_status{};
 };
 
 } // namespace GCAdapter
