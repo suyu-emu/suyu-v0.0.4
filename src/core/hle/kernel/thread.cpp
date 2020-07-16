@@ -155,7 +155,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
                                                   std::string name, VAddr entry_point, u32 priority,
                                                   u64 arg, s32 processor_id, VAddr stack_top,
                                                   Process* owner_process) {
-    std::function<void(void*)> init_func = system.GetCpuManager().GetGuestThreadStartFunc();
+    std::function<void(void*)> init_func = Core::CpuManager::GetGuestThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
     return Create(system, type_flags, name, entry_point, priority, arg, processor_id, stack_top,
                   owner_process, std::move(init_func), init_func_parameter);

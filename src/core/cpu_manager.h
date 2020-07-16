@@ -9,6 +9,9 @@
 #include <functional>
 #include <memory>
 #include <thread>
+
+#include "common/fiber.h"
+#include "common/thread.h"
 #include "core/hardware_properties.h"
 
 namespace Common {
@@ -46,9 +49,9 @@ public:
 
     void Pause(bool paused);
 
-    std::function<void(void*)> GetGuestThreadStartFunc();
-    std::function<void(void*)> GetIdleThreadStartFunc();
-    std::function<void(void*)> GetSuspendThreadStartFunc();
+    static std::function<void(void*)> GetGuestThreadStartFunc();
+    static std::function<void(void*)> GetIdleThreadStartFunc();
+    static std::function<void(void*)> GetSuspendThreadStartFunc();
     void* GetStartFuncParamater();
 
     void PreemptSingleCore(bool from_running_enviroment = true);
@@ -97,7 +100,6 @@ private:
     bool is_async_gpu{};
     bool is_multicore{};
     std::atomic<std::size_t> current_core{};
-    std::size_t preemption_count{};
     std::size_t idle_count{};
     static constexpr std::size_t max_cycle_runs = 5;
 
