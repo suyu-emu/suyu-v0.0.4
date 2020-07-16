@@ -281,12 +281,10 @@ void CachedSurface::UploadBuffer(const std::vector<u8>& staging_buffer) {
         VkBufferMemoryBarrier barrier;
         barrier.sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER;
         barrier.pNext = nullptr;
-        barrier.srcAccessMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        barrier.dstAccessMask = VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
-        barrier.srcQueueFamilyIndex = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstQueueFamilyIndex = VK_ACCESS_SHADER_READ_BIT;
-        barrier.srcQueueFamilyIndex = 0;
-        barrier.dstQueueFamilyIndex = 0;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED; // They'll be ignored anyway
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
         barrier.buffer = dst_buffer;
         barrier.offset = 0;
         barrier.size = size;
