@@ -39,10 +39,14 @@ VkRenderPass VKRenderPassCache::GetRenderPass(const RenderPassParams& params) {
 
 vk::RenderPass VKRenderPassCache::CreateRenderPass(const RenderPassParams& params) const {
     using namespace VideoCore::Surface;
-    std::vector<VkAttachmentDescription> descriptors;
-    std::vector<VkAttachmentReference> color_references;
-
     const std::size_t num_attachments = static_cast<std::size_t>(params.num_color_attachments);
+
+    std::vector<VkAttachmentDescription> descriptors;
+    descriptors.reserve(num_attachments);
+
+    std::vector<VkAttachmentReference> color_references;
+    color_references.reserve(num_attachments);
+
     for (std::size_t rt = 0; rt < num_attachments; ++rt) {
         const auto guest_format = static_cast<Tegra::RenderTargetFormat>(params.color_formats[rt]);
         const PixelFormat pixel_format = PixelFormatFromRenderTargetFormat(guest_format);
@@ -54,20 +58,22 @@ vk::RenderPass VKRenderPassCache::CreateRenderPass(const RenderPassParams& param
         const VkImageLayout color_layout = ((params.texceptions >> rt) & 1) != 0
                                                ? VK_IMAGE_LAYOUT_GENERAL
                                                : VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        VkAttachmentDescription& descriptor = descriptors.emplace_back();
-        descriptor.flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT;
-        descriptor.format = format.format;
-        descriptor.samples = VK_SAMPLE_COUNT_1_BIT;
-        descriptor.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        descriptor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        descriptor.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        descriptor.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        descriptor.initialLayout = color_layout;
-        descriptor.finalLayout = color_layout;
+        descriptors.push_back({
+            .flags = VK_ATTACHMENT_DESCRIPTION_MAY_ALIAS_BIT,
+            .format = format.format,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = color_layout,
+            .finalLayout = color_layout,
+        });
 
-        VkAttachmentReference& reference = color_references.emplace_back();
-        reference.attachment = static_cast<u32>(rt);
-        reference.layout = color_layout;
+        color_references.push_back({
+            .attachment = static_cast<u32>(rt),
+            .layout = color_layout,
+        });
     }
 
     VkAttachmentReference zeta_attachment_ref;
@@ -82,32 +88,36 @@ vk::RenderPass VKRenderPassCache::CreateRenderPass(const RenderPassParams& param
         const VkImageLayout zeta_layout = params.zeta_texception != 0
                                               ? VK_IMAGE_LAYOUT_GENERAL
                                               : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        VkAttachmentDescription& descriptor = descriptors.emplace_back();
-        descriptor.flags = 0;
-        descriptor.format = format.format;
-        descriptor.samples = VK_SAMPLE_COUNT_1_BIT;
-        descriptor.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        descriptor.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        descriptor.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        descriptor.stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE;
-        descriptor.initialLayout = zeta_layout;
-        descriptor.finalLayout = zeta_layout;
+        descriptors.push_back({
+            .flags = 0,
+            .format = format.format,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .initialLayout = zeta_layout,
+            .finalLayout = zeta_layout,
+        });
 
-        zeta_attachment_ref.attachment = static_cast<u32>(num_attachments);
-        zeta_attachment_ref.layout = zeta_layout;
+        zeta_attachment_ref = {
+            .attachment = static_cast<u32>(num_attachments),
+            .layout = zeta_layout,
+        };
     }
 
-    VkSubpassDescription subpass_description;
-    subpass_description.flags = 0;
-    subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass_description.inputAttachmentCount = 0;
-    subpass_description.pInputAttachments = nullptr;
-    subpass_description.colorAttachmentCount = static_cast<u32>(color_references.size());
-    subpass_description.pColorAttachments = color_references.data();
-    subpass_description.pResolveAttachments = nullptr;
-    subpass_description.pDepthStencilAttachment = has_zeta ? &zeta_attachment_ref : nullptr;
-    subpass_description.preserveAttachmentCount = 0;
-    subpass_description.pPreserveAttachments = nullptr;
+    const VkSubpassDescription subpass_description{
+        .flags = 0,
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount = 0,
+        .pInputAttachments = nullptr,
+        .colorAttachmentCount = static_cast<u32>(color_references.size()),
+        .pColorAttachments = color_references.data(),
+        .pResolveAttachments = nullptr,
+        .pDepthStencilAttachment = has_zeta ? &zeta_attachment_ref : nullptr,
+        .preserveAttachmentCount = 0,
+        .pPreserveAttachments = nullptr,
+    };
 
     VkAccessFlags access = 0;
     VkPipelineStageFlags stage = 0;
@@ -122,26 +132,27 @@ vk::RenderPass VKRenderPassCache::CreateRenderPass(const RenderPassParams& param
         stage |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
     }
 
-    VkSubpassDependency subpass_dependency;
-    subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_dependency.dstSubpass = 0;
-    subpass_dependency.srcStageMask = stage;
-    subpass_dependency.dstStageMask = stage;
-    subpass_dependency.srcAccessMask = 0;
-    subpass_dependency.dstAccessMask = access;
-    subpass_dependency.dependencyFlags = 0;
+    const VkSubpassDependency subpass_dependency{
+        .srcSubpass = VK_SUBPASS_EXTERNAL,
+        .dstSubpass = 0,
+        .srcStageMask = stage,
+        .dstStageMask = stage,
+        .srcAccessMask = 0,
+        .dstAccessMask = access,
+        .dependencyFlags = 0,
+    };
 
-    VkRenderPassCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.attachmentCount = static_cast<u32>(descriptors.size());
-    ci.pAttachments = descriptors.data();
-    ci.subpassCount = 1;
-    ci.pSubpasses = &subpass_description;
-    ci.dependencyCount = 1;
-    ci.pDependencies = &subpass_dependency;
-    return device.GetLogical().CreateRenderPass(ci);
+    return device.GetLogical().CreateRenderPass({
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .attachmentCount = static_cast<u32>(descriptors.size()),
+        .pAttachments = descriptors.data(),
+        .subpassCount = 1,
+        .pSubpasses = &subpass_description,
+        .dependencyCount = 1,
+        .pDependencies = &subpass_dependency,
+    });
 }
 
 } // namespace Vulkan
