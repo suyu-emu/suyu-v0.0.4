@@ -19,13 +19,13 @@ vk::ShaderModule BuildShader(const VKDevice& device, std::size_t code_size, cons
     const auto data = std::make_unique<u32[]>(code_size / sizeof(u32));
     std::memcpy(data.get(), code_data, code_size);
 
-    VkShaderModuleCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.codeSize = code_size;
-    ci.pCode = data.get();
-    return device.GetLogical().CreateShaderModule(ci);
+    return device.GetLogical().CreateShaderModule({
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .codeSize = code_size,
+        .pCode = data.get(),
+    });
 }
 
 } // namespace Vulkan
