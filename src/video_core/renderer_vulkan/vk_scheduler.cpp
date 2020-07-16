@@ -100,16 +100,19 @@ void VKScheduler::RequestRenderpass(VkRenderPass renderpass, VkFramebuffer frame
     state.framebuffer = framebuffer;
     state.render_area = render_area;
 
-    VkRenderPassBeginInfo renderpass_bi;
-    renderpass_bi.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderpass_bi.pNext = nullptr;
-    renderpass_bi.renderPass = renderpass;
-    renderpass_bi.framebuffer = framebuffer;
-    renderpass_bi.renderArea.offset.x = 0;
-    renderpass_bi.renderArea.offset.y = 0;
-    renderpass_bi.renderArea.extent = render_area;
-    renderpass_bi.clearValueCount = 0;
-    renderpass_bi.pClearValues = nullptr;
+    const VkRenderPassBeginInfo renderpass_bi{
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+        .pNext = nullptr,
+        .renderPass = renderpass,
+        .framebuffer = framebuffer,
+        .renderArea =
+            {
+                .offset = {.x = 0, .y = 0},
+                .extent = render_area,
+            },
+        .clearValueCount = 0,
+        .pClearValues = nullptr,
+    };
 
     Record([renderpass_bi, end_renderpass](vk::CommandBuffer cmdbuf) {
         if (end_renderpass) {
@@ -157,16 +160,17 @@ void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
 
     current_cmdbuf.End();
 
-    VkSubmitInfo submit_info;
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pWaitDstStageMask = nullptr;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = current_cmdbuf.address();
-    submit_info.signalSemaphoreCount = semaphore ? 1 : 0;
-    submit_info.pSignalSemaphores = &semaphore;
+    const VkSubmitInfo submit_info{
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = nullptr,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = nullptr,
+        .pWaitDstStageMask = nullptr,
+        .commandBufferCount = 1,
+        .pCommandBuffers = current_cmdbuf.address(),
+        .signalSemaphoreCount = semaphore ? 1U : 0U,
+        .pSignalSemaphores = &semaphore,
+    };
     switch (const VkResult result = device.GetGraphicsQueue().Submit(submit_info, *current_fence)) {
     case VK_SUCCESS:
         break;
@@ -181,19 +185,18 @@ void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
 void VKScheduler::AllocateNewContext() {
     ++ticks;
 
-    VkCommandBufferBeginInfo cmdbuf_bi;
-    cmdbuf_bi.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    cmdbuf_bi.pNext = nullptr;
-    cmdbuf_bi.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    cmdbuf_bi.pInheritanceInfo = nullptr;
-
     std::unique_lock lock{mutex};
     current_fence = next_fence;
     next_fence = &resource_manager.CommitFence();
 
     current_cmdbuf = vk::CommandBuffer(resource_manager.CommitCommandBuffer(*current_fence),
                                        device.GetDispatchLoader());
-    current_cmdbuf.Begin(cmdbuf_bi);
+    current_cmdbuf.Begin({
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = nullptr,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+        .pInheritanceInfo = nullptr,
+    });
 
     // Enable counters once again. These are disabled when a command buffer is finished.
     if (query_cache) {
