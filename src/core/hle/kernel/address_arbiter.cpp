@@ -24,7 +24,6 @@ namespace Kernel {
 // Wake up num_to_wake (or all) threads in a vector.
 void AddressArbiter::WakeThreads(const std::vector<std::shared_ptr<Thread>>& waiting_threads,
                                  s32 num_to_wake) {
-    auto& time_manager = system.Kernel().TimeManager();
     // Only process up to 'target' threads, unless 'target' is <= 0, in which case process
     // them all.
     std::size_t last = waiting_threads.size();
