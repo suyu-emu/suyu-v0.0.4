@@ -190,6 +190,15 @@ void DmntCheatVm::LogOpcode(const CheatVmOpcode& opcode) {
             callbacks->CommandLog(
                 fmt::format("Act[{:02X}]:   {:d}", i, save_restore_regmask->should_operate[i]));
         }
+    } else if (auto rw_static_reg = std::get_if<ReadWriteStaticRegisterOpcode>(&opcode.opcode)) {
+        callbacks->CommandLog("Opcode: Read/Write Static Register");
+        if (rw_static_reg->static_idx < NumReadableStaticRegisters) {
+            callbacks->CommandLog("Op Type: ReadStaticRegister");
+        } else {
+            callbacks->CommandLog("Op Type: WriteStaticRegister");
+        }
+        callbacks->CommandLog(fmt::format("Reg Idx   {:X}", rw_static_reg->idx));
+        callbacks->CommandLog(fmt::format("Stc Idx   {:X}", rw_static_reg->static_idx));
     } else if (auto debug_log = std::get_if<DebugLogOpcode>(&opcode.opcode)) {
         callbacks->CommandLog("Opcode: Debug Log");
         callbacks->CommandLog(fmt::format("Bit Width: {:X}", debug_log->bit_width));
@@ -544,6 +553,16 @@ bool DmntCheatVm::DecodeNextOpcode(CheatVmOpcode& out) {
         }
         opcode.opcode = save_restore_regmask;
     } break;
+    case CheatVmOpcodeType::ReadWriteStaticRegister: {
+        ReadWriteStaticRegisterOpcode rw_static_reg{};
+        // C3000XXx
+        // C3 = opcode 0xC3.
+        // XX = static register index.
+        // x  = register index.
+        rw_static_reg.static_idx = ((first_dword >> 4) & 0xFF);
+        rw_static_reg.idx = (first_dword & 0xF);
+        opcode.opcode = rw_static_reg;
+    } break;
     case CheatVmOpcodeType::DebugLog: {
         DebugLogOpcode debug_log{};
         // FFFTIX##
@@ -667,6 +686,7 @@ void DmntCheatVm::ResetState() {
     registers.fill(0);
     saved_values.fill(0);
     loop_tops.fill(0);
+    static_registers.fill(0);
     instruction_ptr = 0;
     condition_depth = 0;
     decode_success = true;
@@ -1152,6 +1172,15 @@ void DmntCheatVm::Execute(const CheatProcessMetadata& metadata) {
                         break;
                     }
                 }
+            }
+        } else if (auto rw_static_reg =
+                       std::get_if<ReadWriteStaticRegisterOpcode>(&cur_opcode.opcode)) {
+            if (rw_static_reg->static_idx < NumReadableStaticRegisters) {
+                // Load a register with a static register.
+                registers[rw_static_reg->idx] = static_registers[rw_static_reg->static_idx];
+            } else {
+                // Store a register to a static register.
+                static_registers[rw_static_reg->static_idx] = registers[rw_static_reg->idx];
             }
         } else if (auto debug_log = std::get_if<DebugLogOpcode>(&cur_opcode.opcode)) {
             // Read value from memory.

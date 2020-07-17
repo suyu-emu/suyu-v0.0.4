@@ -56,6 +56,7 @@ enum class CheatVmOpcodeType : u32 {
     BeginRegisterConditionalBlock = 0xC0,
     SaveRestoreRegister = 0xC1,
     SaveRestoreRegisterMask = 0xC2,
+    ReadWriteStaticRegister = 0xC3,
 
     // This is a meta entry, and not a real opcode.
     // This is to facilitate multi-nybble instruction decoding.
@@ -237,6 +238,11 @@ struct SaveRestoreRegisterMaskOpcode {
     std::array<bool, 0x10> should_operate{};
 };
 
+struct ReadWriteStaticRegisterOpcode {
+    u32 static_idx{};
+    u32 idx{};
+};
+
 struct DebugLogOpcode {
     u32 bit_width{};
     u32 log_id{};
@@ -259,7 +265,8 @@ struct CheatVmOpcode {
                  PerformArithmeticStaticOpcode, BeginKeypressConditionalOpcode,
                  PerformArithmeticRegisterOpcode, StoreRegisterToAddressOpcode,
                  BeginRegisterConditionalOpcode, SaveRestoreRegisterOpcode,
-                 SaveRestoreRegisterMaskOpcode, DebugLogOpcode, UnrecognizedInstruction>
+                 SaveRestoreRegisterMaskOpcode, ReadWriteStaticRegisterOpcode, DebugLogOpcode,
+                 UnrecognizedInstruction>
         opcode{};
 };
 
@@ -281,6 +288,10 @@ public:
 
     static constexpr std::size_t MaximumProgramOpcodeCount = 0x400;
     static constexpr std::size_t NumRegisters = 0x10;
+    static constexpr std::size_t NumReadableStaticRegisters = 0x80;
+    static constexpr std::size_t NumWritableStaticRegisters = 0x80;
+    static constexpr std::size_t NumStaticRegisters =
+        NumReadableStaticRegisters + NumWritableStaticRegisters;
 
     explicit DmntCheatVm(std::unique_ptr<Callbacks> callbacks);
     ~DmntCheatVm();
@@ -302,6 +313,7 @@ private:
     std::array<u32, MaximumProgramOpcodeCount> program{};
     std::array<u64, NumRegisters> registers{};
     std::array<u64, NumRegisters> saved_values{};
+    std::array<u64, NumStaticRegisters> static_registers{};
     std::array<std::size_t, NumRegisters> loop_tops{};
 
     bool DecodeNextOpcode(CheatVmOpcode& out);
