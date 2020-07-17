@@ -757,14 +757,14 @@ std::vector<VkDeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() const
     queue_cis.reserve(unique_queue_families.size());
 
     for (const u32 queue_family : unique_queue_families) {
-        queue_cis.push_back({
+        auto& ci = queue_cis.emplace_back(VkDeviceQueueCreateInfo{
             .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
             .pNext = nullptr,
             .flags = 0,
             .queueFamilyIndex = queue_family,
-            .queueCount = 1,
-            .pQueuePriorities = &QUEUE_PRIORITY,
         });
+        ci.queueCount = 1;
+        ci.pQueuePriorities = &QUEUE_PRIORITY;
     }
 
     return queue_cis;
