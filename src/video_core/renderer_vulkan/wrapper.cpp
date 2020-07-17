@@ -377,24 +377,26 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 
 Instance Instance::Create(Span<const char*> layers, Span<const char*> extensions,
                           InstanceDispatch& dld) noexcept {
-    VkApplicationInfo application_info;
-    application_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    application_info.pNext = nullptr;
-    application_info.pApplicationName = "yuzu Emulator";
-    application_info.applicationVersion = VK_MAKE_VERSION(0, 1, 0);
-    application_info.pEngineName = "yuzu Emulator";
-    application_info.engineVersion = VK_MAKE_VERSION(0, 1, 0);
-    application_info.apiVersion = VK_API_VERSION_1_1;
+    static constexpr VkApplicationInfo application_info{
+        .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+        .pNext = nullptr,
+        .pApplicationName = "yuzu Emulator",
+        .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
+        .pEngineName = "yuzu Emulator",
+        .engineVersion = VK_MAKE_VERSION(0, 1, 0),
+        .apiVersion = VK_API_VERSION_1_1,
+    };
 
-    VkInstanceCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.pApplicationInfo = &application_info;
-    ci.enabledLayerCount = layers.size();
-    ci.ppEnabledLayerNames = layers.data();
-    ci.enabledExtensionCount = extensions.size();
-    ci.ppEnabledExtensionNames = extensions.data();
+    const VkInstanceCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .pApplicationInfo = &application_info,
+        .enabledLayerCount = layers.size(),
+        .ppEnabledLayerNames = layers.data(),
+        .enabledExtensionCount = extensions.size(),
+        .ppEnabledExtensionNames = extensions.data(),
+    };
 
     VkInstance instance;
     if (dld.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
@@ -425,19 +427,20 @@ std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices(
 
 DebugCallback Instance::TryCreateDebugCallback(
     PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept {
-    VkDebugUtilsMessengerCreateInfoEXT ci;
-    ci.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    ci.pNext = nullptr;
-    ci.flags = 0;
-    ci.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                         VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-    ci.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                     VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                     VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    ci.pfnUserCallback = callback;
-    ci.pUserData = nullptr;
+    const VkDebugUtilsMessengerCreateInfoEXT ci{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+        .pNext = nullptr,
+        .flags = 0,
+        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
+                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
+        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+        .pfnUserCallback = callback,
+        .pUserData = nullptr,
+    };
 
     VkDebugUtilsMessengerEXT messenger;
     if (dld->vkCreateDebugUtilsMessengerEXT(handle, &ci, nullptr, &messenger) != VK_SUCCESS) {
@@ -468,12 +471,13 @@ DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) c
 }
 
 CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLevel level) const {
-    VkCommandBufferAllocateInfo ai;
-    ai.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    ai.pNext = nullptr;
-    ai.commandPool = handle;
-    ai.level = level;
-    ai.commandBufferCount = static_cast<u32>(num_buffers);
+    const VkCommandBufferAllocateInfo ai{
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+        .pNext = nullptr,
+        .commandPool = handle,
+        .level = level,
+        .commandBufferCount = static_cast<u32>(num_buffers),
+    };
 
     std::unique_ptr buffers = std::make_unique<VkCommandBuffer[]>(num_buffers);
     switch (const VkResult result = dld->vkAllocateCommandBuffers(owner, &ai, buffers.get())) {
@@ -497,17 +501,18 @@ std::vector<VkImage> SwapchainKHR::GetImages() const {
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
                       Span<const char*> enabled_extensions, const void* next,
                       DeviceDispatch& dld) noexcept {
-    VkDeviceCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    ci.pNext = next;
-    ci.flags = 0;
-    ci.queueCreateInfoCount = queues_ci.size();
-    ci.pQueueCreateInfos = queues_ci.data();
-    ci.enabledLayerCount = 0;
-    ci.ppEnabledLayerNames = nullptr;
-    ci.enabledExtensionCount = enabled_extensions.size();
-    ci.ppEnabledExtensionNames = enabled_extensions.data();
-    ci.pEnabledFeatures = nullptr;
+    const VkDeviceCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = next,
+        .flags = 0,
+        .queueCreateInfoCount = queues_ci.size(),
+        .pQueueCreateInfos = queues_ci.data(),
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = nullptr,
+        .enabledExtensionCount = enabled_extensions.size(),
+        .ppEnabledExtensionNames = enabled_extensions.data(),
+        .pEnabledFeatures = nullptr,
+    };
 
     VkDevice device;
     if (dld.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
@@ -548,10 +553,11 @@ ImageView Device::CreateImageView(const VkImageViewCreateInfo& ci) const {
 }
 
 Semaphore Device::CreateSemaphore() const {
-    VkSemaphoreCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
+    static constexpr VkSemaphoreCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+    };
 
     VkSemaphore object;
     Check(dld->vkCreateSemaphore(handle, &ci, nullptr, &object));
@@ -639,10 +645,12 @@ ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) cons
 }
 
 Event Device::CreateEvent() const {
-    VkEventCreateInfo ci;
-    ci.sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO;
-    ci.pNext = nullptr;
-    ci.flags = 0;
+    static constexpr VkEventCreateInfo ci{
+        .sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+    };
+
     VkEvent object;
     Check(dld->vkCreateEvent(handle, &ci, nullptr, &object));
     return Event(object, handle, *dld);
