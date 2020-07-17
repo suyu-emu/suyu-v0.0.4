@@ -103,8 +103,9 @@ public:
     virtual ~CachedMacro() = default;
     /**
      * Executes the macro code with the specified input parameters.
-     * @param code The macro byte code to execute
+     *
      * @param parameters The parameters of the macro
+     * @param method     The method to execute
      */
     virtual void Execute(const std::vector<u32>& parameters, u32 method) = 0;
 };
