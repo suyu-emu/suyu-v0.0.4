@@ -847,6 +847,9 @@ void GMainWindow::ConnectWidgetEvents() {
     connect(game_list, &GameList::OpenFolderRequested, this, &GMainWindow::OnGameListOpenFolder);
     connect(game_list, &GameList::OpenTransferableShaderCacheRequested, this,
             &GMainWindow::OnTransferableShaderCacheOpenFile);
+    connect(game_list, &GameList::RemoveInstalledEntryRequested, this,
+            &GMainWindow::OnGameListRemoveInstalledEntry);
+    connect(game_list, &GameList::RemoveFileRequested, this, &GMainWindow::OnGameListRemoveFile);
     connect(game_list, &GameList::DumpRomFSRequested, this, &GMainWindow::OnGameListDumpRomFS);
     connect(game_list, &GameList::CopyTIDRequested, this, &GMainWindow::OnGameListCopyTID);
     connect(game_list, &GameList::NavigateToGamedbEntryRequested, this,
@@ -1322,14 +1325,12 @@ void GMainWindow::OnGameListOpenFolder(GameListOpenTarget target, const std::str
 }
 
 void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
-    ASSERT(program_id != 0);
-
     const QString shader_dir =
         QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir));
-    const QString tranferable_shader_cache_folder_path =
+    const QString transferable_shader_cache_folder_path =
         shader_dir + QStringLiteral("opengl") + QDir::separator() + QStringLiteral("transferable");
     const QString transferable_shader_cache_file_path =
-        tranferable_shader_cache_folder_path + QDir::separator() +
+        transferable_shader_cache_folder_path + QDir::separator() +
         QString::fromStdString(fmt::format("{:016X}.bin", program_id));
 
     if (!QFile::exists(transferable_shader_cache_file_path)) {
@@ -1350,7 +1351,7 @@ void GMainWindow::OnTransferableShaderCacheOpenFile(u64 program_id) {
     param << QDir::toNativeSeparators(transferable_shader_cache_file_path);
     QProcess::startDetached(explorer, param);
 #else
-    QDesktopServices::openUrl(QUrl::fromLocalFile(tranferable_shader_cache_folder_path));
+    QDesktopServices::openUrl(QUrl::fromLocalFile(transferable_shader_cache_folder_path));
 #endif
 }
 
@@ -1392,6 +1393,163 @@ static bool RomFSRawCopy(QProgressDialog& dialog, const FileSys::VirtualDir& src
     }
 
     return true;
+}
+
+void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type) {
+    QString entry_type;
+
+    switch (type) {
+    case InstalledEntryType::Game:
+        entry_type = tr("Contents");
+        break;
+    case InstalledEntryType::Update:
+        entry_type = tr("Update");
+        break;
+    case InstalledEntryType::AddOnContent:
+        entry_type = tr("DLC");
+        break;
+    }
+
+    if (QMessageBox::question(
+            this, tr("Remove Entry"), tr("Remove Installed Game %1?").arg(entry_type),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    bool res;
+
+    switch (type) {
+    case InstalledEntryType::Game:
+        res = Core::System::GetInstance()
+                  .GetFileSystemController()
+                  .GetUserNANDContents()
+                  ->RemoveExistingEntry(program_id);
+
+        if (res) {
+            QMessageBox::information(this, tr("Successfully Removed"),
+                                     tr("Successfully removed the installed base game."));
+        } else {
+            QMessageBox::warning(
+                this, tr("Error Removing %1").arg(entry_type),
+                tr("The base game is not installed in the NAND and cannot be removed."));
+        }
+        [[fallthrough]];
+    case InstalledEntryType::Update:
+        res = Core::System::GetInstance()
+                  .GetFileSystemController()
+                  .GetUserNANDContents()
+                  ->RemoveExistingEntry(program_id | 0x800);
+
+        if (res) {
+            QMessageBox::information(this, tr("Successfully Removed"),
+                                     tr("Successfully removed the installed update."));
+        } else {
+            QMessageBox::warning(this, tr("Error Removing %1").arg(entry_type),
+                                 tr("There is no update installed for this title."));
+        }
+
+        if (type == InstalledEntryType::Game) {
+            [[fallthrough]];
+        } else {
+            break;
+        }
+    case InstalledEntryType::AddOnContent:
+        u32 count{};
+        const auto dlc_entries = Core::System::GetInstance().GetContentProvider().ListEntriesFilter(
+            FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
+
+        for (const auto& entry : dlc_entries) {
+            if ((entry.title_id & DLC_BASE_TITLE_ID_MASK) == program_id) {
+                res = Core::System::GetInstance()
+                          .GetFileSystemController()
+                          .GetUserNANDContents()
+                          ->RemoveExistingEntry(entry.title_id);
+                if (res) {
+                    ++count;
+                }
+            }
+        }
+
+        if (count == 0) {
+            QMessageBox::warning(this, tr("Error Removing %1").arg(entry_type),
+                                 tr("There are no DLC installed for this title."));
+            break;
+        }
+
+        QMessageBox::information(this, tr("Successfully Removed"),
+                                 tr("Successfully removed %1 installed DLC.").arg(count));
+        break;
+    }
+    game_list->PopulateAsync(UISettings::values.game_dirs);
+    FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
+                                   "game_list");
+}
+
+void GMainWindow::OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target) {
+    QString question;
+
+    switch (target) {
+    case GameListRemoveTarget::ShaderCache:
+        question = tr("Delete Transferable Shader Cache?");
+        break;
+    case GameListRemoveTarget::CustomConfiguration:
+        question = tr("Remove Custom Game Configuration?");
+        break;
+    }
+
+    if (QMessageBox::question(this, tr("Remove File"), question, QMessageBox::Yes | QMessageBox::No,
+                              QMessageBox::No) != QMessageBox::Yes) {
+        return;
+    }
+
+    switch (target) {
+    case GameListRemoveTarget::ShaderCache: {
+        const QString shader_dir =
+            QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ShaderDir));
+        const QString transferable_shader_cache_folder_path =
+            shader_dir + QStringLiteral("opengl") + QDir::separator() +
+            QStringLiteral("transferable");
+        const QString transferable_shader_cache_file_path =
+            transferable_shader_cache_folder_path + QDir::separator() +
+            QString::fromStdString(fmt::format("{:016X}.bin", program_id));
+
+        if (!QFile::exists(transferable_shader_cache_file_path)) {
+            QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
+                                 tr("A shader cache for this title does not exist."));
+            break;
+        }
+
+        if (QFile::remove(transferable_shader_cache_file_path)) {
+            QMessageBox::information(this, tr("Successfully Removed"),
+                                     tr("Successfully removed the transferable shader cache."));
+        } else {
+            QMessageBox::warning(this, tr("Error Removing Transferable Shader Cache"),
+                                 tr("Failed to remove the transferable shader cache."));
+        }
+        break;
+    }
+    case GameListRemoveTarget::CustomConfiguration: {
+        const QString config_dir =
+            QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir));
+        const QString custom_config_file_path =
+            config_dir + QString::fromStdString(fmt::format("{:016X}.ini", program_id));
+
+        if (!QFile::exists(custom_config_file_path)) {
+            QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
+                                 tr("A custom configuration for this title does not exist."));
+            break;
+        }
+
+        if (QFile::remove(custom_config_file_path)) {
+            QMessageBox::information(this, tr("Successfully Removed"),
+                                     tr("Successfully removed the custom game configuration."));
+        } else {
+            QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
+                                 tr("Failed to remove the custom game configuration."));
+        }
+        break;
+    }
+    }
 }
 
 void GMainWindow::OnGameListDumpRomFS(u64 program_id, const std::string& game_path) {
