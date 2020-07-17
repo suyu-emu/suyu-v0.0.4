@@ -17,8 +17,7 @@ static void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d,
     const u32 instance_count = parameters[2] & maxwell3d.GetRegisterValue(0xD1B);
 
     maxwell3d.regs.draw.topology.Assign(
-        static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0] &
-                                                                        ~(0x3ffffff << 26)));
+        static_cast<Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology>(parameters[0] & 0x3ffffff));
     maxwell3d.regs.vb_base_instance = parameters[5];
     maxwell3d.mme_draw.instance_count = instance_count;
     maxwell3d.regs.vb_element_base = parameters[3];
