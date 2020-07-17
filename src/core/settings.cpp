@@ -115,8 +115,7 @@ void LogSettings() {
                 values.use_asynchronous_gpu_emulation.GetValue());
     log_setting("Renderer_UseVsync", values.use_vsync.GetValue());
     log_setting("Renderer_UseAssemblyShaders", values.use_assembly_shaders.GetValue());
-    log_setting("Renderer_UseAsynchronousShaders",
-                Settings::values.use_asynchronous_shaders.GetValue());
+    log_setting("Renderer_UseAsynchronousShaders", values.use_asynchronous_shaders.GetValue());
     log_setting("Renderer_AnisotropicFilteringLevel", values.max_anisotropy.GetValue());
     log_setting("Audio_OutputEngine", values.sink_id);
     log_setting("Audio_EnableAudioStretching", values.enable_audio_stretching.GetValue());
