@@ -34,7 +34,7 @@ Adapter::Adapter() {
 
 GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& adapter_payload) {
     GCPadStatus pad = {};
-    const size_t offset = 1 + (9 * port);
+    const std::size_t offset = 1 + (9 * port);
 
     adapter_controllers_status[port] = static_cast<ControllerTypes>(adapter_payload[offset] >> 4);
 
@@ -77,7 +77,7 @@ GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& ad
             }
         }
         for (PadAxes axis : axes) {
-            const int index = static_cast<int>(axis);
+            const std::size_t index = static_cast<std::size_t>(axis);
             pad.axis_values[index] = adapter_payload[offset + 3 + index];
         }
 
@@ -112,7 +112,8 @@ void Adapter::Read() {
                                   sizeof(adapter_payload), &payload_size, 16);
 
         if (payload_size != sizeof(adapter_payload) || adapter_payload[0] != LIBUSB_DT_HID) {
-            LOG_ERROR(Input, "error reading payload (size: {}, type: {:02x}) Possible disconnect?",
+            LOG_ERROR(Input,
+                      "Error reading payload (size: {}, type: {:02x}) Is the adapter connected?",
                       payload_size, adapter_payload[0]);
             adapter_thread_running = false; // error reading from adapter, stop reading.
             break;
