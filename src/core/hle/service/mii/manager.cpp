@@ -47,59 +47,60 @@ std::array<T, DestArraySize> ResizeArray(const std::array<T, SourceArraySize>& i
 MiiInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
     MiiStoreBitFields bf;
     std::memcpy(&bf, data.data.data.data(), sizeof(MiiStoreBitFields));
-    MiiInfo info{};
-    info.name = ResizeArray<char16_t, 10, 11>(data.data.name);
-    info.uuid = data.data.uuid;
-    info.font_region = static_cast<u8>(bf.font_region.Value());
-    info.favorite_color = static_cast<u8>(bf.favorite_color.Value());
-    info.gender = static_cast<u8>(bf.gender.Value());
-    info.height = static_cast<u8>(bf.height.Value());
-    info.build = static_cast<u8>(bf.build.Value());
-    info.type = static_cast<u8>(bf.type.Value());
-    info.region_move = static_cast<u8>(bf.region_move.Value());
-    info.faceline_type = static_cast<u8>(bf.faceline_type.Value());
-    info.faceline_color = static_cast<u8>(bf.faceline_color.Value());
-    info.faceline_wrinkle = static_cast<u8>(bf.faceline_wrinkle.Value());
-    info.faceline_make = static_cast<u8>(bf.faceline_makeup.Value());
-    info.hair_type = static_cast<u8>(bf.hair_type.Value());
-    info.hair_color = static_cast<u8>(bf.hair_color.Value());
-    info.hair_flip = static_cast<u8>(bf.hair_flip.Value());
-    info.eye_type = static_cast<u8>(bf.eye_type.Value());
-    info.eye_color = static_cast<u8>(bf.eye_color.Value());
-    info.eye_scale = static_cast<u8>(bf.eye_scale.Value());
-    info.eye_aspect = static_cast<u8>(bf.eye_aspect.Value());
-    info.eye_rotate = static_cast<u8>(bf.eye_rotate.Value());
-    info.eye_x = static_cast<u8>(bf.eye_x.Value());
-    info.eye_y = static_cast<u8>(bf.eye_y.Value());
-    info.eyebrow_type = static_cast<u8>(bf.eyebrow_type.Value());
-    info.eyebrow_color = static_cast<u8>(bf.eyebrow_color.Value());
-    info.eyebrow_scale = static_cast<u8>(bf.eyebrow_scale.Value());
-    info.eyebrow_aspect = static_cast<u8>(bf.eyebrow_aspect.Value());
-    info.eyebrow_rotate = static_cast<u8>(bf.eyebrow_rotate.Value());
-    info.eyebrow_x = static_cast<u8>(bf.eyebrow_x.Value());
-    info.eyebrow_y = static_cast<u8>(bf.eyebrow_y.Value() + 3);
-    info.nose_type = static_cast<u8>(bf.nose_type.Value());
-    info.nose_scale = static_cast<u8>(bf.nose_scale.Value());
-    info.nose_y = static_cast<u8>(bf.nose_y.Value());
-    info.mouth_type = static_cast<u8>(bf.mouth_type.Value());
-    info.mouth_color = static_cast<u8>(bf.mouth_color.Value());
-    info.mouth_scale = static_cast<u8>(bf.mouth_scale.Value());
-    info.mouth_aspect = static_cast<u8>(bf.mouth_aspect.Value());
-    info.mouth_y = static_cast<u8>(bf.mouth_y.Value());
-    info.beard_color = static_cast<u8>(bf.beard_color.Value());
-    info.beard_type = static_cast<u8>(bf.beard_type.Value());
-    info.mustache_type = static_cast<u8>(bf.mustache_type.Value());
-    info.mustache_scale = static_cast<u8>(bf.mustache_scale.Value());
-    info.mustache_y = static_cast<u8>(bf.mustache_y.Value());
-    info.glasses_type = static_cast<u8>(bf.glasses_type.Value());
-    info.glasses_color = static_cast<u8>(bf.glasses_color.Value());
-    info.glasses_scale = static_cast<u8>(bf.glasses_scale.Value());
-    info.glasses_y = static_cast<u8>(bf.glasses_y.Value());
-    info.mole_type = static_cast<u8>(bf.mole_type.Value());
-    info.mole_scale = static_cast<u8>(bf.mole_scale.Value());
-    info.mole_x = static_cast<u8>(bf.mole_x.Value());
-    info.mole_y = static_cast<u8>(bf.mole_y.Value());
-    return info;
+
+    return {
+        .uuid = data.data.uuid,
+        .name = ResizeArray<char16_t, 10, 11>(data.data.name),
+        .font_region = static_cast<u8>(bf.font_region.Value()),
+        .favorite_color = static_cast<u8>(bf.favorite_color.Value()),
+        .gender = static_cast<u8>(bf.gender.Value()),
+        .height = static_cast<u8>(bf.height.Value()),
+        .build = static_cast<u8>(bf.build.Value()),
+        .type = static_cast<u8>(bf.type.Value()),
+        .region_move = static_cast<u8>(bf.region_move.Value()),
+        .faceline_type = static_cast<u8>(bf.faceline_type.Value()),
+        .faceline_color = static_cast<u8>(bf.faceline_color.Value()),
+        .faceline_wrinkle = static_cast<u8>(bf.faceline_wrinkle.Value()),
+        .faceline_make = static_cast<u8>(bf.faceline_makeup.Value()),
+        .hair_type = static_cast<u8>(bf.hair_type.Value()),
+        .hair_color = static_cast<u8>(bf.hair_color.Value()),
+        .hair_flip = static_cast<u8>(bf.hair_flip.Value()),
+        .eye_type = static_cast<u8>(bf.eye_type.Value()),
+        .eye_color = static_cast<u8>(bf.eye_color.Value()),
+        .eye_scale = static_cast<u8>(bf.eye_scale.Value()),
+        .eye_aspect = static_cast<u8>(bf.eye_aspect.Value()),
+        .eye_rotate = static_cast<u8>(bf.eye_rotate.Value()),
+        .eye_x = static_cast<u8>(bf.eye_x.Value()),
+        .eye_y = static_cast<u8>(bf.eye_y.Value()),
+        .eyebrow_type = static_cast<u8>(bf.eyebrow_type.Value()),
+        .eyebrow_color = static_cast<u8>(bf.eyebrow_color.Value()),
+        .eyebrow_scale = static_cast<u8>(bf.eyebrow_scale.Value()),
+        .eyebrow_aspect = static_cast<u8>(bf.eyebrow_aspect.Value()),
+        .eyebrow_rotate = static_cast<u8>(bf.eyebrow_rotate.Value()),
+        .eyebrow_x = static_cast<u8>(bf.eyebrow_x.Value()),
+        .eyebrow_y = static_cast<u8>(bf.eyebrow_y.Value() + 3),
+        .nose_type = static_cast<u8>(bf.nose_type.Value()),
+        .nose_scale = static_cast<u8>(bf.nose_scale.Value()),
+        .nose_y = static_cast<u8>(bf.nose_y.Value()),
+        .mouth_type = static_cast<u8>(bf.mouth_type.Value()),
+        .mouth_color = static_cast<u8>(bf.mouth_color.Value()),
+        .mouth_scale = static_cast<u8>(bf.mouth_scale.Value()),
+        .mouth_aspect = static_cast<u8>(bf.mouth_aspect.Value()),
+        .mouth_y = static_cast<u8>(bf.mouth_y.Value()),
+        .beard_color = static_cast<u8>(bf.beard_color.Value()),
+        .beard_type = static_cast<u8>(bf.beard_type.Value()),
+        .mustache_type = static_cast<u8>(bf.mustache_type.Value()),
+        .mustache_scale = static_cast<u8>(bf.mustache_scale.Value()),
+        .mustache_y = static_cast<u8>(bf.mustache_y.Value()),
+        .glasses_type = static_cast<u8>(bf.glasses_type.Value()),
+        .glasses_color = static_cast<u8>(bf.glasses_color.Value()),
+        .glasses_scale = static_cast<u8>(bf.glasses_scale.Value()),
+        .glasses_y = static_cast<u8>(bf.glasses_y.Value()),
+        .mole_type = static_cast<u8>(bf.mole_type.Value()),
+        .mole_scale = static_cast<u8>(bf.mole_scale.Value()),
+        .mole_x = static_cast<u8>(bf.mole_x.Value()),
+        .mole_y = static_cast<u8>(bf.mole_y.Value()),
+    };
 }
 
 u16 GenerateCrc16(const void* data, std::size_t size) {
