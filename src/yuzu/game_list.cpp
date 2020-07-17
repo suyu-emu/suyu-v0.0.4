@@ -491,7 +491,13 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, std::string pat
     context_menu.addSeparator();
     QAction* properties = context_menu.addAction(tr("Properties"));
 
-    open_save_location->setEnabled(program_id != 0);
+    open_save_location->setVisible(program_id != 0);
+    open_mod_location->setVisible(program_id != 0);
+    open_transferable_shader_cache->setVisible(program_id != 0);
+    remove_update->setVisible(program_id != 0);
+    remove_dlc->setVisible(program_id != 0);
+    remove_shader_cache->setVisible(program_id != 0);
+    remove_all_content->setVisible(program_id != 0);
     auto it = FindMatchingCompatibilityEntry(compatibility_list, program_id);
     navigate_to_gamedb_entry->setVisible(it != compatibility_list.end() && program_id != 0);
 
