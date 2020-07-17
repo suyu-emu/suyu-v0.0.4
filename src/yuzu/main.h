@@ -233,6 +233,11 @@ private slots:
     void OnLanguageChanged(const QString& locale);
 
 private:
+    void RemoveBaseContent(u64 program_id, const QString& entry_type);
+    void RemoveUpdateContent(u64 program_id, const QString& entry_type);
+    void RemoveAddOnContent(u64 program_id, const QString& entry_type);
+    void RemoveTransferableShaderCache(u64 program_id);
+    void RemoveCustomConfiguration(u64 program_id);
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);
