@@ -1260,7 +1260,6 @@ void GMainWindow::OnGameListOpenFolder(GameListOpenTarget target, const std::str
     case GameListOpenTarget::SaveData: {
         open_target = tr("Save Data");
         const std::string nand_dir = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir);
-        ASSERT(program_id != 0);
 
         if (has_user_save) {
             // User save data
