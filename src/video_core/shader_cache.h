@@ -209,11 +209,11 @@ private:
         }
 
         // Remove them from the cache
-        const auto is_removed = [&removed_shaders](std::unique_ptr<T>& shader) {
+        const auto is_removed = [&removed_shaders](const std::unique_ptr<T>& shader) {
             return std::find(removed_shaders.begin(), removed_shaders.end(), shader.get()) !=
                    removed_shaders.end();
         };
-        storage.erase(std::remove_if(storage.begin(), storage.end(), is_removed), storage.end());
+        std::erase_if(storage, is_removed);
     }
 
     /// @brief Creates a new entry in the lookup cache and returns its pointer
