@@ -12,8 +12,7 @@ namespace Tegra {
 
 namespace {
 // HLE'd functions
-static void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d,
-                                 const std::vector<u32>& parameters) {
+void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 instance_count = parameters[2] & maxwell3d.GetRegisterValue(0xD1B);
 
     maxwell3d.regs.draw.topology.Assign(
@@ -33,8 +32,7 @@ static void HLE_771BB18C62444DA0(Engines::Maxwell3D& maxwell3d,
     maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
 
-static void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d,
-                                 const std::vector<u32>& parameters) {
+void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
 
     maxwell3d.regs.vertex_buffer.first = parameters[3];
@@ -52,8 +50,7 @@ static void HLE_0D61FC9FAAC9FCAD(Engines::Maxwell3D& maxwell3d,
     maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
 
-static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
-                                 const std::vector<u32>& parameters) {
+void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& parameters) {
     const u32 instance_count = (maxwell3d.GetRegisterValue(0xD1B) & parameters[2]);
     const u32 element_base = parameters[4];
     const u32 base_instance = parameters[5];
@@ -81,7 +78,7 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
     maxwell3d.CallMethodFromMME(0x8e5, 0x0);
     maxwell3d.mme_draw.current_mode = Engines::Maxwell3D::MMEDrawMode::Undefined;
 }
-} // namespace
+} // Anonymous namespace
 
 constexpr std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{{
     {0x771BB18C62444DA0, &HLE_771BB18C62444DA0},
