@@ -240,7 +240,7 @@ RomFSBuildContext::RomFSBuildContext(VirtualDir base_, VirtualDir ext_)
 
 RomFSBuildContext::~RomFSBuildContext() = default;
 
-std::map<u64, VirtualFile> RomFSBuildContext::Build() {
+std::multimap<u64, VirtualFile> RomFSBuildContext::Build() {
     const u64 dir_hash_table_entry_count = romfs_get_hash_table_count(num_dirs);
     const u64 file_hash_table_entry_count = romfs_get_hash_table_count(num_files);
     dir_hash_table_size = 4 * dir_hash_table_entry_count;
@@ -294,7 +294,7 @@ std::map<u64, VirtualFile> RomFSBuildContext::Build() {
         cur_dir->parent->child = cur_dir;
     }
 
-    std::map<u64, VirtualFile> out;
+    std::multimap<u64, VirtualFile> out;
 
     // Populate file tables.
     for (const auto& it : files) {
