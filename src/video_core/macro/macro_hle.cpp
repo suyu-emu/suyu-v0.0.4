@@ -84,9 +84,9 @@ static void HLE_0217920100488FF7(Engines::Maxwell3D& maxwell3d,
 } // namespace
 
 constexpr std::array<std::pair<u64, HLEFunction>, 3> hle_funcs{{
-    std::make_pair<u64, HLEFunction>(0x771BB18C62444DA0, &HLE_771BB18C62444DA0),
-    std::make_pair<u64, HLEFunction>(0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD),
-    std::make_pair<u64, HLEFunction>(0x0217920100488FF7, &HLE_0217920100488FF7),
+    {0x771BB18C62444DA0, &HLE_771BB18C62444DA0},
+    {0x0D61FC9FAAC9FCAD, &HLE_0D61FC9FAAC9FCAD},
+    {0x0217920100488FF7, &HLE_0217920100488FF7},
 }};
 
 HLEMacro::HLEMacro(Engines::Maxwell3D& maxwell3d) : maxwell3d(maxwell3d) {}
