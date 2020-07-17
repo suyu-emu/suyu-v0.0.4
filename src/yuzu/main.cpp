@@ -1421,11 +1421,10 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
         [[fallthrough]];
     case InstalledEntryType::Update:
         RemoveUpdateContent(program_id, entry_type);
-        if (type == InstalledEntryType::Game) {
-            [[fallthrough]];
-        } else {
+        if (type != InstalledEntryType::Game) {
             break;
         }
+        [[fallthrough]];
     case InstalledEntryType::AddOnContent:
         RemoveAddOnContent(program_id, entry_type);
         break;
