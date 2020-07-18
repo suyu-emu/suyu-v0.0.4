@@ -104,9 +104,9 @@ MiiInfo ConvertStoreDataToInfo(const MiiStoreData& data) {
 
 u16 GenerateCrc16(const void* data, std::size_t size) {
     s32 crc{};
-    for (int i = 0; i < size; i++) {
-        crc ^= reinterpret_cast<const u8*>(data)[i] << 8;
-        for (int j = 0; j < 8; j++) {
+    for (std::size_t i = 0; i < size; i++) {
+        crc ^= static_cast<const u8*>(data)[i] << 8;
+        for (std::size_t j = 0; j < 8; j++) {
             crc <<= 1;
             if ((crc & 0x10000) != 0) {
                 crc = (crc ^ 0x1021) & 0xFFFF;
