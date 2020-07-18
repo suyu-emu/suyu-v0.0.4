@@ -37,8 +37,8 @@ constexpr std::array<std::array<Qt::GlobalColor, 2>, 10> WaitTreeColors{{
 }};
 
 bool IsDarkTheme() {
-    const auto theme = UISettings::values.theme.toStdString();
-    return theme == "qdarkstyle" || theme == "colorful_dark";
+    const auto& theme = UISettings::values.theme;
+    return theme == QStringLiteral("qdarkstyle") || theme == QStringLiteral("colorful_dark");
 }
 
 } // namespace
@@ -291,10 +291,7 @@ QString WaitTreeThread::GetText() const {
 }
 
 QColor WaitTreeThread::GetColor() const {
-    std::size_t color_index = 0;
-    if (IsDarkTheme()) {
-        color_index = 1;
-    }
+    const std::size_t color_index = IsDarkTheme() ? 1 : 0;
 
     const auto& thread = static_cast<const Kernel::Thread&>(object);
     switch (thread.GetStatus()) {
