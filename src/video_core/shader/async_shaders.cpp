@@ -3,13 +3,19 @@
 // Refer to the license.txt file included.
 
 #include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
+#include <vector>
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/shader/async_shaders.h"
 
 namespace VideoCommon::Shader {
+
 AsyncShaders::AsyncShaders(Core::Frontend::EmuWindow& emu_window) : emu_window(emu_window) {}
+
 AsyncShaders::~AsyncShaders() {
     KillWorkers();
 }
@@ -64,7 +70,7 @@ bool AsyncShaders::HasWorkQueued() {
 }
 
 bool AsyncShaders::HasCompletedWork() {
-    std::shared_lock lock(completed_mutex);
+    std::shared_lock lock{completed_mutex};
     return !finished_work.empty();
 }
 
@@ -90,7 +96,7 @@ bool AsyncShaders::IsShaderAsync(const Tegra::GPU& gpu) const {
 std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
     std::vector<AsyncShaders::Result> results;
     {
-        std::unique_lock lock(completed_mutex);
+        std::unique_lock lock{completed_mutex};
         results.assign(std::make_move_iterator(finished_work.begin()),
                        std::make_move_iterator(finished_work.end()));
         finished_work.clear();
@@ -124,8 +130,8 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
 void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context) {
     using namespace std::chrono_literals;
     while (!is_thread_exiting.load(std::memory_order_relaxed)) {
-        std::unique_lock<std::mutex> lock(queue_mutex);
-        cv.wait(lock, [&] { return HasWorkQueued() || is_thread_exiting; });
+        std::unique_lock lock{queue_mutex};
+        cv.wait(lock, [this] { return HasWorkQueued() || is_thread_exiting; });
         if (is_thread_exiting) {
             return;
         }

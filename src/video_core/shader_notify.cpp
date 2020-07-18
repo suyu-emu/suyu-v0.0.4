@@ -25,17 +25,17 @@ std::size_t ShaderNotify::GetShadersBuilding() {
 }
 
 std::size_t ShaderNotify::GetShadersBuildingAccurate() {
-    std::shared_lock lock(mutex);
+    std::shared_lock lock{mutex};
     return accurate_count;
 }
 
 void ShaderNotify::MarkShaderComplete() {
-    std::unique_lock lock(mutex);
+    std::unique_lock lock{mutex};
     accurate_count--;
 }
 
 void ShaderNotify::MarkSharderBuilding() {
-    std::unique_lock lock(mutex);
+    std::unique_lock lock{mutex};
     accurate_count++;
 }
 
