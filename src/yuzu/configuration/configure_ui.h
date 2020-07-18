@@ -20,6 +20,12 @@ public:
 
     void ApplyConfiguration();
 
+private slots:
+    void OnLanguageChanged(int index);
+
+signals:
+    void LanguageChanged(const QString& locale);
+
 private:
     void RequestGameListUpdate();
 
@@ -28,6 +34,7 @@ private:
     void changeEvent(QEvent*) override;
     void RetranslateUI();
 
+    void InitializeLanguageComboBox();
     void InitializeIconSizeComboBox();
     void InitializeRowComboBoxes();
 

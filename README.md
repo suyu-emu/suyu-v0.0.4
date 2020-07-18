@@ -24,6 +24,8 @@ Most of the development happens on GitHub. It's also where [our central reposito
 
 If you want to contribute please take a look at the [Contributor's Guide](https://github.com/yuzu-emu/yuzu/wiki/Contributing) and [Developer Information](https://github.com/yuzu-emu/yuzu/wiki/Developer-Information). You should also contact any of the developers on Discord in order to know about the current state of the emulator.
 
+If you want to contribute to the user interface translation, please check out the [yuzu project on transifex](https://www.transifex.com/yuzu-emulator/yuzu). We centralize translation work there, and periodically upstream translations.
+
 ### Building
 
 * __Windows__: [Windows Build](https://github.com/yuzu-emu/yuzu/wiki/Building-For-Windows)

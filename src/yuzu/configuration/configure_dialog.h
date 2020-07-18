@@ -22,6 +22,12 @@ public:
 
     void ApplyConfiguration();
 
+private slots:
+    void OnLanguageChanged(const QString& locale);
+
+signals:
+    void LanguageChanged(const QString& locale);
+
 private:
     void changeEvent(QEvent* event) override;
 
