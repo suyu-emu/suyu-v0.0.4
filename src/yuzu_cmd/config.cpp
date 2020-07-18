@@ -394,6 +394,10 @@ void Config::ReadValues() {
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "use_vsync", 1)));
     Settings::values.use_assembly_shaders.SetValue(
         sdl2_config->GetBoolean("Renderer", "use_assembly_shaders", false));
+    Settings::values.use_asynchronous_shaders.SetValue(
+        sdl2_config->GetBoolean("Renderer", "use_asynchronous_shaders", false));
+    Settings::values.use_asynchronous_shaders.SetValue(
+        sdl2_config->GetBoolean("Renderer", "use_asynchronous_shaders", false));
     Settings::values.use_fast_gpu_time.SetValue(
         sdl2_config->GetBoolean("Renderer", "use_fast_gpu_time", true));
 

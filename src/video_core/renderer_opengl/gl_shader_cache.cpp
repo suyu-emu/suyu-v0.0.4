@@ -31,6 +31,7 @@
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/shader_cache.h"
+#include "video_core/shader_notify.h"
 
 namespace OpenGL {
 
@@ -140,9 +141,24 @@ std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
     return registry;
 }
 
+std::unordered_set<GLenum> GetSupportedFormats() {
+    GLint num_formats;
+    glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &num_formats);
+
+    std::vector<GLint> formats(num_formats);
+    glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, formats.data());
+
+    std::unordered_set<GLenum> supported_formats;
+    for (const GLint format : formats) {
+        supported_formats.insert(static_cast<GLenum>(format));
+    }
+    return supported_formats;
+}
+
+} // Anonymous namespace
+
 ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 unique_identifier,
-                             const ShaderIR& ir, const Registry& registry,
-                             bool hint_retrievable = false) {
+                             const ShaderIR& ir, const Registry& registry, bool hint_retrievable) {
     const std::string shader_id = MakeShaderID(unique_identifier, shader_type);
     LOG_INFO(Render_OpenGL, "{}", shader_id);
 
@@ -181,30 +197,17 @@ ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 u
     return program;
 }
 
-std::unordered_set<GLenum> GetSupportedFormats() {
-    GLint num_formats;
-    glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &num_formats);
-
-    std::vector<GLint> formats(num_formats);
-    glGetIntegerv(GL_PROGRAM_BINARY_FORMATS, formats.data());
-
-    std::unordered_set<GLenum> supported_formats;
-    for (const GLint format : formats) {
-        supported_formats.insert(static_cast<GLenum>(format));
-    }
-    return supported_formats;
-}
-
-} // Anonymous namespace
-
 Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry_, ShaderEntries entries_,
-               ProgramSharedPtr program_)
-    : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)} {
+               ProgramSharedPtr program_, bool is_built)
+    : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)},
+      is_built(is_built) {
     handle = program->assembly_program.handle;
     if (handle == 0) {
         handle = program->source_program.handle;
     }
-    ASSERT(handle != 0);
+    if (is_built) {
+        ASSERT(handle != 0);
+    }
 }
 
 Shader::~Shader() = default;
@@ -214,42 +217,82 @@ GLuint Shader::GetHandle() const {
     return handle;
 }
 
-std::unique_ptr<Shader> Shader::CreateStageFromMemory(const ShaderParameters& params,
-                                                      Maxwell::ShaderProgram program_type,
-                                                      ProgramCode code, ProgramCode code_b) {
+bool Shader::IsBuilt() const {
+    return is_built;
+}
+
+void Shader::AsyncOpenGLBuilt(OGLProgram new_program) {
+    program->source_program = std::move(new_program);
+    handle = program->source_program.handle;
+    is_built = true;
+}
+
+void Shader::AsyncGLASMBuilt(OGLAssemblyProgram new_program) {
+    program->assembly_program = std::move(new_program);
+    handle = program->assembly_program.handle;
+    is_built = true;
+}
+
+std::unique_ptr<Shader> Shader::CreateStageFromMemory(
+    const ShaderParameters& params, Maxwell::ShaderProgram program_type, ProgramCode code,
+    ProgramCode code_b, VideoCommon::Shader::AsyncShaders& async_shaders, VAddr cpu_addr) {
     const auto shader_type = GetShaderType(program_type);
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-    auto registry = std::make_shared<Registry>(shader_type, params.system.GPU().Maxwell3D());
-    const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
-    // TODO(Rodrigo): Handle VertexA shaders
-    // std::optional<ShaderIR> ir_b;
-    // if (!code_b.empty()) {
-    //     ir_b.emplace(code_b, STAGE_MAIN_OFFSET);
-    // }
-    auto program = BuildShader(params.device, shader_type, params.unique_identifier, ir, *registry);
+    auto& gpu = params.system.GPU();
+    gpu.ShaderNotify().MarkSharderBuilding();
 
-    ShaderDiskCacheEntry entry;
-    entry.type = shader_type;
-    entry.code = std::move(code);
-    entry.code_b = std::move(code_b);
-    entry.unique_identifier = params.unique_identifier;
-    entry.bound_buffer = registry->GetBoundBuffer();
-    entry.graphics_info = registry->GetGraphicsInfo();
-    entry.keys = registry->GetKeys();
-    entry.bound_samplers = registry->GetBoundSamplers();
-    entry.bindless_samplers = registry->GetBindlessSamplers();
-    params.disk_cache.SaveEntry(std::move(entry));
+    auto registry = std::make_shared<Registry>(shader_type, gpu.Maxwell3D());
+    if (!async_shaders.IsShaderAsync(params.system.GPU()) ||
+        !params.device.UseAsynchronousShaders()) {
+        const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
+        // TODO(Rodrigo): Handle VertexA shaders
+        // std::optional<ShaderIR> ir_b;
+        // if (!code_b.empty()) {
+        //     ir_b.emplace(code_b, STAGE_MAIN_OFFSET);
+        // }
+        auto program =
+            BuildShader(params.device, shader_type, params.unique_identifier, ir, *registry);
+        ShaderDiskCacheEntry entry;
+        entry.type = shader_type;
+        entry.code = std::move(code);
+        entry.code_b = std::move(code_b);
+        entry.unique_identifier = params.unique_identifier;
+        entry.bound_buffer = registry->GetBoundBuffer();
+        entry.graphics_info = registry->GetGraphicsInfo();
+        entry.keys = registry->GetKeys();
+        entry.bound_samplers = registry->GetBoundSamplers();
+        entry.bindless_samplers = registry->GetBindlessSamplers();
+        params.disk_cache.SaveEntry(std::move(entry));
 
-    return std::unique_ptr<Shader>(new Shader(
-        std::move(registry), MakeEntries(params.device, ir, shader_type), std::move(program)));
+        gpu.ShaderNotify().MarkShaderComplete();
+
+        return std::unique_ptr<Shader>(new Shader(std::move(registry),
+                                                  MakeEntries(params.device, ir, shader_type),
+                                                  std::move(program), true));
+    } else {
+        // Required for entries
+        const ShaderIR ir(code, STAGE_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
+        auto entries = MakeEntries(params.device, ir, shader_type);
+
+        async_shaders.QueueOpenGLShader(params.device, shader_type, params.unique_identifier,
+                                        std::move(code), std::move(code_b), STAGE_MAIN_OFFSET,
+                                        COMPILER_SETTINGS, *registry, cpu_addr);
+
+        auto program = std::make_shared<ProgramHandle>();
+        return std::unique_ptr<Shader>(
+            new Shader(std::move(registry), std::move(entries), std::move(program), false));
+    }
 }
 
 std::unique_ptr<Shader> Shader::CreateKernelFromMemory(const ShaderParameters& params,
                                                        ProgramCode code) {
     const std::size_t size_in_bytes = code.size() * sizeof(u64);
 
-    auto& engine = params.system.GPU().KeplerCompute();
+    auto& gpu = params.system.GPU();
+    gpu.ShaderNotify().MarkSharderBuilding();
+
+    auto& engine = gpu.KeplerCompute();
     auto registry = std::make_shared<Registry>(ShaderType::Compute, engine);
     const ShaderIR ir(code, KERNEL_MAIN_OFFSET, COMPILER_SETTINGS, *registry);
     const u64 uid = params.unique_identifier;
@@ -265,6 +308,8 @@ std::unique_ptr<Shader> Shader::CreateKernelFromMemory(const ShaderParameters& p
     entry.bound_samplers = registry->GetBoundSamplers();
     entry.bindless_samplers = registry->GetBindlessSamplers();
     params.disk_cache.SaveEntry(std::move(entry));
+
+    gpu.ShaderNotify().MarkShaderComplete();
 
     return std::unique_ptr<Shader>(new Shader(std::move(registry),
                                               MakeEntries(params.device, ir, ShaderType::Compute),
@@ -436,13 +481,50 @@ ProgramSharedPtr ShaderCacheOpenGL::GeneratePrecompiledProgram(
     return program;
 }
 
-Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
+Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program,
+                                           VideoCommon::Shader::AsyncShaders& async_shaders) {
     if (!system.GPU().Maxwell3D().dirty.flags[Dirty::Shaders]) {
-        return last_shaders[static_cast<std::size_t>(program)];
+        auto* last_shader = last_shaders[static_cast<std::size_t>(program)];
+        if (last_shader->IsBuilt()) {
+            return last_shader;
+        }
     }
 
     auto& memory_manager{system.GPU().MemoryManager()};
     const GPUVAddr address{GetShaderAddress(system, program)};
+
+    if (device.UseAsynchronousShaders() && async_shaders.HasCompletedWork()) {
+        auto completed_work = async_shaders.GetCompletedWork();
+        for (auto& work : completed_work) {
+            Shader* shader = TryGet(work.cpu_address);
+            auto& gpu = system.GPU();
+            gpu.ShaderNotify().MarkShaderComplete();
+            if (shader == nullptr) {
+                continue;
+            }
+            using namespace VideoCommon::Shader;
+            if (work.backend == AsyncShaders::Backend::OpenGL) {
+                shader->AsyncOpenGLBuilt(std::move(work.program.opengl));
+            } else if (work.backend == AsyncShaders::Backend::GLASM) {
+                shader->AsyncGLASMBuilt(std::move(work.program.glasm));
+            }
+
+            ShaderDiskCacheEntry entry;
+            entry.type = work.shader_type;
+            entry.code = std::move(work.code);
+            entry.code_b = std::move(work.code_b);
+            entry.unique_identifier = work.uid;
+
+            auto& registry = shader->GetRegistry();
+
+            entry.bound_buffer = registry.GetBoundBuffer();
+            entry.graphics_info = registry.GetGraphicsInfo();
+            entry.keys = registry.GetKeys();
+            entry.bound_samplers = registry.GetBoundSamplers();
+            entry.bindless_samplers = registry.GetBindlessSamplers();
+            disk_cache.SaveEntry(std::move(entry));
+        }
+    }
 
     // Look up shader in the cache based on address
     const auto cpu_addr{memory_manager.GpuToCpuAddress(address)};
@@ -471,7 +553,8 @@ Shader* ShaderCacheOpenGL::GetStageProgram(Maxwell::ShaderProgram program) {
     std::unique_ptr<Shader> shader;
     const auto found = runtime_cache.find(unique_identifier);
     if (found == runtime_cache.end()) {
-        shader = Shader::CreateStageFromMemory(params, program, std::move(code), std::move(code_b));
+        shader = Shader::CreateStageFromMemory(params, program, std::move(code), std::move(code_b),
+                                               async_shaders, cpu_addr.value_or(0));
     } else {
         shader = Shader::CreateFromCache(params, found->second);
     }

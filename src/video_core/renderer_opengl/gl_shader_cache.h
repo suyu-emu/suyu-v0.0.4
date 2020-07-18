@@ -33,6 +33,10 @@ namespace Core::Frontend {
 class EmuWindow;
 }
 
+namespace VideoCommon::Shader {
+class AsyncShaders;
+}
+
 namespace OpenGL {
 
 class Device;
@@ -61,6 +65,11 @@ struct ShaderParameters {
     u64 unique_identifier;
 };
 
+ProgramSharedPtr BuildShader(const Device& device, Tegra::Engines::ShaderType shader_type,
+                             u64 unique_identifier, const VideoCommon::Shader::ShaderIR& ir,
+                             const VideoCommon::Shader::Registry& registry,
+                             bool hint_retrievable = false);
+
 class Shader final {
 public:
     ~Shader();
@@ -68,15 +77,28 @@ public:
     /// Gets the GL program handle for the shader
     GLuint GetHandle() const;
 
+    bool IsBuilt() const;
+
     /// Gets the shader entries for the shader
     const ShaderEntries& GetEntries() const {
         return entries;
     }
 
-    static std::unique_ptr<Shader> CreateStageFromMemory(const ShaderParameters& params,
-                                                         Maxwell::ShaderProgram program_type,
-                                                         ProgramCode program_code,
-                                                         ProgramCode program_code_b);
+    const VideoCommon::Shader::Registry& GetRegistry() const {
+        return *registry;
+    }
+
+    /// Mark a OpenGL shader as built
+    void AsyncOpenGLBuilt(OGLProgram new_program);
+
+    /// Mark a GLASM shader as built
+    void AsyncGLASMBuilt(OGLAssemblyProgram new_program);
+
+    static std::unique_ptr<Shader> CreateStageFromMemory(
+        const ShaderParameters& params, Maxwell::ShaderProgram program_type,
+        ProgramCode program_code, ProgramCode program_code_b,
+        VideoCommon::Shader::AsyncShaders& async_shaders, VAddr cpu_addr);
+
     static std::unique_ptr<Shader> CreateKernelFromMemory(const ShaderParameters& params,
                                                           ProgramCode code);
 
@@ -85,12 +107,13 @@ public:
 
 private:
     explicit Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry, ShaderEntries entries,
-                    ProgramSharedPtr program);
+                    ProgramSharedPtr program, bool is_built = true);
 
     std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;
     ProgramSharedPtr program;
     GLuint handle = 0;
+    bool is_built{};
 };
 
 class ShaderCacheOpenGL final : public VideoCommon::ShaderCache<Shader> {
@@ -104,7 +127,8 @@ public:
                        const VideoCore::DiskResourceLoadCallback& callback);
 
     /// Gets the current specified shader stage program
-    Shader* GetStageProgram(Maxwell::ShaderProgram program);
+    Shader* GetStageProgram(Maxwell::ShaderProgram program,
+                            VideoCommon::Shader::AsyncShaders& async_shaders);
 
     /// Gets a compute kernel in the passed address
     Shader* GetComputeKernel(GPUVAddr code_addr);

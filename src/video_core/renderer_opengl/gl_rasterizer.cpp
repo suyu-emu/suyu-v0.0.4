@@ -149,7 +149,8 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
       shader_cache{*this, system, emu_window, device}, query_cache{system, *this},
       buffer_cache{*this, system, device, STREAM_BUFFER_SIZE},
       fence_manager{system, *this, texture_cache, buffer_cache, query_cache}, system{system},
-      screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker} {
+      screen_info{info}, program_manager{program_manager}, state_tracker{state_tracker},
+      async_shaders{emu_window} {
     CheckExtensions();
 
     unified_uniform_buffer.Create();
@@ -161,6 +162,23 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
             glNamedBufferStorage(cbuf, static_cast<GLsizeiptr>(Maxwell::MaxConstBufferSize),
                                  nullptr, 0);
         }
+    }
+
+    if (device.UseAsynchronousShaders()) {
+        // Max worker threads we should allow
+        constexpr auto MAX_THREADS = 2u;
+        // Amount of threads we should reserve for other parts of yuzu
+        constexpr auto RESERVED_THREADS = 6u;
+        // Get the amount of threads we can use(this can return zero)
+        const auto cpu_thread_count =
+            std::max(RESERVED_THREADS, std::thread::hardware_concurrency());
+        // Deduce how many "extra" threads we have to use.
+        const auto max_threads_unused = cpu_thread_count - RESERVED_THREADS;
+        // Always allow at least 1 thread regardless of our settings
+        const auto max_worker_count = std::max(1u, max_threads_unused);
+        // Don't use more than MAX_THREADS
+        const auto worker_count = std::min(max_worker_count, MAX_THREADS);
+        async_shaders.AllocateWorkers(worker_count);
     }
 }
 
@@ -336,7 +354,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
             continue;
         }
 
-        Shader* const shader = shader_cache.GetStageProgram(program);
+        Shader* shader = shader_cache.GetStageProgram(program, async_shaders);
 
         if (device.UseAssemblyShaders()) {
             // Check for ARB limitation. We only have 16 SSBOs per context state. To workaround this
@@ -353,7 +371,7 @@ void RasterizerOpenGL::SetupShaders(GLenum primitive_mode) {
         SetupDrawTextures(stage, shader);
         SetupDrawImages(stage, shader);
 
-        const GLuint program_handle = shader->GetHandle();
+        const GLuint program_handle = shader->IsBuilt() ? shader->GetHandle() : 0;
         switch (program) {
         case Maxwell::ShaderProgram::VertexA:
         case Maxwell::ShaderProgram::VertexB:

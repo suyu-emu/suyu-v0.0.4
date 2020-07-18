@@ -233,6 +233,8 @@ Device::Device()
                            GLAD_GL_NV_gpu_program5 && GLAD_GL_NV_compute_program5 &&
                            GLAD_GL_NV_transform_feedback && GLAD_GL_NV_transform_feedback2;
 
+    use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
+
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
     LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);

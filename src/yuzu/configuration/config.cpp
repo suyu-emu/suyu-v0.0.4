@@ -661,6 +661,8 @@ void Config::ReadRendererValues() {
     ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"), true);
     ReadSettingGlobal(Settings::values.use_assembly_shaders, QStringLiteral("use_assembly_shaders"),
                       false);
+    ReadSettingGlobal(Settings::values.use_asynchronous_shaders,
+                      QStringLiteral("use_asynchronous_shaders"), false);
     ReadSettingGlobal(Settings::values.use_fast_gpu_time, QStringLiteral("use_fast_gpu_time"),
                       true);
     ReadSettingGlobal(Settings::values.force_30fps_mode, QStringLiteral("force_30fps_mode"), false);
@@ -1145,6 +1147,8 @@ void Config::SaveRendererValues() {
     WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
     WriteSettingGlobal(QStringLiteral("use_assembly_shaders"),
                        Settings::values.use_assembly_shaders, false);
+    WriteSettingGlobal(QStringLiteral("use_asynchronous_shaders"),
+                       Settings::values.use_asynchronous_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time,
                        true);
     WriteSettingGlobal(QStringLiteral("force_30fps_mode"), Settings::values.force_30fps_mode,

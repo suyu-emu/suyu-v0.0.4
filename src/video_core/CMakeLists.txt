@@ -98,6 +98,8 @@ add_library(video_core STATIC
     sampler_cache.cpp
     sampler_cache.h
     shader_cache.h
+    shader_notify.cpp
+    shader_notify.h
     shader/decode/arithmetic.cpp
     shader/decode/arithmetic_immediate.cpp
     shader/decode/bfe.cpp
@@ -128,6 +130,8 @@ add_library(video_core STATIC
     shader/decode/other.cpp
     shader/ast.cpp
     shader/ast.h
+    shader/async_shaders.cpp
+    shader/async_shaders.h
     shader/compiler_settings.cpp
     shader/compiler_settings.h
     shader/control_flow.cpp

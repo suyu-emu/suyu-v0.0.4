@@ -24,6 +24,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     const bool runtime_lock = !Core::System::GetInstance().IsPoweredOn();
     ui->use_vsync->setEnabled(runtime_lock);
     ui->use_assembly_shaders->setEnabled(runtime_lock);
+    ui->use_asynchronous_shaders->setEnabled(runtime_lock);
     ui->force_30fps_mode->setEnabled(runtime_lock);
     ui->anisotropic_filtering_combobox->setEnabled(runtime_lock);
 
@@ -32,6 +33,8 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
             static_cast<int>(Settings::values.gpu_accuracy.GetValue()));
         ui->use_vsync->setChecked(Settings::values.use_vsync.GetValue());
         ui->use_assembly_shaders->setChecked(Settings::values.use_assembly_shaders.GetValue());
+        ui->use_asynchronous_shaders->setChecked(
+            Settings::values.use_asynchronous_shaders.GetValue());
         ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
         ui->force_30fps_mode->setChecked(Settings::values.force_30fps_mode.GetValue());
         ui->anisotropic_filtering_combobox->setCurrentIndex(
@@ -41,6 +44,10 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
         ConfigurationShared::SetPerGameSetting(ui->use_vsync, &Settings::values.use_vsync);
         ConfigurationShared::SetPerGameSetting(ui->use_assembly_shaders,
                                                &Settings::values.use_assembly_shaders);
+        ConfigurationShared::SetPerGameSetting(ui->use_asynchronous_shaders,
+                                               &Settings::values.use_asynchronous_shaders);
+        ConfigurationShared::SetPerGameSetting(ui->use_asynchronous_shaders,
+                                               &Settings::values.use_asynchronous_shaders);
         ConfigurationShared::SetPerGameSetting(ui->use_fast_gpu_time,
                                                &Settings::values.use_fast_gpu_time);
         ConfigurationShared::SetPerGameSetting(ui->force_30fps_mode,
@@ -67,6 +74,14 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
         if (Settings::values.use_assembly_shaders.UsingGlobal()) {
             Settings::values.use_assembly_shaders.SetValue(ui->use_assembly_shaders->isChecked());
         }
+        if (Settings::values.use_asynchronous_shaders.UsingGlobal()) {
+            Settings::values.use_asynchronous_shaders.SetValue(
+                ui->use_asynchronous_shaders->isChecked());
+        }
+        if (Settings::values.use_asynchronous_shaders.UsingGlobal()) {
+            Settings::values.use_asynchronous_shaders.SetValue(
+                ui->use_asynchronous_shaders->isChecked());
+        }
         if (Settings::values.use_fast_gpu_time.UsingGlobal()) {
             Settings::values.use_fast_gpu_time.SetValue(ui->use_fast_gpu_time->isChecked());
         }
@@ -83,6 +98,10 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vsync, ui->use_vsync);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_assembly_shaders,
                                                  ui->use_assembly_shaders);
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,
+                                                 ui->use_asynchronous_shaders);
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,
+                                                 ui->use_asynchronous_shaders);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_fast_gpu_time,
                                                  ui->use_fast_gpu_time);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.force_30fps_mode,
@@ -117,6 +136,8 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         ui->gpu_accuracy->setEnabled(Settings::values.gpu_accuracy.UsingGlobal());
         ui->use_vsync->setEnabled(Settings::values.use_vsync.UsingGlobal());
         ui->use_assembly_shaders->setEnabled(Settings::values.use_assembly_shaders.UsingGlobal());
+        ui->use_asynchronous_shaders->setEnabled(
+            Settings::values.use_asynchronous_shaders.UsingGlobal());
         ui->use_fast_gpu_time->setEnabled(Settings::values.use_fast_gpu_time.UsingGlobal());
         ui->force_30fps_mode->setEnabled(Settings::values.force_30fps_mode.UsingGlobal());
         ui->anisotropic_filtering_combobox->setEnabled(
@@ -128,6 +149,7 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::InsertGlobalItem(ui->gpu_accuracy);
     ui->use_vsync->setTristate(true);
     ui->use_assembly_shaders->setTristate(true);
+    ui->use_asynchronous_shaders->setTristate(true);
     ui->use_fast_gpu_time->setTristate(true);
     ui->force_30fps_mode->setTristate(true);
     ConfigurationShared::InsertGlobalItem(ui->anisotropic_filtering_combobox);

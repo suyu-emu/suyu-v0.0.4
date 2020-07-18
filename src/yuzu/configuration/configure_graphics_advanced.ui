@@ -73,6 +73,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_asynchronous_shaders">
+          <property name="toolTip">
+           <string>Enables asynchronous shader compilation, which may reduce shader stutter. This feature is experimental.</string>
+          </property>
+          <property name="text">
+           <string>Use asynchronous shader building (experimental, OpenGL or Assembly shaders only)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QCheckBox" name="force_30fps_mode">
           <property name="text">
            <string>Force 30 FPS mode</string>

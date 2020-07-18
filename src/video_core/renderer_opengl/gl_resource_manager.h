@@ -177,6 +177,12 @@ public:
         Release();
     }
 
+    OGLAssemblyProgram& operator=(OGLAssemblyProgram&& o) noexcept {
+        Release();
+        handle = std::exchange(o.handle, 0);
+        return *this;
+    }
+
     /// Deletes the internal OpenGL resource
     void Release();
 
