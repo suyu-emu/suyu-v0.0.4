@@ -55,6 +55,10 @@ std::string VfsDirectoryServiceWrapper::GetName() const {
 ResultCode VfsDirectoryServiceWrapper::CreateFile(const std::string& path_, u64 size) const {
     std::string path(FileUtil::SanitizePath(path_));
     auto dir = GetDirectoryRelativeWrapped(backing, FileUtil::GetParentPath(path));
+    // dir can be nullptr if path contains subdirectories, create those prior to creating the file.
+    if (dir == nullptr) {
+        dir = backing->CreateSubdirectory(FileUtil::GetParentPath(path));
+    }
     auto file = dir->CreateFile(FileUtil::GetFilename(path));
     if (file == nullptr) {
         // TODO(DarkLordZach): Find a better error code for this
