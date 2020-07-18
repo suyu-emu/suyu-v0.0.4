@@ -118,9 +118,9 @@ void ConfigureAudio::ApplyConfiguration() {
                 ui->volume_slider->maximum());
         }
     } else {
-        ConfigurationShared::ApplyPerGameSetting(
-            &Settings::values.enable_audio_stretching, ui->toggle_audio_stretching,
-            trackers.enable_audio_stretching);
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.enable_audio_stretching,
+                                                 ui->toggle_audio_stretching,
+                                                 trackers.enable_audio_stretching);
         if (ui->volume_combo_box->currentIndex() == 0) {
             Settings::values.volume.SetGlobal(true);
         } else {

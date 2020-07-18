@@ -90,18 +90,16 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
                                                  ui->anisotropic_filtering_combobox);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_vsync, ui->use_vsync,
                                                  trackers.use_vsync);
-        ConfigurationShared::ApplyPerGameSetting(
-            &Settings::values.use_assembly_shaders, ui->use_assembly_shaders,
-            trackers.use_assembly_shaders);
-        ConfigurationShared::ApplyPerGameSetting(
-            &Settings::values.use_asynchronous_shaders, ui->use_asynchronous_shaders,
-            trackers.use_asynchronous_shaders);
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_assembly_shaders,
+                                                 ui->use_assembly_shaders,
+                                                 trackers.use_assembly_shaders);
+        ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_shaders,
+                                                 ui->use_asynchronous_shaders,
+                                                 trackers.use_asynchronous_shaders);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_fast_gpu_time,
-                                                 ui->use_fast_gpu_time,
-                                                 trackers.use_fast_gpu_time);
+                                                 ui->use_fast_gpu_time, trackers.use_fast_gpu_time);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.force_30fps_mode,
-                                                 ui->force_30fps_mode,
-                                                 trackers.force_30fps_mode);
+                                                 ui->force_30fps_mode, trackers.force_30fps_mode);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.max_anisotropy,
                                                  ui->anisotropic_filtering_combobox);
 

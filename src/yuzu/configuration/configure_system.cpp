@@ -234,14 +234,12 @@ void ConfigureSystem::SetupPerGameUI() {
     ConfigurationShared::SetColoredComboBox(ui->combo_sound, ui->label_sound, "label_sound",
                                             Settings::values.sound_index.GetValue(true));
 
-    ConfigurationShared::SetColoredTristate(ui->rng_seed_checkbox, "rng_seed_checkbox",
-                                            Settings::values.rng_seed.UsingGlobal(),
-                                            Settings::values.rng_seed.GetValue().has_value(),
-                                            Settings::values.rng_seed.GetValue(true).has_value(),
-                                            trackers.use_rng_seed);
-    ConfigurationShared::SetColoredTristate(ui->custom_rtc_checkbox, "custom_rtc_checkbox",
-                                            Settings::values.custom_rtc.UsingGlobal(),
-                                            Settings::values.custom_rtc.GetValue().has_value(),
-                                            Settings::values.custom_rtc.GetValue(true).has_value(),
-                                            trackers.use_custom_rtc);
+    ConfigurationShared::SetColoredTristate(
+        ui->rng_seed_checkbox, "rng_seed_checkbox", Settings::values.rng_seed.UsingGlobal(),
+        Settings::values.rng_seed.GetValue().has_value(),
+        Settings::values.rng_seed.GetValue(true).has_value(), trackers.use_rng_seed);
+    ConfigurationShared::SetColoredTristate(
+        ui->custom_rtc_checkbox, "custom_rtc_checkbox", Settings::values.custom_rtc.UsingGlobal(),
+        Settings::values.custom_rtc.GetValue().has_value(),
+        Settings::values.custom_rtc.GetValue(true).has_value(), trackers.use_custom_rtc);
 }

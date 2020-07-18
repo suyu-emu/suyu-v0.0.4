@@ -68,11 +68,10 @@ void ConfigureGeneral::ApplyConfiguration() {
         }
     } else {
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core,
-                                                 ui->use_multi_core,
-                                                 trackers.use_multi_core);
+                                                 ui->use_multi_core, trackers.use_multi_core);
 
-        bool global_frame_limit = trackers.use_frame_limit ==
-                                  ConfigurationShared::CheckState::Global;
+        bool global_frame_limit =
+            trackers.use_frame_limit == ConfigurationShared::CheckState::Global;
         Settings::values.use_frame_limit.SetGlobal(global_frame_limit);
         Settings::values.frame_limit.SetGlobal(global_frame_limit);
         if (!global_frame_limit) {
@@ -116,8 +115,8 @@ void ConfigureGeneral::SetupPerGameUI() {
                                             trackers.use_multi_core);
 
     connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit, [this]() {
-        ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked() &&
-                                    (trackers.use_frame_limit !=
-                                     ConfigurationShared::CheckState::Global));
+        ui->frame_limit->setEnabled(
+            ui->toggle_frame_limit->isChecked() &&
+            (trackers.use_frame_limit != ConfigurationShared::CheckState::Global));
     });
 }
