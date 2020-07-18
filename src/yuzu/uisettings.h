@@ -24,7 +24,7 @@ struct Shortcut {
     ContextualShortcut shortcut;
 };
 
-using Themes = std::array<std::pair<const char*, const char*>, 4>;
+using Themes = std::array<std::pair<const char*, const char*>, 6>;
 extern const Themes themes;
 
 struct GameDir {
