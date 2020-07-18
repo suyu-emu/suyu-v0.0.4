@@ -144,9 +144,9 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     ConfigurationShared::SetColoredTristate(ui->use_assembly_shaders, "use_assembly_shaders",
                                             Settings::values.use_assembly_shaders,
                                             use_assembly_shaders);
-    ConfigurationShared::SetColoredTristate(ui->use_asynchronous_shaders, "use_asynchronous_shaders",
-                                            Settings::values.use_asynchronous_shaders,
-                                            use_asynchronous_shaders);
+    ConfigurationShared::SetColoredTristate(
+        ui->use_asynchronous_shaders, "use_asynchronous_shaders",
+        Settings::values.use_asynchronous_shaders, use_asynchronous_shaders);
     ConfigurationShared::SetColoredTristate(ui->use_fast_gpu_time, "use_fast_gpu_time",
                                             Settings::values.use_fast_gpu_time, use_fast_gpu_time);
     ConfigurationShared::SetColoredTristate(ui->force_30fps_mode, "force_30fps_mode",
