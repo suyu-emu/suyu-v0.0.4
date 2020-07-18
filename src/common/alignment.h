@@ -3,7 +3,6 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
 #include <type_traits>
 
 namespace Common {
@@ -54,66 +53,28 @@ public:
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
 
-    using pointer = T*;
-    using const_pointer = const T*;
-
-    using reference = T&;
-    using const_reference = const T&;
-
     using propagate_on_container_copy_assignment = std::true_type;
     using propagate_on_container_move_assignment = std::true_type;
     using propagate_on_container_swap = std::true_type;
     using is_always_equal = std::true_type;
 
-public:
     constexpr AlignmentAllocator() noexcept = default;
 
     template <typename T2>
     constexpr AlignmentAllocator(const AlignmentAllocator<T2, Align>&) noexcept {}
 
-    pointer address(reference r) noexcept {
-        return std::addressof(r);
+    T* allocate(size_type n) {
+        return static_cast<T*>(::operator new (n * sizeof(T), std::align_val_t{Align}));
     }
 
-    const_pointer address(const_reference r) const noexcept {
-        return std::addressof(r);
-    }
-
-    pointer allocate(size_type n) {
-        return static_cast<pointer>(::operator new (n, std::align_val_t{Align}));
-    }
-
-    void deallocate(pointer p, size_type) {
-        ::operator delete (p, std::align_val_t{Align});
-    }
-
-    void construct(pointer p, const value_type& wert) {
-        new (p) value_type(wert);
-    }
-
-    void destroy(pointer p) {
-        p->~value_type();
-    }
-
-    size_type max_size() const noexcept {
-        return size_type(-1) / sizeof(value_type);
+    void deallocate(T* p, size_type n) {
+        ::operator delete (p, n * sizeof(T), std::align_val_t{Align});
     }
 
     template <typename T2>
     struct rebind {
         using other = AlignmentAllocator<T2, Align>;
     };
-
-    bool operator!=(const AlignmentAllocator<T, Align>& other) const noexcept {
-        return !(*this == other);
-    }
-
-    // Returns true if and only if storage allocated from *this
-    // can be deallocated from other, and vice versa.
-    // Always returns true for stateless allocators.
-    bool operator==(const AlignmentAllocator<T, Align>& other) const noexcept {
-        return true;
-    }
 };
 
 } // namespace Common
