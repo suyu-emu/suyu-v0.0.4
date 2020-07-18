@@ -115,32 +115,32 @@ constexpr u8 quad_array[] = {
     0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
 
 VkDescriptorSetLayoutBinding BuildQuadArrayPassDescriptorSetLayoutBinding() {
-    VkDescriptorSetLayoutBinding binding;
-    binding.binding = 0;
-    binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    binding.descriptorCount = 1;
-    binding.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-    binding.pImmutableSamplers = nullptr;
-    return binding;
+    return {
+        .binding = 0,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .descriptorCount = 1,
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .pImmutableSamplers = nullptr,
+    };
 }
 
 VkDescriptorUpdateTemplateEntryKHR BuildQuadArrayPassDescriptorUpdateTemplateEntry() {
-    VkDescriptorUpdateTemplateEntryKHR entry;
-    entry.dstBinding = 0;
-    entry.dstArrayElement = 0;
-    entry.descriptorCount = 1;
-    entry.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    entry.offset = 0;
-    entry.stride = sizeof(DescriptorUpdateEntry);
-    return entry;
+    return {
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .offset = 0,
+        .stride = sizeof(DescriptorUpdateEntry),
+    };
 }
 
 VkPushConstantRange BuildComputePushConstantRange(std::size_t size) {
-    VkPushConstantRange range;
-    range.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-    range.offset = 0;
-    range.size = static_cast<u32>(size);
-    return range;
+    return {
+        .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+        .offset = 0,
+        .size = static_cast<u32>(size),
+    };
 }
 
 // Uint8 SPIR-V module. Generated from the "shaders/" directory.
@@ -344,29 +344,33 @@ constexpr u8 QUAD_INDEXED_SPV[] = {
     0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
 
 std::array<VkDescriptorSetLayoutBinding, 2> BuildInputOutputDescriptorSetBindings() {
-    std::array<VkDescriptorSetLayoutBinding, 2> bindings;
-    bindings[0].binding = 0;
-    bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    bindings[0].descriptorCount = 1;
-    bindings[0].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-    bindings[0].pImmutableSamplers = nullptr;
-    bindings[1].binding = 1;
-    bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    bindings[1].descriptorCount = 1;
-    bindings[1].stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
-    bindings[1].pImmutableSamplers = nullptr;
-    return bindings;
+    return {{
+        {
+            .binding = 0,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr,
+        },
+        {
+            .binding = 1,
+            .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+            .descriptorCount = 1,
+            .stageFlags = VK_SHADER_STAGE_COMPUTE_BIT,
+            .pImmutableSamplers = nullptr,
+        },
+    }};
 }
 
 VkDescriptorUpdateTemplateEntryKHR BuildInputOutputDescriptorUpdateTemplate() {
-    VkDescriptorUpdateTemplateEntryKHR entry;
-    entry.dstBinding = 0;
-    entry.dstArrayElement = 0;
-    entry.descriptorCount = 2;
-    entry.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-    entry.offset = 0;
-    entry.stride = sizeof(DescriptorUpdateEntry);
-    return entry;
+    return {
+        .dstBinding = 0,
+        .dstArrayElement = 0,
+        .descriptorCount = 2,
+        .descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+        .offset = 0,
+        .stride = sizeof(DescriptorUpdateEntry),
+    };
 }
 
 } // Anonymous namespace
@@ -376,37 +380,37 @@ VKComputePass::VKComputePass(const VKDevice& device, VKDescriptorPool& descripto
                              vk::Span<VkDescriptorUpdateTemplateEntryKHR> templates,
                              vk::Span<VkPushConstantRange> push_constants, std::size_t code_size,
                              const u8* code) {
-    VkDescriptorSetLayoutCreateInfo descriptor_layout_ci;
-    descriptor_layout_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descriptor_layout_ci.pNext = nullptr;
-    descriptor_layout_ci.flags = 0;
-    descriptor_layout_ci.bindingCount = bindings.size();
-    descriptor_layout_ci.pBindings = bindings.data();
-    descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout(descriptor_layout_ci);
+    descriptor_set_layout = device.GetLogical().CreateDescriptorSetLayout({
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .bindingCount = bindings.size(),
+        .pBindings = bindings.data(),
+    });
 
-    VkPipelineLayoutCreateInfo pipeline_layout_ci;
-    pipeline_layout_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipeline_layout_ci.pNext = nullptr;
-    pipeline_layout_ci.flags = 0;
-    pipeline_layout_ci.setLayoutCount = 1;
-    pipeline_layout_ci.pSetLayouts = descriptor_set_layout.address();
-    pipeline_layout_ci.pushConstantRangeCount = push_constants.size();
-    pipeline_layout_ci.pPushConstantRanges = push_constants.data();
-    layout = device.GetLogical().CreatePipelineLayout(pipeline_layout_ci);
+    layout = device.GetLogical().CreatePipelineLayout({
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .setLayoutCount = 1,
+        .pSetLayouts = descriptor_set_layout.address(),
+        .pushConstantRangeCount = push_constants.size(),
+        .pPushConstantRanges = push_constants.data(),
+    });
 
     if (!templates.empty()) {
-        VkDescriptorUpdateTemplateCreateInfoKHR template_ci;
-        template_ci.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR;
-        template_ci.pNext = nullptr;
-        template_ci.flags = 0;
-        template_ci.descriptorUpdateEntryCount = templates.size();
-        template_ci.pDescriptorUpdateEntries = templates.data();
-        template_ci.templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR;
-        template_ci.descriptorSetLayout = *descriptor_set_layout;
-        template_ci.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        template_ci.pipelineLayout = *layout;
-        template_ci.set = 0;
-        descriptor_template = device.GetLogical().CreateDescriptorUpdateTemplateKHR(template_ci);
+        descriptor_template = device.GetLogical().CreateDescriptorUpdateTemplateKHR({
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_CREATE_INFO_KHR,
+            .pNext = nullptr,
+            .flags = 0,
+            .descriptorUpdateEntryCount = templates.size(),
+            .pDescriptorUpdateEntries = templates.data(),
+            .templateType = VK_DESCRIPTOR_UPDATE_TEMPLATE_TYPE_DESCRIPTOR_SET_KHR,
+            .descriptorSetLayout = *descriptor_set_layout,
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .pipelineLayout = *layout,
+            .set = 0,
+        });
 
         descriptor_allocator.emplace(descriptor_pool, *descriptor_set_layout);
     }
@@ -414,32 +418,32 @@ VKComputePass::VKComputePass(const VKDevice& device, VKDescriptorPool& descripto
     auto code_copy = std::make_unique<u32[]>(code_size / sizeof(u32) + 1);
     std::memcpy(code_copy.get(), code, code_size);
 
-    VkShaderModuleCreateInfo module_ci;
-    module_ci.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    module_ci.pNext = nullptr;
-    module_ci.flags = 0;
-    module_ci.codeSize = code_size;
-    module_ci.pCode = code_copy.get();
-    module = device.GetLogical().CreateShaderModule(module_ci);
+    module = device.GetLogical().CreateShaderModule({
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .codeSize = code_size,
+        .pCode = code_copy.get(),
+    });
 
-    VkComputePipelineCreateInfo pipeline_ci;
-    pipeline_ci.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-    pipeline_ci.pNext = nullptr;
-    pipeline_ci.flags = 0;
-    pipeline_ci.layout = *layout;
-    pipeline_ci.basePipelineHandle = nullptr;
-    pipeline_ci.basePipelineIndex = 0;
-
-    VkPipelineShaderStageCreateInfo& stage_ci = pipeline_ci.stage;
-    stage_ci.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    stage_ci.pNext = nullptr;
-    stage_ci.flags = 0;
-    stage_ci.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-    stage_ci.module = *module;
-    stage_ci.pName = "main";
-    stage_ci.pSpecializationInfo = nullptr;
-
-    pipeline = device.GetLogical().CreateComputePipeline(pipeline_ci);
+    pipeline = device.GetLogical().CreateComputePipeline({
+        .sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+        .stage =
+            {
+                .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                .pNext = nullptr,
+                .flags = 0,
+                .stage = VK_SHADER_STAGE_COMPUTE_BIT,
+                .module = *module,
+                .pName = "main",
+                .pSpecializationInfo = nullptr,
+            },
+        .layout = *layout,
+        .basePipelineHandle = nullptr,
+        .basePipelineIndex = 0,
+    });
 }
 
 VKComputePass::~VKComputePass() = default;

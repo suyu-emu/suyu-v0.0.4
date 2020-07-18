@@ -88,12 +88,13 @@ void AddBindings(std::vector<VkDescriptorSetLayoutBinding>& bindings, u32& bindi
             // Combined image samplers can be arrayed.
             count = container[i].size;
         }
-        VkDescriptorSetLayoutBinding& entry = bindings.emplace_back();
-        entry.binding = binding++;
-        entry.descriptorType = descriptor_type;
-        entry.descriptorCount = count;
-        entry.stageFlags = stage_flags;
-        entry.pImmutableSamplers = nullptr;
+        bindings.push_back({
+            .binding = binding++,
+            .descriptorType = descriptor_type,
+            .descriptorCount = count,
+            .stageFlags = stage_flags,
+            .pImmutableSamplers = nullptr,
+        });
     }
 }
 
@@ -259,10 +260,10 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
         }
     }
 
-    Specialization specialization;
-    specialization.workgroup_size = key.workgroup_size;
-    specialization.shared_memory_size = key.shared_memory_size;
-
+    const Specialization specialization{
+        .workgroup_size = key.workgroup_size,
+        .shared_memory_size = key.shared_memory_size,
+    };
     const SPIRVShader spirv_shader{Decompile(device, shader->GetIR(), ShaderType::Compute,
                                              shader->GetRegistry(), specialization),
                                    shader->GetEntries()};
@@ -370,13 +371,14 @@ void AddEntry(std::vector<VkDescriptorUpdateTemplateEntry>& template_entries, u3
     if constexpr (descriptor_type == COMBINED_IMAGE_SAMPLER) {
         for (u32 i = 0; i < count; ++i) {
             const u32 num_samplers = container[i].size;
-            VkDescriptorUpdateTemplateEntry& entry = template_entries.emplace_back();
-            entry.dstBinding = binding;
-            entry.dstArrayElement = 0;
-            entry.descriptorCount = num_samplers;
-            entry.descriptorType = descriptor_type;
-            entry.offset = offset;
-            entry.stride = entry_size;
+            template_entries.push_back({
+                .dstBinding = binding,
+                .dstArrayElement = 0,
+                .descriptorCount = num_samplers,
+                .descriptorType = descriptor_type,
+                .offset = offset,
+                .stride = entry_size,
+            });
 
             ++binding;
             offset += num_samplers * entry_size;
@@ -389,22 +391,24 @@ void AddEntry(std::vector<VkDescriptorUpdateTemplateEntry>& template_entries, u3
         // Nvidia has a bug where updating multiple texels at once causes the driver to crash.
         // Note: Fixed in driver Windows 443.24, Linux 440.66.15
         for (u32 i = 0; i < count; ++i) {
-            VkDescriptorUpdateTemplateEntry& entry = template_entries.emplace_back();
-            entry.dstBinding = binding + i;
-            entry.dstArrayElement = 0;
-            entry.descriptorCount = 1;
-            entry.descriptorType = descriptor_type;
-            entry.offset = static_cast<std::size_t>(offset + i * entry_size);
-            entry.stride = entry_size;
+            template_entries.push_back({
+                .dstBinding = binding + i,
+                .dstArrayElement = 0,
+                .descriptorCount = 1,
+                .descriptorType = descriptor_type,
+                .offset = static_cast<std::size_t>(offset + i * entry_size),
+                .stride = entry_size,
+            });
         }
     } else if (count > 0) {
-        VkDescriptorUpdateTemplateEntry& entry = template_entries.emplace_back();
-        entry.dstBinding = binding;
-        entry.dstArrayElement = 0;
-        entry.descriptorCount = count;
-        entry.descriptorType = descriptor_type;
-        entry.offset = offset;
-        entry.stride = entry_size;
+        template_entries.push_back({
+            .dstBinding = binding,
+            .dstArrayElement = 0,
+            .descriptorCount = count,
+            .descriptorType = descriptor_type,
+            .offset = offset,
+            .stride = entry_size,
+        });
     }
     offset += count * entry_size;
     binding += count;

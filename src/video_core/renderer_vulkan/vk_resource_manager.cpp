@@ -18,33 +18,32 @@ namespace {
 constexpr std::size_t COMMAND_BUFFER_POOL_SIZE = 0x1000;
 constexpr std::size_t FENCES_GROW_STEP = 0x40;
 
-VkFenceCreateInfo BuildFenceCreateInfo() {
-    VkFenceCreateInfo fence_ci;
-    fence_ci.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_ci.pNext = nullptr;
-    fence_ci.flags = 0;
-    return fence_ci;
+constexpr VkFenceCreateInfo BuildFenceCreateInfo() {
+    return {
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0,
+    };
 }
 
 } // Anonymous namespace
 
 class CommandBufferPool final : public VKFencedPool {
 public:
-    CommandBufferPool(const VKDevice& device)
+    explicit CommandBufferPool(const VKDevice& device)
         : VKFencedPool(COMMAND_BUFFER_POOL_SIZE), device{device} {}
 
     void Allocate(std::size_t begin, std::size_t end) override {
         // Command buffers are going to be commited, recorded, executed every single usage cycle.
         // They are also going to be reseted when commited.
-        VkCommandPoolCreateInfo command_pool_ci;
-        command_pool_ci.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        command_pool_ci.pNext = nullptr;
-        command_pool_ci.flags =
-            VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        command_pool_ci.queueFamilyIndex = device.GetGraphicsFamily();
-
         Pool& pool = pools.emplace_back();
-        pool.handle = device.GetLogical().CreateCommandPool(command_pool_ci);
+        pool.handle = device.GetLogical().CreateCommandPool({
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = nullptr,
+            .flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT |
+                     VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+            .queueFamilyIndex = device.GetGraphicsFamily(),
+        });
         pool.cmdbufs = pool.handle.Allocate(COMMAND_BUFFER_POOL_SIZE);
     }
 
