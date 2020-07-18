@@ -14,7 +14,7 @@
 namespace Tools {
 namespace {
 
-constexpr s64 MEMORY_FREEZER_TICKS = static_cast<s64>(1000000000 / 60);
+constexpr auto memory_freezer_ns = std::chrono::nanoseconds{1000000000 / 60};
 
 u64 MemoryReadWidth(Core::Memory::Memory& memory, u32 width, VAddr addr) {
     switch (width) {
@@ -55,10 +55,11 @@ void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 v
 
 Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
-    event = Core::Timing::CreateEvent(
-        "MemoryFreezer::FrameCallback",
-        [this](u64 userdata, s64 ns_late) { FrameCallback(userdata, ns_late); });
-    core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS, event);
+    event = Core::Timing::CreateEvent("MemoryFreezer::FrameCallback",
+                                      [this](u64 userdata, std::chrono::nanoseconds ns_late) {
+                                          FrameCallback(userdata, ns_late);
+                                      });
+    core_timing.ScheduleEvent(memory_freezer_ns, event);
 }
 
 Freezer::~Freezer() {
@@ -68,7 +69,7 @@ Freezer::~Freezer() {
 void Freezer::SetActive(bool active) {
     if (!this->active.exchange(active)) {
         FillEntryReads();
-        core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS, event);
+        core_timing.ScheduleEvent(memory_freezer_ns, event);
         LOG_DEBUG(Common_Memory, "Memory freezer activated!");
     } else {
         LOG_DEBUG(Common_Memory, "Memory freezer deactivated!");
@@ -158,7 +159,7 @@ std::vector<Freezer::Entry> Freezer::GetEntries() const {
     return entries;
 }
 
-void Freezer::FrameCallback(u64 userdata, s64 ns_late) {
+void Freezer::FrameCallback(u64, std::chrono::nanoseconds ns_late) {
     if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;
@@ -173,7 +174,7 @@ void Freezer::FrameCallback(u64 userdata, s64 ns_late) {
         MemoryWriteWidth(memory, entry.width, entry.address, entry.value);
     }
 
-    core_timing.ScheduleEvent(MEMORY_FREEZER_TICKS - ns_late, event);
+    core_timing.ScheduleEvent(memory_freezer_ns - ns_late, event);
 }
 
 void Freezer::FillEntryReads() {

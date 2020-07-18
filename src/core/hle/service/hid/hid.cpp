@@ -39,9 +39,10 @@ namespace Service::HID {
 
 // Updating period for each HID device.
 // TODO(ogniK): Find actual polling rate of hid
-constexpr s64 pad_update_ticks = static_cast<s64>(1000000000 / 66);
-[[maybe_unused]] constexpr s64 accelerometer_update_ticks = static_cast<s64>(1000000000 / 100);
-[[maybe_unused]] constexpr s64 gyroscope_update_ticks = static_cast<s64>(1000000000 / 100);
+constexpr auto pad_update_ns = std::chrono::nanoseconds{1000000000 / 66};
+[[maybe_unused]] constexpr auto accelerometer_update_ns =
+    std::chrono::nanoseconds{1000000000 / 100};
+[[maybe_unused]] constexpr auto gyroscope_update_ticks = std::chrono::nanoseconds{1000000000 / 100};
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
@@ -75,14 +76,14 @@ IAppletResource::IAppletResource(Core::System& system)
     GetController<Controller_Stubbed>(HidController::Unknown3).SetCommonHeaderOffset(0x5000);
 
     // Register update callbacks
-    pad_update_event =
-        Core::Timing::CreateEvent("HID::UpdatePadCallback", [this](u64 userdata, s64 ns_late) {
+    pad_update_event = Core::Timing::CreateEvent(
+        "HID::UpdatePadCallback", [this](u64 userdata, std::chrono::nanoseconds ns_late) {
             UpdateControllers(userdata, ns_late);
         });
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
 
-    system.CoreTiming().ScheduleEvent(pad_update_ticks, pad_update_event);
+    system.CoreTiming().ScheduleEvent(pad_update_ns, pad_update_event);
 
     ReloadInputDevices();
 }
@@ -107,7 +108,7 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(shared_mem);
 }
 
-void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
+void IAppletResource::UpdateControllers(u64 userdata, std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);
@@ -118,7 +119,7 @@ void IAppletResource::UpdateControllers(u64 userdata, s64 ns_late) {
         controller->OnUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
     }
 
-    core_timing.ScheduleEvent(pad_update_ticks - ns_late, pad_update_event);
+    core_timing.ScheduleEvent(pad_update_ns - ns_late, pad_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {

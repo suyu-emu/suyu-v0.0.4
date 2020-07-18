@@ -17,14 +17,12 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 #include "common/thread.h"
-#include "common/threadsafe_queue.h"
 #include "common/wall_clock.h"
-#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
-using TimedCallback = std::function<void(u64 userdata, s64 cycles_late)>;
+using TimedCallback = std::function<void(u64 userdata, std::chrono::nanoseconds ns_late)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -42,12 +40,12 @@ struct EventType {
  * in main CPU clock cycles.
  *
  * To schedule an event, you first have to register its type. This is where you pass in the
- * callback. You then schedule events using the type id you get back.
+ * callback. You then schedule events using the type ID you get back.
  *
- * The int cyclesLate that the callbacks get is how many cycles late it was.
+ * The s64 ns_late that the callbacks get is how many ns late it was.
  * So to schedule a new event on a regular basis:
  * inside callback:
- *   ScheduleEvent(periodInCycles - cyclesLate, callback, "whatever")
+ *   ScheduleEvent(period_in_ns - ns_late, callback, "whatever")
  */
 class CoreTiming {
 public:
@@ -62,7 +60,7 @@ public:
 
     /// CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
     /// required to end slice - 1 and start slice 0 before the first cycle of code is executed.
-    void Initialize(std::function<void(void)>&& on_thread_init_);
+    void Initialize(std::function<void()>&& on_thread_init_);
 
     /// Tears down all timing related functionality.
     void Shutdown();
@@ -95,8 +93,8 @@ public:
     bool HasPendingEvents() const;
 
     /// Schedules an event in core timing
-    void ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
-                       u64 userdata = 0);
+    void ScheduleEvent(std::chrono::nanoseconds ns_into_future,
+                       const std::shared_ptr<EventType>& event_type, u64 userdata = 0);
 
     void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata);
 
@@ -141,8 +139,6 @@ private:
 
     u64 global_timer = 0;
 
-    std::chrono::nanoseconds start_point;
-
     // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
     // We don't use std::priority_queue because we need to be able to serialize, unserialize and
     // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't
@@ -161,7 +157,7 @@ private:
     std::atomic<bool> wait_set{};
     std::atomic<bool> shutting_down{};
     std::atomic<bool> has_started{};
-    std::function<void(void)> on_thread_init{};
+    std::function<void()> on_thread_init{};
 
     bool is_multicore{};
 

@@ -53,12 +53,12 @@ void CoreTiming::ThreadEntry(CoreTiming& instance) {
     instance.ThreadLoop();
 }
 
-void CoreTiming::Initialize(std::function<void(void)>&& on_thread_init_) {
+void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     on_thread_init = std::move(on_thread_init_);
     event_fifo_id = 0;
     shutting_down = false;
     ticks = 0;
-    const auto empty_timed_callback = [](u64, s64) {};
+    const auto empty_timed_callback = [](u64, std::chrono::nanoseconds) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
     if (is_multicore) {
         timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
@@ -106,11 +106,11 @@ bool CoreTiming::HasPendingEvents() const {
     return !(wait_set && event_queue.empty());
 }
 
-void CoreTiming::ScheduleEvent(s64 ns_into_future, const std::shared_ptr<EventType>& event_type,
-                               u64 userdata) {
+void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
+                               const std::shared_ptr<EventType>& event_type, u64 userdata) {
     {
         std::scoped_lock scope{basic_lock};
-        const u64 timeout = static_cast<u64>(GetGlobalTimeNs().count() + ns_into_future);
+        const u64 timeout = static_cast<u64>((GetGlobalTimeNs() + ns_into_future).count());
 
         event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
 
@@ -195,8 +195,9 @@ std::optional<s64> CoreTiming::Advance() {
         event_queue.pop_back();
         basic_lock.unlock();
 
-        if (auto event_type{evt.type.lock()}) {
-            event_type->callback(evt.userdata, global_timer - evt.time);
+        if (const auto event_type{evt.type.lock()}) {
+            event_type->callback(
+                evt.userdata, std::chrono::nanoseconds{static_cast<s64>(global_timer - evt.time)});
         }
 
         basic_lock.lock();

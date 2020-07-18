@@ -20,7 +20,7 @@
 
 namespace Core::Memory {
 
-constexpr s64 CHEAT_ENGINE_TICKS = static_cast<s64>(1000000000 / 12);
+constexpr auto CHEAT_ENGINE_NS = std::chrono::nanoseconds{1000000000 / 12};
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
 
 StandardVmCallbacks::StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata)
@@ -188,10 +188,12 @@ CheatEngine::~CheatEngine() {
 }
 
 void CheatEngine::Initialize() {
-    event = Core::Timing::CreateEvent(
-        "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
-        [this](u64 userdata, s64 ns_late) { FrameCallback(userdata, ns_late); });
-    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS, event);
+    event = Core::Timing::CreateEvent("CheatEngine::FrameCallback::" +
+                                          Common::HexToString(metadata.main_nso_build_id),
+                                      [this](u64 userdata, std::chrono::nanoseconds ns_late) {
+                                          FrameCallback(userdata, ns_late);
+                                      });
+    core_timing.ScheduleEvent(CHEAT_ENGINE_NS, event);
 
     metadata.process_id = system.CurrentProcess()->GetProcessID();
     metadata.title_id = system.CurrentProcess()->GetTitleID();
@@ -217,7 +219,7 @@ void CheatEngine::Reload(std::vector<CheatEntry> cheats) {
 
 MICROPROFILE_DEFINE(Cheat_Engine, "Add-Ons", "Cheat Engine", MP_RGB(70, 200, 70));
 
-void CheatEngine::FrameCallback(u64 userdata, s64 ns_late) {
+void CheatEngine::FrameCallback(u64, std::chrono::nanoseconds ns_late) {
     if (is_pending_reload.exchange(false)) {
         vm.LoadProgram(cheats);
     }
@@ -230,7 +232,7 @@ void CheatEngine::FrameCallback(u64 userdata, s64 ns_late) {
 
     vm.Execute(metadata);
 
-    core_timing.ScheduleEvent(CHEAT_ENGINE_TICKS - ns_late, event);
+    core_timing.ScheduleEvent(CHEAT_ENGINE_NS - ns_late, event);
 }
 
 } // namespace Core::Memory

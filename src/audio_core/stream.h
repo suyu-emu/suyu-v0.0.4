@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
@@ -90,16 +91,13 @@ public:
 
 private:
     /// Plays the next queued buffer in the audio stream, starting playback if necessary
-    void PlayNextBuffer(s64 cycles_late = 0);
+    void PlayNextBuffer(std::chrono::nanoseconds ns_late = {});
 
     /// Releases the actively playing buffer, signalling that it has been completed
-    void ReleaseActiveBuffer(s64 cycles_late = 0);
+    void ReleaseActiveBuffer(std::chrono::nanoseconds ns_late = {});
 
     /// Gets the number of core cycles when the specified buffer will be released
-    s64 GetBufferReleaseNS(const Buffer& buffer) const;
-
-    /// Gets the number of core cycles when the specified buffer will be released
-    s64 GetBufferReleaseNSHostTiming(const Buffer& buffer) const;
+    std::chrono::nanoseconds GetBufferReleaseNS(const Buffer& buffer) const;
 
     u32 sample_rate;                  ///< Sample rate of the stream
     Format format;                    ///< Format of the stream

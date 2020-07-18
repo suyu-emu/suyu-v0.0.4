@@ -145,16 +145,18 @@ struct KernelCore::Impl {
 
     void InitializePreemption(KernelCore& kernel) {
         preemption_event = Core::Timing::CreateEvent(
-            "PreemptionCallback", [this, &kernel](u64 userdata, s64 cycles_late) {
+            "PreemptionCallback", [this, &kernel](u64, std::chrono::nanoseconds) {
                 {
                     SchedulerLock lock(kernel);
                     global_scheduler.PreemptThreads();
                 }
-                s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
+                const auto time_interval = std::chrono::nanoseconds{
+                    Core::Timing::msToCycles(std::chrono::milliseconds(10))};
                 system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
             });
 
-        s64 time_interval = Core::Timing::msToCycles(std::chrono::milliseconds(10));
+        const auto time_interval =
+            std::chrono::nanoseconds{Core::Timing::msToCycles(std::chrono::milliseconds(10))};
         system.CoreTiming().ScheduleEvent(time_interval, preemption_event);
     }
 
