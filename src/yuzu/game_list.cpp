@@ -502,10 +502,10 @@ void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, std::string pat
     navigate_to_gamedb_entry->setVisible(it != compatibility_list.end() && program_id != 0);
 
     connect(open_save_location, &QAction::triggered, [this, program_id, path]() {
-        emit OpenFolderRequested(GameListOpenTarget::SaveData, path);
+        emit OpenFolderRequested(program_id, GameListOpenTarget::SaveData, path);
     });
     connect(open_mod_location, &QAction::triggered, [this, program_id, path]() {
-        emit OpenFolderRequested(GameListOpenTarget::ModData, path);
+        emit OpenFolderRequested(program_id, GameListOpenTarget::ModData, path);
     });
     connect(open_transferable_shader_cache, &QAction::triggered,
             [this, program_id]() { emit OpenTransferableShaderCacheRequested(program_id); });
