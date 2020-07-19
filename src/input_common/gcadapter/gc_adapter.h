@@ -49,11 +49,8 @@ enum class PadAxes : u8 {
 struct GCPadStatus {
     u16 button{}; // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
 
-    std::array<u8, 6> axis_values{}; // Triggers and sticks, following indices defined in PadAxes
-    static constexpr u8 THRESHOLD = 10;
-
-    // 256/4, at least a quarter press to count as a press. For polling mostly
-    static constexpr u8 TRIGGER_THRESHOLD = 64;
+    std::array<u8, 6> axis_values{};    // Triggers and sticks, following indices defined in PadAxes
+    static constexpr u8 THRESHOLD = 50; // Threshold for axis press for polling
 
     u8 port{};
     PadAxes axis{PadAxes::Undefined};
