@@ -524,11 +524,8 @@ private:
     void MarkRegionAsWritten(VAddr start, VAddr end) {
         const u64 page_end = end >> WRITE_PAGE_BIT;
         for (u64 page_start = start >> WRITE_PAGE_BIT; page_start <= page_end; ++page_start) {
-            auto it = written_pages.find(page_start);
-            if (it != written_pages.end()) {
-                it->second = it->second + 1;
-            } else {
-                written_pages.insert_or_assign(page_start, 1);
+            if (const auto [it, inserted] = written_pages.emplace(page_start, 1); !inserted) {
+                ++it->second;
             }
         }
     }
@@ -539,7 +536,7 @@ private:
             auto it = written_pages.find(page_start);
             if (it != written_pages.end()) {
                 if (it->second > 1) {
-                    it->second = it->second - 1;
+                    --it->second;
                 } else {
                     written_pages.erase(it);
                 }
