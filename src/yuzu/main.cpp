@@ -1428,16 +1428,15 @@ void GMainWindow::OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryT
         RemoveAddOnContent(program_id, entry_type);
         break;
     }
-    game_list->PopulateAsync(UISettings::values.game_dirs);
     FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
                                    "game_list");
+    game_list->PopulateAsync(UISettings::values.game_dirs);
 }
 
 void GMainWindow::RemoveBaseContent(u64 program_id, const QString& entry_type) {
-    const auto res = Core::System::GetInstance()
-                         .GetFileSystemController()
-                         .GetUserNANDContents()
-                         ->RemoveExistingEntry(program_id);
+    const auto& fs_controller = Core::System::GetInstance().GetFileSystemController();
+    const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(program_id) ||
+                     fs_controller.GetSDMCContents()->RemoveExistingEntry(program_id);
 
     if (res) {
         QMessageBox::information(this, tr("Successfully Removed"),
@@ -1450,10 +1449,10 @@ void GMainWindow::RemoveBaseContent(u64 program_id, const QString& entry_type) {
 }
 
 void GMainWindow::RemoveUpdateContent(u64 program_id, const QString& entry_type) {
-    const auto res = Core::System::GetInstance()
-                         .GetFileSystemController()
-                         .GetUserNANDContents()
-                         ->RemoveExistingEntry(program_id | 0x800);
+    const auto update_id = program_id | 0x800;
+    const auto& fs_controller = Core::System::GetInstance().GetFileSystemController();
+    const auto res = fs_controller.GetUserNANDContents()->RemoveExistingEntry(update_id) ||
+                     fs_controller.GetSDMCContents()->RemoveExistingEntry(update_id);
 
     if (res) {
         QMessageBox::information(this, tr("Successfully Removed"),
@@ -1466,15 +1465,15 @@ void GMainWindow::RemoveUpdateContent(u64 program_id, const QString& entry_type)
 
 void GMainWindow::RemoveAddOnContent(u64 program_id, const QString& entry_type) {
     u32 count{};
+    const auto& fs_controller = Core::System::GetInstance().GetFileSystemController();
     const auto dlc_entries = Core::System::GetInstance().GetContentProvider().ListEntriesFilter(
         FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
 
     for (const auto& entry : dlc_entries) {
         if ((entry.title_id & DLC_BASE_TITLE_ID_MASK) == program_id) {
-            const auto res = Core::System::GetInstance()
-                                 .GetFileSystemController()
-                                 .GetUserNANDContents()
-                                 ->RemoveExistingEntry(entry.title_id);
+            const auto res =
+                fs_controller.GetUserNANDContents()->RemoveExistingEntry(entry.title_id) ||
+                fs_controller.GetSDMCContents()->RemoveExistingEntry(entry.title_id);
             if (res) {
                 ++count;
             }
@@ -1883,9 +1882,9 @@ void GMainWindow::OnMenuInstallToNAND() {
                                 : tr("%n file(s) failed to install\n", "", failed_files.size()));
 
     QMessageBox::information(this, tr("Install Results"), install_results);
-    game_list->PopulateAsync(UISettings::values.game_dirs);
     FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
                                    "game_list");
+    game_list->PopulateAsync(UISettings::values.game_dirs);
     ui.action_Install_File_NAND->setEnabled(true);
 }
 
