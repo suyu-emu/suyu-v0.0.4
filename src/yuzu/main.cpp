@@ -1244,13 +1244,24 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
     std::string path;
     QString open_target;
 
-    FileSys::PatchManager pm{program_id};
-    const auto control = pm.GetControlMetadata();
-    const auto v_file = Core::GetGameFileFromPath(vfs, game_path);
-    const auto loader = Loader::GetLoader(v_file);
+    const auto [user_save_size, device_save_size] = [this, &program_id, &game_path] {
+        FileSys::PatchManager pm{program_id};
+        const auto control = pm.GetControlMetadata().first;
+        if (control != nullptr) {
+            return std::make_pair(control->GetDefaultNormalSaveSize(),
+                                  control->GetDeviceSaveDataSize());
+        } else {
+            const auto file = Core::GetGameFileFromPath(vfs, game_path);
+            const auto loader = Loader::GetLoader(file);
 
-    const bool has_user_save{control.first->GetDefaultNormalSaveSize() > 0};
-    const bool has_device_save{control.first->GetDeviceSaveDataSize() > 0};
+            FileSys::NACP nacp{};
+            loader->ReadControlData(nacp);
+            return std::make_pair(nacp.GetDefaultNormalSaveSize(), nacp.GetDeviceSaveDataSize());
+        }
+    }();
+
+    const bool has_user_save{user_save_size > 0};
+    const bool has_device_save{device_save_size > 0};
 
     ASSERT_MSG(has_user_save != has_device_save, "Game uses both user and device savedata?");
 
