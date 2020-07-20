@@ -14,7 +14,7 @@
 namespace Service::AM::Applets {
 
 namespace {
-enum class Request : u32_le {
+enum class Request : u32 {
     Finalize = 0x4,
     SetUserWordInfo = 0x6,
     SetCustomizeDic = 0x7,
@@ -29,7 +29,7 @@ constexpr std::size_t SWKBD_OUTPUT_BUFFER_SIZE = 0x7D8;
 constexpr std::size_t SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE = 0x7D4;
 constexpr std::size_t DEFAULT_MAX_LENGTH = 500;
 constexpr bool INTERACTIVE_STATUS_OK = false;
-} // namespace
+} // Anonymous namespace
 static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
     KeyboardConfig config, std::u16string initial_text) {
     Core::Frontend::SoftwareKeyboardParameters params{};
