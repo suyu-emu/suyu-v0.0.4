@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>300</width>
-    <height>377</height>
+    <width>363</width>
+    <height>391</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -119,6 +119,47 @@
           </item>
           <item>
            <widget class="QComboBox" name="row_2_text_combobox"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="screenshots_GroupBox">
+     <property name="title">
+      <string>Screenshots</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QCheckBox" name="enable_screenshot_save_as">
+          <property name="text">
+           <string>Ask Where To Save Screenshots (Windows Only)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Screenshots Path: </string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="screenshot_path_edit"/>
+          </item>
+          <item>
+           <widget class="QToolButton" name="screenshot_path_button">
+            <property name="text">
+             <string>...</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </item>
