@@ -137,7 +137,6 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
     params.type = GetFormatType(params.pixel_format);
-    params.type = GetFormatType(params.pixel_format);
     params.target = ImageTypeToSurfaceTarget(entry.type);
     // TODO: on 1DBuffer we should use the tic info.
     if (tic.IsBuffer()) {
