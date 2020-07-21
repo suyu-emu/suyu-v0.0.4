@@ -98,12 +98,12 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
         op_b = GetOperandAbsNegInteger(op_b, false, instr.iadd3.neg_b, true);
         op_c = GetOperandAbsNegInteger(op_c, false, instr.iadd3.neg_c, true);
 
-        const Node value = [&]() {
-            const Node add_ab = Operation(OperationCode::IAdd, NO_PRECISE, op_a, op_b);
+        const Node value = [&] {
+            Node add_ab = Operation(OperationCode::IAdd, NO_PRECISE, op_a, op_b);
             if (opcode->get().GetId() != OpCode::Id::IADD3_R) {
                 return Operation(OperationCode::IAdd, NO_PRECISE, add_ab, op_c);
             }
-            const Node shifted = [&]() {
+            const Node shifted = [&] {
                 switch (instr.iadd3.mode) {
                 case Tegra::Shader::IAdd3Mode::RightShift:
                     // TODO(tech4me): According to

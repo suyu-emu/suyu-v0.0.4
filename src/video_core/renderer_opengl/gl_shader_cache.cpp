@@ -126,7 +126,7 @@ std::shared_ptr<Registry> MakeRegistry(const ShaderDiskCacheEntry& entry) {
     const VideoCore::GuestDriverProfile guest_profile{entry.texture_handler_size};
     const VideoCommon::Shader::SerializedRegistryInfo info{guest_profile, entry.bound_buffer,
                                                            entry.graphics_info, entry.compute_info};
-    const auto registry = std::make_shared<Registry>(entry.type, info);
+    auto registry = std::make_shared<Registry>(entry.type, info);
     for (const auto& [address, value] : entry.keys) {
         const auto [buffer, offset] = address;
         registry->InsertKey(buffer, offset, value);

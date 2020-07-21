@@ -81,20 +81,21 @@ u32 ShaderIR::DecodeXmad(NodeBlock& bb, u32 pc) {
     SetTemporary(bb, 0, product);
     product = GetTemporary(0);
 
-    const Node original_c = op_c;
+    Node original_c = op_c;
     const Tegra::Shader::XmadMode set_mode = mode; // Workaround to clang compile error
-    op_c = [&]() {
+    op_c = [&] {
         switch (set_mode) {
         case Tegra::Shader::XmadMode::None:
             return original_c;
         case Tegra::Shader::XmadMode::CLo:
-            return BitfieldExtract(original_c, 0, 16);
+            return BitfieldExtract(std::move(original_c), 0, 16);
         case Tegra::Shader::XmadMode::CHi:
-            return BitfieldExtract(original_c, 16, 16);
+            return BitfieldExtract(std::move(original_c), 16, 16);
         case Tegra::Shader::XmadMode::CBcc: {
-            const Node shifted_b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b,
-                                                   original_b, Immediate(16));
-            return SignedOperation(OperationCode::IAdd, is_signed_c, original_c, shifted_b);
+            Node shifted_b = SignedOperation(OperationCode::ILogicalShiftLeft, is_signed_b,
+                                             original_b, Immediate(16));
+            return SignedOperation(OperationCode::IAdd, is_signed_c, std::move(original_c),
+                                   std::move(shifted_b));
         }
         case Tegra::Shader::XmadMode::CSfu: {
             const Node comp_a =

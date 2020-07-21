@@ -112,9 +112,9 @@ Node ShaderIR::GetOutputAttribute(Attribute::Index index, u64 element, Node buff
 }
 
 Node ShaderIR::GetInternalFlag(InternalFlag flag, bool negated) const {
-    const Node node = MakeNode<InternalFlagNode>(flag);
+    Node node = MakeNode<InternalFlagNode>(flag);
     if (negated) {
-        return Operation(OperationCode::LogicalNegate, node);
+        return Operation(OperationCode::LogicalNegate, std::move(node));
     }
     return node;
 }
