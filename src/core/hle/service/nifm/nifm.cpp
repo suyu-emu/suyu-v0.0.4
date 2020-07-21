@@ -62,7 +62,7 @@ public:
             {18, nullptr, "SetRequirementByRevision"},
             {19, nullptr, "GetRequirement"},
             {20, nullptr, "GetRevision"},
-            {21, nullptr, "GetAppletInfo"},
+            {21, &IRequest::GetAppletInfo, "GetAppletInfo"},
             {22, nullptr, "GetAdditionalInfo"},
             {23, nullptr, "SetKeptInSleep"},
             {24, nullptr, "RegisterSocketDescriptor"},
@@ -119,6 +119,13 @@ private:
     }
 
     void SetConnectionConfirmationOption(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetAppletInfo(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
         IPC::ResponseBuilder rb{ctx, 2};
