@@ -185,10 +185,6 @@ std::string TextureType(const MetaTexture& meta) {
     return type;
 }
 
-std::string GlobalMemoryName(const GlobalMemoryBase& base) {
-    return fmt::format("gmem{}_{}", base.cbuf_index, base.cbuf_offset);
-}
-
 class ARBDecompiler final {
 public:
     explicit ARBDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
@@ -199,6 +195,8 @@ public:
     }
 
 private:
+    void DefineGlobalMemory();
+
     void DeclareHeader();
     void DeclareVertex();
     void DeclareGeometry();
@@ -228,6 +226,7 @@ private:
 
     std::pair<std::string, std::size_t> BuildCoords(Operation);
     std::string BuildAoffi(Operation);
+    std::string GlobalMemoryPointer(const GmemNode& gmem);
     void Exit();
 
     std::string Assign(Operation);
@@ -378,10 +377,8 @@ private:
         std::string address;
         std::string_view opname;
         if (const auto gmem = std::get_if<GmemNode>(&*operation[0])) {
-            AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem->GetRealAddress()),
-                    Visit(gmem->GetBaseAddress()));
-            address = fmt::format("{}[{}]", GlobalMemoryName(gmem->GetDescriptor()), temporary);
-            opname = "ATOMB";
+            address = GlobalMemoryPointer(*gmem);
+            opname = "ATOM";
         } else if (const auto smem = std::get_if<SmemNode>(&*operation[0])) {
             address = fmt::format("shared_mem[{}]", Visit(smem->GetAddress()));
             opname = "ATOMS";
@@ -456,9 +453,13 @@ private:
         shader_source += '\n';
     }
 
-    std::string AllocTemporary() {
-        max_temporaries = std::max(max_temporaries, num_temporaries + 1);
-        return fmt::format("T{}.x", num_temporaries++);
+    std::string AllocLongVectorTemporary() {
+        max_long_temporaries = std::max(max_long_temporaries, num_long_temporaries + 1);
+        return fmt::format("L{}", num_long_temporaries++);
+    }
+
+    std::string AllocLongTemporary() {
+        return fmt::format("{}.x", AllocLongVectorTemporary());
     }
 
     std::string AllocVectorTemporary() {
@@ -466,8 +467,13 @@ private:
         return fmt::format("T{}", num_temporaries++);
     }
 
+    std::string AllocTemporary() {
+        return fmt::format("{}.x", AllocVectorTemporary());
+    }
+
     void ResetTemporaries() noexcept {
         num_temporaries = 0;
+        num_long_temporaries = 0;
     }
 
     const Device& device;
@@ -477,6 +483,11 @@ private:
 
     std::size_t num_temporaries = 0;
     std::size_t max_temporaries = 0;
+
+    std::size_t num_long_temporaries = 0;
+    std::size_t max_long_temporaries = 0;
+
+    std::map<GlobalMemoryBase, u32> global_memory_names;
 
     std::string shader_source;
 
@@ -784,6 +795,8 @@ private:
 ARBDecompiler::ARBDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
                              ShaderType stage, std::string_view identifier)
     : device{device}, ir{ir}, registry{registry}, stage{stage} {
+    DefineGlobalMemory();
+
     AddLine("TEMP RC;");
     AddLine("TEMP FSWZA[4];");
     AddLine("TEMP FSWZB[4];");
@@ -829,12 +842,20 @@ std::string_view HeaderStageName(ShaderType stage) {
     }
 }
 
+void ARBDecompiler::DefineGlobalMemory() {
+    u32 binding = 0;
+    for (const auto& pair : ir.GetGlobalMemory()) {
+        const GlobalMemoryBase base = pair.first;
+        global_memory_names.emplace(base, binding);
+        ++binding;
+    }
+}
+
 void ARBDecompiler::DeclareHeader() {
     AddLine("!!NV{}5.0", HeaderStageName(stage));
     // Enabling this allows us to cheat on some instructions like TXL with SHADOWARRAY2D
     AddLine("OPTION NV_internal;");
     AddLine("OPTION NV_gpu_program_fp64;");
-    AddLine("OPTION NV_shader_storage_buffer;");
     AddLine("OPTION NV_shader_thread_group;");
     if (ir.UsesWarps() && device.HasWarpIntrinsics()) {
         AddLine("OPTION NV_shader_thread_shuffle;");
@@ -951,11 +972,10 @@ void ARBDecompiler::DeclareLocalMemory() {
 }
 
 void ARBDecompiler::DeclareGlobalMemory() {
-    u32 binding = 0; // device.GetBaseBindings(stage).shader_storage_buffer;
-    for (const auto& pair : ir.GetGlobalMemory()) {
-        const auto& base = pair.first;
-        AddLine("STORAGE {}[] = {{ program.storage[{}] }};", GlobalMemoryName(base), binding);
-        ++binding;
+    const std::size_t num_entries = ir.GetGlobalMemory().size();
+    if (num_entries > 0) {
+        const std::size_t num_vectors = Common::AlignUp(num_entries, 2) / 2;
+        AddLine("PARAM c[{}] = {{ program.local[0..{}] }};", num_vectors, num_vectors - 1);
     }
 }
 
@@ -976,6 +996,9 @@ void ARBDecompiler::DeclareRegisters() {
 void ARBDecompiler::DeclareTemporaries() {
     for (std::size_t i = 0; i < max_temporaries; ++i) {
         AddLine("TEMP T{};", i);
+    }
+    for (std::size_t i = 0; i < max_long_temporaries; ++i) {
+        AddLine("LONG TEMP L{};", i);
     }
 }
 
@@ -1339,10 +1362,7 @@ std::string ARBDecompiler::Visit(const Node& node) {
 
     if (const auto gmem = std::get_if<GmemNode>(&*node)) {
         std::string temporary = AllocTemporary();
-        AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem->GetRealAddress()),
-                Visit(gmem->GetBaseAddress()));
-        AddLine("LDB.U32 {}, {}[{}];", temporary, GlobalMemoryName(gmem->GetDescriptor()),
-                temporary);
+        AddLine("LOAD.U32 {}, {};", temporary, GlobalMemoryPointer(*gmem));
         return temporary;
     }
 
@@ -1417,6 +1437,22 @@ std::string ARBDecompiler::BuildAoffi(Operation operation) {
         AddLine("MOV.S {}.{}, {};", temporary, Swizzle(i++), Visit(node));
     }
     return fmt::format(", offset({})", temporary);
+}
+
+std::string ARBDecompiler::GlobalMemoryPointer(const GmemNode& gmem) {
+    const u32 binding = global_memory_names.at(gmem.GetDescriptor());
+    const char result_swizzle = binding % 2 == 0 ? 'x' : 'y';
+
+    const std::string pointer = AllocLongVectorTemporary();
+    std::string temporary = AllocTemporary();
+
+    const u32 local_index = binding / 2;
+    AddLine("PK64.U {}, c[{}];", pointer, local_index);
+    AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem.GetRealAddress()),
+            Visit(gmem.GetBaseAddress()));
+    AddLine("CVT.U64.U32 {}.z, {};", pointer, temporary);
+    AddLine("ADD.U64 {}.x, {}.{}, {}.z;", pointer, pointer, result_swizzle, pointer);
+    return fmt::format("{}.x", pointer);
 }
 
 void ARBDecompiler::Exit() {
@@ -1515,11 +1551,7 @@ std::string ARBDecompiler::Assign(Operation operation) {
         ResetTemporaries();
         return {};
     } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
-        const std::string temporary = AllocTemporary();
-        AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem->GetRealAddress()),
-                Visit(gmem->GetBaseAddress()));
-        AddLine("STB.U32 {}, {}[{}];", Visit(src), GlobalMemoryName(gmem->GetDescriptor()),
-                temporary);
+        AddLine("STORE.U32 {}, {};", Visit(src), GlobalMemoryPointer(*gmem));
         ResetTemporaries();
         return {};
     } else {

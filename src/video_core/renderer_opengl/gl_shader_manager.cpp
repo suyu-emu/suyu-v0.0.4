@@ -11,8 +11,30 @@
 
 namespace OpenGL {
 
-ProgramManager::ProgramManager(const Device& device) {
-    use_assembly_programs = device.UseAssemblyShaders();
+namespace {
+
+void BindProgram(GLenum stage, GLuint current, GLuint old, bool& enabled) {
+    if (current == old) {
+        return;
+    }
+    if (current == 0) {
+        if (enabled) {
+            enabled = false;
+            glDisable(stage);
+        }
+        return;
+    }
+    if (!enabled) {
+        enabled = true;
+        glEnable(stage);
+    }
+    glBindProgramARB(stage, current);
+}
+
+} // Anonymous namespace
+
+ProgramManager::ProgramManager(const Device& device)
+    : use_assembly_programs{device.UseAssemblyShaders()} {
     if (use_assembly_programs) {
         glEnable(GL_COMPUTE_PROGRAM_NV);
     } else {
@@ -33,9 +55,7 @@ void ProgramManager::BindCompute(GLuint program) {
 }
 
 void ProgramManager::BindGraphicsPipeline() {
-    if (use_assembly_programs) {
-        UpdateAssemblyPrograms();
-    } else {
+    if (!use_assembly_programs) {
         UpdateSourcePrograms();
     }
 }
@@ -63,32 +83,25 @@ void ProgramManager::RestoreGuestPipeline() {
     }
 }
 
-void ProgramManager::UpdateAssemblyPrograms() {
-    const auto update_state = [](GLenum stage, bool& enabled, GLuint current, GLuint old) {
-        if (current == old) {
-            return;
-        }
-        if (current == 0) {
-            if (enabled) {
-                enabled = false;
-                glDisable(stage);
-            }
-            return;
-        }
-        if (!enabled) {
-            enabled = true;
-            glEnable(stage);
-        }
-        glBindProgramARB(stage, current);
-    };
+void ProgramManager::UseVertexShader(GLuint program) {
+    if (use_assembly_programs) {
+        BindProgram(GL_VERTEX_PROGRAM_NV, program, current_state.vertex, vertex_enabled);
+    }
+    current_state.vertex = program;
+}
 
-    update_state(GL_VERTEX_PROGRAM_NV, vertex_enabled, current_state.vertex, old_state.vertex);
-    update_state(GL_GEOMETRY_PROGRAM_NV, geometry_enabled, current_state.geometry,
-                 old_state.geometry);
-    update_state(GL_FRAGMENT_PROGRAM_NV, fragment_enabled, current_state.fragment,
-                 old_state.fragment);
+void ProgramManager::UseGeometryShader(GLuint program) {
+    if (use_assembly_programs) {
+        BindProgram(GL_GEOMETRY_PROGRAM_NV, program, current_state.vertex, geometry_enabled);
+    }
+    current_state.geometry = program;
+}
 
-    old_state = current_state;
+void ProgramManager::UseFragmentShader(GLuint program) {
+    if (use_assembly_programs) {
+        BindProgram(GL_FRAGMENT_PROGRAM_NV, program, current_state.vertex, fragment_enabled);
+    }
+    current_state.fragment = program;
 }
 
 void ProgramManager::UpdateSourcePrograms() {
