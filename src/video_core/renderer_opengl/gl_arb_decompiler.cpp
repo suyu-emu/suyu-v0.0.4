@@ -1260,13 +1260,6 @@ std::string ARBDecompiler::Visit(const Node& node) {
             return "{0, 0, 0, 0}.x";
         }
 
-        const auto buffer_index = [this, &abuf]() -> std::string {
-            if (stage != ShaderType::Geometry) {
-                return "";
-            }
-            return fmt::format("[{}]", Visit(abuf->GetBuffer()));
-        };
-
         const Attribute::Index index = abuf->GetIndex();
         const u32 element = abuf->GetElement();
         const char swizzle = Swizzle(element);
@@ -1375,7 +1368,7 @@ std::string ARBDecompiler::Visit(const Node& node) {
         return {};
     }
 
-    if (const auto cmt = std::get_if<CommentNode>(&*node)) {
+    if ([[maybe_unused]] const auto cmt = std::get_if<CommentNode>(&*node)) {
         // Uncommenting this will generate invalid code. GLASM lacks comments.
         // AddLine("// {}", cmt->GetText());
         return {};
