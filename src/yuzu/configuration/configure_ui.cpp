@@ -63,7 +63,9 @@ ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::Configur
         const QString& filename = QFileDialog::getExistingDirectory(
             this, tr("Select Screenshots Path..."),
             QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir)));
-        ui->screenshot_path_edit->setText(filename);
+        if (!filename.isEmpty()) {
+            ui->screenshot_path_edit->setText(filename);
+        }
     });
 }
 
