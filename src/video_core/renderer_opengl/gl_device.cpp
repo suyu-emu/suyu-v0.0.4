@@ -212,6 +212,7 @@ Device::Device()
     shader_storage_alignment = GetInteger<std::size_t>(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT);
     max_vertex_attributes = GetInteger<u32>(GL_MAX_VERTEX_ATTRIBS);
     max_varyings = GetInteger<u32>(GL_MAX_VARYING_VECTORS);
+    max_compute_shared_memory_size = GetInteger<u32>(GL_MAX_COMPUTE_SHARED_MEMORY_SIZE);
     has_warp_intrinsics = GLAD_GL_NV_gpu_shader5 && GLAD_GL_NV_shader_thread_group &&
                           GLAD_GL_NV_shader_thread_shuffle;
     has_shader_ballot = GLAD_GL_ARB_shader_ballot;
@@ -250,6 +251,7 @@ Device::Device(std::nullptr_t) {
     shader_storage_alignment = 4;
     max_vertex_attributes = 16;
     max_varyings = 15;
+    max_compute_shared_memory_size = 0x10000;
     has_warp_intrinsics = true;
     has_shader_ballot = true;
     has_vertex_viewport_layer = true;

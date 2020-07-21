@@ -685,13 +685,19 @@ private:
         }
         t_smem_uint = TypePointer(spv::StorageClass::Workgroup, t_uint);
 
-        const u32 smem_size = specialization.shared_memory_size;
+        u32 smem_size = specialization.shared_memory_size * 4;
         if (smem_size == 0) {
             // Avoid declaring an empty array.
             return;
         }
-        const auto element_count = static_cast<u32>(Common::AlignUp(smem_size, 4) / 4);
-        const Id type_array = TypeArray(t_uint, Constant(t_uint, element_count));
+        const u32 limit = device.GetMaxComputeSharedMemorySize();
+        if (smem_size > limit) {
+            LOG_ERROR(Render_Vulkan, "Shared memory size {} is clamped to host's limit {}",
+                      smem_size, limit);
+            smem_size = limit;
+        }
+
+        const Id type_array = TypeArray(t_uint, Constant(t_uint, smem_size / 4));
         const Id type_pointer = TypePointer(spv::StorageClass::Workgroup, type_array);
         Name(type_pointer, "SharedMemory");
 
