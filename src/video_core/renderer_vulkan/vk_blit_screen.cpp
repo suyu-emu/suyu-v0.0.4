@@ -187,9 +187,9 @@ std::size_t GetSizeInBytes(const Tegra::FramebufferConfig& framebuffer) {
 
 VkFormat GetFormat(const Tegra::FramebufferConfig& framebuffer) {
     switch (framebuffer.pixel_format) {
-    case Tegra::FramebufferConfig::PixelFormat::ABGR8:
+    case Tegra::FramebufferConfig::PixelFormat::A8B8G8R8_UNORM:
         return VK_FORMAT_A8B8G8R8_UNORM_PACK32;
-    case Tegra::FramebufferConfig::PixelFormat::RGB565:
+    case Tegra::FramebufferConfig::PixelFormat::RGB565_UNORM:
         return VK_FORMAT_R5G6B5_UNORM_PACK16;
     default:
         UNIMPLEMENTED_MSG("Unknown framebuffer pixel format: {}",

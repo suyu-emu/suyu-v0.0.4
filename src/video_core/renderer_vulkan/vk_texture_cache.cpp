@@ -235,7 +235,7 @@ void CachedSurface::UploadTexture(const std::vector<u8>& staging_buffer) {
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     UNIMPLEMENTED_IF(params.IsBuffer());
 
-    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5U) {
+    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM) {
         LOG_WARNING(Render_Vulkan, "A1B5G5R5 flushing is stubbed");
     }
 
@@ -385,7 +385,7 @@ VkImageView CachedSurfaceView::GetImageView(SwizzleSource x_source, SwizzleSourc
 
     std::array swizzle{MaxwellToVK::SwizzleSource(x_source), MaxwellToVK::SwizzleSource(y_source),
                        MaxwellToVK::SwizzleSource(z_source), MaxwellToVK::SwizzleSource(w_source)};
-    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5U) {
+    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM) {
         // A1B5G5R5 is implemented as A1R5G5B5, we have to change the swizzle here.
         std::swap(swizzle[0], swizzle[2]);
     }
@@ -397,11 +397,11 @@ VkImageView CachedSurfaceView::GetImageView(SwizzleSource x_source, SwizzleSourc
         UNIMPLEMENTED_IF(x_source != SwizzleSource::R && x_source != SwizzleSource::G);
         const bool is_first = x_source == SwizzleSource::R;
         switch (params.pixel_format) {
-        case VideoCore::Surface::PixelFormat::Z24S8:
-        case VideoCore::Surface::PixelFormat::Z32FS8:
+        case VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT:
+        case VideoCore::Surface::PixelFormat::D32_FLOAT_S8_UINT:
             aspect = is_first ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_STENCIL_BIT;
             break;
-        case VideoCore::Surface::PixelFormat::S8Z24:
+        case VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM:
             aspect = is_first ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
             break;
         default:

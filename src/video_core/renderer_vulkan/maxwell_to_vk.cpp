@@ -117,90 +117,101 @@ struct FormatTuple {
     VkFormat format; ///< Vulkan format
     int usage = 0;   ///< Describes image format usage
 } constexpr tex_format_tuples[] = {
-    {VK_FORMAT_A8B8G8R8_UNORM_PACK32, Attachable | Storage},    // ABGR8U
-    {VK_FORMAT_A8B8G8R8_SNORM_PACK32, Attachable | Storage},    // ABGR8S
-    {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // ABGR8UI
-    {VK_FORMAT_B5G6R5_UNORM_PACK16},                            // B5G6R5U
-    {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10U
-    {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1B5G5R5U (flipped with swizzle)
-    {VK_FORMAT_R8_UNORM, Attachable | Storage},                 // R8U
-    {VK_FORMAT_R8_UINT, Attachable | Storage},                  // R8UI
-    {VK_FORMAT_R16G16B16A16_SFLOAT, Attachable | Storage},      // RGBA16F
-    {VK_FORMAT_R16G16B16A16_UNORM, Attachable | Storage},       // RGBA16U
-    {VK_FORMAT_R16G16B16A16_SNORM, Attachable | Storage},       // RGBA16S
-    {VK_FORMAT_R16G16B16A16_UINT, Attachable | Storage},        // RGBA16UI
-    {VK_FORMAT_B10G11R11_UFLOAT_PACK32, Attachable | Storage},  // R11FG11FB10F
-    {VK_FORMAT_R32G32B32A32_UINT, Attachable | Storage},        // RGBA32UI
-    {VK_FORMAT_BC1_RGBA_UNORM_BLOCK},                           // DXT1
-    {VK_FORMAT_BC2_UNORM_BLOCK},                                // DXT23
-    {VK_FORMAT_BC3_UNORM_BLOCK},                                // DXT45
-    {VK_FORMAT_BC4_UNORM_BLOCK},                                // DXN1
-    {VK_FORMAT_BC5_UNORM_BLOCK},                                // DXN2UNORM
-    {VK_FORMAT_BC5_SNORM_BLOCK},                                // DXN2SNORM
-    {VK_FORMAT_BC7_UNORM_BLOCK},                                // BC7U
-    {VK_FORMAT_BC6H_UFLOAT_BLOCK},                              // BC6H_UF16
-    {VK_FORMAT_BC6H_SFLOAT_BLOCK},                              // BC6H_SF16
-    {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},                           // ASTC_2D_4X4
-    {VK_FORMAT_B8G8R8A8_UNORM, Attachable},                     // BGRA8
-    {VK_FORMAT_R32G32B32A32_SFLOAT, Attachable | Storage},      // RGBA32F
-    {VK_FORMAT_R32G32_SFLOAT, Attachable | Storage},            // RG32F
-    {VK_FORMAT_R32_SFLOAT, Attachable | Storage},               // R32F
-    {VK_FORMAT_R16_SFLOAT, Attachable | Storage},               // R16F
-    {VK_FORMAT_R16_UNORM, Attachable | Storage},                // R16U
-    {VK_FORMAT_UNDEFINED},                                      // R16S
-    {VK_FORMAT_R16_UINT, Attachable | Storage},                 // R16UI
-    {VK_FORMAT_UNDEFINED},                                      // R16I
-    {VK_FORMAT_R16G16_UNORM, Attachable | Storage},             // RG16
-    {VK_FORMAT_R16G16_SFLOAT, Attachable | Storage},            // RG16F
-    {VK_FORMAT_UNDEFINED},                                      // RG16UI
-    {VK_FORMAT_UNDEFINED},                                      // RG16I
-    {VK_FORMAT_R16G16_SNORM, Attachable | Storage},             // RG16S
-    {VK_FORMAT_UNDEFINED},                                      // RGB32F
-    {VK_FORMAT_R8G8B8A8_SRGB, Attachable},                      // RGBA8_SRGB
-    {VK_FORMAT_R8G8_UNORM, Attachable | Storage},               // RG8U
-    {VK_FORMAT_R8G8_SNORM, Attachable | Storage},               // RG8S
-    {VK_FORMAT_R8G8_UINT, Attachable | Storage},                // RG8UI
-    {VK_FORMAT_R32G32_UINT, Attachable | Storage},              // RG32UI
-    {VK_FORMAT_UNDEFINED},                                      // RGBX16F
-    {VK_FORMAT_R32_UINT, Attachable | Storage},                 // R32UI
-    {VK_FORMAT_R32_SINT, Attachable | Storage},                 // R32I
-    {VK_FORMAT_ASTC_8x8_UNORM_BLOCK},                           // ASTC_2D_8X8
-    {VK_FORMAT_UNDEFINED},                                      // ASTC_2D_8X5
-    {VK_FORMAT_UNDEFINED},                                      // ASTC_2D_5X4
-    {VK_FORMAT_B8G8R8A8_SRGB, Attachable},                      // BGRA8_SRGB
-    {VK_FORMAT_BC1_RGBA_SRGB_BLOCK},                            // DXT1_SRGB
-    {VK_FORMAT_BC2_SRGB_BLOCK},                                 // DXT23_SRGB
-    {VK_FORMAT_BC3_SRGB_BLOCK},                                 // DXT45_SRGB
-    {VK_FORMAT_BC7_SRGB_BLOCK},                                 // BC7U_SRGB
-    {VK_FORMAT_R4G4B4A4_UNORM_PACK16, Attachable},              // R4G4B4A4U
-    {VK_FORMAT_ASTC_4x4_SRGB_BLOCK},                            // ASTC_2D_4X4_SRGB
-    {VK_FORMAT_ASTC_8x8_SRGB_BLOCK},                            // ASTC_2D_8X8_SRGB
-    {VK_FORMAT_ASTC_8x5_SRGB_BLOCK},                            // ASTC_2D_8X5_SRGB
-    {VK_FORMAT_ASTC_5x4_SRGB_BLOCK},                            // ASTC_2D_5X4_SRGB
-    {VK_FORMAT_ASTC_5x5_UNORM_BLOCK},                           // ASTC_2D_5X5
-    {VK_FORMAT_ASTC_5x5_SRGB_BLOCK},                            // ASTC_2D_5X5_SRGB
-    {VK_FORMAT_ASTC_10x8_UNORM_BLOCK},                          // ASTC_2D_10X8
-    {VK_FORMAT_ASTC_10x8_SRGB_BLOCK},                           // ASTC_2D_10X8_SRGB
-    {VK_FORMAT_ASTC_6x6_UNORM_BLOCK},                           // ASTC_2D_6X6
-    {VK_FORMAT_ASTC_6x6_SRGB_BLOCK},                            // ASTC_2D_6X6_SRGB
-    {VK_FORMAT_ASTC_10x10_UNORM_BLOCK},                         // ASTC_2D_10X10
-    {VK_FORMAT_ASTC_10x10_SRGB_BLOCK},                          // ASTC_2D_10X10_SRGB
-    {VK_FORMAT_ASTC_12x12_UNORM_BLOCK},                         // ASTC_2D_12X12
-    {VK_FORMAT_ASTC_12x12_SRGB_BLOCK},                          // ASTC_2D_12X12_SRGB
-    {VK_FORMAT_ASTC_8x6_UNORM_BLOCK},                           // ASTC_2D_8X6
-    {VK_FORMAT_ASTC_8x6_SRGB_BLOCK},                            // ASTC_2D_8X6_SRGB
-    {VK_FORMAT_ASTC_6x5_UNORM_BLOCK},                           // ASTC_2D_6X5
-    {VK_FORMAT_ASTC_6x5_SRGB_BLOCK},                            // ASTC_2D_6X5_SRGB
-    {VK_FORMAT_E5B9G9R9_UFLOAT_PACK32},                         // E5B9G9R9F
+    {VK_FORMAT_A8B8G8R8_UNORM_PACK32, Attachable | Storage},    // A8B8G8R8_UNORM
+    {VK_FORMAT_A8B8G8R8_SNORM_PACK32, Attachable | Storage},    // A8B8G8R8_SNORM
+    {VK_FORMAT_A8B8G8R8_SINT_PACK32, Attachable | Storage},     // A8B8G8R8_SINT
+    {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // A8B8G8R8_UINT
+    {VK_FORMAT_R5G6B5_UNORM_PACK16, Attachable},                // R5G6B5_UNORM
+    {VK_FORMAT_B5G6R5_UNORM_PACK16, Attachable},                // B5G6R5_UNORM
+    {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1R5G5B5_UNORM
+    {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10_UNORM
+    {VK_FORMAT_A2B10G10R10_UINT_PACK32, Attachable | Storage},  // A2B10G10R10_UINT
+    {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},         // A1B5G5R5_UNORM (flipped with swizzle)
+    {VK_FORMAT_R8_UNORM, Attachable | Storage},            // R8_UNORM
+    {VK_FORMAT_R8_SNORM, Attachable | Storage},            // R8_SNORM
+    {VK_FORMAT_R8_SINT, Attachable | Storage},             // R8_SINT
+    {VK_FORMAT_R8_UINT, Attachable | Storage},             // R8_UINT
+    {VK_FORMAT_R16G16B16A16_SFLOAT, Attachable | Storage}, // R16G16B16A16_FLOAT
+    {VK_FORMAT_R16G16B16A16_UNORM, Attachable | Storage},  // R16G16B16A16_UNORM
+    {VK_FORMAT_R16G16B16A16_SNORM, Attachable | Storage},  // R16G16B16A16_SNORM
+    {VK_FORMAT_R16G16B16A16_SINT, Attachable | Storage},   // R16G16B16A16_SINT
+    {VK_FORMAT_R16G16B16A16_UINT, Attachable | Storage},   // R16G16B16A16_UINT
+    {VK_FORMAT_B10G11R11_UFLOAT_PACK32, Attachable | Storage}, // B10G11R11_FLOAT
+    {VK_FORMAT_R32G32B32A32_UINT, Attachable | Storage},       // R32G32B32A32_UINT
+    {VK_FORMAT_BC1_RGBA_UNORM_BLOCK},                          // BC1_RGBA_UNORM
+    {VK_FORMAT_BC2_UNORM_BLOCK},                               // BC2_UNORM
+    {VK_FORMAT_BC3_UNORM_BLOCK},                               // BC3_UNORM
+    {VK_FORMAT_BC4_UNORM_BLOCK},                               // BC4_UNORM
+    {VK_FORMAT_BC4_SNORM_BLOCK},                               // BC4_SNORM
+    {VK_FORMAT_BC5_UNORM_BLOCK},                               // BC5_UNORM
+    {VK_FORMAT_BC5_SNORM_BLOCK},                               // BC5_SNORM
+    {VK_FORMAT_BC7_UNORM_BLOCK},                               // BC7_UNORM
+    {VK_FORMAT_BC6H_UFLOAT_BLOCK},                             // BC6H_UFLOAT
+    {VK_FORMAT_BC6H_SFLOAT_BLOCK},                             // BC6H_SFLOAT
+    {VK_FORMAT_ASTC_4x4_UNORM_BLOCK},                          // ASTC_2D_4X4_UNORM
+    {VK_FORMAT_B8G8R8A8_UNORM, Attachable},                    // B8G8R8A8_UNORM
+    {VK_FORMAT_R32G32B32A32_SFLOAT, Attachable | Storage},     // R32G32B32A32_FLOAT
+    {VK_FORMAT_R32G32B32A32_SINT, Attachable | Storage},       // R32G32B32A32_SINT
+    {VK_FORMAT_R32G32_SFLOAT, Attachable | Storage},           // R32G32_FLOAT
+    {VK_FORMAT_R32G32_SINT, Attachable | Storage},             // R32G32_SINT
+    {VK_FORMAT_R32_SFLOAT, Attachable | Storage},              // R32_FLOAT
+    {VK_FORMAT_R16_SFLOAT, Attachable | Storage},              // R16_FLOAT
+    {VK_FORMAT_R16_UNORM, Attachable | Storage},               // R16_UNORM
+    {VK_FORMAT_UNDEFINED},                                     // R16_SNORM
+    {VK_FORMAT_R16_UINT, Attachable | Storage},                // R16_UINT
+    {VK_FORMAT_UNDEFINED},                                     // R16_SINT
+    {VK_FORMAT_R16G16_UNORM, Attachable | Storage},            // R16G16_UNORM
+    {VK_FORMAT_R16G16_SFLOAT, Attachable | Storage},           // R16G16_FLOAT
+    {VK_FORMAT_UNDEFINED},                                     // R16G16_UINT
+    {VK_FORMAT_UNDEFINED},                                     // R16G16_SINT
+    {VK_FORMAT_R16G16_SNORM, Attachable | Storage},            // R16G16_SNORM
+    {VK_FORMAT_UNDEFINED},                                     // R32G32B32_FLOAT
+    {VK_FORMAT_R8G8B8A8_SRGB, Attachable},                     // A8B8G8R8_SRGB
+    {VK_FORMAT_R8G8_UNORM, Attachable | Storage},              // R8G8_UNORM
+    {VK_FORMAT_R8G8_SNORM, Attachable | Storage},              // R8G8_SNORM
+    {VK_FORMAT_R8G8_SINT, Attachable | Storage},               // R8G8_SINT
+    {VK_FORMAT_R8G8_UINT, Attachable | Storage},               // R8G8_UINT
+    {VK_FORMAT_R32G32_UINT, Attachable | Storage},             // R32G32_UINT
+    {VK_FORMAT_UNDEFINED},                                     // R16G16B16X16_FLOAT
+    {VK_FORMAT_R32_UINT, Attachable | Storage},                // R32_UINT
+    {VK_FORMAT_R32_SINT, Attachable | Storage},                // R32_SINT
+    {VK_FORMAT_ASTC_8x8_UNORM_BLOCK},                          // ASTC_2D_8X8_UNORM
+    {VK_FORMAT_UNDEFINED},                                     // ASTC_2D_8X5_UNORM
+    {VK_FORMAT_UNDEFINED},                                     // ASTC_2D_5X4_UNORM
+    {VK_FORMAT_B8G8R8A8_SRGB, Attachable},                     // B8G8R8A8_SRGB
+    {VK_FORMAT_BC1_RGBA_SRGB_BLOCK},                           // BC1_RGBA_SRGB
+    {VK_FORMAT_BC2_SRGB_BLOCK},                                // BC2_SRGB
+    {VK_FORMAT_BC3_SRGB_BLOCK},                                // BC3_SRGB
+    {VK_FORMAT_BC7_SRGB_BLOCK},                                // BC7_SRGB
+    {VK_FORMAT_R4G4B4A4_UNORM_PACK16, Attachable},             // A4B4G4R4_UNORM
+    {VK_FORMAT_ASTC_4x4_SRGB_BLOCK},                           // ASTC_2D_4X4_SRGB
+    {VK_FORMAT_ASTC_8x8_SRGB_BLOCK},                           // ASTC_2D_8X8_SRGB
+    {VK_FORMAT_ASTC_8x5_SRGB_BLOCK},                           // ASTC_2D_8X5_SRGB
+    {VK_FORMAT_ASTC_5x4_SRGB_BLOCK},                           // ASTC_2D_5X4_SRGB
+    {VK_FORMAT_ASTC_5x5_UNORM_BLOCK},                          // ASTC_2D_5X5_UNORM
+    {VK_FORMAT_ASTC_5x5_SRGB_BLOCK},                           // ASTC_2D_5X5_SRGB
+    {VK_FORMAT_ASTC_10x8_UNORM_BLOCK},                         // ASTC_2D_10X8_UNORM
+    {VK_FORMAT_ASTC_10x8_SRGB_BLOCK},                          // ASTC_2D_10X8_SRGB
+    {VK_FORMAT_ASTC_6x6_UNORM_BLOCK},                          // ASTC_2D_6X6_UNORM
+    {VK_FORMAT_ASTC_6x6_SRGB_BLOCK},                           // ASTC_2D_6X6_SRGB
+    {VK_FORMAT_ASTC_10x10_UNORM_BLOCK},                        // ASTC_2D_10X10_UNORM
+    {VK_FORMAT_ASTC_10x10_SRGB_BLOCK},                         // ASTC_2D_10X10_SRGB
+    {VK_FORMAT_ASTC_12x12_UNORM_BLOCK},                        // ASTC_2D_12X12_UNORM
+    {VK_FORMAT_ASTC_12x12_SRGB_BLOCK},                         // ASTC_2D_12X12_SRGB
+    {VK_FORMAT_ASTC_8x6_UNORM_BLOCK},                          // ASTC_2D_8X6_UNORM
+    {VK_FORMAT_ASTC_8x6_SRGB_BLOCK},                           // ASTC_2D_8X6_SRGB
+    {VK_FORMAT_ASTC_6x5_UNORM_BLOCK},                          // ASTC_2D_6X5_UNORM
+    {VK_FORMAT_ASTC_6x5_SRGB_BLOCK},                           // ASTC_2D_6X5_SRGB
+    {VK_FORMAT_E5B9G9R9_UFLOAT_PACK32},                        // E5B9G9R9_FLOAT
 
     // Depth formats
-    {VK_FORMAT_D32_SFLOAT, Attachable}, // Z32F
-    {VK_FORMAT_D16_UNORM, Attachable},  // Z16
+    {VK_FORMAT_D32_SFLOAT, Attachable}, // D32_FLOAT
+    {VK_FORMAT_D16_UNORM, Attachable},  // D16_UNORM
 
     // DepthStencil formats
-    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // Z24S8
-    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // S8Z24 (emulated)
-    {VK_FORMAT_D32_SFLOAT_S8_UINT, Attachable}, // Z32FS8
+    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // D24_UNORM_S8_UINT
+    {VK_FORMAT_D24_UNORM_S8_UINT, Attachable},  // S8_UINT_D24_UNORM (emulated)
+    {VK_FORMAT_D32_SFLOAT_S8_UINT, Attachable}, // D32_FLOAT_S8_UINT
 };
 static_assert(std::size(tex_format_tuples) == VideoCore::Surface::MaxPixelFormat);
 
@@ -221,7 +232,7 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
         return {VK_FORMAT_A8B8G8R8_UNORM_PACK32, true, true};
     }
 
-    // Use ABGR8 on hardware that doesn't support ASTC natively
+    // Use A8B8G8R8_UNORM on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
         tuple.format = VideoCore::Surface::IsPixelFormatSRGB(pixel_format)
                            ? VK_FORMAT_A8B8G8R8_SRGB_PACK32

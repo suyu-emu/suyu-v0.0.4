@@ -184,53 +184,6 @@ void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
     }
 }
 
-u32 BytesPerPixel(TextureFormat format) {
-    switch (format) {
-    case TextureFormat::DXT1:
-    case TextureFormat::DXN1:
-        // In this case a 'pixel' actually refers to a 4x4 tile.
-        return 8;
-    case TextureFormat::DXT23:
-    case TextureFormat::DXT45:
-    case TextureFormat::DXN2:
-    case TextureFormat::BC7U:
-    case TextureFormat::BC6H_UF16:
-    case TextureFormat::BC6H_SF16:
-        // In this case a 'pixel' actually refers to a 4x4 tile.
-        return 16;
-    case TextureFormat::R32_G32_B32:
-        return 12;
-    case TextureFormat::ASTC_2D_4X4:
-    case TextureFormat::ASTC_2D_5X4:
-    case TextureFormat::ASTC_2D_8X8:
-    case TextureFormat::ASTC_2D_8X5:
-    case TextureFormat::ASTC_2D_10X8:
-    case TextureFormat::ASTC_2D_5X5:
-    case TextureFormat::A8R8G8B8:
-    case TextureFormat::A2B10G10R10:
-    case TextureFormat::BF10GF11RF11:
-    case TextureFormat::R32:
-    case TextureFormat::R16_G16:
-        return 4;
-    case TextureFormat::A1B5G5R5:
-    case TextureFormat::B5G6R5:
-    case TextureFormat::G8R8:
-    case TextureFormat::R16:
-        return 2;
-    case TextureFormat::R8:
-        return 1;
-    case TextureFormat::R16_G16_B16_A16:
-        return 8;
-    case TextureFormat::R32_G32_B32_A32:
-        return 16;
-    case TextureFormat::R32_G32:
-        return 8;
-    default:
-        UNIMPLEMENTED_MSG("Format not implemented");
-        return 1;
-    }
-}
-
 void UnswizzleTexture(u8* const unswizzled_data, u8* address, u32 tile_size_x, u32 tile_size_y,
                       u32 bytes_per_pixel, u32 width, u32 height, u32 depth, u32 block_height,
                       u32 block_depth, u32 width_spacing) {
@@ -346,48 +299,6 @@ void SwizzleKepler(const u32 width, const u32 height, const u32 dst_x, const u32
             std::memcpy(dest_addr, source_line, 1);
         }
     }
-}
-
-std::vector<u8> DecodeTexture(const std::vector<u8>& texture_data, TextureFormat format, u32 width,
-                              u32 height) {
-    std::vector<u8> rgba_data;
-
-    // TODO(Subv): Implement.
-    switch (format) {
-    case TextureFormat::DXT1:
-    case TextureFormat::DXT23:
-    case TextureFormat::DXT45:
-    case TextureFormat::DXN1:
-    case TextureFormat::DXN2:
-    case TextureFormat::BC7U:
-    case TextureFormat::BC6H_UF16:
-    case TextureFormat::BC6H_SF16:
-    case TextureFormat::ASTC_2D_4X4:
-    case TextureFormat::ASTC_2D_8X8:
-    case TextureFormat::ASTC_2D_5X5:
-    case TextureFormat::ASTC_2D_10X8:
-    case TextureFormat::A8R8G8B8:
-    case TextureFormat::A2B10G10R10:
-    case TextureFormat::A1B5G5R5:
-    case TextureFormat::B5G6R5:
-    case TextureFormat::R8:
-    case TextureFormat::G8R8:
-    case TextureFormat::BF10GF11RF11:
-    case TextureFormat::R32_G32_B32_A32:
-    case TextureFormat::R32_G32:
-    case TextureFormat::R32:
-    case TextureFormat::R16:
-    case TextureFormat::R16_G16:
-    case TextureFormat::R32_G32_B32:
-        // TODO(Subv): For the time being just forward the same data without any decoding.
-        rgba_data = texture_data;
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Format not implemented");
-        break;
-    }
-
-    return rgba_data;
 }
 
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,

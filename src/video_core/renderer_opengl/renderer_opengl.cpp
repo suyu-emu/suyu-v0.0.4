@@ -535,12 +535,12 @@ void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
 
     GLint internal_format;
     switch (framebuffer.pixel_format) {
-    case Tegra::FramebufferConfig::PixelFormat::ABGR8:
+    case Tegra::FramebufferConfig::PixelFormat::A8B8G8R8_UNORM:
         internal_format = GL_RGBA8;
         texture.gl_format = GL_RGBA;
         texture.gl_type = GL_UNSIGNED_INT_8_8_8_8_REV;
         break;
-    case Tegra::FramebufferConfig::PixelFormat::RGB565:
+    case Tegra::FramebufferConfig::PixelFormat::RGB565_UNORM:
         internal_format = GL_RGB565;
         texture.gl_format = GL_RGB;
         texture.gl_type = GL_UNSIGNED_SHORT_5_6_5;

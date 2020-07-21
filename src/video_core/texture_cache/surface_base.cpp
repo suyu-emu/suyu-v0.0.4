@@ -228,7 +228,7 @@ void SurfaceBaseImpl::LoadBuffer(Tegra::MemoryManager& memory_manager,
         }
     }
 
-    if (!is_converted && params.pixel_format != PixelFormat::S8Z24) {
+    if (!is_converted && params.pixel_format != PixelFormat::S8_UINT_D24_UNORM) {
         return;
     }
 

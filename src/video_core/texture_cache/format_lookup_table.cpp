@@ -41,119 +41,126 @@ struct Table {
     ComponentType alpha_component;
     bool is_srgb;
 };
-constexpr std::array<Table, 78> DefinitionTable = {{
-    {TextureFormat::A8R8G8B8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ABGR8U},
-    {TextureFormat::A8R8G8B8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::ABGR8S},
-    {TextureFormat::A8R8G8B8, C, UINT, UINT, UINT, UINT, PixelFormat::ABGR8UI},
-    {TextureFormat::A8R8G8B8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::RGBA8_SRGB},
+constexpr std::array<Table, 86> DefinitionTable = {{
+    {TextureFormat::A8R8G8B8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A8B8G8R8_UNORM},
+    {TextureFormat::A8R8G8B8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::A8B8G8R8_SNORM},
+    {TextureFormat::A8R8G8B8, C, UINT, UINT, UINT, UINT, PixelFormat::A8B8G8R8_UINT},
+    {TextureFormat::A8R8G8B8, C, SINT, SINT, SINT, SINT, PixelFormat::A8B8G8R8_SINT},
+    {TextureFormat::A8R8G8B8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::A8B8G8R8_SRGB},
 
-    {TextureFormat::B5G6R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::B5G6R5U},
+    {TextureFormat::B5G6R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::B5G6R5_UNORM},
 
-    {TextureFormat::A2B10G10R10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A2B10G10R10U},
+    {TextureFormat::A2B10G10R10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A2B10G10R10_UNORM},
+    {TextureFormat::A2B10G10R10, C, UINT, UINT, UINT, UINT, PixelFormat::A2B10G10R10_UINT},
 
-    {TextureFormat::A1B5G5R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A1B5G5R5U},
+    {TextureFormat::A1B5G5R5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A1B5G5R5_UNORM},
 
-    {TextureFormat::A4B4G4R4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R4G4B4A4U},
+    {TextureFormat::A4B4G4R4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::A4B4G4R4_UNORM},
 
-    {TextureFormat::R8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R8U},
-    {TextureFormat::R8, C, UINT, UINT, UINT, UINT, PixelFormat::R8UI},
+    {TextureFormat::R8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R8_UNORM},
+    {TextureFormat::R8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R8_SNORM},
+    {TextureFormat::R8, C, UINT, UINT, UINT, UINT, PixelFormat::R8_UINT},
+    {TextureFormat::R8, C, SINT, SINT, SINT, SINT, PixelFormat::R8_SINT},
 
-    {TextureFormat::G8R8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RG8U},
-    {TextureFormat::G8R8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::RG8S},
-    {TextureFormat::G8R8, C, UINT, UINT, UINT, UINT, PixelFormat::RG8UI},
+    {TextureFormat::R8G8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R8G8_UNORM},
+    {TextureFormat::R8G8, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R8G8_SNORM},
+    {TextureFormat::R8G8, C, UINT, UINT, UINT, UINT, PixelFormat::R8G8_UINT},
+    {TextureFormat::R8G8, C, SINT, SINT, SINT, SINT, PixelFormat::R8G8_SINT},
 
-    {TextureFormat::R16_G16_B16_A16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::RGBA16S},
-    {TextureFormat::R16_G16_B16_A16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RGBA16U},
-    {TextureFormat::R16_G16_B16_A16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGBA16F},
-    {TextureFormat::R16_G16_B16_A16, C, UINT, UINT, UINT, UINT, PixelFormat::RGBA16UI},
+    {TextureFormat::R16G16B16A16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R16G16B16A16_SNORM},
+    {TextureFormat::R16G16B16A16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R16G16B16A16_UNORM},
+    {TextureFormat::R16G16B16A16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R16G16B16A16_FLOAT},
+    {TextureFormat::R16G16B16A16, C, UINT, UINT, UINT, UINT, PixelFormat::R16G16B16A16_UINT},
+    {TextureFormat::R16G16B16A16, C, SINT, SINT, SINT, SINT, PixelFormat::R16G16B16A16_SINT},
 
-    {TextureFormat::R16_G16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RG16F},
-    {TextureFormat::R16_G16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::RG16},
-    {TextureFormat::R16_G16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::RG16S},
-    {TextureFormat::R16_G16, C, UINT, UINT, UINT, UINT, PixelFormat::RG16UI},
-    {TextureFormat::R16_G16, C, SINT, SINT, SINT, SINT, PixelFormat::RG16I},
+    {TextureFormat::R16G16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R16G16_FLOAT},
+    {TextureFormat::R16G16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R16G16_UNORM},
+    {TextureFormat::R16G16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R16G16_SNORM},
+    {TextureFormat::R16G16, C, UINT, UINT, UINT, UINT, PixelFormat::R16G16_UINT},
+    {TextureFormat::R16G16, C, SINT, SINT, SINT, SINT, PixelFormat::R16G16_SINT},
 
-    {TextureFormat::R16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R16F},
-    {TextureFormat::R16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R16U},
-    {TextureFormat::R16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R16S},
-    {TextureFormat::R16, C, UINT, UINT, UINT, UINT, PixelFormat::R16UI},
-    {TextureFormat::R16, C, SINT, SINT, SINT, SINT, PixelFormat::R16I},
+    {TextureFormat::R16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R16_FLOAT},
+    {TextureFormat::R16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::R16_UNORM},
+    {TextureFormat::R16, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::R16_SNORM},
+    {TextureFormat::R16, C, UINT, UINT, UINT, UINT, PixelFormat::R16_UINT},
+    {TextureFormat::R16, C, SINT, SINT, SINT, SINT, PixelFormat::R16_SINT},
 
-    {TextureFormat::BF10GF11RF11, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R11FG11FB10F},
+    {TextureFormat::B10G11R11, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::B10G11R11_FLOAT},
 
-    {TextureFormat::R32_G32_B32_A32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGBA32F},
-    {TextureFormat::R32_G32_B32_A32, C, UINT, UINT, UINT, UINT, PixelFormat::RGBA32UI},
+    {TextureFormat::R32G32B32A32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32G32B32A32_FLOAT},
+    {TextureFormat::R32G32B32A32, C, UINT, UINT, UINT, UINT, PixelFormat::R32G32B32A32_UINT},
+    {TextureFormat::R32G32B32A32, C, SINT, SINT, SINT, SINT, PixelFormat::R32G32B32A32_SINT},
 
-    {TextureFormat::R32_G32_B32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RGB32F},
+    {TextureFormat::R32G32B32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32G32B32_FLOAT},
 
-    {TextureFormat::R32_G32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::RG32F},
-    {TextureFormat::R32_G32, C, UINT, UINT, UINT, UINT, PixelFormat::RG32UI},
+    {TextureFormat::R32G32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32G32_FLOAT},
+    {TextureFormat::R32G32, C, UINT, UINT, UINT, UINT, PixelFormat::R32G32_UINT},
+    {TextureFormat::R32G32, C, SINT, SINT, SINT, SINT, PixelFormat::R32G32_SINT},
 
-    {TextureFormat::R32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32F},
-    {TextureFormat::R32, C, UINT, UINT, UINT, UINT, PixelFormat::R32UI},
-    {TextureFormat::R32, C, SINT, SINT, SINT, SINT, PixelFormat::R32I},
+    {TextureFormat::R32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::R32_FLOAT},
+    {TextureFormat::R32, C, UINT, UINT, UINT, UINT, PixelFormat::R32_UINT},
+    {TextureFormat::R32, C, SINT, SINT, SINT, SINT, PixelFormat::R32_SINT},
 
-    {TextureFormat::E5B9G9R9_SHAREDEXP, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::E5B9G9R9F},
+    {TextureFormat::E5B9G9R9, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::E5B9G9R9_FLOAT},
 
-    {TextureFormat::ZF32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::Z32F},
-    {TextureFormat::Z16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::Z16},
-    {TextureFormat::S8Z24, C, UINT, UNORM, UNORM, UNORM, PixelFormat::S8Z24},
-    {TextureFormat::G24R8, C, UINT, UNORM, UNORM, UNORM, PixelFormat::S8Z24},
-    {TextureFormat::ZF32_X24S8, C, FLOAT, UINT, UNORM, UNORM, PixelFormat::Z32FS8},
+    {TextureFormat::D32, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::D32_FLOAT},
+    {TextureFormat::D16, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::D16_UNORM},
+    {TextureFormat::S8D24, C, UINT, UNORM, UNORM, UNORM, PixelFormat::S8_UINT_D24_UNORM},
+    {TextureFormat::R8G24, C, UINT, UNORM, UNORM, UNORM, PixelFormat::S8_UINT_D24_UNORM},
+    {TextureFormat::D32S8, C, FLOAT, UINT, UNORM, UNORM, PixelFormat::D32_FLOAT_S8_UINT},
 
-    {TextureFormat::DXT1, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT1},
-    {TextureFormat::DXT1, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT1_SRGB},
+    {TextureFormat::BC1_RGBA, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC1_RGBA_UNORM},
+    {TextureFormat::BC1_RGBA, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC1_RGBA_SRGB},
 
-    {TextureFormat::DXT23, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT23},
-    {TextureFormat::DXT23, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT23_SRGB},
+    {TextureFormat::BC2, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC2_UNORM},
+    {TextureFormat::BC2, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC2_SRGB},
 
-    {TextureFormat::DXT45, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT45},
-    {TextureFormat::DXT45, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXT45_SRGB},
+    {TextureFormat::BC3, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC3_UNORM},
+    {TextureFormat::BC3, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC3_SRGB},
 
-    // TODO: Use a different pixel format for SNORM
-    {TextureFormat::DXN1, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXN1},
-    {TextureFormat::DXN1, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::DXN1},
+    {TextureFormat::BC4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC4_UNORM},
+    {TextureFormat::BC4, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::BC4_SNORM},
 
-    {TextureFormat::DXN2, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::DXN2UNORM},
-    {TextureFormat::DXN2, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::DXN2SNORM},
+    {TextureFormat::BC5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC5_UNORM},
+    {TextureFormat::BC5, C, SNORM, SNORM, SNORM, SNORM, PixelFormat::BC5_SNORM},
 
-    {TextureFormat::BC7U, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC7U},
-    {TextureFormat::BC7U, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC7U_SRGB},
+    {TextureFormat::BC7, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC7_UNORM},
+    {TextureFormat::BC7, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::BC7_SRGB},
 
-    {TextureFormat::BC6H_SF16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::BC6H_SF16},
-    {TextureFormat::BC6H_UF16, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::BC6H_UF16},
+    {TextureFormat::BC6H_SFLOAT, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::BC6H_SFLOAT},
+    {TextureFormat::BC6H_UFLOAT, C, FLOAT, FLOAT, FLOAT, FLOAT, PixelFormat::BC6H_UFLOAT},
 
-    {TextureFormat::ASTC_2D_4X4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_4X4},
+    {TextureFormat::ASTC_2D_4X4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_4X4_UNORM},
     {TextureFormat::ASTC_2D_4X4, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_4X4_SRGB},
 
-    {TextureFormat::ASTC_2D_5X4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X4},
+    {TextureFormat::ASTC_2D_5X4, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X4_UNORM},
     {TextureFormat::ASTC_2D_5X4, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X4_SRGB},
 
-    {TextureFormat::ASTC_2D_5X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X5},
+    {TextureFormat::ASTC_2D_5X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X5_UNORM},
     {TextureFormat::ASTC_2D_5X5, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_5X5_SRGB},
 
-    {TextureFormat::ASTC_2D_8X8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X8},
+    {TextureFormat::ASTC_2D_8X8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X8_UNORM},
     {TextureFormat::ASTC_2D_8X8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X8_SRGB},
 
-    {TextureFormat::ASTC_2D_8X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X5},
+    {TextureFormat::ASTC_2D_8X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X5_UNORM},
     {TextureFormat::ASTC_2D_8X5, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X5_SRGB},
 
-    {TextureFormat::ASTC_2D_10X8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X8},
+    {TextureFormat::ASTC_2D_10X8, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X8_UNORM},
     {TextureFormat::ASTC_2D_10X8, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X8_SRGB},
 
-    {TextureFormat::ASTC_2D_6X6, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X6},
+    {TextureFormat::ASTC_2D_6X6, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X6_UNORM},
     {TextureFormat::ASTC_2D_6X6, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X6_SRGB},
 
-    {TextureFormat::ASTC_2D_10X10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X10},
+    {TextureFormat::ASTC_2D_10X10, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X10_UNORM},
     {TextureFormat::ASTC_2D_10X10, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_10X10_SRGB},
 
-    {TextureFormat::ASTC_2D_12X12, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_12X12},
+    {TextureFormat::ASTC_2D_12X12, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_12X12_UNORM},
     {TextureFormat::ASTC_2D_12X12, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_12X12_SRGB},
 
-    {TextureFormat::ASTC_2D_8X6, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X6},
+    {TextureFormat::ASTC_2D_8X6, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X6_UNORM},
     {TextureFormat::ASTC_2D_8X6, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_8X6_SRGB},
 
-    {TextureFormat::ASTC_2D_6X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X5},
+    {TextureFormat::ASTC_2D_6X5, C, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X5_UNORM},
     {TextureFormat::ASTC_2D_6X5, S, UNORM, UNORM, UNORM, UNORM, PixelFormat::ASTC_2D_6X5_SRGB},
 }};
 
@@ -184,7 +191,7 @@ PixelFormat FormatLookupTable::GetPixelFormat(TextureFormat format, bool is_srgb
                       static_cast<int>(format), is_srgb, static_cast<int>(red_component),
                       static_cast<int>(green_component), static_cast<int>(blue_component),
                       static_cast<int>(alpha_component));
-    return PixelFormat::ABGR8U;
+    return PixelFormat::A8B8G8R8_UNORM;
 }
 
 void FormatLookupTable::Set(TextureFormat format, bool is_srgb, ComponentType red_component,
