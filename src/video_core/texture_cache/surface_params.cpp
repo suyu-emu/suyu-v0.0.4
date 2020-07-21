@@ -96,7 +96,6 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
         }
         params.type = GetFormatType(params.pixel_format);
     }
-    params.type = GetFormatType(params.pixel_format);
     // TODO: on 1DBuffer we should use the tic info.
     if (tic.IsBuffer()) {
         params.target = SurfaceTarget::TextureBuffer;
