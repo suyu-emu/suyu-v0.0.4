@@ -74,9 +74,9 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
     params.srgb_conversion = tic.IsSrgbConversionEnabled();
-    params.block_width = params.is_tiled ? tic.BlockWidth() : 0,
-    params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
-    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
+    params.block_width = params.is_tiled ? tic.BlockWidth() : 0;
+    params.block_height = params.is_tiled ? tic.BlockHeight() : 0;
+    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0;
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
@@ -130,9 +130,9 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
     params.srgb_conversion = tic.IsSrgbConversionEnabled();
-    params.block_width = params.is_tiled ? tic.BlockWidth() : 0,
-    params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
-    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
+    params.block_width = params.is_tiled ? tic.BlockWidth() : 0;
+    params.block_height = params.is_tiled ? tic.BlockHeight() : 0;
+    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0;
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
@@ -237,9 +237,9 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     params.is_tiled = !config.linear;
     params.srgb_conversion = config.format == Tegra::RenderTargetFormat::B8G8R8A8_SRGB ||
                              config.format == Tegra::RenderTargetFormat::A8B8G8R8_SRGB;
-    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 5U) : 0,
-    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 5U) : 0,
-    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 5U) : 0,
+    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 5U) : 0;
+    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 5U) : 0;
+    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 5U) : 0;
     params.tile_width_spacing = 1;
     params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
     params.type = GetFormatType(params.pixel_format);
