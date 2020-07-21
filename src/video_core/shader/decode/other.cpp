@@ -75,8 +75,7 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
         const Node value = [this, instr] {
             switch (instr.sys20) {
             case SystemVariable::LaneId:
-                LOG_WARNING(HW_GPU, "S2R instruction with LaneId is incomplete");
-                return Immediate(0U);
+                return Operation(OperationCode::ThreadId);
             case SystemVariable::InvocationId:
                 return Operation(OperationCode::InvocationId);
             case SystemVariable::Ydirection:
