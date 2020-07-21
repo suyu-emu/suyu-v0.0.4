@@ -10,6 +10,7 @@
 #include <string_view>
 #include <thread>
 #include <variant>
+#include <vector>
 
 #include <fmt/format.h>
 
@@ -127,6 +128,35 @@ private:
     Common::Event work_event;
     std::shared_ptr<Kernel::WritableEvent> kernel_event;
     std::atomic_bool is_available{true};
+};
+
+template <class Service, class... Types>
+class BlockingWorkerPool {
+    using Worker = BlockingWorker<Service, Types...>;
+
+public:
+    explicit BlockingWorkerPool(Core::System& system_, Service* service_)
+        : system{system_}, service{service_} {}
+
+    /// Returns a captured worker thread, creating new ones if necessary
+    Worker* CaptureWorker() {
+        for (auto& worker : workers) {
+            if (worker->TryCapture()) {
+                return worker.get();
+            }
+        }
+        auto new_worker = Worker::Create(system, service, fmt::format("BSD:{}", workers.size()));
+        [[maybe_unused]] const bool success = new_worker->TryCapture();
+        ASSERT(success);
+
+        return workers.emplace_back(std::move(new_worker)).get();
+    }
+
+private:
+    Core::System& system;
+    Service* const service;
+
+    std::vector<std::unique_ptr<Worker>> workers;
 };
 
 } // namespace Service::Sockets
