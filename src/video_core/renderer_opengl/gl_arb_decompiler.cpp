@@ -2076,10 +2076,6 @@ std::string ARBDecompiler::ShuffleIndexed(Operation operation) {
 }
 
 std::string ARBDecompiler::Barrier(Operation) {
-    if (!ir.IsDecompiled()) {
-        LOG_ERROR(Render_OpenGL, "BAR used but shader is not decompiled");
-        return {};
-    }
     AddLine("BAR;");
     return {};
 }
