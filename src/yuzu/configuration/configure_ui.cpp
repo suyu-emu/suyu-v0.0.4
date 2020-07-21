@@ -60,9 +60,11 @@ ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::Configur
 
     // Set screenshot path to user specification.
     connect(ui->screenshot_path_button, &QToolButton::pressed, this, [this] {
-        const QString& filename = QFileDialog::getExistingDirectory(
-            this, tr("Select Screenshots Path..."),
-            QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir)));
+        const QString& filename =
+            QFileDialog::getExistingDirectory(
+                this, tr("Select Screenshots Path..."),
+                QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir))) +
+            QDir::separator();
         if (!filename.isEmpty()) {
             ui->screenshot_path_edit->setText(filename);
         }
