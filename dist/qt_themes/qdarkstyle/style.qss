@@ -40,8 +40,8 @@ QCheckBox:disabled {
 
 QCheckBox::indicator,
 QGroupBox::indicator {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
 }
 
 QGroupBox::indicator {
@@ -1237,6 +1237,7 @@ QPlainTextEdit:disabled {
     background-color: #2b2e31;
 }
 
+
 QPushButton#TogglableStatusBarButton {
     min-width: 0px;
     color: #656565;
@@ -1271,6 +1272,102 @@ QPushButton#RendererStatusBarButton:checked {
     color: #e85c00;
 }
 
-QPushButton#RendererStatusBarButton:!checked{
-   color: #00ccdd;
+QPushButton#RendererStatusBarButton:!checked {
+    color: #00ccdd;
+}
+
+QPushButton#buttonRefreshDevices {
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 24px;
+    max-height: 24px;
+    padding: 0px 0px;
+}
+
+QCheckBox#checkboxPlayer1Connected,
+QCheckBox#checkboxPlayer2Connected,
+QCheckBox#checkboxPlayer3Connected,
+QCheckBox#checkboxPlayer4Connected,
+QCheckBox#checkboxPlayer5Connected,
+QCheckBox#checkboxPlayer6Connected,
+QCheckBox#checkboxPlayer7Connected,
+QCheckBox#checkboxPlayer8Connected {
+    spacing: 0px;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator,
+QCheckBox#checkboxPlayer2Connected::indicator,
+QCheckBox#checkboxPlayer3Connected::indicator,
+QCheckBox#checkboxPlayer4Connected::indicator,
+QCheckBox#checkboxPlayer5Connected::indicator,
+QCheckBox#checkboxPlayer6Connected::indicator,
+QCheckBox#checkboxPlayer7Connected::indicator,
+QCheckBox#checkboxPlayer8Connected::indicator {
+    width: 14px;
+    height: 14px;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator:checked,
+QCheckBox#checkboxPlayer2Connected::indicator:checked,
+QCheckBox#checkboxPlayer3Connected::indicator:checked,
+QCheckBox#checkboxPlayer4Connected::indicator:checked,
+QCheckBox#checkboxPlayer5Connected::indicator:checked,
+QCheckBox#checkboxPlayer6Connected::indicator:checked,
+QCheckBox#checkboxPlayer7Connected::indicator:checked,
+QCheckBox#checkboxPlayer8Connected::indicator:checked,
+QGroupBox#groupConnectedController::indicator:checked {
+    border-radius: 2px;
+    border: 1px solid #929192;
+    background: #39ff14;
+    image: none;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer2Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer3Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer4Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer5Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer6Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer7Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer8Connected::indicator:unchecked,
+QGroupBox#groupConnectedController::indicator:unchecked {
+    border-radius: 2px;
+    border: 1px solid #929192;
+    background: transparent;
+    image: none;
+}
+
+QSpinBox#spinboxLStickRange,
+QSpinBox#spinboxRStickRange {
+    padding: 4px 0px 5px 0px;
+    min-width: 63px;
+}
+
+QSpinBox#vibrationSpin {
+    padding: 4px 0px 5px 0px;
+    min-width: 63px;
+}
+
+QSpinBox#spinboxLStickRange:up-button,
+QSpinBox#spinboxRStickRange:up-button,
+QSpinBox#vibrationSpin:up-button {
+    left: -2px;
+}
+
+QSpinBox#spinboxLStickRange:down-button,
+QSpinBox#spinboxRStickRange:down-button,
+QSpinBox#vibrationSpin:down-button {
+    right: -1px;
+}
+
+QGroupBox#motionGroup::indicator,
+QGroupBox#vibrationGroup::indicator {
+    margin-left: 0px;
+}
+
+QGroupBox#motionGroup::title,
+QGroupBox#vibrationGroup::title {
+	spacing: 2px;
+	padding-left: 1px;
+	padding-right: 1px;
 }

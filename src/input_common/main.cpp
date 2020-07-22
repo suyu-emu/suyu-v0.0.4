@@ -44,7 +44,6 @@ void Init() {
 #ifdef HAVE_SDL2
     sdl = SDL::Init();
 #endif
-
     udp = CemuhookUDP::Init();
 }
 
@@ -101,6 +100,55 @@ std::string GenerateAnalogParamFromKeys(int key_up, int key_down, int key_left, 
         {"modifier_scale", std::to_string(modifier_scale)},
     };
     return circle_pad_param.Serialize();
+}
+
+std::vector<Common::ParamPackage> GetInputDevices() {
+    std::vector<Common::ParamPackage> devices = {
+        Common::ParamPackage{{"display", "Any"}, {"class", "any"}},
+        Common::ParamPackage{{"display", "Keyboard"}, {"class", "key"}},
+    };
+#ifdef HAVE_SDL2
+    auto sdl_devices = sdl->GetInputDevices();
+    devices.insert(devices.end(), sdl_devices.begin(), sdl_devices.end());
+#endif
+    auto udp_devices = udp->GetInputDevices();
+    devices.insert(devices.end(), udp_devices.begin(), udp_devices.end());
+    return devices;
+}
+
+std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage> GetButtonMappingForDevice(
+    const Common::ParamPackage& params) {
+    std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage> mappings{};
+    if (!params.Has("class") || params.Get("class", "") == "any") {
+        return mappings;
+    }
+    if (params.Get("class", "") == "key") {
+        // TODO consider returning the SDL key codes for the default keybindings
+    }
+#ifdef HAVE_SDL2
+    if (params.Get("class", "") == "sdl") {
+        return sdl->GetButtonMappingForDevice(params);
+    }
+#endif
+    return mappings;
+}
+
+std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage> GetAnalogMappingForDevice(
+    const Common::ParamPackage& params) {
+    std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage> mappings{};
+    if (!params.Has("class") || params.Get("class", "") == "any") {
+        return mappings;
+    }
+    if (params.Get("class", "") == "key") {
+        // TODO consider returning the SDL key codes for the default keybindings
+        return mappings;
+    }
+#ifdef HAVE_SDL2
+    if (params.Get("class", "") == "sdl") {
+        return sdl->GetAnalogMappingForDevice(params);
+    }
+#endif
+    return mappings;
 }
 
 namespace Polling {

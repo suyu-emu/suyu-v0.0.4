@@ -288,6 +288,8 @@ void Config::ReadValues() {
             Settings::values.debug_pad_analogs[i] = default_param;
     }
 
+    Settings::values.vibration_enabled =
+        sdl2_config->GetBoolean("ControlsGeneral", "vibration_enabled", true);
     Settings::values.touchscreen.enabled =
         sdl2_config->GetBoolean("ControlsGeneral", "touch_enabled", true);
     Settings::values.touchscreen.device =

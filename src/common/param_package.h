@@ -19,7 +19,7 @@ public:
     explicit ParamPackage(const std::string& serialized);
     ParamPackage(std::initializer_list<DataType::value_type> list);
     ParamPackage(const ParamPackage& other) = default;
-    ParamPackage(ParamPackage&& other) = default;
+    ParamPackage(ParamPackage&& other) noexcept = default;
 
     ParamPackage& operator=(const ParamPackage& other) = default;
     ParamPackage& operator=(ParamPackage&& other) = default;

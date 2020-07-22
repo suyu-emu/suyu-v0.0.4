@@ -30,6 +30,66 @@ QPushButton#RendererStatusBarButton:checked {
     color: #e85c00;
 }
 
-QPushButton#RendererStatusBarButton:!checked{
+QPushButton#RendererStatusBarButton:!checked {
     color: #0066ff;
+}
+
+QPushButton#buttonRefreshDevices {
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+}
+
+QCheckBox#checkboxPlayer1Connected,
+QCheckBox#checkboxPlayer2Connected,
+QCheckBox#checkboxPlayer3Connected,
+QCheckBox#checkboxPlayer4Connected,
+QCheckBox#checkboxPlayer5Connected,
+QCheckBox#checkboxPlayer6Connected,
+QCheckBox#checkboxPlayer7Connected,
+QCheckBox#checkboxPlayer8Connected {
+    spacing: 0px;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator,
+QCheckBox#checkboxPlayer2Connected::indicator,
+QCheckBox#checkboxPlayer3Connected::indicator,
+QCheckBox#checkboxPlayer4Connected::indicator,
+QCheckBox#checkboxPlayer5Connected::indicator,
+QCheckBox#checkboxPlayer6Connected::indicator,
+QCheckBox#checkboxPlayer7Connected::indicator,
+QCheckBox#checkboxPlayer8Connected::indicator {
+    width: 14px;
+    height: 14px;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator:checked,
+QCheckBox#checkboxPlayer2Connected::indicator:checked,
+QCheckBox#checkboxPlayer3Connected::indicator:checked,
+QCheckBox#checkboxPlayer4Connected::indicator:checked,
+QCheckBox#checkboxPlayer5Connected::indicator:checked,
+QCheckBox#checkboxPlayer6Connected::indicator:checked,
+QCheckBox#checkboxPlayer7Connected::indicator:checked,
+QCheckBox#checkboxPlayer8Connected::indicator:checked,
+QGroupBox#groupConnectedController::indicator:checked {
+    border-radius: 2px;
+    border: 1px solid black;
+    background: #39ff14;
+    image: none;
+}
+
+QCheckBox#checkboxPlayer1Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer2Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer3Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer4Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer5Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer6Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer7Connected::indicator:unchecked,
+QCheckBox#checkboxPlayer8Connected::indicator:unchecked,
+QGroupBox#groupConnectedController::indicator:unchecked {
+    border-radius: 2px;
+    border: 1px solid black;
+    background: transparent;
+    image: none;
 }

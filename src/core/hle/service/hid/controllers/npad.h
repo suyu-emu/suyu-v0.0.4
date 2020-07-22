@@ -118,10 +118,11 @@ public:
     std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     Vibration GetLastVibration() const;
 
-    void AddNewController(NPadControllerType controller);
-    void AddNewControllerAt(NPadControllerType controller, u32 npad_id);
+    // Adds a new controller at an index.
+    void AddNewControllerAt(NPadControllerType controller, std::size_t npad_index);
+    // Adds a new controller at an index with connection status.
+    void UpdateControllerAt(NPadControllerType controller, std::size_t npad_index, bool connected);
 
-    void ConnectNPad(u32 npad_id);
     void DisconnectNPad(u32 npad_id);
     void SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode);
     GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
@@ -141,6 +142,8 @@ public:
     // Specifically for cheat engine and other features.
     u32 GetAndResetPressState();
 
+    static Controller_NPad::NPadControllerType MapSettingsTypeToNPad(Settings::ControllerType type);
+    static Settings::ControllerType MapNPadToSettingsType(Controller_NPad::NPadControllerType type);
     static std::size_t NPadIdToIndex(u32 npad_id);
     static u32 IndexToNPad(std::size_t index);
 
@@ -309,7 +312,7 @@ private:
         bool is_connected;
     };
 
-    void InitNewlyAddedControler(std::size_t controller_idx);
+    void InitNewlyAddedController(std::size_t controller_idx);
     bool IsControllerSupported(NPadControllerType controller) const;
     NPadControllerType DecideBestController(NPadControllerType priority) const;
     void RequestPadStateUpdate(u32 npad_id);

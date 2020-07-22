@@ -6,8 +6,10 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "input_common/gcadapter/gc_poller.h"
+#include "input_common/settings.h"
 
 namespace Common {
 class ParamPackage;
@@ -42,9 +44,27 @@ std::string GenerateKeyboardParam(int key_code);
 std::string GenerateAnalogParamFromKeys(int key_up, int key_down, int key_left, int key_right,
                                         int key_modifier, float modifier_scale);
 
+/**
+ * Return a list of available input devices that this Factory can create a new device with.
+ * Each returned Parampackage should have a `display` field used for display, a class field for
+ * backends to determine if this backend is meant to service the request and any other information
+ * needed to identify this in the backend later.
+ */
+std::vector<Common::ParamPackage> GetInputDevices();
+
+/**
+ * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
+ * mapping for the device. This is currently only implemented for the sdl backend devices.
+ */
+using ButtonMapping = std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage>;
+using AnalogMapping = std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage>;
+
+ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage&);
+AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage&);
+
 namespace Polling {
 
-enum class DeviceType { Button, Analog };
+enum class DeviceType { Button, AnalogPreferred };
 
 /**
  * A class that can be used to get inputs from an input device like controllers without having to
@@ -54,7 +74,9 @@ class DevicePoller {
 public:
     virtual ~DevicePoller() = default;
     /// Setup and start polling for inputs, should be called before GetNextInput
-    virtual void Start() = 0;
+    /// If a device_id is provided, events should be filtered to only include events from this
+    /// device id
+    virtual void Start(std::string device_id = "") = 0;
     /// Stop polling
     virtual void Stop() = 0;
     /**

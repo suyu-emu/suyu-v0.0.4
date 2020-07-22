@@ -205,15 +205,11 @@ void ConfigureMouseAdvanced::HandleClick(
         poller->Start();
     }
 
-    grabKeyboard();
-    grabMouse();
-    timeout_timer->start(5000); // Cancel after 5 seconds
-    poll_timer->start(200);     // Check for new inputs every 200ms
+    timeout_timer->start(2500); // Cancel after 2.5 seconds
+    poll_timer->start(50);      // Check for new inputs every 50ms
 }
 
 void ConfigureMouseAdvanced::SetPollingResult(const Common::ParamPackage& params, bool abort) {
-    releaseKeyboard();
-    releaseMouse();
     timeout_timer->stop();
     poll_timer->stop();
     for (auto& poller : device_pollers) {

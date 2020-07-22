@@ -39,6 +39,9 @@ add_executable(yuzu
     configuration/configure_debug.cpp
     configuration/configure_debug.h
     configuration/configure_debug.ui
+    configuration/configure_debug_controller.cpp
+    configuration/configure_debug_controller.h
+    configuration/configure_debug_controller.ui
     configuration/configure_dialog.cpp
     configuration/configure_dialog.h
     configuration/configure_filesystem.cpp
@@ -62,9 +65,9 @@ add_executable(yuzu
     configuration/configure_input_player.cpp
     configuration/configure_input_player.h
     configuration/configure_input_player.ui
-    configuration/configure_input_simple.cpp
-    configuration/configure_input_simple.h
-    configuration/configure_input_simple.ui
+    configuration/configure_input_advanced.cpp
+    configuration/configure_input_advanced.h
+    configuration/configure_input_advanced.ui
     configuration/configure_mouse_advanced.cpp
     configuration/configure_mouse_advanced.h
     configuration/configure_mouse_advanced.ui

@@ -13,6 +13,7 @@
 #include <QStringList>
 #include <QVector>
 #include "common/common_types.h"
+#include "core/settings.h"
 
 namespace UISettings {
 
@@ -87,9 +88,6 @@ struct Values {
     // logging
     bool show_console;
 
-    // Controllers
-    int profile_index;
-
     // Game List
     bool show_add_ons;
     uint32_t icon_size;
@@ -100,6 +98,7 @@ struct Values {
 };
 
 extern Values values;
+
 } // namespace UISettings
 
 Q_DECLARE_METATYPE(UISettings::GameDir*);
