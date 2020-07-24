@@ -44,9 +44,9 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
             dma_pusher.DispatchCalls();
         } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
-        } else if (const auto data = std::get_if<OnCommandListEndCommand>(&next.data)) {
+        } else if (std::holds_alternative<OnCommandListEndCommand>(next.data)) {
             renderer.Rasterizer().ReleaseFences();
-        } else if (const auto data = std::get_if<GPUTickCommand>(&next.data)) {
+        } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
             system.GPU().TickWork();
         } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
             renderer.Rasterizer().FlushRegion(data->addr, data->size);

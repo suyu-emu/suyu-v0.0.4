@@ -419,7 +419,6 @@ void Tegra::MacroJITx64Impl::Optimizer_ScanFlags() {
 
 void MacroJITx64Impl::Compile() {
     MICROPROFILE_SCOPE(MacroJitCompile);
-    bool keep_executing = true;
     labels.fill(Xbyak::Label());
 
     Common::X64::ABI_PushRegistersAndAdjustStack(*this, Common::X64::ABI_ALL_CALLEE_SAVED, 8);

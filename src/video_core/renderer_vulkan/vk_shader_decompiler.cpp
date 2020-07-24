@@ -706,9 +706,9 @@ private:
     }
 
     void DeclareInternalFlags() {
-        constexpr std::array names = {"zero", "sign", "carry", "overflow"};
+        static constexpr std::array names{"zero", "sign", "carry", "overflow"};
+
         for (std::size_t flag = 0; flag < INTERNAL_FLAGS_COUNT; ++flag) {
-            const auto flag_code = static_cast<InternalFlag>(flag);
             const Id id = OpVariable(t_prv_bool, spv::StorageClass::Private, v_false);
             internal_flags[flag] = AddGlobalVariable(Name(id, names[flag]));
         }
@@ -2804,7 +2804,6 @@ private:
     std::map<GlobalMemoryBase, Id> global_buffers;
     std::map<u32, TexelBuffer> uniform_texels;
     std::map<u32, SampledImage> sampled_images;
-    std::map<u32, TexelBuffer> storage_texels;
     std::map<u32, StorageImage> images;
 
     std::array<Id, Maxwell::NumRenderTargets> frag_colors{};

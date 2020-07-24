@@ -40,7 +40,6 @@ constexpr std::array POLYGON_OFFSET_ENABLE_LUT = {
 } // Anonymous namespace
 
 void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_state) {
-    const auto& clip = regs.view_volume_clip_control;
     const std::array enabled_lut = {regs.polygon_offset_point_enable,
                                     regs.polygon_offset_line_enable,
                                     regs.polygon_offset_fill_enable};

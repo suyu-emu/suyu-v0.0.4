@@ -1959,10 +1959,6 @@ private:
         return {fmt::format("({} != 0)", carry), Type::Bool};
     }
 
-    Expression LogicalFIsNan(Operation operation) {
-        return GenerateUnary(operation, "isnan", Type::Bool, Type::Float);
-    }
-
     Expression LogicalAssign(Operation operation) {
         const Node& dest = operation[0];
         const Node& src = operation[1];
@@ -2776,15 +2772,6 @@ private:
 
     u32 GetNumPhysicalVaryings() const {
         return std::min<u32>(device.GetMaxVaryings(), Maxwell::NumVaryings);
-    }
-
-    bool IsRenderTargetEnabled(u32 render_target) const {
-        for (u32 component = 0; component < 4; ++component) {
-            if (header.ps.IsColorComponentOutputEnabled(render_target, component)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     const Device& device;
