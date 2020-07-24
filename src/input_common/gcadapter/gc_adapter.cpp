@@ -24,12 +24,9 @@ Adapter::Adapter() {
     }
     LOG_INFO(Input, "GC Adapter Initialization started");
 
-    current_status = NO_ADAPTER_DETECTED;
-    get_origin.fill(true);
-
     const int init_res = libusb_init(&libusb_ctx);
     if (init_res == LIBUSB_SUCCESS) {
-        StartScanThread();
+        Setup();
     } else {
         LOG_ERROR(Input, "libusb could not be initialized. failed with error = {}", init_res);
     }
@@ -37,9 +34,9 @@ Adapter::Adapter() {
 
 GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& adapter_payload) {
     GCPadStatus pad = {};
+    const std::size_t offset = 1 + (9 * port);
 
-    ControllerTypes type = ControllerTypes(adapter_payload[1 + (9 * port)] >> 4);
-    adapter_controllers_status[port] = type;
+    adapter_controllers_status[port] = static_cast<ControllerTypes>(adapter_payload[offset] >> 4);
 
     static constexpr std::array<PadButton, 8> b1_buttons{
         PadButton::PAD_BUTTON_A,    PadButton::PAD_BUTTON_B,    PadButton::PAD_BUTTON_X,
@@ -54,14 +51,19 @@ GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& ad
         PadButton::PAD_TRIGGER_L,
     };
 
+    static constexpr std::array<PadAxes, 6> axes{
+        PadAxes::StickX,    PadAxes::StickY,      PadAxes::SubstickX,
+        PadAxes::SubstickY, PadAxes::TriggerLeft, PadAxes::TriggerRight,
+    };
+
     if (adapter_controllers_status[port] == ControllerTypes::None && !get_origin[port]) {
         // Controller may have been disconnected, recalibrate if reconnected.
         get_origin[port] = true;
     }
 
     if (adapter_controllers_status[port] != ControllerTypes::None) {
-        const u8 b1 = adapter_payload[1 + (9 * port) + 1];
-        const u8 b2 = adapter_payload[1 + (9 * port) + 2];
+        const u8 b1 = adapter_payload[offset + 1];
+        const u8 b2 = adapter_payload[offset + 2];
 
         for (std::size_t i = 0; i < b1_buttons.size(); ++i) {
             if ((b1 & (1U << i)) != 0) {
@@ -74,21 +76,13 @@ GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& ad
                 pad.button |= static_cast<u16>(b2_buttons[j]);
             }
         }
-
-        pad.stick_x = adapter_payload[1 + (9 * port) + 3];
-        pad.stick_y = adapter_payload[1 + (9 * port) + 4];
-        pad.substick_x = adapter_payload[1 + (9 * port) + 5];
-        pad.substick_y = adapter_payload[1 + (9 * port) + 6];
-        pad.trigger_left = adapter_payload[1 + (9 * port) + 7];
-        pad.trigger_right = adapter_payload[1 + (9 * port) + 8];
+        for (PadAxes axis : axes) {
+            const std::size_t index = static_cast<std::size_t>(axis);
+            pad.axis_values[index] = adapter_payload[offset + 3 + index];
+        }
 
         if (get_origin[port]) {
-            origin_status[port].stick_x = pad.stick_x;
-            origin_status[port].stick_y = pad.stick_y;
-            origin_status[port].substick_x = pad.substick_x;
-            origin_status[port].substick_y = pad.substick_y;
-            origin_status[port].trigger_left = pad.trigger_left;
-            origin_status[port].trigger_right = pad.trigger_right;
+            origin_status[port].axis_values = pad.axis_values;
             get_origin[port] = false;
         }
     }
@@ -101,82 +95,47 @@ void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
         state.buttons.insert_or_assign(button_value, pad.button & button_value);
     }
 
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickX), pad.stick_x);
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::StickY), pad.stick_y);
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::SubstickX), pad.substick_x);
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::SubstickY), pad.substick_y);
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::TriggerLeft), pad.trigger_left);
-    state.axes.insert_or_assign(static_cast<u8>(PadAxes::TriggerRight), pad.trigger_right);
+    for (size_t i = 0; i < pad.axis_values.size(); ++i) {
+        state.axes.insert_or_assign(static_cast<u8>(i), pad.axis_values[i]);
+    }
 }
 
 void Adapter::Read() {
     LOG_DEBUG(Input, "GC Adapter Read() thread started");
 
-    int payload_size_in, payload_size_copy;
+    int payload_size;
     std::array<u8, 37> adapter_payload;
-    std::array<u8, 37> adapter_payload_copy;
     std::array<GCPadStatus, 4> pads;
 
     while (adapter_thread_running) {
         libusb_interrupt_transfer(usb_adapter_handle, input_endpoint, adapter_payload.data(),
-                                  sizeof(adapter_payload), &payload_size_in, 16);
-        payload_size_copy = 0;
-        // this mutex might be redundant?
-        {
-            std::lock_guard<std::mutex> lk(s_mutex);
-            std::copy(std::begin(adapter_payload), std::end(adapter_payload),
-                      std::begin(adapter_payload_copy));
-            payload_size_copy = payload_size_in;
-        }
+                                  sizeof(adapter_payload), &payload_size, 16);
 
-        if (payload_size_copy != sizeof(adapter_payload_copy) ||
-            adapter_payload_copy[0] != LIBUSB_DT_HID) {
-            LOG_ERROR(Input, "error reading payload (size: {}, type: {:02x})", payload_size_copy,
-                      adapter_payload_copy[0]);
+        if (payload_size != sizeof(adapter_payload) || adapter_payload[0] != LIBUSB_DT_HID) {
+            LOG_ERROR(Input,
+                      "Error reading payload (size: {}, type: {:02x}) Is the adapter connected?",
+                      payload_size, adapter_payload[0]);
             adapter_thread_running = false; // error reading from adapter, stop reading.
             break;
         }
         for (std::size_t port = 0; port < pads.size(); ++port) {
-            pads[port] = GetPadStatus(port, adapter_payload_copy);
+            pads[port] = GetPadStatus(port, adapter_payload);
             if (DeviceConnected(port) && configuring) {
                 if (pads[port].button != 0) {
                     pad_queue[port].Push(pads[port]);
                 }
 
-                // Accounting for a threshold here because of some controller variance
-                if (pads[port].stick_x > origin_status[port].stick_x + pads[port].THRESHOLD ||
-                    pads[port].stick_x < origin_status[port].stick_x - pads[port].THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::StickX;
-                    pads[port].axis_value = pads[port].stick_x;
-                    pad_queue[port].Push(pads[port]);
-                }
-                if (pads[port].stick_y > origin_status[port].stick_y + pads[port].THRESHOLD ||
-                    pads[port].stick_y < origin_status[port].stick_y - pads[port].THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::StickY;
-                    pads[port].axis_value = pads[port].stick_y;
-                    pad_queue[port].Push(pads[port]);
-                }
-                if (pads[port].substick_x > origin_status[port].substick_x + pads[port].THRESHOLD ||
-                    pads[port].substick_x < origin_status[port].substick_x - pads[port].THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::SubstickX;
-                    pads[port].axis_value = pads[port].substick_x;
-                    pad_queue[port].Push(pads[port]);
-                }
-                if (pads[port].substick_y > origin_status[port].substick_y + pads[port].THRESHOLD ||
-                    pads[port].substick_y < origin_status[port].substick_y - pads[port].THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::SubstickY;
-                    pads[port].axis_value = pads[port].substick_y;
-                    pad_queue[port].Push(pads[port]);
-                }
-                if (pads[port].trigger_left > pads[port].TRIGGER_THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::TriggerLeft;
-                    pads[port].axis_value = pads[port].trigger_left;
-                    pad_queue[port].Push(pads[port]);
-                }
-                if (pads[port].trigger_right > pads[port].TRIGGER_THRESHOLD) {
-                    pads[port].axis = GCAdapter::PadAxes::TriggerRight;
-                    pads[port].axis_value = pads[port].trigger_right;
-                    pad_queue[port].Push(pads[port]);
+                // Accounting for a threshold here to ensure an intentional press
+                for (size_t i = 0; i < pads[port].axis_values.size(); ++i) {
+                    const u8 value = pads[port].axis_values[i];
+                    const u8 origin = origin_status[port].axis_values[i];
+
+                    if (value > origin + pads[port].THRESHOLD ||
+                        value < origin - pads[port].THRESHOLD) {
+                        pads[port].axis = static_cast<PadAxes>(i);
+                        pads[port].axis_value = pads[port].axis_values[i];
+                        pad_queue[port].Push(pads[port]);
+                    }
                 }
             }
             PadToState(pads[port], state[port]);
@@ -185,42 +144,11 @@ void Adapter::Read() {
     }
 }
 
-void Adapter::ScanThreadFunc() {
-    LOG_INFO(Input, "GC Adapter scanning thread started");
-
-    while (detect_thread_running) {
-        if (usb_adapter_handle == nullptr) {
-            std::lock_guard<std::mutex> lk(initialization_mutex);
-            Setup();
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-}
-
-void Adapter::StartScanThread() {
-    if (detect_thread_running) {
-        return;
-    }
-    if (!libusb_ctx) {
-        return;
-    }
-
-    detect_thread_running = true;
-    detect_thread = std::thread(&Adapter::ScanThreadFunc, this);
-}
-
-void Adapter::StopScanThread() {
-    detect_thread_running = false;
-    detect_thread.join();
-}
-
 void Adapter::Setup() {
-    // Reset the error status in case the adapter gets unplugged
-    if (current_status < 0) {
-        current_status = NO_ADAPTER_DETECTED;
-    }
-
+    // Initialize all controllers as unplugged
     adapter_controllers_status.fill(ControllerTypes::None);
+    // Initialize all ports to store axis origin values
+    get_origin.fill(true);
 
     // pointer to list of connected usb devices
     libusb_device** devices{};
@@ -229,8 +157,6 @@ void Adapter::Setup() {
     const ssize_t device_count = libusb_get_device_list(libusb_ctx, &devices);
     if (device_count < 0) {
         LOG_ERROR(Input, "libusb_get_device_list failed with error: {}", device_count);
-        detect_thread_running = false; // Stop the loop constantly checking for gc adapter
-        // TODO: For hotplug+gc adapter checkbox implementation, revert this.
         return;
     }
 
@@ -244,9 +170,6 @@ void Adapter::Setup() {
         }
         libusb_free_device_list(devices, 1);
     }
-    // Break out of the ScanThreadFunc() loop that is constantly looking for the device
-    // Assumes user has GC adapter plugged in before launch to use the adapter
-    detect_thread_running = false;
 }
 
 bool Adapter::CheckDeviceAccess(libusb_device* device) {
@@ -331,24 +254,14 @@ void Adapter::GetGCEndpoint(libusb_device* device) {
                               sizeof(clear_payload), nullptr, 16);
 
     adapter_thread_running = true;
-    current_status = ADAPTER_DETECTED;
     adapter_input_thread = std::thread([=] { Read(); }); // Read input
 }
 
 Adapter::~Adapter() {
-    StopScanThread();
     Reset();
 }
 
 void Adapter::Reset() {
-    std::unique_lock<std::mutex> lock(initialization_mutex, std::defer_lock);
-    if (!lock.try_lock()) {
-        return;
-    }
-    if (current_status != ADAPTER_DETECTED) {
-        return;
-    }
-
     if (adapter_thread_running) {
         adapter_thread_running = false;
     }
@@ -356,7 +269,6 @@ void Adapter::Reset() {
 
     adapter_controllers_status.fill(ControllerTypes::None);
     get_origin.fill(true);
-    current_status = NO_ADAPTER_DETECTED;
 
     if (usb_adapter_handle) {
         libusb_release_interface(usb_adapter_handle, 1);
@@ -409,24 +321,7 @@ const std::array<GCState, 4>& Adapter::GetPadState() const {
 }
 
 int Adapter::GetOriginValue(int port, int axis) const {
-    const auto& status = origin_status[port];
-
-    switch (static_cast<PadAxes>(axis)) {
-    case PadAxes::StickX:
-        return status.stick_x;
-    case PadAxes::StickY:
-        return status.stick_y;
-    case PadAxes::SubstickX:
-        return status.substick_x;
-    case PadAxes::SubstickY:
-        return status.substick_y;
-    case PadAxes::TriggerLeft:
-        return status.trigger_left;
-    case PadAxes::TriggerRight:
-        return status.trigger_right;
-    default:
-        return 0;
-    }
+    return origin_status[port].axis_values[axis];
 }
 
 } // namespace GCAdapter
