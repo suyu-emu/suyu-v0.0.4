@@ -1919,7 +1919,7 @@ private:
     Expression Comparison(Operation operation) {
         static_assert(!unordered || type == Type::Float);
 
-        const Expression expr = GenerateBinaryInfix(operation, op, Type::Bool, type, type);
+        Expression expr = GenerateBinaryInfix(operation, op, Type::Bool, type, type);
 
         if constexpr (op.compare("!=") == 0 && type == Type::Float && !unordered) {
             // GLSL's operator!=(float, float) doesn't seem be ordered. This happens on both AMD's

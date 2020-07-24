@@ -1704,7 +1704,7 @@ std::string ARBDecompiler::HCastFloat(Operation operation) {
 }
 
 std::string ARBDecompiler::HUnpack(Operation operation) {
-    const std::string operand = Visit(operation[0]);
+    std::string operand = Visit(operation[0]);
     switch (std::get<Tegra::Shader::HalfType>(operation.GetMeta())) {
     case Tegra::Shader::HalfType::H0_H1:
         return operand;
@@ -2054,7 +2054,7 @@ std::string ARBDecompiler::InvocationId(Operation) {
 
 std::string ARBDecompiler::YNegate(Operation) {
     LOG_WARNING(Render_OpenGL, "(STUBBED)");
-    const std::string temporary = AllocTemporary();
+    std::string temporary = AllocTemporary();
     AddLine("MOV.F {}, 1;", temporary);
     return temporary;
 }
