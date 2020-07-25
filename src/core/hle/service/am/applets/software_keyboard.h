@@ -78,6 +78,7 @@ private:
     KeyboardConfig config;
     std::u16string initial_text;
     bool complete = false;
+    bool is_inline = false;
     std::vector<u8> final_data;
 };
 

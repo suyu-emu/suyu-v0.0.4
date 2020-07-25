@@ -13,11 +13,23 @@
 
 namespace Service::AM::Applets {
 
+namespace {
+enum class Request : u32 {
+    Finalize = 0x4,
+    SetUserWordInfo = 0x6,
+    SetCustomizeDic = 0x7,
+    Calc = 0xa,
+    SetCustomizedDictionaries = 0xb,
+    UnsetCustomizedDictionaries = 0xc,
+    UnknownD = 0xd,
+    UnknownE = 0xe,
+};
+constexpr std::size_t SWKBD_INLINE_INIT_SIZE = 0x8;
 constexpr std::size_t SWKBD_OUTPUT_BUFFER_SIZE = 0x7D8;
 constexpr std::size_t SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE = 0x7D4;
 constexpr std::size_t DEFAULT_MAX_LENGTH = 500;
 constexpr bool INTERACTIVE_STATUS_OK = false;
-
+} // Anonymous namespace
 static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
     KeyboardConfig config, std::u16string initial_text) {
     Core::Frontend::SoftwareKeyboardParameters params{};
@@ -47,6 +59,7 @@ SoftwareKeyboard::~SoftwareKeyboard() = default;
 
 void SoftwareKeyboard::Initialize() {
     complete = false;
+    is_inline = false;
     initial_text.clear();
     final_data.clear();
 
@@ -55,6 +68,11 @@ void SoftwareKeyboard::Initialize() {
     const auto keyboard_config_storage = broker.PopNormalDataToApplet();
     ASSERT(keyboard_config_storage != nullptr);
     const auto& keyboard_config = keyboard_config_storage->GetData();
+
+    if (keyboard_config.size() == SWKBD_INLINE_INIT_SIZE) {
+        is_inline = true;
+        return;
+    }
 
     ASSERT(keyboard_config.size() >= sizeof(KeyboardConfig));
     std::memcpy(&config, keyboard_config.data(), sizeof(KeyboardConfig));
@@ -87,16 +105,32 @@ void SoftwareKeyboard::ExecuteInteractive() {
     const auto storage = broker.PopInteractiveDataToApplet();
     ASSERT(storage != nullptr);
     const auto data = storage->GetData();
-    const auto status = static_cast<bool>(data[0]);
-
-    if (status == INTERACTIVE_STATUS_OK) {
-        complete = true;
+    if (!is_inline) {
+        const auto status = static_cast<bool>(data[0]);
+        if (status == INTERACTIVE_STATUS_OK) {
+            complete = true;
+        } else {
+            std::array<char16_t, SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE / 2 - 2> string;
+            std::memcpy(string.data(), data.data() + 4, string.size() * 2);
+            frontend.SendTextCheckDialog(
+                Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()),
+                [this] { broker.SignalStateChanged(); });
+        }
     } else {
-        std::array<char16_t, SWKBD_OUTPUT_INTERACTIVE_BUFFER_SIZE / 2 - 2> string;
-        std::memcpy(string.data(), data.data() + 4, string.size() * 2);
-        frontend.SendTextCheckDialog(
-            Common::UTF16StringFromFixedZeroTerminatedBuffer(string.data(), string.size()),
-            [this] { broker.SignalStateChanged(); });
+        Request request{};
+        std::memcpy(&request, data.data(), sizeof(Request));
+
+        switch (request) {
+        case Request::Calc: {
+            broker.PushNormalDataFromApplet(
+                std::make_shared<IStorage>(std::move(std::vector<u8>{1})));
+            broker.SignalStateChanged();
+            break;
+        }
+        default:
+            UNIMPLEMENTED_MSG("Request {:X} is not implemented", request);
+            break;
+        }
     }
 }
 
@@ -108,9 +142,10 @@ void SoftwareKeyboard::Execute() {
     }
 
     const auto parameters = ConvertToFrontendParameters(config, initial_text);
-
-    frontend.RequestText([this](std::optional<std::u16string> text) { WriteText(std::move(text)); },
-                         parameters);
+    if (!is_inline) {
+        frontend.RequestText(
+            [this](std::optional<std::u16string> text) { WriteText(std::move(text)); }, parameters);
+    }
 }
 
 void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
