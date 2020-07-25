@@ -208,7 +208,7 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
             } else if (channel_count == 2) {
                 const auto l_sample = ClampToS16(mix_buffers[0][i]);
                 const auto r_sample = ClampToS16(mix_buffers[1][i]);
-                if (stream_channel_count == 0) {
+                if (stream_channel_count == 1) {
                     buffer[i * stream_channel_count + 0] = l_sample;
                 } else if (stream_channel_count == 2) {
                     buffer[i * stream_channel_count + 0] = l_sample;
