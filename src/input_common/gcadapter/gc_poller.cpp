@@ -76,8 +76,7 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
 
     // button is not an axis/stick button
     if (button_id != PAD_STICK_ID) {
-        auto button = std::make_unique<GCButton>(port, button_id, adapter.get());
-        return std::move(button);
+        return std::make_unique<GCButton>(port, button_id, adapter.get());
     }
 
     // For Axis buttons, used by the binary sticks.
