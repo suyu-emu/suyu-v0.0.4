@@ -532,10 +532,6 @@ void RasterizerVulkan::Clear() {
 
     scheduler.Record([clear_depth = regs.clear_depth, clear_stencil = regs.clear_stencil,
                       clear_rect, aspect_flags](vk::CommandBuffer cmdbuf) {
-        VkClearValue clear_value;
-        clear_value.depthStencil.depth = clear_depth;
-        clear_value.depthStencil.stencil = clear_stencil;
-
         VkClearAttachment attachment;
         attachment.aspectMask = aspect_flags;
         attachment.colorAttachment = 0;
