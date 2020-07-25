@@ -19,9 +19,10 @@ ConfigureGeneral::ConfigureGeneral(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->toggle_frame_limit, &QCheckBox::stateChanged, ui->frame_limit, [this]() {
-        ui->frame_limit->setEnabled(ui->toggle_frame_limit->checkState() == Qt::Checked);
-    });
+    if (Settings::configuring_global) {
+        connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit,
+                [this]() { ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked()); });
+    }
 }
 
 ConfigureGeneral::~ConfigureGeneral() = default;
@@ -40,17 +41,12 @@ void ConfigureGeneral::SetConfiguration() {
     ui->toggle_frame_limit->setChecked(Settings::values.use_frame_limit.GetValue());
     ui->frame_limit->setValue(Settings::values.frame_limit.GetValue());
 
-    if (!Settings::configuring_global) {
-        if (Settings::values.use_multi_core.UsingGlobal()) {
-            ui->use_multi_core->setCheckState(Qt::PartiallyChecked);
-        }
-        if (Settings::values.use_frame_limit.UsingGlobal()) {
-            ui->toggle_frame_limit->setCheckState(Qt::PartiallyChecked);
-        }
+    if (Settings::configuring_global) {
+        ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue());
+    } else {
+        ui->frame_limit->setEnabled(Settings::values.use_frame_limit.GetValue() &&
+                                    use_frame_limit != ConfigurationShared::CheckState::Global);
     }
-
-    ui->frame_limit->setEnabled(ui->toggle_frame_limit->checkState() == Qt::Checked &&
-                                ui->toggle_frame_limit->isEnabled());
 }
 
 void ConfigureGeneral::ApplyConfiguration() {
@@ -71,9 +67,9 @@ void ConfigureGeneral::ApplyConfiguration() {
         }
     } else {
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_multi_core,
-                                                 ui->use_multi_core);
+                                                 ui->use_multi_core, use_multi_core);
 
-        bool global_frame_limit = ui->toggle_frame_limit->checkState() == Qt::PartiallyChecked;
+        bool global_frame_limit = use_frame_limit == ConfigurationShared::CheckState::Global;
         Settings::values.use_frame_limit.SetGlobal(global_frame_limit);
         Settings::values.frame_limit.SetGlobal(global_frame_limit);
         if (!global_frame_limit) {
@@ -109,6 +105,13 @@ void ConfigureGeneral::SetupPerGameUI() {
     ui->toggle_background_pause->setVisible(false);
     ui->toggle_hide_mouse->setVisible(false);
 
-    ui->toggle_frame_limit->setTristate(true);
-    ui->use_multi_core->setTristate(true);
+    ConfigurationShared::SetColoredTristate(ui->toggle_frame_limit, "toggle_frame_limit",
+                                            Settings::values.use_frame_limit, use_frame_limit);
+    ConfigurationShared::SetColoredTristate(ui->use_multi_core, "use_multi_core",
+                                            Settings::values.use_multi_core, use_multi_core);
+
+    connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit, [this]() {
+        ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked() &&
+                                    (use_frame_limit != ConfigurationShared::CheckState::Global));
+    });
 }

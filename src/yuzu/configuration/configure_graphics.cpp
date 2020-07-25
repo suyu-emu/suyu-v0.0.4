@@ -31,8 +31,14 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     SetConfiguration();
 
-    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this,
-            [this] { UpdateDeviceComboBox(); });
+    connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
+        UpdateDeviceComboBox();
+        if (!Settings::configuring_global) {
+            ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
+                                              ui->api->currentIndex() !=
+                                                  ConfigurationShared::USE_GLOBAL_INDEX);
+        }
+    });
     connect(ui->device, qOverload<int>(&QComboBox::activated), this,
             [this](int device) { UpdateDeviceSelection(device); });
 
@@ -65,25 +71,26 @@ void ConfigureGraphics::SetConfiguration() {
     ui->api->setEnabled(runtime_lock);
     ui->use_asynchronous_gpu_emulation->setEnabled(runtime_lock);
     ui->use_disk_shader_cache->setEnabled(runtime_lock);
+    ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
+    ui->use_asynchronous_gpu_emulation->setChecked(
+        Settings::values.use_asynchronous_gpu_emulation.GetValue());
 
     if (Settings::configuring_global) {
         ui->api->setCurrentIndex(static_cast<int>(Settings::values.renderer_backend.GetValue()));
         ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio.GetValue());
-        ui->use_disk_shader_cache->setChecked(Settings::values.use_disk_shader_cache.GetValue());
-        ui->use_asynchronous_gpu_emulation->setChecked(
-            Settings::values.use_asynchronous_gpu_emulation.GetValue());
     } else {
-        ConfigurationShared::SetPerGameSetting(ui->use_disk_shader_cache,
-                                               &Settings::values.use_disk_shader_cache);
-        ConfigurationShared::SetPerGameSetting(ui->use_asynchronous_gpu_emulation,
-                                               &Settings::values.use_asynchronous_gpu_emulation);
-
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
+        ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
+                                          !Settings::values.renderer_backend.UsingGlobal());
         ConfigurationShared::SetPerGameSetting(ui->aspect_ratio_combobox,
                                                &Settings::values.aspect_ratio);
 
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->ar_label, "ar_label",
+                                          !Settings::values.aspect_ratio.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout",
+                                          !Settings::values.bg_red.UsingGlobal());
     }
 
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red.GetValue(),
@@ -135,9 +142,10 @@ void ConfigureGraphics::ApplyConfiguration() {
                                                  ui->aspect_ratio_combobox);
 
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_disk_shader_cache,
-                                                 ui->use_disk_shader_cache);
+                                                 ui->use_disk_shader_cache, use_disk_shader_cache);
         ConfigurationShared::ApplyPerGameSetting(&Settings::values.use_asynchronous_gpu_emulation,
-                                                 ui->use_asynchronous_gpu_emulation);
+                                                 ui->use_asynchronous_gpu_emulation,
+                                                 use_asynchronous_gpu_emulation);
 
         if (ui->bg_combobox->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
             Settings::values.bg_red.SetGlobal(true);
@@ -241,10 +249,20 @@ void ConfigureGraphics::SetupPerGameUI() {
     }
 
     connect(ui->bg_combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
-            [this](int index) { ui->bg_button->setEnabled(index == 1); });
+            [this](int index) {
+                ui->bg_button->setEnabled(index == 1);
+                ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout", index == 1);
+            });
 
-    ui->use_disk_shader_cache->setTristate(true);
-    ui->use_asynchronous_gpu_emulation->setTristate(true);
-    ConfigurationShared::InsertGlobalItem(ui->aspect_ratio_combobox);
-    ConfigurationShared::InsertGlobalItem(ui->api);
+    ConfigurationShared::SetColoredTristate(ui->use_disk_shader_cache, "use_disk_shader_cache",
+                                            Settings::values.use_disk_shader_cache,
+                                            use_disk_shader_cache);
+    ConfigurationShared::SetColoredTristate(
+        ui->use_asynchronous_gpu_emulation, "use_asynchronous_gpu_emulation",
+        Settings::values.use_asynchronous_gpu_emulation, use_asynchronous_gpu_emulation);
+
+    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label, "ar_label",
+                                            Settings::values.aspect_ratio.GetValue(true));
+    ConfigurationShared::InsertGlobalItem(
+        ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));
 }

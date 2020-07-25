@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>404</width>
     <height>321</height>
    </rect>
   </property>
@@ -23,34 +23,48 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="label_gpu_accuracy">
-            <property name="text">
-             <string>Accuracy Level:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="gpu_accuracy">
-            <item>
+         <widget class="QWidget" name="gpu_accuracy_layout" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="label_gpu_accuracy">
              <property name="text">
-              <string notr="true">Normal</string>
+              <string>Accuracy Level:</string>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">High</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string notr="true">Extreme(very slow)</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="gpu_accuracy">
+             <item>
+              <property name="text">
+               <string notr="true">Normal</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">High</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string notr="true">Extreme(very slow)</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
         <item>
          <widget class="QCheckBox" name="use_vsync">
@@ -97,44 +111,58 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_1">
-          <item>
-           <widget class="QLabel" name="af_label">
-            <property name="text">
-             <string>Anisotropic Filtering:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QComboBox" name="anisotropic_filtering_combobox">
-            <item>
+         <widget class="QWidget" name="af_layout" native="true">
+          <layout class="QHBoxLayout" name="horizontalLayout_1">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+           <item>
+            <widget class="QLabel" name="af_label">
              <property name="text">
-              <string>Default</string>
+              <string>Anisotropic Filtering:</string>
              </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>2x</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>4x</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>8x</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>16x</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-         </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="anisotropic_filtering_combobox">
+             <item>
+              <property name="text">
+               <string>Default</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>2x</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>4x</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>8x</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>16x</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>

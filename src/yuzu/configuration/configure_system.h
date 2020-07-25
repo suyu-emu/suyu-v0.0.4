@@ -9,6 +9,10 @@
 #include <QList>
 #include <QWidget>
 
+namespace ConfigurationShared {
+enum class CheckState;
+}
+
 namespace Ui {
 class ConfigureSystem;
 }
@@ -41,4 +45,7 @@ private:
     int region_index = 0;
     int time_zone_index = 0;
     int sound_index = 0;
+
+    ConfigurationShared::CheckState use_rng_seed;
+    ConfigurationShared::CheckState use_custom_rtc;
 };

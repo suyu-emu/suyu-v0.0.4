@@ -15,9 +15,17 @@ constexpr int USE_GLOBAL_INDEX = 0;
 constexpr int USE_GLOBAL_SEPARATOR_INDEX = 1;
 constexpr int USE_GLOBAL_OFFSET = 2;
 
+enum class CheckState {
+    Off,
+    On,
+    Global,
+    Count,
+};
+
 // Global-aware apply and set functions
 
-void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox);
+void ApplyPerGameSetting(Settings::Setting<bool>* setting, const QCheckBox* checkbox,
+                         const CheckState& tracker);
 void ApplyPerGameSetting(Settings::Setting<int>* setting, const QComboBox* combobox);
 void ApplyPerGameSetting(Settings::Setting<Settings::RendererBackend>* setting,
                          const QComboBox* combobox);
@@ -31,6 +39,14 @@ void SetPerGameSetting(QComboBox* combobox,
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
 
-void InsertGlobalItem(QComboBox* combobox);
+void SetHighlight(QWidget* widget, const std::string& name, bool highlighted);
+void SetColoredTristate(QCheckBox* checkbox, const std::string& name,
+                        const Settings::Setting<bool>& setting, CheckState& tracker);
+void SetColoredTristate(QCheckBox* checkbox, const std::string& name, bool global, bool state,
+                        bool global_state, CheckState& tracker);
+void SetColoredComboBox(QComboBox* combobox, QWidget* target, const std::string& target_name,
+                        int global);
+
+void InsertGlobalItem(QComboBox* combobox, int global_index);
 
 } // namespace ConfigurationShared
