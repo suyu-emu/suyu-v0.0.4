@@ -19,7 +19,9 @@ class MixContext;
 class SplitterContext;
 class ServerSplitterDestinationData;
 class ServerMixInfo;
+
 using MixVolumeBuffer = std::array<float, AudioCommon::MAX_MIX_BUFFERS>;
+
 class CommandGenerator {
 public:
     explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,

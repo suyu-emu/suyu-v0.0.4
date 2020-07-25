@@ -106,6 +106,7 @@ public:
 
     std::size_t GetCount() const;
     EffectBase* GetInfo(std::size_t i);
+    const EffectBase* GetInfo(std::size_t i) const;
 
 private:
     std::size_t effect_count{};

@@ -99,7 +99,7 @@ bool BehaviorInfo::IsSplitterBugFixed() const {
 
 void BehaviorInfo::CopyErrorInfo(BehaviorInfo::OutParams& dst) {
     dst.error_count = static_cast<u32>(error_count);
-    std::memcpy(dst.errors.data(), errors.data(), sizeof(ErrorInfo) * dst.errors.size());
+    std::copy(errors.begin(), errors.begin() + error_count, dst.errors.begin());
 }
 
 } // namespace AudioCore

@@ -173,7 +173,7 @@ void SplitterContext::Initialize(BehaviorInfo& behavior_info, std::size_t _info_
 
 bool SplitterContext::Update(const std::vector<u8>& input, std::size_t& input_offset,
                              std::size_t& bytes_read) {
-    auto UpdateOffsets = [&](std::size_t read) {
+    const auto UpdateOffsets = [&](std::size_t read) {
         input_offset += read;
         bytes_read += read;
     };
@@ -286,7 +286,7 @@ void SplitterContext::Setup(std::size_t _info_count, std::size_t _data_count,
 
 bool SplitterContext::UpdateInfo(const std::vector<u8>& input, std::size_t& input_offset,
                                  std::size_t& bytes_read, s32 in_splitter_count) {
-    auto UpdateOffsets = [&](std::size_t read) {
+    const auto UpdateOffsets = [&](std::size_t read) {
         input_offset += read;
         bytes_read += read;
     };
@@ -326,7 +326,7 @@ bool SplitterContext::UpdateInfo(const std::vector<u8>& input, std::size_t& inpu
 
 bool SplitterContext::UpdateData(const std::vector<u8>& input, std::size_t& input_offset,
                                  std::size_t& bytes_read, s32 in_data_count) {
-    auto UpdateOffsets = [&](std::size_t read) {
+    const auto UpdateOffsets = [&](std::size_t read) {
         input_offset += read;
         bytes_read += read;
     };
@@ -412,9 +412,9 @@ bool SplitterContext::RecomposeDestination(ServerSplitterInfo& info,
 NodeStates::NodeStates() = default;
 NodeStates::~NodeStates() = default;
 
-void NodeStates::Initialize(std::size_t _node_count) {
+void NodeStates::Initialize(std::size_t node_count_) {
     // Setup our work parameters
-    node_count = _node_count;
+    node_count = node_count_;
     was_node_found.resize(node_count);
     was_node_completed.resize(node_count);
     index_list.resize(node_count);

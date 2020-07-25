@@ -2,13 +2,14 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include "audio_core/effect_context.h"
 
 namespace AudioCore {
 EffectContext::EffectContext(std::size_t effect_count) : effect_count(effect_count) {
-    for (std::size_t i = 0; i < effect_count; i++) {
-        effects.push_back(std::make_unique<EffectStubbed>());
-    }
+    effects.reserve(effect_count);
+    std::generate_n(std::back_inserter(effects), effect_count,
+                    [] { return std::make_unique<EffectStubbed>(); });
 }
 EffectContext::~EffectContext() = default;
 
@@ -17,6 +18,10 @@ std::size_t EffectContext::GetCount() const {
 }
 
 EffectBase* EffectContext::GetInfo(std::size_t i) {
+    return effects.at(i).get();
+}
+
+const EffectBase* EffectContext::GetInfo(std::size_t i) const {
     return effects.at(i).get();
 }
 

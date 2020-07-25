@@ -29,12 +29,12 @@ void ServerVoiceChannelResource::Update(VoiceChannelResource::InParams& in_param
     in_use = in_params.in_use;
     // Update our mix volumes only if it's in use
     if (in_params.in_use) {
-        std::copy(in_params.mix_volume.begin(), in_params.mix_volume.end(), mix_volume.begin());
+        mix_volume = in_params.mix_volume;
     }
 }
 
 void ServerVoiceChannelResource::UpdateLastMixVolumes() {
-    std::copy(mix_volume.begin(), mix_volume.end(), last_mix_volume.begin());
+    last_mix_volume = mix_volume;
 }
 
 const std::array<float, AudioCommon::MAX_MIX_BUFFERS>&
@@ -64,8 +64,7 @@ void ServerVoiceInfo::Initialize() {
     in_params.pitch = 0.0f;
     in_params.volume = 0.0f;
     in_params.last_volume = 0.0f;
-    std::memset(in_params.biquad_filter.data(), 0,
-                sizeof(BiquadFilterParameter) * in_params.biquad_filter.size());
+    in_params.biquad_filter.fill({});
     in_params.wave_buffer_count = 0;
     in_params.wave_bufffer_head = 0;
     in_params.mix_id = AudioCommon::NO_MIX;
@@ -78,8 +77,7 @@ void ServerVoiceInfo::Initialize() {
     in_params.voice_drop_flag = false;
     in_params.buffer_mapped = false;
     in_params.wave_buffer_flush_request_count = 0;
-    std::fill(in_params.was_biquad_filter_enabled.begin(),
-              in_params.was_biquad_filter_enabled.end(), false);
+    in_params.was_biquad_filter_enabled.fill(false);
 
     for (auto& wave_buffer : in_params.wave_buffer) {
         wave_buffer.start_sample_offset = 0;
@@ -126,8 +124,7 @@ void ServerVoiceInfo::UpdateParameters(const VoiceInfo::InParams& voice_in,
     in_params.channel_count = voice_in.channel_count;
     in_params.pitch = voice_in.pitch;
     in_params.volume = voice_in.volume;
-    std::memcpy(in_params.biquad_filter.data(), voice_in.biquad_filter.data(),
-                sizeof(BiquadFilterParameter) * voice_in.biquad_filter.size());
+    in_params.biquad_filter = voice_in.biquad_filter;
     in_params.wave_buffer_count = voice_in.wave_buffer_count;
     in_params.wave_bufffer_head = voice_in.wave_buffer_head;
     if (behavior_info.IsFlushVoiceWaveBuffersSupported()) {
@@ -308,7 +305,7 @@ void ServerVoiceInfo::ResetResources(VoiceContext& voice_context) {
         const auto channel_resource = in_params.voice_channel_resource_id[i];
         auto& dsp_state =
             voice_context.GetDspSharedState(static_cast<std::size_t>(channel_resource));
-        std::memset(&dsp_state, 0, sizeof(VoiceState));
+        dsp_state = {};
         voice_context.GetChannelResource(static_cast<std::size_t>(channel_resource))
             .UpdateLastMixVolumes();
     }
@@ -362,9 +359,8 @@ bool ServerVoiceInfo::UpdateParametersForCommandGeneration(
             dsp_state->offset = 0;
             dsp_state->played_sample_count = 0;
             dsp_state->fraction = 0;
-            std::memset(dsp_state->sample_history.data(), 0,
-                        sizeof(s32) * dsp_state->sample_history.size());
-            std::memset(&dsp_state->context, 0, sizeof(dsp_state->context));
+            dsp_state->sample_history.fill(0);
+            dsp_state->context = {};
         }
 
         in_params.current_playstate = ServerPlayState::Stop;
@@ -524,8 +520,7 @@ void VoiceContext::SortInfo() {
 }
 
 void VoiceContext::UpdateStateByDspShared() {
-    std::memcpy(voice_states.data(), dsp_voice_states.data(),
-                sizeof(VoiceState) * dsp_voice_states.size());
+    voice_states = dsp_voice_states;
 }
 
 } // namespace AudioCore

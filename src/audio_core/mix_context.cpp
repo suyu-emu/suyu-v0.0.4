@@ -16,6 +16,7 @@ void MixContext::Initialize(const BehaviorInfo& behavior_info, std::size_t mix_c
     infos.resize(info_count);
     auto& final_mix = GetInfo(AudioCommon::FINAL_MIX);
     final_mix.GetInParams().mix_id = AudioCommon::FINAL_MIX;
+    sorted_info.reserve(infos.size());
     for (auto& info : infos) {
         sorted_info.push_back(&info);
     }
