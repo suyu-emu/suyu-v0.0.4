@@ -263,7 +263,8 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
                 controller_number = static_cast<int>(port);
-            } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == port) {
+            } else if (analog_y_axis == -1 && analog_x_axis != axis &&
+                       controller_number == static_cast<int>(port)) {
                 analog_y_axis = axis;
             }
         }
