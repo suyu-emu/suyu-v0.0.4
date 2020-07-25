@@ -86,7 +86,7 @@ public:
 
     s64 GetNextTicks() const;
 
-    std::unique_lock<std::mutex> Lock() {
+    std::unique_lock<std::mutex> Lock() const {
         return std::unique_lock{*guard};
     }
 
