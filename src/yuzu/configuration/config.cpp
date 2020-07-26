@@ -1182,9 +1182,9 @@ void Config::SaveRendererValues() {
 void Config::SaveScreenshotValues() {
     qt_config->beginGroup(QStringLiteral("Screenshots"));
 
-    WriteSetting(QStringLiteral("enableScreenshotSaveAs"),
+    WriteSetting(QStringLiteral("enable_screenshot_save_as"),
                  UISettings::values.enable_screenshot_save_as);
-    WriteSetting(QStringLiteral("screenshotPath"),
+    WriteSetting(QStringLiteral("screenshot_path"),
                  QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir)));
 
     qt_config->endGroup();
