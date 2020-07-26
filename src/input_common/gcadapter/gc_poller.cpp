@@ -76,8 +76,7 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
 
     // button is not an axis/stick button
     if (button_id != PAD_STICK_ID) {
-        auto button = std::make_unique<GCButton>(port, button_id, adapter.get());
-        return std::move(button);
+        return std::make_unique<GCButton>(port, button_id, adapter.get());
     }
 
     // For Axis buttons, used by the binary sticks.
@@ -264,7 +263,8 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
             if (analog_x_axis == -1) {
                 analog_x_axis = axis;
                 controller_number = static_cast<int>(port);
-            } else if (analog_y_axis == -1 && analog_x_axis != axis && controller_number == port) {
+            } else if (analog_y_axis == -1 && analog_x_axis != axis &&
+                       controller_number == static_cast<int>(port)) {
                 analog_y_axis = axis;
             }
         }

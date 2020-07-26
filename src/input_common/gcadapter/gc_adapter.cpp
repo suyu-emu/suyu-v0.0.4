@@ -254,7 +254,7 @@ void Adapter::GetGCEndpoint(libusb_device* device) {
                               sizeof(clear_payload), nullptr, 16);
 
     adapter_thread_running = true;
-    adapter_input_thread = std::thread([=] { Read(); }); // Read input
+    adapter_input_thread = std::thread(&Adapter::Read, this);
 }
 
 Adapter::~Adapter() {
