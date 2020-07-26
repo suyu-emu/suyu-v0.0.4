@@ -54,12 +54,12 @@ public:
     /// Opens the specified display and returns the ID.
     ///
     /// If an invalid display name is provided, then an empty optional is returned.
-    std::optional<u64> OpenDisplay(std::string_view name);
+    [[nodiscard]] std::optional<u64> OpenDisplay(std::string_view name);
 
     /// Creates a layer on the specified display and returns the layer ID.
     ///
     /// If an invalid display ID is specified, then an empty optional is returned.
-    std::optional<u64> CreateLayer(u64 display_id);
+    [[nodiscard]] std::optional<u64> CreateLayer(u64 display_id);
 
     /// Closes a layer on all displays for the given layer ID.
     void CloseLayer(u64 layer_id);
@@ -67,41 +67,39 @@ public:
     /// Finds the buffer queue ID of the specified layer in the specified display.
     ///
     /// If an invalid display ID or layer ID is provided, then an empty optional is returned.
-    std::optional<u32> FindBufferQueueId(u64 display_id, u64 layer_id) const;
+    [[nodiscard]] std::optional<u32> FindBufferQueueId(u64 display_id, u64 layer_id) const;
 
     /// Gets the vsync event for the specified display.
     ///
     /// If an invalid display ID is provided, then nullptr is returned.
-    std::shared_ptr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
+    [[nodiscard]] std::shared_ptr<Kernel::ReadableEvent> FindVsyncEvent(u64 display_id) const;
 
     /// Obtains a buffer queue identified by the ID.
-    BufferQueue& FindBufferQueue(u32 id);
+    [[nodiscard]] BufferQueue& FindBufferQueue(u32 id);
 
     /// Obtains a buffer queue identified by the ID.
-    const BufferQueue& FindBufferQueue(u32 id) const;
+    [[nodiscard]] const BufferQueue& FindBufferQueue(u32 id) const;
 
     /// Performs a composition request to the emulated nvidia GPU and triggers the vsync events when
     /// finished.
     void Compose();
 
-    s64 GetNextTicks() const;
+    [[nodiscard]] s64 GetNextTicks() const;
 
-    std::unique_lock<std::mutex> Lock() {
-        return std::unique_lock{*guard};
-    }
+    [[nodiscard]] std::unique_lock<std::mutex> Lock() const { return std::unique_lock{*guard}; }
 
-private:
-    /// Finds the display identified by the specified ID.
-    VI::Display* FindDisplay(u64 display_id);
+    private :
+        /// Finds the display identified by the specified ID.
+        [[nodiscard]] VI::Display* FindDisplay(u64 display_id);
 
     /// Finds the display identified by the specified ID.
-    const VI::Display* FindDisplay(u64 display_id) const;
+    [[nodiscard]] const VI::Display* FindDisplay(u64 display_id) const;
 
     /// Finds the layer identified by the specified ID in the desired display.
-    VI::Layer* FindLayer(u64 display_id, u64 layer_id);
+    [[nodiscard]] VI::Layer* FindLayer(u64 display_id, u64 layer_id);
 
     /// Finds the layer identified by the specified ID in the desired display.
-    const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
+    [[nodiscard]] const VI::Layer* FindLayer(u64 display_id, u64 layer_id) const;
 
     static void VSyncThread(NVFlinger& nv_flinger);
 
