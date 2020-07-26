@@ -38,7 +38,7 @@ void* AllocateMemoryPages(std::size_t size) {
     return base;
 }
 
-void FreeMemoryPages(void* base, std::size_t size) {
+void FreeMemoryPages(void* base, [[maybe_unused]] std::size_t size) {
     if (!base) {
         return;
     }
