@@ -252,7 +252,7 @@ public:
     const Tegra::DmaPusher& DmaPusher() const;
 
     struct Regs {
-        static constexpr size_t NUM_REGS = 0x100;
+        static constexpr size_t NUM_REGS = 0x40;
 
         union {
             struct {
@@ -271,7 +271,7 @@ public:
                 u32 semaphore_trigger;
                 INSERT_UNION_PADDING_WORDS(0xC);
 
-                // The puser and the puller share the reference counter, the pusher only has read
+                // The pusher and the puller share the reference counter, the pusher only has read
                 // access
                 u32 reference_count;
                 INSERT_UNION_PADDING_WORDS(0x5);
