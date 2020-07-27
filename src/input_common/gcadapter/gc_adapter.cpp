@@ -265,7 +265,9 @@ void Adapter::Reset() {
     if (adapter_thread_running) {
         adapter_thread_running = false;
     }
-    adapter_input_thread.join();
+    if (adapter_input_thread.joinable()) {
+        adapter_input_thread.join();
+    }
 
     adapter_controllers_status.fill(ControllerTypes::None);
     get_origin.fill(true);
