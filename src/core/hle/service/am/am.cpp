@@ -1405,7 +1405,6 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     // Get supported languages from NACP, if possible
     // Default to 0 (all languages supported)
     u32 supported_languages = 0;
-    FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
 
     const auto res = [this] {
         const auto title_id = system.CurrentProcess()->GetTitleID();
