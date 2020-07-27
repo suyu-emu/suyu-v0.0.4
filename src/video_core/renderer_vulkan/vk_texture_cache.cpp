@@ -138,6 +138,7 @@ VkImageCreateInfo GenerateImageCreateInfo(const VKDevice& device, const SurfaceP
         .flags = 0,
         .imageType = SurfaceTargetToImage(params.target),
         .format = format,
+        .extent = {},
         .mipLevels = params.num_levels,
         .arrayLayers = static_cast<u32>(params.GetNumLayers()),
         .samples = VK_SAMPLE_COUNT_1_BIT,
@@ -458,6 +459,7 @@ VkImageView CachedSurfaceView::GetAttachment() {
         .pNext = nullptr,
         .flags = 0,
         .image = surface.GetImageHandle(),
+        .viewType = VK_IMAGE_VIEW_TYPE_1D,
         .format = surface.GetImage().GetFormat(),
         .components =
             {
