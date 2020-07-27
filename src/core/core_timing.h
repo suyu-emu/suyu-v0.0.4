@@ -22,7 +22,8 @@
 namespace Core::Timing {
 
 /// A callback that may be scheduled for a particular core timing event.
-using TimedCallback = std::function<void(u64 userdata, std::chrono::nanoseconds ns_late)>;
+using TimedCallback =
+    std::function<void(std::uintptr_t user_data, std::chrono::nanoseconds ns_late)>;
 
 /// Contains the characteristics of a particular event.
 struct EventType {
@@ -94,9 +95,9 @@ public:
 
     /// Schedules an event in core timing
     void ScheduleEvent(std::chrono::nanoseconds ns_into_future,
-                       const std::shared_ptr<EventType>& event_type, u64 userdata = 0);
+                       const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data = 0);
 
-    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata);
+    void UnscheduleEvent(const std::shared_ptr<EventType>& event_type, std::uintptr_t user_data);
 
     /// We only permit one event of each type in the queue at a time.
     void RemoveEvent(const std::shared_ptr<EventType>& event_type);

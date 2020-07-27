@@ -11,8 +11,8 @@
 namespace Core::Hardware {
 
 InterruptManager::InterruptManager(Core::System& system_in) : system(system_in) {
-    gpu_interrupt_event =
-        Core::Timing::CreateEvent("GPUInterrupt", [this](u64 message, std::chrono::nanoseconds) {
+    gpu_interrupt_event = Core::Timing::CreateEvent(
+        "GPUInterrupt", [this](std::uintptr_t message, std::chrono::nanoseconds) {
             auto nvdrv = system.ServiceManager().GetService<Service::Nvidia::NVDRV>("nvdrv");
             const u32 syncpt = static_cast<u32>(message >> 32);
             const u32 value = static_cast<u32>(message);

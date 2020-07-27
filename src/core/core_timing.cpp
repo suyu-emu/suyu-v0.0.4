@@ -23,7 +23,7 @@ std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callbac
 struct CoreTiming::Event {
     u64 time;
     u64 fifo_order;
-    u64 userdata;
+    std::uintptr_t user_data;
     std::weak_ptr<EventType> type;
 
     // Sort by time, unless the times are the same, in which case sort by
@@ -58,7 +58,7 @@ void CoreTiming::Initialize(std::function<void()>&& on_thread_init_) {
     event_fifo_id = 0;
     shutting_down = false;
     ticks = 0;
-    const auto empty_timed_callback = [](u64, std::chrono::nanoseconds) {};
+    const auto empty_timed_callback = [](std::uintptr_t, std::chrono::nanoseconds) {};
     ev_lost = CreateEvent("_lost_event", empty_timed_callback);
     if (is_multicore) {
         timer_thread = std::make_unique<std::thread>(ThreadEntry, std::ref(*this));
@@ -107,22 +107,24 @@ bool CoreTiming::HasPendingEvents() const {
 }
 
 void CoreTiming::ScheduleEvent(std::chrono::nanoseconds ns_into_future,
-                               const std::shared_ptr<EventType>& event_type, u64 userdata) {
+                               const std::shared_ptr<EventType>& event_type,
+                               std::uintptr_t user_data) {
     {
         std::scoped_lock scope{basic_lock};
         const u64 timeout = static_cast<u64>((GetGlobalTimeNs() + ns_into_future).count());
 
-        event_queue.emplace_back(Event{timeout, event_fifo_id++, userdata, event_type});
+        event_queue.emplace_back(Event{timeout, event_fifo_id++, user_data, event_type});
 
         std::push_heap(event_queue.begin(), event_queue.end(), std::greater<>());
     }
     event.Set();
 }
 
-void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type, u64 userdata) {
+void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
+                                 std::uintptr_t user_data) {
     std::scoped_lock scope{basic_lock};
     const auto itr = std::remove_if(event_queue.begin(), event_queue.end(), [&](const Event& e) {
-        return e.type.lock().get() == event_type.get() && e.userdata == userdata;
+        return e.type.lock().get() == event_type.get() && e.user_data == user_data;
     });
 
     // Removing random items breaks the invariant so we have to re-establish it.
@@ -197,7 +199,7 @@ std::optional<s64> CoreTiming::Advance() {
 
         if (const auto event_type{evt.type.lock()}) {
             event_type->callback(
-                evt.userdata, std::chrono::nanoseconds{static_cast<s64>(global_timer - evt.time)});
+                evt.user_data, std::chrono::nanoseconds{static_cast<s64>(global_timer - evt.time)});
         }
 
         basic_lock.lock();

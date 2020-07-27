@@ -36,9 +36,10 @@ Stream::Stream(Core::Timing::CoreTiming& core_timing, u32 sample_rate, Format fo
                ReleaseCallback&& release_callback, SinkStream& sink_stream, std::string&& name_)
     : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
       sink_stream{sink_stream}, core_timing{core_timing}, name{std::move(name_)} {
-
-    release_event = Core::Timing::CreateEvent(
-        name, [this](u64, std::chrono::nanoseconds ns_late) { ReleaseActiveBuffer(ns_late); });
+    release_event =
+        Core::Timing::CreateEvent(name, [this](std::uintptr_t, std::chrono::nanoseconds ns_late) {
+            ReleaseActiveBuffer(ns_late);
+        });
 }
 
 void Stream::Play() {

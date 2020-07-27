@@ -77,8 +77,9 @@ IAppletResource::IAppletResource(Core::System& system)
 
     // Register update callbacks
     pad_update_event = Core::Timing::CreateEvent(
-        "HID::UpdatePadCallback", [this](u64 userdata, std::chrono::nanoseconds ns_late) {
-            UpdateControllers(userdata, ns_late);
+        "HID::UpdatePadCallback",
+        [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            UpdateControllers(user_data, ns_late);
         });
 
     // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
@@ -108,7 +109,8 @@ void IAppletResource::GetSharedMemoryHandle(Kernel::HLERequestContext& ctx) {
     rb.PushCopyObjects(shared_mem);
 }
 
-void IAppletResource::UpdateControllers(u64 userdata, std::chrono::nanoseconds ns_late) {
+void IAppletResource::UpdateControllers(std::uintptr_t user_data,
+                                        std::chrono::nanoseconds ns_late) {
     auto& core_timing = system.CoreTiming();
 
     const bool should_reload = Settings::values.is_device_reload_pending.exchange(false);

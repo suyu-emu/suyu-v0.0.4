@@ -64,7 +64,7 @@ private:
     }
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
-    void UpdateControllers(u64 userdata, std::chrono::nanoseconds ns_late);
+    void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
 
     std::shared_ptr<Kernel::SharedMemory> shared_mem;
 

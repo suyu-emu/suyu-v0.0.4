@@ -16,14 +16,14 @@ namespace Kernel {
 
 TimeManager::TimeManager(Core::System& system_) : system{system_} {
     time_manager_event_type = Core::Timing::CreateEvent(
-        "Kernel::TimeManagerCallback", [this](u64 thread_handle, std::chrono::nanoseconds) {
-            SchedulerLock lock(system.Kernel());
-            Handle proper_handle = static_cast<Handle>(thread_handle);
+        "Kernel::TimeManagerCallback",
+        [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
+            const SchedulerLock lock(system.Kernel());
+            const auto proper_handle = static_cast<Handle>(thread_handle);
             if (cancelled_events[proper_handle]) {
                 return;
             }
-            std::shared_ptr<Thread> thread =
-                this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
+            auto thread = this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
             thread->OnWakeUp();
         });
 }
