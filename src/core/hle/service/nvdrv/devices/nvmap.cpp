@@ -65,7 +65,7 @@ u32 nvmap::CreateObject(u32 size) {
 
     const u32 handle = next_handle++;
 
-    handles[handle] = std::move(object);
+    handles.insert_or_assign(handle, std::move(object));
 
     return handle;
 }
