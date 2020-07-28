@@ -159,7 +159,7 @@ macro(yuzu_find_packages)
     # Capitalization matters here. We need the naming to match the generated paths from Conan
     set(REQUIRED_LIBS
     #    Cmake Pkg Prefix  Version     Conan Pkg
-        "Boost             1.71        boost/1.72.0"
+        "Boost             1.73        boost/1.73.0"
         "Catch2            2.13        catch2/2.13.0"
         "fmt               7.0         fmt/7.0.1"
     # can't use until https://github.com/bincrafters/community/issues/1173
