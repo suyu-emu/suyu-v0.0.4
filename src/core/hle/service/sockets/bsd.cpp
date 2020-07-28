@@ -465,6 +465,11 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
         return {-1, Errno::INVAL};
     }
 
+    if (nfds == 0) {
+        // When no entries are provided, -1 is returned with errno zero
+        return {-1, Errno::SUCCESS};
+    }
+
     const size_t length = std::min(read_buffer.size(), write_buffer.size());
     std::vector<PollFD> fds(nfds);
     std::memcpy(fds.data(), read_buffer.data(), length);
