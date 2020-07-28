@@ -55,10 +55,11 @@ void MemoryWriteWidth(Core::Memory::Memory& memory, u32 width, VAddr addr, u64 v
 
 Freezer::Freezer(Core::Timing::CoreTiming& core_timing_, Core::Memory::Memory& memory_)
     : core_timing{core_timing_}, memory{memory_} {
-    event = Core::Timing::CreateEvent("MemoryFreezer::FrameCallback",
-                                      [this](u64 userdata, std::chrono::nanoseconds ns_late) {
-                                          FrameCallback(userdata, ns_late);
-                                      });
+    event = Core::Timing::CreateEvent(
+        "MemoryFreezer::FrameCallback",
+        [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            FrameCallback(user_data, ns_late);
+        });
     core_timing.ScheduleEvent(memory_freezer_ns, event);
 }
 
@@ -159,7 +160,7 @@ std::vector<Freezer::Entry> Freezer::GetEntries() const {
     return entries;
 }
 
-void Freezer::FrameCallback(u64, std::chrono::nanoseconds ns_late) {
+void Freezer::FrameCallback(std::uintptr_t, std::chrono::nanoseconds ns_late) {
     if (!IsActive()) {
         LOG_DEBUG(Common_Memory, "Memory freezer has been deactivated, ending callback events.");
         return;

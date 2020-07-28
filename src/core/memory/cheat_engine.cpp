@@ -188,11 +188,11 @@ CheatEngine::~CheatEngine() {
 }
 
 void CheatEngine::Initialize() {
-    event = Core::Timing::CreateEvent("CheatEngine::FrameCallback::" +
-                                          Common::HexToString(metadata.main_nso_build_id),
-                                      [this](u64 userdata, std::chrono::nanoseconds ns_late) {
-                                          FrameCallback(userdata, ns_late);
-                                      });
+    event = Core::Timing::CreateEvent(
+        "CheatEngine::FrameCallback::" + Common::HexToString(metadata.main_nso_build_id),
+        [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            FrameCallback(user_data, ns_late);
+        });
     core_timing.ScheduleEvent(CHEAT_ENGINE_NS, event);
 
     metadata.process_id = system.CurrentProcess()->GetProcessID();
@@ -219,7 +219,7 @@ void CheatEngine::Reload(std::vector<CheatEntry> cheats) {
 
 MICROPROFILE_DEFINE(Cheat_Engine, "Add-Ons", "Cheat Engine", MP_RGB(70, 200, 70));
 
-void CheatEngine::FrameCallback(u64, std::chrono::nanoseconds ns_late) {
+void CheatEngine::FrameCallback(std::uintptr_t, std::chrono::nanoseconds ns_late) {
     if (is_pending_reload.exchange(false)) {
         vm.LoadProgram(cheats);
     }

@@ -73,7 +73,7 @@ public:
     std::vector<Entry> GetEntries() const;
 
 private:
-    void FrameCallback(u64 userdata, std::chrono::nanoseconds ns_late);
+    void FrameCallback(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
     void FillEntryReads();
 
     std::atomic_bool active{false};

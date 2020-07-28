@@ -67,7 +67,7 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
 
     // Schedule the screen composition events
     composition_event = Core::Timing::CreateEvent(
-        "ScreenComposition", [this](u64, std::chrono::nanoseconds ns_late) {
+        "ScreenComposition", [this](std::uintptr_t, std::chrono::nanoseconds ns_late) {
             const auto guard = Lock();
             Compose();
 
