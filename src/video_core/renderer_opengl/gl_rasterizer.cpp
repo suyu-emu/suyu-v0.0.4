@@ -178,16 +178,11 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
 
     if (device.UseAsynchronousShaders()) {
         // Max worker threads we should allow
-        constexpr auto MAX_THREADS = 2u;
-        // Amount of threads we should reserve for other parts of yuzu
-        constexpr auto RESERVED_THREADS = 6u;
-        // Get the amount of threads we can use(this can return zero)
-        const auto cpu_thread_count =
-            std::max(RESERVED_THREADS, std::thread::hardware_concurrency());
-        // Deduce how many "extra" threads we have to use.
-        const auto max_threads_unused = cpu_thread_count - RESERVED_THREADS;
+        constexpr u32 MAX_THREADS = 4;
+        // Deduce how many threads we can use
+        const u32 threads_used = std::thread::hardware_concurrency() / 4;
         // Always allow at least 1 thread regardless of our settings
-        const auto max_worker_count = std::max(1u, max_threads_unused);
+        const auto max_worker_count = std::max(1U, threads_used);
         // Don't use more than MAX_THREADS
         const auto worker_count = std::min(max_worker_count, MAX_THREADS);
         async_shaders.AllocateWorkers(worker_count);
