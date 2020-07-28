@@ -165,7 +165,7 @@ macro(yuzu_find_packages)
     # can't use until https://github.com/bincrafters/community/issues/1173
         #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
         "lz4               1.8         lz4/1.9.2"
-        "nlohmann_json     3.7         nlohmann_json/3.7.3"
+        "nlohmann_json     3.8         nlohmann_json/3.8.0"
         "ZLIB              1.2         zlib/1.2.11"
         "zstd              1.4         zstd/1.4.4"
     )
