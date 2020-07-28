@@ -146,7 +146,7 @@ struct System::Impl {
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
         LOG_DEBUG(HW_Memory, "initialized OK");
 
-        device_memory = std::make_unique<Core::DeviceMemory>(system);
+        device_memory = std::make_unique<Core::DeviceMemory>();
 
         is_multicore = Settings::values.use_multi_core.GetValue();
         is_async_gpu = is_multicore || Settings::values.use_asynchronous_gpu_emulation.GetValue();
