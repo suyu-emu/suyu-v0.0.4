@@ -4,13 +4,10 @@
 
 #pragma once
 
-#include "common/assert.h"
-#include "common/common_funcs.h"
+#include "common/common_types.h"
 #include "common/virtual_buffer.h"
 
 namespace Core {
-
-class System;
 
 namespace DramMemoryMap {
 enum : u64 {
@@ -26,7 +23,7 @@ enum : u64 {
 
 class DeviceMemory : NonCopyable {
 public:
-    explicit DeviceMemory(Core::System& system);
+    explicit DeviceMemory();
     ~DeviceMemory();
 
     template <typename T>
@@ -45,7 +42,6 @@ public:
 
 private:
     Common::VirtualBuffer<u8> buffer;
-    Core::System& system;
 };
 
 } // namespace Core
