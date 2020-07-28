@@ -14,6 +14,10 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
+#include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/vk_pipeline_cache.h"
+#include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_update_descriptor.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -24,6 +28,10 @@ namespace Tegra {
 class GPU;
 }
 
+namespace Vulkan {
+class VKPipelineCache;
+}
+
 namespace VideoCommon::Shader {
 
 class AsyncShaders {
@@ -31,6 +39,7 @@ public:
     enum class Backend {
         OpenGL,
         GLASM,
+        Vulkan,
     };
 
     struct ResultPrograms {
@@ -46,6 +55,7 @@ public:
         std::vector<u64> code;
         std::vector<u64> code_b;
         Tegra::Engines::ShaderType shader_type;
+        std::unique_ptr<Vulkan::VKGraphicsPipeline> pipeline;
     };
 
     explicit AsyncShaders(Core::Frontend::EmuWindow& emu_window);
@@ -76,6 +86,13 @@ public:
                            VideoCommon::Shader::CompilerSettings compiler_settings,
                            const VideoCommon::Shader::Registry& registry, VAddr cpu_addr);
 
+    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
+                           std::vector<VkDescriptorSetLayoutBinding> bindings,
+                           Vulkan::SPIRVProgram program, Vulkan::RenderPassParams renderpass_params,
+                           u32 padding,
+                           std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders,
+                           Vulkan::FixedPipelineState fixed_state);
+
 private:
     void ShaderCompilerThread(Core::Frontend::GraphicsContext* context);
 
@@ -84,15 +101,25 @@ private:
 
     struct WorkerParams {
         AsyncShaders::Backend backend;
-        OpenGL::Device device;
+        // For OGL
+        const OpenGL::Device* device;
         Tegra::Engines::ShaderType shader_type;
         u64 uid;
         std::vector<u64> code;
         std::vector<u64> code_b;
         u32 main_offset;
         VideoCommon::Shader::CompilerSettings compiler_settings;
-        VideoCommon::Shader::Registry registry;
+        const VideoCommon::Shader::Registry* registry;
         VAddr cpu_address;
+
+        // For Vulkan
+        Vulkan::VKPipelineCache* pp_cache;
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        Vulkan::SPIRVProgram program;
+        Vulkan::RenderPassParams renderpass_params;
+        u32 padding;
+        std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders;
+        Vulkan::FixedPipelineState fixed_state;
     };
 
     std::condition_variable cv;

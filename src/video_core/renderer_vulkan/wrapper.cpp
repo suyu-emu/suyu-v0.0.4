@@ -644,7 +644,7 @@ ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) cons
     return ShaderModule(object, handle, *dld);
 }
 
-Event Device::CreateEvent() const {
+Event Device::CreateNewEvent() const {
     static constexpr VkEventCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO,
         .pNext = nullptr,

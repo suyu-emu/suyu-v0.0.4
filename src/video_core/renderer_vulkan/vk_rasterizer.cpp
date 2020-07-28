@@ -400,8 +400,25 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
       sampler_cache(device),
       fence_manager(system, *this, device, scheduler, texture_cache, buffer_cache, query_cache),
-      query_cache(system, *this, device, scheduler), wfi_event{device.GetLogical().CreateEvent()} {
+      query_cache(system, *this, device, scheduler),
+      wfi_event{device.GetLogical().CreateNewEvent()}, async_shaders{renderer} {
     scheduler.SetQueryCache(query_cache);
+    if (device.UseAsynchronousShaders()) {
+        // Max worker threads we should allow
+        constexpr auto MAX_THREADS = 2u;
+        // Amount of threads we should reserve for other parts of yuzu
+        constexpr auto RESERVED_THREADS = 6u;
+        // Get the amount of threads we can use(this can return zero)
+        const auto cpu_thread_count =
+            std::max(RESERVED_THREADS, std::thread::hardware_concurrency());
+        // Deduce how many "extra" threads we have to use.
+        const auto max_threads_unused = cpu_thread_count - RESERVED_THREADS;
+        // Always allow at least 1 thread regardless of our settings
+        const auto max_worker_count = std::max(1u, max_threads_unused);
+        // Don't use more than MAX_THREADS
+        const auto worker_count = std::min(max_worker_count, MAX_THREADS);
+        async_shaders.AllocateWorkers(worker_count);
+    }
 }
 
 RasterizerVulkan::~RasterizerVulkan() = default;
@@ -439,7 +456,13 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     key.renderpass_params = GetRenderPassParams(texceptions);
     key.padding = 0;
 
-    auto& pipeline = pipeline_cache.GetGraphicsPipeline(key);
+    auto& pipeline = pipeline_cache.GetGraphicsPipeline(key, async_shaders);
+    if (&pipeline == nullptr || pipeline.GetHandle() == VK_NULL_HANDLE) {
+        // Async graphics pipeline was not ready.
+        system.GPU().TickWork();
+        return;
+    }
+
     scheduler.BindGraphicsPipeline(pipeline.GetHandle());
 
     const auto renderpass = pipeline.GetRenderPass();

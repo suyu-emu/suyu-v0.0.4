@@ -113,15 +113,38 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                                      VAddr cpu_addr) {
     WorkerParams params{device.UseAssemblyShaders() ? AsyncShaders::Backend::GLASM
                                                     : AsyncShaders::Backend::OpenGL,
-                        device,
+                        &device,
                         shader_type,
                         uid,
                         std::move(code),
                         std::move(code_b),
                         main_offset,
                         compiler_settings,
-                        registry,
+                        &registry,
                         cpu_addr};
+
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push_back(std::move(params));
+    cv.notify_one();
+}
+
+void AsyncShaders::QueueVulkanShader(
+    Vulkan::VKPipelineCache* pp_cache, std::vector<VkDescriptorSetLayoutBinding> bindings,
+    Vulkan::SPIRVProgram program, Vulkan::RenderPassParams renderpass_params, u32 padding,
+    std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders,
+    Vulkan::FixedPipelineState fixed_state) {
+
+    WorkerParams params{
+        .backend = AsyncShaders::Backend::Vulkan,
+        .pp_cache = pp_cache,
+        .bindings = bindings,
+        .program = program,
+        .renderpass_params = renderpass_params,
+        .padding = padding,
+        .shaders = shaders,
+        .fixed_state = fixed_state,
+    };
+
     std::unique_lock lock(queue_mutex);
     pending_queue.push_back(std::move(params));
     cv.notify_one();
@@ -140,6 +163,7 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
         if (!HasWorkQueued()) {
             continue;
         }
+
         // Another thread beat us, just unlock and wait for the next load
         if (pending_queue.empty()) {
             continue;
@@ -152,10 +176,11 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
 
         if (work.backend == AsyncShaders::Backend::OpenGL ||
             work.backend == AsyncShaders::Backend::GLASM) {
-            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, work.registry);
+            VideoCommon::Shader::Registry registry = *work.registry;
+            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, registry);
             const auto scope = context->Acquire();
             auto program =
-                OpenGL::BuildShader(work.device, work.shader_type, work.uid, ir, work.registry);
+                OpenGL::BuildShader(*work.device, work.shader_type, work.uid, ir, registry);
             Result result{};
             result.backend = work.backend;
             result.cpu_address = work.cpu_address;
@@ -172,6 +197,32 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
 
             {
                 std::unique_lock complete_lock(completed_mutex);
+                finished_work.push_back(std::move(result));
+            }
+
+        } else if (work.backend == AsyncShaders::Backend::Vulkan) {
+            Vulkan::GraphicsPipelineCacheKey params_key{
+                work.renderpass_params,
+                work.padding,
+                work.shaders,
+                work.fixed_state,
+            };
+            {
+                std::unique_lock complete_lock(completed_mutex);
+
+                // Duplicate creation of pipelines leads to instability and crashing, caused by a
+                // race condition but band-aid solution is locking the making of the pipeline
+                // results in only one pipeline created at a time.
+                Result result{
+                    .backend = work.backend,
+                    .pipeline = std::make_unique<Vulkan::VKGraphicsPipeline>(
+                        work.pp_cache->GetDevice(), work.pp_cache->GetScheduler(),
+                        work.pp_cache->GetDescriptorPool(),
+                        work.pp_cache->GetUpdateDescriptorQueue(),
+                        work.pp_cache->GetRenderpassCache(), params_key, work.bindings,
+                        work.program),
+                };
+
                 finished_work.push_back(std::move(result));
             }
         }

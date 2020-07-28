@@ -22,6 +22,7 @@
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/shader/async_shaders.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
@@ -152,16 +153,37 @@ public:
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();
 
-    VKGraphicsPipeline& GetGraphicsPipeline(const GraphicsPipelineCacheKey& key);
+    VKGraphicsPipeline& GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
+                                            VideoCommon::Shader::AsyncShaders& async_shaders);
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
+
+    const VKDevice& GetDevice() {
+        return device;
+    }
+
+    VKScheduler& GetScheduler() {
+        return scheduler;
+    }
+
+    VKDescriptorPool& GetDescriptorPool() {
+        return descriptor_pool;
+    }
+
+    VKUpdateDescriptorQueue& GetUpdateDescriptorQueue() {
+        return update_descriptor_queue;
+    }
+
+    VKRenderPassCache& GetRenderpassCache() {
+        return renderpass_cache;
+    }
 
 protected:
     void OnShaderRemoval(Shader* shader) final;
 
 private:
     std::pair<SPIRVProgram, std::vector<VkDescriptorSetLayoutBinding>> DecompileShaders(
-        const GraphicsPipelineCacheKey& key);
+        const FixedPipelineState& fixed_state);
 
     Core::System& system;
     const VKDevice& device;
@@ -177,6 +199,7 @@ private:
 
     GraphicsPipelineCacheKey last_graphics_key;
     VKGraphicsPipeline* last_graphics_pipeline = nullptr;
+    std::vector<std::unique_ptr<VKGraphicsPipeline>> duplicates;
 
     std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<VKGraphicsPipeline>>
         graphics_cache;

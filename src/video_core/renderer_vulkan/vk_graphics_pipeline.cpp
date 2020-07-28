@@ -84,9 +84,8 @@ VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& sche
       update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
       descriptor_template{CreateDescriptorUpdateTemplate(program)}, modules{CreateShaderModules(
                                                                         program)},
-      renderpass{renderpass_cache.GetRenderPass(key.renderpass_params)}, pipeline{CreatePipeline(
-                                                                             key.renderpass_params,
-                                                                             program)} {}
+      renderpass{renderpass_cache.GetRenderPass(key.renderpass_params)},
+      pipeline{CreatePipeline(key.renderpass_params, program)}, m_key{key} {}
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 

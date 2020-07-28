@@ -54,6 +54,10 @@ public:
         return renderpass;
     }
 
+    const GraphicsPipelineCacheKey& GetCacheKey() {
+        return m_key;
+    }
+
 private:
     vk::DescriptorSetLayout CreateDescriptorSetLayout(
         vk::Span<VkDescriptorSetLayoutBinding> bindings) const;
@@ -82,6 +86,8 @@ private:
 
     VkRenderPass renderpass;
     vk::Pipeline pipeline;
+
+    const GraphicsPipelineCacheKey& m_key;
 };
 
 } // namespace Vulkan
