@@ -173,7 +173,6 @@ void RestoreGlobalState() {
     values.use_assembly_shaders.SetGlobal(true);
     values.use_asynchronous_shaders.SetGlobal(true);
     values.use_fast_gpu_time.SetGlobal(true);
-    values.force_30fps_mode.SetGlobal(true);
     values.bg_red.SetGlobal(true);
     values.bg_green.SetGlobal(true);
     values.bg_blue.SetGlobal(true);
