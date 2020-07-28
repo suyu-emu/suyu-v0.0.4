@@ -160,7 +160,7 @@ macro(yuzu_find_packages)
     set(REQUIRED_LIBS
     #    Cmake Pkg Prefix  Version     Conan Pkg
         "Boost             1.71        boost/1.72.0"
-        "Catch2            2.11        catch2/2.11.0"
+        "Catch2            2.13        catch2/2.13.0"
         "fmt               7.0         fmt/7.0.1"
     # can't use until https://github.com/bincrafters/community/issues/1173
         #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
