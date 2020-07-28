@@ -97,13 +97,6 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="force_30fps_mode">
-          <property name="text">
-           <string>Force 30 FPS mode</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QCheckBox" name="use_fast_gpu_time">
           <property name="text">
            <string>Use Fast GPU Time</string>

@@ -435,7 +435,6 @@ struct Values {
     Setting<bool> use_vsync;
     Setting<bool> use_assembly_shaders;
     Setting<bool> use_asynchronous_shaders;
-    Setting<bool> force_30fps_mode;
     Setting<bool> use_fast_gpu_time;
 
     Setting<float> bg_red;

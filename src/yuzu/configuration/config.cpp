@@ -666,8 +666,6 @@ void Config::ReadRendererValues() {
                       QStringLiteral("use_asynchronous_shaders"), false);
     ReadSettingGlobal(Settings::values.use_fast_gpu_time, QStringLiteral("use_fast_gpu_time"),
                       true);
-    ReadSettingGlobal(Settings::values.force_30fps_mode, QStringLiteral("force_30fps_mode"), false);
-
     ReadSettingGlobal(Settings::values.bg_red, QStringLiteral("bg_red"), 0.0);
     ReadSettingGlobal(Settings::values.bg_green, QStringLiteral("bg_green"), 0.0);
     ReadSettingGlobal(Settings::values.bg_blue, QStringLiteral("bg_blue"), 0.0);
@@ -1153,9 +1151,6 @@ void Config::SaveRendererValues() {
                        Settings::values.use_asynchronous_shaders, false);
     WriteSettingGlobal(QStringLiteral("use_fast_gpu_time"), Settings::values.use_fast_gpu_time,
                        true);
-    WriteSettingGlobal(QStringLiteral("force_30fps_mode"), Settings::values.force_30fps_mode,
-                       false);
-
     // Cast to double because Qt's written float values are not human-readable
     WriteSettingGlobal(QStringLiteral("bg_red"), Settings::values.bg_red, 0.0);
     WriteSettingGlobal(QStringLiteral("bg_green"), Settings::values.bg_green, 0.0);
