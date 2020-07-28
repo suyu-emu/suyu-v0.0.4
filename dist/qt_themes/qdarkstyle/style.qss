@@ -654,7 +654,11 @@ QAbstractSpinBox::down-arrow:hover {
     image: url(:/qss_icons/rc/down_arrow.png);
 }
 
-QLabel,
+QLabel {
+    border: 0;
+    background: transparent;
+}
+
 QTabWidget {
     border: 0;
 }
