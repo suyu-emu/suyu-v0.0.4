@@ -52,15 +52,15 @@ void CpuManager::Shutdown() {
 }
 
 std::function<void(void*)> CpuManager::GetGuestThreadStartFunc() {
-    return std::function<void(void*)>(GuestThreadFunction);
+    return GuestThreadFunction;
 }
 
 std::function<void(void*)> CpuManager::GetIdleThreadStartFunc() {
-    return std::function<void(void*)>(IdleThreadFunction);
+    return IdleThreadFunction;
 }
 
 std::function<void(void*)> CpuManager::GetSuspendThreadStartFunc() {
-    return std::function<void(void*)>(SuspendThreadFunction);
+    return SuspendThreadFunction;
 }
 
 void CpuManager::GuestThreadFunction(void* cpu_manager_) {
