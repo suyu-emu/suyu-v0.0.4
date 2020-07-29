@@ -350,6 +350,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
 
 void GameListWorker::run() {
     stop_processing = false;
+    provider->ClearAllEntries();
 
     for (UISettings::GameDir& game_dir : game_dirs) {
         if (game_dir.path == QStringLiteral("SDMC")) {
@@ -368,7 +369,6 @@ void GameListWorker::run() {
             watch_list.append(game_dir.path);
             auto* const game_list_dir = new GameListDir(game_dir);
             emit DirEntryReady(game_list_dir);
-            provider->ClearAllEntries();
             ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(),
                            game_dir.deep_scan ? 256 : 0, game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path.toStdString(),
