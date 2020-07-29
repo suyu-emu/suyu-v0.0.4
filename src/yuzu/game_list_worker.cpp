@@ -369,8 +369,8 @@ void GameListWorker::run() {
             auto* const game_list_dir = new GameListDir(game_dir);
             emit DirEntryReady(game_list_dir);
             provider->ClearAllEntries();
-            ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(), 2,
-                           game_list_dir);
+            ScanFileSystem(ScanTarget::FillManualContentProvider, game_dir.path.toStdString(),
+                           game_dir.deep_scan ? 256 : 0, game_list_dir);
             ScanFileSystem(ScanTarget::PopulateGameList, game_dir.path.toStdString(),
                            game_dir.deep_scan ? 256 : 0, game_list_dir);
         }
