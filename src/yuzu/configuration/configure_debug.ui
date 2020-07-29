@@ -90,7 +90,7 @@
         <item>
          <widget class="QCheckBox" name="toggle_console">
           <property name="text">
-           <string>Show Log Console (Windows Only)</string>
+           <string>Show Log in Console</string>
           </property>
          </widget>
         </item>
@@ -102,6 +102,34 @@
          </widget>
         </item>
        </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="extended_logging">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="toolTip">
+         <string>When checked, the max size of the log increases from 100 MB to 1 GB</string>
+        </property>
+        <property name="text">
+         <string>Enable Extended Logging</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <italic>true</italic>
+         </font>
+        </property>
+        <property name="text">
+         <string>This will be reset automatically when yuzu closes.</string>
+        </property>
+        <property name="indent">
+         <number>20</number>
+        </property>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -115,7 +143,7 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QLabel" name="label_3">
+         <widget class="QLabel" name="label_4">
           <property name="text">
            <string>Arguments String</string>
           </property>
@@ -140,8 +168,8 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
-        <property name="whatsThis">
-         <string>When checked, the graphics API enters in a slower debugging mode</string>
+        <property name="toolTip">
+         <string>When checked, the graphics API enters a slower debugging mode</string>
         </property>
         <property name="text">
          <string>Enable Graphics Debugging</string>
@@ -153,8 +181,8 @@
         <property name="enabled">
          <bool>true</bool>
         </property>
-        <property name="whatsThis">
-         <string>When checked, it disables the macro Just In Time compiler. Enabled this makes games run slower</string>
+        <property name="toolTip">
+         <string>When checked, it disables the macro Just In Time compiler. Enabling this makes games run slower</string>
         </property>
         <property name="text">
          <string>Disable Macro JIT</string>
@@ -169,7 +197,7 @@
      <property name="title">
       <string>Dump</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
+     <layout class="QVBoxLayout" name="verticalLayout_7">
       <item>
        <widget class="QCheckBox" name="reporting_services">
         <property name="text">
@@ -178,7 +206,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="label_5">
         <property name="font">
          <font>
           <italic>true</italic>
@@ -200,7 +228,7 @@
      <property name="title">
       <string>Advanced</string>
      </property>
-     <layout class="QVBoxLayout" name="verticalLayout_7">
+     <layout class="QVBoxLayout" name="verticalLayout_8">
       <item>
        <widget class="QCheckBox" name="quest_flag">
         <property name="text">
