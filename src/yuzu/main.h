@@ -32,6 +32,8 @@ class QPushButton;
 class QProgressDialog;
 class WaitTreeWidget;
 enum class GameListOpenTarget;
+enum class GameListRemoveTarget;
+enum class InstalledEntryType;
 class GameListPlaceholder;
 
 namespace Core::Frontend {
@@ -198,6 +200,8 @@ private slots:
     void OnGameListLoadFile(QString game_path);
     void OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path);
     void OnTransferableShaderCacheOpenFile(u64 program_id);
+    void OnGameListRemoveInstalledEntry(u64 program_id, InstalledEntryType type);
+    void OnGameListRemoveFile(u64 program_id, GameListRemoveTarget target);
     void OnGameListDumpRomFS(u64 program_id, const std::string& game_path);
     void OnGameListCopyTID(u64 program_id);
     void OnGameListNavigateToGamedbEntry(u64 program_id,
@@ -229,6 +233,11 @@ private slots:
     void OnLanguageChanged(const QString& locale);
 
 private:
+    void RemoveBaseContent(u64 program_id, const QString& entry_type);
+    void RemoveUpdateContent(u64 program_id, const QString& entry_type);
+    void RemoveAddOnContent(u64 program_id, const QString& entry_type);
+    void RemoveTransferableShaderCache(u64 program_id);
+    void RemoveCustomConfiguration(u64 program_id);
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);

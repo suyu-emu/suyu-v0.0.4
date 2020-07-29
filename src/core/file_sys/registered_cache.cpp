@@ -547,56 +547,6 @@ InstallResult RegisteredCache::InstallEntry(const XCI& xci, bool overwrite_if_ex
     return InstallEntry(*xci.GetSecurePartitionNSP(), overwrite_if_exists, copy);
 }
 
-bool RegisteredCache::RemoveExistingEntry(u64 title_id) {
-    const auto delete_nca = [this](const NcaID& id) {
-        const auto path = GetRelativePathFromNcaID(id, false, true, false);
-
-        if (dir->GetFileRelative(path) == nullptr) {
-            return false;
-        }
-
-        Core::Crypto::SHA256Hash hash{};
-        mbedtls_sha256_ret(id.data(), id.size(), hash.data(), 0);
-        const auto dirname = fmt::format("000000{:02X}", hash[0]);
-
-        const auto dir2 = GetOrCreateDirectoryRelative(dir, dirname);
-
-        const auto res = dir2->DeleteFile(fmt::format("{}.nca", Common::HexToString(id, false)));
-
-        return res;
-    };
-
-    // If an entry exists in the registered cache, remove it
-    if (HasEntry(title_id, ContentRecordType::Meta)) {
-        LOG_INFO(Loader,
-                 "Previously installed entry (v{}) for title_id={:016X} detected! "
-                 "Attempting to remove...",
-                 GetEntryVersion(title_id).value_or(0), title_id);
-        // Get all the ncas associated with the current CNMT and delete them
-        const auto meta_old_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::Meta).value_or(NcaID{});
-        const auto program_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::Program).value_or(NcaID{});
-        const auto data_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::Data).value_or(NcaID{});
-        const auto control_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::Control).value_or(NcaID{});
-        const auto html_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::HtmlDocument).value_or(NcaID{});
-        const auto legal_id =
-            GetNcaIDFromMetadata(title_id, ContentRecordType::LegalInformation).value_or(NcaID{});
-
-        delete_nca(meta_old_id);
-        delete_nca(program_id);
-        delete_nca(data_id);
-        delete_nca(control_id);
-        delete_nca(html_id);
-        delete_nca(legal_id);
-        return true;
-    }
-    return false;
-}
-
 InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_exists,
                                             const VfsCopyFunction& copy) {
     const auto ncas = nsp.GetNCAsCollapsed();
@@ -690,6 +640,57 @@ InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
         return InstallResult::ErrorMetaFailed;
     }
     return RawInstallNCA(nca, copy, overwrite_if_exists, c_rec.nca_id);
+}
+
+bool RegisteredCache::RemoveExistingEntry(u64 title_id) const {
+    const auto delete_nca = [this](const NcaID& id) {
+        const auto path = GetRelativePathFromNcaID(id, false, true, false);
+
+        const bool isFile = dir->GetFileRelative(path) != nullptr;
+        const bool isDir = dir->GetDirectoryRelative(path) != nullptr;
+
+        if (isFile) {
+            return dir->DeleteFile(path);
+        } else if (isDir) {
+            return dir->DeleteSubdirectoryRecursive(path);
+        }
+
+        return false;
+    };
+
+    // If an entry exists in the registered cache, remove it
+    if (HasEntry(title_id, ContentRecordType::Meta)) {
+        LOG_INFO(Loader,
+                 "Previously installed entry (v{}) for title_id={:016X} detected! "
+                 "Attempting to remove...",
+                 GetEntryVersion(title_id).value_or(0), title_id);
+
+        // Get all the ncas associated with the current CNMT and delete them
+        const auto meta_old_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Meta).value_or(NcaID{});
+        const auto program_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Program).value_or(NcaID{});
+        const auto data_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Data).value_or(NcaID{});
+        const auto control_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::Control).value_or(NcaID{});
+        const auto html_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::HtmlDocument).value_or(NcaID{});
+        const auto legal_id =
+            GetNcaIDFromMetadata(title_id, ContentRecordType::LegalInformation).value_or(NcaID{});
+
+        const auto deleted_meta = delete_nca(meta_old_id);
+        const auto deleted_program = delete_nca(program_id);
+        const auto deleted_data = delete_nca(data_id);
+        const auto deleted_control = delete_nca(control_id);
+        const auto deleted_html = delete_nca(html_id);
+        const auto deleted_legal = delete_nca(legal_id);
+
+        return deleted_meta && (deleted_meta || deleted_program || deleted_data ||
+                                deleted_control || deleted_html || deleted_legal);
+    }
+
+    return false;
 }
 
 InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFunction& copy,

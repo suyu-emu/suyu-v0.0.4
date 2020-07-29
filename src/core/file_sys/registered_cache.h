@@ -155,9 +155,6 @@ public:
         std::optional<TitleType> title_type = {}, std::optional<ContentRecordType> record_type = {},
         std::optional<u64> title_id = {}) const override;
 
-    // Removes an existing entry based on title id
-    bool RemoveExistingEntry(u64 title_id);
-
     // Raw copies all the ncas from the xci/nsp to the csache. Does some quick checks to make sure
     // there is a meta NCA and all of them are accessible.
     InstallResult InstallEntry(const XCI& xci, bool overwrite_if_exists = false,
@@ -171,6 +168,9 @@ public:
     // TODO(DarkLordZach): Author real meta-type NCAs and install those.
     InstallResult InstallEntry(const NCA& nca, TitleType type, bool overwrite_if_exists = false,
                                const VfsCopyFunction& copy = &VfsRawCopy);
+
+    // Removes an existing entry based on title id
+    bool RemoveExistingEntry(u64 title_id) const;
 
 private:
     template <typename T>

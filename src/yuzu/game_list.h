@@ -39,6 +39,17 @@ enum class GameListOpenTarget {
     ModData,
 };
 
+enum class GameListRemoveTarget {
+    ShaderCache,
+    CustomConfiguration,
+};
+
+enum class InstalledEntryType {
+    Game,
+    Update,
+    AddOnContent,
+};
+
 class GameList : public QWidget {
     Q_OBJECT
 
@@ -75,6 +86,8 @@ signals:
     void ShouldCancelWorker();
     void OpenFolderRequested(GameListOpenTarget target, const std::string& game_path);
     void OpenTransferableShaderCacheRequested(u64 program_id);
+    void RemoveInstalledEntryRequested(u64 program_id, InstalledEntryType type);
+    void RemoveFileRequested(u64 program_id, GameListRemoveTarget target);
     void DumpRomFSRequested(u64 program_id, const std::string& game_path);
     void CopyTIDRequested(u64 program_id);
     void NavigateToGamedbEntryRequested(u64 program_id,
@@ -116,8 +129,6 @@ private:
 
     friend class GameListSearchField;
 };
-
-Q_DECLARE_METATYPE(GameListOpenTarget);
 
 class GameListPlaceholder : public QWidget {
     Q_OBJECT
