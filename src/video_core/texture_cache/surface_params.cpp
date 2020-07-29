@@ -74,9 +74,9 @@ SurfaceParams SurfaceParams::CreateForTexture(const FormatLookupTable& lookup_ta
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
     params.srgb_conversion = tic.IsSrgbConversionEnabled();
-    params.block_width = params.is_tiled ? tic.BlockWidth() : 0,
-    params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
-    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
+    params.block_width = params.is_tiled ? tic.BlockWidth() : 0;
+    params.block_height = params.is_tiled ? tic.BlockHeight() : 0;
+    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0;
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
@@ -130,13 +130,12 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
     SurfaceParams params;
     params.is_tiled = tic.IsTiled();
     params.srgb_conversion = tic.IsSrgbConversionEnabled();
-    params.block_width = params.is_tiled ? tic.BlockWidth() : 0,
-    params.block_height = params.is_tiled ? tic.BlockHeight() : 0,
-    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0,
+    params.block_width = params.is_tiled ? tic.BlockWidth() : 0;
+    params.block_height = params.is_tiled ? tic.BlockHeight() : 0;
+    params.block_depth = params.is_tiled ? tic.BlockDepth() : 0;
     params.tile_width_spacing = params.is_tiled ? (1 << tic.tile_width_spacing.Value()) : 1;
     params.pixel_format = lookup_table.GetPixelFormat(
         tic.format, params.srgb_conversion, tic.r_type, tic.g_type, tic.b_type, tic.a_type);
-    params.type = GetFormatType(params.pixel_format);
     params.type = GetFormatType(params.pixel_format);
     params.target = ImageTypeToSurfaceTarget(entry.type);
     // TODO: on 1DBuffer we should use the tic info.
@@ -167,27 +166,30 @@ SurfaceParams SurfaceParams::CreateForImage(const FormatLookupTable& lookup_tabl
 
 SurfaceParams SurfaceParams::CreateForDepthBuffer(Core::System& system) {
     const auto& regs = system.GPU().Maxwell3D().regs;
-    SurfaceParams params;
-    params.is_tiled = regs.zeta.memory_layout.type ==
-                      Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear;
-    params.srgb_conversion = false;
-    params.block_width = std::min(regs.zeta.memory_layout.block_width.Value(), 5U);
-    params.block_height = std::min(regs.zeta.memory_layout.block_height.Value(), 5U);
-    params.block_depth = std::min(regs.zeta.memory_layout.block_depth.Value(), 5U);
-    params.tile_width_spacing = 1;
-    params.pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
-    params.type = GetFormatType(params.pixel_format);
-    params.width = regs.zeta_width;
-    params.height = regs.zeta_height;
-    params.pitch = 0;
-    params.num_levels = 1;
-    params.emulated_levels = 1;
 
-    const bool is_layered = regs.zeta_layers > 1 && params.block_depth == 0;
-    params.is_layered = is_layered;
-    params.target = is_layered ? SurfaceTarget::Texture2DArray : SurfaceTarget::Texture2D;
-    params.depth = is_layered ? regs.zeta_layers.Value() : 1U;
-    return params;
+    const auto block_depth = std::min(regs.zeta.memory_layout.block_depth.Value(), 5U);
+    const bool is_layered = regs.zeta_layers > 1 && block_depth == 0;
+    const auto pixel_format = PixelFormatFromDepthFormat(regs.zeta.format);
+
+    return {
+        .is_tiled = regs.zeta.memory_layout.type ==
+                    Tegra::Engines::Maxwell3D::Regs::InvMemoryLayout::BlockLinear,
+        .srgb_conversion = false,
+        .is_layered = is_layered,
+        .block_width = std::min(regs.zeta.memory_layout.block_width.Value(), 5U),
+        .block_height = std::min(regs.zeta.memory_layout.block_height.Value(), 5U),
+        .block_depth = block_depth,
+        .tile_width_spacing = 1,
+        .width = regs.zeta_width,
+        .height = regs.zeta_height,
+        .depth = is_layered ? regs.zeta_layers.Value() : 1U,
+        .pitch = 0,
+        .num_levels = 1,
+        .emulated_levels = 1,
+        .pixel_format = pixel_format,
+        .type = GetFormatType(pixel_format),
+        .target = is_layered ? SurfaceTarget::Texture2DArray : SurfaceTarget::Texture2D,
+    };
 }
 
 SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::size_t index) {
@@ -233,24 +235,29 @@ SurfaceParams SurfaceParams::CreateForFramebuffer(Core::System& system, std::siz
 
 SurfaceParams SurfaceParams::CreateForFermiCopySurface(
     const Tegra::Engines::Fermi2D::Regs::Surface& config) {
-    SurfaceParams params{};
-    params.is_tiled = !config.linear;
-    params.srgb_conversion = config.format == Tegra::RenderTargetFormat::B8G8R8A8_SRGB ||
-                             config.format == Tegra::RenderTargetFormat::A8B8G8R8_SRGB;
-    params.block_width = params.is_tiled ? std::min(config.BlockWidth(), 5U) : 0,
-    params.block_height = params.is_tiled ? std::min(config.BlockHeight(), 5U) : 0,
-    params.block_depth = params.is_tiled ? std::min(config.BlockDepth(), 5U) : 0,
-    params.tile_width_spacing = 1;
-    params.pixel_format = PixelFormatFromRenderTargetFormat(config.format);
-    params.type = GetFormatType(params.pixel_format);
-    params.width = config.width;
-    params.height = config.height;
-    params.pitch = config.pitch;
-    // TODO(Rodrigo): Try to guess texture arrays from parameters
-    params.target = SurfaceTarget::Texture2D;
-    params.depth = 1;
-    params.num_levels = 1;
-    params.emulated_levels = 1;
+    const bool is_tiled = !config.linear;
+    const auto pixel_format = PixelFormatFromRenderTargetFormat(config.format);
+
+    SurfaceParams params{
+        .is_tiled = is_tiled,
+        .srgb_conversion = config.format == Tegra::RenderTargetFormat::B8G8R8A8_SRGB ||
+                           config.format == Tegra::RenderTargetFormat::A8B8G8R8_SRGB,
+        .block_width = is_tiled ? std::min(config.BlockWidth(), 5U) : 0U,
+        .block_height = is_tiled ? std::min(config.BlockHeight(), 5U) : 0U,
+        .block_depth = is_tiled ? std::min(config.BlockDepth(), 5U) : 0U,
+        .tile_width_spacing = 1,
+        .width = config.width,
+        .height = config.height,
+        .depth = 1,
+        .pitch = config.pitch,
+        .num_levels = 1,
+        .emulated_levels = 1,
+        .pixel_format = pixel_format,
+        .type = GetFormatType(pixel_format),
+        // TODO(Rodrigo): Try to guess texture arrays from parameters
+        .target = SurfaceTarget::Texture2D,
+    };
+
     params.is_layered = params.IsLayered();
     return params;
 }
