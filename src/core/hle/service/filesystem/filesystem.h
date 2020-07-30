@@ -31,7 +31,7 @@ enum class SaveDataSpaceId : u8;
 enum class SaveDataType : u8;
 enum class StorageId : u8;
 
-struct SaveDataDescriptor;
+struct SaveDataAttribute;
 struct SaveDataSize;
 } // namespace FileSys
 
@@ -69,9 +69,9 @@ public:
     ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
                                               FileSys::ContentRecordType type) const;
     ResultVal<FileSys::VirtualDir> CreateSaveData(
-        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const;
     ResultVal<FileSys::VirtualDir> OpenSaveData(
-        FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const;
+        FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const;
     ResultVal<FileSys::VirtualDir> OpenSaveDataSpace(FileSys::SaveDataSpaceId space) const;
     ResultVal<FileSys::VirtualDir> OpenSDMC() const;
     ResultVal<FileSys::VirtualDir> OpenBISPartition(FileSys::BisPartitionId id) const;

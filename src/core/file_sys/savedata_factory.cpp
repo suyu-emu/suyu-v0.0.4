@@ -17,23 +17,23 @@ constexpr char SAVE_DATA_SIZE_FILENAME[] = ".yuzu_save_size";
 
 namespace {
 
-void PrintSaveDataDescriptorWarnings(SaveDataDescriptor meta) {
+void PrintSaveDataAttributeWarnings(SaveDataAttribute meta) {
     if (meta.type == SaveDataType::SystemSaveData || meta.type == SaveDataType::SaveData) {
         if (meta.zero_1 != 0) {
             LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataDescriptor, type is "
+                        "Possibly incorrect SaveDataAttribute, type is "
                         "SystemSaveData||SaveData but offset 0x28 is non-zero ({:016X}).",
                         meta.zero_1);
         }
         if (meta.zero_2 != 0) {
             LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataDescriptor, type is "
+                        "Possibly incorrect SaveDataAttribute, type is "
                         "SystemSaveData||SaveData but offset 0x30 is non-zero ({:016X}).",
                         meta.zero_2);
         }
         if (meta.zero_3 != 0) {
             LOG_WARNING(Service_FS,
-                        "Possibly incorrect SaveDataDescriptor, type is "
+                        "Possibly incorrect SaveDataAttribute, type is "
                         "SystemSaveData||SaveData but offset 0x38 is non-zero ({:016X}).",
                         meta.zero_3);
         }
@@ -41,33 +41,32 @@ void PrintSaveDataDescriptorWarnings(SaveDataDescriptor meta) {
 
     if (meta.type == SaveDataType::SystemSaveData && meta.title_id != 0) {
         LOG_WARNING(Service_FS,
-                    "Possibly incorrect SaveDataDescriptor, type is SystemSaveData but title_id is "
+                    "Possibly incorrect SaveDataAttribute, type is SystemSaveData but title_id is "
                     "non-zero ({:016X}).",
                     meta.title_id);
     }
 
     if (meta.type == SaveDataType::DeviceSaveData && meta.user_id != u128{0, 0}) {
         LOG_WARNING(Service_FS,
-                    "Possibly incorrect SaveDataDescriptor, type is DeviceSaveData but user_id is "
+                    "Possibly incorrect SaveDataAttribute, type is DeviceSaveData but user_id is "
                     "non-zero ({:016X}{:016X})",
                     meta.user_id[1], meta.user_id[0]);
     }
 }
 
-bool ShouldSaveDataBeAutomaticallyCreated(SaveDataSpaceId space, const SaveDataDescriptor& desc) {
-    return desc.type == SaveDataType::CacheStorage || desc.type == SaveDataType::TemporaryStorage ||
+bool ShouldSaveDataBeAutomaticallyCreated(SaveDataSpaceId space, const SaveDataAttribute& attr) {
+    return attr.type == SaveDataType::CacheStorage || attr.type == SaveDataType::TemporaryStorage ||
            (space == SaveDataSpaceId::NandUser && ///< Normal Save Data -- Current Title & User
-            (desc.type == SaveDataType::SaveData || desc.type == SaveDataType::DeviceSaveData) &&
-            desc.title_id == 0 && desc.save_id == 0);
+            (attr.type == SaveDataType::SaveData || attr.type == SaveDataType::DeviceSaveData) &&
+            attr.title_id == 0 && attr.save_id == 0);
 }
 
 } // Anonymous namespace
 
-std::string SaveDataDescriptor::DebugInfo() const {
-    return fmt::format("[type={:02X}, title_id={:016X}, user_id={:016X}{:016X}, "
-                       "save_id={:016X}, "
+std::string SaveDataAttribute::DebugInfo() const {
+    return fmt::format("[title_id={:016X}, user_id={:016X}{:016X}, save_id={:016X}, type={:02X}, "
                        "rank={}, index={}]",
-                       static_cast<u8>(type), title_id, user_id[1], user_id[0], save_id,
+                       title_id, user_id[1], user_id[0], save_id, static_cast<u8>(type),
                        static_cast<u8>(rank), index);
 }
 
@@ -80,8 +79,8 @@ SaveDataFactory::SaveDataFactory(VirtualDir save_directory) : dir(std::move(save
 SaveDataFactory::~SaveDataFactory() = default;
 
 ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
-                                              const SaveDataDescriptor& meta) const {
-    PrintSaveDataDescriptorWarnings(meta);
+                                              const SaveDataAttribute& meta) const {
+    PrintSaveDataAttributeWarnings(meta);
 
     const auto save_directory =
         GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
@@ -98,7 +97,7 @@ ResultVal<VirtualDir> SaveDataFactory::Create(SaveDataSpaceId space,
 }
 
 ResultVal<VirtualDir> SaveDataFactory::Open(SaveDataSpaceId space,
-                                            const SaveDataDescriptor& meta) const {
+                                            const SaveDataAttribute& meta) const {
 
     const auto save_directory =
         GetFullPath(space, meta.type, meta.title_id, meta.user_id, meta.save_id);
