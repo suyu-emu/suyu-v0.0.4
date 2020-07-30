@@ -48,9 +48,8 @@ void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32
                     u32 block_height_bit, u32 offset_x, u32 offset_y);
 
 /// Copies a tiled subrectangle into a linear surface.
-void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32 swizzled_width,
-                      u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data, u32 block_height,
-                      u32 offset_x, u32 offset_y);
+void UnswizzleSubrect(u32 line_length_in, u32 line_count, u32 pitch, u32 width, u32 bytes_per_pixel,
+                      u32 block_height, u32 origin_x, u32 origin_y, u8* output, const u8* input);
 
 /// @brief Swizzles a 2D array of pixels into a 3D texture
 /// @param line_length_in  Number of pixels per line
