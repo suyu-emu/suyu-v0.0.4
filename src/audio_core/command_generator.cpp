@@ -470,6 +470,7 @@ s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_s
 
     return samples_processed;
 }
+
 s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
                                   s32 sample_count, s32 channel, std::size_t mix_offset) {
     auto& in_params = voice_info.GetInParams();
@@ -486,32 +487,44 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
 
     const auto samples_remaining =
         (wave_buffer.end_sample_offset - wave_buffer.start_sample_offset) - dsp_state.offset;
+    const auto samples_processed = std::min(sample_count, samples_remaining);
     const auto start_offset =
         ((wave_buffer.start_sample_offset + dsp_state.offset) * in_params.channel_count);
-    const auto buffer_pos = wave_buffer.buffer_address + start_offset;
+    const auto end_offset = start_offset + samples_processed;
 
-    const auto samples_processed = std::min(sample_count, samples_remaining);
+    constexpr std::size_t FRAME_LEN = 8;
+    constexpr std::size_t SAMPLES_PER_FRAME = 14;
 
-    if (start_offset > dsp_state.adpcm_samples.size()) {
-        dsp_state.adpcm_samples.clear();
-    }
+    // Base buffer position
+    const auto start_frame_index = start_offset / SAMPLES_PER_FRAME;
+    const auto start_frame_buffer = start_frame_index * FRAME_LEN;
 
-    // TODO(ogniK): Proper ADPCM streaming
-    if (dsp_state.adpcm_samples.empty()) {
-        Codec::ADPCM_Coeff coeffs;
-        memory.ReadBlock(in_params.additional_params_address, coeffs.data(),
-                         sizeof(Codec::ADPCM_Coeff));
-        std::vector<u8> buffer(wave_buffer.buffer_size);
-        memory.ReadBlock(wave_buffer.buffer_address, buffer.data(), buffer.size());
-        dsp_state.adpcm_samples =
-            std::move(Codec::DecodeADPCM(buffer.data(), buffer.size(), coeffs, dsp_state.context));
-    }
+    const auto end_frame_index = end_offset / SAMPLES_PER_FRAME;
+    const auto end_frame_buffer = end_frame_index * FRAME_LEN;
+
+    const auto position_in_frame = start_offset % SAMPLES_PER_FRAME;
+
+    const auto buffer_size = (1 + (end_frame_index - start_frame_index)) * FRAME_LEN;
+
+    Codec::ADPCM_Coeff coeffs;
+    memory.ReadBlock(in_params.additional_params_address, coeffs.data(),
+                     sizeof(Codec::ADPCM_Coeff));
+    std::vector<u8> buffer(buffer_size);
+    memory.ReadBlock(wave_buffer.buffer_address + start_frame_buffer, buffer.data(), buffer.size());
+    const auto adpcm_samples =
+        std::move(Codec::DecodeADPCM(buffer.data(), buffer.size(), coeffs, dsp_state.context));
 
     for (std::size_t i = 0; i < samples_processed; i++) {
-        const auto sample_offset = i + start_offset;
-        sample_buffer[mix_offset + i] =
-            dsp_state.adpcm_samples[sample_offset * in_params.channel_count + channel];
+        const auto sample_offset = position_in_frame + i * in_params.channel_count + channel;
+        const auto sample = adpcm_samples[sample_offset];
+        sample_buffer[mix_offset + i] = sample;
     }
+
+    // Manually set our context
+    const auto frame_before_final = (end_frame_index - start_frame_index) - 1;
+    const auto frame_before_final_off = frame_before_final * SAMPLES_PER_FRAME;
+    dsp_state.context.yn2 = adpcm_samples[frame_before_final_off + 12];
+    dsp_state.context.yn1 = adpcm_samples[frame_before_final_off + 13];
 
     return samples_processed;
 }
@@ -628,10 +641,6 @@ void CommandGenerator::DecodeFromWaveBuffers(ServerVoiceInfo& voice_info, s32* o
                         dsp_state.played_sample_count = 0;
                     }
                 } else {
-                    if (in_params.sample_format == SampleFormat::Adpcm) {
-                        // TODO(ogniK): Remove this when ADPCM streaming implemented
-                        dsp_state.adpcm_samples.clear();
-                    }
 
                     // Update our wave buffer states
                     dsp_state.is_wave_buffer_valid[dsp_state.wave_buffer_index] = false;

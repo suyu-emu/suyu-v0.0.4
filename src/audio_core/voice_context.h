@@ -101,8 +101,6 @@ struct VoiceState {
     u32 external_context_size{};
     bool is_external_context_used{};
     bool voice_dropped{};
-    // TODO(ogniK): Hack until ADPCM streaming is implemented
-    std::vector<s16> adpcm_samples{};
 };
 
 class VoiceChannelResource {

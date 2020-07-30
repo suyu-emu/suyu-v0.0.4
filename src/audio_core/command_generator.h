@@ -71,7 +71,6 @@ private:
                     s32 channel, std::size_t mix_offset);
     void DecodeFromWaveBuffers(ServerVoiceInfo& voice_info, s32* output, VoiceState& dsp_state,
                                s32 channel, s32 target_sample_rate, s32 sample_count, s32 node_id);
-    void Resample(s32* output, s32* input, s32 pitch, s32& fraction, s32 sample_count);
 
     AudioCommon::AudioRendererParameter& worker_params;
     VoiceContext& voice_context;

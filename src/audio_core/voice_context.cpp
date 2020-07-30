@@ -520,8 +520,7 @@ void VoiceContext::SortInfo() {
 }
 
 void VoiceContext::UpdateStateByDspShared() {
-    std::memcpy(voice_states.data(), dsp_voice_states.data(),
-                sizeof(VoiceState) * dsp_voice_states.size());
+    voice_states = dsp_voice_states;
 }
 
 } // namespace AudioCore
