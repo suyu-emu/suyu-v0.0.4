@@ -54,7 +54,7 @@ public:
         return renderpass;
     }
 
-    const GraphicsPipelineCacheKey& GetCacheKey() {
+    const GraphicsPipelineCacheKey& GetCacheKey() const {
         return m_key;
     }
 

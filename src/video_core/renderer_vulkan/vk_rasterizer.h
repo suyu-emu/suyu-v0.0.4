@@ -287,7 +287,6 @@ private:
     VKMemoryManager& memory_manager;
     StateTracker& state_tracker;
     VKScheduler& scheduler;
-    VideoCommon::Shader::AsyncShaders async_shaders;
 
     VKStagingBufferPool staging_pool;
     VKDescriptorPool descriptor_pool;
@@ -307,6 +306,7 @@ private:
     vk::Buffer default_buffer;
     VKMemoryCommit default_buffer_commit;
     vk::Event wfi_event;
+    VideoCommon::Shader::AsyncShaders async_shaders;
 
     std::array<View, Maxwell::NumRenderTargets> color_attachments;
     View zeta_attachment;

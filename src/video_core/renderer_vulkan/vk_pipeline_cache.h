@@ -153,16 +153,19 @@ public:
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();
 
-    VKGraphicsPipeline& GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
+    VKGraphicsPipeline* GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
                                             VideoCommon::Shader::AsyncShaders& async_shaders);
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
 
-    const VKDevice& GetDevice() {
+    const VKDevice& GetDevice() const {
         return device;
     }
 
     VKScheduler& GetScheduler() {
+        return scheduler;
+    }
+    const VKScheduler& GetScheduler() const {
         return scheduler;
     }
 
@@ -170,11 +173,23 @@ public:
         return descriptor_pool;
     }
 
+    const VKDescriptorPool& GetDescriptorPool() const {
+        return descriptor_pool;
+    }
+
     VKUpdateDescriptorQueue& GetUpdateDescriptorQueue() {
         return update_descriptor_queue;
     }
 
+    const VKUpdateDescriptorQueue& GetUpdateDescriptorQueue() const {
+        return update_descriptor_queue;
+    }
+
     VKRenderPassCache& GetRenderpassCache() {
+        return renderpass_cache;
+    }
+
+    const VKRenderPassCache& GetRenderpassCache() const {
         return renderpass_cache;
     }
 

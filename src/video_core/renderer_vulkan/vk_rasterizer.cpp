@@ -404,10 +404,12 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       wfi_event{device.GetLogical().CreateNewEvent()}, async_shaders{renderer} {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
+        // The following is subject to move into the allocate workers method, to be api agnostic
+
         // Max worker threads we should allow
-        constexpr auto MAX_THREADS = 2u;
+        constexpr u32 MAX_THREADS = 4;
         // Amount of threads we should reserve for other parts of yuzu
-        constexpr auto RESERVED_THREADS = 6u;
+        constexpr u32 RESERVED_THREADS = 6;
         // Get the amount of threads we can use(this can return zero)
         const auto cpu_thread_count =
             std::max(RESERVED_THREADS, std::thread::hardware_concurrency());
@@ -456,16 +458,16 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     key.renderpass_params = GetRenderPassParams(texceptions);
     key.padding = 0;
 
-    auto& pipeline = pipeline_cache.GetGraphicsPipeline(key, async_shaders);
-    if (&pipeline == nullptr || pipeline.GetHandle() == VK_NULL_HANDLE) {
+    auto pipeline = pipeline_cache.GetGraphicsPipeline(key, async_shaders);
+    if (pipeline == nullptr || pipeline->GetHandle() == VK_NULL_HANDLE) {
         // Async graphics pipeline was not ready.
         system.GPU().TickWork();
         return;
     }
 
-    scheduler.BindGraphicsPipeline(pipeline.GetHandle());
+    scheduler.BindGraphicsPipeline(pipeline->GetHandle());
 
-    const auto renderpass = pipeline.GetRenderPass();
+    const auto renderpass = pipeline->GetRenderPass();
     const auto [framebuffer, render_area] = ConfigureFramebuffers(renderpass);
     scheduler.RequestRenderpass(renderpass, framebuffer, render_area);
 
@@ -475,8 +477,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 
     BeginTransformFeedback();
 
-    const auto pipeline_layout = pipeline.GetLayout();
-    const auto descriptor_set = pipeline.CommitDescriptorSet();
+    const auto pipeline_layout = pipeline->GetLayout();
+    const auto descriptor_set = pipeline->CommitDescriptorSet();
     scheduler.Record([pipeline_layout, descriptor_set, draw_params](vk::CommandBuffer cmdbuf) {
         if (descriptor_set) {
             cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline_layout,

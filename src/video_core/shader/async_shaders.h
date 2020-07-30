@@ -100,7 +100,7 @@ private:
     bool HasWorkQueued();
 
     struct WorkerParams {
-        AsyncShaders::Backend backend;
+        Backend backend;
         // For OGL
         const OpenGL::Device* device;
         Tegra::Engines::ShaderType shader_type;
@@ -128,7 +128,7 @@ private:
     std::atomic<bool> is_thread_exiting{};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> context_list;
     std::vector<std::thread> worker_threads;
-    std::deque<WorkerParams> pending_queue;
+    std::queue<std::unique_ptr<WorkerParams>> pending_queue;
     std::vector<AsyncShaders::Result> finished_work;
     Core::Frontend::EmuWindow& emu_window;
 };

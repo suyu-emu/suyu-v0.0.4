@@ -205,20 +205,20 @@ std::array<Shader*, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
     return last_shaders = shaders;
 }
 
-VKGraphicsPipeline& VKPipelineCache::GetGraphicsPipeline(
+VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
     const GraphicsPipelineCacheKey& key, VideoCommon::Shader::AsyncShaders& async_shaders) {
     MICROPROFILE_SCOPE(Vulkan_PipelineCache);
 
     if (last_graphics_pipeline && last_graphics_key == key) {
-        return *last_graphics_pipeline;
+        return last_graphics_pipeline;
     }
     last_graphics_key = key;
 
     if (device.UseAsynchronousShaders()) {
         auto work = async_shaders.GetCompletedWork();
-        for (std::size_t i = 0; i < work.size(); ++i) {
-            auto& entry = graphics_cache.at(work[i].pipeline->GetCacheKey());
-            entry = std::move(work[i].pipeline);
+        for (auto& w : work) {
+            auto& entry = graphics_cache.at(w.pipeline->GetCacheKey());
+            entry = std::move(w.pipeline);
         }
         const auto [pair, is_cache_miss] = graphics_cache.try_emplace(key);
         if (is_cache_miss) {
@@ -227,7 +227,8 @@ VKGraphicsPipeline& VKPipelineCache::GetGraphicsPipeline(
             async_shaders.QueueVulkanShader(this, bindings, program, key.renderpass_params,
                                             key.padding, key.shaders, key.fixed_state);
         }
-        return *(last_graphics_pipeline = graphics_cache.at(key).get());
+        last_graphics_pipeline = graphics_cache.at(key).get();
+        return last_graphics_pipeline;
     }
 
     const auto [pair, is_cache_miss] = graphics_cache.try_emplace(key);
@@ -239,7 +240,8 @@ VKGraphicsPipeline& VKPipelineCache::GetGraphicsPipeline(
                                                      update_descriptor_queue, renderpass_cache, key,
                                                      bindings, program);
     }
-    return *(last_graphics_pipeline = entry.get());
+    last_graphics_pipeline = entry.get();
+    return last_graphics_pipeline;
 }
 
 VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCacheKey& key) {
