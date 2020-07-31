@@ -884,6 +884,7 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext&
 
 void FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_FS, "(STUBBED) called.");
+
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
@@ -901,8 +902,9 @@ void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
     // Stub this to None for now, backend needs an impl to read/write the SaveDataExtraData
     constexpr auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
 
-    IPC::ResponseBuilder rb{ctx, 3};
     LOG_WARNING(Service_FS, "(STUBBED) called, flags={}", flags);
+
+    IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push(flags);
 }
