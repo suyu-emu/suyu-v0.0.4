@@ -111,19 +111,19 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                                      VideoCommon::Shader::CompilerSettings compiler_settings,
                                      const VideoCommon::Shader::Registry& registry,
                                      VAddr cpu_addr) {
-    auto p = std::make_unique<WorkerParams>();
-    p->backend = device.UseAssemblyShaders() ? Backend::GLASM : Backend::OpenGL;
-    p->device = &device;
-    p->shader_type = shader_type;
-    p->uid = uid;
-    p->code = std::move(code);
-    p->code_b = std::move(code_b);
-    p->main_offset = main_offset;
-    p->compiler_settings = compiler_settings;
-    p->registry = &registry;
-    p->cpu_address = cpu_addr;
+    auto params = std::make_unique<WorkerParams>();
+    params->backend = device.UseAssemblyShaders() ? Backend::GLASM : Backend::OpenGL;
+    params->device = &device;
+    params->shader_type = shader_type;
+    params->uid = uid;
+    params->code = std::move(code);
+    params->code_b = std::move(code_b);
+    params->main_offset = main_offset;
+    params->compiler_settings = compiler_settings;
+    params->registry = &registry;
+    params->cpu_address = cpu_addr;
     std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(p));
+    pending_queue.push(std::move(params));
     cv.notify_one();
 }
 
@@ -133,19 +133,19 @@ void AsyncShaders::QueueVulkanShader(
     std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders,
     Vulkan::FixedPipelineState fixed_state) {
 
-    auto p = std::make_unique<WorkerParams>();
+    auto params = std::make_unique<WorkerParams>();
 
-    p->backend = Backend::Vulkan;
-    p->pp_cache = pp_cache;
-    p->bindings = bindings;
-    p->program = program;
-    p->renderpass_params = renderpass_params;
-    p->padding = padding;
-    p->shaders = shaders;
-    p->fixed_state = fixed_state;
+    params->backend = Backend::Vulkan;
+    params->pp_cache = pp_cache;
+    params->bindings = bindings;
+    params->program = program;
+    params->renderpass_params = renderpass_params;
+    params->padding = padding;
+    params->shaders = shaders;
+    params->fixed_state = fixed_state;
 
     std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(p));
+    pending_queue.push(std::move(params));
     cv.notify_one();
 }
 
@@ -162,7 +162,6 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
         if (!HasWorkQueued()) {
             continue;
         }
-
         // Another thread beat us, just unlock and wait for the next load
         if (pending_queue.empty()) {
             continue;
@@ -186,8 +185,6 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
             result.code = std::move(work->code);
             result.code_b = std::move(work->code_b);
             result.shader_type = work->shader_type;
-            // LOG_CRITICAL(Render_Vulkan, "Shader hast been Compiled \t0x{:016X} id {}",
-            // result.uid, id);
 
             if (work->backend == Backend::OpenGL) {
                 result.program.opengl = std::move(program->source_program);
@@ -208,40 +205,15 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
                 .fixed_state = work->fixed_state,
             };
 
-            {
-                std::unique_lock find_lock{completed_mutex};
-                for (size_t i = 0; i < finished_work.size(); ++i) {
-                    // This loop deletes duplicate pipelines in finished_work
-                    // in favor of the pipeline about to be created
-
-                    if (finished_work[i].pipeline &&
-                        finished_work[i].pipeline->GetCacheKey().Hash() == params_key.Hash()) {
-                        LOG_CRITICAL(Render_Vulkan,
-                                     "Pipeliene was already here \t0x{:016X} matches 0x{:016X} ",
-                                     params_key.Hash(),
-                                     finished_work[i].pipeline->GetCacheKey().Hash());
-                        finished_work.erase(finished_work.begin() + i);
-                    }
-                }
-                find_lock.unlock();
-            }
-
             auto pipeline = std::make_unique<Vulkan::VKGraphicsPipeline>(
                 work->pp_cache->GetDevice(), work->pp_cache->GetScheduler(),
                 work->pp_cache->GetDescriptorPool(), work->pp_cache->GetUpdateDescriptorQueue(),
                 work->pp_cache->GetRenderpassCache(), params_key, work->bindings, work->program);
 
-            {
-                std::unique_lock complete_lock(completed_mutex);
-                Result result{
-                    .backend = Backend::Vulkan,
-                    .pipeline = std::move(pipeline),
-                };
-                finished_work.push_back(std::move(result));
-                complete_lock.unlock();
-            }
+            work->pp_cache->EmplacePipeline(std::move(pipeline));
+            work.reset();
         }
-        // Give a chance for another thread to get work. Lessens duplicates
+        // Give a chance for another thread to get work.
         std::this_thread::yield();
     }
 }

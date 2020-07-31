@@ -193,6 +193,8 @@ public:
         return renderpass_cache;
     }
 
+    void EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline);
+
 protected:
     void OnShaderRemoval(Shader* shader) final;
 
@@ -216,6 +218,7 @@ private:
     VKGraphicsPipeline* last_graphics_pipeline = nullptr;
     std::vector<std::unique_ptr<VKGraphicsPipeline>> duplicates;
 
+    std::mutex pipeline_cache;
     std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<VKGraphicsPipeline>>
         graphics_cache;
     std::unordered_map<ComputePipelineCacheKey, std::unique_ptr<VKComputePipeline>> compute_cache;

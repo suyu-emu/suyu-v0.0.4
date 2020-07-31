@@ -215,11 +215,7 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
     last_graphics_key = key;
 
     if (device.UseAsynchronousShaders()) {
-        auto work = async_shaders.GetCompletedWork();
-        for (auto& w : work) {
-            auto& entry = graphics_cache.at(w.pipeline->GetCacheKey());
-            entry = std::move(w.pipeline);
-        }
+        std::unique_lock lock{pipeline_cache};
         const auto [pair, is_cache_miss] = graphics_cache.try_emplace(key);
         if (is_cache_miss) {
             LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
@@ -294,6 +290,18 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
     entry = std::make_unique<VKComputePipeline>(device, scheduler, descriptor_pool,
                                                 update_descriptor_queue, spirv_shader);
     return *entry;
+}
+
+void VKPipelineCache::EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline) {
+    std::unique_lock lock{pipeline_cache};
+    const auto [pair, is_cache_miss] = graphics_cache.try_emplace(pipeline->GetCacheKey());
+    auto& entry = pair->second;
+    if (entry) {
+        LOG_INFO(Render_Vulkan, "Pipeline already here 0x{:016X}", pipeline->GetCacheKey().Hash());
+        duplicates.push_back(std::move(pipeline));
+    } else {
+        entry = std::move(pipeline);
+    }
 }
 
 void VKPipelineCache::OnShaderRemoval(Shader* shader) {
