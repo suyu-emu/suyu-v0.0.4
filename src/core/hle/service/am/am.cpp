@@ -378,7 +378,11 @@ void ISelfController::GetLibraryAppletLaunchableEvent(Kernel::HLERequestContext&
 }
 
 void ISelfController::SetScreenShotPermission(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_AM, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto permission = rp.PopEnum<ScreenshotPermission>();
+    LOG_DEBUG(Service_AM, "called, permission={}", permission);
+
+    screenshot_permission = permission;
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
