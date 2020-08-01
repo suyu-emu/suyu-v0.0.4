@@ -46,6 +46,24 @@ void ApplyGainWithoutDelta(s32* output, const s32* input, s32 gain, s32 sample_c
     }
 }
 
+s32 ApplyMixDepop(s32* output, s32 first_sample, s32 delta, s32 sample_count) {
+    const bool positive = first_sample > 0;
+    auto final_sample = std::abs(first_sample);
+    for (s32 i = 0; i < sample_count; i++) {
+        final_sample = static_cast<s32>((static_cast<s64>(final_sample) * delta) >> 15);
+        if (positive) {
+            output[i] += final_sample;
+        } else {
+            output[i] -= final_sample;
+        }
+    }
+    if (positive) {
+        return final_sample;
+    } else {
+        return -final_sample;
+    }
+}
+
 } // namespace
 
 CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
@@ -55,12 +73,15 @@ CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_p
       splitter_context(splitter_context), memory(memory),
       mix_buffer((worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT) *
                  worker_params.sample_count),
-      sample_buffer(MIX_BUFFER_SIZE) {}
+      sample_buffer(MIX_BUFFER_SIZE),
+      depop_buffer((worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT) *
+                   worker_params.sample_count) {}
 CommandGenerator::~CommandGenerator() = default;
 
 void CommandGenerator::ClearMixBuffers() {
     std::fill(mix_buffer.begin(), mix_buffer.end(), 0);
     std::fill(sample_buffer.begin(), sample_buffer.end(), 0);
+    // std::fill(depop_buffer.begin(), depop_buffer.end(), 0);
 }
 
 void CommandGenerator::GenerateVoiceCommands() {
@@ -195,32 +216,39 @@ void CommandGenerator::GenerateDataSourceCommand(ServerVoiceInfo& voice_info, Vo
     auto& in_params = voice_info.GetInParams();
     const auto depop = in_params.should_depop;
 
-    if (in_params.mix_id != AudioCommon::NO_MIX) {
-        [[maybe_unused]] auto& mix_info = mix_context.GetInfo(in_params.mix_id);
-        // mix_info.
-        // TODO(ogniK): Depop to destination mix
-    } else if (in_params.splitter_info_id != AudioCommon::NO_SPLITTER) {
-        // TODO(ogniK): Depop to splitter
-    }
-
     if (depop) {
-        return;
-    }
-
-    switch (in_params.sample_format) {
-    case SampleFormat::Pcm16:
-        DecodeFromWaveBuffers(voice_info, GetChannelMixBuffer(channel), dsp_state, channel,
-                              worker_params.sample_rate, worker_params.sample_count,
-                              in_params.node_id);
-        break;
-    case SampleFormat::Adpcm:
-        ASSERT(channel == 0 && in_params.channel_count == 1);
-        DecodeFromWaveBuffers(voice_info, GetChannelMixBuffer(0), dsp_state, 0,
-                              worker_params.sample_rate, worker_params.sample_count,
-                              in_params.node_id);
-        break;
-    default:
-        UNREACHABLE_MSG("Unimplemented sample format={}", in_params.sample_format);
+        if (in_params.mix_id != AudioCommon::NO_MIX) {
+            auto& mix_info = mix_context.GetInfo(in_params.mix_id);
+            const auto& mix_in = mix_info.GetInParams();
+            GenerateDepopPrepareCommand(dsp_state, mix_in.buffer_count, mix_in.buffer_offset);
+        } else if (in_params.splitter_info_id != AudioCommon::NO_SPLITTER) {
+            s32 index{};
+            while (const auto* destination =
+                       GetDestinationData(in_params.splitter_info_id, index++)) {
+                if (!destination->IsConfigured()) {
+                    continue;
+                }
+                auto& mix_info = mix_context.GetInfo(destination->GetMixId());
+                const auto& mix_in = mix_info.GetInParams();
+                GenerateDepopPrepareCommand(dsp_state, mix_in.buffer_count, mix_in.buffer_offset);
+            }
+        }
+    } else {
+        switch (in_params.sample_format) {
+        case SampleFormat::Pcm16:
+            DecodeFromWaveBuffers(voice_info, GetChannelMixBuffer(channel), dsp_state, channel,
+                                  worker_params.sample_rate, worker_params.sample_count,
+                                  in_params.node_id);
+            break;
+        case SampleFormat::Adpcm:
+            ASSERT(channel == 0 && in_params.channel_count == 1);
+            DecodeFromWaveBuffers(voice_info, GetChannelMixBuffer(0), dsp_state, 0,
+                                  worker_params.sample_rate, worker_params.sample_count,
+                                  in_params.node_id);
+            break;
+        default:
+            UNREACHABLE_MSG("Unimplemented sample format={}", in_params.sample_format);
+        }
     }
 }
 
@@ -281,6 +309,34 @@ void AudioCore::CommandGenerator::GenerateBiquadFilterCommand(
     state = {s0, s1};
 }
 
+void CommandGenerator::GenerateDepopPrepareCommand(VoiceState& dsp_state,
+                                                   std::size_t mix_buffer_count,
+                                                   std::size_t mix_buffer_offset) {
+    for (std::size_t i = 0; i < mix_buffer_count; i++) {
+        auto& sample = dsp_state.previous_samples[i];
+        if (sample != 0) {
+            depop_buffer[mix_buffer_offset + i] += sample;
+            sample = 0;
+        }
+    }
+}
+
+void CommandGenerator::GenerateDepopForMixBuffersCommand(std::size_t mix_buffer_count,
+                                                         std::size_t mix_buffer_offset,
+                                                         s32 sample_rate) {
+    const std::size_t end_offset =
+        std::min(mix_buffer_offset + mix_buffer_count, GetTotalMixBufferCount());
+    const s32 delta = sample_rate == 48000 ? 0x7B29 : 0x78CB;
+    for (std::size_t i = mix_buffer_offset; i < end_offset; i++) {
+        if (depop_buffer[i] == 0) {
+            continue;
+        }
+
+        depop_buffer[i] =
+            ApplyMixDepop(GetMixBuffer(i), depop_buffer[i], delta, worker_params.sample_count);
+    }
+}
+
 ServerSplitterDestinationData* CommandGenerator::GetDestinationData(s32 splitter_id, s32 index) {
     if (splitter_id == AudioCommon::NO_SPLITTER) {
         return nullptr;
@@ -338,7 +394,9 @@ void CommandGenerator::GenerateSubMixCommand(ServerMixInfo& mix_info) {
     if (dumping_frame) {
         LOG_DEBUG(Audio, "(DSP_TRACE) GenerateSubMixCommand");
     }
-    // TODO(ogniK): Depop
+    auto& in_params = mix_info.GetInParams();
+    GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
+                                      in_params.sample_rate);
     // TODO(ogniK): Effects
     GenerateMixCommands(mix_info);
 }
@@ -412,10 +470,13 @@ void CommandGenerator::GenerateFinalMixCommand() {
     if (dumping_frame) {
         LOG_DEBUG(Audio, "(DSP_TRACE) GenerateFinalMixCommand");
     }
-    // TODO(ogniK): Depop
-    // TODO(ogniK): Effects
     auto& mix_info = mix_context.GetFinalMixInfo();
     const auto in_params = mix_info.GetInParams();
+
+    GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
+                                      in_params.sample_rate);
+    // TODO(ogniK): Effects
+
     for (s32 i = 0; i < in_params.buffer_count; i++) {
         const s32 gain = static_cast<s32>(in_params.volume * 32768.0f);
         if (dumping_frame) {
@@ -539,6 +600,10 @@ const s32* CommandGenerator::GetMixBuffer(std::size_t index) const {
 
 std::size_t CommandGenerator::GetMixChannelBufferOffset(s32 channel) const {
     return worker_params.mix_buffer_count + channel;
+}
+
+std::size_t CommandGenerator::GetTotalMixBufferCount() const {
+    return worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT;
 }
 
 s32* CommandGenerator::GetChannelMixBuffer(s32 channel) {

@@ -43,6 +43,8 @@ public:
     const s32* GetMixBuffer(std::size_t index) const;
     std::size_t GetMixChannelBufferOffset(s32 channel) const;
 
+    std::size_t GetTotalMixBufferCount() const;
+
 private:
     void GenerateDataSourceCommand(ServerVoiceInfo& voice_info, VoiceState& dsp_state, s32 channel);
     void GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
@@ -61,7 +63,10 @@ private:
     void GenerateBiquadFilterCommand(s32 mix_buffer, const BiquadFilterParameter& params,
                                      std::array<s64, 2>& state, std::size_t input_offset,
                                      std::size_t output_offset, s32 sample_count, s32 node_id);
-    void GenerateDepopPrepareCommand(VoiceState& dsp_state);
+    void GenerateDepopPrepareCommand(VoiceState& dsp_state, std::size_t mix_buffer_count,
+                                     std::size_t mix_buffer_offset);
+    void GenerateDepopForMixBuffersCommand(std::size_t mix_buffer_count,
+                                           std::size_t mix_buffer_offset, s32 sample_rate);
     ServerSplitterDestinationData* GetDestinationData(s32 splitter_id, s32 index);
 
     // DSP Code
@@ -79,6 +84,7 @@ private:
     Core::Memory::Memory& memory;
     std::vector<s32> mix_buffer{};
     std::vector<s32> sample_buffer{};
+    std::vector<s32> depop_buffer{};
     bool dumping_frame{false};
 };
 } // namespace AudioCore
