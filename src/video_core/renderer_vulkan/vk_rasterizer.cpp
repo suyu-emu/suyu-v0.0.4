@@ -14,6 +14,7 @@
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "core/core.h"
 #include "core/settings.h"
 #include "video_core/engines/kepler_compute.h"
@@ -408,15 +409,10 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
 
         // Max worker threads we should allow
         constexpr u32 MAX_THREADS = 4;
-        // Amount of threads we should reserve for other parts of yuzu
-        constexpr u32 RESERVED_THREADS = 6;
-        // Get the amount of threads we can use(this can return zero)
-        const auto cpu_thread_count =
-            std::max(RESERVED_THREADS, std::thread::hardware_concurrency());
-        // Deduce how many "extra" threads we have to use.
-        const auto max_threads_unused = cpu_thread_count - RESERVED_THREADS;
+        // Deduce how many threads we can use
+        const auto threads_used = std::thread::hardware_concurrency() / 4;
         // Always allow at least 1 thread regardless of our settings
-        const auto max_worker_count = std::max(1u, max_threads_unused);
+        const auto max_worker_count = std::max(1U, threads_used);
         // Don't use more than MAX_THREADS
         const auto worker_count = std::min(max_worker_count, MAX_THREADS);
         async_shaders.AllocateWorkers(worker_count);
@@ -431,6 +427,8 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     FlushWork();
 
     query_cache.UpdateCounters();
+
+    SCOPE_EXIT({ system.GPU().TickWork(); });
 
     const auto& gpu = system.GPU().Maxwell3D();
     GraphicsPipelineCacheKey key;
@@ -458,10 +456,9 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     key.renderpass_params = GetRenderPassParams(texceptions);
     key.padding = 0;
 
-    auto pipeline = pipeline_cache.GetGraphicsPipeline(key, async_shaders);
+    auto* pipeline = pipeline_cache.GetGraphicsPipeline(key, async_shaders);
     if (pipeline == nullptr || pipeline->GetHandle() == VK_NULL_HANDLE) {
         // Async graphics pipeline was not ready.
-        system.GPU().TickWork();
         return;
     }
 
@@ -488,8 +485,6 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     });
 
     EndTransformFeedback();
-
-    system.GPU().TickWork();
 }
 
 void RasterizerVulkan::Clear() {

@@ -19,7 +19,27 @@ namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-struct GraphicsPipelineCacheKey;
+struct GraphicsPipelineCacheKey {
+    RenderPassParams renderpass_params;
+    u32 padding;
+    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
+    FixedPipelineState fixed_state;
+
+    std::size_t Hash() const noexcept;
+
+    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept;
+
+    bool operator!=(const GraphicsPipelineCacheKey& rhs) const noexcept {
+        return !operator==(rhs);
+    }
+
+    std::size_t Size() const noexcept {
+        return sizeof(renderpass_params) + sizeof(padding) + sizeof(shaders) + fixed_state.Size();
+    }
+};
+static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
+static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);
+static_assert(std::is_trivially_constructible_v<GraphicsPipelineCacheKey>);
 
 class VKDescriptorPool;
 class VKDevice;
@@ -54,8 +74,8 @@ public:
         return renderpass;
     }
 
-    const GraphicsPipelineCacheKey& GetCacheKey() const {
-        return m_key;
+    GraphicsPipelineCacheKey GetCacheKey() const {
+        return cache_key;
     }
 
 private:
@@ -74,8 +94,8 @@ private:
 
     const VKDevice& device;
     VKScheduler& scheduler;
-    const FixedPipelineState fixed_state;
     const u64 hash;
+    GraphicsPipelineCacheKey cache_key;
 
     vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;
@@ -86,8 +106,6 @@ private:
 
     VkRenderPass renderpass;
     vk::Pipeline pipeline;
-
-    const GraphicsPipelineCacheKey& m_key;
 };
 
 } // namespace Vulkan

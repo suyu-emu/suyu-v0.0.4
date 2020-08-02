@@ -28,6 +28,7 @@
 #include "video_core/shader/compiler_settings.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader_cache.h"
+#include "video_core/shader_notify.h"
 
 namespace Vulkan {
 
@@ -214,27 +215,31 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
     }
     last_graphics_key = key;
 
-    if (device.UseAsynchronousShaders()) {
+    if (device.UseAsynchronousShaders() && async_shaders.IsShaderAsync(system.GPU())) {
         std::unique_lock lock{pipeline_cache};
         const auto [pair, is_cache_miss] = graphics_cache.try_emplace(key);
         if (is_cache_miss) {
+            system.GPU().ShaderNotify().MarkSharderBuilding();
             LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
             const auto [program, bindings] = DecompileShaders(key.fixed_state);
-            async_shaders.QueueVulkanShader(this, bindings, program, key.renderpass_params,
-                                            key.padding, key.shaders, key.fixed_state);
+            async_shaders.QueueVulkanShader(this, device, scheduler, descriptor_pool,
+                                            update_descriptor_queue, renderpass_cache, bindings,
+                                            program, key);
         }
-        last_graphics_pipeline = graphics_cache.at(key).get();
+        last_graphics_pipeline = pair->second.get();
         return last_graphics_pipeline;
     }
 
     const auto [pair, is_cache_miss] = graphics_cache.try_emplace(key);
     auto& entry = pair->second;
     if (is_cache_miss) {
+        system.GPU().ShaderNotify().MarkSharderBuilding();
         LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
         const auto [program, bindings] = DecompileShaders(key.fixed_state);
         entry = std::make_unique<VKGraphicsPipeline>(device, scheduler, descriptor_pool,
                                                      update_descriptor_queue, renderpass_cache, key,
                                                      bindings, program);
+        system.GPU().ShaderNotify().MarkShaderComplete();
     }
     last_graphics_pipeline = entry.get();
     return last_graphics_pipeline;
@@ -294,14 +299,8 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
 
 void VKPipelineCache::EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline) {
     std::unique_lock lock{pipeline_cache};
-    const auto [pair, is_cache_miss] = graphics_cache.try_emplace(pipeline->GetCacheKey());
-    auto& entry = pair->second;
-    if (entry) {
-        LOG_INFO(Render_Vulkan, "Pipeline already here 0x{:016X}", pipeline->GetCacheKey().Hash());
-        duplicates.push_back(std::move(pipeline));
-    } else {
-        entry = std::move(pipeline);
-    }
+    graphics_cache.at(pipeline->GetCacheKey()) = std::move(pipeline);
+    system.GPU().ShaderNotify().MarkShaderComplete();
 }
 
 void VKPipelineCache::OnShaderRemoval(Shader* shader) {

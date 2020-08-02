@@ -44,28 +44,6 @@ class VKUpdateDescriptorQueue;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
-struct GraphicsPipelineCacheKey {
-    RenderPassParams renderpass_params;
-    u32 padding;
-    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
-    FixedPipelineState fixed_state;
-
-    std::size_t Hash() const noexcept;
-
-    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept;
-
-    bool operator!=(const GraphicsPipelineCacheKey& rhs) const noexcept {
-        return !operator==(rhs);
-    }
-
-    std::size_t Size() const noexcept {
-        return sizeof(renderpass_params) + sizeof(padding) + sizeof(shaders) + fixed_state.Size();
-    }
-};
-static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
-static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);
-static_assert(std::is_trivially_constructible_v<GraphicsPipelineCacheKey>);
-
 struct ComputePipelineCacheKey {
     GPUVAddr shader;
     u32 shared_memory_size;
@@ -158,41 +136,6 @@ public:
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
 
-    const VKDevice& GetDevice() const {
-        return device;
-    }
-
-    VKScheduler& GetScheduler() {
-        return scheduler;
-    }
-    const VKScheduler& GetScheduler() const {
-        return scheduler;
-    }
-
-    VKDescriptorPool& GetDescriptorPool() {
-        return descriptor_pool;
-    }
-
-    const VKDescriptorPool& GetDescriptorPool() const {
-        return descriptor_pool;
-    }
-
-    VKUpdateDescriptorQueue& GetUpdateDescriptorQueue() {
-        return update_descriptor_queue;
-    }
-
-    const VKUpdateDescriptorQueue& GetUpdateDescriptorQueue() const {
-        return update_descriptor_queue;
-    }
-
-    VKRenderPassCache& GetRenderpassCache() {
-        return renderpass_cache;
-    }
-
-    const VKRenderPassCache& GetRenderpassCache() const {
-        return renderpass_cache;
-    }
-
     void EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline);
 
 protected:
@@ -216,7 +159,6 @@ private:
 
     GraphicsPipelineCacheKey last_graphics_key;
     VKGraphicsPipeline* last_graphics_pipeline = nullptr;
-    std::vector<std::unique_ptr<VKGraphicsPipeline>> duplicates;
 
     std::mutex pipeline_cache;
     std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<VKGraphicsPipeline>>

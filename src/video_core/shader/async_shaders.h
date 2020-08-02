@@ -86,12 +86,13 @@ public:
                            VideoCommon::Shader::CompilerSettings compiler_settings,
                            const VideoCommon::Shader::Registry& registry, VAddr cpu_addr);
 
-    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
+    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache, const Vulkan::VKDevice& device,
+                           Vulkan::VKScheduler& scheduler,
+                           Vulkan::VKDescriptorPool& descriptor_pool,
+                           Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
+                           Vulkan::VKRenderPassCache& renderpass_cache,
                            std::vector<VkDescriptorSetLayoutBinding> bindings,
-                           Vulkan::SPIRVProgram program, Vulkan::RenderPassParams renderpass_params,
-                           u32 padding,
-                           std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders,
-                           Vulkan::FixedPipelineState fixed_state);
+                           Vulkan::SPIRVProgram program, Vulkan::GraphicsPipelineCacheKey key);
 
 private:
     void ShaderCompilerThread(Core::Frontend::GraphicsContext* context);
@@ -114,12 +115,14 @@ private:
 
         // For Vulkan
         Vulkan::VKPipelineCache* pp_cache;
+        const Vulkan::VKDevice* vk_device;
+        Vulkan::VKScheduler* scheduler;
+        Vulkan::VKDescriptorPool* descriptor_pool;
+        Vulkan::VKUpdateDescriptorQueue* update_descriptor_queue;
+        Vulkan::VKRenderPassCache* renderpass_cache;
         std::vector<VkDescriptorSetLayoutBinding> bindings;
         Vulkan::SPIRVProgram program;
-        Vulkan::RenderPassParams renderpass_params;
-        u32 padding;
-        std::array<GPUVAddr, Vulkan::Maxwell::MaxShaderProgram> shaders;
-        Vulkan::FixedPipelineState fixed_state;
+        Vulkan::GraphicsPipelineCacheKey key;
     };
 
     std::condition_variable cv;
@@ -128,7 +131,7 @@ private:
     std::atomic<bool> is_thread_exiting{};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> context_list;
     std::vector<std::thread> worker_threads;
-    std::queue<std::unique_ptr<WorkerParams>> pending_queue;
+    std::queue<WorkerParams> pending_queue;
     std::vector<AsyncShaders::Result> finished_work;
     Core::Frontend::EmuWindow& emu_window;
 };
