@@ -9,6 +9,7 @@
 #include <type_traits>
 #include <unordered_map>
 
+#include "common/concepts.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
@@ -56,10 +57,8 @@ public:
     ResultVal<std::shared_ptr<Kernel::ClientPort>> GetServicePort(const std::string& name);
     ResultVal<std::shared_ptr<Kernel::ClientSession>> ConnectToService(const std::string& name);
 
-    template <typename T>
+    template <Common::IsBaseOf<Kernel::SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
-        static_assert(std::is_base_of_v<Kernel::SessionRequestHandler, T>,
-                      "Not a base of ServiceFrameworkBase");
         auto service = registered_services.find(service_name);
         if (service == registered_services.end()) {
             LOG_DEBUG(Service, "Can't find service: {}", service_name);
