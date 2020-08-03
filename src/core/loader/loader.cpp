@@ -23,6 +23,8 @@
 
 namespace Loader {
 
+namespace {
+
 template <Common::IsBaseOf<AppLoader> T>
 std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
     const auto file_type = T::IdentifyType(file);
@@ -31,6 +33,8 @@ std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
     }
     return std::nullopt;
 }
+
+} // namespace
 
 FileType IdentifyFile(FileSys::VirtualFile file) {
     if (const auto romdir_type = IdentifyFileLoader<AppLoader_DeconstructedRomDirectory>(file)) {
