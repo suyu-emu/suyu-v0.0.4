@@ -74,15 +74,16 @@ void PerfStats::EndGameFrame() {
     game_frames += 1;
 }
 
-double PerfStats::GetMeanFrametime() {
+double PerfStats::GetMeanFrametime() const {
     std::lock_guard lock{object_mutex};
 
     if (current_index <= IgnoreFrames) {
         return 0;
     }
+
     const double sum = std::accumulate(perf_history.begin() + IgnoreFrames,
                                        perf_history.begin() + current_index, 0.0);
-    return sum / (current_index - IgnoreFrames);
+    return sum / static_cast<double>(current_index - IgnoreFrames);
 }
 
 PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us) {
@@ -111,7 +112,7 @@ PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us
     return results;
 }
 
-double PerfStats::GetLastFrameTimeScale() {
+double PerfStats::GetLastFrameTimeScale() const {
     std::lock_guard lock{object_mutex};
 
     constexpr double FRAME_LENGTH = 1.0 / 60;
