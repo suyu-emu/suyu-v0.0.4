@@ -473,6 +473,8 @@ VkImageView CachedSurfaceView::GetAttachment() {
                 .aspectMask = aspect_mask,
                 .baseMipLevel = base_level,
                 .levelCount = num_levels,
+                .baseArrayLayer = 0,
+                .layerCount = 0,
             },
     };
     if (image_view_type == VK_IMAGE_VIEW_TYPE_3D) {

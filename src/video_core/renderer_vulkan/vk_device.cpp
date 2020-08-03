@@ -771,8 +771,9 @@ std::vector<VkDeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() const
             .pNext = nullptr,
             .flags = 0,
             .queueFamilyIndex = queue_family,
+            .queueCount = 1,
+            .pQueuePriorities = nullptr,
         });
-        ci.queueCount = 1;
         ci.pQueuePriorities = &QUEUE_PRIORITY;
     }
 
