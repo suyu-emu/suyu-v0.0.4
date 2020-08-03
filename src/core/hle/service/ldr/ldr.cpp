@@ -310,7 +310,7 @@ public:
 
     ResultVal<VAddr> MapProcessCodeMemory(Kernel::Process* process, VAddr baseAddress,
                                           u64 size) const {
-        for (int retry{}; retry < MAXIMUM_MAP_RETRIES; retry++) {
+        for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->PageTable()};
             const VAddr addr{GetRandomMapRegion(page_table, size)};
             const ResultCode result{page_table.MapProcessCodeMemory(addr, baseAddress, size)};
@@ -331,8 +331,7 @@ public:
 
     ResultVal<VAddr> MapNro(Kernel::Process* process, VAddr nro_addr, std::size_t nro_size,
                             VAddr bss_addr, std::size_t bss_size, std::size_t size) const {
-
-        for (int retry{}; retry < MAXIMUM_MAP_RETRIES; retry++) {
+        for (std::size_t retry = 0; retry < MAXIMUM_MAP_RETRIES; retry++) {
             auto& page_table{process->PageTable()};
             VAddr addr{};
 
