@@ -346,10 +346,9 @@ FileSys::VirtualFile PartitionDataManager::GetPackage2Raw(Package2Type type) con
 }
 
 static bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header) {
-    const std::vector<u8> iv(header.header_ctr.begin(), header.header_ctr.end());
     Package2Header temp = header;
     AESCipher<Key128> cipher(key, Mode::CTR);
-    cipher.SetIV(iv);
+    cipher.SetIV(header.header_ctr);
     cipher.Transcode(&temp.header_ctr, sizeof(Package2Header) - 0x100, &temp.header_ctr,
                      Op::Decrypt);
     if (temp.magic == Common::MakeMagic('P', 'K', '2', '1')) {
@@ -388,7 +387,7 @@ void PartitionDataManager::DecryptPackage2(const std::array<Key128, 0x20>& packa
     auto c = a->ReadAllBytes();
 
     AESCipher<Key128> cipher(package2_keys[revision], Mode::CTR);
-    cipher.SetIV({header.section_ctr[1].begin(), header.section_ctr[1].end()});
+    cipher.SetIV(header.section_ctr[1]);
     cipher.Transcode(c.data(), c.size(), c.data(), Op::Decrypt);
 
     const auto ini_file = std::make_shared<FileSys::VectorVfsFile>(c);

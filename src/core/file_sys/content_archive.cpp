@@ -495,9 +495,10 @@ VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 s
 
             auto out = std::make_shared<Core::Crypto::CTREncryptionLayer>(std::move(in), *key,
                                                                           starting_offset);
-            std::vector<u8> iv(16);
-            for (u8 i = 0; i < 8; ++i)
-                iv[i] = s_header.raw.section_ctr[0x8 - i - 1];
+            Core::Crypto::CTREncryptionLayer::IVData iv{};
+            for (std::size_t i = 0; i < 8; ++i) {
+                iv[i] = s_header.raw.section_ctr[8 - i - 1];
+            }
             out->SetIV(iv);
             return std::static_pointer_cast<VfsFile>(out);
         }
