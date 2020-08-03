@@ -40,12 +40,14 @@ namespace Core::Crypto {
 constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
 constexpr u64 FULL_TICKET_SIZE = 0x400;
 
-using namespace Common;
+using Common::AsArray;
 
-const std::array<SHA256Hash, 2> eticket_source_hashes{
-    "B71DB271DC338DF380AA2C4335EF8873B1AFD408E80B3582D8719FC81C5E511C"_array32, // eticket_rsa_kek_source
-    "E8965A187D30E57869F562D04383C996DE487BBA5761363D2D4D32391866A85C"_array32, // eticket_rsa_kekek_source
+// clang-format off
+constexpr std::array eticket_source_hashes{
+    AsArray("B71DB271DC338DF380AA2C4335EF8873B1AFD408E80B3582D8719FC81C5E511C"), // eticket_rsa_kek_source
+    AsArray("E8965A187D30E57869F562D04383C996DE487BBA5761363D2D4D32391866A85C"), // eticket_rsa_kekek_source
 };
+// clang-format on
 
 const std::map<std::pair<S128KeyType, u64>, std::string> KEYS_VARIABLE_LENGTH{
     {{S128KeyType::Master, 0}, "master_key_"},
