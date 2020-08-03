@@ -32,6 +32,7 @@ enum class UserPath {
     SDMCDir,
     LoadDir,
     DumpDir,
+    ScreenshotsDir,
     ShaderDir,
     SysDataDir,
     UserDir,

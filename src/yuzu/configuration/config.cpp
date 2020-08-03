@@ -578,7 +578,6 @@ void Config::ReadPathValues() {
 
     UISettings::values.roms_path = ReadSetting(QStringLiteral("romsPath")).toString();
     UISettings::values.symbols_path = ReadSetting(QStringLiteral("symbolsPath")).toString();
-    UISettings::values.screenshot_path = ReadSetting(QStringLiteral("screenshotPath")).toString();
     UISettings::values.game_dir_deprecated =
         ReadSetting(QStringLiteral("gameListRootDir"), QStringLiteral(".")).toString();
     UISettings::values.game_dir_deprecated_deepscan =
@@ -673,6 +672,22 @@ void Config::ReadRendererValues() {
     qt_config->endGroup();
 }
 
+void Config::ReadScreenshotValues() {
+    qt_config->beginGroup(QStringLiteral("Screenshots"));
+
+    UISettings::values.enable_screenshot_save_as =
+        ReadSetting(QStringLiteral("enable_screenshot_save_as"), true).toBool();
+    FileUtil::GetUserPath(
+        FileUtil::UserPath::ScreenshotsDir,
+        qt_config
+            ->value(QStringLiteral("screenshot_path"), QString::fromStdString(FileUtil::GetUserPath(
+                                                           FileUtil::UserPath::ScreenshotsDir)))
+            .toString()
+            .toStdString());
+
+    qt_config->endGroup();
+}
+
 void Config::ReadShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
@@ -754,6 +769,7 @@ void Config::ReadUIValues() {
     ReadUIGamelistValues();
     ReadUILayoutValues();
     ReadPathValues();
+    ReadScreenshotValues();
     ReadShortcutValues();
 
     UISettings::values.single_window_mode =
@@ -1083,7 +1099,6 @@ void Config::SavePathValues() {
 
     WriteSetting(QStringLiteral("romsPath"), UISettings::values.roms_path);
     WriteSetting(QStringLiteral("symbolsPath"), UISettings::values.symbols_path);
-    WriteSetting(QStringLiteral("screenshotPath"), UISettings::values.screenshot_path);
     qt_config->beginWriteArray(QStringLiteral("gamedirs"));
     for (int i = 0; i < UISettings::values.game_dirs.size(); ++i) {
         qt_config->setArrayIndex(i);
@@ -1159,6 +1174,17 @@ void Config::SaveRendererValues() {
     qt_config->endGroup();
 }
 
+void Config::SaveScreenshotValues() {
+    qt_config->beginGroup(QStringLiteral("Screenshots"));
+
+    WriteSetting(QStringLiteral("enable_screenshot_save_as"),
+                 UISettings::values.enable_screenshot_save_as);
+    WriteSetting(QStringLiteral("screenshot_path"),
+                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir)));
+
+    qt_config->endGroup();
+}
+
 void Config::SaveShortcutValues() {
     qt_config->beginGroup(QStringLiteral("Shortcuts"));
 
@@ -1221,6 +1247,7 @@ void Config::SaveUIValues() {
     SaveUIGamelistValues();
     SaveUILayoutValues();
     SavePathValues();
+    SaveScreenshotValues();
     SaveShortcutValues();
 
     WriteSetting(QStringLiteral("singleWindowMode"), UISettings::values.single_window_mode, true);

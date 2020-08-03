@@ -66,11 +66,11 @@ struct Values {
     // Discord RPC
     bool enable_discord_presence;
 
+    bool enable_screenshot_save_as;
     u16 screenshot_resolution_factor;
 
     QString roms_path;
     QString symbols_path;
-    QString screenshot_path;
     QString game_dir_deprecated;
     bool game_dir_deprecated_deepscan;
     QVector<UISettings::GameDir> game_dirs;

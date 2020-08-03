@@ -51,6 +51,7 @@ private:
     void ReadPathValues();
     void ReadCpuValues();
     void ReadRendererValues();
+    void ReadScreenshotValues();
     void ReadShortcutValues();
     void ReadSystemValues();
     void ReadUIValues();
@@ -76,6 +77,7 @@ private:
     void SavePathValues();
     void SaveCpuValues();
     void SaveRendererValues();
+    void SaveScreenshotValues();
     void SaveShortcutValues();
     void SaveSystemValues();
     void SaveUIValues();
