@@ -46,19 +46,15 @@ struct ScopeInit final {
     Core::Timing::CoreTiming core_timing;
 };
 
-#pragma optimize("", off)
-
 u64 TestTimerSpeed(Core::Timing::CoreTiming& core_timing) {
-    u64 start = core_timing.GetGlobalTimeNs().count();
-    u64 placebo = 0;
+    const u64 start = core_timing.GetGlobalTimeNs().count();
+    volatile u64 placebo = 0;
     for (std::size_t i = 0; i < 1000; i++) {
-        placebo += core_timing.GetGlobalTimeNs().count();
+        placebo = placebo + core_timing.GetGlobalTimeNs().count();
     }
-    u64 end = core_timing.GetGlobalTimeNs().count();
-    return (end - start);
+    const u64 end = core_timing.GetGlobalTimeNs().count();
+    return end - start;
 }
-
-#pragma optimize("", on)
 
 } // Anonymous namespace
 
