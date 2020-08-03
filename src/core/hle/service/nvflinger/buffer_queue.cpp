@@ -24,13 +24,13 @@ BufferQueue::~BufferQueue() = default;
 void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {
     LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
-    Buffer buffer{};
-    buffer.slot = slot;
-    buffer.igbp_buffer = igbp_buffer;
-    buffer.status = Buffer::Status::Free;
     free_buffers.push_back(slot);
+    queue.push_back({
+        .slot = slot,
+        .status = Buffer::Status::Free,
+        .igbp_buffer = igbp_buffer,
+    });
 
-    queue.emplace_back(buffer);
     buffer_wait_event.writable->Signal();
 }
 
