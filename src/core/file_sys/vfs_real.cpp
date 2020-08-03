@@ -18,20 +18,22 @@ static std::string ModeFlagsToString(Mode mode) {
     std::string mode_str;
 
     // Calculate the correct open mode for the file.
-    if (mode & Mode::Read && mode & Mode::Write) {
-        if (mode & Mode::Append)
+    if (True(mode & Mode::Read) && True(mode & Mode::Write)) {
+        if (True(mode & Mode::Append)) {
             mode_str = "a+";
-        else
+        } else {
             mode_str = "r+";
+        }
     } else {
-        if (mode & Mode::Read)
+        if (True(mode & Mode::Read)) {
             mode_str = "r";
-        else if (mode & Mode::Append)
+        } else if (True(mode & Mode::Append)) {
             mode_str = "a";
-        else if (mode & Mode::Write)
+        } else if (True(mode & Mode::Write)) {
             mode_str = "w";
-        else
+        } else {
             UNREACHABLE_MSG("Invalid file open mode: {:02X}", static_cast<u8>(mode));
+        }
     }
 
     mode_str += "b";
@@ -73,8 +75,9 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
         }
     }
 
-    if (!FileUtil::Exists(path) && (perms & Mode::WriteAppend) != 0)
+    if (!FileUtil::Exists(path) && True(perms & Mode::WriteAppend)) {
         FileUtil::CreateEmptyFile(path);
+    }
 
     auto backing = std::make_shared<FileUtil::IOFile>(path, ModeFlagsToString(perms).c_str());
     cache[path] = backing;
@@ -247,11 +250,11 @@ std::shared_ptr<VfsDirectory> RealVfsFile::GetContainingDirectory() const {
 }
 
 bool RealVfsFile::IsWritable() const {
-    return (perms & Mode::WriteAppend) != 0;
+    return True(perms & Mode::WriteAppend);
 }
 
 bool RealVfsFile::IsReadable() const {
-    return (perms & Mode::ReadWrite) != 0;
+    return True(perms & Mode::ReadWrite);
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
@@ -319,8 +322,9 @@ RealVfsDirectory::RealVfsDirectory(RealVfsFilesystem& base_, const std::string& 
       path_components(FileUtil::SplitPathComponents(path)),
       parent_components(FileUtil::SliceVector(path_components, 0, path_components.size() - 1)),
       perms(perms_) {
-    if (!FileUtil::Exists(path) && perms & Mode::WriteAppend)
+    if (!FileUtil::Exists(path) && True(perms & Mode::WriteAppend)) {
         FileUtil::CreateDir(path);
+    }
 }
 
 RealVfsDirectory::~RealVfsDirectory() = default;
@@ -371,11 +375,11 @@ std::vector<std::shared_ptr<VfsDirectory>> RealVfsDirectory::GetSubdirectories()
 }
 
 bool RealVfsDirectory::IsWritable() const {
-    return (perms & Mode::WriteAppend) != 0;
+    return True(perms & Mode::WriteAppend);
 }
 
 bool RealVfsDirectory::IsReadable() const {
-    return (perms & Mode::ReadWrite) != 0;
+    return True(perms & Mode::ReadWrite);
 }
 
 std::string RealVfsDirectory::GetName() const {
