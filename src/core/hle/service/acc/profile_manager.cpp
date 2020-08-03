@@ -101,13 +101,14 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& usern
                     [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
         return ERROR_USER_ALREADY_EXISTS;
     }
-    ProfileInfo profile;
-    profile.user_uuid = uuid;
-    profile.username = username;
-    profile.data = {};
-    profile.creation_time = 0x0;
-    profile.is_open = false;
-    return AddUser(profile);
+
+    return AddUser({
+        .user_uuid = uuid,
+        .username = username,
+        .creation_time = 0,
+        .data = {},
+        .is_open = false,
+    });
 }
 
 /// Creates a new user on the system. This function allows a much simpler method of registration
@@ -339,7 +340,13 @@ void ProfileManager::ParseUserSaveFile() {
             continue;
         }
 
-        AddUser({user.uuid, user.username, user.timestamp, user.extra_data, false});
+        AddUser({
+            .user_uuid = user.uuid,
+            .username = user.username,
+            .creation_time = user.timestamp,
+            .data = user.extra_data,
+            .is_open = false,
+        });
     }
 
     std::stable_partition(profiles.begin(), profiles.end(),
@@ -350,11 +357,13 @@ void ProfileManager::WriteUserSaveFile() {
     ProfileDataRaw raw{};
 
     for (std::size_t i = 0; i < MAX_USERS; ++i) {
-        raw.users[i].username = profiles[i].username;
-        raw.users[i].uuid2 = profiles[i].user_uuid;
-        raw.users[i].uuid = profiles[i].user_uuid;
-        raw.users[i].timestamp = profiles[i].creation_time;
-        raw.users[i].extra_data = profiles[i].data;
+        raw.users[i] = {
+            .uuid = profiles[i].user_uuid,
+            .uuid2 = profiles[i].user_uuid,
+            .timestamp = profiles[i].creation_time,
+            .username = profiles[i].username,
+            .extra_data = profiles[i].data,
+        };
     }
 
     const auto raw_path =
