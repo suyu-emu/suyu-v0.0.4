@@ -58,7 +58,7 @@ ProfileManager::~ProfileManager() {
 /// internal management of the users profiles
 std::optional<std::size_t> ProfileManager::AddToProfiles(const ProfileInfo& profile) {
     if (user_count >= MAX_USERS) {
-        return {};
+        return std::nullopt;
     }
     profiles[user_count] = profile;
     return user_count++;
@@ -127,7 +127,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
 
 std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
     if (index >= MAX_USERS) {
-        return {};
+        return std::nullopt;
     }
 
     return profiles[index].user_uuid;
@@ -136,13 +136,13 @@ std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
 /// Returns a users profile index based on their user id.
 std::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
-        return {};
+        return std::nullopt;
     }
 
     const auto iter = std::find_if(profiles.begin(), profiles.end(),
                                    [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
     if (iter == profiles.end()) {
-        return {};
+        return std::nullopt;
     }
 
     return static_cast<std::size_t>(std::distance(profiles.begin(), iter));
