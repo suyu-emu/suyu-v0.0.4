@@ -95,12 +95,13 @@ PerfStatsResults PerfStats::GetAndResetStats(microseconds current_system_time_us
 
     const auto system_us_per_second = (current_system_time_us - reset_point_system_us) / interval;
 
-    PerfStatsResults results{};
-    results.system_fps = static_cast<double>(system_frames) / interval;
-    results.game_fps = static_cast<double>(game_frames) / interval;
-    results.frametime = duration_cast<DoubleSecs>(accumulated_frametime).count() /
-                        static_cast<double>(system_frames);
-    results.emulation_speed = system_us_per_second.count() / 1'000'000.0;
+    const PerfStatsResults results{
+        .system_fps = static_cast<double>(system_frames) / interval,
+        .game_fps = static_cast<double>(game_frames) / interval,
+        .frametime = duration_cast<DoubleSecs>(accumulated_frametime).count() /
+                     static_cast<double>(system_frames),
+        .emulation_speed = system_us_per_second.count() / 1'000'000.0,
+    };
 
     // Reset counters
     reset_point = now;
