@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 
 namespace FileSys {
@@ -11,13 +12,11 @@ namespace FileSys {
 enum class Mode : u32 {
     Read = 1,
     Write = 2,
-    ReadWrite = 3,
+    ReadWrite = Read | Write,
     Append = 4,
-    WriteAppend = 6,
+    WriteAppend = Write | Append,
 };
 
-inline u32 operator&(Mode lhs, Mode rhs) {
-    return static_cast<u32>(lhs) & static_cast<u32>(rhs);
-}
+DECLARE_ENUM_FLAG_OPERATORS(Mode)
 
 } // namespace FileSys
