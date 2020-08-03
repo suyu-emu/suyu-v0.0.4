@@ -160,7 +160,7 @@ private:
             return;
         }
 
-        ctx.WriteBuffer(key.data(), key.size());
+        ctx.WriteBuffer(key);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

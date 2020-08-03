@@ -60,6 +60,7 @@ else()
         -Wmissing-declarations
         -Wno-attributes
         -Wno-unused-parameter
+        -fconcepts
     )
 
     if (ARCHITECTURE_x86_64)

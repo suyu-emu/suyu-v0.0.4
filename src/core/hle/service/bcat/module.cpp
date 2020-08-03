@@ -112,7 +112,7 @@ private:
     void GetImpl(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_BCAT, "called");
 
-        ctx.WriteBuffer(&impl, sizeof(DeliveryCacheProgressImpl));
+        ctx.WriteBuffer(impl);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

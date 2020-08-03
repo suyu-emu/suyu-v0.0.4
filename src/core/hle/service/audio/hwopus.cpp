@@ -92,7 +92,7 @@ private:
         if (performance) {
             rb.Push<u64>(*performance);
         }
-        ctx.WriteBuffer(samples.data(), samples.size() * sizeof(s16));
+        ctx.WriteBuffer(samples);
     }
 
     bool DecodeOpusData(u32& consumed, u32& sample_count, const std::vector<u8>& input,

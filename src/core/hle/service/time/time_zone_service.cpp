@@ -142,7 +142,7 @@ void ITimeZoneService::ToPosixTime(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.PushRaw<u32>(1); // Number of times we're returning
-    ctx.WriteBuffer(&posix_time, sizeof(s64));
+    ctx.WriteBuffer(posix_time);
 }
 
 void ITimeZoneService::ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
@@ -164,7 +164,7 @@ void ITimeZoneService::ToPosixTimeWithMyRule(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.PushRaw<u32>(1); // Number of times we're returning
-    ctx.WriteBuffer(&posix_time, sizeof(s64));
+    ctx.WriteBuffer(posix_time);
 }
 
 } // namespace Service::Time

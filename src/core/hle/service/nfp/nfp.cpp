@@ -127,7 +127,7 @@ private:
         const u32 array_size = rp.Pop<u32>();
         LOG_DEBUG(Service_NFP, "called, array_size={}", array_size);
 
-        ctx.WriteBuffer(&device_handle, sizeof(device_handle));
+        ctx.WriteBuffer(device_handle);
 
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
@@ -220,7 +220,7 @@ private:
 
         tag_info.protocol = 1; // TODO(ogniK): Figure out actual values
         tag_info.tag_type = 2;
-        ctx.WriteBuffer(&tag_info, sizeof(TagInfo));
+        ctx.WriteBuffer(tag_info);
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -237,7 +237,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         auto amiibo = nfp_interface.GetAmiiboBuffer();
-        ctx.WriteBuffer(&amiibo.model_info, sizeof(amiibo.model_info));
+        ctx.WriteBuffer(amiibo.model_info);
         rb.Push(RESULT_SUCCESS);
     }
 
@@ -283,7 +283,7 @@ private:
 
         CommonInfo common_info{};
         common_info.application_area_size = 0;
-        ctx.WriteBuffer(&common_info, sizeof(CommonInfo));
+        ctx.WriteBuffer(common_info);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);

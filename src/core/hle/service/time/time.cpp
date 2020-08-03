@@ -290,7 +290,7 @@ void Module::Interface::GetClockSnapshot(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
+    ctx.WriteBuffer(clock_snapshot);
 }
 
 void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLERequestContext& ctx) {
@@ -313,7 +313,7 @@ void Module::Interface::GetClockSnapshotFromSystemClockContext(Kernel::HLEReques
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(&clock_snapshot, sizeof(Clock::ClockSnapshot));
+    ctx.WriteBuffer(clock_snapshot);
 }
 
 void Module::Interface::CalculateStandardUserSystemClockDifferenceByUser(

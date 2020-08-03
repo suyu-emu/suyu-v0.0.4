@@ -110,6 +110,7 @@ add_library(common STATIC
     common_funcs.h
     common_paths.h
     common_types.h
+    concepts.h
     dynamic_library.cpp
     dynamic_library.h
     fiber.cpp

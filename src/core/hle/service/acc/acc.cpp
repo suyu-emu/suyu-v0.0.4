@@ -286,9 +286,7 @@ protected:
         ProfileBase profile_base{};
         ProfileData data{};
         if (profile_manager.GetProfileBaseAndData(user_id, profile_base, data)) {
-            std::array<u8, sizeof(ProfileData)> raw_data;
-            std::memcpy(raw_data.data(), &data, sizeof(ProfileData));
-            ctx.WriteBuffer(raw_data);
+            ctx.WriteBuffer(data);
             IPC::ResponseBuilder rb{ctx, 16};
             rb.Push(RESULT_SUCCESS);
             rb.PushRaw(profile_base);
@@ -333,7 +331,7 @@ protected:
         std::vector<u8> buffer(size);
         image.ReadBytes(buffer.data(), buffer.size());
 
-        ctx.WriteBuffer(buffer.data(), buffer.size());
+        ctx.WriteBuffer(buffer);
         rb.Push<u32>(size);
     }
 

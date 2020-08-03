@@ -106,7 +106,7 @@ void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
-    ctx.WriteBuffer(&layout, sizeof(KeyboardLayout));
+    ctx.WriteBuffer(layout);
 }
 } // Anonymous namespace
 
