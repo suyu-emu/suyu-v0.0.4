@@ -289,7 +289,7 @@ private:
 
 class SchedulerLock {
 public:
-    explicit SchedulerLock(KernelCore& kernel);
+    [[nodiscard]] explicit SchedulerLock(KernelCore& kernel);
     ~SchedulerLock();
 
 protected:
