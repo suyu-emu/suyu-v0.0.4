@@ -344,15 +344,18 @@ VirtualFile RegisteredCache::GetFileAtID(NcaID id) const {
 
 static std::optional<NcaID> CheckMapForContentRecord(const std::map<u64, CNMT>& map, u64 title_id,
                                                      ContentRecordType type) {
-    if (map.find(title_id) == map.end())
-        return {};
+    const auto cmnt_iter = map.find(title_id);
+    if (cmnt_iter == map.cend()) {
+        return std::nullopt;
+    }
 
-    const auto& cnmt = map.at(title_id);
-
-    const auto iter = std::find_if(cnmt.GetContentRecords().begin(), cnmt.GetContentRecords().end(),
+    const auto& cnmt = cmnt_iter->second;
+    const auto& content_records = cnmt.GetContentRecords();
+    const auto iter = std::find_if(content_records.cbegin(), content_records.cend(),
                                    [type](const ContentRecord& rec) { return rec.type == type; });
-    if (iter == cnmt.GetContentRecords().end())
-        return {};
+    if (iter == content_records.cend()) {
+        return std::nullopt;
+    }
 
     return std::make_optional(iter->nca_id);
 }
@@ -467,14 +470,16 @@ VirtualFile RegisteredCache::GetEntryUnparsed(u64 title_id, ContentRecordType ty
 
 std::optional<u32> RegisteredCache::GetEntryVersion(u64 title_id) const {
     const auto meta_iter = meta.find(title_id);
-    if (meta_iter != meta.end())
+    if (meta_iter != meta.cend()) {
         return meta_iter->second.GetTitleVersion();
+    }
 
     const auto yuzu_meta_iter = yuzu_meta.find(title_id);
-    if (yuzu_meta_iter != yuzu_meta.end())
+    if (yuzu_meta_iter != yuzu_meta.cend()) {
         return yuzu_meta_iter->second.GetTitleVersion();
+    }
 
-    return {};
+    return std::nullopt;
 }
 
 VirtualFile RegisteredCache::GetEntryRaw(u64 title_id, ContentRecordType type) const {
