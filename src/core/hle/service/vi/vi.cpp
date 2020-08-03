@@ -548,8 +548,8 @@ private:
                 // Wait the current thread until a buffer becomes available
                 ctx.SleepClientThread(
                     "IHOSBinderDriver::DequeueBuffer", UINT64_MAX,
-                    [=](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx,
-                        Kernel::ThreadWakeupReason reason) {
+                    [=, this](std::shared_ptr<Kernel::Thread> thread,
+                              Kernel::HLERequestContext& ctx, Kernel::ThreadWakeupReason reason) {
                         // Repeat TransactParcel DequeueBuffer when a buffer is available
                         const auto guard = nv_flinger->Lock();
                         auto& buffer_queue = nv_flinger->FindBufferQueue(id);

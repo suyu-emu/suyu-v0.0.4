@@ -81,7 +81,7 @@ void GPU::WaitFence(u32 syncpoint_id, u32 value) {
     }
     MICROPROFILE_SCOPE(GPU_wait);
     std::unique_lock lock{sync_mutex};
-    sync_cv.wait(lock, [=]() { return syncpoints[syncpoint_id].load() >= value; });
+    sync_cv.wait(lock, [=, this] { return syncpoints[syncpoint_id].load() >= value; });
 }
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {

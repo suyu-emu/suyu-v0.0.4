@@ -83,25 +83,28 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
         }
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QPushButton::clicked, [=] {
-            HandleClick(
-                button_map[button_id],
-                [=](const Common::ParamPackage& params) { buttons_param[button_id] = params; },
-                InputCommon::Polling::DeviceType::Button);
+        connect(button, &QPushButton::clicked, [=, this] {
+            HandleClick(button_map[button_id],
+                        [=, this](const Common::ParamPackage& params) {
+                            buttons_param[button_id] = params;
+                        },
+                        InputCommon::Polling::DeviceType::Button);
         });
-        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
-            QMenu context_menu;
-            context_menu.addAction(tr("Clear"), [&] {
-                buttons_param[button_id].Clear();
-                button_map[button_id]->setText(tr("[not set]"));
-            });
-            context_menu.addAction(tr("Restore Default"), [&] {
-                buttons_param[button_id] = Common::ParamPackage{
-                    InputCommon::GenerateKeyboardParam(Config::default_mouse_buttons[button_id])};
-                button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
-            });
-            context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
-        });
+        connect(button, &QPushButton::customContextMenuRequested,
+                [=, this](const QPoint& menu_location) {
+                    QMenu context_menu;
+                    context_menu.addAction(tr("Clear"), [&] {
+                        buttons_param[button_id].Clear();
+                        button_map[button_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.addAction(tr("Restore Default"), [&] {
+                        buttons_param[button_id] =
+                            Common::ParamPackage{InputCommon::GenerateKeyboardParam(
+                                Config::default_mouse_buttons[button_id])};
+                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+                    });
+                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
+                });
     }
 
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });

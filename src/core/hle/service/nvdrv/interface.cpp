@@ -60,24 +60,24 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
 
     if (ctrl.must_delay) {
         ctrl.fresh_call = false;
-        ctx.SleepClientThread("NVServices::DelayedResponse", ctrl.timeout,
-                              [=](std::shared_ptr<Kernel::Thread> thread,
-                                  Kernel::HLERequestContext& ctx,
-                                  Kernel::ThreadWakeupReason reason) {
-                                  IoctlCtrl ctrl2{ctrl};
-                                  std::vector<u8> tmp_output = output;
-                                  std::vector<u8> tmp_output2 = output2;
-                                  u32 result = nvdrv->Ioctl(fd, command, input, input2, tmp_output,
-                                                            tmp_output2, ctrl2, version);
-                                  ctx.WriteBuffer(tmp_output, 0);
-                                  if (version == IoctlVersion::Version3) {
-                                      ctx.WriteBuffer(tmp_output2, 1);
-                                  }
-                                  IPC::ResponseBuilder rb{ctx, 3};
-                                  rb.Push(RESULT_SUCCESS);
-                                  rb.Push(result);
-                              },
-                              nvdrv->GetEventWriteable(ctrl.event_id));
+        ctx.SleepClientThread(
+            "NVServices::DelayedResponse", ctrl.timeout,
+            [=, this](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx_,
+                      Kernel::ThreadWakeupReason reason) {
+                IoctlCtrl ctrl2{ctrl};
+                std::vector<u8> tmp_output = output;
+                std::vector<u8> tmp_output2 = output2;
+                const u32 ioctl_result = nvdrv->Ioctl(fd, command, input, input2, tmp_output,
+                                                      tmp_output2, ctrl2, version);
+                ctx_.WriteBuffer(tmp_output, 0);
+                if (version == IoctlVersion::Version3) {
+                    ctx_.WriteBuffer(tmp_output2, 1);
+                }
+                IPC::ResponseBuilder rb{ctx_, 3};
+                rb.Push(RESULT_SUCCESS);
+                rb.Push(ioctl_result);
+            },
+            nvdrv->GetEventWriteable(ctrl.event_id));
     } else {
         ctx.WriteBuffer(output);
         if (version == IoctlVersion::Version3) {

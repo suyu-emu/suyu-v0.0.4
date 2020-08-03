@@ -54,9 +54,9 @@ ConfigureUi::ConfigureUi(QWidget* parent) : QWidget(parent), ui(new Ui::Configur
 
     // Update text ComboBoxes after user interaction.
     connect(ui->row_1_text_combobox, QOverload<int>::of(&QComboBox::activated),
-            [=]() { ConfigureUi::UpdateSecondRowComboBox(); });
+            [this] { ConfigureUi::UpdateSecondRowComboBox(); });
     connect(ui->row_2_text_combobox, QOverload<int>::of(&QComboBox::activated),
-            [=]() { ConfigureUi::UpdateFirstRowComboBox(); });
+            [this] { ConfigureUi::UpdateFirstRowComboBox(); });
 
     // Set screenshot path to user specification.
     connect(ui->screenshot_path_button, &QToolButton::pressed, this, [this] {

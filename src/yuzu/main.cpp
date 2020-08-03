@@ -583,7 +583,7 @@ void GMainWindow::InitializeWidgets() {
     renderer_status_button->setObjectName(QStringLiteral("RendererStatusBarButton"));
     renderer_status_button->setCheckable(true);
     renderer_status_button->setFocusPolicy(Qt::NoFocus);
-    connect(renderer_status_button, &QPushButton::toggled, [=](bool checked) {
+    connect(renderer_status_button, &QPushButton::toggled, [this](bool checked) {
         renderer_status_button->setText(checked ? tr("VULKAN") : tr("OPENGL"));
     });
     renderer_status_button->toggle();
@@ -595,7 +595,7 @@ void GMainWindow::InitializeWidgets() {
 #else
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);
-    connect(renderer_status_button, &QPushButton::clicked, [=] {
+    connect(renderer_status_button, &QPushButton::clicked, [this] {
         if (emulation_running) {
             return;
         }
