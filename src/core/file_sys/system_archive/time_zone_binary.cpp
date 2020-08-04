@@ -2,6 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
+#include <vector>
+
 #include "common/swap.h"
 #include "core/file_sys/system_archive/time_zone_binary.h"
 #include "core/file_sys/vfs_vector.h"
@@ -615,31 +618,36 @@ static constexpr std::array<u8, 9633> LOCATION_NAMES{
     0x0a};
 
 static VirtualFile GenerateDefaultTimeZoneFile() {
-    struct {
+    struct TimeZoneInfo {
         s64_be at;
-        INSERT_PADDING_BYTES(7);
+        std::array<u8, 7> padding1;
         std::array<char, 4> time_zone_chars;
-        INSERT_PADDING_BYTES(2);
+        std::array<u8, 2> padding2;
         std::array<char, 6> time_zone_name;
-    } time_zone_info{};
+    };
 
-    const VirtualFile file{std::make_shared<VectorVfsFile>(
-        std::vector<u8>(sizeof(Service::Time::TimeZone::TzifHeader) + sizeof(time_zone_info)),
+    VirtualFile file{std::make_shared<VectorVfsFile>(
+        std::vector<u8>(sizeof(Service::Time::TimeZone::TzifHeader) + sizeof(TimeZoneInfo)),
         "GMT")};
 
-    Service::Time::TimeZone::TzifHeader header{};
-    header.magic = 0x545a6966;
-    header.version = 0x32;
-    header.ttis_gmt_count = 0x1;
-    header.ttis_std_count = 0x1;
-    header.time_count = 0x1;
-    header.type_count = 0x1;
-    header.char_count = 0x4;
+    const Service::Time::TimeZone::TzifHeader header{
+        .magic = 0x545a6966,
+        .version = 0x32,
+        .ttis_gmt_count = 1,
+        .ttis_std_count = 1,
+        .time_count = 1,
+        .type_count = 1,
+        .char_count = 4,
+    };
     file->WriteObject(header, 0);
 
-    time_zone_info.at = 0xf8;
-    time_zone_info.time_zone_chars = {'G', 'M', 'T', '\0'};
-    time_zone_info.time_zone_name = {'\n', 'G', 'M', 'T', '0', '\n'};
+    const TimeZoneInfo time_zone_info{
+        .at = 0xf8,
+        .padding1 = {},
+        .time_zone_chars = {'G', 'M', 'T', '\0'},
+        .padding2 = {},
+        .time_zone_name = {'\n', 'G', 'M', 'T', '0', '\n'},
+    };
     file->WriteObject(time_zone_info, sizeof(Service::Time::TimeZone::TzifHeader));
 
     return file;
