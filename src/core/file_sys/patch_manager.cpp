@@ -288,8 +288,8 @@ std::optional<std::vector<Core::Memory::CheatEntry>> ReadCheatFileFromFolder(
     }
 
     Core::Memory::TextCheatParser parser;
-    return parser.Parse(
-        system, std::string_view(reinterpret_cast<const char* const>(data.data()), data.size()));
+    return parser.Parse(system,
+                        std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
 }
 
 } // Anonymous namespace
