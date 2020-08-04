@@ -1342,12 +1342,12 @@ void IApplicationFunctions::EnsureSaveData(Kernel::HLERequestContext& ctx) {
 
     LOG_DEBUG(Service_AM, "called, uid={:016X}{:016X}", user_id[1], user_id[0]);
 
-    FileSys::SaveDataDescriptor descriptor{};
-    descriptor.title_id = system.CurrentProcess()->GetTitleID();
-    descriptor.user_id = user_id;
-    descriptor.type = FileSys::SaveDataType::SaveData;
+    FileSys::SaveDataAttribute attribute{};
+    attribute.title_id = system.CurrentProcess()->GetTitleID();
+    attribute.user_id = user_id;
+    attribute.type = FileSys::SaveDataType::SaveData;
     const auto res = system.GetFileSystemController().CreateSaveData(
-        FileSys::SaveDataSpaceId::NandUser, descriptor);
+        FileSys::SaveDataSpaceId::NandUser, attribute);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(res.Code());

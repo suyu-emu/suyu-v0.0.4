@@ -311,7 +311,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
 }
 
 ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
-    FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& save_struct) const {
+    FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const {
     LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}",
               static_cast<u8>(space), save_struct.DebugInfo());
 
@@ -323,15 +323,15 @@ ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
 }
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
-    FileSys::SaveDataSpaceId space, const FileSys::SaveDataDescriptor& descriptor) const {
+    FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& attribute) const {
     LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), descriptor.DebugInfo());
+              static_cast<u8>(space), attribute.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    return save_data_factory->Open(space, descriptor);
+    return save_data_factory->Open(space, attribute);
 }
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveDataSpace(

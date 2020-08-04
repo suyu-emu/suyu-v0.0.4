@@ -696,8 +696,8 @@ FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
         {67, nullptr, "FindSaveDataWithFilter"},
         {68, nullptr, "OpenSaveDataInfoReaderBySaveDataFilter"},
         {69, nullptr, "ReadSaveDataFileSystemExtraDataBySaveDataAttribute"},
-        {70, nullptr, "WriteSaveDataFileSystemExtraDataBySaveDataAttribute"},
-        {71, nullptr, "ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute"},
+        {70, &FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute, "WriteSaveDataFileSystemExtraDataBySaveDataAttribute"},
+        {71, &FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute, "ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute"},
         {80, nullptr, "OpenSaveDataMetaFile"},
         {81, nullptr, "OpenSaveDataTransferManager"},
         {82, nullptr, "OpenSaveDataTransferManagerVersion2"},
@@ -812,7 +812,7 @@ void FSP_SRV::OpenSdCardFileSystem(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    auto save_struct = rp.PopRaw<FileSys::SaveDataDescriptor>();
+    auto save_struct = rp.PopRaw<FileSys::SaveDataAttribute>();
     [[maybe_unused]] auto save_create_struct = rp.PopRaw<std::array<u8, 0x40>>();
     u128 uid = rp.PopRaw<u128>();
 
@@ -826,17 +826,18 @@ void FSP_SRV::CreateSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
 }
 
 void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
-    LOG_INFO(Service_FS, "called.");
+    IPC::RequestParser rp{ctx};
 
     struct Parameters {
-        FileSys::SaveDataSpaceId save_data_space_id;
-        FileSys::SaveDataDescriptor descriptor;
+        FileSys::SaveDataSpaceId space_id;
+        FileSys::SaveDataAttribute attribute;
     };
 
-    IPC::RequestParser rp{ctx};
     const auto parameters = rp.PopRaw<Parameters>();
 
-    auto dir = fsc.OpenSaveData(parameters.save_data_space_id, parameters.descriptor);
+    LOG_INFO(Service_FS, "called.");
+
+    auto dir = fsc.OpenSaveData(parameters.space_id, parameters.attribute);
     if (dir.Failed()) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 0};
         rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
@@ -844,13 +845,18 @@ void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     }
 
     FileSys::StorageId id;
-    if (parameters.save_data_space_id == FileSys::SaveDataSpaceId::NandUser) {
+
+    switch (parameters.space_id) {
+    case FileSys::SaveDataSpaceId::NandUser:
         id = FileSys::StorageId::NandUser;
-    } else if (parameters.save_data_space_id == FileSys::SaveDataSpaceId::SdCardSystem ||
-               parameters.save_data_space_id == FileSys::SaveDataSpaceId::SdCardUser) {
+        break;
+    case FileSys::SaveDataSpaceId::SdCardSystem:
+    case FileSys::SaveDataSpaceId::SdCardUser:
         id = FileSys::StorageId::SdCard;
-    } else {
+        break;
+    case FileSys::SaveDataSpaceId::NandSystem:
         id = FileSys::StorageId::NandSystem;
+        break;
     }
 
     auto filesystem =
@@ -876,22 +882,31 @@ void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext&
     rb.PushIpcInterface<ISaveDataInfoReader>(std::make_shared<ISaveDataInfoReader>(space, fsc));
 }
 
-void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
-    IPC::RequestParser rp{ctx};
-    log_mode = rp.PopEnum<LogMode>();
-
-    LOG_DEBUG(Service_FS, "called, log_mode={:08X}", static_cast<u32>(log_mode));
+void FSP_SRV::WriteSaveDataFileSystemExtraDataBySaveDataAttribute(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_FS, "(STUBBED) called.");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
-void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_FS, "called");
+void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
+    Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    struct Parameters {
+        FileSys::SaveDataSpaceId space_id;
+        FileSys::SaveDataAttribute attribute;
+    };
+
+    const auto parameters = rp.PopRaw<Parameters>();
+    // Stub this to None for now, backend needs an impl to read/write the SaveDataExtraData
+    constexpr auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
+
+    LOG_WARNING(Service_FS, "(STUBBED) called, flags={}", flags);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.PushEnum(log_mode);
+    rb.Push(flags);
 }
 
 void FSP_SRV::OpenDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
@@ -964,6 +979,24 @@ void FSP_SRV::OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ct
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
+}
+
+void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    log_mode = rp.PopEnum<LogMode>();
+
+    LOG_DEBUG(Service_FS, "called, log_mode={:08X}", static_cast<u32>(log_mode));
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void FSP_SRV::GetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
+    LOG_DEBUG(Service_FS, "called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(log_mode);
 }
 
 void FSP_SRV::OutputAccessLogToSdCard(Kernel::HLERequestContext& ctx) {
