@@ -47,6 +47,7 @@ vk::Sampler VKSamplerCache::CreateSampler(const Tegra::Texture::TSCEntry& tsc) c
     VkSamplerCustomBorderColorCreateInfoEXT border{
         .sType = VK_STRUCTURE_TYPE_SAMPLER_CUSTOM_BORDER_COLOR_CREATE_INFO_EXT,
         .pNext = nullptr,
+        .customBorderColor = {},
         .format = VK_FORMAT_UNDEFINED,
     };
     std::memcpy(&border.customBorderColor, color.data(), sizeof(color));

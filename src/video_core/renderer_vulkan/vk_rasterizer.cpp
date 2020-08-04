@@ -815,8 +815,13 @@ bool RasterizerVulkan::WalkAttachmentOverlaps(const CachedSurfaceView& attachmen
 
 std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
     VkRenderPass renderpass) {
-    FramebufferCacheKey key{renderpass, std::numeric_limits<u32>::max(),
-                            std::numeric_limits<u32>::max(), std::numeric_limits<u32>::max()};
+    FramebufferCacheKey key{
+        .renderpass = renderpass,
+        .width = std::numeric_limits<u32>::max(),
+        .height = std::numeric_limits<u32>::max(),
+        .layers = std::numeric_limits<u32>::max(),
+        .views = {},
+    };
 
     const auto try_push = [&key](const View& view) {
         if (!view) {

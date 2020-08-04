@@ -696,6 +696,7 @@ void VKBlitScreen::CreateFramebuffers() {
         .flags = 0,
         .renderPass = *renderpass,
         .attachmentCount = 1,
+        .pAttachments = nullptr,
         .width = size.width,
         .height = size.height,
         .layers = 1,

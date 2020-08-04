@@ -261,8 +261,13 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
     }
 
     const Specialization specialization{
+        .base_binding = 0,
         .workgroup_size = key.workgroup_size,
         .shared_memory_size = key.shared_memory_size,
+        .point_size = std::nullopt,
+        .enabled_attributes = {},
+        .attribute_types = {},
+        .ndc_minus_one_to_one = false,
     };
     const SPIRVShader spirv_shader{Decompile(device, shader->GetIR(), ShaderType::Compute,
                                              shader->GetRegistry(), specialization),
