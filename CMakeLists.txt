@@ -159,15 +159,15 @@ macro(yuzu_find_packages)
     # Capitalization matters here. We need the naming to match the generated paths from Conan
     set(REQUIRED_LIBS
     #    Cmake Pkg Prefix  Version     Conan Pkg
-        "Boost             1.71        boost/1.72.0"
-        "Catch2            2.11        catch2/2.11.0"
+        "Boost             1.73        boost/1.73.0"
+        "Catch2            2.13        catch2/2.13.0"
         "fmt               7.0         fmt/7.0.1"
     # can't use until https://github.com/bincrafters/community/issues/1173
         #"libzip            1.5         libzip/1.5.2@bincrafters/stable"
         "lz4               1.8         lz4/1.9.2"
-        "nlohmann_json     3.7         nlohmann_json/3.7.3"
+        "nlohmann_json     3.8         nlohmann_json/3.8.0"
         "ZLIB              1.2         zlib/1.2.11"
-        "zstd              1.4         zstd/1.4.4"
+        "zstd              1.4         zstd/1.4.5"
     )
 
     foreach(PACKAGE ${REQUIRED_LIBS})
