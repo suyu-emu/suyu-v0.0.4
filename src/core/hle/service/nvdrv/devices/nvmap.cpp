@@ -18,7 +18,12 @@ enum {
 };
 }
 
-nvmap::nvmap(Core::System& system) : nvdevice(system) {}
+nvmap::nvmap(Core::System& system) : nvdevice(system) {
+    // Handle 0 appears to be used when remapping, so we create a placeholder empty nvmap object to
+    // represent this.
+    CreateObject(0);
+}
+
 nvmap::~nvmap() = default;
 
 VAddr nvmap::GetObjectAddress(u32 handle) const {
@@ -50,6 +55,21 @@ u32 nvmap::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<
     return 0;
 }
 
+u32 nvmap::CreateObject(u32 size) {
+    // Create a new nvmap object and obtain a handle to it.
+    auto object = std::make_shared<Object>();
+    object->id = next_id++;
+    object->size = size;
+    object->status = Object::Status::Created;
+    object->refcount = 1;
+
+    const u32 handle = next_handle++;
+
+    handles.insert_or_assign(handle, std::move(object));
+
+    return handle;
+}
+
 u32 nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCreateParams params;
     std::memcpy(&params, input.data(), sizeof(params));
@@ -59,17 +79,8 @@ u32 nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output) {
         LOG_ERROR(Service_NVDRV, "Size is 0");
         return static_cast<u32>(NvErrCodes::InvalidValue);
     }
-    // Create a new nvmap object and obtain a handle to it.
-    auto object = std::make_shared<Object>();
-    object->id = next_id++;
-    object->size = params.size;
-    object->status = Object::Status::Created;
-    object->refcount = 1;
 
-    u32 handle = next_handle++;
-    handles[handle] = std::move(object);
-
-    params.handle = handle;
+    params.handle = CreateObject(params.size);
 
     std::memcpy(output.data(), &params, sizeof(params));
     return 0;
