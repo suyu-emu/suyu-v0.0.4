@@ -58,7 +58,7 @@ ProfileManager::~ProfileManager() {
 /// internal management of the users profiles
 std::optional<std::size_t> ProfileManager::AddToProfiles(const ProfileInfo& profile) {
     if (user_count >= MAX_USERS) {
-        return {};
+        return std::nullopt;
     }
     profiles[user_count] = profile;
     return user_count++;
@@ -101,13 +101,14 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const ProfileUsername& usern
                     [&uuid](const ProfileInfo& profile) { return uuid == profile.user_uuid; })) {
         return ERROR_USER_ALREADY_EXISTS;
     }
-    ProfileInfo profile;
-    profile.user_uuid = uuid;
-    profile.username = username;
-    profile.data = {};
-    profile.creation_time = 0x0;
-    profile.is_open = false;
-    return AddUser(profile);
+
+    return AddUser({
+        .user_uuid = uuid,
+        .username = username,
+        .creation_time = 0,
+        .data = {},
+        .is_open = false,
+    });
 }
 
 /// Creates a new user on the system. This function allows a much simpler method of registration
@@ -126,7 +127,7 @@ ResultCode ProfileManager::CreateNewUser(UUID uuid, const std::string& username)
 
 std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
     if (index >= MAX_USERS) {
-        return {};
+        return std::nullopt;
     }
 
     return profiles[index].user_uuid;
@@ -135,13 +136,13 @@ std::optional<UUID> ProfileManager::GetUser(std::size_t index) const {
 /// Returns a users profile index based on their user id.
 std::optional<std::size_t> ProfileManager::GetUserIndex(const UUID& uuid) const {
     if (!uuid) {
-        return {};
+        return std::nullopt;
     }
 
     const auto iter = std::find_if(profiles.begin(), profiles.end(),
                                    [&uuid](const ProfileInfo& p) { return p.user_uuid == uuid; });
     if (iter == profiles.end()) {
-        return {};
+        return std::nullopt;
     }
 
     return static_cast<std::size_t>(std::distance(profiles.begin(), iter));
@@ -339,7 +340,13 @@ void ProfileManager::ParseUserSaveFile() {
             continue;
         }
 
-        AddUser({user.uuid, user.username, user.timestamp, user.extra_data, false});
+        AddUser({
+            .user_uuid = user.uuid,
+            .username = user.username,
+            .creation_time = user.timestamp,
+            .data = user.extra_data,
+            .is_open = false,
+        });
     }
 
     std::stable_partition(profiles.begin(), profiles.end(),
@@ -350,11 +357,13 @@ void ProfileManager::WriteUserSaveFile() {
     ProfileDataRaw raw{};
 
     for (std::size_t i = 0; i < MAX_USERS; ++i) {
-        raw.users[i].username = profiles[i].username;
-        raw.users[i].uuid2 = profiles[i].user_uuid;
-        raw.users[i].uuid = profiles[i].user_uuid;
-        raw.users[i].timestamp = profiles[i].creation_time;
-        raw.users[i].extra_data = profiles[i].data;
+        raw.users[i] = {
+            .uuid = profiles[i].user_uuid,
+            .uuid2 = profiles[i].user_uuid,
+            .timestamp = profiles[i].creation_time,
+            .username = profiles[i].username,
+            .extra_data = profiles[i].data,
+        };
     }
 
     const auto raw_path =
