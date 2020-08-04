@@ -280,9 +280,9 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QPushButton::clicked, [=] {
+        connect(button, &QPushButton::clicked, [=, this] {
             HandleClick(button_map[button_id],
-                        [=](Common::ParamPackage params) {
+                        [=, this](Common::ParamPackage params) {
                             // Workaround for ZL & ZR for analog triggers like on XBOX controllors.
                             // Analog triggers (from controllers like the XBOX controller) would not
                             // work due to a different range of their signals (from 0 to 255 on
@@ -300,19 +300,20 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         },
                         InputCommon::Polling::DeviceType::Button);
         });
-        connect(button, &QPushButton::customContextMenuRequested, [=](const QPoint& menu_location) {
-            QMenu context_menu;
-            context_menu.addAction(tr("Clear"), [&] {
-                buttons_param[button_id].Clear();
-                button_map[button_id]->setText(tr("[not set]"));
-            });
-            context_menu.addAction(tr("Restore Default"), [&] {
-                buttons_param[button_id] = Common::ParamPackage{
-                    InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
-                button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
-            });
-            context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
-        });
+        connect(button, &QPushButton::customContextMenuRequested,
+                [=, this](const QPoint& menu_location) {
+                    QMenu context_menu;
+                    context_menu.addAction(tr("Clear"), [&] {
+                        buttons_param[button_id].Clear();
+                        button_map[button_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.addAction(tr("Restore Default"), [&] {
+                        buttons_param[button_id] = Common::ParamPackage{
+                            InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
+                        button_map[button_id]->setText(ButtonToText(buttons_param[button_id]));
+                    });
+                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
+                });
     }
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; analog_id++) {
@@ -323,16 +324,16 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
 
             analog_button->setContextMenuPolicy(Qt::CustomContextMenu);
-            connect(analog_button, &QPushButton::clicked, [=]() {
+            connect(analog_button, &QPushButton::clicked, [=, this] {
                 HandleClick(analog_map_buttons[analog_id][sub_button_id],
-                            [=](const Common::ParamPackage& params) {
+                            [=, this](const Common::ParamPackage& params) {
                                 SetAnalogButton(params, analogs_param[analog_id],
                                                 analog_sub_buttons[sub_button_id]);
                             },
                             InputCommon::Polling::DeviceType::Button);
             });
             connect(analog_button, &QPushButton::customContextMenuRequested,
-                    [=](const QPoint& menu_location) {
+                    [=, this](const QPoint& menu_location) {
                         QMenu context_menu;
                         context_menu.addAction(tr("Clear"), [&] {
                             analogs_param[analog_id].Erase(analog_sub_buttons[sub_button_id]);
@@ -350,32 +351,35 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             menu_location));
                     });
         }
-        connect(analog_map_stick[analog_id], &QPushButton::clicked, [=] {
+        connect(analog_map_stick[analog_id], &QPushButton::clicked, [=, this] {
             if (QMessageBox::information(
                     this, tr("Information"),
                     tr("After pressing OK, first move your joystick horizontally, "
                        "and then vertically."),
                     QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok) {
-                HandleClick(
-                    analog_map_stick[analog_id],
-                    [=](const Common::ParamPackage& params) { analogs_param[analog_id] = params; },
-                    InputCommon::Polling::DeviceType::Analog);
+                HandleClick(analog_map_stick[analog_id],
+                            [=, this](const Common::ParamPackage& params) {
+                                analogs_param[analog_id] = params;
+                            },
+                            InputCommon::Polling::DeviceType::Analog);
             }
         });
 
-        connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged, [=] {
-            const float slider_value = analog_map_deadzone_and_modifier_slider[analog_id]->value();
-            if (analogs_param[analog_id].Get("engine", "") == "sdl" ||
-                analogs_param[analog_id].Get("engine", "") == "gcpad") {
-                analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
-                    tr("Deadzone: %1%").arg(slider_value));
-                analogs_param[analog_id].Set("deadzone", slider_value / 100.0f);
-            } else {
-                analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
-                    tr("Modifier Scale: %1%").arg(slider_value));
-                analogs_param[analog_id].Set("modifier_scale", slider_value / 100.0f);
-            }
-        });
+        connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged,
+                [=, this] {
+                    const float slider_value =
+                        analog_map_deadzone_and_modifier_slider[analog_id]->value();
+                    if (analogs_param[analog_id].Get("engine", "") == "sdl" ||
+                        analogs_param[analog_id].Get("engine", "") == "gcpad") {
+                        analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
+                            tr("Deadzone: %1%").arg(slider_value));
+                        analogs_param[analog_id].Set("deadzone", slider_value / 100.0f);
+                    } else {
+                        analog_map_deadzone_and_modifier_slider_label[analog_id]->setText(
+                            tr("Modifier Scale: %1%").arg(slider_value));
+                        analogs_param[analog_id].Set("modifier_scale", slider_value / 100.0f);
+                    }
+                });
     }
 
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });

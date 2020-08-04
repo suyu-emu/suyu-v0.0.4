@@ -71,7 +71,7 @@ public:
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
                                        audio_params.channel_count, std::move(unique_name),
-                                       [=]() { buffer_event.writable->Signal(); });
+                                       [this] { buffer_event.writable->Signal(); });
     }
 
 private:
