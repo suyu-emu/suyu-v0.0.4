@@ -62,7 +62,7 @@ public:
     ~AsyncShaders();
 
     /// Start up shader worker threads
-    void AllocateWorkers(std::size_t num_workers);
+    void AllocateWorkers();
 
     /// Clear the shader queue and kill all worker threads
     void FreeWorkers();

@@ -405,17 +405,7 @@ RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWind
       wfi_event{device.GetLogical().CreateNewEvent()}, async_shaders{renderer} {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
-        // The following is subject to move into the allocate workers method, to be api agnostic
-
-        // Max worker threads we should allow
-        constexpr u32 MAX_THREADS = 4;
-        // Deduce how many threads we can use
-        const auto threads_used = std::thread::hardware_concurrency() / 4;
-        // Always allow at least 1 thread regardless of our settings
-        const auto max_worker_count = std::max(1U, threads_used);
-        // Don't use more than MAX_THREADS
-        const auto worker_count = std::min(max_worker_count, MAX_THREADS);
-        async_shaders.AllocateWorkers(worker_count);
+        async_shaders.AllocateWorkers();
     }
 }
 

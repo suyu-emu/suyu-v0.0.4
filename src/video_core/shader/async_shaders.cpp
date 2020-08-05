@@ -19,9 +19,18 @@ AsyncShaders::~AsyncShaders() {
     KillWorkers();
 }
 
-void AsyncShaders::AllocateWorkers(std::size_t num_workers) {
+void AsyncShaders::AllocateWorkers() {
+    // Max worker threads we should allow
+    constexpr u32 MAX_THREADS = 4;
+    // Deduce how many threads we can use
+    const u32 threads_used = std::thread::hardware_concurrency() / 4;
+    // Always allow at least 1 thread regardless of our settings
+    const auto max_worker_count = std::max(1U, threads_used);
+    // Don't use more than MAX_THREADS
+    const auto num_workers = std::min(max_worker_count, MAX_THREADS);
+
     // If we're already have workers queued or don't want to queue workers, ignore
-    if (num_workers == worker_threads.size() || num_workers == 0) {
+    if (num_workers == worker_threads.size()) {
         return;
     }
 

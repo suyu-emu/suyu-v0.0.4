@@ -177,15 +177,7 @@ RasterizerOpenGL::RasterizerOpenGL(Core::System& system, Core::Frontend::EmuWind
     }
 
     if (device.UseAsynchronousShaders()) {
-        // Max worker threads we should allow
-        constexpr u32 MAX_THREADS = 4;
-        // Deduce how many threads we can use
-        const u32 threads_used = std::thread::hardware_concurrency() / 4;
-        // Always allow at least 1 thread regardless of our settings
-        const auto max_worker_count = std::max(1U, threads_used);
-        // Don't use more than MAX_THREADS
-        const auto worker_count = std::min(max_worker_count, MAX_THREADS);
-        async_shaders.AllocateWorkers(worker_count);
+        async_shaders.AllocateWorkers();
     }
 }
 
