@@ -704,7 +704,7 @@ struct Memory::Impl {
         u8* page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
         if (page_pointer != nullptr) {
             // NOTE: Avoid adding any extra logic to this fast-path block
-            T volatile* pointer = reinterpret_cast<T volatile*>(&page_pointer[vaddr]);
+            auto* pointer = reinterpret_cast<volatile T*>(&page_pointer[vaddr]);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
         }
 
@@ -720,9 +720,8 @@ struct Memory::Impl {
         case Common::PageType::RasterizerCachedMemory: {
             u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
             system.GPU().InvalidateRegion(vaddr, sizeof(T));
-            T volatile* pointer = reinterpret_cast<T volatile*>(&host_ptr);
+            auto* pointer = reinterpret_cast<volatile T*>(&host_ptr);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
-            break;
         }
         default:
             UNREACHABLE();
@@ -734,7 +733,7 @@ struct Memory::Impl {
         u8* const page_pointer = current_page_table->pointers[vaddr >> PAGE_BITS];
         if (page_pointer != nullptr) {
             // NOTE: Avoid adding any extra logic to this fast-path block
-            u64 volatile* pointer = reinterpret_cast<u64 volatile*>(&page_pointer[vaddr]);
+            auto* pointer = reinterpret_cast<volatile u64*>(&page_pointer[vaddr]);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
         }
 
@@ -750,9 +749,8 @@ struct Memory::Impl {
         case Common::PageType::RasterizerCachedMemory: {
             u8* host_ptr{GetPointerFromRasterizerCachedMemory(vaddr)};
             system.GPU().InvalidateRegion(vaddr, sizeof(u128));
-            u64 volatile* pointer = reinterpret_cast<u64 volatile*>(&host_ptr);
+            auto* pointer = reinterpret_cast<volatile u64*>(&host_ptr);
             return Common::AtomicCompareAndSwap(pointer, data, expected);
-            break;
         }
         default:
             UNREACHABLE();
