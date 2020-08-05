@@ -5,16 +5,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <stdio.h>
 #include <sys/mman.h>
-#include <sys/types.h>
-#if defined __APPLE__ || defined __FreeBSD__ || defined __OpenBSD__
-#include <sys/sysctl.h>
-#elif defined __HAIKU__
-#include <OS.h>
-#else
-#include <sys/sysinfo.h>
-#endif
 #endif
 
 #include "common/assert.h"
