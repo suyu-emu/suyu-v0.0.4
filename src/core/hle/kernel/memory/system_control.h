@@ -8,11 +8,6 @@
 
 namespace Kernel::Memory::SystemControl {
 
-u64 GenerateRandomU64ForInit();
-
-template <typename F>
-u64 GenerateUniformRange(u64 min, u64 max, F f);
-
 u64 GenerateRandomRange(u64 min, u64 max);
 
 } // namespace Kernel::Memory::SystemControl
