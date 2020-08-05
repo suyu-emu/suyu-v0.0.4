@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include <array>
 #include <cstring>
+#include <memory>
+#include <string>
+#include <vector>
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
@@ -13,7 +17,8 @@ namespace FileSys {
 template <std::size_t size>
 class ArrayVfsFile : public VfsFile {
 public:
-    ArrayVfsFile(std::array<u8, size> data, std::string name = "", VirtualDir parent = nullptr)
+    explicit ArrayVfsFile(const std::array<u8, size>& data, std::string name = "",
+                          VirtualDir parent = nullptr)
         : data(data), name(std::move(name)), parent(std::move(parent)) {}
 
     std::string GetName() const override {
@@ -60,6 +65,12 @@ private:
     std::string name;
     VirtualDir parent;
 };
+
+template <std::size_t Size, typename... Args>
+std::shared_ptr<ArrayVfsFile<Size>> MakeArrayFile(const std::array<u8, Size>& data,
+                                                  Args&&... args) {
+    return std::make_shared<ArrayVfsFile<Size>>(data, std::forward<Args>(args)...);
+}
 
 // An implementation of VfsFile that is backed by a vector optionally supplied upon construction
 class VectorVfsFile : public VfsFile {

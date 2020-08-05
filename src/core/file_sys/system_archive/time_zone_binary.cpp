@@ -654,12 +654,13 @@ static VirtualFile GenerateDefaultTimeZoneFile() {
 }
 
 VirtualDir TimeZoneBinary() {
-    const std::vector<VirtualDir> root_dirs{std::make_shared<VectorVfsDirectory>(
+    std::vector<VirtualDir> root_dirs{std::make_shared<VectorVfsDirectory>(
         std::vector<VirtualFile>{GenerateDefaultTimeZoneFile()}, std::vector<VirtualDir>{},
         "zoneinfo")};
-    const std::vector<VirtualFile> root_files{
-        std::make_shared<ArrayVfsFile<LOCATION_NAMES.size()>>(LOCATION_NAMES, "binaryList.txt")};
-    return std::make_shared<VectorVfsDirectory>(root_files, root_dirs, "data");
+    std::vector<VirtualFile> root_files{MakeArrayFile(LOCATION_NAMES, "binaryList.txt")};
+
+    return std::make_shared<VectorVfsDirectory>(std::move(root_files), std::move(root_dirs),
+                                                "data");
 }
 
 } // namespace FileSys::SystemArchive
