@@ -29,7 +29,7 @@ void AsyncShaders::AllocateWorkers() {
     // Don't use more than MAX_THREADS
     const auto num_workers = std::min(max_worker_count, MAX_THREADS);
 
-    // If we're already have workers queued or don't want to queue workers, ignore
+    // If we already have workers queued, ignore
     if (num_workers == worker_threads.size()) {
         return;
     }
