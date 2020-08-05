@@ -3,8 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <string>
+#include "common/concepts.h"
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
@@ -21,27 +23,41 @@
 
 namespace Loader {
 
+namespace {
+
+template <Common::IsBaseOf<AppLoader> T>
+std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
+    const auto file_type = T::IdentifyType(file);
+    if (file_type != FileType::Error) {
+        return file_type;
+    }
+    return std::nullopt;
+}
+
+} // namespace
+
 FileType IdentifyFile(FileSys::VirtualFile file) {
-    FileType type;
-
-#define CHECK_TYPE(loader)                                                                         \
-    type = AppLoader_##loader::IdentifyType(file);                                                 \
-    if (FileType::Error != type)                                                                   \
-        return type;
-
-    CHECK_TYPE(DeconstructedRomDirectory)
-    CHECK_TYPE(ELF)
-    CHECK_TYPE(NSO)
-    CHECK_TYPE(NRO)
-    CHECK_TYPE(NCA)
-    CHECK_TYPE(XCI)
-    CHECK_TYPE(NAX)
-    CHECK_TYPE(NSP)
-    CHECK_TYPE(KIP)
-
-#undef CHECK_TYPE
-
-    return FileType::Unknown;
+    if (const auto romdir_type = IdentifyFileLoader<AppLoader_DeconstructedRomDirectory>(file)) {
+        return *romdir_type;
+    } else if (const auto elf_type = IdentifyFileLoader<AppLoader_ELF>(file)) {
+        return *elf_type;
+    } else if (const auto nso_type = IdentifyFileLoader<AppLoader_NSO>(file)) {
+        return *nso_type;
+    } else if (const auto nro_type = IdentifyFileLoader<AppLoader_NRO>(file)) {
+        return *nro_type;
+    } else if (const auto nca_type = IdentifyFileLoader<AppLoader_NCA>(file)) {
+        return *nca_type;
+    } else if (const auto xci_type = IdentifyFileLoader<AppLoader_XCI>(file)) {
+        return *xci_type;
+    } else if (const auto nax_type = IdentifyFileLoader<AppLoader_NAX>(file)) {
+        return *nax_type;
+    } else if (const auto nsp_type = IdentifyFileLoader<AppLoader_NSP>(file)) {
+        return *nsp_type;
+    } else if (const auto kip_type = IdentifyFileLoader<AppLoader_KIP>(file)) {
+        return *kip_type;
+    } else {
+        return FileType::Unknown;
+    }
 }
 
 FileType GuessFromFilename(const std::string& name) {
