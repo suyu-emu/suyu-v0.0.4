@@ -24,13 +24,13 @@ BufferQueue::~BufferQueue() = default;
 void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer) {
     LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
-    Buffer buffer{};
-    buffer.slot = slot;
-    buffer.igbp_buffer = igbp_buffer;
-    buffer.status = Buffer::Status::Free;
     free_buffers.push_back(slot);
+    queue.push_back({
+        .slot = slot,
+        .status = Buffer::Status::Free,
+        .igbp_buffer = igbp_buffer,
+    });
 
-    queue.emplace_back(buffer);
     buffer_wait_event.writable->Signal();
 }
 
@@ -38,7 +38,7 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
                                                                                        u32 height) {
 
     if (free_buffers.empty()) {
-        return {};
+        return std::nullopt;
     }
 
     auto f_itr = free_buffers.begin();
@@ -69,7 +69,7 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
     }
 
     if (itr == queue.end()) {
-        return {};
+        return std::nullopt;
     }
 
     itr->status = Buffer::Status::Dequeued;
@@ -103,14 +103,15 @@ std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::Ac
     auto itr = queue.end();
     // Iterate to find a queued buffer matching the requested slot.
     while (itr == queue.end() && !queue_sequence.empty()) {
-        u32 slot = queue_sequence.front();
+        const u32 slot = queue_sequence.front();
         itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {
             return buffer.status == Buffer::Status::Queued && buffer.slot == slot;
         });
         queue_sequence.pop_front();
     }
-    if (itr == queue.end())
-        return {};
+    if (itr == queue.end()) {
+        return std::nullopt;
+    }
     itr->status = Buffer::Status::Acquired;
     return *itr;
 }
