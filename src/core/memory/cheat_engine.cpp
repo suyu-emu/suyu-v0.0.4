@@ -199,17 +199,29 @@ void CheatEngine::Initialize() {
     metadata.title_id = system.CurrentProcess()->GetTitleID();
 
     const auto& page_table = system.CurrentProcess()->PageTable();
-    metadata.heap_extents = {page_table.GetHeapRegionStart(), page_table.GetHeapRegionSize()};
-    metadata.address_space_extents = {page_table.GetAddressSpaceStart(),
-                                      page_table.GetAddressSpaceSize()};
-    metadata.alias_extents = {page_table.GetAliasCodeRegionStart(),
-                              page_table.GetAliasCodeRegionSize()};
+    metadata.heap_extents = {
+        .base = page_table.GetHeapRegionStart(),
+        .size = page_table.GetHeapRegionSize(),
+    };
+
+    metadata.address_space_extents = {
+        .base = page_table.GetAddressSpaceStart(),
+        .size = page_table.GetAddressSpaceSize(),
+    };
+
+    metadata.alias_extents = {
+        .base = page_table.GetAliasCodeRegionStart(),
+        .size = page_table.GetAliasCodeRegionSize(),
+    };
 
     is_pending_reload.exchange(true);
 }
 
 void CheatEngine::SetMainMemoryParameters(VAddr main_region_begin, u64 main_region_size) {
-    metadata.main_nso_extents = {main_region_begin, main_region_size};
+    metadata.main_nso_extents = {
+        .base = main_region_begin,
+        .size = main_region_size,
+    };
 }
 
 void CheatEngine::Reload(std::vector<CheatEntry> cheats) {
