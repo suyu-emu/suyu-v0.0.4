@@ -113,19 +113,15 @@ void Freezer::Unfreeze(VAddr address) {
 bool Freezer::IsFrozen(VAddr address) const {
     std::lock_guard lock{entries_mutex};
 
-    return std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
-               return entry.address == address;
-           }) != entries.end();
+    return FindEntry(address) != entries.cend();
 }
 
 void Freezer::SetFrozenValue(VAddr address, u64 value) {
     std::lock_guard lock{entries_mutex};
 
-    const auto iter = std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
-        return entry.address == address;
-    });
+    const auto iter = FindEntry(address);
 
-    if (iter == entries.end()) {
+    if (iter == entries.cend()) {
         LOG_ERROR(Common_Memory,
                   "Tried to set freeze value for address={:016X} that is not frozen!", address);
         return;
@@ -140,11 +136,9 @@ void Freezer::SetFrozenValue(VAddr address, u64 value) {
 std::optional<Freezer::Entry> Freezer::GetEntry(VAddr address) const {
     std::lock_guard lock{entries_mutex};
 
-    const auto iter = std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
-        return entry.address == address;
-    });
+    const auto iter = FindEntry(address);
 
-    if (iter == entries.end()) {
+    if (iter == entries.cend()) {
         return std::nullopt;
     }
 
@@ -155,6 +149,16 @@ std::vector<Freezer::Entry> Freezer::GetEntries() const {
     std::lock_guard lock{entries_mutex};
 
     return entries;
+}
+
+Freezer::Entries::iterator Freezer::FindEntry(VAddr address) {
+    return std::find_if(entries.begin(), entries.end(),
+                        [address](const Entry& entry) { return entry.address == address; });
+}
+
+Freezer::Entries::const_iterator Freezer::FindEntry(VAddr address) const {
+    return std::find_if(entries.begin(), entries.end(),
+                        [address](const Entry& entry) { return entry.address == address; });
 }
 
 void Freezer::FrameCallback(std::uintptr_t, std::chrono::nanoseconds ns_late) {
