@@ -107,10 +107,7 @@ void Freezer::Unfreeze(VAddr address) {
 
     LOG_DEBUG(Common_Memory, "Unfreezing memory for address={:016X}", address);
 
-    entries.erase(
-        std::remove_if(entries.begin(), entries.end(),
-                       [&address](const Entry& entry) { return entry.address == address; }),
-        entries.end());
+    std::erase_if(entries, [address](const Entry& entry) { return entry.address == address; });
 }
 
 bool Freezer::IsFrozen(VAddr address) const {
