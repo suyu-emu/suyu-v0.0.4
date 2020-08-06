@@ -113,7 +113,7 @@ void Freezer::Unfreeze(VAddr address) {
 bool Freezer::IsFrozen(VAddr address) const {
     std::lock_guard lock{entries_mutex};
 
-    return std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
+    return std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
                return entry.address == address;
            }) != entries.end();
 }
@@ -121,7 +121,7 @@ bool Freezer::IsFrozen(VAddr address) const {
 void Freezer::SetFrozenValue(VAddr address, u64 value) {
     std::lock_guard lock{entries_mutex};
 
-    const auto iter = std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
+    const auto iter = std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
         return entry.address == address;
     });
 
@@ -140,7 +140,7 @@ void Freezer::SetFrozenValue(VAddr address, u64 value) {
 std::optional<Freezer::Entry> Freezer::GetEntry(VAddr address) const {
     std::lock_guard lock{entries_mutex};
 
-    const auto iter = std::find_if(entries.begin(), entries.end(), [&address](const Entry& entry) {
+    const auto iter = std::find_if(entries.begin(), entries.end(), [address](const Entry& entry) {
         return entry.address == address;
     });
 
