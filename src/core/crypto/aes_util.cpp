@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <mbedtls/cipher.h>
 #include "common/assert.h"
 #include "common/logging/log.h"
@@ -10,8 +11,10 @@
 
 namespace Core::Crypto {
 namespace {
-std::vector<u8> CalculateNintendoTweak(std::size_t sector_id) {
-    std::vector<u8> out(0x10);
+using NintendoTweak = std::array<u8, 16>;
+
+NintendoTweak CalculateNintendoTweak(std::size_t sector_id) {
+    NintendoTweak out{};
     for (std::size_t i = 0xF; i <= 0xF; --i) {
         out[i] = sector_id & 0xFF;
         sector_id >>= 8;
@@ -61,13 +64,6 @@ template <typename Key, std::size_t KeySize>
 AESCipher<Key, KeySize>::~AESCipher() {
     mbedtls_cipher_free(&ctx->encryption_context);
     mbedtls_cipher_free(&ctx->decryption_context);
-}
-
-template <typename Key, std::size_t KeySize>
-void AESCipher<Key, KeySize>::SetIV(std::vector<u8> iv) {
-    ASSERT_MSG((mbedtls_cipher_set_iv(&ctx->encryption_context, iv.data(), iv.size()) ||
-                mbedtls_cipher_set_iv(&ctx->decryption_context, iv.data(), iv.size())) == 0,
-               "Failed to set IV on mbedtls ciphers.");
 }
 
 template <typename Key, std::size_t KeySize>
@@ -122,6 +118,13 @@ void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* 
         SetIV(CalculateNintendoTweak(sector_id++));
         Transcode<u8, u8>(src + i, sector_size, dest + i, op);
     }
+}
+
+template <typename Key, std::size_t KeySize>
+void AESCipher<Key, KeySize>::SetIVImpl(const u8* data, std::size_t size) {
+    ASSERT_MSG((mbedtls_cipher_set_iv(&ctx->encryption_context, data, size) ||
+                mbedtls_cipher_set_iv(&ctx->decryption_context, data, size)) == 0,
+               "Failed to set IV on mbedtls ciphers.");
 }
 
 template class AESCipher<Key128>;

@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <type_traits>
-#include <vector>
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
@@ -32,10 +31,12 @@ class AESCipher {
 
 public:
     AESCipher(Key key, Mode mode);
-
     ~AESCipher();
 
-    void SetIV(std::vector<u8> iv);
+    template <typename ContiguousContainer>
+    void SetIV(const ContiguousContainer& container) {
+        SetIVImpl(std::data(container), std::size(container));
+    }
 
     template <typename Source, typename Dest>
     void Transcode(const Source* src, std::size_t size, Dest* dest, Op op) const {
@@ -59,6 +60,8 @@ public:
                       std::size_t sector_size, Op op);
 
 private:
+    void SetIVImpl(const u8* data, std::size_t size);
+
     std::unique_ptr<CipherContext> ctx;
 };
 } // namespace Core::Crypto

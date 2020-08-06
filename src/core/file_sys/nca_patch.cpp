@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstring>
 
@@ -66,7 +67,7 @@ std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(key, Core::Crypto::Mode::CTR);
 
     // Calculate AES IV
-    std::vector<u8> iv(16);
+    std::array<u8, 16> iv{};
     auto subsection_ctr = subsection.ctr;
     auto offset_iv = section_offset + base_offset;
     for (std::size_t i = 0; i < section_ctr.size(); ++i)
