@@ -229,6 +229,8 @@ inline void ResponseBuilder::Push(u32 value) {
 
 template <typename T>
 void ResponseBuilder::PushRaw(const T& value) {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(cmdbuf + index, &value, sizeof(T));
     index += (sizeof(T) + 3) / 4; // round up to word length
 }
@@ -384,6 +386,8 @@ inline s32 RequestParser::Pop() {
 
 template <typename T>
 void RequestParser::PopRaw(T& value) {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(&value, cmdbuf + index, sizeof(T));
     index += (sizeof(T) + 3) / 4; // round up to word length
 }
