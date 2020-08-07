@@ -25,7 +25,7 @@ namespace Loader {
 
 namespace {
 
-template <Common::IsBaseOf<AppLoader> T>
+template <Common::DerivedFrom<AppLoader> T>
 std::optional<FileType> IdentifyFileLoader(FileSys::VirtualFile file) {
     const auto file_type = T::IdentifyType(file);
     if (file_type != FileType::Error) {

@@ -23,10 +23,12 @@ concept IsSTLContainer = requires(T t) {
     t.size();
 };
 
-// Check if type T is derived from T2
-template <typename T, typename T2>
-concept IsBaseOf = requires {
-    std::is_base_of_v<T, T2>;
+// TODO: Replace with std::derived_from when the <concepts> header
+//       is available on all supported platforms.
+template <typename Derived, typename Base>
+concept DerivedFrom = requires {
+    std::is_base_of_v<Base, Derived>;
+    std::is_convertible_v<const volatile Derived*, const volatile Base*>;
 };
 
 } // namespace Common
