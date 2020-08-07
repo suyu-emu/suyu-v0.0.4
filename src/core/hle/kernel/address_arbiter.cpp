@@ -81,7 +81,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
     do {
         current_value = monitor.ExclusiveRead32(current_core, address);
 
-        if (current_value != value) {
+        if (current_value != static_cast<u32>(value)) {
             return ERR_INVALID_STATE;
         }
         current_value++;
