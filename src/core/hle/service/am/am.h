@@ -149,6 +149,12 @@ private:
     void GetAccumulatedSuspendedTickValue(Kernel::HLERequestContext& ctx);
     void GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequestContext& ctx);
 
+    enum class ScreenshotPermission : u32 {
+        Inherit = 0,
+        Enable = 1,
+        Disable = 2,
+    };
+
     Core::System& system;
     std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
     Kernel::EventPair launchable_event;
@@ -157,6 +163,7 @@ private:
     u32 idle_time_detection_extension = 0;
     u64 num_fatal_sections_entered = 0;
     bool is_auto_sleep_disabled = false;
+    ScreenshotPermission screenshot_permission = ScreenshotPermission::Inherit;
 };
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
