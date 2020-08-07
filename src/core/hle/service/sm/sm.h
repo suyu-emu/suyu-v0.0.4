@@ -57,7 +57,7 @@ public:
     ResultVal<std::shared_ptr<Kernel::ClientPort>> GetServicePort(const std::string& name);
     ResultVal<std::shared_ptr<Kernel::ClientSession>> ConnectToService(const std::string& name);
 
-    template <Common::IsBaseOf<Kernel::SessionRequestHandler> T>
+    template <Common::DerivedFrom<Kernel::SessionRequestHandler> T>
     std::shared_ptr<T> GetService(const std::string& service_name) const {
         auto service = registered_services.find(service_name);
         if (service == registered_services.end()) {
