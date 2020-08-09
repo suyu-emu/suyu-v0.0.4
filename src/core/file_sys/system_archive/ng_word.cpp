@@ -24,19 +24,18 @@ constexpr std::array<u8, 30> WORD_TXT{
 } // namespace NgWord1Data
 
 VirtualDir NgWord1() {
-    std::vector<VirtualFile> files(NgWord1Data::NUMBER_WORD_TXT_FILES);
+    std::vector<VirtualFile> files;
+    files.reserve(NgWord1Data::NUMBER_WORD_TXT_FILES);
 
     for (std::size_t i = 0; i < files.size(); ++i) {
-        files[i] = std::make_shared<ArrayVfsFile<NgWord1Data::WORD_TXT.size()>>(
-            NgWord1Data::WORD_TXT, fmt::format("{}.txt", i));
+        files.push_back(MakeArrayFile(NgWord1Data::WORD_TXT, fmt::format("{}.txt", i)));
     }
 
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord1Data::WORD_TXT.size()>>(
-        NgWord1Data::WORD_TXT, "common.txt"));
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord1Data::VERSION_DAT.size()>>(
-        NgWord1Data::VERSION_DAT, "version.dat"));
+    files.push_back(MakeArrayFile(NgWord1Data::WORD_TXT, "common.txt"));
+    files.push_back(MakeArrayFile(NgWord1Data::VERSION_DAT, "version.dat"));
 
-    return std::make_shared<VectorVfsDirectory>(files, std::vector<VirtualDir>{}, "data");
+    return std::make_shared<VectorVfsDirectory>(std::move(files), std::vector<VirtualDir>{},
+                                                "data");
 }
 
 namespace NgWord2Data {
@@ -55,27 +54,22 @@ constexpr std::array<u8, 0x2C> AC_NX_DATA{
 } // namespace NgWord2Data
 
 VirtualDir NgWord2() {
-    std::vector<VirtualFile> files(NgWord2Data::NUMBER_AC_NX_FILES * 3);
+    std::vector<VirtualFile> files;
+    files.reserve(NgWord2Data::NUMBER_AC_NX_FILES * 3);
 
     for (std::size_t i = 0; i < NgWord2Data::NUMBER_AC_NX_FILES; ++i) {
-        files[3 * i] = std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-            NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b1_nx", i));
-        files[3 * i + 1] = std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-            NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b2_nx", i));
-        files[3 * i + 2] = std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-            NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_not_b_nx", i));
+        files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b1_nx", i)));
+        files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_b2_nx", i)));
+        files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, fmt::format("ac_{}_not_b_nx", i)));
     }
 
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-        NgWord2Data::AC_NX_DATA, "ac_common_b1_nx"));
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-        NgWord2Data::AC_NX_DATA, "ac_common_b2_nx"));
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord2Data::AC_NX_DATA.size()>>(
-        NgWord2Data::AC_NX_DATA, "ac_common_not_b_nx"));
-    files.push_back(std::make_shared<ArrayVfsFile<NgWord2Data::VERSION_DAT.size()>>(
-        NgWord2Data::VERSION_DAT, "version.dat"));
+    files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, "ac_common_b1_nx"));
+    files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, "ac_common_b2_nx"));
+    files.push_back(MakeArrayFile(NgWord2Data::AC_NX_DATA, "ac_common_not_b_nx"));
+    files.push_back(MakeArrayFile(NgWord2Data::VERSION_DAT, "version.dat"));
 
-    return std::make_shared<VectorVfsDirectory>(files, std::vector<VirtualDir>{}, "data");
+    return std::make_shared<VectorVfsDirectory>(std::move(files), std::vector<VirtualDir>{},
+                                                "data");
 }
 
 } // namespace FileSys::SystemArchive
