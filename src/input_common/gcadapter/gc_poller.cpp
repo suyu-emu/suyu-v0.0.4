@@ -233,7 +233,7 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
     const int axis_x = params.Get("axis_x", 0);
     const int axis_y = params.Get("axis_y", 1);
     const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
-    const float range = std::clamp(params.Get("range", 0.0f), 0.50f, 1.50f);
+    const float range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
 
     return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get(), range);
 }

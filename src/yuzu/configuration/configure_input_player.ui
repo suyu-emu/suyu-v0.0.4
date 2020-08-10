@@ -195,35 +195,7 @@
           </item>
          </layout>
         </item>
-         <item row="5" column="0" colspan="2">
-           <layout class="QVBoxLayout" name="sliderRStickRangeVerticalLayout">
-             <property name="sizeConstraint">
-               <enum>QLayout::SetDefaultConstraint</enum>
-             </property>
-             <item>
-               <layout class="QHBoxLayout" name="sliderRStickRangeHorizontalLayout">
-                 <item>
-                   <widget class="QLabel" name="labelRStickRange">
-                     <property name="text">
-                       <string>Range: 0</string>
-                     </property>
-                     <property name="alignment">
-                       <enum>Qt::AlignHCenter</enum>
-                     </property>
-                   </widget>
-                 </item>
-               </layout>
-             </item>
-             <item>
-               <widget class="QSlider" name="sliderRStickRange">
-                 <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                 </property>
-               </widget>
-             </item>
-           </layout>
-         </item>
-        <item row="6" column="0">
+        <item row="5" column="0">
          <spacer name="RStick_verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
@@ -839,35 +811,7 @@
           </item>
          </layout>
         </item>
-        <item row="6" column="1" colspan="2">
-            <layout class="QVBoxLayout" name="sliderLStickRangeVerticalLayout">
-            <property name="sizeConstraint">
-              <enum>QLayout::SetDefaultConstraint</enum>
-            </property>
-            <item>
-              <layout class="QHBoxLayout" name="sliderLStickRangeHorizontalLayout">
-                <item>
-                  <widget class="QLabel" name="labelLStickRange">
-                    <property name="text">
-                      <string>Range: 0</string>
-                    </property>
-                    <property name="alignment">
-                      <enum>Qt::AlignHCenter</enum>
-                    </property>
-                  </widget>
-                </item>
-              </layout>
-            </item>
-            <item>
-              <widget class="QSlider" name="sliderLStickRange">
-                <property name="orientation">
-                  <enum>Qt::Horizontal</enum>
-                </property>
-              </widget>
-            </item>
-          </layout>
-        </item>
-        <item row="7" column="1">
+        <item row="6" column="1">
          <spacer name="LStick_verticalSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>

@@ -272,10 +272,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                                                ui->sliderRStickDeadzoneAndModifier};
     analog_map_deadzone_and_modifier_slider_label = {ui->labelLStickDeadzoneAndModifier,
                                                      ui->labelRStickDeadzoneAndModifier};
-    ui->sliderLStickRange->setRange(50, 150);
-    ui->sliderRStickRange->setRange(50, 150);
-    analog_map_range_slider = {ui->sliderLStickRange, ui->sliderRStickRange};
-    analog_map_range_slider_label = {ui->labelLStickRange, ui->labelRStickRange};
 
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; button_id++) {
         auto* const button = button_map[button_id];
@@ -368,6 +364,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                             InputCommon::Polling::DeviceType::Analog);
             }
         });
+
         connect(analog_map_deadzone_and_modifier_slider[analog_id], &QSlider::valueChanged,
                 [=, this] {
                     const float slider_value =
@@ -383,15 +380,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         analogs_param[analog_id].Set("modifier_scale", slider_value / 100.0f);
                     }
                 });
-        connect(analog_map_range_slider[analog_id], &QSlider::valueChanged, [=, this] {
-            const float slider_value = analog_map_range_slider[analog_id]->value();
-            const auto engine = analogs_param[analog_id].Get("engine", "");
-            if (engine == "sdl" || engine == "gcpad") {
-                analog_map_range_slider_label[analog_id]->setText(
-                    tr("Range: %1%").arg(slider_value));
-                analogs_param[analog_id].Set("range", slider_value / 100.0f);
-            }
-        });
     }
 
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });
@@ -597,9 +585,6 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
         auto* const analog_stick_slider_label =
             analog_map_deadzone_and_modifier_slider_label[analog_id];
 
-        auto* const analog_stick_range = analog_map_range_slider[analog_id];
-        auto* const analog_stick_range_label = analog_map_range_slider_label[analog_id];
-
         if (param.Has("engine")) {
             if (param.Get("engine", "") == "sdl" || param.Get("engine", "") == "gcpad") {
                 if (!param.Has("deadzone")) {
@@ -609,14 +594,6 @@ void ConfigureInputPlayer::UpdateButtonLabels() {
                 analog_stick_slider->setValue(static_cast<int>(param.Get("deadzone", 0.1f) * 100));
                 if (analog_stick_slider->value() == 0) {
                     analog_stick_slider_label->setText(tr("Deadzone: 0%"));
-                }
-                if (!param.Has("range")) {
-                    param.Set("range", 0.50f);
-                }
-                // QtSlider returns values from 0.0-0.99. We want range to be from 50% to 150%
-                analog_stick_range->setValue(static_cast<int>(param.Get("range", 0.1f) * 100));
-                if (analog_stick_range->value() == 50) {
-                    analog_stick_range_label->setText(tr("Range: 50%"));
                 }
             } else {
                 if (!param.Has("modifier_scale")) {
