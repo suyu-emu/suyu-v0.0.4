@@ -148,19 +148,17 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter)
+    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter,
+             float range_)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter),
           origin_value_x(adapter->GetOriginValue(port_, axis_x_)),
-          origin_value_y(adapter->GetOriginValue(port_, axis_y_)) {}
+          origin_value_y(adapter->GetOriginValue(port_, axis_y_)), range(range_) {}
 
     float GetAxis(int axis) const {
         if (gcadapter->DeviceConnected(port)) {
             std::lock_guard lock{mutex};
             const auto origin_value = axis % 2 == 0 ? origin_value_x : origin_value_y;
-            // division is not by a perfect 128 to account for some variance in center location
-            // e.g. my device idled at 131 in X, 120 in Y, and full range of motion was in range
-            // [20-230]
-            return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value) / 95.0f;
+            return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value) / (100.0f * range);
         }
         return 0.0f;
     }
@@ -215,6 +213,7 @@ private:
     GCAdapter::Adapter* gcadapter;
     const float origin_value_x;
     const float origin_value_y;
+    const float range;
     mutable std::mutex mutex;
 };
 
@@ -234,8 +233,9 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
     const int axis_x = params.Get("axis_x", 0);
     const int axis_y = params.Get("axis_y", 1);
     const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
+    const float range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
 
-    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get());
+    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get(), range);
 }
 
 void GCAnalogFactory::BeginConfiguration() {
