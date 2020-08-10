@@ -604,7 +604,6 @@ ResultCode PageTable::MapPages(VAddr addr, const PageLinkedList& page_linked_lis
         if (const auto result{
                 Operate(cur_addr, node.GetNumPages(), perm, OperationType::Map, node.GetAddress())};
             result.IsError()) {
-            const MemoryInfo info{block_manager->FindBlock(cur_addr).GetMemoryInfo()};
             const std::size_t num_pages{(addr - cur_addr) / PageSize};
 
             ASSERT(

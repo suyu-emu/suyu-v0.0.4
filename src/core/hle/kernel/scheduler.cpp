@@ -664,32 +664,26 @@ void Scheduler::Reload() {
 }
 
 void Scheduler::SwitchContextStep2() {
-    Thread* previous_thread = current_thread_prev.get();
-    Thread* new_thread = selected_thread.get();
-
     // Load context of new thread
-    Process* const previous_process =
-        previous_thread != nullptr ? previous_thread->GetOwnerProcess() : nullptr;
-
-    if (new_thread) {
-        ASSERT_MSG(new_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
+    if (selected_thread) {
+        ASSERT_MSG(selected_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
                    "Thread must be runnable.");
 
         // Cancel any outstanding wakeup events for this thread
-        new_thread->SetIsRunning(true);
-        new_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
-        new_thread->SetWasRunning(false);
+        selected_thread->SetIsRunning(true);
+        selected_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
+        selected_thread->SetWasRunning(false);
 
         auto* const thread_owner_process = current_thread->GetOwnerProcess();
         if (thread_owner_process != nullptr) {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
-        if (!new_thread->IsHLEThread()) {
-            Core::ARM_Interface& cpu_core = new_thread->ArmInterface();
-            cpu_core.LoadContext(new_thread->GetContext32());
-            cpu_core.LoadContext(new_thread->GetContext64());
-            cpu_core.SetTlsAddress(new_thread->GetTLSAddress());
-            cpu_core.SetTPIDR_EL0(new_thread->GetTPIDR_EL0());
+        if (!selected_thread->IsHLEThread()) {
+            Core::ARM_Interface& cpu_core = selected_thread->ArmInterface();
+            cpu_core.LoadContext(selected_thread->GetContext32());
+            cpu_core.LoadContext(selected_thread->GetContext64());
+            cpu_core.SetTlsAddress(selected_thread->GetTLSAddress());
+            cpu_core.SetTPIDR_EL0(selected_thread->GetTPIDR_EL0());
             cpu_core.ChangeProcessorID(this->core_id);
             cpu_core.ClearExclusiveState();
         }
