@@ -84,11 +84,12 @@ ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
         connect(button, &QPushButton::clicked, [=, this] {
-            HandleClick(button_map[button_id],
-                        [=, this](const Common::ParamPackage& params) {
-                            buttons_param[button_id] = params;
-                        },
-                        InputCommon::Polling::DeviceType::Button);
+            HandleClick(
+                button_map[button_id],
+                [=, this](const Common::ParamPackage& params) {
+                    buttons_param[button_id] = params;
+                },
+                InputCommon::Polling::DeviceType::Button);
         });
         connect(button, &QPushButton::customContextMenuRequested,
                 [=, this](const QPoint& menu_location) {

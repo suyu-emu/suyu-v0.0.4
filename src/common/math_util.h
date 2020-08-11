@@ -54,6 +54,6 @@ struct Rectangle {
 };
 
 template <typename T>
-Rectangle(T, T, T, T)->Rectangle<T>;
+Rectangle(T, T, T, T) -> Rectangle<T>;
 
 } // namespace Common

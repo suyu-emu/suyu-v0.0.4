@@ -133,9 +133,9 @@ public:
     // Parsing function defines the conversion from raw file to NCA. If there are other steps
     // besides creating the NCA from the file (e.g. NAX0 on SD Card), that should go in a custom
     // parsing function.
-    explicit RegisteredCache(VirtualDir dir,
-                             ContentProviderParsingFunction parsing_function =
-                                 [](const VirtualFile& file, const NcaID& id) { return file; });
+    explicit RegisteredCache(
+        VirtualDir dir, ContentProviderParsingFunction parsing_function =
+                            [](const VirtualFile& file, const NcaID& id) { return file; });
     ~RegisteredCache() override;
 
     void Refresh() override;

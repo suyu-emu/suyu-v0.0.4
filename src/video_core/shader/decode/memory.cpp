@@ -471,9 +471,9 @@ std::tuple<Node, Node, GlobalMemoryBase> ShaderIR::TrackGlobalMemory(NodeBlock& 
 
     const auto [base_address, index, offset] =
         TrackCbuf(addr_register, global_code, static_cast<s64>(global_code.size()));
-    ASSERT_OR_EXECUTE_MSG(base_address != nullptr,
-                          { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
-                          "Global memory tracking failed");
+    ASSERT_OR_EXECUTE_MSG(
+        base_address != nullptr, { return std::make_tuple(nullptr, nullptr, GlobalMemoryBase{}); },
+        "Global memory tracking failed");
 
     bb.push_back(Comment(fmt::format("Base address is c[0x{:x}][0x{:x}]", index, offset)));
 
