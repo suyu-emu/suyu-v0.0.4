@@ -81,6 +81,7 @@
     <addaction name="action_Restart"/>
     <addaction name="separator"/>
     <addaction name="action_Configure"/>
+    <addaction name="action_Configure_Current_Game"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -285,6 +286,14 @@
    </property>
    <property name="text">
     <string>Capture Screenshot</string>
+   </property>
+  </action>
+  <action name="action_Configure_Current_Game">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Configure Current Game..</string>
    </property>
   </action>
  </widget>
