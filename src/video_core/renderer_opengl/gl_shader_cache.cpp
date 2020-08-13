@@ -403,7 +403,7 @@ void ShaderCacheOpenGL::LoadDiskCache(const std::atomic_bool& stop_loading,
         }
     };
 
-    const auto num_workers{static_cast<std::size_t>(std::thread::hardware_concurrency() + 1ULL)};
+    const std::size_t num_workers{std::max(1U, std::thread::hardware_concurrency())};
     const std::size_t bucket_size{transferable->size() / num_workers};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> contexts(num_workers);
     std::vector<std::thread> threads(num_workers);
