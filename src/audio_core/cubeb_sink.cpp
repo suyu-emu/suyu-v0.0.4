@@ -78,7 +78,7 @@ public:
                 const s16 surround_left{samples[i + 4]};
                 const s16 surround_right{samples[i + 5]};
                 // Not used in the ATSC reference implementation
-                [[maybe_unused]] const s16 low_frequency_effects { samples[i + 3] };
+                [[maybe_unused]] const s16 low_frequency_effects{samples[i + 3]};
 
                 constexpr s32 clev{707}; // center mixing level coefficient
                 constexpr s32 slev{707}; // surround mixing level coefficient

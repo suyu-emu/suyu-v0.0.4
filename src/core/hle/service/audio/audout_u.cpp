@@ -206,7 +206,7 @@ private:
     AudioCore::StreamPtr stream;
     std::string device_name;
 
-    [[maybe_unused]] AudoutParams audio_params {};
+    [[maybe_unused]] AudoutParams audio_params{};
 
     /// This is the event handle used to check if the audio buffer was released
     Kernel::EventPair buffer_event;

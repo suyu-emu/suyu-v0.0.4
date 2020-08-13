@@ -756,8 +756,8 @@ public:
     }
 
     VkResult GetQueryResults(VkQueryPool query_pool, u32 first, u32 count, std::size_t data_size,
-                             void* data, VkDeviceSize stride, VkQueryResultFlags flags) const
-        noexcept {
+                             void* data, VkDeviceSize stride,
+                             VkQueryResultFlags flags) const noexcept {
         return dld->vkGetQueryPoolResults(handle, query_pool, first, count, data_size, data, stride,
                                           flags);
     }
@@ -849,8 +849,8 @@ public:
         dld->vkCmdBindPipeline(handle, bind_point, pipeline);
     }
 
-    void BindIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType index_type) const
-        noexcept {
+    void BindIndexBuffer(VkBuffer buffer, VkDeviceSize offset,
+                         VkIndexType index_type) const noexcept {
         dld->vkCmdBindIndexBuffer(handle, buffer, offset, index_type);
     }
 
@@ -863,8 +863,8 @@ public:
         BindVertexBuffers(binding, 1, &buffer, &offset);
     }
 
-    void Draw(u32 vertex_count, u32 instance_count, u32 first_vertex, u32 first_instance) const
-        noexcept {
+    void Draw(u32 vertex_count, u32 instance_count, u32 first_vertex,
+              u32 first_instance) const noexcept {
         dld->vkCmdDraw(handle, vertex_count, instance_count, first_vertex, first_instance);
     }
 
@@ -874,15 +874,15 @@ public:
                               first_instance);
     }
 
-    void ClearAttachments(Span<VkClearAttachment> attachments, Span<VkClearRect> rects) const
-        noexcept {
+    void ClearAttachments(Span<VkClearAttachment> attachments,
+                          Span<VkClearRect> rects) const noexcept {
         dld->vkCmdClearAttachments(handle, attachments.size(), attachments.data(), rects.size(),
                                    rects.data());
     }
 
     void BlitImage(VkImage src_image, VkImageLayout src_layout, VkImage dst_image,
-                   VkImageLayout dst_layout, Span<VkImageBlit> regions, VkFilter filter) const
-        noexcept {
+                   VkImageLayout dst_layout, Span<VkImageBlit> regions,
+                   VkFilter filter) const noexcept {
         dld->vkCmdBlitImage(handle, src_image, src_layout, dst_image, dst_layout, regions.size(),
                             regions.data(), filter);
     }
@@ -907,8 +907,8 @@ public:
                                     regions.data());
     }
 
-    void CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer, Span<VkBufferCopy> regions) const
-        noexcept {
+    void CopyBuffer(VkBuffer src_buffer, VkBuffer dst_buffer,
+                    Span<VkBufferCopy> regions) const noexcept {
         dld->vkCmdCopyBuffer(handle, src_buffer, dst_buffer, regions.size(), regions.data());
     }
 
@@ -924,8 +924,8 @@ public:
                                     regions.data());
     }
 
-    void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size, u32 data) const
-        noexcept {
+    void FillBuffer(VkBuffer dst_buffer, VkDeviceSize dst_offset, VkDeviceSize size,
+                    u32 data) const noexcept {
         dld->vkCmdFillBuffer(handle, dst_buffer, dst_offset, size, data);
     }
 

@@ -8,8 +8,6 @@ fi
 
 # Default clang-format points to default 3.5 version one
 CLANG_FORMAT=clang-format-10
-ls /usr/bin
-
 $CLANG_FORMAT --version
 
 if [ "$TRAVIS_EVENT_TYPE" = "pull_request" ]; then

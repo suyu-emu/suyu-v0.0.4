@@ -86,11 +86,13 @@ public:
 
     [[nodiscard]] s64 GetNextTicks() const;
 
-    [[nodiscard]] std::unique_lock<std::mutex> Lock() const { return std::unique_lock{*guard}; }
+    [[nodiscard]] std::unique_lock<std::mutex> Lock() const {
+        return std::unique_lock{*guard};
+    }
 
-    private :
-        /// Finds the display identified by the specified ID.
-        [[nodiscard]] VI::Display* FindDisplay(u64 display_id);
+private:
+    /// Finds the display identified by the specified ID.
+    [[nodiscard]] VI::Display* FindDisplay(u64 display_id);
 
     /// Finds the display identified by the specified ID.
     [[nodiscard]] const VI::Display* FindDisplay(u64 display_id) const;
