@@ -647,7 +647,7 @@ public:
                     GetX() + GetWidth(),  // right
                     GetY()                // bottom
                 };
-            };
+            }
 
             f32 GetX() const {
                 return std::max(0.0f, translate_x - std::fabs(scale_x));
