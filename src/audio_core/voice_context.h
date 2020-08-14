@@ -85,6 +85,13 @@ struct BehaviorFlags {
 };
 static_assert(sizeof(BehaviorFlags) == 0x4, "BehaviorFlags is an invalid size");
 
+struct ADPCMContext {
+    u16 header{};
+    s16 yn1{};
+    s16 yn2{};
+};
+static_assert(sizeof(ADPCMContext) == 0x6, "ADPCMContext is an invalid size");
+
 struct VoiceState {
     s64 played_sample_count{};
     s32 offset{};
@@ -95,7 +102,7 @@ struct VoiceState {
     s32 fraction{};
     VAddr context_address{};
     Codec::ADPCM_Coeff coeff{};
-    Codec::ADPCMState context{};
+    ADPCMContext context{};
     std::array<s64, 2> biquad_filter_state{};
     std::array<s32, AudioCommon::MAX_MIX_BUFFERS> previous_samples{};
     u32 external_context_size{};

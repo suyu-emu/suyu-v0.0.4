@@ -546,46 +546,101 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
         return 0;
     }
 
-    const auto samples_remaining =
-        (wave_buffer.end_sample_offset - wave_buffer.start_sample_offset) - dsp_state.offset;
-    const auto samples_processed = std::min(sample_count, samples_remaining);
-    const auto start_offset =
-        ((wave_buffer.start_sample_offset + dsp_state.offset) * in_params.channel_count);
-    const auto end_offset = start_offset + samples_processed;
+    constexpr std::array<int, 16> SIGNED_NIBBLES = {
+        {0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1}};
 
     constexpr std::size_t FRAME_LEN = 8;
+    constexpr std::size_t NIBBLES_PER_SAMPLE = 16;
     constexpr std::size_t SAMPLES_PER_FRAME = 14;
 
-    // Base buffer position
-    const auto start_frame_index = start_offset / SAMPLES_PER_FRAME;
-    const auto start_frame_buffer = start_frame_index * FRAME_LEN;
-
-    const auto end_frame_index = end_offset / SAMPLES_PER_FRAME;
-    const auto end_frame_buffer = end_frame_index * FRAME_LEN;
-
-    const auto position_in_frame = start_offset % SAMPLES_PER_FRAME;
-
-    const auto buffer_size = (1 + (end_frame_index - start_frame_index)) * FRAME_LEN;
+    auto frame_header = dsp_state.context.header;
+    s32 idx = (frame_header >> 4) & 0xf;
+    s32 scale = frame_header & 0xf;
+    s16 yn1 = dsp_state.context.yn1;
+    s16 yn2 = dsp_state.context.yn2;
 
     Codec::ADPCM_Coeff coeffs;
     memory.ReadBlock(in_params.additional_params_address, coeffs.data(),
                      sizeof(Codec::ADPCM_Coeff));
-    std::vector<u8> buffer(buffer_size);
-    memory.ReadBlock(wave_buffer.buffer_address + start_frame_buffer, buffer.data(), buffer.size());
-    const auto adpcm_samples =
-        std::move(Codec::DecodeADPCM(buffer.data(), buffer.size(), coeffs, dsp_state.context));
 
-    for (std::size_t i = 0; i < samples_processed; i++) {
-        const auto sample_offset = position_in_frame + i * in_params.channel_count + channel;
-        const auto sample = adpcm_samples[sample_offset];
-        sample_buffer[mix_offset + i] = sample;
+    s32 coef1 = coeffs[idx * 2];
+    s32 coef2 = coeffs[idx * 2 + 1];
+
+    const auto samples_remaining =
+        (wave_buffer.end_sample_offset - wave_buffer.start_sample_offset) - dsp_state.offset;
+    const auto samples_processed = std::min(sample_count, samples_remaining);
+    const auto sample_pos = wave_buffer.start_sample_offset + dsp_state.offset;
+
+    const auto samples_remaining_in_frame = sample_pos % SAMPLES_PER_FRAME;
+    auto position_in_frame = ((sample_pos / SAMPLES_PER_FRAME) * NIBBLES_PER_SAMPLE) +
+                             samples_remaining_in_frame + (samples_remaining_in_frame != 0 ? 2 : 0);
+
+    const auto decode_sample = [&](const int nibble) -> s16 {
+        const int xn = nibble * (1 << scale);
+        // We first transform everything into 11 bit fixed point, perform the second order
+        // digital filter, then transform back.
+        // 0x400 == 0.5 in 11 bit fixed point.
+        // Filter: y[n] = x[n] + 0.5 + c1 * y[n-1] + c2 * y[n-2]
+        int val = ((xn << 11) + 0x400 + coef1 * yn1 + coef2 * yn2) >> 11;
+        // Clamp to output range.
+        val = std::clamp<s32>(val, -32768, 32767);
+        // Advance output feedback.
+        yn2 = yn1;
+        yn1 = val;
+        return static_cast<s16>(val);
+    };
+
+    std::size_t buffer_offset{};
+    std::vector<u8> buffer(
+        std::max((samples_processed / FRAME_LEN) * SAMPLES_PER_FRAME, FRAME_LEN));
+    memory.ReadBlock(wave_buffer.buffer_address + (position_in_frame / 2), buffer.data(),
+                     buffer.size());
+    std::size_t cur_mix_offset = mix_offset;
+
+    auto remaining_samples = samples_processed;
+    while (remaining_samples > 0) {
+        if (position_in_frame % NIBBLES_PER_SAMPLE == 0) {
+            // Read header
+            frame_header = buffer[buffer_offset++];
+            idx = (frame_header >> 4) & 0xf;
+            scale = frame_header & 0xf;
+            coef1 = coeffs[idx * 2];
+            coef2 = coeffs[idx * 2 + 1];
+            position_in_frame += 2;
+
+            // Decode entire frame
+            if (remaining_samples >= SAMPLES_PER_FRAME) {
+                for (std::size_t i = 0; i < SAMPLES_PER_FRAME / 2; i++) {
+
+                    // Sample 1
+                    const s32 s0 = SIGNED_NIBBLES[buffer[buffer_offset] >> 4];
+                    const s32 s1 = SIGNED_NIBBLES[buffer[buffer_offset++] & 0xf];
+                    const s16 sample_1 = decode_sample(s0);
+                    const s16 sample_2 = decode_sample(s1);
+                    sample_buffer[cur_mix_offset++] = sample_1;
+                    sample_buffer[cur_mix_offset++] = sample_2;
+                }
+                remaining_samples -= SAMPLES_PER_FRAME;
+                position_in_frame += SAMPLES_PER_FRAME;
+                continue;
+            }
+        }
+        // Decode mid frame
+        s32 current_nibble = buffer[buffer_offset];
+        if (position_in_frame++ & 0x1) {
+            current_nibble &= 0xf;
+            buffer_offset++;
+        } else {
+            current_nibble >>= 4;
+        }
+        const s16 sample = decode_sample(SIGNED_NIBBLES[current_nibble]);
+        sample_buffer[cur_mix_offset++] = sample;
+        remaining_samples--;
     }
 
-    // Manually set our context
-    const auto frame_before_final = (end_frame_index - start_frame_index) - 1;
-    const auto frame_before_final_off = frame_before_final * SAMPLES_PER_FRAME;
-    dsp_state.context.yn2 = adpcm_samples[frame_before_final_off + 12];
-    dsp_state.context.yn1 = adpcm_samples[frame_before_final_off + 13];
+    dsp_state.context.header = frame_header;
+    dsp_state.context.yn1 = yn1;
+    dsp_state.context.yn2 = yn2;
 
     return samples_processed;
 }
