@@ -386,7 +386,8 @@ u32 ShaderIR::DecodeMemory(NodeBlock& bb, u32 pc) {
         break;
     }
     case OpCode::Id::RED: {
-        UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32);
+        UNIMPLEMENTED_IF_MSG(instr.red.type != GlobalAtomicType::U32, "type={}",
+                             static_cast<int>(instr.red.type.Value()));
         const auto [real_address, base_address, descriptor] =
             TrackGlobalMemory(bb, instr, true, true);
         if (!real_address || !base_address) {
