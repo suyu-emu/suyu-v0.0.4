@@ -163,11 +163,10 @@ void CommandGenerator::GenerateVoiceCommand(ServerVoiceInfo& voice_info) {
                     destination_data->MarkDirty();
                 }
             }
-        }
-
-        // Update biquad filter enabled states
-        for (std::size_t i = 0; i < AudioCommon::MAX_BIQUAD_FILTERS; i++) {
-            in_params.was_biquad_filter_enabled[i] = in_params.biquad_filter[i].enabled;
+            // Update biquad filter enabled states
+            for (std::size_t i = 0; i < AudioCommon::MAX_BIQUAD_FILTERS; i++) {
+                in_params.was_biquad_filter_enabled[i] = in_params.biquad_filter[i].enabled;
+            }
         }
     }
 }
@@ -269,9 +268,11 @@ void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voic
         }
 
         // Generate biquad filter
-        GenerateBiquadFilterCommand(mix_buffer_count, biquad_filter, dsp_state.biquad_filter_state,
-                                    mix_buffer_count + channel, mix_buffer_count + channel,
-                                    worker_params.sample_count, voice_info.GetInParams().node_id);
+        //        GenerateBiquadFilterCommand(mix_buffer_count, biquad_filter,
+        //        dsp_state.biquad_filter_state,
+        //                                    mix_buffer_count + channel, mix_buffer_count +
+        //                                    channel, worker_params.sample_count,
+        //                                    voice_info.GetInParams().node_id);
     }
 }
 
