@@ -73,10 +73,8 @@ TimeZoneContentManager::TimeZoneContentManager(TimeManager& time_manager, Core::
 
     std::string location_name;
     const auto timezone_setting = Settings::GetTimeZoneString();
-    if (timezone_setting == "auto") {
+    if (timezone_setting == "auto" || timezone_setting == "default") {
         location_name = Common::TimeZone::GetDefaultTimeZone();
-    } else if (timezone_setting == "default") {
-        location_name = location_name;
     } else {
         location_name = timezone_setting;
     }
