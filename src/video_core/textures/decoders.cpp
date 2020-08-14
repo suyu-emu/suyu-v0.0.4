@@ -228,24 +228,30 @@ void SwizzleSubrect(u32 subrect_width, u32 subrect_height, u32 source_pitch, u32
     }
 }
 
-void UnswizzleSubrect(u32 subrect_width, u32 subrect_height, u32 dest_pitch, u32 swizzled_width,
-                      u32 bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
-                      u32 block_height_bit, u32 offset_x, u32 offset_y) {
-    const u32 block_height = 1U << block_height_bit;
-    for (u32 line = 0; line < subrect_height; ++line) {
-        const u32 y2 = line + offset_y;
-        const u32 gob_address_y = (y2 / (GOB_SIZE_Y * block_height)) * GOB_SIZE * block_height +
-                                  ((y2 % (GOB_SIZE_Y * block_height)) / GOB_SIZE_Y) * GOB_SIZE;
-        const auto& table = LEGACY_SWIZZLE_TABLE[y2 % GOB_SIZE_Y];
-        for (u32 x = 0; x < subrect_width; ++x) {
-            const u32 x2 = (x + offset_x) * bytes_per_pixel;
-            const u32 gob_address = gob_address_y + (x2 / GOB_SIZE_X) * GOB_SIZE * block_height;
-            const u32 swizzled_offset = gob_address + table[x2 % GOB_SIZE_X];
-            const u32 unswizzled_offset = line * dest_pitch + x * bytes_per_pixel;
-            u8* dest_line = unswizzled_data + unswizzled_offset;
-            u8* source_addr = swizzled_data + swizzled_offset;
+void UnswizzleSubrect(u32 line_length_in, u32 line_count, u32 pitch, u32 width, u32 bytes_per_pixel,
+                      u32 block_height, u32 origin_x, u32 origin_y, u8* output, const u8* input) {
+    const u32 stride = width * bytes_per_pixel;
+    const u32 gobs_in_x = (stride + GOB_SIZE_X - 1) / GOB_SIZE_X;
+    const u32 block_size = gobs_in_x << (GOB_SIZE_SHIFT + block_height);
 
-            std::memcpy(dest_line, source_addr, bytes_per_pixel);
+    const u32 block_height_mask = (1U << block_height) - 1;
+    const u32 x_shift = static_cast<u32>(GOB_SIZE_SHIFT) + block_height;
+
+    for (u32 line = 0; line < line_count; ++line) {
+        const u32 src_y = line + origin_y;
+        const auto& table = LEGACY_SWIZZLE_TABLE[src_y % GOB_SIZE_Y];
+
+        const u32 block_y = src_y >> GOB_SIZE_Y_SHIFT;
+        const u32 src_offset_y = (block_y >> block_height) * block_size +
+                                 ((block_y & block_height_mask) << GOB_SIZE_SHIFT);
+        for (u32 column = 0; column < line_length_in; ++column) {
+            const u32 src_x = (column + origin_x) * bytes_per_pixel;
+            const u32 src_offset_x = (src_x >> GOB_SIZE_X_SHIFT) << x_shift;
+
+            const u32 swizzled_offset = src_offset_y + src_offset_x + table[src_x % GOB_SIZE_X];
+            const u32 unswizzled_offset = line * pitch + column * bytes_per_pixel;
+
+            std::memcpy(output + unswizzled_offset, input + swizzled_offset, bytes_per_pixel);
         }
     }
 }
@@ -261,7 +267,7 @@ void SwizzleSliceToVoxel(u32 line_length_in, u32 line_count, u32 pitch, u32 widt
     const u32 block_size = gobs_in_x << (GOB_SIZE_SHIFT + block_height + block_depth);
 
     const u32 block_height_mask = (1U << block_height) - 1;
-    const u32 x_shift = Common::CountTrailingZeroes32(GOB_SIZE << (block_height + block_depth));
+    const u32 x_shift = static_cast<u32>(GOB_SIZE_SHIFT) + block_height + block_depth;
 
     for (u32 line = 0; line < line_count; ++line) {
         const auto& table = LEGACY_SWIZZLE_TABLE[line % GOB_SIZE_Y];

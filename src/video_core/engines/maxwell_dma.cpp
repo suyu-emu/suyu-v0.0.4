@@ -94,7 +94,8 @@ void MaxwellDMA::CopyPitchToPitch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
-    ASSERT(regs.src_params.block_size.depth == 0);
+    UNIMPLEMENTED_IF(regs.src_params.block_size.depth != 0);
+    UNIMPLEMENTED_IF(regs.src_params.layer != 0);
 
     // Optimized path for micro copies.
     const size_t dst_size = static_cast<size_t>(regs.pitch_out) * regs.line_count;
@@ -123,17 +124,12 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
         write_buffer.resize(dst_size);
     }
 
-    if (Settings::IsGPULevelExtreme()) {
-        memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
-        memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
-    } else {
-        memory_manager.ReadBlockUnsafe(regs.offset_in, read_buffer.data(), src_size);
-        memory_manager.ReadBlockUnsafe(regs.offset_out, write_buffer.data(), dst_size);
-    }
+    memory_manager.ReadBlock(regs.offset_in, read_buffer.data(), src_size);
+    memory_manager.ReadBlock(regs.offset_out, write_buffer.data(), dst_size);
 
     UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, width, bytes_per_pixel,
-                     read_buffer.data() + src_layer_size * src_params.layer, write_buffer.data(),
-                     block_height, src_params.origin.x, src_params.origin.y);
+                     block_height, src_params.origin.x, src_params.origin.y, write_buffer.data(),
+                     read_buffer.data());
 
     memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
 }
@@ -198,7 +194,6 @@ void MaxwellDMA::FastCopyBlockLinearToPitch() {
     if (read_buffer.size() < src_size) {
         read_buffer.resize(src_size);
     }
-
     if (write_buffer.size() < dst_size) {
         write_buffer.resize(dst_size);
     }
@@ -212,8 +207,8 @@ void MaxwellDMA::FastCopyBlockLinearToPitch() {
     }
 
     UnswizzleSubrect(regs.line_length_in, regs.line_count, regs.pitch_out, regs.src_params.width,
-                     bytes_per_pixel, read_buffer.data(), write_buffer.data(),
-                     regs.src_params.block_size.height, pos_x, pos_y);
+                     bytes_per_pixel, regs.src_params.block_size.height, pos_x, pos_y,
+                     write_buffer.data(), read_buffer.data());
 
     memory_manager.WriteBlock(regs.offset_out, write_buffer.data(), dst_size);
 }
