@@ -34,7 +34,6 @@ void MacroInterpreterImpl::Execute(const std::vector<u32>& parameters, u32 metho
         this->parameters = std::make_unique<u32[]>(num_parameters);
     }
     std::memcpy(this->parameters.get(), parameters.data(), num_parameters * sizeof(u32));
-    this->num_parameters = num_parameters;
 
     // Execute the code until we hit an exit condition.
     bool keep_executing = true;
