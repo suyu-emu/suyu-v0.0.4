@@ -122,8 +122,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
 
         switch (request) {
         case Request::Calc: {
-            broker.PushNormalDataFromApplet(
-                std::make_shared<IStorage>(std::move(std::vector<u8>{1})));
+            broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{1}));
             broker.SignalStateChanged();
             break;
         }
