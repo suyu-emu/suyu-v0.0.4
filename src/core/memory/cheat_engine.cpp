@@ -42,7 +42,7 @@ u64 StandardVmCallbacks::HidKeysDown() {
     if (applet_resource == nullptr) {
         LOG_WARNING(CheatEngine,
                     "Attempted to read input state, but applet resource is not initialized!");
-        return false;
+        return 0;
     }
 
     const auto press_state =
