@@ -34,9 +34,8 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
         UpdateDeviceComboBox();
         if (!Settings::configuring_global) {
-            ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
-                                              ui->api->currentIndex() !=
-                                                  ConfigurationShared::USE_GLOBAL_INDEX);
+            ConfigurationShared::SetHighlight(
+                ui->api_layout, ui->api->currentIndex() != ConfigurationShared::USE_GLOBAL_INDEX);
         }
     });
     connect(ui->device, qOverload<int>(&QComboBox::activated), this,
@@ -80,17 +79,16 @@ void ConfigureGraphics::SetConfiguration() {
         ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio.GetValue());
     } else {
         ConfigurationShared::SetPerGameSetting(ui->api, &Settings::values.renderer_backend);
-        ConfigurationShared::SetHighlight(ui->api_layout, "api_layout",
+        ConfigurationShared::SetHighlight(ui->api_layout,
                                           !Settings::values.renderer_backend.UsingGlobal());
         ConfigurationShared::SetPerGameSetting(ui->aspect_ratio_combobox,
                                                &Settings::values.aspect_ratio);
 
         ui->bg_combobox->setCurrentIndex(Settings::values.bg_red.UsingGlobal() ? 0 : 1);
         ui->bg_button->setEnabled(!Settings::values.bg_red.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->ar_label, "ar_label",
+        ConfigurationShared::SetHighlight(ui->ar_label,
                                           !Settings::values.aspect_ratio.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout",
-                                          !Settings::values.bg_red.UsingGlobal());
+        ConfigurationShared::SetHighlight(ui->bg_layout, !Settings::values.bg_red.UsingGlobal());
     }
 
     UpdateBackgroundColorButton(QColor::fromRgbF(Settings::values.bg_red.GetValue(),
@@ -248,20 +246,18 @@ void ConfigureGraphics::SetupPerGameUI() {
         return;
     }
 
-    connect(ui->bg_combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), this,
-            [this](int index) {
-                ui->bg_button->setEnabled(index == 1);
-                ConfigurationShared::SetHighlight(ui->bg_layout, "bg_layout", index == 1);
-            });
+    connect(ui->bg_combobox, qOverload<int>(&QComboBox::activated), this, [this](int index) {
+        ui->bg_button->setEnabled(index == 1);
+        ConfigurationShared::SetHighlight(ui->bg_layout, index == 1);
+    });
 
-    ConfigurationShared::SetColoredTristate(ui->use_disk_shader_cache, "use_disk_shader_cache",
-                                            Settings::values.use_disk_shader_cache,
-                                            use_disk_shader_cache);
     ConfigurationShared::SetColoredTristate(
-        ui->use_asynchronous_gpu_emulation, "use_asynchronous_gpu_emulation",
-        Settings::values.use_asynchronous_gpu_emulation, use_asynchronous_gpu_emulation);
+        ui->use_disk_shader_cache, Settings::values.use_disk_shader_cache, use_disk_shader_cache);
+    ConfigurationShared::SetColoredTristate(ui->use_asynchronous_gpu_emulation,
+                                            Settings::values.use_asynchronous_gpu_emulation,
+                                            use_asynchronous_gpu_emulation);
 
-    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label, "ar_label",
+    ConfigurationShared::SetColoredComboBox(ui->aspect_ratio_combobox, ui->ar_label,
                                             Settings::values.aspect_ratio.GetValue(true));
     ConfigurationShared::InsertGlobalItem(
         ui->api, static_cast<int>(Settings::values.renderer_backend.GetValue(true)));

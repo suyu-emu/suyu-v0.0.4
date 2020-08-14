@@ -41,9 +41,9 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
         ConfigurationShared::SetPerGameSetting(ui->gpu_accuracy, &Settings::values.gpu_accuracy);
         ConfigurationShared::SetPerGameSetting(ui->anisotropic_filtering_combobox,
                                                &Settings::values.max_anisotropy);
-        ConfigurationShared::SetHighlight(ui->label_gpu_accuracy, "label_gpu_accuracy",
+        ConfigurationShared::SetHighlight(ui->label_gpu_accuracy,
                                           !Settings::values.gpu_accuracy.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->af_label, "af_label",
+        ConfigurationShared::SetHighlight(ui->af_label,
                                           !Settings::values.max_anisotropy.UsingGlobal());
     }
 }
@@ -131,20 +131,18 @@ void ConfigureGraphicsAdvanced::SetupPerGameUI() {
         return;
     }
 
-    ConfigurationShared::SetColoredTristate(ui->use_vsync, "use_vsync", Settings::values.use_vsync,
-                                            use_vsync);
-    ConfigurationShared::SetColoredTristate(ui->use_assembly_shaders, "use_assembly_shaders",
-                                            Settings::values.use_assembly_shaders,
-                                            use_assembly_shaders);
+    ConfigurationShared::SetColoredTristate(ui->use_vsync, Settings::values.use_vsync, use_vsync);
     ConfigurationShared::SetColoredTristate(
-        ui->use_asynchronous_shaders, "use_asynchronous_shaders",
-        Settings::values.use_asynchronous_shaders, use_asynchronous_shaders);
-    ConfigurationShared::SetColoredTristate(ui->use_fast_gpu_time, "use_fast_gpu_time",
+        ui->use_assembly_shaders, Settings::values.use_assembly_shaders, use_assembly_shaders);
+    ConfigurationShared::SetColoredTristate(ui->use_asynchronous_shaders,
+                                            Settings::values.use_asynchronous_shaders,
+                                            use_asynchronous_shaders);
+    ConfigurationShared::SetColoredTristate(ui->use_fast_gpu_time,
                                             Settings::values.use_fast_gpu_time, use_fast_gpu_time);
     ConfigurationShared::SetColoredComboBox(
-        ui->gpu_accuracy, ui->label_gpu_accuracy, "label_gpu_accuracy",
+        ui->gpu_accuracy, ui->label_gpu_accuracy,
         static_cast<int>(Settings::values.gpu_accuracy.GetValue(true)));
     ConfigurationShared::SetColoredComboBox(
-        ui->anisotropic_filtering_combobox, ui->af_label, "af_label",
+        ui->anisotropic_filtering_combobox, ui->af_label,
         static_cast<int>(Settings::values.max_anisotropy.GetValue(true)));
 }

@@ -90,13 +90,13 @@ void ConfigureSystem::SetConfiguration() {
                                                &Settings::values.time_zone_index);
         ConfigurationShared::SetPerGameSetting(ui->combo_sound, &Settings::values.sound_index);
 
-        ConfigurationShared::SetHighlight(ui->label_language, "label_language",
+        ConfigurationShared::SetHighlight(ui->label_language,
                                           !Settings::values.language_index.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->label_region, "label_region",
+        ConfigurationShared::SetHighlight(ui->label_region,
                                           !Settings::values.region_index.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->label_timezone, "label_timezone",
+        ConfigurationShared::SetHighlight(ui->label_timezone,
                                           !Settings::values.time_zone_index.UsingGlobal());
-        ConfigurationShared::SetHighlight(ui->label_sound, "label_sound",
+        ConfigurationShared::SetHighlight(ui->label_sound,
                                           !Settings::values.sound_index.UsingGlobal());
     }
 }
@@ -224,22 +224,20 @@ void ConfigureSystem::SetupPerGameUI() {
     }
 
     ConfigurationShared::SetColoredComboBox(ui->combo_language, ui->label_language,
-                                            "label_language",
                                             Settings::values.language_index.GetValue(true));
-    ConfigurationShared::SetColoredComboBox(ui->combo_region, ui->label_region, "label_region",
+    ConfigurationShared::SetColoredComboBox(ui->combo_region, ui->label_region,
                                             Settings::values.region_index.GetValue(true));
     ConfigurationShared::SetColoredComboBox(ui->combo_time_zone, ui->label_timezone,
-                                            "label_timezone",
                                             Settings::values.time_zone_index.GetValue(true));
-    ConfigurationShared::SetColoredComboBox(ui->combo_sound, ui->label_sound, "label_sound",
+    ConfigurationShared::SetColoredComboBox(ui->combo_sound, ui->label_sound,
                                             Settings::values.sound_index.GetValue(true));
 
     ConfigurationShared::SetColoredTristate(
-        ui->rng_seed_checkbox, "rng_seed_checkbox", Settings::values.rng_seed.UsingGlobal(),
+        ui->rng_seed_checkbox, Settings::values.rng_seed.UsingGlobal(),
         Settings::values.rng_seed.GetValue().has_value(),
         Settings::values.rng_seed.GetValue(true).has_value(), use_rng_seed);
     ConfigurationShared::SetColoredTristate(
-        ui->custom_rtc_checkbox, "custom_rtc_checkbox", Settings::values.custom_rtc.UsingGlobal(),
+        ui->custom_rtc_checkbox, Settings::values.custom_rtc.UsingGlobal(),
         Settings::values.custom_rtc.GetValue().has_value(),
         Settings::values.custom_rtc.GetValue(true).has_value(), use_custom_rtc);
 }

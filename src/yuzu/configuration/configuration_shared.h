@@ -39,13 +39,12 @@ void SetPerGameSetting(QComboBox* combobox,
 void SetPerGameSetting(QComboBox* combobox,
                        const Settings::Setting<Settings::GPUAccuracy>* setting);
 
-void SetHighlight(QWidget* widget, const std::string& name, bool highlighted);
-void SetColoredTristate(QCheckBox* checkbox, const std::string& name,
-                        const Settings::Setting<bool>& setting, CheckState& tracker);
-void SetColoredTristate(QCheckBox* checkbox, const std::string& name, bool global, bool state,
-                        bool global_state, CheckState& tracker);
-void SetColoredComboBox(QComboBox* combobox, QWidget* target, const std::string& target_name,
-                        int global);
+void SetHighlight(QWidget* widget, bool highlighted);
+void SetColoredTristate(QCheckBox* checkbox, const Settings::Setting<bool>& setting,
+                        CheckState& tracker);
+void SetColoredTristate(QCheckBox* checkbox, bool global, bool state, bool global_state,
+                        CheckState& tracker);
+void SetColoredComboBox(QComboBox* combobox, QWidget* target, int global);
 
 void InsertGlobalItem(QComboBox* combobox, int global_index);
 

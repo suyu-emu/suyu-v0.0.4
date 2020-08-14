@@ -105,10 +105,10 @@ void ConfigureGeneral::SetupPerGameUI() {
     ui->toggle_background_pause->setVisible(false);
     ui->toggle_hide_mouse->setVisible(false);
 
-    ConfigurationShared::SetColoredTristate(ui->toggle_frame_limit, "toggle_frame_limit",
+    ConfigurationShared::SetColoredTristate(ui->toggle_frame_limit,
                                             Settings::values.use_frame_limit, use_frame_limit);
-    ConfigurationShared::SetColoredTristate(ui->use_multi_core, "use_multi_core",
-                                            Settings::values.use_multi_core, use_multi_core);
+    ConfigurationShared::SetColoredTristate(ui->use_multi_core, Settings::values.use_multi_core,
+                                            use_multi_core);
 
     connect(ui->toggle_frame_limit, &QCheckBox::clicked, ui->frame_limit, [this]() {
         ui->frame_limit->setEnabled(ui->toggle_frame_limit->isChecked() &&

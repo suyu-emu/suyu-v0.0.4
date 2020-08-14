@@ -59,7 +59,7 @@ void ConfigureAudio::SetConfiguration() {
             ui->volume_combo_box->setCurrentIndex(1);
             ui->volume_slider->setEnabled(true);
         }
-        ConfigurationShared::SetHighlight(ui->volume_layout, "volume_layout",
+        ConfigurationShared::SetHighlight(ui->volume_layout,
                                           !Settings::values.volume.UsingGlobal());
     }
     SetVolumeIndicatorText(ui->volume_slider->sliderPosition());
@@ -173,14 +173,13 @@ void ConfigureAudio::SetupPerGameUI() {
         return;
     }
 
-    ConfigurationShared::SetColoredTristate(ui->toggle_audio_stretching, "toggle_audio_stretching",
+    ConfigurationShared::SetColoredTristate(ui->toggle_audio_stretching,
                                             Settings::values.enable_audio_stretching,
                                             enable_audio_stretching);
-    connect(ui->volume_combo_box, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated),
-            this, [this](int index) {
-                ui->volume_slider->setEnabled(index == 1);
-                ConfigurationShared::SetHighlight(ui->volume_layout, "volume_layout", index == 1);
-            });
+    connect(ui->volume_combo_box, qOverload<int>(&QComboBox::activated), this, [this](int index) {
+        ui->volume_slider->setEnabled(index == 1);
+        ConfigurationShared::SetHighlight(ui->volume_layout, index == 1);
+    });
 
     ui->output_sink_combo_box->setVisible(false);
     ui->output_sink_label->setVisible(false);

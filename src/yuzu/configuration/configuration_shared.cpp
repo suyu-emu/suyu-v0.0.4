@@ -72,18 +72,18 @@ void ConfigurationShared::SetPerGameSetting(
                                                            ConfigurationShared::USE_GLOBAL_OFFSET);
 }
 
-void ConfigurationShared::SetHighlight(QWidget* widget, const std::string& name, bool highlighted) {
+void ConfigurationShared::SetHighlight(QWidget* widget, bool highlighted) {
     if (highlighted) {
         widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,203,255,0.5) }")
-                                  .arg(QString::fromStdString(name)));
+                                  .arg(widget->objectName()));
     } else {
         widget->setStyleSheet(QStringLiteral("QWidget#%1 { background-color:rgba(0,0,0,0) }")
-                                  .arg(QString::fromStdString(name)));
+                                  .arg(widget->objectName()));
     }
     widget->show();
 }
 
-void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::string& name,
+void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox,
                                              const Settings::Setting<bool>& setting,
                                              CheckState& tracker) {
     if (setting.UsingGlobal()) {
@@ -91,45 +91,39 @@ void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::str
     } else {
         tracker = (setting.GetValue() == setting.GetValue(true)) ? CheckState::On : CheckState::Off;
     }
-    SetHighlight(checkbox, name, tracker != CheckState::Global);
-    QObject::connect(checkbox, &QCheckBox::clicked, checkbox,
-                     [checkbox, name, setting, &tracker]() {
-                         tracker = static_cast<CheckState>((static_cast<int>(tracker) + 1) %
-                                                           static_cast<int>(CheckState::Count));
-                         if (tracker == CheckState::Global) {
-                             checkbox->setChecked(setting.GetValue(true));
-                         }
-                         SetHighlight(checkbox, name, tracker != CheckState::Global);
-                     });
+    SetHighlight(checkbox, tracker != CheckState::Global);
+    QObject::connect(checkbox, &QCheckBox::clicked, checkbox, [checkbox, setting, &tracker] {
+        tracker = static_cast<CheckState>((static_cast<int>(tracker) + 1) %
+                                          static_cast<int>(CheckState::Count));
+        if (tracker == CheckState::Global) {
+            checkbox->setChecked(setting.GetValue(true));
+        }
+        SetHighlight(checkbox, tracker != CheckState::Global);
+    });
 }
 
-void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, const std::string& name,
-                                             bool global, bool state, bool global_state,
-                                             CheckState& tracker) {
+void ConfigurationShared::SetColoredTristate(QCheckBox* checkbox, bool global, bool state,
+                                             bool global_state, CheckState& tracker) {
     if (global) {
         tracker = CheckState::Global;
     } else {
         tracker = (state == global_state) ? CheckState::On : CheckState::Off;
     }
-    SetHighlight(checkbox, name, tracker != CheckState::Global);
-    QObject::connect(checkbox, &QCheckBox::clicked, checkbox,
-                     [checkbox, name, global_state, &tracker]() {
-                         tracker = static_cast<CheckState>((static_cast<int>(tracker) + 1) %
-                                                           static_cast<int>(CheckState::Count));
-                         if (tracker == CheckState::Global) {
-                             checkbox->setChecked(global_state);
-                         }
-                         SetHighlight(checkbox, name, tracker != CheckState::Global);
-                     });
+    SetHighlight(checkbox, tracker != CheckState::Global);
+    QObject::connect(checkbox, &QCheckBox::clicked, checkbox, [checkbox, global_state, &tracker] {
+        tracker = static_cast<CheckState>((static_cast<int>(tracker) + 1) %
+                                          static_cast<int>(CheckState::Count));
+        if (tracker == CheckState::Global) {
+            checkbox->setChecked(global_state);
+        }
+        SetHighlight(checkbox, tracker != CheckState::Global);
+    });
 }
 
-void ConfigurationShared::SetColoredComboBox(QComboBox* combobox, QWidget* target,
-                                             const std::string& target_name, int global) {
+void ConfigurationShared::SetColoredComboBox(QComboBox* combobox, QWidget* target, int global) {
     InsertGlobalItem(combobox, global);
-    QObject::connect(combobox, static_cast<void (QComboBox::*)(int)>(&QComboBox::activated), target,
-                     [target, target_name](int index) {
-                         ConfigurationShared::SetHighlight(target, target_name, index != 0);
-                     });
+    QObject::connect(combobox, qOverload<int>(&QComboBox::activated), target,
+                     [target](int index) { SetHighlight(target, index != 0); });
 }
 
 void ConfigurationShared::InsertGlobalItem(QComboBox* combobox, int global_index) {
