@@ -36,11 +36,11 @@ struct SpecialRegion {
 
     MemoryHookPointer handler;
 
-    bool operator<(const SpecialRegion& other) const {
+    [[nodiscard]] bool operator<(const SpecialRegion& other) const {
         return std::tie(type, handler) < std::tie(other.type, other.handler);
     }
 
-    bool operator==(const SpecialRegion& other) const {
+    [[nodiscard]] bool operator==(const SpecialRegion& other) const {
         return std::tie(type, handler) == std::tie(other.type, other.handler);
     }
 };

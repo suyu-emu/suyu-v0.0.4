@@ -53,14 +53,14 @@ __declspec(dllimport) void __stdcall DebugBreak(void);
 // Call directly after the command or use the error num.
 // This function might change the error code.
 // Defined in Misc.cpp.
-std::string GetLastErrorMsg();
+[[nodiscard]] std::string GetLastErrorMsg();
 
 #define DECLARE_ENUM_FLAG_OPERATORS(type)                                                          \
-    constexpr type operator|(type a, type b) noexcept {                                            \
+    [[nodiscard]] constexpr type operator|(type a, type b) noexcept {                              \
         using T = std::underlying_type_t<type>;                                                    \
         return static_cast<type>(static_cast<T>(a) | static_cast<T>(b));                           \
     }                                                                                              \
-    constexpr type operator&(type a, type b) noexcept {                                            \
+    [[nodiscard]] constexpr type operator&(type a, type b) noexcept {                              \
         using T = std::underlying_type_t<type>;                                                    \
         return static_cast<type>(static_cast<T>(a) & static_cast<T>(b));                           \
     }                                                                                              \
@@ -74,22 +74,22 @@ std::string GetLastErrorMsg();
         a = static_cast<type>(static_cast<T>(a) & static_cast<T>(b));                              \
         return a;                                                                                  \
     }                                                                                              \
-    constexpr type operator~(type key) noexcept {                                                  \
+    [[nodiscard]] constexpr type operator~(type key) noexcept {                                    \
         using T = std::underlying_type_t<type>;                                                    \
         return static_cast<type>(~static_cast<T>(key));                                            \
     }                                                                                              \
-    constexpr bool True(type key) noexcept {                                                       \
+    [[nodiscard]] constexpr bool True(type key) noexcept {                                         \
         using T = std::underlying_type_t<type>;                                                    \
         return static_cast<T>(key) != 0;                                                           \
     }                                                                                              \
-    constexpr bool False(type key) noexcept {                                                      \
+    [[nodiscard]] constexpr bool False(type key) noexcept {                                        \
         using T = std::underlying_type_t<type>;                                                    \
         return static_cast<T>(key) == 0;                                                           \
     }
 
 namespace Common {
 
-constexpr u32 MakeMagic(char a, char b, char c, char d) {
+[[nodiscard]] constexpr u32 MakeMagic(char a, char b, char c, char d) {
     return u32(a) | u32(b) << 8 | u32(c) << 16 | u32(d) << 24;
 }
 

@@ -30,23 +30,23 @@ public:
         base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
     }
 
-    constexpr const T& operator[](std::size_t index) const {
+    [[nodiscard]] constexpr const T& operator[](std::size_t index) const {
         return base_ptr[index];
     }
 
-    constexpr T& operator[](std::size_t index) {
+    [[nodiscard]] constexpr T& operator[](std::size_t index) {
         return base_ptr[index];
     }
 
-    constexpr T* data() {
+    [[nodiscard]] constexpr T* data() {
         return base_ptr;
     }
 
-    constexpr const T* data() const {
+    [[nodiscard]] constexpr const T* data() const {
         return base_ptr;
     }
 
-    constexpr std::size_t size() const {
+    [[nodiscard]] constexpr std::size_t size() const {
         return alloc_size / sizeof(T);
     }
 

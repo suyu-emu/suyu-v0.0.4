@@ -17,6 +17,6 @@ struct MemoryInfo {
  * Gets the memory info of the host system
  * @return Reference to a MemoryInfo struct with the physical and swap memory sizes in bytes
  */
-const MemoryInfo& GetMemInfo();
+[[nodiscard]] const MemoryInfo& GetMemInfo();
 
 } // namespace Common

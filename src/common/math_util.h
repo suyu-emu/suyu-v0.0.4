@@ -23,7 +23,7 @@ struct Rectangle {
     constexpr Rectangle(T left, T top, T right, T bottom)
         : left(left), top(top), right(right), bottom(bottom) {}
 
-    T GetWidth() const {
+    [[nodiscard]] T GetWidth() const {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(right - left);
         } else {
@@ -31,7 +31,7 @@ struct Rectangle {
         }
     }
 
-    T GetHeight() const {
+    [[nodiscard]] T GetHeight() const {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(bottom - top);
         } else {
@@ -39,15 +39,15 @@ struct Rectangle {
         }
     }
 
-    Rectangle<T> TranslateX(const T x) const {
+    [[nodiscard]] Rectangle<T> TranslateX(const T x) const {
         return Rectangle{left + x, top, right + x, bottom};
     }
 
-    Rectangle<T> TranslateY(const T y) const {
+    [[nodiscard]] Rectangle<T> TranslateY(const T y) const {
         return Rectangle{left, top + y, right, bottom + y};
     }
 
-    Rectangle<T> Scale(const float s) const {
+    [[nodiscard]] Rectangle<T> Scale(const float s) const {
         return Rectangle{left, top, static_cast<T>(left + GetWidth() * s),
                          static_cast<T>(top + GetHeight() * s)};
     }

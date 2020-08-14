@@ -19,7 +19,7 @@ namespace Common::Compression {
  *
  * @return the compressed data.
  */
-std::vector<u8> CompressDataZSTD(std::span<const u8> source, s32 compression_level);
+[[nodiscard]] std::vector<u8> CompressDataZSTD(std::span<const u8> source, s32 compression_level);
 
 /**
  * Compresses a source memory region with Zstandard with the default compression level and returns
@@ -29,7 +29,7 @@ std::vector<u8> CompressDataZSTD(std::span<const u8> source, s32 compression_lev
  *
  * @return the compressed data.
  */
-std::vector<u8> CompressDataZSTDDefault(std::span<const u8> source);
+[[nodiscard]] std::vector<u8> CompressDataZSTDDefault(std::span<const u8> source);
 
 /**
  * Decompresses a source memory region with Zstandard and returns the uncompressed data in a vector.
@@ -38,6 +38,6 @@ std::vector<u8> CompressDataZSTDDefault(std::span<const u8> source);
  *
  * @return the decompressed data.
  */
-std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed);
+[[nodiscard]] std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed);
 
 } // namespace Common::Compression

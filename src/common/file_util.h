@@ -48,19 +48,19 @@ struct FSTEntry {
 };
 
 // Returns true if file filename exists
-bool Exists(const std::string& filename);
+[[nodiscard]] bool Exists(const std::string& filename);
 
 // Returns true if filename is a directory
-bool IsDirectory(const std::string& filename);
+[[nodiscard]] bool IsDirectory(const std::string& filename);
 
 // Returns the size of filename (64bit)
-u64 GetSize(const std::string& filename);
+[[nodiscard]] u64 GetSize(const std::string& filename);
 
 // Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd);
+[[nodiscard]] u64 GetSize(int fd);
 
 // Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f);
+[[nodiscard]] u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& filename);
@@ -120,7 +120,7 @@ u64 ScanDirectoryTree(const std::string& directory, FSTEntry& parent_entry,
 bool DeleteDirRecursively(const std::string& directory, unsigned int recursion = 256);
 
 // Returns the current directory
-std::optional<std::string> GetCurrentDir();
+[[nodiscard]] std::optional<std::string> GetCurrentDir();
 
 // Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string& source_path, const std::string& dest_path);
@@ -132,20 +132,20 @@ bool SetCurrentDir(const std::string& directory);
 // directory. To be used in "multi-user" mode (that is, installed).
 const std::string& GetUserPath(UserPath path, const std::string& new_path = "");
 
-std::string GetHactoolConfigurationPath();
+[[nodiscard]] std::string GetHactoolConfigurationPath();
 
-std::string GetNANDRegistrationDir(bool system = false);
+[[nodiscard]] std::string GetNANDRegistrationDir(bool system = false);
 
 // Returns the path to where the sys file are
-std::string GetSysDirectory();
+[[nodiscard]] std::string GetSysDirectory();
 
 #ifdef __APPLE__
-std::string GetBundleDirectory();
+[[nodiscard]] std::string GetBundleDirectory();
 #endif
 
 #ifdef _WIN32
-const std::string& GetExeDirectory();
-std::string AppDataRoamingDirectory();
+[[nodiscard]] const std::string& GetExeDirectory();
+[[nodiscard]] std::string AppDataRoamingDirectory();
 #endif
 
 std::size_t WriteStringToFile(bool text_file, const std::string& filename, std::string_view str);
@@ -164,38 +164,45 @@ void SplitFilename83(const std::string& filename, std::array<char, 9>& short_nam
 
 // Splits the path on '/' or '\' and put the components into a vector
 // i.e. "C:\Users\Yuzu\Documents\save.bin" becomes {"C:", "Users", "Yuzu", "Documents", "save.bin" }
-std::vector<std::string> SplitPathComponents(std::string_view filename);
+[[nodiscard]] std::vector<std::string> SplitPathComponents(std::string_view filename);
 
 // Gets all of the text up to the last '/' or '\' in the path.
-std::string_view GetParentPath(std::string_view path);
+[[nodiscard]] std::string_view GetParentPath(std::string_view path);
 
 // Gets all of the text after the first '/' or '\' in the path.
-std::string_view GetPathWithoutTop(std::string_view path);
+[[nodiscard]] std::string_view GetPathWithoutTop(std::string_view path);
 
 // Gets the filename of the path
-std::string_view GetFilename(std::string_view path);
+[[nodiscard]] std::string_view GetFilename(std::string_view path);
 
 // Gets the extension of the filename
-std::string_view GetExtensionFromFilename(std::string_view name);
+[[nodiscard]] std::string_view GetExtensionFromFilename(std::string_view name);
 
 // Removes the final '/' or '\' if one exists
-std::string_view RemoveTrailingSlash(std::string_view path);
+[[nodiscard]] std::string_view RemoveTrailingSlash(std::string_view path);
 
 // Creates a new vector containing indices [first, last) from the original.
 template <typename T>
-std::vector<T> SliceVector(const std::vector<T>& vector, std::size_t first, std::size_t last) {
-    if (first >= last)
+[[nodiscard]] std::vector<T> SliceVector(const std::vector<T>& vector, std::size_t first,
+                                         std::size_t last) {
+    if (first >= last) {
         return {};
+    }
     last = std::min<std::size_t>(last, vector.size());
     return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
 }
 
-enum class DirectorySeparator { ForwardSlash, BackwardSlash, PlatformDefault };
+enum class DirectorySeparator {
+    ForwardSlash,
+    BackwardSlash,
+    PlatformDefault,
+};
 
 // Removes trailing slash, makes all '\\' into '/', and removes duplicate '/'. Makes '/' into '\\'
 // depending if directory_separator is BackwardSlash or PlatformDefault and running on windows
-std::string SanitizePath(std::string_view path,
-                         DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
+[[nodiscard]] std::string SanitizePath(
+    std::string_view path,
+    DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
 
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
@@ -215,7 +222,7 @@ public:
 
     void Swap(IOFile& other) noexcept;
 
-    bool Open(const std::string& filename, const char openmode[], int flags = 0);
+    [[nodiscard]] bool Open(const std::string& filename, const char openmode[], int flags = 0);
     bool Close();
 
     template <typename T>
@@ -256,13 +263,13 @@ public:
         return WriteArray(str.data(), str.length());
     }
 
-    bool IsOpen() const {
+    [[nodiscard]] bool IsOpen() const {
         return nullptr != m_file;
     }
 
     bool Seek(s64 off, int origin) const;
-    u64 Tell() const;
-    u64 GetSize() const;
+    [[nodiscard]] u64 Tell() const;
+    [[nodiscard]] u64 GetSize() const;
     bool Resize(u64 size);
     bool Flush();
 
