@@ -21,8 +21,9 @@ namespace Service::Nvidia::Devices {
 /// implement the ioctl interface.
 class nvdevice {
 public:
-    explicit nvdevice(Core::System& system) : system{system} {};
+    explicit nvdevice(Core::System& system) : system{system} {}
     virtual ~nvdevice() = default;
+
     union Ioctl {
         u32_le raw;
         BitField<0, 8, u32> cmd;
