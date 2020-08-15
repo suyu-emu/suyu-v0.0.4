@@ -25,7 +25,7 @@ namespace Core {
 class System;
 }
 
-namespace FileUtil {
+namespace Common::FS {
 class IOFile;
 }
 
@@ -38,9 +38,9 @@ struct ShaderDiskCacheEntry {
     ShaderDiskCacheEntry();
     ~ShaderDiskCacheEntry();
 
-    bool Load(FileUtil::IOFile& file);
+    bool Load(Common::FS::IOFile& file);
 
-    bool Save(FileUtil::IOFile& file) const;
+    bool Save(Common::FS::IOFile& file) const;
 
     bool HasProgramA() const {
         return !code.empty() && !code_b.empty();
@@ -97,10 +97,10 @@ public:
 private:
     /// Loads the transferable cache. Returns empty on failure.
     std::optional<std::vector<ShaderDiskCachePrecompiled>> LoadPrecompiledFile(
-        FileUtil::IOFile& file);
+        Common::FS::IOFile& file);
 
     /// Opens current game's transferable file and write it's header if it doesn't exist
-    FileUtil::IOFile AppendTransferableFile() const;
+    Common::FS::IOFile AppendTransferableFile() const;
 
     /// Save precompiled header to precompiled_cache_in_memory
     void SavePrecompiledHeaderToVirtualPrecompiledCache();

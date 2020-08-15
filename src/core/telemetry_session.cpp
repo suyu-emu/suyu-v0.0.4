@@ -70,12 +70,12 @@ static const char* TranslateGPUAccuracyLevel(Settings::GPUAccuracy backend) {
 
 u64 GetTelemetryId() {
     u64 telemetry_id{};
-    const std::string filename{FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) +
+    const std::string filename{Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir) +
                                "telemetry_id"};
 
-    bool generate_new_id = !FileUtil::Exists(filename);
+    bool generate_new_id = !Common::FS::Exists(filename);
     if (!generate_new_id) {
-        FileUtil::IOFile file(filename, "rb");
+        Common::FS::IOFile file(filename, "rb");
         if (!file.IsOpen()) {
             LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
             return {};
@@ -88,7 +88,7 @@ u64 GetTelemetryId() {
     }
 
     if (generate_new_id) {
-        FileUtil::IOFile file(filename, "wb");
+        Common::FS::IOFile file(filename, "wb");
         if (!file.IsOpen()) {
             LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
             return {};
@@ -102,10 +102,10 @@ u64 GetTelemetryId() {
 
 u64 RegenerateTelemetryId() {
     const u64 new_telemetry_id{GenerateTelemetryId()};
-    const std::string filename{FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) +
+    const std::string filename{Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir) +
                                "telemetry_id"};
 
-    FileUtil::IOFile file(filename, "wb");
+    Common::FS::IOFile file(filename, "wb");
     if (!file.IsOpen()) {
         LOG_ERROR(Core, "failed to open telemetry_id: {}", filename);
         return {};

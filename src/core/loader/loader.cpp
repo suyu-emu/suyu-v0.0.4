@@ -67,7 +67,7 @@ FileType GuessFromFilename(const std::string& name) {
         return FileType::NCA;
 
     const std::string extension =
-        Common::ToLower(std::string(FileUtil::GetExtensionFromFilename(name)));
+        Common::ToLower(std::string(Common::FS::GetExtensionFromFilename(name)));
 
     if (extension == "elf")
         return FileType::ELF;

@@ -28,8 +28,9 @@
 namespace {
 
 std::string GetPath(std::string_view type, u64 title_id, std::string_view timestamp) {
-    return fmt::format("{}{}/{:016X}_{}.json", FileUtil::GetUserPath(FileUtil::UserPath::LogDir),
-                       type, title_id, timestamp);
+    return fmt::format("{}{}/{:016X}_{}.json",
+                       Common::FS::GetUserPath(Common::FS::UserPath::LogDir), type, title_id,
+                       timestamp);
 }
 
 std::string GetTimestamp() {
@@ -40,13 +41,13 @@ std::string GetTimestamp() {
 using namespace nlohmann;
 
 void SaveToFile(json json, const std::string& filename) {
-    if (!FileUtil::CreateFullPath(filename)) {
+    if (!Common::FS::CreateFullPath(filename)) {
         LOG_ERROR(Core, "Failed to create path for '{}' to save report!", filename);
         return;
     }
 
     std::ofstream file(
-        FileUtil::SanitizePath(filename, FileUtil::DirectorySeparator::PlatformDefault));
+        Common::FS::SanitizePath(filename, Common::FS::DirectorySeparator::PlatformDefault));
     file << std::setw(4) << json << std::endl;
 }
 

@@ -38,11 +38,11 @@ PerfStats::~PerfStats() {
     std::ostringstream stream;
     std::copy(perf_history.begin() + IgnoreFrames, perf_history.begin() + current_index,
               std::ostream_iterator<double>(stream, "\n"));
-    const std::string& path = FileUtil::GetUserPath(FileUtil::UserPath::LogDir);
+    const std::string& path = Common::FS::GetUserPath(Common::FS::UserPath::LogDir);
     // %F Date format expanded is "%Y-%m-%d"
     const std::string filename =
         fmt::format("{}/{:%F-%H-%M}_{:016X}.csv", path, *std::localtime(&t), title_id);
-    FileUtil::IOFile file(filename, "w");
+    Common::FS::IOFile file(filename, "w");
     file.WriteString(stream.str());
 }
 

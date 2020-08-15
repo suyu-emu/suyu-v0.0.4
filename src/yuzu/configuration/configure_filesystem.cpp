@@ -42,16 +42,16 @@ ConfigureFilesystem::~ConfigureFilesystem() = default;
 
 void ConfigureFilesystem::setConfiguration() {
     ui->nand_directory_edit->setText(
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)));
+        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::NANDDir)));
     ui->sdmc_directory_edit->setText(
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
+        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir)));
     ui->gamecard_path_edit->setText(QString::fromStdString(Settings::values.gamecard_path));
     ui->dump_path_edit->setText(
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)));
+        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::DumpDir)));
     ui->load_path_edit->setText(
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)));
+        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::LoadDir)));
     ui->cache_directory_edit->setText(
-        QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)));
+        QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)));
 
     ui->gamecard_inserted->setChecked(Settings::values.gamecard_inserted);
     ui->gamecard_current_game->setChecked(Settings::values.gamecard_current_game);
@@ -64,14 +64,16 @@ void ConfigureFilesystem::setConfiguration() {
 }
 
 void ConfigureFilesystem::applyConfiguration() {
-    FileUtil::GetUserPath(FileUtil::UserPath::NANDDir,
-                          ui->nand_directory_edit->text().toStdString());
-    FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir,
-                          ui->sdmc_directory_edit->text().toStdString());
-    FileUtil::GetUserPath(FileUtil::UserPath::DumpDir, ui->dump_path_edit->text().toStdString());
-    FileUtil::GetUserPath(FileUtil::UserPath::LoadDir, ui->load_path_edit->text().toStdString());
-    FileUtil::GetUserPath(FileUtil::UserPath::CacheDir,
-                          ui->cache_directory_edit->text().toStdString());
+    Common::FS::GetUserPath(Common::FS::UserPath::NANDDir,
+                            ui->nand_directory_edit->text().toStdString());
+    Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir,
+                            ui->sdmc_directory_edit->text().toStdString());
+    Common::FS::GetUserPath(Common::FS::UserPath::DumpDir,
+                            ui->dump_path_edit->text().toStdString());
+    Common::FS::GetUserPath(Common::FS::UserPath::LoadDir,
+                            ui->load_path_edit->text().toStdString());
+    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir,
+                            ui->cache_directory_edit->text().toStdString());
     Settings::values.gamecard_path = ui->gamecard_path_edit->text().toStdString();
 
     Settings::values.gamecard_inserted = ui->gamecard_inserted->isChecked();
@@ -121,12 +123,13 @@ void ConfigureFilesystem::SetDirectory(DirectoryTarget target, QLineEdit* edit) 
 }
 
 void ConfigureFilesystem::ResetMetadata() {
-    if (!FileUtil::Exists(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP +
-                          "game_list")) {
+    if (!Common::FS::Exists(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
+                            "game_list")) {
         QMessageBox::information(this, tr("Reset Metadata Cache"),
                                  tr("The metadata cache is already empty."));
-    } else if (FileUtil::DeleteDirRecursively(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) +
-                                              DIR_SEP + "game_list")) {
+    } else if (Common::FS::DeleteDirRecursively(
+                   Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
+                   "game_list")) {
         QMessageBox::information(this, tr("Reset Metadata Cache"),
                                  tr("The operation completed successfully."));
         UISettings::values.is_game_list_reload_pending.exchange(true);

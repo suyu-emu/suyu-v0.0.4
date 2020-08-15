@@ -34,7 +34,7 @@ constexpr std::array<u8, 107> backup_jpeg{
 };
 
 QString GetImagePath(Common::UUID uuid) {
-    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+    const auto path = Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) +
                       "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
     return QString::fromStdString(path);
 }
@@ -282,7 +282,7 @@ void ConfigureProfileManager::SetUserImage() {
     }
 
     const auto raw_path = QString::fromStdString(
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010");
+        Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) + "/system/save/8000000000000010");
     const QFileInfo raw_info{raw_path};
     if (raw_info.exists() && !raw_info.isDir() && !QFile::remove(raw_path)) {
         QMessageBox::warning(this, tr("Error deleting file"),

@@ -728,7 +728,7 @@ InstallResult RegisteredCache::RawInstallNCA(const NCA& nca, const VfsCopyFuncti
         LOG_WARNING(Loader, "Overwriting existing NCA...");
         VirtualDir c_dir;
         { c_dir = dir->GetFileRelative(path)->GetContainingDirectory(); }
-        c_dir->DeleteFile(FileUtil::GetFilename(path));
+        c_dir->DeleteFile(Common::FS::GetFilename(path));
     }
 
     auto out = dir->CreateFileRelative(path);

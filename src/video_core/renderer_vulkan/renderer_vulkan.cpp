@@ -78,7 +78,7 @@ Common::DynamicLibrary OpenVulkanLibrary() {
     if (!libvulkan_env || !library.Open(libvulkan_env)) {
         // Use the libvulkan.dylib from the application bundle.
         const std::string filename =
-            FileUtil::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
+            Common::FS::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
         library.Open(filename.c_str());
     }
 #else

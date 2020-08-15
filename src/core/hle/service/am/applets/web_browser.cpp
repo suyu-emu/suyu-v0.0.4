@@ -293,8 +293,8 @@ void WebBrowser::Finalize() {
     broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(data)));
     broker.SignalStateChanged();
 
-    if (!temporary_dir.empty() && FileUtil::IsDirectory(temporary_dir)) {
-        FileUtil::DeleteDirRecursively(temporary_dir);
+    if (!temporary_dir.empty() && Common::FS::IsDirectory(temporary_dir)) {
+        Common::FS::DeleteDirRecursively(temporary_dir);
     }
 }
 
@@ -452,10 +452,10 @@ void WebBrowser::InitializeOffline() {
     };
 
     temporary_dir =
-        FileUtil::SanitizePath(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + "web_applet_" +
-                                   WEB_SOURCE_NAMES[static_cast<u32>(source) - 1],
-                               FileUtil::DirectorySeparator::PlatformDefault);
-    FileUtil::DeleteDirRecursively(temporary_dir);
+        Common::FS::SanitizePath(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) +
+                                     "web_applet_" + WEB_SOURCE_NAMES[static_cast<u32>(source) - 1],
+                                 Common::FS::DirectorySeparator::PlatformDefault);
+    Common::FS::DeleteDirRecursively(temporary_dir);
 
     u64 title_id = 0; // 0 corresponds to current process
     ASSERT(args[WebArgTLVType::ApplicationID].size() >= 0x8);
@@ -492,8 +492,8 @@ void WebBrowser::InitializeOffline() {
     }
 
     filename =
-        FileUtil::SanitizePath(temporary_dir + path_additional_directory + DIR_SEP + filename,
-                               FileUtil::DirectorySeparator::PlatformDefault);
+        Common::FS::SanitizePath(temporary_dir + path_additional_directory + DIR_SEP + filename,
+                                 Common::FS::DirectorySeparator::PlatformDefault);
 }
 
 void WebBrowser::ExecuteShop() {

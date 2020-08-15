@@ -16,9 +16,11 @@
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/default_ini.h"
 
+namespace FS = Common::FS;
+
 Config::Config() {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    sdl2_config_loc = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) + "sdl2-config.ini";
+    sdl2_config_loc = FS::GetUserPath(FS::UserPath::ConfigDir) + "sdl2-config.ini";
     sdl2_config = std::make_unique<INIReader>(sdl2_config_loc);
 
     Reload();
@@ -31,8 +33,8 @@ bool Config::LoadINI(const std::string& default_contents, bool retry) {
     if (sdl2_config->ParseError() < 0) {
         if (retry) {
             LOG_WARNING(Config, "Failed to load {}. Creating file from defaults...", location);
-            FileUtil::CreateFullPath(location);
-            FileUtil::WriteStringToFile(true, location, default_contents);
+            FS::CreateFullPath(location);
+            FS::WriteStringToFile(true, location, default_contents);
             sdl2_config = std::make_unique<INIReader>(location); // Reopen file
 
             return LoadINI(default_contents, false);
@@ -315,21 +317,21 @@ void Config::ReadValues() {
     // Data Storage
     Settings::values.use_virtual_sd =
         sdl2_config->GetBoolean("Data Storage", "use_virtual_sd", true);
-    FileUtil::GetUserPath(FileUtil::UserPath::NANDDir,
-                          sdl2_config->Get("Data Storage", "nand_directory",
-                                           FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)));
-    FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir,
-                          sdl2_config->Get("Data Storage", "sdmc_directory",
-                                           FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
-    FileUtil::GetUserPath(FileUtil::UserPath::LoadDir,
-                          sdl2_config->Get("Data Storage", "load_directory",
-                                           FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)));
-    FileUtil::GetUserPath(FileUtil::UserPath::DumpDir,
-                          sdl2_config->Get("Data Storage", "dump_directory",
-                                           FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)));
-    FileUtil::GetUserPath(FileUtil::UserPath::CacheDir,
-                          sdl2_config->Get("Data Storage", "cache_directory",
-                                           FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)));
+    FS::GetUserPath(
+        FS::UserPath::NANDDir,
+        sdl2_config->Get("Data Storage", "nand_directory", FS::GetUserPath(FS::UserPath::NANDDir)));
+    FS::GetUserPath(
+        FS::UserPath::SDMCDir,
+        sdl2_config->Get("Data Storage", "sdmc_directory", FS::GetUserPath(FS::UserPath::SDMCDir)));
+    FS::GetUserPath(
+        FS::UserPath::LoadDir,
+        sdl2_config->Get("Data Storage", "load_directory", FS::GetUserPath(FS::UserPath::LoadDir)));
+    FS::GetUserPath(
+        FS::UserPath::DumpDir,
+        sdl2_config->Get("Data Storage", "dump_directory", FS::GetUserPath(FS::UserPath::DumpDir)));
+    FS::GetUserPath(FS::UserPath::CacheDir,
+                    sdl2_config->Get("Data Storage", "cache_directory",
+                                     FS::GetUserPath(FS::UserPath::CacheDir)));
     Settings::values.gamecard_inserted =
         sdl2_config->GetBoolean("Data Storage", "gamecard_inserted", false);
     Settings::values.gamecard_current_game =

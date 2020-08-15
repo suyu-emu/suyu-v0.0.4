@@ -9,7 +9,7 @@
 #include "core/file_sys/mode.h"
 #include "core/file_sys/vfs.h"
 
-namespace FileUtil {
+namespace Common::FS {
 class IOFile;
 }
 
@@ -36,7 +36,7 @@ public:
     bool DeleteDirectory(std::string_view path) override;
 
 private:
-    boost::container::flat_map<std::string, std::weak_ptr<FileUtil::IOFile>> cache;
+    boost::container::flat_map<std::string, std::weak_ptr<Common::FS::IOFile>> cache;
 };
 
 // An implmentation of VfsFile that represents a file on the user's computer.
@@ -58,13 +58,13 @@ public:
     bool Rename(std::string_view name) override;
 
 private:
-    RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<FileUtil::IOFile> backing,
+    RealVfsFile(RealVfsFilesystem& base, std::shared_ptr<Common::FS::IOFile> backing,
                 const std::string& path, Mode perms = Mode::Read);
 
     bool Close();
 
     RealVfsFilesystem& base;
-    std::shared_ptr<FileUtil::IOFile> backing;
+    std::shared_ptr<Common::FS::IOFile> backing;
     std::string path;
     std::string parent_path;
     std::vector<std::string> path_components;

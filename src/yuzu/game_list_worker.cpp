@@ -39,12 +39,12 @@ QString GetGameListCachedObject(const std::string& filename, const std::string& 
         return generator();
     }
 
-    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
-                      DIR_SEP + filename + '.' + ext;
+    const auto path = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
+                      "game_list" + DIR_SEP + filename + '.' + ext;
 
-    FileUtil::CreateFullPath(path);
+    Common::FS::CreateFullPath(path);
 
-    if (!FileUtil::Exists(path)) {
+    if (!Common::FS::Exists(path)) {
         const auto str = generator();
 
         QFile file{QString::fromStdString(path)};
@@ -70,14 +70,14 @@ std::pair<std::vector<u8>, std::string> GetGameListCachedObject(
         return generator();
     }
 
-    const auto path1 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
-                       DIR_SEP + filename + ".jpeg";
-    const auto path2 = FileUtil::GetUserPath(FileUtil::UserPath::CacheDir) + DIR_SEP + "game_list" +
-                       DIR_SEP + filename + ".appname.txt";
+    const auto path1 = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
+                       "game_list" + DIR_SEP + filename + ".jpeg";
+    const auto path2 = Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) + DIR_SEP +
+                       "game_list" + DIR_SEP + filename + ".appname.txt";
 
-    FileUtil::CreateFullPath(path1);
+    Common::FS::CreateFullPath(path1);
 
-    if (!FileUtil::Exists(path1) || !FileUtil::Exists(path2)) {
+    if (!Common::FS::Exists(path1) || !Common::FS::Exists(path2)) {
         const auto [icon, nacp] = generator();
 
         QFile file1{QString::fromStdString(path1)};
@@ -208,7 +208,7 @@ QList<QStandardItem*> MakeGameListEntry(const std::string& path, const std::stri
                              file_type_string, program_id),
         new GameListItemCompat(compatibility),
         new GameListItem(file_type_string),
-        new GameListItemSize(FileUtil::GetSize(path)),
+        new GameListItemSize(Common::FS::GetSize(path)),
     };
 
     if (UISettings::values.show_add_ons) {
@@ -289,7 +289,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
         }
 
         const std::string physical_name = directory + DIR_SEP + virtual_name;
-        const bool is_dir = FileUtil::IsDirectory(physical_name);
+        const bool is_dir = Common::FS::IsDirectory(physical_name);
         if (!is_dir &&
             (HasSupportedFileExtension(physical_name) || IsExtractedNCAMain(physical_name))) {
             const auto file = vfs->OpenFile(physical_name, FileSys::Mode::Read);
@@ -345,7 +345,7 @@ void GameListWorker::ScanFileSystem(ScanTarget target, const std::string& dir_pa
         return true;
     };
 
-    FileUtil::ForeachDirectoryEntry(nullptr, dir_path, callback);
+    Common::FS::ForeachDirectoryEntry(nullptr, dir_path, callback);
 }
 
 void GameListWorker::run() {
