@@ -422,8 +422,7 @@ void ShaderDiskCacheOpenGL::SavePrecompiledHeaderToVirtualPrecompiledCache() {
 void ShaderDiskCacheOpenGL::SaveVirtualPrecompiledFile() {
     precompiled_cache_virtual_file_offset = 0;
     const std::vector<u8> uncompressed = precompiled_cache_virtual_file.ReadAllBytes();
-    const std::vector<u8> compressed =
-        Common::Compression::CompressDataZSTDDefault(uncompressed.data(), uncompressed.size());
+    const std::vector<u8> compressed = Common::Compression::CompressDataZSTDDefault(uncompressed);
 
     const auto precompiled_path{GetPrecompiledPath()};
     FileUtil::IOFile file(precompiled_path, "wb");
