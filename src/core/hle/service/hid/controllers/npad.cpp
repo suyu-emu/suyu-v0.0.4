@@ -90,7 +90,7 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
     default:
         UNIMPLEMENTED_MSG("Unknown npad index {}", index);
         return 0;
-    };
+    }
 }
 
 Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {}
@@ -630,7 +630,7 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
     default:
         UNIMPLEMENTED_MSG("Unhandled npad_id {}", npad_id);
         return LedPattern{0, 0, 0, 0};
-    };
+    }
 }
 
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
