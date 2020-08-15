@@ -39,7 +39,7 @@ public:
 
     class Scoped {
     public:
-        explicit Scoped(GraphicsContext& context_) : context(context_) {
+        [[nodiscard]] explicit Scoped(GraphicsContext& context_) : context(context_) {
             context.MakeCurrent();
         }
         ~Scoped() {
@@ -52,7 +52,7 @@ public:
 
     /// Calls MakeCurrent on the context and calls DoneCurrent when the scope for the returned value
     /// ends
-    Scoped Acquire() {
+    [[nodiscard]] Scoped Acquire() {
         return Scoped{*this};
     }
 };
