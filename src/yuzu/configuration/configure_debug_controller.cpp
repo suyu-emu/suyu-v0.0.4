@@ -6,10 +6,10 @@
 #include "yuzu/configuration/configure_debug_controller.h"
 
 ConfigureDebugController::ConfigureDebugController(QWidget* parent)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigureDebugController>()) {
+    : QDialog(parent), ui(std::make_unique<Ui::ConfigureDebugController>()),
+      debug_controller(new ConfigureInputPlayer(this, 9, nullptr, true)) {
     ui->setupUi(this);
 
-    debug_controller = new ConfigureInputPlayer(this, 9, nullptr, true);
     ui->controllerLayout->addWidget(debug_controller);
 
     connect(ui->clear_all_button, &QPushButton::clicked, this,

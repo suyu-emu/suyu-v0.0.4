@@ -13,7 +13,6 @@
 #include <QStringList>
 #include <QVector>
 #include "common/common_types.h"
-#include "core/settings.h"
 
 namespace UISettings {
 

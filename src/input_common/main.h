@@ -76,7 +76,7 @@ public:
     /// Setup and start polling for inputs, should be called before GetNextInput
     /// If a device_id is provided, events should be filtered to only include events from this
     /// device id
-    virtual void Start(std::string device_id = "") = 0;
+    virtual void Start(const std::string& device_id = "") = 0;
     /// Stop polling
     virtual void Stop() = 0;
     /**

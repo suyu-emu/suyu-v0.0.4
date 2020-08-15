@@ -9,7 +9,7 @@
 #include "yuzu/configuration/configure_input_advanced.h"
 
 ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
-    : QWidget(parent), ui(new Ui::ConfigureInputAdvanced) {
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputAdvanced>()) {
     ui->setupUi(this);
 
     controllers_color_buttons = {{

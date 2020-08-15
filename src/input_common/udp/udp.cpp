@@ -89,10 +89,9 @@ State::~State() {
     Input::UnregisterFactory<Input::MotionDevice>("cemuhookudp");
 }
 
-std::vector<Common::ParamPackage> State::GetInputDevices() {
-    std::vector<Common::ParamPackage> devices = {};
+std::vector<Common::ParamPackage> State::GetInputDevices() const {
     // TODO support binding udp devices
-    return devices;
+    return {};
 }
 
 void State::ReloadUDPClient() {

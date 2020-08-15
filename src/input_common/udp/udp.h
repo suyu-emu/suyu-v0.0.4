@@ -19,7 +19,7 @@ public:
     State();
     ~State();
     void ReloadUDPClient();
-    std::vector<Common::ParamPackage> GetInputDevices();
+    std::vector<Common::ParamPackage> GetInputDevices() const;
 
 private:
     std::unique_ptr<Client> client;

@@ -545,17 +545,16 @@ SDLState::~SDLState() {
 
 std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
     std::scoped_lock lock(joystick_map_mutex);
-    std::vector<Common::ParamPackage> devices = {};
+    std::vector<Common::ParamPackage> devices;
     for (const auto& [key, value] : joystick_map) {
         for (const auto& joystick : value) {
-            auto controller = joystick->GetSDLGameController();
             auto joy = joystick->GetSDLJoystick();
-            if (controller) {
+            if (auto controller = joystick->GetSDLGameController()) {
                 std::string name =
                     fmt::format("{} {}", SDL_GameControllerName(controller), joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
                     {"class", "sdl"},
-                    {"display", name},
+                    {"display", std::move(name)},
                     {"guid", joystick->GetGUID()},
                     {"port", std::to_string(joystick->GetPort())},
                 });
@@ -563,7 +562,7 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
                 std::string name = fmt::format("{} {}", SDL_JoystickName(joy), joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
                     {"class", "sdl"},
-                    {"display", name},
+                    {"display", std::move(name)},
                     {"guid", joystick->GetGUID()},
                     {"port", std::to_string(joystick->GetPort())},
                 });
@@ -624,54 +623,43 @@ Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, u
 }
 
 Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event) {
-    Common::ParamPackage params{};
-
     switch (event.type) {
     case SDL_JOYAXISMOTION: {
         const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-        params = BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                  event.jaxis.axis, event.jaxis.value);
-        break;
+        return BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                event.jaxis.axis, event.jaxis.value);
     }
     case SDL_JOYBUTTONUP: {
         const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which);
-        params = BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                  event.jbutton.button);
-        break;
+        return BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                event.jbutton.button);
     }
     case SDL_JOYHATMOTION: {
         const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which);
-        params = BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                               event.jhat.hat, event.jhat.value);
-        break;
+        return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                             event.jhat.hat, event.jhat.value);
     }
     }
-    return params;
+    return {};
 }
 
 Common::ParamPackage BuildParamPackageForBinding(int port, const std::string& guid,
                                                  const SDL_GameControllerButtonBind& binding) {
-    Common::ParamPackage out{};
     switch (binding.bindType) {
     case SDL_CONTROLLER_BINDTYPE_AXIS:
-        out = BuildAnalogParamPackageForButton(port, guid, binding.value.axis);
-        break;
+        return BuildAnalogParamPackageForButton(port, guid, binding.value.axis);
     case SDL_CONTROLLER_BINDTYPE_BUTTON:
-        out = BuildButtonParamPackageForButton(port, guid, binding.value.button);
-        break;
+        return BuildButtonParamPackageForButton(port, guid, binding.value.button);
     case SDL_CONTROLLER_BINDTYPE_HAT:
-        out = BuildHatParamPackageForButton(port, guid, binding.value.hat.hat,
-                                            binding.value.hat.hat_mask);
-        break;
-    default:
-        break;
+        return BuildHatParamPackageForButton(port, guid, binding.value.hat.hat,
+                                             binding.value.hat.hat_mask);
     }
-    return out;
-};
+    return {};
+}
 
 Common::ParamPackage BuildParamPackageForAnalog(int port, const std::string& guid, int axis_x,
                                                 int axis_y) {
-    Common::ParamPackage params{};
+    Common::ParamPackage params;
     params.Set("engine", "sdl");
     params.Set("port", port);
     params.Set("guid", guid);
@@ -769,7 +757,7 @@ class SDLPoller : public InputCommon::Polling::DevicePoller {
 public:
     explicit SDLPoller(SDLState& state_) : state(state_) {}
 
-    void Start(std::string device_id) override {
+    void Start(const std::string& device_id) override {
         state.event_queue.Clear();
         state.polling = true;
     }
@@ -821,7 +809,7 @@ public:
     explicit SDLAnalogPreferredPoller(SDLState& state_)
         : SDLPoller(state_), button_poller(state_) {}
 
-    void Start(std::string device_id) override {
+    void Start(const std::string& device_id) override {
         SDLPoller::Start(device_id);
         // Load the game controller
         // Reset stored axes

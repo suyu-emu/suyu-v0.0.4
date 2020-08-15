@@ -103,13 +103,14 @@ ConfigureInput::ConfigureInput(QWidget* parent)
             }
         });
         connect(player_controllers[i], &ConfigureInputPlayer::RefreshInputDevices,
-                [&] { UpdateAllInputDevices(); });
-        connect(player_connected[i], &QCheckBox::stateChanged,
-                [&, i](int state) { player_controllers[i]->ConnectPlayer(state == Qt::Checked); });
+                [this] { UpdateAllInputDevices(); });
+        connect(player_connected[i], &QCheckBox::stateChanged, [this, i](int state) {
+            player_controllers[i]->ConnectPlayer(state == Qt::Checked);
+        });
     }
     // Only the first player can choose handheld mode so connect the signal just to player 1
     connect(player_controllers[0], &ConfigureInputPlayer::HandheldStateChanged,
-            [&](bool is_handheld) { UpdateDockedState(is_handheld); });
+            [this](bool is_handheld) { UpdateDockedState(is_handheld); });
 
     advanced = new ConfigureInputAdvanced(this);
     ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
@@ -182,14 +183,14 @@ void ConfigureInput::LoadPlayerControllerIndices() {
 void ConfigureInput::ClearAll() {
     // We don't have a good way to know what tab is active, but we can find out by getting the
     // parent of the consoleInputSettings
-    auto player_tab = static_cast<ConfigureInputPlayer*>(ui->consoleInputSettings->parent());
+    auto* player_tab = static_cast<ConfigureInputPlayer*>(ui->consoleInputSettings->parent());
     player_tab->ClearAll();
 }
 
 void ConfigureInput::RestoreDefaults() {
     // We don't have a good way to know what tab is active, but we can find out by getting the
     // parent of the consoleInputSettings
-    auto player_tab = static_cast<ConfigureInputPlayer*>(ui->consoleInputSettings->parent());
+    auto* player_tab = static_cast<ConfigureInputPlayer*>(ui->consoleInputSettings->parent());
     player_tab->RestoreDefaults();
 
     ui->radioDocked->setChecked(true);

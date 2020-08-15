@@ -15,9 +15,9 @@
 
 #include "ui_configure_input.h"
 
+class QCheckBox;
 class QString;
 class QTimer;
-class QCheckBox;
 
 namespace Ui {
 class ConfigureInput;

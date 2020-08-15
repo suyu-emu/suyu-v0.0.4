@@ -27,7 +27,7 @@ private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();
 
-    ConfigureInputPlayer* debug_controller;
-
     std::unique_ptr<Ui::ConfigureDebugController> ui;
+
+    ConfigureInputPlayer* debug_controller;
 };

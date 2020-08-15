@@ -118,37 +118,38 @@ std::vector<Common::ParamPackage> GetInputDevices() {
 
 std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage> GetButtonMappingForDevice(
     const Common::ParamPackage& params) {
-    std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage> mappings{};
+    std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage> mappings;
     if (!params.Has("class") || params.Get("class", "") == "any") {
-        return mappings;
+        return {};
     }
     if (params.Get("class", "") == "key") {
         // TODO consider returning the SDL key codes for the default keybindings
+        return {};
     }
 #ifdef HAVE_SDL2
     if (params.Get("class", "") == "sdl") {
         return sdl->GetButtonMappingForDevice(params);
     }
 #endif
-    return mappings;
+    return {};
 }
 
 std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage> GetAnalogMappingForDevice(
     const Common::ParamPackage& params) {
-    std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage> mappings{};
+    std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage> mappings;
     if (!params.Has("class") || params.Get("class", "") == "any") {
-        return mappings;
+        return {};
     }
     if (params.Get("class", "") == "key") {
         // TODO consider returning the SDL key codes for the default keybindings
-        return mappings;
+        return {};
     }
 #ifdef HAVE_SDL2
     if (params.Get("class", "") == "sdl") {
         return sdl->GetAnalogMappingForDevice(params);
     }
 #endif
-    return mappings;
+    return {};
 }
 
 namespace Polling {
