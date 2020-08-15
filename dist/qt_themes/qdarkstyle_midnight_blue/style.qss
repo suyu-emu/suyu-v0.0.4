@@ -138,8 +138,6 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qstatusbar
 
 --------------------------------------------------------------------------- */
 QStatusBar {
-  border: 1px solid #32414B;
-  /* Fixes Spyder #9120, #9121 */
   background: #32414B;
   /* Fixes #205, white vertical borders separating items */
 }
@@ -161,6 +159,7 @@ QStatusBar QToolTip {
 QStatusBar QLabel {
   /* Fixes Spyder #9120, #9121 */
   background: transparent;
+  padding: 0px;
 }
 
 /* QCheckBox --------------------------------------------------------------
@@ -365,34 +364,26 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qmenubar
 --------------------------------------------------------------------------- */
 QMenuBar {
   background-color: #32414B;
-  padding: 2px;
-  border: 1px solid #19232D;
   color: #F0F0F0;
-}
-
-QMenuBar:focus {
-  border: 1px solid #148CD2;
 }
 
 QMenuBar::item {
   background: transparent;
-  padding: 4px;
 }
 
 QMenuBar::item:selected {
-  padding: 4px;
   background: transparent;
   border: 0px solid #32414B;
 }
 
 QMenuBar::item:pressed {
-  padding: 4px;
   border: 0px solid #32414B;
   background-color: #148CD2;
   color: #F0F0F0;
   margin-bottom: 0px;
   padding-bottom: 0px;
 }
+
 
 /* QMenu ------------------------------------------------------------------
 
@@ -480,7 +471,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qcombobox
 
 --------------------------------------------------------------------------- */
 QAbstractItemView {
-  alternate-background-color: #19232D;
+  alternate-background-color: #1f2933;
   color: #F0F0F0;
   border: 1px solid #32414B;
   border-radius: 4px;
@@ -499,12 +490,12 @@ QAbstractScrollArea {
   background-color: #19232D;
   border: 1px solid #32414B;
   border-radius: 4px;
-  padding: 2px;
   /* fix #159 */
   min-height: 1.25em;
   /* fix #159 */
   color: #F0F0F0;
 }
+
 
 QAbstractScrollArea:disabled {
   color: #787878;
@@ -805,20 +796,22 @@ QAbstractSpinBox {
 }
 
 QAbstractSpinBox:up-button {
-  background-color: transparent #19232D;
+  background-color: #505F69;
   subcontrol-origin: border;
   subcontrol-position: top right;
   border-left: 1px solid #32414B;
-  border-bottom: 1px solid #32414B;
+  border-top: 1px solid #32414B;
+  border-right: 1px solid #32414B;
+  border-top-right-radius: 4px;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  margin: 1px;
+  margin: 0px;
   width: 12px;
-  margin-bottom: -1px;
+  margin-bottom: 0px;
 }
 
 QAbstractSpinBox::up-arrow, QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
-  image: url(":/qss_icons/rc/arrow_up_disabled.png");
+  image: url(":/qss_icons/rc/up_arrow.png");
   height: 8px;
   width: 8px;
 }
@@ -828,20 +821,23 @@ QAbstractSpinBox::up-arrow:hover {
 }
 
 QAbstractSpinBox:down-button {
-  background-color: transparent #19232D;
+  background-color: #505F69;
   subcontrol-origin: border;
   subcontrol-position: bottom right;
   border-left: 1px solid #32414B;
+  border-right: 1px solid #32414B;
+  border-bottom: 1px solid #32414B;
   border-top: 1px solid #32414B;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-  margin: 1px;
+  border-bottom-right-radius: 4px;
+  margin: 0px;
   width: 12px;
-  margin-top: -1px;
+  margin-top: 0px;
 }
 
 QAbstractSpinBox::down-arrow, QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
-  image: url(":/qss_icons/rc/arrow_down_disabled.png");
+  image: url(":/qss_icons/rc/down_arrow.png");
   height: 8px;
   width: 8px;
 }
@@ -1197,6 +1193,7 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qcombobox
 
 --------------------------------------------------------------------------- */
 QComboBox {
+  background-color: #0f1922;
   border: 1px solid #32414B;
   border-radius: 4px;
   selection-background-color: #1464A0;
@@ -1214,7 +1211,7 @@ QComboBox {
 QComboBox QAbstractItemView {
   border: 1px solid #32414B;
   border-radius: 0;
-  background-color: #19232D;
+  background-color: #0f1922;
   selection-background-color: #1464A0;
 }
 
@@ -1283,7 +1280,12 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-  image: url(":/qss_icons/rc/arrow_down_disabled.png");
+  image: url(":/qss_icons/rc/down_arrow.png");
+  background-color: #505F69;
+  padding: 6px 2px;
+  border: 1px solid #32414B;
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
   height: 8px;
   width: 8px;
 }
@@ -1557,12 +1559,12 @@ QTabBar::tab:right:!selected {
 QTabBar::tab:top {
   background-color: #32414B;
   color: #F0F0F0;
+  min-width: 36px;
   margin-left: 2px;
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
   padding-top: 2px;
   padding-bottom: 2px;
-  min-width: 5px;
   border-bottom: 3px solid #32414B;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
@@ -1586,16 +1588,16 @@ QTabBar::tab:top:!selected:hover {
 
 QTabBar::tab:bottom {
   color: #F0F0F0;
+  min-width: 36px;
   border-top: 3px solid #32414B;
   background-color: #32414B;
   margin-left: 2px;
-  padding-left: 4px;
-  padding-right: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
   padding-top: 2px;
   padding-bottom: 2px;
   border-bottom-left-radius: 3px;
   border-bottom-right-radius: 3px;
-  min-width: 5px;
 }
 
 QTabBar::tab:bottom:selected {
@@ -1750,21 +1752,6 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qlistview
 https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qtableview
 
 --------------------------------------------------------------------------- */
-QTreeView:branch:selected, QTreeView:branch:hover {
-  background: url(":/qss_icons/rc/transparent.png");
-}
-
-QTreeView:branch:has-siblings:!adjoins-item {
-  border-image: url(":/qss_icons/rc/branch_line.png") 0;
-}
-
-QTreeView:branch:has-siblings:adjoins-item {
-  border-image: url(":/qss_icons/rc/branch_more.png") 0;
-}
-
-QTreeView:branch:!has-children:!has-siblings:adjoins-item {
-  border-image: url(":/qss_icons/rc/branch_end.png") 0;
-}
 
 QTreeView:branch:has-children:!has-siblings:closed, QTreeView:branch:closed:has-children:has-siblings {
   border-image: none;
@@ -1898,21 +1885,21 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qheaderview
 
 --------------------------------------------------------------------------- */
 QHeaderView {
-  background-color: #32414B;
-  border: 0px transparent #32414B;
+  background-color: #19232D;
+  border: 0px transparent #19232D;
   padding: 0px;
   margin: 0px;
   border-radius: 0px;
 }
 
 QHeaderView:disabled {
-  background-color: #32414B;
-  border: 1px transparent #32414B;
+  background-color: #19232D;
+  border: 1px transparent #19232D;
   padding: 2px;
 }
 
 QHeaderView::section {
-  background-color: #32414B;
+  background-color: #19232D;
   color: #F0F0F0;
   padding: 2px;
   border-radius: 0px;
@@ -1932,11 +1919,11 @@ QHeaderView::section:checked:disabled {
 QHeaderView::section::horizontal {
   padding-left: 4px;
   padding-right: 4px;
-  border-left: 1px solid #19232D;
+  border-left: 1px solid #32414B;
 }
 
 QHeaderView::section::horizontal::first, QHeaderView::section::horizontal::only-one {
-  border-left: 1px solid #32414B;
+  border-left: 1px solid #19232D;
 }
 
 QHeaderView::section::horizontal:disabled {
@@ -1946,7 +1933,7 @@ QHeaderView::section::horizontal:disabled {
 QHeaderView::section::vertical {
   padding-left: 4px;
   padding-right: 4px;
-  border-top: 1px solid #19232D;
+  border-top: 1px solid #32414B;
 }
 
 QHeaderView::section::vertical::first, QHeaderView::section::vertical::only-one {
@@ -1960,7 +1947,7 @@ QHeaderView::section::vertical:disabled {
 QHeaderView::down-arrow {
   /* Those settings (border/width/height/background-color) solve bug */
   /* transparent arrow background and size */
-  background-color: #32414B;
+  background-color: #19232D;
   border: none;
   height: 12px;
   width: 12px;
@@ -1970,7 +1957,7 @@ QHeaderView::down-arrow {
 }
 
 QHeaderView::up-arrow {
-  background-color: #32414B;
+  background-color: #19232D;
   border: none;
   height: 12px;
   width: 12px;
@@ -2274,17 +2261,28 @@ QGroupBox#groupConnectedController::indicator:unchecked {
 
 QSpinBox#spinboxLStickRange,
 QSpinBox#spinboxRStickRange {
-    min-width: 53px;
+  min-width: 38px;
 }
 
 QGroupBox#motionGroup::indicator,
 QGroupBox#vibrationGroup::indicator {
-    margin-left: 0px;
+  margin-left: 0px;
 }
 
 QGroupBox#motionGroup::title,
 QGroupBox#vibrationGroup::title {
 spacing: 2px;
-    padding-left: 1px;
-    padding-right: 1px;
+  padding-left: 1px;
+  padding-right: 1px;
+}
+
+QListWidget#selectorList {
+  background-color: #0f1922;
+}
+
+QSpinBox,
+QLineEdit,
+QTreeView#hotkey_list,
+QScrollArea#scrollArea QTreeView {
+  background-color: #0f1922;
 }
