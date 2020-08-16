@@ -902,10 +902,10 @@ std::string SanitizePath(std::string_view path_, DirectorySeparator directory_se
     return std::string(RemoveTrailingSlash(path));
 }
 
-IOFile::IOFile() {}
+IOFile::IOFile() = default;
 
 IOFile::IOFile(const std::string& filename, const char openmode[], int flags) {
-    Open(filename, openmode, flags);
+    void(Open(filename, openmode, flags));
 }
 
 IOFile::~IOFile() {
