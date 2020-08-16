@@ -10,9 +10,9 @@
 namespace Common::TimeZone {
 
 /// Gets the default timezone, i.e. "GMT"
-std::string GetDefaultTimeZone();
+[[nodiscard]] std::string GetDefaultTimeZone();
 
 /// Gets the offset of the current timezone (from the default), in seconds
-std::chrono::seconds GetCurrentOffsetSeconds();
+[[nodiscard]] std::chrono::seconds GetCurrentOffsetSeconds();
 
 } // namespace Common::TimeZone

@@ -9,14 +9,14 @@
 
 namespace Common::Compression {
 
-std::vector<u8> CompressDataZSTD(std::span<const u8> source, s32 compression_level) {
+std::vector<u8> CompressDataZSTD(const u8* source, std::size_t source_size, s32 compression_level) {
     compression_level = std::clamp(compression_level, 1, ZSTD_maxCLevel());
 
-    const std::size_t max_compressed_size = ZSTD_compressBound(source.size());
+    const std::size_t max_compressed_size = ZSTD_compressBound(source_size);
     std::vector<u8> compressed(max_compressed_size);
 
-    const std::size_t compressed_size = ZSTD_compress(
-        compressed.data(), compressed.size(), source.data(), source.size(), compression_level);
+    const std::size_t compressed_size =
+        ZSTD_compress(compressed.data(), compressed.size(), source, source_size, compression_level);
 
     if (ZSTD_isError(compressed_size)) {
         // Compression failed
@@ -28,8 +28,8 @@ std::vector<u8> CompressDataZSTD(std::span<const u8> source, s32 compression_lev
     return compressed;
 }
 
-std::vector<u8> CompressDataZSTDDefault(std::span<const u8> source) {
-    return CompressDataZSTD(source, ZSTD_CLEVEL_DEFAULT);
+std::vector<u8> CompressDataZSTDDefault(const u8* source, std::size_t source_size) {
+    return CompressDataZSTD(source, source_size, ZSTD_CLEVEL_DEFAULT);
 }
 
 std::vector<u8> DecompressDataZSTD(const std::vector<u8>& compressed) {

@@ -14,7 +14,7 @@
 
 namespace Common {
 
-constexpr u8 ToHexNibble(char c) {
+[[nodiscard]] constexpr u8 ToHexNibble(char c) {
     if (c >= 65 && c <= 70) {
         return c - 55;
     }
@@ -26,10 +26,10 @@ constexpr u8 ToHexNibble(char c) {
     return c - 48;
 }
 
-std::vector<u8> HexStringToVector(std::string_view str, bool little_endian);
+[[nodiscard]] std::vector<u8> HexStringToVector(std::string_view str, bool little_endian);
 
 template <std::size_t Size, bool le = false>
-constexpr std::array<u8, Size> HexStringToArray(std::string_view str) {
+[[nodiscard]] constexpr std::array<u8, Size> HexStringToArray(std::string_view str) {
     std::array<u8, Size> out{};
     if constexpr (le) {
         for (std::size_t i = 2 * Size - 2; i <= 2 * Size; i -= 2) {
@@ -44,7 +44,7 @@ constexpr std::array<u8, Size> HexStringToArray(std::string_view str) {
 }
 
 template <typename ContiguousContainer>
-std::string HexToString(const ContiguousContainer& data, bool upper = true) {
+[[nodiscard]] std::string HexToString(const ContiguousContainer& data, bool upper = true) {
     static_assert(std::is_same_v<typename ContiguousContainer::value_type, u8>,
                   "Underlying type within the contiguous container must be u8.");
 
@@ -60,11 +60,11 @@ std::string HexToString(const ContiguousContainer& data, bool upper = true) {
     return out;
 }
 
-constexpr std::array<u8, 16> AsArray(const char (&data)[17]) {
+[[nodiscard]] constexpr std::array<u8, 16> AsArray(const char (&data)[17]) {
     return HexStringToArray<16>(data);
 }
 
-constexpr std::array<u8, 32> AsArray(const char (&data)[65]) {
+[[nodiscard]] constexpr std::array<u8, 32> AsArray(const char (&data)[65]) {
     return HexStringToArray<32>(data);
 }
 

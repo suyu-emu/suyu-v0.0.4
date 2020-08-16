@@ -10,52 +10,53 @@
 
 namespace Common::Compression {
 
-std::vector<u8> CompressDataLZ4(std::span<const u8> source) {
-    ASSERT_MSG(source.size() <= LZ4_MAX_INPUT_SIZE, "Source size exceeds LZ4 maximum input size");
+std::vector<u8> CompressDataLZ4(const u8* source, std::size_t source_size) {
+    ASSERT_MSG(source_size <= LZ4_MAX_INPUT_SIZE, "Source size exceeds LZ4 maximum input size");
 
-    const auto source_size_int = static_cast<int>(source.size());
-    const int max_compressed_size = LZ4_compressBound(source_size_int);
+    const auto source_size_int = static_cast<int>(source_size);
+    const auto max_compressed_size = static_cast<std::size_t>(LZ4_compressBound(source_size_int));
     std::vector<u8> compressed(max_compressed_size);
 
-    const int compressed_size = LZ4_compress_default(reinterpret_cast<const char*>(source.data()),
-                                                     reinterpret_cast<char*>(compressed.data()),
-                                                     source_size_int, max_compressed_size);
+    const int compressed_size = LZ4_compress_default(
+        reinterpret_cast<const char*>(source), reinterpret_cast<char*>(compressed.data()),
+        source_size_int, static_cast<int>(max_compressed_size));
 
     if (compressed_size <= 0) {
         // Compression failed
         return {};
     }
 
-    compressed.resize(compressed_size);
+    compressed.resize(static_cast<std::size_t>(compressed_size));
 
     return compressed;
 }
 
-std::vector<u8> CompressDataLZ4HC(std::span<const u8> source, s32 compression_level) {
-    ASSERT_MSG(source.size() <= LZ4_MAX_INPUT_SIZE, "Source size exceeds LZ4 maximum input size");
+std::vector<u8> CompressDataLZ4HC(const u8* source, std::size_t source_size,
+                                  s32 compression_level) {
+    ASSERT_MSG(source_size <= LZ4_MAX_INPUT_SIZE, "Source size exceeds LZ4 maximum input size");
 
     compression_level = std::clamp(compression_level, LZ4HC_CLEVEL_MIN, LZ4HC_CLEVEL_MAX);
 
-    const auto source_size_int = static_cast<int>(source.size());
-    const int max_compressed_size = LZ4_compressBound(source_size_int);
+    const auto source_size_int = static_cast<int>(source_size);
+    const auto max_compressed_size = static_cast<std::size_t>(LZ4_compressBound(source_size_int));
     std::vector<u8> compressed(max_compressed_size);
 
     const int compressed_size = LZ4_compress_HC(
-        reinterpret_cast<const char*>(source.data()), reinterpret_cast<char*>(compressed.data()),
-        source_size_int, max_compressed_size, compression_level);
+        reinterpret_cast<const char*>(source), reinterpret_cast<char*>(compressed.data()),
+        source_size_int, static_cast<int>(max_compressed_size), compression_level);
 
     if (compressed_size <= 0) {
         // Compression failed
         return {};
     }
 
-    compressed.resize(compressed_size);
+    compressed.resize(static_cast<std::size_t>(compressed_size));
 
     return compressed;
 }
 
-std::vector<u8> CompressDataLZ4HCMax(std::span<const u8> source) {
-    return CompressDataLZ4HC(source, LZ4HC_CLEVEL_MAX);
+std::vector<u8> CompressDataLZ4HCMax(const u8* source, std::size_t source_size) {
+    return CompressDataLZ4HC(source, source_size, LZ4HC_CLEVEL_MAX);
 }
 
 std::vector<u8> DecompressDataLZ4(const std::vector<u8>& compressed,

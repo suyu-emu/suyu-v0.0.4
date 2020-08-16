@@ -19,21 +19,21 @@ struct UUID {
     constexpr explicit UUID(const u128& id) : uuid{id} {}
     constexpr explicit UUID(const u64 lo, const u64 hi) : uuid{{lo, hi}} {}
 
-    constexpr explicit operator bool() const {
+    [[nodiscard]] constexpr explicit operator bool() const {
         return uuid[0] != INVALID_UUID[0] && uuid[1] != INVALID_UUID[1];
     }
 
-    constexpr bool operator==(const UUID& rhs) const {
+    [[nodiscard]] constexpr bool operator==(const UUID& rhs) const {
         // TODO(DarkLordZach): Replace with uuid == rhs.uuid with C++20
         return uuid[0] == rhs.uuid[0] && uuid[1] == rhs.uuid[1];
     }
 
-    constexpr bool operator!=(const UUID& rhs) const {
+    [[nodiscard]] constexpr bool operator!=(const UUID& rhs) const {
         return !operator==(rhs);
     }
 
     // TODO(ogniK): Properly generate uuids based on RFC-4122
-    static UUID Generate();
+    [[nodiscard]] static UUID Generate();
 
     // Set the UUID to {0,0} to be considered an invalid user
     constexpr void Invalidate() {
@@ -41,12 +41,12 @@ struct UUID {
     }
 
     // TODO(ogniK): Properly generate a Nintendo ID
-    constexpr u64 GetNintendoID() const {
+    [[nodiscard]] constexpr u64 GetNintendoID() const {
         return uuid[0];
     }
 
-    std::string Format() const;
-    std::string FormatSwitch() const;
+    [[nodiscard]] std::string Format() const;
+    [[nodiscard]] std::string FormatSwitch() const;
 };
 static_assert(sizeof(UUID) == 16, "UUID is an invalid size!");
 
