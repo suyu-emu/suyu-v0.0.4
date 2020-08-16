@@ -19,14 +19,17 @@ class MixContext;
 class SplitterContext;
 class ServerSplitterDestinationData;
 class ServerMixInfo;
-
+class EffectContext;
+class EffectBase;
+struct AuxInfoDSP;
 using MixVolumeBuffer = std::array<float, AudioCommon::MAX_MIX_BUFFERS>;
 
 class CommandGenerator {
 public:
     explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
                               VoiceContext& voice_context, MixContext& mix_context,
-                              SplitterContext& splitter_context, Core::Memory::Memory& memory);
+                              SplitterContext& splitter_context, EffectContext& effect_context,
+                              Core::Memory::Memory& memory);
     ~CommandGenerator();
 
     void ClearMixBuffers();
@@ -67,7 +70,16 @@ private:
                                      std::size_t mix_buffer_offset);
     void GenerateDepopForMixBuffersCommand(std::size_t mix_buffer_count,
                                            std::size_t mix_buffer_offset, s32 sample_rate);
+    void GenerateEffectCommand(ServerMixInfo& mix_info);
+    void GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
+    void GenerateBiquadFilterEffectCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
+    void GenerateAuxCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled);
     ServerSplitterDestinationData* GetDestinationData(s32 splitter_id, s32 index);
+
+    s32 WriteAuxBuffer(AuxInfoDSP& dsp_info, VAddr send_buffer, u32 max_samples, const s32* data,
+                       u32 sample_count, u32 write_offset, u32 write_count);
+    s32 ReadAuxBuffer(AuxInfoDSP& recv_info, VAddr recv_buffer, u32 max_samples, s32* out_data,
+                      u32 sample_count, u32 read_offset, u32 read_count);
 
     // DSP Code
     s32 DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_state, s32 sample_count,
@@ -81,6 +93,7 @@ private:
     VoiceContext& voice_context;
     MixContext& mix_context;
     SplitterContext& splitter_context;
+    EffectContext& effect_context;
     Core::Memory::Memory& memory;
     std::vector<s32> mix_buffer{};
     std::vector<s32> sample_buffer{};

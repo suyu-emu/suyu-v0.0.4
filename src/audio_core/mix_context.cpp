@@ -4,6 +4,7 @@
 
 #include "audio_core/behavior_info.h"
 #include "audio_core/common.h"
+#include "audio_core/effect_context.h"
 #include "audio_core/mix_context.h"
 #include "audio_core/splitter_context.h"
 
@@ -11,7 +12,8 @@ namespace AudioCore {
 MixContext::MixContext() = default;
 MixContext::~MixContext() = default;
 
-void MixContext::Initialize(const BehaviorInfo& behavior_info, std::size_t mix_count) {
+void MixContext::Initialize(const BehaviorInfo& behavior_info, std::size_t mix_count,
+                            std::size_t effect_count) {
     info_count = mix_count;
     infos.resize(info_count);
     auto& final_mix = GetInfo(AudioCommon::FINAL_MIX);
@@ -19,6 +21,10 @@ void MixContext::Initialize(const BehaviorInfo& behavior_info, std::size_t mix_c
     sorted_info.reserve(infos.size());
     for (auto& info : infos) {
         sorted_info.push_back(&info);
+    }
+
+    for (auto& info : infos) {
+        info.SetEffectCount(effect_count);
     }
 
     // Only initialize our edge matrix and node states if splitters are supported
@@ -185,7 +191,8 @@ ServerMixInfo::InParams& ServerMixInfo::GetInParams() {
 }
 
 bool ServerMixInfo::Update(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix_in,
-                           BehaviorInfo& behavior_info, SplitterContext& splitter_context) {
+                           BehaviorInfo& behavior_info, SplitterContext& splitter_context,
+                           EffectContext& effect_context) {
     in_params.volume = mix_in.volume;
     in_params.sample_rate = mix_in.sample_rate;
     in_params.buffer_count = mix_in.buffer_count;
@@ -204,6 +211,15 @@ bool ServerMixInfo::Update(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix
     } else {
         in_params.dest_mix_id = mix_in.dest_mix_id;
         in_params.splitter_id = AudioCommon::NO_SPLITTER;
+    }
+
+    ResetEffectProcessingOrder();
+    const auto effect_count = effect_context.GetCount();
+    for (std::size_t i = 0; i < effect_count; i++) {
+        auto* effect_info = effect_context.GetInfo(i);
+        if (effect_info->GetMixID() == in_params.mix_id) {
+            effect_processing_order[effect_info->GetProcessingOrder()] = static_cast<s32>(i);
+        }
     }
 
     // TODO(ogniK): Update effect processing order
@@ -226,6 +242,21 @@ void ServerMixInfo::Cleanup() {
     in_params.dest_mix_id = AudioCommon::NO_MIX;
     in_params.splitter_id = AudioCommon::NO_SPLITTER;
     std::memset(in_params.mix_volume.data(), 0, sizeof(float) * in_params.mix_volume.size());
+}
+
+void ServerMixInfo::SetEffectCount(std::size_t count) {
+    effect_processing_order.resize(count);
+    ResetEffectProcessingOrder();
+}
+
+void ServerMixInfo::ResetEffectProcessingOrder() {
+    for (auto& order : effect_processing_order) {
+        order = AudioCommon::NO_EFFECT_ORDER;
+    }
+}
+
+s32 ServerMixInfo::GetEffectOrder(std::size_t i) const {
+    return effect_processing_order.at(i);
 }
 
 bool ServerMixInfo::UpdateConnection(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix_in,

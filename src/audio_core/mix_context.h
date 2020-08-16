@@ -13,6 +13,7 @@
 
 namespace AudioCore {
 class BehaviorInfo;
+class EffectContext;
 
 class MixInfo {
 public:
@@ -65,11 +66,16 @@ public:
     ServerMixInfo::InParams& GetInParams();
 
     bool Update(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix_in,
-                BehaviorInfo& behavior_info, SplitterContext& splitter_context);
+                BehaviorInfo& behavior_info, SplitterContext& splitter_context,
+                EffectContext& effect_context);
     bool HasAnyConnection() const;
     void Cleanup();
+    void SetEffectCount(std::size_t count);
+    void ResetEffectProcessingOrder();
+    s32 GetEffectOrder(std::size_t i) const;
 
 private:
+    std::vector<s32> effect_processing_order;
     InParams in_params{};
     bool UpdateConnection(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix_in,
                           SplitterContext& splitter_context);
@@ -80,7 +86,8 @@ public:
     MixContext();
     ~MixContext();
 
-    void Initialize(const BehaviorInfo& behavior_info, std::size_t mix_count);
+    void Initialize(const BehaviorInfo& behavior_info, std::size_t mix_count,
+                    std::size_t effect_count);
     void SortInfo();
     bool TsortInfo(SplitterContext& splitter_context);
 

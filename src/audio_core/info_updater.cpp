@@ -244,14 +244,15 @@ bool InfoUpdater::UpdateEffects(EffectContext& effect_context, bool is_active) {
     // Update effects
     for (std::size_t i = 0; i < effect_count; i++) {
         auto* info = effect_context.GetInfo(i);
+        if (effect_in[i].type != info->GetType()) {
+            info = effect_context.RetargetEffect(i, effect_in[i].type);
+        }
+
         info->Update(effect_in[i]);
 
-        // TODO(ogniK): Update individual effects
-        if ((!is_active && info->GetUsage() != UsageStatus::New) ||
-            info->GetUsage() == UsageStatus::Removed) {
+        if ((!is_active && info->GetUsage() != UsageState::Initialized) ||
+            info->GetUsage() == UsageState::Stopped) {
             effect_out[i].status = UsageStatus::Removed;
-        } else if (info->GetUsage() == UsageStatus::New) {
-            effect_out[i].status = UsageStatus::New;
         } else {
             effect_out[i].status = UsageStatus::Used;
         }
@@ -290,7 +291,8 @@ bool InfoUpdater::UpdateSplitterInfo(SplitterContext& splitter_context) {
 }
 
 ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buffer_count,
-                                    SplitterContext& splitter_context) {
+                                    SplitterContext& splitter_context,
+                                    EffectContext& effect_context) {
     std::vector<MixInfo::InParams> mix_in_params;
 
     if (!behavior_info.IsMixInParameterDirtyOnlyUpdateSupported()) {
@@ -387,13 +389,13 @@ ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buf
         auto& mix_info_params = mix_info.GetInParams();
         if (mix_info_params.in_use != mix_in.in_use) {
             mix_info_params.in_use = mix_in.in_use;
-            // TODO(ogniK): Update effect processing order
+            mix_info.ResetEffectProcessingOrder();
             should_sort = true;
         }
 
         if (mix_in.in_use) {
             should_sort |= mix_info.Update(mix_context.GetEdgeMatrix(), mix_in, behavior_info,
-                                           splitter_context);
+                                           splitter_context, effect_context);
         }
     }
 

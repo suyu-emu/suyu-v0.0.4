@@ -34,7 +34,7 @@ public:
     bool UpdateEffects(EffectContext& effect_context, bool is_active);
     bool UpdateSplitterInfo(SplitterContext& splitter_context);
     ResultCode UpdateMixes(MixContext& mix_context, std::size_t mix_buffer_count,
-                           SplitterContext& splitter_context);
+                           SplitterContext& splitter_context, EffectContext& effect_context);
     bool UpdateSinks(SinkContext& sink_context);
     bool UpdatePerformanceBuffer();
     bool UpdateErrorInfo(BehaviorInfo& in_behavior_info);

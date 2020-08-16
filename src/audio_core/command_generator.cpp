@@ -4,6 +4,7 @@
 
 #include "audio_core/algorithm/interpolate.h"
 #include "audio_core/command_generator.h"
+#include "audio_core/effect_context.h"
 #include "audio_core/mix_context.h"
 #include "audio_core/voice_context.h"
 #include "core/memory.h"
@@ -68,9 +69,10 @@ s32 ApplyMixDepop(s32* output, s32 first_sample, s32 delta, s32 sample_count) {
 
 CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
                                    VoiceContext& voice_context, MixContext& mix_context,
-                                   SplitterContext& splitter_context, Core::Memory::Memory& memory)
+                                   SplitterContext& splitter_context, EffectContext& effect_context,
+                                   Core::Memory::Memory& memory)
     : worker_params(worker_params), voice_context(voice_context), mix_context(mix_context),
-      splitter_context(splitter_context), memory(memory),
+      splitter_context(splitter_context), effect_context(effect_context), memory(memory),
       mix_buffer((worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT) *
                  worker_params.sample_count),
       sample_buffer(MIX_BUFFER_SIZE),
@@ -338,11 +340,185 @@ void CommandGenerator::GenerateDepopForMixBuffersCommand(std::size_t mix_buffer_
     }
 }
 
+void CommandGenerator::GenerateEffectCommand(ServerMixInfo& mix_info) {
+    const std::size_t effect_count = effect_context.GetCount();
+    const auto buffer_offset = mix_info.GetInParams().buffer_offset;
+    for (std::size_t i = 0; i < effect_count; i++) {
+        const auto index = mix_info.GetEffectOrder(i);
+        if (index == AudioCommon::NO_EFFECT_ORDER) {
+            break;
+        }
+        auto* info = effect_context.GetInfo(index);
+        const auto type = info->GetType();
+
+        // TODO(ogniK): Finish remaining effects
+        switch (type) {
+        case EffectType::Aux:
+            GenerateAuxCommand(buffer_offset, info, info->IsEnabled());
+            break;
+        case EffectType::I3dl2Reverb:
+            GenerateI3dl2ReverbEffectCommand(buffer_offset, info, info->IsEnabled());
+            break;
+        case EffectType::BiquadFilter:
+            GenerateBiquadFilterEffectCommand(buffer_offset, info, info->IsEnabled());
+            break;
+        default:
+            break;
+        }
+
+        info->UpdateForCommandGeneration();
+    }
+}
+
+void CommandGenerator::GenerateI3dl2ReverbEffectCommand(s32 mix_buffer_offset, EffectBase* info,
+                                                        bool enabled) {
+    if (!enabled) {
+        return;
+    }
+    const auto& params = dynamic_cast<EffectI3dl2Reverb*>(info)->GetParams();
+    const auto channel_count = params.channel_count;
+    for (s32 i = 0; i < channel_count; i++) {
+        // TODO(ogniK): Actually implement reverb
+        if (params.input[i] != params.output[i]) {
+            const auto* input = GetMixBuffer(mix_buffer_offset + params.input[i]);
+            auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
+            ApplyMix<1>(output, input, 32768, worker_params.sample_count);
+        }
+    }
+}
+
+void CommandGenerator::GenerateBiquadFilterEffectCommand(s32 mix_buffer_offset, EffectBase* info,
+                                                         bool enabled) {
+    if (!enabled) {
+        return;
+    }
+    const auto& params = dynamic_cast<EffectBiquadFilter*>(info)->GetParams();
+    const auto channel_count = params.channel_count;
+    for (s32 i = 0; i < channel_count; i++) {
+        // TODO(ogniK): Actually implement biquad filter
+        if (params.input[i] != params.output[i]) {
+            const auto* input = GetMixBuffer(mix_buffer_offset + params.input[i]);
+            auto* output = GetMixBuffer(mix_buffer_offset + params.output[i]);
+            ApplyMix<1>(output, input, 32768, worker_params.sample_count);
+        }
+    }
+}
+
+void CommandGenerator::GenerateAuxCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled) {
+    auto aux = dynamic_cast<EffectAuxInfo*>(info);
+    const auto& params = aux->GetParams();
+    if (aux->GetSendBuffer() != 0 && aux->GetRecvBuffer() != 0) {
+        const auto max_channels = params.count;
+        u32 offset{};
+        for (u32 channel = 0; channel < max_channels; channel++) {
+            u32 write_count = 0;
+            if (channel == (max_channels - 1)) {
+                write_count = offset + worker_params.sample_count;
+            }
+
+            const auto input_index = params.input_mix_buffers[channel] + mix_buffer_offset;
+            const auto output_index = params.output_mix_buffers[channel] + mix_buffer_offset;
+
+            if (enabled) {
+                AuxInfoDSP send_info{};
+                AuxInfoDSP recv_info{};
+                memory.ReadBlock(aux->GetSendInfo(), &send_info, sizeof(AuxInfoDSP));
+                memory.ReadBlock(aux->GetRecvInfo(), &recv_info, sizeof(AuxInfoDSP));
+
+                WriteAuxBuffer(send_info, aux->GetSendBuffer(), params.sample_count,
+                               GetMixBuffer(input_index), worker_params.sample_count, offset,
+                               write_count);
+                memory.WriteBlock(aux->GetSendInfo(), &send_info, sizeof(AuxInfoDSP));
+
+                const auto samples_read = ReadAuxBuffer(
+                    recv_info, aux->GetRecvBuffer(), params.sample_count,
+                    GetMixBuffer(output_index), worker_params.sample_count, offset, write_count);
+                memory.WriteBlock(aux->GetRecvInfo(), &recv_info, sizeof(AuxInfoDSP));
+
+                if (samples_read != worker_params.sample_count &&
+                    samples_read <= params.sample_count) {
+                    std::memset(GetMixBuffer(output_index), 0, params.sample_count - samples_read);
+                }
+            } else {
+                AuxInfoDSP empty{};
+                memory.WriteBlock(aux->GetSendInfo(), &empty, sizeof(AuxInfoDSP));
+                memory.WriteBlock(aux->GetRecvInfo(), &empty, sizeof(AuxInfoDSP));
+                if (output_index != input_index) {
+                    std::memcpy(GetMixBuffer(output_index), GetMixBuffer(input_index),
+                                worker_params.sample_count * sizeof(s32));
+                }
+            }
+
+            offset += worker_params.sample_count;
+        }
+    }
+}
+
 ServerSplitterDestinationData* CommandGenerator::GetDestinationData(s32 splitter_id, s32 index) {
     if (splitter_id == AudioCommon::NO_SPLITTER) {
         return nullptr;
     }
     return splitter_context.GetDestinationData(splitter_id, index);
+}
+
+s32 CommandGenerator::WriteAuxBuffer(AuxInfoDSP& dsp_info, VAddr send_buffer, u32 max_samples,
+                                     const s32* data, u32 sample_count, u32 write_offset,
+                                     u32 write_count) {
+    if (max_samples == 0) {
+        return 0;
+    }
+    u32 offset = dsp_info.write_offset + write_offset;
+    if (send_buffer == 0 || offset > max_samples) {
+        return 0;
+    }
+
+    std::size_t data_offset{};
+    u32 remaining = sample_count;
+    while (remaining > 0) {
+        // Get position in buffer
+        const auto base = send_buffer + (offset * sizeof(u32));
+        const auto samples_to_grab = std::min(max_samples - offset, remaining);
+        // Write to output
+        memory.WriteBlock(base, (data + data_offset), samples_to_grab * sizeof(u32));
+        offset = (offset + samples_to_grab) % max_samples;
+        remaining -= samples_to_grab;
+        data_offset += samples_to_grab;
+    }
+
+    if (write_count != 0) {
+        dsp_info.write_offset = (dsp_info.write_offset + write_count) % max_samples;
+    }
+    return sample_count;
+}
+
+s32 CommandGenerator::ReadAuxBuffer(AuxInfoDSP& recv_info, VAddr recv_buffer, u32 max_samples,
+                                    s32* out_data, u32 sample_count, u32 read_offset,
+                                    u32 read_count) {
+    if (max_samples == 0) {
+        return 0;
+    }
+
+    u32 offset = recv_info.read_offset + read_offset;
+    if (recv_buffer == 0 || offset > max_samples) {
+        return 0;
+    }
+
+    u32 remaining = sample_count;
+    while (remaining > 0) {
+        const auto base = recv_buffer + (offset * sizeof(u32));
+        const auto samples_to_grab = std::min(max_samples - offset, remaining);
+        std::vector<s32> buffer(samples_to_grab);
+        memory.ReadBlock(base, buffer.data(), buffer.size() * sizeof(u32));
+        std::memcpy(out_data, buffer.data(), buffer.size() * sizeof(u32));
+        out_data += samples_to_grab;
+        offset = (offset + samples_to_grab) % max_samples;
+        remaining -= samples_to_grab;
+    }
+
+    if (read_count != 0) {
+        recv_info.read_offset = (recv_info.read_offset + read_count) % max_samples;
+    }
+    return sample_count;
 }
 
 void CommandGenerator::GenerateVolumeRampCommand(float last_volume, float current_volume,
@@ -398,7 +574,9 @@ void CommandGenerator::GenerateSubMixCommand(ServerMixInfo& mix_info) {
     auto& in_params = mix_info.GetInParams();
     GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
                                       in_params.sample_rate);
-    // TODO(ogniK): Effects
+
+    GenerateEffectCommand(mix_info);
+
     GenerateMixCommands(mix_info);
 }
 
@@ -476,7 +654,8 @@ void CommandGenerator::GenerateFinalMixCommand() {
 
     GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
                                       in_params.sample_rate);
-    // TODO(ogniK): Effects
+
+    GenerateEffectCommand(mix_info);
 
     for (s32 i = 0; i < in_params.buffer_count; i++) {
         const s32 gain = static_cast<s32>(in_params.volume * 32768.0f);

@@ -26,6 +26,7 @@ constexpr s32 NO_SPLITTER = -1;
 constexpr s32 NO_MIX = 0x7fffffff;
 constexpr s32 NO_FINAL_MIX = std::numeric_limits<s32>::min();
 constexpr s32 FINAL_MIX = 0;
+constexpr s32 NO_EFFECT_ORDER = -1;
 constexpr std::size_t TEMP_MIX_BASE_SIZE = 0x3f00; // TODO(ogniK): Work out this constant
 // Any size checks seem to take the sample history into account
 // and our const ends up being 0x3f04, the 4 bytes are most

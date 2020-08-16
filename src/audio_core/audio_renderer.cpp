@@ -27,12 +27,13 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory
       voice_context(params.voice_count), effect_context(params.effect_count), mix_context(),
       sink_context(params.sink_count), splitter_context(),
       voices(params.voice_count), memory{memory_},
-      command_generator(worker_params, voice_context, mix_context, splitter_context, memory),
+      command_generator(worker_params, voice_context, mix_context, splitter_context, effect_context,
+                        memory),
       temp_mix_buffer(AudioCommon::TOTAL_TEMP_MIX_SIZE) {
     behavior_info.SetUserRevision(params.revision);
     splitter_context.Initialize(behavior_info, params.splitter_count,
                                 params.num_splitter_send_channels);
-    mix_context.Initialize(behavior_info, params.submix_count + 1);
+    mix_context.Initialize(behavior_info, params.submix_count + 1, params.effect_count);
     audio_out = std::make_unique<AudioCore::AudioOut>();
     stream =
         audio_out->OpenStream(core_timing, params.sample_rate, AudioCommon::STREAM_NUM_CHANNELS,
@@ -106,8 +107,8 @@ ResultCode AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_param
         }
     }
 
-    auto mix_result =
-        info_updater.UpdateMixes(mix_context, worker_params.mix_buffer_count, splitter_context);
+    auto mix_result = info_updater.UpdateMixes(mix_context, worker_params.mix_buffer_count,
+                                               splitter_context, effect_context);
 
     if (mix_result.IsError()) {
         LOG_ERROR(Audio, "Failed to update mix parameters");
