@@ -195,7 +195,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     config.wall_clock_cntpct = uses_wall_clock;
 
     // Safe optimizations
-    if (Settings::values.cpu_accuracy != Settings::CPUAccuracy::Accurate) {
+    if (Settings::values.cpu_accuracy == Settings::CPUAccuracy::DebugMode) {
         if (!Settings::values.cpuopt_page_tables) {
             config.page_table = nullptr;
         }
@@ -219,6 +219,17 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
         }
         if (!Settings::values.cpuopt_reduce_misalign_checks) {
             config.only_detect_misalignment_via_page_table_on_page_boundary = false;
+        }
+    }
+
+    // Unsafe optimizations
+    if (Settings::values.cpu_accuracy == Settings::CPUAccuracy::Unsafe) {
+        config.unsafe_optimizations = true;
+        if (Settings::values.cpuopt_unsafe_unfuse_fma) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_UnfuseFMA;
+        }
+        if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
     }
 

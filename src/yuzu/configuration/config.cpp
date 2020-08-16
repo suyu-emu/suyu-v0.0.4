@@ -638,6 +638,11 @@ void Config::ReadCpuValues() {
             ReadSetting(QStringLiteral("cpuopt_misc_ir"), true).toBool();
         Settings::values.cpuopt_reduce_misalign_checks =
             ReadSetting(QStringLiteral("cpuopt_reduce_misalign_checks"), true).toBool();
+
+        Settings::values.cpuopt_unsafe_unfuse_fma =
+            ReadSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"), true).toBool();
+        Settings::values.cpuopt_unsafe_reduce_fp_error =
+            ReadSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true).toBool();
     }
 
     qt_config->endGroup();
@@ -1135,6 +1140,11 @@ void Config::SaveCpuValues() {
         WriteSetting(QStringLiteral("cpuopt_misc_ir"), Settings::values.cpuopt_misc_ir, true);
         WriteSetting(QStringLiteral("cpuopt_reduce_misalign_checks"),
                      Settings::values.cpuopt_reduce_misalign_checks, true);
+
+        WriteSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"),
+                     Settings::values.cpuopt_unsafe_unfuse_fma, true);
+        WriteSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
+                     Settings::values.cpuopt_unsafe_reduce_fp_error, true);
     }
 
     qt_config->endGroup();

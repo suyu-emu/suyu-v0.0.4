@@ -40,6 +40,11 @@
             </item>
             <item>
              <property name="text">
+              <string>Unsafe</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
               <string>Enable Debug Mode</string>
              </property>
             </item>
@@ -54,6 +59,53 @@
           </property>
           <property name="text">
            <string>We recommend setting accuracy to "Accurate".</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QVBoxLayout">
+     <item>
+      <widget class="QGroupBox" name="unsafe_group">
+       <property name="title">
+        <string>Unsafe CPU Optimization Settings</string>
+       </property>
+       <layout class="QVBoxLayout">
+        <item>
+         <widget class="QLabel">
+          <property name="wordWrap">
+            <bool>1</bool>
+          </property>
+          <property name="text">
+           <string>These settings reduce accuracy for speed.</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_unsafe_unfuse_fma">
+          <property name="text">
+           <string>Unfuse FMA (improve performance on CPUs without FMA)</string>
+          </property>
+          <property name="toolTip">
+           <string>
+            &lt;div&gt;This option improves speed by reducing accuracy of fused-multiply-add instructions on CPUs without native FMA support.&lt;/div&gt;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_unsafe_reduce_fp_error">
+          <property name="text">
+           <string>Faster FRSQRTE and FRECPE</string>
+          </property>
+          <property name="toolTip">
+           <string>
+            &lt;div&gt;This option improves the speed of some approximate floating-point functions by using less accurate native approximations.&lt;/div&gt;
+           </string>
           </property>
          </widget>
         </item>
