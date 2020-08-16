@@ -78,15 +78,14 @@ VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& sche
                                        const GraphicsPipelineCacheKey& key,
                                        vk::Span<VkDescriptorSetLayoutBinding> bindings,
                                        const SPIRVProgram& program)
-    : device{device}, scheduler{scheduler}, hash{key.Hash()}, cache_key{key},
+    : device{device}, scheduler{scheduler}, cache_key{key}, hash{cache_key.Hash()},
       descriptor_set_layout{CreateDescriptorSetLayout(bindings)},
       descriptor_allocator{descriptor_pool, *descriptor_set_layout},
       update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
       descriptor_template{CreateDescriptorUpdateTemplate(program)}, modules{CreateShaderModules(
                                                                         program)},
-      renderpass{renderpass_cache.GetRenderPass(key.renderpass_params)}, pipeline{CreatePipeline(
-                                                                             key.renderpass_params,
-                                                                             program)} {}
+      renderpass{renderpass_cache.GetRenderPass(cache_key.renderpass_params)},
+      pipeline{CreatePipeline(cache_key.renderpass_params, program)} {}
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 

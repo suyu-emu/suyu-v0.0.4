@@ -55,7 +55,6 @@ public:
         std::vector<u64> code;
         std::vector<u64> code_b;
         Tegra::Engines::ShaderType shader_type;
-        std::unique_ptr<Vulkan::VKGraphicsPipeline> pipeline;
     };
 
     explicit AsyncShaders(Core::Frontend::EmuWindow& emu_window);
@@ -110,7 +109,7 @@ private:
         std::vector<u64> code_b;
         u32 main_offset;
         VideoCommon::Shader::CompilerSettings compiler_settings;
-        const VideoCommon::Shader::Registry* registry;
+        std::optional<VideoCommon::Shader::Registry> registry;
         VAddr cpu_address;
 
         // For Vulkan

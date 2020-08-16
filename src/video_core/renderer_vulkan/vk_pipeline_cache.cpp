@@ -298,9 +298,9 @@ VKComputePipeline& VKPipelineCache::GetComputePipeline(const ComputePipelineCach
 }
 
 void VKPipelineCache::EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline) {
+    system.GPU().ShaderNotify().MarkShaderComplete();
     std::unique_lock lock{pipeline_cache};
     graphics_cache.at(pipeline->GetCacheKey()) = std::move(pipeline);
-    system.GPU().ShaderNotify().MarkShaderComplete();
 }
 
 void VKPipelineCache::OnShaderRemoval(Shader* shader) {

@@ -94,8 +94,8 @@ private:
 
     const VKDevice& device;
     VKScheduler& scheduler;
+    const GraphicsPipelineCacheKey cache_key;
     const u64 hash;
-    GraphicsPipelineCacheKey cache_key;
 
     vk::DescriptorSetLayout descriptor_set_layout;
     DescriptorAllocator descriptor_allocator;

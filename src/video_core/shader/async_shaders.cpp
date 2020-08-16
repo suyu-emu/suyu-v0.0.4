@@ -128,7 +128,7 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
         .code_b = std::move(code_b),
         .main_offset = main_offset,
         .compiler_settings = compiler_settings,
-        .registry = &registry,
+        .registry = registry,
         .cpu_address = cpu_addr,
     };
     std::unique_lock lock(queue_mutex);
@@ -144,7 +144,6 @@ void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
                                      std::vector<VkDescriptorSetLayoutBinding> bindings,
                                      Vulkan::SPIRVProgram program,
                                      Vulkan::GraphicsPipelineCacheKey key) {
-
     WorkerParams params{
         .backend = Backend::Vulkan,
         .pp_cache = pp_cache,
@@ -186,11 +185,10 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
         lock.unlock();
 
         if (work.backend == Backend::OpenGL || work.backend == Backend::GLASM) {
-            VideoCommon::Shader::Registry registry = *work.registry;
-            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, registry);
+            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, *work.registry);
             const auto scope = context->Acquire();
             auto program =
-                OpenGL::BuildShader(*work.device, work.shader_type, work.uid, ir, registry);
+                OpenGL::BuildShader(*work.device, work.shader_type, work.uid, ir, *work.registry);
             Result result{};
             result.backend = work.backend;
             result.cpu_address = work.cpu_address;
@@ -210,7 +208,6 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
                 finished_work.push_back(std::move(result));
             }
         } else if (work.backend == Backend::Vulkan) {
-
             auto pipeline = std::make_unique<Vulkan::VKGraphicsPipeline>(
                 *work.vk_device, *work.scheduler, *work.descriptor_pool,
                 *work.update_descriptor_queue, *work.renderpass_cache, work.key, work.bindings,
