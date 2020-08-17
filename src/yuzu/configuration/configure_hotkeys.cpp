@@ -154,7 +154,7 @@ void ConfigureHotkeys::ClearAll() {
         const QStandardItem* parent = model->item(r, 0);
 
         for (int r2 = 0; r2 < parent->rowCount(); ++r2) {
-            model->item(r, 0)->child(r2, 1)->setText(tr(""));
+            model->item(r, 0)->child(r2, 1)->setText(QString{});
         }
     }
 }
@@ -186,7 +186,7 @@ void ConfigureHotkeys::PopupContextMenu(const QPoint& menu_location) {
             model->setData(selected, default_key_sequence.toString(QKeySequence::NativeText));
         }
     });
-    connect(clear, &QAction::triggered, [this, selected] { model->setData(selected, tr("")); });
+    connect(clear, &QAction::triggered, [this, selected] { model->setData(selected, QString{}); });
 
     context_menu.exec(ui->hotkey_list->viewport()->mapToGlobal(menu_location));
 }
