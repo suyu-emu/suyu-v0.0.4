@@ -367,8 +367,8 @@ static bool AttemptDecrypt(const std::array<u8, 16>& key, Package2Header& header
     Package2Header temp = header;
     AESCipher<Key128> cipher(key, Mode::CTR);
     cipher.SetIV(header.header_ctr);
-    cipher.Transcode(&temp.header_ctr, sizeof(Package2Header) - 0x100, &temp.header_ctr,
-                     Op::Decrypt);
+    cipher.Transcode(&temp.header_ctr, sizeof(Package2Header) - sizeof(Package2Header::signature),
+                     &temp.header_ctr, Op::Decrypt);
     if (temp.magic == Common::MakeMagic('P', 'K', '2', '1')) {
         header = temp;
         return true;

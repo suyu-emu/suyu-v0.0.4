@@ -116,7 +116,7 @@ void AESCipher<Key, KeySize>::XTSTranscode(const u8* src, std::size_t size, u8* 
 
     for (std::size_t i = 0; i < size; i += sector_size) {
         SetIV(CalculateNintendoTweak(sector_id++));
-        Transcode<u8, u8>(src + i, sector_size, dest + i, op);
+        Transcode(src + i, sector_size, dest + i, op);
     }
 }
 
