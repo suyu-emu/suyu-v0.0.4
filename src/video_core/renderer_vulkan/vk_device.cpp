@@ -382,6 +382,8 @@ bool VKDevice::Create() {
 
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
+
+    use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
     return true;
 }
 

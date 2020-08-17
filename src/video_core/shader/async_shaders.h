@@ -14,6 +14,10 @@
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
+#include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/vk_pipeline_cache.h"
+#include "video_core/renderer_vulkan/vk_scheduler.h"
+#include "video_core/renderer_vulkan/vk_update_descriptor.h"
 
 namespace Core::Frontend {
 class EmuWindow;
@@ -24,6 +28,10 @@ namespace Tegra {
 class GPU;
 }
 
+namespace Vulkan {
+class VKPipelineCache;
+}
+
 namespace VideoCommon::Shader {
 
 class AsyncShaders {
@@ -31,6 +39,7 @@ public:
     enum class Backend {
         OpenGL,
         GLASM,
+        Vulkan,
     };
 
     struct ResultPrograms {
@@ -52,7 +61,7 @@ public:
     ~AsyncShaders();
 
     /// Start up shader worker threads
-    void AllocateWorkers(std::size_t num_workers);
+    void AllocateWorkers();
 
     /// Clear the shader queue and kill all worker threads
     void FreeWorkers();
@@ -76,6 +85,14 @@ public:
                            VideoCommon::Shader::CompilerSettings compiler_settings,
                            const VideoCommon::Shader::Registry& registry, VAddr cpu_addr);
 
+    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache, const Vulkan::VKDevice& device,
+                           Vulkan::VKScheduler& scheduler,
+                           Vulkan::VKDescriptorPool& descriptor_pool,
+                           Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
+                           Vulkan::VKRenderPassCache& renderpass_cache,
+                           std::vector<VkDescriptorSetLayoutBinding> bindings,
+                           Vulkan::SPIRVProgram program, Vulkan::GraphicsPipelineCacheKey key);
+
 private:
     void ShaderCompilerThread(Core::Frontend::GraphicsContext* context);
 
@@ -83,16 +100,28 @@ private:
     bool HasWorkQueued();
 
     struct WorkerParams {
-        AsyncShaders::Backend backend;
-        OpenGL::Device device;
+        Backend backend;
+        // For OGL
+        const OpenGL::Device* device;
         Tegra::Engines::ShaderType shader_type;
         u64 uid;
         std::vector<u64> code;
         std::vector<u64> code_b;
         u32 main_offset;
         VideoCommon::Shader::CompilerSettings compiler_settings;
-        VideoCommon::Shader::Registry registry;
+        std::optional<VideoCommon::Shader::Registry> registry;
         VAddr cpu_address;
+
+        // For Vulkan
+        Vulkan::VKPipelineCache* pp_cache;
+        const Vulkan::VKDevice* vk_device;
+        Vulkan::VKScheduler* scheduler;
+        Vulkan::VKDescriptorPool* descriptor_pool;
+        Vulkan::VKUpdateDescriptorQueue* update_descriptor_queue;
+        Vulkan::VKRenderPassCache* renderpass_cache;
+        std::vector<VkDescriptorSetLayoutBinding> bindings;
+        Vulkan::SPIRVProgram program;
+        Vulkan::GraphicsPipelineCacheKey key;
     };
 
     std::condition_variable cv;
@@ -101,7 +130,7 @@ private:
     std::atomic<bool> is_thread_exiting{};
     std::vector<std::unique_ptr<Core::Frontend::GraphicsContext>> context_list;
     std::vector<std::thread> worker_threads;
-    std::deque<WorkerParams> pending_queue;
+    std::queue<WorkerParams> pending_queue;
     std::vector<AsyncShaders::Result> finished_work;
     Core::Frontend::EmuWindow& emu_window;
 };

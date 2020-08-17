@@ -22,6 +22,7 @@
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/shader/async_shaders.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader/registry.h"
 #include "video_core/shader/shader_ir.h"
@@ -42,28 +43,6 @@ class VKScheduler;
 class VKUpdateDescriptorQueue;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-
-struct GraphicsPipelineCacheKey {
-    RenderPassParams renderpass_params;
-    u32 padding;
-    std::array<GPUVAddr, Maxwell::MaxShaderProgram> shaders;
-    FixedPipelineState fixed_state;
-
-    std::size_t Hash() const noexcept;
-
-    bool operator==(const GraphicsPipelineCacheKey& rhs) const noexcept;
-
-    bool operator!=(const GraphicsPipelineCacheKey& rhs) const noexcept {
-        return !operator==(rhs);
-    }
-
-    std::size_t Size() const noexcept {
-        return sizeof(renderpass_params) + sizeof(padding) + sizeof(shaders) + fixed_state.Size();
-    }
-};
-static_assert(std::has_unique_object_representations_v<GraphicsPipelineCacheKey>);
-static_assert(std::is_trivially_copyable_v<GraphicsPipelineCacheKey>);
-static_assert(std::is_trivially_constructible_v<GraphicsPipelineCacheKey>);
 
 struct ComputePipelineCacheKey {
     GPUVAddr shader;
@@ -152,16 +131,19 @@ public:
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();
 
-    VKGraphicsPipeline& GetGraphicsPipeline(const GraphicsPipelineCacheKey& key);
+    VKGraphicsPipeline* GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
+                                            VideoCommon::Shader::AsyncShaders& async_shaders);
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
+
+    void EmplacePipeline(std::unique_ptr<VKGraphicsPipeline> pipeline);
 
 protected:
     void OnShaderRemoval(Shader* shader) final;
 
 private:
     std::pair<SPIRVProgram, std::vector<VkDescriptorSetLayoutBinding>> DecompileShaders(
-        const GraphicsPipelineCacheKey& key);
+        const FixedPipelineState& fixed_state);
 
     Core::System& system;
     const VKDevice& device;
@@ -178,6 +160,7 @@ private:
     GraphicsPipelineCacheKey last_graphics_key;
     VKGraphicsPipeline* last_graphics_pipeline = nullptr;
 
+    std::mutex pipeline_cache;
     std::unordered_map<GraphicsPipelineCacheKey, std::unique_ptr<VKGraphicsPipeline>>
         graphics_cache;
     std::unordered_map<ComputePipelineCacheKey, std::unique_ptr<VKComputePipeline>> compute_cache;

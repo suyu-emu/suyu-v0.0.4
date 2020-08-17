@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <chrono>
 #include <condition_variable>
 #include <mutex>
 #include <thread>
@@ -20,9 +19,18 @@ AsyncShaders::~AsyncShaders() {
     KillWorkers();
 }
 
-void AsyncShaders::AllocateWorkers(std::size_t num_workers) {
-    // If we're already have workers queued or don't want to queue workers, ignore
-    if (num_workers == worker_threads.size() || num_workers == 0) {
+void AsyncShaders::AllocateWorkers() {
+    // Max worker threads we should allow
+    constexpr u32 MAX_THREADS = 4;
+    // Deduce how many threads we can use
+    const u32 threads_used = std::thread::hardware_concurrency() / 4;
+    // Always allow at least 1 thread regardless of our settings
+    const auto max_worker_count = std::max(1U, threads_used);
+    // Don't use more than MAX_THREADS
+    const auto num_workers = std::min(max_worker_count, MAX_THREADS);
+
+    // If we already have workers queued, ignore
+    if (num_workers == worker_threads.size()) {
         return;
     }
 
@@ -111,24 +119,50 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                                      VideoCommon::Shader::CompilerSettings compiler_settings,
                                      const VideoCommon::Shader::Registry& registry,
                                      VAddr cpu_addr) {
-    WorkerParams params{device.UseAssemblyShaders() ? AsyncShaders::Backend::GLASM
-                                                    : AsyncShaders::Backend::OpenGL,
-                        device,
-                        shader_type,
-                        uid,
-                        std::move(code),
-                        std::move(code_b),
-                        main_offset,
-                        compiler_settings,
-                        registry,
-                        cpu_addr};
+    WorkerParams params{
+        .backend = device.UseAssemblyShaders() ? Backend::GLASM : Backend::OpenGL,
+        .device = &device,
+        .shader_type = shader_type,
+        .uid = uid,
+        .code = std::move(code),
+        .code_b = std::move(code_b),
+        .main_offset = main_offset,
+        .compiler_settings = compiler_settings,
+        .registry = registry,
+        .cpu_address = cpu_addr,
+    };
     std::unique_lock lock(queue_mutex);
-    pending_queue.push_back(std::move(params));
+    pending_queue.push(std::move(params));
+    cv.notify_one();
+}
+
+void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
+                                     const Vulkan::VKDevice& device, Vulkan::VKScheduler& scheduler,
+                                     Vulkan::VKDescriptorPool& descriptor_pool,
+                                     Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
+                                     Vulkan::VKRenderPassCache& renderpass_cache,
+                                     std::vector<VkDescriptorSetLayoutBinding> bindings,
+                                     Vulkan::SPIRVProgram program,
+                                     Vulkan::GraphicsPipelineCacheKey key) {
+    WorkerParams params{
+        .backend = Backend::Vulkan,
+        .pp_cache = pp_cache,
+        .vk_device = &device,
+        .scheduler = &scheduler,
+        .descriptor_pool = &descriptor_pool,
+        .update_descriptor_queue = &update_descriptor_queue,
+        .renderpass_cache = &renderpass_cache,
+        .bindings = bindings,
+        .program = program,
+        .key = key,
+    };
+
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push(std::move(params));
     cv.notify_one();
 }
 
 void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context) {
-    using namespace std::chrono_literals;
     while (!is_thread_exiting.load(std::memory_order_relaxed)) {
         std::unique_lock lock{queue_mutex};
         cv.wait(lock, [this] { return HasWorkQueued() || is_thread_exiting; });
@@ -144,18 +178,17 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
         if (pending_queue.empty()) {
             continue;
         }
+
         // Pull work from queue
         WorkerParams work = std::move(pending_queue.front());
-        pending_queue.pop_front();
-
+        pending_queue.pop();
         lock.unlock();
 
-        if (work.backend == AsyncShaders::Backend::OpenGL ||
-            work.backend == AsyncShaders::Backend::GLASM) {
-            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, work.registry);
+        if (work.backend == Backend::OpenGL || work.backend == Backend::GLASM) {
+            const ShaderIR ir(work.code, work.main_offset, work.compiler_settings, *work.registry);
             const auto scope = context->Acquire();
             auto program =
-                OpenGL::BuildShader(work.device, work.shader_type, work.uid, ir, work.registry);
+                OpenGL::BuildShader(*work.device, work.shader_type, work.uid, ir, *work.registry);
             Result result{};
             result.backend = work.backend;
             result.cpu_address = work.cpu_address;
@@ -164,9 +197,9 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
             result.code_b = std::move(work.code_b);
             result.shader_type = work.shader_type;
 
-            if (work.backend == AsyncShaders::Backend::OpenGL) {
+            if (work.backend == Backend::OpenGL) {
                 result.program.opengl = std::move(program->source_program);
-            } else if (work.backend == AsyncShaders::Backend::GLASM) {
+            } else if (work.backend == Backend::GLASM) {
                 result.program.glasm = std::move(program->assembly_program);
             }
 
@@ -174,6 +207,13 @@ void AsyncShaders::ShaderCompilerThread(Core::Frontend::GraphicsContext* context
                 std::unique_lock complete_lock(completed_mutex);
                 finished_work.push_back(std::move(result));
             }
+        } else if (work.backend == Backend::Vulkan) {
+            auto pipeline = std::make_unique<Vulkan::VKGraphicsPipeline>(
+                *work.vk_device, *work.scheduler, *work.descriptor_pool,
+                *work.update_descriptor_queue, *work.renderpass_cache, work.key, work.bindings,
+                work.program);
+
+            work.pp_cache->EmplacePipeline(std::move(pipeline));
         }
     }
 }

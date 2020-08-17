@@ -202,6 +202,11 @@ public:
         return reported_extensions;
     }
 
+    /// Returns true if the setting for async shader compilation is enabled.
+    bool UseAsynchronousShaders() const {
+        return use_asynchronous_shaders;
+    }
+
     /// Checks if the physical device is suitable.
     static bool IsSuitable(vk::PhysicalDevice physical, VkSurfaceKHR surface);
 
@@ -251,6 +256,9 @@ private:
     bool ext_custom_border_color{};            ///< Support for VK_EXT_custom_border_color.
     bool ext_extended_dynamic_state{};         ///< Support for VK_EXT_extended_dynamic_state.
     bool nv_device_diagnostics_config{};       ///< Support for VK_NV_device_diagnostics_config.
+
+    // Asynchronous Graphics Pipeline setting
+    bool use_asynchronous_shaders{}; ///< Setting to use asynchronous shaders/graphics pipeline
 
     // Telemetry parameters
     std::string vendor_name;                      ///< Device's driver name.

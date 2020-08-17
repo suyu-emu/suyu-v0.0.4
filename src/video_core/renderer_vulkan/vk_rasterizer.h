@@ -32,6 +32,7 @@
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/shader/async_shaders.h"
 
 namespace Core {
 class System;
@@ -135,6 +136,14 @@ public:
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
     void SetupDirtyFlags() override;
+
+    VideoCommon::Shader::AsyncShaders& GetAsyncShaders() {
+        return async_shaders;
+    }
+
+    const VideoCommon::Shader::AsyncShaders& GetAsyncShaders() const {
+        return async_shaders;
+    }
 
     /// Maximum supported size that a constbuffer can have in bytes.
     static constexpr std::size_t MaxConstbufferSize = 0x10000;
@@ -297,6 +306,7 @@ private:
     vk::Buffer default_buffer;
     VKMemoryCommit default_buffer_commit;
     vk::Event wfi_event;
+    VideoCommon::Shader::AsyncShaders async_shaders;
 
     std::array<View, Maxwell::NumRenderTargets> color_attachments;
     View zeta_attachment;
