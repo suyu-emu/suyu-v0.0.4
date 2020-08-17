@@ -216,6 +216,7 @@ private slots:
     void OnMenuInstallToNAND();
     void OnMenuRecentFile();
     void OnConfigure();
+    void OnConfigurePerGame();
     void OnLoadAmiibo();
     void OnOpenYuzuFolder();
     void OnAbout();
@@ -249,6 +250,7 @@ private:
     void ShowMouseCursor();
     void OpenURL(const QUrl& url);
     void LoadTranslation();
+    void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
 
     Ui::MainWindow ui;
 
