@@ -3,8 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <chrono>
-#include <iomanip>
-#include <sstream>
+#include <ctime>
+
+#include <fmt/chrono.h>
 
 #include "common/logging/log.h"
 #include "common/time_zone.h"
@@ -16,13 +17,8 @@ std::string GetDefaultTimeZone() {
 }
 
 static std::string GetOsTimeZoneOffset() {
-    const std::time_t t{std::time(nullptr)};
-    const std::tm tm{*std::localtime(&t)};
-
-    std::stringstream ss;
-    ss << std::put_time(&tm, "%z"); // Get the current timezone offset, e.g. "-400", as a string
-
-    return ss.str();
+    // Get the current timezone offset, e.g. "-400", as a string
+    return fmt::format("%z", fmt::localtime(std::time(nullptr)));
 }
 
 static int ConvertOsTimeZoneOffsetToInt(const std::string& timezone) {
