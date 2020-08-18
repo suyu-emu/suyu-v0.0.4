@@ -276,14 +276,14 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    if (!backing->Seek(offset, SEEK_SET)) {
+    if (!backing->Seek(static_cast<s64>(offset), SEEK_SET)) {
         return 0;
     }
     return backing->ReadBytes(data, length);
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
-    if (!backing->Seek(offset, SEEK_SET)) {
+    if (!backing->Seek(static_cast<s64>(offset), SEEK_SET)) {
         return 0;
     }
     return backing->WriteBytes(data, length);
