@@ -4,9 +4,9 @@
 
 #pragma once
 
-namespace Common {
-
 #include <type_traits>
+
+namespace Common {
 
 // Check if type is like an STL container
 template <typename T>
