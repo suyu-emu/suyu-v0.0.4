@@ -509,9 +509,10 @@ void RendererOpenGL::AddTelemetryFields() {
     LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
 
     auto& telemetry_session = system.TelemetrySession();
-    telemetry_session.AddField(Telemetry::FieldType::UserSystem, "GPU_Vendor", gpu_vendor);
-    telemetry_session.AddField(Telemetry::FieldType::UserSystem, "GPU_Model", gpu_model);
-    telemetry_session.AddField(Telemetry::FieldType::UserSystem, "GPU_OpenGL_Version", gl_version);
+    constexpr auto user_system = Common::Telemetry::FieldType::UserSystem;
+    telemetry_session.AddField(user_system, "GPU_Vendor", gpu_vendor);
+    telemetry_session.AddField(user_system, "GPU_Model", gpu_model);
+    telemetry_session.AddField(user_system, "GPU_OpenGL_Version", gl_version);
 }
 
 void RendererOpenGL::CreateRasterizer() {
