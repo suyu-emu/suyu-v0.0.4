@@ -1242,20 +1242,29 @@ void GMainWindow::OnGameListLoadFile(QString game_path) {
     BootGame(game_path);
 }
 
-void GMainWindow::OnGameListOpenFolder(GameListOpenTarget target, const std::string& game_path) {
+void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target,
+                                       const std::string& game_path) {
     std::string path;
     QString open_target;
 
-    const auto v_file = Core::GetGameFileFromPath(vfs, game_path);
-    const auto loader = Loader::GetLoader(v_file);
-    FileSys::NACP control{};
-    u64 program_id{};
+    const auto [user_save_size, device_save_size] = [this, &program_id, &game_path] {
+        FileSys::PatchManager pm{program_id};
+        const auto control = pm.GetControlMetadata().first;
+        if (control != nullptr) {
+            return std::make_pair(control->GetDefaultNormalSaveSize(),
+                                  control->GetDeviceSaveDataSize());
+        } else {
+            const auto file = Core::GetGameFileFromPath(vfs, game_path);
+            const auto loader = Loader::GetLoader(file);
 
-    loader->ReadControlData(control);
-    loader->ReadProgramId(program_id);
+            FileSys::NACP nacp{};
+            loader->ReadControlData(nacp);
+            return std::make_pair(nacp.GetDefaultNormalSaveSize(), nacp.GetDeviceSaveDataSize());
+        }
+    }();
 
-    const bool has_user_save{control.GetDefaultNormalSaveSize() > 0};
-    const bool has_device_save{control.GetDeviceSaveDataSize() > 0};
+    const bool has_user_save{user_save_size > 0};
+    const bool has_device_save{device_save_size > 0};
 
     ASSERT_MSG(has_user_save != has_device_save, "Game uses both user and device savedata?");
 
