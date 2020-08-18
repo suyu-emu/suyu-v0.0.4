@@ -19,7 +19,7 @@
 #include "common/string_util.h"
 #endif
 
-namespace FileUtil {
+namespace Common::FS {
 
 // User paths for GetUserPath
 enum class UserPath {
@@ -204,6 +204,16 @@ enum class DirectorySeparator {
     std::string_view path,
     DirectorySeparator directory_separator = DirectorySeparator::ForwardSlash);
 
+// To deal with Windows being dumb at Unicode
+template <typename T>
+void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode) {
+#ifdef _MSC_VER
+    fstream.open(Common::UTF8ToUTF16W(filename), openmode);
+#else
+    fstream.open(filename, openmode);
+#endif
+}
+
 // simple wrapper for cstdlib file functions to
 // hopefully will make error checking easier
 // and make forgetting an fclose() harder
@@ -285,14 +295,4 @@ private:
     std::FILE* m_file = nullptr;
 };
 
-} // namespace FileUtil
-
-// To deal with Windows being dumb at unicode:
-template <typename T>
-void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode) {
-#ifdef _MSC_VER
-    fstream.open(Common::UTF8ToUTF16W(filename), openmode);
-#else
-    fstream.open(filename, openmode);
-#endif
-}
+} // namespace Common::FS

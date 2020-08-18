@@ -13,10 +13,12 @@
 #include "input_common/udp/client.h"
 #include "yuzu/configuration/config.h"
 
+namespace FS = Common::FS;
+
 Config::Config(const std::string& config_file, bool is_global) {
     // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    qt_config_loc = FileUtil::GetUserPath(FileUtil::UserPath::ConfigDir) + config_file;
-    FileUtil::CreateFullPath(qt_config_loc);
+    qt_config_loc = FS::GetUserPath(FS::UserPath::ConfigDir) + config_file;
+    FS::CreateFullPath(qt_config_loc);
     qt_config =
         std::make_unique<QSettings>(QString::fromStdString(qt_config_loc), QSettings::IniFormat);
     global = is_global;
@@ -464,41 +466,36 @@ void Config::ReadDataStorageValues() {
     qt_config->beginGroup(QStringLiteral("Data Storage"));
 
     Settings::values.use_virtual_sd = ReadSetting(QStringLiteral("use_virtual_sd"), true).toBool();
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::NANDDir,
-        qt_config
-            ->value(QStringLiteral("nand_directory"),
-                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)))
-            .toString()
-            .toStdString());
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::SDMCDir,
-        qt_config
-            ->value(QStringLiteral("sdmc_directory"),
-                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)))
-            .toString()
-            .toStdString());
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::LoadDir,
-        qt_config
-            ->value(QStringLiteral("load_directory"),
-                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)))
-            .toString()
-            .toStdString());
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::DumpDir,
-        qt_config
-            ->value(QStringLiteral("dump_directory"),
-                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)))
-            .toString()
-            .toStdString());
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::CacheDir,
-        qt_config
-            ->value(QStringLiteral("cache_directory"),
-                    QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)))
-            .toString()
-            .toStdString());
+    FS::GetUserPath(FS::UserPath::NANDDir,
+                    qt_config
+                        ->value(QStringLiteral("nand_directory"),
+                                QString::fromStdString(FS::GetUserPath(FS::UserPath::NANDDir)))
+                        .toString()
+                        .toStdString());
+    FS::GetUserPath(FS::UserPath::SDMCDir,
+                    qt_config
+                        ->value(QStringLiteral("sdmc_directory"),
+                                QString::fromStdString(FS::GetUserPath(FS::UserPath::SDMCDir)))
+                        .toString()
+                        .toStdString());
+    FS::GetUserPath(FS::UserPath::LoadDir,
+                    qt_config
+                        ->value(QStringLiteral("load_directory"),
+                                QString::fromStdString(FS::GetUserPath(FS::UserPath::LoadDir)))
+                        .toString()
+                        .toStdString());
+    FS::GetUserPath(FS::UserPath::DumpDir,
+                    qt_config
+                        ->value(QStringLiteral("dump_directory"),
+                                QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)))
+                        .toString()
+                        .toStdString());
+    FS::GetUserPath(FS::UserPath::CacheDir,
+                    qt_config
+                        ->value(QStringLiteral("cache_directory"),
+                                QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)))
+                        .toString()
+                        .toStdString());
     Settings::values.gamecard_inserted =
         ReadSetting(QStringLiteral("gamecard_inserted"), false).toBool();
     Settings::values.gamecard_current_game =
@@ -677,11 +674,11 @@ void Config::ReadScreenshotValues() {
 
     UISettings::values.enable_screenshot_save_as =
         ReadSetting(QStringLiteral("enable_screenshot_save_as"), true).toBool();
-    FileUtil::GetUserPath(
-        FileUtil::UserPath::ScreenshotsDir,
+    FS::GetUserPath(
+        FS::UserPath::ScreenshotsDir,
         qt_config
-            ->value(QStringLiteral("screenshot_path"), QString::fromStdString(FileUtil::GetUserPath(
-                                                           FileUtil::UserPath::ScreenshotsDir)))
+            ->value(QStringLiteral("screenshot_path"),
+                    QString::fromStdString(FS::GetUserPath(FS::UserPath::ScreenshotsDir)))
             .toString()
             .toStdString());
 
@@ -1016,20 +1013,20 @@ void Config::SaveDataStorageValues() {
 
     WriteSetting(QStringLiteral("use_virtual_sd"), Settings::values.use_virtual_sd, true);
     WriteSetting(QStringLiteral("nand_directory"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::NANDDir)),
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::NANDDir)));
     WriteSetting(QStringLiteral("sdmc_directory"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::SDMCDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::SDMCDir)),
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::SDMCDir)));
     WriteSetting(QStringLiteral("load_directory"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::LoadDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::LoadDir)),
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::LoadDir)));
     WriteSetting(QStringLiteral("dump_directory"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::DumpDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)),
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::DumpDir)));
     WriteSetting(QStringLiteral("cache_directory"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::CacheDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)),
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::CacheDir)));
     WriteSetting(QStringLiteral("gamecard_inserted"), Settings::values.gamecard_inserted, false);
     WriteSetting(QStringLiteral("gamecard_current_game"), Settings::values.gamecard_current_game,
                  false);
@@ -1180,7 +1177,7 @@ void Config::SaveScreenshotValues() {
     WriteSetting(QStringLiteral("enable_screenshot_save_as"),
                  UISettings::values.enable_screenshot_save_as);
     WriteSetting(QStringLiteral("screenshot_path"),
-                 QString::fromStdString(FileUtil::GetUserPath(FileUtil::UserPath::ScreenshotsDir)));
+                 QString::fromStdString(FS::GetUserPath(FS::UserPath::ScreenshotsDir)));
 
     qt_config->endGroup();
 }

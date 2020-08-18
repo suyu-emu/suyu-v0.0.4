@@ -49,7 +49,7 @@ VirtualDir ExtractZIP(VirtualFile file) {
             if (zip_fread(file2.get(), buf.data(), buf.size()) != s64(buf.size()))
                 return nullptr;
 
-            const auto parts = FileUtil::SplitPathComponents(stat.name);
+            const auto parts = Common::FS::SplitPathComponents(stat.name);
             const auto new_file = std::make_shared<VectorVfsFile>(buf, parts.back());
 
             std::shared_ptr<VectorVfsDirectory> dtrv = out;

@@ -65,10 +65,10 @@ bool NsightAftermathTracker::Initialize() {
         return false;
     }
 
-    dump_dir = FileUtil::GetUserPath(FileUtil::UserPath::LogDir) + "gpucrash";
+    dump_dir = Common::FS::GetUserPath(Common::FS::UserPath::LogDir) + "gpucrash";
 
-    (void)FileUtil::DeleteDirRecursively(dump_dir);
-    if (!FileUtil::CreateDir(dump_dir)) {
+    (void)Common::FS::DeleteDirRecursively(dump_dir);
+    if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Render_Vulkan, "Failed to create Nsight Aftermath dump directory");
         return false;
     }
@@ -106,7 +106,7 @@ void NsightAftermathTracker::SaveShader(const std::vector<u32>& spirv) const {
         return;
     }
 
-    FileUtil::IOFile file(fmt::format("{}/source_{:016x}.spv", dump_dir, hash.hash), "wb");
+    Common::FS::IOFile file(fmt::format("{}/source_{:016x}.spv", dump_dir, hash.hash), "wb");
     if (!file.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Failed to dump SPIR-V module with hash={:016x}", hash.hash);
         return;
@@ -156,12 +156,12 @@ void NsightAftermathTracker::OnGpuCrashDumpCallback(const void* gpu_crash_dump,
     }();
 
     std::string_view dump_view(static_cast<const char*>(gpu_crash_dump), gpu_crash_dump_size);
-    if (FileUtil::WriteStringToFile(false, base_name, dump_view) != gpu_crash_dump_size) {
+    if (Common::FS::WriteStringToFile(false, base_name, dump_view) != gpu_crash_dump_size) {
         LOG_ERROR(Render_Vulkan, "Failed to write dump file");
         return;
     }
     const std::string_view json_view(json.data(), json.size());
-    if (FileUtil::WriteStringToFile(true, base_name + ".json", json_view) != json.size()) {
+    if (Common::FS::WriteStringToFile(true, base_name + ".json", json_view) != json.size()) {
         LOG_ERROR(Render_Vulkan, "Failed to write JSON");
         return;
     }
@@ -180,7 +180,7 @@ void NsightAftermathTracker::OnShaderDebugInfoCallback(const void* shader_debug_
 
     const std::string path =
         fmt::format("{}/shader_{:016x}{:016x}.nvdbg", dump_dir, identifier.id[0], identifier.id[1]);
-    FileUtil::IOFile file(path, "wb");
+    Common::FS::IOFile file(path, "wb");
     if (!file.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Failed to create file {}", path);
         return;

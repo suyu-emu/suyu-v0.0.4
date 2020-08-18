@@ -35,7 +35,7 @@ constexpr ResultCode ERR_INVALID_BUFFER_SIZE{ErrorModule::Account, 30};
 constexpr ResultCode ERR_FAILED_SAVE_DATA{ErrorModule::Account, 100};
 
 static std::string GetImagePath(Common::UUID uuid) {
-    return FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
+    return Common::FS::GetUserPath(Common::FS::UserPath::NANDDir) +
            "/system/save/8000000000000010/su/avators/" + uuid.FormatSwitch() + ".jpg";
 }
 
@@ -318,7 +318,7 @@ protected:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        const FileUtil::IOFile image(GetImagePath(user_id), "rb");
+        const Common::FS::IOFile image(GetImagePath(user_id), "rb");
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
                         "Failed to load user provided image! Falling back to built-in backup...");
@@ -340,7 +340,7 @@ protected:
         IPC::ResponseBuilder rb{ctx, 3};
         rb.Push(RESULT_SUCCESS);
 
-        const FileUtil::IOFile image(GetImagePath(user_id), "rb");
+        const Common::FS::IOFile image(GetImagePath(user_id), "rb");
 
         if (!image.IsOpen()) {
             LOG_WARNING(Service_ACC,
@@ -405,7 +405,7 @@ protected:
         ProfileData data;
         std::memcpy(&data, user_data.data(), sizeof(ProfileData));
 
-        FileUtil::IOFile image(GetImagePath(user_id), "wb");
+        Common::FS::IOFile image(GetImagePath(user_id), "wb");
 
         if (!image.IsOpen() || !image.Resize(image_data.size()) ||
             image.WriteBytes(image_data.data(), image_data.size()) != image_data.size() ||

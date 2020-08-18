@@ -44,7 +44,7 @@ static bool CalculateHMAC256(Destination* out, const SourceKey* key, std::size_t
 }
 
 NAX::NAX(VirtualFile file_) : header(std::make_unique<NAXHeader>()), file(std::move(file_)) {
-    std::string path = FileUtil::SanitizePath(file->GetFullPath());
+    std::string path = Common::FS::SanitizePath(file->GetFullPath());
     static const std::regex nax_path_regex("/registered/(000000[0-9A-F]{2})/([0-9A-F]{32})\\.nca",
                                            std::regex_constants::ECMAScript |
                                                std::regex_constants::icase);

@@ -13,6 +13,7 @@
 
 namespace Service::Account {
 
+namespace FS = Common::FS;
 using Common::UUID;
 
 struct UserRaw {
@@ -318,9 +319,8 @@ bool ProfileManager::SetProfileBaseAndData(Common::UUID uuid, const ProfileBase&
 }
 
 void ProfileManager::ParseUserSaveFile() {
-    FileUtil::IOFile save(FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                              ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat",
-                          "rb");
+    const FS::IOFile save(
+        FS::GetUserPath(FS::UserPath::NANDDir) + ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat", "rb");
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to load profile data from save data... Generating new "
@@ -366,22 +366,22 @@ void ProfileManager::WriteUserSaveFile() {
         };
     }
 
-    const auto raw_path =
-        FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) + "/system/save/8000000000000010";
-    if (FileUtil::Exists(raw_path) && !FileUtil::IsDirectory(raw_path))
-        FileUtil::Delete(raw_path);
+    const auto raw_path = FS::GetUserPath(FS::UserPath::NANDDir) + "/system/save/8000000000000010";
+    if (FS::Exists(raw_path) && !FS::IsDirectory(raw_path)) {
+        FS::Delete(raw_path);
+    }
 
-    const auto path = FileUtil::GetUserPath(FileUtil::UserPath::NANDDir) +
-                      ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat";
+    const auto path =
+        FS::GetUserPath(FS::UserPath::NANDDir) + ACC_SAVE_AVATORS_BASE_PATH + "profiles.dat";
 
-    if (!FileUtil::CreateFullPath(path)) {
+    if (!FS::CreateFullPath(path)) {
         LOG_WARNING(Service_ACC, "Failed to create full path of profiles.dat. Create the directory "
                                  "nand/system/save/8000000000000010/su/avators to mitigate this "
                                  "issue.");
         return;
     }
 
-    FileUtil::IOFile save(path, "wb");
+    FS::IOFile save(path, "wb");
 
     if (!save.IsOpen()) {
         LOG_WARNING(Service_ACC, "Failed to write save data to file... No changes to user data "

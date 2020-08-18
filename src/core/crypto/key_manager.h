@@ -17,7 +17,7 @@
 #include "core/crypto/partition_data_manager.h"
 #include "core/file_sys/vfs_types.h"
 
-namespace FileUtil {
+namespace Common::FS {
 class IOFile;
 }
 
@@ -308,7 +308,7 @@ std::array<u8, 0x90> DecryptKeyblob(const std::array<u8, 0xB0>& encrypted_keyblo
 std::optional<Key128> DeriveSDSeed();
 Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& keys);
 
-std::vector<Ticket> GetTicketblob(const FileUtil::IOFile& ticket_save);
+std::vector<Ticket> GetTicketblob(const Common::FS::IOFile& ticket_save);
 
 // Returns a pair of {rights_id, titlekey}. Fails if the ticket has no certificate authority
 // (offset 0x140-0x144 is zero)

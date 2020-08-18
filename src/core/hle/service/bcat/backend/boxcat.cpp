@@ -89,12 +89,12 @@ constexpr u32 TIMEOUT_SECONDS = 30;
 
 std::string GetBINFilePath(u64 title_id) {
     return fmt::format("{}bcat/{:016X}/launchparam.bin",
-                       FileUtil::GetUserPath(FileUtil::UserPath::CacheDir), title_id);
+                       Common::FS::GetUserPath(Common::FS::UserPath::CacheDir), title_id);
 }
 
 std::string GetZIPFilePath(u64 title_id) {
     return fmt::format("{}bcat/{:016X}/data.zip",
-                       FileUtil::GetUserPath(FileUtil::UserPath::CacheDir), title_id);
+                       Common::FS::GetUserPath(Common::FS::UserPath::CacheDir), title_id);
 }
 
 // If the error is something the user should know about (build ID mismatch, bad client version),
@@ -205,8 +205,8 @@ private:
             {std::string("Game-Build-Id"), fmt::format("{:016X}", build_id)},
         };
 
-        if (FileUtil::Exists(path)) {
-            FileUtil::IOFile file{path, "rb"};
+        if (Common::FS::Exists(path)) {
+            Common::FS::IOFile file{path, "rb"};
             if (file.IsOpen()) {
                 std::vector<u8> bytes(file.GetSize());
                 file.ReadBytes(bytes.data(), bytes.size());
@@ -236,8 +236,8 @@ private:
             return DownloadResult::InvalidContentType;
         }
 
-        FileUtil::CreateFullPath(path);
-        FileUtil::IOFile file{path, "wb"};
+        Common::FS::CreateFullPath(path);
+        Common::FS::IOFile file{path, "wb"};
         if (!file.IsOpen())
             return DownloadResult::GeneralFSError;
         if (!file.Resize(response->body.size()))
@@ -290,7 +290,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
         LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
 
         if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
-            FileUtil::Delete(zip_path);
+            Common::FS::Delete(zip_path);
         }
 
         HandleDownloadDisplayResult(applet_manager, res);
@@ -300,7 +300,7 @@ void SynchronizeInternal(AM::Applets::AppletManager& applet_manager, DirectoryGe
 
     progress.StartProcessingDataList();
 
-    FileUtil::IOFile zip{zip_path, "rb"};
+    Common::FS::IOFile zip{zip_path, "rb"};
     const auto size = zip.GetSize();
     std::vector<u8> bytes(size);
     if (!zip.IsOpen() || size == 0 || zip.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
@@ -420,7 +420,7 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
             LOG_ERROR(Service_BCAT, "Boxcat synchronization failed with error '{}'!", res);
 
             if (res == DownloadResult::NoMatchBuildId || res == DownloadResult::NoMatchTitleId) {
-                FileUtil::Delete(path);
+                Common::FS::Delete(path);
             }
 
             HandleDownloadDisplayResult(applet_manager, res);
@@ -428,7 +428,7 @@ std::optional<std::vector<u8>> Boxcat::GetLaunchParameter(TitleIDVersion title) 
         }
     }
 
-    FileUtil::IOFile bin{path, "rb"};
+    Common::FS::IOFile bin{path, "rb"};
     const auto size = bin.GetSize();
     std::vector<u8> bytes(size);
     if (!bin.IsOpen() || size == 0 || bin.ReadBytes(bytes.data(), bytes.size()) != bytes.size()) {
