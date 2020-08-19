@@ -191,7 +191,7 @@ public:
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
         const auto [x, y] = GetStatus();
-        const float directional_deadzone = 0.4f;
+        const float directional_deadzone = 0.5f;
         switch (direction) {
         case Input::AnalogDirection::RIGHT:
             return x > directional_deadzone;
