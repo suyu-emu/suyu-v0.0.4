@@ -21,7 +21,7 @@ namespace Common {
 DynamicLibrary::DynamicLibrary() = default;
 
 DynamicLibrary::DynamicLibrary(const char* filename) {
-    Open(filename);
+    void(Open(filename));
 }
 
 DynamicLibrary::DynamicLibrary(DynamicLibrary&& rhs) noexcept
