@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDL");
+    system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend", "SDL");
 
     // Core is loaded, start the GPU (makes the GPU contexts current to this thread)
     system.GPU().Start();

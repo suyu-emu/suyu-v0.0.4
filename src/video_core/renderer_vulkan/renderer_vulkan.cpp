@@ -439,7 +439,7 @@ void RendererVulkan::Report() const {
     LOG_INFO(Render_Vulkan, "Vulkan: {}", api_version);
 
     auto& telemetry_session = system.TelemetrySession();
-    constexpr auto field = Telemetry::FieldType::UserSystem;
+    constexpr auto field = Common::Telemetry::FieldType::UserSystem;
     telemetry_session.AddField(field, "GPU_Vendor", vendor_name);
     telemetry_session.AddField(field, "GPU_Model", model_name);
     telemetry_session.AddField(field, "GPU_Vulkan_Driver", driver_name);

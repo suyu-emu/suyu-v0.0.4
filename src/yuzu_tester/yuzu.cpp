@@ -251,7 +251,8 @@ int main(int argc, char** argv) {
 
     Service::Yuzu::InstallInterfaces(system.ServiceManager(), datastring, callback);
 
-    system.TelemetrySession().AddField(Telemetry::FieldType::App, "Frontend", "SDLHideTester");
+    system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend",
+                                       "SDLHideTester");
 
     system.GPU().Start();
     system.Renderer().Rasterizer().LoadDiskResources();
