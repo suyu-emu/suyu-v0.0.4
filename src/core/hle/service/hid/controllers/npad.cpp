@@ -600,11 +600,11 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
     case 0:
         return LedPattern{1, 0, 0, 0};
     case 1:
-        return LedPattern{0, 1, 0, 0};
+        return LedPattern{1, 1, 0, 0};
     case 2:
-        return LedPattern{0, 0, 1, 0};
+        return LedPattern{1, 1, 1, 0};
     case 3:
-        return LedPattern{0, 0, 0, 1};
+        return LedPattern{1, 1, 1, 1};
     case 4:
         return LedPattern{1, 0, 0, 1};
     case 5:
