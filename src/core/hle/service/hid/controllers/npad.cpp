@@ -393,6 +393,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             break;
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
+            handheld_entry.connection_status.IsConnected.Assign(1);
             handheld_entry.connection_status.IsWired.Assign(1);
             handheld_entry.connection_status.IsLeftJoyConnected.Assign(1);
             handheld_entry.connection_status.IsRightJoyConnected.Assign(1);
@@ -423,21 +424,26 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         case NPadControllerType::JoyLeft:
             left_entry.connection_status.raw = 0;
             left_entry.connection_status.IsConnected.Assign(1);
+            left_entry.connection_status.IsLeftJoyConnected.Assign(1);
             left_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             left_entry.pad.l_stick = pad_state.l_stick;
             left_entry.pad.r_stick = pad_state.r_stick;
+
+            libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
             break;
         case NPadControllerType::JoyRight:
             right_entry.connection_status.raw = 0;
             right_entry.connection_status.IsConnected.Assign(1);
+            right_entry.connection_status.IsRightJoyConnected.Assign(1);
             right_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             right_entry.pad.l_stick = pad_state.l_stick;
             right_entry.pad.r_stick = pad_state.r_stick;
+
+            libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
             break;
         case NPadControllerType::Pokeball:
             pokeball_entry.connection_status.raw = 0;
             pokeball_entry.connection_status.IsConnected.Assign(1);
-            pokeball_entry.connection_status.IsWired.Assign(1);
             pokeball_entry.pad.pad_states.raw = pad_state.pad_states.raw;
             pokeball_entry.pad.l_stick = pad_state.l_stick;
             pokeball_entry.pad.r_stick = pad_state.r_stick;
