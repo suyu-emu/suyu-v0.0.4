@@ -37,7 +37,7 @@ public:
     ~ConfigureInput() override;
 
     /// Initializes the input dialog with the given input subsystem.
-    void Initialize(InputCommon::InputSubsystem* input_subsystem_);
+    void Initialize(InputCommon::InputSubsystem* input_subsystem_, std::size_t max_players = 8);
 
     /// Save all button configurations to settings file.
     void ApplyConfiguration();
