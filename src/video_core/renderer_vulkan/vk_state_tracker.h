@@ -32,7 +32,6 @@ enum : u8 {
     DepthWriteEnable,
     DepthCompareOp,
     FrontFace,
-    PrimitiveTopology,
     StencilOp,
     StencilTestEnable,
 
@@ -43,6 +42,8 @@ static_assert(Last <= std::numeric_limits<u8>::max());
 } // namespace Dirty
 
 class StateTracker {
+    using Maxwell = Tegra::Engines::Maxwell3D::Regs;
+
 public:
     explicit StateTracker(Core::System& system);
 
@@ -102,10 +103,6 @@ public:
         return Exchange(Dirty::FrontFace, false);
     }
 
-    bool TouchPrimitiveTopology() {
-        return Exchange(Dirty::PrimitiveTopology, false);
-    }
-
     bool TouchStencilOp() {
         return Exchange(Dirty::StencilOp, false);
     }
@@ -114,7 +111,15 @@ public:
         return Exchange(Dirty::StencilTestEnable, false);
     }
 
+    bool ChangePrimitiveTopology(Maxwell::PrimitiveTopology new_topology) {
+        const bool has_changed = current_topology != new_topology;
+        current_topology = new_topology;
+        return has_changed;
+    }
+
 private:
+    static constexpr auto INVALID_TOPOLOGY = static_cast<Maxwell::PrimitiveTopology>(~0u);
+
     bool Exchange(std::size_t id, bool new_value) const noexcept {
         auto& flags = system.GPU().Maxwell3D().dirty.flags;
         const bool is_dirty = flags[id];
@@ -124,6 +129,7 @@ private:
 
     Core::System& system;
     Tegra::Engines::Maxwell3D::DirtyState::Flags invalidation_flags;
+    Maxwell::PrimitiveTopology current_topology = INVALID_TOPOLOGY;
 };
 
 } // namespace Vulkan
