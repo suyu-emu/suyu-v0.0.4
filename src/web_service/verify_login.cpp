@@ -3,9 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <nlohmann/json.hpp>
-#include "common/web_result.h"
 #include "web_service/verify_login.h"
 #include "web_service/web_backend.h"
+#include "web_service/web_result.h"
 
 namespace WebService {
 
