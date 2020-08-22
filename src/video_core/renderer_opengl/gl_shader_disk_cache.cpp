@@ -214,20 +214,20 @@ std::optional<std::vector<ShaderDiskCacheEntry>> ShaderDiskCacheOpenGL::LoadTran
     // Skip games without title id
     const bool has_title_id = system.CurrentProcess()->GetTitleID() != 0;
     if (!Settings::values.use_disk_shader_cache.GetValue() || !has_title_id) {
-        return {};
+        return std::nullopt;
     }
 
     Common::FS::IOFile file(GetTransferablePath(), "rb");
     if (!file.IsOpen()) {
         LOG_INFO(Render_OpenGL, "No transferable shader cache found");
         is_usable = true;
-        return {};
+        return std::nullopt;
     }
 
     u32 version{};
     if (file.ReadBytes(&version, sizeof(version)) != sizeof(version)) {
         LOG_ERROR(Render_OpenGL, "Failed to get transferable cache version, skipping it");
-        return {};
+        return std::nullopt;
     }
 
     if (version < NativeVersion) {
@@ -235,12 +235,12 @@ std::optional<std::vector<ShaderDiskCacheEntry>> ShaderDiskCacheOpenGL::LoadTran
         file.Close();
         InvalidateTransferable();
         is_usable = true;
-        return {};
+        return std::nullopt;
     }
     if (version > NativeVersion) {
         LOG_WARNING(Render_OpenGL, "Transferable shader cache was generated with a newer version "
                                    "of the emulator, skipping");
-        return {};
+        return std::nullopt;
     }
 
     // Version is valid, load the shaders
@@ -249,7 +249,7 @@ std::optional<std::vector<ShaderDiskCacheEntry>> ShaderDiskCacheOpenGL::LoadTran
         ShaderDiskCacheEntry& entry = entries.emplace_back();
         if (!entry.Load(file)) {
             LOG_ERROR(Render_OpenGL, "Failed to load transferable raw entry, skipping");
-            return {};
+            return std::nullopt;
         }
     }
 
@@ -290,12 +290,12 @@ std::optional<std::vector<ShaderDiskCachePrecompiled>> ShaderDiskCacheOpenGL::Lo
     ShaderCacheVersionHash file_hash{};
     if (!LoadArrayFromPrecompiled(file_hash.data(), file_hash.size())) {
         precompiled_cache_virtual_file_offset = 0;
-        return {};
+        return std::nullopt;
     }
     if (GetShaderCacheVersionHash() != file_hash) {
         LOG_INFO(Render_OpenGL, "Precompiled cache is from another version of the emulator");
         precompiled_cache_virtual_file_offset = 0;
-        return {};
+        return std::nullopt;
     }
 
     std::vector<ShaderDiskCachePrecompiled> entries;
@@ -305,15 +305,16 @@ std::optional<std::vector<ShaderDiskCachePrecompiled>> ShaderDiskCacheOpenGL::Lo
         if (!LoadObjectFromPrecompiled(entry.unique_identifier) ||
             !LoadObjectFromPrecompiled(entry.binary_format) ||
             !LoadObjectFromPrecompiled(binary_size)) {
-            return {};
+            return std::nullopt;
         }
 
         entry.binary.resize(binary_size);
         if (!LoadArrayFromPrecompiled(entry.binary.data(), entry.binary.size())) {
-            return {};
+            return std::nullopt;
         }
     }
-    return entries;
+
+    return std::move(entries);
 }
 
 void ShaderDiskCacheOpenGL::InvalidateTransferable() {
