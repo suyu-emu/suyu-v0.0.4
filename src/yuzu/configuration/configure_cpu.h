@@ -26,6 +26,7 @@ private:
     void RetranslateUI();
 
     void AccuracyUpdated(int index);
+    void UpdateGroup(int index);
 
     void SetConfiguration();
 

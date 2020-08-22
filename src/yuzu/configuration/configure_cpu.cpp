@@ -19,6 +19,8 @@ ConfigureCpu::ConfigureCpu(QWidget* parent) : QWidget(parent), ui(new Ui::Config
 
     connect(ui->accuracy, qOverload<int>(&QComboBox::activated), this,
             &ConfigureCpu::AccuracyUpdated);
+    connect(ui->accuracy, qOverload<int>(&QComboBox::currentIndexChanged), this,
+            &ConfigureCpu::UpdateGroup);
 }
 
 ConfigureCpu::~ConfigureCpu() = default;
@@ -28,6 +30,12 @@ void ConfigureCpu::SetConfiguration() {
 
     ui->accuracy->setEnabled(runtime_lock);
     ui->accuracy->setCurrentIndex(static_cast<int>(Settings::values.cpu_accuracy));
+    UpdateGroup(static_cast<int>(Settings::values.cpu_accuracy));
+
+    ui->cpuopt_unsafe_unfuse_fma->setEnabled(runtime_lock);
+    ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma);
+    ui->cpuopt_unsafe_reduce_fp_error->setEnabled(runtime_lock);
+    ui->cpuopt_unsafe_reduce_fp_error->setChecked(Settings::values.cpuopt_unsafe_reduce_fp_error);
 }
 
 void ConfigureCpu::AccuracyUpdated(int index) {
@@ -38,14 +46,21 @@ void ConfigureCpu::AccuracyUpdated(int index) {
                                                  QMessageBox::Yes | QMessageBox::No);
         if (result == QMessageBox::No) {
             ui->accuracy->setCurrentIndex(static_cast<int>(Settings::CPUAccuracy::Accurate));
-            return;
+            UpdateGroup(static_cast<int>(Settings::CPUAccuracy::Accurate));
         }
     }
+}
+
+void ConfigureCpu::UpdateGroup(int index) {
+    ui->unsafe_group->setVisible(static_cast<Settings::CPUAccuracy>(index) ==
+                                 Settings::CPUAccuracy::Unsafe);
 }
 
 void ConfigureCpu::ApplyConfiguration() {
     Settings::values.cpu_accuracy =
         static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex());
+    Settings::values.cpuopt_unsafe_unfuse_fma = ui->cpuopt_unsafe_unfuse_fma->isChecked();
+    Settings::values.cpuopt_unsafe_reduce_fp_error = ui->cpuopt_unsafe_reduce_fp_error->isChecked();
 }
 
 void ConfigureCpu::changeEvent(QEvent* event) {
