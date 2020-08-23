@@ -7,10 +7,10 @@
 #include <string>
 #include <tuple>
 
-#include "common/assert.h"
 #include "common/microprofile.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
