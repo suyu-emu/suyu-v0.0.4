@@ -905,7 +905,14 @@ void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
     // Stub this to None for now, backend needs an impl to read/write the SaveDataExtraData
     constexpr auto flags = static_cast<u32>(FileSys::SaveDataFlags::None);
 
-    LOG_WARNING(Service_FS, "(STUBBED) called, flags={}", flags);
+    LOG_WARNING(Service_FS,
+                "(STUBBED) called, flags={}, space_id={}, attribute.title_id={:016X}\n"
+                "attribute.user_id={:016X}{:016X}, attribute.save_id={:016X}\n"
+                "attribute.type={}, attribute.rank={}, attribute.index={}",
+                flags, static_cast<u32>(parameters.space_id), parameters.attribute.title_id,
+                parameters.attribute.user_id[1], parameters.attribute.user_id[0],
+                parameters.attribute.save_id, static_cast<u32>(parameters.attribute.type),
+                static_cast<u32>(parameters.attribute.rank), parameters.attribute.index);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
