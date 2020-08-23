@@ -72,8 +72,10 @@ VfsEntryType RealVfsFilesystem::GetEntryType(std::string_view path_) const {
 
 VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    if (cache.find(path) != cache.end()) {
-        auto weak = cache[path];
+
+    if (const auto weak_iter = cache.find(path); weak_iter != cache.cend()) {
+        const auto& weak = weak_iter->second;
+
         if (!weak.expired()) {
             return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, weak.lock(), path, perms));
         }
@@ -84,7 +86,7 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
     }
 
     auto backing = std::make_shared<FS::IOFile>(path, ModeFlagsToString(perms).c_str());
-    cache[path] = backing;
+    cache.insert_or_assign(path, backing);
 
     // Cannot use make_shared as RealVfsFile constructor is private
     return std::shared_ptr<RealVfsFile>(new RealVfsFile(*this, backing, path, perms));
@@ -116,11 +118,12 @@ VirtualFile RealVfsFilesystem::CopyFile(std::string_view old_path_, std::string_
 VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_view new_path_) {
     const auto old_path = FS::SanitizePath(old_path_, FS::DirectorySeparator::PlatformDefault);
     const auto new_path = FS::SanitizePath(new_path_, FS::DirectorySeparator::PlatformDefault);
+    const auto cached_file_iter = cache.find(old_path);
 
-    if (cache.find(old_path) != cache.end()) {
-        auto file = cache[old_path].lock();
+    if (cached_file_iter != cache.cend()) {
+        auto file = cached_file_iter->second.lock();
 
-        if (!cache[old_path].expired()) {
+        if (!cached_file_iter->second.expired()) {
             file->Close();
         }
 
@@ -131,7 +134,7 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
 
         cache.erase(old_path);
         file->Open(new_path, "r+b");
-        cache[new_path] = file;
+        cache.insert_or_assign(new_path, std::move(file));
     } else {
         UNREACHABLE();
         return nullptr;
@@ -142,12 +145,15 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
 
 bool RealVfsFilesystem::DeleteFile(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    if (cache.find(path) != cache.end()) {
-        if (!cache[path].expired()) {
-            cache[path].lock()->Close();
+    const auto cached_iter = cache.find(path);
+
+    if (cached_iter != cache.cend()) {
+        if (!cached_iter->second.expired()) {
+            cached_iter->second.lock()->Close();
         }
         cache.erase(path);
     }
+
     return FS::Delete(path);
 }
 
@@ -192,21 +198,25 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
     }
 
     for (auto& kv : cache) {
-        // Path in cache starts with old_path
-        if (kv.first.rfind(old_path, 0) == 0) {
-            const auto file_old_path =
-                FS::SanitizePath(kv.first, FS::DirectorySeparator::PlatformDefault);
-            const auto file_new_path =
-                FS::SanitizePath(new_path + DIR_SEP + kv.first.substr(old_path.size()),
-                                 FS::DirectorySeparator::PlatformDefault);
-            auto cached = cache[file_old_path];
-            if (!cached.expired()) {
-                auto file = cached.lock();
-                file->Open(file_new_path, "r+b");
-                cache.erase(file_old_path);
-                cache[file_new_path] = file;
-            }
+        // If the path in the cache doesn't start with old_path, then bail on this file.
+        if (kv.first.rfind(old_path, 0) != 0) {
+            continue;
         }
+
+        const auto file_old_path =
+            FS::SanitizePath(kv.first, FS::DirectorySeparator::PlatformDefault);
+        auto file_new_path = FS::SanitizePath(new_path + DIR_SEP + kv.first.substr(old_path.size()),
+                                              FS::DirectorySeparator::PlatformDefault);
+        const auto& cached = cache[file_old_path];
+
+        if (cached.expired()) {
+            continue;
+        }
+
+        auto file = cached.lock();
+        file->Open(file_new_path, "r+b");
+        cache.erase(file_old_path);
+        cache.insert_or_assign(std::move(file_new_path), std::move(file));
     }
 
     return OpenDirectory(new_path, Mode::ReadWrite);
@@ -214,15 +224,21 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
 
 bool RealVfsFilesystem::DeleteDirectory(std::string_view path_) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
+
     for (auto& kv : cache) {
-        // Path in cache starts with old_path
-        if (kv.first.rfind(path, 0) == 0) {
-            if (!cache[kv.first].expired()) {
-                cache[kv.first].lock()->Close();
-            }
-            cache.erase(kv.first);
+        // If the path in the cache doesn't start with path, then bail on this file.
+        if (kv.first.rfind(path, 0) != 0) {
+            continue;
         }
+
+        const auto& entry = cache[kv.first];
+        if (!entry.expired()) {
+            entry.lock()->Close();
+        }
+
+        cache.erase(kv.first);
     }
+
     return FS::DeleteDirRecursively(path);
 }
 
@@ -260,14 +276,14 @@ bool RealVfsFile::IsReadable() const {
 }
 
 std::size_t RealVfsFile::Read(u8* data, std::size_t length, std::size_t offset) const {
-    if (!backing->Seek(offset, SEEK_SET)) {
+    if (!backing->Seek(static_cast<s64>(offset), SEEK_SET)) {
         return 0;
     }
     return backing->ReadBytes(data, length);
 }
 
 std::size_t RealVfsFile::Write(const u8* data, std::size_t length, std::size_t offset) {
-    if (!backing->Seek(offset, SEEK_SET)) {
+    if (!backing->Seek(static_cast<s64>(offset), SEEK_SET)) {
         return 0;
     }
     return backing->WriteBytes(data, length);
