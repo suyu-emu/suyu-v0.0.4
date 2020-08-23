@@ -8,7 +8,6 @@
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/registered_cache.h"
-#include "core/settings.h"
 
 namespace FileSys {
 

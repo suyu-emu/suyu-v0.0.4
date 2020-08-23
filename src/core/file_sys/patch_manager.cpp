@@ -49,8 +49,7 @@ std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
 }
 
-std::shared_ptr<VfsDirectory> FindSubdirectoryCaseless(const std::shared_ptr<VfsDirectory> dir,
-                                                       std::string_view name) {
+VirtualDir FindSubdirectoryCaseless(const VirtualDir dir, std::string_view name) {
 #ifdef _WIN32
     return dir->GetSubdirectory(name);
 #else

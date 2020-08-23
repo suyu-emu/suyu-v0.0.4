@@ -158,7 +158,7 @@ private:
     bool encrypted = false;
     bool is_update = false;
 
-    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
+    Core::Crypto::KeyManager& keys;
 };
 
 } // namespace FileSys

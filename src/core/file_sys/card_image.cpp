@@ -8,11 +8,11 @@
 #include <fmt/ostream.h>
 
 #include "common/logging/log.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/partition_filesystem.h"
-#include "core/file_sys/romfs.h"
 #include "core/file_sys/submission_package.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_offset.h"
@@ -31,7 +31,8 @@ constexpr std::array partition_names{
 
 XCI::XCI(VirtualFile file_)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
-      partitions(partition_names.size()), partitions_raw(partition_names.size()) {
+      partitions(partition_names.size()),
+      partitions_raw(partition_names.size()), keys{Core::Crypto::KeyManager::Instance()} {
     if (file->ReadObject(&header) != sizeof(GamecardHeader)) {
         status = Loader::ResultStatus::ErrorBadXCIHeader;
         return;

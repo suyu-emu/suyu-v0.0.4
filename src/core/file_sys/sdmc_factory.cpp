@@ -5,8 +5,8 @@
 #include <memory>
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/sdmc_factory.h"
+#include "core/file_sys/vfs.h"
 #include "core/file_sys/xts_archive.h"
-#include "core/settings.h"
 
 namespace FileSys {
 

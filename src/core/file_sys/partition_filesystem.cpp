@@ -21,7 +21,7 @@ bool PartitionFilesystem::Header::HasValidMagicValue() const {
            magic == Common::MakeMagic('P', 'F', 'S', '0');
 }
 
-PartitionFilesystem::PartitionFilesystem(std::shared_ptr<VfsFile> file) {
+PartitionFilesystem::PartitionFilesystem(VirtualFile file) {
     // At least be as large as the header
     if (file->GetSize() < sizeof(Header)) {
         status = Loader::ResultStatus::ErrorBadPFSHeader;
@@ -89,11 +89,11 @@ std::map<std::string, u64> PartitionFilesystem::GetFileSizes() const {
     return sizes;
 }
 
-std::vector<std::shared_ptr<VfsFile>> PartitionFilesystem::GetFiles() const {
+std::vector<VirtualFile> PartitionFilesystem::GetFiles() const {
     return pfs_files;
 }
 
-std::vector<std::shared_ptr<VfsDirectory>> PartitionFilesystem::GetSubdirectories() const {
+std::vector<VirtualDir> PartitionFilesystem::GetSubdirectories() const {
     return {};
 }
 
@@ -101,7 +101,7 @@ std::string PartitionFilesystem::GetName() const {
     return is_hfs ? "HFS0" : "PFS0";
 }
 
-std::shared_ptr<VfsDirectory> PartitionFilesystem::GetParentDirectory() const {
+VirtualDir PartitionFilesystem::GetParentDirectory() const {
     // TODO(DarkLordZach): Add support for nested containers.
     return nullptr;
 }

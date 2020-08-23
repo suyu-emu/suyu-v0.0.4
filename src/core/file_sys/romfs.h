@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <array>
 #include "core/file_sys/vfs.h"
 
 namespace FileSys {
