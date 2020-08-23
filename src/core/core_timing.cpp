@@ -37,10 +37,8 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming() {
-    clock =
-        Common::CreateBestMatchingClock(Core::Hardware::BASE_CLOCK_RATE, Core::Hardware::CNTFREQ);
-}
+CoreTiming::CoreTiming()
+    : clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
 
 CoreTiming::~CoreTiming() = default;
 
