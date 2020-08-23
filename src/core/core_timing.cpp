@@ -14,7 +14,7 @@
 
 namespace Core::Timing {
 
-constexpr u64 MAX_SLICE_LENGTH = 4000;
+constexpr s64 MAX_SLICE_LENGTH = 4000;
 
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
     return std::make_shared<EventType>(std::move(callback), std::move(name));
@@ -136,7 +136,7 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
 
 void CoreTiming::AddTicks(u64 ticks) {
     this->ticks += ticks;
-    downcount -= ticks;
+    downcount -= static_cast<s64>(ticks);
 }
 
 void CoreTiming::Idle() {
