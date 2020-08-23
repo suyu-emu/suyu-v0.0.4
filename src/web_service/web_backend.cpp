@@ -6,13 +6,14 @@
 #include <cstdlib>
 #include <mutex>
 #include <string>
+
 #include <LUrlParser.h>
 #include <fmt/format.h>
 #include <httplib.h>
-#include "common/common_types.h"
+
 #include "common/logging/log.h"
-#include "common/web_result.h"
 #include "web_service/web_backend.h"
+#include "web_service/web_result.h"
 
 namespace WebService {
 
@@ -33,17 +34,16 @@ struct Client::Impl {
     }
 
     /// A generic function handles POST, GET and DELETE request together
-    Common::WebResult GenericRequest(const std::string& method, const std::string& path,
-                                     const std::string& data, bool allow_anonymous,
-                                     const std::string& accept) {
+    WebResult GenericRequest(const std::string& method, const std::string& path,
+                             const std::string& data, bool allow_anonymous,
+                             const std::string& accept) {
         if (jwt.empty()) {
             UpdateJWT();
         }
 
         if (jwt.empty() && !allow_anonymous) {
             LOG_ERROR(WebService, "Credentials must be provided for authenticated requests");
-            return Common::WebResult{Common::WebResult::Code::CredentialsMissing,
-                                     "Credentials needed", ""};
+            return WebResult{WebResult::Code::CredentialsMissing, "Credentials needed", ""};
         }
 
         auto result = GenericRequest(method, path, data, accept, jwt);
@@ -62,10 +62,10 @@ struct Client::Impl {
      * username + token is used if jwt is empty but username and token are
      * not empty anonymous if all of jwt, username and token are empty
      */
-    Common::WebResult GenericRequest(const std::string& method, const std::string& path,
-                                     const std::string& data, const std::string& accept,
-                                     const std::string& jwt = "", const std::string& username = "",
-                                     const std::string& token = "") {
+    WebResult GenericRequest(const std::string& method, const std::string& path,
+                             const std::string& data, const std::string& accept,
+                             const std::string& jwt = "", const std::string& username = "",
+                             const std::string& token = "") {
         if (cli == nullptr) {
             auto parsedUrl = LUrlParser::clParseURL::ParseURL(host);
             int port;
@@ -81,12 +81,12 @@ struct Client::Impl {
                 cli = std::make_unique<httplib::SSLClient>(parsedUrl.m_Host.c_str(), port);
             } else {
                 LOG_ERROR(WebService, "Bad URL scheme {}", parsedUrl.m_Scheme);
-                return Common::WebResult{Common::WebResult::Code::InvalidURL, "Bad URL scheme", ""};
+                return WebResult{WebResult::Code::InvalidURL, "Bad URL scheme", ""};
             }
         }
         if (cli == nullptr) {
             LOG_ERROR(WebService, "Invalid URL {}", host + path);
-            return Common::WebResult{Common::WebResult::Code::InvalidURL, "Invalid URL", ""};
+            return WebResult{WebResult::Code::InvalidURL, "Invalid URL", ""};
         }
         cli->set_timeout_sec(TIMEOUT_SECONDS);
 
@@ -106,7 +106,7 @@ struct Client::Impl {
                        std::string(API_VERSION.begin(), API_VERSION.end()));
         if (method != "GET") {
             params.emplace(std::string("Content-Type"), std::string("application/json"));
-        };
+        }
 
         httplib::Request request;
         request.method = method;
@@ -118,29 +118,28 @@ struct Client::Impl {
 
         if (!cli->send(request, response)) {
             LOG_ERROR(WebService, "{} to {} returned null", method, host + path);
-            return Common::WebResult{Common::WebResult::Code::LibError, "Null response", ""};
+            return WebResult{WebResult::Code::LibError, "Null response", ""};
         }
 
         if (response.status >= 400) {
             LOG_ERROR(WebService, "{} to {} returned error status code: {}", method, host + path,
                       response.status);
-            return Common::WebResult{Common::WebResult::Code::HttpError,
-                                     std::to_string(response.status), ""};
+            return WebResult{WebResult::Code::HttpError, std::to_string(response.status), ""};
         }
 
         auto content_type = response.headers.find("content-type");
 
         if (content_type == response.headers.end()) {
             LOG_ERROR(WebService, "{} to {} returned no content", method, host + path);
-            return Common::WebResult{Common::WebResult::Code::WrongContent, "", ""};
+            return WebResult{WebResult::Code::WrongContent, "", ""};
         }
 
         if (content_type->second.find(accept) == std::string::npos) {
             LOG_ERROR(WebService, "{} to {} returned wrong content: {}", method, host + path,
                       content_type->second);
-            return Common::WebResult{Common::WebResult::Code::WrongContent, "Wrong content", ""};
+            return WebResult{WebResult::Code::WrongContent, "Wrong content", ""};
         }
-        return Common::WebResult{Common::WebResult::Code::Success, "", response.body};
+        return WebResult{WebResult::Code::Success, "", response.body};
     }
 
     // Retrieve a new JWT from given username and token
@@ -150,7 +149,7 @@ struct Client::Impl {
         }
 
         auto result = GenericRequest("POST", "/jwt/internal", "", "text/html", "", username, token);
-        if (result.result_code != Common::WebResult::Code::Success) {
+        if (result.result_code != WebResult::Code::Success) {
             LOG_ERROR(WebService, "UpdateJWT failed");
         } else {
             std::lock_guard lock{jwt_cache.mutex};
@@ -180,29 +179,28 @@ Client::Client(std::string host, std::string username, std::string token)
 
 Client::~Client() = default;
 
-Common::WebResult Client::PostJson(const std::string& path, const std::string& data,
-                                   bool allow_anonymous) {
+WebResult Client::PostJson(const std::string& path, const std::string& data, bool allow_anonymous) {
     return impl->GenericRequest("POST", path, data, allow_anonymous, "application/json");
 }
 
-Common::WebResult Client::GetJson(const std::string& path, bool allow_anonymous) {
+WebResult Client::GetJson(const std::string& path, bool allow_anonymous) {
     return impl->GenericRequest("GET", path, "", allow_anonymous, "application/json");
 }
 
-Common::WebResult Client::DeleteJson(const std::string& path, const std::string& data,
-                                     bool allow_anonymous) {
+WebResult Client::DeleteJson(const std::string& path, const std::string& data,
+                             bool allow_anonymous) {
     return impl->GenericRequest("DELETE", path, data, allow_anonymous, "application/json");
 }
 
-Common::WebResult Client::GetPlain(const std::string& path, bool allow_anonymous) {
+WebResult Client::GetPlain(const std::string& path, bool allow_anonymous) {
     return impl->GenericRequest("GET", path, "", allow_anonymous, "text/plain");
 }
 
-Common::WebResult Client::GetImage(const std::string& path, bool allow_anonymous) {
+WebResult Client::GetImage(const std::string& path, bool allow_anonymous) {
     return impl->GenericRequest("GET", path, "", allow_anonymous, "image/png");
 }
 
-Common::WebResult Client::GetExternalJWT(const std::string& audience) {
+WebResult Client::GetExternalJWT(const std::string& audience) {
     return impl->GenericRequest("POST", fmt::format("/jwt/external/{}", audience), "", false,
                                 "text/html");
 }

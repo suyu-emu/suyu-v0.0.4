@@ -5,6 +5,7 @@ add_library(web_service STATIC
     verify_login.h
     web_backend.cpp
     web_backend.h
+    web_result.h
 )
 
 create_target_directory_groups(web_service)

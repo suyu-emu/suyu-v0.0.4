@@ -7,11 +7,9 @@
 #include <memory>
 #include <string>
 
-namespace Common {
-struct WebResult;
-}
-
 namespace WebService {
+
+struct WebResult;
 
 class Client {
 public:
@@ -25,8 +23,7 @@ public:
      * @param allow_anonymous If true, allow anonymous unauthenticated requests.
      * @return the result of the request.
      */
-    Common::WebResult PostJson(const std::string& path, const std::string& data,
-                               bool allow_anonymous);
+    WebResult PostJson(const std::string& path, const std::string& data, bool allow_anonymous);
 
     /**
      * Gets JSON from the specified path.
@@ -34,7 +31,7 @@ public:
      * @param allow_anonymous If true, allow anonymous unauthenticated requests.
      * @return the result of the request.
      */
-    Common::WebResult GetJson(const std::string& path, bool allow_anonymous);
+    WebResult GetJson(const std::string& path, bool allow_anonymous);
 
     /**
      * Deletes JSON to the specified path.
@@ -43,8 +40,7 @@ public:
      * @param allow_anonymous If true, allow anonymous unauthenticated requests.
      * @return the result of the request.
      */
-    Common::WebResult DeleteJson(const std::string& path, const std::string& data,
-                                 bool allow_anonymous);
+    WebResult DeleteJson(const std::string& path, const std::string& data, bool allow_anonymous);
 
     /**
      * Gets a plain string from the specified path.
@@ -52,7 +48,7 @@ public:
      * @param allow_anonymous If true, allow anonymous unauthenticated requests.
      * @return the result of the request.
      */
-    Common::WebResult GetPlain(const std::string& path, bool allow_anonymous);
+    WebResult GetPlain(const std::string& path, bool allow_anonymous);
 
     /**
      * Gets an PNG image from the specified path.
@@ -60,14 +56,14 @@ public:
      * @param allow_anonymous If true, allow anonymous unauthenticated requests.
      * @return the result of the request.
      */
-    Common::WebResult GetImage(const std::string& path, bool allow_anonymous);
+    WebResult GetImage(const std::string& path, bool allow_anonymous);
 
     /**
      * Requests an external JWT for the specific audience provided.
      * @param audience the audience of the JWT requested.
      * @return the result of the request.
      */
-    Common::WebResult GetExternalJWT(const std::string& audience);
+    WebResult GetExternalJWT(const std::string& audience);
 
 private:
     struct Impl;

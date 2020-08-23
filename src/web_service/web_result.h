@@ -7,7 +7,7 @@
 #include <string>
 #include "common/common_types.h"
 
-namespace Common {
+namespace WebService {
 struct WebResult {
     enum class Code : u32 {
         Success,
@@ -22,4 +22,4 @@ struct WebResult {
     std::string result_string;
     std::string returned_data;
 };
-} // namespace Common
+} // namespace WebService
