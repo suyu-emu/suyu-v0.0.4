@@ -86,6 +86,16 @@ constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
 
 QString GetKeyName(int key_code) {
     switch (key_code) {
+    case Qt::LeftButton:
+        return QObject::tr("Click 0");
+    case Qt::RightButton:
+        return QObject::tr("Click 1");
+    case Qt::MiddleButton:
+        return QObject::tr("Click 2");
+    case Qt::BackButton:
+        return QObject::tr("Click 3");
+    case Qt::ForwardButton:
+        return QObject::tr("Click 4");
     case Qt::Key_Shift:
         return QObject::tr("Shift");
     case Qt::Key_Control:
@@ -648,9 +658,9 @@ void ConfigureInputPlayer::HandleClick(
     button->setText(tr("[waiting]"));
     button->setFocus();
 
-    // The first two input devices are always Any and Keyboard. If the user filtered to a
-    // controller, then they don't want keyboard input
-    want_keyboard_keys = ui->comboDevices->currentIndex() < 2;
+    // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
+    // controller, then they don't want keyboard/mouse input
+    want_keyboard_mouse = ui->comboDevices->currentIndex() < 2;
 
     input_setter = new_input_setter;
 
@@ -659,6 +669,9 @@ void ConfigureInputPlayer::HandleClick(
     for (auto& poller : device_pollers) {
         poller->Start();
     }
+
+    QWidget::grabMouse();
+    QWidget::grabKeyboard();
 
     if (type == InputCommon::Polling::DeviceType::Button) {
         InputCommon::GetGCButtons()->BeginConfiguration();
@@ -677,6 +690,9 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
         poller->Stop();
     }
 
+    QWidget::releaseMouse();
+    QWidget::releaseKeyboard();
+
     InputCommon::GetGCButtons()->EndConfiguration();
     InputCommon::GetGCAnalogs()->EndConfiguration();
 
@@ -688,13 +704,29 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
     input_setter = std::nullopt;
 }
 
+void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    if (want_keyboard_mouse) {
+        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
+                         false);
+    } else {
+        // We don't want any mouse buttons, so don't stop polling
+        return;
+    }
+
+    SetPollingResult({}, true);
+}
+
 void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
     if (!input_setter || !event) {
         return;
     }
 
     if (event->key() != Qt::Key_Escape) {
-        if (want_keyboard_keys) {
+        if (want_keyboard_mouse) {
             SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
                              false);
         } else {
@@ -702,6 +734,7 @@ void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
             return;
         }
     }
+
     SetPollingResult({}, true);
 }
 

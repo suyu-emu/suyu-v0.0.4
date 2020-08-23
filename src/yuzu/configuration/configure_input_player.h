@@ -85,6 +85,9 @@ private:
     /// Finish polling and configure input using the input_setter.
     void SetPollingResult(const Common::ParamPackage& params, bool abort);
 
+    /// Handle mouse button press events.
+    void mousePressEvent(QMouseEvent* event) override;
+
     /// Handle key press events.
     void keyPressEvent(QKeyEvent* event) override;
 
@@ -150,7 +153,7 @@ private:
 
     /// A flag to indicate if keyboard keys are okay when configuring an input. If this is false,
     /// keyboard events are ignored.
-    bool want_keyboard_keys = false;
+    bool want_keyboard_mouse = false;
 
     /// List of physical devices users can map with. If a SDL backed device is selected, then you
     /// can usue this device to get a default mapping.

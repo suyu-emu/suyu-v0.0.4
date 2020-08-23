@@ -18,6 +18,16 @@
 
 static QString GetKeyName(int key_code) {
     switch (key_code) {
+    case Qt::LeftButton:
+        return QObject::tr("Click 0");
+    case Qt::RightButton:
+        return QObject::tr("Click 1");
+    case Qt::MiddleButton:
+        return QObject::tr("Click 2");
+    case Qt::BackButton:
+        return QObject::tr("Click 3");
+    case Qt::ForwardButton:
+        return QObject::tr("Click 4");
     case Qt::Key_Shift:
         return QObject::tr("Shift");
     case Qt::Key_Control:
@@ -188,9 +198,9 @@ void ConfigureMouseAdvanced::HandleClick(
     button->setText(tr("[press key]"));
     button->setFocus();
 
-    // Keyboard keys can only be used as button devices
-    want_keyboard_keys = type == InputCommon::Polling::DeviceType::Button;
-    if (want_keyboard_keys) {
+    // Keyboard keys or mouse buttons can only be used as button devices
+    want_keyboard_mouse = type == InputCommon::Polling::DeviceType::Button;
+    if (want_keyboard_mouse) {
         const auto iter = std::find(button_map.begin(), button_map.end(), button);
         ASSERT(iter != button_map.end());
         const auto index = std::distance(button_map.begin(), iter);
@@ -205,6 +215,9 @@ void ConfigureMouseAdvanced::HandleClick(
         poller->Start();
     }
 
+    QWidget::grabMouse();
+    QWidget::grabKeyboard();
+
     timeout_timer->start(2500); // Cancel after 2.5 seconds
     poll_timer->start(50);      // Check for new inputs every 50ms
 }
@@ -216,6 +229,9 @@ void ConfigureMouseAdvanced::SetPollingResult(const Common::ParamPackage& params
         poller->Stop();
     }
 
+    QWidget::releaseMouse();
+    QWidget::releaseKeyboard();
+
     if (!abort) {
         (*input_setter)(params);
     }
@@ -224,13 +240,29 @@ void ConfigureMouseAdvanced::SetPollingResult(const Common::ParamPackage& params
     input_setter = std::nullopt;
 }
 
+void ConfigureMouseAdvanced::mousePressEvent(QMouseEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    if (want_keyboard_mouse) {
+        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
+                         false);
+    } else {
+        // We don't want any mouse buttons, so don't stop polling
+        return;
+    }
+
+    SetPollingResult({}, true);
+}
+
 void ConfigureMouseAdvanced::keyPressEvent(QKeyEvent* event) {
     if (!input_setter || !event) {
         return;
     }
 
     if (event->key() != Qt::Key_Escape) {
-        if (want_keyboard_keys) {
+        if (want_keyboard_mouse) {
             SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
                              false);
         } else {
