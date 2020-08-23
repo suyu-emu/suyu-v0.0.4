@@ -124,11 +124,9 @@ private:
     std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> analogs_param;
 
     static constexpr int ANALOG_SUB_BUTTONS_NUM = 4;
-    // Adds room for two extra push buttons LStick Modifier and RStick Modifier.
-    static constexpr int BUTTON_MAP_COUNT = Settings::NativeButton::NumButtons + 2;
 
     /// Each button input is represented by a QPushButton.
-    std::array<QPushButton*, BUTTON_MAP_COUNT> button_map;
+    std::array<QPushButton*, Settings::NativeButton::NumButtons> button_map;
     /// Extra buttons for the modifiers.
     Common::ParamPackage lstick_mod;
     Common::ParamPackage rstick_mod;
@@ -141,7 +139,6 @@ private:
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_groupbox;
-    std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_button;
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_range_groupbox;
