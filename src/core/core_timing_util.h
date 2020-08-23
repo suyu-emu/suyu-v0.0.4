@@ -6,7 +6,6 @@
 
 #include <chrono>
 #include "common/common_types.h"
-#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 

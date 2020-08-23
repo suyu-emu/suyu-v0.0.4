@@ -7,14 +7,14 @@
 #include <string>
 #include <tuple>
 
-#include "common/assert.h"
 #include "common/microprofile.h"
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
+#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
-constexpr u64 MAX_SLICE_LENGTH = 4000;
+constexpr s64 MAX_SLICE_LENGTH = 4000;
 
 std::shared_ptr<EventType> CreateEvent(std::string name, TimedCallback&& callback) {
     return std::make_shared<EventType>(std::move(callback), std::move(name));
@@ -37,10 +37,8 @@ struct CoreTiming::Event {
     }
 };
 
-CoreTiming::CoreTiming() {
-    clock =
-        Common::CreateBestMatchingClock(Core::Hardware::BASE_CLOCK_RATE, Core::Hardware::CNTFREQ);
-}
+CoreTiming::CoreTiming()
+    : clock{Common::CreateBestMatchingClock(Hardware::BASE_CLOCK_RATE, Hardware::CNTFREQ)} {}
 
 CoreTiming::~CoreTiming() = default;
 
@@ -136,7 +134,7 @@ void CoreTiming::UnscheduleEvent(const std::shared_ptr<EventType>& event_type,
 
 void CoreTiming::AddTicks(u64 ticks) {
     this->ticks += ticks;
-    downcount -= ticks;
+    downcount -= static_cast<s64>(ticks);
 }
 
 void CoreTiming::Idle() {

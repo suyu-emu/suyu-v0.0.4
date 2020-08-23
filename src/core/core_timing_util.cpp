@@ -8,6 +8,7 @@
 #include <limits>
 #include "common/logging/log.h"
 #include "common/uint128.h"
+#include "core/hardware_properties.h"
 
 namespace Core::Timing {
 
