@@ -844,8 +844,7 @@ void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    FileSys::StorageId id;
-
+    FileSys::StorageId id{};
     switch (parameters.space_id) {
     case FileSys::SaveDataSpaceId::NandUser:
         id = FileSys::StorageId::NandUser;
@@ -857,6 +856,10 @@ void FSP_SRV::OpenSaveDataFileSystem(Kernel::HLERequestContext& ctx) {
     case FileSys::SaveDataSpaceId::NandSystem:
         id = FileSys::StorageId::NandSystem;
         break;
+    case FileSys::SaveDataSpaceId::TemporaryStorage:
+    case FileSys::SaveDataSpaceId::ProperSystem:
+    case FileSys::SaveDataSpaceId::SafeMode:
+        UNREACHABLE();
     }
 
     auto filesystem =
