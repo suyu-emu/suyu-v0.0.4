@@ -36,6 +36,7 @@
 #include "core/settings.h"
 
 namespace Core::Crypto {
+namespace {
 
 constexpr u64 CURRENT_CRYPTO_REVISION = 0x5;
 constexpr u64 FULL_TICKET_SIZE = 0x400;
@@ -49,7 +50,72 @@ constexpr std::array eticket_source_hashes{
 };
 // clang-format on
 
-const std::map<std::pair<S128KeyType, u64>, std::string> KEYS_VARIABLE_LENGTH{
+constexpr std::array<std::pair<std::string_view, KeyIndex<S128KeyType>>, 30> s128_file_id{{
+    {"eticket_rsa_kek", {S128KeyType::ETicketRSAKek, 0, 0}},
+    {"eticket_rsa_kek_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKek), 0}},
+    {"eticket_rsa_kekek_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKekek), 0}},
+    {"rsa_kek_mask_0", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Mask0), 0}},
+    {"rsa_kek_seed_3", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Seed3), 0}},
+    {"rsa_oaep_kek_generation_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::RSAOaepKekGeneration), 0}},
+    {"sd_card_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKek), 0}},
+    {"aes_kek_generation_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration), 0}},
+    {"aes_key_generation_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration), 0}},
+    {"package2_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Package2), 0}},
+    {"master_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Master), 0}},
+    {"header_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::HeaderKek), 0}},
+    {"key_area_key_application_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::Application)}},
+    {"key_area_key_ocean_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::Ocean)}},
+    {"key_area_key_system_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
+      static_cast<u64>(KeyAreaKeyType::System)}},
+    {"titlekek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Titlekek), 0}},
+    {"keyblob_mac_key_source",
+     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyblobMAC), 0}},
+    {"tsec_key", {S128KeyType::TSEC, 0, 0}},
+    {"secure_boot_key", {S128KeyType::SecureBoot, 0, 0}},
+    {"sd_seed", {S128KeyType::SDSeed, 0, 0}},
+    {"bis_key_0_crypt", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_0_tweak", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_1_crypt", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_1_tweak", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_2_crypt", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_2_tweak", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Tweak)}},
+    {"bis_key_3_crypt", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Crypto)}},
+    {"bis_key_3_tweak", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Tweak)}},
+    {"header_kek", {S128KeyType::HeaderKek, 0, 0}},
+    {"sd_card_kek", {S128KeyType::SDKek, 0, 0}},
+}};
+
+auto Find128ByName(std::string_view name) {
+    return std::find_if(s128_file_id.begin(), s128_file_id.end(),
+                        [&name](const auto& pair) { return pair.first == name; });
+}
+
+constexpr std::array<std::pair<std::string_view, KeyIndex<S256KeyType>>, 6> s256_file_id{{
+    {"header_key", {S256KeyType::Header, 0, 0}},
+    {"sd_card_save_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::Save), 0}},
+    {"sd_card_nca_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::NCA), 0}},
+    {"header_key_source", {S256KeyType::HeaderSource, 0, 0}},
+    {"sd_card_save_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::Save), 0}},
+    {"sd_card_nca_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::NCA), 0}},
+}};
+
+auto Find256ByName(std::string_view name) {
+    return std::find_if(s256_file_id.begin(), s256_file_id.end(),
+                        [&name](const auto& pair) { return pair.first == name; });
+}
+
+using KeyArray = std::array<std::pair<std::pair<S128KeyType, u64>, std::string_view>, 7>;
+constexpr KeyArray KEYS_VARIABLE_LENGTH{{
     {{S128KeyType::Master, 0}, "master_key_"},
     {{S128KeyType::Package1, 0}, "package1_key_"},
     {{S128KeyType::Package2, 0}, "package2_key_"},
@@ -57,14 +123,13 @@ const std::map<std::pair<S128KeyType, u64>, std::string> KEYS_VARIABLE_LENGTH{
     {{S128KeyType::Source, static_cast<u64>(SourceKeyType::Keyblob)}, "keyblob_key_source_"},
     {{S128KeyType::Keyblob, 0}, "keyblob_key_"},
     {{S128KeyType::KeyblobMAC, 0}, "keyblob_mac_key_"},
-};
+}};
 
-namespace {
 template <std::size_t Size>
 bool IsAllZeroArray(const std::array<u8, Size>& array) {
     return std::all_of(array.begin(), array.end(), [](const auto& elem) { return elem == 0; });
 }
-} // namespace
+} // Anonymous namespace
 
 u64 GetSignatureTypeDataSize(SignatureType type) {
     switch (type) {
@@ -564,13 +629,13 @@ void KeyManager::LoadFromFile(const std::string& filename, bool is_title_keys) {
             s128_keys[{S128KeyType::Titlekey, rights_id[1], rights_id[0]}] = key;
         } else {
             out[0] = Common::ToLower(out[0]);
-            if (s128_file_id.find(out[0]) != s128_file_id.end()) {
-                const auto index = s128_file_id.at(out[0]);
-                Key128 key = Common::HexStringToArray<16>(out[1]);
+            if (const auto iter128 = Find128ByName(out[0]); iter128 != s128_file_id.end()) {
+                const auto& index = iter128->second;
+                const Key128 key = Common::HexStringToArray<16>(out[1]);
                 s128_keys[{index.type, index.field1, index.field2}] = key;
-            } else if (s256_file_id.find(out[0]) != s256_file_id.end()) {
-                const auto index = s256_file_id.at(out[0]);
-                Key256 key = Common::HexStringToArray<32>(out[1]);
+            } else if (const auto iter256 = Find256ByName(out[0]); iter256 != s256_file_id.end()) {
+                const auto& index = iter256->second;
+                const Key256 key = Common::HexStringToArray<32>(out[1]);
                 s256_keys[{index.type, index.field1, index.field2}] = key;
             } else if (out[0].compare(0, 8, "keyblob_") == 0 &&
                        out[0].compare(0, 9, "keyblob_k") != 0) {
@@ -742,8 +807,7 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
     }
 
     const auto iter2 = std::find_if(
-        s128_file_id.begin(), s128_file_id.end(),
-        [&id, &field1, &field2](const std::pair<std::string, KeyIndex<S128KeyType>> elem) {
+        s128_file_id.begin(), s128_file_id.end(), [&id, &field1, &field2](const auto& elem) {
             return std::tie(elem.second.type, elem.second.field1, elem.second.field2) ==
                    std::tie(id, field1, field2);
         });
@@ -753,9 +817,11 @@ void KeyManager::SetKey(S128KeyType id, Key128 key, u64 field1, u64 field2) {
 
     // Variable cases
     if (id == S128KeyType::KeyArea) {
-        static constexpr std::array<const char*, 3> kak_names = {"key_area_key_application_{:02X}",
-                                                                 "key_area_key_ocean_{:02X}",
-                                                                 "key_area_key_system_{:02X}"};
+        static constexpr std::array<const char*, 3> kak_names = {
+            "key_area_key_application_{:02X}",
+            "key_area_key_ocean_{:02X}",
+            "key_area_key_system_{:02X}",
+        };
         WriteKeyToFile(category, fmt::format(kak_names.at(field2), field1), key);
     } else if (id == S128KeyType::Master) {
         WriteKeyToFile(category, fmt::format("master_key_{:02X}", field1), key);
@@ -781,8 +847,7 @@ void KeyManager::SetKey(S256KeyType id, Key256 key, u64 field1, u64 field2) {
         return;
     }
     const auto iter = std::find_if(
-        s256_file_id.begin(), s256_file_id.end(),
-        [&id, &field1, &field2](const std::pair<std::string, KeyIndex<S256KeyType>> elem) {
+        s256_file_id.begin(), s256_file_id.end(), [&id, &field1, &field2](const auto& elem) {
             return std::tie(elem.second.type, elem.second.field1, elem.second.field2) ==
                    std::tie(id, field1, field2);
         });
@@ -1245,58 +1310,4 @@ bool KeyManager::AddTicketPersonalized(Ticket raw) {
     SetKey(S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
     return true;
 }
-
-const boost::container::flat_map<std::string, KeyIndex<S128KeyType>> KeyManager::s128_file_id = {
-    {"eticket_rsa_kek", {S128KeyType::ETicketRSAKek, 0, 0}},
-    {"eticket_rsa_kek_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKek), 0}},
-    {"eticket_rsa_kekek_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::ETicketKekek), 0}},
-    {"rsa_kek_mask_0", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Mask0), 0}},
-    {"rsa_kek_seed_3", {S128KeyType::RSAKek, static_cast<u64>(RSAKekType::Seed3), 0}},
-    {"rsa_oaep_kek_generation_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::RSAOaepKekGeneration), 0}},
-    {"sd_card_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::SDKek), 0}},
-    {"aes_kek_generation_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKekGeneration), 0}},
-    {"aes_key_generation_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::AESKeyGeneration), 0}},
-    {"package2_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Package2), 0}},
-    {"master_key_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Master), 0}},
-    {"header_kek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::HeaderKek), 0}},
-    {"key_area_key_application_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
-      static_cast<u64>(KeyAreaKeyType::Application)}},
-    {"key_area_key_ocean_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
-      static_cast<u64>(KeyAreaKeyType::Ocean)}},
-    {"key_area_key_system_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyAreaKey),
-      static_cast<u64>(KeyAreaKeyType::System)}},
-    {"titlekek_source", {S128KeyType::Source, static_cast<u64>(SourceKeyType::Titlekek), 0}},
-    {"keyblob_mac_key_source",
-     {S128KeyType::Source, static_cast<u64>(SourceKeyType::KeyblobMAC), 0}},
-    {"tsec_key", {S128KeyType::TSEC, 0, 0}},
-    {"secure_boot_key", {S128KeyType::SecureBoot, 0, 0}},
-    {"sd_seed", {S128KeyType::SDSeed, 0, 0}},
-    {"bis_key_0_crypt", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Crypto)}},
-    {"bis_key_0_tweak", {S128KeyType::BIS, 0, static_cast<u64>(BISKeyType::Tweak)}},
-    {"bis_key_1_crypt", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Crypto)}},
-    {"bis_key_1_tweak", {S128KeyType::BIS, 1, static_cast<u64>(BISKeyType::Tweak)}},
-    {"bis_key_2_crypt", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Crypto)}},
-    {"bis_key_2_tweak", {S128KeyType::BIS, 2, static_cast<u64>(BISKeyType::Tweak)}},
-    {"bis_key_3_crypt", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Crypto)}},
-    {"bis_key_3_tweak", {S128KeyType::BIS, 3, static_cast<u64>(BISKeyType::Tweak)}},
-    {"header_kek", {S128KeyType::HeaderKek, 0, 0}},
-    {"sd_card_kek", {S128KeyType::SDKek, 0, 0}},
-};
-
-const boost::container::flat_map<std::string, KeyIndex<S256KeyType>> KeyManager::s256_file_id = {
-    {"header_key", {S256KeyType::Header, 0, 0}},
-    {"sd_card_save_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::Save), 0}},
-    {"sd_card_nca_key_source", {S256KeyType::SDKeySource, static_cast<u64>(SDKeyType::NCA), 0}},
-    {"header_key_source", {S256KeyType::HeaderSource, 0, 0}},
-    {"sd_card_save_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::Save), 0}},
-    {"sd_card_nca_key", {S256KeyType::SDKey, static_cast<u64>(SDKeyType::NCA), 0}},
-};
 } // namespace Core::Crypto
