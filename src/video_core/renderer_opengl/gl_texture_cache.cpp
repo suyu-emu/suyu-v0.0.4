@@ -403,7 +403,7 @@ void CachedSurface::DecorateSurfaceName() {
     LabelGLObject(GL_TEXTURE, texture.handle, GetGpuAddr(), params.TargetName());
 }
 
-void CachedSurfaceView::DecorateViewName(GPUVAddr gpu_addr, std::string prefix) {
+void CachedSurfaceView::DecorateViewName(GPUVAddr gpu_addr, const std::string& prefix) {
     LabelGLObject(GL_TEXTURE, main_view.handle, gpu_addr, prefix);
 }
 
