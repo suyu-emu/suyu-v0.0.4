@@ -14,10 +14,16 @@ class MotionInput {
 public:
     MotionInput(f32 new_kp, f32 new_ki, f32 new_kd);
 
-    void SetAcceleration(Common::Vec3f acceleration);
-    void SetGyroscope(Common::Vec3f acceleration);
-    void SetQuaternion(Common::Quaternion<f32> quaternion);
-    void SetGyroDrift(Common::Vec3f drift);
+    MotionInput(const MotionInput&) = default;
+    MotionInput& operator=(const MotionInput&) = default;
+
+    MotionInput(MotionInput&&) = default;
+    MotionInput& operator=(MotionInput&&) = default;
+
+    void SetAcceleration(const Common::Vec3f& acceleration);
+    void SetGyroscope(const Common::Vec3f& acceleration);
+    void SetQuaternion(const Common::Quaternion<f32>& quaternion);
+    void SetGyroDrift(const Common::Vec3f& drift);
     void SetGyroThreshold(f32 threshold);
 
     void EnableReset(bool reset);
@@ -26,22 +32,22 @@ public:
     void UpdateRotation(u64 elapsed_time);
     void UpdateOrientation(u64 elapsed_time);
 
-    std::array<Common::Vec3f, 3> GetOrientation();
-    Common::Vec3f GetAcceleration();
-    Common::Vec3f GetGyroscope();
-    Common::Vec3f GetRotations();
-    Common::Quaternion<f32> GetQuaternion();
+    std::array<Common::Vec3f, 3> GetOrientation() const;
+    Common::Vec3f GetAcceleration() const;
+    Common::Vec3f GetGyroscope() const;
+    Common::Vec3f GetRotations() const;
+    Common::Quaternion<f32> GetQuaternion() const;
 
-    bool IsMoving(f32 sensitivity);
-    bool IsCalibrated(f32 sensitivity);
+    bool IsMoving(f32 sensitivity) const;
+    bool IsCalibrated(f32 sensitivity) const;
+
+private:
+    void ResetOrientation();
 
     // PID constants
     const f32 kp;
     const f32 ki;
     const f32 kd;
-
-private:
-    void resetOrientation();
 
     // PID errors
     Common::Vec3f real_error;
@@ -54,9 +60,9 @@ private:
     Common::Vec3f gyro;
     Common::Vec3f gyro_drift;
 
-    f32 gyro_threshold;
-    f32 reset_counter;
-    bool reset_enabled;
+    f32 gyro_threshold = 0.0f;
+    f32 reset_counter = 0.0f;
+    bool reset_enabled = true;
 };
 
 } // namespace InputCommon
