@@ -109,7 +109,7 @@ public:
     /**
      * IsGranularRange checks if a gpu region can be simply read with a pointer.
      */
-    bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size);
+    bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const;
 
     GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
     GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
