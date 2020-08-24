@@ -73,11 +73,11 @@ void AsyncShaders::KillWorkers() {
     worker_threads.clear();
 }
 
-bool AsyncShaders::HasWorkQueued() {
+bool AsyncShaders::HasWorkQueued() const {
     return !pending_queue.empty();
 }
 
-bool AsyncShaders::HasCompletedWork() {
+bool AsyncShaders::HasCompletedWork() const {
     std::shared_lock lock{completed_mutex};
     return !finished_work.empty();
 }
@@ -102,7 +102,7 @@ bool AsyncShaders::IsShaderAsync(const Tegra::GPU& gpu) const {
 }
 
 std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
-    std::vector<AsyncShaders::Result> results;
+    std::vector<Result> results;
     {
         std::unique_lock lock{completed_mutex};
         results.assign(std::make_move_iterator(finished_work.begin()),
