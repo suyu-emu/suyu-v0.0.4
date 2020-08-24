@@ -90,7 +90,7 @@ public:
                       Tegra::Texture::SwizzleSource z_source,
                       Tegra::Texture::SwizzleSource w_source);
 
-    void DecorateViewName(GPUVAddr gpu_addr, std::string prefix);
+    void DecorateViewName(GPUVAddr gpu_addr, const std::string& prefix);
 
     void MarkAsModified(u64 tick) {
         surface.MarkAsModified(true, tick);
