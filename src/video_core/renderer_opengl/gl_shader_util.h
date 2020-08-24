@@ -38,7 +38,7 @@ void LogShaderSource(T... shaders) {
  * @param source String of the GLSL shader program
  * @param type Type of the shader (GL_VERTEX_SHADER, GL_GEOMETRY_SHADER or GL_FRAGMENT_SHADER)
  */
-GLuint LoadShader(const char* source, GLenum type);
+GLuint LoadShader(std::string_view source, GLenum type);
 
 /**
  * Utility function to create and compile an OpenGL GLSL shader program (vertex + fragment shader)

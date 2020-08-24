@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <string_view>
 #include <utility>
 #include <glad/glad.h>
 #include "common/common_types.h"
@@ -82,11 +83,13 @@ void OGLSampler::Release() {
     handle = 0;
 }
 
-void OGLShader::Create(const char* source, GLenum type) {
-    if (handle != 0)
+void OGLShader::Create(std::string_view source, GLenum type) {
+    if (handle != 0) {
         return;
-    if (source == nullptr)
+    }
+    if (source.empty()) {
         return;
+    }
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
     handle = GLShader::LoadShader(source, type);
