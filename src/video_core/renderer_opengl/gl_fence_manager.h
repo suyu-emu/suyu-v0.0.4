@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include <glad/glad.h>
 
 #include "common/common_types.h"
 #include "video_core/fence_manager.h"

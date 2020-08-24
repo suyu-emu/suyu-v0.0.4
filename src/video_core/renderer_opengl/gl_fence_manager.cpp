@@ -4,16 +4,17 @@
 
 #include "common/assert.h"
 
+#include <glad/glad.h>
+
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_fence_manager.h"
 
 namespace OpenGL {
 
-GLInnerFence::GLInnerFence(u32 payload, bool is_stubbed)
-    : VideoCommon::FenceBase(payload, is_stubbed), sync_object{} {}
+GLInnerFence::GLInnerFence(u32 payload, bool is_stubbed) : FenceBase(payload, is_stubbed) {}
 
 GLInnerFence::GLInnerFence(GPUVAddr address, u32 payload, bool is_stubbed)
-    : VideoCommon::FenceBase(address, payload, is_stubbed), sync_object{} {}
+    : FenceBase(address, payload, is_stubbed) {}
 
 GLInnerFence::~GLInnerFence() = default;
 

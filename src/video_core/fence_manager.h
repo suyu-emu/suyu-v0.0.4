@@ -5,15 +5,10 @@
 #pragma once
 
 #include <algorithm>
-#include <array>
-#include <memory>
 #include <queue>
 
-#include "common/assert.h"
 #include "common/common_types.h"
 #include "core/core.h"
-#include "core/memory.h"
-#include "core/settings.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
