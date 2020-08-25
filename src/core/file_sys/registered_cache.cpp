@@ -257,8 +257,7 @@ std::vector<NcaID> PlaceholderCache::List() const {
     for (const auto& sdir : dir->GetSubdirectories()) {
         for (const auto& file : sdir->GetFiles()) {
             const auto name = file->GetName();
-            if (name.length() == 36 && name[32] == '.' && name[33] == 'n' && name[34] == 'c' &&
-                name[35] == 'a') {
+            if (name.length() == 36 && name.ends_with(".nca")) {
                 out.push_back(Common::HexStringToArray<0x10>(name.substr(0, 32)));
             }
         }
@@ -621,25 +620,25 @@ InstallResult RegisteredCache::InstallEntry(const NSP& nsp, bool overwrite_if_ex
 
 InstallResult RegisteredCache::InstallEntry(const NCA& nca, TitleType type,
                                             bool overwrite_if_exists, const VfsCopyFunction& copy) {
-    CNMTHeader header{
-        nca.GetTitleId(), // Title ID
-        0,                // Ignore/Default title version
-        type,             // Type
-        {},               // Padding
-        0x10,             // Default table offset
-        1,                // 1 Content Entry
-        0,                // No Meta Entries
-        {},               // Padding
-        {},               // Reserved 1
-        0,                // Is committed
-        0,                // Required download system version
-        {},               // Reserved 2
+    const CNMTHeader header{
+        .title_id = nca.GetTitleId(),
+        .title_version = 0,
+        .type = type,
+        .reserved = {},
+        .table_offset = 0x10,
+        .number_content_entries = 1,
+        .number_meta_entries = 0,
+        .attributes = 0,
+        .reserved2 = {},
+        .is_committed = 0,
+        .required_download_system_version = 0,
+        .reserved3 = {},
     };
-    OptionalHeader opt_header{0, 0};
+    const OptionalHeader opt_header{0, 0};
     ContentRecord c_rec{{}, {}, {}, GetCRTypeFromNCAType(nca.GetType()), {}};
     const auto& data = nca.GetBaseFile()->ReadBytes(0x100000);
     mbedtls_sha256_ret(data.data(), data.size(), c_rec.hash.data(), 0);
-    memcpy(&c_rec.nca_id, &c_rec.hash, 16);
+    std::memcpy(&c_rec.nca_id, &c_rec.hash, 16);
     const CNMT new_cnmt(header, opt_header, {c_rec}, {});
     if (!RawInstallYuzuMeta(new_cnmt)) {
         return InstallResult::ErrorMetaFailed;
