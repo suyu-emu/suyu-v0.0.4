@@ -27,20 +27,27 @@ namespace Tegra {
 
 MICROPROFILE_DEFINE(GPU_wait, "GPU", "Wait for the GPU", MP_RGB(128, 128, 192));
 
-GPU::GPU(Core::System& system, std::unique_ptr<VideoCore::RendererBase>&& renderer_, bool is_async)
-    : system{system}, renderer{std::move(renderer_)}, is_async{is_async} {
-    auto& rasterizer{renderer->Rasterizer()};
-    memory_manager = std::make_unique<Tegra::MemoryManager>(system, rasterizer);
-    dma_pusher = std::make_unique<Tegra::DmaPusher>(system, *this);
-    maxwell_3d = std::make_unique<Engines::Maxwell3D>(system, rasterizer, *memory_manager);
-    fermi_2d = std::make_unique<Engines::Fermi2D>(rasterizer);
-    kepler_compute = std::make_unique<Engines::KeplerCompute>(system, rasterizer, *memory_manager);
-    maxwell_dma = std::make_unique<Engines::MaxwellDMA>(system, *memory_manager);
-    kepler_memory = std::make_unique<Engines::KeplerMemory>(system, *memory_manager);
-    shader_notify = std::make_unique<VideoCore::ShaderNotify>();
-}
+GPU::GPU(Core::System& system_, bool is_async_)
+    : system{system_}, dma_pusher{std::make_unique<Tegra::DmaPusher>(system, *this)},
+      memory_manager{std::make_unique<Tegra::MemoryManager>(system)},
+      maxwell_3d{std::make_unique<Engines::Maxwell3D>(system, *memory_manager)},
+      fermi_2d{std::make_unique<Engines::Fermi2D>()},
+      kepler_compute{std::make_unique<Engines::KeplerCompute>(system, *memory_manager)},
+      maxwell_dma{std::make_unique<Engines::MaxwellDMA>(system, *memory_manager)},
+      kepler_memory{std::make_unique<Engines::KeplerMemory>(system, *memory_manager)},
+      shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_} {}
 
 GPU::~GPU() = default;
+
+void GPU::BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer_) {
+    renderer = std::move(renderer_);
+
+    VideoCore::RasterizerInterface& rasterizer = renderer->Rasterizer();
+    memory_manager->BindRasterizer(rasterizer);
+    maxwell_3d->BindRasterizer(rasterizer);
+    fermi_2d->BindRasterizer(rasterizer);
+    kepler_compute->BindRasterizer(rasterizer);
+}
 
 Engines::Maxwell3D& GPU::Maxwell3D() {
     return *maxwell_3d;

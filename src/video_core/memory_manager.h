@@ -68,8 +68,11 @@ static_assert(sizeof(PageEntry) == 4, "PageEntry is too large");
 
 class MemoryManager final {
 public:
-    explicit MemoryManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer);
+    explicit MemoryManager(Core::System& system);
     ~MemoryManager();
+
+    /// Binds a renderer to the memory manager.
+    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
 
     std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
@@ -141,7 +144,7 @@ private:
 
     Core::System& system;
 
-    VideoCore::RasterizerInterface& rasterizer;
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
 
     std::vector<PageEntry> page_table;
 };

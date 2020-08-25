@@ -22,12 +22,17 @@ using VideoCore::QueryType;
 /// First register id that is actually a Macro call.
 constexpr u32 MacroRegistersStart = 0xE00;
 
-Maxwell3D::Maxwell3D(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                     MemoryManager& memory_manager)
-    : system{system}, rasterizer{rasterizer}, memory_manager{memory_manager},
-      macro_engine{GetMacroEngine(*this)}, upload_state{memory_manager, regs.upload} {
+Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
+    : system{system_}, memory_manager{memory_manager_}, macro_engine{GetMacroEngine(*this)},
+      upload_state{memory_manager, regs.upload} {
     dirty.flags.flip();
     InitializeRegisterDefaults();
+}
+
+Maxwell3D::~Maxwell3D() = default;
+
+void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
+    rasterizer = &rasterizer_;
 }
 
 void Maxwell3D::InitializeRegisterDefaults() {
@@ -192,7 +197,7 @@ void Maxwell3D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
 
     switch (method) {
     case MAXWELL3D_REG_INDEX(wait_for_idle): {
-        rasterizer.WaitForIdle();
+        rasterizer->WaitForIdle();
         break;
     }
     case MAXWELL3D_REG_INDEX(shadow_ram_control): {
@@ -402,7 +407,7 @@ void Maxwell3D::FlushMMEInlineDraw() {
 
     const bool is_indexed = mme_draw.current_mode == MMEDrawMode::Indexed;
     if (ShouldExecute()) {
-        rasterizer.Draw(is_indexed, true);
+        rasterizer->Draw(is_indexed, true);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
@@ -465,7 +470,7 @@ void Maxwell3D::ProcessQueryGet() {
     switch (regs.query.query_get.operation) {
     case Regs::QueryOperation::Release:
         if (regs.query.query_get.fence == 1) {
-            rasterizer.SignalSemaphore(regs.query.QueryAddress(), regs.query.query_sequence);
+            rasterizer->SignalSemaphore(regs.query.QueryAddress(), regs.query.query_sequence);
         } else {
             StampQueryResult(regs.query.query_sequence, regs.query.query_get.short_query == 0);
         }
@@ -533,7 +538,7 @@ void Maxwell3D::ProcessQueryCondition() {
 void Maxwell3D::ProcessCounterReset() {
     switch (regs.counter_reset) {
     case Regs::CounterReset::SampleCnt:
-        rasterizer.ResetCounter(QueryType::SamplesPassed);
+        rasterizer->ResetCounter(QueryType::SamplesPassed);
         break;
     default:
         LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}",
@@ -547,7 +552,7 @@ void Maxwell3D::ProcessSyncPoint() {
     const u32 increment = regs.sync_info.increment.Value();
     [[maybe_unused]] const u32 cache_flush = regs.sync_info.unknown.Value();
     if (increment) {
-        rasterizer.SignalSyncPoint(sync_point);
+        rasterizer->SignalSyncPoint(sync_point);
     }
 }
 
@@ -570,7 +575,7 @@ void Maxwell3D::DrawArrays() {
 
     const bool is_indexed{regs.index_array.count && !regs.vertex_buffer.count};
     if (ShouldExecute()) {
-        rasterizer.Draw(is_indexed, false);
+        rasterizer->Draw(is_indexed, false);
     }
 
     // TODO(bunnei): Below, we reset vertex count so that we can use these registers to determine if
@@ -590,8 +595,8 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
         return 0;
     case Regs::QuerySelect::SamplesPassed:
         // Deferred.
-        rasterizer.Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
-                         system.GPU().GetTicks());
+        rasterizer->Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
+                          system.GPU().GetTicks());
         return {};
     default:
         LOG_DEBUG(HW_GPU, "Unimplemented query select type {}",
@@ -718,7 +723,7 @@ void Maxwell3D::ProcessClearBuffers() {
            regs.clear_buffers.R == regs.clear_buffers.B &&
            regs.clear_buffers.R == regs.clear_buffers.A);
 
-    rasterizer.Clear();
+    rasterizer->Clear();
 }
 
 u32 Maxwell3D::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const {
@@ -752,11 +757,11 @@ SamplerDescriptor Maxwell3D::AccessSampler(u32 handle) const {
 }
 
 VideoCore::GuestDriverProfile& Maxwell3D::AccessGuestDriverProfile() {
-    return rasterizer.AccessGuestDriverProfile();
+    return rasterizer->AccessGuestDriverProfile();
 }
 
 const VideoCore::GuestDriverProfile& Maxwell3D::AccessGuestDriverProfile() const {
-    return rasterizer.AccessGuestDriverProfile();
+    return rasterizer->AccessGuestDriverProfile();
 }
 
 } // namespace Tegra::Engines

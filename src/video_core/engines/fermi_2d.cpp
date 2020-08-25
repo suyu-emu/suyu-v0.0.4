@@ -10,7 +10,13 @@
 
 namespace Tegra::Engines {
 
-Fermi2D::Fermi2D(VideoCore::RasterizerInterface& rasterizer) : rasterizer{rasterizer} {}
+Fermi2D::Fermi2D() = default;
+
+Fermi2D::~Fermi2D() = default;
+
+void Fermi2D::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
+    rasterizer = &rasterizer_;
+}
 
 void Fermi2D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < Regs::NUM_REGS,
@@ -87,7 +93,7 @@ void Fermi2D::HandleSurfaceCopy() {
     copy_config.src_rect = src_rect;
     copy_config.dst_rect = dst_rect;
 
-    if (!rasterizer.AccelerateSurfaceCopy(regs.src, regs.dst, copy_config)) {
+    if (!rasterizer->AccelerateSurfaceCopy(regs.src, regs.dst, copy_config)) {
         UNIMPLEMENTED();
     }
 }

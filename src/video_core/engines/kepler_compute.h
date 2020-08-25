@@ -42,9 +42,11 @@ namespace Tegra::Engines {
 
 class KeplerCompute final : public ConstBufferEngineInterface, public EngineInterface {
 public:
-    explicit KeplerCompute(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                           MemoryManager& memory_manager);
+    explicit KeplerCompute(Core::System& system, MemoryManager& memory_manager);
     ~KeplerCompute();
+
+    /// Binds a rasterizer to this engine.
+    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
 
     static constexpr std::size_t NumConstBuffers = 8;
 
@@ -230,11 +232,6 @@ public:
     const VideoCore::GuestDriverProfile& AccessGuestDriverProfile() const override;
 
 private:
-    Core::System& system;
-    VideoCore::RasterizerInterface& rasterizer;
-    MemoryManager& memory_manager;
-    Upload::State upload_state;
-
     void ProcessLaunch();
 
     /// Retrieves information about a specific TIC entry from the TIC buffer.
@@ -242,6 +239,11 @@ private:
 
     /// Retrieves information about a specific TSC entry from the TSC buffer.
     Texture::TSCEntry GetTSCEntry(u32 tsc_index) const;
+
+    Core::System& system;
+    MemoryManager& memory_manager;
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
+    Upload::State upload_state;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
