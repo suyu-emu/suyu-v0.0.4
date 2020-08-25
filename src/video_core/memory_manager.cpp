@@ -316,10 +316,10 @@ void MemoryManager::CopyBlockUnsafe(GPUVAddr gpu_dest_addr, GPUVAddr gpu_src_add
     WriteBlockUnsafe(gpu_dest_addr, tmp_buffer.data(), size);
 }
 
-bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) {
+bool MemoryManager::IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const {
     const auto cpu_addr{GpuToCpuAddress(gpu_addr)};
     if (!cpu_addr) {
-        return {};
+        return false;
     }
     const std::size_t page{(*cpu_addr & Core::Memory::PAGE_MASK) + size};
     return page <= Core::Memory::PAGE_SIZE;
