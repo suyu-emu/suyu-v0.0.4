@@ -38,7 +38,8 @@ public:
     explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
                           GCAdapter::Adapter* adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
-          gcadapter(adapter), origin_value(adapter->GetOriginValue(port_, axis_)) {}
+          gcadapter(adapter),
+          origin_value(static_cast<float>(adapter->GetOriginValue(port_, axis_))) {}
 
     bool GetStatus() const override {
         if (gcadapter->DeviceConnected(port)) {
@@ -151,8 +152,9 @@ public:
     GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter,
              float range_)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter),
-          origin_value_x(adapter->GetOriginValue(port_, axis_x_)),
-          origin_value_y(adapter->GetOriginValue(port_, axis_y_)), range(range_) {}
+          origin_value_x(static_cast<float>(adapter->GetOriginValue(port_, axis_x_))),
+          origin_value_y(static_cast<float>(adapter->GetOriginValue(port_, axis_y_))),
+          range(range_) {}
 
     float GetAxis(int axis) const {
         if (gcadapter->DeviceConnected(port)) {
