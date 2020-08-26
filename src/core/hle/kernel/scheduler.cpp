@@ -756,7 +756,11 @@ void Scheduler::SwitchToCurrent() {
             current_thread = selected_thread;
             is_context_switch_pending = false;
         }
-        while (!is_context_switch_pending) {
+        const auto is_switch_pending = [this] {
+            std::scoped_lock lock{guard};
+            return is_context_switch_pending;
+        };
+        do {
             if (current_thread != nullptr && !current_thread->IsHLEThread()) {
                 current_thread->context_guard.lock();
                 if (!current_thread->IsRunnable()) {
@@ -775,7 +779,7 @@ void Scheduler::SwitchToCurrent() {
                 next_context = &idle_thread->GetHostContext();
             }
             Common::Fiber::YieldTo(switch_fiber, *next_context);
-        }
+        } while (!is_switch_pending());
     }
 }
 
