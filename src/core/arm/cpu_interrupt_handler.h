@@ -33,8 +33,8 @@ public:
     void AwaitInterrupt();
 
 private:
-    std::atomic_bool is_interrupted{false};
     std::unique_ptr<Common::Event> interrupt_event;
+    std::atomic_bool is_interrupted{false};
 };
 
 } // namespace Core
