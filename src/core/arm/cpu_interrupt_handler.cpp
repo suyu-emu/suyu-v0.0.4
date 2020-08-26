@@ -7,7 +7,7 @@
 
 namespace Core {
 
-CPUInterruptHandler::CPUInterruptHandler() : is_interrupted{} {
+CPUInterruptHandler::CPUInterruptHandler() {
     interrupt_event = std::make_unique<Common::Event>();
 }
 
