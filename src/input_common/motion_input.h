@@ -61,7 +61,7 @@ private:
     Common::Vec3f gyro_drift;
 
     f32 gyro_threshold = 0.0f;
-    f32 reset_counter = 0.0f;
+    u32 reset_counter = 0;
     bool reset_enabled = true;
 };
 

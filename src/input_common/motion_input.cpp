@@ -37,18 +37,25 @@ void MotionInput::ResetRotations() {
 }
 
 bool MotionInput::IsMoving(f32 sensitivity) const {
-    return gyro.Length2() >= sensitivity || accel.Length() <= 0.9f || accel.Length() >= 1.1f;
+    return gyro.Length() >= sensitivity || accel.Length() <= 0.9f || accel.Length() >= 1.1f;
 }
 
 bool MotionInput::IsCalibrated(f32 sensitivity) const {
-    return real_error.Length() > sensitivity;
+    return real_error.Length() < sensitivity;
 }
 
 void MotionInput::UpdateRotation(u64 elapsed_time) {
-    rotations += gyro * elapsed_time;
+    const f32 sample_period = elapsed_time / 1000000.0f;
+    if (sample_period > 0.1f) {
+        return;
+    }
+    rotations += gyro * sample_period;
 }
 
 void MotionInput::UpdateOrientation(u64 elapsed_time) {
+    if (!IsCalibrated(0.1f)) {
+        ResetOrientation();
+    }
     // Short name local variable for readability
     f32 q1 = quat.w;
     f32 q2 = quat.xyz[0];
@@ -56,12 +63,20 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     f32 q4 = quat.xyz[2];
     const f32 sample_period = elapsed_time / 1000000.0f;
 
+    // ignore invalid elapsed time
+    if (sample_period > 0.1f) {
+        return;
+    }
+
     const auto normal_accel = accel.Normalized();
-    auto rad_gyro = gyro * 3.1415926535f;
+    auto rad_gyro = gyro * 3.1415926535f * 2;
+    const f32 swap = rad_gyro.x;
+    rad_gyro.x = rad_gyro.y;
+    rad_gyro.y = -swap;
     rad_gyro.z = -rad_gyro.z;
 
-    // Ignore drift correction if acceleration is not present
-    if (normal_accel.Length() == 1.0f) {
+    // Ignore drift correction if acceleration is not reliable
+    if (accel.Length() >= 0.75f && accel.Length() <= 1.25f) {
         const f32 ax = -normal_accel.x;
         const f32 ay = normal_accel.y;
         const f32 az = -normal_accel.z;
@@ -72,14 +87,14 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
         const f32 vz = q1 * q1 - q2 * q2 - q3 * q3 + q4 * q4;
 
         // Error is cross product between estimated direction and measured direction of gravity
-        const Common::Vec3f new_real_error = {ay * vz - az * vy, az * vx - ax * vz,
+        const Common::Vec3f new_real_error = {az * vx - ax * vz, ay * vz - az * vy,
                                               ax * vy - ay * vx};
 
         derivative_error = new_real_error - real_error;
         real_error = new_real_error;
 
         // Prevent integral windup
-        if (ki != 0.0f) {
+        if (ki != 0.0f && !IsCalibrated(0.05f)) {
             integral_error += real_error;
         } else {
             integral_error = {};
@@ -112,13 +127,15 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
 }
 
 std::array<Common::Vec3f, 3> MotionInput::GetOrientation() const {
-    const Common::Quaternion<float> quad{.xyz = {-quat.xyz[1], -quat.xyz[0], -quat.w},
-                                         .w = -quat.xyz[2]};
+    const Common::Quaternion<float> quad{
+        .xyz = {-quat.xyz[1], -quat.xyz[0], -quat.w},
+        .w = -quat.xyz[2],
+    };
     const std::array<float, 16> matrix4x4 = quad.ToMatrix();
 
-    return {Common::Vec3f(matrix4x4[0], matrix4x4[1], matrix4x4[2]),
-            Common::Vec3f(matrix4x4[4], matrix4x4[5], matrix4x4[6]),
-            Common::Vec3f(matrix4x4[8], matrix4x4[9], matrix4x4[10])};
+    return {Common::Vec3f(matrix4x4[0], matrix4x4[1], -matrix4x4[2]),
+            Common::Vec3f(matrix4x4[4], matrix4x4[5], -matrix4x4[6]),
+            Common::Vec3f(-matrix4x4[8], -matrix4x4[9], matrix4x4[10])};
 }
 
 Common::Vec3f MotionInput::GetAcceleration() const {
