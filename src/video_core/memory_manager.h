@@ -51,7 +51,7 @@ public:
         return static_cast<VAddr>(state) << ShiftBits;
     }
 
-    constexpr PageEntry operator+(u64 offset) {
+    constexpr PageEntry operator+(u64 offset) const {
         // If this is a reserved value, offsets do not apply
         if (!IsValid()) {
             return *this;
