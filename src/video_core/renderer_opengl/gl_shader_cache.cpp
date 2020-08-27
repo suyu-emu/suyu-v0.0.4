@@ -22,6 +22,7 @@
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_opengl/gl_arb_decompiler.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
+#include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_disk_cache.h"

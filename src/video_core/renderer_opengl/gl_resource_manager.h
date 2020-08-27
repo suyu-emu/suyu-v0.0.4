@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string_view>
 #include <utility>
 #include <glad/glad.h>
 #include "common/common_types.h"
@@ -127,7 +128,7 @@ public:
         return *this;
     }
 
-    void Create(const char* source, GLenum type);
+    void Create(std::string_view source, GLenum type);
 
     void Release();
 

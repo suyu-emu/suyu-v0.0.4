@@ -1,3 +1,5 @@
+add_subdirectory(host_shaders)
+
 add_library(video_core STATIC
     buffer_cache/buffer_block.h
     buffer_cache/buffer_cache.h
@@ -243,6 +245,9 @@ create_target_directory_groups(video_core)
 
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PRIVATE glad xbyak)
+
+add_dependencies(video_core host_shaders)
+target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})
 
 if (ENABLE_VULKAN)
     target_include_directories(video_core PRIVATE sirit ../../externals/Vulkan-Headers/include)

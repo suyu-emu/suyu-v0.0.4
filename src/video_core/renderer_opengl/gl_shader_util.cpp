@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <string_view>
 #include <vector>
 #include <glad/glad.h>
 #include "common/assert.h"
@@ -11,7 +12,8 @@
 namespace OpenGL::GLShader {
 
 namespace {
-const char* GetStageDebugName(GLenum type) {
+
+std::string_view StageDebugName(GLenum type) {
     switch (type) {
     case GL_VERTEX_SHADER:
         return "vertex";
@@ -25,12 +27,17 @@ const char* GetStageDebugName(GLenum type) {
     UNIMPLEMENTED();
     return "unknown";
 }
+
 } // Anonymous namespace
 
-GLuint LoadShader(const char* source, GLenum type) {
-    const char* debug_type = GetStageDebugName(type);
+GLuint LoadShader(std::string_view source, GLenum type) {
+    const std::string_view debug_type = StageDebugName(type);
     const GLuint shader_id = glCreateShader(type);
-    glShaderSource(shader_id, 1, &source, nullptr);
+
+    const GLchar* source_string = source.data();
+    const GLint source_length = static_cast<GLint>(source.size());
+
+    glShaderSource(shader_id, 1, &source_string, &source_length);
     LOG_DEBUG(Render_OpenGL, "Compiling {} shader...", debug_type);
     glCompileShader(shader_id);
 

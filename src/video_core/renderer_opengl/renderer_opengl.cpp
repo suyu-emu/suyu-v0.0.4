@@ -21,6 +21,8 @@
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "video_core/host_shaders/opengl_present_frag.h"
+#include "video_core/host_shaders/opengl_present_vert.h"
 #include "video_core/morton.h"
 #include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
@@ -43,46 +45,6 @@ struct Frame {
     GLsync present_fence{};           /// Fence created on the presentation thread
     bool is_srgb{};                   /// Framebuffer is sRGB or RGB
 };
-
-constexpr char VERTEX_SHADER[] = R"(
-#version 430 core
-
-out gl_PerVertex {
-    vec4 gl_Position;
-};
-
-layout (location = 0) in vec2 vert_position;
-layout (location = 1) in vec2 vert_tex_coord;
-layout (location = 0) out vec2 frag_tex_coord;
-
-// This is a truncated 3x3 matrix for 2D transformations:
-// The upper-left 2x2 submatrix performs scaling/rotation/mirroring.
-// The third column performs translation.
-// The third row could be used for projection, which we don't need in 2D. It hence is assumed to
-// implicitly be [0, 0, 1]
-layout (location = 0) uniform mat3x2 modelview_matrix;
-
-void main() {
-    // Multiply input position by the rotscale part of the matrix and then manually translate by
-    // the last column. This is equivalent to using a full 3x3 matrix and expanding the vector
-    // to `vec3(vert_position.xy, 1.0)`
-    gl_Position = vec4(mat2(modelview_matrix) * vert_position + modelview_matrix[2], 0.0, 1.0);
-    frag_tex_coord = vert_tex_coord;
-}
-)";
-
-constexpr char FRAGMENT_SHADER[] = R"(
-#version 430 core
-
-layout (location = 0) in vec2 frag_tex_coord;
-layout (location = 0) out vec4 color;
-
-layout (binding = 0) uniform sampler2D color_texture;
-
-void main() {
-    color = vec4(texture(color_texture, frag_tex_coord).rgb, 1.0f);
-}
-)";
 
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
@@ -461,10 +423,10 @@ void RendererOpenGL::InitOpenGLObjects() {
 
     // Create shader programs
     OGLShader vertex_shader;
-    vertex_shader.Create(VERTEX_SHADER, GL_VERTEX_SHADER);
+    vertex_shader.Create(HostShaders::OPENGL_PRESENT_VERT, GL_VERTEX_SHADER);
 
     OGLShader fragment_shader;
-    fragment_shader.Create(FRAGMENT_SHADER, GL_FRAGMENT_SHADER);
+    fragment_shader.Create(HostShaders::OPENGL_PRESENT_FRAG, GL_FRAGMENT_SHADER);
 
     vertex_program.Create(true, false, vertex_shader.handle);
     fragment_program.Create(true, false, fragment_shader.handle);
