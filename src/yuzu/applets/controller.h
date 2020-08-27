@@ -79,36 +79,38 @@ private:
     InputCommon::InputSubsystem* input_subsystem;
 
     // This is true if and only if all parameters are met. Otherwise, this is false.
-    // This determines whether the "Ok" button can be clicked to exit the applet.
+    // This determines whether the "OK" button can be clicked to exit the applet.
     bool parameters_met{false};
 
+    static constexpr std::size_t NUM_PLAYERS = 8;
+
     // Widgets encapsulating the groupboxes and comboboxes per player.
-    std::array<QWidget*, 8> player_widgets;
+    std::array<QWidget*, NUM_PLAYERS> player_widgets;
 
     // Groupboxes encapsulating the controller icons and LED patterns per player.
-    std::array<QGroupBox*, 8> player_groupboxes;
+    std::array<QGroupBox*, NUM_PLAYERS> player_groupboxes;
 
     // Icons for currently connected controllers/players.
-    std::array<QWidget*, 8> connected_controller_icons;
+    std::array<QWidget*, NUM_PLAYERS> connected_controller_icons;
 
     // Labels that represent the player numbers in place of the controller icons.
-    std::array<QLabel*, 8> player_labels;
+    std::array<QLabel*, NUM_PLAYERS> player_labels;
 
     // LED patterns for currently connected controllers/players.
-    std::array<std::array<QCheckBox*, 4>, 8> led_patterns_boxes;
+    std::array<std::array<QCheckBox*, 4>, NUM_PLAYERS> led_patterns_boxes;
 
     // Labels representing additional information known as "Explain Text" per player.
-    std::array<QLabel*, 8> explain_text_labels;
+    std::array<QLabel*, NUM_PLAYERS> explain_text_labels;
 
     // Comboboxes with a list of emulated controllers per player.
-    std::array<QComboBox*, 8> emulated_controllers;
+    std::array<QComboBox*, NUM_PLAYERS> emulated_controllers;
 
     // Labels representing the number of connected controllers
     // above the "Connected Controllers" checkboxes.
-    std::array<QLabel*, 8> connected_controller_labels;
+    std::array<QLabel*, NUM_PLAYERS> connected_controller_labels;
 
     // Checkboxes representing the "Connected Controllers".
-    std::array<QCheckBox*, 8> connected_controller_checkboxes;
+    std::array<QCheckBox*, NUM_PLAYERS> connected_controller_checkboxes;
 };
 
 class QtControllerSelector final : public QObject, public Core::Frontend::ControllerApplet {

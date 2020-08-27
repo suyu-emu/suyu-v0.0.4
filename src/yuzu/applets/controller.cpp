@@ -171,14 +171,14 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         ui->checkboxPlayer7Connected, ui->checkboxPlayer8Connected,
     };
 
-    for (std::size_t i = 0; i < player_widgets.size(); ++i) {
+    for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
         connect(player_groupboxes[i], &QGroupBox::toggled, [this, i](bool checked) {
             if (checked) {
                 for (std::size_t index = 0; index <= i; ++index) {
                     connected_controller_checkboxes[index]->setChecked(checked);
                 }
             } else {
-                for (std::size_t index = i; index < player_widgets.size(); ++index) {
+                for (std::size_t index = i; index < NUM_PLAYERS; ++index) {
                     connected_controller_checkboxes[index]->setChecked(checked);
                 }
             }
@@ -237,6 +237,11 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 QtControllerSelectorDialog::~QtControllerSelectorDialog() = default;
 
 void QtControllerSelectorDialog::ApplyConfiguration() {
+    // Update the controller state once more, just to be sure they are properly applied.
+    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
+        UpdateControllerState(index);
+    }
+
     const bool pre_docked_mode = Settings::values.use_docked_mode;
     Settings::values.use_docked_mode = ui->radioDocked->isChecked();
     OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
@@ -281,7 +286,7 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
 
     // Next, check against all connected controllers.
     const auto all_controllers_compatible = [this] {
-        for (std::size_t index = 0; index < player_widgets.size(); ++index) {
+        for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
             // Skip controllers that are not used, we only care about the currently connected ones.
             if (!player_groupboxes[index]->isChecked() || !player_groupboxes[index]->isEnabled()) {
                 continue;
@@ -535,7 +540,7 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
         break;
     }
 
-    for (std::size_t index = max_supported_players; index < player_widgets.size(); ++index) {
+    for (std::size_t index = max_supported_players; index < NUM_PLAYERS; ++index) {
         // Disconnect any unsupported players here and disable or hide them if applicable.
         Settings::values.players[index].connected = false;
         UpdateController(Settings::values.players[index].controller_type, index, false);
@@ -553,7 +558,7 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
 }
 
 void QtControllerSelectorDialog::LoadConfiguration() {
-    for (std::size_t index = 0; index < player_widgets.size(); ++index) {
+    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
         const auto connected = Settings::values.players[index].connected ||
                                (index == 0 && Settings::values.players[8].connected);
         player_groupboxes[index]->setChecked(connected);
