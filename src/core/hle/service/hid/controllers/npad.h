@@ -318,7 +318,6 @@ private:
 
     void InitNewlyAddedController(std::size_t controller_idx);
     bool IsControllerSupported(NPadControllerType controller) const;
-    NPadControllerType DecideBestController(NPadControllerType priority) const;
     void RequestPadStateUpdate(u32 npad_id);
 
     u32 press_state{};

@@ -27,11 +27,44 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
 
     auto& players = Settings::values.players;
 
+    const auto min_supported_players = parameters.enable_single_mode ? 1 : parameters.min_players;
+
+    // Disconnect Handheld first.
+    npad.DisconnectNPadAtIndex(8);
+
     // Deduce the best configuration based on the input parameters.
-    for (std::size_t index = 0; index < players.size(); ++index) {
+    for (std::size_t index = 0; index < players.size() - 2; ++index) {
         // First, disconnect all controllers regardless of the value of keep_controllers_connected.
         // This makes it easy to connect the desired controllers.
         npad.DisconnectNPadAtIndex(index);
+
+        // Only connect the minimum number of required players.
+        if (index >= min_supported_players) {
+            continue;
+        }
+
+        // Connect controllers based on the following priority list from highest to lowest priority:
+        // Pro Controller -> Dual Joycons -> Left Joycon -> Right Joycon -> Handheld
+        if (parameters.allow_pro_controller) {
+            npad.AddNewControllerAt(
+                npad.MapSettingsTypeToNPad(Settings::ControllerType::ProController), index);
+        } else if (parameters.allow_dual_joycons) {
+            npad.AddNewControllerAt(
+                npad.MapSettingsTypeToNPad(Settings::ControllerType::DualJoyconDetached), index);
+        } else if (parameters.allow_left_joycon) {
+            npad.AddNewControllerAt(
+                npad.MapSettingsTypeToNPad(Settings::ControllerType::LeftJoycon), index);
+        } else if (parameters.allow_right_joycon) {
+            npad.AddNewControllerAt(
+                npad.MapSettingsTypeToNPad(Settings::ControllerType::RightJoycon), index);
+        } else if (index == 0 && parameters.enable_single_mode && parameters.allow_handheld &&
+                   !Settings::values.use_docked_mode) {
+            // We should *never* reach here under any normal circumstances.
+            npad.AddNewControllerAt(npad.MapSettingsTypeToNPad(Settings::ControllerType::Handheld),
+                                    index);
+        } else {
+            UNREACHABLE_MSG("Unable to add a new controller based on the given parameters!");
+        }
     }
 
     callback();
