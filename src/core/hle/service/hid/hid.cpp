@@ -671,13 +671,15 @@ void Hid::SetNpadJoyAssignmentModeDual(Kernel::HLERequestContext& ctx) {
 
 void Hid::MergeSingleJoyAsDualJoy(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto unknown_1{rp.Pop<u32>()};
-    const auto unknown_2{rp.Pop<u32>()};
+    const auto npad_id_1{rp.Pop<u32>()};
+    const auto npad_id_2{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID,
-                "(STUBBED) called, unknown_1={}, unknown_2={}, applet_resource_user_id={}",
-                unknown_1, unknown_2, applet_resource_user_id);
+    LOG_DEBUG(Service_HID, "called, npad_id_1={}, npad_id_2={}, applet_resource_user_id={}",
+              npad_id_1, npad_id_2, applet_resource_user_id);
+
+    auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
+    controller.MergeSingleJoyAsDualJoy(npad_id_1, npad_id_2);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

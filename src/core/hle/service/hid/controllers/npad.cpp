@@ -574,6 +574,22 @@ Controller_NPad::GyroscopeZeroDriftMode Controller_NPad::GetGyroscopeZeroDriftMo
     return gyroscope_zero_drift_mode;
 }
 
+void Controller_NPad::MergeSingleJoyAsDualJoy(u32 npad_id_1, u32 npad_id_2) {
+    const auto npad_index_1 = NPadIdToIndex(npad_id_1);
+    const auto npad_index_2 = NPadIdToIndex(npad_id_2);
+
+    // If the controllers at both npad indices form a pair of left and right joycons, merge them.
+    // Otherwise, do nothing.
+    if ((connected_controllers[npad_index_1].type == NPadControllerType::JoyLeft &&
+         connected_controllers[npad_index_2].type == NPadControllerType::JoyRight) ||
+        (connected_controllers[npad_index_2].type == NPadControllerType::JoyLeft &&
+         connected_controllers[npad_index_1].type == NPadControllerType::JoyRight)) {
+        // Disconnect the joycon at the second id and connect the dual joycon at the first index.
+        DisconnectNPad(npad_id_2);
+        AddNewControllerAt(NPadControllerType::JoyDual, npad_index_1);
+    }
+}
+
 void Controller_NPad::StartLRAssignmentMode() {
     // Nothing internally is used for lr assignment mode. Since we have the ability to set the
     // controller types from boot, it doesn't really matter about showing a selection screen
