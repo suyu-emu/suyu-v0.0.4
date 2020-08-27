@@ -37,6 +37,9 @@ private:
     // Applies the current configuration.
     void ApplyConfiguration();
 
+    // Loads the current input configuration into the frontend applet.
+    void LoadConfiguration();
+
     // Initializes the "Configure Input" Dialog.
     void CallConfigureInputDialog();
 
@@ -67,9 +70,6 @@ private:
 
     // Disables and disconnects unsupported players based on the given parameters.
     void DisableUnsupportedPlayers();
-
-    // Loads the current input configuration into the frontend applet.
-    void LoadConfiguration();
 
     std::unique_ptr<Ui::QtControllerSelectorDialog> ui;
 

@@ -171,7 +171,18 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         ui->checkboxPlayer7Connected, ui->checkboxPlayer8Connected,
     };
 
+    // Setup/load everything prior to setting up connections.
+    // This avoids unintentionally changing the states of elements while loading them in.
+    SetSupportedControllers();
+    DisableUnsupportedPlayers();
+    LoadConfiguration();
+
     for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
+        SetExplainText(i);
+        UpdateControllerIcon(i);
+        UpdateLEDPattern(i);
+        UpdateBorderColor(i);
+
         connect(player_groupboxes[i], &QGroupBox::toggled, [this, i](bool checked) {
             if (checked) {
                 for (std::size_t index = 0; index <= i; ++index) {
@@ -208,8 +219,6 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
                                           Settings::ControllerType::Handheld);
                     });
         }
-
-        SetExplainText(i);
     }
 
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
@@ -217,10 +226,6 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
             &QtControllerSelectorDialog::ApplyConfiguration);
-
-    SetSupportedControllers();
-    DisableUnsupportedPlayers();
-    LoadConfiguration();
 
     // If keep_controllers_connected is false, forcefully disconnect all controllers
     if (!parameters.keep_controllers_connected) {
@@ -247,6 +252,21 @@ void QtControllerSelectorDialog::ApplyConfiguration() {
     OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
 
     Settings::values.vibration_enabled = ui->vibrationGroup->isChecked();
+}
+
+void QtControllerSelectorDialog::LoadConfiguration() {
+    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
+        const auto connected = Settings::values.players[index].connected ||
+                               (index == 0 && Settings::values.players[8].connected);
+        player_groupboxes[index]->setChecked(connected);
+        connected_controller_checkboxes[index]->setChecked(connected);
+        emulated_controllers[index]->setCurrentIndex(
+            GetIndexFromControllerType(Settings::values.players[index].controller_type));
+    }
+
+    UpdateDockedState(Settings::values.players[8].connected);
+
+    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
 }
 
 void QtControllerSelectorDialog::CallConfigureInputDialog() {
@@ -555,20 +575,6 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
         connected_controller_labels[index]->hide();
         connected_controller_checkboxes[index]->hide();
     }
-}
-
-void QtControllerSelectorDialog::LoadConfiguration() {
-    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        const auto connected = Settings::values.players[index].connected ||
-                               (index == 0 && Settings::values.players[8].connected);
-        player_groupboxes[index]->setChecked(connected);
-        emulated_controllers[index]->setCurrentIndex(
-            GetIndexFromControllerType(Settings::values.players[index].controller_type));
-    }
-
-    UpdateDockedState(Settings::values.players[8].connected);
-
-    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
 }
 
 QtControllerSelector::QtControllerSelector(GMainWindow& parent) {
