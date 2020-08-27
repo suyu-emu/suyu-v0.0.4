@@ -65,16 +65,20 @@ void OnDockedModeChanged(bool last_state, bool new_state) {
 ConfigureInput::ConfigureInput(QWidget* parent)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInput>()) {
     ui->setupUi(this);
+}
 
+ConfigureInput::~ConfigureInput() = default;
+
+void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem) {
     player_controllers = {
-        new ConfigureInputPlayer(this, 0, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 1, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 2, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 3, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 4, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 5, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 6, ui->consoleInputSettings),
-        new ConfigureInputPlayer(this, 7, ui->consoleInputSettings),
+        new ConfigureInputPlayer(this, 0, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 1, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 2, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 3, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 4, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 5, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 6, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 7, ui->consoleInputSettings, input_subsystem),
     };
 
     player_tabs = {
@@ -115,10 +119,12 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     advanced = new ConfigureInputAdvanced(this);
     ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
     ui->tabAdvanced->layout()->addWidget(advanced);
-    connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog,
-            [this] { CallConfigureDialog<ConfigureDebugController>(*this); });
-    connect(advanced, &ConfigureInputAdvanced::CallMouseConfigDialog,
-            [this] { CallConfigureDialog<ConfigureMouseAdvanced>(*this); });
+    connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog, [this, input_subsystem] {
+        CallConfigureDialog<ConfigureDebugController>(*this, input_subsystem);
+    });
+    connect(advanced, &ConfigureInputAdvanced::CallMouseConfigDialog, [this, input_subsystem] {
+        CallConfigureDialog<ConfigureMouseAdvanced>(*this, input_subsystem);
+    });
     connect(advanced, &ConfigureInputAdvanced::CallTouchscreenConfigDialog,
             [this] { CallConfigureDialog<ConfigureTouchscreenAdvanced>(*this); });
 
@@ -128,8 +134,6 @@ ConfigureInput::ConfigureInput(QWidget* parent)
     RetranslateUI();
     LoadConfiguration();
 }
-
-ConfigureInput::~ConfigureInput() = default;
 
 QList<QWidget*> ConfigureInput::GetSubTabs() const {
     return {

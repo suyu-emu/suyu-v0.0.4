@@ -23,6 +23,10 @@ class QKeyEvent;
 class QTouchEvent;
 class QStringList;
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 namespace VideoCore {
 enum class LoadCallbackStage;
 }
@@ -121,7 +125,8 @@ class GRenderWindow : public QWidget, public Core::Frontend::EmuWindow {
     Q_OBJECT
 
 public:
-    GRenderWindow(GMainWindow* parent, EmuThread* emu_thread);
+    explicit GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
+                           InputCommon::InputSubsystem* input_subsystem_);
     ~GRenderWindow() override;
 
     // EmuWindow implementation.
@@ -183,6 +188,7 @@ private:
     QStringList GetUnsupportedGLExtensions() const;
 
     EmuThread* emu_thread;
+    InputCommon::InputSubsystem* input_subsystem;
 
     // Main context that will be shared with all other contexts that are requested.
     // If this is used in a shared context setting, then this should not be used directly, but

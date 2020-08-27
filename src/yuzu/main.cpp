@@ -94,6 +94,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/perf_stats.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "input_common/main.h"
 #include "video_core/gpu.h"
 #include "video_core/shader_notify.h"
 #include "yuzu/about_dialog.h"
@@ -186,9 +187,9 @@ static void InitializeLogging() {
 }
 
 GMainWindow::GMainWindow()
-    : config(new Config()), emu_thread(nullptr),
-      vfs(std::make_shared<FileSys::RealVfsFilesystem>()),
-      provider(std::make_unique<FileSys::ManualContentProvider>()) {
+    : input_subsystem{std::make_unique<InputCommon::InputSubsystem>()},
+      config{std::make_unique<Config>()}, vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
+      provider{std::make_unique<FileSys::ManualContentProvider>()} {
     InitializeLogging();
 
     LoadTranslation();
@@ -473,7 +474,7 @@ void GMainWindow::InitializeWidgets() {
 #ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
     ui.action_Report_Compatibility->setVisible(true);
 #endif
-    render_window = new GRenderWindow(this, emu_thread.get());
+    render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem.get());
     render_window->hide();
 
     game_list = new GameList(vfs, provider.get(), this);
@@ -2213,7 +2214,7 @@ void GMainWindow::OnConfigure() {
     const auto old_theme = UISettings::values.theme;
     const bool old_discord_presence = UISettings::values.enable_discord_presence;
 
-    ConfigureDialog configure_dialog(this, hotkey_registry);
+    ConfigureDialog configure_dialog(this, hotkey_registry, input_subsystem.get());
     connect(&configure_dialog, &ConfigureDialog::LanguageChanged, this,
             &GMainWindow::OnLanguageChanged);
 

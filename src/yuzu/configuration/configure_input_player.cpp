@@ -11,12 +11,12 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QTimer>
-#include "common/assert.h"
 #include "common/param_package.h"
 #include "core/core.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/hle/service/sm/sm.h"
+#include "input_common/gcadapter/gc_poller.h"
 #include "input_common/main.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/configuration/config.h"
@@ -229,9 +229,11 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
 } // namespace
 
 ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_index,
-                                           QWidget* bottom_row, bool debug)
+                                           QWidget* bottom_row,
+                                           InputCommon::InputSubsystem* input_subsystem_,
+                                           bool debug)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
-      debug(debug), timeout_timer(std::make_unique<QTimer>()),
+      debug(debug), input_subsystem{input_subsystem_}, timeout_timer(std::make_unique<QTimer>()),
       poll_timer(std::make_unique<QTimer>()), bottom_row(bottom_row) {
     ui->setupUi(this);
 
@@ -287,7 +289,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         params.Set("direction", "+");
                         params.Set("threshold", "0.5");
                     }
-                    (*param) = std::move(params);
+                    *param = std::move(params);
                 },
                 InputCommon::Polling::DeviceType::Button);
         });
@@ -401,15 +403,15 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     connect(poll_timer.get(), &QTimer::timeout, [this] {
         Common::ParamPackage params;
-        if (InputCommon::GetGCButtons()->IsPolling()) {
-            params = InputCommon::GetGCButtons()->GetNextInput();
+        if (input_subsystem->GetGCButtons()->IsPolling()) {
+            params = input_subsystem->GetGCButtons()->GetNextInput();
             if (params.Has("engine")) {
                 SetPollingResult(params, false);
                 return;
             }
         }
-        if (InputCommon::GetGCAnalogs()->IsPolling()) {
-            params = InputCommon::GetGCAnalogs()->GetNextInput();
+        if (input_subsystem->GetGCAnalogs()->IsPolling()) {
+            params = input_subsystem->GetGCAnalogs()->GetNextInput();
             if (params.Has("engine")) {
                 SetPollingResult(params, false);
                 return;
@@ -514,7 +516,7 @@ void ConfigureInputPlayer::LoadConfiguration() {
 }
 
 void ConfigureInputPlayer::UpdateInputDevices() {
-    input_devices = InputCommon::GetInputDevices();
+    input_devices = input_subsystem->GetInputDevices();
     ui->comboDevices->clear();
     for (auto device : input_devices) {
         ui->comboDevices->addItem(QString::fromStdString(device.Get("display", "Unknown")), {});
@@ -642,8 +644,8 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
         return;
     }
     const auto& device = input_devices[ui->comboDevices->currentIndex()];
-    auto button_mapping = InputCommon::GetButtonMappingForDevice(device);
-    auto analog_mapping = InputCommon::GetAnalogMappingForDevice(device);
+    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
+    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
     for (int i = 0; i < buttons_param.size(); ++i) {
         buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
     }
@@ -666,7 +668,7 @@ void ConfigureInputPlayer::HandleClick(
 
     input_setter = new_input_setter;
 
-    device_pollers = InputCommon::Polling::GetPollers(type);
+    device_pollers = input_subsystem->GetPollers(type);
 
     for (auto& poller : device_pollers) {
         poller->Start();
@@ -676,9 +678,9 @@ void ConfigureInputPlayer::HandleClick(
     QWidget::grabKeyboard();
 
     if (type == InputCommon::Polling::DeviceType::Button) {
-        InputCommon::GetGCButtons()->BeginConfiguration();
+        input_subsystem->GetGCButtons()->BeginConfiguration();
     } else {
-        InputCommon::GetGCAnalogs()->BeginConfiguration();
+        input_subsystem->GetGCAnalogs()->BeginConfiguration();
     }
 
     timeout_timer->start(2500); // Cancel after 2.5 seconds
@@ -695,8 +697,8 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
     QWidget::releaseMouse();
     QWidget::releaseKeyboard();
 
-    InputCommon::GetGCButtons()->EndConfiguration();
-    InputCommon::GetGCAnalogs()->EndConfiguration();
+    input_subsystem->GetGCButtons()->EndConfiguration();
+    input_subsystem->GetGCAnalogs()->EndConfiguration();
 
     if (!abort) {
         (*input_setter)(params);

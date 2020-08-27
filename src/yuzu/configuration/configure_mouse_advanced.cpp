@@ -76,8 +76,10 @@ static QString ButtonToText(const Common::ParamPackage& param) {
     return QObject::tr("[unknown]");
 }
 
-ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent)
-    : QDialog(parent), ui(std::make_unique<Ui::ConfigureMouseAdvanced>()),
+ConfigureMouseAdvanced::ConfigureMouseAdvanced(QWidget* parent,
+                                               InputCommon::InputSubsystem* input_subsystem_)
+    : QDialog(parent),
+      ui(std::make_unique<Ui::ConfigureMouseAdvanced>()), input_subsystem{input_subsystem_},
       timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()) {
     ui->setupUi(this);
     setFocusPolicy(Qt::ClickFocus);
@@ -209,7 +211,7 @@ void ConfigureMouseAdvanced::HandleClick(
 
     input_setter = new_input_setter;
 
-    device_pollers = InputCommon::Polling::GetPollers(type);
+    device_pollers = input_subsystem->GetPollers(type);
 
     for (auto& poller : device_pollers) {
         poller->Start();

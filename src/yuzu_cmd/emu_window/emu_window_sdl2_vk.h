@@ -13,9 +13,14 @@ namespace Core {
 class System;
 }
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 class EmuWindow_SDL2_VK final : public EmuWindow_SDL2 {
 public:
-    explicit EmuWindow_SDL2_VK(Core::System& system, bool fullscreen);
+    explicit EmuWindow_SDL2_VK(Core::System& system, bool fullscreen,
+                               InputCommon::InputSubsystem* input_subsystem);
     ~EmuWindow_SDL2_VK();
 
     void Present() override;

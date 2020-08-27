@@ -304,8 +304,9 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
     return wsi;
 }
 
-GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread_)
-    : QWidget(parent_), emu_thread(emu_thread_) {
+GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
+                             InputCommon::InputSubsystem* input_subsystem_)
+    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{input_subsystem_} {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
@@ -314,15 +315,15 @@ GRenderWindow::GRenderWindow(GMainWindow* parent_, EmuThread* emu_thread_)
     auto layout = new QHBoxLayout(this);
     layout->setMargin(0);
     setLayout(layout);
-    InputCommon::Init();
+    input_subsystem->Initialize();
 
     this->setMouseTracking(true);
 
-    connect(this, &GRenderWindow::FirstFrameDisplayed, parent_, &GMainWindow::OnLoadComplete);
+    connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
 }
 
 GRenderWindow::~GRenderWindow() {
-    InputCommon::Shutdown();
+    input_subsystem->Shutdown();
 }
 
 void GRenderWindow::PollEvents() {
@@ -391,11 +392,11 @@ void GRenderWindow::closeEvent(QCloseEvent* event) {
 }
 
 void GRenderWindow::keyPressEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->PressKey(event->key());
+    input_subsystem->GetKeyboard()->PressKey(event->key());
 }
 
 void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
-    InputCommon::GetKeyboard()->ReleaseKey(event->key());
+    input_subsystem->GetKeyboard()->ReleaseKey(event->key());
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
@@ -409,7 +410,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         const auto [x, y] = ScaleTouch(pos);
         this->TouchPressed(x, y);
     } else if (event->button() == Qt::RightButton) {
-        InputCommon::GetMotionEmu()->BeginTilt(pos.x(), pos.y());
+        input_subsystem->GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
     QWidget::mousePressEvent(event);
 }
@@ -423,7 +424,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
     this->TouchMoved(x, y);
-    InputCommon::GetMotionEmu()->Tilt(pos.x(), pos.y());
+    input_subsystem->GetMotionEmu()->Tilt(pos.x(), pos.y());
     QWidget::mouseMoveEvent(event);
 }
 
@@ -436,7 +437,7 @@ void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
         this->TouchReleased();
     } else if (event->button() == Qt::RightButton) {
-        InputCommon::GetMotionEmu()->EndTilt();
+        input_subsystem->GetMotionEmu()->EndTilt();
     }
 }
 
@@ -485,7 +486,7 @@ bool GRenderWindow::event(QEvent* event) {
 
 void GRenderWindow::focusOutEvent(QFocusEvent* event) {
     QWidget::focusOutEvent(event);
-    InputCommon::GetKeyboard()->ReleaseAllKeys();
+    input_subsystem->GetKeyboard()->ReleaseAllKeys();
 }
 
 void GRenderWindow::resizeEvent(QResizeEvent* event) {

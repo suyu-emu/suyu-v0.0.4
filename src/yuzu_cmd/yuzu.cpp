@@ -23,12 +23,14 @@
 #include "common/telemetry.h"
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
+#include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
 #include "core/settings.h"
 #include "core/telemetry_session.h"
+#include "input_common/main.h"
 #include "video_core/renderer_base.h"
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
@@ -36,8 +38,6 @@
 #ifdef HAS_VULKAN
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
 #endif
-
-#include "core/file_sys/registered_cache.h"
 
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
@@ -179,15 +179,16 @@ int main(int argc, char** argv) {
     Settings::Apply();
 
     Core::System& system{Core::System::GetInstance()};
+    InputCommon::InputSubsystem input_subsystem;
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {
     case Settings::RendererBackend::OpenGL:
-        emu_window = std::make_unique<EmuWindow_SDL2_GL>(system, fullscreen);
+        emu_window = std::make_unique<EmuWindow_SDL2_GL>(system, fullscreen, &input_subsystem);
         break;
     case Settings::RendererBackend::Vulkan:
 #ifdef HAS_VULKAN
-        emu_window = std::make_unique<EmuWindow_SDL2_VK>(system, fullscreen);
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(system, fullscreen, &input_subsystem);
         break;
 #else
         LOG_CRITICAL(Frontend, "Vulkan backend has not been compiled!");

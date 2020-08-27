@@ -12,13 +12,16 @@
 #include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/hotkeys.h"
 
-ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry)
+ConfigureDialog::ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
+                                 InputCommon::InputSubsystem* input_subsystem)
     : QDialog(parent), ui(new Ui::ConfigureDialog), registry(registry) {
     Settings::configuring_global = true;
 
     ui->setupUi(this);
     ui->hotkeysTab->Populate(registry);
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+
+    ui->inputTab->Initialize(input_subsystem);
 
     SetConfiguration();
     PopulateSelectionList();
