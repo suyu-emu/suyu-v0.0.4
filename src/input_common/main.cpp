@@ -105,7 +105,7 @@ std::string GenerateAnalogParamFromKeys(int key_up, int key_down, int key_left, 
 std::vector<Common::ParamPackage> GetInputDevices() {
     std::vector<Common::ParamPackage> devices = {
         Common::ParamPackage{{"display", "Any"}, {"class", "any"}},
-        Common::ParamPackage{{"display", "Keyboard"}, {"class", "key"}},
+        Common::ParamPackage{{"display", "Keyboard/Mouse"}, {"class", "key"}},
     };
 #ifdef HAVE_SDL2
     auto sdl_devices = sdl->GetInputDevices();
