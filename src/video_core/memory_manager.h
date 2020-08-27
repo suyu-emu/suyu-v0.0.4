@@ -31,19 +31,19 @@ public:
     constexpr PageEntry(State state) : state{state} {}
     constexpr PageEntry(VAddr addr) : state{static_cast<State>(addr >> ShiftBits)} {}
 
-    constexpr bool IsUnmapped() const {
+    [[nodiscard]] constexpr bool IsUnmapped() const {
         return state == State::Unmapped;
     }
 
-    constexpr bool IsAllocated() const {
+    [[nodiscard]] constexpr bool IsAllocated() const {
         return state == State::Allocated;
     }
 
-    constexpr bool IsValid() const {
+    [[nodiscard]] constexpr bool IsValid() const {
         return !IsUnmapped() && !IsAllocated();
     }
 
-    constexpr VAddr ToAddress() const {
+    [[nodiscard]] constexpr VAddr ToAddress() const {
         if (!IsValid()) {
             return {};
         }
@@ -51,7 +51,7 @@ public:
         return static_cast<VAddr>(state) << ShiftBits;
     }
 
-    constexpr PageEntry operator+(u64 offset) {
+    [[nodiscard]] constexpr PageEntry operator+(u64 offset) const {
         // If this is a reserved value, offsets do not apply
         if (!IsValid()) {
             return *this;
@@ -74,16 +74,16 @@ public:
     /// Binds a renderer to the memory manager.
     void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
 
-    std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
+    [[nodiscard]] std::optional<VAddr> GpuToCpuAddress(GPUVAddr addr) const;
 
     template <typename T>
-    T Read(GPUVAddr addr) const;
+    [[nodiscard]] T Read(GPUVAddr addr) const;
 
     template <typename T>
     void Write(GPUVAddr addr, T data);
 
-    u8* GetPointer(GPUVAddr addr);
-    const u8* GetPointer(GPUVAddr addr) const;
+    [[nodiscard]] u8* GetPointer(GPUVAddr addr);
+    [[nodiscard]] const u8* GetPointer(GPUVAddr addr) const;
 
     /**
      * ReadBlock and WriteBlock are full read and write operations over virtual
@@ -112,24 +112,24 @@ public:
     /**
      * IsGranularRange checks if a gpu region can be simply read with a pointer.
      */
-    bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const;
+    [[nodiscard]] bool IsGranularRange(GPUVAddr gpu_addr, std::size_t size) const;
 
-    GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
-    GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
-    std::optional<GPUVAddr> AllocateFixed(GPUVAddr gpu_addr, std::size_t size);
-    GPUVAddr Allocate(std::size_t size, std::size_t align);
+    [[nodiscard]] GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
+    [[nodiscard]] GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
+    [[nodiscard]] std::optional<GPUVAddr> AllocateFixed(GPUVAddr gpu_addr, std::size_t size);
+    [[nodiscard]] GPUVAddr Allocate(std::size_t size, std::size_t align);
     void Unmap(GPUVAddr gpu_addr, std::size_t size);
 
 private:
-    PageEntry GetPageEntry(GPUVAddr gpu_addr) const;
+    [[nodiscard]] PageEntry GetPageEntry(GPUVAddr gpu_addr) const;
     void SetPageEntry(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size = page_size);
     GPUVAddr UpdateRange(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size);
-    std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align) const;
+    [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align) const;
 
     void TryLockPage(PageEntry page_entry, std::size_t size);
     void TryUnlockPage(PageEntry page_entry, std::size_t size);
 
-    static constexpr std::size_t PageEntryIndex(GPUVAddr gpu_addr) {
+    [[nodiscard]] static constexpr std::size_t PageEntryIndex(GPUVAddr gpu_addr) {
         return (gpu_addr >> page_bits) & page_table_mask;
     }
 
