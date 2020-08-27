@@ -1443,10 +1443,10 @@ void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs) {
 }
 
 void RasterizerVulkan::UpdatePrimitiveTopology(Tegra::Engines::Maxwell3D::Regs& regs) {
-    if (!state_tracker.TouchPrimitiveTopology()) {
+    const Maxwell::PrimitiveTopology primitive_topology = regs.draw.topology.Value();
+    if (!state_tracker.ChangePrimitiveTopology(primitive_topology)) {
         return;
     }
-    const Maxwell::PrimitiveTopology primitive_topology = regs.draw.topology.Value();
     scheduler.Record([this, primitive_topology](vk::CommandBuffer cmdbuf) {
         cmdbuf.SetPrimitiveTopologyEXT(MaxwellToVK::PrimitiveTopology(device, primitive_topology));
     });

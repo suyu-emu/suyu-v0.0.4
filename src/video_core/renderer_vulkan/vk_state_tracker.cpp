@@ -42,7 +42,6 @@ Flags MakeInvalidationFlags() {
     flags[DepthWriteEnable] = true;
     flags[DepthCompareOp] = true;
     flags[FrontFace] = true;
-    flags[PrimitiveTopology] = true;
     flags[StencilOp] = true;
     flags[StencilTestEnable] = true;
     return flags;
@@ -112,10 +111,6 @@ void SetupDirtyFrontFace(Tables& tables) {
     table[OFF(screen_y_control)] = FrontFace;
 }
 
-void SetupDirtyPrimitiveTopology(Tables& tables) {
-    tables[0][OFF(draw.topology)] = PrimitiveTopology;
-}
-
 void SetupDirtyStencilOp(Tables& tables) {
     auto& table = tables[0];
     table[OFF(stencil_front_op_fail)] = StencilOp;
@@ -156,13 +151,13 @@ void StateTracker::Initialize() {
     SetupDirtyDepthWriteEnable(tables);
     SetupDirtyDepthCompareOp(tables);
     SetupDirtyFrontFace(tables);
-    SetupDirtyPrimitiveTopology(tables);
     SetupDirtyStencilOp(tables);
     SetupDirtyStencilTestEnable(tables);
 }
 
 void StateTracker::InvalidateCommandBufferState() {
     system.GPU().Maxwell3D().dirty.flags |= invalidation_flags;
+    current_topology = INVALID_TOPOLOGY;
 }
 
 } // namespace Vulkan
