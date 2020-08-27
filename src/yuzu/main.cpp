@@ -295,6 +295,10 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
 
     emit ControllerSelectorReconfigureFinished();
 
+    // Don't forget to apply settings.
+    Settings::Apply();
+    config->Save();
+
     UpdateStatusButtons();
 }
 
