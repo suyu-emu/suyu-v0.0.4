@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/lock.h"
 #include "core/hle/service/hid/controllers/npad.h"
@@ -45,6 +46,7 @@ void UpdateController(Settings::ControllerType controller_type, std::size_t npad
     npad.UpdateControllerAt(npad.MapSettingsTypeToNPad(controller_type), npad_index, connected);
 }
 
+// Returns true if the given controller type is compatible with the given parameters.
 bool IsControllerCompatible(Settings::ControllerType controller_type,
                             Core::Frontend::ControllerParameters parameters) {
     switch (controller_type) {
@@ -140,6 +142,12 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
          ui->checkboxPlayer8LED4},
     }};
 
+    explain_text_labels = {
+        ui->labelPlayer1Explain, ui->labelPlayer2Explain, ui->labelPlayer3Explain,
+        ui->labelPlayer4Explain, ui->labelPlayer5Explain, ui->labelPlayer6Explain,
+        ui->labelPlayer7Explain, ui->labelPlayer8Explain,
+    };
+
     emulated_controllers = {
         ui->comboPlayer1Emulated, ui->comboPlayer2Emulated, ui->comboPlayer3Emulated,
         ui->comboPlayer4Emulated, ui->comboPlayer5Emulated, ui->comboPlayer6Emulated,
@@ -200,6 +208,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
                                           Settings::ControllerType::Handheld);
                     });
         }
+
+        SetExplainText(i);
     }
 
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
@@ -466,6 +476,16 @@ void QtControllerSelectorDialog::UpdateBorderColor(std::size_t player_index) {
                 .arg(parameters.border_colors[player_index][1])
                 .arg(parameters.border_colors[player_index][2])
                 .arg(parameters.border_colors[player_index][3])));
+}
+
+void QtControllerSelectorDialog::SetExplainText(std::size_t player_index) {
+    if (!parameters.enable_explain_text || player_index >= parameters.max_players) {
+        return;
+    }
+
+    explain_text_labels[player_index]->setText(QString::fromStdString(
+        Common::StringFromFixedZeroTerminatedBuffer(parameters.explain_text[player_index].data(),
+                                                    parameters.explain_text[player_index].size())));
 }
 
 void QtControllerSelectorDialog::UpdateDockedState(bool is_handheld) {

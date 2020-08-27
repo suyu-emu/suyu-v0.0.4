@@ -19,8 +19,8 @@ namespace Service::AM::Applets {
 [[maybe_unused]] constexpr ResultCode ERR_CONTROLLER_APPLET_3102{ErrorModule::HID, 3102};
 
 static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
-    ControllerSupportArgPrivate private_arg, ControllerSupportArgHeader header,
-    std::vector<IdentificationColor> identification_colors) {
+    ControllerSupportArgPrivate private_arg, ControllerSupportArgHeader header, bool enable_text,
+    std::vector<IdentificationColor> identification_colors, std::vector<ExplainText> text) {
     HID::Controller_NPad::NPadType npad_style_set;
     npad_style_set.raw = private_arg.style_set;
 
@@ -31,6 +31,8 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
         .enable_single_mode = header.enable_single_mode,
         .enable_border_color = header.enable_identification_color,
         .border_colors = identification_colors,
+        .enable_explain_text = enable_text,
+        .explain_text = text,
         .allow_pro_controller = npad_style_set.pro_controller == 1,
         .allow_handheld = npad_style_set.handheld == 1,
         .allow_dual_joycons = npad_style_set.joycon_dual == 1,
@@ -126,31 +128,38 @@ void Controller::Execute() {
             case LibraryAppletVersion::Version5:
                 return ConvertToFrontendParameters(
                     controller_private_arg, controller_user_arg_old.header,
+                    controller_user_arg_old.enable_explain_text,
                     std::vector<IdentificationColor>(
                         controller_user_arg_old.identification_colors.begin(),
-                        controller_user_arg_old.identification_colors.end()));
+                        controller_user_arg_old.identification_colors.end()),
+                    std::vector<ExplainText>(controller_user_arg_old.explain_text.begin(),
+                                             controller_user_arg_old.explain_text.end()));
             case LibraryAppletVersion::Version7:
             default:
                 return ConvertToFrontendParameters(
                     controller_private_arg, controller_user_arg_new.header,
+                    controller_user_arg_new.enable_explain_text,
                     std::vector<IdentificationColor>(
                         controller_user_arg_new.identification_colors.begin(),
-                        controller_user_arg_new.identification_colors.end()));
+                        controller_user_arg_new.identification_colors.end()),
+                    std::vector<ExplainText>(controller_user_arg_new.explain_text.begin(),
+                                             controller_user_arg_new.explain_text.end()));
             }
         }();
 
         is_single_mode = parameters.enable_single_mode;
 
-        LOG_DEBUG(
-            Service_HID,
-            "Controller Parameters: min_players={}, max_players={}, keep_controllers_connected={}, "
-            "enable_single_mode={}, enable_border_color={}, allow_pro_controller={}, "
-            "allow_handheld={}, allow_dual_joycons={}, allow_left_joycon={}, allow_right_joycon={}",
-            parameters.min_players, parameters.max_players, parameters.keep_controllers_connected,
-            parameters.enable_single_mode, parameters.enable_border_color,
-            parameters.allow_pro_controller, parameters.allow_handheld,
-            parameters.allow_dual_joycons, parameters.allow_left_joycon,
-            parameters.allow_right_joycon);
+        LOG_DEBUG(Service_HID,
+                  "Controller Parameters: min_players={}, max_players={}, "
+                  "keep_controllers_connected={}, enable_single_mode={}, enable_border_color={}, "
+                  "enable_explain_text={}, allow_pro_controller={}, allow_handheld={}, "
+                  "allow_dual_joycons={}, allow_left_joycon={}, allow_right_joycon={}",
+                  parameters.min_players, parameters.max_players,
+                  parameters.keep_controllers_connected, parameters.enable_single_mode,
+                  parameters.enable_border_color, parameters.enable_explain_text,
+                  parameters.allow_pro_controller, parameters.allow_handheld,
+                  parameters.allow_dual_joycons, parameters.allow_left_joycon,
+                  parameters.allow_right_joycon);
 
         frontend.ReconfigureControllers([this] { ConfigurationComplete(); }, parameters);
         break;

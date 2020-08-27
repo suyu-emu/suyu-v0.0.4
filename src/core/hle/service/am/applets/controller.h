@@ -16,6 +16,7 @@ class System;
 namespace Service::AM::Applets {
 
 using IdentificationColor = std::array<u8, 4>;
+using ExplainText = std::array<char, 0x81>;
 
 enum class LibraryAppletVersion : u32_le {
     Version3 = 0x3, // 1.0.0 - 2.3.0
@@ -65,7 +66,7 @@ struct ControllerSupportArgOld {
     ControllerSupportArgHeader header{};
     std::array<IdentificationColor, 4> identification_colors{};
     bool enable_explain_text{};
-    std::array<std::array<char, 0x81>, 4> explain_text{};
+    std::array<ExplainText, 4> explain_text{};
 };
 static_assert(sizeof(ControllerSupportArgOld) == 0x21C,
               "ControllerSupportArgOld has incorrect size.");
@@ -75,7 +76,7 @@ struct ControllerSupportArgNew {
     ControllerSupportArgHeader header{};
     std::array<IdentificationColor, 8> identification_colors{};
     bool enable_explain_text{};
-    std::array<std::array<char, 0x81>, 8> explain_text{};
+    std::array<ExplainText, 8> explain_text{};
 };
 static_assert(sizeof(ControllerSupportArgNew) == 0x430,
               "ControllerSupportArgNew has incorrect size.");

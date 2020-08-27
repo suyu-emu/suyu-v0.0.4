@@ -11,6 +11,7 @@
 namespace Core::Frontend {
 
 using BorderColor = std::array<u8, 4>;
+using ExplainText = std::array<char, 0x81>;
 
 struct ControllerParameters {
     s8 min_players{};
@@ -19,6 +20,8 @@ struct ControllerParameters {
     bool enable_single_mode{};
     bool enable_border_color{};
     std::vector<BorderColor> border_colors{};
+    bool enable_explain_text{};
+    std::vector<ExplainText> explain_text{};
     bool allow_pro_controller{};
     bool allow_handheld{};
     bool allow_dual_joycons{};

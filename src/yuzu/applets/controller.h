@@ -59,6 +59,9 @@ private:
     // Updates the border color per player.
     void UpdateBorderColor(std::size_t player_index);
 
+    // Sets the "Explain Text" per player.
+    void SetExplainText(std::size_t player_index);
+
     // Updates the console mode.
     void UpdateDockedState(bool is_handheld);
 
@@ -93,6 +96,9 @@ private:
 
     // LED patterns for currently connected controllers/players.
     std::array<std::array<QCheckBox*, 4>, 8> led_patterns_boxes;
+
+    // Labels representing additional information known as "Explain Text" per player.
+    std::array<QLabel*, 8> explain_text_labels;
 
     // Comboboxes with a list of emulated controllers per player.
     std::array<QComboBox*, 8> emulated_controllers;
