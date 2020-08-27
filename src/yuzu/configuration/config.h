@@ -23,7 +23,9 @@ public:
     void Save();
 
     static const std::array<int, Settings::NativeButton::NumButtons> default_buttons;
-    static const std::array<std::array<int, 5>, Settings::NativeAnalog::NumAnalogs> default_analogs;
+    static const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> default_analogs;
+    static const int default_lstick_mod;
+    static const int default_rstick_mod;
     static const std::array<int, Settings::NativeMouseButton::NumMouseButtons>
         default_mouse_buttons;
     static const std::array<int, Settings::NativeKeyboard::NumKeyboardKeys> default_keyboard_keys;
@@ -37,7 +39,6 @@ private:
     void ReadKeyboardValues();
     void ReadMouseValues();
     void ReadTouchscreenValues();
-    void ApplyDefaultProfileIfInputInvalid();
 
     // Read functions bases off the respective config section names.
     void ReadAudioValues();

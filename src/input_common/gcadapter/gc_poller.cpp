@@ -191,7 +191,7 @@ public:
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
         const auto [x, y] = GetStatus();
-        const float directional_deadzone = 0.4f;
+        const float directional_deadzone = 0.5f;
         switch (direction) {
         case Input::AnalogDirection::RIGHT:
             return x > directional_deadzone;
@@ -232,7 +232,7 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
     const int port = params.Get("port", 0);
     const int axis_x = params.Get("axis_x", 0);
     const int axis_y = params.Get("axis_y", 1);
-    const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, .99f);
+    const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
     const float range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
 
     return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get(), range);

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
+    <width>650</width>
     <height>650</height>
    </rect>
   </property>
@@ -26,13 +26,13 @@
       <widget class="QListWidget" name="selectorList">
        <property name="minimumSize">
         <size>
-         <width>150</width>
+         <width>120</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>150</width>
+         <width>120</width>
          <height>16777215</height>
         </size>
        </property>
@@ -44,76 +44,121 @@
         <number>0</number>
        </property>
        <widget class="ConfigureGeneral" name="generalTab">
+        <property name="accessibleName">
+         <string>General</string>
+        </property>
         <attribute name="title">
          <string>General</string>
         </attribute>
        </widget>
        <widget class="ConfigureUi" name="uiTab">
+        <property name="accessibleName">
+         <string>UI</string>
+        </property>
         <attribute name="title">
          <string>Game List</string>
         </attribute>
        </widget>
        <widget class="ConfigureSystem" name="systemTab">
+        <property name="accessibleName">
+         <string>System</string>
+        </property>
         <attribute name="title">
          <string>System</string>
         </attribute>
        </widget>
        <widget class="ConfigureProfileManager" name="profileManagerTab">
+        <property name="accessibleName">
+         <string>Profiles</string>
+        </property>
         <attribute name="title">
          <string>Profiles</string>
         </attribute>
        </widget>
        <widget class="ConfigureFilesystem" name="filesystemTab">
+        <property name="accessibleName">
+         <string>Filesystem</string>
+        </property>
         <attribute name="title">
          <string>Filesystem</string>
         </attribute>
        </widget>
-       <widget class="ConfigureInputSimple" name="inputTab">
+       <widget class="ConfigureInput" name="inputTab">
+        <property name="accessibleName">
+         <string>Controls</string>
+        </property>
         <attribute name="title">
-         <string>Input</string>
+         <string>Controls</string>
         </attribute>
        </widget>
        <widget class="ConfigureHotkeys" name="hotkeysTab">
+        <property name="accessibleName">
+         <string>Hotkeys</string>
+        </property>
         <attribute name="title">
          <string>Hotkeys</string>
         </attribute>
        </widget>
        <widget class="ConfigureCpu" name="cpuTab">
+        <property name="accessibleName">
+         <string>CPU</string>
+        </property>
         <attribute name="title">
          <string>CPU</string>
         </attribute>
        </widget>
        <widget class="ConfigureCpuDebug" name="cpuDebugTab">
+        <property name="accessibleName">
+         <string>Debug</string>
+        </property>
         <attribute name="title">
          <string>Debug</string>
         </attribute>
        </widget>
        <widget class="ConfigureGraphics" name="graphicsTab">
+        <property name="accessibleName">
+         <string>Graphics</string>
+        </property>
         <attribute name="title">
          <string>Graphics</string>
         </attribute>
        </widget>
        <widget class="ConfigureGraphicsAdvanced" name="graphicsAdvancedTab">
+        <property name="accessibleName">
+         <string>Advanced</string>
+        </property>
         <attribute name="title">
          <string>GraphicsAdvanced</string>
         </attribute>
        </widget>
        <widget class="ConfigureAudio" name="audioTab">
+        <property name="accessibleName">
+         <string>Audio</string>
+        </property>
         <attribute name="title">
          <string>Audio</string>
         </attribute>
        </widget>
        <widget class="ConfigureDebug" name="debugTab">
+        <property name="accessibleName">
+         <string>Debug</string>
+        </property>
         <attribute name="title">
          <string>Debug</string>
         </attribute>
        </widget>
        <widget class="ConfigureWeb" name="webTab">
+        <property name="accessibleName">
+         <string>Web</string>
+        </property>
         <attribute name="title">
          <string>Web</string>
         </attribute>
        </widget>
        <widget class="ConfigureService" name="serviceTab">
+        <property name="accessibleName">
+         <string>Services</string>
+        </property>
         <attribute name="title">
          <string>Services</string>
         </attribute>
@@ -205,9 +250,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>ConfigureInputSimple</class>
+   <class>ConfigureInput</class>
    <extends>QWidget</extends>
-   <header>configuration/configure_input_simple.h</header>
+   <header>configuration/configure_input.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

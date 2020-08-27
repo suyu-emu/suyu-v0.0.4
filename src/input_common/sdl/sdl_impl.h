@@ -50,12 +50,20 @@ public:
     std::atomic<bool> polling = false;
     Common::SPSCQueue<SDL_Event> event_queue;
 
+    std::vector<Common::ParamPackage> GetInputDevices() override;
+
+    ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& params) override;
+    AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) override;
+
 private:
     void InitJoystick(int joystick_index);
     void CloseJoystick(SDL_Joystick* sdl_joystick);
 
     /// Needs to be called before SDL_QuitSubSystem.
     void CloseJoysticks();
+
+    // Set to true if SDL supports game controller subsystem
+    bool has_gamecontroller = false;
 
     /// Map of GUID of a list of corresponding virtual Joysticks
     std::unordered_map<std::string, std::vector<std::shared_ptr<SDLJoystick>>> joystick_map;

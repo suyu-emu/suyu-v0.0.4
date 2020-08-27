@@ -7,6 +7,8 @@ add_library(input_common STATIC
     main.h
     motion_emu.cpp
     motion_emu.h
+    settings.cpp
+    settings.h
     gcadapter/gc_adapter.cpp
     gcadapter/gc_adapter.h
     gcadapter/gc_poller.cpp

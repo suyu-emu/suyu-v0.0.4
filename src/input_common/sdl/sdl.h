@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <vector>
+#include "common/param_package.h"
 #include "input_common/main.h"
 
 namespace InputCommon::Polling {
@@ -22,14 +23,24 @@ public:
     /// Unregisters SDL device factories and shut them down.
     virtual ~State() = default;
 
-    virtual Pollers GetPollers(Polling::DeviceType type) = 0;
+    virtual Pollers GetPollers(Polling::DeviceType type) {
+        return {};
+    }
+
+    virtual std::vector<Common::ParamPackage> GetInputDevices() {
+        return {};
+    }
+
+    virtual ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage&) {
+        return {};
+    }
+    virtual AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage&) {
+        return {};
+    }
 };
 
 class NullState : public State {
 public:
-    Pollers GetPollers(Polling::DeviceType type) override {
-        return {};
-    }
 };
 
 std::unique_ptr<State> Init();
