@@ -289,11 +289,9 @@ void QtControllerSelectorDialog::CallConfigureInputDialog() {
 
 void QtControllerSelectorDialog::CheckIfParametersMet() {
     // Here, we check and validate the current configuration against all applicable parameters.
-    const auto& players = Settings::values.players;
-
-    const auto num_connected_players =
+    const auto num_connected_players = static_cast<int>(
         std::count_if(player_groupboxes.begin(), player_groupboxes.end(),
-                      [this](const QGroupBox* player) { return player->isChecked(); });
+                      [this](const QGroupBox* player) { return player->isChecked(); }));
 
     const auto min_supported_players = parameters.enable_single_mode ? 1 : parameters.min_players;
     const auto max_supported_players = parameters.enable_single_mode ? 1 : parameters.max_players;
@@ -489,7 +487,8 @@ void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {
 }
 
 void QtControllerSelectorDialog::UpdateBorderColor(std::size_t player_index) {
-    if (!parameters.enable_border_color || player_index >= parameters.max_players ||
+    if (!parameters.enable_border_color ||
+        player_index >= static_cast<std::size_t>(parameters.max_players) ||
         player_groupboxes[player_index]->styleSheet().contains(QStringLiteral("QGroupBox"))) {
         return;
     }
@@ -506,7 +505,8 @@ void QtControllerSelectorDialog::UpdateBorderColor(std::size_t player_index) {
 }
 
 void QtControllerSelectorDialog::SetExplainText(std::size_t player_index) {
-    if (!parameters.enable_explain_text || player_index >= parameters.max_players) {
+    if (!parameters.enable_explain_text ||
+        player_index >= static_cast<std::size_t>(parameters.max_players)) {
         return;
     }
 

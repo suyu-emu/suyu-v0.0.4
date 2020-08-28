@@ -29,7 +29,8 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
 
     auto& players = Settings::values.players;
 
-    const auto min_supported_players = parameters.enable_single_mode ? 1 : parameters.min_players;
+    const std::size_t min_supported_players =
+        parameters.enable_single_mode ? 1 : parameters.min_players;
 
     // Disconnect Handheld first.
     npad.DisconnectNPadAtIndex(8);
