@@ -13,23 +13,25 @@
 #include "input_common/sdl/sdl.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
-EmuWindow_SDL2::EmuWindow_SDL2(Core::System& system, bool fullscreen) : system{system} {
+EmuWindow_SDL2::EmuWindow_SDL2(Core::System& system, bool fullscreen,
+                               InputCommon::InputSubsystem* input_subsystem_)
+    : system{system}, input_subsystem{input_subsystem_} {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
         exit(1);
     }
-    InputCommon::Init();
+    input_subsystem->Initialize();
     SDL_SetMainReady();
 }
 
 EmuWindow_SDL2::~EmuWindow_SDL2() {
-    InputCommon::Shutdown();
+    input_subsystem->Shutdown();
     SDL_Quit();
 }
 
 void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
     TouchMoved((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
-    InputCommon::GetMotionEmu()->Tilt(x, y);
+    input_subsystem->GetMotionEmu()->Tilt(x, y);
 }
 
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
@@ -41,9 +43,9 @@ void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
         }
     } else if (button == SDL_BUTTON_RIGHT) {
         if (state == SDL_PRESSED) {
-            InputCommon::GetMotionEmu()->BeginTilt(x, y);
+            input_subsystem->GetMotionEmu()->BeginTilt(x, y);
         } else {
-            InputCommon::GetMotionEmu()->EndTilt();
+            input_subsystem->GetMotionEmu()->EndTilt();
         }
     }
 }
@@ -79,9 +81,9 @@ void EmuWindow_SDL2::OnFingerUp() {
 
 void EmuWindow_SDL2::OnKeyEvent(int key, u8 state) {
     if (state == SDL_PRESSED) {
-        InputCommon::GetKeyboard()->PressKey(key);
+        input_subsystem->GetKeyboard()->PressKey(key);
     } else if (state == SDL_RELEASED) {
-        InputCommon::GetKeyboard()->ReleaseKey(key);
+        input_subsystem->GetKeyboard()->ReleaseKey(key);
     }
 }
 

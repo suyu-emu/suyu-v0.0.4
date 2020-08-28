@@ -10,12 +10,11 @@
 #include <optional>
 #include <string>
 
-#include <QDialog>
+#include <QWidget>
 
 #include "common/param_package.h"
 #include "core/settings.h"
 #include "ui_configure_input.h"
-#include "yuzu/uisettings.h"
 
 class QCheckBox;
 class QKeyEvent;
@@ -26,6 +25,10 @@ class QSpinBox;
 class QString;
 class QTimer;
 class QWidget;
+
+namespace InputCommon {
+class InputSubsystem;
+}
 
 namespace InputCommon::Polling {
 class DevicePoller;
@@ -41,6 +44,7 @@ class ConfigureInputPlayer : public QWidget {
 
 public:
     explicit ConfigureInputPlayer(QWidget* parent, std::size_t player_index, QWidget* bottom_row,
+                                  InputCommon::InputSubsystem* input_subsystem_,
                                   bool debug = false);
     ~ConfigureInputPlayer() override;
 
@@ -110,6 +114,8 @@ private:
 
     std::size_t player_index;
     bool debug;
+
+    InputCommon::InputSubsystem* input_subsystem;
 
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;

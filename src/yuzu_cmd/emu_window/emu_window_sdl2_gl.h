@@ -8,9 +8,14 @@
 #include "core/frontend/emu_window.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 class EmuWindow_SDL2_GL final : public EmuWindow_SDL2 {
 public:
-    explicit EmuWindow_SDL2_GL(Core::System& system, bool fullscreen);
+    explicit EmuWindow_SDL2_GL(Core::System& system, bool fullscreen,
+                               InputCommon::InputSubsystem* input_subsystem);
     ~EmuWindow_SDL2_GL();
 
     void Present() override;

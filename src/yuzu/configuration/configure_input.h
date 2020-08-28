@@ -7,8 +7,8 @@
 #include <array>
 #include <memory>
 
-#include <QDialog>
 #include <QKeyEvent>
+#include <QWidget>
 
 #include "yuzu/configuration/configure_input_advanced.h"
 #include "yuzu/configuration/configure_input_player.h"
@@ -18,6 +18,10 @@
 class QCheckBox;
 class QString;
 class QTimer;
+
+namespace InputCommon {
+class InputSubsystem;
+}
 
 namespace Ui {
 class ConfigureInput;
@@ -31,6 +35,9 @@ class ConfigureInput : public QWidget {
 public:
     explicit ConfigureInput(QWidget* parent = nullptr);
     ~ConfigureInput() override;
+
+    /// Initializes the input dialog with the given input subsystem.
+    void Initialize(InputCommon::InputSubsystem* input_subsystem_);
 
     /// Save all button configurations to settings file.
     void ApplyConfiguration();

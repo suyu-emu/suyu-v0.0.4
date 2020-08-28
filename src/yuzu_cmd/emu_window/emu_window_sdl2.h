@@ -14,9 +14,14 @@ namespace Core {
 class System;
 }
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 class EmuWindow_SDL2 : public Core::Frontend::EmuWindow {
 public:
-    explicit EmuWindow_SDL2(Core::System& system, bool fullscreen);
+    explicit EmuWindow_SDL2(Core::System& system, bool fullscreen,
+                            InputCommon::InputSubsystem* input_subsystem);
     ~EmuWindow_SDL2();
 
     /// Polls window events
@@ -76,4 +81,7 @@ protected:
 
     /// Keeps track of how often to update the title bar during gameplay
     u32 last_time = 0;
+
+    /// Input subsystem to use with this window.
+    InputCommon::InputSubsystem* input_subsystem;
 };

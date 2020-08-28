@@ -8,11 +8,13 @@
 #include <optional>
 #include <QDialog>
 
-#include "core/settings.h"
-
 class QCheckBox;
 class QPushButton;
 class QTimer;
+
+namespace InputCommon {
+class InputSubsystem;
+}
 
 namespace Ui {
 class ConfigureMouseAdvanced;
@@ -22,7 +24,7 @@ class ConfigureMouseAdvanced : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigureMouseAdvanced(QWidget* parent);
+    explicit ConfigureMouseAdvanced(QWidget* parent, InputCommon::InputSubsystem* input_subsystem_);
     ~ConfigureMouseAdvanced() override;
 
     void ApplyConfiguration();
@@ -56,6 +58,8 @@ private:
     void keyPressEvent(QKeyEvent* event) override;
 
     std::unique_ptr<Ui::ConfigureMouseAdvanced> ui;
+
+    InputCommon::InputSubsystem* input_subsystem;
 
     /// This will be the the setting function when an input is awaiting configuration.
     std::optional<std::function<void(const Common::ParamPackage&)>> input_setter;

@@ -8,6 +8,10 @@
 
 struct SDL_Window;
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 class EmuWindow_SDL2_Hide : public Core::Frontend::EmuWindow {
 public:
     explicit EmuWindow_SDL2_Hide();
@@ -24,6 +28,8 @@ public:
 private:
     /// Whether the GPU and driver supports the OpenGL extension required
     bool SupportsRequiredGLExtensions();
+
+    std::unique_ptr<InputCommon::InputSubsystem> input_subsystem;
 
     /// Internal SDL2 render window
     SDL_Window* render_window;

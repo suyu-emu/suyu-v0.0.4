@@ -9,6 +9,10 @@
 
 class HotkeyRegistry;
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 namespace Ui {
 class ConfigureDialog;
 }
@@ -17,7 +21,8 @@ class ConfigureDialog : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigureDialog(QWidget* parent, HotkeyRegistry& registry);
+    explicit ConfigureDialog(QWidget* parent, HotkeyRegistry& registry,
+                             InputCommon::InputSubsystem* input_subsystem);
     ~ConfigureDialog() override;
 
     void ApplyConfiguration();

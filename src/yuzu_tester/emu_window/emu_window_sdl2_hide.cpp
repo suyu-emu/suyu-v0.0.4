@@ -13,7 +13,6 @@
 
 #include <glad/glad.h>
 
-#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/scm_rev.h"
 #include "core/settings.h"
@@ -53,7 +52,7 @@ EmuWindow_SDL2_Hide::EmuWindow_SDL2_Hide() {
         exit(1);
     }
 
-    InputCommon::Init();
+    input_subsystem->Initialize();
 
     SDL_SetMainReady();
 
@@ -105,7 +104,7 @@ EmuWindow_SDL2_Hide::EmuWindow_SDL2_Hide() {
 }
 
 EmuWindow_SDL2_Hide::~EmuWindow_SDL2_Hide() {
-    InputCommon::Shutdown();
+    input_subsystem->Shutdown();
     SDL_GL_DeleteContext(gl_context);
     SDL_Quit();
 }

@@ -40,11 +40,19 @@ namespace Core::Frontend {
 struct SoftwareKeyboardParameters;
 } // namespace Core::Frontend
 
+namespace DiscordRPC {
+class DiscordInterface;
+}
+
 namespace FileSys {
 class ContentProvider;
 class ManualContentProvider;
 class VfsFilesystem;
 } // namespace FileSys
+
+namespace InputCommon {
+class InputSubsystem;
+}
 
 enum class EmulatedDirectoryTarget {
     NAND,
@@ -61,10 +69,6 @@ enum class ReinitializeKeyBehavior {
     NoWarning,
     Warning,
 };
-
-namespace DiscordRPC {
-class DiscordInterface;
-}
 
 class GMainWindow : public QMainWindow {
     Q_OBJECT
@@ -85,8 +89,6 @@ public:
     void UpdateUITheme();
     GMainWindow();
     ~GMainWindow() override;
-
-    std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
 
     bool DropAction(QDropEvent* event);
     void AcceptDropEvent(QDropEvent* event);
@@ -254,6 +256,9 @@ private:
     void OpenPerGameConfiguration(u64 title_id, const std::string& file_name);
 
     Ui::MainWindow ui;
+
+    std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
+    std::unique_ptr<InputCommon::InputSubsystem> input_subsystem;
 
     GRenderWindow* render_window;
     GameList* game_list;

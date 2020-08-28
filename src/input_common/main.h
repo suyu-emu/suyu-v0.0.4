@@ -16,52 +16,6 @@ class ParamPackage;
 }
 
 namespace InputCommon {
-
-/// Initializes and registers all built-in input device factories.
-void Init();
-
-/// Deregisters all built-in input device factories and shuts them down.
-void Shutdown();
-
-class Keyboard;
-
-/// Gets the keyboard button device factory.
-Keyboard* GetKeyboard();
-
-class MotionEmu;
-
-/// Gets the motion emulation factory.
-MotionEmu* GetMotionEmu();
-
-GCButtonFactory* GetGCButtons();
-
-GCAnalogFactory* GetGCAnalogs();
-
-/// Generates a serialized param package for creating a keyboard button device
-std::string GenerateKeyboardParam(int key_code);
-
-/// Generates a serialized param package for creating an analog device taking input from keyboard
-std::string GenerateAnalogParamFromKeys(int key_up, int key_down, int key_left, int key_right,
-                                        int key_modifier, float modifier_scale);
-
-/**
- * Return a list of available input devices that this Factory can create a new device with.
- * Each returned Parampackage should have a `display` field used for display, a class field for
- * backends to determine if this backend is meant to service the request and any other information
- * needed to identify this in the backend later.
- */
-std::vector<Common::ParamPackage> GetInputDevices();
-
-/**
- * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
- * mapping for the device. This is currently only implemented for the sdl backend devices.
- */
-using ButtonMapping = std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage>;
-using AnalogMapping = std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage>;
-
-ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage&);
-AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage&);
-
 namespace Polling {
 
 enum class DeviceType { Button, AnalogPreferred };
@@ -90,4 +44,88 @@ public:
 // Get all DevicePoller from all backends for a specific device type
 std::vector<std::unique_ptr<DevicePoller>> GetPollers(DeviceType type);
 } // namespace Polling
+
+class GCAnalogFactory;
+class GCButtonFactory;
+class Keyboard;
+class MotionEmu;
+
+/**
+ * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
+ * mapping for the device. This is currently only implemented for the SDL backend devices.
+ */
+using AnalogMapping = std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage>;
+using ButtonMapping = std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage>;
+
+class InputSubsystem {
+public:
+    explicit InputSubsystem();
+    ~InputSubsystem();
+
+    InputSubsystem(const InputSubsystem&) = delete;
+    InputSubsystem& operator=(const InputSubsystem&) = delete;
+
+    InputSubsystem(InputSubsystem&&) = delete;
+    InputSubsystem& operator=(InputSubsystem&&) = delete;
+
+    /// Initializes and registers all built-in input device factories.
+    void Initialize();
+
+    /// Unregisters all built-in input device factories and shuts them down.
+    void Shutdown();
+
+    /// Retrieves the underlying keyboard device.
+    [[nodiscard]] Keyboard* GetKeyboard();
+
+    /// Retrieves the underlying keyboard device.
+    [[nodiscard]] const Keyboard* GetKeyboard() const;
+
+    /// Retrieves the underlying motion emulation factory.
+    [[nodiscard]] MotionEmu* GetMotionEmu();
+
+    /// Retrieves the underlying motion emulation factory.
+    [[nodiscard]] const MotionEmu* GetMotionEmu() const;
+
+    /**
+     * Returns all available input devices that this Factory can create a new device with.
+     * Each returned ParamPackage should have a `display` field used for display, a class field for
+     * backends to determine if this backend is meant to service the request and any other
+     * information needed to identify this in the backend later.
+     */
+    [[nodiscard]] std::vector<Common::ParamPackage> GetInputDevices() const;
+
+    /// Retrieves the analog mappings for the given device.
+    [[nodiscard]] AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& device) const;
+
+    /// Retrieves the button mappings for the given device.
+    [[nodiscard]] ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& device) const;
+
+    /// Retrieves the underlying GameCube analog handler.
+    [[nodiscard]] GCAnalogFactory* GetGCAnalogs();
+
+    /// Retrieves the underlying GameCube analog handler.
+    [[nodiscard]] const GCAnalogFactory* GetGCAnalogs() const;
+
+    /// Retrieves the underlying GameCube button handler.
+    [[nodiscard]] GCButtonFactory* GetGCButtons();
+
+    /// Retrieves the underlying GameCube button handler.
+    [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
+
+    /// Get all DevicePoller from all backends for a specific device type
+    [[nodiscard]] std::vector<std::unique_ptr<Polling::DevicePoller>> GetPollers(
+        Polling::DeviceType type) const;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> impl;
+};
+
+/// Generates a serialized param package for creating a keyboard button device
+std::string GenerateKeyboardParam(int key_code);
+
+/// Generates a serialized param package for creating an analog device taking input from keyboard
+std::string GenerateAnalogParamFromKeys(int key_up, int key_down, int key_left, int key_right,
+                                        int key_modifier, float modifier_scale);
+
 } // namespace InputCommon
