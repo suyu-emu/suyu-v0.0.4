@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "common/assert.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/hle/lock.h"
@@ -15,6 +16,8 @@
 #include "yuzu/configuration/configure_input_dialog.h"
 #include "yuzu/main.h"
 
+namespace {
+
 constexpr std::array<std::array<bool, 4>, 8> led_patterns = {{
     {1, 0, 0, 0},
     {1, 1, 0, 0},
@@ -25,8 +28,6 @@ constexpr std::array<std::array<bool, 4>, 8> led_patterns = {{
     {1, 0, 1, 1},
     {0, 1, 1, 0},
 }};
-
-namespace {
 
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
                       bool connected) {

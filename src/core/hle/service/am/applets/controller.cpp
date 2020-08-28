@@ -3,10 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
+#include "common/assert.h"
+#include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/frontend/applets/controller.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/controller.h"
 #include "core/hle/service/hid/controllers/npad.h"
