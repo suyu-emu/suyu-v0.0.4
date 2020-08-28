@@ -40,9 +40,6 @@ public:
      */
     virtual Common::ParamPackage GetNextInput() = 0;
 };
-
-// Get all DevicePoller from all backends for a specific device type
-std::vector<std::unique_ptr<DevicePoller>> GetPollers(DeviceType type);
 } // namespace Polling
 
 class GCAnalogFactory;
