@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 
 namespace Common {
@@ -32,8 +33,8 @@ public:
     void AwaitInterrupt();
 
 private:
-    bool is_interrupted{};
     std::unique_ptr<Common::Event> interrupt_event;
+    std::atomic_bool is_interrupted{false};
 };
 
 } // namespace Core

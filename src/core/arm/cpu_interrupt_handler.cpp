@@ -7,9 +7,7 @@
 
 namespace Core {
 
-CPUInterruptHandler::CPUInterruptHandler() : is_interrupted{} {
-    interrupt_event = std::make_unique<Common::Event>();
-}
+CPUInterruptHandler::CPUInterruptHandler() : interrupt_event{std::make_unique<Common::Event>()} {}
 
 CPUInterruptHandler::~CPUInterruptHandler() = default;
 
@@ -17,7 +15,7 @@ void CPUInterruptHandler::SetInterrupt(bool is_interrupted_) {
     if (is_interrupted_) {
         interrupt_event->Set();
     }
-    this->is_interrupted = is_interrupted_;
+    is_interrupted = is_interrupted_;
 }
 
 void CPUInterruptHandler::AwaitInterrupt() {
