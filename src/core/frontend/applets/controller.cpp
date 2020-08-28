@@ -44,19 +44,24 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
         }
 
         // Connect controllers based on the following priority list from highest to lowest priority:
-        // Pro Controller -> Dual Joycons -> Left Joycon -> Right Joycon -> Handheld
+        // Pro Controller -> Dual Joycons -> Left Joycon/Right Joycon -> Handheld
         if (parameters.allow_pro_controller) {
             npad.AddNewControllerAt(
                 npad.MapSettingsTypeToNPad(Settings::ControllerType::ProController), index);
         } else if (parameters.allow_dual_joycons) {
             npad.AddNewControllerAt(
                 npad.MapSettingsTypeToNPad(Settings::ControllerType::DualJoyconDetached), index);
-        } else if (parameters.allow_left_joycon) {
-            npad.AddNewControllerAt(
-                npad.MapSettingsTypeToNPad(Settings::ControllerType::LeftJoycon), index);
-        } else if (parameters.allow_right_joycon) {
-            npad.AddNewControllerAt(
-                npad.MapSettingsTypeToNPad(Settings::ControllerType::RightJoycon), index);
+        } else if (parameters.allow_left_joycon && parameters.allow_right_joycon) {
+            // Assign left joycons to even player indices and right joycons to odd player indices.
+            // We do this since Captain Toad Treasure Tracker expects a left joycon for Player 1 and
+            // a right Joycon for Player 2 in 2 Player Assist mode.
+            if (index % 2 == 0) {
+                npad.AddNewControllerAt(
+                    npad.MapSettingsTypeToNPad(Settings::ControllerType::LeftJoycon), index);
+            } else {
+                npad.AddNewControllerAt(
+                    npad.MapSettingsTypeToNPad(Settings::ControllerType::RightJoycon), index);
+            }
         } else if (index == 0 && parameters.enable_single_mode && parameters.allow_handheld &&
                    !Settings::values.use_docked_mode) {
             // We should *never* reach here under any normal circumstances.
