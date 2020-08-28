@@ -25,7 +25,7 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     npad_style_set.raw = private_arg.style_set;
 
     return {
-        .min_players = header.player_count_min,
+        .min_players = std::max(s8(1), header.player_count_min),
         .max_players = header.player_count_max,
         .keep_controllers_connected = header.enable_take_over_connection,
         .enable_single_mode = header.enable_single_mode,
