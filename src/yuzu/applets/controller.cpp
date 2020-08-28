@@ -102,7 +102,8 @@ constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
 } // namespace
 
 QtControllerSelectorDialog::QtControllerSelectorDialog(
-    QWidget* parent, Core::Frontend::ControllerParameters parameters_, InputCommon::InputSubsystem* input_subsystem_)
+    QWidget* parent, Core::Frontend::ControllerParameters parameters_,
+    InputCommon::InputSubsystem* input_subsystem_)
     : QDialog(parent), ui(std::make_unique<Ui::QtControllerSelectorDialog>()),
       parameters(std::move(parameters_)), input_subsystem(input_subsystem_) {
     ui->setupUi(this);

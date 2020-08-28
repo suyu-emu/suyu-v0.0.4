@@ -70,7 +70,8 @@ ConfigureInput::ConfigureInput(QWidget* parent)
 
 ConfigureInput::~ConfigureInput() = default;
 
-void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem, std::size_t max_players) {
+void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
+                                std::size_t max_players) {
     player_controllers = {
         new ConfigureInputPlayer(this, 0, ui->consoleInputSettings, input_subsystem),
         new ConfigureInputPlayer(this, 1, ui->consoleInputSettings, input_subsystem),
