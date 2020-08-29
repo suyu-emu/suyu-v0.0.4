@@ -577,7 +577,7 @@ Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid
                                                       float value = 0.1f) {
     Common::ParamPackage params({{"engine", "sdl"}});
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("axis", axis);
     if (value > 0) {
         params.Set("direction", "+");
@@ -592,7 +592,7 @@ Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid
 Common::ParamPackage BuildButtonParamPackageForButton(int port, std::string guid, u8 button) {
     Common::ParamPackage params({{"engine", "sdl"}});
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("button", button);
     return params;
 }
@@ -601,7 +601,7 @@ Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, u
     Common::ParamPackage params({{"engine", "sdl"}});
 
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("hat", hat);
     switch (value) {
     case SDL_HAT_UP:
