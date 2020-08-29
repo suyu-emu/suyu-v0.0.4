@@ -258,7 +258,7 @@ private:
     Ui::MainWindow ui;
 
     std::unique_ptr<DiscordRPC::DiscordInterface> discord_rpc;
-    std::unique_ptr<InputCommon::InputSubsystem> input_subsystem;
+    std::shared_ptr<InputCommon::InputSubsystem> input_subsystem;
 
     GRenderWindow* render_window;
     GameList* game_list;

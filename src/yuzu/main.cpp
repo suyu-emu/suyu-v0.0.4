@@ -187,7 +187,7 @@ static void InitializeLogging() {
 }
 
 GMainWindow::GMainWindow()
-    : input_subsystem{std::make_unique<InputCommon::InputSubsystem>()},
+    : input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
       config{std::make_unique<Config>()}, vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
       provider{std::make_unique<FileSys::ManualContentProvider>()} {
     InitializeLogging();
@@ -474,7 +474,7 @@ void GMainWindow::InitializeWidgets() {
 #ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
     ui.action_Report_Compatibility->setVisible(true);
 #endif
-    render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem.get());
+    render_window = new GRenderWindow(this, emu_thread.get(), input_subsystem);
     render_window->hide();
 
     game_list = new GameList(vfs, provider.get(), this);
