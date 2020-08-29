@@ -305,8 +305,8 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
 }
 
 GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
-                             InputCommon::InputSubsystem* input_subsystem_)
-    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{input_subsystem_} {
+                             std::shared_ptr<InputCommon::InputSubsystem> input_subsystem_)
+    : QWidget(parent), emu_thread(emu_thread_), input_subsystem{std::move(input_subsystem_)} {
     setWindowTitle(QStringLiteral("yuzu %1 | %2-%3")
                        .arg(QString::fromUtf8(Common::g_build_name),
                             QString::fromUtf8(Common::g_scm_branch),
