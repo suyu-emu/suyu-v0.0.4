@@ -358,7 +358,7 @@ public:
             return std::make_tuple(x / r * (r - deadzone) / (1 - deadzone),
                                    y / r * (r - deadzone) / (1 - deadzone));
         }
-        return std::make_tuple<float, float>(0.0f, 0.0f);
+        return {};
     }
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
