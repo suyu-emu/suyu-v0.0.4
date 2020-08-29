@@ -697,16 +697,17 @@ ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& pa
         return {};
     }
     const auto joystick = GetSDLJoystickByGUID(params.Get("guid", ""), params.Get("port", 0));
-    auto controller = joystick->GetSDLGameController();
-    if (!controller) {
+    auto* controller = joystick->GetSDLGameController();
+    if (controller == nullptr) {
         return {};
     }
 
     ButtonMapping mapping{};
     for (const auto& [switch_button, sdl_button] : switch_to_sdl_button) {
         const auto& binding = SDL_GameControllerGetBindForButton(controller, sdl_button);
-        mapping[switch_button] =
-            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding);
+        mapping.insert_or_assign(
+            switch_button,
+            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding));
     }
 
     // Add the missing bindings for ZL/ZR
@@ -717,8 +718,9 @@ ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& pa
         };
     for (const auto& [switch_button, sdl_axis] : switch_to_sdl_axis) {
         const auto& binding = SDL_GameControllerGetBindForAxis(controller, sdl_axis);
-        mapping[switch_button] =
-            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding);
+        mapping.insert_or_assign(
+            switch_button,
+            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding));
     }
 
     return mapping;
@@ -729,8 +731,8 @@ AnalogMapping SDLState::GetAnalogMappingForDevice(const Common::ParamPackage& pa
         return {};
     }
     const auto joystick = GetSDLJoystickByGUID(params.Get("guid", ""), params.Get("port", 0));
-    auto controller = joystick->GetSDLGameController();
-    if (!controller) {
+    auto* controller = joystick->GetSDLGameController();
+    if (controller == nullptr) {
         return {};
     }
 
@@ -739,16 +741,18 @@ AnalogMapping SDLState::GetAnalogMappingForDevice(const Common::ParamPackage& pa
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
     const auto& binding_left_y =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTY);
-    mapping[Settings::NativeAnalog::LStick] =
-        BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                   binding_left_x.value.axis, binding_left_y.value.axis);
+    mapping.insert_or_assign(Settings::NativeAnalog::LStick,
+                             BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
+                                                        binding_left_x.value.axis,
+                                                        binding_left_y.value.axis));
     const auto& binding_right_x =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTX);
     const auto& binding_right_y =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTY);
-    mapping[Settings::NativeAnalog::RStick] =
-        BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                   binding_right_x.value.axis, binding_right_y.value.axis);
+    mapping.insert_or_assign(Settings::NativeAnalog::RStick,
+                             BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
+                                                        binding_right_x.value.axis,
+                                                        binding_right_y.value.axis));
     return mapping;
 }
 
