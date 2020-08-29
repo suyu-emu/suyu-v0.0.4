@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <functional>
@@ -670,29 +671,6 @@ Common::ParamPackage BuildParamPackageForAnalog(int port, const std::string& gui
 } // Anonymous namespace
 
 ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& params) {
-    // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
-    // We will add those afterwards
-    // This list also excludes Screenshot since theres not really a mapping for that
-    std::unordered_map<Settings::NativeButton::Values, SDL_GameControllerButton>
-        switch_to_sdl_button = {
-            {Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
-            {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
-            {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
-            {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
-            {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
-            {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
-            {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-            {Settings::NativeButton::R, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-            {Settings::NativeButton::Plus, SDL_CONTROLLER_BUTTON_START},
-            {Settings::NativeButton::Minus, SDL_CONTROLLER_BUTTON_BACK},
-            {Settings::NativeButton::DLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
-            {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
-            {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
-            {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
-            {Settings::NativeButton::SL, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-            {Settings::NativeButton::SR, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-            {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
-        };
     if (!params.Has("guid") || !params.Has("port")) {
         return {};
     }
@@ -702,20 +680,48 @@ ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& pa
         return {};
     }
 
-    ButtonMapping mapping{};
+    // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
+    // We will add those afterwards
+    // This list also excludes Screenshot since theres not really a mapping for that
+    using ButtonBindings =
+        std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerButton>, 17>;
+    static constexpr ButtonBindings switch_to_sdl_button{{
+        {Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
+        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
+        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
+        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
+        {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
+        {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
+        {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+        {Settings::NativeButton::R, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+        {Settings::NativeButton::Plus, SDL_CONTROLLER_BUTTON_START},
+        {Settings::NativeButton::Minus, SDL_CONTROLLER_BUTTON_BACK},
+        {Settings::NativeButton::DLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
+        {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
+        {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
+        {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
+        {Settings::NativeButton::SL, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+        {Settings::NativeButton::SR, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+        {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
+    }};
+
+    // Add the missing bindings for ZL/ZR
+    using ZBindings =
+        std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerAxis>, 2>;
+    static constexpr ZBindings switch_to_sdl_axis{{
+        {Settings::NativeButton::ZL, SDL_CONTROLLER_AXIS_TRIGGERLEFT},
+        {Settings::NativeButton::ZR, SDL_CONTROLLER_AXIS_TRIGGERRIGHT},
+    }};
+
+    ButtonMapping mapping;
+    mapping.reserve(switch_to_sdl_button.size() + switch_to_sdl_axis.size());
+
     for (const auto& [switch_button, sdl_button] : switch_to_sdl_button) {
         const auto& binding = SDL_GameControllerGetBindForButton(controller, sdl_button);
         mapping.insert_or_assign(
             switch_button,
             BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding));
     }
-
-    // Add the missing bindings for ZL/ZR
-    std::unordered_map<Settings::NativeButton::Values, SDL_GameControllerAxis> switch_to_sdl_axis =
-        {
-            {Settings::NativeButton::ZL, SDL_CONTROLLER_AXIS_TRIGGERLEFT},
-            {Settings::NativeButton::ZR, SDL_CONTROLLER_AXIS_TRIGGERRIGHT},
-        };
     for (const auto& [switch_button, sdl_axis] : switch_to_sdl_axis) {
         const auto& binding = SDL_GameControllerGetBindForAxis(controller, sdl_axis);
         mapping.insert_or_assign(
