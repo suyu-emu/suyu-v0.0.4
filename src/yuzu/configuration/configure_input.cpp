@@ -128,14 +128,13 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem) {
     });
     connect(advanced, &ConfigureInputAdvanced::CallTouchscreenConfigDialog,
             [this] { CallConfigureDialog<ConfigureTouchscreenAdvanced>(*this); });
+    connect(advanced, &ConfigureInputAdvanced::CallMotionTouchConfigDialog,
+            [this, input_subsystem] {
+                CallConfigureDialog<ConfigureMotionTouch>(*this, input_subsystem);
+            });
 
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });
     connect(ui->buttonRestoreDefaults, &QPushButton::clicked, [this] { RestoreDefaults(); });
-
-    connect(ui->buttonMotionTouch, &QPushButton::clicked, [this] {
-        QDialog* motion_touch_dialog = new ConfigureMotionTouch(this);
-        return motion_touch_dialog->exec();
-    });
 
     RetranslateUI();
     LoadConfiguration();

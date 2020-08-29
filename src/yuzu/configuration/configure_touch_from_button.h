@@ -9,14 +9,16 @@
 #include <optional>
 #include <vector>
 #include <QDialog>
-#include "core/frontend/framebuffer_layout.h"
-#include "core/settings.h"
 
 class QItemSelection;
 class QModelIndex;
 class QStandardItemModel;
 class QStandardItem;
 class QTimer;
+
+namespace InputCommon {
+class InputSubsystem;
+}
 
 namespace Common {
 class ParamPackage;
@@ -32,12 +34,17 @@ namespace Ui {
 class ConfigureTouchFromButton;
 }
 
+namespace Settings {
+struct TouchFromButtonMap;
+}
+
 class ConfigureTouchFromButton : public QDialog {
     Q_OBJECT
 
 public:
     explicit ConfigureTouchFromButton(QWidget* parent,
                                       const std::vector<Settings::TouchFromButtonMap>& touch_maps,
+                                      InputCommon::InputSubsystem* input_subsystem_,
                                       int default_index = 0);
     ~ConfigureTouchFromButton() override;
 
@@ -51,8 +58,8 @@ public slots:
     void SetCoordinates(int dot_id, const QPoint& pos);
 
 protected:
-    virtual void showEvent(QShowEvent* ev) override;
-    virtual void keyPressEvent(QKeyEvent* event) override;
+    void showEvent(QShowEvent* ev) override;
+    void keyPressEvent(QKeyEvent* event) override;
 
 private slots:
     void NewMapping();
@@ -73,9 +80,11 @@ private:
     void SaveCurrentMapping();
 
     std::unique_ptr<Ui::ConfigureTouchFromButton> ui;
-    std::unique_ptr<QStandardItemModel> binding_list_model;
     std::vector<Settings::TouchFromButtonMap> touch_maps;
+    QStandardItemModel* binding_list_model;
     int selected_index;
+
+    InputCommon::InputSubsystem* input_subsystem;
 
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;

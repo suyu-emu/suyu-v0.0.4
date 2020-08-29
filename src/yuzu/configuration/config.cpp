@@ -420,10 +420,17 @@ void Config::ReadControlValues() {
     ReadKeyboardValues();
     ReadMouseValues();
     ReadTouchscreenValues();
+    ReadMotionTouchValues();
 
     Settings::values.vibration_enabled =
         ReadSetting(QStringLiteral("vibration_enabled"), true).toBool();
+    Settings::values.use_docked_mode =
+        ReadSetting(QStringLiteral("use_docked_mode"), false).toBool();
 
+    qt_config->endGroup();
+}
+
+void Config::ReadMotionTouchValues() {
     int num_touch_from_button_maps =
         qt_config->beginReadArray(QStringLiteral("touch_from_button_maps"));
 
@@ -481,10 +488,6 @@ void Config::ReadControlValues() {
             .toInt());
     Settings::values.udp_pad_index =
         static_cast<u8>(ReadSetting(QStringLiteral("udp_pad_index"), 0).toUInt());
-    Settings::values.use_docked_mode =
-        ReadSetting(QStringLiteral("use_docked_mode"), false).toBool();
-
-    qt_config->endGroup();
 }
 
 void Config::ReadCoreValues() {
@@ -977,6 +980,43 @@ void Config::SaveTouchscreenValues() {
     WriteSetting(QStringLiteral("touchscreen_diameter_y"), touchscreen.diameter_y, 15);
 }
 
+void Config::SaveMotionTouchValues() {
+    WriteSetting(QStringLiteral("motion_device"),
+                 QString::fromStdString(Settings::values.motion_device),
+                 QStringLiteral("engine:motion_emu,update_period:100,sensitivity:0.01"));
+    WriteSetting(QStringLiteral("touch_device"),
+                 QString::fromStdString(Settings::values.touch_device),
+                 QStringLiteral("engine:emu_window"));
+    WriteSetting(QStringLiteral("use_touch_from_button"), Settings::values.use_touch_from_button,
+                 false);
+    WriteSetting(QStringLiteral("touch_from_button_map"),
+                 Settings::values.touch_from_button_map_index, 0);
+    WriteSetting(QStringLiteral("udp_input_address"),
+                 QString::fromStdString(Settings::values.udp_input_address),
+                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR));
+    WriteSetting(QStringLiteral("udp_input_port"), Settings::values.udp_input_port,
+                 InputCommon::CemuhookUDP::DEFAULT_PORT);
+    WriteSetting(QStringLiteral("udp_pad_index"), Settings::values.udp_pad_index, 0);
+
+    qt_config->beginWriteArray(QStringLiteral("touch_from_button_maps"));
+    for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
+        qt_config->setArrayIndex(static_cast<int>(p));
+        WriteSetting(QStringLiteral("name"),
+                     QString::fromStdString(Settings::values.touch_from_button_maps[p].name),
+                     QStringLiteral("default"));
+        qt_config->beginWriteArray(QStringLiteral("entries"));
+        for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
+             ++q) {
+            qt_config->setArrayIndex(static_cast<int>(q));
+            WriteSetting(
+                QStringLiteral("bind"),
+                QString::fromStdString(Settings::values.touch_from_button_maps[p].buttons[q]));
+        }
+        qt_config->endArray();
+    }
+    qt_config->endArray();
+}
+
 void Config::SaveValues() {
     if (global) {
         SaveControlValues();
@@ -1019,6 +1059,7 @@ void Config::SaveControlValues() {
     SaveDebugValues();
     SaveMouseValues();
     SaveTouchscreenValues();
+    SaveMotionTouchValues();
 
     WriteSetting(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled, true);
     WriteSetting(QStringLiteral("motion_device"),
@@ -1028,35 +1069,7 @@ void Config::SaveControlValues() {
                  QString::fromStdString(Settings::values.touch_device),
                  QStringLiteral("engine:emu_window"));
     WriteSetting(QStringLiteral("keyboard_enabled"), Settings::values.keyboard_enabled, false);
-    WriteSetting(QStringLiteral("use_touch_from_button"), Settings::values.use_touch_from_button,
-                 false);
-    WriteSetting(QStringLiteral("touch_from_button_map"),
-                 Settings::values.touch_from_button_map_index, 0);
-    WriteSetting(QStringLiteral("udp_input_address"),
-                 QString::fromStdString(Settings::values.udp_input_address),
-                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR));
-    WriteSetting(QStringLiteral("udp_input_port"), Settings::values.udp_input_port,
-                 InputCommon::CemuhookUDP::DEFAULT_PORT);
-    WriteSetting(QStringLiteral("udp_pad_index"), Settings::values.udp_pad_index, 0);
     WriteSetting(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
-
-    qt_config->beginWriteArray(QStringLiteral("touch_from_button_maps"));
-    for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {
-        qt_config->setArrayIndex(static_cast<int>(p));
-        WriteSetting(QStringLiteral("name"),
-                     QString::fromStdString(Settings::values.touch_from_button_maps[p].name),
-                     QStringLiteral("default"));
-        qt_config->beginWriteArray(QStringLiteral("entries"));
-        for (std::size_t q = 0; q < Settings::values.touch_from_button_maps[p].buttons.size();
-             ++q) {
-            qt_config->setArrayIndex(static_cast<int>(q));
-            WriteSetting(
-                QStringLiteral("bind"),
-                QString::fromStdString(Settings::values.touch_from_button_maps[p].buttons[q]));
-        }
-        qt_config->endArray();
-    }
-    qt_config->endArray();
 
     qt_config->endGroup();
 }

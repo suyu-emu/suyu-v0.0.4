@@ -28,6 +28,7 @@ signals:
     void CallDebugControllerDialog();
     void CallMouseConfigDialog();
     void CallTouchscreenConfigDialog();
+    void CallMotionTouchConfigDialog();
 
 private:
     void changeEvent(QEvent* event) override;

@@ -175,9 +175,11 @@ const GCButtonFactory* InputSubsystem::GetGCButtons() const {
     return impl->gcbuttons.get();
 }
 
-void ReloadInputDevices() {
-    if (udp)
-        udp->ReloadUDPClient();
+void InputSubsystem::ReloadInputDevices() {
+    if (!impl->udp) {
+        return;
+    }
+    impl->udp->ReloadUDPClient();
 }
 
 std::vector<std::unique_ptr<Polling::DevicePoller>> InputSubsystem::GetPollers(
