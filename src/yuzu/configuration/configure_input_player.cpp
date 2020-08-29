@@ -305,8 +305,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     }
 
     // Handle clicks for the modifier buttons as well.
-    ConfigureButtonClick(ui->buttonLStickMod, &lstick_mod, Config::default_lstick_mod);
-    ConfigureButtonClick(ui->buttonRStickMod, &rstick_mod, Config::default_rstick_mod);
+    ConfigureButtonClick(ui->buttonLStickMod, &lstick_mod, Config::default_stick_mod[0]);
+    ConfigureButtonClick(ui->buttonRStickMod, &rstick_mod, Config::default_stick_mod[1]);
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
@@ -532,9 +532,9 @@ void ConfigureInputPlayer::RestoreDefaults() {
 
     // Reset Modifier Buttons
     lstick_mod =
-        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_lstick_mod));
+        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_stick_mod[0]));
     rstick_mod =
-        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_rstick_mod));
+        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_stick_mod[1]));
 
     // Reset Analogs
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
