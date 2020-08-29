@@ -49,10 +49,10 @@ class GameListItem : public QStandardItem {
 
 public:
     // used to access type from item index
-    static const int TypeRole = Qt::UserRole + 1;
-    static const int SortRole = Qt::UserRole + 2;
+    static constexpr int TypeRole = Qt::UserRole + 1;
+    static constexpr int SortRole = Qt::UserRole + 2;
     GameListItem() = default;
-    GameListItem(const QString& string) : QStandardItem(string) {
+    explicit GameListItem(const QString& string) : QStandardItem(string) {
         setData(string, SortRole);
     }
 };
@@ -65,10 +65,10 @@ public:
  */
 class GameListItemPath : public GameListItem {
 public:
-    static const int TitleRole = SortRole + 1;
-    static const int FullPathRole = SortRole + 2;
-    static const int ProgramIdRole = SortRole + 3;
-    static const int FileTypeRole = SortRole + 4;
+    static constexpr int TitleRole = SortRole + 1;
+    static constexpr int FullPathRole = SortRole + 2;
+    static constexpr int ProgramIdRole = SortRole + 3;
+    static constexpr int FileTypeRole = SortRole + 4;
 
     GameListItemPath() = default;
     GameListItemPath(const QString& game_path, const std::vector<u8>& picture_data,
@@ -131,7 +131,7 @@ public:
 class GameListItemCompat : public GameListItem {
     Q_DECLARE_TR_FUNCTIONS(GameListItemCompat)
 public:
-    static const int CompatNumberRole = SortRole;
+    static constexpr int CompatNumberRole = SortRole;
     GameListItemCompat() = default;
     explicit GameListItemCompat(const QString& compatibility) {
         setData(type(), TypeRole);
@@ -181,7 +181,7 @@ public:
  */
 class GameListItemSize : public GameListItem {
 public:
-    static const int SizeRole = SortRole;
+    static constexpr int SizeRole = SortRole;
 
     GameListItemSize() = default;
     explicit GameListItemSize(const qulonglong size_bytes) {
@@ -217,7 +217,7 @@ public:
 
 class GameListDir : public GameListItem {
 public:
-    static const int GameDirRole = Qt::UserRole + 2;
+    static constexpr int GameDirRole = Qt::UserRole + 2;
 
     explicit GameListDir(UISettings::GameDir& directory,
                          GameListItemType dir_type = GameListItemType::CustomDir)
