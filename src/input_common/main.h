@@ -8,11 +8,17 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "input_common/gcadapter/gc_poller.h"
-#include "input_common/settings.h"
 
 namespace Common {
 class ParamPackage;
+}
+
+namespace Settings::NativeAnalog {
+enum Values : int;
+}
+
+namespace Settings::NativeButton {
+enum Values : int;
 }
 
 namespace InputCommon {
@@ -40,9 +46,6 @@ public:
      */
     virtual Common::ParamPackage GetNextInput() = 0;
 };
-
-// Get all DevicePoller from all backends for a specific device type
-std::vector<std::unique_ptr<DevicePoller>> GetPollers(DeviceType type);
 } // namespace Polling
 
 class GCAnalogFactory;

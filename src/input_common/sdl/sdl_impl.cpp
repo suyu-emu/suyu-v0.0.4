@@ -17,11 +17,11 @@
 #include <vector>
 #include <SDL.h>
 #include "common/logging/log.h"
-#include "common/math_util.h"
 #include "common/param_package.h"
 #include "common/threadsafe_queue.h"
 #include "core/frontend/input.h"
 #include "input_common/sdl/sdl_impl.h"
+#include "input_common/settings.h"
 
 namespace InputCommon::SDL {
 

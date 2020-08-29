@@ -10,7 +10,7 @@
 
 namespace Settings {
 namespace NativeButton {
-enum Values {
+enum Values : int {
     A,
     B,
     X,
@@ -52,7 +52,7 @@ extern const std::array<const char*, NumButtons> mapping;
 } // namespace NativeButton
 
 namespace NativeAnalog {
-enum Values {
+enum Values : int {
     LStick,
     RStick,
 
