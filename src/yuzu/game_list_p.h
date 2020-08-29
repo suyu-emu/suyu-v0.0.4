@@ -110,18 +110,22 @@ public:
             const auto& row1 = row_data.at(UISettings::values.row_1_text_id);
             const int row2_id = UISettings::values.row_2_text_id;
 
-            if (role == SortRole)
+            if (role == SortRole) {
                 return row1.toLower();
+            }
 
-            if (row2_id == 4) // None
+            // None
+            if (row2_id == 4) {
                 return row1;
+            }
 
             const auto& row2 = row_data.at(row2_id);
 
-            if (row1 == row2)
+            if (row1 == row2) {
                 return row1;
+            }
 
-            return QString(row1 + QStringLiteral("\n    ") + row2);
+            return QStringLiteral("%1\n    %2").arg(row1, row2);
         }
 
         return GameListItem::data(role);
