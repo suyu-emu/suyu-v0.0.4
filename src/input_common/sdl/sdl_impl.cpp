@@ -784,7 +784,7 @@ public:
         }
         return {};
     }
-    std::optional<Common::ParamPackage> FromEvent(const SDL_Event& event) {
+    [[nodiscard]] std::optional<Common::ParamPackage> FromEvent(const SDL_Event& event) const {
         switch (event.type) {
         case SDL_JOYAXISMOTION:
             if (std::abs(event.jaxis.value / 32767.0) < 0.5) {
@@ -795,7 +795,7 @@ public:
         case SDL_JOYHATMOTION:
             return {SDLEventToButtonParamPackage(state, event)};
         }
-        return {};
+        return std::nullopt;
     }
 };
 
