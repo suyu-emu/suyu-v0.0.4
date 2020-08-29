@@ -51,8 +51,10 @@ const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> Config:
     },
 }};
 
-const int Config::default_lstick_mod = Qt::Key_E;
-const int Config::default_rstick_mod = Qt::Key_R;
+const std::array<int, 2> Config::default_stick_mod = {
+    Qt::Key_E,
+    Qt::Key_R,
+};
 
 const std::array<int, Settings::NativeMouseButton::NumMouseButtons> Config::default_mouse_buttons =
     {
@@ -285,7 +287,7 @@ void Config::ReadPlayerValues() {
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
             const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
                 default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_analogs[i][4], 0.5f);
+                default_analogs[i][3], default_stick_mod[i], 0.5f);
             auto& player_analogs = player.analogs[i];
 
             player_analogs = qt_config
@@ -323,7 +325,7 @@ void Config::ReadDebugValues() {
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-            default_analogs[i][3], default_analogs[i][4], 0.5f);
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
         auto& debug_pad_analogs = Settings::values.debug_pad_analogs[i];
 
         debug_pad_analogs = qt_config
@@ -877,7 +879,7 @@ void Config::SavePlayerValues() {
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
             const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
                 default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_analogs[i][4], 0.5f);
+                default_analogs[i][3], default_stick_mod[i], 0.5f);
             WriteSetting(QStringLiteral("player_%1_").arg(p) +
                              QString::fromStdString(Settings::NativeAnalog::mapping[i]),
                          QString::fromStdString(player.analogs[i]),
@@ -898,7 +900,7 @@ void Config::SaveDebugValues() {
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-            default_analogs[i][3], default_analogs[i][4], 0.5f);
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
         WriteSetting(QStringLiteral("debug_pad_") +
                          QString::fromStdString(Settings::NativeAnalog::mapping[i]),
                      QString::fromStdString(Settings::values.debug_pad_analogs[i]),

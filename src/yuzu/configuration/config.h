@@ -24,8 +24,7 @@ public:
 
     static const std::array<int, Settings::NativeButton::NumButtons> default_buttons;
     static const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> default_analogs;
-    static const int default_lstick_mod;
-    static const int default_rstick_mod;
+    static const std::array<int, 2> default_stick_mod;
     static const std::array<int, Settings::NativeMouseButton::NumMouseButtons>
         default_mouse_buttons;
     static const std::array<int, Settings::NativeKeyboard::NumKeyboardKeys> default_keyboard_keys;
