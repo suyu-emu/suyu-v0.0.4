@@ -16,26 +16,24 @@ class QStandardItemModel;
 class QStandardItem;
 class QTimer;
 
-namespace InputCommon {
-class InputSubsystem;
-}
-
 namespace Common {
 class ParamPackage;
 }
 
 namespace InputCommon {
-namespace Polling {
-class DevicePoller;
+class InputSubsystem;
 }
-} // namespace InputCommon
 
-namespace Ui {
-class ConfigureTouchFromButton;
+namespace InputCommon::Polling {
+class DevicePoller;
 }
 
 namespace Settings {
 struct TouchFromButtonMap;
+}
+
+namespace Ui {
+class ConfigureTouchFromButton;
 }
 
 class ConfigureTouchFromButton : public QDialog {
@@ -82,9 +80,8 @@ private:
     std::unique_ptr<Ui::ConfigureTouchFromButton> ui;
     std::vector<Settings::TouchFromButtonMap> touch_maps;
     QStandardItemModel* binding_list_model;
-    int selected_index;
-
     InputCommon::InputSubsystem* input_subsystem;
+    int selected_index;
 
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;

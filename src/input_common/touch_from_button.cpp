@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "core/frontend/framebuffer_layout.h"
 #include "core/settings.h"
 #include "input_common/touch_from_button.h"
 
@@ -43,7 +44,6 @@ private:
 
 std::unique_ptr<Input::TouchDevice> TouchFromButtonFactory::Create(
     const Common::ParamPackage& params) {
-
     return std::make_unique<TouchFromButtonDevice>();
 }
 

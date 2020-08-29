@@ -74,7 +74,6 @@ ConfigureTouchFromButton::ConfigureTouchFromButton(
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureTouchFromButton>()),
       touch_maps(touch_maps), input_subsystem{input_subsystem_}, selected_index(default_index),
       timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()) {
-
     ui->setupUi(this);
     binding_list_model = new QStandardItemModel(0, 3, this);
     binding_list_model->setHorizontalHeaderLabels(

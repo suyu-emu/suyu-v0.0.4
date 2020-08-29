@@ -5,7 +5,6 @@
 #pragma once
 
 #include <memory>
-#include "core/frontend/framebuffer_layout.h"
 #include "core/frontend/input.h"
 
 namespace InputCommon {
@@ -17,7 +16,6 @@ class TouchFromButtonFactory final : public Input::Factory<Input::TouchDevice> {
 public:
     /**
      * Creates a touch device from a list of button devices
-     * @param unused
      */
     std::unique_ptr<Input::TouchDevice> Create(const Common::ParamPackage& params) override;
 };

@@ -89,10 +89,10 @@ ConfigureMotionTouch::ConfigureMotionTouch(QWidget* parent,
     : QDialog(parent), input_subsystem{input_subsystem_},
       ui(std::make_unique<Ui::ConfigureMotionTouch>()) {
     ui->setupUi(this);
-    for (const auto [provider, name] : MotionProviders) {
+    for (const auto& [provider, name] : MotionProviders) {
         ui->motion_provider->addItem(tr(name), QString::fromUtf8(provider));
     }
-    for (const auto [provider, name] : TouchProviders) {
+    for (const auto& [provider, name] : TouchProviders) {
         ui->touch_provider->addItem(tr(name), QString::fromUtf8(provider));
     }
 
@@ -111,10 +111,10 @@ ConfigureMotionTouch::ConfigureMotionTouch(QWidget* parent,
 ConfigureMotionTouch::~ConfigureMotionTouch() = default;
 
 void ConfigureMotionTouch::SetConfiguration() {
-    Common::ParamPackage motion_param(Settings::values.motion_device);
-    Common::ParamPackage touch_param(Settings::values.touch_device);
-    std::string motion_engine = motion_param.Get("engine", "motion_emu");
-    std::string touch_engine = touch_param.Get("engine", "emu_window");
+    const Common::ParamPackage motion_param(Settings::values.motion_device);
+    const Common::ParamPackage touch_param(Settings::values.touch_device);
+    const std::string motion_engine = motion_param.Get("engine", "motion_emu");
+    const std::string touch_engine = touch_param.Get("engine", "emu_window");
 
     ui->motion_provider->setCurrentIndex(
         ui->motion_provider->findData(QString::fromStdString(motion_engine)));
@@ -141,7 +141,7 @@ void ConfigureMotionTouch::SetConfiguration() {
 void ConfigureMotionTouch::UpdateUiDisplay() {
     const QString motion_engine = ui->motion_provider->currentData().toString();
     const QString touch_engine = ui->touch_provider->currentData().toString();
-    QString cemuhook_udp = QStringLiteral("cemuhookudp");
+    const QString cemuhook_udp = QStringLiteral("cemuhookudp");
 
     if (motion_engine == QStringLiteral("motion_emu")) {
         ui->motion_sensitivity_label->setVisible(true);
@@ -286,8 +286,8 @@ void ConfigureMotionTouch::ApplyConfiguration() {
     std::string touch_engine = ui->touch_provider->currentData().toString().toStdString();
 
     Common::ParamPackage motion_param{}, touch_param{};
-    motion_param.Set("engine", motion_engine);
-    touch_param.Set("engine", touch_engine);
+    motion_param.Set("engine", std::move(motion_engine));
+    touch_param.Set("engine", std::move(touch_engine));
 
     if (motion_engine == "motion_emu") {
         motion_param.Set("sensitivity", static_cast<float>(ui->motion_sensitivity->value()));

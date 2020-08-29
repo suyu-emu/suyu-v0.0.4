@@ -21,9 +21,6 @@ namespace Settings::NativeButton {
 enum Values : int;
 }
 
-/// Reloads the input devices
-void ReloadInputDevices();
-
 namespace InputCommon {
 namespace Polling {
 
@@ -118,6 +115,7 @@ public:
     /// Retrieves the underlying GameCube button handler.
     [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
 
+    /// Reloads the input devices
     void ReloadInputDevices();
 
     /// Get all DevicePoller from all backends for a specific device type

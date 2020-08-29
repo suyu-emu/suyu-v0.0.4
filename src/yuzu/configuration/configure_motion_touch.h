@@ -12,12 +12,16 @@ class QLabel;
 class QPushButton;
 class QVBoxLayout;
 
-namespace Ui {
-class ConfigureMotionTouch;
+namespace InputCommon {
+class InputSubsystem;
 }
 
 namespace InputCommon::CemuhookUDP {
 class CalibrationConfigurationJob;
+}
+
+namespace Ui {
+class ConfigureMotionTouch;
 }
 
 /// A dialog for touchpad calibration configuration.
