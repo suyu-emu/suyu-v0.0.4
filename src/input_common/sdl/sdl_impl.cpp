@@ -574,7 +574,7 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
 
 namespace {
 Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid, u8 axis,
-                                                      float value = 0.1) {
+                                                      float value = 0.1f) {
     Common::ParamPackage params({{"engine", "sdl"}});
     params.Set("port", port);
     params.Set("guid", guid);
