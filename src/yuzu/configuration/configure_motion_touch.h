@@ -70,6 +70,8 @@ private:
     void ConnectEvents();
     bool CanCloseDialog();
 
+    InputCommon::InputSubsystem* input_subsystem;
+
     std::unique_ptr<Ui::ConfigureMotionTouch> ui;
 
     // Coordinate system of the CemuhookUDP touch provider
@@ -79,8 +81,6 @@ private:
     int max_y{};
 
     bool udp_test_in_progress{};
-
-    InputCommon::InputSubsystem* input_subsystem;
 
     std::vector<Settings::TouchFromButtonMap> touch_from_button_maps;
 };
