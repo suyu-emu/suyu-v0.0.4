@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <functional>
@@ -358,7 +359,7 @@ public:
             return std::make_tuple(x / r * (r - deadzone) / (1 - deadzone),
                                    y / r * (r - deadzone) / (1 - deadzone));
         }
-        return std::make_tuple<float, float>(0.0f, 0.0f);
+        return {};
     }
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {
@@ -574,10 +575,10 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
 
 namespace {
 Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid, u8 axis,
-                                                      float value = 0.1) {
+                                                      float value = 0.1f) {
     Common::ParamPackage params({{"engine", "sdl"}});
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("axis", axis);
     if (value > 0) {
         params.Set("direction", "+");
@@ -592,7 +593,7 @@ Common::ParamPackage BuildAnalogParamPackageForButton(int port, std::string guid
 Common::ParamPackage BuildButtonParamPackageForButton(int port, std::string guid, u8 button) {
     Common::ParamPackage params({{"engine", "sdl"}});
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("button", button);
     return params;
 }
@@ -601,7 +602,7 @@ Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, u
     Common::ParamPackage params({{"engine", "sdl"}});
 
     params.Set("port", port);
-    params.Set("guid", guid);
+    params.Set("guid", std::move(guid));
     params.Set("hat", hat);
     switch (value) {
     case SDL_HAT_UP:
@@ -670,55 +671,62 @@ Common::ParamPackage BuildParamPackageForAnalog(int port, const std::string& gui
 } // Anonymous namespace
 
 ButtonMapping SDLState::GetButtonMappingForDevice(const Common::ParamPackage& params) {
-    // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
-    // We will add those afterwards
-    // This list also excludes Screenshot since theres not really a mapping for that
-    std::unordered_map<Settings::NativeButton::Values, SDL_GameControllerButton>
-        switch_to_sdl_button = {
-            {Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
-            {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
-            {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
-            {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
-            {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
-            {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
-            {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-            {Settings::NativeButton::R, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-            {Settings::NativeButton::Plus, SDL_CONTROLLER_BUTTON_START},
-            {Settings::NativeButton::Minus, SDL_CONTROLLER_BUTTON_BACK},
-            {Settings::NativeButton::DLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
-            {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
-            {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
-            {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
-            {Settings::NativeButton::SL, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
-            {Settings::NativeButton::SR, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
-            {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
-        };
     if (!params.Has("guid") || !params.Has("port")) {
         return {};
     }
     const auto joystick = GetSDLJoystickByGUID(params.Get("guid", ""), params.Get("port", 0));
-    auto controller = joystick->GetSDLGameController();
-    if (!controller) {
+    auto* controller = joystick->GetSDLGameController();
+    if (controller == nullptr) {
         return {};
     }
 
-    ButtonMapping mapping{};
-    for (const auto& [switch_button, sdl_button] : switch_to_sdl_button) {
-        const auto& binding = SDL_GameControllerGetBindForButton(controller, sdl_button);
-        mapping[switch_button] =
-            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding);
-    }
+    // This list is missing ZL/ZR since those are not considered buttons in SDL GameController.
+    // We will add those afterwards
+    // This list also excludes Screenshot since theres not really a mapping for that
+    using ButtonBindings =
+        std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerButton>, 17>;
+    static constexpr ButtonBindings switch_to_sdl_button{{
+        {Settings::NativeButton::A, SDL_CONTROLLER_BUTTON_B},
+        {Settings::NativeButton::B, SDL_CONTROLLER_BUTTON_A},
+        {Settings::NativeButton::X, SDL_CONTROLLER_BUTTON_Y},
+        {Settings::NativeButton::Y, SDL_CONTROLLER_BUTTON_X},
+        {Settings::NativeButton::LStick, SDL_CONTROLLER_BUTTON_LEFTSTICK},
+        {Settings::NativeButton::RStick, SDL_CONTROLLER_BUTTON_RIGHTSTICK},
+        {Settings::NativeButton::L, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+        {Settings::NativeButton::R, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+        {Settings::NativeButton::Plus, SDL_CONTROLLER_BUTTON_START},
+        {Settings::NativeButton::Minus, SDL_CONTROLLER_BUTTON_BACK},
+        {Settings::NativeButton::DLeft, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
+        {Settings::NativeButton::DUp, SDL_CONTROLLER_BUTTON_DPAD_UP},
+        {Settings::NativeButton::DRight, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
+        {Settings::NativeButton::DDown, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
+        {Settings::NativeButton::SL, SDL_CONTROLLER_BUTTON_LEFTSHOULDER},
+        {Settings::NativeButton::SR, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER},
+        {Settings::NativeButton::Home, SDL_CONTROLLER_BUTTON_GUIDE},
+    }};
 
     // Add the missing bindings for ZL/ZR
-    std::unordered_map<Settings::NativeButton::Values, SDL_GameControllerAxis> switch_to_sdl_axis =
-        {
-            {Settings::NativeButton::ZL, SDL_CONTROLLER_AXIS_TRIGGERLEFT},
-            {Settings::NativeButton::ZR, SDL_CONTROLLER_AXIS_TRIGGERRIGHT},
-        };
+    using ZBindings =
+        std::array<std::pair<Settings::NativeButton::Values, SDL_GameControllerAxis>, 2>;
+    static constexpr ZBindings switch_to_sdl_axis{{
+        {Settings::NativeButton::ZL, SDL_CONTROLLER_AXIS_TRIGGERLEFT},
+        {Settings::NativeButton::ZR, SDL_CONTROLLER_AXIS_TRIGGERRIGHT},
+    }};
+
+    ButtonMapping mapping;
+    mapping.reserve(switch_to_sdl_button.size() + switch_to_sdl_axis.size());
+
+    for (const auto& [switch_button, sdl_button] : switch_to_sdl_button) {
+        const auto& binding = SDL_GameControllerGetBindForButton(controller, sdl_button);
+        mapping.insert_or_assign(
+            switch_button,
+            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding));
+    }
     for (const auto& [switch_button, sdl_axis] : switch_to_sdl_axis) {
         const auto& binding = SDL_GameControllerGetBindForAxis(controller, sdl_axis);
-        mapping[switch_button] =
-            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding);
+        mapping.insert_or_assign(
+            switch_button,
+            BuildParamPackageForBinding(joystick->GetPort(), joystick->GetGUID(), binding));
     }
 
     return mapping;
@@ -729,8 +737,8 @@ AnalogMapping SDLState::GetAnalogMappingForDevice(const Common::ParamPackage& pa
         return {};
     }
     const auto joystick = GetSDLJoystickByGUID(params.Get("guid", ""), params.Get("port", 0));
-    auto controller = joystick->GetSDLGameController();
-    if (!controller) {
+    auto* controller = joystick->GetSDLGameController();
+    if (controller == nullptr) {
         return {};
     }
 
@@ -739,16 +747,18 @@ AnalogMapping SDLState::GetAnalogMappingForDevice(const Common::ParamPackage& pa
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX);
     const auto& binding_left_y =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTY);
-    mapping[Settings::NativeAnalog::LStick] =
-        BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                   binding_left_x.value.axis, binding_left_y.value.axis);
+    mapping.insert_or_assign(Settings::NativeAnalog::LStick,
+                             BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
+                                                        binding_left_x.value.axis,
+                                                        binding_left_y.value.axis));
     const auto& binding_right_x =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTX);
     const auto& binding_right_y =
         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTY);
-    mapping[Settings::NativeAnalog::RStick] =
-        BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                   binding_right_x.value.axis, binding_right_y.value.axis);
+    mapping.insert_or_assign(Settings::NativeAnalog::RStick,
+                             BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
+                                                        binding_right_x.value.axis,
+                                                        binding_right_y.value.axis));
     return mapping;
 }
 
@@ -784,7 +794,7 @@ public:
         }
         return {};
     }
-    std::optional<Common::ParamPackage> FromEvent(const SDL_Event& event) {
+    [[nodiscard]] std::optional<Common::ParamPackage> FromEvent(const SDL_Event& event) const {
         switch (event.type) {
         case SDL_JOYAXISMOTION:
             if (std::abs(event.jaxis.value / 32767.0) < 0.5) {
@@ -795,7 +805,7 @@ public:
         case SDL_JOYHATMOTION:
             return {SDLEventToButtonParamPackage(state, event)};
         }
-        return {};
+        return std::nullopt;
     }
 };
 
