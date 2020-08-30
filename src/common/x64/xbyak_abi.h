@@ -11,7 +11,7 @@
 
 namespace Common::X64 {
 
-inline std::size_t RegToIndex(const Xbyak::Reg& reg) {
+constexpr std::size_t RegToIndex(const Xbyak::Reg& reg) {
     using Kind = Xbyak::Reg::Kind;
     ASSERT_MSG((reg.getKind() & (Kind::REG | Kind::XMM)) != 0,
                "RegSet only support GPRs and XMM registers.");
@@ -19,17 +19,17 @@ inline std::size_t RegToIndex(const Xbyak::Reg& reg) {
     return reg.getIdx() + (reg.getKind() == Kind::REG ? 0 : 16);
 }
 
-inline Xbyak::Reg64 IndexToReg64(std::size_t reg_index) {
+constexpr Xbyak::Reg64 IndexToReg64(std::size_t reg_index) {
     ASSERT(reg_index < 16);
     return Xbyak::Reg64(static_cast<int>(reg_index));
 }
 
-inline Xbyak::Xmm IndexToXmm(std::size_t reg_index) {
+constexpr Xbyak::Xmm IndexToXmm(std::size_t reg_index) {
     ASSERT(reg_index >= 16 && reg_index < 32);
     return Xbyak::Xmm(static_cast<int>(reg_index - 16));
 }
 
-inline Xbyak::Reg IndexToReg(std::size_t reg_index) {
+constexpr Xbyak::Reg IndexToReg(std::size_t reg_index) {
     if (reg_index < 16) {
         return IndexToReg64(reg_index);
     } else {
@@ -45,17 +45,17 @@ inline std::bitset<32> BuildRegSet(std::initializer_list<Xbyak::Reg> regs) {
     return bits;
 }
 
-const std::bitset<32> ABI_ALL_GPRS(0x0000FFFF);
-const std::bitset<32> ABI_ALL_XMMS(0xFFFF0000);
+constexpr inline std::bitset<32> ABI_ALL_GPRS(0x0000FFFF);
+constexpr inline std::bitset<32> ABI_ALL_XMMS(0xFFFF0000);
 
 #ifdef _WIN32
 
 // Microsoft x64 ABI
-const Xbyak::Reg ABI_RETURN = Xbyak::util::rax;
-const Xbyak::Reg ABI_PARAM1 = Xbyak::util::rcx;
-const Xbyak::Reg ABI_PARAM2 = Xbyak::util::rdx;
-const Xbyak::Reg ABI_PARAM3 = Xbyak::util::r8;
-const Xbyak::Reg ABI_PARAM4 = Xbyak::util::r9;
+constexpr inline Xbyak::Reg ABI_RETURN = Xbyak::util::rax;
+constexpr inline Xbyak::Reg ABI_PARAM1 = Xbyak::util::rcx;
+constexpr inline Xbyak::Reg ABI_PARAM2 = Xbyak::util::rdx;
+constexpr inline Xbyak::Reg ABI_PARAM3 = Xbyak::util::r8;
+constexpr inline Xbyak::Reg ABI_PARAM4 = Xbyak::util::r9;
 
 const std::bitset<32> ABI_ALL_CALLER_SAVED = BuildRegSet({
     // GPRs
@@ -102,11 +102,11 @@ constexpr size_t ABI_SHADOW_SPACE = 0x20;
 #else
 
 // System V x86-64 ABI
-const Xbyak::Reg ABI_RETURN = Xbyak::util::rax;
-const Xbyak::Reg ABI_PARAM1 = Xbyak::util::rdi;
-const Xbyak::Reg ABI_PARAM2 = Xbyak::util::rsi;
-const Xbyak::Reg ABI_PARAM3 = Xbyak::util::rdx;
-const Xbyak::Reg ABI_PARAM4 = Xbyak::util::rcx;
+constexpr inline Xbyak::Reg ABI_RETURN = Xbyak::util::rax;
+constexpr inline Xbyak::Reg ABI_PARAM1 = Xbyak::util::rdi;
+constexpr inline Xbyak::Reg ABI_PARAM2 = Xbyak::util::rsi;
+constexpr inline Xbyak::Reg ABI_PARAM3 = Xbyak::util::rdx;
+constexpr inline Xbyak::Reg ABI_PARAM4 = Xbyak::util::rcx;
 
 const std::bitset<32> ABI_ALL_CALLER_SAVED = BuildRegSet({
     // GPRs
