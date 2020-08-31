@@ -113,6 +113,9 @@ if (NOT DEFINED ARCHITECTURE)
 endif()
 message(STATUS "Target architecture: ${ARCHITECTURE}")
 
+if (UNIX)
+    add_definitions(-DYUZU_UNIX=1)
+endif()
 
 # Configure C++ standard
 # ===========================
