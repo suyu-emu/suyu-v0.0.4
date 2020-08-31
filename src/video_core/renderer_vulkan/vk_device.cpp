@@ -380,6 +380,14 @@ bool VKDevice::Create() {
 
     CollectTelemetryParameters();
 
+    if (ext_extended_dynamic_state && driver_id == VK_DRIVER_ID_AMD_PROPRIETARY_KHR) {
+        // AMD's proprietary driver supports VK_EXT_extended_dynamic_state but the <stride> field
+        // seems to be bugged. Blacklisting it for now.
+        LOG_WARNING(Render_Vulkan,
+                    "Blacklisting AMD proprietary from VK_EXT_extended_dynamic_state");
+        ext_extended_dynamic_state = false;
+    }
+
     graphics_queue = logical.GetQueue(graphics_family);
     present_queue = logical.GetQueue(present_family);
 
@@ -691,12 +699,7 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         }
     }
 
-    if (has_ext_extended_dynamic_state && driver_id == VK_DRIVER_ID_AMD_PROPRIETARY) {
-        // AMD's proprietary driver supports VK_EXT_extended_dynamic_state but the <stride> field
-        // seems to be bugged. Blacklisting it for now.
-        LOG_WARNING(Render_Vulkan,
-                    "Blacklisting AMD proprietary from VK_EXT_extended_dynamic_state");
-    } else if (has_ext_extended_dynamic_state) {
+    if (has_ext_extended_dynamic_state) {
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT dynamic_state;
         dynamic_state.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT;
         dynamic_state.pNext = nullptr;
