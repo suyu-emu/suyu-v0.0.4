@@ -133,8 +133,11 @@ VirtualFile RealVfsFilesystem::MoveFile(std::string_view old_path_, std::string_
         }
 
         cache.erase(old_path);
-        file->Open(new_path, "r+b");
-        cache.insert_or_assign(new_path, std::move(file));
+        if (file->Open(new_path, "r+b")) {
+            cache.insert_or_assign(new_path, std::move(file));
+        } else {
+            LOG_ERROR(Service_FS, "Failed to open path {} in order to re-cache it", new_path);
+        }
     } else {
         UNREACHABLE();
         return nullptr;
@@ -214,9 +217,12 @@ VirtualDir RealVfsFilesystem::MoveDirectory(std::string_view old_path_,
         }
 
         auto file = cached.lock();
-        file->Open(file_new_path, "r+b");
         cache.erase(file_old_path);
-        cache.insert_or_assign(std::move(file_new_path), std::move(file));
+        if (file->Open(file_new_path, "r+b")) {
+            cache.insert_or_assign(std::move(file_new_path), std::move(file));
+        } else {
+            LOG_ERROR(Service_FS, "Failed to open path {} in order to re-cache it", file_new_path);
+        }
     }
 
     return OpenDirectory(new_path, Mode::ReadWrite);
