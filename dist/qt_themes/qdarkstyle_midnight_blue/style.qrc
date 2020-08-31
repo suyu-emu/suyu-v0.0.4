@@ -221,6 +221,6 @@
     <file>rc/window_undock_pressed@2x.png</file>
   </qresource>
   <qresource prefix="qdarkstyle_midnight_blue">
-      <file>style.qss</file>
+    <file>style.qss</file>
   </qresource>
 </RCC>

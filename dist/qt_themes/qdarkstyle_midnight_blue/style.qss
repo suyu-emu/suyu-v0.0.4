@@ -235,19 +235,19 @@ https://doc.qt.io/qt-5/stylesheet-examples.html#customizing-qgroupbox
 
 --------------------------------------------------------------------------- */
 QGroupBox {
-    font-weight: bold;
-    border: 1px solid #32414B;
-    border-radius: 4px;
-    margin-top: 12px;
-    padding: 4px;
+  font-weight: bold;
+  border: 1px solid #32414B;
+  border-radius: 4px;
+  margin-top: 12px;
+  padding: 4px;
 }
 
 QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top left;
-    padding-left: 3px;
-    padding-right: 5px;
-    padding-top: 4px;
+  subcontrol-origin: margin;
+  subcontrol-position: top left;
+  padding-left: 3px;
+  padding-right: 5px;
+  padding-top: 4px;
 }
 
 QGroupBox::indicator {
