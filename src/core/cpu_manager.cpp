@@ -328,7 +328,7 @@ void CpuManager::RunThread(std::size_t core) {
     system.RegisterCoreThread(core);
     std::string name;
     if (is_multicore) {
-        name = "yuzu:CoreCPUThread_" + std::to_string(core);
+        name = "yuzu:CPUCore_" + std::to_string(core);
     } else {
         name = "yuzu:CPUThread";
     }
