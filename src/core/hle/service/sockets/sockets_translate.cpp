@@ -89,43 +89,43 @@ Network::Protocol Translate(Type type, Protocol protocol) {
     }
 }
 
-u16 TranslatePollEventsToHost(u32 flags) {
-    u32 result = 0;
-    const auto translate = [&result, &flags](u32 from, u32 to) {
-        if ((flags & from) != 0) {
+Network::PollEvents TranslatePollEventsToHost(PollEvents flags) {
+    Network::PollEvents result{};
+    const auto translate = [&result, &flags](PollEvents from, Network::PollEvents to) {
+        if (True(flags & from)) {
             flags &= ~from;
             result |= to;
         }
     };
-    translate(POLL_IN, Network::POLL_IN);
-    translate(POLL_PRI, Network::POLL_PRI);
-    translate(POLL_OUT, Network::POLL_OUT);
-    translate(POLL_ERR, Network::POLL_ERR);
-    translate(POLL_HUP, Network::POLL_HUP);
-    translate(POLL_NVAL, Network::POLL_NVAL);
+    translate(PollEvents::In, Network::PollEvents::In);
+    translate(PollEvents::Pri, Network::PollEvents::Pri);
+    translate(PollEvents::Out, Network::PollEvents::Out);
+    translate(PollEvents::Err, Network::PollEvents::Err);
+    translate(PollEvents::Hup, Network::PollEvents::Hup);
+    translate(PollEvents::Nval, Network::PollEvents::Nval);
 
-    UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
-    return static_cast<u16>(result);
+    UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
+    return result;
 }
 
-u16 TranslatePollEventsToGuest(u32 flags) {
-    u32 result = 0;
-    const auto translate = [&result, &flags](u32 from, u32 to) {
-        if ((flags & from) != 0) {
+PollEvents TranslatePollEventsToGuest(Network::PollEvents flags) {
+    PollEvents result{};
+    const auto translate = [&result, &flags](Network::PollEvents from, PollEvents to) {
+        if (True(flags & from)) {
             flags &= ~from;
             result |= to;
         }
     };
 
-    translate(Network::POLL_IN, POLL_IN);
-    translate(Network::POLL_PRI, POLL_PRI);
-    translate(Network::POLL_OUT, POLL_OUT);
-    translate(Network::POLL_ERR, POLL_ERR);
-    translate(Network::POLL_HUP, POLL_HUP);
-    translate(Network::POLL_NVAL, POLL_NVAL);
+    translate(Network::PollEvents::In, PollEvents::In);
+    translate(Network::PollEvents::Pri, PollEvents::Pri);
+    translate(Network::PollEvents::Out, PollEvents::Out);
+    translate(Network::PollEvents::Err, PollEvents::Err);
+    translate(Network::PollEvents::Hup, PollEvents::Hup);
+    translate(Network::PollEvents::Nval, PollEvents::Nval);
 
-    UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
-    return static_cast<u16>(result);
+    UNIMPLEMENTED_IF_MSG((u16)flags != 0, "Unimplemented flags={}", (u16)flags);
+    return result;
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {

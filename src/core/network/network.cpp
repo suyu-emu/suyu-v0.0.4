@@ -238,49 +238,49 @@ SockAddrIn TranslateToSockAddrIn(sockaddr input_) {
     return result;
 }
 
-u16 TranslatePollEvents(u32 events) {
-    u32 result = 0;
+short TranslatePollEvents(PollEvents events) {
+    short result = 0;
 
-    if ((events & POLL_IN) != 0) {
-        events &= ~POLL_IN;
+    if (True(events & PollEvents::In)) {
+        events &= ~PollEvents::In;
         result |= POLLIN;
     }
-    if ((events & POLL_PRI) != 0) {
-        events &= ~POLL_PRI;
+    if (True(events & PollEvents::Pri)) {
+        events &= ~PollEvents::Pri;
 #ifdef _WIN32
         LOG_WARNING(Service, "Winsock doesn't support POLLPRI");
 #else
-        result |= POLL_PRI;
+        result |= POLLPRI;
 #endif
     }
-    if ((events & POLL_OUT) != 0) {
-        events &= ~POLL_OUT;
+    if (True(events & PollEvents::Out)) {
+        events &= ~PollEvents::Out;
         result |= POLLOUT;
     }
 
-    UNIMPLEMENTED_IF_MSG(events != 0, "Unhandled guest events=0x{:x}", events);
+    UNIMPLEMENTED_IF_MSG((u16)events != 0, "Unhandled guest events=0x{:x}", (u16)events);
 
-    return static_cast<u16>(result);
+    return result;
 }
 
-u16 TranslatePollRevents(u32 revents) {
-    u32 result = 0;
-    const auto translate = [&result, &revents](u32 host, u32 guest) {
+PollEvents TranslatePollRevents(short revents) {
+    PollEvents result{};
+    const auto translate = [&result, &revents](short host, PollEvents guest) {
         if ((revents & host) != 0) {
-            revents &= ~host;
+            revents &= static_cast<short>(~host);
             result |= guest;
         }
     };
 
-    translate(POLLIN, POLL_IN);
-    translate(POLLPRI, POLL_PRI);
-    translate(POLLOUT, POLL_OUT);
-    translate(POLLERR, POLL_ERR);
-    translate(POLLHUP, POLL_HUP);
+    translate(POLLIN, PollEvents::In);
+    translate(POLLPRI, PollEvents::Pri);
+    translate(POLLOUT, PollEvents::Out);
+    translate(POLLERR, PollEvents::Err);
+    translate(POLLHUP, PollEvents::Hup);
 
     UNIMPLEMENTED_IF_MSG(revents != 0, "Unhandled host revents=0x{:x}", revents);
 
-    return static_cast<u16>(result);
+    return result;
 }
 
 template <typename T>
@@ -350,7 +350,7 @@ std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {
     }
 
     for (size_t i = 0; i < num; ++i) {
-        pollfds[i].revents = TranslatePollRevents(static_cast<u32>(host_pollfds[i].revents));
+        pollfds[i].revents = TranslatePollRevents(host_pollfds[i].revents);
     }
 
     if (result > 0) {
