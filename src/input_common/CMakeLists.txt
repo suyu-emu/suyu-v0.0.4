@@ -9,6 +9,8 @@ add_library(input_common STATIC
     motion_emu.h
     settings.cpp
     settings.h
+    touch_from_button.cpp
+    touch_from_button.h
     gcadapter/gc_adapter.cpp
     gcadapter/gc_adapter.h
     gcadapter/gc_poller.cpp

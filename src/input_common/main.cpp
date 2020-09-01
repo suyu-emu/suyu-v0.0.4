@@ -11,6 +11,7 @@
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
+#include "input_common/touch_from_button.h"
 #include "input_common/udp/udp.h"
 #ifdef HAVE_SDL2
 #include "input_common/sdl/sdl.h"
@@ -32,6 +33,8 @@ struct InputSubsystem::Impl {
                                                     std::make_shared<AnalogFromButton>());
         motion_emu = std::make_shared<MotionEmu>();
         Input::RegisterFactory<Input::MotionDevice>("motion_emu", motion_emu);
+        Input::RegisterFactory<Input::TouchDevice>("touch_from_button",
+                                                   std::make_shared<TouchFromButtonFactory>());
 
 #ifdef HAVE_SDL2
         sdl = SDL::Init();
@@ -46,6 +49,7 @@ struct InputSubsystem::Impl {
         Input::UnregisterFactory<Input::AnalogDevice>("analog_from_button");
         Input::UnregisterFactory<Input::MotionDevice>("motion_emu");
         motion_emu.reset();
+        Input::UnregisterFactory<Input::TouchDevice>("touch_from_button");
 #ifdef HAVE_SDL2
         sdl.reset();
 #endif
@@ -169,6 +173,13 @@ GCButtonFactory* InputSubsystem::GetGCButtons() {
 
 const GCButtonFactory* InputSubsystem::GetGCButtons() const {
     return impl->gcbuttons.get();
+}
+
+void InputSubsystem::ReloadInputDevices() {
+    if (!impl->udp) {
+        return;
+    }
+    impl->udp->ReloadUDPClient();
 }
 
 std::vector<std::unique_ptr<Polling::DevicePoller>> InputSubsystem::GetPollers(

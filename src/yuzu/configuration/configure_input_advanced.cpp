@@ -86,6 +86,8 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
     connect(ui->mouse_advanced, &QPushButton::clicked, this, [this] { CallMouseConfigDialog(); });
     connect(ui->touchscreen_advanced, &QPushButton::clicked, this,
             [this] { CallTouchscreenConfigDialog(); });
+    connect(ui->buttonMotionTouch, &QPushButton::clicked, this,
+            &ConfigureInputAdvanced::CallMotionTouchConfigDialog);
 
     LoadConfiguration();
 }

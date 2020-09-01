@@ -40,9 +40,14 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
-    const auto [x, y, pressed] = touch_device->GetStatus();
+    bool pressed = false;
+    float x, y;
+    std::tie(x, y, pressed) = touch_device->GetStatus();
     auto& touch_entry = cur_entry.states[0];
     touch_entry.attribute.raw = 0;
+    if (!pressed && touch_btn_device) {
+        std::tie(x, y, pressed) = touch_btn_device->GetStatus();
+    }
     if (pressed && Settings::values.touchscreen.enabled) {
         touch_entry.x = static_cast<u16>(x * Layout::ScreenUndocked::Width);
         touch_entry.y = static_cast<u16>(y * Layout::ScreenUndocked::Height);
@@ -63,5 +68,10 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
 
 void Controller_Touchscreen::OnLoadInputDevices() {
     touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touchscreen.device);
+    if (Settings::values.use_touch_from_button) {
+        touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
+    } else {
+        touch_btn_device.reset();
+    }
 }
 } // namespace Service::HID

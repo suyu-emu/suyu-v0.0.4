@@ -67,6 +67,11 @@ private:
     Type local{};
 };
 
+struct TouchFromButtonMap {
+    std::string name;
+    std::vector<std::string> buttons;
+};
+
 struct Values {
     // Audio
     std::string audio_device_id;
@@ -145,15 +150,18 @@ struct Values {
     ButtonsRaw debug_pad_buttons;
     AnalogsRaw debug_pad_analogs;
 
-    std::string motion_device;
-
     bool vibration_enabled;
 
+    std::string motion_device;
+    std::string touch_device;
     TouchscreenInput touchscreen;
     std::atomic_bool is_device_reload_pending{true};
+    bool use_touch_from_button;
+    int touch_from_button_map_index;
     std::string udp_input_address;
     u16 udp_input_port;
     u8 udp_pad_index;
+    std::vector<TouchFromButtonMap> touch_from_button_maps;
 
     // Data Storage
     bool use_virtual_sd;

@@ -115,6 +115,9 @@ public:
     /// Retrieves the underlying GameCube button handler.
     [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
 
+    /// Reloads the input devices
+    void ReloadInputDevices();
+
     /// Get all DevicePoller from all backends for a specific device type
     [[nodiscard]] std::vector<std::unique_ptr<Polling::DevicePoller>> GetPollers(
         Polling::DeviceType type) const;

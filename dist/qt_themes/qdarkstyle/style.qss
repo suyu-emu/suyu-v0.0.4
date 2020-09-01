@@ -1371,3 +1371,8 @@ QGroupBox#vibrationGroup::title {
 	padding-left: 1px;
 	padding-right: 1px;
 }
+
+/* touchscreen mapping widget */
+TouchScreenPreview {
+    qproperty-dotHighlightColor: #3daee9;
+}

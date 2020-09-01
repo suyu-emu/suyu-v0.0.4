@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "common/common_types.h"
 #include "common/math_util.h"
 
 namespace Layout {
