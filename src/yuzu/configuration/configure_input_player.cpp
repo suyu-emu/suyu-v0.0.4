@@ -256,6 +256,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         ui->buttonSL,       ui->buttonSR,     ui->buttonHome,      ui->buttonScreenshot,
     };
 
+    mod_buttons = {
+        ui->buttonLStickMod,
+        ui->buttonRStickMod,
+    };
+
     analog_map_buttons = {{
         {
             ui->buttonLStickUp,
@@ -311,11 +316,25 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
         auto* const button = button_map[button_id];
+
         if (button == nullptr) {
             continue;
         }
+
         ConfigureButtonClick(button_map[button_id], &buttons_param[button_id],
                              Config::default_buttons[button_id]);
+
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+
+        connect(button, &QPushButton::customContextMenuRequested,
+                [=, this](const QPoint& menu_location) {
+                    QMenu context_menu;
+                    context_menu.addAction(tr("Clear"), [&] {
+                        buttons_param[button_id].Clear();
+                        button_map[button_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.exec(button_map[button_id]->mapToGlobal(menu_location));
+                });
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
@@ -324,15 +343,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             continue;
         }
 
+        ConfigureButtonClick(motion_map[motion_id], &motions_param[motion_id],
+                             Config::default_motions[motion_id]);
+
         button->setContextMenuPolicy(Qt::CustomContextMenu);
-        connect(button, &QPushButton::clicked, [=, this] {
-            HandleClick(
-                motion_map[motion_id],
-                [=, this](Common::ParamPackage params) {
-                    motions_param[motion_id] = std::move(params);
-                },
-                InputCommon::Polling::DeviceType::Motion);
-        });
+
         connect(button, &QPushButton::customContextMenuRequested,
                 [=, this](const QPoint& menu_location) {
                     QMenu context_menu;
@@ -343,10 +358,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                     context_menu.exec(motion_map[motion_id]->mapToGlobal(menu_location));
                 });
     }
-
-    // Handle clicks for the modifier buttons as well.
-    ConfigureButtonClick(ui->buttonLStickMod, &lstick_mod, Config::default_stick_mod[0]);
-    ConfigureButtonClick(ui->buttonRStickMod, &rstick_mod, Config::default_stick_mod[1]);
 
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
@@ -365,7 +376,36 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                     },
                     InputCommon::Polling::DeviceType::AnalogPreferred);
             });
+
+            analog_button->setContextMenuPolicy(Qt::CustomContextMenu);
+
+            connect(analog_button, &QPushButton::customContextMenuRequested,
+                    [=, this](const QPoint& menu_location) {
+                        QMenu context_menu;
+                        context_menu.addAction(tr("Clear"), [&] {
+                            analogs_param[analog_id].Clear();
+                            analog_map_buttons[analog_id][sub_button_id]->setText(tr("[not set]"));
+                        });
+                        context_menu.exec(analog_map_buttons[analog_id][sub_button_id]->mapToGlobal(
+                            menu_location));
+                    });
         }
+
+        // Handle clicks for the modifier buttons as well.
+        ConfigureButtonClick(mod_buttons[analog_id], &stick_mod_param[analog_id],
+                             Config::default_stick_mod[analog_id]);
+
+        mod_buttons[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
+
+        connect(mod_buttons[analog_id], &QPushButton::customContextMenuRequested,
+                [=, this](const QPoint& menu_location) {
+                    QMenu context_menu;
+                    context_menu.addAction(tr("Clear"), [&] {
+                        stick_mod_param[analog_id].Clear();
+                        mod_buttons[analog_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.exec(mod_buttons[analog_id]->mapToGlobal(menu_location));
+                });
 
         connect(analog_map_range_spinbox[analog_id], qOverload<int>(&QSpinBox::valueChanged),
                 [=, this] {
@@ -585,19 +625,16 @@ void ConfigureInputPlayer::RestoreDefaults() {
             InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
     }
 
-    // Reset Modifier Buttons
-    lstick_mod =
-        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_stick_mod[0]));
-    rstick_mod =
-        Common::ParamPackage(InputCommon::GenerateKeyboardParam(Config::default_stick_mod[1]));
-
-    // Reset Analogs
+    // Reset Analogs and Modifier Buttons
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
             Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
                 Config::default_analogs[analog_id][sub_button_id])};
             SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
         }
+
+        stick_mod_param[analog_id] = Common::ParamPackage(
+            InputCommon::GenerateKeyboardParam(Config::default_stick_mod[analog_id]));
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
@@ -613,30 +650,29 @@ void ConfigureInputPlayer::RestoreDefaults() {
 void ConfigureInputPlayer::ClearAll() {
     for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
         const auto* const button = button_map[button_id];
-        if (button == nullptr || !button->isEnabled()) {
+        if (button == nullptr) {
             continue;
         }
 
         buttons_param[button_id].Clear();
     }
 
-    lstick_mod.Clear();
-    rstick_mod.Clear();
-
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
             const auto* const analog_button = analog_map_buttons[analog_id][sub_button_id];
-            if (analog_button == nullptr || !analog_button->isEnabled()) {
+            if (analog_button == nullptr) {
                 continue;
             }
 
             analogs_param[analog_id].Clear();
         }
+
+        stick_mod_param[analog_id].Clear();
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
-        const auto* const button = motion_map[motion_id];
-        if (button == nullptr || !button->isEnabled()) {
+        const auto* const motion_button = motion_map[motion_id];
+        if (motion_button == nullptr) {
             continue;
         }
 
@@ -656,9 +692,6 @@ void ConfigureInputPlayer::UpdateUI() {
         motion_map[motion_id]->setText(ButtonToText(motions_param[motion_id]));
     }
 
-    ui->buttonLStickMod->setText(ButtonToText(lstick_mod));
-    ui->buttonRStickMod->setText(ButtonToText(rstick_mod));
-
     for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
         for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
             auto* const analog_button = analog_map_buttons[analog_id][sub_button_id];
@@ -670,6 +703,8 @@ void ConfigureInputPlayer::UpdateUI() {
             analog_button->setText(
                 AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
         }
+
+        mod_buttons[analog_id]->setText(ButtonToText(stick_mod_param[analog_id]));
 
         const auto deadzone_label = analog_map_deadzone_label[analog_id];
         const auto deadzone_slider = analog_map_deadzone_slider[analog_id];
