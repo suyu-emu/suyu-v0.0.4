@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <chrono>
 #include <condition_variable>
 #include <cstddef>
@@ -25,13 +26,13 @@ public:
 
     void Wait() {
         std::unique_lock lk{mutex};
-        condvar.wait(lk, [&] { return is_set; });
+        condvar.wait(lk, [&] { return is_set.load(); });
         is_set = false;
     }
 
     bool WaitFor(const std::chrono::nanoseconds& time) {
         std::unique_lock lk{mutex};
-        if (!condvar.wait_for(lk, time, [this] { return is_set; }))
+        if (!condvar.wait_for(lk, time, [this] { return is_set.load(); }))
             return false;
         is_set = false;
         return true;
@@ -40,7 +41,7 @@ public:
     template <class Clock, class Duration>
     bool WaitUntil(const std::chrono::time_point<Clock, Duration>& time) {
         std::unique_lock lk{mutex};
-        if (!condvar.wait_until(lk, time, [this] { return is_set; }))
+        if (!condvar.wait_until(lk, time, [this] { return is_set.load(); }))
             return false;
         is_set = false;
         return true;
@@ -54,9 +55,9 @@ public:
     }
 
 private:
-    bool is_set = false;
     std::condition_variable condvar;
     std::mutex mutex;
+    std::atomic_bool is_set{false};
 };
 
 class Barrier {
