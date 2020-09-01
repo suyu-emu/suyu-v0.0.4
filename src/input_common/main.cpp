@@ -22,7 +22,7 @@ namespace InputCommon {
 
 struct InputSubsystem::Impl {
     void Initialize() {
-        auto gcadapter = std::make_shared<GCAdapter::Adapter>();
+        gcadapter = std::make_shared<GCAdapter::Adapter>();
         gcbuttons = std::make_shared<GCButtonFactory>(gcadapter);
         Input::RegisterFactory<Input::ButtonDevice>("gcpad", gcbuttons);
         gcanalog = std::make_shared<GCAnalogFactory>(gcadapter);
@@ -82,6 +82,8 @@ struct InputSubsystem::Impl {
 #endif
         auto udp_devices = udp->GetInputDevices();
         devices.insert(devices.end(), udp_devices.begin(), udp_devices.end());
+        auto gcpad_devices = gcadapter->GetInputDevices();
+        devices.insert(devices.end(), gcpad_devices.begin(), gcpad_devices.end());
         return devices;
     }
 
@@ -93,6 +95,9 @@ struct InputSubsystem::Impl {
         if (params.Get("class", "") == "key") {
             // TODO consider returning the SDL key codes for the default keybindings
             return {};
+        }
+        if (params.Get("class", "") == "gcpad") {
+            return gcadapter->GetAnalogMappingForDevice(params);
         }
 #ifdef HAVE_SDL2
         if (params.Get("class", "") == "sdl") {
@@ -110,6 +115,9 @@ struct InputSubsystem::Impl {
         if (params.Get("class", "") == "key") {
             // TODO consider returning the SDL key codes for the default keybindings
             return {};
+        }
+        if (params.Get("class", "") == "gcpad") {
+            return gcadapter->GetButtonMappingForDevice(params);
         }
 #ifdef HAVE_SDL2
         if (params.Get("class", "") == "sdl") {
@@ -141,6 +149,7 @@ struct InputSubsystem::Impl {
     std::shared_ptr<UDPMotionFactory> udpmotion;
     std::shared_ptr<UDPTouchFactory> udptouch;
     std::shared_ptr<CemuhookUDP::Client> udp;
+    std::shared_ptr<GCAdapter::Adapter> gcadapter;
 };
 
 InputSubsystem::InputSubsystem() : impl{std::make_unique<Impl>()} {}

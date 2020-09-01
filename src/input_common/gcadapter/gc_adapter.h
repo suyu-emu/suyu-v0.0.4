@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include "common/common_types.h"
 #include "common/threadsafe_queue.h"
+#include "input_common/main.h"
 
 struct libusb_context;
 struct libusb_device;
@@ -74,6 +75,10 @@ public:
     /// Used for polling
     void BeginConfiguration();
     void EndConfiguration();
+
+    std::vector<Common::ParamPackage> GetInputDevices() const;
+    InputCommon::ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& params) const;
+    InputCommon::AnalogMapping GetAnalogMappingForDevice(const Common::ParamPackage& params) const;
 
     /// Returns true if there is a device connected to port
     bool DeviceConnected(std::size_t port) const;

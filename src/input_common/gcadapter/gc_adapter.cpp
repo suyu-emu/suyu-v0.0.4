@@ -15,7 +15,9 @@
 #endif
 
 #include "common/logging/log.h"
+#include "common/param_package.h"
 #include "input_common/gcadapter/gc_adapter.h"
+#include "input_common/settings.h"
 
 namespace GCAdapter {
 
@@ -290,6 +292,92 @@ void Adapter::Reset() {
     if (libusb_ctx) {
         libusb_exit(libusb_ctx);
     }
+}
+
+std::vector<Common::ParamPackage> Adapter::GetInputDevices() const {
+    std::vector<Common::ParamPackage> devices;
+    for (std::size_t port = 0; port < state.size(); ++port) {
+        if (!DeviceConnected(port)) {
+            continue;
+        }
+        std::string name = fmt::format("Gamecube Controller {}", port);
+        devices.emplace_back(Common::ParamPackage{
+            {"class", "gcpad"},
+            {"display", std::move(name)},
+            {"port", std::to_string(port)},
+        });
+    }
+    return devices;
+}
+
+InputCommon::ButtonMapping Adapter::GetButtonMappingForDevice(
+    const Common::ParamPackage& params) const {
+    // This list is missing ZL/ZR since those are not considered buttons.
+    // We will add those afterwards
+    // This list also excludes any button that can't be really mapped
+    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadButton>, 12>
+        switch_to_gcadapter_button = {
+            std::pair{Settings::NativeButton::A, PadButton::PAD_BUTTON_A},
+            {Settings::NativeButton::B, PadButton::PAD_BUTTON_B},
+            {Settings::NativeButton::X, PadButton::PAD_BUTTON_X},
+            {Settings::NativeButton::Y, PadButton::PAD_BUTTON_Y},
+            {Settings::NativeButton::Plus, PadButton::PAD_BUTTON_START},
+            {Settings::NativeButton::DLeft, PadButton::PAD_BUTTON_LEFT},
+            {Settings::NativeButton::DUp, PadButton::PAD_BUTTON_UP},
+            {Settings::NativeButton::DRight, PadButton::PAD_BUTTON_RIGHT},
+            {Settings::NativeButton::DDown, PadButton::PAD_BUTTON_DOWN},
+            {Settings::NativeButton::SL, PadButton::PAD_TRIGGER_L},
+            {Settings::NativeButton::SR, PadButton::PAD_TRIGGER_R},
+            {Settings::NativeButton::R, PadButton::PAD_TRIGGER_Z},
+        };
+    if (!params.Has("port")) {
+        return {};
+    }
+
+    InputCommon::ButtonMapping mapping{};
+    for (const auto& [switch_button, gcadapter_button] : switch_to_gcadapter_button) {
+        Common::ParamPackage button_params({{"engine", "gcpad"}});
+        button_params.Set("port", params.Get("port", 0));
+        button_params.Set("button", static_cast<int>(gcadapter_button));
+        mapping.insert_or_assign(switch_button, std::move(button_params));
+    }
+
+    // Add the missing bindings for ZL/ZR
+    static constexpr std::array<std::pair<Settings::NativeButton::Values, PadAxes>, 2>
+        switch_to_gcadapter_axis = {
+            std::pair{Settings::NativeButton::ZL, PadAxes::TriggerLeft},
+            {Settings::NativeButton::ZR, PadAxes::TriggerRight},
+        };
+    for (const auto& [switch_button, gcadapter_axis] : switch_to_gcadapter_axis) {
+        Common::ParamPackage button_params({{"engine", "gcpad"}});
+        button_params.Set("port", params.Get("port", 0));
+        button_params.Set("button", static_cast<int>(PadButton::PAD_STICK));
+        button_params.Set("axis", static_cast<int>(gcadapter_axis));
+        mapping.insert_or_assign(switch_button, std::move(button_params));
+    }
+    return mapping;
+}
+
+InputCommon::AnalogMapping Adapter::GetAnalogMappingForDevice(
+    const Common::ParamPackage& params) const {
+    if (!params.Has("port")) {
+        return {};
+    }
+
+    InputCommon::AnalogMapping mapping = {};
+    Common::ParamPackage left_analog_params;
+    left_analog_params.Set("engine", "gcpad");
+    left_analog_params.Set("port", params.Get("port", 0));
+    left_analog_params.Set("axis_x", static_cast<int>(PadAxes::StickX));
+    left_analog_params.Set("axis_y", static_cast<int>(PadAxes::StickY));
+    mapping.insert_or_assign(Settings::NativeAnalog::LStick, std::move(left_analog_params));
+    Common::ParamPackage right_analog_params;
+    right_analog_params.Set("engine", "gcpad");
+    right_analog_params.Set("port", params.Get("port", 0));
+    right_analog_params.Set("axis_x", static_cast<int>(PadAxes::SubstickX));
+    right_analog_params.Set("axis_y", static_cast<int>(PadAxes::SubstickY));
+    mapping.insert_or_assign(Settings::NativeAnalog::RStick, std::move(right_analog_params));
+    return mapping;
 }
 
 bool Adapter::DeviceConnected(std::size_t port) const {
