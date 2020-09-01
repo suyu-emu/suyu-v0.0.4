@@ -219,6 +219,7 @@ struct KernelCore::Impl {
                 return static_cast<u32>(system.GetCpuManager().CurrentCore());
             }
         }
+        std::unique_lock lock{register_thread_mutex};
         const auto it = host_thread_ids.find(this_id);
         if (it == host_thread_ids.end()) {
             return Core::INVALID_HOST_THREAD_ID;
@@ -324,7 +325,7 @@ struct KernelCore::Impl {
     std::unordered_map<std::thread::id, u32> host_thread_ids;
     u32 registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
     std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads;
-    std::mutex register_thread_mutex;
+    mutable std::mutex register_thread_mutex;
 
     // Kernel memory management
     std::unique_ptr<Memory::MemoryManager> memory_manager;
