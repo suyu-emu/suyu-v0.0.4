@@ -1,3 +1,8 @@
+// Copyright 2020 yuzu Emulator Project
+// Licensed under GPLv2 or any later version
+// Refer to the license.txt file included
+
+#include "common/math_util.h"
 #include "input_common/motion_input.h"
 
 namespace InputCommon {
@@ -69,7 +74,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     }
 
     const auto normal_accel = accel.Normalized();
-    auto rad_gyro = gyro * 3.1415926535f * 2;
+    auto rad_gyro = gyro * Common::PI * 2;
     const f32 swap = rad_gyro.x;
     rad_gyro.x = rad_gyro.y;
     rad_gyro.y = -swap;
