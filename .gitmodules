@@ -16,6 +16,9 @@
 [submodule "libressl"]
     path = externals/libressl
     url = https://github.com/citra-emu/ext-libressl-portable.git
+[submodule "libusb"]
+	path = externals/libusb/libusb
+	url = https://github.com/libusb/libusb.git
 [submodule "discord-rpc"]
     path = externals/discord-rpc
     url = https://github.com/discordapp/discord-rpc.git
@@ -34,9 +37,6 @@
 [submodule "xbyak"]
     path = externals/xbyak
     url = https://github.com/herumi/xbyak.git
-[submodule "externals/libusb"]
-	path = externals/libusb
-	url = https://github.com/ameerj/libusb
 [submodule "opus"]
 	path = externals/opus/opus
 	url = https://github.com/xiph/opus.git
