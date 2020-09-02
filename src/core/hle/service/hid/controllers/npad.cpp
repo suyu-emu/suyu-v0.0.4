@@ -490,30 +490,19 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
             libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
 
-            if (sixaxis_sensors_enabled) {
-                if (motions[i][0] && motions[i][1]) {
-                    // set both
-                    dual_left_sixaxis_entry.accel = motion_devices[0].accel;
-                    dual_left_sixaxis_entry.gyro = motion_devices[0].gyro;
-                    dual_left_sixaxis_entry.rotation = motion_devices[0].rotation;
-                    dual_left_sixaxis_entry.orientation = motion_devices[0].orientation;
-                    dual_right_sixaxis_entry.accel = motion_devices[1].accel;
-                    dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
-                    dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
-                    dual_right_sixaxis_entry.orientation = motion_devices[1].orientation;
-                } else if (motions[i][0]) {
-                    // set right
-                    dual_right_sixaxis_entry.accel = motion_devices[0].accel;
-                    dual_right_sixaxis_entry.gyro = motion_devices[0].gyro;
-                    dual_right_sixaxis_entry.rotation = motion_devices[0].rotation;
-                    dual_right_sixaxis_entry.orientation = motion_devices[0].orientation;
-                } else if (motions[i][1]) {
-                    // set right
-                    dual_right_sixaxis_entry.accel = motion_devices[1].accel;
-                    dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
-                    dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
-                    dual_right_sixaxis_entry.orientation = motion_devices[1].orientation;
-                }
+            if (sixaxis_sensors_enabled && motions[i][0]) {
+                // Set motion for the left joycon
+                dual_left_sixaxis_entry.accel = motion_devices[0].accel;
+                dual_left_sixaxis_entry.gyro = motion_devices[0].gyro;
+                dual_left_sixaxis_entry.rotation = motion_devices[0].rotation;
+                dual_left_sixaxis_entry.orientation = motion_devices[0].orientation;
+            }
+            if (sixaxis_sensors_enabled && motions[i][1]) {
+                // Set motion for the right joycon
+                dual_right_sixaxis_entry.accel = motion_devices[1].accel;
+                dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
+                dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
+                dual_right_sixaxis_entry.orientation = motion_devices[1].orientation;
             }
             break;
         case NPadControllerType::JoyLeft:
@@ -543,11 +532,11 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
 
             libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
 
-            if (sixaxis_sensors_enabled && motions[i][0]) {
-                right_sixaxis_entry.accel = motion_devices[0].accel;
-                right_sixaxis_entry.gyro = motion_devices[0].gyro;
-                right_sixaxis_entry.rotation = motion_devices[0].rotation;
-                right_sixaxis_entry.orientation = motion_devices[0].orientation;
+            if (sixaxis_sensors_enabled && motions[i][1]) {
+                right_sixaxis_entry.accel = motion_devices[1].accel;
+                right_sixaxis_entry.gyro = motion_devices[1].gyro;
+                right_sixaxis_entry.rotation = motion_devices[1].rotation;
+                right_sixaxis_entry.orientation = motion_devices[1].orientation;
             }
             break;
         case NPadControllerType::Pokeball:
