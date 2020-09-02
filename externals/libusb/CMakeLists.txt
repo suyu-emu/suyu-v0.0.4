@@ -21,6 +21,9 @@ if(WIN32)
     if (NOT MINGW)
         target_include_directories(usb BEFORE PRIVATE libusb/msvc)
     endif()
+
+    # Works around other libraries providing their own definition of USB GUIDs (e.g. SDL2)
+    target_compile_definitions(usb PRIVATE "-DGUID_DEVINTERFACE_USB_DEVICE=(GUID){ 0xA5DCBF10, 0x6530, 0x11D2, {0x90, 0x1F, 0x00, 0xC0, 0x4F, 0xB9, 0x51, 0xED}}")
 else()
 target_include_directories(usb
     # turns out other projects also have "config.h", so make sure the
