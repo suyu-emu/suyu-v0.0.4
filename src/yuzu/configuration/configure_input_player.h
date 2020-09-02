@@ -107,6 +107,9 @@ private:
     /// Hides and disables controller settings based on the current controller type.
     void UpdateControllerAvailableButtons();
 
+    /// Shows or hides motion groupboxes based on the current controller type.
+    void UpdateMotionButtons();
+
     /// Gets the default controller mapping for this device and auto configures the input to match.
     void UpdateMappingWithDefaults();
 

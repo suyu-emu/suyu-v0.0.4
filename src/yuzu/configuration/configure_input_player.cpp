@@ -421,9 +421,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
     UpdateControllerIcon();
     UpdateControllerAvailableButtons();
+    UpdateMotionButtons();
     connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged), [this](int) {
         UpdateControllerIcon();
         UpdateControllerAvailableButtons();
+        UpdateMotionButtons();
     });
 
     connect(ui->comboDevices, qOverload<int>(&QComboBox::currentIndexChanged), this,
@@ -890,6 +892,37 @@ void ConfigureInputPlayer::UpdateControllerAvailableButtons() {
 
     for (auto* widget : layout_hidden) {
         widget->hide();
+    }
+}
+
+void ConfigureInputPlayer::UpdateMotionButtons() {
+    if (debug) {
+        // Motion isn't used with the debug controller, hide both groupboxes.
+        ui->buttonMotionLeftGroup->hide();
+        ui->buttonMotionRightGroup->hide();
+        return;
+    }
+
+    // Show/hide the "Motion 1/2" groupboxes depending on the currently selected controller.
+    switch (GetControllerTypeFromIndex(ui->comboControllerType->currentIndex())) {
+    case Settings::ControllerType::ProController:
+    case Settings::ControllerType::LeftJoycon:
+    case Settings::ControllerType::Handheld:
+        // Show "Motion 1" and hide "Motion 2".
+        ui->buttonMotionLeftGroup->show();
+        ui->buttonMotionRightGroup->hide();
+        break;
+    case Settings::ControllerType::RightJoycon:
+        // Show "Motion 2" and hide "Motion 1".
+        ui->buttonMotionLeftGroup->hide();
+        ui->buttonMotionRightGroup->show();
+        break;
+    case Settings::ControllerType::DualJoyconDetached:
+    default:
+        // Show both "Motion 1/2".
+        ui->buttonMotionLeftGroup->show();
+        ui->buttonMotionRightGroup->show();
+        break;
     }
 }
 
