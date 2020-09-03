@@ -14,6 +14,7 @@
 #include "common/common_types.h"
 #include "common/thread.h"
 #include "common/vector_math.h"
+#include "core/frontend/input.h"
 
 namespace InputCommon::CemuhookUDP {
 
@@ -30,7 +31,7 @@ struct Version;
 
 struct DeviceStatus {
     std::mutex update_mutex;
-    std::tuple<Common::Vec3<float>, Common::Vec3<float>> motion_status;
+    Input::MotionStatus motion_status;
     std::tuple<float, float, bool> touch_status;
 
     // calibration data for scaling the device's touch area to 3ds

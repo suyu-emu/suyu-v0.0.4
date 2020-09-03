@@ -299,9 +299,9 @@ private:
 
     struct MotionDevice {
         Common::Vec3f accel;
-        Common::Vec3f gyro{};
+        Common::Vec3f gyro;
         Common::Vec3f rotation;
-        std::array<Common::Vec3f, 3> orientation{};
+        std::array<Common::Vec3f, 3> orientation;
     };
 
     struct NPadEntry {
@@ -358,9 +358,9 @@ private:
     using StickArray = std::array<
         std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>,
         10>;
-    using MotionArray = std::array<std::array<std::unique_ptr<Input::RealMotionDevice>,
-                                              Settings::NativeMotion::NUM_MOTION_HID>,
-                                   10>;
+    using MotionArray = std::array<
+        std::array<std::unique_ptr<Input::MotionDevice>, Settings::NativeMotion::NUM_MOTION_HID>,
+        10>;
     ButtonArray buttons;
     StickArray sticks;
     MotionArray motions;

@@ -170,10 +170,18 @@ void Client::OnPadData(Response::PadData data) {
     // directions correspond to the ones of the Switch
     Common::Vec3f accel = Common::MakeVec<float>(data.accel.x, data.accel.y, data.accel.z);
     Common::Vec3f gyro = Common::MakeVec<float>(data.gyro.pitch, data.gyro.yaw, data.gyro.roll);
+
+    // TODO: Calculate the correct rotation vector and orientation matrix
+    const auto rotation = Common::MakeVec(0.0f, 0.0f, 0.0f);
+    const std::array orientation{
+        Common::Vec3f(1.0f, 0.0f, 0.0f),
+        Common::Vec3f(0.0f, 1.0f, 0.0f),
+        Common::Vec3f(0.0f, 0.0f, 1.0f),
+    };
     {
         std::lock_guard guard(status->update_mutex);
 
-        status->motion_status = {accel, gyro};
+        status->motion_status = {accel, gyro, rotation, orientation};
 
         // TODO: add a setting for "click" touch. Click touch refers to a device that differentiates
         // between a simple "tap" and a hard press that causes the touch screen to click.

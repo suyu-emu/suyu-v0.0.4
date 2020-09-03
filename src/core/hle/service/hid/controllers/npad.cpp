@@ -251,7 +251,7 @@ void Controller_NPad::OnLoadInputDevices() {
                        sticks[i].begin(), Input::CreateDevice<Input::AnalogDevice>);
         std::transform(players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                        players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_END,
-                       motions[i].begin(), Input::CreateDevice<Input::RealMotionDevice>);
+                       motions[i].begin(), Input::CreateDevice<Input::MotionDevice>);
     }
 }
 
@@ -397,7 +397,8 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
                     std::tie(motion_devices[e].accel, motion_devices[e].gyro,
                              motion_devices[e].rotation, motion_devices[e].orientation) =
                         device->GetStatus();
-                    sixaxis_at_rest = sixaxis_at_rest && motion_devices[e].gyro.Length2() < 1.0f;
+                    sixaxis_at_rest =
+                        sixaxis_at_rest && motion_devices[e].gyro.Length2() < 0.00005f;
                 }
             }
         }
