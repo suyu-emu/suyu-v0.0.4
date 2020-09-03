@@ -7,6 +7,7 @@
 #include "common/logging/log.h"
 #include "common/swap.h"
 #include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/vfs.h"
 
 namespace FileSys {
 

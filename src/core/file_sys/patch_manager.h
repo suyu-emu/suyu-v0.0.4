@@ -9,7 +9,7 @@
 #include <string>
 #include "common/common_types.h"
 #include "core/file_sys/nca_metadata.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_types.h"
 #include "core/memory/dmnt_cheat_types.h"
 
 namespace Core {
@@ -31,8 +31,7 @@ std::string FormatTitleVersion(u32 version,
 
 // Returns a directory with name matching name case-insensitive. Returns nullptr if directory
 // doesn't have a directory with name.
-std::shared_ptr<VfsDirectory> FindSubdirectoryCaseless(const std::shared_ptr<VfsDirectory> dir,
-                                                       std::string_view name);
+VirtualDir FindSubdirectoryCaseless(VirtualDir dir, std::string_view name);
 
 // A centralized class to manage patches to games.
 class PatchManager {

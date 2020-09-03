@@ -10,10 +10,10 @@
 #include "common/logging/log.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/ctr_encryption_layer.h"
+#include "core/crypto/key_manager.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_patch.h"
 #include "core/file_sys/partition_filesystem.h"
-#include "core/file_sys/romfs.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/loader/loader.h"
 
@@ -119,7 +119,8 @@ static bool IsValidNCA(const NCAHeader& header) {
 }
 
 NCA::NCA(VirtualFile file_, VirtualFile bktr_base_romfs_, u64 bktr_base_ivfc_offset)
-    : file(std::move(file_)), bktr_base_romfs(std::move(bktr_base_romfs_)) {
+    : file(std::move(file_)),
+      bktr_base_romfs(std::move(bktr_base_romfs_)), keys{Core::Crypto::KeyManager::Instance()} {
     if (file == nullptr) {
         status = Loader::ResultStatus::ErrorNullFile;
         return;

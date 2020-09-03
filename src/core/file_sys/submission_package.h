@@ -10,6 +10,10 @@
 #include "common/common_types.h"
 #include "core/file_sys/vfs.h"
 
+namespace Core::Crypto {
+class KeyManager;
+}
+
 namespace Loader {
 enum class ResultStatus : u16;
 }
@@ -73,7 +77,7 @@ private:
     std::map<u64, std::map<std::pair<TitleType, ContentRecordType>, std::shared_ptr<NCA>>> ncas;
     std::vector<VirtualFile> ticket_files;
 
-    Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
+    Core::Crypto::KeyManager& keys;
 
     VirtualFile romfs;
     VirtualDir exefs;

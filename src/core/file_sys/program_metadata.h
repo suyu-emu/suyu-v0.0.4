@@ -9,7 +9,7 @@
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "common/swap.h"
-#include "core/file_sys/vfs.h"
+#include "core/file_sys/vfs_types.h"
 
 namespace Loader {
 enum class ResultStatus : u16;

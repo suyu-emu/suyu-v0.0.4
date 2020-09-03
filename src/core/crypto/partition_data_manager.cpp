@@ -26,6 +26,7 @@
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_offset.h"
 #include "core/file_sys/vfs_vector.h"
+#include "core/loader/loader.h"
 
 using Common::AsArray;
 
