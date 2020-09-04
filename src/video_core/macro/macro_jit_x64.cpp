@@ -14,11 +14,11 @@ MICROPROFILE_DEFINE(MacroJitCompile, "GPU", "Compile macro JIT", MP_RGB(173, 255
 MICROPROFILE_DEFINE(MacroJitExecute, "GPU", "Execute macro JIT", MP_RGB(255, 255, 0));
 
 namespace Tegra {
-static const Xbyak::Reg64 STATE = Xbyak::util::rbx;
-static const Xbyak::Reg32 RESULT = Xbyak::util::ebp;
-static const Xbyak::Reg64 PARAMETERS = Xbyak::util::r12;
-static const Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
-static const Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
+constexpr Xbyak::Reg64 STATE = Xbyak::util::rbx;
+constexpr Xbyak::Reg32 RESULT = Xbyak::util::ebp;
+constexpr Xbyak::Reg64 PARAMETERS = Xbyak::util::r12;
+constexpr Xbyak::Reg32 METHOD_ADDRESS = Xbyak::util::r14d;
+constexpr Xbyak::Reg64 BRANCH_HOLDER = Xbyak::util::r15;
 
 static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
     STATE,
