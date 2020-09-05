@@ -134,6 +134,7 @@ public:
     void ConnectAllDisconnectedControllers();
     void ClearAllControllers();
 
+    void MergeSingleJoyAsDualJoy(u32 npad_id_1, u32 npad_id_2);
     void StartLRAssignmentMode();
     void StopLRAssignmentMode();
     bool SwapNpadAssignment(u32 npad_id_1, u32 npad_id_2);
