@@ -262,6 +262,11 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         },
     }};
 
+    motion_map = {
+        ui->buttonMotionLeft,
+        ui->buttonMotionRight,
+    };
+
     analog_map_deadzone_label = {ui->labelLStickDeadzone, ui->labelRStickDeadzone};
     analog_map_deadzone_slider = {ui->sliderLStickDeadzone, ui->sliderRStickDeadzone};
     analog_map_modifier_groupbox = {ui->buttonLStickModGroup, ui->buttonRStickModGroup};
@@ -302,6 +307,37 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
         ConfigureButtonClick(button_map[button_id], &buttons_param[button_id],
                              Config::default_buttons[button_id]);
+    }
+
+    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+        auto* const button = motion_map[motion_id];
+        if (button == nullptr) {
+            continue;
+        }
+
+        button->setContextMenuPolicy(Qt::CustomContextMenu);
+        connect(button, &QPushButton::clicked, [=, this] {
+            HandleClick(
+                motion_map[motion_id],
+                [=, this](Common::ParamPackage params) {
+                    motions_param[motion_id] = std::move(params);
+                },
+                InputCommon::Polling::DeviceType::Motion);
+        });
+        connect(button, &QPushButton::customContextMenuRequested,
+                [=, this](const QPoint& menu_location) {
+                    QMenu context_menu;
+                    context_menu.addAction(tr("Clear"), [&] {
+                        motions_param[motion_id].Clear();
+                        motion_map[motion_id]->setText(tr("[not set]"));
+                    });
+                    context_menu.addAction(tr("Restore Default"), [&] {
+                        motions_param[motion_id] = Common::ParamPackage{
+                            InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
+                        motion_map[motion_id]->setText(ButtonToText(motions_param[motion_id]));
+                    });
+                    context_menu.exec(motion_map[motion_id]->mapToGlobal(menu_location));
+                });
     }
 
     // Handle clicks for the modifier buttons as well.
@@ -448,6 +484,10 @@ void ConfigureInputPlayer::ApplyConfiguration() {
         return;
     }
 
+    auto& motions = player.motions;
+    std::transform(motions_param.begin(), motions_param.end(), motions.begin(),
+                   [](const Common::ParamPackage& param) { return param.Serialize(); });
+
     player.controller_type =
         static_cast<Settings::ControllerType>(ui->comboControllerType->currentIndex());
     player.connected = ui->groupConnectedController->isChecked();
@@ -501,6 +541,8 @@ void ConfigureInputPlayer::LoadConfiguration() {
                        [](const std::string& str) { return Common::ParamPackage(str); });
         std::transform(player.analogs.begin(), player.analogs.end(), analogs_param.begin(),
                        [](const std::string& str) { return Common::ParamPackage(str); });
+        std::transform(player.motions.begin(), player.motions.end(), motions_param.begin(),
+                       [](const std::string& str) { return Common::ParamPackage(str); });
     }
 
     UpdateUI();
@@ -544,6 +586,12 @@ void ConfigureInputPlayer::RestoreDefaults() {
             SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
         }
     }
+
+    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+        motions_param[motion_id] = Common::ParamPackage{
+            InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
+    }
+
     UpdateUI();
     UpdateInputDevices();
     ui->comboControllerType->setCurrentIndex(0);
@@ -573,6 +621,15 @@ void ConfigureInputPlayer::ClearAll() {
         }
     }
 
+    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+        const auto* const button = motion_map[motion_id];
+        if (button == nullptr || !button->isEnabled()) {
+            continue;
+        }
+
+        motions_param[motion_id].Clear();
+    }
+
     UpdateUI();
     UpdateInputDevices();
 }
@@ -580,6 +637,10 @@ void ConfigureInputPlayer::ClearAll() {
 void ConfigureInputPlayer::UpdateUI() {
     for (int button = 0; button < Settings::NativeButton::NumButtons; ++button) {
         button_map[button]->setText(ButtonToText(buttons_param[button]));
+    }
+
+    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+        motion_map[motion_id]->setText(ButtonToText(motions_param[motion_id]));
     }
 
     ui->buttonLStickMod->setText(ButtonToText(lstick_mod));

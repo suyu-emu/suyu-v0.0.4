@@ -128,11 +128,14 @@ private:
 
     std::array<Common::ParamPackage, Settings::NativeButton::NumButtons> buttons_param;
     std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> analogs_param;
+    std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions> motions_param;
 
     static constexpr int ANALOG_SUB_BUTTONS_NUM = 4;
 
     /// Each button input is represented by a QPushButton.
     std::array<QPushButton*, Settings::NativeButton::NumButtons> button_map;
+    /// Each motion input is represented by a QPushButton.
+    std::array<QPushButton*, Settings::NativeMotion::NumMotions> motion_map;
     /// Extra buttons for the modifiers.
     Common::ParamPackage lstick_mod;
     Common::ParamPackage rstick_mod;

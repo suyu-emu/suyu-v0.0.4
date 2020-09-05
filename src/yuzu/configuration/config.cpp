@@ -36,6 +36,11 @@ const std::array<int, Settings::NativeButton::NumButtons> Config::default_button
     Qt::Key_H, Qt::Key_G, Qt::Key_D, Qt::Key_C, Qt::Key_B, Qt::Key_V,
 };
 
+const std::array<int, Settings::NativeMotion::NumMotions> Config::default_motions = {
+    Qt::Key_7,
+    Qt::Key_8,
+};
+
 const std::array<std::array<int, 4>, Settings::NativeAnalog::NumAnalogs> Config::default_analogs{{
     {
         Qt::Key_Up,
@@ -281,6 +286,22 @@ void Config::ReadPlayerValues() {
                                  .toStdString();
             if (player_buttons.empty()) {
                 player_buttons = default_param;
+            }
+        }
+
+        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+            const std::string default_param =
+                InputCommon::GenerateKeyboardParam(default_motions[i]);
+            auto& player_motions = player.motions[i];
+
+            player_motions = qt_config
+                                 ->value(QStringLiteral("player_%1_").arg(p) +
+                                             QString::fromUtf8(Settings::NativeMotion::mapping[i]),
+                                         QString::fromStdString(default_param))
+                                 .toString()
+                                 .toStdString();
+            if (player_motions.empty()) {
+                player_motions = default_param;
             }
         }
 
@@ -920,6 +941,14 @@ void Config::SavePlayerValues() {
             WriteSetting(QStringLiteral("player_%1_").arg(p) +
                              QString::fromStdString(Settings::NativeButton::mapping[i]),
                          QString::fromStdString(player.buttons[i]),
+                         QString::fromStdString(default_param));
+        }
+        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+            const std::string default_param =
+                InputCommon::GenerateKeyboardParam(default_motions[i]);
+            WriteSetting(QStringLiteral("player_%1_").arg(p) +
+                             QString::fromStdString(Settings::NativeMotion::mapping[i]),
+                         QString::fromStdString(player.motions[i]),
                          QString::fromStdString(default_param));
         }
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
