@@ -389,7 +389,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         // Try to read sixaxis sensor states
         std::array<MotionDevice, 2> motion_devices;
 
-        if (sixaxis_sensors_enabled) {
+        if (sixaxis_sensors_enabled && Settings::values.motion_enabled) {
             sixaxis_at_rest = true;
             for (std::size_t e = 0; e < motion_devices.size(); ++e) {
                 const auto& device = motions[i][e];

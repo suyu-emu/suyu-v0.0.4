@@ -340,11 +340,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         motions_param[motion_id].Clear();
                         motion_map[motion_id]->setText(tr("[not set]"));
                     });
-                    context_menu.addAction(tr("Restore Default"), [&] {
-                        motions_param[motion_id] = Common::ParamPackage{
-                            InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
-                        motion_map[motion_id]->setText(ButtonToText(motions_param[motion_id]));
-                    });
                     context_menu.exec(motion_map[motion_id]->mapToGlobal(menu_location));
                 });
     }
@@ -738,7 +733,11 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
 void ConfigureInputPlayer::HandleClick(
     QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
     InputCommon::Polling::DeviceType type) {
-    button->setText(tr("[waiting]"));
+    if (button == ui->buttonMotionLeft || button == ui->buttonMotionRight) {
+        button->setText(tr("Shake!"));
+    } else {
+        button->setText(tr("[waiting]"));
+    }
     button->setFocus();
 
     // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
