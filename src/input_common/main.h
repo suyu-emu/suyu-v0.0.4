@@ -54,6 +54,8 @@ public:
 
 class GCAnalogFactory;
 class GCButtonFactory;
+class UDPMotionFactory;
+class UDPTouchFactory;
 class Keyboard;
 class MotionEmu;
 
@@ -122,6 +124,18 @@ public:
 
     /// Retrieves the underlying GameCube button handler.
     [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] UDPMotionFactory* GetUDPMotions();
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] const UDPMotionFactory* GetUDPMotions() const;
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] UDPTouchFactory* GetUDPTouch();
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] const UDPTouchFactory* GetUDPTouch() const;
 
     /// Reloads the input devices
     void ReloadInputDevices();
