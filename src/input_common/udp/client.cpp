@@ -138,7 +138,7 @@ Client::Client() {
                            Settings::values.udp_input_port, pad, 24872);
         // Set motion parameters
         // SetGyroThreshold value should be dependent on GyroscopeZeroDriftMode
-        // Real HW values are unkown, 0.0001 is an aproximate to Standard
+        // Real HW values are unknown, 0.0001 is an approximate to Standard
         clients[client].motion.SetGyroThreshold(0.0001f);
     }
 }
@@ -153,8 +153,7 @@ std::vector<Common::ParamPackage> Client::GetInputDevices() const {
         if (!DeviceConnected(client)) {
             continue;
         }
-        std::string name = fmt::format("UDP Controller{} {} {}", clients[client].active,
-                                       clients[client].active == 1, client);
+        std::string name = fmt::format("UDP Controller {}", client);
         devices.emplace_back(Common::ParamPackage{
             {"class", "cemuhookudp"},
             {"display", std::move(name)},
@@ -215,7 +214,7 @@ void Client::OnPadData(Response::PadData data) {
     Common::Vec3f raw_gyroscope = {data.gyro.pitch, data.gyro.roll, -data.gyro.yaw};
     clients[client].motion.SetAcceleration({data.accel.x, -data.accel.z, data.accel.y});
     // Gyroscope values are not it the correct scale from better joy.
-    // By dividing by 312 allow us to make one full turn = 1 turn
+    // Dividing by 312 allows us to make one full turn = 1 turn
     // This must be a configurable valued called sensitivity
     clients[client].motion.SetGyroscope(raw_gyroscope / 312.0f);
     clients[client].motion.UpdateRotation(time_difference);
@@ -275,23 +274,21 @@ void Client::Reset() {
 
 void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
                                 const Common::Vec3<float>& gyro, bool touch) {
-    if (configuring) {
-        UDPPadStatus pad;
-        if (touch) {
-            pad.touch = PadTouch::Click;
+    UDPPadStatus pad;
+    if (touch) {
+        pad.touch = PadTouch::Click;
+        pad_queue[client].Push(pad);
+    }
+    for (size_t i = 0; i < 3; ++i) {
+        if (gyro[i] > 6.0f || gyro[i] < -6.0f) {
+            pad.motion = static_cast<PadMotion>(i);
+            pad.motion_value = gyro[i];
             pad_queue[client].Push(pad);
         }
-        for (size_t i = 0; i < 3; ++i) {
-            if (gyro[i] > 6.0f || gyro[i] < -6.0f) {
-                pad.motion = static_cast<PadMotion>(i);
-                pad.motion_value = gyro[i];
-                pad_queue[client].Push(pad);
-            }
-            if (acc[i] > 2.0f || acc[i] < -2.0f) {
-                pad.motion = static_cast<PadMotion>(i + 3);
-                pad.motion_value = acc[i];
-                pad_queue[client].Push(pad);
-            }
+        if (acc[i] > 2.0f || acc[i] < -2.0f) {
+            pad.motion = static_cast<PadMotion>(i + 3);
+            pad.motion_value = acc[i];
+            pad_queue[client].Push(pad);
         }
     }
 }
