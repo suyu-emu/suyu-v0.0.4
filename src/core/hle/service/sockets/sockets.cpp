@@ -10,9 +10,9 @@
 
 namespace Service::Sockets {
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<BSD>("bsd:s")->InstallAsService(service_manager);
-    std::make_shared<BSD>("bsd:u")->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<BSD>(system, "bsd:s")->InstallAsService(service_manager);
+    std::make_shared<BSD>(system, "bsd:u")->InstallAsService(service_manager);
     std::make_shared<BSDCFG>()->InstallAsService(service_manager);
 
     std::make_shared<ETHC_C>()->InstallAsService(service_manager);
