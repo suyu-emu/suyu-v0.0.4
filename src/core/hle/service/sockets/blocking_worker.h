@@ -29,7 +29,7 @@ namespace Service::Sockets {
  * Worker abstraction to execute blocking calls on host without blocking the guest thread
  *
  * @tparam Service  Service where the work is executed
- * @tparam ...Types Types of work to execute
+ * @tparam Types Types of work to execute
  */
 template <class Service, class... Types>
 class BlockingWorker {
