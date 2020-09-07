@@ -76,7 +76,7 @@ public:
     void EndConfiguration();
 
     /// Returns true if there is a device connected to port
-    bool DeviceConnected(std::size_t port);
+    bool DeviceConnected(std::size_t port) const;
 
     std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue();
     const std::array<Common::SPSCQueue<GCPadStatus>, 4>& GetPadQueue() const;

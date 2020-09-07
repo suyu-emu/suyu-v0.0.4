@@ -15,7 +15,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, GCAdapter::Adapter* adapter)
+    explicit GCButton(int port_, int button_, const GCAdapter::Adapter* adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -30,13 +30,13 @@ public:
 private:
     const int port;
     const int button;
-    GCAdapter::Adapter* gcadapter;
+    const GCAdapter::Adapter* gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
     explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
-                          GCAdapter::Adapter* adapter)
+                          const GCAdapter::Adapter* adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
           gcadapter(adapter),
           origin_value(static_cast<float>(adapter->GetOriginValue(port_, axis_))) {}
@@ -60,7 +60,7 @@ private:
     const int axis;
     float threshold;
     bool trigger_if_greater;
-    GCAdapter::Adapter* gcadapter;
+    const GCAdapter::Adapter* gcadapter;
     const float origin_value;
 };
 
@@ -149,8 +149,8 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_, GCAdapter::Adapter* adapter,
-             float range_)
+    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_,
+             const GCAdapter::Adapter* adapter, float range_)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter),
           origin_value_x(static_cast<float>(adapter->GetOriginValue(port_, axis_x_))),
           origin_value_y(static_cast<float>(adapter->GetOriginValue(port_, axis_y_))),
@@ -212,7 +212,7 @@ private:
     const int axis_x;
     const int axis_y;
     const float deadzone;
-    GCAdapter::Adapter* gcadapter;
+    const GCAdapter::Adapter* gcadapter;
     const float origin_value_x;
     const float origin_value_y;
     const float range;
