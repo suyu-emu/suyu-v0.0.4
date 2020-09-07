@@ -63,9 +63,9 @@ public:
     /// Creates a port pair and registers this service with the given ServiceManager.
     void InstallAsService(SM::ServiceManager& service_manager);
     /// Creates a port pair and registers it on the kernel's global port registry.
-    void InstallAsNamedPort();
+    void InstallAsNamedPort(Kernel::KernelCore& kernel);
     /// Creates and returns an unregistered port for the service.
-    std::shared_ptr<Kernel::ClientPort> CreatePort();
+    std::shared_ptr<Kernel::ClientPort> CreatePort(Kernel::KernelCore& kernel);
 
     void InvokeRequest(Kernel::HLERequestContext& ctx);
 

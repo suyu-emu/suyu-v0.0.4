@@ -43,7 +43,7 @@ void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self,
     ASSERT(self->sm_interface.expired());
 
     auto sm = std::make_shared<SM>(self, kernel);
-    sm->InstallAsNamedPort();
+    sm->InstallAsNamedPort(kernel);
     self->sm_interface = sm;
     self->controller_interface = std::make_unique<Controller>();
 }
