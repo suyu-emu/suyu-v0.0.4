@@ -491,7 +491,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
     for (PollFD& pollfd : fds) {
         ASSERT(pollfd.revents == 0);
 
-        if (pollfd.fd > MAX_FD || pollfd.fd < 0) {
+        if (pollfd.fd > static_cast<s32>(MAX_FD) || pollfd.fd < 0) {
             LOG_ERROR(Service, "File descriptor handle={} is invalid", pollfd.fd);
             pollfd.revents = 0;
             return {0, Errno::SUCCESS};
@@ -795,7 +795,7 @@ s32 BSD::FindFreeFileDescriptorHandle() noexcept {
 }
 
 bool BSD::IsFileDescriptorValid(s32 fd) const noexcept {
-    if (fd > MAX_FD || fd < 0) {
+    if (fd > static_cast<s32>(MAX_FD) || fd < 0) {
         LOG_ERROR(Service, "Invalid file descriptor handle={}", fd);
         return false;
     }
@@ -809,7 +809,7 @@ bool BSD::IsFileDescriptorValid(s32 fd) const noexcept {
 bool BSD::IsBlockingSocket(s32 fd) const noexcept {
     // Inform invalid sockets as non-blocking
     // This way we avoid using a worker thread as it will fail without blocking host
-    if (fd > MAX_FD || fd < 0) {
+    if (fd > static_cast<s32>(MAX_FD) || fd < 0) {
         return false;
     }
     if (!file_descriptors[fd]) {
