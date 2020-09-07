@@ -764,6 +764,7 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, const std::vector<u8>& 
         SockAddrIn guest_addr_in;
         std::memcpy(&guest_addr_in, addr.data(), sizeof(guest_addr_in));
         addr_in = Translate(guest_addr_in);
+        p_addr_in = &addr_in;
     }
 
     return Translate(file_descriptors[fd]->socket->SendTo(flags, message, p_addr_in));
