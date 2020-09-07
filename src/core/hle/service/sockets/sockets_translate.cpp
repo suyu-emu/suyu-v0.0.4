@@ -131,21 +131,21 @@ u16 TranslatePollEventsToGuest(u16 flags) {
 Network::SockAddrIn Translate(SockAddrIn value) {
     ASSERT(value.len == 0 || value.len == sizeof(value));
 
-    Network::SockAddrIn result;
-    result.family = Translate(static_cast<Domain>(value.family));
-    result.ip = value.ip;
-    result.portno = value.portno >> 8 | value.portno << 8;
-    return result;
+    return {
+        .family = Translate(static_cast<Domain>(value.family)),
+        .ip = value.ip,
+        .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
+    };
 }
 
 SockAddrIn Translate(Network::SockAddrIn value) {
-    SockAddrIn result;
-    result.len = sizeof(result);
-    result.family = static_cast<u8>(Translate(value.family));
-    result.portno = value.portno >> 8 | value.portno << 8;
-    result.ip = value.ip;
-    result.zeroes = {};
-    return result;
+    return {
+        .len = sizeof(SockAddrIn),
+        .family = static_cast<u8>(Translate(value.family)),
+        .portno = static_cast<u16>(value.portno >> 8 | value.portno << 8),
+        .ip = value.ip,
+        .zeroes = {},
+    };
 }
 
 Network::ShutdownHow Translate(ShutdownHow how) {
