@@ -93,7 +93,7 @@ VkDescriptorSet VKGraphicsPipeline::CommitDescriptorSet() {
     if (!descriptor_template) {
         return {};
     }
-    const auto set = descriptor_allocator.Commit(scheduler.GetFence());
+    const VkDescriptorSet set = descriptor_allocator.Commit();
     update_descriptor_queue.Send(*descriptor_template, set);
     return set;
 }

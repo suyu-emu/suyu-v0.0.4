@@ -7,7 +7,8 @@
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_device.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/vk_resource_pool.h"
+#include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
@@ -15,14 +16,15 @@ namespace Vulkan {
 // Prefer small grow rates to avoid saturating the descriptor pool with barely used pipelines.
 constexpr std::size_t SETS_GROW_RATE = 0x20;
 
-DescriptorAllocator::DescriptorAllocator(VKDescriptorPool& descriptor_pool,
-                                         VkDescriptorSetLayout layout)
-    : VKFencedPool{SETS_GROW_RATE}, descriptor_pool{descriptor_pool}, layout{layout} {}
+DescriptorAllocator::DescriptorAllocator(VKDescriptorPool& descriptor_pool_,
+                                         VkDescriptorSetLayout layout_)
+    : ResourcePool(descriptor_pool_.master_semaphore, SETS_GROW_RATE),
+      descriptor_pool{descriptor_pool_}, layout{layout_} {}
 
 DescriptorAllocator::~DescriptorAllocator() = default;
 
-VkDescriptorSet DescriptorAllocator::Commit(VKFence& fence) {
-    const std::size_t index = CommitResource(fence);
+VkDescriptorSet DescriptorAllocator::Commit() {
+    const std::size_t index = CommitResource();
     return descriptors_allocations[index / SETS_GROW_RATE][index % SETS_GROW_RATE];
 }
 
@@ -30,8 +32,9 @@ void DescriptorAllocator::Allocate(std::size_t begin, std::size_t end) {
     descriptors_allocations.push_back(descriptor_pool.AllocateDescriptors(layout, end - begin));
 }
 
-VKDescriptorPool::VKDescriptorPool(const VKDevice& device)
-    : device{device}, active_pool{AllocateNewPool()} {}
+VKDescriptorPool::VKDescriptorPool(const VKDevice& device_, VKScheduler& scheduler)
+    : device{device_}, master_semaphore{scheduler.GetMasterSemaphore()}, active_pool{
+                                                                             AllocateNewPool()} {}
 
 VKDescriptorPool::~VKDescriptorPool() = default;
 

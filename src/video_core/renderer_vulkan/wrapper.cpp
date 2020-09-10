@@ -148,6 +148,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkGetFenceStatus);
     X(vkGetImageMemoryRequirements);
     X(vkGetQueryPoolResults);
+    X(vkGetSemaphoreCounterValueKHR);
     X(vkMapMemory);
     X(vkQueueSubmit);
     X(vkResetFences);
@@ -156,6 +157,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkUpdateDescriptorSetWithTemplateKHR);
     X(vkUpdateDescriptorSets);
     X(vkWaitForFences);
+    X(vkWaitSemaphoresKHR);
 #undef X
 }
 
@@ -574,7 +576,10 @@ Semaphore Device::CreateSemaphore() const {
         .pNext = nullptr,
         .flags = 0,
     };
+    return CreateSemaphore(ci);
+}
 
+Semaphore Device::CreateSemaphore(const VkSemaphoreCreateInfo& ci) const {
     VkSemaphore object;
     Check(dld->vkCreateSemaphore(handle, &ci, nullptr, &object));
     return Semaphore(object, handle, *dld);
@@ -660,7 +665,7 @@ ShaderModule Device::CreateShaderModule(const VkShaderModuleCreateInfo& ci) cons
     return ShaderModule(object, handle, *dld);
 }
 
-Event Device::CreateNewEvent() const {
+Event Device::CreateEvent() const {
     static constexpr VkEventCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_EVENT_CREATE_INFO,
         .pNext = nullptr,

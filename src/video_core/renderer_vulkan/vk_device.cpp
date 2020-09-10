@@ -42,6 +42,7 @@ constexpr std::array REQUIRED_EXTENSIONS{
     VK_KHR_8BIT_STORAGE_EXTENSION_NAME,
     VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME,
     VK_KHR_DESCRIPTOR_UPDATE_TEMPLATE_EXTENSION_NAME,
+    VK_KHR_TIMELINE_SEMAPHORE_EXTENSION_NAME,
     VK_EXT_VERTEX_ATTRIBUTE_DIVISOR_EXTENSION_NAME,
     VK_EXT_SHADER_SUBGROUP_BALLOT_EXTENSION_NAME,
     VK_EXT_SHADER_SUBGROUP_VOTE_EXTENSION_NAME,
@@ -249,6 +250,13 @@ bool VKDevice::Create() {
         .variableMultisampleRate = false,
         .inheritedQueries = false,
     };
+
+    VkPhysicalDeviceTimelineSemaphoreFeaturesKHR timeline_semaphore{
+        .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TIMELINE_SEMAPHORE_FEATURES_KHR,
+        .pNext = nullptr,
+        .timelineSemaphore = true,
+    };
+    SetNext(next, timeline_semaphore);
 
     VkPhysicalDevice16BitStorageFeaturesKHR bit16_storage{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_16BIT_STORAGE_FEATURES_KHR,

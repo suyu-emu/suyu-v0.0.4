@@ -15,7 +15,6 @@
 namespace Vulkan {
 
 class VKDevice;
-class VKFence;
 class VKScheduler;
 class VKStagingBufferPool;
 class VKUpdateDescriptorQueue;
@@ -30,8 +29,7 @@ public:
     ~VKComputePass();
 
 protected:
-    VkDescriptorSet CommitDescriptorSet(VKUpdateDescriptorQueue& update_descriptor_queue,
-                                        VKFence& fence);
+    VkDescriptorSet CommitDescriptorSet(VKUpdateDescriptorQueue& update_descriptor_queue);
 
     vk::DescriptorUpdateTemplateKHR descriptor_template;
     vk::PipelineLayout layout;

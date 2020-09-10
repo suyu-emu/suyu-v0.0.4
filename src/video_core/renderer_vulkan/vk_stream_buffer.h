@@ -14,7 +14,6 @@
 namespace Vulkan {
 
 class VKDevice;
-class VKFence;
 class VKFenceWatch;
 class VKScheduler;
 
@@ -44,8 +43,8 @@ public:
     }
 
 private:
-    struct Watch final {
-        VKFenceWatch fence;
+    struct Watch {
+        u64 tick{};
         u64 upper_bound{};
     };
 

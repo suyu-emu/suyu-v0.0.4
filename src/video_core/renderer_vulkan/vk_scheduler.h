@@ -16,42 +16,33 @@
 
 namespace Vulkan {
 
+class CommandPool;
+class MasterSemaphore;
 class StateTracker;
 class VKDevice;
-class VKFence;
 class VKQueryCache;
-class VKResourceManager;
-
-class VKFenceView {
-public:
-    VKFenceView() = default;
-    VKFenceView(VKFence* const& fence) : fence{fence} {}
-
-    VKFence* operator->() const noexcept {
-        return fence;
-    }
-
-    operator VKFence&() const noexcept {
-        return *fence;
-    }
-
-private:
-    VKFence* const& fence;
-};
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
 class VKScheduler {
 public:
-    explicit VKScheduler(const VKDevice& device, VKResourceManager& resource_manager,
-                         StateTracker& state_tracker);
+    explicit VKScheduler(const VKDevice& device, StateTracker& state_tracker);
     ~VKScheduler();
 
+    /// Returns the current command buffer tick.
+    [[nodiscard]] u64 CurrentTick() const noexcept;
+
+    /// Returns true when a tick has been triggered by the GPU.
+    [[nodiscard]] bool IsFree(u64 tick) const noexcept;
+
+    /// Waits for the given tick to trigger on the GPU.
+    void Wait(u64 tick);
+
     /// Sends the current execution context to the GPU.
-    void Flush(bool release_fence = true, VkSemaphore semaphore = nullptr);
+    void Flush(VkSemaphore semaphore = nullptr);
 
     /// Sends the current execution context to the GPU and waits for it to complete.
-    void Finish(bool release_fence = true, VkSemaphore semaphore = nullptr);
+    void Finish(VkSemaphore semaphore = nullptr);
 
     /// Waits for the worker thread to finish executing everything. After this function returns it's
     /// safe to touch worker resources.
@@ -86,14 +77,9 @@ public:
         (void)chunk->Record(command);
     }
 
-    /// Gets a reference to the current fence.
-    VKFenceView GetFence() const {
-        return current_fence;
-    }
-
-    /// Returns the current command buffer tick.
-    u64 Ticks() const {
-        return ticks;
+    /// Returns the master timeline semaphore.
+    [[nodiscard]] MasterSemaphore& GetMasterSemaphore() const noexcept {
+        return *master_semaphore;
     }
 
 private:
@@ -171,6 +157,13 @@ private:
         std::array<u8, 0x8000> data{};
     };
 
+    struct State {
+        VkRenderPass renderpass = nullptr;
+        VkFramebuffer framebuffer = nullptr;
+        VkExtent2D render_area = {0, 0};
+        VkPipeline graphics_pipeline = nullptr;
+    };
+
     void WorkerThread();
 
     void SubmitExecution(VkSemaphore semaphore);
@@ -186,30 +179,23 @@ private:
     void AcquireNewChunk();
 
     const VKDevice& device;
-    VKResourceManager& resource_manager;
     StateTracker& state_tracker;
+
+    std::unique_ptr<MasterSemaphore> master_semaphore;
+    std::unique_ptr<CommandPool> command_pool;
 
     VKQueryCache* query_cache = nullptr;
 
     vk::CommandBuffer current_cmdbuf;
-    VKFence* current_fence = nullptr;
-    VKFence* next_fence = nullptr;
-
-    struct State {
-        VkRenderPass renderpass = nullptr;
-        VkFramebuffer framebuffer = nullptr;
-        VkExtent2D render_area = {0, 0};
-        VkPipeline graphics_pipeline = nullptr;
-    } state;
 
     std::unique_ptr<CommandChunk> chunk;
     std::thread worker_thread;
 
+    State state;
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_queue;
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_reserve;
     std::mutex mutex;
     std::condition_variable cv;
-    std::atomic<u64> ticks = 0;
     bool quit = false;
 };
 

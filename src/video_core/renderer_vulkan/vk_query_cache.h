@@ -11,7 +11,7 @@
 
 #include "common/common_types.h"
 #include "video_core/query_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace VideoCore {
@@ -28,14 +28,12 @@ class VKScheduler;
 
 using CounterStream = VideoCommon::CounterStreamBase<VKQueryCache, HostCounter>;
 
-class QueryPool final : public VKFencedPool {
+class QueryPool final : public ResourcePool {
 public:
-    explicit QueryPool();
+    explicit QueryPool(const VKDevice& device, VKScheduler& scheduler, VideoCore::QueryType type);
     ~QueryPool() override;
 
-    void Initialize(const VKDevice& device, VideoCore::QueryType type);
-
-    std::pair<VkQueryPool, u32> Commit(VKFence& fence);
+    std::pair<VkQueryPool, u32> Commit();
 
     void Reserve(std::pair<VkQueryPool, u32> query);
 
@@ -45,16 +43,15 @@ protected:
 private:
     static constexpr std::size_t GROW_STEP = 512;
 
-    const VKDevice* device = nullptr;
-    VideoCore::QueryType type = {};
+    const VKDevice& device;
+    const VideoCore::QueryType type;
 
     std::vector<vk::QueryPool> pools;
     std::vector<bool> usage;
 };
 
 class VKQueryCache final
-    : public VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter,
-                                         QueryPool> {
+    : public VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
     explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
                           Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
@@ -76,6 +73,7 @@ public:
 private:
     const VKDevice& device;
     VKScheduler& scheduler;
+    std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 };
 
 class HostCounter final : public VideoCommon::HostCounterBase<VKQueryCache, HostCounter> {
@@ -92,7 +90,7 @@ private:
     VKQueryCache& cache;
     const VideoCore::QueryType type;
     const std::pair<VkQueryPool, u32> query;
-    const u64 ticks;
+    const u64 tick;
 };
 
 class CachedQuery : public VideoCommon::CachedQueryBase<HostCounter> {

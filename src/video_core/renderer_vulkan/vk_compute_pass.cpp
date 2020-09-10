@@ -112,7 +112,8 @@ constexpr u8 quad_array[] = {
     0xf9, 0x00, 0x02, 0x00, 0x21, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x23, 0x00, 0x00, 0x00,
     0xf9, 0x00, 0x02, 0x00, 0x4b, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x4e, 0x00, 0x00, 0x00,
     0xf9, 0x00, 0x02, 0x00, 0x4c, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x4b, 0x00, 0x00, 0x00,
-    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
+    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00,
+};
 
 VkDescriptorSetLayoutBinding BuildQuadArrayPassDescriptorSetLayoutBinding() {
     return {
@@ -218,7 +219,8 @@ constexpr u8 uint8_pass[] = {
     0x2a, 0x00, 0x00, 0x00, 0x2b, 0x00, 0x00, 0x00, 0x22, 0x00, 0x00, 0x00, 0x23, 0x00, 0x00, 0x00,
     0x24, 0x00, 0x00, 0x00, 0x3e, 0x00, 0x03, 0x00, 0x2b, 0x00, 0x00, 0x00, 0x29, 0x00, 0x00, 0x00,
     0xf9, 0x00, 0x02, 0x00, 0x1d, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x1d, 0x00, 0x00, 0x00,
-    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
+    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00,
+};
 
 // Quad indexed SPIR-V module. Generated from the "shaders/" directory.
 constexpr u8 QUAD_INDEXED_SPV[] = {
@@ -341,7 +343,8 @@ constexpr u8 QUAD_INDEXED_SPV[] = {
     0xf9, 0x00, 0x02, 0x00, 0x35, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x37, 0x00, 0x00, 0x00,
     0xf9, 0x00, 0x02, 0x00, 0x73, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x76, 0x00, 0x00, 0x00,
     0xf9, 0x00, 0x02, 0x00, 0x74, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x02, 0x00, 0x73, 0x00, 0x00, 0x00,
-    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00};
+    0xfd, 0x00, 0x01, 0x00, 0x38, 0x00, 0x01, 0x00,
+};
 
 std::array<VkDescriptorSetLayoutBinding, 2> BuildInputOutputDescriptorSetBindings() {
     return {{
@@ -448,12 +451,12 @@ VKComputePass::VKComputePass(const VKDevice& device, VKDescriptorPool& descripto
 
 VKComputePass::~VKComputePass() = default;
 
-VkDescriptorSet VKComputePass::CommitDescriptorSet(VKUpdateDescriptorQueue& update_descriptor_queue,
-                                                   VKFence& fence) {
+VkDescriptorSet VKComputePass::CommitDescriptorSet(
+    VKUpdateDescriptorQueue& update_descriptor_queue) {
     if (!descriptor_template) {
         return nullptr;
     }
-    const auto set = descriptor_allocator->Commit(fence);
+    const VkDescriptorSet set = descriptor_allocator->Commit();
     update_descriptor_queue.Send(*descriptor_template, set);
     return set;
 }
@@ -477,7 +480,7 @@ std::pair<VkBuffer, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
-    const auto set = CommitDescriptorSet(update_descriptor_queue, scheduler.GetFence());
+    const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
 
@@ -520,13 +523,13 @@ Uint8Pass::~Uint8Pass() = default;
 
 std::pair<VkBuffer, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buffer,
                                              u64 src_offset) {
-    const auto staging_size = static_cast<u32>(num_vertices * sizeof(u16));
+    const u32 staging_size = static_cast<u32>(num_vertices * sizeof(u16));
     auto& buffer = staging_buffer_pool.GetUnusedBuffer(staging_size, false);
 
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, num_vertices);
     update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
-    const auto set = CommitDescriptorSet(update_descriptor_queue, scheduler.GetFence());
+    const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, set,
@@ -589,7 +592,7 @@ std::pair<VkBuffer, u64> QuadIndexedPass::Assemble(
     update_descriptor_queue.Acquire();
     update_descriptor_queue.AddBuffer(src_buffer, src_offset, input_size);
     update_descriptor_queue.AddBuffer(*buffer.handle, 0, staging_size);
-    const auto set = CommitDescriptorSet(update_descriptor_queue, scheduler.GetFence());
+    const VkDescriptorSet set = CommitDescriptorSet(update_descriptor_queue);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([layout = *layout, pipeline = *pipeline, buffer = *buffer.handle, set,

@@ -16,11 +16,11 @@ struct FramebufferLayout;
 namespace Vulkan {
 
 class VKDevice;
-class VKFence;
+class VKScheduler;
 
 class VKSwapchain {
 public:
-    explicit VKSwapchain(VkSurfaceKHR surface, const VKDevice& device);
+    explicit VKSwapchain(VkSurfaceKHR surface, const VKDevice& device, VKScheduler& scheduler);
     ~VKSwapchain();
 
     /// Creates (or recreates) the swapchain with a given size.
@@ -31,7 +31,7 @@ public:
 
     /// Presents the rendered image to the swapchain. Returns true when the swapchains had to be
     /// recreated. Takes responsability for the ownership of fence.
-    bool Present(VkSemaphore render_semaphore, VKFence& fence);
+    bool Present(VkSemaphore render_semaphore);
 
     /// Returns true when the framebuffer layout has changed.
     bool HasFramebufferChanged(const Layout::FramebufferLayout& framebuffer) const;
@@ -74,6 +74,7 @@ private:
 
     const VkSurfaceKHR surface;
     const VKDevice& device;
+    VKScheduler& scheduler;
 
     vk::SwapchainKHR swapchain;
 
@@ -81,7 +82,7 @@ private:
     std::vector<VkImage> images;
     std::vector<vk::ImageView> image_views;
     std::vector<vk::Framebuffer> framebuffers;
-    std::vector<VKFence*> fences;
+    std::vector<u64> resource_ticks;
     std::vector<vk::Semaphore> present_semaphores;
 
     u32 image_index{};

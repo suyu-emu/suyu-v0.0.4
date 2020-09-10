@@ -38,7 +38,6 @@ class RasterizerVulkan;
 class VKComputePipeline;
 class VKDescriptorPool;
 class VKDevice;
-class VKFence;
 class VKScheduler;
 class VKUpdateDescriptorQueue;
 

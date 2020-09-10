@@ -267,6 +267,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkGetFenceStatus vkGetFenceStatus;
     PFN_vkGetImageMemoryRequirements vkGetImageMemoryRequirements;
     PFN_vkGetQueryPoolResults vkGetQueryPoolResults;
+    PFN_vkGetSemaphoreCounterValueKHR vkGetSemaphoreCounterValueKHR;
     PFN_vkMapMemory vkMapMemory;
     PFN_vkQueueSubmit vkQueueSubmit;
     PFN_vkResetFences vkResetFences;
@@ -275,6 +276,7 @@ struct DeviceDispatch : public InstanceDispatch {
     PFN_vkUpdateDescriptorSetWithTemplateKHR vkUpdateDescriptorSetWithTemplateKHR;
     PFN_vkUpdateDescriptorSets vkUpdateDescriptorSets;
     PFN_vkWaitForFences vkWaitForFences;
+    PFN_vkWaitSemaphoresKHR vkWaitSemaphoresKHR;
 };
 
 /// Loads instance agnostic function pointers.
@@ -550,7 +552,6 @@ using PipelineLayout = Handle<VkPipelineLayout, VkDevice, DeviceDispatch>;
 using QueryPool = Handle<VkQueryPool, VkDevice, DeviceDispatch>;
 using RenderPass = Handle<VkRenderPass, VkDevice, DeviceDispatch>;
 using Sampler = Handle<VkSampler, VkDevice, DeviceDispatch>;
-using Semaphore = Handle<VkSemaphore, VkDevice, DeviceDispatch>;
 using ShaderModule = Handle<VkShaderModule, VkDevice, DeviceDispatch>;
 using SurfaceKHR = Handle<VkSurfaceKHR, VkInstance, InstanceDispatch>;
 
@@ -582,7 +583,8 @@ public:
     /// Construct a queue handle.
     constexpr Queue(VkQueue queue, const DeviceDispatch& dld) noexcept : queue{queue}, dld{&dld} {}
 
-    VkResult Submit(Span<VkSubmitInfo> submit_infos, VkFence fence) const noexcept {
+    VkResult Submit(Span<VkSubmitInfo> submit_infos,
+                    VkFence fence = VK_NULL_HANDLE) const noexcept {
         return dld->vkQueueSubmit(queue, submit_infos.size(), submit_infos.data(), fence);
     }
 
@@ -674,6 +676,44 @@ public:
     }
 };
 
+class Semaphore : public Handle<VkSemaphore, VkDevice, DeviceDispatch> {
+    using Handle<VkSemaphore, VkDevice, DeviceDispatch>::Handle;
+
+public:
+    [[nodiscard]] u64 GetCounter() const {
+        u64 value;
+        Check(dld->vkGetSemaphoreCounterValueKHR(owner, handle, &value));
+        return value;
+    }
+
+    /**
+     * Waits for a timeline semaphore on the host.
+     *
+     * @param value   Value to wait
+     * @param timeout Time in nanoseconds to timeout
+     * @return        True on successful wait, false on timeout
+     */
+    bool Wait(u64 value, u64 timeout = std::numeric_limits<u64>::max()) const {
+        const VkSemaphoreWaitInfoKHR wait_info{
+            .sType = VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO_KHR,
+            .pNext = nullptr,
+            .flags = 0,
+            .semaphoreCount = 1,
+            .pSemaphores = &handle,
+            .pValues = &value,
+        };
+        const VkResult result = dld->vkWaitSemaphoresKHR(owner, &wait_info, timeout);
+        switch (result) {
+        case VK_SUCCESS:
+            return true;
+        case VK_TIMEOUT:
+            return false;
+        default:
+            throw Exception(result);
+        }
+    }
+};
+
 class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
     using Handle<VkDevice, NoOwner, DeviceDispatch>::Handle;
 
@@ -693,6 +733,8 @@ public:
     ImageView CreateImageView(const VkImageViewCreateInfo& ci) const;
 
     Semaphore CreateSemaphore() const;
+
+    Semaphore CreateSemaphore(const VkSemaphoreCreateInfo& ci) const;
 
     Fence CreateFence(const VkFenceCreateInfo& ci) const;
 
@@ -721,7 +763,7 @@ public:
 
     ShaderModule CreateShaderModule(const VkShaderModuleCreateInfo& ci) const;
 
-    Event CreateNewEvent() const;
+    Event CreateEvent() const;
 
     SwapchainKHR CreateSwapchainKHR(const VkSwapchainCreateInfoKHR& ci) const;
 

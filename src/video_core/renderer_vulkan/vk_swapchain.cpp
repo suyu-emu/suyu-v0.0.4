@@ -12,7 +12,7 @@
 #include "core/core.h"
 #include "core/frontend/framebuffer_layout.h"
 #include "video_core/renderer_vulkan/vk_device.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
@@ -56,8 +56,8 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 wi
 
 } // Anonymous namespace
 
-VKSwapchain::VKSwapchain(VkSurfaceKHR surface, const VKDevice& device)
-    : surface{surface}, device{device} {}
+VKSwapchain::VKSwapchain(VkSurfaceKHR surface_, const VKDevice& device_, VKScheduler& scheduler_)
+    : surface{surface_}, device{device_}, scheduler{scheduler_} {}
 
 VKSwapchain::~VKSwapchain() = default;
 
@@ -75,21 +75,18 @@ void VKSwapchain::Create(u32 width, u32 height, bool srgb) {
     CreateSemaphores();
     CreateImageViews();
 
-    fences.resize(image_count, nullptr);
+    resource_ticks.clear();
+    resource_ticks.resize(image_count);
 }
 
 void VKSwapchain::AcquireNextImage() {
     device.GetLogical().AcquireNextImageKHR(*swapchain, std::numeric_limits<u64>::max(),
                                             *present_semaphores[frame_index], {}, &image_index);
 
-    if (auto& fence = fences[image_index]; fence) {
-        fence->Wait();
-        fence->Release();
-        fence = nullptr;
-    }
+    scheduler.Wait(resource_ticks[image_index]);
 }
 
-bool VKSwapchain::Present(VkSemaphore render_semaphore, VKFence& fence) {
+bool VKSwapchain::Present(VkSemaphore render_semaphore) {
     const VkSemaphore present_semaphore{*present_semaphores[frame_index]};
     const std::array<VkSemaphore, 2> semaphores{present_semaphore, render_semaphore};
     const auto present_queue{device.GetPresentQueue()};
@@ -123,8 +120,7 @@ bool VKSwapchain::Present(VkSemaphore render_semaphore, VKFence& fence) {
         break;
     }
 
-    ASSERT(fences[image_index] == nullptr);
-    fences[image_index] = &fence;
+    resource_ticks[image_index] = scheduler.CurrentTick();
     frame_index = (frame_index + 1) % static_cast<u32>(image_count);
     return recreated;
 }
