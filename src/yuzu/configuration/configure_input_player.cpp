@@ -646,10 +646,10 @@ void ConfigureInputPlayer::UpdateMappingWithDefaults() {
     const auto& device = input_devices[ui->comboDevices->currentIndex()];
     auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
     auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
-    for (int i = 0; i < buttons_param.size(); ++i) {
+    for (std::size_t i = 0; i < buttons_param.size(); ++i) {
         buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
     }
-    for (int i = 0; i < analogs_param.size(); ++i) {
+    for (std::size_t i = 0; i < analogs_param.size(); ++i) {
         analogs_param[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)];
     }
 
