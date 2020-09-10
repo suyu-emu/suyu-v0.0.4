@@ -381,28 +381,30 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
     }
 }
 
-RasterizerVulkan::RasterizerVulkan(Core::System& system, Core::Frontend::EmuWindow& renderer,
-                                   VKScreenInfo& screen_info, const VKDevice& device,
-                                   VKResourceManager& resource_manager,
-                                   VKMemoryManager& memory_manager, StateTracker& state_tracker,
-                                   VKScheduler& scheduler)
-    : RasterizerAccelerated{system.Memory()}, system{system}, render_window{renderer},
-      screen_info{screen_info}, device{device}, resource_manager{resource_manager},
-      memory_manager{memory_manager}, state_tracker{state_tracker}, scheduler{scheduler},
+RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu_,
+                                   Tegra::MemoryManager& gpu_memory_,
+                                   Core::Memory::Memory& cpu_memory, VKScreenInfo& screen_info_,
+                                   const VKDevice& device_, VKResourceManager& resource_manager_,
+                                   VKMemoryManager& memory_manager_, StateTracker& state_tracker_,
+                                   VKScheduler& scheduler_)
+    : RasterizerAccelerated(cpu_memory), gpu(gpu_), gpu_memory(gpu_memory_),
+      maxwell3d(gpu.Maxwell3D()), kepler_compute(gpu.KeplerCompute()), screen_info(screen_info_),
+      device(device_), resource_manager(resource_manager_), memory_manager(memory_manager_),
+      state_tracker(state_tracker_), scheduler(scheduler_),
       staging_pool(device, memory_manager, scheduler), descriptor_pool(device),
       update_descriptor_queue(device, scheduler), renderpass_cache(device),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       quad_indexed_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       uint8_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
-      texture_cache(system, *this, device, resource_manager, memory_manager, scheduler,
-                    staging_pool),
-      pipeline_cache(system, *this, device, scheduler, descriptor_pool, update_descriptor_queue,
-                     renderpass_cache),
-      buffer_cache(*this, system, device, memory_manager, scheduler, staging_pool),
-      sampler_cache(device),
-      fence_manager(system, *this, device, scheduler, texture_cache, buffer_cache, query_cache),
-      query_cache(system, *this, device, scheduler),
-      wfi_event{device.GetLogical().CreateNewEvent()}, async_shaders{renderer} {
+      texture_cache(*this, maxwell3d, gpu_memory, device, resource_manager, memory_manager,
+                    scheduler, staging_pool),
+      pipeline_cache(*this, gpu, maxwell3d, kepler_compute, gpu_memory, device, scheduler,
+                     descriptor_pool, update_descriptor_queue, renderpass_cache),
+      buffer_cache(*this, gpu_memory, cpu_memory, device, memory_manager, scheduler, staging_pool),
+      sampler_cache(device), query_cache(*this, maxwell3d, gpu_memory, device, scheduler),
+      fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, device,
+                    scheduler),
+      wfi_event(device.GetLogical().CreateNewEvent()), async_shaders(emu_window) {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
         async_shaders.AllocateWorkers();
@@ -414,15 +416,13 @@ RasterizerVulkan::~RasterizerVulkan() = default;
 void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
     MICROPROFILE_SCOPE(Vulkan_Drawing);
 
+    SCOPE_EXIT({ gpu.TickWork(); });
     FlushWork();
 
     query_cache.UpdateCounters();
 
-    SCOPE_EXIT({ system.GPU().TickWork(); });
-
-    const auto& gpu = system.GPU().Maxwell3D();
     GraphicsPipelineCacheKey key;
-    key.fixed_state.Fill(gpu.regs, device.IsExtExtendedDynamicStateSupported());
+    key.fixed_state.Fill(maxwell3d.regs, device.IsExtExtendedDynamicStateSupported());
 
     buffer_cache.Map(CalculateGraphicsStreamBufferSize(is_indexed));
 
@@ -480,8 +480,7 @@ void RasterizerVulkan::Draw(bool is_indexed, bool is_instanced) {
 void RasterizerVulkan::Clear() {
     MICROPROFILE_SCOPE(Vulkan_Clearing);
 
-    const auto& gpu = system.GPU().Maxwell3D();
-    if (!system.GPU().Maxwell3D().ShouldExecute()) {
+    if (!maxwell3d.ShouldExecute()) {
         return;
     }
 
@@ -490,7 +489,7 @@ void RasterizerVulkan::Clear() {
 
     query_cache.UpdateCounters();
 
-    const auto& regs = gpu.regs;
+    const auto& regs = maxwell3d.regs;
     const bool use_color = regs.clear_buffers.R || regs.clear_buffers.G || regs.clear_buffers.B ||
                            regs.clear_buffers.A;
     const bool use_depth = regs.clear_buffers.Z;
@@ -559,7 +558,7 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
 
     query_cache.UpdateCounters();
 
-    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+    const auto& launch_desc = kepler_compute.launch_description;
     auto& pipeline = pipeline_cache.GetComputePipeline({
         .shader = code_addr,
         .shared_memory_size = launch_desc.shared_alloc,
@@ -655,16 +654,14 @@ void RasterizerVulkan::SyncGuestHost() {
 }
 
 void RasterizerVulkan::SignalSemaphore(GPUVAddr addr, u32 value) {
-    auto& gpu{system.GPU()};
     if (!gpu.IsAsync()) {
-        gpu.MemoryManager().Write<u32>(addr, value);
+        gpu_memory.Write<u32>(addr, value);
         return;
     }
     fence_manager.SignalSemaphore(addr, value);
 }
 
 void RasterizerVulkan::SignalSyncPoint(u32 value) {
-    auto& gpu{system.GPU()};
     if (!gpu.IsAsync()) {
         gpu.IncrementSyncPoint(value);
         return;
@@ -673,7 +670,6 @@ void RasterizerVulkan::SignalSyncPoint(u32 value) {
 }
 
 void RasterizerVulkan::ReleaseFences() {
-    auto& gpu{system.GPU()};
     if (!gpu.IsAsync()) {
         return;
     }
@@ -751,10 +747,6 @@ bool RasterizerVulkan::AccelerateDisplay(const Tegra::FramebufferConfig& config,
     return true;
 }
 
-void RasterizerVulkan::SetupDirtyFlags() {
-    state_tracker.Initialize();
-}
-
 void RasterizerVulkan::FlushWork() {
     static constexpr u32 DRAWS_TO_DISPATCH = 4096;
 
@@ -778,10 +770,9 @@ void RasterizerVulkan::FlushWork() {
 
 RasterizerVulkan::Texceptions RasterizerVulkan::UpdateAttachments(bool is_clear) {
     MICROPROFILE_SCOPE(Vulkan_RenderTargets);
-    auto& maxwell3d = system.GPU().Maxwell3D();
-    auto& dirty = maxwell3d.dirty.flags;
-    auto& regs = maxwell3d.regs;
 
+    const auto& regs = maxwell3d.regs;
+    auto& dirty = maxwell3d.dirty.flags;
     const bool update_rendertargets = dirty[VideoCommon::Dirty::RenderTargets];
     dirty[VideoCommon::Dirty::RenderTargets] = false;
 
@@ -844,7 +835,7 @@ std::tuple<VkFramebuffer, VkExtent2D> RasterizerVulkan::ConfigureFramebuffers(
         return true;
     };
 
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
     const std::size_t num_attachments = static_cast<std::size_t>(regs.rt_control.count);
     for (std::size_t index = 0; index < num_attachments; ++index) {
         if (try_push(color_attachments[index])) {
@@ -880,13 +871,12 @@ RasterizerVulkan::DrawParameters RasterizerVulkan::SetupGeometry(FixedPipelineSt
                                                                  bool is_instanced) {
     MICROPROFILE_SCOPE(Vulkan_Geometry);
 
-    const auto& gpu = system.GPU().Maxwell3D();
-    const auto& regs = gpu.regs;
+    const auto& regs = maxwell3d.regs;
 
     SetupVertexArrays(buffer_bindings);
 
     const u32 base_instance = regs.vb_base_instance;
-    const u32 num_instances = is_instanced ? gpu.mme_draw.instance_count : 1;
+    const u32 num_instances = is_instanced ? maxwell3d.mme_draw.instance_count : 1;
     const u32 base_vertex = is_indexed ? regs.vb_element_base : regs.vertex_buffer.first;
     const u32 num_vertices = is_indexed ? regs.index_array.count : regs.vertex_buffer.count;
 
@@ -947,7 +937,7 @@ void RasterizerVulkan::SetupImageTransitions(
 }
 
 void RasterizerVulkan::UpdateDynamicStates() {
-    auto& regs = system.GPU().Maxwell3D().regs;
+    auto& regs = maxwell3d.regs;
     UpdateViewportsState(regs);
     UpdateScissorsState(regs);
     UpdateDepthBias(regs);
@@ -968,7 +958,7 @@ void RasterizerVulkan::UpdateDynamicStates() {
 }
 
 void RasterizerVulkan::BeginTransformFeedback() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
     if (regs.tfb_enabled == 0) {
         return;
     }
@@ -1000,7 +990,7 @@ void RasterizerVulkan::BeginTransformFeedback() {
 }
 
 void RasterizerVulkan::EndTransformFeedback() {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
     if (regs.tfb_enabled == 0) {
         return;
     }
@@ -1013,7 +1003,7 @@ void RasterizerVulkan::EndTransformFeedback() {
 }
 
 void RasterizerVulkan::SetupVertexArrays(BufferBindings& buffer_bindings) {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
 
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
         const auto& vertex_array = regs.vertex_array[index];
@@ -1039,7 +1029,7 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
     if (params.num_vertices == 0) {
         return;
     }
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
     switch (regs.draw.topology) {
     case Maxwell::PrimitiveTopology::Quads: {
         if (!params.is_indexed) {
@@ -1087,8 +1077,7 @@ void RasterizerVulkan::SetupIndexBuffer(BufferBindings& buffer_bindings, DrawPar
 
 void RasterizerVulkan::SetupGraphicsConstBuffers(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_ConstBuffers);
-    const auto& gpu = system.GPU().Maxwell3D();
-    const auto& shader_stage = gpu.state.shader_stages[stage];
+    const auto& shader_stage = maxwell3d.state.shader_stages[stage];
     for (const auto& entry : entries.const_buffers) {
         SetupConstBuffer(entry, shader_stage.const_buffers[entry.GetIndex()]);
     }
@@ -1096,8 +1085,7 @@ void RasterizerVulkan::SetupGraphicsConstBuffers(const ShaderEntries& entries, s
 
 void RasterizerVulkan::SetupGraphicsGlobalBuffers(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_GlobalBuffers);
-    auto& gpu{system.GPU()};
-    const auto cbufs{gpu.Maxwell3D().state.shader_stages[stage]};
+    const auto& cbufs{maxwell3d.state.shader_stages[stage]};
 
     for (const auto& entry : entries.global_buffers) {
         const auto addr = cbufs.const_buffers[entry.GetCbufIndex()].address + entry.GetCbufOffset();
@@ -1107,19 +1095,17 @@ void RasterizerVulkan::SetupGraphicsGlobalBuffers(const ShaderEntries& entries, 
 
 void RasterizerVulkan::SetupGraphicsUniformTexels(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.uniform_texels) {
-        const auto image = GetTextureInfo(gpu, entry, stage).tic;
+        const auto image = GetTextureInfo(maxwell3d, entry, stage).tic;
         SetupUniformTexels(image, entry);
     }
 }
 
 void RasterizerVulkan::SetupGraphicsTextures(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.samplers) {
         for (std::size_t i = 0; i < entry.size; ++i) {
-            const auto texture = GetTextureInfo(gpu, entry, stage, i);
+            const auto texture = GetTextureInfo(maxwell3d, entry, stage, i);
             SetupTexture(texture, entry);
         }
     }
@@ -1127,25 +1113,23 @@ void RasterizerVulkan::SetupGraphicsTextures(const ShaderEntries& entries, std::
 
 void RasterizerVulkan::SetupGraphicsStorageTexels(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.storage_texels) {
-        const auto image = GetTextureInfo(gpu, entry, stage).tic;
+        const auto image = GetTextureInfo(maxwell3d, entry, stage).tic;
         SetupStorageTexel(image, entry);
     }
 }
 
 void RasterizerVulkan::SetupGraphicsImages(const ShaderEntries& entries, std::size_t stage) {
     MICROPROFILE_SCOPE(Vulkan_Images);
-    const auto& gpu = system.GPU().Maxwell3D();
     for (const auto& entry : entries.images) {
-        const auto tic = GetTextureInfo(gpu, entry, stage).tic;
+        const auto tic = GetTextureInfo(maxwell3d, entry, stage).tic;
         SetupImage(tic, entry);
     }
 }
 
 void RasterizerVulkan::SetupComputeConstBuffers(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_ConstBuffers);
-    const auto& launch_desc = system.GPU().KeplerCompute().launch_description;
+    const auto& launch_desc = kepler_compute.launch_description;
     for (const auto& entry : entries.const_buffers) {
         const auto& config = launch_desc.const_buffer_config[entry.GetIndex()];
         const std::bitset<8> mask = launch_desc.const_buffer_enable_mask.Value();
@@ -1159,7 +1143,7 @@ void RasterizerVulkan::SetupComputeConstBuffers(const ShaderEntries& entries) {
 
 void RasterizerVulkan::SetupComputeGlobalBuffers(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_GlobalBuffers);
-    const auto cbufs{system.GPU().KeplerCompute().launch_description.const_buffer_config};
+    const auto& cbufs{kepler_compute.launch_description.const_buffer_config};
     for (const auto& entry : entries.global_buffers) {
         const auto addr{cbufs[entry.GetCbufIndex()].Address() + entry.GetCbufOffset()};
         SetupGlobalBuffer(entry, addr);
@@ -1168,19 +1152,17 @@ void RasterizerVulkan::SetupComputeGlobalBuffers(const ShaderEntries& entries) {
 
 void RasterizerVulkan::SetupComputeUniformTexels(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().KeplerCompute();
     for (const auto& entry : entries.uniform_texels) {
-        const auto image = GetTextureInfo(gpu, entry, ComputeShaderIndex).tic;
+        const auto image = GetTextureInfo(kepler_compute, entry, ComputeShaderIndex).tic;
         SetupUniformTexels(image, entry);
     }
 }
 
 void RasterizerVulkan::SetupComputeTextures(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().KeplerCompute();
     for (const auto& entry : entries.samplers) {
         for (std::size_t i = 0; i < entry.size; ++i) {
-            const auto texture = GetTextureInfo(gpu, entry, ComputeShaderIndex, i);
+            const auto texture = GetTextureInfo(kepler_compute, entry, ComputeShaderIndex, i);
             SetupTexture(texture, entry);
         }
     }
@@ -1188,18 +1170,16 @@ void RasterizerVulkan::SetupComputeTextures(const ShaderEntries& entries) {
 
 void RasterizerVulkan::SetupComputeStorageTexels(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Textures);
-    const auto& gpu = system.GPU().KeplerCompute();
     for (const auto& entry : entries.storage_texels) {
-        const auto image = GetTextureInfo(gpu, entry, ComputeShaderIndex).tic;
+        const auto image = GetTextureInfo(kepler_compute, entry, ComputeShaderIndex).tic;
         SetupStorageTexel(image, entry);
     }
 }
 
 void RasterizerVulkan::SetupComputeImages(const ShaderEntries& entries) {
     MICROPROFILE_SCOPE(Vulkan_Images);
-    const auto& gpu = system.GPU().KeplerCompute();
     for (const auto& entry : entries.images) {
-        const auto tic = GetTextureInfo(gpu, entry, ComputeShaderIndex).tic;
+        const auto tic = GetTextureInfo(kepler_compute, entry, ComputeShaderIndex).tic;
         SetupImage(tic, entry);
     }
 }
@@ -1223,9 +1203,8 @@ void RasterizerVulkan::SetupConstBuffer(const ConstBufferEntry& entry,
 }
 
 void RasterizerVulkan::SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAddr address) {
-    auto& memory_manager{system.GPU().MemoryManager()};
-    const auto actual_addr = memory_manager.Read<u64>(address);
-    const auto size = memory_manager.Read<u32>(address + 8);
+    const u64 actual_addr = gpu_memory.Read<u64>(address);
+    const u32 size = gpu_memory.Read<u32>(address + 8);
 
     if (size == 0) {
         // Sometimes global memory pointers don't have a proper size. Upload a dummy entry
@@ -1508,7 +1487,7 @@ std::size_t RasterizerVulkan::CalculateComputeStreamBufferSize() const {
 }
 
 std::size_t RasterizerVulkan::CalculateVertexArraysSize() const {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
 
     std::size_t size = 0;
     for (u32 index = 0; index < Maxwell::NumVertexArrays; ++index) {
@@ -1523,9 +1502,8 @@ std::size_t RasterizerVulkan::CalculateVertexArraysSize() const {
 }
 
 std::size_t RasterizerVulkan::CalculateIndexBufferSize() const {
-    const auto& regs = system.GPU().Maxwell3D().regs;
-    return static_cast<std::size_t>(regs.index_array.count) *
-           static_cast<std::size_t>(regs.index_array.FormatSizeInBytes());
+    return static_cast<std::size_t>(maxwell3d.regs.index_array.count) *
+           static_cast<std::size_t>(maxwell3d.regs.index_array.FormatSizeInBytes());
 }
 
 std::size_t RasterizerVulkan::CalculateConstBufferSize(
@@ -1540,7 +1518,7 @@ std::size_t RasterizerVulkan::CalculateConstBufferSize(
 }
 
 RenderPassParams RasterizerVulkan::GetRenderPassParams(Texceptions texceptions) const {
-    const auto& regs = system.GPU().Maxwell3D().regs;
+    const auto& regs = maxwell3d.regs;
     const std::size_t num_attachments = static_cast<std::size_t>(regs.rt_control.count);
 
     RenderPassParams params;

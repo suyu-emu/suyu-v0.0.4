@@ -33,10 +33,11 @@ public:
                                         const VideoCommon::Shader::Image& entry);
 
     /// Creates SurfaceCachedParams for a depth buffer configuration.
-    static SurfaceParams CreateForDepthBuffer(Core::System& system);
+    static SurfaceParams CreateForDepthBuffer(Tegra::Engines::Maxwell3D& maxwell3d);
 
     /// Creates SurfaceCachedParams from a framebuffer configuration.
-    static SurfaceParams CreateForFramebuffer(Core::System& system, std::size_t index);
+    static SurfaceParams CreateForFramebuffer(Tegra::Engines::Maxwell3D& maxwell3d,
+                                              std::size_t index);
 
     /// Creates SurfaceCachedParams from a Fermi2D surface configuration.
     static SurfaceParams CreateForFermiCopySurface(

@@ -45,11 +45,10 @@ void GLInnerFence::Wait() {
     glClientWaitSync(sync_object.handle, 0, GL_TIMEOUT_IGNORED);
 }
 
-FenceManagerOpenGL::FenceManagerOpenGL(Core::System& system,
-                                       VideoCore::RasterizerInterface& rasterizer,
+FenceManagerOpenGL::FenceManagerOpenGL(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
                                        TextureCacheOpenGL& texture_cache,
                                        OGLBufferCache& buffer_cache, QueryCache& query_cache)
-    : GenericFenceManager(system, rasterizer, texture_cache, buffer_cache, query_cache) {}
+    : GenericFenceManager{rasterizer, gpu, texture_cache, buffer_cache, query_cache} {}
 
 Fence FenceManagerOpenGL::CreateFence(u32 value, bool is_stubbed) {
     return std::make_shared<GLInnerFence>(value, is_stubbed);

@@ -52,7 +52,8 @@ private:
 using GenericBufferCache = VideoCommon::BufferCache<Buffer, GLuint, OGLStreamBuffer>;
 class OGLBufferCache final : public GenericBufferCache {
 public:
-    explicit OGLBufferCache(RasterizerOpenGL& rasterizer, Core::System& system,
+    explicit OGLBufferCache(VideoCore::RasterizerInterface& rasterizer,
+                            Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
                             const Device& device, std::size_t stream_size);
     ~OGLBufferCache();
 

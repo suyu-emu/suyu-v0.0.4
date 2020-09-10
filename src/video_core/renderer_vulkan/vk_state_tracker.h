@@ -45,11 +45,12 @@ class StateTracker {
     using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 public:
-    explicit StateTracker(Core::System& system);
+    explicit StateTracker(Tegra::GPU& gpu);
 
-    void Initialize();
-
-    void InvalidateCommandBufferState();
+    void InvalidateCommandBufferState() {
+        flags |= invalidation_flags;
+        current_topology = INVALID_TOPOLOGY;
+    }
 
     bool TouchViewports() {
         return Exchange(Dirty::Viewports, false);
@@ -121,13 +122,12 @@ private:
     static constexpr auto INVALID_TOPOLOGY = static_cast<Maxwell::PrimitiveTopology>(~0u);
 
     bool Exchange(std::size_t id, bool new_value) const noexcept {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         const bool is_dirty = flags[id];
         flags[id] = new_value;
         return is_dirty;
     }
 
-    Core::System& system;
+    Tegra::Engines::Maxwell3D::DirtyState::Flags& flags;
     Tegra::Engines::Maxwell3D::DirtyState::Flags invalidation_flags;
     Maxwell::PrimitiveTopology current_topology = INVALID_TOPOLOGY;
 };

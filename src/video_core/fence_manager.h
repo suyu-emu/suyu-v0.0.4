@@ -74,8 +74,6 @@ public:
     }
 
     void WaitPendingFences() {
-        auto& gpu{system.GPU()};
-        auto& memory_manager{gpu.MemoryManager()};
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             if (ShouldWait()) {
@@ -83,8 +81,8 @@ public:
             }
             PopAsyncFlushes();
             if (current_fence->IsSemaphore()) {
-                memory_manager.template Write<u32>(current_fence->GetAddress(),
-                                                   current_fence->GetPayload());
+                gpu_memory.template Write<u32>(current_fence->GetAddress(),
+                                               current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
@@ -93,13 +91,13 @@ public:
     }
 
 protected:
-    FenceManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                 TTextureCache& texture_cache, TTBufferCache& buffer_cache,
-                 TQueryCache& query_cache)
-        : system{system}, rasterizer{rasterizer}, texture_cache{texture_cache},
-          buffer_cache{buffer_cache}, query_cache{query_cache} {}
+    explicit FenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
+                          TTextureCache& texture_cache_, TTBufferCache& buffer_cache_,
+                          TQueryCache& query_cache_)
+        : rasterizer{rasterizer_}, gpu{gpu_}, gpu_memory{gpu.MemoryManager()},
+          texture_cache{texture_cache_}, buffer_cache{buffer_cache_}, query_cache{query_cache_} {}
 
-    virtual ~FenceManager() {}
+    virtual ~FenceManager() = default;
 
     /// Creates a Sync Point Fence Interface, does not create a backend fence if 'is_stubbed' is
     /// true
@@ -113,16 +111,15 @@ protected:
     /// Waits until a fence has been signalled by the host GPU.
     virtual void WaitFence(TFence& fence) = 0;
 
-    Core::System& system;
     VideoCore::RasterizerInterface& rasterizer;
+    Tegra::GPU& gpu;
+    Tegra::MemoryManager& gpu_memory;
     TTextureCache& texture_cache;
     TTBufferCache& buffer_cache;
     TQueryCache& query_cache;
 
 private:
     void TryReleasePendingFences() {
-        auto& gpu{system.GPU()};
-        auto& memory_manager{gpu.MemoryManager()};
         while (!fences.empty()) {
             TFence& current_fence = fences.front();
             if (ShouldWait() && !IsFenceSignaled(current_fence)) {
@@ -130,8 +127,8 @@ private:
             }
             PopAsyncFlushes();
             if (current_fence->IsSemaphore()) {
-                memory_manager.template Write<u32>(current_fence->GetAddress(),
-                                                   current_fence->GetPayload());
+                gpu_memory.template Write<u32>(current_fence->GetAddress(),
+                                               current_fence->GetPayload());
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }

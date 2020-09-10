@@ -532,10 +532,12 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
     return texture_view;
 }
 
-TextureCacheOpenGL::TextureCacheOpenGL(Core::System& system,
-                                       VideoCore::RasterizerInterface& rasterizer,
-                                       const Device& device, StateTracker& state_tracker)
-    : TextureCacheBase{system, rasterizer, device.HasASTC()}, state_tracker{state_tracker} {
+TextureCacheOpenGL::TextureCacheOpenGL(VideoCore::RasterizerInterface& rasterizer,
+                                       Tegra::Engines::Maxwell3D& maxwell3d,
+                                       Tegra::MemoryManager& gpu_memory, const Device& device,
+                                       StateTracker& state_tracker_)
+    : TextureCacheBase{rasterizer, maxwell3d, gpu_memory, device.HasASTC()}, state_tracker{
+                                                                                 state_tracker_} {
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }

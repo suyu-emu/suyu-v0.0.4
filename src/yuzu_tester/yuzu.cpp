@@ -255,7 +255,6 @@ int main(int argc, char** argv) {
                                        "SDLHideTester");
 
     system.GPU().Start();
-    system.Renderer().Rasterizer().LoadDiskResources();
 
     system.Run();
     while (!finished) {

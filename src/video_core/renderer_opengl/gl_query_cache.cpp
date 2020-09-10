@@ -30,12 +30,13 @@ constexpr GLenum GetTarget(VideoCore::QueryType type) {
 
 } // Anonymous namespace
 
-QueryCache::QueryCache(Core::System& system, RasterizerOpenGL& gl_rasterizer)
+QueryCache::QueryCache(RasterizerOpenGL& rasterizer, Tegra::Engines::Maxwell3D& maxwell3d,
+                       Tegra::MemoryManager& gpu_memory)
     : VideoCommon::QueryCacheBase<
           QueryCache, CachedQuery, CounterStream, HostCounter,
-          std::vector<OGLQuery>>{system,
-                                 static_cast<VideoCore::RasterizerInterface&>(gl_rasterizer)},
-      gl_rasterizer{gl_rasterizer} {}
+          std::vector<OGLQuery>>{static_cast<VideoCore::RasterizerInterface&>(rasterizer),
+                                 maxwell3d, gpu_memory},
+      gl_rasterizer{rasterizer} {}
 
 QueryCache::~QueryCache() = default;
 

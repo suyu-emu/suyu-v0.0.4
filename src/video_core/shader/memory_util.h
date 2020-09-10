@@ -11,10 +11,6 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/engines/shader_type.h"
 
-namespace Core {
-class System;
-}
-
 namespace Tegra {
 class MemoryManager;
 }
@@ -27,7 +23,7 @@ constexpr u32 STAGE_MAIN_OFFSET = 10;
 constexpr u32 KERNEL_MAIN_OFFSET = 0;
 
 /// Gets the address for the specified shader stage program
-GPUVAddr GetShaderAddress(Core::System& system,
+GPUVAddr GetShaderAddress(Tegra::Engines::Maxwell3D& maxwell3d,
                           Tegra::Engines::Maxwell3D::Regs::ShaderProgram program);
 
 /// Gets if the current instruction offset is a scheduler instruction

@@ -55,10 +55,10 @@ using GenericFenceManager =
 
 class VKFenceManager final : public GenericFenceManager {
 public:
-    explicit VKFenceManager(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                            const VKDevice& device, VKScheduler& scheduler,
-                            VKTextureCache& texture_cache, VKBufferCache& buffer_cache,
-                            VKQueryCache& query_cache);
+    explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
+                            Tegra::MemoryManager& memory_manager, VKTextureCache& texture_cache,
+                            VKBufferCache& buffer_cache, VKQueryCache& query_cache,
+                            const VKDevice& device, VKScheduler& scheduler);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;

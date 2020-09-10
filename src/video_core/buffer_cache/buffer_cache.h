@@ -51,46 +51,43 @@ public:
                             bool is_written = false, bool use_fast_cbuf = false) {
         std::lock_guard lock{mutex};
 
-        auto& memory_manager = system.GPU().MemoryManager();
-        const std::optional<VAddr> cpu_addr_opt = memory_manager.GpuToCpuAddress(gpu_addr);
-        if (!cpu_addr_opt) {
+        const std::optional<VAddr> cpu_addr = gpu_memory.GpuToCpuAddress(gpu_addr);
+        if (!cpu_addr) {
             return GetEmptyBuffer(size);
         }
-        const VAddr cpu_addr = *cpu_addr_opt;
 
         // Cache management is a big overhead, so only cache entries with a given size.
         // TODO: Figure out which size is the best for given games.
         constexpr std::size_t max_stream_size = 0x800;
         if (use_fast_cbuf || size < max_stream_size) {
-            if (!is_written && !IsRegionWritten(cpu_addr, cpu_addr + size - 1)) {
-                const bool is_granular = memory_manager.IsGranularRange(gpu_addr, size);
+            if (!is_written && !IsRegionWritten(*cpu_addr, *cpu_addr + size - 1)) {
+                const bool is_granular = gpu_memory.IsGranularRange(gpu_addr, size);
                 if (use_fast_cbuf) {
                     u8* dest;
                     if (is_granular) {
-                        dest = memory_manager.GetPointer(gpu_addr);
+                        dest = gpu_memory.GetPointer(gpu_addr);
                     } else {
                         staging_buffer.resize(size);
                         dest = staging_buffer.data();
-                        memory_manager.ReadBlockUnsafe(gpu_addr, dest, size);
+                        gpu_memory.ReadBlockUnsafe(gpu_addr, dest, size);
                     }
                     return ConstBufferUpload(dest, size);
                 }
                 if (is_granular) {
-                    u8* const host_ptr = memory_manager.GetPointer(gpu_addr);
+                    u8* const host_ptr = gpu_memory.GetPointer(gpu_addr);
                     return StreamBufferUpload(size, alignment, [host_ptr, size](u8* dest) {
                         std::memcpy(dest, host_ptr, size);
                     });
                 } else {
-                    return StreamBufferUpload(
-                        size, alignment, [&memory_manager, gpu_addr, size](u8* dest) {
-                            memory_manager.ReadBlockUnsafe(gpu_addr, dest, size);
-                        });
+                    return StreamBufferUpload(size, alignment, [this, gpu_addr, size](u8* dest) {
+                        gpu_memory.ReadBlockUnsafe(gpu_addr, dest, size);
+                    });
                 }
             }
         }
 
-        Buffer* const block = GetBlock(cpu_addr, size);
-        MapInterval* const map = MapAddress(block, gpu_addr, cpu_addr, size);
+        Buffer* const block = GetBlock(*cpu_addr, size);
+        MapInterval* const map = MapAddress(block, gpu_addr, *cpu_addr, size);
         if (!map) {
             return GetEmptyBuffer(size);
         }
@@ -106,7 +103,7 @@ public:
             }
         }
 
-        return BufferInfo{block->Handle(), block->Offset(cpu_addr), block->Address()};
+        return BufferInfo{block->Handle(), block->Offset(*cpu_addr), block->Address()};
     }
 
     /// Uploads from a host memory. Returns the OpenGL buffer where it's located and its offset.
@@ -262,9 +259,11 @@ public:
     virtual BufferInfo GetEmptyBuffer(std::size_t size) = 0;
 
 protected:
-    explicit BufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
-                         std::unique_ptr<StreamBuffer> stream_buffer)
-        : rasterizer{rasterizer}, system{system}, stream_buffer{std::move(stream_buffer)} {}
+    explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
+                         Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
+                         std::unique_ptr<StreamBuffer> stream_buffer_)
+        : rasterizer{rasterizer_}, gpu_memory{gpu_memory_}, cpu_memory{cpu_memory_},
+          stream_buffer{std::move(stream_buffer_)}, stream_buffer_handle{stream_buffer->Handle()} {}
 
     ~BufferCache() = default;
 
@@ -326,14 +325,13 @@ private:
     MapInterval* MapAddress(Buffer* block, GPUVAddr gpu_addr, VAddr cpu_addr, std::size_t size) {
         const VectorMapInterval overlaps = GetMapsInRange(cpu_addr, size);
         if (overlaps.empty()) {
-            auto& memory_manager = system.GPU().MemoryManager();
             const VAddr cpu_addr_end = cpu_addr + size;
-            if (memory_manager.IsGranularRange(gpu_addr, size)) {
-                u8* host_ptr = memory_manager.GetPointer(gpu_addr);
+            if (gpu_memory.IsGranularRange(gpu_addr, size)) {
+                u8* const host_ptr = gpu_memory.GetPointer(gpu_addr);
                 block->Upload(block->Offset(cpu_addr), size, host_ptr);
             } else {
                 staging_buffer.resize(size);
-                memory_manager.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
+                gpu_memory.ReadBlockUnsafe(gpu_addr, staging_buffer.data(), size);
                 block->Upload(block->Offset(cpu_addr), size, staging_buffer.data());
             }
             return Register(MapInterval(cpu_addr, cpu_addr_end, gpu_addr));
@@ -392,7 +390,7 @@ private:
                 continue;
             }
             staging_buffer.resize(size);
-            system.Memory().ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
+            cpu_memory.ReadBlockUnsafe(interval.lower(), staging_buffer.data(), size);
             block->Upload(block->Offset(interval.lower()), size, staging_buffer.data());
         }
     }
@@ -431,7 +429,7 @@ private:
         const std::size_t size = map->end - map->start;
         staging_buffer.resize(size);
         block->Download(block->Offset(map->start), size, staging_buffer.data());
-        system.Memory().WriteBlockUnsafe(map->start, staging_buffer.data(), size);
+        cpu_memory.WriteBlockUnsafe(map->start, staging_buffer.data(), size);
         map->MarkAsModified(false, 0);
     }
 
@@ -567,7 +565,8 @@ private:
     }
 
     VideoCore::RasterizerInterface& rasterizer;
-    Core::System& system;
+    Tegra::MemoryManager& gpu_memory;
+    Core::Memory::Memory& cpu_memory;
 
     std::unique_ptr<StreamBuffer> stream_buffer;
     BufferType stream_buffer_handle;

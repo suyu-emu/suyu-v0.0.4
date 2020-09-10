@@ -188,13 +188,13 @@ u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source, Tegra::Texture::Swizzl
 
 } // Anonymous namespace
 
-CachedSurface::CachedSurface(Core::System& system, const VKDevice& device,
-                             VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                             VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
-                             GPUVAddr gpu_addr, const SurfaceParams& params)
-    : SurfaceBase<View>{gpu_addr, params, device.IsOptimalAstcSupported()}, system{system},
-      device{device}, resource_manager{resource_manager},
-      memory_manager{memory_manager}, scheduler{scheduler}, staging_pool{staging_pool} {
+CachedSurface::CachedSurface(const VKDevice& device, VKResourceManager& resource_manager,
+                             VKMemoryManager& memory_manager, VKScheduler& scheduler,
+                             VKStagingBufferPool& staging_pool, GPUVAddr gpu_addr,
+                             const SurfaceParams& params)
+    : SurfaceBase<View>{gpu_addr, params, device.IsOptimalAstcSupported()}, device{device},
+      resource_manager{resource_manager}, memory_manager{memory_manager}, scheduler{scheduler},
+      staging_pool{staging_pool} {
     if (params.IsBuffer()) {
         buffer = CreateBuffer(device, params, host_memory_size);
         commit = memory_manager.Commit(buffer, false);
@@ -490,19 +490,21 @@ VkImageView CachedSurfaceView::GetAttachment() {
     return *render_target;
 }
 
-VKTextureCache::VKTextureCache(Core::System& system, VideoCore::RasterizerInterface& rasterizer,
-                               const VKDevice& device, VKResourceManager& resource_manager,
-                               VKMemoryManager& memory_manager, VKScheduler& scheduler,
-                               VKStagingBufferPool& staging_pool)
-    : TextureCache(system, rasterizer, device.IsOptimalAstcSupported()), device{device},
-      resource_manager{resource_manager}, memory_manager{memory_manager}, scheduler{scheduler},
-      staging_pool{staging_pool} {}
+VKTextureCache::VKTextureCache(VideoCore::RasterizerInterface& rasterizer,
+                               Tegra::Engines::Maxwell3D& maxwell3d,
+                               Tegra::MemoryManager& gpu_memory, const VKDevice& device_,
+                               VKResourceManager& resource_manager_,
+                               VKMemoryManager& memory_manager_, VKScheduler& scheduler_,
+                               VKStagingBufferPool& staging_pool_)
+    : TextureCache(rasterizer, maxwell3d, gpu_memory, device_.IsOptimalAstcSupported()),
+      device{device_}, resource_manager{resource_manager_},
+      memory_manager{memory_manager_}, scheduler{scheduler_}, staging_pool{staging_pool_} {}
 
 VKTextureCache::~VKTextureCache() = default;
 
 Surface VKTextureCache::CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) {
-    return std::make_shared<CachedSurface>(system, device, resource_manager, memory_manager,
-                                           scheduler, staging_pool, gpu_addr, params);
+    return std::make_shared<CachedSurface>(device, resource_manager, memory_manager, scheduler,
+                                           staging_pool, gpu_addr, params);
 }
 
 void VKTextureCache::ImageCopy(Surface& src_surface, Surface& dst_surface,

@@ -214,10 +214,8 @@ void SetupDirtyMisc(Tables& tables) {
 
 } // Anonymous namespace
 
-StateTracker::StateTracker(Core::System& system) : system{system} {}
-
-void StateTracker::Initialize() {
-    auto& dirty = system.GPU().Maxwell3D().dirty;
+StateTracker::StateTracker(Tegra::GPU& gpu) : flags{gpu.Maxwell3D().dirty.flags} {
+    auto& dirty = gpu.Maxwell3D().dirty;
     auto& tables = dirty.tables;
     SetupDirtyRenderTargets(tables);
     SetupDirtyColorMasks(tables);

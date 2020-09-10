@@ -188,7 +188,6 @@ struct System::Impl {
         if (!gpu_core) {
             return ResultStatus::ErrorVideoCore;
         }
-        gpu_core->Renderer().Rasterizer().SetupDirtyFlags();
 
         is_powered_on = true;
         exit_lock = false;

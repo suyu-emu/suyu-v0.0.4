@@ -275,11 +275,13 @@ public:
     }
 };
 
-RendererOpenGL::RendererOpenGL(Core::System& system_, Core::Frontend::EmuWindow& emu_window_,
-                               Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
-    : RendererBase{emu_window_, std::move(context_)}, system{system_},
-      emu_window{emu_window_}, gpu{gpu_}, program_manager{device}, has_debug_tool{HasDebugTool()} {}
+RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
+                               Core::Frontend::EmuWindow& emu_window_,
+                               Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context)
+    : RendererBase{emu_window_, std::move(context)}, telemetry_session{telemetry_session_},
+      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device},
+      has_debug_tool{HasDebugTool()} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
@@ -386,7 +388,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
         VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format)};
     const u32 bytes_per_pixel{VideoCore::Surface::GetBytesPerPixel(pixel_format)};
     const u64 size_in_bytes{framebuffer.stride * framebuffer.height * bytes_per_pixel};
-    u8* const host_ptr{system.Memory().GetPointer(framebuffer_addr)};
+    u8* const host_ptr{cpu_memory.GetPointer(framebuffer_addr)};
     rasterizer->FlushRegion(ToCacheAddr(host_ptr), size_in_bytes);
 
     // TODO(Rodrigo): Read this from HLE
@@ -471,7 +473,6 @@ void RendererOpenGL::AddTelemetryFields() {
     LOG_INFO(Render_OpenGL, "GL_VENDOR: {}", gpu_vendor);
     LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
 
-    auto& telemetry_session = system.TelemetrySession();
     constexpr auto user_system = Common::Telemetry::FieldType::UserSystem;
     telemetry_session.AddField(user_system, "GPU_Vendor", gpu_vendor);
     telemetry_session.AddField(user_system, "GPU_Model", gpu_model);
@@ -482,8 +483,8 @@ void RendererOpenGL::CreateRasterizer() {
     if (rasterizer) {
         return;
     }
-    rasterizer = std::make_unique<RasterizerOpenGL>(system, emu_window, device, screen_info,
-                                                    program_manager, state_tracker);
+    rasterizer = std::make_unique<RasterizerOpenGL>(emu_window, gpu, cpu_memory, device,
+                                                    screen_info, program_manager, state_tracker);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,

@@ -13,8 +13,8 @@
 #include "video_core/dirty_flags.h"
 #include "video_core/engines/maxwell_3d.h"
 
-namespace Core {
-class System;
+namespace Tegra {
+class GPU;
 }
 
 namespace OpenGL {
@@ -90,9 +90,7 @@ static_assert(Last <= std::numeric_limits<u8>::max());
 
 class StateTracker {
 public:
-    explicit StateTracker(Core::System& system);
-
-    void Initialize();
+    explicit StateTracker(Tegra::GPU& gpu);
 
     void BindIndexBuffer(GLuint new_index_buffer) {
         if (index_buffer == new_index_buffer) {
@@ -103,7 +101,6 @@ public:
     }
 
     void NotifyScreenDrawVertexArray() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::VertexFormats] = true;
         flags[OpenGL::Dirty::VertexFormat0 + 0] = true;
         flags[OpenGL::Dirty::VertexFormat0 + 1] = true;
@@ -117,98 +114,81 @@ public:
     }
 
     void NotifyPolygonModes() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::PolygonModes] = true;
         flags[OpenGL::Dirty::PolygonModeFront] = true;
         flags[OpenGL::Dirty::PolygonModeBack] = true;
     }
 
     void NotifyViewport0() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::Viewports] = true;
         flags[OpenGL::Dirty::Viewport0] = true;
     }
 
     void NotifyScissor0() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::Scissors] = true;
         flags[OpenGL::Dirty::Scissor0] = true;
     }
 
     void NotifyColorMask0() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::ColorMasks] = true;
         flags[OpenGL::Dirty::ColorMask0] = true;
     }
 
     void NotifyBlend0() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::BlendStates] = true;
         flags[OpenGL::Dirty::BlendState0] = true;
     }
 
     void NotifyFramebuffer() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[VideoCommon::Dirty::RenderTargets] = true;
     }
 
     void NotifyFrontFace() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::FrontFace] = true;
     }
 
     void NotifyCullTest() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::CullTest] = true;
     }
 
     void NotifyDepthMask() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::DepthMask] = true;
     }
 
     void NotifyDepthTest() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::DepthTest] = true;
     }
 
     void NotifyStencilTest() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::StencilTest] = true;
     }
 
     void NotifyPolygonOffset() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::PolygonOffset] = true;
     }
 
     void NotifyRasterizeEnable() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::RasterizeEnable] = true;
     }
 
     void NotifyFramebufferSRGB() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::FramebufferSRGB] = true;
     }
 
     void NotifyLogicOp() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::LogicOp] = true;
     }
 
     void NotifyClipControl() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::ClipControl] = true;
     }
 
     void NotifyAlphaTest() {
-        auto& flags = system.GPU().Maxwell3D().dirty.flags;
         flags[OpenGL::Dirty::AlphaTest] = true;
     }
 
 private:
-    Core::System& system;
+    Tegra::Engines::Maxwell3D::DirtyState::Flags& flags;
 
     GLuint index_buffer = 0;
 };

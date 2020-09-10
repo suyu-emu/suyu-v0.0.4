@@ -145,14 +145,15 @@ void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst
     });
 }
 
-VKBufferCache::VKBufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
-                             const VKDevice& device, VKMemoryManager& memory_manager,
-                             VKScheduler& scheduler, VKStagingBufferPool& staging_pool)
-    : VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer>{rasterizer, system,
-                                                                 CreateStreamBuffer(device,
-                                                                                    scheduler)},
-      device{device}, memory_manager{memory_manager}, scheduler{scheduler}, staging_pool{
-                                                                                staging_pool} {}
+VKBufferCache::VKBufferCache(VideoCore::RasterizerInterface& rasterizer,
+                             Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
+                             const VKDevice& device_, VKMemoryManager& memory_manager_,
+                             VKScheduler& scheduler_, VKStagingBufferPool& staging_pool_)
+    : VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer>{rasterizer, gpu_memory, cpu_memory,
+                                                                 CreateStreamBuffer(device_,
+                                                                                    scheduler_)},
+      device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_}, staging_pool{
+                                                                                   staging_pool_} {}
 
 VKBufferCache::~VKBufferCache() = default;
 

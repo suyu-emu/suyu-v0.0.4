@@ -13,10 +13,6 @@
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
-namespace Core {
-class System;
-}
-
 namespace Vulkan {
 
 class VKDevice;
@@ -53,7 +49,8 @@ private:
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
-    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer, Core::System& system,
+    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer,
+                           Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
                            const VKDevice& device, VKMemoryManager& memory_manager,
                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKBufferCache();

@@ -25,8 +25,8 @@
 #include "video_core/shader/shader_ir.h"
 #include "video_core/shader_cache.h"
 
-namespace Core {
-class System;
+namespace Tegra {
+class MemoryManager;
 }
 
 namespace Core::Frontend {
@@ -57,11 +57,12 @@ struct PrecompiledShader {
 };
 
 struct ShaderParameters {
-    Core::System& system;
+    Tegra::GPU& gpu;
+    Tegra::Engines::ConstBufferEngineInterface& engine;
     ShaderDiskCacheOpenGL& disk_cache;
     const Device& device;
     VAddr cpu_addr;
-    u8* host_ptr;
+    const u8* host_ptr;
     u64 unique_identifier;
 };
 
@@ -118,12 +119,14 @@ private:
 
 class ShaderCacheOpenGL final : public VideoCommon::ShaderCache<Shader> {
 public:
-    explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::System& system,
-                               Core::Frontend::EmuWindow& emu_window, const Device& device);
+    explicit ShaderCacheOpenGL(RasterizerOpenGL& rasterizer, Core::Frontend::EmuWindow& emu_window,
+                               Tegra::GPU& gpu, Tegra::Engines::Maxwell3D& maxwell3d,
+                               Tegra::Engines::KeplerCompute& kepler_compute,
+                               Tegra::MemoryManager& gpu_memory, const Device& device);
     ~ShaderCacheOpenGL() override;
 
     /// Loads disk cache for the current game
-    void LoadDiskCache(const std::atomic_bool& stop_loading,
+    void LoadDiskCache(u64 title_id, const std::atomic_bool& stop_loading,
                        const VideoCore::DiskResourceLoadCallback& callback);
 
     /// Gets the current specified shader stage program
@@ -138,9 +141,13 @@ private:
         const ShaderDiskCacheEntry& entry, const ShaderDiskCachePrecompiled& precompiled_entry,
         const std::unordered_set<GLenum>& supported_formats);
 
-    Core::System& system;
     Core::Frontend::EmuWindow& emu_window;
+    Tegra::GPU& gpu;
+    Tegra::MemoryManager& gpu_memory;
+    Tegra::Engines::Maxwell3D& maxwell3d;
+    Tegra::Engines::KeplerCompute& kepler_compute;
     const Device& device;
+
     ShaderDiskCacheOpenGL disk_cache;
     std::unordered_map<u64, PrecompiledShader> runtime_cache;
 

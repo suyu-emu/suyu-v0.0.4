@@ -210,14 +210,16 @@ struct VKBlitScreen::BufferData {
     // Unaligned image data goes here
 };
 
-VKBlitScreen::VKBlitScreen(Core::System& system, Core::Frontend::EmuWindow& render_window,
-                           VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
-                           VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                           VKSwapchain& swapchain, VKScheduler& scheduler,
-                           const VKScreenInfo& screen_info)
-    : system{system}, render_window{render_window}, rasterizer{rasterizer}, device{device},
-      resource_manager{resource_manager}, memory_manager{memory_manager}, swapchain{swapchain},
-      scheduler{scheduler}, image_count{swapchain.GetImageCount()}, screen_info{screen_info} {
+VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
+                           Core::Frontend::EmuWindow& render_window_,
+                           VideoCore::RasterizerInterface& rasterizer_, const VKDevice& device_,
+                           VKResourceManager& resource_manager_, VKMemoryManager& memory_manager_,
+                           VKSwapchain& swapchain_, VKScheduler& scheduler_,
+                           const VKScreenInfo& screen_info_)
+    : cpu_memory{cpu_memory_}, render_window{render_window_},
+      rasterizer{rasterizer_}, device{device_}, resource_manager{resource_manager_},
+      memory_manager{memory_manager_}, swapchain{swapchain_}, scheduler{scheduler_},
+      image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     watches.resize(image_count);
     std::generate(watches.begin(), watches.end(),
                   []() { return std::make_unique<VKFenceWatch>(); });
@@ -259,7 +261,7 @@ std::tuple<VKFence&, VkSemaphore> VKBlitScreen::Draw(const Tegra::FramebufferCon
         const auto pixel_format =
             VideoCore::Surface::PixelFormatFromGPUPixelFormat(framebuffer.pixel_format);
         const VAddr framebuffer_addr = framebuffer.address + framebuffer.offset;
-        const auto host_ptr = system.Memory().GetPointer(framebuffer_addr);
+        const auto host_ptr = cpu_memory.GetPointer(framebuffer_addr);
         rasterizer.FlushRegion(ToCacheAddr(host_ptr), GetSizeInBytes(framebuffer));
 
         // TODO(Rodrigo): Read this from HLE
