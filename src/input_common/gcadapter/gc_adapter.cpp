@@ -283,7 +283,7 @@ void Adapter::Reset() {
     }
 }
 
-bool Adapter::DeviceConnected(std::size_t port) {
+bool Adapter::DeviceConnected(std::size_t port) const {
     return adapter_controllers_status[port] != ControllerTypes::None;
 }
 
