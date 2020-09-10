@@ -9,6 +9,9 @@ add_executable(yuzu
     about_dialog.cpp
     about_dialog.h
     aboutdialog.ui
+    applets/controller.cpp
+    applets/controller.h
+    applets/controller.ui
     applets/error.cpp
     applets/error.h
     applets/profile_select.cpp
@@ -62,12 +65,15 @@ add_executable(yuzu
     configuration/configure_input.cpp
     configuration/configure_input.h
     configuration/configure_input.ui
-    configuration/configure_input_player.cpp
-    configuration/configure_input_player.h
-    configuration/configure_input_player.ui
     configuration/configure_input_advanced.cpp
     configuration/configure_input_advanced.h
     configuration/configure_input_advanced.ui
+    configuration/configure_input_dialog.cpp
+    configuration/configure_input_dialog.h
+    configuration/configure_input_dialog.ui
+    configuration/configure_input_player.cpp
+    configuration/configure_input_player.h
+    configuration/configure_input_player.ui
     configuration/configure_motion_touch.cpp
     configuration/configure_motion_touch.h
     configuration/configure_motion_touch.ui

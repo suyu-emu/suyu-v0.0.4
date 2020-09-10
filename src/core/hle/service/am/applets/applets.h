@@ -17,6 +17,7 @@ class System;
 }
 
 namespace Core::Frontend {
+class ControllerApplet;
 class ECommerceApplet;
 class ErrorApplet;
 class ParentalControlsApplet;
@@ -155,19 +156,20 @@ protected:
 };
 
 struct AppletFrontendSet {
-    using ParentalControlsApplet = std::unique_ptr<Core::Frontend::ParentalControlsApplet>;
+    using ControllerApplet = std::unique_ptr<Core::Frontend::ControllerApplet>;
+    using ECommerceApplet = std::unique_ptr<Core::Frontend::ECommerceApplet>;
     using ErrorApplet = std::unique_ptr<Core::Frontend::ErrorApplet>;
+    using ParentalControlsApplet = std::unique_ptr<Core::Frontend::ParentalControlsApplet>;
     using PhotoViewer = std::unique_ptr<Core::Frontend::PhotoViewerApplet>;
     using ProfileSelect = std::unique_ptr<Core::Frontend::ProfileSelectApplet>;
     using SoftwareKeyboard = std::unique_ptr<Core::Frontend::SoftwareKeyboardApplet>;
     using WebBrowser = std::unique_ptr<Core::Frontend::WebBrowserApplet>;
-    using ECommerceApplet = std::unique_ptr<Core::Frontend::ECommerceApplet>;
 
     AppletFrontendSet();
-    AppletFrontendSet(ParentalControlsApplet parental_controls, ErrorApplet error,
-                      PhotoViewer photo_viewer, ProfileSelect profile_select,
-                      SoftwareKeyboard software_keyboard, WebBrowser web_browser,
-                      ECommerceApplet e_commerce);
+    AppletFrontendSet(ControllerApplet controller, ECommerceApplet e_commerce, ErrorApplet error,
+                      ParentalControlsApplet parental_controls, PhotoViewer photo_viewer,
+                      ProfileSelect profile_select, SoftwareKeyboard software_keyboard,
+                      WebBrowser web_browser);
     ~AppletFrontendSet();
 
     AppletFrontendSet(const AppletFrontendSet&) = delete;
@@ -176,13 +178,14 @@ struct AppletFrontendSet {
     AppletFrontendSet(AppletFrontendSet&&) noexcept;
     AppletFrontendSet& operator=(AppletFrontendSet&&) noexcept;
 
-    ParentalControlsApplet parental_controls;
+    ControllerApplet controller;
+    ECommerceApplet e_commerce;
     ErrorApplet error;
+    ParentalControlsApplet parental_controls;
     PhotoViewer photo_viewer;
     ProfileSelect profile_select;
     SoftwareKeyboard software_keyboard;
     WebBrowser web_browser;
-    ECommerceApplet e_commerce;
 };
 
 class AppletManager {

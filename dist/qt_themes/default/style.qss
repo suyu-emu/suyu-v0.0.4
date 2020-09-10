@@ -41,6 +41,99 @@ QPushButton#buttonRefreshDevices {
     max-height: 20px;
 }
 
+QWidget#bottomPerGameInput,
+QWidget#topControllerApplet,
+QWidget#bottomControllerApplet,
+QGroupBox#groupPlayer1Connected:checked,
+QGroupBox#groupPlayer2Connected:checked,
+QGroupBox#groupPlayer3Connected:checked,
+QGroupBox#groupPlayer4Connected:checked,
+QGroupBox#groupPlayer5Connected:checked,
+QGroupBox#groupPlayer6Connected:checked,
+QGroupBox#groupPlayer7Connected:checked,
+QGroupBox#groupPlayer8Connected:checked {
+    background-color: #f5f5f5;
+}
+
+QWidget#topControllerApplet {
+    border-bottom: 1px solid #828790
+}
+
+QWidget#bottomPerGameInput,
+QWidget#bottomControllerApplet {
+    border-top: 1px solid #828790
+}
+
+QWidget#topPerGameInput,
+QWidget#middleControllerApplet {
+    background-color: #fff;
+}
+
+QWidget#topPerGameInput QComboBox,
+QWidget#middleControllerApplet QComboBox {
+    width: 123px;
+}
+
+QWidget#connectedControllers {
+    background: transparent;
+}
+
+QWidget#playersSupported,
+QWidget#controllersSupported,
+QWidget#controllerSupported1,
+QWidget#controllerSupported2,
+QWidget#controllerSupported3,
+QWidget#controllerSupported4,
+QWidget#controllerSupported5,
+QWidget#controllerSupported6 {
+    border: none;
+    background: transparent;
+}
+
+QGroupBox#groupPlayer1Connected,
+QGroupBox#groupPlayer2Connected,
+QGroupBox#groupPlayer3Connected,
+QGroupBox#groupPlayer4Connected,
+QGroupBox#groupPlayer5Connected,
+QGroupBox#groupPlayer6Connected,
+QGroupBox#groupPlayer7Connected,
+QGroupBox#groupPlayer8Connected {
+    border: 1px solid #828790;
+    border-radius: 3px;
+    padding: 0px;
+    min-height: 98px;
+    max-height: 98px;
+}
+
+QGroupBox#groupPlayer1Connected:unchecked,
+QGroupBox#groupPlayer2Connected:unchecked,
+QGroupBox#groupPlayer3Connected:unchecked,
+QGroupBox#groupPlayer4Connected:unchecked,
+QGroupBox#groupPlayer5Connected:unchecked,
+QGroupBox#groupPlayer6Connected:unchecked,
+QGroupBox#groupPlayer7Connected:unchecked,
+QGroupBox#groupPlayer8Connected:unchecked {
+    border: 1px solid #d9d9d9;
+}
+
+QGroupBox#groupPlayer1Connected::title,
+QGroupBox#groupPlayer2Connected::title,
+QGroupBox#groupPlayer3Connected::title,
+QGroupBox#groupPlayer4Connected::title,
+QGroupBox#groupPlayer5Connected::title,
+QGroupBox#groupPlayer6Connected::title,
+QGroupBox#groupPlayer7Connected::title,
+QGroupBox#groupPlayer8Connected::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 1px;
+    margin-left: 0px;
+    margin-right: -4px;
+    margin-bottom: 4px;
+}
+
 QCheckBox#checkboxPlayer1Connected,
 QCheckBox#checkboxPlayer2Connected,
 QCheckBox#checkboxPlayer3Connected,
@@ -50,6 +143,42 @@ QCheckBox#checkboxPlayer6Connected,
 QCheckBox#checkboxPlayer7Connected,
 QCheckBox#checkboxPlayer8Connected {
     spacing: 0px;
+}
+
+QWidget#Player1LEDs QCheckBox,
+QWidget#Player2LEDs QCheckBox,
+QWidget#Player3LEDs QCheckBox,
+QWidget#Player4LEDs QCheckBox,
+QWidget#Player5LEDs QCheckBox,
+QWidget#Player6LEDs QCheckBox,
+QWidget#Player7LEDs QCheckBox,
+QWidget#Player8LEDs QCheckBox {
+    spacing: 0px;
+}
+
+QWidget#Player1LEDs QCheckBox::indicator,
+QWidget#Player2LEDs QCheckBox::indicator,
+QWidget#Player3LEDs QCheckBox::indicator,
+QWidget#Player4LEDs QCheckBox::indicator,
+QWidget#Player5LEDs QCheckBox::indicator,
+QWidget#Player6LEDs QCheckBox::indicator,
+QWidget#Player7LEDs QCheckBox::indicator,
+QWidget#Player8LEDs QCheckBox::indicator {
+    width: 6px;
+    height: 6px;
+    margin-left: 0px;
+}
+
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer1Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer2Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer3Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer4Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer5Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer6Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer7Connected::indicator,
+QWidget#bottomPerGameInput QCheckBox#checkboxPlayer8Connected::indicator {
+    width: 12px;
+    height: 12px;
 }
 
 QCheckBox#checkboxPlayer1Connected::indicator,
@@ -64,6 +193,34 @@ QCheckBox#checkboxPlayer8Connected::indicator {
     height: 14px;
 }
 
+QGroupBox#groupPlayer1Connected::indicator,
+QGroupBox#groupPlayer2Connected::indicator,
+QGroupBox#groupPlayer3Connected::indicator,
+QGroupBox#groupPlayer4Connected::indicator,
+QGroupBox#groupPlayer5Connected::indicator,
+QGroupBox#groupPlayer6Connected::indicator,
+QGroupBox#groupPlayer7Connected::indicator,
+QGroupBox#groupPlayer8Connected::indicator {
+    width: 16px;
+    height: 16px;
+}
+
+QWidget#Player1LEDs QCheckBox::indicator:checked,
+QWidget#Player2LEDs QCheckBox::indicator:checked,
+QWidget#Player3LEDs QCheckBox::indicator:checked,
+QWidget#Player4LEDs QCheckBox::indicator:checked,
+QWidget#Player5LEDs QCheckBox::indicator:checked,
+QWidget#Player6LEDs QCheckBox::indicator:checked,
+QWidget#Player7LEDs QCheckBox::indicator:checked,
+QWidget#Player8LEDs QCheckBox::indicator:checked,
+QGroupBox#groupPlayer1Connected::indicator:checked,
+QGroupBox#groupPlayer2Connected::indicator:checked,
+QGroupBox#groupPlayer3Connected::indicator:checked,
+QGroupBox#groupPlayer4Connected::indicator:checked,
+QGroupBox#groupPlayer5Connected::indicator:checked,
+QGroupBox#groupPlayer6Connected::indicator:checked,
+QGroupBox#groupPlayer7Connected::indicator:checked,
+QGroupBox#groupPlayer8Connected::indicator:checked,
 QCheckBox#checkboxPlayer1Connected::indicator:checked,
 QCheckBox#checkboxPlayer2Connected::indicator:checked,
 QCheckBox#checkboxPlayer3Connected::indicator:checked,
@@ -74,11 +231,27 @@ QCheckBox#checkboxPlayer7Connected::indicator:checked,
 QCheckBox#checkboxPlayer8Connected::indicator:checked,
 QGroupBox#groupConnectedController::indicator:checked {
     border-radius: 2px;
-    border: 1px solid black;
+    border: 1px solid #929192;
     background: #39ff14;
     image: none;
 }
 
+QWidget#Player1LEDs QCheckBox::indicator:unchecked,
+QWidget#Player2LEDs QCheckBox::indicator:unchecked,
+QWidget#Player3LEDs QCheckBox::indicator:unchecked,
+QWidget#Player4LEDs QCheckBox::indicator:unchecked,
+QWidget#Player5LEDs QCheckBox::indicator:unchecked,
+QWidget#Player6LEDs QCheckBox::indicator:unchecked,
+QWidget#Player7LEDs QCheckBox::indicator:unchecked,
+QWidget#Player8LEDs QCheckBox::indicator:unchecked,
+QGroupBox#groupPlayer1Connected::indicator:unchecked,
+QGroupBox#groupPlayer2Connected::indicator:unchecked,
+QGroupBox#groupPlayer3Connected::indicator:unchecked,
+QGroupBox#groupPlayer4Connected::indicator:unchecked,
+QGroupBox#groupPlayer5Connected::indicator:unchecked,
+QGroupBox#groupPlayer6Connected::indicator:unchecked,
+QGroupBox#groupPlayer7Connected::indicator:unchecked,
+QGroupBox#groupPlayer8Connected::indicator:unchecked,
 QCheckBox#checkboxPlayer1Connected::indicator:unchecked,
 QCheckBox#checkboxPlayer2Connected::indicator:unchecked,
 QCheckBox#checkboxPlayer3Connected::indicator:unchecked,
@@ -89,7 +262,18 @@ QCheckBox#checkboxPlayer7Connected::indicator:unchecked,
 QCheckBox#checkboxPlayer8Connected::indicator:unchecked,
 QGroupBox#groupConnectedController::indicator:unchecked {
     border-radius: 2px;
-    border: 1px solid black;
+    border: 1px solid #929192;
     background: transparent;
     image: none;
+}
+
+QWidget#controllerPlayer1,
+QWidget#controllerPlayer2,
+QWidget#controllerPlayer3,
+QWidget#controllerPlayer4,
+QWidget#controllerPlayer5,
+QWidget#controllerPlayer6,
+QWidget#controllerPlayer7,
+QWidget#controllerPlayer8 {
+    background: transparent;
 }

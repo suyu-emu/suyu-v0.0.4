@@ -193,7 +193,8 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     controller.battery_level[0] = BATTERY_FULL;
     controller.battery_level[1] = BATTERY_FULL;
     controller.battery_level[2] = BATTERY_FULL;
-    styleset_changed_events[controller_idx].writable->Signal();
+
+    SignalStyleSetChangedEvent(IndexToNPad(controller_idx));
 }
 
 void Controller_NPad::OnInit() {
@@ -518,13 +519,17 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controller_ids,
     last_processed_vibration = vibrations.back();
 }
 
+Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
+    return last_processed_vibration;
+}
+
 std::shared_ptr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
     const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
     return styleset_event.readable;
 }
 
-Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
-    return last_processed_vibration;
+void Controller_NPad::SignalStyleSetChangedEvent(u32 npad_id) const {
+    styleset_changed_events[NPadIdToIndex(npad_id)].writable->Signal();
 }
 
 void Controller_NPad::AddNewControllerAt(NPadControllerType controller, std::size_t npad_index) {
@@ -534,7 +539,7 @@ void Controller_NPad::AddNewControllerAt(NPadControllerType controller, std::siz
 void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::size_t npad_index,
                                          bool connected) {
     if (!connected) {
-        DisconnectNPad(IndexToNPad(npad_index));
+        DisconnectNPadAtIndex(npad_index);
         return;
     }
 
@@ -554,16 +559,19 @@ void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::siz
 }
 
 void Controller_NPad::DisconnectNPad(u32 npad_id) {
-    const auto npad_index = NPadIdToIndex(npad_id);
-    connected_controllers[npad_index].is_connected = false;
+    DisconnectNPadAtIndex(NPadIdToIndex(npad_id));
+}
+
+void Controller_NPad::DisconnectNPadAtIndex(std::size_t npad_index) {
     Settings::values.players[npad_index].connected = false;
+    connected_controllers[npad_index].is_connected = false;
 
     auto& controller = shared_memory_entries[npad_index];
     controller.joy_styles.raw = 0; // Zero out
     controller.device_type.raw = 0;
     controller.properties.raw = 0;
 
-    styleset_changed_events[npad_index].writable->Signal();
+    SignalStyleSetChangedEvent(IndexToNPad(npad_index));
 }
 
 void Controller_NPad::SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode) {
@@ -666,13 +674,13 @@ void Controller_NPad::ClearAllConnectedControllers() {
 }
 
 void Controller_NPad::DisconnectAllConnectedControllers() {
-    for (ControllerHolder& controller : connected_controllers) {
+    for (auto& controller : connected_controllers) {
         controller.is_connected = false;
     }
 }
 
 void Controller_NPad::ConnectAllDisconnectedControllers() {
-    for (ControllerHolder& controller : connected_controllers) {
+    for (auto& controller : connected_controllers) {
         if (controller.type != NPadControllerType::None && !controller.is_connected) {
             controller.is_connected = true;
         }
@@ -680,7 +688,7 @@ void Controller_NPad::ConnectAllDisconnectedControllers() {
 }
 
 void Controller_NPad::ClearAllControllers() {
-    for (ControllerHolder& controller : connected_controllers) {
+    for (auto& controller : connected_controllers) {
         controller.type = NPadControllerType::None;
         controller.is_connected = false;
     }
@@ -726,94 +734,6 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
     }
 
     return false;
-}
-
-Controller_NPad::NPadControllerType Controller_NPad::DecideBestController(
-    NPadControllerType priority) const {
-    if (IsControllerSupported(priority)) {
-        return priority;
-    }
-    const auto is_docked = Settings::values.use_docked_mode;
-    if (is_docked && priority == NPadControllerType::Handheld) {
-        priority = NPadControllerType::JoyDual;
-        if (IsControllerSupported(priority)) {
-            return priority;
-        }
-    }
-    std::vector<NPadControllerType> priority_list;
-    switch (priority) {
-    case NPadControllerType::ProController:
-        priority_list.push_back(NPadControllerType::JoyDual);
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::Pokeball);
-        break;
-    case NPadControllerType::Handheld:
-        priority_list.push_back(NPadControllerType::JoyDual);
-        priority_list.push_back(NPadControllerType::ProController);
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::Pokeball);
-        break;
-    case NPadControllerType::JoyDual:
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::ProController);
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::Pokeball);
-        break;
-    case NPadControllerType::JoyLeft:
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::JoyDual);
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::ProController);
-        priority_list.push_back(NPadControllerType::Pokeball);
-        break;
-    case NPadControllerType::JoyRight:
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyDual);
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::ProController);
-        priority_list.push_back(NPadControllerType::Pokeball);
-        break;
-    case NPadControllerType::Pokeball:
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::JoyDual);
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::ProController);
-        break;
-    default:
-        priority_list.push_back(NPadControllerType::JoyDual);
-        if (!is_docked) {
-            priority_list.push_back(NPadControllerType::Handheld);
-        }
-        priority_list.push_back(NPadControllerType::ProController);
-        priority_list.push_back(NPadControllerType::JoyLeft);
-        priority_list.push_back(NPadControllerType::JoyRight);
-        priority_list.push_back(NPadControllerType::JoyDual);
-        break;
-    }
-
-    const auto iter = std::find_if(priority_list.begin(), priority_list.end(),
-                                   [this](auto type) { return IsControllerSupported(type); });
-    if (iter == priority_list.end()) {
-        UNIMPLEMENTED_MSG("Could not find supported controller!");
-        return priority;
-    }
-
-    return *iter;
 }
 
 } // namespace Service::HID

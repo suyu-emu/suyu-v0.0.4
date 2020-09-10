@@ -126,6 +126,8 @@ add_library(core STATIC
     file_sys/vfs_vector.h
     file_sys/xts_archive.cpp
     file_sys/xts_archive.h
+    frontend/applets/controller.cpp
+    frontend/applets/controller.h
     frontend/applets/error.cpp
     frontend/applets/error.h
     frontend/applets/general_frontend.cpp
@@ -244,6 +246,8 @@ add_library(core STATIC
     hle/service/am/applet_oe.h
     hle/service/am/applets/applets.cpp
     hle/service/am/applets/applets.h
+    hle/service/am/applets/controller.cpp
+    hle/service/am/applets/controller.h
     hle/service/am/applets/error.cpp
     hle/service/am/applets/error.h
     hle/service/am/applets/general_backend.cpp

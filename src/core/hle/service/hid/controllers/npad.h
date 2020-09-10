@@ -115,8 +115,10 @@ public:
     void VibrateController(const std::vector<u32>& controller_ids,
                            const std::vector<Vibration>& vibrations);
 
-    std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     Vibration GetLastVibration() const;
+
+    std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
+    void SignalStyleSetChangedEvent(u32 npad_id) const;
 
     // Adds a new controller at an index.
     void AddNewControllerAt(NPadControllerType controller, std::size_t npad_index);
@@ -124,6 +126,8 @@ public:
     void UpdateControllerAt(NPadControllerType controller, std::size_t npad_index, bool connected);
 
     void DisconnectNPad(u32 npad_id);
+    void DisconnectNPadAtIndex(std::size_t index);
+
     void SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode);
     GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
     LedPattern GetLedPattern(u32 npad_id);
@@ -315,7 +319,6 @@ private:
 
     void InitNewlyAddedController(std::size_t controller_idx);
     bool IsControllerSupported(NPadControllerType controller) const;
-    NPadControllerType DecideBestController(NPadControllerType priority) const;
     void RequestPadStateUpdate(u32 npad_id);
 
     u32 press_state{};

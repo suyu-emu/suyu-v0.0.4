@@ -37,6 +37,7 @@ enum class InstalledEntryType;
 class GameListPlaceholder;
 
 namespace Core::Frontend {
+struct ControllerParameters;
 struct SoftwareKeyboardParameters;
 } // namespace Core::Frontend
 
@@ -116,9 +117,12 @@ signals:
 
     void UpdateInstallProgress();
 
+    void ControllerSelectorReconfigureFinished();
+
     void ErrorDisplayFinished();
 
     void ProfileSelectorFinishedSelection(std::optional<Common::UUID> uuid);
+
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
     void SoftwareKeyboardFinishedCheckDialog();
 
@@ -127,6 +131,8 @@ signals:
 
 public slots:
     void OnLoadComplete();
+    void ControllerSelectorReconfigureControllers(
+        const Core::Frontend::ControllerParameters& parameters);
     void ErrorDisplayDisplayError(QString body);
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
