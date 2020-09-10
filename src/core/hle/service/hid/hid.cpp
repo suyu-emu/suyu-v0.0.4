@@ -40,7 +40,7 @@ namespace Service::HID {
 // Updating period for each HID device.
 // HID is polled every 15ms, this value was derived from
 // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering#joy-con-status-data-packet
-constexpr auto pad_update_ns = std::chrono::nanoseconds{15 * 1000 * 1000}; // (15ms, 66.6Hz)
+constexpr auto pad_update_ns = std::chrono::nanoseconds{1000 * 1000}; // (1ms, 1000Hz)
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
