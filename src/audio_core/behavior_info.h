@@ -14,39 +14,12 @@
 namespace AudioCore {
 class BehaviorInfo {
 public:
-    explicit BehaviorInfo();
-    ~BehaviorInfo();
-
-    bool UpdateInput(const std::vector<u8>& buffer, std::size_t offset);
-    bool UpdateOutput(std::vector<u8>& buffer, std::size_t offset);
-
-    void ClearError();
-    void UpdateFlags(u64_le dest_flags);
-    void SetUserRevision(u32_le revision);
-
-    bool IsAdpcmLoopContextBugFixed() const;
-    bool IsSplitterSupported() const;
-    bool IsLongSizePreDelaySupported() const;
-    bool IsAudioRenererProcessingTimeLimit80PercentSupported() const;
-    bool IsAudioRenererProcessingTimeLimit75PercentSupported() const;
-    bool IsAudioRenererProcessingTimeLimit70PercentSupported() const;
-    bool IsElapsedFrameCountSupported() const;
-    bool IsMemoryPoolForceMappingEnabled() const;
-
-private:
-    u32_le process_revision{};
-    u32_le user_revision{};
-    u64_le flags{};
-
     struct ErrorInfo {
         u32_le result{};
         INSERT_PADDING_WORDS(1);
         u64_le result_info{};
     };
     static_assert(sizeof(ErrorInfo) == 0x10, "ErrorInfo is an invalid size");
-
-    std::array<ErrorInfo, 10> errors{};
-    std::size_t error_count{};
 
     struct InParams {
         u32_le revision{};
@@ -61,6 +34,39 @@ private:
         INSERT_PADDING_BYTES(12);
     };
     static_assert(sizeof(OutParams) == 0xb0, "OutParams is an invalid size");
+
+    explicit BehaviorInfo();
+    ~BehaviorInfo();
+
+    bool UpdateOutput(std::vector<u8>& buffer, std::size_t offset);
+
+    void ClearError();
+    void UpdateFlags(u64_le dest_flags);
+    void SetUserRevision(u32_le revision);
+    u32_le GetUserRevision() const;
+    u32_le GetProcessRevision() const;
+
+    bool IsAdpcmLoopContextBugFixed() const;
+    bool IsSplitterSupported() const;
+    bool IsLongSizePreDelaySupported() const;
+    bool IsAudioRenererProcessingTimeLimit80PercentSupported() const;
+    bool IsAudioRenererProcessingTimeLimit75PercentSupported() const;
+    bool IsAudioRenererProcessingTimeLimit70PercentSupported() const;
+    bool IsElapsedFrameCountSupported() const;
+    bool IsMemoryPoolForceMappingEnabled() const;
+    bool IsFlushVoiceWaveBuffersSupported() const;
+    bool IsVoicePlayedSampleCountResetAtLoopPointSupported() const;
+    bool IsVoicePitchAndSrcSkippedSupported() const;
+    bool IsMixInParameterDirtyOnlyUpdateSupported() const;
+    bool IsSplitterBugFixed() const;
+    void CopyErrorInfo(OutParams& dst);
+
+private:
+    u32_le process_revision{};
+    u32_le user_revision{};
+    u64_le flags{};
+    std::array<ErrorInfo, 10> errors{};
+    std::size_t error_count{};
 };
 
 } // namespace AudioCore

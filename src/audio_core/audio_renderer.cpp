@@ -2,95 +2,49 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <vector>
 #include "audio_core/algorithm/interpolate.h"
 #include "audio_core/audio_out.h"
 #include "audio_core/audio_renderer.h"
 #include "audio_core/codec.h"
 #include "audio_core/common.h"
+#include "audio_core/info_updater.h"
+#include "audio_core/voice_context.h"
 #include "common/assert.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
+#include "core/settings.h"
 
 namespace AudioCore {
-
-constexpr u32 STREAM_SAMPLE_RATE{48000};
-constexpr u32 STREAM_NUM_CHANNELS{2};
-using VoiceChannelHolder = std::array<VoiceResourceInformation*, 6>;
-class AudioRenderer::VoiceState {
-public:
-    bool IsPlaying() const {
-        return is_in_use && info.play_state == PlayState::Started;
-    }
-
-    const VoiceOutStatus& GetOutStatus() const {
-        return out_status;
-    }
-
-    const VoiceInfo& GetInfo() const {
-        return info;
-    }
-
-    VoiceInfo& GetInfo() {
-        return info;
-    }
-
-    void SetWaveIndex(std::size_t index);
-    std::vector<s16> DequeueSamples(std::size_t sample_count, Core::Memory::Memory& memory,
-                                    const VoiceChannelHolder& voice_resources);
-    void UpdateState();
-    void RefreshBuffer(Core::Memory::Memory& memory, const VoiceChannelHolder& voice_resources);
-
-private:
-    bool is_in_use{};
-    bool is_refresh_pending{};
-    std::size_t wave_index{};
-    std::size_t offset{};
-    Codec::ADPCMState adpcm_state{};
-    InterpolationState interp_state{};
-    std::vector<s16> samples;
-    VoiceOutStatus out_status{};
-    VoiceInfo info{};
-};
-
-class AudioRenderer::EffectState {
-public:
-    const EffectOutStatus& GetOutStatus() const {
-        return out_status;
-    }
-
-    const EffectInStatus& GetInfo() const {
-        return info;
-    }
-
-    EffectInStatus& GetInfo() {
-        return info;
-    }
-
-    void UpdateState(Core::Memory::Memory& memory);
-
-private:
-    EffectOutStatus out_status{};
-    EffectInStatus info{};
-};
-
 AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
-                             AudioRendererParameter params,
+                             AudioCommon::AudioRendererParameter params,
                              std::shared_ptr<Kernel::WritableEvent> buffer_event,
                              std::size_t instance_number)
-    : worker_params{params}, buffer_event{buffer_event}, voices(params.voice_count),
-      voice_resources(params.voice_count), effects(params.effect_count), memory{memory_} {
+    : worker_params{params}, buffer_event{buffer_event},
+      memory_pool_info(params.effect_count + params.voice_count * 4),
+      voice_context(params.voice_count), effect_context(params.effect_count), mix_context(),
+      sink_context(params.sink_count), splitter_context(),
+      voices(params.voice_count), memory{memory_},
+      command_generator(worker_params, voice_context, mix_context, splitter_context, effect_context,
+                        memory),
+      temp_mix_buffer(AudioCommon::TOTAL_TEMP_MIX_SIZE) {
     behavior_info.SetUserRevision(params.revision);
+    splitter_context.Initialize(behavior_info, params.splitter_count,
+                                params.num_splitter_send_channels);
+    mix_context.Initialize(behavior_info, params.submix_count + 1, params.effect_count);
     audio_out = std::make_unique<AudioCore::AudioOut>();
-    stream = audio_out->OpenStream(core_timing, STREAM_SAMPLE_RATE, STREAM_NUM_CHANNELS,
-                                   fmt::format("AudioRenderer-Instance{}", instance_number),
-                                   [=]() { buffer_event->Signal(); });
+    stream =
+        audio_out->OpenStream(core_timing, params.sample_rate, AudioCommon::STREAM_NUM_CHANNELS,
+                              fmt::format("AudioRenderer-Instance{}", instance_number),
+                              [=]() { buffer_event->Signal(); });
     audio_out->StartStream(stream);
 
     QueueMixedBuffer(0);
     QueueMixedBuffer(1);
     QueueMixedBuffer(2);
+    QueueMixedBuffer(3);
 }
 
 AudioRenderer::~AudioRenderer() = default;
@@ -111,355 +65,200 @@ Stream::State AudioRenderer::GetStreamState() const {
     return stream->GetState();
 }
 
-ResultVal<std::vector<u8>> AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_params) {
-    // Copy UpdateDataHeader struct
-    UpdateDataHeader config{};
-    std::memcpy(&config, input_params.data(), sizeof(UpdateDataHeader));
-    u32 memory_pool_count = worker_params.effect_count + (worker_params.voice_count * 4);
-
-    if (!behavior_info.UpdateInput(input_params, sizeof(UpdateDataHeader))) {
-        LOG_ERROR(Audio, "Failed to update behavior info input parameters");
-        return Audren::ERR_INVALID_PARAMETERS;
-    }
-
-    // Copy MemoryPoolInfo structs
-    std::vector<MemoryPoolInfo> mem_pool_info(memory_pool_count);
-    std::memcpy(mem_pool_info.data(),
-                input_params.data() + sizeof(UpdateDataHeader) + config.behavior_size,
-                memory_pool_count * sizeof(MemoryPoolInfo));
-
-    // Copy voice resources
-    const std::size_t voice_resource_offset{sizeof(UpdateDataHeader) + config.behavior_size +
-                                            config.memory_pools_size};
-    std::memcpy(voice_resources.data(), input_params.data() + voice_resource_offset,
-                sizeof(VoiceResourceInformation) * voice_resources.size());
-
-    // Copy VoiceInfo structs
-    std::size_t voice_offset{sizeof(UpdateDataHeader) + config.behavior_size +
-                             config.memory_pools_size + config.voice_resource_size};
-    for (auto& voice : voices) {
-        std::memcpy(&voice.GetInfo(), input_params.data() + voice_offset, sizeof(VoiceInfo));
-        voice_offset += sizeof(VoiceInfo);
-    }
-
-    std::size_t effect_offset{sizeof(UpdateDataHeader) + config.behavior_size +
-                              config.memory_pools_size + config.voice_resource_size +
-                              config.voices_size};
-    for (auto& effect : effects) {
-        std::memcpy(&effect.GetInfo(), input_params.data() + effect_offset, sizeof(EffectInStatus));
-        effect_offset += sizeof(EffectInStatus);
-    }
-
-    // Update memory pool state
-    std::vector<MemoryPoolEntry> memory_pool(memory_pool_count);
-    for (std::size_t index = 0; index < memory_pool.size(); ++index) {
-        if (mem_pool_info[index].pool_state == MemoryPoolStates::RequestAttach) {
-            memory_pool[index].state = MemoryPoolStates::Attached;
-        } else if (mem_pool_info[index].pool_state == MemoryPoolStates::RequestDetach) {
-            memory_pool[index].state = MemoryPoolStates::Detached;
-        }
-    }
-
-    // Update voices
-    for (auto& voice : voices) {
-        voice.UpdateState();
-        if (!voice.GetInfo().is_in_use) {
-            continue;
-        }
-        if (voice.GetInfo().is_new) {
-            voice.SetWaveIndex(voice.GetInfo().wave_buffer_head);
-        }
-    }
-
-    for (auto& effect : effects) {
-        effect.UpdateState(memory);
-    }
-
-    // Release previous buffers and queue next ones for playback
-    ReleaseAndQueueBuffers();
-
-    // Copy output header
-    UpdateDataHeader response_data{worker_params};
-    if (behavior_info.IsElapsedFrameCountSupported()) {
-        response_data.render_info = sizeof(RendererInfo);
-        response_data.total_size += sizeof(RendererInfo);
-    }
-
-    std::vector<u8> output_params(response_data.total_size);
-    std::memcpy(output_params.data(), &response_data, sizeof(UpdateDataHeader));
-
-    // Copy output memory pool entries
-    std::memcpy(output_params.data() + sizeof(UpdateDataHeader), memory_pool.data(),
-                response_data.memory_pools_size);
-
-    // Copy output voice status
-    std::size_t voice_out_status_offset{sizeof(UpdateDataHeader) + response_data.memory_pools_size};
-    for (const auto& voice : voices) {
-        std::memcpy(output_params.data() + voice_out_status_offset, &voice.GetOutStatus(),
-                    sizeof(VoiceOutStatus));
-        voice_out_status_offset += sizeof(VoiceOutStatus);
-    }
-
-    std::size_t effect_out_status_offset{
-        sizeof(UpdateDataHeader) + response_data.memory_pools_size + response_data.voices_size +
-        response_data.voice_resource_size};
-    for (const auto& effect : effects) {
-        std::memcpy(output_params.data() + effect_out_status_offset, &effect.GetOutStatus(),
-                    sizeof(EffectOutStatus));
-        effect_out_status_offset += sizeof(EffectOutStatus);
-    }
-
-    // Update behavior info output
-    const std::size_t behavior_out_status_offset{
-        sizeof(UpdateDataHeader) + response_data.memory_pools_size + response_data.voices_size +
-        response_data.effects_size + response_data.sinks_size +
-        response_data.performance_manager_size};
-
-    if (!behavior_info.UpdateOutput(output_params, behavior_out_status_offset)) {
-        LOG_ERROR(Audio, "Failed to update behavior info output parameters");
-        return Audren::ERR_INVALID_PARAMETERS;
-    }
-
-    if (behavior_info.IsElapsedFrameCountSupported()) {
-        const std::size_t renderer_info_offset{
-            sizeof(UpdateDataHeader) + response_data.memory_pools_size + response_data.voices_size +
-            response_data.effects_size + response_data.sinks_size +
-            response_data.performance_manager_size + response_data.behavior_size};
-        RendererInfo renderer_info{};
-        renderer_info.elasped_frame_count = elapsed_frame_count;
-        std::memcpy(output_params.data() + renderer_info_offset, &renderer_info,
-                    sizeof(RendererInfo));
-    }
-
-    return MakeResult(output_params);
-}
-
-void AudioRenderer::VoiceState::SetWaveIndex(std::size_t index) {
-    wave_index = index & 3;
-    is_refresh_pending = true;
-}
-
-std::vector<s16> AudioRenderer::VoiceState::DequeueSamples(
-    std::size_t sample_count, Core::Memory::Memory& memory,
-    const VoiceChannelHolder& voice_resources) {
-    if (!IsPlaying()) {
-        return {};
-    }
-
-    if (is_refresh_pending) {
-        RefreshBuffer(memory, voice_resources);
-    }
-
-    const std::size_t max_size{samples.size() - offset};
-    const std::size_t dequeue_offset{offset};
-    std::size_t size{sample_count * STREAM_NUM_CHANNELS};
-    if (size > max_size) {
-        size = max_size;
-    }
-
-    out_status.played_sample_count += size / STREAM_NUM_CHANNELS;
-    offset += size;
-
-    const auto& wave_buffer{info.wave_buffer[wave_index]};
-    if (offset == samples.size()) {
-        offset = 0;
-
-        if (!wave_buffer.is_looping && wave_buffer.buffer_sz) {
-            SetWaveIndex(wave_index + 1);
-        }
-
-        if (wave_buffer.buffer_sz) {
-            out_status.wave_buffer_consumed++;
-        }
-
-        if (wave_buffer.end_of_stream || wave_buffer.buffer_sz == 0) {
-            info.play_state = PlayState::Paused;
-        }
-    }
-
-    return {samples.begin() + dequeue_offset, samples.begin() + dequeue_offset + size};
-}
-
-void AudioRenderer::VoiceState::UpdateState() {
-    if (is_in_use && !info.is_in_use) {
-        // No longer in use, reset state
-        is_refresh_pending = true;
-        wave_index = 0;
-        offset = 0;
-        out_status = {};
-    }
-    is_in_use = info.is_in_use;
-}
-
-void AudioRenderer::VoiceState::RefreshBuffer(Core::Memory::Memory& memory,
-                                              const VoiceChannelHolder& voice_resources) {
-    const auto wave_buffer_address = info.wave_buffer[wave_index].buffer_addr;
-    const auto wave_buffer_size = info.wave_buffer[wave_index].buffer_sz;
-    std::vector<s16> new_samples(wave_buffer_size / sizeof(s16));
-    memory.ReadBlock(wave_buffer_address, new_samples.data(), wave_buffer_size);
-
-    switch (static_cast<Codec::PcmFormat>(info.sample_format)) {
-    case Codec::PcmFormat::Int16: {
-        // PCM16 is played as-is
-        break;
-    }
-    case Codec::PcmFormat::Adpcm: {
-        // Decode ADPCM to PCM16
-        Codec::ADPCM_Coeff coeffs;
-        memory.ReadBlock(info.additional_params_addr, coeffs.data(), sizeof(Codec::ADPCM_Coeff));
-        new_samples = Codec::DecodeADPCM(reinterpret_cast<u8*>(new_samples.data()),
-                                         new_samples.size() * sizeof(s16), coeffs, adpcm_state);
-        break;
-    }
-    default:
-        UNIMPLEMENTED_MSG("Unimplemented sample_format={}", info.sample_format);
-        break;
-    }
-
-    switch (info.channel_count) {
-    case 1: {
-        // 1 channel is upsampled to 2 channel
-        samples.resize(new_samples.size() * 2);
-
-        for (std::size_t index = 0; index < new_samples.size(); ++index) {
-            auto sample = static_cast<float>(new_samples[index]);
-            if (voice_resources[0]->in_use) {
-                sample *= voice_resources[0]->mix_volumes[0];
-            }
-
-            samples[index * 2] = static_cast<s16>(sample * info.volume);
-            samples[index * 2 + 1] = static_cast<s16>(sample * info.volume);
-        }
-        break;
-    }
-    case 2: {
-        // 2 channel is played as is
-        samples = std::move(new_samples);
-        const std::size_t sample_count = (samples.size() / 2);
-        for (std::size_t index = 0; index < sample_count; ++index) {
-            const std::size_t index_l = index * 2;
-            const std::size_t index_r = index * 2 + 1;
-
-            auto sample_l = static_cast<float>(samples[index_l]);
-            auto sample_r = static_cast<float>(samples[index_r]);
-
-            if (voice_resources[0]->in_use) {
-                sample_l *= voice_resources[0]->mix_volumes[0];
-            }
-
-            if (voice_resources[1]->in_use) {
-                sample_r *= voice_resources[1]->mix_volumes[1];
-            }
-
-            samples[index_l] = static_cast<s16>(sample_l * info.volume);
-            samples[index_r] = static_cast<s16>(sample_r * info.volume);
-        }
-        break;
-    }
-    case 6: {
-        samples.resize((new_samples.size() / 6) * 2);
-        const std::size_t sample_count = samples.size() / 2;
-
-        for (std::size_t index = 0; index < sample_count; ++index) {
-            auto FL = static_cast<float>(new_samples[index * 6]);
-            auto FR = static_cast<float>(new_samples[index * 6 + 1]);
-            auto FC = static_cast<float>(new_samples[index * 6 + 2]);
-            auto BL = static_cast<float>(new_samples[index * 6 + 4]);
-            auto BR = static_cast<float>(new_samples[index * 6 + 5]);
-
-            if (voice_resources[0]->in_use) {
-                FL *= voice_resources[0]->mix_volumes[0];
-            }
-            if (voice_resources[1]->in_use) {
-                FR *= voice_resources[1]->mix_volumes[1];
-            }
-            if (voice_resources[2]->in_use) {
-                FC *= voice_resources[2]->mix_volumes[2];
-            }
-            if (voice_resources[4]->in_use) {
-                BL *= voice_resources[4]->mix_volumes[4];
-            }
-            if (voice_resources[5]->in_use) {
-                BR *= voice_resources[5]->mix_volumes[5];
-            }
-
-            samples[index * 2] =
-                static_cast<s16>((0.3694f * FL + 0.2612f * FC + 0.3694f * BL) * info.volume);
-            samples[index * 2 + 1] =
-                static_cast<s16>((0.3694f * FR + 0.2612f * FC + 0.3694f * BR) * info.volume);
-        }
-        break;
-    }
-    default:
-        UNIMPLEMENTED_MSG("Unimplemented channel_count={}", info.channel_count);
-        break;
-    }
-
-    // Only interpolate when necessary, expensive.
-    if (GetInfo().sample_rate != STREAM_SAMPLE_RATE) {
-        samples = Interpolate(interp_state, std::move(samples), GetInfo().sample_rate,
-                              STREAM_SAMPLE_RATE);
-    }
-
-    is_refresh_pending = false;
-}
-
-void AudioRenderer::EffectState::UpdateState(Core::Memory::Memory& memory) {
-    if (info.is_new) {
-        out_status.state = EffectStatus::New;
-    } else {
-        if (info.type == Effect::Aux) {
-            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_info) == 0,
-                       "Aux buffers tried to update");
-            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_info) == 0,
-                       "Aux buffers tried to update");
-            ASSERT_MSG(memory.Read32(info.aux_info.return_buffer_base) == 0,
-                       "Aux buffers tried to update");
-            ASSERT_MSG(memory.Read32(info.aux_info.send_buffer_base) == 0,
-                       "Aux buffers tried to update");
-        }
-    }
-}
-
 static constexpr s16 ClampToS16(s32 value) {
     return static_cast<s16>(std::clamp(value, -32768, 32767));
 }
 
+ResultCode AudioRenderer::UpdateAudioRenderer(const std::vector<u8>& input_params,
+                                              std::vector<u8>& output_params) {
+
+    InfoUpdater info_updater{input_params, output_params, behavior_info};
+
+    if (!info_updater.UpdateBehaviorInfo(behavior_info)) {
+        LOG_ERROR(Audio, "Failed to update behavior info input parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (!info_updater.UpdateMemoryPools(memory_pool_info)) {
+        LOG_ERROR(Audio, "Failed to update memory pool parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (!info_updater.UpdateVoiceChannelResources(voice_context)) {
+        LOG_ERROR(Audio, "Failed to update voice channel resource parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (!info_updater.UpdateVoices(voice_context, memory_pool_info, 0)) {
+        LOG_ERROR(Audio, "Failed to update voice parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    // TODO(ogniK): Deal with stopped audio renderer but updates still taking place
+    if (!info_updater.UpdateEffects(effect_context, true)) {
+        LOG_ERROR(Audio, "Failed to update effect parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (behavior_info.IsSplitterSupported()) {
+        if (!info_updater.UpdateSplitterInfo(splitter_context)) {
+            LOG_ERROR(Audio, "Failed to update splitter parameters");
+            return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+        }
+    }
+
+    auto mix_result = info_updater.UpdateMixes(mix_context, worker_params.mix_buffer_count,
+                                               splitter_context, effect_context);
+
+    if (mix_result.IsError()) {
+        LOG_ERROR(Audio, "Failed to update mix parameters");
+        return mix_result;
+    }
+
+    // TODO(ogniK): Sinks
+    if (!info_updater.UpdateSinks(sink_context)) {
+        LOG_ERROR(Audio, "Failed to update sink parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    // TODO(ogniK): Performance buffer
+    if (!info_updater.UpdatePerformanceBuffer()) {
+        LOG_ERROR(Audio, "Failed to update performance buffer parameters");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (!info_updater.UpdateErrorInfo(behavior_info)) {
+        LOG_ERROR(Audio, "Failed to update error info");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    if (behavior_info.IsElapsedFrameCountSupported()) {
+        if (!info_updater.UpdateRendererInfo(elapsed_frame_count)) {
+            LOG_ERROR(Audio, "Failed to update renderer info");
+            return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+        }
+    }
+    // TODO(ogniK): Statistics
+
+    if (!info_updater.WriteOutputHeader()) {
+        LOG_ERROR(Audio, "Failed to write output header");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    // TODO(ogniK): Check when all sections are implemented
+
+    if (!info_updater.CheckConsumedSize()) {
+        LOG_ERROR(Audio, "Audio buffers were not consumed!");
+        return AudioCommon::Audren::ERR_INVALID_PARAMETERS;
+    }
+
+    ReleaseAndQueueBuffers();
+
+    return RESULT_SUCCESS;
+}
+
 void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
-    constexpr std::size_t BUFFER_SIZE{512};
+    command_generator.PreCommand();
+    // Clear mix buffers before our next operation
+    command_generator.ClearMixBuffers();
+
+    // If the splitter is not in use, sort our mixes
+    if (!splitter_context.UsingSplitter()) {
+        mix_context.SortInfo();
+    }
+    // Sort our voices
+    voice_context.SortInfo();
+
+    // Handle samples
+    command_generator.GenerateVoiceCommands();
+    command_generator.GenerateSubMixCommands();
+    command_generator.GenerateFinalMixCommands();
+
+    command_generator.PostCommand();
+    // Base sample size
+    std::size_t BUFFER_SIZE{worker_params.sample_count};
+    // Samples
     std::vector<s16> buffer(BUFFER_SIZE * stream->GetNumChannels());
+    // Make sure to clear our samples
+    std::memset(buffer.data(), 0, buffer.size() * sizeof(s16));
 
-    for (auto& voice : voices) {
-        if (!voice.IsPlaying()) {
-            continue;
+    if (sink_context.InUse()) {
+        const auto stream_channel_count = stream->GetNumChannels();
+        const auto buffer_offsets = sink_context.OutputBuffers();
+        const auto channel_count = buffer_offsets.size();
+        const auto& final_mix = mix_context.GetFinalMixInfo();
+        const auto& in_params = final_mix.GetInParams();
+        std::vector<s32*> mix_buffers(channel_count);
+        for (std::size_t i = 0; i < channel_count; i++) {
+            mix_buffers[i] =
+                command_generator.GetMixBuffer(in_params.buffer_offset + buffer_offsets[i]);
         }
-        VoiceChannelHolder resources{};
-        for (u32 channel = 0; channel < voice.GetInfo().channel_count; channel++) {
-            const auto channel_resource_id = voice.GetInfo().voice_channel_resource_ids[channel];
-            resources[channel] = &voice_resources[channel_resource_id];
-        }
 
-        std::size_t offset{};
-        s64 samples_remaining{BUFFER_SIZE};
-        while (samples_remaining > 0) {
-            const std::vector<s16> samples{
-                voice.DequeueSamples(samples_remaining, memory, resources)};
+        for (std::size_t i = 0; i < BUFFER_SIZE; i++) {
+            if (channel_count == 1) {
+                const auto sample = ClampToS16(mix_buffers[0][i]);
+                buffer[i * stream_channel_count + 0] = sample;
+                if (stream_channel_count > 1) {
+                    buffer[i * stream_channel_count + 1] = sample;
+                }
+                if (stream_channel_count == 6) {
+                    buffer[i * stream_channel_count + 2] = sample;
+                    buffer[i * stream_channel_count + 4] = sample;
+                    buffer[i * stream_channel_count + 5] = sample;
+                }
+            } else if (channel_count == 2) {
+                const auto l_sample = ClampToS16(mix_buffers[0][i]);
+                const auto r_sample = ClampToS16(mix_buffers[1][i]);
+                if (stream_channel_count == 1) {
+                    buffer[i * stream_channel_count + 0] = l_sample;
+                } else if (stream_channel_count == 2) {
+                    buffer[i * stream_channel_count + 0] = l_sample;
+                    buffer[i * stream_channel_count + 1] = r_sample;
+                } else if (stream_channel_count == 6) {
+                    buffer[i * stream_channel_count + 0] = l_sample;
+                    buffer[i * stream_channel_count + 1] = r_sample;
 
-            if (samples.empty()) {
-                break;
-            }
+                    buffer[i * stream_channel_count + 2] =
+                        ClampToS16((static_cast<s32>(l_sample) + static_cast<s32>(r_sample)) / 2);
 
-            samples_remaining -= samples.size() / stream->GetNumChannels();
+                    buffer[i * stream_channel_count + 4] = l_sample;
+                    buffer[i * stream_channel_count + 5] = r_sample;
+                }
 
-            for (const auto& sample : samples) {
-                const s32 buffer_sample{buffer[offset]};
-                buffer[offset++] =
-                    ClampToS16(buffer_sample + static_cast<s32>(sample * voice.GetInfo().volume));
+            } else if (channel_count == 6) {
+                const auto fl_sample = ClampToS16(mix_buffers[0][i]);
+                const auto fr_sample = ClampToS16(mix_buffers[1][i]);
+                const auto fc_sample = ClampToS16(mix_buffers[2][i]);
+                const auto lf_sample = ClampToS16(mix_buffers[3][i]);
+                const auto bl_sample = ClampToS16(mix_buffers[4][i]);
+                const auto br_sample = ClampToS16(mix_buffers[5][i]);
+
+                if (stream_channel_count == 1) {
+                    buffer[i * stream_channel_count + 0] = fc_sample;
+                } else if (stream_channel_count == 2) {
+                    buffer[i * stream_channel_count + 0] =
+                        static_cast<s16>(0.3694f * static_cast<float>(fl_sample) +
+                                         0.2612f * static_cast<float>(fc_sample) +
+                                         0.3694f * static_cast<float>(bl_sample));
+                    buffer[i * stream_channel_count + 1] =
+                        static_cast<s16>(0.3694f * static_cast<float>(fr_sample) +
+                                         0.2612f * static_cast<float>(fc_sample) +
+                                         0.3694f * static_cast<float>(br_sample));
+                } else if (stream_channel_count == 6) {
+                    buffer[i * stream_channel_count + 0] = fl_sample;
+                    buffer[i * stream_channel_count + 1] = fr_sample;
+                    buffer[i * stream_channel_count + 2] = fc_sample;
+                    buffer[i * stream_channel_count + 3] = lf_sample;
+                    buffer[i * stream_channel_count + 4] = bl_sample;
+                    buffer[i * stream_channel_count + 5] = br_sample;
+                }
             }
         }
     }
+
     audio_out->QueueBuffer(stream, tag, std::move(buffer));
     elapsed_frame_count++;
+    voice_context.UpdateStateByDspShared();
 }
 
 void AudioRenderer::ReleaseAndQueueBuffers() {

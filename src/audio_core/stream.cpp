@@ -104,11 +104,7 @@ void Stream::PlayNextBuffer(std::chrono::nanoseconds ns_late) {
 
     sink_stream.EnqueueSamples(GetNumChannels(), active_buffer->GetSamples());
 
-    const auto time_stretch_delta = Settings::values.enable_audio_stretching.GetValue()
-                                        ? std::chrono::nanoseconds::zero()
-                                        : ns_late;
-    const auto future_time = GetBufferReleaseNS(*active_buffer) - time_stretch_delta;
-    core_timing.ScheduleEvent(future_time, release_event, {});
+    core_timing.ScheduleEvent(GetBufferReleaseNS(*active_buffer) - ns_late, release_event, {});
 }
 
 void Stream::ReleaseActiveBuffer(std::chrono::nanoseconds ns_late) {

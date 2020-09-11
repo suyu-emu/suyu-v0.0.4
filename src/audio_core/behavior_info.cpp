@@ -9,39 +9,11 @@
 
 namespace AudioCore {
 
-BehaviorInfo::BehaviorInfo() : process_revision(CURRENT_PROCESS_REVISION) {}
+BehaviorInfo::BehaviorInfo() : process_revision(AudioCommon::CURRENT_PROCESS_REVISION) {}
 BehaviorInfo::~BehaviorInfo() = default;
 
-bool BehaviorInfo::UpdateInput(const std::vector<u8>& buffer, std::size_t offset) {
-    if (!CanConsumeBuffer(buffer.size(), offset, sizeof(InParams))) {
-        LOG_ERROR(Audio, "Buffer is an invalid size!");
-        return false;
-    }
-    InParams params{};
-    std::memcpy(&params, buffer.data() + offset, sizeof(InParams));
-
-    if (!IsValidRevision(params.revision)) {
-        LOG_ERROR(Audio, "Invalid input revision, revision=0x{:08X}", params.revision);
-        return false;
-    }
-
-    if (user_revision != params.revision) {
-        LOG_ERROR(Audio,
-                  "User revision differs from input revision, expecting 0x{:08X} but got 0x{:08X}",
-                  user_revision, params.revision);
-        return false;
-    }
-
-    ClearError();
-    UpdateFlags(params.flags);
-
-    // TODO(ogniK): Check input params size when InfoUpdater is used
-
-    return true;
-}
-
 bool BehaviorInfo::UpdateOutput(std::vector<u8>& buffer, std::size_t offset) {
-    if (!CanConsumeBuffer(buffer.size(), offset, sizeof(OutParams))) {
+    if (!AudioCommon::CanConsumeBuffer(buffer.size(), offset, sizeof(OutParams))) {
         LOG_ERROR(Audio, "Buffer is an invalid size!");
         return false;
     }
@@ -65,36 +37,69 @@ void BehaviorInfo::SetUserRevision(u32_le revision) {
     user_revision = revision;
 }
 
+u32_le BehaviorInfo::GetUserRevision() const {
+    return user_revision;
+}
+
+u32_le BehaviorInfo::GetProcessRevision() const {
+    return process_revision;
+}
+
 bool BehaviorInfo::IsAdpcmLoopContextBugFixed() const {
-    return IsRevisionSupported(2, user_revision);
+    return AudioCommon::IsRevisionSupported(2, user_revision);
 }
 
 bool BehaviorInfo::IsSplitterSupported() const {
-    return IsRevisionSupported(2, user_revision);
+    return AudioCommon::IsRevisionSupported(2, user_revision);
 }
 
 bool BehaviorInfo::IsLongSizePreDelaySupported() const {
-    return IsRevisionSupported(3, user_revision);
+    return AudioCommon::IsRevisionSupported(3, user_revision);
 }
 
 bool BehaviorInfo::IsAudioRenererProcessingTimeLimit80PercentSupported() const {
-    return IsRevisionSupported(5, user_revision);
+    return AudioCommon::IsRevisionSupported(5, user_revision);
 }
 
 bool BehaviorInfo::IsAudioRenererProcessingTimeLimit75PercentSupported() const {
-    return IsRevisionSupported(4, user_revision);
+    return AudioCommon::IsRevisionSupported(4, user_revision);
 }
 
 bool BehaviorInfo::IsAudioRenererProcessingTimeLimit70PercentSupported() const {
-    return IsRevisionSupported(1, user_revision);
+    return AudioCommon::IsRevisionSupported(1, user_revision);
 }
 
 bool BehaviorInfo::IsElapsedFrameCountSupported() const {
-    return IsRevisionSupported(5, user_revision);
+    return AudioCommon::IsRevisionSupported(5, user_revision);
 }
 
 bool BehaviorInfo::IsMemoryPoolForceMappingEnabled() const {
     return (flags & 1) != 0;
+}
+
+bool BehaviorInfo::IsFlushVoiceWaveBuffersSupported() const {
+    return AudioCommon::IsRevisionSupported(5, user_revision);
+}
+
+bool BehaviorInfo::IsVoicePlayedSampleCountResetAtLoopPointSupported() const {
+    return AudioCommon::IsRevisionSupported(5, user_revision);
+}
+
+bool BehaviorInfo::IsVoicePitchAndSrcSkippedSupported() const {
+    return AudioCommon::IsRevisionSupported(5, user_revision);
+}
+
+bool BehaviorInfo::IsMixInParameterDirtyOnlyUpdateSupported() const {
+    return AudioCommon::IsRevisionSupported(7, user_revision);
+}
+
+bool BehaviorInfo::IsSplitterBugFixed() const {
+    return AudioCommon::IsRevisionSupported(5, user_revision);
+}
+
+void BehaviorInfo::CopyErrorInfo(BehaviorInfo::OutParams& dst) {
+    dst.error_count = static_cast<u32>(error_count);
+    std::copy(errors.begin(), errors.begin() + error_count, dst.errors.begin());
 }
 
 } // namespace AudioCore
