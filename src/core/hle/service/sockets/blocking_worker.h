@@ -29,7 +29,7 @@ namespace Service::Sockets {
  * Worker abstraction to execute blocking calls on host without blocking the guest thread
  *
  * @tparam Service  Service where the work is executed
- * @tparam ...Types Types of work to execute
+ * @tparam Types Types of work to execute
  */
 template <class Service, class... Types>
 class BlockingWorker {
@@ -109,9 +109,8 @@ private:
         while (keep_running) {
             work_event.Wait();
 
-            const auto visit_fn = [service, &keep_running](auto&& w) {
-                using T = std::decay_t<decltype(w)>;
-                if constexpr (std::is_same_v<T, std::monostate>) {
+            const auto visit_fn = [service, &keep_running]<typename T>(T&& w) {
+                if constexpr (std::is_same_v<std::decay_t<T>, std::monostate>) {
                     keep_running = false;
                 } else {
                     w.Execute(service);
