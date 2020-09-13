@@ -1,3 +1,7 @@
+QAbstractSpinBox {
+    min-height: 19px;
+}
+
 QPushButton#TogglableStatusBarButton {
     color: #959595;
     border: 1px solid transparent;
@@ -35,10 +39,10 @@ QPushButton#RendererStatusBarButton:!checked {
 }
 
 QPushButton#buttonRefreshDevices {
-    min-width: 20px;
-    min-height: 20px;
-    max-width: 20px;
-    max-height: 20px;
+    min-width: 21px;
+    min-height: 21px;
+    max-width: 21px;
+    max-height: 21px;
 }
 
 QWidget#bottomPerGameInput,
@@ -71,7 +75,7 @@ QWidget#middleControllerApplet {
 
 QWidget#topPerGameInput QComboBox,
 QWidget#middleControllerApplet QComboBox {
-    width: 123px;
+    width: 120px;
 }
 
 QWidget#connectedControllers {

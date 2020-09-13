@@ -15,7 +15,7 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QPushButton {
-  min-width: 55px;
+  min-width: 60px;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -42,13 +42,13 @@
          <widget class="QPushButton" name="forward_button">
           <property name="minimumSize">
            <size>
-            <width>57</width>
+            <width>68</width>
             <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>68</width>
             <height>16777215</height>
            </size>
           </property>
@@ -82,7 +82,7 @@
          <widget class="QPushButton" name="back_button">
           <property name="minimumSize">
            <size>
-            <width>57</width>
+            <width>68</width>
             <height>0</height>
            </size>
           </property>
@@ -110,7 +110,7 @@
          <widget class="QPushButton" name="left_button">
           <property name="minimumSize">
            <size>
-            <width>57</width>
+            <width>68</width>
             <height>0</height>
            </size>
           </property>
@@ -138,13 +138,13 @@
          <widget class="QPushButton" name="middle_button">
           <property name="minimumSize">
            <size>
-            <width>57</width>
+            <width>68</width>
             <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>68</width>
             <height>16777215</height>
            </size>
           </property>
@@ -204,13 +204,13 @@
          <widget class="QPushButton" name="right_button">
           <property name="minimumSize">
            <size>
-            <width>57</width>
+            <width>68</width>
             <height>0</height>
            </size>
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
+            <width>68</width>
             <height>16777215</height>
            </size>
           </property>
@@ -256,13 +256,13 @@
       <widget class="QPushButton" name="buttonClearAll">
        <property name="minimumSize">
         <size>
-         <width>57</width>
+         <width>68</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
+         <width>68</width>
          <height>16777215</height>
         </size>
        </property>
@@ -275,13 +275,13 @@
       <widget class="QPushButton" name="buttonRestoreDefaults">
        <property name="minimumSize">
         <size>
-         <width>57</width>
+         <width>68</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>16777215</width>
+         <width>68</width>
          <height>16777215</height>
         </size>
        </property>
@@ -324,32 +324,12 @@
    <signal>accepted()</signal>
    <receiver>ConfigureMouseAdvanced</receiver>
    <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>124</x>
-     <y>266</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>124</x>
-     <y>143</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>ConfigureMouseAdvanced</receiver>
    <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>124</x>
-     <y>266</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>124</x>
-     <y>143</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

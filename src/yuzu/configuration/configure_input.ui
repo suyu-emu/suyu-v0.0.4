@@ -142,7 +142,7 @@
           <number>6</number>
          </property>
          <property name="leftMargin">
-          <number>3</number>
+          <number>8</number>
          </property>
          <property name="topMargin">
           <number>6</number>
@@ -198,13 +198,13 @@
           <widget class="QSpinBox" name="vibrationSpin">
            <property name="minimumSize">
             <size>
-             <width>65</width>
+             <width>68</width>
              <height>21</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>65</width>
+             <width>68</width>
              <height>16777215</height>
             </size>
            </property>
@@ -250,18 +250,18 @@
           <widget class="QPushButton" name="motionButton">
            <property name="minimumSize">
             <size>
-             <width>57</width>
+             <width>68</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>55</width>
+             <width>68</width>
              <height>16777215</height>
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 55px;</string>
+            <string notr="true">min-width: 68px;</string>
            </property>
            <property name="text">
             <string>Configure</string>
@@ -468,13 +468,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>57</width>
+          <width>68</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>55</width>
+          <width>68</width>
           <height>16777215</height>
          </size>
         </property>
@@ -494,7 +494,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">min-width: 55px;</string>
+         <string notr="true">min-width: 68px;</string>
         </property>
         <property name="text">
          <string>Defaults</string>
@@ -511,13 +511,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>57</width>
+          <width>68</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>55</width>
+          <width>68</width>
           <height>16777215</height>
          </size>
         </property>
@@ -537,7 +537,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">min-width: 55px;</string>
+         <string notr="true">min-width: 68px;</string>
         </property>
         <property name="text">
          <string>Clear</string>

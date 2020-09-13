@@ -101,7 +101,7 @@ void ConfigureInputAdvanced::OnControllerButtonClick(int player_idx, int button_
     }
     controllers_colors[player_idx][button_idx] = new_bg_color;
     controllers_color_buttons[player_idx][button_idx]->setStyleSheet(
-        QStringLiteral("background-color: %1; min-width: 55px;")
+        QStringLiteral("background-color: %1; min-width: 60px;")
             .arg(controllers_colors[player_idx][button_idx].name()));
 }
 
@@ -139,7 +139,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
 
         for (std::size_t button_idx = 0; button_idx < colors.size(); ++button_idx) {
             controllers_color_buttons[player_idx][button_idx]->setStyleSheet(
-                QStringLiteral("background-color: %1; min-width: 55px;")
+                QStringLiteral("background-color: %1; min-width: 60px;")
                     .arg(controllers_colors[player_idx][button_idx].name()));
         }
     }
