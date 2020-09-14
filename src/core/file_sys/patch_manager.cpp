@@ -27,6 +27,7 @@
 #include "core/settings.h"
 
 namespace FileSys {
+namespace {
 
 constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
@@ -36,7 +37,13 @@ constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{
     "subsdk3", "subsdk4",   "subsdk5", "subsdk6", "subsdk7", "subsdk8", "subsdk9",
 };
 
-std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
+enum class TitleVersionFormat : u8 {
+    ThreeElements, ///< vX.Y.Z
+    FourElements,  ///< vX.Y.Z.W
+};
+
+std::string FormatTitleVersion(u32 version,
+                               TitleVersionFormat format = TitleVersionFormat::ThreeElements) {
     std::array<u8, sizeof(u32)> bytes{};
     bytes[0] = version % SINGLE_BYTE_MODULUS;
     for (std::size_t i = 1; i < bytes.size(); ++i) {
@@ -49,6 +56,8 @@ std::string FormatTitleVersion(u32 version, TitleVersionFormat format) {
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
 }
 
+// Returns a directory with name matching name case-insensitive. Returns nullptr if directory
+// doesn't have a directory with name.
 VirtualDir FindSubdirectoryCaseless(const VirtualDir dir, std::string_view name) {
 #ifdef _WIN32
     return dir->GetSubdirectory(name);
@@ -64,6 +73,7 @@ VirtualDir FindSubdirectoryCaseless(const VirtualDir dir, std::string_view name)
     return nullptr;
 #endif
 }
+} // Anonymous namespace
 
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
 
@@ -472,8 +482,7 @@ std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNam
             if (meta_ver.value_or(0) == 0) {
                 out.insert_or_assign(update_label, "");
             } else {
-                out.insert_or_assign(
-                    update_label, FormatTitleVersion(*meta_ver, TitleVersionFormat::ThreeElements));
+                out.insert_or_assign(update_label, FormatTitleVersion(*meta_ver));
             }
         } else if (update_raw != nullptr) {
             out.insert_or_assign(update_label, "PACKED");
