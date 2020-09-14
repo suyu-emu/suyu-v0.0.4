@@ -105,10 +105,9 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
     port_installed = true;
 }
 
-void ServiceFrameworkBase::InstallAsNamedPort() {
+void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     ASSERT(!port_installed);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
     server_port->SetHleHandler(shared_from_this());
@@ -116,10 +115,9 @@ void ServiceFrameworkBase::InstallAsNamedPort() {
     port_installed = true;
 }
 
-std::shared_ptr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort() {
+std::shared_ptr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel) {
     ASSERT(!port_installed);
 
-    auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
     auto port = MakeResult(std::move(server_port)).Unwrap();
