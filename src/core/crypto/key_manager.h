@@ -20,6 +20,10 @@ namespace Common::FS {
 class IOFile;
 }
 
+namespace FileSys {
+class ContentProvider;
+}
+
 namespace Loader {
 enum class ResultStatus : u16;
 }
@@ -252,7 +256,7 @@ public:
 
     bool BaseDeriveNecessary() const;
     void DeriveBase();
-    void DeriveETicket(PartitionDataManager& data);
+    void DeriveETicket(PartitionDataManager& data, const FileSys::ContentProvider& provider);
     void PopulateTickets();
     void SynthesizeTickets();
 

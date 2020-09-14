@@ -23,7 +23,6 @@
 #include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
-#include "core/core.h"
 #include "core/crypto/aes_util.h"
 #include "core/crypto/key_manager.h"
 #include "core/crypto/partition_data_manager.h"
@@ -1022,10 +1021,10 @@ void KeyManager::DeriveBase() {
     }
 }
 
-void KeyManager::DeriveETicket(PartitionDataManager& data) {
+void KeyManager::DeriveETicket(PartitionDataManager& data,
+                               const FileSys::ContentProvider& provider) {
     // ETicket keys
-    const auto es = Core::System::GetInstance().GetContentProvider().GetEntry(
-        0x0100000000000033, FileSys::ContentRecordType::Program);
+    const auto es = provider.GetEntry(0x0100000000000033, FileSys::ContentRecordType::Program);
 
     if (es == nullptr) {
         return;

@@ -2592,8 +2592,10 @@ void GMainWindow::OnReinitializeKeys(ReinitializeKeyBehavior behavior) {
 
         const auto function = [this, &keys, &pdm] {
             keys.PopulateFromPartitionData(pdm);
-            Core::System::GetInstance().GetFileSystemController().CreateFactories(*vfs);
-            keys.DeriveETicket(pdm);
+
+            auto& system = Core::System::GetInstance();
+            system.GetFileSystemController().CreateFactories(*vfs);
+            keys.DeriveETicket(pdm, system.GetContentProvider());
         };
 
         QString errors;
