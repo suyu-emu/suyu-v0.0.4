@@ -8,7 +8,6 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/client_port.h"
@@ -185,10 +184,11 @@ ResultCode ServerSession::CompleteSyncRequest() {
 }
 
 ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
-                                            Core::Memory::Memory& memory) {
+                                            Core::Memory::Memory& memory,
+                                            Core::Timing::CoreTiming& core_timing) {
     const ResultCode result = QueueSyncRequest(std::move(thread), memory);
     const auto delay = std::chrono::nanoseconds{kernel.IsMulticore() ? 0 : 20000};
-    Core::System::GetInstance().CoreTiming().ScheduleEvent(delay, request_event, {});
+    core_timing.ScheduleEvent(delay, request_event, {});
     return result;
 }
 
