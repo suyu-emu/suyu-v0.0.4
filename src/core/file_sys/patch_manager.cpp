@@ -73,6 +73,44 @@ VirtualDir FindSubdirectoryCaseless(const VirtualDir dir, std::string_view name)
     return nullptr;
 #endif
 }
+
+std::optional<std::vector<Core::Memory::CheatEntry>> ReadCheatFileFromFolder(
+    const Core::System& system, u64 title_id, const PatchManager::BuildID& build_id_,
+    const VirtualDir& base_path, bool upper) {
+    const auto build_id_raw = Common::HexToString(build_id_, upper);
+    const auto build_id = build_id_raw.substr(0, sizeof(u64) * 2);
+    const auto file = base_path->GetFile(fmt::format("{}.txt", build_id));
+
+    if (file == nullptr) {
+        LOG_INFO(Common_Filesystem, "No cheats file found for title_id={:016X}, build_id={}",
+                 title_id, build_id);
+        return std::nullopt;
+    }
+
+    std::vector<u8> data(file->GetSize());
+    if (file->Read(data.data(), data.size()) != data.size()) {
+        LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}, build_id={}",
+                 title_id, build_id);
+        return std::nullopt;
+    }
+
+    Core::Memory::TextCheatParser parser;
+    return parser.Parse(system,
+                        std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
+}
+
+void AppendCommaIfNotEmpty(std::string& to, std::string_view with) {
+    if (to.empty()) {
+        to += with;
+    } else {
+        to += ", ";
+        to += with;
+    }
+}
+
+bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
+    return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
+}
 } // Anonymous namespace
 
 PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
@@ -255,7 +293,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
     return out;
 }
 
-bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
+bool PatchManager::HasNSOPatch(const BuildID& build_id_) const {
     const auto build_id_raw = Common::HexToString(build_id_);
     const auto build_id = build_id_raw.substr(0, build_id_raw.find_last_not_of('0') + 1);
 
@@ -275,36 +313,8 @@ bool PatchManager::HasNSOPatch(const std::array<u8, 32>& build_id_) const {
     return !CollectPatches(patch_dirs, build_id).empty();
 }
 
-namespace {
-std::optional<std::vector<Core::Memory::CheatEntry>> ReadCheatFileFromFolder(
-    const Core::System& system, u64 title_id, const std::array<u8, 0x20>& build_id_,
-    const VirtualDir& base_path, bool upper) {
-    const auto build_id_raw = Common::HexToString(build_id_, upper);
-    const auto build_id = build_id_raw.substr(0, sizeof(u64) * 2);
-    const auto file = base_path->GetFile(fmt::format("{}.txt", build_id));
-
-    if (file == nullptr) {
-        LOG_INFO(Common_Filesystem, "No cheats file found for title_id={:016X}, build_id={}",
-                 title_id, build_id);
-        return std::nullopt;
-    }
-
-    std::vector<u8> data(file->GetSize());
-    if (file->Read(data.data(), data.size()) != data.size()) {
-        LOG_INFO(Common_Filesystem, "Failed to read cheats file for title_id={:016X}, build_id={}",
-                 title_id, build_id);
-        return std::nullopt;
-    }
-
-    Core::Memory::TextCheatParser parser;
-    return parser.Parse(system,
-                        std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
-}
-
-} // Anonymous namespace
-
 std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
-    const Core::System& system, const std::array<u8, 32>& build_id_) const {
+    const Core::System& system, const BuildID& build_id_) const {
     const auto load_dir = system.GetFileSystemController().GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
@@ -445,21 +455,11 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
     return romfs;
 }
 
-static void AppendCommaIfNotEmpty(std::string& to, const std::string& with) {
-    if (to.empty())
-        to += with;
-    else
-        to += ", " + with;
-}
-
-static bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
-    return dir != nullptr && (!dir->GetFiles().empty() || !dir->GetSubdirectories().empty());
-}
-
-std::map<std::string, std::string, std::less<>> PatchManager::GetPatchVersionNames(
-    VirtualFile update_raw) const {
-    if (title_id == 0)
+PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile update_raw) const {
+    if (title_id == 0) {
         return {};
+    }
+
     std::map<std::string, std::string, std::less<>> out;
     const auto& installed = Core::System::GetInstance().GetContentProvider();
     const auto& disabled = Settings::values.disabled_addons[title_id];
@@ -571,40 +571,46 @@ std::optional<u32> PatchManager::GetGameVersion() const {
     return installed.GetEntryVersion(title_id);
 }
 
-std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::GetControlMetadata() const {
+PatchManager::Metadata PatchManager::GetControlMetadata() const {
     const auto& installed = Core::System::GetInstance().GetContentProvider();
 
     const auto base_control_nca = installed.GetEntry(title_id, ContentRecordType::Control);
-    if (base_control_nca == nullptr)
+    if (base_control_nca == nullptr) {
         return {};
+    }
 
     return ParseControlNCA(*base_control_nca);
 }
 
-std::pair<std::unique_ptr<NACP>, VirtualFile> PatchManager::ParseControlNCA(const NCA& nca) const {
+PatchManager::Metadata PatchManager::ParseControlNCA(const NCA& nca) const {
     const auto base_romfs = nca.GetRomFS();
-    if (base_romfs == nullptr)
+    if (base_romfs == nullptr) {
         return {};
+    }
 
     const auto romfs = PatchRomFS(base_romfs, nca.GetBaseIVFCOffset(), ContentRecordType::Control);
-    if (romfs == nullptr)
+    if (romfs == nullptr) {
         return {};
+    }
 
     const auto extracted = ExtractRomFS(romfs);
-    if (extracted == nullptr)
+    if (extracted == nullptr) {
         return {};
+    }
 
     auto nacp_file = extracted->GetFile("control.nacp");
-    if (nacp_file == nullptr)
+    if (nacp_file == nullptr) {
         nacp_file = extracted->GetFile("Control.nacp");
+    }
 
     auto nacp = nacp_file == nullptr ? nullptr : std::make_unique<NACP>(nacp_file);
 
     VirtualFile icon_file;
     for (const auto& language : FileSys::LANGUAGE_NAMES) {
-        icon_file = extracted->GetFile("icon_" + std::string(language) + ".dat");
-        if (icon_file != nullptr)
+        icon_file = extracted->GetFile(std::string("icon_").append(language).append(".dat"));
+        if (icon_file != nullptr) {
             break;
+        }
     }
 
     return {std::move(nacp), icon_file};
