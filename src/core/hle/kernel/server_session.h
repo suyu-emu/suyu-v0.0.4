@@ -18,8 +18,9 @@ class Memory;
 }
 
 namespace Core::Timing {
+class CoreTiming;
 struct EventType;
-}
+} // namespace Core::Timing
 
 namespace Kernel {
 
@@ -87,12 +88,14 @@ public:
     /**
      * Handle a sync request from the emulated application.
      *
-     * @param thread Thread that initiated the request.
-     * @param memory Memory context to handle the sync request under.
+     * @param thread      Thread that initiated the request.
+     * @param memory      Memory context to handle the sync request under.
+     * @param core_timing Core timing context to schedule the request event under.
      *
      * @returns ResultCode from the operation.
      */
-    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
+    ResultCode HandleSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory,
+                                 Core::Timing::CoreTiming& core_timing);
 
     bool ShouldWait(const Thread* thread) const override;
 

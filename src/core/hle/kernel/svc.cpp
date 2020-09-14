@@ -346,7 +346,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         SchedulerLock lock(system.Kernel());
         thread->InvalidateHLECallback();
         thread->SetStatus(ThreadStatus::WaitIPC);
-        session->SendSyncRequest(SharedFrom(thread), system.Memory());
+        session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
     }
 
     if (thread->HasHLECallback()) {

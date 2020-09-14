@@ -16,6 +16,10 @@ namespace Core::Memory {
 class Memory;
 }
 
+namespace Core::Timing {
+class CoreTiming;
+}
+
 namespace Kernel {
 
 class KernelCore;
@@ -42,7 +46,8 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
+    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory,
+                               Core::Timing::CoreTiming& core_timing);
 
     bool ShouldWait(const Thread* thread) const override;
 

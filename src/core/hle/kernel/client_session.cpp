@@ -48,14 +48,15 @@ ResultVal<std::shared_ptr<ClientSession>> ClientSession::Create(KernelCore& kern
 }
 
 ResultCode ClientSession::SendSyncRequest(std::shared_ptr<Thread> thread,
-                                          Core::Memory::Memory& memory) {
+                                          Core::Memory::Memory& memory,
+                                          Core::Timing::CoreTiming& core_timing) {
     // Keep ServerSession alive until we're done working with it.
     if (!parent->Server()) {
         return ERR_SESSION_CLOSED_BY_REMOTE;
     }
 
     // Signal the server session that new data is available
-    return parent->Server()->HandleSyncRequest(std::move(thread), memory);
+    return parent->Server()->HandleSyncRequest(std::move(thread), memory, core_timing);
 }
 
 } // namespace Kernel
