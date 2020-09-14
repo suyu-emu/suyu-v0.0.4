@@ -45,14 +45,15 @@ enum class TitleVersionFormat : u8 {
 std::string FormatTitleVersion(u32 version,
                                TitleVersionFormat format = TitleVersionFormat::ThreeElements) {
     std::array<u8, sizeof(u32)> bytes{};
-    bytes[0] = version % SINGLE_BYTE_MODULUS;
+    bytes[0] = static_cast<u8>(version % SINGLE_BYTE_MODULUS);
     for (std::size_t i = 1; i < bytes.size(); ++i) {
         version /= SINGLE_BYTE_MODULUS;
-        bytes[i] = version % SINGLE_BYTE_MODULUS;
+        bytes[i] = static_cast<u8>(version % SINGLE_BYTE_MODULUS);
     }
 
-    if (format == TitleVersionFormat::FourElements)
+    if (format == TitleVersionFormat::FourElements) {
         return fmt::format("v{}.{}.{}.{}", bytes[3], bytes[2], bytes[1], bytes[0]);
+    }
     return fmt::format("v{}.{}.{}", bytes[3], bytes[2], bytes[1]);
 }
 
