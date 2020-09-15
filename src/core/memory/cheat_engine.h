@@ -47,8 +47,7 @@ class CheatParser {
 public:
     virtual ~CheatParser();
 
-    virtual std::vector<CheatEntry> Parse(const Core::System& system,
-                                          std::string_view data) const = 0;
+    [[nodiscard]] virtual std::vector<CheatEntry> Parse(std::string_view data) const = 0;
 };
 
 // CheatParser implementation that parses text files
@@ -56,7 +55,7 @@ class TextCheatParser final : public CheatParser {
 public:
     ~TextCheatParser() override;
 
-    std::vector<CheatEntry> Parse(const Core::System& system, std::string_view data) const override;
+    [[nodiscard]] std::vector<CheatEntry> Parse(std::string_view data) const override;
 };
 
 // Class that encapsulates a CheatList and manages its interaction with memory and CoreTiming

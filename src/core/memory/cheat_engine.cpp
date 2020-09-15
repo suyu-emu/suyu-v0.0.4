@@ -98,10 +98,9 @@ std::string_view ExtractName(std::string_view data, std::size_t start_index) {
 }
 } // Anonymous namespace
 
-std::vector<CheatEntry> TextCheatParser::Parse(const Core::System& system,
-                                               std::string_view data) const {
+std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
     std::vector<CheatEntry> out(1);
-    std::optional<u64> current_entry = std::nullopt;
+    std::optional<u64> current_entry;
 
     for (std::size_t i = 0; i < data.size(); ++i) {
         if (::isspace(data[i])) {
