@@ -14,10 +14,10 @@
 namespace FileSys {
 namespace {
 template <bool Subsection, typename BlockType, typename BucketType>
-std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, BlockType block,
-                                                      BucketType buckets) {
+std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, const BlockType& block,
+                                                      const BucketType& buckets) {
     if constexpr (Subsection) {
-        const auto last_bucket = buckets[block.number_buckets - 1];
+        const auto& last_bucket = buckets[block.number_buckets - 1];
         if (offset >= last_bucket.entries[last_bucket.number_entries].address_patch) {
             return {block.number_buckets - 1, last_bucket.number_entries};
         }
@@ -29,7 +29,7 @@ std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, BlockType bloc
         block.base_offsets.begin() + 1, block.base_offsets.begin() + block.number_buckets,
         [&offset](u64 base_offset) { return base_offset <= offset; });
 
-    const auto bucket = buckets[bucket_id];
+    const auto& bucket = buckets[bucket_id];
 
     if (bucket.number_entries == 1) {
         return {bucket_id, 0};
