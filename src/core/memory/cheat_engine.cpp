@@ -19,9 +19,23 @@
 #include "core/memory/cheat_engine.h"
 
 namespace Core::Memory {
-
+namespace {
 constexpr auto CHEAT_ENGINE_NS = std::chrono::nanoseconds{1000000000 / 12};
 constexpr u32 KEYPAD_BITMASK = 0x3FFFFFF;
+
+std::string_view ExtractName(std::string_view data, std::size_t start_index, char match) {
+    auto end_index = start_index;
+    while (data[end_index] != match) {
+        ++end_index;
+        if (end_index > data.size() ||
+            (end_index - start_index - 1) > sizeof(CheatDefinition::readable_name)) {
+            return {};
+        }
+    }
+
+    return data.substr(start_index, end_index - start_index);
+}
+} // Anonymous namespace
 
 StandardVmCallbacks::StandardVmCallbacks(Core::System& system, const CheatProcessMetadata& metadata)
     : metadata(metadata), system(system) {}
@@ -82,22 +96,6 @@ CheatParser::~CheatParser() = default;
 
 TextCheatParser::~TextCheatParser() = default;
 
-namespace {
-template <char match>
-std::string_view ExtractName(std::string_view data, std::size_t start_index) {
-    auto end_index = start_index;
-    while (data[end_index] != match) {
-        ++end_index;
-        if (end_index > data.size() ||
-            (end_index - start_index - 1) > sizeof(CheatDefinition::readable_name)) {
-            return {};
-        }
-    }
-
-    return data.substr(start_index, end_index - start_index);
-}
-} // Anonymous namespace
-
 std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
     std::vector<CheatEntry> out(1);
     std::optional<u64> current_entry;
@@ -114,7 +112,7 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
                 return {};
             }
 
-            const auto name = ExtractName<'}'>(data, i + 1);
+            const auto name = ExtractName(data, i + 1, '}');
             if (name.empty()) {
                 return {};
             }
@@ -131,7 +129,7 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
             current_entry = out.size();
             out.emplace_back();
 
-            const auto name = ExtractName<']'>(data, i + 1);
+            const auto name = ExtractName(data, i + 1, ']');
             if (name.empty()) {
                 return {};
             }
