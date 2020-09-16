@@ -221,7 +221,7 @@ struct System::Impl {
         telemetry_session->AddInitialInfo(*app_loader);
         auto main_process =
             Kernel::Process::Create(system, "main", Kernel::Process::ProcessType::Userland);
-        const auto [load_result, load_parameters] = app_loader->Load(*main_process);
+        const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
             LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
             Shutdown();

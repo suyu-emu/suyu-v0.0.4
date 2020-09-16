@@ -8,6 +8,10 @@
 #include "core/file_sys/vfs.h"
 #include "core/loader/loader.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
 class NCA;
 }
@@ -33,7 +37,7 @@ public:
         return IdentifyType(file);
     }
 
-    LoadResult Load(Kernel::Process& process) override;
+    LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     u64 ReadRomFSIVFCOffset() const override;

@@ -41,7 +41,8 @@ FileType AppLoader_NAX::GetFileType() const {
     return IdentifyTypeImpl(*nax);
 }
 
-AppLoader_NAX::LoadResult AppLoader_NAX::Load(Kernel::Process& process) {
+AppLoader_NAX::LoadResult AppLoader_NAX::Load(Kernel::Process& process,
+                                              [[maybe_unused]] Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
@@ -65,7 +66,7 @@ AppLoader_NAX::LoadResult AppLoader_NAX::Load(Kernel::Process& process) {
         return {nca_status, {}};
     }
 
-    const auto result = nca_loader->Load(process);
+    const auto result = nca_loader->Load(process, system);
     if (result.first != ResultStatus::Success) {
         return result;
     }

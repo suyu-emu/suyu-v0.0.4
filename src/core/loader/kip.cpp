@@ -43,7 +43,8 @@ FileType AppLoader_KIP::GetFileType() const {
                                                                          : FileType::Error;
 }
 
-AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process) {
+AppLoader::LoadResult AppLoader_KIP::Load(Kernel::Process& process,
+                                          [[maybe_unused]] Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }

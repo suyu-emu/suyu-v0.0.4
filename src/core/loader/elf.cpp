@@ -383,7 +383,8 @@ FileType AppLoader_ELF::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process) {
+AppLoader_ELF::LoadResult AppLoader_ELF::Load(Kernel::Process& process,
+                                              [[maybe_unused]] Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
