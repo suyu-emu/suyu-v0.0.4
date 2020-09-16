@@ -629,11 +629,11 @@ Loader::AppLoader& System::GetAppLoader() const {
     return *impl->app_loader;
 }
 
-void System::SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs) {
+void System::SetFilesystem(FileSys::VirtualFilesystem vfs) {
     impl->virtual_filesystem = std::move(vfs);
 }
 
-std::shared_ptr<FileSys::VfsFilesystem> System::GetFilesystem() const {
+FileSys::VirtualFilesystem System::GetFilesystem() const {
     return impl->virtual_filesystem;
 }
 

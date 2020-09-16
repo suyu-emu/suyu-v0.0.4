@@ -165,8 +165,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     return load_base + image_size;
 }
 
-AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process,
-                                              [[maybe_unused]] Core::System& system) {
+AppLoader_NSO::LoadResult AppLoader_NSO::Load(Kernel::Process& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }

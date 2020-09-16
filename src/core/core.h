@@ -316,9 +316,9 @@ public:
     Service::SM::ServiceManager& ServiceManager();
     const Service::SM::ServiceManager& ServiceManager() const;
 
-    void SetFilesystem(std::shared_ptr<FileSys::VfsFilesystem> vfs);
+    void SetFilesystem(FileSys::VirtualFilesystem vfs);
 
-    std::shared_ptr<FileSys::VfsFilesystem> GetFilesystem() const;
+    FileSys::VirtualFilesystem GetFilesystem() const;
 
     void RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
                            const std::array<u8, 0x20>& build_id, VAddr main_region_begin,

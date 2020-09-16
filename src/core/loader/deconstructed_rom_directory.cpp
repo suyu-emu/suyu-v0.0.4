@@ -192,8 +192,8 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // Register the RomFS if a ".romfs" file was found
     if (romfs_iter != files.end() && *romfs_iter != nullptr) {
         romfs = *romfs_iter;
-        system.GetFileSystemController().RegisterRomFS(
-            std::make_unique<FileSys::RomFSFactory>(*this));
+        system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
+            *this, system.GetContentProvider(), system.GetFileSystemController()));
     }
 
     is_loaded = true;

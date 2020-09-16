@@ -4,10 +4,10 @@
 
 #include <fmt/format.h>
 #include "common/file_util.h"
-#include "core/core.h"
 #include "core/file_sys/bis_factory.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/registered_cache.h"
+#include "core/file_sys/vfs.h"
 
 namespace FileSys {
 
@@ -81,11 +81,11 @@ VirtualDir BISFactory::OpenPartition(BisPartitionId id) const {
     }
 }
 
-VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id) const {
+VirtualFile BISFactory::OpenPartitionStorage(BisPartitionId id,
+                                             VirtualFilesystem file_system) const {
     auto& keys = Core::Crypto::KeyManager::Instance();
-    Core::Crypto::PartitionDataManager pdm{
-        Core::System::GetInstance().GetFilesystem()->OpenDirectory(
-            Common::FS::GetUserPath(Common::FS::UserPath::SysDataDir), Mode::Read)};
+    Core::Crypto::PartitionDataManager pdm{file_system->OpenDirectory(
+        Common::FS::GetUserPath(Common::FS::UserPath::SysDataDir), Mode::Read)};
     keys.PopulateFromPartitionData(pdm);
 
     switch (id) {

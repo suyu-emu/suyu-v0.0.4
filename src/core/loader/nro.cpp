@@ -218,8 +218,8 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process, Core::Sy
     }
 
     if (romfs != nullptr) {
-        system.GetFileSystemController().RegisterRomFS(
-            std::make_unique<FileSys::RomFSFactory>(*this));
+        system.GetFileSystemController().RegisterRomFS(std::make_unique<FileSys::RomFSFactory>(
+            *this, system.GetContentProvider(), system.GetFileSystemController()));
     }
 
     is_loaded = true;
