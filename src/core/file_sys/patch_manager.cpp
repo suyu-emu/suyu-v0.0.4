@@ -76,8 +76,7 @@ VirtualDir FindSubdirectoryCaseless(const VirtualDir dir, std::string_view name)
 }
 
 std::optional<std::vector<Core::Memory::CheatEntry>> ReadCheatFileFromFolder(
-    const Core::System& system, u64 title_id, const PatchManager::BuildID& build_id_,
-    const VirtualDir& base_path, bool upper) {
+    u64 title_id, const PatchManager::BuildID& build_id_, const VirtualDir& base_path, bool upper) {
     const auto build_id_raw = Common::HexToString(build_id_, upper);
     const auto build_id = build_id_raw.substr(0, sizeof(u64) * 2);
     const auto file = base_path->GetFile(fmt::format("{}.txt", build_id));
@@ -95,9 +94,8 @@ std::optional<std::vector<Core::Memory::CheatEntry>> ReadCheatFileFromFolder(
         return std::nullopt;
     }
 
-    Core::Memory::TextCheatParser parser;
-    return parser.Parse(system,
-                        std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
+    const Core::Memory::TextCheatParser parser;
+    return parser.Parse(std::string_view(reinterpret_cast<const char*>(data.data()), data.size()));
 }
 
 void AppendCommaIfNotEmpty(std::string& to, std::string_view with) {
@@ -335,14 +333,12 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
 
         auto cheats_dir = FindSubdirectoryCaseless(subdir, "cheats");
         if (cheats_dir != nullptr) {
-            auto res = ReadCheatFileFromFolder(system, title_id, build_id_, cheats_dir, true);
-            if (res.has_value()) {
+            if (const auto res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, true)) {
                 std::copy(res->begin(), res->end(), std::back_inserter(out));
                 continue;
             }
 
-            res = ReadCheatFileFromFolder(system, title_id, build_id_, cheats_dir, false);
-            if (res.has_value()) {
+            if (const auto res = ReadCheatFileFromFolder(title_id, build_id_, cheats_dir, false)) {
                 std::copy(res->begin(), res->end(), std::back_inserter(out));
             }
         }
