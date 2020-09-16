@@ -262,6 +262,22 @@ const char* ToString(VkResult result) noexcept {
         return "VK_ERROR_INVALID_DEVICE_ADDRESS_EXT";
     case VkResult::VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT:
         return "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT";
+    case VkResult::VK_ERROR_UNKNOWN:
+        return "VK_ERROR_UNKNOWN";
+    case VkResult::VK_ERROR_INCOMPATIBLE_VERSION_KHR:
+        return "VK_ERROR_INCOMPATIBLE_VERSION_KHR";
+    case VkResult::VK_THREAD_IDLE_KHR:
+        return "VK_THREAD_IDLE_KHR";
+    case VkResult::VK_THREAD_DONE_KHR:
+        return "VK_THREAD_DONE_KHR";
+    case VkResult::VK_OPERATION_DEFERRED_KHR:
+        return "VK_OPERATION_DEFERRED_KHR";
+    case VkResult::VK_OPERATION_NOT_DEFERRED_KHR:
+        return "VK_OPERATION_NOT_DEFERRED_KHR";
+    case VkResult::VK_PIPELINE_COMPILE_REQUIRED_EXT:
+        return "VK_PIPELINE_COMPILE_REQUIRED_EXT";
+    case VkResult::VK_RESULT_MAX_ENUM:
+        return "VK_RESULT_MAX_ENUM";
     }
     return "Unknown";
 }

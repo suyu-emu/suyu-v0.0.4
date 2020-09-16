@@ -78,9 +78,10 @@ VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode w
     case Tegra::Texture::WrapMode::MirrorOnceBorder:
         UNIMPLEMENTED();
         return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
+        return {};
     }
-    UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
-    return {};
 }
 
 VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_func) {
@@ -298,9 +299,10 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
         return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     case Maxwell::PrimitiveTopology::Patches:
         return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
+        return {};
     }
-    UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
-    return {};
 }
 
 VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttribute::Size size) {
@@ -325,6 +327,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R16G16B16A16_UNORM;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_UNORM_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedNorm:
@@ -347,6 +351,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R16G16B16A16_SNORM;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_SNORM_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::UnsignedScaled:
@@ -369,6 +375,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R16G16B16A16_USCALED;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_USCALED_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedScaled:
@@ -391,6 +399,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R16G16B16A16_SSCALED;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::UnsignedInt:
@@ -421,6 +431,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R32G32B32A32_UINT;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_UINT_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedInt:
@@ -451,6 +463,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R32G32B32A32_SINT;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return VK_FORMAT_A2B10G10R10_SINT_PACK32;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::Float:
@@ -471,6 +485,8 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
             return VK_FORMAT_R32G32B32_SFLOAT;
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
             return VK_FORMAT_R32G32B32A32_SFLOAT;
+        default:
+            break;
         }
         break;
     }
