@@ -379,7 +379,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
         return FileSys::ERROR_ENTITY_NOT_FOUND;
     }
 
-    auto part = bis_factory->OpenPartitionStorage(id);
+    auto part = bis_factory->OpenPartitionStorage(id, system.GetFilesystem());
     if (part == nullptr) {
         return FileSys::ERROR_INVALID_ARGUMENT;
     }

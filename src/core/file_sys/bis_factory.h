@@ -52,7 +52,7 @@ public:
     VirtualDir GetModificationDumpRoot(u64 title_id) const;
 
     VirtualDir OpenPartition(BisPartitionId id) const;
-    VirtualFile OpenPartitionStorage(BisPartitionId id) const;
+    VirtualFile OpenPartitionStorage(BisPartitionId id, VirtualFilesystem file_system) const;
 
     VirtualDir GetImageDirectory() const;
 
