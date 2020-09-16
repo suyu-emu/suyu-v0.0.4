@@ -6,6 +6,10 @@
 
 #include "core/loader/loader.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
 class KIP;
 }
@@ -26,7 +30,7 @@ public:
 
     FileType GetFileType() const override;
 
-    LoadResult Load(Kernel::Process& process) override;
+    LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
 private:
     std::unique_ptr<FileSys::KIP> kip;

@@ -89,7 +89,7 @@ FileType AppLoader_DeconstructedRomDirectory::IdentifyType(const FileSys::Virtua
 }
 
 AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirectory::Load(
-    Kernel::Process& process) {
+    Kernel::Process& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
@@ -141,9 +141,9 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
             continue;
         }
 
-        const bool should_pass_arguments{std::strcmp(module, "rtld") == 0};
-        const auto tentative_next_load_addr{AppLoader_NSO::LoadModule(
-            process, *module_file, code_size, should_pass_arguments, false)};
+        const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
+        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
+            process, system, *module_file, code_size, should_pass_arguments, false);
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
@@ -168,9 +168,9 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
         }
 
         const VAddr load_addr{next_load_addr};
-        const bool should_pass_arguments{std::strcmp(module, "rtld") == 0};
-        const auto tentative_next_load_addr{AppLoader_NSO::LoadModule(
-            process, *module_file, load_addr, should_pass_arguments, true, pm)};
+        const bool should_pass_arguments = std::strcmp(module, "rtld") == 0;
+        const auto tentative_next_load_addr = AppLoader_NSO::LoadModule(
+            process, system, *module_file, load_addr, should_pass_arguments, true, pm);
         if (!tentative_next_load_addr) {
             return {ResultStatus::ErrorLoadingNSO, {}};
         }
@@ -192,7 +192,7 @@ AppLoader_DeconstructedRomDirectory::LoadResult AppLoader_DeconstructedRomDirect
     // Register the RomFS if a ".romfs" file was found
     if (romfs_iter != files.end() && *romfs_iter != nullptr) {
         romfs = *romfs_iter;
-        Core::System::GetInstance().GetFileSystemController().RegisterRomFS(
+        system.GetFileSystemController().RegisterRomFS(
             std::make_unique<FileSys::RomFSFactory>(*this));
     }
 

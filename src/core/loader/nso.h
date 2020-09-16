@@ -12,6 +12,10 @@
 #include "core/file_sys/patch_manager.h"
 #include "core/loader/loader.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class Process;
 }
@@ -80,12 +84,12 @@ public:
         return IdentifyType(file);
     }
 
-    static std::optional<VAddr> LoadModule(Kernel::Process& process, const FileSys::VfsFile& file,
-                                           VAddr load_base, bool should_pass_arguments,
-                                           bool load_into_process,
+    static std::optional<VAddr> LoadModule(Kernel::Process& process, Core::System& system,
+                                           const FileSys::VfsFile& file, VAddr load_base,
+                                           bool should_pass_arguments, bool load_into_process,
                                            std::optional<FileSys::PatchManager> pm = {});
 
-    LoadResult Load(Kernel::Process& process) override;
+    LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
     ResultStatus ReadNSOModules(Modules& modules) override;
 

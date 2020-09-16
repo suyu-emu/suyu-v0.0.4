@@ -8,10 +8,12 @@
 #include "common/common_types.h"
 #include "core/loader/loader.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
-
 class NAX;
-
 } // namespace FileSys
 
 namespace Loader {
@@ -33,7 +35,7 @@ public:
 
     FileType GetFileType() const override;
 
-    LoadResult Load(Kernel::Process& process) override;
+    LoadResult Load(Kernel::Process& process, Core::System& system) override;
 
     ResultStatus ReadRomFS(FileSys::VirtualFile& dir) override;
     u64 ReadRomFSIVFCOffset() const override;

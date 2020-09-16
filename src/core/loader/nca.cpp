@@ -31,7 +31,7 @@ FileType AppLoader_NCA::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::Process& process) {
+AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::Process& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
@@ -52,13 +52,13 @@ AppLoader_NCA::LoadResult AppLoader_NCA::Load(Kernel::Process& process) {
 
     directory_loader = std::make_unique<AppLoader_DeconstructedRomDirectory>(exefs, true);
 
-    const auto load_result = directory_loader->Load(process);
+    const auto load_result = directory_loader->Load(process, system);
     if (load_result.first != ResultStatus::Success) {
         return load_result;
     }
 
     if (nca->GetRomFS() != nullptr && nca->GetRomFS()->GetSize() > 0) {
-        Core::System::GetInstance().GetFileSystemController().RegisterRomFS(
+        system.GetFileSystemController().RegisterRomFS(
             std::make_unique<FileSys::RomFSFactory>(*this));
     }
 

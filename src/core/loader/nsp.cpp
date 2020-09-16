@@ -71,7 +71,7 @@ FileType AppLoader_NSP::IdentifyType(const FileSys::VirtualFile& file) {
     return FileType::Error;
 }
 
-AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::Process& process) {
+AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::Process& process, Core::System& system) {
     if (is_loaded) {
         return {ResultStatus::ErrorAlreadyLoaded, {}};
     }
@@ -99,15 +99,14 @@ AppLoader_NSP::LoadResult AppLoader_NSP::Load(Kernel::Process& process) {
         return {ResultStatus::ErrorNSPMissingProgramNCA, {}};
     }
 
-    const auto result = secondary_loader->Load(process);
+    const auto result = secondary_loader->Load(process, system);
     if (result.first != ResultStatus::Success) {
         return result;
     }
 
     FileSys::VirtualFile update_raw;
     if (ReadUpdateRaw(update_raw) == ResultStatus::Success && update_raw != nullptr) {
-        Core::System::GetInstance().GetFileSystemController().SetPackedUpdate(
-            std::move(update_raw));
+        system.GetFileSystemController().SetPackedUpdate(std::move(update_raw));
     }
 
     is_loaded = true;
