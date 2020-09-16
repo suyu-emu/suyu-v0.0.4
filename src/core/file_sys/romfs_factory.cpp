@@ -6,7 +6,6 @@
 #include "common/assert.h"
 #include "common/common_types.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/file_sys/card_image.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
@@ -19,7 +18,9 @@
 
 namespace FileSys {
 
-RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader) {
+RomFSFactory::RomFSFactory(Loader::AppLoader& app_loader, ContentProvider& provider,
+                           Service::FileSystem::FileSystemController& controller)
+    : content_provider{provider}, filesystem_controller{controller} {
     // Load the RomFS from the app
     if (app_loader.ReadRomFS(file) != Loader::ResultStatus::Success) {
         LOG_ERROR(Service_FS, "Unable to read RomFS!");
@@ -46,39 +47,38 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess(u64 current_process_titl
 
 ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
                                           ContentRecordType type) const {
-    std::shared_ptr<NCA> res;
-
-    switch (storage) {
-    case StorageId::None:
-        res = Core::System::GetInstance().GetContentProvider().GetEntry(title_id, type);
-        break;
-    case StorageId::NandSystem:
-        res =
-            Core::System::GetInstance().GetFileSystemController().GetSystemNANDContents()->GetEntry(
-                title_id, type);
-        break;
-    case StorageId::NandUser:
-        res = Core::System::GetInstance().GetFileSystemController().GetUserNANDContents()->GetEntry(
-            title_id, type);
-        break;
-    case StorageId::SdCard:
-        res = Core::System::GetInstance().GetFileSystemController().GetSDMCContents()->GetEntry(
-            title_id, type);
-        break;
-    default:
-        UNIMPLEMENTED_MSG("Unimplemented storage_id={:02X}", static_cast<u8>(storage));
-    }
-
+    const std::shared_ptr<NCA> res = GetEntry(title_id, storage, type);
     if (res == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
         return RESULT_UNKNOWN;
     }
+
     const auto romfs = res->GetRomFS();
     if (romfs == nullptr) {
         // TODO(DarkLordZach): Find the right error code to use here
         return RESULT_UNKNOWN;
     }
+
     return MakeResult<VirtualFile>(romfs);
+}
+
+std::shared_ptr<NCA> RomFSFactory::GetEntry(u64 title_id, StorageId storage,
+                                            ContentRecordType type) const {
+    switch (storage) {
+    case StorageId::None:
+        return content_provider.GetEntry(title_id, type);
+    case StorageId::NandSystem:
+        return filesystem_controller.GetSystemNANDContents()->GetEntry(title_id, type);
+    case StorageId::NandUser:
+        return filesystem_controller.GetUserNANDContents()->GetEntry(title_id, type);
+    case StorageId::SdCard:
+        return filesystem_controller.GetSDMCContents()->GetEntry(title_id, type);
+    case StorageId::Host:
+    case StorageId::GameCard:
+    default:
+        UNIMPLEMENTED_MSG("Unimplemented storage_id={:02X}", static_cast<u8>(storage));
+        return nullptr;
+    }
 }
 
 } // namespace FileSys
