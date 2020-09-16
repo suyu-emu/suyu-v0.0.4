@@ -12,6 +12,49 @@
 #include "core/file_sys/nca_patch.h"
 
 namespace FileSys {
+namespace {
+template <bool Subsection, typename BlockType, typename BucketType>
+std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, const BlockType& block,
+                                                      const BucketType& buckets) {
+    if constexpr (Subsection) {
+        const auto& last_bucket = buckets[block.number_buckets - 1];
+        if (offset >= last_bucket.entries[last_bucket.number_entries].address_patch) {
+            return {block.number_buckets - 1, last_bucket.number_entries};
+        }
+    } else {
+        ASSERT_MSG(offset <= block.size, "Offset is out of bounds in BKTR relocation block.");
+    }
+
+    std::size_t bucket_id = std::count_if(
+        block.base_offsets.begin() + 1, block.base_offsets.begin() + block.number_buckets,
+        [&offset](u64 base_offset) { return base_offset <= offset; });
+
+    const auto& bucket = buckets[bucket_id];
+
+    if (bucket.number_entries == 1) {
+        return {bucket_id, 0};
+    }
+
+    std::size_t low = 0;
+    std::size_t mid = 0;
+    std::size_t high = bucket.number_entries - 1;
+    while (low <= high) {
+        mid = (low + high) / 2;
+        if (bucket.entries[mid].address_patch > offset) {
+            high = mid - 1;
+        } else {
+            if (mid == bucket.number_entries - 1 ||
+                bucket.entries[mid + 1].address_patch > offset) {
+                return {bucket_id, mid};
+            }
+
+            low = mid + 1;
+        }
+    }
+
+    UNREACHABLE_MSG("Offset could not be found in BKTR block.");
+}
+} // Anonymous namespace
 
 BKTR::BKTR(VirtualFile base_romfs_, VirtualFile bktr_romfs_, RelocationBlock relocation_,
            std::vector<RelocationBucket> relocation_buckets_, SubsectionBlock subsection_,
@@ -108,46 +151,6 @@ std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
     const auto raw_read = bktr_romfs->Read(data, length, section_offset);
     cipher.Transcode(data, raw_read, data, Core::Crypto::Op::Decrypt);
     return raw_read;
-}
-
-template <bool Subsection, typename BlockType, typename BucketType>
-std::pair<std::size_t, std::size_t> BKTR::SearchBucketEntry(u64 offset, BlockType block,
-                                                            BucketType buckets) const {
-    if constexpr (Subsection) {
-        const auto last_bucket = buckets[block.number_buckets - 1];
-        if (offset >= last_bucket.entries[last_bucket.number_entries].address_patch)
-            return {block.number_buckets - 1, last_bucket.number_entries};
-    } else {
-        ASSERT_MSG(offset <= block.size, "Offset is out of bounds in BKTR relocation block.");
-    }
-
-    std::size_t bucket_id = std::count_if(
-        block.base_offsets.begin() + 1, block.base_offsets.begin() + block.number_buckets,
-        [&offset](u64 base_offset) { return base_offset <= offset; });
-
-    const auto bucket = buckets[bucket_id];
-
-    if (bucket.number_entries == 1)
-        return {bucket_id, 0};
-
-    std::size_t low = 0;
-    std::size_t mid = 0;
-    std::size_t high = bucket.number_entries - 1;
-    while (low <= high) {
-        mid = (low + high) / 2;
-        if (bucket.entries[mid].address_patch > offset) {
-            high = mid - 1;
-        } else {
-            if (mid == bucket.number_entries - 1 ||
-                bucket.entries[mid + 1].address_patch > offset) {
-                return {bucket_id, mid};
-            }
-
-            low = mid + 1;
-        }
-    }
-
-    UNREACHABLE_MSG("Offset could not be found in BKTR block.");
 }
 
 RelocationEntry BKTR::GetRelocationEntry(u64 offset) const {
