@@ -650,7 +650,7 @@ void CommandGenerator::GenerateFinalMixCommand() {
         LOG_DEBUG(Audio, "(DSP_TRACE) GenerateFinalMixCommand");
     }
     auto& mix_info = mix_context.GetFinalMixInfo();
-    const auto in_params = mix_info.GetInParams();
+    const auto& in_params = mix_info.GetInParams();
 
     GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
                                       in_params.sample_rate);
