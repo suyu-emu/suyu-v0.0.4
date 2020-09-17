@@ -763,7 +763,7 @@ Node4 ShaderIR::GetTld4Code(Instruction instr, TextureType texture_type, bool de
 
 Node4 ShaderIR::GetTldCode(Tegra::Shader::Instruction instr) {
     const auto texture_type{instr.tld.texture_type};
-    const bool is_array{instr.tld.is_array};
+    const bool is_array{instr.tld.is_array != 0};
     const bool lod_enabled{instr.tld.GetTextureProcessMode() == TextureProcessMode::LL};
     const std::size_t coord_count{GetCoordCount(texture_type)};
 
