@@ -477,11 +477,12 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         UpdateMotionButtons();
     });
 
-    connect(ui->comboDevices, qOverload<int>(&QComboBox::currentIndexChanged), this,
+    connect(ui->comboDevices, qOverload<int>(&QComboBox::activated), this,
             &ConfigureInputPlayer::UpdateMappingWithDefaults);
 
+    ui->comboDevices->setCurrentIndex(-1);
+
     ui->buttonRefreshDevices->setIcon(QIcon::fromTheme(QStringLiteral("view-refresh")));
-    UpdateInputDevices();
     connect(ui->buttonRefreshDevices, &QPushButton::clicked,
             [this] { emit RefreshInputDevices(); });
 
@@ -492,14 +493,14 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         Common::ParamPackage params;
         if (input_subsystem->GetGCButtons()->IsPolling()) {
             params = input_subsystem->GetGCButtons()->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
         }
         if (input_subsystem->GetGCAnalogs()->IsPolling()) {
             params = input_subsystem->GetGCAnalogs()->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
@@ -513,7 +514,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
-            if (params.Has("engine")) {
+            if (params.Has("engine") && IsInputAcceptable(params)) {
                 SetPollingResult(params, false);
                 return;
             }
@@ -572,6 +573,14 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
 }
 
+void ConfigureInputPlayer::showEvent(QShowEvent* event) {
+    if (bottom_row == nullptr) {
+        return;
+    }
+    QWidget::showEvent(event);
+    ui->main->addWidget(bottom_row);
+}
+
 void ConfigureInputPlayer::changeEvent(QEvent* event) {
     if (event->type() == QEvent::LanguageChange) {
         RetranslateUI();
@@ -604,6 +613,7 @@ void ConfigureInputPlayer::LoadConfiguration() {
     }
 
     UpdateUI();
+    UpdateInputDeviceCombobox();
 
     if (debug) {
         return;
@@ -615,11 +625,56 @@ void ConfigureInputPlayer::LoadConfiguration() {
         (player_index == 0 && Settings::values.players[HANDHELD_INDEX].connected));
 }
 
-void ConfigureInputPlayer::UpdateInputDevices() {
-    input_devices = input_subsystem->GetInputDevices();
-    ui->comboDevices->clear();
-    for (auto device : input_devices) {
-        ui->comboDevices->addItem(QString::fromStdString(device.Get("display", "Unknown")), {});
+void ConfigureInputPlayer::ConnectPlayer(bool connected) {
+    ui->groupConnectedController->setChecked(connected);
+}
+
+void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
+    // Skip input device persistence if "Input Devices" is set to "Any".
+    if (ui->comboDevices->currentIndex() == 0) {
+        UpdateInputDevices();
+        return;
+    }
+
+    // Find the first button that isn't empty.
+    const auto button_param =
+        std::find_if(buttons_param.begin(), buttons_param.end(),
+                     [](const Common::ParamPackage param) { return param.Has("engine"); });
+    const bool buttons_empty = button_param == buttons_param.end();
+
+    const auto current_engine = button_param->Get("engine", "");
+    const auto current_guid = button_param->Get("guid", "");
+    const auto current_port = button_param->Get("port", "");
+
+    UpdateInputDevices();
+
+    if (buttons_empty) {
+        return;
+    }
+
+    const bool all_one_device =
+        std::all_of(buttons_param.begin(), buttons_param.end(),
+                    [current_engine, current_guid, current_port](const Common::ParamPackage param) {
+                        return !param.Has("engine") || (param.Get("engine", "") == current_engine &&
+                                                        param.Get("guid", "") == current_guid &&
+                                                        param.Get("port", "") == current_port);
+                    });
+
+    if (all_one_device) {
+        const auto devices_it = std::find_if(
+            input_devices.begin(), input_devices.end(),
+            [current_engine, current_guid, current_port](const Common::ParamPackage param) {
+                return param.Get("class", "") == current_engine &&
+                       param.Get("guid", "") == current_guid &&
+                       param.Get("port", "") == current_port;
+            });
+        const int device_index =
+            devices_it != input_devices.end()
+                ? static_cast<int>(std::distance(input_devices.begin(), devices_it))
+                : 0;
+        ui->comboDevices->setCurrentIndex(device_index);
+    } else {
+        ui->comboDevices->setCurrentIndex(0);
     }
 }
 
@@ -648,7 +703,7 @@ void ConfigureInputPlayer::RestoreDefaults() {
     }
 
     UpdateUI();
-    UpdateInputDevices();
+    UpdateInputDeviceCombobox();
     ui->comboControllerType->setCurrentIndex(0);
 }
 
@@ -752,117 +807,12 @@ void ConfigureInputPlayer::UpdateUI() {
     }
 }
 
-void ConfigureInputPlayer::UpdateMappingWithDefaults() {
-    if (ui->comboDevices->currentIndex() < 2) {
-        return;
+void ConfigureInputPlayer::UpdateInputDevices() {
+    input_devices = input_subsystem->GetInputDevices();
+    ui->comboDevices->clear();
+    for (auto device : input_devices) {
+        ui->comboDevices->addItem(QString::fromStdString(device.Get("display", "Unknown")), {});
     }
-    const auto& device = input_devices[ui->comboDevices->currentIndex()];
-    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
-    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
-    for (std::size_t i = 0; i < buttons_param.size(); ++i) {
-        buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
-    }
-    for (std::size_t i = 0; i < analogs_param.size(); ++i) {
-        analogs_param[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)];
-    }
-
-    UpdateUI();
-}
-
-void ConfigureInputPlayer::HandleClick(
-    QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
-    InputCommon::Polling::DeviceType type) {
-    if (button == ui->buttonMotionLeft || button == ui->buttonMotionRight) {
-        button->setText(tr("Shake!"));
-    } else {
-        button->setText(tr("[waiting]"));
-    }
-    button->setFocus();
-
-    // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
-    // controller, then they don't want keyboard/mouse input
-    want_keyboard_mouse = ui->comboDevices->currentIndex() < 2;
-
-    input_setter = new_input_setter;
-
-    device_pollers = input_subsystem->GetPollers(type);
-
-    for (auto& poller : device_pollers) {
-        poller->Start();
-    }
-
-    QWidget::grabMouse();
-    QWidget::grabKeyboard();
-
-    if (type == InputCommon::Polling::DeviceType::Button) {
-        input_subsystem->GetGCButtons()->BeginConfiguration();
-    } else {
-        input_subsystem->GetGCAnalogs()->BeginConfiguration();
-    }
-
-    if (type == InputCommon::Polling::DeviceType::Motion) {
-        input_subsystem->GetUDPMotions()->BeginConfiguration();
-    }
-
-    timeout_timer->start(2500); // Cancel after 2.5 seconds
-    poll_timer->start(50);      // Check for new inputs every 50ms
-}
-
-void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
-    timeout_timer->stop();
-    poll_timer->stop();
-    for (auto& poller : device_pollers) {
-        poller->Stop();
-    }
-
-    QWidget::releaseMouse();
-    QWidget::releaseKeyboard();
-
-    input_subsystem->GetGCButtons()->EndConfiguration();
-    input_subsystem->GetGCAnalogs()->EndConfiguration();
-
-    input_subsystem->GetUDPMotions()->EndConfiguration();
-
-    if (!abort) {
-        (*input_setter)(params);
-    }
-
-    UpdateUI();
-    input_setter = std::nullopt;
-}
-
-void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
-    if (!input_setter || !event) {
-        return;
-    }
-
-    if (want_keyboard_mouse) {
-        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
-                         false);
-    } else {
-        // We don't want any mouse buttons, so don't stop polling
-        return;
-    }
-
-    SetPollingResult({}, true);
-}
-
-void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
-    if (!input_setter || !event) {
-        return;
-    }
-
-    if (event->key() != Qt::Key_Escape) {
-        if (want_keyboard_mouse) {
-            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
-                             false);
-        } else {
-            // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
-            return;
-        }
-    }
-
-    SetPollingResult({}, true);
 }
 
 void ConfigureInputPlayer::UpdateControllerIcon() {
@@ -986,14 +936,128 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
     }
 }
 
-void ConfigureInputPlayer::showEvent(QShowEvent* event) {
-    if (bottom_row == nullptr) {
+void ConfigureInputPlayer::UpdateMappingWithDefaults() {
+    if (ui->comboDevices->currentIndex() < 2) {
         return;
     }
-    QWidget::showEvent(event);
-    ui->main->addWidget(bottom_row);
+    const auto& device = input_devices[ui->comboDevices->currentIndex()];
+    auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
+    auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
+    for (std::size_t i = 0; i < buttons_param.size(); ++i) {
+        buttons_param[i] = button_mapping[static_cast<Settings::NativeButton::Values>(i)];
+    }
+    for (std::size_t i = 0; i < analogs_param.size(); ++i) {
+        analogs_param[i] = analog_mapping[static_cast<Settings::NativeAnalog::Values>(i)];
+    }
+
+    UpdateUI();
 }
 
-void ConfigureInputPlayer::ConnectPlayer(bool connected) {
-    ui->groupConnectedController->setChecked(connected);
+void ConfigureInputPlayer::HandleClick(
+    QPushButton* button, std::function<void(const Common::ParamPackage&)> new_input_setter,
+    InputCommon::Polling::DeviceType type) {
+    if (button == ui->buttonMotionLeft || button == ui->buttonMotionRight) {
+        button->setText(tr("Shake!"));
+    } else {
+        button->setText(tr("[waiting]"));
+    }
+    button->setFocus();
+
+    // The first two input devices are always Any and Keyboard/Mouse. If the user filtered to a
+    // controller, then they don't want keyboard/mouse input
+    want_keyboard_mouse = ui->comboDevices->currentIndex() < 2;
+
+    input_setter = new_input_setter;
+
+    device_pollers = input_subsystem->GetPollers(type);
+
+    for (auto& poller : device_pollers) {
+        poller->Start();
+    }
+
+    QWidget::grabMouse();
+    QWidget::grabKeyboard();
+
+    if (type == InputCommon::Polling::DeviceType::Button) {
+        input_subsystem->GetGCButtons()->BeginConfiguration();
+    } else {
+        input_subsystem->GetGCAnalogs()->BeginConfiguration();
+    }
+
+    if (type == InputCommon::Polling::DeviceType::Motion) {
+        input_subsystem->GetUDPMotions()->BeginConfiguration();
+    }
+
+    timeout_timer->start(2500); // Cancel after 2.5 seconds
+    poll_timer->start(50);      // Check for new inputs every 50ms
+}
+
+void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, bool abort) {
+    timeout_timer->stop();
+    poll_timer->stop();
+    for (auto& poller : device_pollers) {
+        poller->Stop();
+    }
+
+    QWidget::releaseMouse();
+    QWidget::releaseKeyboard();
+
+    input_subsystem->GetGCButtons()->EndConfiguration();
+    input_subsystem->GetGCAnalogs()->EndConfiguration();
+
+    input_subsystem->GetUDPMotions()->EndConfiguration();
+
+    if (!abort) {
+        (*input_setter)(params);
+    }
+
+    UpdateUI();
+    UpdateInputDeviceCombobox();
+
+    input_setter = std::nullopt;
+}
+
+bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params) const {
+    if (ui->comboDevices->currentIndex() == 0) {
+        return true;
+    }
+
+    const auto current_input_device = input_devices[ui->comboDevices->currentIndex()];
+    return params.Get("engine", "") == current_input_device.Get("class", "") &&
+           params.Get("guid", "") == current_input_device.Get("guid", "") &&
+           params.Get("port", "") == current_input_device.Get("port", "");
+}
+
+void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    if (want_keyboard_mouse) {
+        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
+                         false);
+    } else {
+        // We don't want any mouse buttons, so don't stop polling
+        return;
+    }
+
+    SetPollingResult({}, true);
+}
+
+void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
+    if (!input_setter || !event) {
+        return;
+    }
+
+    if (event->key() != Qt::Key_Escape) {
+        if (want_keyboard_mouse) {
+            SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->key())},
+                             false);
+        } else {
+            // Escape key wasn't pressed and we don't want any keyboard keys, so don't stop polling
+            return;
+        }
+    }
+
+    SetPollingResult({}, true);
 }

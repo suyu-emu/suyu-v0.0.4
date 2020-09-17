@@ -78,7 +78,7 @@ struct InputSubsystem::Impl {
     [[nodiscard]] std::vector<Common::ParamPackage> GetInputDevices() const {
         std::vector<Common::ParamPackage> devices = {
             Common::ParamPackage{{"display", "Any"}, {"class", "any"}},
-            Common::ParamPackage{{"display", "Keyboard/Mouse"}, {"class", "key"}},
+            Common::ParamPackage{{"display", "Keyboard/Mouse"}, {"class", "keyboard"}},
         };
 #ifdef HAVE_SDL2
         auto sdl_devices = sdl->GetInputDevices();
@@ -96,7 +96,7 @@ struct InputSubsystem::Impl {
         if (!params.Has("class") || params.Get("class", "") == "any") {
             return {};
         }
-        if (params.Get("class", "") == "key") {
+        if (params.Get("class", "") == "keyboard") {
             // TODO consider returning the SDL key codes for the default keybindings
             return {};
         }
@@ -116,7 +116,7 @@ struct InputSubsystem::Impl {
         if (!params.Has("class") || params.Get("class", "") == "any") {
             return {};
         }
-        if (params.Get("class", "") == "key") {
+        if (params.Get("class", "") == "keyboard") {
             // TODO consider returning the SDL key codes for the default keybindings
             return {};
         }

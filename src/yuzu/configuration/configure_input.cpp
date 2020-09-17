@@ -242,6 +242,6 @@ void ConfigureInput::UpdateDockedState(bool is_handheld) {
 
 void ConfigureInput::UpdateAllInputDevices() {
     for (const auto& player : player_controllers) {
-        player->UpdateInputDevices();
+        player->UpdateInputDeviceCombobox();
     }
 }

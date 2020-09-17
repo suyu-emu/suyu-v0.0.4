@@ -51,17 +51,17 @@ public:
     /// Save all button configurations to settings file.
     void ApplyConfiguration();
 
+    /// Set the connection state checkbox (used to sync state).
+    void ConnectPlayer(bool connected);
+
     /// Update the input devices combobox.
-    void UpdateInputDevices();
+    void UpdateInputDeviceCombobox();
 
     /// Restore all buttons to their default values.
     void RestoreDefaults();
 
     /// Clear all input configuration.
     void ClearAll();
-
-    /// Set the connection state checkbox (used to sync state).
-    void ConnectPlayer(bool connected);
 
 signals:
     /// Emitted when this controller is connected by the user.
@@ -89,6 +89,9 @@ private:
     /// Finish polling and configure input using the input_setter.
     void SetPollingResult(const Common::ParamPackage& params, bool abort);
 
+    /// Checks whether a given input can be accepted.
+    bool IsInputAcceptable(const Common::ParamPackage& params) const;
+
     /// Handle mouse button press events.
     void mousePressEvent(QMouseEvent* event) override;
 
@@ -98,8 +101,8 @@ private:
     /// Update UI to reflect current configuration.
     void UpdateUI();
 
-    /// Update the controller selection combobox
-    void UpdateControllerCombobox();
+    /// Update the available input devices.
+    void UpdateInputDevices();
 
     /// Update the current controller icon.
     void UpdateControllerIcon();
@@ -164,7 +167,7 @@ private:
     bool want_keyboard_mouse = false;
 
     /// List of physical devices users can map with. If a SDL backed device is selected, then you
-    /// can usue this device to get a default mapping.
+    /// can use this device to get a default mapping.
     std::vector<Common::ParamPackage> input_devices;
 
     /// Bottom row is where console wide settings are held, and its "owned" by the parent
