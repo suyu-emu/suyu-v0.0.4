@@ -48,11 +48,11 @@ class ServiceManager {
 public:
     static void InstallInterfaces(std::shared_ptr<ServiceManager> self, Kernel::KernelCore& kernel);
 
-    ServiceManager();
+    explicit ServiceManager(Kernel::KernelCore& kernel_);
     ~ServiceManager();
 
     ResultVal<std::shared_ptr<Kernel::ServerPort>> RegisterService(std::string name,
-                                                                   unsigned int max_sessions);
+                                                                   u32 max_sessions);
     ResultCode UnregisterService(const std::string& name);
     ResultVal<std::shared_ptr<Kernel::ClientPort>> GetServicePort(const std::string& name);
     ResultVal<std::shared_ptr<Kernel::ClientSession>> ConnectToService(const std::string& name);
@@ -79,6 +79,9 @@ private:
 
     /// Map of registered services, retrieved using GetServicePort or ConnectToService.
     std::unordered_map<std::string, std::shared_ptr<Kernel::ClientPort>> registered_services;
+
+    /// Kernel context
+    Kernel::KernelCore& kernel;
 };
 
 } // namespace Service::SM

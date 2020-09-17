@@ -178,7 +178,7 @@ struct System::Impl {
         arp_manager.ResetAll();
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
-        service_manager = std::make_shared<Service::SM::ServiceManager>();
+        service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
 
         Service::Init(service_manager, system);
         GDBStub::DeferStart();
