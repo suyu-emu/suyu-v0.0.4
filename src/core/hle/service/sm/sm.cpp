@@ -27,11 +27,11 @@ void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
 }
 
 static ResultCode ValidateServiceName(const std::string& name) {
-    if (name.size() <= 0 || name.size() > 8) {
+    if (name.empty() || name.size() > 8) {
         LOG_ERROR(Service_SM, "Invalid service name! service={}", name);
         return ERR_INVALID_NAME;
     }
-    if (name.find('\0') != std::string::npos) {
+    if (name.rfind('\0') != std::string::npos) {
         LOG_ERROR(Service_SM, "A non null terminated service was passed");
         return ERR_INVALID_NAME;
     }
