@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <array>
 #include <atomic>
 
 #include "common/logging/log.h"
@@ -72,10 +73,10 @@ private:
         std::array<u8, 10> uuid;
         u8 uuid_length; // TODO(ogniK): Figure out if this is actual the uuid length or does it
                         // mean something else
-        INSERT_PADDING_BYTES(0x15);
+        std::array<u8, 0x15> padding_1;
         u32_le protocol;
         u32_le tag_type;
-        INSERT_PADDING_BYTES(0x2c);
+        std::array<u8, 0x2c> padding_2;
     };
     static_assert(sizeof(TagInfo) == 0x54, "TagInfo is an invalid size");
 
@@ -213,13 +214,15 @@ private:
         LOG_DEBUG(Service_NFP, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        auto amiibo = nfp_interface.GetAmiiboBuffer();
-        TagInfo tag_info{};
-        tag_info.uuid = amiibo.uuid;
-        tag_info.uuid_length = static_cast<u8>(tag_info.uuid.size());
-
-        tag_info.protocol = 1; // TODO(ogniK): Figure out actual values
-        tag_info.tag_type = 2;
+        const auto& amiibo = nfp_interface.GetAmiiboBuffer();
+        const TagInfo tag_info{
+            .uuid = amiibo.uuid,
+            .uuid_length = static_cast<u8>(tag_info.uuid.size()),
+            .padding_1 = {},
+            .protocol = 1, // TODO(ogniK): Figure out actual values
+            .tag_type = 2,
+            .padding_2 = {},
+        };
         ctx.WriteBuffer(tag_info);
         rb.Push(RESULT_SUCCESS);
     }
@@ -236,7 +239,7 @@ private:
         LOG_DEBUG(Service_NFP, "called");
 
         IPC::ResponseBuilder rb{ctx, 2};
-        auto amiibo = nfp_interface.GetAmiiboBuffer();
+        const auto& amiibo = nfp_interface.GetAmiiboBuffer();
         ctx.WriteBuffer(amiibo.model_info);
         rb.Push(RESULT_SUCCESS);
     }
