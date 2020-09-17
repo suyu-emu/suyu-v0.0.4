@@ -196,7 +196,7 @@ void CommandGenerator::PreCommand() {
     for (std::size_t i = 0; i < splitter_context.GetInfoCount(); i++) {
         const auto& base = splitter_context.GetInfo(i);
         std::string graph = fmt::format("b[{}]", i);
-        auto* head = base.GetHead();
+        const auto* head = base.GetHead();
         while (head != nullptr) {
             graph += fmt::format("->{}", head->GetMixId());
             head = head->GetNextDestination();
@@ -214,7 +214,7 @@ void CommandGenerator::PostCommand() {
 
 void CommandGenerator::GenerateDataSourceCommand(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
                                                  s32 channel) {
-    auto& in_params = voice_info.GetInParams();
+    const auto& in_params = voice_info.GetInParams();
     const auto depop = in_params.should_depop;
 
     if (depop) {
@@ -405,7 +405,7 @@ void CommandGenerator::GenerateBiquadFilterEffectCommand(s32 mix_buffer_offset, 
 }
 
 void CommandGenerator::GenerateAuxCommand(s32 mix_buffer_offset, EffectBase* info, bool enabled) {
-    auto aux = dynamic_cast<EffectAuxInfo*>(info);
+    auto* aux = dynamic_cast<EffectAuxInfo*>(info);
     const auto& params = aux->GetParams();
     if (aux->GetSendBuffer() != 0 && aux->GetRecvBuffer() != 0) {
         const auto max_channels = params.count;
@@ -571,7 +571,7 @@ void CommandGenerator::GenerateSubMixCommand(ServerMixInfo& mix_info) {
     if (dumping_frame) {
         LOG_DEBUG(Audio, "(DSP_TRACE) GenerateSubMixCommand");
     }
-    auto& in_params = mix_info.GetInParams();
+    const auto& in_params = mix_info.GetInParams();
     GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
                                       in_params.sample_rate);
 
@@ -650,7 +650,7 @@ void CommandGenerator::GenerateFinalMixCommand() {
         LOG_DEBUG(Audio, "(DSP_TRACE) GenerateFinalMixCommand");
     }
     auto& mix_info = mix_context.GetFinalMixInfo();
-    const auto in_params = mix_info.GetInParams();
+    const auto& in_params = mix_info.GetInParams();
 
     GenerateDepopForMixBuffersCommand(in_params.buffer_count, in_params.buffer_offset,
                                       in_params.sample_rate);
@@ -674,7 +674,7 @@ void CommandGenerator::GenerateFinalMixCommand() {
 
 s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
                                   s32 sample_count, s32 channel, std::size_t mix_offset) {
-    auto& in_params = voice_info.GetInParams();
+    const auto& in_params = voice_info.GetInParams();
     const auto& wave_buffer = in_params.wave_buffer[dsp_state.wave_buffer_index];
     if (wave_buffer.buffer_address == 0) {
         return 0;
@@ -714,7 +714,7 @@ s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_s
 
 s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
                                   s32 sample_count, s32 channel, std::size_t mix_offset) {
-    auto& in_params = voice_info.GetInParams();
+    const auto& in_params = voice_info.GetInParams();
     const auto& wave_buffer = in_params.wave_buffer[dsp_state.wave_buffer_index];
     if (wave_buffer.buffer_address == 0) {
         return 0;
@@ -766,8 +766,8 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
         val = std::clamp<s32>(val, -32768, 32767);
         // Advance output feedback.
         yn2 = yn1;
-        yn1 = val;
-        return static_cast<s16>(val);
+        yn1 = static_cast<s16>(val);
+        return yn1;
     };
 
     std::size_t buffer_offset{};
@@ -853,7 +853,7 @@ void CommandGenerator::DecodeFromWaveBuffers(ServerVoiceInfo& voice_info, s32* o
                                              VoiceState& dsp_state, s32 channel,
                                              s32 target_sample_rate, s32 sample_count,
                                              s32 node_id) {
-    auto& in_params = voice_info.GetInParams();
+    const auto& in_params = voice_info.GetInParams();
     if (dumping_frame) {
         LOG_DEBUG(Audio,
                   "(DSP_TRACE) DecodeFromWaveBuffers, node_id={}, channel={}, "
@@ -867,7 +867,8 @@ void CommandGenerator::DecodeFromWaveBuffers(ServerVoiceInfo& voice_info, s32* o
         static_cast<float>(in_params.sample_rate) / static_cast<float>(target_sample_rate) *
         static_cast<float>(static_cast<s32>(in_params.pitch * 32768.0f)));
     auto* output_base = output;
-    if ((dsp_state.fraction + sample_count * resample_rate) > (SCALED_MIX_BUFFER_SIZE - 4ULL)) {
+    if (dsp_state.fraction + sample_count * resample_rate >
+        static_cast<s32>(SCALED_MIX_BUFFER_SIZE - 4ULL)) {
         return;
     }
 
