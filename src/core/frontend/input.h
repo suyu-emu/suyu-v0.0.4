@@ -119,11 +119,11 @@ using ButtonDevice = InputDevice<bool>;
 using AnalogDevice = InputDevice<std::tuple<float, float>>;
 
 /**
- * A motion device is an input device that returns a tuple of accelerometer state vector and
- * gyroscope state vector.
+ * A motion status is an object that returns a tuple of accelerometer state vector,
+ * gyroscope state vector, rotation state vector and orientation state matrix.
  *
  * For both vectors:
- *   x+ is the same direction as LEFT on D-pad.
+ *   x+ is the same direction as RIGHT on D-pad.
  *   y+ is normal to the touch screen, pointing outward.
  *   z+ is the same direction as UP on D-pad.
  *
@@ -133,8 +133,22 @@ using AnalogDevice = InputDevice<std::tuple<float, float>>;
  * For gyroscope state vector:
  *   Orientation is determined by right-hand rule.
  *   Units: deg/sec
+ *
+ * For rotation state vector
+ *   Units: rotations
+ *
+ * For orientation state matrix
+ *   x vector
+ *   y vector
+ *   z vector
  */
-using MotionDevice = InputDevice<std::tuple<Common::Vec3<float>, Common::Vec3<float>>>;
+using MotionStatus = std::tuple<Common::Vec3<float>, Common::Vec3<float>, Common::Vec3<float>,
+                                std::array<Common::Vec3f, 3>>;
+
+/**
+ * A motion device is an input device that returns a motion status object
+ */
+using MotionDevice = InputDevice<MotionStatus>;
 
 /**
  * A touch device is an input device that returns a tuple of two floats and a bool. The floats are

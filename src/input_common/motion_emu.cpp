@@ -56,7 +56,7 @@ public:
         is_tilting = false;
     }
 
-    std::tuple<Common::Vec3<float>, Common::Vec3<float>> GetStatus() {
+    Input::MotionStatus GetStatus() {
         std::lock_guard guard{status_mutex};
         return status;
     }
@@ -76,7 +76,7 @@ private:
 
     Common::Event shutdown_event;
 
-    std::tuple<Common::Vec3<float>, Common::Vec3<float>> status;
+    Input::MotionStatus status;
     std::mutex status_mutex;
 
     // Note: always keep the thread declaration at the end so that other objects are initialized
@@ -113,10 +113,19 @@ private:
             gravity = QuaternionRotate(inv_q, gravity);
             angular_rate = QuaternionRotate(inv_q, angular_rate);
 
+            // TODO: Calculate the correct rotation vector and orientation matrix
+            const auto matrix4x4 = q.ToMatrix();
+            const auto rotation = Common::MakeVec(0.0f, 0.0f, 0.0f);
+            const std::array orientation{
+                Common::Vec3f(matrix4x4[0], matrix4x4[1], -matrix4x4[2]),
+                Common::Vec3f(matrix4x4[4], matrix4x4[5], -matrix4x4[6]),
+                Common::Vec3f(-matrix4x4[8], -matrix4x4[9], matrix4x4[10]),
+            };
+
             // Update the sensor state
             {
                 std::lock_guard guard{status_mutex};
-                status = std::make_tuple(gravity, angular_rate);
+                status = std::make_tuple(gravity, angular_rate, rotation, orientation);
             }
         }
     }
@@ -131,7 +140,7 @@ public:
         device = std::make_shared<MotionEmuDevice>(update_millisecond, sensitivity);
     }
 
-    std::tuple<Common::Vec3<float>, Common::Vec3<float>> GetStatus() const override {
+    Input::MotionStatus GetStatus() const override {
         return device->GetStatus();
     }
 

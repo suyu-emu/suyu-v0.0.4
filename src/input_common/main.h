@@ -21,10 +21,14 @@ namespace Settings::NativeButton {
 enum Values : int;
 }
 
+namespace Settings::NativeMotion {
+enum Values : int;
+}
+
 namespace InputCommon {
 namespace Polling {
 
-enum class DeviceType { Button, AnalogPreferred };
+enum class DeviceType { Button, AnalogPreferred, Motion };
 
 /**
  * A class that can be used to get inputs from an input device like controllers without having to
@@ -50,6 +54,8 @@ public:
 
 class GCAnalogFactory;
 class GCButtonFactory;
+class UDPMotionFactory;
+class UDPTouchFactory;
 class Keyboard;
 class MotionEmu;
 
@@ -59,6 +65,7 @@ class MotionEmu;
  */
 using AnalogMapping = std::unordered_map<Settings::NativeAnalog::Values, Common::ParamPackage>;
 using ButtonMapping = std::unordered_map<Settings::NativeButton::Values, Common::ParamPackage>;
+using MotionMapping = std::unordered_map<Settings::NativeMotion::Values, Common::ParamPackage>;
 
 class InputSubsystem {
 public:
@@ -103,6 +110,9 @@ public:
     /// Retrieves the button mappings for the given device.
     [[nodiscard]] ButtonMapping GetButtonMappingForDevice(const Common::ParamPackage& device) const;
 
+    /// Retrieves the motion mappings for the given device.
+    [[nodiscard]] MotionMapping GetMotionMappingForDevice(const Common::ParamPackage& device) const;
+
     /// Retrieves the underlying GameCube analog handler.
     [[nodiscard]] GCAnalogFactory* GetGCAnalogs();
 
@@ -114,6 +124,18 @@ public:
 
     /// Retrieves the underlying GameCube button handler.
     [[nodiscard]] const GCButtonFactory* GetGCButtons() const;
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] UDPMotionFactory* GetUDPMotions();
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] const UDPMotionFactory* GetUDPMotions() const;
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] UDPTouchFactory* GetUDPTouch();
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] const UDPTouchFactory* GetUDPTouch() const;
 
     /// Reloads the input devices
     void ReloadInputDevices();

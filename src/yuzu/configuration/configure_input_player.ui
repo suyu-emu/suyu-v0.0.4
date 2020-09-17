@@ -1983,6 +1983,9 @@
              <property name="spacing">
               <number>3</number>
              </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
              <item>
               <spacer name="horizontalSpacerMiscButtons1">
                <property name="orientation">
@@ -1990,11 +1993,109 @@
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>40</width>
-                 <height>0</height>
+                 <width>20</width>
+                 <height>20</height>
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="buttonMotionLeftGroup">
+               <property name="title">
+                <string>Motion 1</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <layout class="QVBoxLayout" name="buttonDpadLeftVerticalLayout_2">
+                <property name="spacing">
+                 <number>3</number>
+                </property>
+                <property name="leftMargin">
+                 <number>3</number>
+                </property>
+                <property name="topMargin">
+                 <number>3</number>
+                </property>
+                <property name="rightMargin">
+                 <number>3</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>3</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="buttonMotionLeft">
+                  <property name="minimumSize">
+                   <size>
+                    <width>57</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>55</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">min-width: 55px;</string>
+                  </property>
+                  <property name="text">
+                   <string>Left</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <widget class="QGroupBox" name="buttonMotionRightGroup">
+               <property name="title">
+                <string>Motion 2</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignCenter</set>
+               </property>
+               <layout class="QVBoxLayout" name="buttonDpadRightVerticalLayout_2">
+                <property name="spacing">
+                 <number>3</number>
+                </property>
+                <property name="leftMargin">
+                 <number>3</number>
+                </property>
+                <property name="topMargin">
+                 <number>3</number>
+                </property>
+                <property name="rightMargin">
+                 <number>3</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>3</number>
+                </property>
+                <item>
+                 <widget class="QPushButton" name="buttonMotionRight">
+                  <property name="minimumSize">
+                   <size>
+                    <width>57</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>55</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="styleSheet">
+                   <string notr="true">min-width: 55px;</string>
+                  </property>
+                  <property name="text">
+                   <string>Right</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </item>
              <item>
               <spacer name="horizontalSpacerMiscButtons4">
@@ -2003,8 +2104,8 @@
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>40</width>
-                 <height>0</height>
+                 <width>20</width>
+                 <height>20</height>
                 </size>
                </property>
               </spacer>

@@ -66,6 +66,21 @@ constexpr int NUM_STICKS_HID = NumAnalogs;
 extern const std::array<const char*, NumAnalogs> mapping;
 } // namespace NativeAnalog
 
+namespace NativeMotion {
+enum Values : int {
+    MOTIONLEFT,
+    MOTIONRIGHT,
+
+    NumMotions,
+};
+
+constexpr int MOTION_HID_BEGIN = MOTIONLEFT;
+constexpr int MOTION_HID_END = NumMotions;
+constexpr int NUM_MOTION_HID = NumMotions;
+
+extern const std::array<const char*, NumMotions> mapping;
+} // namespace NativeMotion
+
 namespace NativeMouseButton {
 enum Values {
     Left,
@@ -292,6 +307,7 @@ constexpr int NUM_KEYBOARD_MODS_HID = NumKeyboardMods;
 
 using ButtonsRaw = std::array<std::string, NativeButton::NumButtons>;
 using AnalogsRaw = std::array<std::string, NativeAnalog::NumAnalogs>;
+using MotionRaw = std::array<std::string, NativeMotion::NumMotions>;
 using MouseButtonsRaw = std::array<std::string, NativeMouseButton::NumMouseButtons>;
 using KeyboardKeysRaw = std::array<std::string, NativeKeyboard::NumKeyboardKeys>;
 using KeyboardModsRaw = std::array<std::string, NativeKeyboard::NumKeyboardMods>;
@@ -314,6 +330,7 @@ struct PlayerInput {
     ControllerType controller_type;
     ButtonsRaw buttons;
     AnalogsRaw analogs;
+    MotionRaw motions;
     std::string lstick_mod;
     std::string rstick_mod;
 

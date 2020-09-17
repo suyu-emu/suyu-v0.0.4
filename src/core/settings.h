@@ -152,6 +152,7 @@ struct Values {
 
     bool vibration_enabled;
 
+    bool motion_enabled;
     std::string motion_device;
     std::string touch_device;
     TouchscreenInput touchscreen;

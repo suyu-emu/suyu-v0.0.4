@@ -14,6 +14,13 @@ const std::array<const char*, NumButtons> mapping = {{
 }};
 }
 
+namespace NativeMotion {
+const std::array<const char*, NumMotions> mapping = {{
+    "motionleft",
+    "motionright",
+}};
+}
+
 namespace NativeAnalog {
 const std::array<const char*, NumAnalogs> mapping = {{
     "lstick",

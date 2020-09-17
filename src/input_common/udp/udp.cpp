@@ -1,105 +1,144 @@
-// Copyright 2018 Citra Emulator Project
+// Copyright 2020 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include <atomic>
+#include <list>
 #include <mutex>
-#include <optional>
-#include <tuple>
-
-#include "common/param_package.h"
-#include "core/frontend/input.h"
-#include "core/settings.h"
+#include <utility>
+#include "common/assert.h"
+#include "common/threadsafe_queue.h"
 #include "input_common/udp/client.h"
 #include "input_common/udp/udp.h"
 
-namespace InputCommon::CemuhookUDP {
+namespace InputCommon {
 
-class UDPTouchDevice final : public Input::TouchDevice {
+class UDPMotion final : public Input::MotionDevice {
 public:
-    explicit UDPTouchDevice(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
-    std::tuple<float, float, bool> GetStatus() const override {
-        std::lock_guard guard(status->update_mutex);
-        return status->touch_status;
+    UDPMotion(std::string ip_, int port_, int pad_, CemuhookUDP::Client* client_)
+        : ip(ip_), port(port_), pad(pad_), client(client_) {}
+
+    Input::MotionStatus GetStatus() const override {
+        return client->GetPadState(pad).motion_status;
     }
 
 private:
-    std::shared_ptr<DeviceStatus> status;
+    const std::string ip;
+    const int port;
+    const int pad;
+    CemuhookUDP::Client* client;
+    mutable std::mutex mutex;
 };
 
-class UDPMotionDevice final : public Input::MotionDevice {
-public:
-    explicit UDPMotionDevice(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
-    std::tuple<Common::Vec3<float>, Common::Vec3<float>> GetStatus() const override {
-        std::lock_guard guard(status->update_mutex);
-        return status->motion_status;
-    }
+/// A motion device factory that creates motion devices from JC Adapter
+UDPMotionFactory::UDPMotionFactory(std::shared_ptr<CemuhookUDP::Client> client_)
+    : client(std::move(client_)) {}
 
-private:
-    std::shared_ptr<DeviceStatus> status;
-};
+/**
+ * Creates motion device
+ * @param params contains parameters for creating the device:
+ *     - "port": the nth jcpad on the adapter
+ */
+std::unique_ptr<Input::MotionDevice> UDPMotionFactory::Create(const Common::ParamPackage& params) {
+    const std::string ip = params.Get("ip", "127.0.0.1");
+    const int port = params.Get("port", 26760);
+    const int pad = params.Get("pad_index", 0);
 
-class UDPTouchFactory final : public Input::Factory<Input::TouchDevice> {
-public:
-    explicit UDPTouchFactory(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
+    return std::make_unique<UDPMotion>(ip, port, pad, client.get());
+}
 
-    std::unique_ptr<Input::TouchDevice> Create(const Common::ParamPackage& params) override {
-        {
-            std::lock_guard guard(status->update_mutex);
-            status->touch_calibration = DeviceStatus::CalibrationData{};
-            // These default values work well for DS4 but probably not other touch inputs
-            status->touch_calibration->min_x = params.Get("min_x", 100);
-            status->touch_calibration->min_y = params.Get("min_y", 50);
-            status->touch_calibration->max_x = params.Get("max_x", 1800);
-            status->touch_calibration->max_y = params.Get("max_y", 850);
+void UDPMotionFactory::BeginConfiguration() {
+    polling = true;
+    client->BeginConfiguration();
+}
+
+void UDPMotionFactory::EndConfiguration() {
+    polling = false;
+    client->EndConfiguration();
+}
+
+Common::ParamPackage UDPMotionFactory::GetNextInput() {
+    Common::ParamPackage params;
+    CemuhookUDP::UDPPadStatus pad;
+    auto& queue = client->GetPadQueue();
+    for (std::size_t pad_number = 0; pad_number < queue.size(); ++pad_number) {
+        while (queue[pad_number].Pop(pad)) {
+            if (pad.motion == CemuhookUDP::PadMotion::Undefined || std::abs(pad.motion_value) < 1) {
+                continue;
+            }
+            params.Set("engine", "cemuhookudp");
+            params.Set("ip", "127.0.0.1");
+            params.Set("port", 26760);
+            params.Set("pad_index", static_cast<int>(pad_number));
+            params.Set("motion", static_cast<u16>(pad.motion));
+            return params;
         }
-        return std::make_unique<UDPTouchDevice>(status);
     }
+    return params;
+}
 
-private:
-    std::shared_ptr<DeviceStatus> status;
-};
-
-class UDPMotionFactory final : public Input::Factory<Input::MotionDevice> {
+class UDPTouch final : public Input::TouchDevice {
 public:
-    explicit UDPMotionFactory(std::shared_ptr<DeviceStatus> status_) : status(std::move(status_)) {}
+    UDPTouch(std::string ip_, int port_, int pad_, CemuhookUDP::Client* client_)
+        : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
-    std::unique_ptr<Input::MotionDevice> Create(const Common::ParamPackage& params) override {
-        return std::make_unique<UDPMotionDevice>(status);
+    std::tuple<float, float, bool> GetStatus() const override {
+        return client->GetPadState(pad).touch_status;
     }
 
 private:
-    std::shared_ptr<DeviceStatus> status;
+    const std::string ip;
+    const int port;
+    const int pad;
+    CemuhookUDP::Client* client;
+    mutable std::mutex mutex;
 };
 
-State::State() {
-    auto status = std::make_shared<DeviceStatus>();
-    client =
-        std::make_unique<Client>(status, Settings::values.udp_input_address,
-                                 Settings::values.udp_input_port, Settings::values.udp_pad_index);
+/// A motion device factory that creates motion devices from JC Adapter
+UDPTouchFactory::UDPTouchFactory(std::shared_ptr<CemuhookUDP::Client> client_)
+    : client(std::move(client_)) {}
 
-    motion_factory = std::make_shared<UDPMotionFactory>(status);
-    touch_factory = std::make_shared<UDPTouchFactory>(status);
+/**
+ * Creates motion device
+ * @param params contains parameters for creating the device:
+ *     - "port": the nth jcpad on the adapter
+ */
+std::unique_ptr<Input::TouchDevice> UDPTouchFactory::Create(const Common::ParamPackage& params) {
+    const std::string ip = params.Get("ip", "127.0.0.1");
+    const int port = params.Get("port", 26760);
+    const int pad = params.Get("pad_index", 0);
 
-    Input::RegisterFactory<Input::MotionDevice>("cemuhookudp", motion_factory);
-    Input::RegisterFactory<Input::TouchDevice>("cemuhookudp", touch_factory);
+    return std::make_unique<UDPTouch>(ip, port, pad, client.get());
 }
 
-State::~State() {
-    Input::UnregisterFactory<Input::TouchDevice>("cemuhookudp");
-    Input::UnregisterFactory<Input::MotionDevice>("cemuhookudp");
+void UDPTouchFactory::BeginConfiguration() {
+    polling = true;
+    client->BeginConfiguration();
 }
 
-std::vector<Common::ParamPackage> State::GetInputDevices() const {
-    // TODO support binding udp devices
-    return {};
+void UDPTouchFactory::EndConfiguration() {
+    polling = false;
+    client->EndConfiguration();
 }
 
-void State::ReloadUDPClient() {
-    client->ReloadSocket(Settings::values.udp_input_address, Settings::values.udp_input_port,
-                         Settings::values.udp_pad_index);
+Common::ParamPackage UDPTouchFactory::GetNextInput() {
+    Common::ParamPackage params;
+    CemuhookUDP::UDPPadStatus pad;
+    auto& queue = client->GetPadQueue();
+    for (std::size_t pad_number = 0; pad_number < queue.size(); ++pad_number) {
+        while (queue[pad_number].Pop(pad)) {
+            if (pad.touch == CemuhookUDP::PadTouch::Undefined) {
+                continue;
+            }
+            params.Set("engine", "cemuhookudp");
+            params.Set("ip", "127.0.0.1");
+            params.Set("port", 26760);
+            params.Set("pad_index", static_cast<int>(pad_number));
+            params.Set("touch", static_cast<u16>(pad.touch));
+            return params;
+        }
+    }
+    return params;
 }
 
-std::unique_ptr<State> Init() {
-    return std::make_unique<State>();
-}
-} // namespace InputCommon::CemuhookUDP
+} // namespace InputCommon

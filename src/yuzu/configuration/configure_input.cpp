@@ -146,6 +146,10 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
                 CallConfigureDialog<ConfigureMotionTouch>(*this, input_subsystem);
             });
 
+    connect(ui->motionButton, &QPushButton::clicked, [this, input_subsystem] {
+        CallConfigureDialog<ConfigureMotionTouch>(*this, input_subsystem);
+    });
+
     connect(ui->buttonClearAll, &QPushButton::clicked, [this] { ClearAll(); });
     connect(ui->buttonRestoreDefaults, &QPushButton::clicked, [this] { RestoreDefaults(); });
 
@@ -172,6 +176,7 @@ void ConfigureInput::ApplyConfiguration() {
     OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
 
     Settings::values.vibration_enabled = ui->vibrationGroup->isChecked();
+    Settings::values.motion_enabled = ui->motionGroup->isChecked();
 }
 
 void ConfigureInput::changeEvent(QEvent* event) {
@@ -191,6 +196,7 @@ void ConfigureInput::LoadConfiguration() {
     UpdateDockedState(Settings::values.players[8].connected);
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
+    ui->motionGroup->setChecked(Settings::values.motion_enabled);
 }
 
 void ConfigureInput::LoadPlayerControllerIndices() {
@@ -217,6 +223,7 @@ void ConfigureInput::RestoreDefaults() {
     ui->radioDocked->setChecked(true);
     ui->radioUndocked->setChecked(false);
     ui->vibrationGroup->setChecked(true);
+    ui->motionGroup->setChecked(true);
 }
 
 void ConfigureInput::UpdateDockedState(bool is_handheld) {
