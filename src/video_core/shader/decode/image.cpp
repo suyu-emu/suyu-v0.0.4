@@ -119,6 +119,8 @@ ComponentType GetComponentType(Tegra::Engines::SamplerDescriptor descriptor,
             return descriptor.r_type;
         }
         break;
+    default:
+        break;
     }
     UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
     return ComponentType::FLOAT;
@@ -220,9 +222,10 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
         return (component == 0 || component == 1) ? 8 : 0;
     case TextureFormat::G4R4:
         return (component == 0 || component == 1) ? 4 : 0;
+    default:
+        UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
+        return 0;
     }
-    UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
-    return 0;
 }
 
 std::size_t GetImageComponentMask(TextureFormat format) {
@@ -257,9 +260,10 @@ std::size_t GetImageComponentMask(TextureFormat format) {
     case TextureFormat::R8:
     case TextureFormat::R1:
         return std::size_t{R};
+    default:
+        UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
+        return std::size_t{R | G | B | A};
     }
-    UNIMPLEMENTED_MSG("Texture format not implemented={}", format);
-    return std::size_t{R | G | B | A};
 }
 
 std::size_t GetImageTypeNumCoordinates(Tegra::Shader::ImageType image_type) {
@@ -463,6 +467,8 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                     return OperationCode::AtomicImageXor;
                 case Tegra::Shader::ImageAtomicOperation::Exch:
                     return OperationCode::AtomicImageExchange;
+                default:
+                    break;
                 }
             default:
                 break;

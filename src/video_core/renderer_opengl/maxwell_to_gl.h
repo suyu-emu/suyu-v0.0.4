@@ -47,6 +47,8 @@ inline GLenum VertexFormat(Maxwell::VertexAttribute attrib) {
             return GL_UNSIGNED_INT;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return GL_UNSIGNED_INT_2_10_10_10_REV;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::SignedNorm:
@@ -70,6 +72,8 @@ inline GLenum VertexFormat(Maxwell::VertexAttribute attrib) {
             return GL_INT;
         case Maxwell::VertexAttribute::Size::Size_10_10_10_2:
             return GL_INT_2_10_10_10_REV;
+        default:
+            break;
         }
         break;
     case Maxwell::VertexAttribute::Type::Float:
@@ -84,6 +88,8 @@ inline GLenum VertexFormat(Maxwell::VertexAttribute attrib) {
         case Maxwell::VertexAttribute::Size::Size_32_32_32:
         case Maxwell::VertexAttribute::Size::Size_32_32_32_32:
             return GL_FLOAT;
+        default:
+            break;
         }
         break;
     }

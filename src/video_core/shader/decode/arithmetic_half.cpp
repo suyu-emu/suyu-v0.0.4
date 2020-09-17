@@ -53,6 +53,9 @@ u32 ShaderIR::DecodeArithmeticHalf(NodeBlock& bb, u32 pc) {
         absolute_a = ((instr.value >> 44) & 1) != 0;
         absolute_b = ((instr.value >> 54) & 1) != 0;
         break;
+    default:
+        UNREACHABLE();
+        break;
     }
 
     Node op_a = UnpackHalfFloat(GetRegister(instr.gpr8), instr.alu_half.type_a);

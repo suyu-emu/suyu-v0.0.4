@@ -1443,8 +1443,10 @@ private:
                 return expr + ", vec2(0.0), vec2(0.0))";
             case TextureType::TextureCube:
                 return expr + ", vec3(0.0), vec3(0.0))";
+            default:
+                UNREACHABLE();
+                break;
             }
-            UNREACHABLE();
         }
 
         for (const auto& variant : extras) {
