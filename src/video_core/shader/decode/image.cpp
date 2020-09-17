@@ -470,6 +470,7 @@ u32 ShaderIR::DecodeImage(NodeBlock& bb, u32 pc) {
                 default:
                     break;
                 }
+                break;
             default:
                 break;
             }
