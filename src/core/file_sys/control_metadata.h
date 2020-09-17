@@ -83,7 +83,7 @@ enum class Language : u8 {
     Italian = 7,
     Dutch = 8,
     CanadianFrench = 9,
-    Portugese = 10,
+    Portuguese = 10,
     Russian = 11,
     Korean = 12,
     Taiwanese = 13,
