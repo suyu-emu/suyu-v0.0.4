@@ -35,8 +35,8 @@ public:
                                               std::optional<u8> option) override;
 
     ARM_Dynarmic_32& parent;
-    u32 uprw;
-    u32 uro;
+    u32 uprw = 0;
+    u32 uro = 0;
 };
 
 } // namespace Core
