@@ -19,7 +19,7 @@ constexpr ResultCode ERR_ALREADY_REGISTERED(ErrorModule::SM, 4);
 constexpr ResultCode ERR_INVALID_NAME(ErrorModule::SM, 6);
 constexpr ResultCode ERR_SERVICE_NOT_REGISTERED(ErrorModule::SM, 7);
 
-ServiceManager::ServiceManager() = default;
+ServiceManager::ServiceManager(Kernel::KernelCore& kernel_) : kernel{kernel_} {}
 ServiceManager::~ServiceManager() = default;
 
 void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
@@ -27,11 +27,11 @@ void ServiceManager::InvokeControlRequest(Kernel::HLERequestContext& context) {
 }
 
 static ResultCode ValidateServiceName(const std::string& name) {
-    if (name.size() <= 0 || name.size() > 8) {
+    if (name.empty() || name.size() > 8) {
         LOG_ERROR(Service_SM, "Invalid service name! service={}", name);
         return ERR_INVALID_NAME;
     }
-    if (name.find('\0') != std::string::npos) {
+    if (name.rfind('\0') != std::string::npos) {
         LOG_ERROR(Service_SM, "A non null terminated service was passed");
         return ERR_INVALID_NAME;
     }
@@ -48,8 +48,8 @@ void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self,
     self->controller_interface = std::make_unique<Controller>();
 }
 
-ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(
-    std::string name, unsigned int max_sessions) {
+ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(std::string name,
+                                                                               u32 max_sessions) {
 
     CASCADE_CODE(ValidateServiceName(name));
 
@@ -58,7 +58,6 @@ ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(
         return ERR_ALREADY_REGISTERED;
     }
 
-    auto& kernel = Core::System::GetInstance().Kernel();
     auto [server_port, client_port] =
         Kernel::ServerPort::CreatePortPair(kernel, max_sessions, name);
 
