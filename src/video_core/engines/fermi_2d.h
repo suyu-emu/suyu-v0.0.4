@@ -145,8 +145,8 @@ public:
     } regs{};
 
     struct Config {
-        Operation operation;
-        Filter filter;
+        Operation operation{};
+        Filter filter{};
         Common::Rectangle<u32> src_rect;
         Common::Rectangle<u32> dst_rect;
     };
