@@ -290,7 +290,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     analog_map_range_spinbox = {ui->spinboxLStickRange, ui->spinboxRStickRange};
 
     const auto ConfigureButtonClick = [&](QPushButton* button, Common::ParamPackage* param,
-                                          int default_val) {
+                                          int default_val, InputCommon::Polling::DeviceType type) {
         connect(button, &QPushButton::clicked, [=, this] {
             HandleClick(
                 button,
@@ -310,7 +310,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                     }
                     *param = std::move(params);
                 },
-                InputCommon::Polling::DeviceType::Button);
+                type);
         });
     };
 
@@ -322,7 +322,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
 
         ConfigureButtonClick(button_map[button_id], &buttons_param[button_id],
-                             Config::default_buttons[button_id]);
+                             Config::default_buttons[button_id],
+                             InputCommon::Polling::DeviceType::Button);
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -344,7 +345,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
 
         ConfigureButtonClick(motion_map[motion_id], &motions_param[motion_id],
-                             Config::default_motions[motion_id]);
+                             Config::default_motions[motion_id],
+                             InputCommon::Polling::DeviceType::Motion);
 
         button->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -393,7 +395,8 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 
         // Handle clicks for the modifier buttons as well.
         ConfigureButtonClick(mod_buttons[analog_id], &stick_mod_param[analog_id],
-                             Config::default_stick_mod[analog_id]);
+                             Config::default_stick_mod[analog_id],
+                             InputCommon::Polling::DeviceType::Button);
 
         mod_buttons[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
 
