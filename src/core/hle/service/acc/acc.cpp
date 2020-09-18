@@ -774,6 +774,17 @@ void Module::Interface::ListQualifiedUsers(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
+void Module::Interface::LoadOpenContext(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_ACC, "(STUBBED) called");
+
+    // This is similar to GetBaasAccountManagerForApplication
+    // This command is used concurrently with ListOpenContextStoredUsers
+    // TODO: Find the differences between this and GetBaasAccountManagerForApplication
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IManagerForApplication>(profile_manager->GetLastOpenedUser());
+}
+
 void Module::Interface::ListOpenContextStoredUsers(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_ACC, "(STUBBED) called");
 
