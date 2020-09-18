@@ -87,12 +87,12 @@ void Fermi2D::HandleSurfaceCopy() {
     const Common::Rectangle<u32> src_rect{src_blit_x1, src_blit_y1, src_blit_x2, src_blit_y2};
     const Common::Rectangle<u32> dst_rect{regs.blit_dst_x, regs.blit_dst_y, dst_blit_x2,
                                           dst_blit_y2};
-    Config copy_config;
-    copy_config.operation = regs.operation;
-    copy_config.filter = regs.blit_control.filter;
-    copy_config.src_rect = src_rect;
-    copy_config.dst_rect = dst_rect;
-
+    const Config copy_config{
+        .operation = regs.operation,
+        .filter = regs.blit_control.filter,
+        .src_rect = src_rect,
+        .dst_rect = dst_rect,
+    };
     if (!rasterizer->AccelerateSurfaceCopy(regs.src, regs.dst, copy_config)) {
         UNIMPLEMENTED();
     }
