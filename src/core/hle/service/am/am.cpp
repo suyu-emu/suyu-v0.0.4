@@ -1192,7 +1192,7 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {120, nullptr, "ExecuteProgram"},
         {121, nullptr, "ClearUserChannel"},
         {122, nullptr, "UnpopToUserChannel"},
-        {123, nullptr, "GetPreviousProgramIndex"},
+        {123, &IApplicationFunctions::GetPreviousProgramIndex, "GetPreviousProgramIndex"},
         {124, nullptr, "EnableApplicationAllThreadDumpOnCrash"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
         {140, &IApplicationFunctions::GetFriendInvitationStorageChannelEvent, "GetFriendInvitationStorageChannelEvent"},
@@ -1552,6 +1552,14 @@ void IApplicationFunctions::QueryApplicationPlayStatisticsByUid(Kernel::HLEReque
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(0);
+}
+
+void IApplicationFunctions::GetPreviousProgramIndex(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<s32>(previous_program_index);
 }
 
 void IApplicationFunctions::GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx) {
