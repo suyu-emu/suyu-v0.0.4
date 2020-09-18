@@ -7,6 +7,7 @@
 #include "common/common_types.h"
 #include "common/quaternion.h"
 #include "common/vector_math.h"
+#include "core/frontend/input.h"
 
 namespace InputCommon {
 
@@ -37,6 +38,8 @@ public:
     Common::Vec3f GetGyroscope() const;
     Common::Vec3f GetRotations() const;
     Common::Quaternion<f32> GetQuaternion() const;
+    Input::MotionStatus GetMotion() const;
+    Input::MotionStatus GetRandomMotion(int accel_magnitude, int gyro_magnitude) const;
 
     bool IsMoving(f32 sensitivity) const;
     bool IsCalibrated(f32 sensitivity) const;
