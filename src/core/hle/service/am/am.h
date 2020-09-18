@@ -288,11 +288,13 @@ private:
     void SetApplicationCopyrightVisibility(Kernel::HLERequestContext& ctx);
     void QueryApplicationPlayStatistics(Kernel::HLERequestContext& ctx);
     void QueryApplicationPlayStatisticsByUid(Kernel::HLERequestContext& ctx);
+    void GetPreviousProgramIndex(Kernel::HLERequestContext& ctx);
     void GetGpuErrorDetectedSystemEvent(Kernel::HLERequestContext& ctx);
     void GetFriendInvitationStorageChannelEvent(Kernel::HLERequestContext& ctx);
 
     bool launch_popped_application_specific = false;
     bool launch_popped_account_preselect = false;
+    s32 previous_program_index{-1};
     Kernel::EventPair gpu_error_detected_event;
     Kernel::EventPair friend_invitation_storage_channel_event;
     Core::System& system;
