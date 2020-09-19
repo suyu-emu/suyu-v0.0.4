@@ -19,9 +19,8 @@
 #include <SDL.h>
 #include <SDL_syswm.h>
 
-EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(Core::System& system, bool fullscreen,
-                                     InputCommon::InputSubsystem* input_subsystem)
-    : EmuWindow_SDL2{system, fullscreen, input_subsystem} {
+EmuWindow_SDL2_VK::EmuWindow_SDL2_VK(InputCommon::InputSubsystem* input_subsystem)
+    : EmuWindow_SDL2{input_subsystem} {
     const std::string window_title = fmt::format("yuzu {} | {}-{} (Vulkan)", Common::g_build_name,
                                                  Common::g_scm_branch, Common::g_scm_desc);
     render_window =
@@ -73,8 +72,4 @@ EmuWindow_SDL2_VK::~EmuWindow_SDL2_VK() = default;
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_VK::CreateSharedContext() const {
     return std::make_unique<DummyContext>();
-}
-
-void EmuWindow_SDL2_VK::Present() {
-    // TODO (bunnei): ImplementMe
 }

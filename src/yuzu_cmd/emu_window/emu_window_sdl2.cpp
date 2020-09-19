@@ -13,9 +13,8 @@
 #include "input_common/sdl/sdl.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
-EmuWindow_SDL2::EmuWindow_SDL2(Core::System& system, bool fullscreen,
-                               InputCommon::InputSubsystem* input_subsystem_)
-    : system{system}, input_subsystem{input_subsystem_} {
+EmuWindow_SDL2::EmuWindow_SDL2(InputCommon::InputSubsystem* input_subsystem_)
+    : input_subsystem{input_subsystem_} {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0) {
         LOG_CRITICAL(Frontend, "Failed to initialize SDL2! Exiting...");
         exit(1);

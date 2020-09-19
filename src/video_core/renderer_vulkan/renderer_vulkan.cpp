@@ -283,11 +283,6 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     render_window.PollEvents();
 }
 
-bool RendererVulkan::TryPresent(int /*timeout_ms*/) {
-    // TODO (bunnei): ImplementMe
-    return true;
-}
-
 bool RendererVulkan::Init() {
     library = OpenVulkanLibrary();
     instance = CreateInstance(library, dld, render_window.GetWindowInfo().type,

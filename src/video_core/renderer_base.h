@@ -46,11 +46,6 @@ public:
     /// Finalize rendering the guest frame and draw into the presentation texture
     virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
 
-    /// Draws the latest frame to the window waiting timeout_ms for a frame to arrive (Renderer
-    /// specific implementation)
-    /// Returns true if a frame was drawn
-    virtual bool TryPresent(int timeout_ms) = 0;
-
     // Getter/setter functions:
     // ------------------------
 

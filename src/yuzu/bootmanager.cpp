@@ -218,15 +218,6 @@ public:
 
     virtual ~RenderWidget() = default;
 
-    /// Called on the UI thread when this Widget is ready to draw
-    /// Dervied classes can override this to draw the latest frame.
-    virtual void Present() {}
-
-    void paintEvent(QPaintEvent* event) override {
-        Present();
-        update();
-    }
-
     QPaintEngine* paintEngine() const override {
         return nullptr;
     }
@@ -245,20 +236,8 @@ public:
         context = std::move(context_);
     }
 
-    void Present() override {
-        if (!isVisible()) {
-            return;
-        }
-
-        context->MakeCurrent();
-        if (Core::System::GetInstance().Renderer().TryPresent(100)) {
-            context->SwapBuffers();
-            glFinish();
-        }
-    }
-
 private:
-    std::unique_ptr<Core::Frontend::GraphicsContext> context{};
+    std::unique_ptr<Core::Frontend::GraphicsContext> context;
 };
 
 #ifdef HAS_VULKAN

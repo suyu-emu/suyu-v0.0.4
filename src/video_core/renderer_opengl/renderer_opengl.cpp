@@ -32,20 +32,6 @@ namespace OpenGL {
 
 namespace {
 
-constexpr std::size_t SWAP_CHAIN_SIZE = 3;
-
-struct Frame {
-    u32 width{};                      /// Width of the frame (to detect resize)
-    u32 height{};                     /// Height of the frame
-    bool color_reloaded{};            /// Texture attachment was recreated (ie: resized)
-    OpenGL::OGLRenderbuffer color{};  /// Buffer shared between the render/present FBO
-    OpenGL::OGLFramebuffer render{};  /// FBO created on the render thread
-    OpenGL::OGLFramebuffer present{}; /// FBO created on the present thread
-    GLsync render_fence{};            /// Fence created on the render thread
-    GLsync present_fence{};           /// Fence created on the presentation thread
-    bool is_srgb{};                   /// Framebuffer is sRGB or RGB
-};
-
 constexpr GLint PositionLocation = 0;
 constexpr GLint TexCoordLocation = 1;
 constexpr GLint ModelViewMatrixLocation = 0;
@@ -57,24 +43,6 @@ struct ScreenRectVertex {
     std::array<GLfloat, 2> position;
     std::array<GLfloat, 2> tex_coord;
 };
-
-/// Returns true if any debug tool is attached
-bool HasDebugTool() {
-    const bool nsight = std::getenv("NVTX_INJECTION64_PATH") || std::getenv("NSIGHT_LAUNCHED");
-    if (nsight) {
-        return true;
-    }
-
-    GLint num_extensions;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-    for (GLuint index = 0; index < static_cast<GLuint>(num_extensions); ++index) {
-        const auto name = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, index));
-        if (!std::strcmp(name, "GL_EXT_debug_tool")) {
-            return true;
-        }
-    }
-    return false;
-}
 
 /**
  * Defines a 1:1 pixel ortographic projection matrix with (0,0) on the top-left
@@ -159,134 +127,14 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
 
 } // Anonymous namespace
 
-/**
- * For smooth Vsync rendering, we want to always present the latest frame that the core generates,
- * but also make sure that rendering happens at the pace that the frontend dictates. This is a
- * helper class that the renderer uses to sync frames between the render thread and the presentation
- * thread
- */
-class FrameMailbox {
-public:
-    std::mutex swap_chain_lock;
-    std::condition_variable present_cv;
-    std::array<Frame, SWAP_CHAIN_SIZE> swap_chain{};
-    std::queue<Frame*> free_queue;
-    std::deque<Frame*> present_queue;
-    Frame* previous_frame{};
-
-    FrameMailbox() {
-        for (auto& frame : swap_chain) {
-            free_queue.push(&frame);
-        }
-    }
-
-    ~FrameMailbox() {
-        // lock the mutex and clear out the present and free_queues and notify any people who are
-        // blocked to prevent deadlock on shutdown
-        std::scoped_lock lock{swap_chain_lock};
-        std::queue<Frame*>().swap(free_queue);
-        present_queue.clear();
-        present_cv.notify_all();
-    }
-
-    void ReloadPresentFrame(Frame* frame, u32 height, u32 width) {
-        frame->present.Release();
-        frame->present.Create();
-        GLint previous_draw_fbo{};
-        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &previous_draw_fbo);
-        glBindFramebuffer(GL_FRAMEBUFFER, frame->present.handle);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-                                  frame->color.handle);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_CRITICAL(Render_OpenGL, "Failed to recreate present FBO!");
-        }
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, previous_draw_fbo);
-        frame->color_reloaded = false;
-    }
-
-    void ReloadRenderFrame(Frame* frame, u32 width, u32 height) {
-        // Recreate the color texture attachment
-        frame->color.Release();
-        frame->color.Create();
-        const GLenum internal_format = frame->is_srgb ? GL_SRGB8 : GL_RGB8;
-        glNamedRenderbufferStorage(frame->color.handle, internal_format, width, height);
-
-        // Recreate the FBO for the render target
-        frame->render.Release();
-        frame->render.Create();
-        glBindFramebuffer(GL_FRAMEBUFFER, frame->render.handle);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER,
-                                  frame->color.handle);
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-            LOG_CRITICAL(Render_OpenGL, "Failed to recreate render FBO!");
-        }
-
-        frame->width = width;
-        frame->height = height;
-        frame->color_reloaded = true;
-    }
-
-    Frame* GetRenderFrame() {
-        std::unique_lock lock{swap_chain_lock};
-
-        // If theres no free frames, we will reuse the oldest render frame
-        if (free_queue.empty()) {
-            auto frame = present_queue.back();
-            present_queue.pop_back();
-            return frame;
-        }
-
-        Frame* frame = free_queue.front();
-        free_queue.pop();
-        return frame;
-    }
-
-    void ReleaseRenderFrame(Frame* frame) {
-        std::unique_lock lock{swap_chain_lock};
-        present_queue.push_front(frame);
-        present_cv.notify_one();
-    }
-
-    Frame* TryGetPresentFrame(int timeout_ms) {
-        std::unique_lock lock{swap_chain_lock};
-        // wait for new entries in the present_queue
-        present_cv.wait_for(lock, std::chrono::milliseconds(timeout_ms),
-                            [&] { return !present_queue.empty(); });
-        if (present_queue.empty()) {
-            // timed out waiting for a frame to draw so return the previous frame
-            return previous_frame;
-        }
-
-        // free the previous frame and add it back to the free queue
-        if (previous_frame) {
-            free_queue.push(previous_frame);
-        }
-
-        // the newest entries are pushed to the front of the queue
-        Frame* frame = present_queue.front();
-        present_queue.pop_front();
-        // remove all old entries from the present queue and move them back to the free_queue
-        for (auto f : present_queue) {
-            free_queue.push(f);
-        }
-        present_queue.clear();
-        previous_frame = frame;
-        return frame;
-    }
-};
-
 RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context)
     : RendererBase{emu_window_, std::move(context)}, telemetry_session{telemetry_session_},
-      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device},
-      has_debug_tool{HasDebugTool()} {}
+      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device} {}
 
 RendererOpenGL::~RendererOpenGL() = default;
-
-MICROPROFILE_DEFINE(OpenGL_RenderFrame, "OpenGL", "Render Frame", MP_RGB(128, 128, 64));
-MICROPROFILE_DEFINE(OpenGL_WaitPresent, "OpenGL", "Wait For Present", MP_RGB(128, 128, 128));
 
 void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (!framebuffer) {
@@ -296,79 +144,34 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     PrepareRendertarget(framebuffer);
     RenderScreenshot();
 
-    Frame* frame;
-    {
-        MICROPROFILE_SCOPE(OpenGL_WaitPresent);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    DrawScreen(emu_window.GetFramebufferLayout());
 
-        frame = frame_mailbox->GetRenderFrame();
+    ++m_current_frame;
 
-        // Clean up sync objects before drawing
-
-        // INTEL driver workaround. We can't delete the previous render sync object until we are
-        // sure that the presentation is done
-        if (frame->present_fence) {
-            glClientWaitSync(frame->present_fence, 0, GL_TIMEOUT_IGNORED);
-        }
-
-        // delete the draw fence if the frame wasn't presented
-        if (frame->render_fence) {
-            glDeleteSync(frame->render_fence);
-            frame->render_fence = 0;
-        }
-
-        // wait for the presentation to be done
-        if (frame->present_fence) {
-            glWaitSync(frame->present_fence, 0, GL_TIMEOUT_IGNORED);
-            glDeleteSync(frame->present_fence);
-            frame->present_fence = 0;
-        }
-    }
-
-    {
-        MICROPROFILE_SCOPE(OpenGL_RenderFrame);
-        const auto& layout = render_window.GetFramebufferLayout();
-
-        // Recreate the frame if the size of the window has changed
-        if (layout.width != frame->width || layout.height != frame->height ||
-            screen_info.display_srgb != frame->is_srgb) {
-            LOG_DEBUG(Render_OpenGL, "Reloading render frame");
-            frame->is_srgb = screen_info.display_srgb;
-            frame_mailbox->ReloadRenderFrame(frame, layout.width, layout.height);
-        }
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, frame->render.handle);
-        DrawScreen(layout);
-        // Create a fence for the frontend to wait on and swap this frame to OffTex
-        frame->render_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-        glFlush();
-        frame_mailbox->ReleaseRenderFrame(frame);
-        m_current_frame++;
-        rasterizer->TickFrame();
-    }
+    rasterizer->TickFrame();
 
     render_window.PollEvents();
-    if (has_debug_tool) {
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        Present(0);
-        context->SwapBuffers();
-    }
+    context->SwapBuffers();
 }
 
 void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer) {
-    if (framebuffer) {
-        // If framebuffer is provided, reload it from memory to a texture
-        if (screen_info.texture.width != static_cast<GLsizei>(framebuffer->width) ||
-            screen_info.texture.height != static_cast<GLsizei>(framebuffer->height) ||
-            screen_info.texture.pixel_format != framebuffer->pixel_format ||
-            gl_framebuffer_data.empty()) {
-            // Reallocate texture if the framebuffer size has changed.
-            // This is expected to not happen very often and hence should not be a
-            // performance problem.
-            ConfigureFramebufferTexture(screen_info.texture, *framebuffer);
-        }
-
-        // Load the framebuffer from memory, draw it to the screen, and swap buffers
-        LoadFBToScreenInfo(*framebuffer);
+    if (!framebuffer) {
+        return;
     }
+    // If framebuffer is provided, reload it from memory to a texture
+    if (screen_info.texture.width != static_cast<GLsizei>(framebuffer->width) ||
+        screen_info.texture.height != static_cast<GLsizei>(framebuffer->height) ||
+        screen_info.texture.pixel_format != framebuffer->pixel_format ||
+        gl_framebuffer_data.empty()) {
+        // Reallocate texture if the framebuffer size has changed.
+        // This is expected to not happen very often and hence should not be a
+        // performance problem.
+        ConfigureFramebufferTexture(screen_info.texture, *framebuffer);
+    }
+
+    // Load the framebuffer from memory, draw it to the screen, and swap buffers
+    LoadFBToScreenInfo(*framebuffer);
 }
 
 void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuffer) {
@@ -418,8 +221,6 @@ void RendererOpenGL::LoadColorToActiveGLTexture(u8 color_r, u8 color_g, u8 color
 }
 
 void RendererOpenGL::InitOpenGLObjects() {
-    frame_mailbox = std::make_unique<FrameMailbox>();
-
     glClearColor(Settings::values.bg_red.GetValue(), Settings::values.bg_green.GetValue(),
                  Settings::values.bg_blue.GetValue(), 0.0f);
 
@@ -647,51 +448,6 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
     program_manager.RestoreGuestPipeline();
 }
 
-bool RendererOpenGL::TryPresent(int timeout_ms) {
-    if (has_debug_tool) {
-        LOG_DEBUG(Render_OpenGL,
-                  "Skipping presentation because we are presenting on the main context");
-        return false;
-    }
-    return Present(timeout_ms);
-}
-
-bool RendererOpenGL::Present(int timeout_ms) {
-    const auto& layout = render_window.GetFramebufferLayout();
-    auto frame = frame_mailbox->TryGetPresentFrame(timeout_ms);
-    if (!frame) {
-        LOG_DEBUG(Render_OpenGL, "TryGetPresentFrame returned no frame to present");
-        return false;
-    }
-
-    // Clearing before a full overwrite of a fbo can signal to drivers that they can avoid a
-    // readback since we won't be doing any blending
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    // Recreate the presentation FBO if the color attachment was changed
-    if (frame->color_reloaded) {
-        LOG_DEBUG(Render_OpenGL, "Reloading present frame");
-        frame_mailbox->ReloadPresentFrame(frame, layout.width, layout.height);
-    }
-    glWaitSync(frame->render_fence, 0, GL_TIMEOUT_IGNORED);
-    // INTEL workaround.
-    // Normally we could just delete the draw fence here, but due to driver bugs, we can just delete
-    // it on the emulation thread without too much penalty
-    // glDeleteSync(frame.render_sync);
-    // frame.render_sync = 0;
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, frame->present.handle);
-    glBlitFramebuffer(0, 0, frame->width, frame->height, 0, 0, layout.width, layout.height,
-                      GL_COLOR_BUFFER_BIT, GL_LINEAR);
-
-    // Insert fence for the main thread to block on
-    frame->present_fence = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    glFlush();
-
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-    return true;
-}
-
 void RendererOpenGL::RenderScreenshot() {
     if (!renderer_settings.screenshot_requested) {
         return;
@@ -706,7 +462,7 @@ void RendererOpenGL::RenderScreenshot() {
     screenshot_framebuffer.Create();
     glBindFramebuffer(GL_FRAMEBUFFER, screenshot_framebuffer.handle);
 
-    Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
+    const Layout::FramebufferLayout layout{renderer_settings.screenshot_framebuffer_layout};
 
     GLuint renderbuffer;
     glGenRenderbuffers(1, &renderbuffer);
