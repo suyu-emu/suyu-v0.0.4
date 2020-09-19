@@ -76,7 +76,16 @@ VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
                                                           QueryType::SamplesPassed},
                                             } {}
 
-VKQueryCache::~VKQueryCache() = default;
+VKQueryCache::~VKQueryCache() {
+    // TODO(Rodrigo): This is a hack to destroy all HostCounter instances before the base class
+    // destructor is called. The query cache should be redesigned to have a proper ownership model
+    // instead of using shared pointers.
+    for (size_t query_type = 0; query_type < VideoCore::NumQueryTypes; ++query_type) {
+        auto& stream = Stream(static_cast<QueryType>(query_type));
+        stream.Update(false);
+        stream.Reset();
+    }
+}
 
 std::pair<VkQueryPool, u32> VKQueryCache::AllocateQuery(QueryType type) {
     return query_pools[static_cast<std::size_t>(type)].Commit();
