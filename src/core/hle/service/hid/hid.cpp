@@ -739,8 +739,11 @@ void Hid::SetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
     const auto applet_resource_user_id{rp.Pop<u64>()};
     const auto mode{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}, mode={}",
-                applet_resource_user_id, mode);
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}, mode={}", applet_resource_user_id,
+              mode);
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetNpadHandheldActivationMode(Controller_NPad::NpadHandheldActivationMode{mode});
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -750,11 +753,13 @@ void Hid::GetNpadHandheldActivationMode(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
-    IPC::ResponseBuilder rb{ctx, 2};
+    IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
+    rb.Push<u64>(
+        static_cast<u64>(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                             .GetNpadHandheldActivationMode()));
 }
 
 void Hid::SwapNpadAssignment(Kernel::HLERequestContext& ctx) {

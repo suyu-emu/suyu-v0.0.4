@@ -74,6 +74,12 @@ public:
         Single = 1,
     };
 
+    enum class NpadHandheldActivationMode : u64 {
+        Dual = 0,
+        Single = 1,
+        None = 2,
+    };
+
     enum class NPadControllerType {
         None,
         ProController,
@@ -109,6 +115,9 @@ public:
 
     void SetHoldType(NpadHoldType joy_hold_type);
     NpadHoldType GetHoldType() const;
+
+    void SetNpadHandheldActivationMode(NpadHandheldActivationMode activation_mode);
+    NpadHandheldActivationMode GetNpadHandheldActivationMode() const;
 
     void SetNpadMode(u32 npad_id, NPadAssignments assignment_mode);
 
@@ -369,6 +378,7 @@ private:
     MotionArray motions;
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
+    NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
     Vibration last_processed_vibration{};

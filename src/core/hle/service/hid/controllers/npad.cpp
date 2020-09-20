@@ -593,6 +593,14 @@ Controller_NPad::NpadHoldType Controller_NPad::GetHoldType() const {
     return hold_type;
 }
 
+void Controller_NPad::SetNpadHandheldActivationMode(NpadHandheldActivationMode activation_mode) {
+    handheld_activation_mode = activation_mode;
+}
+
+Controller_NPad::NpadHandheldActivationMode Controller_NPad::GetNpadHandheldActivationMode() const {
+    return handheld_activation_mode;
+}
+
 void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) {
     const std::size_t npad_index = NPadIdToIndex(npad_id);
     ASSERT(npad_index < shared_memory_entries.size());
