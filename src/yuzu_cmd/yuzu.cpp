@@ -185,11 +185,11 @@ int main(int argc, char** argv) {
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {
     case Settings::RendererBackend::OpenGL:
-        emu_window = std::make_unique<EmuWindow_SDL2_GL>(system, fullscreen, &input_subsystem);
+        emu_window = std::make_unique<EmuWindow_SDL2_GL>(&input_subsystem, fullscreen);
         break;
     case Settings::RendererBackend::Vulkan:
 #ifdef HAS_VULKAN
-        emu_window = std::make_unique<EmuWindow_SDL2_VK>(system, fullscreen, &input_subsystem);
+        emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem);
         break;
 #else
         LOG_CRITICAL(Frontend, "Vulkan backend has not been compiled!");
@@ -240,14 +240,11 @@ int main(int argc, char** argv) {
         system.CurrentProcess()->GetTitleID(), false,
         [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
 
-    std::thread render_thread([&emu_window] { emu_window->Present(); });
     system.Run();
     while (emu_window->IsOpen()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     system.Pause();
-    render_thread.join();
-
     system.Shutdown();
 
     detached_tasks.WaitForAllTasks();

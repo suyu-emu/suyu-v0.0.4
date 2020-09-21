@@ -55,7 +55,6 @@ public:
     bool Init() override;
     void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
-    bool TryPresent(int timeout_ms) override;
 
     static std::vector<std::string> EnumerateDevices();
 

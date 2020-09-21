@@ -55,14 +55,6 @@ struct ScreenInfo {
     TextureInfo texture;
 };
 
-struct PresentationTexture {
-    u32 width = 0;
-    u32 height = 0;
-    OGLTexture texture;
-};
-
-class FrameMailbox;
-
 class RendererOpenGL final : public VideoCore::RendererBase {
 public:
     explicit RendererOpenGL(Core::TelemetrySession& telemetry_session,
@@ -74,7 +66,6 @@ public:
     bool Init() override;
     void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
-    bool TryPresent(int timeout_ms) override;
 
 private:
     /// Initializes the OpenGL state and creates persistent objects.
@@ -101,8 +92,6 @@ private:
                                     const TextureInfo& texture);
 
     void PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer);
-
-    bool Present(int timeout_ms);
 
     Core::TelemetrySession& telemetry_session;
     Core::Frontend::EmuWindow& emu_window;
@@ -134,11 +123,6 @@ private:
     /// Used for transforming the framebuffer orientation
     Tegra::FramebufferConfig::TransformFlags framebuffer_transform_flags{};
     Common::Rectangle<int> framebuffer_crop_rect;
-
-    /// Frame presentation mailbox
-    std::unique_ptr<FrameMailbox> frame_mailbox;
-
-    bool has_debug_tool = false;
 };
 
 } // namespace OpenGL

@@ -87,9 +87,8 @@ bool EmuWindow_SDL2_GL::SupportsRequiredGLExtensions() {
     return unsupported_ext.empty();
 }
 
-EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(Core::System& system, bool fullscreen,
-                                     InputCommon::InputSubsystem* input_subsystem)
-    : EmuWindow_SDL2{system, fullscreen, input_subsystem} {
+EmuWindow_SDL2_GL::EmuWindow_SDL2_GL(InputCommon::InputSubsystem* input_subsystem, bool fullscreen)
+    : EmuWindow_SDL2{input_subsystem} {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
@@ -162,14 +161,4 @@ EmuWindow_SDL2_GL::~EmuWindow_SDL2_GL() {
 
 std::unique_ptr<Core::Frontend::GraphicsContext> EmuWindow_SDL2_GL::CreateSharedContext() const {
     return std::make_unique<SDLGLContext>();
-}
-
-void EmuWindow_SDL2_GL::Present() {
-    SDL_GL_MakeCurrent(render_window, window_context);
-    SDL_GL_SetSwapInterval(Settings::values.use_vsync.GetValue() ? 1 : 0);
-    while (IsOpen()) {
-        system.Renderer().TryPresent(100);
-        SDL_GL_SwapWindow(render_window);
-    }
-    SDL_GL_MakeCurrent(render_window, nullptr);
 }
