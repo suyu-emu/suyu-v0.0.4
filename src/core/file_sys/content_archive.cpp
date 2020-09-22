@@ -323,7 +323,7 @@ bool NCA::ReadRomFSSection(const NCASectionHeader& section, const NCASectionTabl
         subsection_buckets.back().entries.push_back({section.bktr.relocation.offset, {0}, ctr_low});
         subsection_buckets.back().entries.push_back({size, {0}, 0});
 
-        std::optional<Core::Crypto::Key128> key = {};
+        std::optional<Core::Crypto::Key128> key;
         if (encrypted) {
             if (has_rights_id) {
                 status = Loader::ResultStatus::Success;
@@ -442,18 +442,18 @@ std::optional<Core::Crypto::Key128> NCA::GetTitlekey() {
     memcpy(rights_id.data(), header.rights_id.data(), 16);
     if (rights_id == u128{}) {
         status = Loader::ResultStatus::ErrorInvalidRightsID;
-        return {};
+        return std::nullopt;
     }
 
     auto titlekey = keys.GetKey(Core::Crypto::S128KeyType::Titlekey, rights_id[1], rights_id[0]);
     if (titlekey == Core::Crypto::Key128{}) {
         status = Loader::ResultStatus::ErrorMissingTitlekey;
-        return {};
+        return std::nullopt;
     }
 
     if (!keys.HasKey(Core::Crypto::S128KeyType::Titlekek, master_key_id)) {
         status = Loader::ResultStatus::ErrorMissingTitlekek;
-        return {};
+        return std::nullopt;
     }
 
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
@@ -477,7 +477,7 @@ VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 s
     case NCASectionCryptoType::BKTR:
         LOG_TRACE(Crypto, "called with mode=CTR, starting_offset={:016X}", starting_offset);
         {
-            std::optional<Core::Crypto::Key128> key = {};
+            std::optional<Core::Crypto::Key128> key;
             if (has_rights_id) {
                 status = Loader::ResultStatus::Success;
                 key = GetTitlekey();

@@ -813,7 +813,7 @@ private:
         const u8 location = static_cast<u8>(static_cast<u32>(index) * 4 + element);
         const auto it = transform_feedback.find(location);
         if (it == transform_feedback.end()) {
-            return {};
+            return std::nullopt;
         }
         return it->second.components;
     }
@@ -1295,21 +1295,21 @@ private:
             switch (element) {
             case 0:
                 UNIMPLEMENTED();
-                return {};
+                return std::nullopt;
             case 1:
                 if (stage == ShaderType::Vertex && !device.HasVertexViewportLayer()) {
-                    return {};
+                    return std::nullopt;
                 }
                 return {{"gl_Layer", Type::Int}};
             case 2:
                 if (stage == ShaderType::Vertex && !device.HasVertexViewportLayer()) {
-                    return {};
+                    return std::nullopt;
                 }
                 return {{"gl_ViewportIndex", Type::Int}};
             case 3:
                 return {{"gl_PointSize", Type::Float}};
             }
-            return {};
+            return std::nullopt;
         case Attribute::Index::FrontColor:
             return {{"gl_FrontColor"s + GetSwizzle(element), Type::Float}};
         case Attribute::Index::FrontSecondaryColor:
@@ -1332,7 +1332,7 @@ private:
                          Type::Float}};
             }
             UNIMPLEMENTED_MSG("Unhandled output attribute: {}", static_cast<u32>(attribute));
-            return {};
+            return std::nullopt;
         }
     }
 

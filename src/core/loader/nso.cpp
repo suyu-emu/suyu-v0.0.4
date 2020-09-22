@@ -76,16 +76,16 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
                                                bool should_pass_arguments, bool load_into_process,
                                                std::optional<FileSys::PatchManager> pm) {
     if (file.GetSize() < sizeof(NSOHeader)) {
-        return {};
+        return std::nullopt;
     }
 
     NSOHeader nso_header{};
     if (sizeof(NSOHeader) != file.ReadObject(&nso_header)) {
-        return {};
+        return std::nullopt;
     }
 
     if (nso_header.magic != Common::MakeMagic('N', 'S', 'O', '0')) {
-        return {};
+        return std::nullopt;
     }
 
     // Build program image

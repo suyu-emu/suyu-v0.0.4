@@ -169,11 +169,12 @@ VfsDirectory::~VfsDirectory() = default;
 
 std::optional<u8> VfsFile::ReadByte(std::size_t offset) const {
     u8 out{};
-    std::size_t size = Read(&out, 1, offset);
-    if (size == 1)
+    const std::size_t size = Read(&out, sizeof(u8), offset);
+    if (size == 1) {
         return out;
+    }
 
-    return {};
+    return std::nullopt;
 }
 
 std::vector<u8> VfsFile::ReadBytes(std::size_t size, std::size_t offset) const {

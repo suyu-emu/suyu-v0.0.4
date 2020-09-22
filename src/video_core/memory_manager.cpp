@@ -58,7 +58,7 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
 std::optional<GPUVAddr> MemoryManager::AllocateFixed(GPUVAddr gpu_addr, std::size_t size) {
     for (u64 offset{}; offset < size; offset += page_size) {
         if (!GetPageEntry(gpu_addr + offset).IsUnmapped()) {
-            return {};
+            return std::nullopt;
         }
     }
 
@@ -135,13 +135,13 @@ std::optional<GPUVAddr> MemoryManager::FindFreeRange(std::size_t size, std::size
         }
     }
 
-    return {};
+    return std::nullopt;
 }
 
 std::optional<VAddr> MemoryManager::GpuToCpuAddress(GPUVAddr gpu_addr) const {
     const auto page_entry{GetPageEntry(gpu_addr)};
     if (!page_entry.IsValid()) {
-        return {};
+        return std::nullopt;
     }
 
     return page_entry.ToAddress() + (gpu_addr & page_mask);

@@ -199,55 +199,48 @@ public:
     }
 
     std::optional<u32> GetGotoLabel() const {
-        auto inner = std::get_if<ASTGoto>(&data);
-        if (inner) {
+        if (const auto* inner = std::get_if<ASTGoto>(&data)) {
             return {inner->label};
         }
-        return {};
+        return std::nullopt;
     }
 
     Expr GetGotoCondition() const {
-        auto inner = std::get_if<ASTGoto>(&data);
-        if (inner) {
+        if (const auto* inner = std::get_if<ASTGoto>(&data)) {
             return inner->condition;
         }
         return nullptr;
     }
 
     void MarkLabelUnused() {
-        auto inner = std::get_if<ASTLabel>(&data);
-        if (inner) {
+        if (auto* inner = std::get_if<ASTLabel>(&data)) {
             inner->unused = true;
         }
     }
 
     bool IsLabelUnused() const {
-        auto inner = std::get_if<ASTLabel>(&data);
-        if (inner) {
+        if (const auto* inner = std::get_if<ASTLabel>(&data)) {
             return inner->unused;
         }
         return true;
     }
 
     std::optional<u32> GetLabelIndex() const {
-        auto inner = std::get_if<ASTLabel>(&data);
-        if (inner) {
+        if (const auto* inner = std::get_if<ASTLabel>(&data)) {
             return {inner->index};
         }
-        return {};
+        return std::nullopt;
     }
 
     Expr GetIfCondition() const {
-        auto inner = std::get_if<ASTIfThen>(&data);
-        if (inner) {
+        if (const auto* inner = std::get_if<ASTIfThen>(&data)) {
             return inner->condition;
         }
         return nullptr;
     }
 
     void SetGotoCondition(Expr new_condition) {
-        auto inner = std::get_if<ASTGoto>(&data);
-        if (inner) {
+        if (auto* inner = std::get_if<ASTGoto>(&data)) {
             inner->condition = std::move(new_condition);
         }
     }
