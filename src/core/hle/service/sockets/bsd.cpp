@@ -497,7 +497,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
             return {0, Errno::SUCCESS};
         }
 
-        std::optional<FileDescriptor>& descriptor = file_descriptors[pollfd.fd];
+        const std::optional<FileDescriptor>& descriptor = file_descriptors[pollfd.fd];
         if (!descriptor) {
             LOG_ERROR(Service, "File descriptor handle={} is not allocated", pollfd.fd);
             pollfd.revents = POLL_NVAL;

@@ -36,7 +36,7 @@ void MacroEngine::Execute(Engines::Maxwell3D& maxwell3d, u32 method,
         }
     } else {
         // Macro not compiled, check if it's uploaded and if so, compile it
-        std::optional<u32> mid_method = std::nullopt;
+        std::optional<u32> mid_method;
         const auto macro_code = uploaded_macro_code.find(method);
         if (macro_code == uploaded_macro_code.end()) {
             for (const auto& [method_base, code] : uploaded_macro_code) {

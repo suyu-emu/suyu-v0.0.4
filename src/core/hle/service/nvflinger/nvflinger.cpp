@@ -114,7 +114,7 @@ std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
                      [&](const VI::Display& display) { return display.GetName() == name; });
 
     if (itr == displays.end()) {
-        return {};
+        return std::nullopt;
     }
 
     return itr->GetID();
@@ -124,7 +124,7 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {
-        return {};
+        return std::nullopt;
     }
 
     const u64 layer_id = next_layer_id++;
@@ -144,7 +144,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
     const auto* const layer = FindLayer(display_id, layer_id);
 
     if (layer == nullptr) {
-        return {};
+        return std::nullopt;
     }
 
     return layer->GetBufferQueue().GetId();

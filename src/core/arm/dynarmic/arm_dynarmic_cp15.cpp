@@ -34,7 +34,7 @@ std::optional<Callback> DynarmicCP15::CompileInternalOperation(bool two, unsigne
                                                                CoprocReg CRm, unsigned opc2) {
     LOG_CRITICAL(Core_ARM, "CP15: cdp{} p15, {}, {}, {}, {}, {}", two ? "2" : "", opc1, CRd, CRn,
                  CRm, opc2);
-    return {};
+    return std::nullopt;
 }
 
 CallbackOrAccessOneWord DynarmicCP15::CompileSendOneWord(bool two, unsigned opc1, CoprocReg CRn,
@@ -115,7 +115,7 @@ std::optional<Callback> DynarmicCP15::CompileLoadWords(bool two, bool long_trans
         LOG_CRITICAL(Core_ARM, "CP15: mrrc{}{} p15, {}, [...]", two ? "2" : "",
                      long_transfer ? "l" : "", CRd);
     }
-    return {};
+    return std::nullopt;
 }
 
 std::optional<Callback> DynarmicCP15::CompileStoreWords(bool two, bool long_transfer, CoprocReg CRd,
@@ -127,7 +127,7 @@ std::optional<Callback> DynarmicCP15::CompileStoreWords(bool two, bool long_tran
         LOG_CRITICAL(Core_ARM, "CP15: mrrc{}{} p15, {}, [...]", two ? "2" : "",
                      long_transfer ? "l" : "", CRd);
     }
-    return {};
+    return std::nullopt;
 }
 
 } // namespace Core

@@ -597,7 +597,7 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
         // Deferred.
         rasterizer->Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
                           system.GPU().GetTicks());
-        return {};
+        return std::nullopt;
     default:
         LOG_DEBUG(HW_GPU, "Unimplemented query select type {}",
                   static_cast<u32>(regs.query.query_get.select.Value()));

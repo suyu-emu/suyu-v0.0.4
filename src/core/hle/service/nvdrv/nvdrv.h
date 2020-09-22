@@ -54,7 +54,7 @@ struct EventInterface {
             }
             mask = mask >> 1;
         }
-        return {};
+        return std::nullopt;
     }
     void SetEventStatus(const u32 event_id, EventState new_status) {
         EventState old_status = status[event_id];

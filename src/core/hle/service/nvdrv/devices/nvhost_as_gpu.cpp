@@ -265,7 +265,7 @@ std::optional<nvhost_as_gpu::BufferMap> nvhost_as_gpu::FindBufferMap(GPUVAddr gp
         }
     }
 
-    return {};
+    return std::nullopt;
 }
 
 void nvhost_as_gpu::AddBufferMap(GPUVAddr gpu_addr, std::size_t size, VAddr cpu_addr,
@@ -286,7 +286,7 @@ std::optional<std::size_t> nvhost_as_gpu::RemoveBufferMap(GPUVAddr gpu_addr) {
         return size;
     }
 
-    return {};
+    return std::nullopt;
 }
 
 } // namespace Service::Nvidia::Devices

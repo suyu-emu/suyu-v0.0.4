@@ -205,12 +205,12 @@ std::optional<u32> ShaderIR::TrackImmediate(Node tracked, const NodeBlock& code,
     const auto result = TrackRegister(&std::get<GprNode>(*tracked), code, cursor - 1);
     const auto& found = result.first;
     if (!found) {
-        return {};
+        return std::nullopt;
     }
     if (const auto immediate = std::get_if<ImmediateNode>(&*found)) {
         return immediate->GetValue();
     }
-    return {};
+    return std::nullopt;
 }
 
 std::pair<Node, s64> ShaderIR::TrackRegister(const GprNode* tracked, const NodeBlock& code,
