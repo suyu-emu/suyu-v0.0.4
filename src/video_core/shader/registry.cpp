@@ -59,10 +59,10 @@ Registry::Registry(ShaderType shader_stage, const SerializedRegistryInfo& info)
     : stage{shader_stage}, stored_guest_driver_profile{info.guest_driver_profile},
       bound_buffer{info.bound_buffer}, graphics_info{info.graphics}, compute_info{info.compute} {}
 
-Registry::Registry(ShaderType shader_stage, ConstBufferEngineInterface& engine)
-    : stage{shader_stage}, engine{&engine}, bound_buffer{engine.GetBoundBuffer()},
-      graphics_info{MakeGraphicsInfo(shader_stage, engine)}, compute_info{MakeComputeInfo(
-                                                                 shader_stage, engine)} {}
+Registry::Registry(ShaderType shader_stage, ConstBufferEngineInterface& engine_)
+    : stage{shader_stage}, engine{&engine_}, bound_buffer{engine_.GetBoundBuffer()},
+      graphics_info{MakeGraphicsInfo(shader_stage, engine_)}, compute_info{MakeComputeInfo(
+                                                                  shader_stage, engine_)} {}
 
 Registry::~Registry() = default;
 
