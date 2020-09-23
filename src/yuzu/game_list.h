@@ -67,11 +67,11 @@ public:
                       FileSys::ManualContentProvider* provider, GMainWindow* parent = nullptr);
     ~GameList() override;
 
-    QString getLastFilterResultItem() const;
-    void clearFilter();
-    void setFilterFocus();
-    void setFilterVisible(bool visibility);
-    bool isEmpty() const;
+    QString GetLastFilterResultItem() const;
+    void ClearFilter();
+    void SetFilterFocus();
+    void SetFilterVisible(bool visibility);
+    bool IsEmpty() const;
 
     void LoadCompatibilityList();
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
@@ -82,7 +82,7 @@ public:
     static const QStringList supported_file_extensions;
 
 signals:
-    void GameChosen(QString game_path);
+    void GameChosen(const QString& game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
                              const std::string& game_path);
@@ -99,21 +99,21 @@ signals:
     void ShowList(bool show);
 
 private slots:
-    void onItemExpanded(const QModelIndex& item);
-    void onTextChanged(const QString& new_text);
-    void onFilterCloseClicked();
-    void onUpdateThemedIcons();
+    void OnItemExpanded(const QModelIndex& item);
+    void OnTextChanged(const QString& new_text);
+    void OnFilterCloseClicked();
+    void OnUpdateThemedIcons();
 
 private:
     void AddDirEntry(GameListDir* entry_items);
     void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
     void ValidateEntry(const QModelIndex& item);
-    void DonePopulating(QStringList watch_list);
+    void DonePopulating(const QStringList& watch_list);
 
     void RefreshGameDirectory();
 
     void PopupContextMenu(const QPoint& menu_location);
-    void AddGamePopup(QMenu& context_menu, u64 program_id, std::string path);
+    void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path);
     void AddCustomDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddPermDirPopup(QMenu& context_menu, QModelIndex selected);
 
