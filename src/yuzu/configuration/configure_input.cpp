@@ -23,6 +23,7 @@
 #include "yuzu/configuration/configure_motion_touch.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
 #include "yuzu/configuration/configure_touchscreen_advanced.h"
+#include "yuzu/configuration/input_profiles.h"
 
 namespace {
 template <typename Dialog, typename... Args>
@@ -64,7 +65,8 @@ void OnDockedModeChanged(bool last_state, bool new_state) {
 }
 
 ConfigureInput::ConfigureInput(QWidget* parent)
-    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInput>()) {
+    : QWidget(parent), ui(std::make_unique<Ui::ConfigureInput>()),
+      profiles(std::make_unique<InputProfiles>()) {
     ui->setupUi(this);
 }
 
@@ -73,14 +75,22 @@ ConfigureInput::~ConfigureInput() = default;
 void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
                                 std::size_t max_players) {
     player_controllers = {
-        new ConfigureInputPlayer(this, 0, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 1, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 2, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 3, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 4, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 5, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 6, ui->consoleInputSettings, input_subsystem),
-        new ConfigureInputPlayer(this, 7, ui->consoleInputSettings, input_subsystem),
+        new ConfigureInputPlayer(this, 0, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 1, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 2, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 3, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 4, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 5, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 6, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
+        new ConfigureInputPlayer(this, 7, ui->consoleInputSettings, input_subsystem,
+                                 profiles.get()),
     };
 
     player_tabs = {
@@ -134,7 +144,7 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
     ui->tabAdvanced->setLayout(new QHBoxLayout(ui->tabAdvanced));
     ui->tabAdvanced->layout()->addWidget(advanced);
     connect(advanced, &ConfigureInputAdvanced::CallDebugControllerDialog, [this, input_subsystem] {
-        CallConfigureDialog<ConfigureDebugController>(*this, input_subsystem);
+        CallConfigureDialog<ConfigureDebugController>(*this, input_subsystem, profiles.get());
     });
     connect(advanced, &ConfigureInputAdvanced::CallMouseConfigDialog, [this, input_subsystem] {
         CallConfigureDialog<ConfigureMouseAdvanced>(*this, input_subsystem);

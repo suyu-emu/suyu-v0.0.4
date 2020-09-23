@@ -22,6 +22,8 @@
 #include "ui_configure_input_player.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
+#include "yuzu/configuration/input_profiles.h"
+#include "yuzu/util/limitable_input_dialog.h"
 
 constexpr std::size_t HANDHELD_INDEX = 8;
 
@@ -240,10 +242,11 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
 ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_index,
                                            QWidget* bottom_row,
                                            InputCommon::InputSubsystem* input_subsystem_,
-                                           bool debug)
+                                           InputProfiles* profiles_, bool debug)
     : QWidget(parent), ui(std::make_unique<Ui::ConfigureInputPlayer>()), player_index(player_index),
-      debug(debug), input_subsystem{input_subsystem_}, timeout_timer(std::make_unique<QTimer>()),
-      poll_timer(std::make_unique<QTimer>()), bottom_row(bottom_row) {
+      debug(debug), input_subsystem{input_subsystem_}, profiles(profiles_),
+      timeout_timer(std::make_unique<QTimer>()), poll_timer(std::make_unique<QTimer>()),
+      bottom_row(bottom_row) {
     ui->setupUi(this);
 
     setFocusPolicy(Qt::ClickFocus);
@@ -520,6 +523,17 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
         }
     });
+
+    RefreshInputProfiles();
+
+    connect(ui->buttonProfilesNew, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::CreateProfile);
+    connect(ui->buttonProfilesDelete, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::DeleteProfile);
+    connect(ui->comboProfiles, qOverload<int>(&QComboBox::activated), this,
+            &ConfigureInputPlayer::LoadProfile);
+    connect(ui->buttonProfilesSave, &QPushButton::clicked, this,
+            &ConfigureInputPlayer::SaveProfile);
 
     LoadConfiguration();
 
@@ -1060,4 +1074,95 @@ void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
     }
 
     SetPollingResult({}, true);
+}
+
+void ConfigureInputPlayer::CreateProfile() {
+    const auto profile_name =
+        LimitableInputDialog::GetText(this, tr("New Profile"), tr("Enter a profile name:"), 1, 20);
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    if (!profiles->IsProfileNameValid(profile_name.toStdString())) {
+        QMessageBox::critical(this, tr("Create Input Profile"),
+                              tr("The given profile name is not valid!"));
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->CreateProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Create Input Profile"),
+                              tr("Failed to create the input profile \"%1\"").arg(profile_name));
+        RefreshInputProfiles();
+        return;
+    }
+
+    ui->comboProfiles->addItem(profile_name);
+    ui->comboProfiles->setCurrentIndex(ui->comboProfiles->count() - 1);
+}
+
+void ConfigureInputPlayer::DeleteProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    if (!profiles->DeleteProfile(profile_name.toStdString())) {
+        QMessageBox::critical(this, tr("Delete Input Profile"),
+                              tr("Failed to delete the input profile \"%1\"").arg(profile_name));
+        RefreshInputProfiles();
+        return;
+    }
+
+    ui->comboProfiles->removeItem(ui->comboProfiles->currentIndex());
+    ui->comboProfiles->setCurrentIndex(-1);
+}
+
+void ConfigureInputPlayer::LoadProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->LoadProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Load Input Profile"),
+                              tr("Failed to load the input profile \"%1\"").arg(profile_name));
+        RefreshInputProfiles();
+        return;
+    }
+
+    LoadConfiguration();
+}
+
+void ConfigureInputPlayer::SaveProfile() {
+    const QString profile_name = ui->comboProfiles->itemText(ui->comboProfiles->currentIndex());
+
+    if (profile_name.isEmpty()) {
+        return;
+    }
+
+    ApplyConfiguration();
+
+    if (!profiles->SaveProfile(profile_name.toStdString(), player_index)) {
+        QMessageBox::critical(this, tr("Save Input Profile"),
+                              tr("Failed to save the input profile \"%1\"").arg(profile_name));
+        RefreshInputProfiles();
+        return;
+    }
+}
+
+void ConfigureInputPlayer::RefreshInputProfiles() {
+    ui->comboProfiles->clear();
+
+    for (const auto& profile_name : profiles->GetInputProfileNames()) {
+        ui->comboProfiles->addItem(QString::fromStdString(profile_name));
+    }
+
+    ui->comboProfiles->setCurrentIndex(-1);
 }

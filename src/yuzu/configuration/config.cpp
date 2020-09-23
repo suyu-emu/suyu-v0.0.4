@@ -5,6 +5,7 @@
 #include <array>
 #include <QKeySequence>
 #include <QSettings>
+#include "common/common_paths.h"
 #include "common/file_util.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
@@ -14,14 +15,27 @@
 
 namespace FS = Common::FS;
 
-Config::Config(const std::string& config_file, bool is_global) {
-    // TODO: Don't hardcode the path; let the frontend decide where to put the config files.
-    qt_config_loc = FS::GetUserPath(FS::UserPath::ConfigDir) + config_file;
-    FS::CreateFullPath(qt_config_loc);
-    qt_config =
-        std::make_unique<QSettings>(QString::fromStdString(qt_config_loc), QSettings::IniFormat);
-    global = is_global;
-    Reload();
+Config::Config(const std::string& config_file, ConfigType config_type) : type(config_type) {
+    global = config_type == ConfigType::GlobalConfig;
+
+    switch (config_type) {
+    case ConfigType::GlobalConfig:
+    case ConfigType::PerGameConfig:
+        qt_config_loc = fmt::format("{}" DIR_SEP "{}.ini", FS::GetUserPath(FS::UserPath::ConfigDir),
+                                    config_file);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        Reload();
+        break;
+    case ConfigType::InputProfile:
+        qt_config_loc = fmt::format("{}input" DIR_SEP "{}.ini",
+                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_file);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        break;
+    }
 }
 
 Config::~Config() {
@@ -242,84 +256,103 @@ const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
 }};
 // clang-format on
 
-void Config::ReadPlayerValues() {
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
-        auto& player = Settings::values.players[p];
+void Config::ReadPlayerValue(std::size_t player_index) {
+    const QString player_prefix = [this, player_index] {
+        if (type == ConfigType::InputProfile) {
+            return QString{};
+        } else {
+            return QStringLiteral("player_%1_").arg(player_index);
+        }
+    }();
 
+    auto& player = Settings::values.players[player_index];
+
+    if (player_prefix.isEmpty()) {
+        const auto controller = static_cast<Settings::ControllerType>(
+            qt_config
+                ->value(QStringLiteral("%1type").arg(player_prefix),
+                        static_cast<u8>(Settings::ControllerType::ProController))
+                .toUInt());
+
+        if (controller == Settings::ControllerType::LeftJoycon ||
+            controller == Settings::ControllerType::RightJoycon) {
+            player.controller_type = controller;
+        }
+    } else {
         player.connected =
-            ReadSetting(QStringLiteral("player_%1_connected").arg(p), false).toBool();
+            ReadSetting(QStringLiteral("%1connected").arg(player_prefix), false).toBool();
 
         player.controller_type = static_cast<Settings::ControllerType>(
             qt_config
-                ->value(QStringLiteral("player_%1_type").arg(p),
+                ->value(QStringLiteral("%1type").arg(player_prefix),
                         static_cast<u8>(Settings::ControllerType::ProController))
                 .toUInt());
 
         player.body_color_left = qt_config
-                                     ->value(QStringLiteral("player_%1_body_color_left").arg(p),
+                                     ->value(QStringLiteral("%1body_color_left").arg(player_prefix),
                                              Settings::JOYCON_BODY_NEON_BLUE)
                                      .toUInt();
-        player.body_color_right = qt_config
-                                      ->value(QStringLiteral("player_%1_body_color_right").arg(p),
-                                              Settings::JOYCON_BODY_NEON_RED)
-                                      .toUInt();
-        player.button_color_left = qt_config
-                                       ->value(QStringLiteral("player_%1_button_color_left").arg(p),
-                                               Settings::JOYCON_BUTTONS_NEON_BLUE)
-                                       .toUInt();
+        player.body_color_right =
+            qt_config
+                ->value(QStringLiteral("%1body_color_right").arg(player_prefix),
+                        Settings::JOYCON_BODY_NEON_RED)
+                .toUInt();
+        player.button_color_left =
+            qt_config
+                ->value(QStringLiteral("%1button_color_left").arg(player_prefix),
+                        Settings::JOYCON_BUTTONS_NEON_BLUE)
+                .toUInt();
         player.button_color_right =
             qt_config
-                ->value(QStringLiteral("player_%1_button_color_right").arg(p),
+                ->value(QStringLiteral("%1button_color_right").arg(player_prefix),
                         Settings::JOYCON_BUTTONS_NEON_RED)
                 .toUInt();
+    }
 
-        for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            auto& player_buttons = player.buttons[i];
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
+        auto& player_buttons = player.buttons[i];
 
-            player_buttons = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeButton::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_buttons.empty()) {
-                player_buttons = default_param;
-            }
+        player_buttons = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeButton::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_buttons.empty()) {
+            player_buttons = default_param;
         }
+    }
 
-        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_motions[i]);
-            auto& player_motions = player.motions[i];
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        auto& player_motions = player.motions[i];
 
-            player_motions = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeMotion::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_motions.empty()) {
-                player_motions = default_param;
-            }
+        player_motions = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeMotion::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_motions.empty()) {
+            player_motions = default_param;
         }
+    }
 
-        for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
-            const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
-                default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_stick_mod[i], 0.5f);
-            auto& player_analogs = player.analogs[i];
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
+            default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
+        auto& player_analogs = player.analogs[i];
 
-            player_analogs = qt_config
-                                 ->value(QStringLiteral("player_%1_").arg(p) +
-                                             QString::fromUtf8(Settings::NativeAnalog::mapping[i]),
-                                         QString::fromStdString(default_param))
-                                 .toString()
-                                 .toStdString();
-            if (player_analogs.empty()) {
-                player_analogs = default_param;
-            }
+        player_analogs = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeAnalog::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_analogs.empty()) {
+            player_analogs = default_param;
         }
     }
 }
@@ -436,7 +469,9 @@ void Config::ReadAudioValues() {
 void Config::ReadControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    ReadPlayerValues();
+    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+        ReadPlayerValue(p);
+    }
     ReadDebugValues();
     ReadKeyboardValues();
     ReadMouseValues();
@@ -920,49 +955,55 @@ void Config::ReadValues() {
     ReadSystemValues();
 }
 
-void Config::SavePlayerValues() {
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
-        const auto& player = Settings::values.players[p];
+void Config::SavePlayerValue(std::size_t player_index) {
+    const QString player_prefix = [this, player_index] {
+        if (type == ConfigType::InputProfile) {
+            return QString{};
+        } else {
+            return QStringLiteral("player_%1_").arg(player_index);
+        }
+    }();
 
-        WriteSetting(QStringLiteral("player_%1_connected").arg(p), player.connected, false);
-        WriteSetting(QStringLiteral("player_%1_type").arg(p),
-                     static_cast<u8>(player.controller_type),
-                     static_cast<u8>(Settings::ControllerType::ProController));
+    const auto& player = Settings::values.players[player_index];
 
-        WriteSetting(QStringLiteral("player_%1_body_color_left").arg(p), player.body_color_left,
+    WriteSetting(QStringLiteral("%1type").arg(player_prefix),
+                 static_cast<u8>(player.controller_type),
+                 static_cast<u8>(Settings::ControllerType::ProController));
+
+    if (!player_prefix.isEmpty()) {
+        WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected, false);
+        WriteSetting(QStringLiteral("%1body_color_left").arg(player_prefix), player.body_color_left,
                      Settings::JOYCON_BODY_NEON_BLUE);
-        WriteSetting(QStringLiteral("player_%1_body_color_right").arg(p), player.body_color_right,
-                     Settings::JOYCON_BODY_NEON_RED);
-        WriteSetting(QStringLiteral("player_%1_button_color_left").arg(p), player.button_color_left,
-                     Settings::JOYCON_BUTTONS_NEON_BLUE);
-        WriteSetting(QStringLiteral("player_%1_button_color_right").arg(p),
+        WriteSetting(QStringLiteral("%1body_color_right").arg(player_prefix),
+                     player.body_color_right, Settings::JOYCON_BODY_NEON_RED);
+        WriteSetting(QStringLiteral("%1button_color_left").arg(player_prefix),
+                     player.button_color_left, Settings::JOYCON_BUTTONS_NEON_BLUE);
+        WriteSetting(QStringLiteral("%1button_color_right").arg(player_prefix),
                      player.button_color_right, Settings::JOYCON_BUTTONS_NEON_RED);
+    }
 
-        for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeButton::mapping[i]),
-                         QString::fromStdString(player.buttons[i]),
-                         QString::fromStdString(default_param));
-        }
-        for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-            const std::string default_param =
-                InputCommon::GenerateKeyboardParam(default_motions[i]);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeMotion::mapping[i]),
-                         QString::fromStdString(player.motions[i]),
-                         QString::fromStdString(default_param));
-        }
-        for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
-            const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
-                default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
-                default_analogs[i][3], default_stick_mod[i], 0.5f);
-            WriteSetting(QStringLiteral("player_%1_").arg(p) +
-                             QString::fromStdString(Settings::NativeAnalog::mapping[i]),
-                         QString::fromStdString(player.analogs[i]),
-                         QString::fromStdString(default_param));
-        }
+    for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeButton::mapping[i]),
+                     QString::fromStdString(player.buttons[i]),
+                     QString::fromStdString(default_param));
+    }
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeMotion::mapping[i]),
+                     QString::fromStdString(player.motions[i]),
+                     QString::fromStdString(default_param));
+    }
+    for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
+        const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
+            default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
+            default_analogs[i][3], default_stick_mod[i], 0.5f);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeAnalog::mapping[i]),
+                     QString::fromStdString(player.analogs[i]),
+                     QString::fromStdString(default_param));
     }
 }
 
@@ -1087,7 +1128,9 @@ void Config::SaveAudioValues() {
 void Config::SaveControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    SavePlayerValues();
+    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+        SavePlayerValue(p);
+    }
     SaveDebugValues();
     SaveMouseValues();
     SaveTouchscreenValues();
@@ -1514,4 +1557,20 @@ void Config::Reload() {
 void Config::Save() {
     Settings::Sanitize();
     SaveValues();
+}
+
+void Config::ReadControlPlayerValue(std::size_t player_index) {
+    qt_config->beginGroup(QStringLiteral("Controls"));
+    ReadPlayerValue(player_index);
+    qt_config->endGroup();
+}
+
+void Config::SaveControlPlayerValue(std::size_t player_index) {
+    qt_config->beginGroup(QStringLiteral("Controls"));
+    SavePlayerValue(player_index);
+    qt_config->endGroup();
+}
+
+const std::string& Config::GetConfigFilePath() const {
+    return qt_config_loc;
 }

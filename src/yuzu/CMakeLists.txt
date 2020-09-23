@@ -108,6 +108,8 @@ add_executable(yuzu
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
+    configuration/input_profiles.cpp
+    configuration/input_profiles.h
     debugger/console.cpp
     debugger/console.h
     debugger/profiler.cpp

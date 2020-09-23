@@ -10,6 +10,8 @@
 
 class QPushButton;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -22,8 +24,8 @@ class ConfigureDebugController : public QDialog {
     Q_OBJECT
 
 public:
-    explicit ConfigureDebugController(QWidget* parent,
-                                      InputCommon::InputSubsystem* input_subsystem);
+    explicit ConfigureDebugController(QWidget* parent, InputCommon::InputSubsystem* input_subsystem,
+                                      InputProfiles* profiles);
     ~ConfigureDebugController() override;
 
     void ApplyConfiguration();

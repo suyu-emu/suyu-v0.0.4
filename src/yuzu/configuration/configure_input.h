@@ -19,6 +19,8 @@ class QCheckBox;
 class QString;
 class QTimer;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -60,6 +62,8 @@ private:
     void RestoreDefaults();
 
     std::unique_ptr<Ui::ConfigureInput> ui;
+
+    std::unique_ptr<InputProfiles> profiles;
 
     std::array<ConfigureInputPlayer*, 8> player_controllers;
     std::array<QWidget*, 8> player_tabs;

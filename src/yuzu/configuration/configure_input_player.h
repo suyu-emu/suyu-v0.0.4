@@ -26,6 +26,8 @@ class QString;
 class QTimer;
 class QWidget;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -45,7 +47,7 @@ class ConfigureInputPlayer : public QWidget {
 public:
     explicit ConfigureInputPlayer(QWidget* parent, std::size_t player_index, QWidget* bottom_row,
                                   InputCommon::InputSubsystem* input_subsystem_,
-                                  bool debug = false);
+                                  InputProfiles* profiles_, bool debug = false);
     ~ConfigureInputPlayer() override;
 
     /// Save all button configurations to settings file.
@@ -116,12 +118,29 @@ private:
     /// Gets the default controller mapping for this device and auto configures the input to match.
     void UpdateMappingWithDefaults();
 
+    /// Creates a controller profile.
+    void CreateProfile();
+
+    /// Deletes the selected controller profile.
+    void DeleteProfile();
+
+    /// Loads the selected controller profile.
+    void LoadProfile();
+
+    /// Saves the current controller configuration into a selected controller profile.
+    void SaveProfile();
+
+    /// Refreshes the list of controller profiles.
+    void RefreshInputProfiles();
+
     std::unique_ptr<Ui::ConfigureInputPlayer> ui;
 
     std::size_t player_index;
     bool debug;
 
     InputCommon::InputSubsystem* input_subsystem;
+
+    InputProfiles* profiles;
 
     std::unique_ptr<QTimer> timeout_timer;
     std::unique_ptr<QTimer> poll_timer;
