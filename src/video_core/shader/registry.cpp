@@ -24,31 +24,33 @@ GraphicsInfo MakeGraphicsInfo(ShaderType shader_stage, ConstBufferEngineInterfac
     if (shader_stage == ShaderType::Compute) {
         return {};
     }
-    auto& graphics = static_cast<Tegra::Engines::Maxwell3D&>(engine);
 
-    GraphicsInfo info;
-    info.tfb_layouts = graphics.regs.tfb_layouts;
-    info.tfb_varying_locs = graphics.regs.tfb_varying_locs;
-    info.primitive_topology = graphics.regs.draw.topology;
-    info.tessellation_primitive = graphics.regs.tess_mode.prim;
-    info.tessellation_spacing = graphics.regs.tess_mode.spacing;
-    info.tfb_enabled = graphics.regs.tfb_enabled;
-    info.tessellation_clockwise = graphics.regs.tess_mode.cw;
-    return info;
+    auto& graphics = dynamic_cast<Tegra::Engines::Maxwell3D&>(engine);
+
+    return {
+        .tfb_layouts = graphics.regs.tfb_layouts,
+        .tfb_varying_locs = graphics.regs.tfb_varying_locs,
+        .primitive_topology = graphics.regs.draw.topology,
+        .tessellation_primitive = graphics.regs.tess_mode.prim,
+        .tessellation_spacing = graphics.regs.tess_mode.spacing,
+        .tfb_enabled = graphics.regs.tfb_enabled != 0,
+        .tessellation_clockwise = graphics.regs.tess_mode.cw.Value() != 0,
+    };
 }
 
 ComputeInfo MakeComputeInfo(ShaderType shader_stage, ConstBufferEngineInterface& engine) {
     if (shader_stage != ShaderType::Compute) {
         return {};
     }
-    auto& compute = static_cast<Tegra::Engines::KeplerCompute&>(engine);
+
+    auto& compute = dynamic_cast<Tegra::Engines::KeplerCompute&>(engine);
     const auto& launch = compute.launch_description;
 
-    ComputeInfo info;
-    info.workgroup_size = {launch.block_dim_x, launch.block_dim_y, launch.block_dim_z};
-    info.local_memory_size_in_words = launch.local_pos_alloc;
-    info.shared_memory_size_in_words = launch.shared_alloc;
-    return info;
+    return {
+        .workgroup_size = {launch.block_dim_x, launch.block_dim_y, launch.block_dim_z},
+        .shared_memory_size_in_words = launch.shared_alloc,
+        .local_memory_size_in_words = launch.local_pos_alloc,
+    };
 }
 
 } // Anonymous namespace
