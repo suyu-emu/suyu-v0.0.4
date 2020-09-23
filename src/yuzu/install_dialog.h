@@ -21,7 +21,6 @@ public:
     ~InstallDialog() override;
 
     QStringList GetFiles() const;
-    bool ShouldOverwriteFiles() const;
     int GetMinimumWidth() const;
 
 private:
