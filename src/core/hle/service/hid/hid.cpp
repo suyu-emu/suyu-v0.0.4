@@ -40,7 +40,8 @@ namespace Service::HID {
 // Updating period for each HID device.
 // HID is polled every 15ms, this value was derived from
 // https://github.com/dekuNukem/Nintendo_Switch_Reverse_Engineering#joy-con-status-data-packet
-constexpr auto pad_update_ns = std::chrono::nanoseconds{1000 * 1000}; // (1ms, 1000Hz)
+constexpr auto pad_update_ns = std::chrono::nanoseconds{1000 * 1000};         // (1ms, 1000Hz)
+constexpr auto motion_update_ns = std::chrono::nanoseconds{15 * 1000 * 1000}; // (15ms, 66.666Hz)
 constexpr std::size_t SHARED_MEMORY_SIZE = 0x40000;
 
 IAppletResource::IAppletResource(Core::System& system)
@@ -79,10 +80,14 @@ IAppletResource::IAppletResource(Core::System& system)
         [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
             UpdateControllers(user_data, ns_late);
         });
-
-    // TODO(shinyquagsire23): Other update callbacks? (accel, gyro?)
+    motion_update_event = Core::Timing::CreateEvent(
+        "HID::MotionPadCallback",
+        [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            UpdateMotion(user_data, ns_late);
+        });
 
     system.CoreTiming().ScheduleEvent(pad_update_ns, pad_update_event);
+    system.CoreTiming().ScheduleEvent(motion_update_ns, motion_update_event);
 
     ReloadInputDevices();
 }
@@ -120,6 +125,16 @@ void IAppletResource::UpdateControllers(std::uintptr_t user_data,
     }
 
     core_timing.ScheduleEvent(pad_update_ns - ns_late, pad_update_event);
+}
+
+void IAppletResource::UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+    auto& core_timing = system.CoreTiming();
+
+    for (const auto& controller : controllers) {
+        controller->OnMotionUpdate(core_timing, shared_mem->GetPointer(), SHARED_MEMORY_SIZE);
+    }
+
+    core_timing.ScheduleEvent(motion_update_ns - ns_late, motion_update_event);
 }
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
