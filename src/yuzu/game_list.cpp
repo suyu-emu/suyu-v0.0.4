@@ -84,21 +84,24 @@ void GameListSearchField::setFilterResult(int visible, int total) {
 }
 
 QString GameList::getLastFilterResultItem() const {
-    QStandardItem* folder;
-    QStandardItem* child;
     QString file_path;
     const int folder_count = item_model->rowCount();
+
     for (int i = 0; i < folder_count; ++i) {
-        folder = item_model->item(i, 0);
+        const QStandardItem* folder = item_model->item(i, 0);
         const QModelIndex folder_index = folder->index();
         const int children_count = folder->rowCount();
+
         for (int j = 0; j < children_count; ++j) {
-            if (!tree_view->isRowHidden(j, folder_index)) {
-                child = folder->child(j, 0);
-                file_path = child->data(GameListItemPath::FullPathRole).toString();
+            if (tree_view->isRowHidden(j, folder_index)) {
+                continue;
             }
+
+            const QStandardItem* child = folder->child(j, 0);
+            file_path = child->data(GameListItemPath::FullPathRole).toString();
         }
     }
+
     return file_path;
 }
 
@@ -411,7 +414,7 @@ bool GameList::isEmpty() const {
     return !item_model->invisibleRootItem()->hasChildren();
 }
 
-void GameList::DonePopulating(QStringList watch_list) {
+void GameList::DonePopulating(const QStringList& watch_list) {
     emit ShowList(!isEmpty());
 
     item_model->invisibleRootItem()->appendRow(new GameListAddDir());
@@ -472,7 +475,7 @@ void GameList::PopupContextMenu(const QPoint& menu_location) {
     context_menu.exec(tree_view->viewport()->mapToGlobal(menu_location));
 }
 
-void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, std::string path) {
+void GameList::AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path) {
     QAction* open_save_location = context_menu.addAction(tr("Open Save Data Location"));
     QAction* open_mod_location = context_menu.addAction(tr("Open Mod Data Location"));
     QAction* open_transferable_shader_cache =
@@ -690,12 +693,15 @@ void GameList::SaveInterfaceLayout() {
 }
 
 void GameList::LoadInterfaceLayout() {
-    auto header = tree_view->header();
-    if (!header->restoreState(UISettings::values.gamelist_header_state)) {
-        // We are using the name column to display icons and titles
-        // so make it as large as possible as default.
-        header->resizeSection(COLUMN_NAME, header->width());
+    auto* header = tree_view->header();
+
+    if (header->restoreState(UISettings::values.gamelist_header_state)) {
+        return;
     }
+
+    // We are using the name column to display icons and titles
+    // so make it as large as possible as default.
+    header->resizeSection(COLUMN_NAME, header->width());
 }
 
 const QStringList GameList::supported_file_extensions = {

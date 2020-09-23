@@ -82,7 +82,7 @@ public:
     static const QStringList supported_file_extensions;
 
 signals:
-    void GameChosen(QString game_path);
+    void GameChosen(const QString& game_path);
     void ShouldCancelWorker();
     void OpenFolderRequested(u64 program_id, GameListOpenTarget target,
                              const std::string& game_path);
@@ -108,12 +108,12 @@ private:
     void AddDirEntry(GameListDir* entry_items);
     void AddEntry(const QList<QStandardItem*>& entry_items, GameListDir* parent);
     void ValidateEntry(const QModelIndex& item);
-    void DonePopulating(QStringList watch_list);
+    void DonePopulating(const QStringList& watch_list);
 
     void RefreshGameDirectory();
 
     void PopupContextMenu(const QPoint& menu_location);
-    void AddGamePopup(QMenu& context_menu, u64 program_id, std::string path);
+    void AddGamePopup(QMenu& context_menu, u64 program_id, const std::string& path);
     void AddCustomDirPopup(QMenu& context_menu, QModelIndex selected);
     void AddPermDirPopup(QMenu& context_menu, QModelIndex selected);
 
