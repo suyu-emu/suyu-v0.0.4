@@ -55,12 +55,11 @@ ComputeInfo MakeComputeInfo(ShaderType shader_stage, ConstBufferEngineInterface&
 
 } // Anonymous namespace
 
-Registry::Registry(Tegra::Engines::ShaderType shader_stage, const SerializedRegistryInfo& info)
+Registry::Registry(ShaderType shader_stage, const SerializedRegistryInfo& info)
     : stage{shader_stage}, stored_guest_driver_profile{info.guest_driver_profile},
       bound_buffer{info.bound_buffer}, graphics_info{info.graphics}, compute_info{info.compute} {}
 
-Registry::Registry(Tegra::Engines::ShaderType shader_stage,
-                   Tegra::Engines::ConstBufferEngineInterface& engine)
+Registry::Registry(ShaderType shader_stage, ConstBufferEngineInterface& engine)
     : stage{shader_stage}, engine{&engine}, bound_buffer{engine.GetBoundBuffer()},
       graphics_info{MakeGraphicsInfo(shader_stage, engine)}, compute_info{MakeComputeInfo(
                                                                  shader_stage, engine)} {}
@@ -115,8 +114,7 @@ std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainSeparateSampler
     return value;
 }
 
-std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer,
-                                                                                 u32 offset) {
+std::optional<SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer, u32 offset) {
     const std::pair key = {buffer, offset};
     const auto iter = bindless_samplers.find(key);
     if (iter != bindless_samplers.end()) {
