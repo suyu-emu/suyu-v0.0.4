@@ -580,8 +580,8 @@ bool TryQuery(CFGRebuildState& state) {
 }
 
 void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
-    const auto get_expr = ([&](const Condition& cond) -> Expr {
-        Expr result{};
+    const auto get_expr = [](const Condition& cond) -> Expr {
+        Expr result;
         if (cond.cc != ConditionCode::T) {
             result = MakeExpr<ExprCondCode>(cond.cc);
         }
@@ -594,10 +594,10 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
             }
             Expr extra = MakeExpr<ExprPredicate>(pred);
             if (negate) {
-                extra = MakeExpr<ExprNot>(extra);
+                extra = MakeExpr<ExprNot>(std::move(extra));
             }
             if (result) {
-                return MakeExpr<ExprAnd>(extra, result);
+                return MakeExpr<ExprAnd>(std::move(extra), std::move(result));
             }
             return extra;
         }
@@ -605,9 +605,10 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
             return result;
         }
         return MakeExpr<ExprBoolean>(true);
-    });
+    };
+
     if (std::holds_alternative<SingleBranch>(*branch_info)) {
-        const auto branch = std::get_if<SingleBranch>(branch_info.get());
+        const auto* branch = std::get_if<SingleBranch>(branch_info.get());
         if (branch->address < 0) {
             if (branch->kill) {
                 mm.InsertReturn(get_expr(branch->condition), true);
@@ -619,7 +620,7 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
         mm.InsertGoto(get_expr(branch->condition), branch->address);
         return;
     }
-    const auto multi_branch = std::get_if<MultiBranch>(branch_info.get());
+    const auto* multi_branch = std::get_if<MultiBranch>(branch_info.get());
     for (const auto& branch_case : multi_branch->branches) {
         mm.InsertGoto(MakeExpr<ExprGprEqual>(multi_branch->gpr, branch_case.cmp_value),
                       branch_case.address);
