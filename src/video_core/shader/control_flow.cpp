@@ -547,13 +547,13 @@ bool TryQuery(CFGRebuildState& state) {
     gather_labels(q2.ssy_stack, state.ssy_labels, block);
     gather_labels(q2.pbk_stack, state.pbk_labels, block);
     if (std::holds_alternative<SingleBranch>(*block.branch)) {
-        const auto branch = std::get_if<SingleBranch>(block.branch.get());
+        auto* branch = std::get_if<SingleBranch>(block.branch.get());
         if (!branch->condition.IsUnconditional()) {
             q2.address = block.end + 1;
             state.queries.push_back(q2);
         }
 
-        Query conditional_query{q2};
+        auto& conditional_query = state.queries.emplace_back(q2);
         if (branch->is_sync) {
             if (branch->address == unassigned_branch) {
                 branch->address = conditional_query.ssy_stack.top();
@@ -567,21 +567,21 @@ bool TryQuery(CFGRebuildState& state) {
             conditional_query.pbk_stack.pop();
         }
         conditional_query.address = branch->address;
-        state.queries.push_back(std::move(conditional_query));
         return true;
     }
-    const auto multi_branch = std::get_if<MultiBranch>(block.branch.get());
+
+    const auto* multi_branch = std::get_if<MultiBranch>(block.branch.get());
     for (const auto& branch_case : multi_branch->branches) {
-        Query conditional_query{q2};
+        auto& conditional_query = state.queries.emplace_back(q2);
         conditional_query.address = branch_case.address;
-        state.queries.push_back(std::move(conditional_query));
     }
+
     return true;
 }
 
 void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
-    const auto get_expr = ([&](const Condition& cond) -> Expr {
-        Expr result{};
+    const auto get_expr = [](const Condition& cond) -> Expr {
+        Expr result;
         if (cond.cc != ConditionCode::T) {
             result = MakeExpr<ExprCondCode>(cond.cc);
         }
@@ -594,10 +594,10 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
             }
             Expr extra = MakeExpr<ExprPredicate>(pred);
             if (negate) {
-                extra = MakeExpr<ExprNot>(extra);
+                extra = MakeExpr<ExprNot>(std::move(extra));
             }
             if (result) {
-                return MakeExpr<ExprAnd>(extra, result);
+                return MakeExpr<ExprAnd>(std::move(extra), std::move(result));
             }
             return extra;
         }
@@ -605,9 +605,10 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
             return result;
         }
         return MakeExpr<ExprBoolean>(true);
-    });
+    };
+
     if (std::holds_alternative<SingleBranch>(*branch_info)) {
-        const auto branch = std::get_if<SingleBranch>(branch_info.get());
+        const auto* branch = std::get_if<SingleBranch>(branch_info.get());
         if (branch->address < 0) {
             if (branch->kill) {
                 mm.InsertReturn(get_expr(branch->condition), true);
@@ -619,7 +620,7 @@ void InsertBranch(ASTManager& mm, const BlockBranchInfo& branch_info) {
         mm.InsertGoto(get_expr(branch->condition), branch->address);
         return;
     }
-    const auto multi_branch = std::get_if<MultiBranch>(branch_info.get());
+    const auto* multi_branch = std::get_if<MultiBranch>(branch_info.get());
     for (const auto& branch_case : multi_branch->branches) {
         mm.InsertGoto(MakeExpr<ExprGprEqual>(multi_branch->gpr, branch_case.cmp_value),
                       branch_case.address);
