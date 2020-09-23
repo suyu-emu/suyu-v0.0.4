@@ -20,8 +20,8 @@ public:
     explicit InstallDialog(QWidget* parent, const QStringList& files);
     ~InstallDialog() override;
 
-    QStringList GetFiles() const;
-    int GetMinimumWidth() const;
+    [[nodiscard]] QStringList GetFiles() const;
+    [[nodiscard]] int GetMinimumWidth() const;
 
 private:
     QListWidget* file_list;
