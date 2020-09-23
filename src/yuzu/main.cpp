@@ -838,7 +838,7 @@ void GMainWindow::RestoreUIState() {
     OnDisplayTitleBars(ui.action_Display_Dock_Widget_Headers->isChecked());
 
     ui.action_Show_Filter_Bar->setChecked(UISettings::values.show_filter_bar);
-    game_list->setFilterVisible(ui.action_Show_Filter_Bar->isChecked());
+    game_list->SetFilterVisible(ui.action_Show_Filter_Bar->isChecked());
 
     ui.action_Show_Status_Bar->setChecked(UISettings::values.show_status_bar);
     statusBar()->setVisible(ui.action_Show_Status_Bar->isChecked());
@@ -1199,11 +1199,12 @@ void GMainWindow::ShutdownGame() {
     render_window->hide();
     loading_screen->hide();
     loading_screen->Clear();
-    if (game_list->isEmpty())
+    if (game_list->IsEmpty()) {
         game_list_placeholder->show();
-    else
+    } else {
         game_list->show();
-    game_list->setFilterFocus();
+    }
+    game_list->SetFilterFocus();
 
     setMouseTracking(false);
     ui.centralwidget->setMouseTracking(false);
@@ -2361,11 +2362,11 @@ void GMainWindow::OnAbout() {
 }
 
 void GMainWindow::OnToggleFilterBar() {
-    game_list->setFilterVisible(ui.action_Show_Filter_Bar->isChecked());
+    game_list->SetFilterVisible(ui.action_Show_Filter_Bar->isChecked());
     if (ui.action_Show_Filter_Bar->isChecked()) {
-        game_list->setFilterFocus();
+        game_list->SetFilterFocus();
     } else {
-        game_list->clearFilter();
+        game_list->ClearFilter();
     }
 }
 

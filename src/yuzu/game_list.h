@@ -67,11 +67,11 @@ public:
                       FileSys::ManualContentProvider* provider, GMainWindow* parent = nullptr);
     ~GameList() override;
 
-    QString getLastFilterResultItem() const;
-    void clearFilter();
-    void setFilterFocus();
-    void setFilterVisible(bool visibility);
-    bool isEmpty() const;
+    QString GetLastFilterResultItem() const;
+    void ClearFilter();
+    void SetFilterFocus();
+    void SetFilterVisible(bool visibility);
+    bool IsEmpty() const;
 
     void LoadCompatibilityList();
     void PopulateAsync(QVector<UISettings::GameDir>& game_dirs);
@@ -99,10 +99,10 @@ signals:
     void ShowList(bool show);
 
 private slots:
-    void onItemExpanded(const QModelIndex& item);
-    void onTextChanged(const QString& new_text);
-    void onFilterCloseClicked();
-    void onUpdateThemedIcons();
+    void OnItemExpanded(const QModelIndex& item);
+    void OnTextChanged(const QString& new_text);
+    void OnFilterCloseClicked();
+    void OnUpdateThemedIcons();
 
 private:
     void AddDirEntry(GameListDir* entry_items);

@@ -56,7 +56,7 @@ bool GameListSearchField::KeyReleaseEater::eventFilter(QObject* obj, QEvent* eve
         case Qt::Key_Return:
         case Qt::Key_Enter: {
             if (gamelist->search_field->visible == 1) {
-                QString file_path = gamelist->getLastFilterResultItem();
+                const QString file_path = gamelist->GetLastFilterResultItem();
 
                 // To avoid loading error dialog loops while confirming them using enter
                 // Also users usually want to run a different game after closing one
@@ -83,7 +83,7 @@ void GameListSearchField::setFilterResult(int visible, int total) {
     label_filter_result->setText(tr("%1 of %n result(s)", "", total).arg(visible));
 }
 
-QString GameList::getLastFilterResultItem() const {
+QString GameList::GetLastFilterResultItem() const {
     QString file_path;
     const int folder_count = item_model->rowCount();
 
@@ -126,7 +126,7 @@ GameListSearchField::GameListSearchField(GameList* parent) : QWidget{parent} {
     edit_filter->setPlaceholderText(tr("Enter pattern to filter"));
     edit_filter->installEventFilter(key_release_eater);
     edit_filter->setClearButtonEnabled(true);
-    connect(edit_filter, &QLineEdit::textChanged, parent, &GameList::onTextChanged);
+    connect(edit_filter, &QLineEdit::textChanged, parent, &GameList::OnTextChanged);
     label_filter_result = new QLabel;
     button_filter_close = new QToolButton(this);
     button_filter_close->setText(QStringLiteral("X"));
@@ -136,7 +136,7 @@ GameListSearchField::GameListSearchField(GameList* parent) : QWidget{parent} {
                        "#000000; font-weight: bold; background: #F0F0F0; }"
                        "QToolButton:hover{ border: none; padding: 0px; color: "
                        "#EEEEEE; font-weight: bold; background: #E81123}"));
-    connect(button_filter_close, &QToolButton::clicked, parent, &GameList::onFilterCloseClicked);
+    connect(button_filter_close, &QToolButton::clicked, parent, &GameList::OnFilterCloseClicked);
     layout_filter->setSpacing(10);
     layout_filter->addWidget(label_filter);
     layout_filter->addWidget(edit_filter);
@@ -162,16 +162,22 @@ static bool ContainsAllWords(const QString& haystack, const QString& userinput) 
 }
 
 // Syncs the expanded state of Game Directories with settings to persist across sessions
-void GameList::onItemExpanded(const QModelIndex& item) {
+void GameList::OnItemExpanded(const QModelIndex& item) {
     const auto type = item.data(GameListItem::TypeRole).value<GameListItemType>();
-    if (type == GameListItemType::CustomDir || type == GameListItemType::SdmcDir ||
-        type == GameListItemType::UserNandDir || type == GameListItemType::SysNandDir)
-        item.data(GameListDir::GameDirRole).value<UISettings::GameDir*>()->expanded =
-            tree_view->isExpanded(item);
+    const bool is_dir = type == GameListItemType::CustomDir || type == GameListItemType::SdmcDir ||
+                        type == GameListItemType::UserNandDir ||
+                        type == GameListItemType::SysNandDir;
+
+    if (!is_dir) {
+        return;
+    }
+
+    auto* game_dir = item.data(GameListDir::GameDirRole).value<UISettings::GameDir*>();
+    game_dir->expanded = tree_view->isExpanded(item);
 }
 
 // Event in order to filter the gamelist after editing the searchfield
-void GameList::onTextChanged(const QString& new_text) {
+void GameList::OnTextChanged(const QString& new_text) {
     const int folder_count = tree_view->model()->rowCount();
     QString edit_filter_text = new_text.toLower();
     QStandardItem* folder;
@@ -227,7 +233,7 @@ void GameList::onTextChanged(const QString& new_text) {
     }
 }
 
-void GameList::onUpdateThemedIcons() {
+void GameList::OnUpdateThemedIcons() {
     for (int i = 0; i < item_model->invisibleRootItem()->rowCount(); i++) {
         QStandardItem* child = item_model->invisibleRootItem()->child(i);
 
@@ -279,7 +285,7 @@ void GameList::onUpdateThemedIcons() {
     }
 }
 
-void GameList::onFilterCloseClicked() {
+void GameList::OnFilterCloseClicked() {
     main_window->filterBarSetChecked(false);
 }
 
@@ -320,11 +326,11 @@ GameList::GameList(FileSys::VirtualFilesystem vfs, FileSys::ManualContentProvide
     }
     item_model->setSortRole(GameListItemPath::SortRole);
 
-    connect(main_window, &GMainWindow::UpdateThemedIcons, this, &GameList::onUpdateThemedIcons);
+    connect(main_window, &GMainWindow::UpdateThemedIcons, this, &GameList::OnUpdateThemedIcons);
     connect(tree_view, &QTreeView::activated, this, &GameList::ValidateEntry);
     connect(tree_view, &QTreeView::customContextMenuRequested, this, &GameList::PopupContextMenu);
-    connect(tree_view, &QTreeView::expanded, this, &GameList::onItemExpanded);
-    connect(tree_view, &QTreeView::collapsed, this, &GameList::onItemExpanded);
+    connect(tree_view, &QTreeView::expanded, this, &GameList::OnItemExpanded);
+    connect(tree_view, &QTreeView::collapsed, this, &GameList::OnItemExpanded);
 
     // We must register all custom types with the Qt Automoc system so that we are able to use
     // it with signals/slots. In this case, QList falls under the umbrells of custom types.
@@ -341,17 +347,17 @@ GameList::~GameList() {
     emit ShouldCancelWorker();
 }
 
-void GameList::setFilterFocus() {
+void GameList::SetFilterFocus() {
     if (tree_view->model()->rowCount() > 0) {
         search_field->setFocus();
     }
 }
 
-void GameList::setFilterVisible(bool visibility) {
+void GameList::SetFilterVisible(bool visibility) {
     search_field->setVisible(visibility);
 }
 
-void GameList::clearFilter() {
+void GameList::ClearFilter() {
     search_field->clear();
 }
 
@@ -400,10 +406,11 @@ void GameList::ValidateEntry(const QModelIndex& item) {
     }
 }
 
-bool GameList::isEmpty() const {
+bool GameList::IsEmpty() const {
     for (int i = 0; i < item_model->rowCount(); i++) {
         const QStandardItem* child = item_model->invisibleRootItem()->child(i);
         const auto type = static_cast<GameListItemType>(child->type());
+
         if (!child->hasChildren() &&
             (type == GameListItemType::SdmcDir || type == GameListItemType::UserNandDir ||
              type == GameListItemType::SysNandDir)) {
@@ -411,11 +418,12 @@ bool GameList::isEmpty() const {
             i--;
         }
     }
+
     return !item_model->invisibleRootItem()->hasChildren();
 }
 
 void GameList::DonePopulating(const QStringList& watch_list) {
-    emit ShowList(!isEmpty());
+    emit ShowList(!IsEmpty());
 
     item_model->invisibleRootItem()->appendRow(new GameListAddDir());
 
