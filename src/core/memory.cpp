@@ -567,7 +567,7 @@ struct Memory::Impl {
      * @param page_table The page table to use to perform the mapping.
      * @param base       The base address to begin mapping at.
      * @param size       The total size of the range in bytes.
-     * @param memory     The memory to map.
+     * @param target     The target address to begin mapping from.
      * @param type       The page type to map the memory as.
      */
     void MapPages(Common::PageTable& page_table, VAddr base, u64 size, PAddr target,
