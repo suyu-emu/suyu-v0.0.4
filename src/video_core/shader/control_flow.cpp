@@ -547,13 +547,13 @@ bool TryQuery(CFGRebuildState& state) {
     gather_labels(q2.ssy_stack, state.ssy_labels, block);
     gather_labels(q2.pbk_stack, state.pbk_labels, block);
     if (std::holds_alternative<SingleBranch>(*block.branch)) {
-        const auto branch = std::get_if<SingleBranch>(block.branch.get());
+        auto* branch = std::get_if<SingleBranch>(block.branch.get());
         if (!branch->condition.IsUnconditional()) {
             q2.address = block.end + 1;
             state.queries.push_back(q2);
         }
 
-        Query conditional_query{q2};
+        auto& conditional_query = state.queries.emplace_back(q2);
         if (branch->is_sync) {
             if (branch->address == unassigned_branch) {
                 branch->address = conditional_query.ssy_stack.top();
@@ -567,15 +567,15 @@ bool TryQuery(CFGRebuildState& state) {
             conditional_query.pbk_stack.pop();
         }
         conditional_query.address = branch->address;
-        state.queries.push_back(std::move(conditional_query));
         return true;
     }
-    const auto multi_branch = std::get_if<MultiBranch>(block.branch.get());
+
+    const auto* multi_branch = std::get_if<MultiBranch>(block.branch.get());
     for (const auto& branch_case : multi_branch->branches) {
-        Query conditional_query{q2};
+        auto& conditional_query = state.queries.emplace_back(q2);
         conditional_query.address = branch_case.address;
-        state.queries.push_back(std::move(conditional_query));
     }
+
     return true;
 }
 
