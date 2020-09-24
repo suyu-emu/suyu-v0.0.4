@@ -29,7 +29,7 @@ ACC_U0::ACC_U0(std::shared_ptr<Module> module, std::shared_ptr<ProfileManager> p
         {110, nullptr, "StoreSaveDataThumbnail"},
         {111, nullptr, "ClearSaveDataThumbnail"},
         {120, nullptr, "CreateGuestLoginRequest"},
-        {130, nullptr, "LoadOpenContext"}, // 5.0.0+
+        {130, &ACC_U0::LoadOpenContext, "LoadOpenContext"}, // 5.0.0+
         {131, &ACC_U0::ListOpenContextStoredUsers, "ListOpenContextStoredUsers"}, // 6.0.0+
         {140, &ACC_U0::InitializeApplicationInfoRestricted, "InitializeApplicationInfoRestricted"}, // 6.0.0+
         {141, &ACC_U0::ListQualifiedUsers, "ListQualifiedUsers"}, // 6.0.0+
