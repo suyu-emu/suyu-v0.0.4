@@ -464,6 +464,10 @@ public:
         return operands.size();
     }
 
+    NodeBlock GetOperands() const {
+        return operands;
+    }
+
     const Node& operator[](std::size_t operand_index) const {
         return operands.at(operand_index);
     }

@@ -387,9 +387,49 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
     if (!sets_cc) {
         return;
     }
-    Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value), Immediate(0));
-    SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
-    LOG_WARNING(HW_GPU, "Condition codes implementation is incomplete");
+    switch (value->index()) {
+    case 0:
+        Iterop(bb, value);
+        break;
+    case 2:
+        if (const auto gpr = std::get_if<GprNode>(value.get())) {
+            LOG_WARNING(HW_GPU, "GprNode: index={}", gpr->GetIndex());
+            Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value),
+                                   Immediate(gpr->GetIndex()));
+            SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
+        }
+        break;
+
+    default:
+        Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value), Immediate(0));
+        SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
+        LOG_WARNING(HW_GPU, "Node Type: {}", value->index());
+        break;
+    }
+}
+
+void ShaderIR::Iterop(NodeBlock& nb, Node var) {
+    if (const auto op = std::get_if<OperationNode>(var.get())) {
+        if (op->GetOperandsCount() > 0) {
+            for (auto& opss : op->GetOperands()) {
+                switch (opss->index()) {
+                case 0:
+                    return Iterop(nb, opss);
+                case 2:
+                    if (const auto gpr = std::get_if<GprNode>(opss.get())) {
+                        LOG_WARNING(HW_GPU, "Child GprNode: index={}", gpr->GetIndex());
+                        Node zerop = Operation(OperationCode::LogicalIEqual, std::move(opss),
+                                               Immediate(gpr->GetIndex()));
+                        SetInternalFlag(nb, InternalFlag::Zero, std::move(zerop));
+                    }
+                    break;
+                default:
+                    LOG_WARNING(HW_GPU, "Child Node Type: {}", opss->index());
+                    break;
+                }
+            }
+        }
+    }
 }
 
 Node ShaderIR::BitfieldExtract(Node value, u32 offset, u32 bits) {
