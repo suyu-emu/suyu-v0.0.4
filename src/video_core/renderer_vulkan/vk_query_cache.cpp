@@ -9,35 +9,33 @@
 
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
+#include "video_core/renderer_vulkan/vk_resource_pool.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
+using VideoCore::QueryType;
+
 namespace {
 
 constexpr std::array QUERY_TARGETS = {VK_QUERY_TYPE_OCCLUSION};
 
-constexpr VkQueryType GetTarget(VideoCore::QueryType type) {
+constexpr VkQueryType GetTarget(QueryType type) {
     return QUERY_TARGETS[static_cast<std::size_t>(type)];
 }
 
 } // Anonymous namespace
 
-QueryPool::QueryPool() : VKFencedPool{GROW_STEP} {}
+QueryPool::QueryPool(const VKDevice& device_, VKScheduler& scheduler, QueryType type_)
+    : ResourcePool{scheduler.GetMasterSemaphore(), GROW_STEP}, device{device_}, type{type_} {}
 
 QueryPool::~QueryPool() = default;
 
-void QueryPool::Initialize(const VKDevice& device_, VideoCore::QueryType type_) {
-    device = &device_;
-    type = type_;
-}
-
-std::pair<VkQueryPool, u32> QueryPool::Commit(VKFence& fence) {
+std::pair<VkQueryPool, u32> QueryPool::Commit() {
     std::size_t index;
     do {
-        index = CommitResource(fence);
+        index = CommitResource();
     } while (usage[index]);
     usage[index] = true;
 
@@ -47,7 +45,7 @@ std::pair<VkQueryPool, u32> QueryPool::Commit(VKFence& fence) {
 void QueryPool::Allocate(std::size_t begin, std::size_t end) {
     usage.resize(end);
 
-    pools.push_back(device->GetLogical().CreateQueryPool({
+    pools.push_back(device.GetLogical().CreateQueryPool({
         .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -71,28 +69,36 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
 VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
                            Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
                            const VKDevice& device, VKScheduler& scheduler)
-    : VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter,
-                                  QueryPool>{rasterizer, maxwell3d, gpu_memory},
-      device{device}, scheduler{scheduler} {
-    for (std::size_t i = 0; i < static_cast<std::size_t>(VideoCore::NumQueryTypes); ++i) {
-        query_pools[i].Initialize(device, static_cast<VideoCore::QueryType>(i));
+    : VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream,
+                                  HostCounter>{rasterizer, maxwell3d, gpu_memory},
+      device{device}, scheduler{scheduler}, query_pools{
+                                                QueryPool{device, scheduler,
+                                                          QueryType::SamplesPassed},
+                                            } {}
+
+VKQueryCache::~VKQueryCache() {
+    // TODO(Rodrigo): This is a hack to destroy all HostCounter instances before the base class
+    // destructor is called. The query cache should be redesigned to have a proper ownership model
+    // instead of using shared pointers.
+    for (size_t query_type = 0; query_type < VideoCore::NumQueryTypes; ++query_type) {
+        auto& stream = Stream(static_cast<QueryType>(query_type));
+        stream.Update(false);
+        stream.Reset();
     }
 }
 
-VKQueryCache::~VKQueryCache() = default;
-
-std::pair<VkQueryPool, u32> VKQueryCache::AllocateQuery(VideoCore::QueryType type) {
-    return query_pools[static_cast<std::size_t>(type)].Commit(scheduler.GetFence());
+std::pair<VkQueryPool, u32> VKQueryCache::AllocateQuery(QueryType type) {
+    return query_pools[static_cast<std::size_t>(type)].Commit();
 }
 
-void VKQueryCache::Reserve(VideoCore::QueryType type, std::pair<VkQueryPool, u32> query) {
+void VKQueryCache::Reserve(QueryType type, std::pair<VkQueryPool, u32> query) {
     query_pools[static_cast<std::size_t>(type)].Reserve(query);
 }
 
 HostCounter::HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         VideoCore::QueryType type)
+                         QueryType type)
     : VideoCommon::HostCounterBase<VKQueryCache, HostCounter>{std::move(dependency)}, cache{cache},
-      type{type}, query{cache.AllocateQuery(type)}, ticks{cache.Scheduler().Ticks()} {
+      type{type}, query{cache.AllocateQuery(type)}, tick{cache.Scheduler().CurrentTick()} {
     const vk::Device* logical = &cache.Device().GetLogical();
     cache.Scheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
         logical->ResetQueryPoolEXT(query.first, query.second, 1);
@@ -110,7 +116,7 @@ void HostCounter::EndQuery() {
 }
 
 u64 HostCounter::BlockingQuery() const {
-    if (ticks >= cache.Scheduler().Ticks()) {
+    if (tick >= cache.Scheduler().CurrentTick()) {
         cache.Scheduler().Flush();
     }
     u64 data;

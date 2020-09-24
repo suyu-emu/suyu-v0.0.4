@@ -26,8 +26,8 @@ class RasterizerOpenGL;
 
 using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 
-class QueryCache final : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream,
-                                                            HostCounter, std::vector<OGLQuery>> {
+class QueryCache final
+    : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
     explicit QueryCache(RasterizerOpenGL& rasterizer, Tegra::Engines::Maxwell3D& maxwell3d,
                         Tegra::MemoryManager& gpu_memory);
@@ -41,6 +41,7 @@ public:
 
 private:
     RasterizerOpenGL& gl_rasterizer;
+    std::array<std::vector<OGLQuery>, VideoCore::NumQueryTypes> query_pools;
 };
 
 class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
@@ -63,10 +64,12 @@ class CachedQuery final : public VideoCommon::CachedQueryBase<HostCounter> {
 public:
     explicit CachedQuery(QueryCache& cache, VideoCore::QueryType type, VAddr cpu_addr,
                          u8* host_ptr);
-    CachedQuery(CachedQuery&& rhs) noexcept;
-    CachedQuery(const CachedQuery&) = delete;
+    ~CachedQuery() override;
 
+    CachedQuery(CachedQuery&& rhs) noexcept;
     CachedQuery& operator=(CachedQuery&& rhs) noexcept;
+
+    CachedQuery(const CachedQuery&) = delete;
     CachedQuery& operator=(const CachedQuery&) = delete;
 
     void Flush() override;

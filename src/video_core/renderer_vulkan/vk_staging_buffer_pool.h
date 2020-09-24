@@ -10,13 +10,11 @@
 #include "common/common_types.h"
 
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
 class VKDevice;
-class VKFenceWatch;
 class VKScheduler;
 
 struct VKBuffer final {
@@ -36,16 +34,10 @@ public:
 
 private:
     struct StagingBuffer final {
-        explicit StagingBuffer(std::unique_ptr<VKBuffer> buffer, VKFence& fence, u64 last_epoch);
-        StagingBuffer(StagingBuffer&& rhs) noexcept;
-        StagingBuffer(const StagingBuffer&) = delete;
-        ~StagingBuffer();
-
-        StagingBuffer& operator=(StagingBuffer&& rhs) noexcept;
+        explicit StagingBuffer(std::unique_ptr<VKBuffer> buffer);
 
         std::unique_ptr<VKBuffer> buffer;
-        VKFenceWatch watch;
-        u64 last_epoch = 0;
+        u64 tick = 0;
     };
 
     struct StagingBuffers final {
@@ -72,8 +64,6 @@ private:
 
     StagingBuffersCache host_staging_buffers;
     StagingBuffersCache device_staging_buffers;
-
-    u64 epoch = 0;
 
     std::size_t current_delete_level = 0;
 };

@@ -5,10 +5,8 @@
 #pragma once
 
 #include <memory>
-#include <tuple>
 
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
@@ -34,9 +32,9 @@ class RasterizerInterface;
 namespace Vulkan {
 
 struct ScreenInfo;
+
 class RasterizerVulkan;
 class VKDevice;
-class VKFence;
 class VKImage;
 class VKScheduler;
 class VKSwapchain;
@@ -46,15 +44,14 @@ public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
                           Core::Frontend::EmuWindow& render_window,
                           VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
-                          VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                          VKSwapchain& swapchain, VKScheduler& scheduler,
-                          const VKScreenInfo& screen_info);
+                          VKMemoryManager& memory_manager, VKSwapchain& swapchain,
+                          VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
 
     void Recreate();
 
-    std::tuple<VKFence&, VkSemaphore> Draw(const Tegra::FramebufferConfig& framebuffer,
-                                           bool use_accelerated);
+    [[nodiscard]] VkSemaphore Draw(const Tegra::FramebufferConfig& framebuffer,
+                                   bool use_accelerated);
 
 private:
     struct BufferData;
@@ -90,7 +87,6 @@ private:
     Core::Frontend::EmuWindow& render_window;
     VideoCore::RasterizerInterface& rasterizer;
     const VKDevice& device;
-    VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;
@@ -111,7 +107,7 @@ private:
     vk::Buffer buffer;
     VKMemoryCommit buffer_commit;
 
-    std::vector<std::unique_ptr<VKFenceWatch>> watches;
+    std::vector<u64> resource_ticks;
 
     std::vector<vk::Semaphore> semaphores;
     std::vector<std::unique_ptr<VKImage>> raw_images;

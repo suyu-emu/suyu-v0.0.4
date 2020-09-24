@@ -11,7 +11,6 @@
 #include "common/alignment.h"
 #include "common/assert.h"
 #include "video_core/renderer_vulkan/vk_device.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
 #include "video_core/renderer_vulkan/wrapper.h"
@@ -111,7 +110,7 @@ void VKStreamBuffer::Unmap(u64 size) {
     }
     auto& watch = current_watches[current_watch_cursor++];
     watch.upper_bound = offset;
-    watch.fence.Watch(scheduler.GetFence());
+    watch.tick = scheduler.CurrentTick();
 }
 
 void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
@@ -157,7 +156,7 @@ void VKStreamBuffer::WaitPendingOperations(u64 requested_upper_bound) {
     while (requested_upper_bound < wait_bound && wait_cursor < *invalidation_mark) {
         auto& watch = previous_watches[wait_cursor];
         wait_bound = watch.upper_bound;
-        watch.fence.Wait();
+        scheduler.Wait(watch.tick);
         ++wait_cursor;
     }
 }

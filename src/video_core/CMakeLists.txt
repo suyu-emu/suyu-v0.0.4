@@ -190,6 +190,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_blit_screen.h
         renderer_vulkan/vk_buffer_cache.cpp
         renderer_vulkan/vk_buffer_cache.h
+        renderer_vulkan/vk_command_pool.cpp
+        renderer_vulkan/vk_command_pool.h
         renderer_vulkan/vk_compute_pass.cpp
         renderer_vulkan/vk_compute_pass.h
         renderer_vulkan/vk_compute_pipeline.cpp
@@ -204,6 +206,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_graphics_pipeline.h
         renderer_vulkan/vk_image.cpp
         renderer_vulkan/vk_image.h
+        renderer_vulkan/vk_master_semaphore.cpp
+        renderer_vulkan/vk_master_semaphore.h
         renderer_vulkan/vk_memory_manager.cpp
         renderer_vulkan/vk_memory_manager.h
         renderer_vulkan/vk_pipeline_cache.cpp
@@ -214,8 +218,8 @@ if (ENABLE_VULKAN)
         renderer_vulkan/vk_rasterizer.h
         renderer_vulkan/vk_renderpass_cache.cpp
         renderer_vulkan/vk_renderpass_cache.h
-        renderer_vulkan/vk_resource_manager.cpp
-        renderer_vulkan/vk_resource_manager.h
+        renderer_vulkan/vk_resource_pool.cpp
+        renderer_vulkan/vk_resource_pool.h
         renderer_vulkan/vk_sampler_cache.cpp
         renderer_vulkan/vk_sampler_cache.h
         renderer_vulkan/vk_scheduler.cpp

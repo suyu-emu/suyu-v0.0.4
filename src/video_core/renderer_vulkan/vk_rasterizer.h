@@ -25,7 +25,6 @@
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -109,8 +108,8 @@ public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
                               Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
                               VKScreenInfo& screen_info, const VKDevice& device,
-                              VKResourceManager& resource_manager, VKMemoryManager& memory_manager,
-                              StateTracker& state_tracker, VKScheduler& scheduler);
+                              VKMemoryManager& memory_manager, StateTracker& state_tracker,
+                              VKScheduler& scheduler);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;
@@ -286,7 +285,6 @@ private:
 
     VKScreenInfo& screen_info;
     const VKDevice& device;
-    VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
     StateTracker& state_tracker;
     VKScheduler& scheduler;

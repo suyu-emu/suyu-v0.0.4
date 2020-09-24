@@ -29,8 +29,8 @@ void InnerFence::Queue() {
     }
     ASSERT(!event);
 
-    event = device.GetLogical().CreateNewEvent();
-    ticks = scheduler.Ticks();
+    event = device.GetLogical().CreateEvent();
+    ticks = scheduler.CurrentTick();
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([event = *event](vk::CommandBuffer cmdbuf) {
@@ -52,7 +52,7 @@ void InnerFence::Wait() {
     }
     ASSERT(event);
 
-    if (ticks >= scheduler.Ticks()) {
+    if (ticks >= scheduler.CurrentTick()) {
         scheduler.Flush();
     }
     while (!IsEventSignalled()) {

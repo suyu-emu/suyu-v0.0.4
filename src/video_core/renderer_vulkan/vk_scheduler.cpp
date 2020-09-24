@@ -10,9 +10,10 @@
 
 #include "common/microprofile.h"
 #include "common/thread.h"
+#include "video_core/renderer_vulkan/vk_command_pool.h"
 #include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/wrapper.h"
@@ -35,10 +36,10 @@ void VKScheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf) {
     last = nullptr;
 }
 
-VKScheduler::VKScheduler(const VKDevice& device, VKResourceManager& resource_manager,
-                         StateTracker& state_tracker)
-    : device{device}, resource_manager{resource_manager}, state_tracker{state_tracker},
-      next_fence{&resource_manager.CommitFence()} {
+VKScheduler::VKScheduler(const VKDevice& device_, StateTracker& state_tracker_)
+    : device{device_}, state_tracker{state_tracker_},
+      master_semaphore{std::make_unique<MasterSemaphore>(device)},
+      command_pool{std::make_unique<CommandPool>(*master_semaphore, device)} {
     AcquireNewChunk();
     AllocateNewContext();
     worker_thread = std::thread(&VKScheduler::WorkerThread, this);
@@ -50,20 +51,27 @@ VKScheduler::~VKScheduler() {
     worker_thread.join();
 }
 
-void VKScheduler::Flush(bool release_fence, VkSemaphore semaphore) {
+u64 VKScheduler::CurrentTick() const noexcept {
+    return master_semaphore->CurrentTick();
+}
+
+bool VKScheduler::IsFree(u64 tick) const noexcept {
+    return master_semaphore->IsFree(tick);
+}
+
+void VKScheduler::Wait(u64 tick) {
+    master_semaphore->Wait(tick);
+}
+
+void VKScheduler::Flush(VkSemaphore semaphore) {
     SubmitExecution(semaphore);
-    if (release_fence) {
-        current_fence->Release();
-    }
     AllocateNewContext();
 }
 
-void VKScheduler::Finish(bool release_fence, VkSemaphore semaphore) {
+void VKScheduler::Finish(VkSemaphore semaphore) {
+    const u64 presubmit_tick = CurrentTick();
     SubmitExecution(semaphore);
-    current_fence->Wait();
-    if (release_fence) {
-        current_fence->Release();
-    }
+    Wait(presubmit_tick);
     AllocateNewContext();
 }
 
@@ -160,18 +168,38 @@ void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
 
     current_cmdbuf.End();
 
+    const VkSemaphore timeline_semaphore = master_semaphore->Handle();
+    const u32 num_signal_semaphores = semaphore ? 2U : 1U;
+
+    const u64 signal_value = master_semaphore->CurrentTick();
+    const u64 wait_value = signal_value - 1;
+    const VkPipelineStageFlags wait_stage_mask = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
+    master_semaphore->NextTick();
+
+    const std::array signal_values{signal_value, u64(0)};
+    const std::array signal_semaphores{timeline_semaphore, semaphore};
+
+    const VkTimelineSemaphoreSubmitInfoKHR timeline_si{
+        .sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO_KHR,
+        .pNext = nullptr,
+        .waitSemaphoreValueCount = 1,
+        .pWaitSemaphoreValues = &wait_value,
+        .signalSemaphoreValueCount = num_signal_semaphores,
+        .pSignalSemaphoreValues = signal_values.data(),
+    };
     const VkSubmitInfo submit_info{
         .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext = nullptr,
-        .waitSemaphoreCount = 0,
-        .pWaitSemaphores = nullptr,
-        .pWaitDstStageMask = nullptr,
+        .pNext = &timeline_si,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &timeline_semaphore,
+        .pWaitDstStageMask = &wait_stage_mask,
         .commandBufferCount = 1,
         .pCommandBuffers = current_cmdbuf.address(),
-        .signalSemaphoreCount = semaphore ? 1U : 0U,
-        .pSignalSemaphores = &semaphore,
+        .signalSemaphoreCount = num_signal_semaphores,
+        .pSignalSemaphores = signal_semaphores.data(),
     };
-    switch (const VkResult result = device.GetGraphicsQueue().Submit(submit_info, *current_fence)) {
+    switch (const VkResult result = device.GetGraphicsQueue().Submit(submit_info)) {
     case VK_SUCCESS:
         break;
     case VK_ERROR_DEVICE_LOST:
@@ -183,14 +211,9 @@ void VKScheduler::SubmitExecution(VkSemaphore semaphore) {
 }
 
 void VKScheduler::AllocateNewContext() {
-    ++ticks;
-
     std::unique_lock lock{mutex};
-    current_fence = next_fence;
-    next_fence = &resource_manager.CommitFence();
 
-    current_cmdbuf = vk::CommandBuffer(resource_manager.CommitCommandBuffer(*current_fence),
-                                       device.GetDispatchLoader());
+    current_cmdbuf = vk::CommandBuffer(command_pool->Commit(), device.GetDispatchLoader());
     current_cmdbuf.Begin({
         .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
         .pNext = nullptr,

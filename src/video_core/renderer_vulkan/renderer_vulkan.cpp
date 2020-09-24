@@ -25,9 +25,9 @@
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
@@ -56,7 +56,7 @@ VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                        VkDebugUtilsMessageTypeFlagsEXT type,
                        const VkDebugUtilsMessengerCallbackDataEXT* data,
                        [[maybe_unused]] void* user_data) {
-    const char* message{data->pMessage};
+    const char* const message{data->pMessage};
 
     if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
         LOG_CRITICAL(Render_Vulkan, "{}", message);
@@ -269,11 +269,11 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         scheduler->WaitWorker();
 
         swapchain->AcquireNextImage();
-        const auto [fence, render_semaphore] = blit_screen->Draw(*framebuffer, use_accelerated);
+        const VkSemaphore render_semaphore = blit_screen->Draw(*framebuffer, use_accelerated);
 
-        scheduler->Flush(false, render_semaphore);
+        scheduler->Flush(render_semaphore);
 
-        if (swapchain->Present(render_semaphore, fence)) {
+        if (swapchain->Present(render_semaphore)) {
             blit_screen->Recreate();
         }
 
@@ -295,23 +295,21 @@ bool RendererVulkan::Init() {
 
     memory_manager = std::make_unique<VKMemoryManager>(*device);
 
-    resource_manager = std::make_unique<VKResourceManager>(*device);
-
-    const auto& framebuffer = render_window.GetFramebufferLayout();
-    swapchain = std::make_unique<VKSwapchain>(*surface, *device);
-    swapchain->Create(framebuffer.width, framebuffer.height, false);
-
     state_tracker = std::make_unique<StateTracker>(gpu);
 
-    scheduler = std::make_unique<VKScheduler>(*device, *resource_manager, *state_tracker);
+    scheduler = std::make_unique<VKScheduler>(*device, *state_tracker);
 
-    rasterizer = std::make_unique<RasterizerVulkan>(
-        render_window, gpu, gpu.MemoryManager(), cpu_memory, screen_info, *device,
-        *resource_manager, *memory_manager, *state_tracker, *scheduler);
+    const auto& framebuffer = render_window.GetFramebufferLayout();
+    swapchain = std::make_unique<VKSwapchain>(*surface, *device, *scheduler);
+    swapchain->Create(framebuffer.width, framebuffer.height, false);
 
-    blit_screen = std::make_unique<VKBlitScreen>(cpu_memory, render_window, *rasterizer, *device,
-                                                 *resource_manager, *memory_manager, *swapchain,
-                                                 *scheduler, screen_info);
+    rasterizer = std::make_unique<RasterizerVulkan>(render_window, gpu, gpu.MemoryManager(),
+                                                    cpu_memory, screen_info, *device,
+                                                    *memory_manager, *state_tracker, *scheduler);
+
+    blit_screen =
+        std::make_unique<VKBlitScreen>(cpu_memory, render_window, *rasterizer, *device,
+                                       *memory_manager, *swapchain, *scheduler, screen_info);
 
     return true;
 }
@@ -329,7 +327,6 @@ void RendererVulkan::ShutDown() {
     scheduler.reset();
     swapchain.reset();
     memory_manager.reset();
-    resource_manager.reset();
     device.reset();
 }
 

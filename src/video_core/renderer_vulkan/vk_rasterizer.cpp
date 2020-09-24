@@ -31,7 +31,6 @@
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_renderpass_cache.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
@@ -384,27 +383,25 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu_,
                                    Tegra::MemoryManager& gpu_memory_,
                                    Core::Memory::Memory& cpu_memory, VKScreenInfo& screen_info_,
-                                   const VKDevice& device_, VKResourceManager& resource_manager_,
-                                   VKMemoryManager& memory_manager_, StateTracker& state_tracker_,
-                                   VKScheduler& scheduler_)
+                                   const VKDevice& device_, VKMemoryManager& memory_manager_,
+                                   StateTracker& state_tracker_, VKScheduler& scheduler_)
     : RasterizerAccelerated(cpu_memory), gpu(gpu_), gpu_memory(gpu_memory_),
       maxwell3d(gpu.Maxwell3D()), kepler_compute(gpu.KeplerCompute()), screen_info(screen_info_),
-      device(device_), resource_manager(resource_manager_), memory_manager(memory_manager_),
-      state_tracker(state_tracker_), scheduler(scheduler_),
-      staging_pool(device, memory_manager, scheduler), descriptor_pool(device),
-      update_descriptor_queue(device, scheduler), renderpass_cache(device),
+      device(device_), memory_manager(memory_manager_), state_tracker(state_tracker_),
+      scheduler(scheduler_), staging_pool(device, memory_manager, scheduler),
+      descriptor_pool(device, scheduler_), update_descriptor_queue(device, scheduler),
+      renderpass_cache(device),
       quad_array_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       quad_indexed_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
       uint8_pass(device, scheduler, descriptor_pool, staging_pool, update_descriptor_queue),
-      texture_cache(*this, maxwell3d, gpu_memory, device, resource_manager, memory_manager,
-                    scheduler, staging_pool),
+      texture_cache(*this, maxwell3d, gpu_memory, device, memory_manager, scheduler, staging_pool),
       pipeline_cache(*this, gpu, maxwell3d, kepler_compute, gpu_memory, device, scheduler,
                      descriptor_pool, update_descriptor_queue, renderpass_cache),
       buffer_cache(*this, gpu_memory, cpu_memory, device, memory_manager, scheduler, staging_pool),
       sampler_cache(device), query_cache(*this, maxwell3d, gpu_memory, device, scheduler),
       fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, device,
                     scheduler),
-      wfi_event(device.GetLogical().CreateNewEvent()), async_shaders(emu_window) {
+      wfi_event(device.GetLogical().CreateEvent()), async_shaders(emu_window) {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
         async_shaders.AllocateWorkers();

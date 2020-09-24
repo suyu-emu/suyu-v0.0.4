@@ -30,9 +30,7 @@ namespace Vulkan {
 class StateTracker;
 class VKBlitScreen;
 class VKDevice;
-class VKFence;
 class VKMemoryManager;
-class VKResourceManager;
 class VKSwapchain;
 class VKScheduler;
 class VKImage;
@@ -81,11 +79,10 @@ private:
 
     vk::DebugCallback debug_callback;
     std::unique_ptr<VKDevice> device;
-    std::unique_ptr<VKSwapchain> swapchain;
     std::unique_ptr<VKMemoryManager> memory_manager;
-    std::unique_ptr<VKResourceManager> resource_manager;
     std::unique_ptr<StateTracker> state_tracker;
     std::unique_ptr<VKScheduler> scheduler;
+    std::unique_ptr<VKSwapchain> swapchain;
     std::unique_ptr<VKBlitScreen> blit_screen;
 };
 

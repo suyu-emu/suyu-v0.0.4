@@ -23,7 +23,6 @@ namespace Vulkan {
 
 class RasterizerVulkan;
 class VKDevice;
-class VKResourceManager;
 class VKScheduler;
 class VKStagingBufferPool;
 
@@ -41,10 +40,9 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(const VKDevice& device, VKResourceManager& resource_manager,
-                           VKMemoryManager& memory_manager, VKScheduler& scheduler,
-                           VKStagingBufferPool& staging_pool, GPUVAddr gpu_addr,
-                           const SurfaceParams& params);
+    explicit CachedSurface(const VKDevice& device, VKMemoryManager& memory_manager,
+                           VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
+                           GPUVAddr gpu_addr, const SurfaceParams& params);
     ~CachedSurface();
 
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
@@ -98,7 +96,6 @@ private:
     VkImageSubresourceRange GetImageSubresourceRange() const;
 
     const VKDevice& device;
-    VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
     VKScheduler& scheduler;
     VKStagingBufferPool& staging_pool;
@@ -198,9 +195,8 @@ class VKTextureCache final : public TextureCacheBase {
 public:
     explicit VKTextureCache(VideoCore::RasterizerInterface& rasterizer,
                             Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                            const VKDevice& device, VKResourceManager& resource_manager,
-                            VKMemoryManager& memory_manager, VKScheduler& scheduler,
-                            VKStagingBufferPool& staging_pool);
+                            const VKDevice& device, VKMemoryManager& memory_manager,
+                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
     ~VKTextureCache();
 
 private:
@@ -215,7 +211,6 @@ private:
     void BufferCopy(Surface& src_surface, Surface& dst_surface) override;
 
     const VKDevice& device;
-    VKResourceManager& resource_manager;
     VKMemoryManager& memory_manager;
     VKScheduler& scheduler;
     VKStagingBufferPool& staging_pool;

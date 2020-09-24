@@ -10,36 +10,18 @@
 #include "common/bit_util.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_device.h"
-#include "video_core/renderer_vulkan/vk_resource_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
 
-VKStagingBufferPool::StagingBuffer::StagingBuffer(std::unique_ptr<VKBuffer> buffer, VKFence& fence,
-                                                  u64 last_epoch)
-    : buffer{std::move(buffer)}, watch{fence}, last_epoch{last_epoch} {}
+VKStagingBufferPool::StagingBuffer::StagingBuffer(std::unique_ptr<VKBuffer> buffer_)
+    : buffer{std::move(buffer_)} {}
 
-VKStagingBufferPool::StagingBuffer::StagingBuffer(StagingBuffer&& rhs) noexcept {
-    buffer = std::move(rhs.buffer);
-    watch = std::move(rhs.watch);
-    last_epoch = rhs.last_epoch;
-}
-
-VKStagingBufferPool::StagingBuffer::~StagingBuffer() = default;
-
-VKStagingBufferPool::StagingBuffer& VKStagingBufferPool::StagingBuffer::operator=(
-    StagingBuffer&& rhs) noexcept {
-    buffer = std::move(rhs.buffer);
-    watch = std::move(rhs.watch);
-    last_epoch = rhs.last_epoch;
-    return *this;
-}
-
-VKStagingBufferPool::VKStagingBufferPool(const VKDevice& device, VKMemoryManager& memory_manager,
-                                         VKScheduler& scheduler)
-    : device{device}, memory_manager{memory_manager}, scheduler{scheduler} {}
+VKStagingBufferPool::VKStagingBufferPool(const VKDevice& device_, VKMemoryManager& memory_manager_,
+                                         VKScheduler& scheduler_)
+    : device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_} {}
 
 VKStagingBufferPool::~VKStagingBufferPool() = default;
 
@@ -51,7 +33,6 @@ VKBuffer& VKStagingBufferPool::GetUnusedBuffer(std::size_t size, bool host_visib
 }
 
 void VKStagingBufferPool::TickFrame() {
-    ++epoch;
     current_delete_level = (current_delete_level + 1) % NumLevels;
 
     ReleaseCache(true);
@@ -59,11 +40,12 @@ void VKStagingBufferPool::TickFrame() {
 }
 
 VKBuffer* VKStagingBufferPool::TryGetReservedBuffer(std::size_t size, bool host_visible) {
-    for (auto& entry : GetCache(host_visible)[Common::Log2Ceil64(size)].entries) {
-        if (entry.watch.TryWatch(scheduler.GetFence())) {
-            entry.last_epoch = epoch;
-            return &*entry.buffer;
+    for (StagingBuffer& entry : GetCache(host_visible)[Common::Log2Ceil64(size)].entries) {
+        if (!scheduler.IsFree(entry.tick)) {
+            continue;
         }
+        entry.tick = scheduler.CurrentTick();
+        return &*entry.buffer;
     }
     return nullptr;
 }
@@ -86,8 +68,10 @@ VKBuffer& VKStagingBufferPool::CreateStagingBuffer(std::size_t size, bool host_v
     });
     buffer->commit = memory_manager.Commit(buffer->handle, host_visible);
 
-    auto& entries = GetCache(host_visible)[log2].entries;
-    return *entries.emplace_back(std::move(buffer), scheduler.GetFence(), epoch).buffer;
+    std::vector<StagingBuffer>& entries = GetCache(host_visible)[log2].entries;
+    StagingBuffer& entry = entries.emplace_back(std::move(buffer));
+    entry.tick = scheduler.CurrentTick();
+    return *entry.buffer;
 }
 
 VKStagingBufferPool::StagingBuffersCache& VKStagingBufferPool::GetCache(bool host_visible) {
@@ -109,9 +93,8 @@ u64 VKStagingBufferPool::ReleaseLevel(StagingBuffersCache& cache, std::size_t lo
     auto& entries = staging.entries;
     const std::size_t old_size = entries.size();
 
-    const auto is_deleteable = [this](const auto& entry) {
-        static constexpr u64 epochs_to_destroy = 180;
-        return entry.last_epoch + epochs_to_destroy < epoch && !entry.watch.IsUsed();
+    const auto is_deleteable = [this](const StagingBuffer& entry) {
+        return scheduler.IsFree(entry.tick);
     };
     const std::size_t begin_offset = staging.delete_index;
     const std::size_t end_offset = std::min(begin_offset + deletions_per_tick, old_size);

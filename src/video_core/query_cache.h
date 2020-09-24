@@ -91,8 +91,7 @@ private:
     std::shared_ptr<HostCounter> last;
 };
 
-template <class QueryCache, class CachedQuery, class CounterStream, class HostCounter,
-          class QueryPool>
+template <class QueryCache, class CachedQuery, class CounterStream, class HostCounter>
 class QueryCacheBase {
 public:
     explicit QueryCacheBase(VideoCore::RasterizerInterface& rasterizer_,
@@ -205,9 +204,6 @@ public:
         }
         committed_flushes.pop_front();
     }
-
-protected:
-    std::array<QueryPool, VideoCore::NumQueryTypes> query_pools;
 
 private:
     /// Flushes a memory range to guest memory and removes it from the cache.
