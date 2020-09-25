@@ -25,10 +25,7 @@ public:
     VkCommandBuffer Commit();
 
 private:
-    struct Pool {
-        vk::CommandPool handle;
-        vk::CommandBuffers cmdbufs;
-    };
+    struct Pool;
 
     const VKDevice& device;
     std::vector<Pool> pools;
