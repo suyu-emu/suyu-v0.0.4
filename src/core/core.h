@@ -120,7 +120,7 @@ public:
      * Gets the instance of the System singleton class.
      * @returns Reference to the instance of the System singleton class.
      */
-    static System& GetInstance() {
+    [[deprecated("Use of the global system instance is deprecated")]] static System& GetInstance() {
         return s_instance;
     }
 
