@@ -120,7 +120,8 @@ void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
 
     // Substract from the preferred heap size some bytes to avoid getting out of memory.
     const VkDeviceSize heap_size = memory_properties.memoryHeaps[preferred_heap].size;
-    const VkDeviceSize allocable_size = heap_size - 9 * 1024 * 1024;
+    // As per DXVK's example, using `heap_size / 2`
+    const VkDeviceSize allocable_size = heap_size / 2;
     buffer = device.GetLogical().CreateBuffer({
         .sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
         .pNext = nullptr,
