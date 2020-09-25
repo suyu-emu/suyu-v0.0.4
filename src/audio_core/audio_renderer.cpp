@@ -3,16 +3,13 @@
 // Refer to the license.txt file included.
 
 #include <vector>
-#include "audio_core/algorithm/interpolate.h"
+
 #include "audio_core/audio_out.h"
 #include "audio_core/audio_renderer.h"
-#include "audio_core/codec.h"
 #include "audio_core/common.h"
 #include "audio_core/info_updater.h"
 #include "audio_core/voice_context.h"
-#include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
 #include "core/settings.h"
