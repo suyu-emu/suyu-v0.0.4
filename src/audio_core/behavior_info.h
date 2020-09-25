@@ -49,9 +49,9 @@ public:
     bool IsAdpcmLoopContextBugFixed() const;
     bool IsSplitterSupported() const;
     bool IsLongSizePreDelaySupported() const;
-    bool IsAudioRenererProcessingTimeLimit80PercentSupported() const;
-    bool IsAudioRenererProcessingTimeLimit75PercentSupported() const;
-    bool IsAudioRenererProcessingTimeLimit70PercentSupported() const;
+    bool IsAudioRendererProcessingTimeLimit80PercentSupported() const;
+    bool IsAudioRendererProcessingTimeLimit75PercentSupported() const;
+    bool IsAudioRendererProcessingTimeLimit70PercentSupported() const;
     bool IsElapsedFrameCountSupported() const;
     bool IsMemoryPoolForceMappingEnabled() const;
     bool IsFlushVoiceWaveBuffersSupported() const;
