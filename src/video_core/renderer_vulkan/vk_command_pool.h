@@ -18,7 +18,7 @@ class VKDevice;
 class CommandPool final : public ResourcePool {
 public:
     explicit CommandPool(MasterSemaphore& master_semaphore, const VKDevice& device);
-    virtual ~CommandPool();
+    ~CommandPool() override;
 
     void Allocate(size_t begin, size_t end) override;
 
