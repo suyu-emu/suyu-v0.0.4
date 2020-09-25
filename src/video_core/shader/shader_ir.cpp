@@ -388,12 +388,12 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
         return;
     }
     switch (value->index()) {
-    case 0:
+    case 0: // Operation Node
         Iterop(bb, value);
         break;
-    case 2:
+    case 2: // Genral Purpose Node
         if (const auto gpr = std::get_if<GprNode>(value.get())) {
-            LOG_WARNING(HW_GPU, "GprNode: index={}", gpr->GetIndex());
+            LOG_DEBUG(HW_GPU, "GprNode: index={}", gpr->GetIndex());
             Node zerop = Operation(OperationCode::LogicalIEqual, std::move(value),
                                    Immediate(gpr->GetIndex()));
             SetInternalFlag(bb, InternalFlag::Zero, std::move(zerop));
@@ -408,26 +408,31 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
     }
 }
 
-void ShaderIR::Iterop(NodeBlock& nb, Node var) {
-    if (const auto op = std::get_if<OperationNode>(var.get())) {
-        if (op->GetOperandsCount() > 0) {
-            for (auto& opss : op->GetOperands()) {
-                switch (opss->index()) {
-                case 0:
-                    return Iterop(nb, opss);
-                case 2:
-                    if (const auto gpr = std::get_if<GprNode>(opss.get())) {
-                        LOG_WARNING(HW_GPU, "Child GprNode: index={}", gpr->GetIndex());
-                        Node zerop = Operation(OperationCode::LogicalIEqual, std::move(opss),
-                                               Immediate(gpr->GetIndex()));
-                        SetInternalFlag(nb, InternalFlag::Zero, std::move(zerop));
-                    }
-                    break;
-                default:
-                    LOG_WARNING(HW_GPU, "Child Node Type: {}", opss->index());
-                    break;
-                }
+void ShaderIR::SearchOperands(NodeBlock& nb, Node var) {
+    const auto* op = std::get_if<OperationNode>(var.get());
+    if (op == nullptr) {
+        return;
+    }
+
+    if (op->GetOperandsCount() == 0) {
+        return;
+    }
+
+    for (auto& operand : op->GetOperands()) {
+        switch (operand->index()) {
+        case 0: // Operation Node
+            return Iterop(nb, operand);
+        case 2: // General Purpose Node
+            if (const auto* gpr = std::get_if<GprNode>(operand.get())) {
+                LOG_DEBUG(HW_GPU, "Child GprNode: index={}", gpr->GetIndex());
+                Node zerop = Operation(OperationCode::LogicalIEqual, std::move(operand),
+                                       Immediate(gpr->GetIndex()));
+                SetInternalFlag(nb, InternalFlag::Zero, std::move(zerop));
             }
+            break;
+        default:
+            LOG_WARNING(HW_GPU, "Child Node Type: {}", operand->index());
+            break;
         }
     }
 }

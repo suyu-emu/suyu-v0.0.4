@@ -464,7 +464,11 @@ public:
         return operands.size();
     }
 
-    NodeBlock GetOperands() const {
+    NodeBlock& GetOperands() {
+        return operands;
+    }
+
+    const NodeBlock& GetOperands() const {
         return operands;
     }
 
