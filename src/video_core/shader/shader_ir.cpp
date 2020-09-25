@@ -389,7 +389,7 @@ void ShaderIR::SetInternalFlagsFromInteger(NodeBlock& bb, Node value, bool sets_
     }
     switch (value->index()) {
     case 0: // Operation Node
-        Iterop(bb, value);
+        SearchOperands(bb, value);
         break;
     case 2: // Genral Purpose Node
         if (const auto* gpr = std::get_if<GprNode>(value.get())) {
@@ -421,7 +421,7 @@ void ShaderIR::SearchOperands(NodeBlock& nb, Node var) {
     for (auto& operand : op->GetOperands()) {
         switch (operand->index()) {
         case 0: // Operation Node
-            return Iterop(nb, operand);
+            return SearchOperands(nb, operand);
         case 2: // General Purpose Node
             if (const auto* gpr = std::get_if<GprNode>(operand.get())) {
                 LOG_DEBUG(HW_GPU, "Child GprNode: index={}", gpr->GetIndex());
