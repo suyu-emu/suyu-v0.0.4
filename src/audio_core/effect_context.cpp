@@ -184,19 +184,19 @@ void EffectAuxInfo::UpdateForCommandGeneration() {
     }
 }
 
-const VAddr EffectAuxInfo::GetSendInfo() const {
+VAddr EffectAuxInfo::GetSendInfo() const {
     return send_info;
 }
 
-const VAddr EffectAuxInfo::GetSendBuffer() const {
+VAddr EffectAuxInfo::GetSendBuffer() const {
     return send_buffer;
 }
 
-const VAddr EffectAuxInfo::GetRecvInfo() const {
+VAddr EffectAuxInfo::GetRecvInfo() const {
     return recv_info;
 }
 
-const VAddr EffectAuxInfo::GetRecvBuffer() const {
+VAddr EffectAuxInfo::GetRecvBuffer() const {
     return recv_buffer;
 }
 

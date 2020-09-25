@@ -44,6 +44,16 @@ add_library(audio_core STATIC
 
 create_target_directory_groups(audio_core)
 
+if (NOT MSVC)
+    target_compile_options(audio_core PRIVATE
+        -Werror=ignored-qualifiers
+        -Werror=implicit-fallthrough
+        -Werror=reorder
+        -Werror=sign-compare
+        -Werror=unused-variable
+    )
+endif()
+
 target_link_libraries(audio_core PUBLIC common core)
 target_link_libraries(audio_core PRIVATE SoundTouch)
 

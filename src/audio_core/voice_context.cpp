@@ -488,11 +488,11 @@ s32 VoiceContext::DecodePcm16(s32* output_buffer, ServerWaveBuffer* wave_buffer,
 
     // Fast path
     if (channel_count == 1) {
-        for (std::size_t i = 0; i < samples_processed; i++) {
+        for (std::ptrdiff_t i = 0; i < samples_processed; i++) {
             output_buffer[i] = buffer_data[i];
         }
     } else {
-        for (std::size_t i = 0; i < samples_processed; i++) {
+        for (std::ptrdiff_t i = 0; i < samples_processed; i++) {
             output_buffer[i] = buffer_data[i * channel_count + channel];
         }
     }

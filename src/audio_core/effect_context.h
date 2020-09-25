@@ -257,10 +257,10 @@ public:
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
-    const VAddr GetSendInfo() const;
-    const VAddr GetSendBuffer() const;
-    const VAddr GetRecvInfo() const;
-    const VAddr GetRecvBuffer() const;
+    VAddr GetSendInfo() const;
+    VAddr GetSendBuffer() const;
+    VAddr GetRecvInfo() const;
+    VAddr GetRecvBuffer() const;
 
 private:
     VAddr send_info{};
