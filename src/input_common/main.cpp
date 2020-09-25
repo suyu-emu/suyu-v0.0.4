@@ -11,6 +11,7 @@
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
 #include "input_common/motion_emu.h"
+#include "input_common/motion_from_button.h"
 #include "input_common/touch_from_button.h"
 #include "input_common/udp/client.h"
 #include "input_common/udp/udp.h"
@@ -32,6 +33,8 @@ struct InputSubsystem::Impl {
         Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
         Input::RegisterFactory<Input::AnalogDevice>("analog_from_button",
                                                     std::make_shared<AnalogFromButton>());
+        Input::RegisterFactory<Input::MotionDevice>("keyboard",
+                                                    std::make_shared<MotionFromButton>());
         motion_emu = std::make_shared<MotionEmu>();
         Input::RegisterFactory<Input::MotionDevice>("motion_emu", motion_emu);
         Input::RegisterFactory<Input::TouchDevice>("touch_from_button",
@@ -50,6 +53,7 @@ struct InputSubsystem::Impl {
 
     void Shutdown() {
         Input::UnregisterFactory<Input::ButtonDevice>("keyboard");
+        Input::UnregisterFactory<Input::MotionDevice>("keyboard");
         keyboard.reset();
         Input::UnregisterFactory<Input::AnalogDevice>("analog_from_button");
         Input::UnregisterFactory<Input::MotionDevice>("motion_emu");
