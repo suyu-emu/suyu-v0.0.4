@@ -24,44 +24,45 @@ GraphicsInfo MakeGraphicsInfo(ShaderType shader_stage, ConstBufferEngineInterfac
     if (shader_stage == ShaderType::Compute) {
         return {};
     }
-    auto& graphics = static_cast<Tegra::Engines::Maxwell3D&>(engine);
 
-    GraphicsInfo info;
-    info.tfb_layouts = graphics.regs.tfb_layouts;
-    info.tfb_varying_locs = graphics.regs.tfb_varying_locs;
-    info.primitive_topology = graphics.regs.draw.topology;
-    info.tessellation_primitive = graphics.regs.tess_mode.prim;
-    info.tessellation_spacing = graphics.regs.tess_mode.spacing;
-    info.tfb_enabled = graphics.regs.tfb_enabled;
-    info.tessellation_clockwise = graphics.regs.tess_mode.cw;
-    return info;
+    auto& graphics = dynamic_cast<Tegra::Engines::Maxwell3D&>(engine);
+
+    return {
+        .tfb_layouts = graphics.regs.tfb_layouts,
+        .tfb_varying_locs = graphics.regs.tfb_varying_locs,
+        .primitive_topology = graphics.regs.draw.topology,
+        .tessellation_primitive = graphics.regs.tess_mode.prim,
+        .tessellation_spacing = graphics.regs.tess_mode.spacing,
+        .tfb_enabled = graphics.regs.tfb_enabled != 0,
+        .tessellation_clockwise = graphics.regs.tess_mode.cw.Value() != 0,
+    };
 }
 
 ComputeInfo MakeComputeInfo(ShaderType shader_stage, ConstBufferEngineInterface& engine) {
     if (shader_stage != ShaderType::Compute) {
         return {};
     }
-    auto& compute = static_cast<Tegra::Engines::KeplerCompute&>(engine);
+
+    auto& compute = dynamic_cast<Tegra::Engines::KeplerCompute&>(engine);
     const auto& launch = compute.launch_description;
 
-    ComputeInfo info;
-    info.workgroup_size = {launch.block_dim_x, launch.block_dim_y, launch.block_dim_z};
-    info.local_memory_size_in_words = launch.local_pos_alloc;
-    info.shared_memory_size_in_words = launch.shared_alloc;
-    return info;
+    return {
+        .workgroup_size = {launch.block_dim_x, launch.block_dim_y, launch.block_dim_z},
+        .shared_memory_size_in_words = launch.shared_alloc,
+        .local_memory_size_in_words = launch.local_pos_alloc,
+    };
 }
 
 } // Anonymous namespace
 
-Registry::Registry(Tegra::Engines::ShaderType shader_stage, const SerializedRegistryInfo& info)
+Registry::Registry(ShaderType shader_stage, const SerializedRegistryInfo& info)
     : stage{shader_stage}, stored_guest_driver_profile{info.guest_driver_profile},
       bound_buffer{info.bound_buffer}, graphics_info{info.graphics}, compute_info{info.compute} {}
 
-Registry::Registry(Tegra::Engines::ShaderType shader_stage,
-                   Tegra::Engines::ConstBufferEngineInterface& engine)
-    : stage{shader_stage}, engine{&engine}, bound_buffer{engine.GetBoundBuffer()},
-      graphics_info{MakeGraphicsInfo(shader_stage, engine)}, compute_info{MakeComputeInfo(
-                                                                 shader_stage, engine)} {}
+Registry::Registry(ShaderType shader_stage, ConstBufferEngineInterface& engine_)
+    : stage{shader_stage}, engine{&engine_}, bound_buffer{engine_.GetBoundBuffer()},
+      graphics_info{MakeGraphicsInfo(shader_stage, engine_)}, compute_info{MakeComputeInfo(
+                                                                  shader_stage, engine_)} {}
 
 Registry::~Registry() = default;
 
@@ -113,8 +114,7 @@ std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainSeparateSampler
     return value;
 }
 
-std::optional<Tegra::Engines::SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer,
-                                                                                 u32 offset) {
+std::optional<SamplerDescriptor> Registry::ObtainBindlessSampler(u32 buffer, u32 offset) {
     const std::pair key = {buffer, offset};
     const auto iter = bindless_samplers.find(key);
     if (iter != bindless_samplers.end()) {

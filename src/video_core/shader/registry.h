@@ -94,7 +94,7 @@ public:
     explicit Registry(Tegra::Engines::ShaderType shader_stage, const SerializedRegistryInfo& info);
 
     explicit Registry(Tegra::Engines::ShaderType shader_stage,
-                      Tegra::Engines::ConstBufferEngineInterface& engine);
+                      Tegra::Engines::ConstBufferEngineInterface& engine_);
 
     ~Registry();
 
