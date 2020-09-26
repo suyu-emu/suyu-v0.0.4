@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #pragma once
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/swap.h"
