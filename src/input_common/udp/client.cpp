@@ -274,18 +274,22 @@ void Client::Reset() {
 
 void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
                                 const Common::Vec3<float>& gyro, bool touch) {
+    if (gyro.Length() > 0.2f) {
+        LOG_DEBUG(Input, "UDP Controller {}: gyro=({}, {}, {}), accel=({}, {}, {}), touch={}",
+                  client, gyro[0], gyro[1], gyro[2], acc[0], acc[1], acc[2], touch);
+    }
     UDPPadStatus pad;
     if (touch) {
         pad.touch = PadTouch::Click;
         pad_queue[client].Push(pad);
     }
     for (size_t i = 0; i < 3; ++i) {
-        if (gyro[i] > 6.0f || gyro[i] < -6.0f) {
+        if (gyro[i] > 5.0f || gyro[i] < -5.0f) {
             pad.motion = static_cast<PadMotion>(i);
             pad.motion_value = gyro[i];
             pad_queue[client].Push(pad);
         }
-        if (acc[i] > 2.0f || acc[i] < -2.0f) {
+        if (acc[i] > 1.75f || acc[i] < -1.75f) {
             pad.motion = static_cast<PadMotion>(i + 3);
             pad.motion_value = acc[i];
             pad_queue[client].Push(pad);
