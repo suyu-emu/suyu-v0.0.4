@@ -2,6 +2,8 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <cstddef>
 #include <vector>
 
@@ -16,17 +18,14 @@ class VKDevice;
 class CommandPool final : public ResourcePool {
 public:
     explicit CommandPool(MasterSemaphore& master_semaphore, const VKDevice& device);
-    virtual ~CommandPool();
+    ~CommandPool() override;
 
     void Allocate(size_t begin, size_t end) override;
 
     VkCommandBuffer Commit();
 
 private:
-    struct Pool {
-        vk::CommandPool handle;
-        vk::CommandBuffers cmdbufs;
-    };
+    struct Pool;
 
     const VKDevice& device;
     std::vector<Pool> pools;

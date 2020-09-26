@@ -12,6 +12,11 @@ namespace Vulkan {
 
 constexpr size_t COMMAND_BUFFER_POOL_SIZE = 0x1000;
 
+struct CommandPool::Pool {
+    vk::CommandPool handle;
+    vk::CommandBuffers cmdbufs;
+};
+
 CommandPool::CommandPool(MasterSemaphore& master_semaphore, const VKDevice& device)
     : ResourcePool(master_semaphore, COMMAND_BUFFER_POOL_SIZE), device{device} {}
 
