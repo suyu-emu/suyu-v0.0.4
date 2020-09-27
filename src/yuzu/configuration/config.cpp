@@ -280,7 +280,8 @@ void Config::ReadPlayerValue(std::size_t player_index) {
         }
     } else {
         player.connected =
-            ReadSetting(QStringLiteral("%1connected").arg(player_prefix), false).toBool();
+            ReadSetting(QStringLiteral("%1connected").arg(player_prefix), player_index == 0)
+                .toBool();
 
         player.controller_type = static_cast<Settings::ControllerType>(
             qt_config

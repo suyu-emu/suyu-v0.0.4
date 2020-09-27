@@ -224,6 +224,19 @@ void Controller_NPad::OnInit() {
                                                player.connected};
                    });
 
+    // Connect the Player 1 or Handheld controller if none are connected.
+    if (std::none_of(connected_controllers.begin(), connected_controllers.end(),
+                     [](const ControllerHolder& controller) { return controller.is_connected; })) {
+        const auto controller = MapSettingsTypeToNPad(Settings::values.players[0].controller_type);
+        if (controller == NPadControllerType::Handheld) {
+            Settings::values.players[HANDHELD_INDEX].connected = true;
+            connected_controllers[HANDHELD_INDEX] = {controller, true};
+        } else {
+            Settings::values.players[0].connected = true;
+            connected_controllers[0] = {controller, true};
+        }
+    }
+
     // Account for handheld
     if (connected_controllers[HANDHELD_INDEX].is_connected) {
         connected_controllers[HANDHELD_INDEX].type = NPadControllerType::Handheld;
