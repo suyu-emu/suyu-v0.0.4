@@ -306,7 +306,7 @@ bool SplitterContext::UpdateInfo(const std::vector<u8>& input, std::size_t& inpu
             break;
         }
 
-        if (header.send_id < 0 || header.send_id > info_count) {
+        if (header.send_id < 0 || static_cast<std::size_t>(header.send_id) > info_count) {
             LOG_ERROR(Audio, "Bad splitter data id");
             break;
         }
@@ -348,7 +348,7 @@ bool SplitterContext::UpdateData(const std::vector<u8>& input, std::size_t& inpu
             break;
         }
 
-        if (header.splitter_id < 0 || header.splitter_id > data_count) {
+        if (header.splitter_id < 0 || static_cast<std::size_t>(header.splitter_id) > data_count) {
             LOG_ERROR(Audio, "Bad splitter data id");
             break;
         }
@@ -434,7 +434,7 @@ const std::vector<s32>& NodeStates::GetIndexList() const {
 }
 
 void NodeStates::PushTsortResult(s32 index) {
-    ASSERT(index < node_count);
+    ASSERT(index < static_cast<s32>(node_count));
     index_list[index_pos++] = index;
 }
 

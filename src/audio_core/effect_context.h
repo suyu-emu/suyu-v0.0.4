@@ -166,13 +166,13 @@ public:
             std::array<u8, 0xa0> raw;
         };
     };
-    static_assert(sizeof(EffectInfo::InParams) == 0xc0, "InParams is an invalid size");
+    static_assert(sizeof(InParams) == 0xc0, "InParams is an invalid size");
 
     struct OutParams {
         UsageStatus status{};
         INSERT_PADDING_BYTES(15);
     };
-    static_assert(sizeof(EffectInfo::OutParams) == 0x10, "OutParams is an invalid size");
+    static_assert(sizeof(OutParams) == 0x10, "OutParams is an invalid size");
 };
 
 struct AuxAddress {
@@ -184,8 +184,8 @@ struct AuxAddress {
 
 class EffectBase {
 public:
-    EffectBase(EffectType effect_type);
-    ~EffectBase();
+    explicit EffectBase(EffectType effect_type);
+    virtual ~EffectBase();
 
     virtual void Update(EffectInfo::InParams& in_params) = 0;
     virtual void UpdateForCommandGeneration() = 0;
@@ -206,8 +206,7 @@ protected:
 template <typename T>
 class EffectGeneric : public EffectBase {
 public:
-    EffectGeneric(EffectType effect_type) : EffectBase::EffectBase(effect_type) {}
-    ~EffectGeneric() = default;
+    explicit EffectGeneric(EffectType effect_type) : EffectBase(effect_type) {}
 
     T& GetParams() {
         return internal_params;
@@ -224,7 +223,7 @@ private:
 class EffectStubbed : public EffectBase {
 public:
     explicit EffectStubbed();
-    ~EffectStubbed();
+    ~EffectStubbed() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
@@ -233,7 +232,7 @@ public:
 class EffectI3dl2Reverb : public EffectGeneric<I3dl2ReverbParams> {
 public:
     explicit EffectI3dl2Reverb();
-    ~EffectI3dl2Reverb();
+    ~EffectI3dl2Reverb() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
@@ -245,7 +244,7 @@ private:
 class EffectBiquadFilter : public EffectGeneric<BiquadFilterParams> {
 public:
     explicit EffectBiquadFilter();
-    ~EffectBiquadFilter();
+    ~EffectBiquadFilter() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
@@ -254,14 +253,14 @@ public:
 class EffectAuxInfo : public EffectGeneric<AuxInfo> {
 public:
     explicit EffectAuxInfo();
-    ~EffectAuxInfo();
+    ~EffectAuxInfo() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
-    const VAddr GetSendInfo() const;
-    const VAddr GetSendBuffer() const;
-    const VAddr GetRecvInfo() const;
-    const VAddr GetRecvBuffer() const;
+    VAddr GetSendInfo() const;
+    VAddr GetSendBuffer() const;
+    VAddr GetRecvInfo() const;
+    VAddr GetRecvBuffer() const;
 
 private:
     VAddr send_info{};
@@ -275,7 +274,7 @@ private:
 class EffectDelay : public EffectGeneric<DelayParams> {
 public:
     explicit EffectDelay();
-    ~EffectDelay();
+    ~EffectDelay() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
@@ -287,7 +286,7 @@ private:
 class EffectBufferMixer : public EffectGeneric<BufferMixerParams> {
 public:
     explicit EffectBufferMixer();
-    ~EffectBufferMixer();
+    ~EffectBufferMixer() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
@@ -296,7 +295,7 @@ public:
 class EffectReverb : public EffectGeneric<ReverbParams> {
 public:
     explicit EffectReverb();
-    ~EffectReverb();
+    ~EffectReverb() override;
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;

@@ -64,7 +64,6 @@ bool InfoUpdater::UpdateBehaviorInfo(BehaviorInfo& in_behavior_info) {
 }
 
 bool InfoUpdater::UpdateMemoryPools(std::vector<ServerMemoryPoolInfo>& memory_pool_info) {
-    const auto force_mapping = behavior_info.IsMemoryPoolForceMappingEnabled();
     const auto memory_pool_count = memory_pool_info.size();
     const auto total_memory_pool_in = sizeof(ServerMemoryPoolInfo::InParams) * memory_pool_count;
     const auto total_memory_pool_out = sizeof(ServerMemoryPoolInfo::OutParams) * memory_pool_count;
@@ -174,7 +173,7 @@ bool InfoUpdater::UpdateVoices(VoiceContext& voice_context,
         }
         // Voice states for each channel
         std::array<VoiceState*, AudioCommon::MAX_CHANNEL_COUNT> voice_states{};
-        ASSERT(in_params.id < voice_count);
+        ASSERT(static_cast<std::size_t>(in_params.id) < voice_count);
 
         // Grab our current voice info
         auto& voice_info = voice_context.GetInfo(static_cast<std::size_t>(in_params.id));
@@ -352,8 +351,8 @@ ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buf
         for (std::size_t i = 0; i < mix_count; i++) {
             const auto& in = mix_in_params[i];
             total_buffer_count += in.buffer_count;
-            if (in.dest_mix_id > mix_count && in.dest_mix_id != AudioCommon::NO_MIX &&
-                in.mix_id != AudioCommon::FINAL_MIX) {
+            if (static_cast<std::size_t>(in.dest_mix_id) > mix_count &&
+                in.dest_mix_id != AudioCommon::NO_MIX && in.mix_id != AudioCommon::FINAL_MIX) {
                 LOG_ERROR(
                     Audio,
                     "Invalid mix destination, mix_id={:X}, dest_mix_id={:X}, mix_buffer_count={:X}",
