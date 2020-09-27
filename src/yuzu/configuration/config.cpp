@@ -15,27 +15,10 @@
 
 namespace FS = Common::FS;
 
-Config::Config(const std::string& config_file, ConfigType config_type) : type(config_type) {
+Config::Config(const std::string& config_name, ConfigType config_type) : type(config_type) {
     global = config_type == ConfigType::GlobalConfig;
 
-    switch (config_type) {
-    case ConfigType::GlobalConfig:
-    case ConfigType::PerGameConfig:
-        qt_config_loc = fmt::format("{}" DIR_SEP "{}.ini", FS::GetUserPath(FS::UserPath::ConfigDir),
-                                    config_file);
-        FS::CreateFullPath(qt_config_loc);
-        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
-                                                QSettings::IniFormat);
-        Reload();
-        break;
-    case ConfigType::InputProfile:
-        qt_config_loc = fmt::format("{}input" DIR_SEP "{}.ini",
-                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_file);
-        FS::CreateFullPath(qt_config_loc);
-        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
-                                                QSettings::IniFormat);
-        break;
-    }
+    Initialize(config_name);
 }
 
 Config::~Config() {
@@ -255,6 +238,34 @@ const std::array<UISettings::Shortcut, 16> Config::default_hotkeys{{
     {QStringLiteral("Toggle Status Bar"),        QStringLiteral("Main Window"), {QStringLiteral("Ctrl+S"), Qt::WindowShortcut}},
 }};
 // clang-format on
+
+void Config::Initialize(const std::string& config_name) {
+    switch (type) {
+    case ConfigType::GlobalConfig:
+        qt_config_loc = fmt::format("{}" DIR_SEP "{}.ini", FS::GetUserPath(FS::UserPath::ConfigDir),
+                                    config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        Reload();
+        break;
+    case ConfigType::PerGameConfig:
+        qt_config_loc = fmt::format("{}custom" DIR_SEP "{}.ini",
+                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        Reload();
+        break;
+    case ConfigType::InputProfile:
+        qt_config_loc = fmt::format("{}input" DIR_SEP "{}.ini",
+                                    FS::GetUserPath(FS::UserPath::ConfigDir), config_name);
+        FS::CreateFullPath(qt_config_loc);
+        qt_config = std::make_unique<QSettings>(QString::fromStdString(qt_config_loc),
+                                                QSettings::IniFormat);
+        break;
+    }
+}
 
 void Config::ReadPlayerValue(std::size_t player_index) {
     const QString player_prefix = [this, player_index] {

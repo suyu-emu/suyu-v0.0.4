@@ -22,7 +22,7 @@ public:
         InputProfile,
     };
 
-    explicit Config(const std::string& config_loc = "qt-config",
+    explicit Config(const std::string& config_name = "qt-config",
                     ConfigType config_type = ConfigType::GlobalConfig);
     ~Config();
 
@@ -45,6 +45,8 @@ public:
     static const std::array<UISettings::Shortcut, 16> default_hotkeys;
 
 private:
+    void Initialize(const std::string& config_name);
+
     void ReadValues();
     void ReadPlayerValue(std::size_t player_index);
     void ReadDebugValues();

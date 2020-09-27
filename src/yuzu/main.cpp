@@ -50,6 +50,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QInputDialog>
@@ -277,6 +278,8 @@ GMainWindow::GMainWindow()
     if (args.length() >= 2) {
         BootGame(args[1]);
     }
+
+    MigrateConfigFiles();
 }
 
 GMainWindow::~GMainWindow() {
@@ -1578,7 +1581,8 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id) {
     const QString config_dir =
         QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir));
     const QString custom_config_file_path =
-        config_dir + QString::fromStdString(fmt::format("{:016X}.ini", program_id));
+        config_dir + QStringLiteral("custom") + QDir::separator() +
+        QString::fromStdString(fmt::format("{:016X}.ini", program_id));
 
     if (!QFile::exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
@@ -2392,6 +2396,28 @@ void GMainWindow::OnCaptureScreenshot() {
 #endif
     render_window->CaptureScreenshot(UISettings::values.screenshot_resolution_factor, filename);
     OnStartGame();
+}
+
+// TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
+void GMainWindow::MigrateConfigFiles() {
+    const std::string& config_dir_str = Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir);
+    const QDir config_dir = QDir(QString::fromStdString(config_dir_str));
+    const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
+
+    Common::FS::CreateFullPath(fmt::format("{}custom" DIR_SEP, config_dir_str));
+    for (QStringList::const_iterator it = config_dir_list.constBegin(); it != config_dir_list.constEnd(); ++it) {
+        const auto filename = it->toStdString();
+        if (filename.find_first_not_of("0123456789abcdefACBDEF", 0) < 16) {
+            continue;
+        }
+        const auto origin = fmt::format("{}{}", config_dir_str, filename);
+        const auto destination = fmt::format("{}custom" DIR_SEP "{}", config_dir_str, filename);
+        LOG_INFO(Frontend, "Migrating config file from {} to {}", origin, destination);
+        if (!Common::FS::Rename(origin, destination)) {
+            // Delete the old config file if one already exists in the new location.
+            Common::FS::Delete(origin);
+        }
+    }
 }
 
 void GMainWindow::UpdateWindowTitle(const std::string& title_name,
