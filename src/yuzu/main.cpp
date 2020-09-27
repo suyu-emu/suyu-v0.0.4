@@ -288,6 +288,7 @@ GMainWindow::~GMainWindow() {
 void GMainWindow::ControllerSelectorReconfigureControllers(
     const Core::Frontend::ControllerParameters& parameters) {
     QtControllerSelectorDialog dialog(this, parameters, input_subsystem.get());
+
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
                           Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);

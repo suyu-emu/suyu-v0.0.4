@@ -229,6 +229,13 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
             &QtControllerSelectorDialog::ApplyConfiguration);
 
+    // Enhancement: Check if the parameters have already been met before disconnecting controllers.
+    // If all the parameters are met AND only allows a single player,
+    // stop the constructor here as we do not need to continue.
+    if (CheckIfParametersMet() && parameters.enable_single_mode) {
+        return;
+    }
+
     // If keep_controllers_connected is false, forcefully disconnect all controllers
     if (!parameters.keep_controllers_connected) {
         for (auto player : player_groupboxes) {
@@ -236,12 +243,17 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         }
     }
 
-    CheckIfParametersMet();
-
     resize(0, 0);
 }
 
 QtControllerSelectorDialog::~QtControllerSelectorDialog() = default;
+
+int QtControllerSelectorDialog::exec() {
+    if (parameters_met && parameters.enable_single_mode) {
+        return QDialog::Accepted;
+    }
+    return QDialog::exec();
+}
 
 void QtControllerSelectorDialog::ApplyConfiguration() {
     // Update the controller state once more, just to be sure they are properly applied.
@@ -287,7 +299,7 @@ void QtControllerSelectorDialog::CallConfigureInputDialog() {
     CheckIfParametersMet();
 }
 
-void QtControllerSelectorDialog::CheckIfParametersMet() {
+bool QtControllerSelectorDialog::CheckIfParametersMet() {
     // Here, we check and validate the current configuration against all applicable parameters.
     const auto num_connected_players = static_cast<int>(
         std::count_if(player_groupboxes.begin(), player_groupboxes.end(),
@@ -301,7 +313,7 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
         num_connected_players > max_supported_players) {
         parameters_met = false;
         ui->buttonBox->setEnabled(parameters_met);
-        return;
+        return parameters_met;
     }
 
     // Next, check against all connected controllers.
@@ -326,14 +338,9 @@ void QtControllerSelectorDialog::CheckIfParametersMet() {
         return true;
     }();
 
-    if (!all_controllers_compatible) {
-        parameters_met = false;
-        ui->buttonBox->setEnabled(parameters_met);
-        return;
-    }
-
-    parameters_met = true;
+    parameters_met = all_controllers_compatible;
     ui->buttonBox->setEnabled(parameters_met);
+    return parameters_met;
 }
 
 void QtControllerSelectorDialog::SetSupportedControllers() {

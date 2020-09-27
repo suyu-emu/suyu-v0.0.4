@@ -33,6 +33,8 @@ public:
                                         InputCommon::InputSubsystem* input_subsystem_);
     ~QtControllerSelectorDialog() override;
 
+    int exec() override;
+
 private:
     // Applies the current configuration.
     void ApplyConfiguration();
@@ -43,9 +45,9 @@ private:
     // Initializes the "Configure Input" Dialog.
     void CallConfigureInputDialog();
 
-    // Checks the current configuration against the given parameters and
-    // sets the value of parameters_met.
-    void CheckIfParametersMet();
+    // Checks the current configuration against the given parameters.
+    // This sets and returns the value of parameters_met.
+    bool CheckIfParametersMet();
 
     // Sets the controller icons for "Supported Controller Types".
     void SetSupportedControllers();
