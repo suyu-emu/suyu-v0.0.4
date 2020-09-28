@@ -344,7 +344,7 @@ void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
         };
         Socket socket{host, port, pad_index, client_id, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
-        const bool result = success_event.WaitFor(std::chrono::seconds(8));
+        const bool result = success_event.WaitFor(std::chrono::seconds(5));
         socket.Stop();
         worker_thread.join();
         if (result) {
