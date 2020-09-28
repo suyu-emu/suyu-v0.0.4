@@ -96,10 +96,6 @@ struct InputSubsystem::Impl {
         if (!params.Has("class") || params.Get("class", "") == "any") {
             return {};
         }
-        if (params.Get("class", "") == "keyboard") {
-            // TODO consider returning the SDL key codes for the default keybindings
-            return {};
-        }
         if (params.Get("class", "") == "gcpad") {
             return gcadapter->GetAnalogMappingForDevice(params);
         }
@@ -114,10 +110,6 @@ struct InputSubsystem::Impl {
     [[nodiscard]] ButtonMapping GetButtonMappingForDevice(
         const Common::ParamPackage& params) const {
         if (!params.Has("class") || params.Get("class", "") == "any") {
-            return {};
-        }
-        if (params.Get("class", "") == "keyboard") {
-            // TODO consider returning the SDL key codes for the default keybindings
             return {};
         }
         if (params.Get("class", "") == "gcpad") {

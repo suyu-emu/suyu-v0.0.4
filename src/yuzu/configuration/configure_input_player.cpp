@@ -693,32 +693,7 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
 }
 
 void ConfigureInputPlayer::RestoreDefaults() {
-    // Reset Buttons
-    for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
-        buttons_param[button_id] = Common::ParamPackage{
-            InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
-    }
-
-    // Reset Analogs and Modifier Buttons
-    for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
-        for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
-            Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
-                Config::default_analogs[analog_id][sub_button_id])};
-            SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
-        }
-
-        analogs_param[analog_id].Set(
-            "modifier", InputCommon::GenerateKeyboardParam(Config::default_stick_mod[analog_id]));
-    }
-
-    for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
-        motions_param[motion_id] = Common::ParamPackage{
-            InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
-    }
-
-    UpdateUI();
-    UpdateInputDeviceCombobox();
-    ui->comboControllerType->setCurrentIndex(0);
+    UpdateMappingWithDefaults();
 }
 
 void ConfigureInputPlayer::ClearAll() {
@@ -951,9 +926,37 @@ void ConfigureInputPlayer::UpdateMotionButtons() {
 }
 
 void ConfigureInputPlayer::UpdateMappingWithDefaults() {
-    if (ui->comboDevices->currentIndex() < 2) {
+    if (ui->comboDevices->currentIndex() == 0) {
         return;
     }
+
+    if (ui->comboDevices->currentIndex() == 1) {
+        // Reset keyboard bindings
+        for (int button_id = 0; button_id < Settings::NativeButton::NumButtons; ++button_id) {
+            buttons_param[button_id] = Common::ParamPackage{
+                InputCommon::GenerateKeyboardParam(Config::default_buttons[button_id])};
+        }
+        for (int analog_id = 0; analog_id < Settings::NativeAnalog::NumAnalogs; ++analog_id) {
+            for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM; ++sub_button_id) {
+                Common::ParamPackage params{InputCommon::GenerateKeyboardParam(
+                    Config::default_analogs[analog_id][sub_button_id])};
+                SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
+            }
+
+            analogs_param[analog_id].Set("modifier", InputCommon::GenerateKeyboardParam(
+                                                         Config::default_stick_mod[analog_id]));
+        }
+
+        for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
+            motions_param[motion_id] = Common::ParamPackage{
+                InputCommon::GenerateKeyboardParam(Config::default_motions[motion_id])};
+        }
+
+        UpdateUI();
+        return;
+    }
+
+    // Reset controller bindings
     const auto& device = input_devices[ui->comboDevices->currentIndex()];
     auto button_mapping = input_subsystem->GetButtonMappingForDevice(device);
     auto analog_mapping = input_subsystem->GetAnalogMappingForDevice(device);
