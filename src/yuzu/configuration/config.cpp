@@ -276,7 +276,7 @@ void Config::ReadPlayerValue(std::size_t player_index) {
         }
     }();
 
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
 
     if (player_prefix.isEmpty()) {
         const auto controller = static_cast<Settings::ControllerType>(
@@ -481,7 +481,7 @@ void Config::ReadAudioValues() {
 void Config::ReadControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         ReadPlayerValue(p);
     }
     ReadDebugValues();
@@ -490,11 +490,10 @@ void Config::ReadControlValues() {
     ReadTouchscreenValues();
     ReadMotionTouchValues();
 
-    Settings::values.vibration_enabled =
-        ReadSetting(QStringLiteral("vibration_enabled"), true).toBool();
-    Settings::values.motion_enabled = ReadSetting(QStringLiteral("motion_enabled"), true).toBool();
-    Settings::values.use_docked_mode =
-        ReadSetting(QStringLiteral("use_docked_mode"), false).toBool();
+    ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), false);
+    ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
+                      true);
+    ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"), true);
 
     qt_config->endGroup();
 }
@@ -976,7 +975,7 @@ void Config::SavePlayerValue(std::size_t player_index) {
         }
     }();
 
-    const auto& player = Settings::values.players[player_index];
+    const auto& player = Settings::values.players.GetValue()[player_index];
 
     WriteSetting(QStringLiteral("%1type").arg(player_prefix),
                  static_cast<u8>(player.controller_type),
@@ -1140,7 +1139,7 @@ void Config::SaveAudioValues() {
 void Config::SaveControlValues() {
     qt_config->beginGroup(QStringLiteral("Controls"));
 
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         SavePlayerValue(p);
     }
     SaveDebugValues();
@@ -1148,8 +1147,10 @@ void Config::SaveControlValues() {
     SaveTouchscreenValues();
     SaveMotionTouchValues();
 
-    WriteSetting(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled, true);
-    WriteSetting(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
+    WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
+    WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled,
+                       true);
+    WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
     WriteSetting(QStringLiteral("motion_device"),
                  QString::fromStdString(Settings::values.motion_device),
                  QStringLiteral("engine:motion_emu,update_period:100,sensitivity:0.01"));
@@ -1157,7 +1158,6 @@ void Config::SaveControlValues() {
                  QString::fromStdString(Settings::values.touch_device),
                  QStringLiteral("engine:emu_window"));
     WriteSetting(QStringLiteral("keyboard_enabled"), Settings::values.keyboard_enabled, false);
-    WriteSetting(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
 
     qt_config->endGroup();
 }

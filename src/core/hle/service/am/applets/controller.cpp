@@ -222,7 +222,7 @@ void Controller::Execute() {
 void Controller::ConfigurationComplete() {
     ControllerSupportResultInfo result_info{};
 
-    const auto& players = Settings::values.players;
+    const auto& players = Settings::values.players.GetValue();
 
     // If enable_single_mode is enabled, player_count is 1 regardless of any other parameters.
     // Otherwise, only count connected players from P1-P8.

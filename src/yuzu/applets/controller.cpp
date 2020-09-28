@@ -261,26 +261,26 @@ void QtControllerSelectorDialog::ApplyConfiguration() {
         UpdateControllerState(index);
     }
 
-    const bool pre_docked_mode = Settings::values.use_docked_mode;
-    Settings::values.use_docked_mode = ui->radioDocked->isChecked();
-    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
+    const bool pre_docked_mode = Settings::values.use_docked_mode.GetValue();
+    Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked());
+    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue());
 
-    Settings::values.vibration_enabled = ui->vibrationGroup->isChecked();
+    Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
 }
 
 void QtControllerSelectorDialog::LoadConfiguration() {
     for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        const auto connected = Settings::values.players[index].connected ||
-                               (index == 0 && Settings::values.players[8].connected);
+        const auto connected = Settings::values.players.GetValue()[index].connected ||
+                               (index == 0 && Settings::values.players.GetValue()[8].connected);
         player_groupboxes[index]->setChecked(connected);
         connected_controller_checkboxes[index]->setChecked(connected);
         emulated_controllers[index]->setCurrentIndex(
-            GetIndexFromControllerType(Settings::values.players[index].controller_type));
+            GetIndexFromControllerType(Settings::values.players.GetValue()[index].controller_type));
     }
 
-    UpdateDockedState(Settings::values.players[8].connected);
+    UpdateDockedState(Settings::values.players.GetValue()[8].connected);
 
-    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
+    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
 }
 
 void QtControllerSelectorDialog::CallConfigureInputDialog() {
@@ -448,7 +448,7 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
 }
 
 void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index) {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
 
     player.controller_type =
         GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex());
@@ -461,7 +461,7 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
     }
 
     // Player 1 and Handheld
-    auto& handheld = Settings::values.players[8];
+    auto& handheld = Settings::values.players.GetValue()[8];
     // If Handheld is selected, copy all the settings from Player 1 to Handheld.
     if (player.controller_type == Settings::ControllerType::Handheld) {
         handheld = player;
@@ -527,8 +527,8 @@ void QtControllerSelectorDialog::UpdateDockedState(bool is_handheld) {
     ui->radioDocked->setEnabled(!is_handheld);
     ui->radioUndocked->setEnabled(!is_handheld);
 
-    ui->radioDocked->setChecked(Settings::values.use_docked_mode);
-    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode);
+    ui->radioDocked->setChecked(Settings::values.use_docked_mode.GetValue());
+    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode.GetValue());
 
     // Also force into undocked mode if the controller type is handheld.
     if (is_handheld) {
@@ -571,8 +571,8 @@ void QtControllerSelectorDialog::DisableUnsupportedPlayers() {
 
     for (std::size_t index = max_supported_players; index < NUM_PLAYERS; ++index) {
         // Disconnect any unsupported players here and disable or hide them if applicable.
-        Settings::values.players[index].connected = false;
-        UpdateController(Settings::values.players[index].controller_type, index, false);
+        Settings::values.players.GetValue()[index].connected = false;
+        UpdateController(Settings::values.players.GetValue()[index].controller_type, index, false);
         // Hide the player widgets when max_supported_controllers is less than or equal to 4.
         if (max_supported_players <= 4) {
             player_widgets[index]->hide();

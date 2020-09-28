@@ -184,11 +184,14 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     controller.single_color.button_color = 0;
 
     controller.dual_color_error = ColorReadError::ReadOk;
-    controller.left_color.body_color = Settings::values.players[controller_idx].body_color_left;
-    controller.left_color.button_color = Settings::values.players[controller_idx].button_color_left;
-    controller.right_color.body_color = Settings::values.players[controller_idx].body_color_right;
+    controller.left_color.body_color =
+        Settings::values.players.GetValue()[controller_idx].body_color_left;
+    controller.left_color.button_color =
+        Settings::values.players.GetValue()[controller_idx].button_color_left;
+    controller.right_color.body_color =
+        Settings::values.players.GetValue()[controller_idx].body_color_right;
     controller.right_color.button_color =
-        Settings::values.players[controller_idx].button_color_right;
+        Settings::values.players.GetValue()[controller_idx].button_color_right;
 
     controller.battery_level[0] = BATTERY_FULL;
     controller.battery_level[1] = BATTERY_FULL;
@@ -218,8 +221,9 @@ void Controller_NPad::OnInit() {
         style.pokeball.Assign(1);
     }
 
-    std::transform(Settings::values.players.begin(), Settings::values.players.end(),
-                   connected_controllers.begin(), [](const Settings::PlayerInput& player) {
+    std::transform(Settings::values.players.GetValue().begin(),
+                   Settings::values.players.GetValue().end(), connected_controllers.begin(),
+                   [](const Settings::PlayerInput& player) {
                        return ControllerHolder{MapSettingsTypeToNPad(player.controller_type),
                                                player.connected};
                    });
@@ -227,12 +231,13 @@ void Controller_NPad::OnInit() {
     // Connect the Player 1 or Handheld controller if none are connected.
     if (std::none_of(connected_controllers.begin(), connected_controllers.end(),
                      [](const ControllerHolder& controller) { return controller.is_connected; })) {
-        const auto controller = MapSettingsTypeToNPad(Settings::values.players[0].controller_type);
+        const auto controller =
+            MapSettingsTypeToNPad(Settings::values.players.GetValue()[0].controller_type);
         if (controller == NPadControllerType::Handheld) {
-            Settings::values.players[HANDHELD_INDEX].connected = true;
+            Settings::values.players.GetValue()[HANDHELD_INDEX].connected = true;
             connected_controllers[HANDHELD_INDEX] = {controller, true};
         } else {
-            Settings::values.players[0].connected = true;
+            Settings::values.players.GetValue()[0].connected = true;
             connected_controllers[0] = {controller, true};
         }
     }
@@ -255,7 +260,7 @@ void Controller_NPad::OnInit() {
 }
 
 void Controller_NPad::OnLoadInputDevices() {
-    const auto& players = Settings::values.players;
+    const auto& players = Settings::values.players.GetValue();
     for (std::size_t i = 0; i < players.size(); ++i) {
         std::transform(players[i].buttons.begin() + Settings::NativeButton::BUTTON_HID_BEGIN,
                        players[i].buttons.begin() + Settings::NativeButton::BUTTON_HID_END,
@@ -528,7 +533,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         // Try to read sixaxis sensor states
         std::array<MotionDevice, 2> motion_devices;
 
-        if (sixaxis_sensors_enabled && Settings::values.motion_enabled) {
+        if (sixaxis_sensors_enabled && Settings::values.motion_enabled.GetValue()) {
             sixaxis_at_rest = true;
             for (std::size_t e = 0; e < motion_devices.size(); ++e) {
                 const auto& device = motions[i][e];
@@ -666,7 +671,7 @@ void Controller_NPad::VibrateController(const std::vector<u32>& controllers,
                                         const std::vector<Vibration>& vibrations) {
     LOG_TRACE(Service_HID, "called");
 
-    if (!Settings::values.vibration_enabled || !can_controllers_vibrate) {
+    if (!Settings::values.vibration_enabled.GetValue() || !can_controllers_vibrate) {
         return;
     }
     bool success = true;
@@ -714,16 +719,17 @@ void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::siz
     }
 
     if (controller == NPadControllerType::Handheld) {
-        Settings::values.players[HANDHELD_INDEX].controller_type =
+        Settings::values.players.GetValue()[HANDHELD_INDEX].controller_type =
             MapNPadToSettingsType(controller);
-        Settings::values.players[HANDHELD_INDEX].connected = true;
+        Settings::values.players.GetValue()[HANDHELD_INDEX].connected = true;
         connected_controllers[HANDHELD_INDEX] = {controller, true};
         InitNewlyAddedController(HANDHELD_INDEX);
         return;
     }
 
-    Settings::values.players[npad_index].controller_type = MapNPadToSettingsType(controller);
-    Settings::values.players[npad_index].connected = true;
+    Settings::values.players.GetValue()[npad_index].controller_type =
+        MapNPadToSettingsType(controller);
+    Settings::values.players.GetValue()[npad_index].connected = true;
     connected_controllers[npad_index] = {controller, true};
     InitNewlyAddedController(npad_index);
 }
@@ -733,7 +739,7 @@ void Controller_NPad::DisconnectNPad(u32 npad_id) {
 }
 
 void Controller_NPad::DisconnectNPadAtIndex(std::size_t npad_index) {
-    Settings::values.players[npad_index].connected = false;
+    Settings::values.players.GetValue()[npad_index].connected = false;
     connected_controllers[npad_index].is_connected = false;
 
     auto& controller = shared_memory_entries[npad_index];
@@ -895,7 +901,7 @@ bool Controller_NPad::IsControllerSupported(NPadControllerType controller) const
             return false;
         }
         // Handheld should not be supported in docked mode
-        if (Settings::values.use_docked_mode) {
+        if (Settings::values.use_docked_mode.GetValue()) {
             return false;
         }
 

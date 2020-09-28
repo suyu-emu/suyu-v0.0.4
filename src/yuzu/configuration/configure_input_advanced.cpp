@@ -107,7 +107,7 @@ void ConfigureInputAdvanced::OnControllerButtonClick(int player_idx, int button_
 
 void ConfigureInputAdvanced::ApplyConfiguration() {
     for (std::size_t player_idx = 0; player_idx < controllers_color_buttons.size(); ++player_idx) {
-        auto& player = Settings::values.players[player_idx];
+        auto& player = Settings::values.players.GetValue()[player_idx];
         std::array<u32, 4> colors{};
         std::transform(controllers_colors[player_idx].begin(), controllers_colors[player_idx].end(),
                        colors.begin(), [](QColor color) { return color.rgb(); });
@@ -126,7 +126,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
 
 void ConfigureInputAdvanced::LoadConfiguration() {
     for (std::size_t player_idx = 0; player_idx < controllers_color_buttons.size(); ++player_idx) {
-        auto& player = Settings::values.players[player_idx];
+        auto& player = Settings::values.players.GetValue()[player_idx];
         std::array<u32, 4> colors = {
             player.body_color_left,
             player.button_color_left,

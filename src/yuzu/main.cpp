@@ -551,13 +551,14 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     dock_status_button->setFocusPolicy(Qt::NoFocus);
     connect(dock_status_button, &QPushButton::clicked, [&] {
-        Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
-        dock_status_button->setChecked(Settings::values.use_docked_mode);
-        OnDockedModeChanged(!Settings::values.use_docked_mode, Settings::values.use_docked_mode);
+        Settings::values.use_docked_mode.SetValue(!Settings::values.use_docked_mode.GetValue());
+        dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
+        OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
+                            Settings::values.use_docked_mode.GetValue());
     });
     dock_status_button->setText(tr("DOCK"));
     dock_status_button->setCheckable(true);
-    dock_status_button->setChecked(Settings::values.use_docked_mode);
+    dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     statusBar()->insertPermanentWidget(0, dock_status_button);
 
     // Setup ASync button
@@ -796,10 +797,11 @@ void GMainWindow::InitializeHotkeys() {
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Change Docked Mode"), this),
             &QShortcut::activated, this, [&] {
-                Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
-                OnDockedModeChanged(!Settings::values.use_docked_mode,
-                                    Settings::values.use_docked_mode);
-                dock_status_button->setChecked(Settings::values.use_docked_mode);
+                Settings::values.use_docked_mode.SetValue(
+                    !Settings::values.use_docked_mode.GetValue());
+                OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
+                                    Settings::values.use_docked_mode.GetValue());
+                dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
             &QShortcut::activated, this,
@@ -2405,7 +2407,8 @@ void GMainWindow::MigrateConfigFiles() {
     const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
 
     Common::FS::CreateFullPath(fmt::format("{}custom" DIR_SEP, config_dir_str));
-    for (QStringList::const_iterator it = config_dir_list.constBegin(); it != config_dir_list.constEnd(); ++it) {
+    for (QStringList::const_iterator it = config_dir_list.constBegin();
+         it != config_dir_list.constEnd(); ++it) {
         const auto filename = it->toStdString();
         if (filename.find_first_not_of("0123456789abcdefACBDEF", 0) < 16) {
             continue;
@@ -2477,7 +2480,7 @@ void GMainWindow::UpdateStatusBar() {
 }
 
 void GMainWindow::UpdateStatusButtons() {
-    dock_status_button->setChecked(Settings::values.use_docked_mode);
+    dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
     Settings::values.use_asynchronous_gpu_emulation.SetValue(
         Settings::values.use_asynchronous_gpu_emulation.GetValue() ||

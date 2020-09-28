@@ -544,7 +544,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
 ConfigureInputPlayer::~ConfigureInputPlayer() = default;
 
 void ConfigureInputPlayer::ApplyConfiguration() {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
     auto& buttons = debug ? Settings::values.debug_pad_buttons : player.buttons;
     auto& analogs = debug ? Settings::values.debug_pad_analogs : player.analogs;
 
@@ -572,7 +572,7 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     }
 
     // Player 1 and Handheld
-    auto& handheld = Settings::values.players[HANDHELD_INDEX];
+    auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
     // If Handheld is selected, copy all the settings from Player 1 to Handheld.
     if (player.controller_type == Settings::ControllerType::Handheld) {
         handheld = player;
@@ -609,7 +609,7 @@ void ConfigureInputPlayer::RetranslateUI() {
 }
 
 void ConfigureInputPlayer::LoadConfiguration() {
-    auto& player = Settings::values.players[player_index];
+    auto& player = Settings::values.players.GetValue()[player_index];
     if (debug) {
         std::transform(Settings::values.debug_pad_buttons.begin(),
                        Settings::values.debug_pad_buttons.end(), buttons_param.begin(),
@@ -636,7 +636,7 @@ void ConfigureInputPlayer::LoadConfiguration() {
     ui->comboControllerType->setCurrentIndex(static_cast<int>(player.controller_type));
     ui->groupConnectedController->setChecked(
         player.connected ||
-        (player_index == 0 && Settings::values.players[HANDHELD_INDEX].connected));
+        (player_index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected));
 }
 
 void ConfigureInputPlayer::ConnectPlayer(bool connected) {

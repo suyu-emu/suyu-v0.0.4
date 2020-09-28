@@ -27,7 +27,7 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
             ->GetAppletResource()
             ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
 
-    auto& players = Settings::values.players;
+    auto& players = Settings::values.players.GetValue();
 
     const std::size_t min_supported_players =
         parameters.enable_single_mode ? 1 : parameters.min_players;
@@ -66,7 +66,7 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
                     npad.MapSettingsTypeToNPad(Settings::ControllerType::RightJoycon), index);
             }
         } else if (index == 0 && parameters.enable_single_mode && parameters.allow_handheld &&
-                   !Settings::values.use_docked_mode) {
+                   !Settings::values.use_docked_mode.GetValue()) {
             // We should *never* reach here under any normal circumstances.
             npad.AddNewControllerAt(npad.MapSettingsTypeToNPad(Settings::ControllerType::Handheld),
                                     index);

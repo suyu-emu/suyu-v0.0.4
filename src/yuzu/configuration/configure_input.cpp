@@ -181,12 +181,12 @@ void ConfigureInput::ApplyConfiguration() {
 
     advanced->ApplyConfiguration();
 
-    const bool pre_docked_mode = Settings::values.use_docked_mode;
-    Settings::values.use_docked_mode = ui->radioDocked->isChecked();
-    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode);
+    const bool pre_docked_mode = Settings::values.use_docked_mode.GetValue();
+    Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked());
+    OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue());
 
-    Settings::values.vibration_enabled = ui->vibrationGroup->isChecked();
-    Settings::values.motion_enabled = ui->motionGroup->isChecked();
+    Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
+    Settings::values.motion_enabled.SetValue(ui->motionGroup->isChecked());
 }
 
 void ConfigureInput::changeEvent(QEvent* event) {
@@ -203,16 +203,16 @@ void ConfigureInput::RetranslateUI() {
 
 void ConfigureInput::LoadConfiguration() {
     LoadPlayerControllerIndices();
-    UpdateDockedState(Settings::values.players[8].connected);
+    UpdateDockedState(Settings::values.players.GetValue()[8].connected);
 
-    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled);
-    ui->motionGroup->setChecked(Settings::values.motion_enabled);
+    ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
+    ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
 }
 
 void ConfigureInput::LoadPlayerControllerIndices() {
     for (std::size_t i = 0; i < player_connected.size(); ++i) {
-        const auto connected = Settings::values.players[i].connected ||
-                               (i == 0 && Settings::values.players[8].connected);
+        const auto connected = Settings::values.players.GetValue()[i].connected ||
+                               (i == 0 && Settings::values.players.GetValue()[8].connected);
         player_connected[i]->setChecked(connected);
     }
 }
@@ -241,8 +241,8 @@ void ConfigureInput::UpdateDockedState(bool is_handheld) {
     ui->radioDocked->setEnabled(!is_handheld);
     ui->radioUndocked->setEnabled(!is_handheld);
 
-    ui->radioDocked->setChecked(Settings::values.use_docked_mode);
-    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode);
+    ui->radioDocked->setChecked(Settings::values.use_docked_mode.GetValue());
+    ui->radioUndocked->setChecked(!Settings::values.use_docked_mode.GetValue());
 
     // Also force into undocked mode if the controller type is handheld.
     if (is_handheld) {
