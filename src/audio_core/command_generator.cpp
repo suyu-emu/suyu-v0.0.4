@@ -727,8 +727,9 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
         return 0;
     }
 
-    constexpr std::array<int, 16> SIGNED_NIBBLES = {
-        {0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1}};
+    static constexpr std::array<int, 16> SIGNED_NIBBLES{
+        0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1,
+    };
 
     constexpr std::size_t FRAME_LEN = 8;
     constexpr std::size_t NIBBLES_PER_SAMPLE = 16;
