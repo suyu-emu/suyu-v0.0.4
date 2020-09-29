@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 #include "common/common_types.h"
 #include "common/swap.h"
@@ -23,6 +24,12 @@ public:
 private:
     enum class IoctlCommand : u32_le {
         IocSetNVMAPfdCommand = 0x40044801,
+        IocSubmit = 0xC0400001,
+        IocGetSyncpoint = 0xC0080002,
+        IocGetWaitbase = 0xC0080003,
+        IocMapBuffer = 0xC01C0009,
+        IocMapBufferEx = 0xC03C0009,
+        IocUnmapBufferEx = 0xC03C000A,
     };
 
     struct IoctlSetNvmapFD {
@@ -30,9 +37,65 @@ private:
     };
     static_assert(sizeof(IoctlSetNvmapFD) == 4, "IoctlSetNvmapFD is incorrect size");
 
+    struct IoctlSubmitCommandBuffer {
+        u32 id;
+        u32 offset;
+        u32 count;
+    };
+    static_assert(sizeof(IoctlSubmitCommandBuffer) == 0xC,
+                  "IoctlSubmitCommandBuffer is incorrect size");
+
+    struct IoctlSubmit {
+        u32 command_buffer_count;
+        u32 relocations_count;
+        u32 syncpt_count;
+        u32 wait_count;
+        std::array<IoctlSubmitCommandBuffer, 4> command_buffer;
+    };
+    static_assert(sizeof(IoctlSubmit) == 0x40, "IoctlSubmit is incorrect size");
+
+    struct IoctlGetSyncpoint {
+        u32 unknown; // seems to be ignored? Nintendo added this
+        u32 value;
+    };
+    static_assert(sizeof(IoctlGetSyncpoint) == 0x8, "IoctlGetSyncpoint is incorrect size");
+
+    struct IoctlGetWaitbase {
+        u32 unknown; // seems to be ignored? Nintendo added this
+        u32 value;
+    };
+    static_assert(sizeof(IoctlGetWaitbase) == 0x8, "IoctlGetWaitbase is incorrect size");
+
+    struct IoctlMapBuffer {
+        u32 unknown;
+        u32 address_1;
+        u32 address_2;
+        INSERT_PADDING_BYTES(0x10); // TODO(DarkLordZach): RE this structure
+    };
+    static_assert(sizeof(IoctlMapBuffer) == 0x1C, "IoctlMapBuffer is incorrect size");
+
+    struct IoctlMapBufferEx {
+        u32 unknown;
+        u32 address_1;
+        u32 address_2;
+        INSERT_PADDING_BYTES(0x30); // TODO(DarkLordZach): RE this structure
+    };
+    static_assert(sizeof(IoctlMapBufferEx) == 0x3C, "IoctlMapBufferEx is incorrect size");
+
+    struct IoctlUnmapBufferEx {
+        INSERT_PADDING_BYTES(0x3C); // TODO(DarkLordZach): RE this structure
+    };
+    static_assert(sizeof(IoctlUnmapBufferEx) == 0x3C, "IoctlUnmapBufferEx is incorrect size");
+
     u32_le nvmap_fd{};
 
     u32 SetNVMAPfd(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 Submit(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 GetSyncpoint(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 MapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 UnmapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
 };
 
 } // namespace Service::Nvidia::Devices
