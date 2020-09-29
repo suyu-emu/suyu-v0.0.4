@@ -192,8 +192,8 @@ SinkStream& CubebSink::AcquireSinkStream(u32 sample_rate, u32 num_channels,
 
 long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const void* input_buffer,
                                    void* output_buffer, long num_frames) {
-    CubebSinkStream* impl = static_cast<CubebSinkStream*>(user_data);
-    u8* buffer = reinterpret_cast<u8*>(output_buffer);
+    auto* impl = static_cast<CubebSinkStream*>(user_data);
+    auto* buffer = static_cast<u8*>(output_buffer);
 
     if (!impl) {
         return {};
