@@ -13,6 +13,8 @@ namespace Common {
 
 class WallClock {
 public:
+    virtual ~WallClock() = default;
+
     /// Returns current wall time in nanoseconds
     [[nodiscard]] virtual std::chrono::nanoseconds GetTimeNS() = 0;
 
