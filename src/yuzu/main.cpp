@@ -288,8 +288,8 @@ GMainWindow::~GMainWindow() {
 void GMainWindow::ControllerSelectorReconfigureControllers(
     const Core::Frontend::ControllerParameters& parameters) {
     QtControllerSelectorDialog dialog(this, parameters, input_subsystem.get());
-    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                          Qt::WindowSystemMenuHint);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
+                          Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
 
@@ -307,8 +307,9 @@ void GMainWindow::ProfileSelectorSelectProfile() {
     int index = 0;
     if (manager.GetUserCount() != 1) {
         QtProfileSelectionDialog dialog(this);
-        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                              Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+        dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
+                              Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
+                              Qt::WindowCloseButtonHint);
         dialog.setWindowModality(Qt::WindowModal);
 
         if (dialog.exec() == QDialog::Rejected) {
@@ -331,8 +332,9 @@ void GMainWindow::ProfileSelectorSelectProfile() {
 void GMainWindow::SoftwareKeyboardGetText(
     const Core::Frontend::SoftwareKeyboardParameters& parameters) {
     QtSoftwareKeyboardDialog dialog(this, parameters);
-    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
-                          Qt::WindowSystemMenuHint | Qt::WindowCloseButtonHint);
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
+                          Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
+                          Qt::WindowCloseButtonHint);
     dialog.setWindowModality(Qt::WindowModal);
 
     if (dialog.exec() == QDialog::Rejected) {
