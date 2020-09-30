@@ -16,6 +16,9 @@ class CAPS_C final : public ServiceFramework<CAPS_C> {
 public:
     explicit CAPS_C();
     ~CAPS_C() override;
+
+private:
+    void SetShimLibraryVersion(Kernel::HLERequestContext& ctx);
 };
 
 } // namespace Service::Capture
