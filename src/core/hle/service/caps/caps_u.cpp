@@ -31,8 +31,7 @@ public:
 CAPS_U::CAPS_U() : ServiceFramework("caps:u") {
     // clang-format off
     static const FunctionInfo functions[] = {
-        {31, nullptr, "GetShimLibraryVersion"},
-        {32, nullptr, "SetShimLibraryVersion"},
+        {32, &CAPS_U::SetShimLibraryVersion, "SetShimLibraryVersion"},
         {102, &CAPS_U::GetAlbumContentsFileListForApplication, "GetAlbumContentsFileListForApplication"},
         {103, nullptr, "DeleteAlbumContentsFileForApplication"},
         {104, nullptr, "GetAlbumContentsFileSizeForApplication"},
@@ -52,6 +51,18 @@ CAPS_U::CAPS_U() : ServiceFramework("caps:u") {
 }
 
 CAPS_U::~CAPS_U() = default;
+
+void CAPS_U::SetShimLibraryVersion(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto library_version{rp.Pop<u64>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
+                library_version, applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
 
 void CAPS_U::GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& ctx) {
     // Takes a type-0x6 output buffer containing an array of ApplicationAlbumFileEntry, a PID, an
