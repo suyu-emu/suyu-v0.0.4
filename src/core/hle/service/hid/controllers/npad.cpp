@@ -365,44 +365,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         }
         const u32 npad_index = static_cast<u32>(i);
 
-        const std::array<SixAxisGeneric*, 6> controller_sixaxes{
-            &npad.sixaxis_full,       &npad.sixaxis_handheld, &npad.sixaxis_dual_left,
-            &npad.sixaxis_dual_right, &npad.sixaxis_left,     &npad.sixaxis_right,
-        };
-
-        for (auto* sixaxis_sensor : controller_sixaxes) {
-            sixaxis_sensor->common.entry_count = 16;
-            sixaxis_sensor->common.total_entry_count = 17;
-
-            const auto& last_entry =
-                sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
-
-            sixaxis_sensor->common.timestamp = core_timing.GetCPUTicks();
-            sixaxis_sensor->common.last_entry_index =
-                (sixaxis_sensor->common.last_entry_index + 1) % 17;
-
-            auto& cur_entry = sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
-
-            cur_entry.timestamp = last_entry.timestamp + 1;
-            cur_entry.timestamp2 = cur_entry.timestamp;
-        }
-
-        // Try to read sixaxis sensor states
-        std::array<MotionDevice, 2> motion_devices;
-
-        if (sixaxis_sensors_enabled && Settings::values.motion_enabled) {
-            sixaxis_at_rest = true;
-            for (std::size_t e = 0; e < motion_devices.size(); ++e) {
-                const auto& device = motions[i][e];
-                if (device) {
-                    std::tie(motion_devices[e].accel, motion_devices[e].gyro,
-                             motion_devices[e].rotation, motion_devices[e].orientation) =
-                        device->GetStatus();
-                    sixaxis_at_rest = sixaxis_at_rest && motion_devices[e].gyro.Length2() < 0.0001f;
-                }
-            }
-        }
-
         RequestPadStateUpdate(npad_index);
         auto& pad_state = npad_pad_states[npad_index];
 
@@ -446,13 +408,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             main_controller.pad.r_stick = pad_state.r_stick;
 
             libnx_entry.connection_status.IsWired.Assign(1);
-
-            if (sixaxis_sensors_enabled && motions[i][0]) {
-                full_sixaxis_entry.accel = motion_devices[0].accel;
-                full_sixaxis_entry.gyro = motion_devices[0].gyro;
-                full_sixaxis_entry.rotation = motion_devices[0].rotation;
-                full_sixaxis_entry.orientation = motion_devices[0].orientation;
-            }
             break;
         case NPadControllerType::Handheld:
             handheld_entry.connection_status.raw = 0;
@@ -471,13 +426,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
             libnx_entry.connection_status.IsLeftJoyWired.Assign(1);
             libnx_entry.connection_status.IsRightJoyWired.Assign(1);
-
-            if (sixaxis_sensors_enabled && motions[i][0]) {
-                handheld_sixaxis_entry.accel = motion_devices[0].accel;
-                handheld_sixaxis_entry.gyro = motion_devices[0].gyro;
-                handheld_sixaxis_entry.rotation = motion_devices[0].rotation;
-                handheld_sixaxis_entry.orientation = motion_devices[0].orientation;
-            }
             break;
         case NPadControllerType::JoyDual:
             dual_entry.connection_status.raw = 0;
@@ -490,21 +438,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
 
             libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
             libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
-
-            if (sixaxis_sensors_enabled && motions[i][0]) {
-                // Set motion for the left joycon
-                dual_left_sixaxis_entry.accel = motion_devices[0].accel;
-                dual_left_sixaxis_entry.gyro = motion_devices[0].gyro;
-                dual_left_sixaxis_entry.rotation = motion_devices[0].rotation;
-                dual_left_sixaxis_entry.orientation = motion_devices[0].orientation;
-            }
-            if (sixaxis_sensors_enabled && motions[i][1]) {
-                // Set motion for the right joycon
-                dual_right_sixaxis_entry.accel = motion_devices[1].accel;
-                dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
-                dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
-                dual_right_sixaxis_entry.orientation = motion_devices[1].orientation;
-            }
             break;
         case NPadControllerType::JoyLeft:
             left_entry.connection_status.raw = 0;
@@ -515,13 +448,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             left_entry.pad.r_stick = pad_state.r_stick;
 
             libnx_entry.connection_status.IsLeftJoyConnected.Assign(1);
-
-            if (sixaxis_sensors_enabled && motions[i][0]) {
-                left_sixaxis_entry.accel = motion_devices[0].accel;
-                left_sixaxis_entry.gyro = motion_devices[0].gyro;
-                left_sixaxis_entry.rotation = motion_devices[0].rotation;
-                left_sixaxis_entry.orientation = motion_devices[0].orientation;
-            }
             break;
         case NPadControllerType::JoyRight:
             right_entry.connection_status.raw = 0;
@@ -532,13 +458,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
             right_entry.pad.r_stick = pad_state.r_stick;
 
             libnx_entry.connection_status.IsRightJoyConnected.Assign(1);
-
-            if (sixaxis_sensors_enabled && motions[i][1]) {
-                right_sixaxis_entry.accel = motion_devices[1].accel;
-                right_sixaxis_entry.gyro = motion_devices[1].gyro;
-                right_sixaxis_entry.rotation = motion_devices[1].rotation;
-                right_sixaxis_entry.orientation = motion_devices[1].orientation;
-            }
             break;
         case NPadControllerType::Pokeball:
             pokeball_entry.connection_status.raw = 0;
@@ -556,6 +475,143 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         libnx_entry.pad.r_stick = pad_state.r_stick;
 
         press_state |= static_cast<u32>(pad_state.pad_states.raw);
+    }
+    std::memcpy(data + NPAD_OFFSET, shared_memory_entries.data(),
+                shared_memory_entries.size() * sizeof(NPadEntry));
+}
+
+void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
+                                     std::size_t data_len) {
+    if (!IsControllerActivated()) {
+        return;
+    }
+    for (std::size_t i = 0; i < shared_memory_entries.size(); i++) {
+        auto& npad = shared_memory_entries[i];
+
+        const auto& controller_type = connected_controllers[i].type;
+
+        if (controller_type == NPadControllerType::None || !connected_controllers[i].is_connected) {
+            continue;
+        }
+
+        const std::array<SixAxisGeneric*, 6> controller_sixaxes{
+            &npad.sixaxis_full,       &npad.sixaxis_handheld, &npad.sixaxis_dual_left,
+            &npad.sixaxis_dual_right, &npad.sixaxis_left,     &npad.sixaxis_right,
+        };
+
+        for (auto* sixaxis_sensor : controller_sixaxes) {
+            sixaxis_sensor->common.entry_count = 16;
+            sixaxis_sensor->common.total_entry_count = 17;
+
+            const auto& last_entry =
+                sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
+
+            sixaxis_sensor->common.timestamp = core_timing.GetCPUTicks();
+            sixaxis_sensor->common.last_entry_index =
+                (sixaxis_sensor->common.last_entry_index + 1) % 17;
+
+            auto& cur_entry = sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
+
+            cur_entry.timestamp = last_entry.timestamp + 1;
+            cur_entry.timestamp2 = cur_entry.timestamp;
+        }
+
+        // Try to read sixaxis sensor states
+        std::array<MotionDevice, 2> motion_devices;
+
+        if (sixaxis_sensors_enabled && Settings::values.motion_enabled) {
+            sixaxis_at_rest = true;
+            for (std::size_t e = 0; e < motion_devices.size(); ++e) {
+                const auto& device = motions[i][e];
+                if (device) {
+                    std::tie(motion_devices[e].accel, motion_devices[e].gyro,
+                             motion_devices[e].rotation, motion_devices[e].orientation) =
+                        device->GetStatus();
+                    sixaxis_at_rest = sixaxis_at_rest && motion_devices[e].gyro.Length2() < 0.0001f;
+                }
+            }
+        }
+
+        auto& main_controller =
+            npad.main_controller_states.npad[npad.main_controller_states.common.last_entry_index];
+        auto& handheld_entry =
+            npad.handheld_states.npad[npad.handheld_states.common.last_entry_index];
+        auto& dual_entry = npad.dual_states.npad[npad.dual_states.common.last_entry_index];
+        auto& left_entry = npad.left_joy_states.npad[npad.left_joy_states.common.last_entry_index];
+        auto& right_entry =
+            npad.right_joy_states.npad[npad.right_joy_states.common.last_entry_index];
+        auto& pokeball_entry =
+            npad.pokeball_states.npad[npad.pokeball_states.common.last_entry_index];
+        auto& libnx_entry = npad.libnx.npad[npad.libnx.common.last_entry_index];
+
+        auto& full_sixaxis_entry =
+            npad.sixaxis_full.sixaxis[npad.sixaxis_full.common.last_entry_index];
+        auto& handheld_sixaxis_entry =
+            npad.sixaxis_handheld.sixaxis[npad.sixaxis_handheld.common.last_entry_index];
+        auto& dual_left_sixaxis_entry =
+            npad.sixaxis_dual_left.sixaxis[npad.sixaxis_dual_left.common.last_entry_index];
+        auto& dual_right_sixaxis_entry =
+            npad.sixaxis_dual_right.sixaxis[npad.sixaxis_dual_right.common.last_entry_index];
+        auto& left_sixaxis_entry =
+            npad.sixaxis_left.sixaxis[npad.sixaxis_left.common.last_entry_index];
+        auto& right_sixaxis_entry =
+            npad.sixaxis_right.sixaxis[npad.sixaxis_right.common.last_entry_index];
+
+        switch (controller_type) {
+        case NPadControllerType::None:
+            UNREACHABLE();
+            break;
+        case NPadControllerType::ProController:
+            if (sixaxis_sensors_enabled && motions[i][0]) {
+                full_sixaxis_entry.accel = motion_devices[0].accel;
+                full_sixaxis_entry.gyro = motion_devices[0].gyro;
+                full_sixaxis_entry.rotation = motion_devices[0].rotation;
+                full_sixaxis_entry.orientation = motion_devices[0].orientation;
+            }
+            break;
+        case NPadControllerType::Handheld:
+            if (sixaxis_sensors_enabled && motions[i][0]) {
+                handheld_sixaxis_entry.accel = motion_devices[0].accel;
+                handheld_sixaxis_entry.gyro = motion_devices[0].gyro;
+                handheld_sixaxis_entry.rotation = motion_devices[0].rotation;
+                handheld_sixaxis_entry.orientation = motion_devices[0].orientation;
+            }
+            break;
+        case NPadControllerType::JoyDual:
+            if (sixaxis_sensors_enabled && motions[i][0]) {
+                // Set motion for the left joycon
+                dual_left_sixaxis_entry.accel = motion_devices[0].accel;
+                dual_left_sixaxis_entry.gyro = motion_devices[0].gyro;
+                dual_left_sixaxis_entry.rotation = motion_devices[0].rotation;
+                dual_left_sixaxis_entry.orientation = motion_devices[0].orientation;
+            }
+            if (sixaxis_sensors_enabled && motions[i][1]) {
+                // Set motion for the right joycon
+                dual_right_sixaxis_entry.accel = motion_devices[1].accel;
+                dual_right_sixaxis_entry.gyro = motion_devices[1].gyro;
+                dual_right_sixaxis_entry.rotation = motion_devices[1].rotation;
+                dual_right_sixaxis_entry.orientation = motion_devices[1].orientation;
+            }
+            break;
+        case NPadControllerType::JoyLeft:
+            if (sixaxis_sensors_enabled && motions[i][0]) {
+                left_sixaxis_entry.accel = motion_devices[0].accel;
+                left_sixaxis_entry.gyro = motion_devices[0].gyro;
+                left_sixaxis_entry.rotation = motion_devices[0].rotation;
+                left_sixaxis_entry.orientation = motion_devices[0].orientation;
+            }
+            break;
+        case NPadControllerType::JoyRight:
+            if (sixaxis_sensors_enabled && motions[i][1]) {
+                right_sixaxis_entry.accel = motion_devices[1].accel;
+                right_sixaxis_entry.gyro = motion_devices[1].gyro;
+                right_sixaxis_entry.rotation = motion_devices[1].rotation;
+                right_sixaxis_entry.orientation = motion_devices[1].orientation;
+            }
+            break;
+        case NPadControllerType::Pokeball:
+            break;
+        }
     }
     std::memcpy(data + NPAD_OFFSET, shared_memory_entries.data(),
                 shared_memory_entries.size() * sizeof(NPadEntry));

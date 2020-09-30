@@ -31,6 +31,10 @@ public:
     virtual void OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                           std::size_t size) = 0;
 
+    // When the controller is requesting a motion update for the shared memory
+    virtual void OnMotionUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
+                                std::size_t size) {}
+
     // Called when input devices should be loaded
     virtual void OnLoadInputDevices() = 0;
 

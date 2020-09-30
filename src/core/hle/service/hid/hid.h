@@ -65,10 +65,12 @@ private:
 
     void GetSharedMemoryHandle(Kernel::HLERequestContext& ctx);
     void UpdateControllers(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
+    void UpdateMotion(std::uintptr_t user_data, std::chrono::nanoseconds ns_late);
 
     std::shared_ptr<Kernel::SharedMemory> shared_mem;
 
     std::shared_ptr<Core::Timing::EventType> pad_update_event;
+    std::shared_ptr<Core::Timing::EventType> motion_update_event;
     Core::System& system;
 
     std::array<std::unique_ptr<ControllerBase>, static_cast<size_t>(HidController::MaxControllers)>
