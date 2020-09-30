@@ -12,7 +12,7 @@
 namespace Common {
 
 namespace X64 {
-class NativeClock : public WallClock {
+class NativeClock final : public WallClock {
 public:
     NativeClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency, u64 rtsc_frequency);
 

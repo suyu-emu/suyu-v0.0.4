@@ -15,7 +15,7 @@ namespace Common {
 using base_timer = std::chrono::steady_clock;
 using base_time_point = std::chrono::time_point<base_timer>;
 
-class StandardWallClock : public WallClock {
+class StandardWallClock final : public WallClock {
 public:
     StandardWallClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency)
         : WallClock(emulated_cpu_frequency, emulated_clock_frequency, false) {
