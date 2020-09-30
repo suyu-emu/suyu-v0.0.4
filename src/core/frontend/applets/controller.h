@@ -8,6 +8,10 @@
 
 #include "common/common_types.h"
 
+namespace Service::SM {
+class ServiceManager;
+}
+
 namespace Core::Frontend {
 
 using BorderColor = std::array<u8, 4>;
@@ -39,10 +43,14 @@ public:
 
 class DefaultControllerApplet final : public ControllerApplet {
 public:
+    explicit DefaultControllerApplet(Service::SM::ServiceManager& service_manager_);
     ~DefaultControllerApplet() override;
 
     void ReconfigureControllers(std::function<void()> callback,
                                 ControllerParameters parameters) const override;
+
+private:
+    Service::SM::ServiceManager& service_manager;
 };
 
 } // namespace Core::Frontend

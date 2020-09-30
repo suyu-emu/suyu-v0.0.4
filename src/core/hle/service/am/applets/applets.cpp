@@ -206,7 +206,8 @@ void AppletManager::SetDefaultAppletFrontendSet() {
 
 void AppletManager::SetDefaultAppletsIfMissing() {
     if (frontend.controller == nullptr) {
-        frontend.controller = std::make_unique<Core::Frontend::DefaultControllerApplet>();
+        frontend.controller =
+            std::make_unique<Core::Frontend::DefaultControllerApplet>(system.ServiceManager());
     }
 
     if (frontend.e_commerce == nullptr) {

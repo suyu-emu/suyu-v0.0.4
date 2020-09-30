@@ -4,7 +4,6 @@
 
 #include "common/assert.h"
 #include "common/logging/log.h"
-#include "core/core.h"
 #include "core/frontend/applets/controller.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "core/hle/service/hid/hid.h"
@@ -14,6 +13,9 @@ namespace Core::Frontend {
 
 ControllerApplet::~ControllerApplet() = default;
 
+DefaultControllerApplet::DefaultControllerApplet(Service::SM::ServiceManager& service_manager_)
+    : service_manager{service_manager_} {}
+
 DefaultControllerApplet::~DefaultControllerApplet() = default;
 
 void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callback,
@@ -21,9 +23,7 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
     LOG_INFO(Service_HID, "called, deducing the best configuration based on the given parameters!");
 
     auto& npad =
-        Core::System::GetInstance()
-            .ServiceManager()
-            .GetService<Service::HID::Hid>("hid")
+        service_manager.GetService<Service::HID::Hid>("hid")
             ->GetAppletResource()
             ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
 
