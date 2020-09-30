@@ -146,6 +146,8 @@ public:
     bool IsSixAxisSensorAtRest() const;
     void SetSixAxisEnabled(bool six_axis_status);
     LedPattern GetLedPattern(u32 npad_id);
+    bool IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const;
+    void SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled, u32 npad_id);
     void SetVibrationEnabled(bool can_vibrate);
     bool IsVibrationEnabled() const;
     void ClearAllConnectedControllers();
@@ -387,6 +389,7 @@ private:
     std::array<Kernel::EventPair, 10> styleset_changed_events;
     Vibration last_processed_vibration{};
     std::array<ControllerHolder, 10> connected_controllers{};
+    std::array<bool, 10> unintended_home_button_input_protection{};
     GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};
     bool can_controllers_vibrate{true};
     bool sixaxis_sensors_enabled{true};
