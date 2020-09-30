@@ -125,7 +125,7 @@ public:
 
     void SetNpadMode(u32 npad_id, NPadAssignments assignment_mode);
 
-    void VibrateController(const std::vector<u32>& controller_ids,
+    void VibrateController(const std::vector<u32>& controllers,
                            const std::vector<Vibration>& vibrations);
 
     Vibration GetLastVibration() const;

@@ -817,18 +817,18 @@ void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
 
 void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto controller_id{rp.Pop<u32>()};
+    const auto controller{rp.Pop<u32>()};
     const auto vibration_values{rp.PopRaw<Controller_NPad::Vibration>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_DEBUG(Service_HID, "called, controller_id={}, applet_resource_user_id={}", controller_id,
+    LOG_DEBUG(Service_HID, "called, controller={}, applet_resource_user_id={}", controller,
               applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateController({controller_id}, {vibration_values});
+        .VibrateController({controller}, {vibration_values});
 }
 
 void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
@@ -846,8 +846,6 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
 
     std::memcpy(controller_list.data(), controllers.data(), controllers.size());
     std::memcpy(vibration_list.data(), vibrations.data(), vibrations.size());
-    std::transform(controller_list.begin(), controller_list.end(), controller_list.begin(),
-                   [](u32 controller_id) { return controller_id - 3; });
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
         .VibrateController(controller_list, vibration_list);
