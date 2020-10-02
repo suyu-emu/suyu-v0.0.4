@@ -188,7 +188,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {66, &Hid::StartSixAxisSensor, "StartSixAxisSensor"},
         {67, &Hid::StopSixAxisSensor, "StopSixAxisSensor"},
         {68, nullptr, "IsSixAxisSensorFusionEnabled"},
-        {69, nullptr, "EnableSixAxisSensorFusion"},
+        {69, &Hid::EnableSixAxisSensorFusion, "EnableSixAxisSensorFusion"},
         {70, nullptr, "SetSixAxisSensorFusionParameters"},
         {71, nullptr, "GetSixAxisSensorFusionParameters"},
         {72, nullptr, "ResetSixAxisSensorFusionParameters"},
@@ -463,6 +463,19 @@ void Hid::StartSixAxisSensor(Kernel::HLERequestContext& ctx) {
 
 void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
+    const auto handle{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, handle={}, applet_resource_user_id={}", handle,
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto enable{rp.Pop<bool>()};
     const auto handle{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
