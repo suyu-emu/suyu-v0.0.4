@@ -279,5 +279,6 @@ else()
         -Werror=switch
         -Werror=unused-variable
         -Werror=unused-but-set-variable
+        -Werror=class-memaccess
     )
 endif()
