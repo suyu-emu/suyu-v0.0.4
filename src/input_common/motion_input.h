@@ -29,8 +29,8 @@ public:
     void EnableReset(bool reset);
     void ResetRotations();
 
-    void UpdateRotation(u64 elapsed_time);
-    void UpdateOrientation(u64 elapsed_time);
+    void UpdateRotation(const u64 elapsed_time);
+    void UpdateOrientation(const u64 elapsed_time);
 
     std::array<Common::Vec3f, 3> GetOrientation() const;
     Common::Vec3f GetAcceleration() const;
@@ -43,6 +43,7 @@ public:
 
 private:
     void ResetOrientation();
+    void SetOrientationFromAccelerometer();
 
     // PID constants
     const f32 kp;
@@ -63,6 +64,7 @@ private:
     f32 gyro_threshold = 0.0f;
     u32 reset_counter = 0;
     bool reset_enabled = true;
+    bool only_accelerometer = true;
 };
 
 } // namespace InputCommon
