@@ -57,7 +57,7 @@ bool MotionInput::IsCalibrated(f32 sensitivity) const {
     return real_error.Length() < sensitivity;
 }
 
-void MotionInput::UpdateRotation(const u64 elapsed_time) {
+void MotionInput::UpdateRotation(u64 elapsed_time) {
     const f32 sample_period = elapsed_time / 1000000.0f;
     if (sample_period > 0.1f) {
         return;
@@ -65,7 +65,7 @@ void MotionInput::UpdateRotation(const u64 elapsed_time) {
     rotations += gyro * sample_period;
 }
 
-void MotionInput::UpdateOrientation(const u64 elapsed_time) {
+void MotionInput::UpdateOrientation(u64 elapsed_time) {
     if (!IsCalibrated(0.1f)) {
         ResetOrientation();
     }
@@ -174,6 +174,42 @@ std::array<Common::Vec3f, 3> MotionInput::GetOrientation() const {
             Common::Vec3f(-matrix4x4[8], -matrix4x4[9], matrix4x4[10])};
 }
 
+Common::Vec3f MotionInput::GetAcceleration() const {
+    return accel;
+}
+
+Common::Vec3f MotionInput::GetGyroscope() const {
+    return gyro;
+}
+
+Common::Quaternion<f32> MotionInput::GetQuaternion() const {
+    return quat;
+}
+
+Common::Vec3f MotionInput::GetRotations() const {
+    return rotations;
+}
+
+void MotionInput::ResetOrientation() {
+    if (!reset_enabled || only_accelerometer) {
+        return;
+    }
+    if (!IsMoving(0.5f) && accel.z <= -0.9f) {
+        ++reset_counter;
+        if (reset_counter > 900) {
+            quat.w = 0;
+            quat.xyz[0] = 0;
+            quat.xyz[1] = 0;
+            quat.xyz[2] = -1;
+            SetOrientationFromAccelerometer();
+            integral_error = {};
+            reset_counter = 0;
+        }
+    } else {
+        reset_counter = 0;
+    }
+}
+
 void MotionInput::SetOrientationFromAccelerometer() {
     int iterations = 0;
     const f32 sample_period = 0.015f;
@@ -232,42 +268,6 @@ void MotionInput::SetOrientationFromAccelerometer() {
         quat.xyz[1] = q3;
         quat.xyz[2] = q4;
         quat = quat.Normalized();
-    }
-}
-
-Common::Vec3f MotionInput::GetAcceleration() const {
-    return accel;
-}
-
-Common::Vec3f MotionInput::GetGyroscope() const {
-    return gyro;
-}
-
-Common::Quaternion<f32> MotionInput::GetQuaternion() const {
-    return quat;
-}
-
-Common::Vec3f MotionInput::GetRotations() const {
-    return rotations;
-}
-
-void MotionInput::ResetOrientation() {
-    if (!reset_enabled || only_accelerometer) {
-        return;
-    }
-    if (!IsMoving(0.5f) && accel.z <= -0.9f) {
-        ++reset_counter;
-        if (reset_counter > 900) {
-            quat.w = 0;
-            quat.xyz[0] = 0;
-            quat.xyz[1] = 0;
-            quat.xyz[2] = -1;
-            SetOrientationFromAccelerometer();
-            integral_error = {};
-            reset_counter = 0;
-        }
-    } else {
-        reset_counter = 0;
     }
 }
 } // namespace InputCommon

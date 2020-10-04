@@ -29,8 +29,8 @@ public:
     void EnableReset(bool reset);
     void ResetRotations();
 
-    void UpdateRotation(const u64 elapsed_time);
-    void UpdateOrientation(const u64 elapsed_time);
+    void UpdateRotation(u64 elapsed_time);
+    void UpdateOrientation(u64 elapsed_time);
 
     std::array<Common::Vec3f, 3> GetOrientation() const;
     Common::Vec3f GetAcceleration() const;
