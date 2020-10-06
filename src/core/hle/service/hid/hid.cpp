@@ -140,15 +140,23 @@ void IAppletResource::UpdateMotion(std::uintptr_t user_data, std::chrono::nanose
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
 public:
     IActiveVibrationDeviceList() : ServiceFramework("IActiveVibrationDeviceList") {
+        // clang-format off
         static const FunctionInfo functions[] = {
-            {0, &IActiveVibrationDeviceList::ActivateVibrationDevice, "ActivateVibrationDevice"},
+            {0, &IActiveVibrationDeviceList::InitializeVibrationDevice, "InitializeVibrationDevice"},
         };
+        // clang-format on
+
         RegisterHandlers(functions);
     }
 
 private:
-    void ActivateVibrationDevice(Kernel::HLERequestContext& ctx) {
-        LOG_WARNING(Service_HID, "(STUBBED) called");
+    void InitializeVibrationDevice(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto vibration_device_handle{rp.PopRaw<Controller_NPad::DeviceHandle>()};
+
+        LOG_WARNING(Service_HID, "(STUBBED) called, npad_type={}, npad_id={}, device_index={}",
+                    vibration_device_handle.npad_type, vibration_device_handle.npad_id,
+                    vibration_device_handle.device_index);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
