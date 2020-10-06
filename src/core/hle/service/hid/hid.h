@@ -146,6 +146,22 @@ private:
     void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx);
     void SetPalmaBoostMode(Kernel::HLERequestContext& ctx);
 
+    enum class VibrationDeviceType : u32 {
+        LinearResonantActuator = 1,
+    };
+
+    enum class VibrationDevicePosition : u32 {
+        None = 0,
+        Left = 1,
+        Right = 2,
+    };
+
+    struct VibrationDeviceInfo {
+        VibrationDeviceType type{};
+        VibrationDevicePosition position{};
+    };
+    static_assert(sizeof(VibrationDeviceInfo) == 0x8, "VibrationDeviceInfo has incorrect size.");
+
     std::shared_ptr<IAppletResource> applet_resource;
     Core::System& system;
 };

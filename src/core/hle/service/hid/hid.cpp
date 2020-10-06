@@ -924,12 +924,32 @@ void Hid::GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
 }
 
 void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
-    LOG_DEBUG(Service_HID, "called");
+    IPC::RequestParser rp{ctx};
+    const auto vibration_device_handle{rp.PopRaw<Controller_NPad::DeviceHandle>()};
+
+    VibrationDeviceInfo vibration_device_info;
+
+    vibration_device_info.type = VibrationDeviceType::LinearResonantActuator;
+
+    switch (vibration_device_handle.device_index) {
+    case Controller_NPad::DeviceIndex::Left:
+        vibration_device_info.position = VibrationDevicePosition::Left;
+        break;
+    case Controller_NPad::DeviceIndex::Right:
+        vibration_device_info.position = VibrationDevicePosition::Right;
+        break;
+    case Controller_NPad::DeviceIndex::None:
+    default:
+        vibration_device_info.position = VibrationDevicePosition::None;
+        break;
+    }
+
+    LOG_DEBUG(Service_HID, "called, vibration_device_type={}, vibration_device_position={}",
+              vibration_device_info.type, vibration_device_info.position);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push<u32>(1);
-    rb.Push<u32>(0);
+    rb.PushRaw<VibrationDeviceInfo>(vibration_device_info);
 }
 
 void Hid::CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx) {
