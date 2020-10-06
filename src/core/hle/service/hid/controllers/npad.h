@@ -39,6 +39,61 @@ public:
     // Called when input devices should be loaded
     void OnLoadInputDevices() override;
 
+    enum class NPadControllerType {
+        None,
+        ProController,
+        Handheld,
+        JoyDual,
+        JoyLeft,
+        JoyRight,
+        Pokeball,
+    };
+
+    enum class NpadType : u8 {
+        ProController = 3,
+        Handheld = 4,
+        JoyconDual = 5,
+        JoyconLeft = 6,
+        JoyconRight = 7,
+        Pokeball = 9,
+    };
+
+    enum class DeviceIndex : u8 {
+        Left = 0,
+        Right = 1,
+        None = 2,
+    };
+
+    enum class GyroscopeZeroDriftMode : u32 {
+        Loose = 0,
+        Standard = 1,
+        Tight = 2,
+    };
+
+    enum class NpadHoldType : u64 {
+        Vertical = 0,
+        Horizontal = 1,
+    };
+
+    enum class NPadAssignments : u32 {
+        Dual = 0,
+        Single = 1,
+    };
+
+    enum class NpadHandheldActivationMode : u64 {
+        Dual = 0,
+        Single = 1,
+        None = 2,
+    };
+
+    struct DeviceHandle {
+        NpadType npad_type{};
+        u8 npad_id{};
+        DeviceIndex device_index{};
+        INSERT_PADDING_BYTES(1);
+    };
+    static_assert(sizeof(DeviceHandle) == 4, "DeviceHandle is an invalid size");
+
     struct NPadType {
         union {
             u32_le raw{};
@@ -61,38 +116,6 @@ public:
         f32 freq_high;
     };
     static_assert(sizeof(Vibration) == 0x10, "Vibration is an invalid size");
-
-    enum class GyroscopeZeroDriftMode : u32 {
-        Loose = 0,
-        Standard = 1,
-        Tight = 2,
-    };
-
-    enum class NpadHoldType : u64 {
-        Vertical = 0,
-        Horizontal = 1,
-    };
-
-    enum class NPadAssignments : u32_le {
-        Dual = 0,
-        Single = 1,
-    };
-
-    enum class NpadHandheldActivationMode : u64 {
-        Dual = 0,
-        Single = 1,
-        None = 2,
-    };
-
-    enum class NPadControllerType {
-        None,
-        ProController,
-        Handheld,
-        JoyDual,
-        JoyLeft,
-        JoyRight,
-        Pokeball,
-    };
 
     struct LedPattern {
         explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
