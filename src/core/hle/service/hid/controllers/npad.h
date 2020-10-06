@@ -75,7 +75,7 @@ public:
         Horizontal = 1,
     };
 
-    enum class NPadAssignments : u32 {
+    enum class NpadAssignments : u32 {
         Dual = 0,
         Single = 1,
     };
@@ -136,9 +136,9 @@ public:
     void SetSupportedStyleSet(NpadStyleSet style_set);
     NpadStyleSet GetSupportedStyleSet() const;
 
-    void SetSupportedNPadIdTypes(u8* data, std::size_t length);
+    void SetSupportedNpadIdTypes(u8* data, std::size_t length);
     void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
-    std::size_t GetSupportedNPadIdTypesSize() const;
+    std::size_t GetSupportedNpadIdTypesSize() const;
 
     void SetHoldType(NpadHoldType joy_hold_type);
     NpadHoldType GetHoldType() const;
@@ -146,7 +146,7 @@ public:
     void SetNpadHandheldActivationMode(NpadHandheldActivationMode activation_mode);
     NpadHandheldActivationMode GetNpadHandheldActivationMode() const;
 
-    void SetNpadMode(u32 npad_id, NPadAssignments assignment_mode);
+    void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
     void VibrateController(const std::vector<u32>& controllers,
                            const std::vector<Vibration>& vibrations);
@@ -161,8 +161,8 @@ public:
     // Adds a new controller at an index with connection status.
     void UpdateControllerAt(NPadControllerType controller, std::size_t npad_index, bool connected);
 
-    void DisconnectNPad(u32 npad_id);
-    void DisconnectNPadAtIndex(std::size_t index);
+    void DisconnectNpad(u32 npad_id);
+    void DisconnectNpadAtIndex(std::size_t index);
 
     void SetGyroscopeZeroDriftMode(GyroscopeZeroDriftMode drift_mode);
     GyroscopeZeroDriftMode GetGyroscopeZeroDriftMode() const;
@@ -348,7 +348,7 @@ private:
 
     struct NPadEntry {
         NpadStyleSet joy_styles;
-        NPadAssignments pad_assignment;
+        NpadAssignments pad_assignment;
 
         ColorReadError single_color_error;
         ControllerColor single_color;

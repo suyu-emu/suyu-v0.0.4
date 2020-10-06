@@ -139,7 +139,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         controller.properties.is_vertical.Assign(1);
         controller.properties.use_plus.Assign(1);
         controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NPadAssignments::Single;
+        controller.pad_assignment = NpadAssignments::Single;
         break;
     case NPadControllerType::Handheld:
         controller.joy_styles.handheld.Assign(1);
@@ -147,7 +147,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         controller.properties.is_vertical.Assign(1);
         controller.properties.use_plus.Assign(1);
         controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NPadAssignments::Dual;
+        controller.pad_assignment = NpadAssignments::Dual;
         break;
     case NPadControllerType::JoyDual:
         controller.joy_styles.joycon_dual.Assign(1);
@@ -156,26 +156,26 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
         controller.properties.is_vertical.Assign(1);
         controller.properties.use_plus.Assign(1);
         controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NPadAssignments::Dual;
+        controller.pad_assignment = NpadAssignments::Dual;
         break;
     case NPadControllerType::JoyLeft:
         controller.joy_styles.joycon_left.Assign(1);
         controller.device_type.joycon_left.Assign(1);
         controller.properties.is_horizontal.Assign(1);
         controller.properties.use_minus.Assign(1);
-        controller.pad_assignment = NPadAssignments::Single;
+        controller.pad_assignment = NpadAssignments::Single;
         break;
     case NPadControllerType::JoyRight:
         controller.joy_styles.joycon_right.Assign(1);
         controller.device_type.joycon_right.Assign(1);
         controller.properties.is_horizontal.Assign(1);
         controller.properties.use_plus.Assign(1);
-        controller.pad_assignment = NPadAssignments::Single;
+        controller.pad_assignment = NpadAssignments::Single;
         break;
     case NPadControllerType::Pokeball:
         controller.joy_styles.pokeball.Assign(1);
         controller.device_type.pokeball.Assign(1);
-        controller.pad_assignment = NPadAssignments::Single;
+        controller.pad_assignment = NpadAssignments::Single;
         break;
     }
 
@@ -202,7 +202,7 @@ void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
 
 void Controller_NPad::OnInit() {
     auto& kernel = system.Kernel();
-    for (std::size_t i = 0; i < styleset_changed_events.size(); i++) {
+    for (std::size_t i = 0; i < styleset_changed_events.size(); ++i) {
         styleset_changed_events[i] = Kernel::WritableEvent::CreateEventPair(
             kernel, fmt::format("npad:NpadStyleSetChanged_{}", i));
     }
@@ -357,7 +357,7 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
     if (!IsControllerActivated()) {
         return;
     }
-    for (std::size_t i = 0; i < shared_memory_entries.size(); i++) {
+    for (std::size_t i = 0; i < shared_memory_entries.size(); ++i) {
         auto& npad = shared_memory_entries[i];
         const std::array<NPadGeneric*, 7> controller_npads{&npad.main_controller_states,
                                                            &npad.handheld_states,
@@ -499,7 +499,7 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
     if (!IsControllerActivated()) {
         return;
     }
-    for (std::size_t i = 0; i < shared_memory_entries.size(); i++) {
+    for (std::size_t i = 0; i < shared_memory_entries.size(); ++i) {
         auto& npad = shared_memory_entries[i];
 
         const auto& controller_type = connected_controllers[i].type;
@@ -627,7 +627,7 @@ Controller_NPad::NpadStyleSet Controller_NPad::GetSupportedStyleSet() const {
     return style;
 }
 
-void Controller_NPad::SetSupportedNPadIdTypes(u8* data, std::size_t length) {
+void Controller_NPad::SetSupportedNpadIdTypes(u8* data, std::size_t length) {
     ASSERT(length > 0 && (length % sizeof(u32)) == 0);
     supported_npad_id_types.clear();
     supported_npad_id_types.resize(length / sizeof(u32));
@@ -639,7 +639,7 @@ void Controller_NPad::GetSupportedNpadIdTypes(u32* data, std::size_t max_length)
     std::memcpy(data, supported_npad_id_types.data(), supported_npad_id_types.size());
 }
 
-std::size_t Controller_NPad::GetSupportedNPadIdTypesSize() const {
+std::size_t Controller_NPad::GetSupportedNpadIdTypesSize() const {
     return supported_npad_id_types.size();
 }
 
@@ -659,7 +659,7 @@ Controller_NPad::NpadHandheldActivationMode Controller_NPad::GetNpadHandheldActi
     return handheld_activation_mode;
 }
 
-void Controller_NPad::SetNpadMode(u32 npad_id, NPadAssignments assignment_mode) {
+void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) {
     const std::size_t npad_index = NPadIdToIndex(npad_id);
     ASSERT(npad_index < shared_memory_entries.size());
     if (shared_memory_entries[npad_index].pad_assignment != assignment_mode) {
@@ -714,7 +714,7 @@ void Controller_NPad::AddNewControllerAt(NPadControllerType controller, std::siz
 void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::size_t npad_index,
                                          bool connected) {
     if (!connected) {
-        DisconnectNPadAtIndex(npad_index);
+        DisconnectNpadAtIndex(npad_index);
         return;
     }
 
@@ -734,11 +734,11 @@ void Controller_NPad::UpdateControllerAt(NPadControllerType controller, std::siz
     InitNewlyAddedController(npad_index);
 }
 
-void Controller_NPad::DisconnectNPad(u32 npad_id) {
-    DisconnectNPadAtIndex(NPadIdToIndex(npad_id));
+void Controller_NPad::DisconnectNpad(u32 npad_id) {
+    DisconnectNpadAtIndex(NPadIdToIndex(npad_id));
 }
 
-void Controller_NPad::DisconnectNPadAtIndex(std::size_t npad_index) {
+void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     Settings::values.players.GetValue()[npad_index].connected = false;
     connected_controllers[npad_index].is_connected = false;
 
@@ -777,7 +777,7 @@ void Controller_NPad::MergeSingleJoyAsDualJoy(u32 npad_id_1, u32 npad_id_2) {
         (connected_controllers[npad_index_2].type == NPadControllerType::JoyLeft &&
          connected_controllers[npad_index_1].type == NPadControllerType::JoyRight)) {
         // Disconnect the joycon at the second id and connect the dual joycon at the first index.
-        DisconnectNPad(npad_id_2);
+        DisconnectNpad(npad_id_2);
         AddNewControllerAt(NPadControllerType::JoyDual, npad_index_1);
     }
 }

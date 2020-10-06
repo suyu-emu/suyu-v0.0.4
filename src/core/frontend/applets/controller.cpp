@@ -33,13 +33,13 @@ void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callb
         parameters.enable_single_mode ? 1 : parameters.min_players;
 
     // Disconnect Handheld first.
-    npad.DisconnectNPadAtIndex(8);
+    npad.DisconnectNpadAtIndex(8);
 
     // Deduce the best configuration based on the input parameters.
     for (std::size_t index = 0; index < players.size() - 2; ++index) {
         // First, disconnect all controllers regardless of the value of keep_controllers_connected.
         // This makes it easy to connect the desired controllers.
-        npad.DisconnectNPadAtIndex(index);
+        npad.DisconnectNpadAtIndex(index);
 
         // Only connect the minimum number of required players.
         if (index >= min_supported_players) {
