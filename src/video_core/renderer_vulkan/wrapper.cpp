@@ -6,6 +6,7 @@
 #include <exception>
 #include <memory>
 #include <optional>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -17,21 +18,42 @@ namespace Vulkan::vk {
 
 namespace {
 
-void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld) {
-    std::stable_sort(devices.begin(), devices.end(), [&](auto lhs, auto rhs) {
-        // This will call Vulkan more than needed, but these calls are cheap.
-        const auto lhs_properties = vk::PhysicalDevice(lhs, dld).GetProperties();
-        const auto rhs_properties = vk::PhysicalDevice(rhs, dld).GetProperties();
+template <typename Func>
+void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld,
+                         Func&& func) {
+    // Calling GetProperties calls Vulkan more than needed. But they are supposed to be cheap
+    // functions.
+    std::stable_sort(devices.begin(), devices.end(),
+                     [&dld, &func](VkPhysicalDevice lhs, VkPhysicalDevice rhs) {
+                         return func(vk::PhysicalDevice(lhs, dld).GetProperties(),
+                                     vk::PhysicalDevice(rhs, dld).GetProperties());
+                     });
+}
 
-        // Prefer discrete GPUs, Nvidia over AMD, AMD over Intel, Intel over the rest.
-        const bool preferred =
-            (lhs_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
-             rhs_properties.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) ||
-            (lhs_properties.vendorID == 0x10DE && rhs_properties.vendorID != 0x10DE) ||
-            (lhs_properties.vendorID == 0x1002 && rhs_properties.vendorID != 0x1002) ||
-            (lhs_properties.vendorID == 0x8086 && rhs_properties.vendorID != 0x8086);
-        return !preferred;
+void SortPhysicalDevicesPerVendor(std::vector<VkPhysicalDevice>& devices,
+                                  const InstanceDispatch& dld,
+                                  std::initializer_list<u32> vendor_ids) {
+    for (auto it = vendor_ids.end(); it != vendor_ids.begin();) {
+        --it;
+        SortPhysicalDevices(devices, dld, [id = *it](const auto& lhs, const auto& rhs) {
+            return lhs.vendorID == id && rhs.vendorID != id;
+        });
+    }
+}
+
+void SortPhysicalDevices(std::vector<VkPhysicalDevice>& devices, const InstanceDispatch& dld) {
+    // Sort by name, this will set a base and make GPUs with higher numbers appear first
+    // (e.g. GTX 1650 will intentionally be listed before a GTX 1080).
+    SortPhysicalDevices(devices, dld, [](const auto& lhs, const auto& rhs) {
+        return std::string_view{lhs.deviceName} > std::string_view{rhs.deviceName};
     });
+    // Prefer discrete over non-discrete
+    SortPhysicalDevices(devices, dld, [](const auto& lhs, const auto& rhs) {
+        return lhs.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU &&
+               rhs.deviceType != VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
+    });
+    // Prefer Nvidia over AMD, AMD over Intel, Intel over the rest.
+    SortPhysicalDevicesPerVendor(devices, dld, {0x10DE, 0x1002, 0x8086});
 }
 
 template <typename T>
