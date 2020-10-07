@@ -224,8 +224,8 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {128, &Hid::SetNpadHandheldActivationMode, "SetNpadHandheldActivationMode"},
         {129, &Hid::GetNpadHandheldActivationMode, "GetNpadHandheldActivationMode"},
         {130, &Hid::SwapNpadAssignment, "SwapNpadAssignment"},
-        {131, nullptr, "IsUnintendedHomeButtonInputProtectionEnabled"},
-        {132, nullptr, "EnableUnintendedHomeButtonInputProtection"},
+        {131, &Hid::IsUnintendedHomeButtonInputProtectionEnabled, "IsUnintendedHomeButtonInputProtectionEnabled"},
+        {132, &Hid::EnableUnintendedHomeButtonInputProtection, "EnableUnintendedHomeButtonInputProtection"},
         {133, nullptr, "SetNpadJoyAssignmentModeSingleWithDestination"},
         {134, nullptr, "SetNpadAnalogStickUseCenterClamp"},
         {135, nullptr, "SetNpadCaptureButtonAssignment"},
@@ -807,6 +807,40 @@ void Hid::SwapNpadAssignment(Kernel::HLERequestContext& ctx) {
         LOG_ERROR(Service_HID, "Npads are not connected!");
         rb.Push(ERR_NPAD_NOT_CONNECTED);
     }
+}
+
+void Hid::IsUnintendedHomeButtonInputProtectionEnabled(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto npad_id{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, npad_id={}, applet_resource_user_id={}", npad_id,
+                applet_resource_user_id);
+
+    auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push<bool>(controller.IsUnintendedHomeButtonInputProtectionEnabled(npad_id));
+}
+
+void Hid::EnableUnintendedHomeButtonInputProtection(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto unintended_home_button_input_protection{rp.Pop<bool>()};
+    const auto npad_id{rp.Pop<u32>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID,
+                "(STUBBED) called, unintended_home_button_input_protection={}, npad_id={},"
+                "applet_resource_user_id={}",
+                npad_id, unintended_home_button_input_protection, applet_resource_user_id);
+
+    auto& controller = applet_resource->GetController<Controller_NPad>(HidController::NPad);
+    controller.SetUnintendedHomeButtonInputProtectionEnabled(
+        unintended_home_button_input_protection, npad_id);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 void Hid::BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {

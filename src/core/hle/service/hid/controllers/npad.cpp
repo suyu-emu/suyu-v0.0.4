@@ -846,6 +846,15 @@ Controller_NPad::LedPattern Controller_NPad::GetLedPattern(u32 npad_id) {
     }
 }
 
+bool Controller_NPad::IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) const {
+    return unintended_home_button_input_protection[NPadIdToIndex(npad_id)];
+}
+
+void Controller_NPad::SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
+                                                                    u32 npad_id) {
+    unintended_home_button_input_protection[NPadIdToIndex(npad_id)] = is_protection_enabled;
+}
+
 void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
     can_controllers_vibrate = can_vibrate;
 }
