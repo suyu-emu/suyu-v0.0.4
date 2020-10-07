@@ -25,7 +25,12 @@ CAPS_SU::CAPS_SU() : ServiceFramework("caps:su") {
 CAPS_SU::~CAPS_SU() = default;
 
 void CAPS_SU::SetShimLibraryVersion(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_Capture, "(STUBBED) called");
+    IPC::RequestParser rp{ctx};
+    const auto library_version{rp.Pop<u64>()};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_Capture, "(STUBBED) called. library_version={}, applet_resource_user_id={}",
+                library_version, applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

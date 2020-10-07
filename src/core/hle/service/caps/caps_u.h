@@ -18,6 +18,7 @@ public:
     ~CAPS_U() override;
 
 private:
+    void SetShimLibraryVersion(Kernel::HLERequestContext& ctx);
     void GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& ctx);
 };
 
