@@ -1012,15 +1012,23 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
 
 void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto controller{rp.Pop<u32>()};
-    const auto vibration_values{rp.PopRaw<Controller_NPad::Vibration>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+    struct Parameters {
+        Controller_NPad::DeviceHandle vibration_device_handle{};
+        Controller_NPad::VibrationValue vibration_value{};
+        INSERT_PADDING_WORDS(1);
+        u64 applet_resource_user_id{};
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateController({controller}, {vibration_values});
+        .VibrateController({parameters.vibration_device_handle}, {parameters.vibration_value});
 
-    LOG_DEBUG(Service_HID, "called, controller={}, applet_resource_user_id={}", controller,
-              applet_resource_user_id);
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
@@ -1028,16 +1036,24 @@ void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
 
 void Hid::GetActualVibrationValue(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto controller_id{rp.Pop<u32>()};
-    const auto applet_resource_user_id{rp.Pop<u64>()};
+    struct Parameters {
+        Controller_NPad::DeviceHandle vibration_device_handle{};
+        INSERT_PADDING_WORDS(1);
+        u64 applet_resource_user_id{};
+    };
 
-    LOG_DEBUG(Service_HID, "called, controller_id={}, applet_resource_user_id={}", controller_id,
-              applet_resource_user_id);
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 6};
     rb.Push(RESULT_SUCCESS);
-    rb.PushRaw(
-        applet_resource->GetController<Controller_NPad>(HidController::NPad).GetLastVibration());
+    rb.PushRaw(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                   .GetLastVibration(parameters.vibration_device_handle));
 }
 
 void Hid::CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx) {
@@ -1072,18 +1088,19 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    const auto controllers = ctx.ReadBuffer(0);
+    const auto handles = ctx.ReadBuffer(0);
     const auto vibrations = ctx.ReadBuffer(1);
 
-    std::vector<u32> controller_list(controllers.size() / sizeof(u32));
-    std::vector<Controller_NPad::Vibration> vibration_list(vibrations.size() /
-                                                           sizeof(Controller_NPad::Vibration));
+    std::vector<Controller_NPad::DeviceHandle> vibration_device_handles(
+        handles.size() / sizeof(Controller_NPad::DeviceHandle));
+    std::vector<Controller_NPad::VibrationValue> vibration_values(
+        vibrations.size() / sizeof(Controller_NPad::VibrationValue));
 
-    std::memcpy(controller_list.data(), controllers.data(), controllers.size());
-    std::memcpy(vibration_list.data(), vibrations.data(), vibrations.size());
+    std::memcpy(vibration_device_handles.data(), handles.data(), handles.size());
+    std::memcpy(vibration_values.data(), vibrations.data(), vibrations.size());
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateController(controller_list, vibration_list);
+        .VibrateController(vibration_device_handles, vibration_values);
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 

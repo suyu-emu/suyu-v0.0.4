@@ -109,13 +109,13 @@ public:
     };
     static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
 
-    struct Vibration {
+    struct VibrationValue {
         f32 amp_low;
         f32 freq_low;
         f32 amp_high;
         f32 freq_high;
     };
-    static_assert(sizeof(Vibration) == 0x10, "Vibration is an invalid size");
+    static_assert(sizeof(VibrationValue) == 0x10, "Vibration is an invalid size");
 
     struct LedPattern {
         explicit LedPattern(u64 light1, u64 light2, u64 light3, u64 light4) {
@@ -148,10 +148,10 @@ public:
 
     void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
-    void VibrateController(const std::vector<u32>& controllers,
-                           const std::vector<Vibration>& vibrations);
+    void VibrateController(const std::vector<DeviceHandle>& vibration_device_handles,
+                           const std::vector<VibrationValue>& vibration_values);
 
-    Vibration GetLastVibration() const;
+    VibrationValue GetLastVibration(const DeviceHandle& vibration_device_handle) const;
 
     std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
     void SignalStyleSetChangedEvent(u32 npad_id) const;
@@ -410,7 +410,7 @@ private:
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
-    Vibration last_processed_vibration{};
+    std::array<std::array<VibrationValue, 3>, 10> latest_vibration_values;
     std::array<ControllerHolder, 10> connected_controllers{};
     std::array<bool, 10> unintended_home_button_input_protection{};
     GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};

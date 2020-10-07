@@ -667,35 +667,44 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) 
     }
 }
 
-void Controller_NPad::VibrateController(const std::vector<u32>& controllers,
-                                        const std::vector<Vibration>& vibrations) {
+void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibration_device_handles,
+                                        const std::vector<VibrationValue>& vibration_values) {
     LOG_TRACE(Service_HID, "called");
 
     if (!Settings::values.vibration_enabled.GetValue() || !can_controllers_vibrate) {
         return;
     }
-    bool success = true;
-    for (std::size_t i = 0; i < controllers.size(); ++i) {
-        if (!connected_controllers[i].is_connected) {
+
+    ASSERT_MSG(vibration_device_handles.size() == vibration_values.size(),
+               "The amount of device handles does not match with the amount of vibration values,"
+               "this is undefined behavior!");
+
+    for (std::size_t i = 0; i < vibration_device_handles.size(); ++i) {
+        const auto npad_index = NPadIdToIndex(vibration_device_handles[i].npad_id);
+        const auto device_index =
+            static_cast<std::size_t>(vibration_device_handles[i].device_index);
+
+        if (!connected_controllers[npad_index].is_connected) {
             continue;
         }
+
         using namespace Settings::NativeButton;
-        const auto& button_state = buttons[i];
-        if (button_state[A - BUTTON_HID_BEGIN]) {
-            if (button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-                    vibrations[0].amp_high, vibrations[0].amp_low, vibrations[0].freq_high,
-                    vibrations[0].freq_low)) {
-                success = false;
-            }
-        }
-    }
-    if (success) {
-        last_processed_vibration = vibrations.back();
+        const auto& button_state = buttons[npad_index];
+
+        // TODO: Vibrate left/right vibration motors independently if possible.
+        button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
+            vibration_values[i].amp_high, vibration_values[i].amp_low,
+            vibration_values[i].freq_high, vibration_values[i].freq_low);
+
+        latest_vibration_values[npad_index][device_index] = vibration_values[i];
     }
 }
 
-Controller_NPad::Vibration Controller_NPad::GetLastVibration() const {
-    return last_processed_vibration;
+Controller_NPad::VibrationValue Controller_NPad::GetLastVibration(
+    const DeviceHandle& vibration_device_handle) const {
+    const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
+    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
+    return latest_vibration_values[npad_index][device_index];
 }
 
 std::shared_ptr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
