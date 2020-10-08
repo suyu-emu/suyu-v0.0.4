@@ -292,33 +292,36 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             break;
         }
 
+        const u64 base_index = is_array ? 1 : 0;
+        const u64 num_components = [texture_type] {
+            switch (texture_type) {
+            case TextureType::Texture1D:
+                return 1;
+            case TextureType::Texture2D:
+                return 2;
+            case TextureType::TextureCube:
+                return 3;
+            default:
+                UNIMPLEMENTED_MSG("Unhandled texture type {}", static_cast<int>(texture_type));
+                return 2;
+            }
+        }();
+        // TODO: What's the array component used for?
+
         std::vector<Node> coords;
-
-        // TODO: Add coordinates for different samplers once other texture types are implemented.
-        switch (texture_type) {
-        case TextureType::Texture1D:
-            coords.push_back(GetRegister(instr.gpr8));
-            break;
-        case TextureType::Texture2D:
-            coords.push_back(GetRegister(instr.gpr8.Value() + 0));
-            coords.push_back(GetRegister(instr.gpr8.Value() + 1));
-            break;
-        default:
-            UNIMPLEMENTED_MSG("Unhandled texture type {}", static_cast<int>(texture_type));
-
-            // Fallback to interpreting as a 2D texture for now
-            coords.push_back(GetRegister(instr.gpr8.Value() + 0));
-            coords.push_back(GetRegister(instr.gpr8.Value() + 1));
+        coords.reserve(num_components);
+        for (u64 component = 0; component < num_components; ++component) {
+            coords.push_back(GetRegister(instr.gpr8.Value() + base_index + component));
         }
+
         u32 indexer = 0;
         for (u32 element = 0; element < 2; ++element) {
             if (!instr.tmml.IsComponentEnabled(element)) {
                 continue;
             }
-            auto params = coords;
             MetaTexture meta{*sampler, {}, {}, {}, {}, {}, {}, {}, {}, element, index_var};
-            const Node value = Operation(OperationCode::TextureQueryLod, meta, std::move(params));
-            SetTemporary(bb, indexer++, value);
+            Node value = Operation(OperationCode::TextureQueryLod, meta, coords);
+            SetTemporary(bb, indexer++, std::move(value));
         }
         for (u32 i = 0; i < indexer; ++i) {
             SetRegister(bb, instr.gpr0.Value() + i, GetTemporary(i));
