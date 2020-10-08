@@ -7,6 +7,8 @@ add_library(input_common STATIC
     main.h
     motion_emu.cpp
     motion_emu.h
+    motion_from_button.cpp
+    motion_from_button.h
     motion_input.cpp
     motion_input.h
     settings.cpp

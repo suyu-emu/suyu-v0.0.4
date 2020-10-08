@@ -219,14 +219,10 @@ void Client::OnPadData(Response::PadData data) {
     clients[client].motion.SetGyroscope(raw_gyroscope / 312.0f);
     clients[client].motion.UpdateRotation(time_difference);
     clients[client].motion.UpdateOrientation(time_difference);
-    Common::Vec3f gyroscope = clients[client].motion.GetGyroscope();
-    Common::Vec3f accelerometer = clients[client].motion.GetAcceleration();
-    Common::Vec3f rotation = clients[client].motion.GetRotations();
-    std::array<Common::Vec3f, 3> orientation = clients[client].motion.GetOrientation();
 
     {
         std::lock_guard guard(clients[client].status.update_mutex);
-        clients[client].status.motion_status = {accelerometer, gyroscope, rotation, orientation};
+        clients[client].status.motion_status = clients[client].motion.GetMotion();
 
         // TODO: add a setting for "click" touch. Click touch refers to a device that differentiates
         // between a simple "tap" and a hard press that causes the touch screen to click.
@@ -250,6 +246,8 @@ void Client::OnPadData(Response::PadData data) {
         clients[client].status.touch_status = {x, y, is_active};
 
         if (configuring) {
+            const Common::Vec3f gyroscope = clients[client].motion.GetGyroscope();
+            const Common::Vec3f accelerometer = clients[client].motion.GetAcceleration();
             UpdateYuzuSettings(client, accelerometer, gyroscope, is_active);
         }
     }

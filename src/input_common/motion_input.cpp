@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included
 
+#include <random>
 #include "common/math_util.h"
 #include "input_common/motion_input.h"
 
@@ -157,6 +158,37 @@ Common::Quaternion<f32> MotionInput::GetQuaternion() const {
 
 Common::Vec3f MotionInput::GetRotations() const {
     return rotations;
+}
+
+Input::MotionStatus MotionInput::GetMotion() const {
+    const Common::Vec3f gyroscope = GetGyroscope();
+    const Common::Vec3f accelerometer = GetAcceleration();
+    const Common::Vec3f rotation = GetRotations();
+    const std::array<Common::Vec3f, 3> orientation = GetOrientation();
+    return {accelerometer, gyroscope, rotation, orientation};
+}
+
+Input::MotionStatus MotionInput::GetRandomMotion(int accel_magnitude, int gyro_magnitude) const {
+    std::random_device device;
+    std::mt19937 gen(device());
+    std::uniform_int_distribution<s16> distribution(-1000, 1000);
+    const Common::Vec3f gyroscope = {
+        distribution(gen) * 0.001f,
+        distribution(gen) * 0.001f,
+        distribution(gen) * 0.001f,
+    };
+    const Common::Vec3f accelerometer = {
+        distribution(gen) * 0.001f,
+        distribution(gen) * 0.001f,
+        distribution(gen) * 0.001f,
+    };
+    const Common::Vec3f rotation = {};
+    const std::array<Common::Vec3f, 3> orientation = {
+        Common::Vec3f{1.0f, 0, 0},
+        Common::Vec3f{0, 1.0f, 0},
+        Common::Vec3f{0, 0, 1.0f},
+    };
+    return {accelerometer * accel_magnitude, gyroscope * gyro_magnitude, rotation, orientation};
 }
 
 void MotionInput::ResetOrientation() {
