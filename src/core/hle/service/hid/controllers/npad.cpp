@@ -619,11 +619,11 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
                 shared_memory_entries.size() * sizeof(NPadEntry));
 }
 
-void Controller_NPad::SetSupportedStyleSet(NPadType style_set) {
+void Controller_NPad::SetSupportedStyleSet(NpadStyleSet style_set) {
     style.raw = style_set.raw;
 }
 
-Controller_NPad::NPadType Controller_NPad::GetSupportedStyleSet() const {
+Controller_NPad::NpadStyleSet Controller_NPad::GetSupportedStyleSet() const {
     return style;
 }
 

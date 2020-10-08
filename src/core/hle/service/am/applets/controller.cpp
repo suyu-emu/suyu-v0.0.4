@@ -25,7 +25,7 @@ namespace Service::AM::Applets {
 static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     ControllerSupportArgPrivate private_arg, ControllerSupportArgHeader header, bool enable_text,
     std::vector<IdentificationColor> identification_colors, std::vector<ExplainText> text) {
-    HID::Controller_NPad::NPadType npad_style_set;
+    HID::Controller_NPad::NpadStyleSet npad_style_set;
     npad_style_set.raw = private_arg.style_set;
 
     return {

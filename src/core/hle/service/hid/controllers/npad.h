@@ -94,7 +94,7 @@ public:
     };
     static_assert(sizeof(DeviceHandle) == 4, "DeviceHandle is an invalid size");
 
-    struct NPadType {
+    struct NpadStyleSet {
         union {
             u32_le raw{};
 
@@ -107,7 +107,7 @@ public:
             BitField<6, 1, u32> pokeball; // TODO(ogniK): Confirm when possible
         };
     };
-    static_assert(sizeof(NPadType) == 4, "NPadType is an invalid size");
+    static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
 
     struct Vibration {
         f32 amp_low;
@@ -133,8 +133,8 @@ public:
         };
     };
 
-    void SetSupportedStyleSet(NPadType style_set);
-    NPadType GetSupportedStyleSet() const;
+    void SetSupportedStyleSet(NpadStyleSet style_set);
+    NpadStyleSet GetSupportedStyleSet() const;
 
     void SetSupportedNPadIdTypes(u8* data, std::size_t length);
     void GetSupportedNpadIdTypes(u32* data, std::size_t max_length);
@@ -347,7 +347,7 @@ private:
     };
 
     struct NPadEntry {
-        NPadType joy_styles;
+        NpadStyleSet joy_styles;
         NPadAssignments pad_assignment;
 
         ColorReadError single_color_error;
@@ -391,7 +391,7 @@ private:
 
     u32 press_state{};
 
-    NPadType style{};
+    NpadStyleSet style{};
     std::array<NPadEntry, 10> shared_memory_entries{};
     using ButtonArray = std::array<
         std::array<std::unique_ptr<Input::ButtonDevice>, Settings::NativeButton::NUM_BUTTONS_HID>,
