@@ -688,6 +688,16 @@ void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibrati
             continue;
         }
 
+        // Some games try to send mismatched parameters in the device handle, block these.
+        if ((connected_controllers[npad_index].type == NPadControllerType::JoyLeft &&
+             (vibration_device_handles[i].npad_type == NpadType::JoyconRight ||
+              vibration_device_handles[i].device_index == DeviceIndex::Right)) ||
+            (connected_controllers[npad_index].type == NPadControllerType::JoyRight &&
+             (vibration_device_handles[i].npad_type == NpadType::JoyconLeft ||
+              vibration_device_handles[i].device_index == DeviceIndex::Left))) {
+            continue;
+        }
+
         using namespace Settings::NativeButton;
         const auto& button_state = buttons[npad_index];
 
