@@ -493,6 +493,8 @@ void Config::ReadControlValues() {
     ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), false);
     ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
                       true);
+    ReadSettingGlobal(Settings::values.vibration_strength, QStringLiteral("vibration_strength"),
+                      100);
     ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"), true);
 
     qt_config->endGroup();
@@ -1150,6 +1152,8 @@ void Config::SaveControlValues() {
     WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
     WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled,
                        true);
+    WriteSettingGlobal(QStringLiteral("vibration_strength"), Settings::values.vibration_strength,
+                       100);
     WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
     WriteSetting(QStringLiteral("motion_device"),
                  QString::fromStdString(Settings::values.motion_device),

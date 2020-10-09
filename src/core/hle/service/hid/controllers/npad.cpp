@@ -703,7 +703,8 @@ void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibrati
 
         // TODO: Vibrate left/right vibration motors independently if possible.
         button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-            vibration_values[i].amp_high, vibration_values[i].amp_low,
+            vibration_values[i].amp_high * Settings::values.vibration_strength.GetValue() / 100,
+            vibration_values[i].amp_low * Settings::values.vibration_strength.GetValue() / 100,
             vibration_values[i].freq_high, vibration_values[i].freq_low);
 
         latest_vibration_values[npad_index][device_index] = vibration_values[i];
