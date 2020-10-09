@@ -30,6 +30,7 @@ public:
         params.rate = sample_rate;
         params.channels = num_channels;
         params.format = CUBEB_SAMPLE_S16NE;
+        params.prefs = CUBEB_STREAM_PREF_PERSIST;
         switch (num_channels) {
         case 1:
             params.layout = CUBEB_LAYOUT_MONO;
