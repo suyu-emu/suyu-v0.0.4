@@ -114,8 +114,6 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
     const u32 block_depth = src_params.block_size.depth;
     const size_t src_size =
         CalculateSize(true, bytes_per_pixel, width, height, depth, block_height, block_depth);
-    const size_t src_layer_size =
-        CalculateSize(true, bytes_per_pixel, width, height, 1, block_height, block_depth);
 
     if (read_buffer.size() < src_size) {
         read_buffer.resize(src_size);

@@ -193,7 +193,6 @@ bool IsASTCSupported() {
 Device::Device()
     : max_uniform_buffers{BuildMaxUniformBuffers()}, base_bindings{BuildBaseBindings()} {
     const std::string_view vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    const std::string_view renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     const std::string_view version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
     const std::vector extensions = GetExtensions();
 

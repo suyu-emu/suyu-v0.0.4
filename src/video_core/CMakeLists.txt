@@ -273,5 +273,11 @@ endif()
 if (MSVC)
     target_compile_options(video_core PRIVATE /we4267)
 else()
-    target_compile_options(video_core PRIVATE -Werror=conversion -Wno-error=sign-conversion -Werror=switch)
+    target_compile_options(video_core PRIVATE
+        -Werror=conversion
+        -Wno-error=sign-conversion
+        -Werror=switch
+        -Werror=unused-variable
+        -Werror=unused-but-set-variable
+    )
 endif()
