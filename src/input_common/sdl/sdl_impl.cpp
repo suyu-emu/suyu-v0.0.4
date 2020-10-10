@@ -80,30 +80,24 @@ public:
         return static_cast<float>(state.axes.at(axis)) / (32767.0f * range);
     }
 
-    bool RumblePlay(f32 amp_low, f32 amp_high, u32 time) {
-        const u16 raw_amp_low = static_cast<u16>(amp_low * 0xFFFF);
-        const u16 raw_amp_high = static_cast<u16>(amp_high * 0xFFFF);
-        // Lower drastically the number of state changes
-        if (raw_amp_low >> 11 == last_state_rumble_low >> 11 &&
-            raw_amp_high >> 11 == last_state_rumble_high >> 11) {
-            if (raw_amp_low + raw_amp_high != 0 ||
-                last_state_rumble_low + last_state_rumble_high == 0) {
-                return false;
-            }
-        }
-        // Don't change state if last vibration was < 20ms
-        const auto now = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_vibration) <
-            std::chrono::milliseconds(20)) {
-            return raw_amp_low + raw_amp_high == 0;
+    bool RumblePlay(u16 amp_low, u16 amp_high) {
+        using std::chrono::duration_cast;
+        using std::chrono::milliseconds;
+        using std::chrono::steady_clock;
+
+        // Prevent vibrations less than 10ms apart from each other.
+        if (duration_cast<milliseconds>(steady_clock::now() - last_vibration) < milliseconds(10)) {
+            return false;
+        };
+
+        last_vibration = steady_clock::now();
+
+        if (sdl_controller != nullptr) {
+            return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high, 0) == 0;
+        } else if (sdl_joystick != nullptr) {
+            return SDL_JoystickRumble(sdl_joystick.get(), amp_low, amp_high, 0) == 0;
         }
 
-        last_vibration = now;
-        last_state_rumble_low = raw_amp_low;
-        last_state_rumble_high = raw_amp_high;
-        if (sdl_joystick) {
-            SDL_JoystickRumble(sdl_joystick.get(), raw_amp_low, raw_amp_high, time);
-        }
         return false;
     }
 
@@ -172,12 +166,12 @@ private:
     } state;
     std::string guid;
     int port;
-    u16 last_state_rumble_high = 0;
-    u16 last_state_rumble_low = 0;
-    std::chrono::time_point<std::chrono::system_clock> last_vibration;
     std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)> sdl_joystick;
     std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)> sdl_controller;
     mutable std::mutex mutex;
+
+    // This is the timepoint of the last vibration and is used to ensure vibrations are 10ms apart.
+    std::chrono::steady_clock::time_point last_vibration;
 
     // Motion is initialized without PID values as motion input is not aviable for SDL2
     MotionInput motion{0.0f, 0.0f, 0.0f};
@@ -327,10 +321,12 @@ public:
         return joystick->GetButton(button);
     }
 
-    bool SetRumblePlay(f32 amp_high, f32 amp_low, f32 freq_high, f32 freq_low) const override {
-        const f32 new_amp_low = pow(amp_low, 0.5f) * (3.0f - 2.0f * pow(amp_low, 0.15f));
-        const f32 new_amp_high = pow(amp_high, 0.5f) * (3.0f - 2.0f * pow(amp_high, 0.15f));
-        return joystick->RumblePlay(new_amp_low, new_amp_high, 250);
+    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
+        const u16 processed_amp_low =
+            static_cast<u16>(pow(amp_low, 0.5f) * (3.0f - 2.0f * pow(amp_low, 0.15f)) * 0xFFFF);
+        const u16 processed_amp_high =
+            static_cast<u16>(pow(amp_high, 0.5f) * (3.0f - 2.0f * pow(amp_high, 0.15f)) * 0xFFFF);
+        return joystick->RumblePlay(processed_amp_low, processed_amp_high);
     }
 
 private:

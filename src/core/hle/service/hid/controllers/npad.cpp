@@ -698,16 +698,57 @@ void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibrati
             continue;
         }
 
+        // Filter out vibrations with equivalent values to reduce unnecessary state changes.
+        if (vibration_values[i].amp_low ==
+                latest_vibration_values[npad_index][device_index].amp_low &&
+            vibration_values[i].amp_high ==
+                latest_vibration_values[npad_index][device_index].amp_high) {
+            continue;
+        }
+
+        // Filter out non-zero vibrations that are within 0.015625 absolute amplitude of each other.
+        if ((vibration_values[i].amp_low != 0.0f || vibration_values[i].amp_high != 0.0f) &&
+            (latest_vibration_values[npad_index][device_index].amp_low != 0.0f ||
+             latest_vibration_values[npad_index][device_index].amp_high != 0.0f) &&
+            (abs(vibration_values[i].amp_low -
+                 latest_vibration_values[npad_index][device_index].amp_low) < 0.015625f &&
+             abs(vibration_values[i].amp_high -
+                 latest_vibration_values[npad_index][device_index].amp_high) < 0.015625f)) {
+            continue;
+        }
+
         using namespace Settings::NativeButton;
         const auto& button_state = buttons[npad_index];
 
         // TODO: Vibrate left/right vibration motors independently if possible.
-        button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-            vibration_values[i].amp_high * Settings::values.vibration_strength.GetValue() / 100,
+        const bool success = button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
             vibration_values[i].amp_low * Settings::values.vibration_strength.GetValue() / 100,
-            vibration_values[i].freq_high, vibration_values[i].freq_low);
+            vibration_values[i].freq_low,
+            vibration_values[i].amp_high * Settings::values.vibration_strength.GetValue() / 100,
+            vibration_values[i].freq_high);
 
-        latest_vibration_values[npad_index][device_index] = vibration_values[i];
+        if (success) {
+            switch (connected_controllers[npad_index].type) {
+            case NPadControllerType::None:
+                UNREACHABLE();
+                break;
+            case NPadControllerType::ProController:
+            case NPadControllerType::Handheld:
+            case NPadControllerType::JoyDual:
+                // Since we can't vibrate motors independently yet, we can reduce state changes by
+                // assigning all 3 device indices the current vibration value.
+                latest_vibration_values[npad_index][0] = vibration_values[i];
+                latest_vibration_values[npad_index][1] = vibration_values[i];
+                latest_vibration_values[npad_index][2] = vibration_values[i];
+                break;
+            case NPadControllerType::JoyLeft:
+            case NPadControllerType::JoyRight:
+            case NPadControllerType::Pokeball:
+            default:
+                latest_vibration_values[npad_index][device_index] = vibration_values[i];
+                break;
+            }
+        }
     }
 }
 
