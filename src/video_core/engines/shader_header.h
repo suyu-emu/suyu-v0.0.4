@@ -41,30 +41,30 @@ struct Header {
         BitField<26, 1, u32> does_load_or_store;
         BitField<27, 1, u32> does_fp64;
         BitField<28, 4, u32> stream_out_mask;
-    } common0{};
+    } common0;
 
     union {
         BitField<0, 24, u32> shader_local_memory_low_size;
         BitField<24, 8, u32> per_patch_attribute_count;
-    } common1{};
+    } common1;
 
     union {
         BitField<0, 24, u32> shader_local_memory_high_size;
         BitField<24, 8, u32> threads_per_input_primitive;
-    } common2{};
+    } common2;
 
     union {
         BitField<0, 24, u32> shader_local_memory_crs_size;
         BitField<24, 4, OutputTopology> output_topology;
         BitField<28, 4, u32> reserved;
-    } common3{};
+    } common3;
 
     union {
         BitField<0, 12, u32> max_output_vertices;
         BitField<12, 8, u32> store_req_start; // NOTE: not used by geometry shaders.
         BitField<20, 4, u32> reserved;
         BitField<24, 8, u32> store_req_end; // NOTE: not used by geometry shaders.
-    } common4{};
+    } common4;
 
     union {
         struct {
@@ -145,7 +145,7 @@ struct Header {
             }
         } ps;
 
-        std::array<u32, 0xF> raw{};
+        std::array<u32, 0xF> raw;
     };
 
     u64 GetLocalMemorySize() const {
@@ -153,7 +153,6 @@ struct Header {
                 (common2.shader_local_memory_high_size << 24));
     }
 };
-
 static_assert(sizeof(Header) == 0x50, "Incorrect structure size");
 
 } // namespace Tegra::Shader
