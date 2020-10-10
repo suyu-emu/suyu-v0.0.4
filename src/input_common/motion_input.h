@@ -46,6 +46,7 @@ public:
 
 private:
     void ResetOrientation();
+    void SetOrientationFromAccelerometer();
 
     // PID constants
     const f32 kp;
@@ -66,6 +67,7 @@ private:
     f32 gyro_threshold = 0.0f;
     u32 reset_counter = 0;
     bool reset_enabled = true;
+    bool only_accelerometer = true;
 };
 
 } // namespace InputCommon

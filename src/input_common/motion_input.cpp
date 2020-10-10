@@ -17,8 +17,16 @@ void MotionInput::SetAcceleration(const Common::Vec3f& acceleration) {
 
 void MotionInput::SetGyroscope(const Common::Vec3f& gyroscope) {
     gyro = gyroscope - gyro_drift;
+
+    // Auto adjust drift to minimize drift
+    if (!IsMoving(0.1f)) {
+        gyro_drift = (gyro_drift * 0.9999f) + (gyroscope * 0.0001f);
+    }
+
     if (gyro.Length2() < gyro_threshold) {
         gyro = {};
+    } else {
+        only_accelerometer = false;
     }
 }
 
@@ -69,7 +77,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     f32 q4 = quat.xyz[2];
     const f32 sample_period = elapsed_time / 1000000.0f;
 
-    // ignore invalid elapsed time
+    // Ignore invalid elapsed time
     if (sample_period > 0.1f) {
         return;
     }
@@ -80,6 +88,13 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     rad_gyro.x = rad_gyro.y;
     rad_gyro.y = -swap;
     rad_gyro.z = -rad_gyro.z;
+
+    // Clear gyro values if there is no gyro present
+    if (only_accelerometer) {
+        rad_gyro.x = 0;
+        rad_gyro.y = 0;
+        rad_gyro.z = 0;
+    }
 
     // Ignore drift correction if acceleration is not reliable
     if (accel.Length() >= 0.75f && accel.Length() <= 1.25f) {
@@ -93,8 +108,11 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
         const f32 vz = q1 * q1 - q2 * q2 - q3 * q3 + q4 * q4;
 
         // Error is cross product between estimated direction and measured direction of gravity
-        const Common::Vec3f new_real_error = {az * vx - ax * vz, ay * vz - az * vy,
-                                              ax * vy - ay * vx};
+        const Common::Vec3f new_real_error = {
+            az * vx - ax * vz,
+            ay * vz - az * vy,
+            ax * vy - ay * vx,
+        };
 
         derivative_error = new_real_error - real_error;
         real_error = new_real_error;
@@ -107,9 +125,22 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
         }
 
         // Apply feedback terms
-        rad_gyro += kp * real_error;
-        rad_gyro += ki * integral_error;
-        rad_gyro += kd * derivative_error;
+        if (!only_accelerometer) {
+            rad_gyro += kp * real_error;
+            rad_gyro += ki * integral_error;
+            rad_gyro += kd * derivative_error;
+        } else {
+            // Give more weight to acelerometer values to compensate for the lack of gyro
+            rad_gyro += 35.0f * kp * real_error;
+            rad_gyro += 10.0f * ki * integral_error;
+            rad_gyro += 10.0f * kd * derivative_error;
+
+            // Emulate gyro values for games that need them
+            gyro.x = -rad_gyro.y;
+            gyro.y = rad_gyro.x;
+            gyro.z = -rad_gyro.z;
+            UpdateRotation(elapsed_time);
+        }
     }
 
     const f32 gx = rad_gyro.y;
@@ -192,22 +223,83 @@ Input::MotionStatus MotionInput::GetRandomMotion(int accel_magnitude, int gyro_m
 }
 
 void MotionInput::ResetOrientation() {
-    if (!reset_enabled) {
+    if (!reset_enabled || only_accelerometer) {
         return;
     }
     if (!IsMoving(0.5f) && accel.z <= -0.9f) {
         ++reset_counter;
         if (reset_counter > 900) {
-            // TODO: calculate quaternion from gravity vector
             quat.w = 0;
             quat.xyz[0] = 0;
             quat.xyz[1] = 0;
             quat.xyz[2] = -1;
+            SetOrientationFromAccelerometer();
             integral_error = {};
             reset_counter = 0;
         }
     } else {
         reset_counter = 0;
+    }
+}
+
+void MotionInput::SetOrientationFromAccelerometer() {
+    int iterations = 0;
+    const f32 sample_period = 0.015f;
+
+    const auto normal_accel = accel.Normalized();
+    const f32 ax = -normal_accel.x;
+    const f32 ay = normal_accel.y;
+    const f32 az = -normal_accel.z;
+
+    while (!IsCalibrated(0.01f) && ++iterations < 100) {
+        // Short name local variable for readability
+        f32 q1 = quat.w;
+        f32 q2 = quat.xyz[0];
+        f32 q3 = quat.xyz[1];
+        f32 q4 = quat.xyz[2];
+
+        Common::Vec3f rad_gyro = {};
+        const f32 ax = -normal_accel.x;
+        const f32 ay = normal_accel.y;
+        const f32 az = -normal_accel.z;
+
+        // Estimated direction of gravity
+        const f32 vx = 2.0f * (q2 * q4 - q1 * q3);
+        const f32 vy = 2.0f * (q1 * q2 + q3 * q4);
+        const f32 vz = q1 * q1 - q2 * q2 - q3 * q3 + q4 * q4;
+
+        // Error is cross product between estimated direction and measured direction of gravity
+        const Common::Vec3f new_real_error = {
+            az * vx - ax * vz,
+            ay * vz - az * vy,
+            ax * vy - ay * vx,
+        };
+
+        derivative_error = new_real_error - real_error;
+        real_error = new_real_error;
+
+        rad_gyro += 10.0f * kp * real_error;
+        rad_gyro += 5.0f * ki * integral_error;
+        rad_gyro += 10.0f * kd * derivative_error;
+
+        const f32 gx = rad_gyro.y;
+        const f32 gy = rad_gyro.x;
+        const f32 gz = rad_gyro.z;
+
+        // Integrate rate of change of quaternion
+        const f32 pa = q2;
+        const f32 pb = q3;
+        const f32 pc = q4;
+        q1 = q1 + (-q2 * gx - q3 * gy - q4 * gz) * (0.5f * sample_period);
+        q2 = pa + (q1 * gx + pb * gz - pc * gy) * (0.5f * sample_period);
+        q3 = pb + (q1 * gy - pa * gz + pc * gx) * (0.5f * sample_period);
+        q4 = pc + (q1 * gz + pa * gy - pb * gx) * (0.5f * sample_period);
+
+        quat.w = q1;
+        quat.xyz[0] = q2;
+        quat.xyz[1] = q3;
+        quat.xyz[2] = q4;
+        quat = quat.Normalized();
     }
 }
 } // namespace InputCommon
