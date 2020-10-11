@@ -249,7 +249,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {208, nullptr, "GetActualVibrationGcErmCommand"},
         {209, &Hid::BeginPermitVibrationSession, "BeginPermitVibrationSession"},
         {210, &Hid::EndPermitVibrationSession, "EndPermitVibrationSession"},
-        {211, nullptr, "IsVibrationDeviceMounted"},
+        {211, &Hid::IsVibrationDeviceMounted, "IsVibrationDeviceMounted"},
         {300, &Hid::ActivateConsoleSixAxisSensor, "ActivateConsoleSixAxisSensor"},
         {301, &Hid::StartConsoleSixAxisSensor, "StartConsoleSixAxisSensor"},
         {302, &Hid::StopConsoleSixAxisSensor, "StopConsoleSixAxisSensor"},
@@ -1127,6 +1127,27 @@ void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    struct Parameters {
+        Controller_NPad::DeviceHandle vibration_device_handle{};
+        INSERT_PADDING_WORDS(1);
+        u64 applet_resource_user_id{};
+    };
+
+    const auto parameters{rp.PopRaw<Parameters>()};
+
+    LOG_WARNING(
+        Service_HID,
+        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+        parameters.vibration_device_handle.npad_type, parameters.vibration_device_handle.npad_id,
+        parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(true);
 }
 
 void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {

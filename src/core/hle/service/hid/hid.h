@@ -134,6 +134,7 @@ private:
     void SendVibrationValues(Kernel::HLERequestContext& ctx);
     void BeginPermitVibrationSession(Kernel::HLERequestContext& ctx);
     void EndPermitVibrationSession(Kernel::HLERequestContext& ctx);
+    void IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx);
     void ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StartConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
     void StopConsoleSixAxisSensor(Kernel::HLERequestContext& ctx);
