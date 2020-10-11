@@ -117,7 +117,10 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
 }
 
 Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {}
-Controller_NPad::~Controller_NPad() = default;
+
+Controller_NPad::~Controller_NPad() {
+    OnRelease();
+}
 
 void Controller_NPad::InitNewlyAddedController(std::size_t controller_idx) {
     const auto controller_type = connected_controllers[controller_idx].type;
@@ -274,7 +277,11 @@ void Controller_NPad::OnLoadInputDevices() {
     }
 }
 
-void Controller_NPad::OnRelease() {}
+void Controller_NPad::OnRelease() {
+    for (std::size_t index = 0; index < connected_controllers.size(); ++index) {
+        VibrateControllerAtIndex(index, {});
+    }
+}
 
 void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     const auto controller_idx = NPadIdToIndex(npad_id);
@@ -667,8 +674,24 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) 
     }
 }
 
-void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibration_device_handles,
-                                        const std::vector<VibrationValue>& vibration_values) {
+bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index,
+                                               const VibrationValue& vibration_value) {
+    if (!connected_controllers[npad_index].is_connected) {
+        return false;
+    }
+
+    using namespace Settings::NativeButton;
+    const auto& button_state = buttons[npad_index];
+
+    return button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
+        vibration_value.amp_low * Settings::values.vibration_strength.GetValue() / 100,
+        vibration_value.freq_low,
+        vibration_value.amp_high * Settings::values.vibration_strength.GetValue() / 100,
+        vibration_value.freq_high);
+}
+
+void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
+                                         const std::vector<VibrationValue>& vibration_values) {
     LOG_TRACE(Service_HID, "called");
 
     if (!Settings::values.vibration_enabled.GetValue() || !can_controllers_vibrate) {
@@ -717,17 +740,8 @@ void Controller_NPad::VibrateController(const std::vector<DeviceHandle>& vibrati
             continue;
         }
 
-        using namespace Settings::NativeButton;
-        const auto& button_state = buttons[npad_index];
-
         // TODO: Vibrate left/right vibration motors independently if possible.
-        const bool success = button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-            vibration_values[i].amp_low * Settings::values.vibration_strength.GetValue() / 100,
-            vibration_values[i].freq_low,
-            vibration_values[i].amp_high * Settings::values.vibration_strength.GetValue() / 100,
-            vibration_values[i].freq_high);
-
-        if (success) {
+        if (VibrateControllerAtIndex(npad_index, vibration_values[i])) {
             switch (connected_controllers[npad_index].type) {
             case NPadControllerType::None:
                 UNREACHABLE();

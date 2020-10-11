@@ -1022,7 +1022,7 @@ void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateController({parameters.vibration_device_handle}, {parameters.vibration_value});
+        .VibrateControllers({parameters.vibration_device_handle}, {parameters.vibration_value});
 
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
@@ -1100,7 +1100,7 @@ void Hid::SendVibrationValues(Kernel::HLERequestContext& ctx) {
     std::memcpy(vibration_values.data(), vibrations.data(), vibrations.size());
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateController(vibration_device_handles, vibration_values);
+        .VibrateControllers(vibration_device_handles, vibration_values);
 
     LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 

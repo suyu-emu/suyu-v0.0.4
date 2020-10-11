@@ -110,10 +110,10 @@ public:
     static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
 
     struct VibrationValue {
-        f32 amp_low;
-        f32 freq_low;
-        f32 amp_high;
-        f32 freq_high;
+        f32 amp_low{0.0f};
+        f32 freq_low{160.0f};
+        f32 amp_high{0.0f};
+        f32 freq_high{320.0f};
     };
     static_assert(sizeof(VibrationValue) == 0x10, "Vibration is an invalid size");
 
@@ -148,8 +148,10 @@ public:
 
     void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
-    void VibrateController(const std::vector<DeviceHandle>& vibration_device_handles,
-                           const std::vector<VibrationValue>& vibration_values);
+    bool VibrateControllerAtIndex(std::size_t npad_index, const VibrationValue& vibration_value);
+
+    void VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
+                            const std::vector<VibrationValue>& vibration_values);
 
     VibrationValue GetLastVibration(const DeviceHandle& vibration_device_handle) const;
 
