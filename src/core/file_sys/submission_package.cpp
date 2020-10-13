@@ -19,38 +19,6 @@
 #include "core/loader/loader.h"
 
 namespace FileSys {
-namespace {
-void SetTicketKeys(const std::vector<VirtualFile>& files) {
-    auto& keys = Core::Crypto::KeyManager::Instance();
-
-    for (const auto& ticket_file : files) {
-        if (ticket_file == nullptr) {
-            continue;
-        }
-
-        if (ticket_file->GetExtension() != "tik") {
-            continue;
-        }
-
-        if (ticket_file->GetSize() <
-            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
-            continue;
-        }
-
-        Core::Crypto::Key128 key{};
-        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
-
-        // We get the name without the extension in order to create the rights ID.
-        std::string name_only(ticket_file->GetName());
-        name_only.erase(name_only.size() - 4);
-
-        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
-        u128 rights_id;
-        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
-        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
-    }
-}
-} // Anonymous namespace
 
 NSP::NSP(VirtualFile file_)
     : file(std::move(file_)), status{Loader::ResultStatus::Success},
@@ -230,6 +198,35 @@ std::string NSP::GetName() const {
 
 VirtualDir NSP::GetParentDirectory() const {
     return file->GetContainingDirectory();
+}
+
+void NSP::SetTicketKeys(const std::vector<VirtualFile>& files) {
+    for (const auto& ticket_file : files) {
+        if (ticket_file == nullptr) {
+            continue;
+        }
+
+        if (ticket_file->GetExtension() != "tik") {
+            continue;
+        }
+
+        if (ticket_file->GetSize() <
+            Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET + sizeof(Core::Crypto::Key128)) {
+            continue;
+        }
+
+        Core::Crypto::Key128 key{};
+        ticket_file->Read(key.data(), key.size(), Core::Crypto::TICKET_FILE_TITLEKEY_OFFSET);
+
+        // We get the name without the extension in order to create the rights ID.
+        std::string name_only(ticket_file->GetName());
+        name_only.erase(name_only.size() - 4);
+
+        const auto rights_id_raw = Common::HexStringToArray<16>(name_only);
+        u128 rights_id;
+        std::memcpy(rights_id.data(), rights_id_raw.data(), sizeof(u128));
+        keys.SetKey(Core::Crypto::S128KeyType::Titlekey, key, rights_id[1], rights_id[0]);
+    }
 }
 
 void NSP::InitializeExeFSAndRomFS(const std::vector<VirtualFile>& files) {
