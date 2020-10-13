@@ -120,9 +120,9 @@ struct Memory::Impl {
         if ((addr & 1) == 0) {
             return Read<u16_le>(addr);
         } else {
-            const u8 a{Read<u8>(addr)};
-            const u8 b{Read<u8>(addr + sizeof(u8))};
-            return (static_cast<u16>(b) << 8) | a;
+            const u32 a{Read<u8>(addr)};
+            const u32 b{Read<u8>(addr + sizeof(u8))};
+            return static_cast<u16>((b << 8) | a);
         }
     }
 
@@ -130,9 +130,9 @@ struct Memory::Impl {
         if ((addr & 3) == 0) {
             return Read<u32_le>(addr);
         } else {
-            const u16 a{Read16(addr)};
-            const u16 b{Read16(addr + sizeof(u16))};
-            return (static_cast<u32>(b) << 16) | a;
+            const u32 a{Read16(addr)};
+            const u32 b{Read16(addr + sizeof(u16))};
+            return (b << 16) | a;
         }
     }
 

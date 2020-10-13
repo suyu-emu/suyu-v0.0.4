@@ -31,10 +31,10 @@ Network::Type Translate(Type type);
 Network::Protocol Translate(Type type, Protocol protocol);
 
 /// Translate abstract poll event flags to guest poll event flags
-u16 TranslatePollEventsToHost(u16 flags);
+u16 TranslatePollEventsToHost(u32 flags);
 
 /// Translate guest poll event flags to abstract poll event flags
-u16 TranslatePollEventsToGuest(u16 flags);
+u16 TranslatePollEventsToGuest(u32 flags);
 
 /// Translate guest socket address structure to abstract socket address structure
 Network::SockAddrIn Translate(SockAddrIn value);

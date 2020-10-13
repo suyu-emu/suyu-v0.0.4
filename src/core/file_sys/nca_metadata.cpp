@@ -108,7 +108,7 @@ std::vector<u8> CNMT::Serialize() const {
         memcpy(out.data() + sizeof(CNMTHeader), &opt_header, sizeof(OptionalHeader));
     }
 
-    auto offset = header.table_offset;
+    u64_le offset = header.table_offset;
 
     for (const auto& rec : content_records) {
         memcpy(out.data() + offset + sizeof(CNMTHeader), &rec, sizeof(ContentRecord));

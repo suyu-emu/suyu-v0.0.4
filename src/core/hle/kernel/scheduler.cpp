@@ -72,7 +72,7 @@ u32 GlobalScheduler::SelectThreads() {
         if (top_thread != nullptr) {
             // TODO(Blinkhawk): Implement Thread Pinning
         } else {
-            idle_cores |= (1ul << core);
+            idle_cores |= (1U << core);
         }
         top_threads[core] = top_thread;
     }
@@ -126,7 +126,7 @@ u32 GlobalScheduler::SelectThreads() {
             top_threads[core_id] = suggested;
         }
 
-        idle_cores &= ~(1ul << core_id);
+        idle_cores &= ~(1U << core_id);
     }
     u32 cores_needing_context_switch{};
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
@@ -134,7 +134,7 @@ u32 GlobalScheduler::SelectThreads() {
         ASSERT(top_threads[core] == nullptr ||
                static_cast<u32>(top_threads[core]->GetProcessorID()) == core);
         if (update_thread(top_threads[core], sched)) {
-            cores_needing_context_switch |= (1ul << core);
+            cores_needing_context_switch |= (1U << core);
         }
     }
     return cores_needing_context_switch;
@@ -364,7 +364,7 @@ void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
         } else {
             must_context_switch = true;
         }
-        cores_pending_reschedule &= ~(1ul << core);
+        cores_pending_reschedule &= ~(1U << core);
     }
     if (must_context_switch) {
         auto& core_scheduler = kernel.CurrentScheduler();
@@ -767,7 +767,7 @@ void Scheduler::SwitchToCurrent() {
                     current_thread->context_guard.unlock();
                     break;
                 }
-                if (current_thread->GetProcessorID() != core_id) {
+                if (static_cast<u32>(current_thread->GetProcessorID()) != core_id) {
                     current_thread->context_guard.unlock();
                     break;
                 }

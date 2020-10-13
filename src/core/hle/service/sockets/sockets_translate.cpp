@@ -89,9 +89,9 @@ Network::Protocol Translate(Type type, Protocol protocol) {
     }
 }
 
-u16 TranslatePollEventsToHost(u16 flags) {
-    u16 result = 0;
-    const auto translate = [&result, &flags](u16 from, u16 to) {
+u16 TranslatePollEventsToHost(u32 flags) {
+    u32 result = 0;
+    const auto translate = [&result, &flags](u32 from, u32 to) {
         if ((flags & from) != 0) {
             flags &= ~from;
             result |= to;
@@ -105,12 +105,12 @@ u16 TranslatePollEventsToHost(u16 flags) {
     translate(POLL_NVAL, Network::POLL_NVAL);
 
     UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
-    return result;
+    return static_cast<u16>(result);
 }
 
-u16 TranslatePollEventsToGuest(u16 flags) {
-    u16 result = 0;
-    const auto translate = [&result, &flags](u16 from, u16 to) {
+u16 TranslatePollEventsToGuest(u32 flags) {
+    u32 result = 0;
+    const auto translate = [&result, &flags](u32 from, u32 to) {
         if ((flags & from) != 0) {
             flags &= ~from;
             result |= to;
@@ -125,7 +125,7 @@ u16 TranslatePollEventsToGuest(u16 flags) {
     translate(Network::POLL_NVAL, POLL_NVAL);
 
     UNIMPLEMENTED_IF_MSG(flags != 0, "Unimplemented flags={}", flags);
-    return result;
+    return static_cast<u16>(result);
 }
 
 Network::SockAddrIn Translate(SockAddrIn value) {

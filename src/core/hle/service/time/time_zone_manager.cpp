@@ -820,7 +820,10 @@ static ResultCode ToCalendarTimeImpl(const TimeZoneRule& rules, s64 time, Calend
     const ResultCode result{
         ToCalendarTimeInternal(rules, time, calendar_time, calendar.additiona_info)};
     calendar.time.year = static_cast<s16>(calendar_time.year);
-    calendar.time.month = calendar_time.month + 1; // Internal impl. uses 0-indexed month
+
+    // Internal impl. uses 0-indexed month
+    calendar.time.month = static_cast<s8>(calendar_time.month + 1);
+
     calendar.time.day = calendar_time.day;
     calendar.time.hour = calendar_time.hour;
     calendar.time.minute = calendar_time.minute;
@@ -872,13 +875,15 @@ ResultCode TimeZoneManager::ToPosixTime(const TimeZoneRule& rules,
                                         const CalendarTime& calendar_time, s64& posix_time) const {
     posix_time = 0;
 
-    CalendarTimeInternal internal_time{};
-    internal_time.year = calendar_time.year;
-    internal_time.month = calendar_time.month - 1; // Internal impl. uses 0-indexed month
-    internal_time.day = calendar_time.day;
-    internal_time.hour = calendar_time.hour;
-    internal_time.minute = calendar_time.minute;
-    internal_time.second = calendar_time.second;
+    CalendarTimeInternal internal_time{
+        .year = calendar_time.year,
+        // Internal impl. uses 0-indexed month
+        .month = static_cast<s8>(calendar_time.month - 1),
+        .day = calendar_time.day,
+        .hour = calendar_time.hour,
+        .minute = calendar_time.minute,
+        .second = calendar_time.second,
+    };
 
     s32 hour{internal_time.hour};
     s32 minute{internal_time.minute};

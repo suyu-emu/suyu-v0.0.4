@@ -14,8 +14,8 @@ namespace Layout {
 template <class T>
 static Common::Rectangle<T> MaxRectangle(Common::Rectangle<T> window_area,
                                          float screen_aspect_ratio) {
-    float scale = std::min(static_cast<float>(window_area.GetWidth()),
-                           window_area.GetHeight() / screen_aspect_ratio);
+    const float scale = std::min(static_cast<float>(window_area.GetWidth()),
+                                 static_cast<float>(window_area.GetHeight()) / screen_aspect_ratio);
     return Common::Rectangle<T>{0, 0, static_cast<T>(std::round(scale)),
                                 static_cast<T>(std::round(scale * screen_aspect_ratio))};
 }
@@ -27,7 +27,7 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
     // so just calculate them both even if the other isn't showing.
     FramebufferLayout res{width, height, false, {}};
 
-    const float window_aspect_ratio = static_cast<float>(height) / width;
+    const float window_aspect_ratio = static_cast<float>(height) / static_cast<float>(width);
     const float emulation_aspect_ratio = EmulationAspectRatio(
         static_cast<AspectRatio>(Settings::values.aspect_ratio.GetValue()), window_aspect_ratio);
 

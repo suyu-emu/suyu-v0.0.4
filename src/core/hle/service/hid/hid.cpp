@@ -475,7 +475,7 @@ void Hid::StopSixAxisSensor(Kernel::HLERequestContext& ctx) {
 
 void Hid::EnableSixAxisSensorFusion(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto enable{rp.Pop<bool>()};
+    [[maybe_unused]] const auto enable{rp.Pop<bool>()};
     const auto handle{rp.Pop<u32>()};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 

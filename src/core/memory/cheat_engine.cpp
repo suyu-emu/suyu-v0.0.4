@@ -153,8 +153,9 @@ std::vector<CheatEntry> TextCheatParser::Parse(std::string_view data) const {
                 return {};
             }
 
+            const auto value = static_cast<u32>(std::stoul(hex, nullptr, 0x10));
             out[*current_entry].definition.opcodes[out[*current_entry].definition.num_opcodes++] =
-                std::stoul(hex, nullptr, 0x10);
+                value;
 
             i += 8;
         } else {

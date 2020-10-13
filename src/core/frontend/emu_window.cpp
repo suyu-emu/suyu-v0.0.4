@@ -84,10 +84,12 @@ void EmuWindow::TouchPressed(unsigned framebuffer_x, unsigned framebuffer_y) {
         return;
 
     std::lock_guard guard{touch_state->mutex};
-    touch_state->touch_x = static_cast<float>(framebuffer_x - framebuffer_layout.screen.left) /
-                           (framebuffer_layout.screen.right - framebuffer_layout.screen.left);
-    touch_state->touch_y = static_cast<float>(framebuffer_y - framebuffer_layout.screen.top) /
-                           (framebuffer_layout.screen.bottom - framebuffer_layout.screen.top);
+    touch_state->touch_x =
+        static_cast<float>(framebuffer_x - framebuffer_layout.screen.left) /
+        static_cast<float>(framebuffer_layout.screen.right - framebuffer_layout.screen.left);
+    touch_state->touch_y =
+        static_cast<float>(framebuffer_y - framebuffer_layout.screen.top) /
+        static_cast<float>(framebuffer_layout.screen.bottom - framebuffer_layout.screen.top);
 
     touch_state->touch_pressed = true;
 }
