@@ -46,10 +46,13 @@ create_target_directory_groups(audio_core)
 
 if (NOT MSVC)
     target_compile_options(audio_core PRIVATE
+        -Werror=conversion
         -Werror=ignored-qualifiers
         -Werror=implicit-fallthrough
         -Werror=reorder
         -Werror=sign-compare
+        -Werror=unused-but-set-parameter
+        -Werror=unused-but-set-variable
         -Werror=unused-variable
     )
 endif()

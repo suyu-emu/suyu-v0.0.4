@@ -146,7 +146,7 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
         return {};
 
     if (ratio <= 0) {
-        LOG_CRITICAL(Audio, "Nonsensical interpolation ratio {}", ratio);
+        LOG_ERROR(Audio, "Nonsensical interpolation ratio {}", ratio);
         return input;
     }
 
@@ -164,7 +164,8 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
     const std::size_t num_frames{input.size() / 2};
 
     std::vector<s16> output;
-    output.reserve(static_cast<std::size_t>(input.size() / ratio + InterpolationState::taps));
+    output.reserve(static_cast<std::size_t>(static_cast<double>(input.size()) / ratio +
+                                            InterpolationState::taps));
 
     for (std::size_t frame{}; frame < num_frames; ++frame) {
         const std::size_t lut_index{(state.fraction >> 8) * InterpolationState::taps};

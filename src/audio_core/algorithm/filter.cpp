@@ -55,7 +55,8 @@ void Filter::Process(std::vector<s16>& signal) {
 /// @param total_count The total number of biquads to be cascaded.
 /// @param index 0-index of the biquad to calculate the Q value for.
 static double CascadingBiquadQ(std::size_t total_count, std::size_t index) {
-    const double pole = M_PI * (2 * index + 1) / (4.0 * total_count);
+    const auto pole =
+        M_PI * static_cast<double>(2 * index + 1) / (4.0 * static_cast<double>(total_count));
     return 1.0 / (2.0 * std::cos(pole));
 }
 
