@@ -623,6 +623,17 @@ if (MSVC)
         # 'context' : truncation from 'type1' to 'type2'
         /we4305
     )
+else()
+    target_compile_options(core PRIVATE
+        -Werror=conversion
+        -Werror=ignored-qualifiers
+        -Werror=implicit-fallthrough
+        -Werror=reorder
+        -Werror=sign-compare
+        -Werror=unused-but-set-parameter
+        -Werror=unused-but-set-variable
+        -Werror=unused-variable
+    )
 endif()
 
 create_target_directory_groups(core)

@@ -127,7 +127,7 @@ FileType AppLoader_NRO::IdentifyType(const FileSys::VirtualFile& file) {
 }
 
 static constexpr u32 PageAlignSize(u32 size) {
-    return (size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK;
+    return static_cast<u32>((size + Core::Memory::PAGE_MASK) & ~Core::Memory::PAGE_MASK);
 }
 
 static bool LoadNroImpl(Kernel::Process& process, const std::vector<u8>& data,

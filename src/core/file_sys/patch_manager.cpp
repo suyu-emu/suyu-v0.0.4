@@ -29,7 +29,7 @@
 namespace FileSys {
 namespace {
 
-constexpr u64 SINGLE_BYTE_MODULUS = 0x100;
+constexpr u32 SINGLE_BYTE_MODULUS = 0x100;
 constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
 constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{

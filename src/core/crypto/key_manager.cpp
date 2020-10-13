@@ -411,7 +411,7 @@ Loader::ResultStatus DeriveSDKeys(std::array<Key256, 2>& sd_keys, KeyManager& ke
     // Combine sources and seed
     for (auto& source : sd_key_sources) {
         for (std::size_t i = 0; i < source.size(); ++i) {
-            source[i] ^= sd_seed[i & 0xF];
+            source[i] = static_cast<u8>(source[i] ^ sd_seed[i & 0xF]);
         }
     }
 

@@ -269,7 +269,6 @@ void Controller_NPad::RequestPadStateUpdate(u32 npad_id) {
     auto& rstick_entry = npad_pad_states[controller_idx].r_stick;
     const auto& button_state = buttons[controller_idx];
     const auto& analog_state = sticks[controller_idx];
-    const auto& motion_state = motions[controller_idx];
     const auto [stick_l_x_f, stick_l_y_f] =
         analog_state[static_cast<std::size_t>(JoystickId::Joystick_Left)]->GetStatus();
     const auto [stick_r_x_f, stick_r_y_f] =
@@ -391,18 +390,6 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
 
         libnx_entry.connection_status.raw = 0;
         libnx_entry.connection_status.IsConnected.Assign(1);
-        auto& full_sixaxis_entry =
-            npad.sixaxis_full.sixaxis[npad.sixaxis_full.common.last_entry_index];
-        auto& handheld_sixaxis_entry =
-            npad.sixaxis_handheld.sixaxis[npad.sixaxis_handheld.common.last_entry_index];
-        auto& dual_left_sixaxis_entry =
-            npad.sixaxis_dual_left.sixaxis[npad.sixaxis_dual_left.common.last_entry_index];
-        auto& dual_right_sixaxis_entry =
-            npad.sixaxis_dual_right.sixaxis[npad.sixaxis_dual_right.common.last_entry_index];
-        auto& left_sixaxis_entry =
-            npad.sixaxis_left.sixaxis[npad.sixaxis_left.common.last_entry_index];
-        auto& right_sixaxis_entry =
-            npad.sixaxis_right.sixaxis[npad.sixaxis_right.common.last_entry_index];
 
         switch (controller_type) {
         case NPadControllerType::None:
@@ -540,18 +527,6 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
                 }
             }
         }
-
-        auto& main_controller =
-            npad.main_controller_states.npad[npad.main_controller_states.common.last_entry_index];
-        auto& handheld_entry =
-            npad.handheld_states.npad[npad.handheld_states.common.last_entry_index];
-        auto& dual_entry = npad.dual_states.npad[npad.dual_states.common.last_entry_index];
-        auto& left_entry = npad.left_joy_states.npad[npad.left_joy_states.common.last_entry_index];
-        auto& right_entry =
-            npad.right_joy_states.npad[npad.right_joy_states.common.last_entry_index];
-        auto& pokeball_entry =
-            npad.pokeball_states.npad[npad.pokeball_states.common.last_entry_index];
-        auto& libnx_entry = npad.libnx.npad[npad.libnx.common.last_entry_index];
 
         auto& full_sixaxis_entry =
             npad.sixaxis_full.sixaxis[npad.sixaxis_full.common.last_entry_index];

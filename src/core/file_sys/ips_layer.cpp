@@ -299,7 +299,7 @@ void IPSwitchCompiler::Parse() {
                              patch_text->GetName(), offset, Common::HexToString(replace));
                 }
 
-                patch.records.insert_or_assign(offset, std::move(replace));
+                patch.records.insert_or_assign(static_cast<u32>(offset), std::move(replace));
             }
 
             patches.push_back(std::move(patch));

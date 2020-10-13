@@ -428,7 +428,7 @@ bool MiiManager::IsFullDatabase() const {
 }
 
 u32 MiiManager::GetCount(SourceFlag source_flag) const {
-    u32 count{};
+    std::size_t count{};
     if ((source_flag & SourceFlag::Database) != SourceFlag::None) {
         // TODO(bunnei): We don't implement the Mii database, but when we do, update this
         count += 0;
@@ -436,7 +436,7 @@ u32 MiiManager::GetCount(SourceFlag source_flag) const {
     if ((source_flag & SourceFlag::Default) != SourceFlag::None) {
         count += DefaultMiiCount;
     }
-    return count;
+    return static_cast<u32>(count);
 }
 
 ResultVal<MiiInfo> MiiManager::UpdateLatest([[maybe_unused]] const MiiInfo& info,

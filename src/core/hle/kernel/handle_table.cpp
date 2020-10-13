@@ -118,7 +118,7 @@ std::shared_ptr<Object> HandleTable::GetGeneric(Handle handle) const {
 
 void HandleTable::Clear() {
     for (u16 i = 0; i < table_size; ++i) {
-        generations[i] = i + 1;
+        generations[i] = static_cast<u16>(i + 1);
         objects[i] = nullptr;
     }
     next_free_slot = 0;

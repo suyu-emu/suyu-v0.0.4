@@ -291,11 +291,11 @@ static void FpuWrite(std::size_t id, u128 val, Kernel::Thread* thread = nullptr)
  */
 static u8 HexCharToValue(u8 hex) {
     if (hex >= '0' && hex <= '9') {
-        return hex - '0';
+        return static_cast<u8>(hex - '0');
     } else if (hex >= 'a' && hex <= 'f') {
-        return hex - 'a' + 0xA;
+        return static_cast<u8>(hex - 'a' + 0xA);
     } else if (hex >= 'A' && hex <= 'F') {
-        return hex - 'A' + 0xA;
+        return static_cast<u8>(hex - 'A' + 0xA);
     }
 
     LOG_ERROR(Debug_GDBStub, "Invalid nibble: {} ({:02X})", hex, hex);
@@ -310,9 +310,9 @@ static u8 HexCharToValue(u8 hex) {
 static u8 NibbleToHex(u8 n) {
     n &= 0xF;
     if (n < 0xA) {
-        return '0' + n;
+        return static_cast<u8>('0' + n);
     } else {
-        return 'a' + n - 0xA;
+        return static_cast<u8>('a' + n - 0xA);
     }
 }
 
@@ -355,8 +355,8 @@ static u64 HexToLong(const u8* src, std::size_t len) {
  */
 static void MemToGdbHex(u8* dest, const u8* src, std::size_t len) {
     while (len-- > 0) {
-        u8 tmp = *src++;
-        *dest++ = NibbleToHex(tmp >> 4);
+        const u8 tmp = *src++;
+        *dest++ = NibbleToHex(static_cast<u8>(tmp >> 4));
         *dest++ = NibbleToHex(tmp);
     }
 }
@@ -370,7 +370,7 @@ static void MemToGdbHex(u8* dest, const u8* src, std::size_t len) {
  */
 static void GdbHexToMem(u8* dest, const u8* src, std::size_t len) {
     while (len-- > 0) {
-        *dest++ = (HexCharToValue(src[0]) << 4) | HexCharToValue(src[1]);
+        *dest++ = static_cast<u8>((HexCharToValue(src[0]) << 4) | HexCharToValue(src[1]));
         src += 2;
     }
 }
@@ -602,22 +602,22 @@ static void SendReply(const char* reply) {
 
     memcpy(command_buffer + 1, reply, command_length);
 
-    u8 checksum = CalculateChecksum(command_buffer, command_length + 1);
+    const u8 checksum = CalculateChecksum(command_buffer, command_length + 1);
     command_buffer[0] = GDB_STUB_START;
     command_buffer[command_length + 1] = GDB_STUB_END;
-    command_buffer[command_length + 2] = NibbleToHex(checksum >> 4);
+    command_buffer[command_length + 2] = NibbleToHex(static_cast<u8>(checksum >> 4));
     command_buffer[command_length + 3] = NibbleToHex(checksum);
 
     u8* ptr = command_buffer;
     u32 left = command_length + 4;
     while (left > 0) {
-        int sent_size = send(gdbserver_socket, reinterpret_cast<char*>(ptr), left, 0);
+        const auto sent_size = send(gdbserver_socket, reinterpret_cast<char*>(ptr), left, 0);
         if (sent_size < 0) {
             LOG_ERROR(Debug_GDBStub, "gdb: send failed");
             return Shutdown();
         }
 
-        left -= sent_size;
+        left -= static_cast<u32>(sent_size);
         ptr += sent_size;
     }
 }
@@ -777,10 +777,10 @@ static void ReadCommand() {
         command_buffer[command_length++] = c;
     }
 
-    u8 checksum_received = HexCharToValue(ReadByte()) << 4;
-    checksum_received |= HexCharToValue(ReadByte());
+    auto checksum_received = static_cast<u32>(HexCharToValue(ReadByte()) << 4);
+    checksum_received |= static_cast<u32>(HexCharToValue(ReadByte()));
 
-    u8 checksum_calculated = CalculateChecksum(command_buffer, command_length);
+    const u32 checksum_calculated = CalculateChecksum(command_buffer, command_length);
 
     if (checksum_received != checksum_calculated) {
         LOG_ERROR(Debug_GDBStub,

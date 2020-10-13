@@ -159,7 +159,7 @@ public:
         header.data_size = static_cast<u32_le>(write_index - sizeof(Header));
         header.data_offset = sizeof(Header);
         header.objects_size = 4;
-        header.objects_offset = sizeof(Header) + header.data_size;
+        header.objects_offset = static_cast<u32>(sizeof(Header) + header.data_size);
         std::memcpy(buffer.data(), &header, sizeof(Header));
 
         return buffer;

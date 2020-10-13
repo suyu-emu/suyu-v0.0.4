@@ -38,10 +38,11 @@ public:
     explicit RequestHelperBase(Kernel::HLERequestContext& context)
         : context(&context), cmdbuf(context.CommandBuffer()) {}
 
-    void Skip(unsigned size_in_words, bool set_to_null) {
-        if (set_to_null)
+    void Skip(u32 size_in_words, bool set_to_null) {
+        if (set_to_null) {
             memset(cmdbuf + index, 0, size_in_words * sizeof(u32));
-        index += size_in_words;
+        }
+        index += static_cast<ptrdiff_t>(size_in_words);
     }
 
     /**
@@ -49,15 +50,15 @@ public:
      */
     void AlignWithPadding() {
         if (index & 3) {
-            Skip(4 - (index & 3), true);
+            Skip(static_cast<u32>(4 - (index & 3)), true);
         }
     }
 
-    unsigned GetCurrentOffset() const {
-        return static_cast<unsigned>(index);
+    u32 GetCurrentOffset() const {
+        return static_cast<u32>(index);
     }
 
-    void SetCurrentOffset(unsigned offset) {
+    void SetCurrentOffset(u32 offset) {
         index = static_cast<ptrdiff_t>(offset);
     }
 };
@@ -89,7 +90,7 @@ public:
 
         // The entire size of the raw data section in u32 units, including the 16 bytes of mandatory
         // padding.
-        u32 raw_data_size = sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
+        u64 raw_data_size = sizeof(IPC::DataPayloadHeader) / 4 + 4 + normal_params_size;
 
         u32 num_handles_to_move{};
         u32 num_domain_objects{};
@@ -105,7 +106,7 @@ public:
             raw_data_size += sizeof(DomainMessageHeader) / 4 + num_domain_objects;
         }
 
-        header.data_size.Assign(raw_data_size);
+        header.data_size.Assign(static_cast<u32>(raw_data_size));
         if (num_handles_to_copy || num_handles_to_move) {
             header.enable_handle_descriptor.Assign(1);
         }

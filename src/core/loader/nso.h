@@ -59,7 +59,7 @@ struct NSOHeader {
 static_assert(sizeof(NSOHeader) == 0x100, "NSOHeader has incorrect size.");
 static_assert(std::is_trivially_copyable_v<NSOHeader>, "NSOHeader must be trivially copyable.");
 
-constexpr u64 NSO_ARGUMENT_DATA_ALLOCATION_SIZE = 0x9000;
+constexpr u32 NSO_ARGUMENT_DATA_ALLOCATION_SIZE = 0x9000;
 
 struct NSOArgumentHeader {
     u32_le allocated_size;
