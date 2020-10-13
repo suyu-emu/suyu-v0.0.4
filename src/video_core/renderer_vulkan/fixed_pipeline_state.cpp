@@ -58,6 +58,7 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
     logic_op_enable.Assign(regs.logic_op.enable != 0 ? 1 : 0);
     logic_op.Assign(PackLogicOp(regs.logic_op.operation));
     rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
+    topology.Assign(regs.draw.topology);
 
     std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
 
@@ -131,7 +132,6 @@ void FixedPipelineState::BlendingAttachment::Fill(const Maxwell& regs, std::size
 }
 
 void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
-    const u32 topology_index = static_cast<u32>(regs.draw.topology.Value());
     u32 packed_front_face = PackFrontFace(regs.front_face);
     if (regs.screen_y_control.triangle_rast_flip != 0) {
         // Flip front face
@@ -161,7 +161,6 @@ void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
     depth_test_enable.Assign(regs.depth_test_enable);
     front_face.Assign(packed_front_face);
     depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
-    topology.Assign(topology_index);
     cull_face.Assign(PackCullFace(regs.cull_face));
     cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
 

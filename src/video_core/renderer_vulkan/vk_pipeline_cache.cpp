@@ -331,8 +331,7 @@ void VKPipelineCache::OnShaderRemoval(Shader* shader) {
 std::pair<SPIRVProgram, std::vector<VkDescriptorSetLayoutBinding>>
 VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
     Specialization specialization;
-    if (fixed_state.dynamic_state.Topology() == Maxwell::PrimitiveTopology::Points ||
-        device.IsExtExtendedDynamicStateSupported()) {
+    if (fixed_state.topology == Maxwell::PrimitiveTopology::Points) {
         float point_size;
         std::memcpy(&point_size, &fixed_state.point_size, sizeof(float));
         specialization.point_size = point_size;

@@ -948,7 +948,6 @@ void RasterizerVulkan::UpdateDynamicStates() {
         UpdateDepthWriteEnable(regs);
         UpdateDepthCompareOp(regs);
         UpdateFrontFace(regs);
-        UpdatePrimitiveTopology(regs);
         UpdateStencilOp(regs);
         UpdateStencilTestEnable(regs);
     }
@@ -1416,16 +1415,6 @@ void RasterizerVulkan::UpdateFrontFace(Tegra::Engines::Maxwell3D::Regs& regs) {
     }
     scheduler.Record(
         [front_face](vk::CommandBuffer cmdbuf) { cmdbuf.SetFrontFaceEXT(front_face); });
-}
-
-void RasterizerVulkan::UpdatePrimitiveTopology(Tegra::Engines::Maxwell3D::Regs& regs) {
-    const Maxwell::PrimitiveTopology primitive_topology = regs.draw.topology.Value();
-    if (!state_tracker.ChangePrimitiveTopology(primitive_topology)) {
-        return;
-    }
-    scheduler.Record([this, primitive_topology](vk::CommandBuffer cmdbuf) {
-        cmdbuf.SetPrimitiveTopologyEXT(MaxwellToVK::PrimitiveTopology(device, primitive_topology));
-    });
 }
 
 void RasterizerVulkan::UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs) {
