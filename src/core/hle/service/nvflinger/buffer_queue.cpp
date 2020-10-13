@@ -99,6 +99,20 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     queue_sequence.push_back(slot);
 }
 
+void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& multi_fence) {
+    const auto itr = std::find_if(queue.begin(), queue.end(),
+                                  [slot](const Buffer& buffer) { return buffer.slot == slot; });
+    ASSERT(itr != queue.end());
+    ASSERT(itr->status != Buffer::Status::Free);
+    itr->status = Buffer::Status::Free;
+    itr->multi_fence = multi_fence;
+    itr->swap_interval = 0;
+
+    free_buffers.push_back(slot);
+
+    buffer_wait_event.writable->Signal();
+}
+
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
     auto itr = queue.end();
     // Iterate to find a queued buffer matching the requested slot.

@@ -95,6 +95,7 @@ public:
     void QueueBuffer(u32 slot, BufferTransformFlags transform,
                      const Common::Rectangle<int>& crop_rect, u32 swap_interval,
                      Service::Nvidia::MultiFence& multi_fence);
+    void CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& multi_fence);
     std::optional<std::reference_wrapper<const Buffer>> AcquireBuffer();
     void ReleaseBuffer(u32 slot);
     void Disconnect();

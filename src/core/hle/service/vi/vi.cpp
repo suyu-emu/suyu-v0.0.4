@@ -215,10 +215,9 @@ public:
     explicit IGBPConnectRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPConnectRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         data = Read<Data>();
     }
 
@@ -279,10 +278,9 @@ public:
         : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPSetPreallocatedBufferRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         data = Read<Data>();
         buffer = Read<NVFlinger::IGBPBuffer>();
     }
@@ -306,15 +304,40 @@ protected:
     }
 };
 
+class IGBPCancelBufferRequestParcel : public Parcel {
+public:
+    explicit IGBPCancelBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
+        Deserialize();
+    }
+
+    void DeserializeData() override {
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
+        data = Read<Data>();
+    }
+
+    struct Data {
+        u32_le slot;
+        Service::Nvidia::MultiFence multi_fence;
+    };
+
+    Data data;
+};
+
+class IGBPCancelBufferResponseParcel : public Parcel {
+protected:
+    void SerializeData() override {
+        Write<u32>(0); // Success
+    }
+};
+
 class IGBPDequeueBufferRequestParcel : public Parcel {
 public:
     explicit IGBPDequeueBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPDequeueBufferRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         data = Read<Data>();
     }
 
@@ -333,7 +356,6 @@ class IGBPDequeueBufferResponseParcel : public Parcel {
 public:
     explicit IGBPDequeueBufferResponseParcel(u32 slot, Service::Nvidia::MultiFence& multi_fence)
         : slot(slot), multi_fence(multi_fence) {}
-    ~IGBPDequeueBufferResponseParcel() override = default;
 
 protected:
     void SerializeData() override {
@@ -352,10 +374,9 @@ public:
     explicit IGBPRequestBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPRequestBufferRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         slot = Read<u32_le>();
     }
 
@@ -384,10 +405,9 @@ public:
     explicit IGBPQueueBufferRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPQueueBufferRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         data = Read<Data>();
     }
 
@@ -447,10 +467,9 @@ public:
     explicit IGBPQueryRequestParcel(std::vector<u8> buffer) : Parcel(std::move(buffer)) {
         Deserialize();
     }
-    ~IGBPQueryRequestParcel() override = default;
 
     void DeserializeData() override {
-        std::u16string token = ReadInterfaceToken();
+        [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         type = Read<u32_le>();
     }
 
@@ -596,7 +615,12 @@ private:
             break;
         }
         case TransactionId::CancelBuffer: {
-            LOG_CRITICAL(Service_VI, "(STUBBED) called, transaction=CancelBuffer");
+            IGBPCancelBufferRequestParcel request{ctx.ReadBuffer()};
+
+            buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
+
+            IGBPCancelBufferResponseParcel response{};
+            ctx.WriteBuffer(response.Serialize());
             break;
         }
         case TransactionId::Disconnect: {
