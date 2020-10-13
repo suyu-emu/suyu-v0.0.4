@@ -40,6 +40,7 @@
 #include "core/hle/service/lm/manager.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
+#include "core/hle/service/time/time_manager.h"
 #include "core/loader/loader.h"
 #include "core/memory.h"
 #include "core/memory/cheat_engine.h"
@@ -121,7 +122,7 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system},
-          cpu_manager{system}, reporter{system}, applet_manager{system} {}
+          cpu_manager{system}, reporter{system}, applet_manager{system}, time_manager{system} {}
 
     ResultStatus Run() {
         status = ResultStatus::Success;
@@ -188,6 +189,9 @@ struct System::Impl {
         if (!gpu_core) {
             return ResultStatus::ErrorVideoCore;
         }
+
+        // Initialize time manager, which must happen after kernel is created
+        time_manager.Initialize();
 
         is_powered_on = true;
         exit_lock = false;
@@ -387,6 +391,7 @@ struct System::Impl {
     /// Service State
     Service::Glue::ARPManager arp_manager;
     Service::LM::Manager lm_manager{reporter};
+    Service::Time::TimeManager time_manager;
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
@@ -715,6 +720,14 @@ Service::LM::Manager& System::GetLogManager() {
 
 const Service::LM::Manager& System::GetLogManager() const {
     return impl->lm_manager;
+}
+
+Service::Time::TimeManager& System::GetTimeManager() {
+    return impl->time_manager;
+}
+
+const Service::Time::TimeManager& System::GetTimeManager() const {
+    return impl->time_manager;
 }
 
 void System::SetExitLock(bool locked) {

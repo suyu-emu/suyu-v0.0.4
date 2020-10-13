@@ -21,7 +21,9 @@ namespace Service::Time::TimeZone {
 
 class TimeZoneContentManager final {
 public:
-    TimeZoneContentManager(TimeManager& time_manager, Core::System& system);
+    TimeZoneContentManager(Core::System& system);
+
+    void Initialize(TimeManager& time_manager);
 
     TimeZoneManager& GetTimeZoneManager() {
         return time_zone_manager;
