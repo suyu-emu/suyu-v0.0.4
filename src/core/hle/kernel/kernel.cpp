@@ -7,7 +7,6 @@
 #include <bitset>
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -107,7 +106,11 @@ struct KernelCore::Impl {
         cores.clear();
 
         exclusive_monitor.reset();
-        host_thread_ids.clear();
+
+        num_host_threads = 0;
+        std::fill(register_host_thread_keys.begin(), register_host_thread_keys.end(),
+                  std::thread::id{});
+        std::fill(register_host_thread_values.begin(), register_host_thread_values.end(), 0);
     }
 
     void InitializePhysicalCores() {
@@ -177,54 +180,56 @@ struct KernelCore::Impl {
 
     void MakeCurrentProcess(Process* process) {
         current_process = process;
-
         if (process == nullptr) {
             return;
         }
-
-        u32 core_id = GetCurrentHostThreadID();
+        const u32 core_id = GetCurrentHostThreadID();
         if (core_id < Core::Hardware::NUM_CPU_CORES) {
             system.Memory().SetCurrentPageTable(*process, core_id);
         }
     }
 
     void RegisterCoreThread(std::size_t core_id) {
-        std::unique_lock lock{register_thread_mutex};
-        if (!is_multicore) {
-            single_core_thread_id = std::this_thread::get_id();
-        }
         const std::thread::id this_id = std::this_thread::get_id();
-        const auto it = host_thread_ids.find(this_id);
+        if (!is_multicore) {
+            single_core_thread_id = this_id;
+        }
+        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-        ASSERT(it == host_thread_ids.end());
+        ASSERT(it == end);
         ASSERT(!registered_core_threads[core_id]);
-        host_thread_ids[this_id] = static_cast<u32>(core_id);
+        InsertHostThread(static_cast<u32>(core_id));
         registered_core_threads.set(core_id);
     }
 
     void RegisterHostThread() {
-        std::unique_lock lock{register_thread_mutex};
         const std::thread::id this_id = std::this_thread::get_id();
-        const auto it = host_thread_ids.find(this_id);
-        if (it != host_thread_ids.end()) {
-            return;
+        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
+        if (it == end) {
+            InsertHostThread(registered_thread_ids++);
         }
-        host_thread_ids[this_id] = registered_thread_ids++;
     }
 
-    u32 GetCurrentHostThreadID() const {
+    void InsertHostThread(u32 value) {
+        const size_t index = num_host_threads++;
+        ASSERT_MSG(index < NUM_REGISTRABLE_HOST_THREADS, "Too many host threads");
+        register_host_thread_values[index] = value;
+        register_host_thread_keys[index] = std::this_thread::get_id();
+    }
+
+    [[nodiscard]] u32 GetCurrentHostThreadID() const {
         const std::thread::id this_id = std::this_thread::get_id();
-        if (!is_multicore) {
-            if (single_core_thread_id == this_id) {
-                return static_cast<u32>(system.GetCpuManager().CurrentCore());
-            }
+        if (!is_multicore && single_core_thread_id == this_id) {
+            return static_cast<u32>(system.GetCpuManager().CurrentCore());
         }
-        std::unique_lock lock{register_thread_mutex};
-        const auto it = host_thread_ids.find(this_id);
-        if (it == host_thread_ids.end()) {
+        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
+        if (it == end) {
             return Core::INVALID_HOST_THREAD_ID;
         }
-        return it->second;
+        return register_host_thread_values[std::distance(register_host_thread_keys.begin(), it)];
     }
 
     Core::EmuThreadHandle GetCurrentEmuThreadID() const {
@@ -322,10 +327,15 @@ struct KernelCore::Impl {
     std::vector<Kernel::PhysicalCore> cores;
 
     // 0-3 IDs represent core threads, >3 represent others
-    std::unordered_map<std::thread::id, u32> host_thread_ids;
-    u32 registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
+    std::atomic<u32> registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
     std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads;
-    mutable std::mutex register_thread_mutex;
+
+    // Number of host threads is a relatively high number to avoid overflowing
+    static constexpr size_t NUM_REGISTRABLE_HOST_THREADS = 64;
+    std::atomic<size_t> num_host_threads{0};
+    std::array<std::atomic<std::thread::id>, NUM_REGISTRABLE_HOST_THREADS>
+        register_host_thread_keys{};
+    std::array<std::atomic<u32>, NUM_REGISTRABLE_HOST_THREADS> register_host_thread_values{};
 
     // Kernel memory management
     std::unique_ptr<Memory::MemoryManager> memory_manager;
