@@ -793,7 +793,6 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
             // Decode entire frame
             if (remaining_samples >= static_cast<int>(SAMPLES_PER_FRAME)) {
                 for (std::size_t i = 0; i < SAMPLES_PER_FRAME / 2; i++) {
-
                     // Sample 1
                     const s32 s0 = SIGNED_NIBBLES[buffer[buffer_offset] >> 4];
                     const s32 s1 = SIGNED_NIBBLES[buffer[buffer_offset++] & 0xf];
@@ -802,7 +801,7 @@ s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_s
                     sample_buffer[cur_mix_offset++] = sample_1;
                     sample_buffer[cur_mix_offset++] = sample_2;
                 }
-                remaining_samples -= SAMPLES_PER_FRAME;
+                remaining_samples -= static_cast<int>(SAMPLES_PER_FRAME);
                 position_in_frame += SAMPLES_PER_FRAME;
                 continue;
             }

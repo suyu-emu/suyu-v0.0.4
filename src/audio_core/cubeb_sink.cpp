@@ -93,8 +93,10 @@ public:
                 constexpr s32 clev{707}; // center mixing level coefficient
                 constexpr s32 slev{707}; // surround mixing level coefficient
 
-                buf.push_back(left + (clev * center / 1000) + (slev * surround_left / 1000));
-                buf.push_back(right + (clev * center / 1000) + (slev * surround_right / 1000));
+                buf.push_back(static_cast<s16>(left + (clev * center / 1000) +
+                                               (slev * surround_left / 1000)));
+                buf.push_back(static_cast<s16>(right + (clev * center / 1000) +
+                                               (slev * surround_right / 1000)));
             }
             queue.Push(buf);
             return;

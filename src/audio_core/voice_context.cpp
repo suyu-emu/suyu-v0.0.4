@@ -128,7 +128,10 @@ void ServerVoiceInfo::UpdateParameters(const VoiceInfo::InParams& voice_in,
     in_params.wave_buffer_count = voice_in.wave_buffer_count;
     in_params.wave_bufffer_head = voice_in.wave_buffer_head;
     if (behavior_info.IsFlushVoiceWaveBuffersSupported()) {
-        in_params.wave_buffer_flush_request_count += voice_in.wave_buffer_flush_request_count;
+        const auto in_request_count = in_params.wave_buffer_flush_request_count;
+        const auto voice_request_count = voice_in.wave_buffer_flush_request_count;
+        in_params.wave_buffer_flush_request_count =
+            static_cast<u8>(in_request_count + voice_request_count);
     }
     in_params.mix_id = voice_in.mix_id;
     if (behavior_info.IsSplitterSupported()) {
