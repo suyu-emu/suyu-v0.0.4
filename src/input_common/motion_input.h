@@ -22,7 +22,7 @@ public:
     MotionInput& operator=(MotionInput&&) = default;
 
     void SetAcceleration(const Common::Vec3f& acceleration);
-    void SetGyroscope(const Common::Vec3f& acceleration);
+    void SetGyroscope(const Common::Vec3f& gyroscope);
     void SetQuaternion(const Common::Quaternion<f32>& quaternion);
     void SetGyroDrift(const Common::Vec3f& drift);
     void SetGyroThreshold(f32 threshold);
@@ -49,16 +49,16 @@ private:
     void SetOrientationFromAccelerometer();
 
     // PID constants
-    const f32 kp;
-    const f32 ki;
-    const f32 kd;
+    f32 kp;
+    f32 ki;
+    f32 kd;
 
     // PID errors
     Common::Vec3f real_error;
     Common::Vec3f integral_error;
     Common::Vec3f derivative_error;
 
-    Common::Quaternion<f32> quat;
+    Common::Quaternion<f32> quat{{0.0f, 0.0f, -1.0f}, 0.0f};
     Common::Vec3f rotations;
     Common::Vec3f accel;
     Common::Vec3f gyro;

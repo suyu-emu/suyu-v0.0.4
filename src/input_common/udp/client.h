@@ -84,8 +84,8 @@ public:
 
     bool DeviceConnected(std::size_t pad) const;
     void ReloadUDPClient();
-    void ReloadSocket(const std::string& host = "127.0.0.1", u16 port = 26760, u8 pad_index = 0,
-                      u32 client_id = 24872);
+    void ReloadSocket(const std::string& host = "127.0.0.1", u16 port = 26760,
+                      std::size_t pad_index = 0, u32 client_id = 24872);
 
     std::array<Common::SPSCQueue<UDPPadStatus>, 4>& GetPadQueue();
     const std::array<Common::SPSCQueue<UDPPadStatus>, 4>& GetPadQueue() const;
@@ -99,7 +99,7 @@ private:
         DeviceStatus status;
         std::thread thread;
         u64 packet_sequence = 0;
-        u8 active;
+        u8 active = 0;
 
         // Realtime values
         // motion is initalized with PID values for drift correction on joycons
@@ -113,8 +113,8 @@ private:
     void OnVersion(Response::Version);
     void OnPortInfo(Response::PortInfo);
     void OnPadData(Response::PadData);
-    void StartCommunication(std::size_t client, const std::string& host, u16 port, u8 pad_index,
-                            u32 client_id);
+    void StartCommunication(std::size_t client, const std::string& host, u16 port,
+                            std::size_t pad_index, u32 client_id);
     void UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
                             const Common::Vec3<float>& gyro, bool touch);
 
@@ -139,7 +139,7 @@ public:
      * @param status_callback Callback for job status updates
      * @param data_callback Called when calibration data is ready
      */
-    explicit CalibrationConfigurationJob(const std::string& host, u16 port, u8 pad_index,
+    explicit CalibrationConfigurationJob(const std::string& host, u16 port, std::size_t pad_index,
                                          u32 client_id, std::function<void(Status)> status_callback,
                                          std::function<void(u16, u16, u16, u16)> data_callback);
     ~CalibrationConfigurationJob();
@@ -149,7 +149,7 @@ private:
     Common::Event complete_event;
 };
 
-void TestCommunication(const std::string& host, u16 port, u8 pad_index, u32 client_id,
+void TestCommunication(const std::string& host, u16 port, std::size_t pad_index, u32 client_id,
                        std::function<void()> success_callback,
                        std::function<void()> failure_callback);
 

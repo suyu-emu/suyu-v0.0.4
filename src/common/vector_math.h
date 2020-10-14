@@ -87,7 +87,13 @@ public:
 
     template <typename V>
     [[nodiscard]] constexpr Vec2<decltype(T{} * V{})> operator*(const V& f) const {
-        return {x * f, y * f};
+        using TV = decltype(T{} * V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) * static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -98,7 +104,13 @@ public:
 
     template <typename V>
     [[nodiscard]] constexpr Vec2<decltype(T{} / V{})> operator/(const V& f) const {
-        return {x / f, y / f};
+        using TV = decltype(T{} / V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) / static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -168,7 +180,10 @@ public:
 
 template <typename T, typename V>
 [[nodiscard]] constexpr Vec2<T> operator*(const V& f, const Vec2<T>& vec) {
-    return Vec2<T>(f * vec.x, f * vec.y);
+    using C = std::common_type_t<T, V>;
+
+    return Vec2<T>(static_cast<T>(static_cast<C>(f) * static_cast<C>(vec.x)),
+                   static_cast<T>(static_cast<C>(f) * static_cast<C>(vec.y)));
 }
 
 using Vec2f = Vec2<float>;
@@ -237,7 +252,14 @@ public:
 
     template <typename V>
     [[nodiscard]] constexpr Vec3<decltype(T{} * V{})> operator*(const V& f) const {
-        return {x * f, y * f, z * f};
+        using TV = decltype(T{} * V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(z) * static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -247,7 +269,14 @@ public:
     }
     template <typename V>
     [[nodiscard]] constexpr Vec3<decltype(T{} / V{})> operator/(const V& f) const {
-        return {x / f, y / f, z / f};
+        using TV = decltype(T{} / V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(z) / static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -367,7 +396,11 @@ public:
 
 template <typename T, typename V>
 [[nodiscard]] constexpr Vec3<T> operator*(const V& f, const Vec3<T>& vec) {
-    return Vec3<T>(f * vec.x, f * vec.y, f * vec.z);
+    using C = std::common_type_t<T, V>;
+
+    return Vec3<T>(static_cast<T>(static_cast<C>(f) * static_cast<C>(vec.x)),
+                   static_cast<T>(static_cast<C>(f) * static_cast<C>(vec.y)),
+                   static_cast<T>(static_cast<C>(f) * static_cast<C>(vec.z)));
 }
 
 template <>
@@ -446,7 +479,15 @@ public:
 
     template <typename V>
     [[nodiscard]] constexpr Vec4<decltype(T{} * V{})> operator*(const V& f) const {
-        return {x * f, y * f, z * f, w * f};
+        using TV = decltype(T{} * V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(z) * static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(w) * static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -457,7 +498,15 @@ public:
 
     template <typename V>
     [[nodiscard]] constexpr Vec4<decltype(T{} / V{})> operator/(const V& f) const {
-        return {x / f, y / f, z / f, w / f};
+        using TV = decltype(T{} / V{});
+        using C = std::common_type_t<T, V>;
+
+        return {
+            static_cast<TV>(static_cast<C>(x) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(y) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(z) / static_cast<C>(f)),
+            static_cast<TV>(static_cast<C>(w) / static_cast<C>(f)),
+        };
     }
 
     template <typename V>
@@ -582,7 +631,15 @@ public:
 
 template <typename T, typename V>
 [[nodiscard]] constexpr Vec4<decltype(V{} * T{})> operator*(const V& f, const Vec4<T>& vec) {
-    return {f * vec.x, f * vec.y, f * vec.z, f * vec.w};
+    using TV = decltype(V{} * T{});
+    using C = std::common_type_t<T, V>;
+
+    return {
+        static_cast<TV>(static_cast<C>(f) * static_cast<C>(vec.x)),
+        static_cast<TV>(static_cast<C>(f) * static_cast<C>(vec.y)),
+        static_cast<TV>(static_cast<C>(f) * static_cast<C>(vec.z)),
+        static_cast<TV>(static_cast<C>(f) * static_cast<C>(vec.w)),
+    };
 }
 
 using Vec4f = Vec4<float>;

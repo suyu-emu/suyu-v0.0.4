@@ -193,7 +193,7 @@ void ConfigureMotionTouch::OnCemuhookUDPTest() {
     udp_test_in_progress = true;
     InputCommon::CemuhookUDP::TestCommunication(
         ui->udp_server->text().toStdString(), static_cast<u16>(ui->udp_port->text().toInt()),
-        static_cast<u8>(ui->udp_pad_index->currentIndex()), 24872,
+        static_cast<u32>(ui->udp_pad_index->currentIndex()), 24872,
         [this] {
             LOG_INFO(Frontend, "UDP input test success");
             QMetaObject::invokeMethod(this, "ShowUDPTestResult", Q_ARG(bool, true));

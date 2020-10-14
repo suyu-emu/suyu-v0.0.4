@@ -21,13 +21,25 @@
 
 namespace GCAdapter {
 
-/// Used to loop through and assign button in poller
+// Used to loop through and assign button in poller
 constexpr std::array<PadButton, 12> PadButtonArray{
     PadButton::PAD_BUTTON_LEFT, PadButton::PAD_BUTTON_RIGHT, PadButton::PAD_BUTTON_DOWN,
     PadButton::PAD_BUTTON_UP,   PadButton::PAD_TRIGGER_Z,    PadButton::PAD_TRIGGER_R,
     PadButton::PAD_TRIGGER_L,   PadButton::PAD_BUTTON_A,     PadButton::PAD_BUTTON_B,
     PadButton::PAD_BUTTON_X,    PadButton::PAD_BUTTON_Y,     PadButton::PAD_BUTTON_START,
 };
+
+static void PadToState(const GCPadStatus& pad, GCState& out_state) {
+    for (const auto& button : PadButtonArray) {
+        const auto button_key = static_cast<u16>(button);
+        const auto button_value = (pad.button & button_key) != 0;
+        out_state.buttons.insert_or_assign(static_cast<s32>(button_key), button_value);
+    }
+
+    for (std::size_t i = 0; i < pad.axis_values.size(); ++i) {
+        out_state.axes.insert_or_assign(static_cast<u32>(i), pad.axis_values[i]);
+    }
+}
 
 Adapter::Adapter() {
     if (usb_adapter_handle != nullptr) {
@@ -78,17 +90,17 @@ GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& ad
 
         for (std::size_t i = 0; i < b1_buttons.size(); ++i) {
             if ((b1 & (1U << i)) != 0) {
-                pad.button |= static_cast<u16>(b1_buttons[i]);
+                pad.button = static_cast<u16>(pad.button | static_cast<u16>(b1_buttons[i]));
             }
         }
 
         for (std::size_t j = 0; j < b2_buttons.size(); ++j) {
             if ((b2 & (1U << j)) != 0) {
-                pad.button |= static_cast<u16>(b2_buttons[j]);
+                pad.button = static_cast<u16>(pad.button | static_cast<u16>(b2_buttons[j]));
             }
         }
         for (PadAxes axis : axes) {
-            const std::size_t index = static_cast<std::size_t>(axis);
+            const auto index = static_cast<std::size_t>(axis);
             pad.axis_values[index] = adapter_payload[offset + 3 + index];
         }
 
@@ -98,17 +110,6 @@ GCPadStatus Adapter::GetPadStatus(std::size_t port, const std::array<u8, 37>& ad
         }
     }
     return pad;
-}
-
-void Adapter::PadToState(const GCPadStatus& pad, GCState& state) {
-    for (const auto& button : PadButtonArray) {
-        const u16 button_value = static_cast<u16>(button);
-        state.buttons.insert_or_assign(button_value, pad.button & button_value);
-    }
-
-    for (size_t i = 0; i < pad.axis_values.size(); ++i) {
-        state.axes.insert_or_assign(static_cast<u8>(i), pad.axis_values[i]);
-    }
 }
 
 void Adapter::Read() {
@@ -250,7 +251,7 @@ void Adapter::GetGCEndpoint(libusb_device* device) {
             const libusb_interface_descriptor* interface = &interfaceContainer->altsetting[i];
             for (u8 e = 0; e < interface->bNumEndpoints; e++) {
                 const libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
-                if (endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) {
+                if ((endpoint->bEndpointAddress & LIBUSB_ENDPOINT_IN) != 0) {
                     input_endpoint = endpoint->bEndpointAddress;
                 } else {
                     output_endpoint = endpoint->bEndpointAddress;
@@ -419,7 +420,7 @@ const std::array<GCState, 4>& Adapter::GetPadState() const {
     return state;
 }
 
-int Adapter::GetOriginValue(int port, int axis) const {
+int Adapter::GetOriginValue(u32 port, u32 axis) const {
     return origin_status[port].axis_values[axis];
 }
 

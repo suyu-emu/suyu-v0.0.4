@@ -15,7 +15,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(int port_, int button_, const GCAdapter::Adapter* adapter)
+    explicit GCButton(u32 port_, int button_, const GCAdapter::Adapter* adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -28,14 +28,14 @@ public:
     }
 
 private:
-    const int port;
+    const u32 port;
     const int button;
     const GCAdapter::Adapter* gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
 public:
-    explicit GCAxisButton(int port_, int axis_, float threshold_, bool trigger_if_greater_,
+    explicit GCAxisButton(u32 port_, u32 axis_, float threshold_, bool trigger_if_greater_,
                           const GCAdapter::Adapter* adapter)
         : port(port_), axis(axis_), threshold(threshold_), trigger_if_greater(trigger_if_greater_),
           gcadapter(adapter),
@@ -56,8 +56,8 @@ public:
     }
 
 private:
-    const int port;
-    const int axis;
+    const u32 port;
+    const u32 axis;
     float threshold;
     bool trigger_if_greater;
     const GCAdapter::Adapter* gcadapter;
@@ -70,8 +70,8 @@ GCButtonFactory::GCButtonFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
 GCButton::~GCButton() = default;
 
 std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::ParamPackage& params) {
-    const int button_id = params.Get("button", 0);
-    const int port = params.Get("port", 0);
+    const auto button_id = params.Get("button", 0);
+    const auto port = static_cast<u32>(params.Get("port", 0));
 
     constexpr int PAD_STICK_ID = static_cast<u16>(GCAdapter::PadButton::PAD_STICK);
 
@@ -149,25 +149,27 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    GCAnalog(int port_, int axis_x_, int axis_y_, float deadzone_,
-             const GCAdapter::Adapter* adapter, float range_)
+    explicit GCAnalog(u32 port_, u32 axis_x_, u32 axis_y_, float deadzone_,
+                      const GCAdapter::Adapter* adapter, float range_)
         : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter),
           origin_value_x(static_cast<float>(adapter->GetOriginValue(port_, axis_x_))),
           origin_value_y(static_cast<float>(adapter->GetOriginValue(port_, axis_y_))),
           range(range_) {}
 
-    float GetAxis(int axis) const {
+    float GetAxis(u32 axis) const {
         if (gcadapter->DeviceConnected(port)) {
             std::lock_guard lock{mutex};
             const auto origin_value = axis % 2 == 0 ? origin_value_x : origin_value_y;
-            return (gcadapter->GetPadState()[port].axes.at(axis) - origin_value) / (100.0f * range);
+            const auto axis_value =
+                static_cast<float>(gcadapter->GetPadState()[port].axes.at(axis));
+            return (axis_value - origin_value) / (100.0f * range);
         }
         return 0.0f;
     }
 
-    std::pair<float, float> GetAnalog(int axis_x, int axis_y) const {
-        float x = GetAxis(axis_x);
-        float y = GetAxis(axis_y);
+    std::pair<float, float> GetAnalog(u32 analog_axis_x, u32 analog_axis_y) const {
+        float x = GetAxis(analog_axis_x);
+        float y = GetAxis(analog_axis_y);
 
         // Make sure the coordinates are in the unit circle,
         // otherwise normalize it.
@@ -208,9 +210,9 @@ public:
     }
 
 private:
-    const int port;
-    const int axis_x;
-    const int axis_y;
+    const u32 port;
+    const u32 axis_x;
+    const u32 axis_y;
     const float deadzone;
     const GCAdapter::Adapter* gcadapter;
     const float origin_value_x;
@@ -231,11 +233,11 @@ GCAnalogFactory::GCAnalogFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
  *     - "axis_y": the index of the axis to be bind as y-axis
  */
 std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::ParamPackage& params) {
-    const int port = params.Get("port", 0);
-    const int axis_x = params.Get("axis_x", 0);
-    const int axis_y = params.Get("axis_y", 1);
-    const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
-    const float range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
+    const auto port = static_cast<u32>(params.Get("port", 0));
+    const auto axis_x = static_cast<u32>(params.Get("axis_x", 0));
+    const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
+    const auto deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
+    const auto range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
 
     return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get(), range);
 }
@@ -256,7 +258,7 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
     for (std::size_t port = 0; port < queue.size(); ++port) {
         while (queue[port].Pop(pad)) {
             if (pad.axis == GCAdapter::PadAxes::Undefined ||
-                std::abs((pad.axis_value - 128.0f) / 128.0f) < 0.1) {
+                std::abs((static_cast<float>(pad.axis_value) - 128.0f) / 128.0f) < 0.1f) {
                 continue;
             }
             // An analog device needs two axes, so we need to store the axis for later and wait for
