@@ -525,7 +525,7 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
         if (old_affinity_mask != new_affinity_mask) {
             const s32 old_core = processor_id;
             if (processor_id >= 0 && ((affinity_mask >> processor_id) & 1) == 0) {
-                if (static_cast<s32>(ideal_core) < 0) {
+                if (ideal_core < 0) {
                     processor_id = HighestSetCore(affinity_mask, Core::Hardware::NUM_CPU_CORES);
                 } else {
                     processor_id = ideal_core;

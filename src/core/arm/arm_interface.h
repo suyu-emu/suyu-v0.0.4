@@ -93,14 +93,14 @@ public:
      * @param index Register index
      * @return Returns the value in the register
      */
-    virtual u64 GetReg(int index) const = 0;
+    virtual u64 GetReg(std::size_t index) const = 0;
 
     /**
      * Set an ARM register
      * @param index Register index
      * @param value Value to set register to
      */
-    virtual void SetReg(int index, u64 value) = 0;
+    virtual void SetReg(std::size_t index, u64 value) = 0;
 
     /**
      * Gets the value of a specified vector register.
@@ -108,7 +108,7 @@ public:
      * @param index The index of the vector register.
      * @return the value within the vector register.
      */
-    virtual u128 GetVectorReg(int index) const = 0;
+    virtual u128 GetVectorReg(std::size_t index) const = 0;
 
     /**
      * Sets a given value into a vector register.
@@ -116,7 +116,7 @@ public:
      * @param index The index of the vector register.
      * @param value The new value to place in the register.
      */
-    virtual void SetVectorReg(int index, u128 value) = 0;
+    virtual void SetVectorReg(std::size_t index, u128 value) = 0;
 
     /**
      * Get the current PSTATE register

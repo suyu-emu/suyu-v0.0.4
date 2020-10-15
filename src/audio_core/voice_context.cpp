@@ -98,7 +98,7 @@ void ServerVoiceInfo::UpdateParameters(const VoiceInfo::InParams& voice_in,
                                        BehaviorInfo& behavior_info) {
     in_params.in_use = voice_in.is_in_use;
     in_params.id = voice_in.id;
-    in_params.node_id = voice_in.node_id;
+    in_params.node_id = static_cast<s32>(voice_in.node_id);
     in_params.last_playstate = in_params.current_playstate;
     switch (voice_in.play_state) {
     case PlayState::Paused:
@@ -220,8 +220,10 @@ void ServerVoiceInfo::UpdateWaveBuffer(ServerWaveBuffer& out_wavebuffer,
         if (sample_format == SampleFormat::Pcm16) {
             const auto buffer_size = in_wave_buffer.buffer_size;
             if (in_wave_buffer.start_sample_offset < 0 || in_wave_buffer.end_sample_offset < 0 ||
-                (buffer_size < (sizeof(s16) * in_wave_buffer.start_sample_offset)) ||
-                (buffer_size < (sizeof(s16) * in_wave_buffer.end_sample_offset))) {
+                (buffer_size <
+                 (sizeof(s16) * static_cast<u32>(in_wave_buffer.start_sample_offset))) ||
+                (buffer_size <
+                 (sizeof(s16) * static_cast<u32>(in_wave_buffer.end_sample_offset)))) {
                 // TODO(ogniK): Write error info
                 return;
             }
@@ -254,8 +256,8 @@ void ServerVoiceInfo::WriteOutStatus(
         voice_out.played_sample_count = 0;
         voice_out.voice_dropped = false;
     } else if (!in_params.is_new) {
-        voice_out.wave_buffer_consumed = voice_states[0]->wave_buffer_consumed;
-        voice_out.played_sample_count = voice_states[0]->played_sample_count;
+        voice_out.wave_buffer_consumed = static_cast<u32>(voice_states[0]->wave_buffer_consumed);
+        voice_out.played_sample_count = static_cast<u64>(voice_states[0]->played_sample_count);
         voice_out.voice_dropped = in_params.voice_drop_flag;
     } else {
         voice_out.wave_buffer_consumed = 0;
@@ -293,8 +295,8 @@ bool ServerVoiceInfo::UpdateForCommandGeneration(VoiceContext& voice_context) {
         in_params.is_new = false;
     }
 
-    const s32 channel_count = in_params.channel_count;
-    for (s32 i = 0; i < channel_count; i++) {
+    const auto channel_count = static_cast<size_t>(in_params.channel_count);
+    for (size_t i = 0; i < channel_count; i++) {
         const auto channel_resource = in_params.voice_channel_resource_id[i];
         dsp_voice_states[i] =
             &voice_context.GetDspSharedState(static_cast<std::size_t>(channel_resource));
@@ -303,8 +305,9 @@ bool ServerVoiceInfo::UpdateForCommandGeneration(VoiceContext& voice_context) {
 }
 
 void ServerVoiceInfo::ResetResources(VoiceContext& voice_context) {
-    const s32 channel_count = in_params.channel_count;
-    for (s32 i = 0; i < channel_count; i++) {
+    const auto channel_count = static_cast<size_t>(in_params.channel_count);
+
+    for (size_t i = 0; i < channel_count; i++) {
         const auto channel_resource = in_params.voice_channel_resource_id[i];
         auto& dsp_state =
             voice_context.GetDspSharedState(static_cast<std::size_t>(channel_resource));
@@ -325,9 +328,9 @@ bool ServerVoiceInfo::UpdateParametersForCommandGeneration(
 
     switch (in_params.current_playstate) {
     case ServerPlayState::Play: {
-        for (std::size_t i = 0; i < AudioCommon::MAX_WAVE_BUFFERS; i++) {
+        for (size_t i = 0; i < AudioCommon::MAX_WAVE_BUFFERS; i++) {
             if (!in_params.wave_buffer[i].sent_to_dsp) {
-                for (s32 channel = 0; channel < channel_count; channel++) {
+                for (size_t channel = 0; channel < static_cast<size_t>(channel_count); channel++) {
                     dsp_voice_states[channel]->is_wave_buffer_valid[i] = true;
                 }
                 in_params.wave_buffer[i].sent_to_dsp = true;
@@ -344,12 +347,13 @@ bool ServerVoiceInfo::UpdateParametersForCommandGeneration(
     case ServerPlayState::RequestStop: {
         for (std::size_t i = 0; i < AudioCommon::MAX_WAVE_BUFFERS; i++) {
             in_params.wave_buffer[i].sent_to_dsp = true;
-            for (s32 channel = 0; channel < channel_count; channel++) {
+            for (std::size_t channel = 0; channel < static_cast<size_t>(channel_count); channel++) {
                 auto* dsp_state = dsp_voice_states[channel];
 
                 if (dsp_state->is_wave_buffer_valid[i]) {
                     dsp_state->wave_buffer_index =
-                        (dsp_state->wave_buffer_index + 1) % AudioCommon::MAX_WAVE_BUFFERS;
+                        static_cast<s32>(static_cast<u32>(dsp_state->wave_buffer_index + 1) %
+                                         AudioCommon::MAX_WAVE_BUFFERS);
                     dsp_state->wave_buffer_consumed++;
                 }
 
@@ -357,7 +361,7 @@ bool ServerVoiceInfo::UpdateParametersForCommandGeneration(
             }
         }
 
-        for (s32 channel = 0; channel < channel_count; channel++) {
+        for (size_t channel = 0; channel < static_cast<size_t>(channel_count); channel++) {
             auto* dsp_state = dsp_voice_states[channel];
             dsp_state->offset = 0;
             dsp_state->played_sample_count = 0;
@@ -383,15 +387,16 @@ void ServerVoiceInfo::FlushWaveBuffers(
     auto wave_head = in_params.wave_bufffer_head;
 
     for (u8 i = 0; i < flush_count; i++) {
-        in_params.wave_buffer[wave_head].sent_to_dsp = true;
-        for (s32 channel = 0; channel < channel_count; channel++) {
+        in_params.wave_buffer[static_cast<u16>(wave_head)].sent_to_dsp = true;
+        for (size_t channel = 0; channel < static_cast<size_t>(channel_count); channel++) {
             auto* dsp_state = dsp_voice_states[channel];
             dsp_state->wave_buffer_consumed++;
-            dsp_state->is_wave_buffer_valid[wave_head] = false;
-            dsp_state->wave_buffer_index =
-                (dsp_state->wave_buffer_index + 1) % AudioCommon::MAX_WAVE_BUFFERS;
+            dsp_state->is_wave_buffer_valid[static_cast<u16>(wave_head)] = false;
+            dsp_state->wave_buffer_index = static_cast<s32>(
+                static_cast<u32>(dsp_state->wave_buffer_index + 1) % AudioCommon::MAX_WAVE_BUFFERS);
         }
-        wave_head = (wave_head + 1) % AudioCommon::MAX_WAVE_BUFFERS;
+        wave_head =
+            static_cast<s16>(static_cast<u32>(wave_head + 1) % AudioCommon::MAX_WAVE_BUFFERS);
     }
 }
 
@@ -483,7 +488,7 @@ s32 VoiceContext::DecodePcm16(s32* output_buffer, ServerWaveBuffer* wave_buffer,
     const auto samples_remaining =
         (wave_buffer->end_sample_offset - wave_buffer->start_sample_offset) - buffer_offset;
     const auto start_offset = (wave_buffer->start_sample_offset + buffer_offset) * channel_count;
-    const auto buffer_pos = wave_buffer->buffer_address + start_offset;
+    const auto buffer_pos = wave_buffer->buffer_address + static_cast<VAddr>(start_offset);
 
     s16* buffer_data = reinterpret_cast<s16*>(memory.GetPointer(buffer_pos));
 

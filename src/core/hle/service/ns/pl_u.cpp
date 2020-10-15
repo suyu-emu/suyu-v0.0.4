@@ -50,19 +50,9 @@ constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
     std::make_pair(FontArchives::Extension, "nintendo_ext2_003.bfttf"),
 };
 
-constexpr std::array<const char*, 7> SHARED_FONTS_TTF{
-    "FontStandard.ttf",
-    "FontChineseSimplified.ttf",
-    "FontExtendedChineseSimplified.ttf",
-    "FontChineseTraditional.ttf",
-    "FontKorean.ttf",
-    "FontNintendoExtended.ttf",
-    "FontNintendoExtended2.ttf",
-};
-
 // The below data is specific to shared font data dumped from Switch on f/w 2.2
 // Virtual address and offsets/sizes likely will vary by dump
-constexpr VAddr SHARED_FONT_MEM_VADDR{0x00000009d3016000ULL};
+[[maybe_unused]] constexpr VAddr SHARED_FONT_MEM_VADDR{0x00000009d3016000ULL};
 constexpr u32 EXPECTED_RESULT{0x7f9a0218}; // What we expect the decrypted bfttf first 4 bytes to be
 constexpr u32 EXPECTED_MAGIC{0x36f81a1e};  // What we expect the encrypted bfttf first 4 bytes to be
 constexpr u64 SHARED_FONT_MEM_SIZE{0x1100000};

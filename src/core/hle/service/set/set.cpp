@@ -91,7 +91,8 @@ void GetAvailableLanguageCodesImpl(Kernel::HLERequestContext& ctx, std::size_t m
 }
 
 void GetKeyCodeMapImpl(Kernel::HLERequestContext& ctx) {
-    const auto language_code = available_language_codes[Settings::values.language_index.GetValue()];
+    const auto language_code =
+        available_language_codes[static_cast<u32>(Settings::values.language_index.GetValue())];
     const auto key_code =
         std::find_if(language_to_layout.cbegin(), language_to_layout.cend(),
                      [=](const auto& element) { return element.first == language_code; });
@@ -167,7 +168,8 @@ void SET::GetLanguageCode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.PushEnum(available_language_codes[Settings::values.language_index.GetValue()]);
+    rb.PushEnum(
+        available_language_codes[static_cast<u32>(Settings::values.language_index.GetValue())]);
 }
 
 void SET::GetRegionCode(Kernel::HLERequestContext& ctx) {

@@ -33,7 +33,7 @@ struct ThreadQueueList {
             }
         }
 
-        return -1;
+        return static_cast<Priority>(-1);
     }
 
     [[nodiscard]] T get_first() const {
@@ -156,7 +156,7 @@ private:
     void link(Priority priority) {
         Queue* cur = &queues[priority];
 
-        for (int i = priority - 1; i >= 0; --i) {
+        for (auto i = static_cast<int>(priority - 1); i >= 0; --i) {
             if (queues[i].next_nonempty != UnlinkedTag()) {
                 cur->next_nonempty = queues[i].next_nonempty;
                 queues[i].next_nonempty = cur;

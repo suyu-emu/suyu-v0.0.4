@@ -167,6 +167,9 @@ private:
 
     void BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) const noexcept;
 
+    std::optional<FileDescriptor>& GetFileDescriptor(s32 fd);
+    const std::optional<FileDescriptor>& GetFileDescriptor(s32 fd) const;
+
     std::array<std::optional<FileDescriptor>, MAX_FD> file_descriptors;
 
     BlockingWorkerPool<BSD, PollWork, AcceptWork, ConnectWork, RecvWork, RecvFromWork, SendWork,

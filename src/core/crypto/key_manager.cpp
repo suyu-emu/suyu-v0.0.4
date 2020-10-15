@@ -143,6 +143,7 @@ u64 GetSignatureTypeDataSize(SignatureType type) {
         return 0x3C;
     }
     UNREACHABLE();
+    return 0;
 }
 
 u64 GetSignatureTypePaddingSize(SignatureType type) {
@@ -157,6 +158,7 @@ u64 GetSignatureTypePaddingSize(SignatureType type) {
         return 0x40;
     }
     UNREACHABLE();
+    return 0;
 }
 
 SignatureType Ticket::GetSignatureType() const {
@@ -171,6 +173,7 @@ SignatureType Ticket::GetSignatureType() const {
     }
 
     UNREACHABLE();
+    return {};
 }
 
 TicketData& Ticket::GetData() {
@@ -348,7 +351,7 @@ std::optional<Key128> DeriveSDSeed() {
     std::array<u8, 0x10> buffer{};
     std::size_t offset = 0;
     for (; offset + 0x10 < save_43.GetSize(); ++offset) {
-        if (!save_43.Seek(offset, SEEK_SET)) {
+        if (!save_43.Seek(static_cast<s64>(offset), SEEK_SET)) {
             return std::nullopt;
         }
 
@@ -358,7 +361,7 @@ std::optional<Key128> DeriveSDSeed() {
         }
     }
 
-    if (!save_43.Seek(offset + 0x10, SEEK_SET)) {
+    if (!save_43.Seek(static_cast<s64>(offset + 0x10), SEEK_SET)) {
         return std::nullopt;
     }
 

@@ -49,12 +49,12 @@ void ITimeZoneService::LoadTimeZoneRule(Kernel::HLERequestContext& ctx) {
     const auto raw_location_name{rp.PopRaw<std::array<u8, 0x24>>()};
 
     std::string location_name;
-    for (const auto& byte : raw_location_name) {
+    for (const auto byte : raw_location_name) {
         // Strip extra bytes
         if (byte == '\0') {
             break;
         }
-        location_name.push_back(byte);
+        location_name.push_back(static_cast<char>(byte));
     }
 
     LOG_DEBUG(Service_Time, "called, location_name={}", location_name);

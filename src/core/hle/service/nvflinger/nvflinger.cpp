@@ -247,7 +247,7 @@ void NVFlinger::Compose() {
         guard->unlock();
         for (u32 fence_id = 0; fence_id < multi_fence.num_fences; fence_id++) {
             const auto& fence = multi_fence.fences[fence_id];
-            gpu.WaitFence(fence.id, fence.value);
+            gpu.WaitFence(static_cast<u32>(fence.id), fence.value);
         }
         guard->lock();
 

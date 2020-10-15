@@ -27,7 +27,7 @@ struct Rectangle {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(right - left);
         } else {
-            return std::abs(static_cast<std::make_signed_t<T>>(right - left));
+            return static_cast<T>(std::abs(static_cast<std::make_signed_t<T>>(right - left)));
         }
     }
 
@@ -35,7 +35,7 @@ struct Rectangle {
         if constexpr (std::is_floating_point_v<T>) {
             return std::abs(bottom - top);
         } else {
-            return std::abs(static_cast<std::make_signed_t<T>>(bottom - top));
+            return static_cast<T>(std::abs(static_cast<std::make_signed_t<T>>(bottom - top)));
         }
     }
 

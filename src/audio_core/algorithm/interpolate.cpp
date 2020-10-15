@@ -167,8 +167,8 @@ std::vector<s16> Interpolate(InterpolationState& state, std::vector<s16> input, 
     output.reserve(static_cast<std::size_t>(static_cast<double>(input.size()) / ratio +
                                             InterpolationState::taps));
 
-    for (std::size_t frame{}; frame < num_frames; ++frame) {
-        const std::size_t lut_index{(state.fraction >> 8) * InterpolationState::taps};
+    for (std::size_t frame = 0; frame < num_frames; ++frame) {
+        const auto lut_index{static_cast<size_t>(state.fraction >> 8) * InterpolationState::taps};
 
         std::rotate(state.history.begin(), state.history.end() - 1, state.history.end());
         state.history[0][0] = input[frame * 2 + 0];
@@ -225,7 +225,7 @@ void Resample(s32* output, const s32* input, s32 pitch, s32& fraction, std::size
 
         output[i] = (l0 * s0 + l1 * s1 + l2 * s2 + l3 * s3) >> 15;
         fraction += pitch;
-        index += (fraction >> 15);
+        index += static_cast<size_t>(fraction >> 15);
         fraction &= 0x7fff;
     }
 }

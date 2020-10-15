@@ -127,7 +127,7 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.unk3);
 
     auto& gpu = system.GPU();
-    params.fence_out.id = assigned_syncpoints;
+    params.fence_out.id = static_cast<s32>(assigned_syncpoints);
     params.fence_out.value = gpu.GetSyncpointValue(assigned_syncpoints);
     assigned_syncpoints++;
     std::memcpy(output.data(), &params, output.size());
@@ -166,7 +166,8 @@ u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& outp
     UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
     auto& gpu = system.GPU();
-    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
+    const u32 current_syncpoint_value =
+        gpu.GetSyncpointValue(static_cast<u32>(params.fence_out.id));
     if (params.flags.increment.Value()) {
         params.fence_out.value += current_syncpoint_value;
     } else {
@@ -200,7 +201,8 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output,
     UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
     auto& gpu = system.GPU();
-    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
+    const u32 current_syncpoint_value =
+        gpu.GetSyncpointValue(static_cast<u32>(params.fence_out.id));
     if (params.flags.increment.Value()) {
         params.fence_out.value += current_syncpoint_value;
     } else {

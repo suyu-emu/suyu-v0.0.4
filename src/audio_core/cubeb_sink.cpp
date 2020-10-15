@@ -202,7 +202,7 @@ long CubebSinkStream::DataCallback(cubeb_stream* stream, void* user_data, const 
     }
 
     const std::size_t num_channels = impl->GetNumChannels();
-    const std::size_t samples_to_write = num_channels * num_frames;
+    const std::size_t samples_to_write = num_channels * static_cast<u64>(num_frames);
     std::size_t samples_written;
 
     /*

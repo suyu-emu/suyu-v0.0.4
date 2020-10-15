@@ -25,9 +25,9 @@ std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, const BlockTyp
         ASSERT_MSG(offset <= block.size, "Offset is out of bounds in BKTR relocation block.");
     }
 
-    std::size_t bucket_id = std::count_if(
+    const auto bucket_id = static_cast<std::size_t>(std::count_if(
         block.base_offsets.begin() + 1, block.base_offsets.begin() + block.number_buckets,
-        [&offset](u64 base_offset) { return base_offset <= offset; });
+        [&offset](u64 base_offset) { return base_offset <= offset; }));
 
     const auto& bucket = buckets[bucket_id];
 
@@ -53,6 +53,7 @@ std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, const BlockTyp
     }
 
     UNREACHABLE_MSG("Offset could not be found in BKTR block.");
+    return {};
 }
 } // Anonymous namespace
 
@@ -136,7 +137,7 @@ std::size_t BKTR::Read(u8* data, std::size_t length, std::size_t offset) const {
 
     const auto block_offset = section_offset & 0xF;
     if (block_offset != 0) {
-        auto block = bktr_romfs->ReadBytes(0x10, section_offset & ~0xF);
+        auto block = bktr_romfs->ReadBytes(0x10, section_offset & ~0xFU);
         cipher.Transcode(block.data(), block.size(), block.data(), Core::Crypto::Op::Decrypt);
         if (length + block_offset < 0x10) {
             std::memcpy(data, block.data() + block_offset, std::min(length, block.size()));

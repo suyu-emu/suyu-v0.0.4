@@ -56,11 +56,11 @@ public:
 
     Errno Shutdown(ShutdownHow how);
 
-    std::pair<s32, Errno> Recv(int flags, std::vector<u8>& message);
+    std::pair<s32, Errno> Recv(u32 flags, std::vector<u8>& message);
 
-    std::pair<s32, Errno> RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr);
+    std::pair<s32, Errno> RecvFrom(u32 flags, std::vector<u8>& message, SockAddrIn* addr);
 
-    std::pair<s32, Errno> Send(const std::vector<u8>& message, int flags);
+    std::pair<s32, Errno> Send(const std::vector<u8>& message, u32 flags);
 
     std::pair<s32, Errno> SendTo(u32 flags, const std::vector<u8>& message, const SockAddrIn* addr);
 

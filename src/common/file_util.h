@@ -189,7 +189,8 @@ template <typename T>
         return {};
     }
     last = std::min<std::size_t>(last, vector.size());
-    return std::vector<T>(vector.begin() + first, vector.begin() + first + last);
+    return std::vector<T>(vector.begin() + static_cast<std::ptrdiff_t>(first),
+                          vector.begin() + static_cast<std::ptrdiff_t>(first + last));
 }
 
 enum class DirectorySeparator {

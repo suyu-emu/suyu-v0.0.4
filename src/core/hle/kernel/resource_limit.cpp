@@ -43,8 +43,8 @@ void ResourceLimit::Release(ResourceType resource, u64 amount) {
 void ResourceLimit::Release(ResourceType resource, u64 used_amount, u64 available_amount) {
     const std::size_t index{ResourceTypeToIndex(resource)};
 
-    current[index] -= used_amount;
-    available[index] -= available_amount;
+    current[index] -= static_cast<s64>(used_amount);
+    available[index] -= static_cast<s64>(available_amount);
 }
 
 std::shared_ptr<ResourceLimit> ResourceLimit::Create(KernelCore& kernel) {

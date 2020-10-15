@@ -23,8 +23,9 @@ bool SinkContext::InUse() const {
 }
 
 std::vector<u8> SinkContext::OutputBuffers() const {
-    std::vector<u8> buffer_ret(use_count);
-    std::memcpy(buffer_ret.data(), buffers.data(), use_count);
+    const auto output_use_count = static_cast<size_t>(use_count);
+    std::vector<u8> buffer_ret(output_use_count);
+    std::memcpy(buffer_ret.data(), buffers.data(), output_use_count);
     return buffer_ret;
 }
 

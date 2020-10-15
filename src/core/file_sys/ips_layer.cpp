@@ -66,12 +66,14 @@ static bool IsEOF(IPSFileType type, const std::vector<u8>& data) {
 }
 
 VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
-    if (in == nullptr || ips == nullptr)
+    if (in == nullptr || ips == nullptr) {
         return nullptr;
+    }
 
     const auto type = IdentifyMagic(ips->ReadBytes(0x5));
-    if (type == IPSFileType::Error)
+    if (type == IPSFileType::Error) {
         return nullptr;
+    }
 
     auto in_data = in->ReadAllBytes();
 
@@ -84,37 +86,46 @@ VirtualFile PatchIPS(const VirtualFile& in, const VirtualFile& ips) {
         }
 
         u32 real_offset{};
-        if (type == IPSFileType::IPS32)
-            real_offset = (temp[0] << 24) | (temp[1] << 16) | (temp[2] << 8) | temp[3];
-        else
-            real_offset = (temp[0] << 16) | (temp[1] << 8) | temp[2];
+        if (type == IPSFileType::IPS32) {
+            real_offset = static_cast<u32>(temp[0] << 24) | static_cast<u32>(temp[1] << 16) |
+                          static_cast<u32>(temp[2] << 8) | temp[3];
+        } else {
+            real_offset =
+                static_cast<u32>(temp[0] << 16) | static_cast<u32>(temp[1] << 8) | temp[2];
+        }
 
         u16 data_size{};
-        if (ips->ReadObject(&data_size, offset) != sizeof(u16))
+        if (ips->ReadObject(&data_size, offset) != sizeof(u16)) {
             return nullptr;
+        }
         data_size = Common::swap16(data_size);
         offset += sizeof(u16);
 
         if (data_size == 0) { // RLE
             u16 rle_size{};
-            if (ips->ReadObject(&rle_size, offset) != sizeof(u16))
+            if (ips->ReadObject(&rle_size, offset) != sizeof(u16)) {
                 return nullptr;
+            }
             rle_size = Common::swap16(rle_size);
             offset += sizeof(u16);
 
             const auto data = ips->ReadByte(offset++);
-            if (!data)
+            if (!data) {
                 return nullptr;
+            }
 
-            if (real_offset + rle_size > in_data.size())
+            if (real_offset + rle_size > in_data.size()) {
                 rle_size = static_cast<u16>(in_data.size() - real_offset);
+            }
             std::memset(in_data.data() + real_offset, *data, rle_size);
         } else { // Standard Patch
             auto read = data_size;
-            if (real_offset + read > in_data.size())
+            if (real_offset + read > in_data.size()) {
                 read = static_cast<u16>(in_data.size() - real_offset);
-            if (ips->Read(in_data.data() + real_offset, read, offset) != data_size)
+            }
+            if (ips->Read(in_data.data() + real_offset, read, offset) != data_size) {
                 return nullptr;
+            }
             offset += data_size;
         }
     }
@@ -182,14 +193,16 @@ void IPSwitchCompiler::ParseFlag(const std::string& line) {
 void IPSwitchCompiler::Parse() {
     const auto bytes = patch_text->ReadAllBytes();
     std::stringstream s;
-    s.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    s.write(reinterpret_cast<const char*>(bytes.data()),
+            static_cast<std::streamsize>(bytes.size()));
 
     std::vector<std::string> lines;
     std::string stream_line;
     while (std::getline(s, stream_line)) {
         // Remove a trailing \r
-        if (!stream_line.empty() && stream_line.back() == '\r')
+        if (!stream_line.empty() && stream_line.back() == '\r') {
             stream_line.pop_back();
+        }
         lines.push_back(std::move(stream_line));
     }
 

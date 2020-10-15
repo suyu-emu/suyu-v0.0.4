@@ -3,7 +3,16 @@
 // Refer to the license.txt file included.
 
 #include <fmt/ostream.h>
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#endif
 #include <httplib.h>
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 #include <mbedtls/sha256.h>
 #include <nlohmann/json.hpp>
 #include "common/hex_util.h"
