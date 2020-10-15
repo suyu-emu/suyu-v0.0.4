@@ -694,7 +694,7 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
                                          const std::vector<VibrationValue>& vibration_values) {
     LOG_TRACE(Service_HID, "called");
 
-    if (!Settings::values.vibration_enabled.GetValue() || !can_controllers_vibrate) {
+    if (!Settings::values.vibration_enabled.GetValue()) {
         return;
     }
 
@@ -922,14 +922,6 @@ bool Controller_NPad::IsUnintendedHomeButtonInputProtectionEnabled(u32 npad_id) 
 void Controller_NPad::SetUnintendedHomeButtonInputProtectionEnabled(bool is_protection_enabled,
                                                                     u32 npad_id) {
     unintended_home_button_input_protection[NPadIdToIndex(npad_id)] = is_protection_enabled;
-}
-
-void Controller_NPad::SetVibrationEnabled(bool can_vibrate) {
-    can_controllers_vibrate = can_vibrate;
-}
-
-bool Controller_NPad::IsVibrationEnabled() const {
-    return can_controllers_vibrate;
 }
 
 void Controller_NPad::ClearAllConnectedControllers() {
