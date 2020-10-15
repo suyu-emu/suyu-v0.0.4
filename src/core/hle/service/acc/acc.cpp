@@ -496,7 +496,7 @@ public:
             {3, nullptr, "LoadIdTokenCache"},
             {130, nullptr, "GetNintendoAccountUserResourceCacheForApplication"},
             {150, nullptr, "CreateAuthorizationRequest"},
-            {160, nullptr, "StoreOpenContext"},
+            {160, &IManagerForApplication::StoreOpenContext, "StoreOpenContext"},
             {170, nullptr, "LoadNetworkServiceLicenseKindAsync"},
         };
         // clang-format on
@@ -518,6 +518,12 @@ private:
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.PushRaw<u64>(user_id.GetNintendoID());
+    }
+
+    void StoreOpenContext(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_ACC, "(STUBBED) called");
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 
     Common::UUID user_id;
