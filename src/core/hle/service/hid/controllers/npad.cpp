@@ -684,9 +684,7 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index,
     const auto& button_state = buttons[npad_index];
 
     return button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-        vibration_value.amp_low * Settings::values.vibration_strength.GetValue() / 100,
-        vibration_value.freq_low,
-        vibration_value.amp_high * Settings::values.vibration_strength.GetValue() / 100,
+        vibration_value.amp_low, vibration_value.freq_low, vibration_value.amp_high,
         vibration_value.freq_high);
 }
 

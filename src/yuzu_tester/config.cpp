@@ -76,7 +76,6 @@ void Config::ReadValues() {
     }
 
     Settings::values.vibration_enabled.SetValue(true);
-    Settings::values.vibration_strength.SetValue(100);
     Settings::values.motion_enabled.SetValue(true);
     Settings::values.touchscreen.enabled = "";
     Settings::values.touchscreen.device = "";

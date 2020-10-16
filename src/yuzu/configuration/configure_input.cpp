@@ -186,7 +186,6 @@ void ConfigureInput::ApplyConfiguration() {
     OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue());
 
     Settings::values.vibration_enabled.SetValue(ui->vibrationGroup->isChecked());
-    Settings::values.vibration_strength.SetValue(ui->vibrationSpin->value());
     Settings::values.motion_enabled.SetValue(ui->motionGroup->isChecked());
 }
 
@@ -207,7 +206,6 @@ void ConfigureInput::LoadConfiguration() {
     UpdateDockedState(Settings::values.players.GetValue()[8].connected);
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
-    ui->vibrationSpin->setValue(Settings::values.vibration_strength.GetValue());
     ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
 }
 

@@ -150,7 +150,6 @@ void RestoreGlobalState() {
     values.players.SetGlobal(true);
     values.use_docked_mode.SetGlobal(true);
     values.vibration_enabled.SetGlobal(true);
-    values.vibration_strength.SetGlobal(true);
     values.motion_enabled.SetGlobal(true);
 }
 
