@@ -60,7 +60,7 @@ struct GCPadStatus {
 
 struct GCState {
     std::unordered_map<int, bool> buttons;
-    std::unordered_map<int, u16> axes;
+    std::unordered_map<u32, u16> axes;
 };
 
 enum class ControllerTypes { None, Wired, Wireless };
@@ -89,12 +89,10 @@ public:
     std::array<GCState, 4>& GetPadState();
     const std::array<GCState, 4>& GetPadState() const;
 
-    int GetOriginValue(int port, int axis) const;
+    int GetOriginValue(u32 port, u32 axis) const;
 
 private:
     GCPadStatus GetPadStatus(std::size_t port, const std::array<u8, 37>& adapter_payload);
-
-    void PadToState(const GCPadStatus& pad, GCState& state);
 
     void Read();
 

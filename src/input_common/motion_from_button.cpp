@@ -11,7 +11,7 @@ class MotionKey final : public Input::MotionDevice {
 public:
     using Button = std::unique_ptr<Input::ButtonDevice>;
 
-    MotionKey(Button key_) : key(std::move(key_)) {}
+    explicit MotionKey(Button key_) : key(std::move(key_)) {}
 
     Input::MotionStatus GetStatus() const override {
 

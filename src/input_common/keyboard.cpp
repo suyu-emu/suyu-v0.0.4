@@ -49,8 +49,9 @@ public:
     void ChangeKeyStatus(int key_code, bool pressed) {
         std::lock_guard guard{mutex};
         for (const KeyButtonPair& pair : list) {
-            if (pair.key_code == key_code)
+            if (pair.key_code == key_code) {
                 pair.key_button->status.store(pressed);
+            }
         }
     }
 
@@ -73,7 +74,7 @@ KeyButton::~KeyButton() {
 }
 
 std::unique_ptr<Input::ButtonDevice> Keyboard::Create(const Common::ParamPackage& params) {
-    int key_code = params.Get("code", 0);
+    const int key_code = params.Get("code", 0);
     std::unique_ptr<KeyButton> button = std::make_unique<KeyButton>(key_button_list);
     key_button_list->AddKeyButton(key_code, button.get());
     return button;

@@ -11,9 +11,11 @@ namespace InputCommon {
 class TouchFromButtonDevice final : public Input::TouchDevice {
 public:
     TouchFromButtonDevice() {
-        for (const auto& config_entry :
-             Settings::values.touch_from_button_maps[Settings::values.touch_from_button_map_index]
-                 .buttons) {
+        const auto button_index =
+            static_cast<std::size_t>(Settings::values.touch_from_button_map_index);
+        const auto& buttons = Settings::values.touch_from_button_maps[button_index].buttons;
+
+        for (const auto& config_entry : buttons) {
             const Common::ParamPackage package{config_entry};
             map.emplace_back(
                 Input::CreateDevice<Input::ButtonDevice>(config_entry),

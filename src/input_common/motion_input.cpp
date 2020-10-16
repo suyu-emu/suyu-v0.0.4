@@ -8,8 +8,7 @@
 
 namespace InputCommon {
 
-MotionInput::MotionInput(f32 new_kp, f32 new_ki, f32 new_kd)
-    : kp(new_kp), ki(new_ki), kd(new_kd), quat{{0, 0, -1}, 0} {}
+MotionInput::MotionInput(f32 new_kp, f32 new_ki, f32 new_kd) : kp(new_kp), ki(new_ki), kd(new_kd) {}
 
 void MotionInput::SetAcceleration(const Common::Vec3f& acceleration) {
     accel = acceleration;
@@ -59,7 +58,7 @@ bool MotionInput::IsCalibrated(f32 sensitivity) const {
 }
 
 void MotionInput::UpdateRotation(u64 elapsed_time) {
-    const f32 sample_period = elapsed_time / 1000000.0f;
+    const auto sample_period = static_cast<f32>(elapsed_time) / 1000000.0f;
     if (sample_period > 0.1f) {
         return;
     }
@@ -75,7 +74,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
     f32 q2 = quat.xyz[0];
     f32 q3 = quat.xyz[1];
     f32 q4 = quat.xyz[2];
-    const f32 sample_period = elapsed_time / 1000000.0f;
+    const auto sample_period = static_cast<f32>(elapsed_time) / 1000000.0f;
 
     // Ignore invalid elapsed time
     if (sample_period > 0.1f) {
@@ -203,21 +202,21 @@ Input::MotionStatus MotionInput::GetRandomMotion(int accel_magnitude, int gyro_m
     std::random_device device;
     std::mt19937 gen(device());
     std::uniform_int_distribution<s16> distribution(-1000, 1000);
-    const Common::Vec3f gyroscope = {
-        distribution(gen) * 0.001f,
-        distribution(gen) * 0.001f,
-        distribution(gen) * 0.001f,
+    const Common::Vec3f gyroscope{
+        static_cast<f32>(distribution(gen)) * 0.001f,
+        static_cast<f32>(distribution(gen)) * 0.001f,
+        static_cast<f32>(distribution(gen)) * 0.001f,
     };
-    const Common::Vec3f accelerometer = {
-        distribution(gen) * 0.001f,
-        distribution(gen) * 0.001f,
-        distribution(gen) * 0.001f,
+    const Common::Vec3f accelerometer{
+        static_cast<f32>(distribution(gen)) * 0.001f,
+        static_cast<f32>(distribution(gen)) * 0.001f,
+        static_cast<f32>(distribution(gen)) * 0.001f,
     };
-    const Common::Vec3f rotation = {};
-    const std::array<Common::Vec3f, 3> orientation = {
-        Common::Vec3f{1.0f, 0, 0},
-        Common::Vec3f{0, 1.0f, 0},
-        Common::Vec3f{0, 0, 1.0f},
+    constexpr Common::Vec3f rotation;
+    constexpr std::array orientation{
+        Common::Vec3f{1.0f, 0.0f, 0.0f},
+        Common::Vec3f{0.0f, 1.0f, 0.0f},
+        Common::Vec3f{0.0f, 0.0f, 1.0f},
     };
     return {accelerometer * accel_magnitude, gyroscope * gyro_magnitude, rotation, orientation};
 }
@@ -247,9 +246,6 @@ void MotionInput::SetOrientationFromAccelerometer() {
     const f32 sample_period = 0.015f;
 
     const auto normal_accel = accel.Normalized();
-    const f32 ax = -normal_accel.x;
-    const f32 ay = normal_accel.y;
-    const f32 az = -normal_accel.z;
 
     while (!IsCalibrated(0.01f) && ++iterations < 100) {
         // Short name local variable for readability
@@ -258,7 +254,7 @@ void MotionInput::SetOrientationFromAccelerometer() {
         f32 q3 = quat.xyz[1];
         f32 q4 = quat.xyz[2];
 
-        Common::Vec3f rad_gyro = {};
+        Common::Vec3f rad_gyro;
         const f32 ax = -normal_accel.x;
         const f32 ay = normal_accel.y;
         const f32 az = -normal_accel.z;

@@ -2,8 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <atomic>
-#include <list>
 #include <mutex>
 #include <utility>
 #include "common/assert.h"
@@ -15,8 +13,8 @@ namespace InputCommon {
 
 class UDPMotion final : public Input::MotionDevice {
 public:
-    UDPMotion(std::string ip_, int port_, int pad_, CemuhookUDP::Client* client_)
-        : ip(ip_), port(port_), pad(pad_), client(client_) {}
+    explicit UDPMotion(std::string ip_, int port_, u32 pad_, CemuhookUDP::Client* client_)
+        : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
     Input::MotionStatus GetStatus() const override {
         return client->GetPadState(pad).motion_status;
@@ -25,7 +23,7 @@ public:
 private:
     const std::string ip;
     const int port;
-    const int pad;
+    const u32 pad;
     CemuhookUDP::Client* client;
     mutable std::mutex mutex;
 };
@@ -40,11 +38,11 @@ UDPMotionFactory::UDPMotionFactory(std::shared_ptr<CemuhookUDP::Client> client_)
  *     - "port": the nth jcpad on the adapter
  */
 std::unique_ptr<Input::MotionDevice> UDPMotionFactory::Create(const Common::ParamPackage& params) {
-    const std::string ip = params.Get("ip", "127.0.0.1");
-    const int port = params.Get("port", 26760);
-    const int pad = params.Get("pad_index", 0);
+    auto ip = params.Get("ip", "127.0.0.1");
+    const auto port = params.Get("port", 26760);
+    const auto pad = static_cast<u32>(params.Get("pad_index", 0));
 
-    return std::make_unique<UDPMotion>(ip, port, pad, client.get());
+    return std::make_unique<UDPMotion>(std::move(ip), port, pad, client.get());
 }
 
 void UDPMotionFactory::BeginConfiguration() {
@@ -79,7 +77,7 @@ Common::ParamPackage UDPMotionFactory::GetNextInput() {
 
 class UDPTouch final : public Input::TouchDevice {
 public:
-    UDPTouch(std::string ip_, int port_, int pad_, CemuhookUDP::Client* client_)
+    explicit UDPTouch(std::string ip_, int port_, u32 pad_, CemuhookUDP::Client* client_)
         : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
     std::tuple<float, float, bool> GetStatus() const override {
@@ -89,7 +87,7 @@ public:
 private:
     const std::string ip;
     const int port;
-    const int pad;
+    const u32 pad;
     CemuhookUDP::Client* client;
     mutable std::mutex mutex;
 };
@@ -104,11 +102,11 @@ UDPTouchFactory::UDPTouchFactory(std::shared_ptr<CemuhookUDP::Client> client_)
  *     - "port": the nth jcpad on the adapter
  */
 std::unique_ptr<Input::TouchDevice> UDPTouchFactory::Create(const Common::ParamPackage& params) {
-    const std::string ip = params.Get("ip", "127.0.0.1");
-    const int port = params.Get("port", 26760);
-    const int pad = params.Get("pad_index", 0);
+    auto ip = params.Get("ip", "127.0.0.1");
+    const auto port = params.Get("port", 26760);
+    const auto pad = static_cast<u32>(params.Get("pad_index", 0));
 
-    return std::make_unique<UDPTouch>(ip, port, pad, client.get());
+    return std::make_unique<UDPTouch>(std::move(ip), port, pad, client.get());
 }
 
 void UDPTouchFactory::BeginConfiguration() {

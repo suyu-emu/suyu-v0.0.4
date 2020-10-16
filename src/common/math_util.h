@@ -20,8 +20,8 @@ struct Rectangle {
 
     constexpr Rectangle() = default;
 
-    constexpr Rectangle(T left, T top, T right, T bottom)
-        : left(left), top(top), right(right), bottom(bottom) {}
+    constexpr Rectangle(T left_, T top_, T right_, T bottom_)
+        : left(left_), top(top_), right(right_), bottom(bottom_) {}
 
     [[nodiscard]] T GetWidth() const {
         if constexpr (std::is_floating_point_v<T>) {

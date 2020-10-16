@@ -196,6 +196,10 @@ ButtonMapping InputSubsystem::GetButtonMappingForDevice(const Common::ParamPacka
     return impl->GetButtonMappingForDevice(device);
 }
 
+MotionMapping InputSubsystem::GetMotionMappingForDevice(const Common::ParamPackage& device) const {
+    return impl->GetMotionMappingForDevice(device);
+}
+
 GCAnalogFactory* InputSubsystem::GetGCAnalogs() {
     return impl->gcanalog.get();
 }
