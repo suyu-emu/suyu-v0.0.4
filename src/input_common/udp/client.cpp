@@ -337,8 +337,11 @@ void TestCommunication(const std::string& host, u16 port, std::size_t pad_index,
                        const std::function<void()>& failure_callback) {
     std::thread([=] {
         Common::Event success_event;
-        SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
-                                [&](Response::PadData data) { success_event.Set(); }};
+        SocketCallback callback{
+            .version = [](Response::Version) {},
+            .port_info = [](Response::PortInfo) {},
+            .pad_data = [&](Response::PadData) { success_event.Set(); },
+        };
         Socket socket{host, port, pad_index, client_id, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
         const bool result = success_event.WaitFor(std::chrono::seconds(8));
