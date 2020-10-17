@@ -42,6 +42,9 @@ private:
     // Loads the current input configuration into the frontend applet.
     void LoadConfiguration();
 
+    // Initializes the "Configure Vibration" Dialog.
+    void CallConfigureVibrationDialog();
+
     // Initializes the "Configure Input" Dialog.
     void CallConfigureInputDialog();
 

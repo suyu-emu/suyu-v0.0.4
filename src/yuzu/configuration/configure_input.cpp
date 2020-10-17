@@ -23,6 +23,7 @@
 #include "yuzu/configuration/configure_motion_touch.h"
 #include "yuzu/configuration/configure_mouse_advanced.h"
 #include "yuzu/configuration/configure_touchscreen_advanced.h"
+#include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/configuration/input_profiles.h"
 
 namespace {
@@ -155,6 +156,9 @@ void ConfigureInput::Initialize(InputCommon::InputSubsystem* input_subsystem,
             [this, input_subsystem] {
                 CallConfigureDialog<ConfigureMotionTouch>(*this, input_subsystem);
             });
+
+    connect(ui->vibrationButton, &QPushButton::clicked,
+            [this] { CallConfigureDialog<ConfigureVibration>(*this); });
 
     connect(ui->motionButton, &QPushButton::clicked, [this, input_subsystem] {
         CallConfigureDialog<ConfigureMotionTouch>(*this, input_subsystem);

@@ -290,6 +290,8 @@ void Config::ReadValues() {
 
     Settings::values.vibration_enabled.SetValue(
         sdl2_config->GetBoolean("ControlsGeneral", "vibration_enabled", true));
+    Settings::values.enable_accurate_vibrations.SetValue(
+        sdl2_config->GetBoolean("ControlsGeneral", "enable_accurate_vibrations", false));
     Settings::values.motion_enabled.SetValue(
         sdl2_config->GetBoolean("ControlsGeneral", "motion_enabled", true));
     Settings::values.touchscreen.enabled =

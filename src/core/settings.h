@@ -170,6 +170,7 @@ struct Values {
     Setting<bool> use_docked_mode;
 
     Setting<bool> vibration_enabled;
+    Setting<bool> enable_accurate_vibrations;
 
     Setting<bool> motion_enabled;
     std::string motion_device;

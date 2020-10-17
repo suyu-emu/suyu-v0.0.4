@@ -2329,11 +2329,11 @@
              <number>3</number>
             </property>
             <item>
-             <widget class="QSpinBox" name="vibrationSpin">
+             <widget class="QPushButton" name="vibrationButton">
               <property name="minimumSize">
                <size>
                 <width>68</width>
-                <height>21</height>
+                <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -2342,17 +2342,11 @@
                 <height>16777215</height>
                </size>
               </property>
-              <property name="suffix">
-               <string>%</string>
+              <property name="styleSheet">
+               <string notr="true">min-width: 68px;</string>
               </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="maximum">
-               <number>100</number>
-              </property>
-              <property name="value">
-               <number>100</number>
+              <property name="text">
+               <string>Configure</string>
               </property>
              </widget>
             </item>

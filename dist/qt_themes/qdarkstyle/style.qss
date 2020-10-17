@@ -1293,15 +1293,24 @@ QPushButton#buttonRefreshDevices {
 
 QSpinBox#spinboxLStickRange,
 QSpinBox#spinboxRStickRange,
-QSpinBox#vibrationSpin {
+QSpinBox#vibrationSpinPlayer1,
+QSpinBox#vibrationSpinPlayer2,
+QSpinBox#vibrationSpinPlayer3,
+QSpinBox#vibrationSpinPlayer4,
+QSpinBox#vibrationSpinPlayer5,
+QSpinBox#vibrationSpinPlayer6,
+QSpinBox#vibrationSpinPlayer7,
+QSpinBox#vibrationSpinPlayer8 {
     min-width: 68px;
 }
 
+QDialog#ConfigureVibration QGroupBox::indicator,
 QGroupBox#motionGroup::indicator,
 QGroupBox#vibrationGroup::indicator {
     margin-left: 0px;
 }
 
+QDialog#ConfigureVibration QGroupBox::title,
 QGroupBox#motionGroup::title,
 QGroupBox#vibrationGroup::title {
     spacing: 2px;

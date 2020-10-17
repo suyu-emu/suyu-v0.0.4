@@ -680,11 +680,19 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index,
         return false;
     }
 
+    const auto& player = Settings::values.players.GetValue()[npad_index];
+
+    if (!player.vibration_enabled) {
+        return false;
+    }
+
     using namespace Settings::NativeButton;
     const auto& button_state = buttons[npad_index];
 
     return button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
-        vibration_value.amp_low, vibration_value.freq_low, vibration_value.amp_high,
+        std::min(vibration_value.amp_low * player.vibration_strength / 100.0f, 1.0f),
+        vibration_value.freq_low,
+        std::min(vibration_value.amp_high * player.vibration_strength / 100.0f, 1.0f),
         vibration_value.freq_high);
 }
 
@@ -728,7 +736,8 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
         }
 
         // Filter out non-zero vibrations that are within 0.015625 absolute amplitude of each other.
-        if ((vibration_values[i].amp_low != 0.0f || vibration_values[i].amp_high != 0.0f) &&
+        if (!Settings::values.enable_accurate_vibrations.GetValue() &&
+            (vibration_values[i].amp_low != 0.0f || vibration_values[i].amp_high != 0.0f) &&
             (latest_vibration_values[npad_index][device_index].amp_low != 0.0f ||
              latest_vibration_values[npad_index][device_index].amp_high != 0.0f) &&
             (abs(vibration_values[i].amp_low -

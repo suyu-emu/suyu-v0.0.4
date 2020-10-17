@@ -300,6 +300,14 @@ void Config::ReadPlayerValue(std::size_t player_index) {
                         static_cast<u8>(Settings::ControllerType::ProController))
                 .toUInt());
 
+        player.vibration_enabled =
+            qt_config->value(QStringLiteral("%1vibration_enabled").arg(player_prefix), true)
+                .toBool();
+
+        player.vibration_strength =
+            qt_config->value(QStringLiteral("%1vibration_strength").arg(player_prefix), 100)
+                .toInt();
+
         player.body_color_left = qt_config
                                      ->value(QStringLiteral("%1body_color_left").arg(player_prefix),
                                              Settings::JOYCON_BODY_NEON_BLUE)
@@ -493,6 +501,8 @@ void Config::ReadControlValues() {
     ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), false);
     ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
                       true);
+    ReadSettingGlobal(Settings::values.enable_accurate_vibrations,
+                      QStringLiteral("enable_accurate_vibrations"), false);
     ReadSettingGlobal(Settings::values.motion_enabled, QStringLiteral("motion_enabled"), true);
 
     qt_config->endGroup();
@@ -983,6 +993,10 @@ void Config::SavePlayerValue(std::size_t player_index) {
 
     if (!player_prefix.isEmpty()) {
         WriteSetting(QStringLiteral("%1connected").arg(player_prefix), player.connected, false);
+        WriteSetting(QStringLiteral("%1vibration_enabled").arg(player_prefix),
+                     player.vibration_enabled, true);
+        WriteSetting(QStringLiteral("%1vibration_strength").arg(player_prefix),
+                     player.vibration_strength, 100);
         WriteSetting(QStringLiteral("%1body_color_left").arg(player_prefix), player.body_color_left,
                      Settings::JOYCON_BODY_NEON_BLUE);
         WriteSetting(QStringLiteral("%1body_color_right").arg(player_prefix),
@@ -1150,6 +1164,8 @@ void Config::SaveControlValues() {
     WriteSettingGlobal(QStringLiteral("use_docked_mode"), Settings::values.use_docked_mode, false);
     WriteSettingGlobal(QStringLiteral("vibration_enabled"), Settings::values.vibration_enabled,
                        true);
+    WriteSettingGlobal(QStringLiteral("enable_accurate_vibrations"),
+                       Settings::values.enable_accurate_vibrations, false);
     WriteSettingGlobal(QStringLiteral("motion_enabled"), Settings::values.motion_enabled, true);
     WriteSetting(QStringLiteral("motion_device"),
                  QString::fromStdString(Settings::values.motion_device),

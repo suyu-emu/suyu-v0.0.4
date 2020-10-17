@@ -332,6 +332,9 @@ struct PlayerInput {
     AnalogsRaw analogs;
     MotionRaw motions;
 
+    bool vibration_enabled;
+    int vibration_strength;
+
     u32 body_color_left;
     u32 body_color_right;
     u32 button_color_left;

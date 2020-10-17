@@ -14,6 +14,7 @@
 #include "ui_controller.h"
 #include "yuzu/applets/controller.h"
 #include "yuzu/configuration/configure_input_dialog.h"
+#include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/main.h"
 
 namespace {
@@ -223,6 +224,9 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
         }
     }
 
+    connect(ui->vibrationButton, &QPushButton::clicked, this,
+            &QtControllerSelectorDialog::CallConfigureVibrationDialog);
+
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
             &QtControllerSelectorDialog::CallConfigureInputDialog);
 
@@ -283,6 +287,18 @@ void QtControllerSelectorDialog::LoadConfiguration() {
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
     ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
+}
+
+void QtControllerSelectorDialog::CallConfigureVibrationDialog() {
+    ConfigureVibration dialog(this);
+
+    dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
+                          Qt::WindowSystemMenuHint);
+    dialog.setWindowModality(Qt::WindowModal);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        dialog.ApplyConfiguration();
+    }
 }
 
 void QtControllerSelectorDialog::CallConfigureInputDialog() {

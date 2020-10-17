@@ -105,6 +105,9 @@ add_executable(yuzu
     configuration/configure_ui.cpp
     configuration/configure_ui.h
     configuration/configure_ui.ui
+    configuration/configure_vibration.cpp
+    configuration/configure_vibration.h
+    configuration/configure_vibration.ui
     configuration/configure_web.cpp
     configuration/configure_web.h
     configuration/configure_web.ui
