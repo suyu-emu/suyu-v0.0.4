@@ -333,15 +333,18 @@ const std::array<Common::SPSCQueue<UDPPadStatus>, 4>& Client::GetPadQueue() cons
 }
 
 void TestCommunication(const std::string& host, u16 port, std::size_t pad_index, u32 client_id,
-                       std::function<void()> success_callback,
-                       std::function<void()> failure_callback) {
+                       const std::function<void()>& success_callback,
+                       const std::function<void()>& failure_callback) {
     std::thread([=] {
         Common::Event success_event;
-        SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
-                                [&](Response::PadData data) { success_event.Set(); }};
+        SocketCallback callback{
+            .version = [](Response::Version) {},
+            .port_info = [](Response::PortInfo) {},
+            .pad_data = [&](Response::PadData) { success_event.Set(); },
+        };
         Socket socket{host, port, pad_index, client_id, std::move(callback)};
         std::thread worker_thread{SocketLoop, &socket};
-        bool result = success_event.WaitFor(std::chrono::seconds(8));
+        const bool result = success_event.WaitFor(std::chrono::seconds(8));
         socket.Stop();
         worker_thread.join();
         if (result) {
