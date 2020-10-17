@@ -454,6 +454,16 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
         {std::string("Boxcat-Client-Type"), std::string(BOXCAT_CLIENT_TYPE)},
     };
 
+    if (!client.is_valid()) {
+        LOG_ERROR(Service_BCAT, "Client is invalid, going offline!");
+        return StatusResult::Offline;
+    }
+
+    if (!client.is_socket_open()) {
+        LOG_ERROR(Service_BCAT, "Failed to open socket, going offline!");
+        return StatusResult::Offline;
+    }
+
     const auto response = client.Get(BOXCAT_PATHNAME_EVENTS, headers);
     if (response == nullptr)
         return StatusResult::Offline;
