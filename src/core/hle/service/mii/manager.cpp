@@ -131,7 +131,7 @@ template <typename T>
 T GetRandomValue(T min, T max) {
     std::random_device device;
     std::mt19937 gen(device());
-    std::uniform_int_distribution<u64> distribution(0, static_cast<u64>(max));
+    std::uniform_int_distribution<u64> distribution(static_cast<u64>(min), static_cast<u64>(max));
     return static_cast<T>(distribution(gen));
 }
 
