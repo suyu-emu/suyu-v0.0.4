@@ -261,12 +261,12 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         vertex_input_ci.pNext = &input_divisor_ci;
     }
 
-    const auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, dynamic.Topology());
+    const auto input_assembly_topology = MaxwellToVK::PrimitiveTopology(device, state.topology);
     const VkPipelineInputAssemblyStateCreateInfo input_assembly_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .topology = MaxwellToVK::PrimitiveTopology(device, dynamic.Topology()),
+        .topology = MaxwellToVK::PrimitiveTopology(device, state.topology),
         .primitiveRestartEnable = state.primitive_restart_enable != 0 &&
                                   SupportsPrimitiveRestart(input_assembly_topology),
     };
@@ -400,7 +400,6 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         static constexpr std::array extended{
             VK_DYNAMIC_STATE_CULL_MODE_EXT,
             VK_DYNAMIC_STATE_FRONT_FACE_EXT,
-            VK_DYNAMIC_STATE_PRIMITIVE_TOPOLOGY_EXT,
             VK_DYNAMIC_STATE_VERTEX_INPUT_BINDING_STRIDE_EXT,
             VK_DYNAMIC_STATE_DEPTH_TEST_ENABLE_EXT,
             VK_DYNAMIC_STATE_DEPTH_WRITE_ENABLE_EXT,

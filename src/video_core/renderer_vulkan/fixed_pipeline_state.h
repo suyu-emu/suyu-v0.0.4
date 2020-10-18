@@ -150,9 +150,8 @@ struct FixedPipelineState {
         };
         union {
             u32 raw2;
-            BitField<0, 4, u32> topology;
-            BitField<4, 2, u32> cull_face;
-            BitField<6, 1, u32> cull_enable;
+            BitField<0, 2, u32> cull_face;
+            BitField<2, 1, u32> cull_enable;
         };
         std::array<VertexBinding, Maxwell::NumVertexArrays> vertex_bindings;
 
@@ -168,10 +167,6 @@ struct FixedPipelineState {
 
         Maxwell::FrontFace FrontFace() const noexcept {
             return UnpackFrontFace(front_face.Value());
-        }
-
-        constexpr Maxwell::PrimitiveTopology Topology() const noexcept {
-            return static_cast<Maxwell::PrimitiveTopology>(topology.Value());
         }
     };
 
@@ -190,6 +185,7 @@ struct FixedPipelineState {
         BitField<18, 1, u32> logic_op_enable;
         BitField<19, 4, u32> logic_op;
         BitField<23, 1, u32> rasterize_enable;
+        BitField<24, 4, Maxwell::PrimitiveTopology> topology;
     };
     u32 point_size;
     std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
