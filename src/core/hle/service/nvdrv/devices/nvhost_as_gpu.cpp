@@ -46,6 +46,8 @@ u32 nvhost_as_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std:
         return GetVARegions(input, output);
     case IoctlCommand::IocUnmapBufferCommand:
         return UnmapBuffer(input, output);
+    case IoctlCommand::IocFreeSpaceCommand:
+        return FreeSpace(input, output);
     default:
         break;
     }
@@ -89,6 +91,20 @@ u32 nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& 
 
     std::memcpy(output.data(), &params, output.size());
     return result;
+}
+
+u32 nvhost_as_gpu::FreeSpace(const std::vector<u8>& input, std::vector<u8>& output) {
+    IoctlFreeSpace params{};
+    std::memcpy(&params, input.data(), input.size());
+
+    LOG_DEBUG(Service_NVDRV, "called, offset={:X}, pages={:X}, page_size={:X}", params.offset,
+              params.pages, params.page_size);
+
+    system.GPU().MemoryManager().Unmap(params.offset,
+                                       static_cast<std::size_t>(params.pages) * params.page_size);
+
+    std::memcpy(output.data(), &params, output.size());
+    return NvErrCodes::Success;
 }
 
 u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) {

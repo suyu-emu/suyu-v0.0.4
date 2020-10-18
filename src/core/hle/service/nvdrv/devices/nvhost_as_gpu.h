@@ -82,6 +82,7 @@ private:
         IocBindChannelCommand = 0x40044101,
         IocGetVaRegionsCommand = 0xC0404108,
         IocUnmapBufferCommand = 0xC0084105,
+        IocFreeSpaceCommand = 0xC0104103,
     };
 
     struct IoctlInitalizeEx {
@@ -106,6 +107,13 @@ private:
         };
     };
     static_assert(sizeof(IoctlAllocSpace) == 24, "IoctlInitalizeEx is incorrect size");
+
+    struct IoctlFreeSpace {
+        u64_le offset;
+        u32_le pages;
+        u32_le page_size;
+    };
+    static_assert(sizeof(IoctlFreeSpace) == 16, "IoctlFreeSpace is incorrect size");
 
     struct IoctlRemapEntry {
         u16_le flags;
@@ -162,6 +170,7 @@ private:
     u32 Remap(const std::vector<u8>& input, std::vector<u8>& output);
     u32 MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
     u32 UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 FreeSpace(const std::vector<u8>& input, std::vector<u8>& output);
     u32 BindChannel(const std::vector<u8>& input, std::vector<u8>& output);
     u32 GetVARegions(const std::vector<u8>& input, std::vector<u8>& output);
 
