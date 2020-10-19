@@ -1,9 +1,3 @@
-if (YUZU_ENABLE_BOXCAT)
-    set(BCAT_BOXCAT_ADDITIONAL_SOURCES hle/service/bcat/backend/boxcat.cpp hle/service/bcat/backend/boxcat.h)
-else()
-    set(BCAT_BOXCAT_ADDITIONAL_SOURCES)
-endif()
-
 add_library(core STATIC
     arm/arm_interface.h
     arm/arm_interface.cpp
@@ -303,7 +297,6 @@ add_library(core STATIC
     hle/service/audio/hwopus.h
     hle/service/bcat/backend/backend.cpp
     hle/service/bcat/backend/backend.h
-    ${BCAT_BOXCAT_ADDITIONAL_SOURCES}
     hle/service/bcat/bcat.cpp
     hle/service/bcat/bcat.h
     hle/service/bcat/module.cpp
@@ -607,6 +600,13 @@ add_library(core STATIC
     tools/freezer.cpp
     tools/freezer.h
 )
+
+if (YUZU_ENABLE_BOXCAT)
+    target_sources(core PRIVATE
+        hle/service/bcat/backend/boxcat.cpp
+        hle/service/bcat/backend/boxcat.h
+    )
+endif()
 
 if (MSVC)
     target_compile_options(core PRIVATE
