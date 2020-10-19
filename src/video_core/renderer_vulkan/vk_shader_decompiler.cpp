@@ -272,12 +272,19 @@ bool IsPrecise(Operation operand) {
     return false;
 }
 
+u32 ShaderVersion(const VKDevice& device) {
+    if (device.InstanceApiVersion() < VK_API_VERSION_1_1) {
+        return 0x00010000;
+    }
+    return 0x00010300;
+}
+
 class SPIRVDecompiler final : public Sirit::Module {
 public:
     explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
                              const Registry& registry, const Specialization& specialization)
-        : Module(0x00010300), device{device}, ir{ir}, stage{stage}, header{ir.GetHeader()},
-          registry{registry}, specialization{specialization} {
+        : Module(ShaderVersion(device)), device{device}, ir{ir}, stage{stage},
+          header{ir.GetHeader()}, registry{registry}, specialization{specialization} {
         if (stage != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
         }
@@ -293,6 +300,7 @@ public:
         AddCapability(spv::Capability::DrawParameters);
         AddCapability(spv::Capability::SubgroupBallotKHR);
         AddCapability(spv::Capability::SubgroupVoteKHR);
+        AddExtension("SPV_KHR_16bit_storage");
         AddExtension("SPV_KHR_shader_ballot");
         AddExtension("SPV_KHR_subgroup_vote");
         AddExtension("SPV_KHR_storage_buffer_storage_class");

@@ -564,7 +564,7 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
 
 public:
     /// Creates a Vulkan instance. Use "operator bool" for error handling.
-    static Instance Create(Span<const char*> layers, Span<const char*> extensions,
+    static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                            InstanceDispatch& dld) noexcept;
 
     /// Enumerates physical devices.
@@ -1089,6 +1089,8 @@ private:
     VkCommandBuffer handle;
     const DeviceDispatch* dld;
 };
+
+u32 AvailableVersion(const InstanceDispatch& dld) noexcept;
 
 std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
     const InstanceDispatch& dld);

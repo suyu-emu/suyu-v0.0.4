@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "common/common_types.h"
+#include "common/logging/log.h"
 
 #include "video_core/renderer_vulkan/wrapper.h"
 
@@ -415,18 +416,17 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
     return VK_SUCCESS;
 }
 
-Instance Instance::Create(Span<const char*> layers, Span<const char*> extensions,
+Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
                           InstanceDispatch& dld) noexcept {
-    static constexpr VkApplicationInfo application_info{
+    const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
         .pApplicationName = "yuzu Emulator",
         .applicationVersion = VK_MAKE_VERSION(0, 1, 0),
         .pEngineName = "yuzu Emulator",
         .engineVersion = VK_MAKE_VERSION(0, 1, 0),
-        .apiVersion = VK_API_VERSION_1_1,
+        .apiVersion = version,
     };
-
     const VkInstanceCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
         .pNext = nullptr,
@@ -816,6 +816,21 @@ VkPhysicalDeviceMemoryProperties PhysicalDevice::GetMemoryProperties() const noe
     VkPhysicalDeviceMemoryProperties properties;
     dld->vkGetPhysicalDeviceMemoryProperties(physical_device, &properties);
     return properties;
+}
+
+u32 AvailableVersion(const InstanceDispatch& dld) noexcept {
+    PFN_vkEnumerateInstanceVersion vkEnumerateInstanceVersion;
+    if (!Proc(vkEnumerateInstanceVersion, dld, "vkEnumerateInstanceVersion")) {
+        // If the procedure is not found, Vulkan 1.0 is assumed
+        return VK_API_VERSION_1_0;
+    }
+    u32 version;
+    if (const VkResult result = vkEnumerateInstanceVersion(&version); result != VK_SUCCESS) {
+        LOG_ERROR(Render_Vulkan, "vkEnumerateInstanceVersion returned {}, assuming Vulkan 1.1",
+                  ToString(result));
+        return VK_API_VERSION_1_1;
+    }
+    return version;
 }
 
 std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProperties(
