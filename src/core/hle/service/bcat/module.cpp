@@ -454,7 +454,8 @@ private:
         write_size = std::min<u64>(write_size, files.size());
         std::vector<DeliveryCacheDirectoryEntry> entries(write_size);
         std::transform(
-            files.begin(), files.begin() + write_size, entries.begin(), [](const auto& file) {
+            files.begin(), files.begin() + static_cast<s64>(write_size), entries.begin(),
+            [](const auto& file) {
                 FileName name{};
                 std::memcpy(name.data(), file->GetName().data(),
                             std::min(file->GetName().size(), name.size()));

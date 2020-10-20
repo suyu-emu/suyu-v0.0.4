@@ -35,10 +35,10 @@ public:
 
     void SetPC(u64 pc) override;
     u64 GetPC() const override;
-    u64 GetReg(int index) const override;
-    void SetReg(int index, u64 value) override;
-    u128 GetVectorReg(int index) const override;
-    void SetVectorReg(int index, u128 value) override;
+    u64 GetReg(std::size_t index) const override;
+    void SetReg(std::size_t index, u64 value) override;
+    u128 GetVectorReg(std::size_t index) const override;
+    void SetVectorReg(std::size_t index, u128 value) override;
     u32 GetPSTATE() const override;
     void SetPSTATE(u32 pstate) override;
     void Run() override;

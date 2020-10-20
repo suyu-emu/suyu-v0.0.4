@@ -470,7 +470,7 @@ public:
 
     bool InvokeHLECallback(std::shared_ptr<Thread> thread);
 
-    u32 GetIdealCore() const {
+    s32 GetIdealCore() const {
         return ideal_core;
     }
 
@@ -654,8 +654,8 @@ private:
 
     Scheduler* scheduler = nullptr;
 
-    u32 ideal_core{0xFFFFFFFF};
-    u64 affinity_mask{0x1};
+    s32 ideal_core = -1;
+    u64 affinity_mask = 1;
 
     s32 ideal_core_override = -1;
     u64 affinity_mask_override = 0x1;

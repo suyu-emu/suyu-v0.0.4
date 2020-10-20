@@ -63,8 +63,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::BadParameter;
     }
 
-    u32 event_id = params.value & 0x00FF;
-
+    const u32 event_id = params.value & 0x00FF;
     if (event_id >= MaxNvEvents) {
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::BadParameter;
@@ -78,16 +77,17 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         event.writable->Signal();
         return NvResult::Success;
     }
+
     auto lock = gpu.LockSync();
     const u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
-    const s32 diff = current_syncpoint_value - params.threshold;
+    const s32 diff = static_cast<s32>(current_syncpoint_value - params.threshold);
     if (diff >= 0) {
         event.writable->Signal();
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
     }
-    const u32 target_value = current_syncpoint_value - diff;
+    const u32 target_value = current_syncpoint_value - static_cast<u32>(diff);
 
     if (!is_async) {
         params.value = 0;
@@ -98,7 +98,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::Timeout;
     }
 
-    EventState status = events_interface.status[event_id];
+    const EventState status = events_interface.status[event_id];
     if (event_id < MaxNvEvents || status == EventState::Free || status == EventState::Registered) {
         events_interface.SetEventStatus(event_id, EventState::Waiting);
         events_interface.assigned_syncpt[event_id] = params.syncpt_id;
@@ -114,7 +114,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         if (!is_async && ctrl.fresh_call) {
             ctrl.must_delay = true;
             ctrl.timeout = params.timeout;
-            ctrl.event_id = event_id;
+            ctrl.event_id = static_cast<s32>(event_id);
             return NvResult::Timeout;
         }
         std::memcpy(output.data(), &params, sizeof(params));

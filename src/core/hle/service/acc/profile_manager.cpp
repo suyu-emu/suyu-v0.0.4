@@ -41,12 +41,15 @@ constexpr char ACC_SAVE_AVATORS_BASE_PATH[] = "/system/save/8000000000000010/su/
 ProfileManager::ProfileManager() {
     ParseUserSaveFile();
 
-    if (user_count == 0)
+    if (user_count == 0) {
         CreateNewUser(UUID::Generate(), "yuzu");
+    }
 
-    auto current = std::clamp<int>(Settings::values.current_user, 0, MAX_USERS - 1);
-    if (UserExistsIndex(current))
+    auto current = static_cast<size_t>(
+        std::clamp(Settings::values.current_user, 0, static_cast<s32>(MAX_USERS - 1)));
+    if (UserExistsIndex(current)) {
         current = 0;
+    }
 
     OpenUser(*GetUser(current));
 }
@@ -189,8 +192,8 @@ std::size_t ProfileManager::GetUserCount() const {
 /// booting
 
 std::size_t ProfileManager::GetOpenUserCount() const {
-    return std::count_if(profiles.begin(), profiles.end(),
-                         [](const ProfileInfo& p) { return p.is_open; });
+    return static_cast<std::size_t>(std::count_if(profiles.begin(), profiles.end(),
+                                                  [](const ProfileInfo& p) { return p.is_open; }));
 }
 
 /// Checks if a user id exists in our profile manager

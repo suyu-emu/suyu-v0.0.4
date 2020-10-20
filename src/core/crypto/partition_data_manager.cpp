@@ -161,7 +161,7 @@ static constexpr u8 CalculateMaxKeyblobSourceHash() {
         return true;
     };
 
-    for (s8 i = 0x1F; i >= 0; --i) {
+    for (std::size_t i = 0x1F; i <= 0x1F; --i) {
         if (!is_zero(keyblob_source_hashes[i])) {
             return static_cast<u8>(i + 1);
         }

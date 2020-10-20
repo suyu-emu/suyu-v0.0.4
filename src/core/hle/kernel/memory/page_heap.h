@@ -34,7 +34,9 @@ public:
 
     static constexpr s32 GetBlockIndex(std::size_t num_pages) {
         for (s32 i{static_cast<s32>(NumMemoryBlockPageShifts) - 1}; i >= 0; i--) {
-            if (num_pages >= (static_cast<std::size_t>(1) << MemoryBlockPageShifts[i]) / PageSize) {
+            const auto shift_index = static_cast<std::size_t>(i);
+            if (num_pages >=
+                (static_cast<std::size_t>(1) << MemoryBlockPageShifts[shift_index]) / PageSize) {
                 return i;
             }
         }
@@ -86,7 +88,7 @@ private:
 
                 // Set the bitmap pointers
                 for (s32 depth{GetHighestDepthIndex()}; depth >= 0; depth--) {
-                    bit_storages[depth] = storage;
+                    bit_storages[static_cast<std::size_t>(depth)] = storage;
                     size = Common::AlignUp(size, 64) / 64;
                     storage += size;
                 }
@@ -99,7 +101,7 @@ private:
                 s32 depth{};
 
                 do {
-                    const u64 v{bit_storages[depth][offset]};
+                    const u64 v{bit_storages[static_cast<std::size_t>(depth)][offset]};
                     if (v == 0) {
                         // Non-zero depth indicates that a previous level had a free block
                         ASSERT(depth == 0);
@@ -125,7 +127,7 @@ private:
             constexpr bool ClearRange(std::size_t offset, std::size_t count) {
                 const s32 depth{GetHighestDepthIndex()};
                 const auto bit_ind{offset / 64};
-                u64* bits{bit_storages[depth]};
+                u64* bits{bit_storages[static_cast<std::size_t>(depth)]};
                 if (count < 64) {
                     const auto shift{offset % 64};
                     ASSERT(shift + count <= 64);
@@ -177,11 +179,11 @@ private:
                     const auto which{offset % 64};
                     const u64 mask{1ULL << which};
 
-                    u64* bit{std::addressof(bit_storages[depth][ind])};
+                    u64* bit{std::addressof(bit_storages[static_cast<std::size_t>(depth)][ind])};
                     const u64 v{*bit};
                     ASSERT((v & mask) == 0);
                     *bit = v | mask;
-                    if (v) {
+                    if (v != 0) {
                         break;
                     }
                     offset = ind;
@@ -195,12 +197,12 @@ private:
                     const auto which{offset % 64};
                     const u64 mask{1ULL << which};
 
-                    u64* bit{std::addressof(bit_storages[depth][ind])};
+                    u64* bit{std::addressof(bit_storages[static_cast<std::size_t>(depth)][ind])};
                     u64 v{*bit};
                     ASSERT((v & mask) != 0);
                     v &= ~mask;
                     *bit = v;
-                    if (v) {
+                    if (v != 0) {
                         break;
                     }
                     offset = ind;

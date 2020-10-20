@@ -96,35 +96,35 @@ u64 ARM_Unicorn::GetPC() const {
     return val;
 }
 
-u64 ARM_Unicorn::GetReg(int regn) const {
+u64 ARM_Unicorn::GetReg(std::size_t index) const {
     u64 val{};
     auto treg = UC_ARM64_REG_SP;
-    if (regn <= 28) {
-        treg = (uc_arm64_reg)(UC_ARM64_REG_X0 + regn);
-    } else if (regn < 31) {
-        treg = (uc_arm64_reg)(UC_ARM64_REG_X29 + regn - 29);
+    if (index <= 28) {
+        treg = static_cast<uc_arm64_reg>(UC_ARM64_REG_X0 + static_cast<int>(index));
+    } else if (index < 31) {
+        treg = static_cast<uc_arm64_reg>(UC_ARM64_REG_X29 + static_cast<int>(index) - 29);
     }
     CHECKED(uc_reg_read(uc, treg, &val));
     return val;
 }
 
-void ARM_Unicorn::SetReg(int regn, u64 val) {
+void ARM_Unicorn::SetReg(std::size_t index, u64 value) {
     auto treg = UC_ARM64_REG_SP;
-    if (regn <= 28) {
-        treg = (uc_arm64_reg)(UC_ARM64_REG_X0 + regn);
-    } else if (regn < 31) {
-        treg = (uc_arm64_reg)(UC_ARM64_REG_X29 + regn - 29);
+    if (index <= 28) {
+        treg = static_cast<uc_arm64_reg>(UC_ARM64_REG_X0 + static_cast<int>(index));
+    } else if (index < 31) {
+        treg = static_cast<uc_arm64_reg>(UC_ARM64_REG_X29 + static_cast<int>(index) - 29);
     }
-    CHECKED(uc_reg_write(uc, treg, &val));
+    CHECKED(uc_reg_write(uc, treg, &value));
 }
 
-u128 ARM_Unicorn::GetVectorReg(int /*index*/) const {
+u128 ARM_Unicorn::GetVectorReg(std::size_t /*index*/) const {
     UNIMPLEMENTED();
     static constexpr u128 res{};
     return res;
 }
 
-void ARM_Unicorn::SetVectorReg(int /*index*/, u128 /*value*/) {
+void ARM_Unicorn::SetVectorReg(std::size_t /*index*/, u128 /*value*/) {
     UNIMPLEMENTED();
 }
 
@@ -217,8 +217,8 @@ void ARM_Unicorn::SaveContext(ThreadContext64& ctx) {
     CHECKED(uc_reg_read(uc, UC_ARM64_REG_PC, &ctx.pc));
     CHECKED(uc_reg_read(uc, UC_ARM64_REG_NZCV, &ctx.pstate));
 
-    for (auto i = 0; i < 29; ++i) {
-        uregs[i] = UC_ARM64_REG_X0 + i;
+    for (std::size_t i = 0; i < 29; ++i) {
+        uregs[i] = UC_ARM64_REG_X0 + static_cast<int>(i);
         tregs[i] = &ctx.cpu_registers[i];
     }
     uregs[29] = UC_ARM64_REG_X29;
@@ -228,8 +228,8 @@ void ARM_Unicorn::SaveContext(ThreadContext64& ctx) {
 
     CHECKED(uc_reg_read_batch(uc, uregs, tregs, 31));
 
-    for (int i = 0; i < 32; ++i) {
-        uregs[i] = UC_ARM64_REG_Q0 + i;
+    for (std::size_t i = 0; i < 32; ++i) {
+        uregs[i] = UC_ARM64_REG_Q0 + static_cast<int>(i);
         tregs[i] = &ctx.vector_registers[i];
     }
 
@@ -244,8 +244,8 @@ void ARM_Unicorn::LoadContext(const ThreadContext64& ctx) {
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_PC, &ctx.pc));
     CHECKED(uc_reg_write(uc, UC_ARM64_REG_NZCV, &ctx.pstate));
 
-    for (int i = 0; i < 29; ++i) {
-        uregs[i] = UC_ARM64_REG_X0 + i;
+    for (std::size_t i = 0; i < 29; ++i) {
+        uregs[i] = UC_ARM64_REG_X0 + static_cast<int>(i);
         tregs[i] = (void*)&ctx.cpu_registers[i];
     }
     uregs[29] = UC_ARM64_REG_X29;
@@ -255,8 +255,8 @@ void ARM_Unicorn::LoadContext(const ThreadContext64& ctx) {
 
     CHECKED(uc_reg_write_batch(uc, uregs, tregs, 31));
 
-    for (auto i = 0; i < 32; ++i) {
-        uregs[i] = UC_ARM64_REG_Q0 + i;
+    for (std::size_t i = 0; i < 32; ++i) {
+        uregs[i] = UC_ARM64_REG_Q0 + static_cast<int>(i);
         tregs[i] = (void*)&ctx.vector_registers[i];
     }
 

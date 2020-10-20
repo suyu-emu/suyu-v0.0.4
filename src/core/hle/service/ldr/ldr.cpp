@@ -23,7 +23,7 @@ namespace Service::LDR {
 
 constexpr ResultCode ERROR_INSUFFICIENT_ADDRESS_SPACE{ErrorModule::RO, 2};
 
-constexpr ResultCode ERROR_INVALID_MEMORY_STATE{ErrorModule::Loader, 51};
+[[maybe_unused]] constexpr ResultCode ERROR_INVALID_MEMORY_STATE{ErrorModule::Loader, 51};
 constexpr ResultCode ERROR_INVALID_NRO{ErrorModule::Loader, 52};
 constexpr ResultCode ERROR_INVALID_NRR{ErrorModule::Loader, 53};
 constexpr ResultCode ERROR_MISSING_NRR_HASH{ErrorModule::Loader, 54};
@@ -33,7 +33,7 @@ constexpr ResultCode ERROR_ALREADY_LOADED{ErrorModule::Loader, 57};
 constexpr ResultCode ERROR_INVALID_ALIGNMENT{ErrorModule::Loader, 81};
 constexpr ResultCode ERROR_INVALID_SIZE{ErrorModule::Loader, 82};
 constexpr ResultCode ERROR_INVALID_NRO_ADDRESS{ErrorModule::Loader, 84};
-constexpr ResultCode ERROR_INVALID_NRR_ADDRESS{ErrorModule::Loader, 85};
+[[maybe_unused]] constexpr ResultCode ERROR_INVALID_NRR_ADDRESS{ErrorModule::Loader, 85};
 constexpr ResultCode ERROR_NOT_INITIALIZED{ErrorModule::Loader, 87};
 
 constexpr std::size_t MAXIMUM_LOADED_RO{0x40};

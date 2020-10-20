@@ -140,7 +140,8 @@ void CoreTiming::AddTicks(u64 ticks) {
 void CoreTiming::Idle() {
     if (!event_queue.empty()) {
         const u64 next_event_time = event_queue.front().time;
-        const u64 next_ticks = nsToCycles(std::chrono::nanoseconds(next_event_time)) + 10U;
+        const u64 next_ticks =
+            static_cast<u64>(nsToCycles(std::chrono::nanoseconds(next_event_time))) + 10;
         if (next_ticks > ticks) {
             ticks = next_ticks;
         }
@@ -187,7 +188,7 @@ void CoreTiming::RemoveEvent(const std::shared_ptr<EventType>& event_type) {
 
 std::optional<s64> CoreTiming::Advance() {
     std::scoped_lock lock{advance_lock, basic_lock};
-    global_timer = GetGlobalTimeNs().count();
+    global_timer = static_cast<u64>(GetGlobalTimeNs().count());
 
     while (!event_queue.empty() && event_queue.front().time <= global_timer) {
         Event evt = std::move(event_queue.front());
@@ -201,11 +202,11 @@ std::optional<s64> CoreTiming::Advance() {
         }
 
         basic_lock.lock();
-        global_timer = GetGlobalTimeNs().count();
+        global_timer = static_cast<u64>(GetGlobalTimeNs().count());
     }
 
     if (!event_queue.empty()) {
-        const s64 next_time = event_queue.front().time - global_timer;
+        const auto next_time = static_cast<s64>(event_queue.front().time - global_timer);
         return next_time;
     } else {
         return std::nullopt;
@@ -240,14 +241,14 @@ std::chrono::nanoseconds CoreTiming::GetGlobalTimeNs() const {
     if (is_multicore) {
         return clock->GetTimeNS();
     }
-    return CyclesToNs(ticks);
+    return CyclesToNs(static_cast<s64>(ticks));
 }
 
 std::chrono::microseconds CoreTiming::GetGlobalTimeUs() const {
     if (is_multicore) {
         return clock->GetTimeUS();
     }
-    return CyclesToUs(ticks);
+    return CyclesToUs(static_cast<s64>(ticks));
 }
 
 } // namespace Core::Timing

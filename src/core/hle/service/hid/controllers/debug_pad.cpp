@@ -23,7 +23,7 @@ void Controller_DebugPad::OnRelease() {}
 
 void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                    std::size_t size) {
-    shared_memory.header.timestamp = core_timing.GetCPUTicks();
+    shared_memory.header.timestamp = static_cast<s64>(core_timing.GetCPUTicks());
     shared_memory.header.total_entry_count = 17;
 
     if (!IsControllerActivated()) {
@@ -33,9 +33,11 @@ void Controller_DebugPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, 
     }
     shared_memory.header.entry_count = 16;
 
-    const auto& last_entry = shared_memory.pad_states[shared_memory.header.last_entry_index];
+    const auto& last_entry =
+        shared_memory.pad_states[static_cast<u64>(shared_memory.header.last_entry_index)];
     shared_memory.header.last_entry_index = (shared_memory.header.last_entry_index + 1) % 17;
-    auto& cur_entry = shared_memory.pad_states[shared_memory.header.last_entry_index];
+    auto& cur_entry =
+        shared_memory.pad_states[static_cast<u64>(shared_memory.header.last_entry_index)];
 
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;

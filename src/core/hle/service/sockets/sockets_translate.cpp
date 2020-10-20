@@ -64,6 +64,7 @@ Network::Type Translate(Type type) {
         return Network::Type::DGRAM;
     default:
         UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        return {};
     }
 }
 

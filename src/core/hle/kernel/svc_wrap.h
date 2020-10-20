@@ -11,11 +11,11 @@
 
 namespace Kernel {
 
-static inline u64 Param(const Core::System& system, int n) {
+static inline u64 Param(const Core::System& system, std::size_t n) {
     return system.CurrentArmInterface().GetReg(n);
 }
 
-static inline u32 Param32(const Core::System& system, int n) {
+static inline u32 Param32(const Core::System& system, std::size_t n) {
     return static_cast<u32>(system.CurrentArmInterface().GetReg(n));
 }
 
@@ -29,7 +29,7 @@ static inline void FuncReturn(Core::System& system, u64 result) {
 }
 
 static inline void FuncReturn32(Core::System& system, u32 result) {
-    system.CurrentArmInterface().SetReg(0, (u64)result);
+    system.CurrentArmInterface().SetReg(0, static_cast<u64>(result));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -386,9 +386,10 @@ template <ResultCode func(Core::System&, Handle*, u32, u32, u32, u32, s32)>
 void SvcWrap32(Core::System& system) {
     Handle param_1 = 0;
 
-    const u32 retval = func(system, &param_1, Param32(system, 0), Param32(system, 1),
-                            Param32(system, 2), Param32(system, 3), Param32(system, 4))
-                           .raw;
+    const u32 retval =
+        func(system, &param_1, Param32(system, 0), Param32(system, 1), Param32(system, 2),
+             Param32(system, 3), static_cast<s32>(Param32(system, 4)))
+            .raw;
 
     system.CurrentArmInterface().SetReg(1, param_1);
     FuncReturn(system, retval);
@@ -542,8 +543,8 @@ void SvcWrap32(Core::System& system) {
 template <ResultCode func(Core::System&, u32, u32, s32, u32, Handle*)>
 void SvcWrap32(Core::System& system) {
     u32 param_1 = 0;
-    const u32 retval = func(system, Param32(system, 0), Param32(system, 1), Param32(system, 2),
-                            Param32(system, 3), &param_1)
+    const u32 retval = func(system, Param32(system, 0), Param32(system, 1),
+                            static_cast<s32>(Param32(system, 2)), Param32(system, 3), &param_1)
                            .raw;
     system.CurrentArmInterface().SetReg(1, param_1);
     FuncReturn(system, retval);

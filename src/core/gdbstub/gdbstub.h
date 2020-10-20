@@ -110,5 +110,5 @@ void SetCpuStepFlag(bool is_step);
  * @param thread Sending thread.
  * @param trap Trap no.
  */
-void SendTrap(Kernel::Thread* thread, int trap);
+void SendTrap(Kernel::Thread* thread, u32 trap);
 } // namespace GDBStub

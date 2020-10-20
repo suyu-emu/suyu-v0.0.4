@@ -414,7 +414,8 @@ ResultCode PageTable::MapPhysicalMemory(VAddr addr, std::size_t size) {
     const std::size_t remaining_pages{remaining_size / PageSize};
 
     if (process->GetResourceLimit() &&
-        !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory, remaining_size)) {
+        !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory,
+                                              static_cast<s64>(remaining_size))) {
         return ERR_RESOURCE_LIMIT_EXCEEDED;
     }
 
@@ -778,7 +779,8 @@ ResultVal<VAddr> PageTable::SetHeapSize(std::size_t size) {
 
         auto process{system.Kernel().CurrentProcess()};
         if (process->GetResourceLimit() && delta != 0 &&
-            !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory, delta)) {
+            !process->GetResourceLimit()->Reserve(ResourceType::PhysicalMemory,
+                                                  static_cast<s64>(delta))) {
             return ERR_RESOURCE_LIMIT_EXCEEDED;
         }
 

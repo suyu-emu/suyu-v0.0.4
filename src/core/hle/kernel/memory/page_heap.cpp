@@ -33,11 +33,12 @@ void PageHeap::Initialize(VAddr address, std::size_t size, std::size_t metadata_
 }
 
 VAddr PageHeap::AllocateBlock(s32 index) {
-    const std::size_t needed_size{blocks[index].GetSize()};
+    const auto u_index = static_cast<std::size_t>(index);
+    const auto needed_size{blocks[u_index].GetSize()};
 
-    for (s32 i{index}; i < static_cast<s32>(MemoryBlockPageShifts.size()); i++) {
-        if (const VAddr addr{blocks[i].PopBlock()}; addr) {
-            if (const std::size_t allocated_size{blocks[i].GetSize()};
+    for (auto i = u_index; i < MemoryBlockPageShifts.size(); i++) {
+        if (const VAddr addr = blocks[i].PopBlock(); addr != 0) {
+            if (const std::size_t allocated_size = blocks[i].GetSize();
                 allocated_size > needed_size) {
                 Free(addr + needed_size, (allocated_size - needed_size) / PageSize);
             }
@@ -50,7 +51,7 @@ VAddr PageHeap::AllocateBlock(s32 index) {
 
 void PageHeap::FreeBlock(VAddr block, s32 index) {
     do {
-        block = blocks[index++].PushBlock(block);
+        block = blocks[static_cast<std::size_t>(index++)].PushBlock(block);
     } while (block != 0);
 }
 
@@ -69,7 +70,7 @@ void PageHeap::Free(VAddr addr, std::size_t num_pages) {
     VAddr after_start{end};
     VAddr after_end{end};
     while (big_index >= 0) {
-        const std::size_t block_size{blocks[big_index].GetSize()};
+        const std::size_t block_size{blocks[static_cast<std::size_t>(big_index)].GetSize()};
         const VAddr big_start{Common::AlignUp((start), block_size)};
         const VAddr big_end{Common::AlignDown((end), block_size)};
         if (big_start < big_end) {
@@ -87,7 +88,7 @@ void PageHeap::Free(VAddr addr, std::size_t num_pages) {
 
     // Free space before the big blocks
     for (s32 i{big_index - 1}; i >= 0; i--) {
-        const std::size_t block_size{blocks[i].GetSize()};
+        const std::size_t block_size{blocks[static_cast<size_t>(i)].GetSize()};
         while (before_start + block_size <= before_end) {
             before_end -= block_size;
             FreeBlock(before_end, i);
@@ -96,7 +97,7 @@ void PageHeap::Free(VAddr addr, std::size_t num_pages) {
 
     // Free space after the big blocks
     for (s32 i{big_index - 1}; i >= 0; i--) {
-        const std::size_t block_size{blocks[i].GetSize()};
+        const std::size_t block_size{blocks[static_cast<size_t>(i)].GetSize()};
         while (after_start + block_size <= after_end) {
             FreeBlock(after_start, i);
             after_start += block_size;

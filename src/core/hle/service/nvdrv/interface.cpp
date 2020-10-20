@@ -61,9 +61,9 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
     if (ctrl.must_delay) {
         ctrl.fresh_call = false;
         ctx.SleepClientThread(
-            "NVServices::DelayedResponse", ctrl.timeout,
-            [=, this](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx_,
-                      Kernel::ThreadWakeupReason reason) {
+            "NVServices::DelayedResponse", static_cast<u64>(ctrl.timeout),
+            [=, this](std::shared_ptr<Kernel::Thread>, Kernel::HLERequestContext& ctx_,
+                      Kernel::ThreadWakeupReason) {
                 IoctlCtrl ctrl2{ctrl};
                 std::vector<u8> tmp_output = output;
                 std::vector<u8> tmp_output2 = output2;
@@ -77,7 +77,7 @@ void NVDRV::IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version) {
                 rb.Push(RESULT_SUCCESS);
                 rb.Push(ioctl_result);
             },
-            nvdrv->GetEventWriteable(ctrl.event_id));
+            nvdrv->GetEventWriteable(static_cast<u32>(ctrl.event_id)));
     } else {
         ctx.WriteBuffer(output);
         if (version == IoctlVersion::Version3) {

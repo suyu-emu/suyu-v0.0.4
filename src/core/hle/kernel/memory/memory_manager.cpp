@@ -71,7 +71,7 @@ VAddr MemoryManager::AllocateContinuous(std::size_t num_pages, std::size_t align
     }
 
     // If we allocated more than we need, free some
-    const auto allocated_pages{PageHeap::GetBlockNumPages(heap_index)};
+    const auto allocated_pages{PageHeap::GetBlockNumPages(static_cast<u32>(heap_index))};
     if (allocated_pages > num_pages) {
         chosen_manager.Free(allocated_block + num_pages * PageSize, allocated_pages - num_pages);
     }
@@ -112,7 +112,7 @@ ResultCode MemoryManager::Allocate(PageLinkedList& page_list, std::size_t num_pa
 
     // Keep allocating until we've allocated all our pages
     for (s32 index{heap_index}; index >= 0 && num_pages > 0; index--) {
-        const auto pages_per_alloc{PageHeap::GetBlockNumPages(index)};
+        const auto pages_per_alloc{PageHeap::GetBlockNumPages(static_cast<u32>(index))};
 
         while (num_pages >= pages_per_alloc) {
             // Allocate a block

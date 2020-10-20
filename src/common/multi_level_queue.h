@@ -320,7 +320,7 @@ private:
         }
 
         const auto begin_range = list.begin();
-        const auto end_range = std::next(begin_range, shift);
+        const auto end_range = std::next(begin_range, static_cast<std::ptrdiff_t>(shift));
         list.splice(list.end(), list, begin_range, end_range);
     }
 
