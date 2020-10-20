@@ -128,8 +128,11 @@ private:
     void GetAppletInfo(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_NIFM, "(STUBBED) called");
 
-        IPC::ResponseBuilder rb{ctx, 2};
+        IPC::ResponseBuilder rb{ctx, 8};
         rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(0);
+        rb.Push<u32>(0);
+        rb.Push<u32>(0);
     }
 
     Kernel::EventPair event1, event2;
