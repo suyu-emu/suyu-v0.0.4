@@ -22,6 +22,7 @@
 #include "ui_configure_input_player.h"
 #include "yuzu/configuration/config.h"
 #include "yuzu/configuration/configure_input_player.h"
+#include "yuzu/configuration/configure_vibration.h"
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/util/limitable_input_dialog.h"
 
@@ -39,6 +40,10 @@ namespace {
 
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
                       bool connected) {
+    auto& player = Settings::values.players.GetValue()[npad_index];
+    player.controller_type = controller_type;
+    player.connected = connected;
+
     Core::System& system{Core::System::GetInstance()};
     if (!system.IsPoweredOn()) {
         return;
@@ -564,6 +569,8 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     player.controller_type =
         static_cast<Settings::ControllerType>(ui->comboControllerType->currentIndex());
     player.connected = ui->groupConnectedController->isChecked();
+
+    ConfigureVibration::SetVibrationDevices(player_index);
 
     // Player 2-8
     if (player_index != 0) {

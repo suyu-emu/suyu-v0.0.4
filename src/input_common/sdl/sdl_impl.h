@@ -22,6 +22,7 @@ namespace InputCommon::SDL {
 class SDLAnalogFactory;
 class SDLButtonFactory;
 class SDLMotionFactory;
+class SDLVibrationFactory;
 class SDLJoystick;
 
 class SDLState : public State {
@@ -72,6 +73,7 @@ private:
 
     std::shared_ptr<SDLButtonFactory> button_factory;
     std::shared_ptr<SDLAnalogFactory> analog_factory;
+    std::shared_ptr<SDLVibrationFactory> vibration_factory;
     std::shared_ptr<SDLMotionFactory> motion_factory;
 
     bool start_thread = false;

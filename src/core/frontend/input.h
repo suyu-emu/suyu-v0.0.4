@@ -122,6 +122,13 @@ using ButtonDevice = InputDevice<bool>;
 using AnalogDevice = InputDevice<std::tuple<float, float>>;
 
 /**
+ * A vibration device is an input device that returns an unsigned byte as status.
+ * It represents whether the vibration device supports vibration or not.
+ * If the status returns 1, it supports vibration. Otherwise, it does not support vibration.
+ */
+using VibrationDevice = InputDevice<u8>;
+
+/**
  * A motion status is an object that returns a tuple of accelerometer state vector,
  * gyroscope state vector, rotation state vector and orientation state matrix.
  *

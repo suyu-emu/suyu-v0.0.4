@@ -998,6 +998,7 @@ void Hid::GetVibrationDeviceInfo(Kernel::HLERequestContext& ctx) {
         break;
     case Controller_NPad::DeviceIndex::None:
     default:
+        UNREACHABLE_MSG("DeviceIndex should never be None!");
         vibration_device_info.position = VibrationDevicePosition::None;
         break;
     }

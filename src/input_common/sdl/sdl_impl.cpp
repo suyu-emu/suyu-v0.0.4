@@ -85,16 +85,17 @@ public:
         using std::chrono::milliseconds;
         using std::chrono::steady_clock;
 
-        // Prevent vibrations less than 10ms apart from each other.
-        if (duration_cast<milliseconds>(steady_clock::now() - last_vibration) < milliseconds(10)) {
+        // Block non-zero vibrations less than 10ms apart from each other.
+        if ((amp_low != 0 || amp_high != 0) &&
+            duration_cast<milliseconds>(steady_clock::now() - last_vibration) < milliseconds(10)) {
             return false;
-        };
+        }
 
         last_vibration = steady_clock::now();
 
-        if (sdl_controller != nullptr) {
+        if (sdl_controller) {
             return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high, 0) == 0;
-        } else if (sdl_joystick != nullptr) {
+        } else if (sdl_joystick) {
             return SDL_JoystickRumble(sdl_joystick.get(), amp_low, amp_high, 0) == 0;
         }
 
@@ -321,14 +322,6 @@ public:
         return joystick->GetButton(button);
     }
 
-    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
-        const u16 processed_amp_low =
-            static_cast<u16>(pow(amp_low, 0.5f) * (3.0f - 2.0f * pow(amp_low, 0.15f)) * 0xFFFF);
-        const u16 processed_amp_high =
-            static_cast<u16>(pow(amp_high, 0.5f) * (3.0f - 2.0f * pow(amp_high, 0.15f)) * 0xFFFF);
-        return joystick->RumblePlay(processed_amp_low, processed_amp_high);
-    }
-
 private:
     std::shared_ptr<SDLJoystick> joystick;
     int button;
@@ -410,6 +403,32 @@ private:
     const int axis_y;
     const float deadzone;
     const float range;
+};
+
+class SDLVibration final : public Input::VibrationDevice {
+public:
+    explicit SDLVibration(std::shared_ptr<SDLJoystick> joystick_)
+        : joystick(std::move(joystick_)) {}
+
+    u8 GetStatus() const override {
+        joystick->RumblePlay(1, 1);
+        return joystick->RumblePlay(0, 0);
+    }
+
+    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
+        const auto process_amplitude = [](f32 amplitude) {
+            return static_cast<u16>(std::pow(amplitude, 0.5f) *
+                                    (3.0f - 2.0f * std::pow(amplitude, 0.15f)) * 0xFFFF);
+        };
+
+        const auto processed_amp_low = process_amplitude(amp_low);
+        const auto processed_amp_high = process_amplitude(amp_high);
+
+        return joystick->RumblePlay(processed_amp_low, processed_amp_high);
+    }
+
+private:
+    std::shared_ptr<SDLJoystick> joystick;
 };
 
 class SDLDirectionMotion final : public Input::MotionDevice {
@@ -554,7 +573,7 @@ class SDLAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
     explicit SDLAnalogFactory(SDLState& state_) : state(state_) {}
     /**
-     * Creates analog device from joystick axes
+     * Creates an analog device from joystick axes
      * @param params contains parameters for creating the device:
      *     - "guid": the guid of the joystick to bind
      *     - "port": the nth joystick of the same type
@@ -574,6 +593,26 @@ public:
         joystick->SetAxis(axis_x, 0);
         joystick->SetAxis(axis_y, 0);
         return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, deadzone, range);
+    }
+
+private:
+    SDLState& state;
+};
+
+/// An vibration device factory that creates vibration devices from SDL joystick
+class SDLVibrationFactory final : public Input::Factory<Input::VibrationDevice> {
+public:
+    explicit SDLVibrationFactory(SDLState& state_) : state(state_) {}
+    /**
+     * Creates a vibration device from a joystick
+     * @param params contains parameters for creating the device:
+     *     - "guid": the guid of the joystick to bind
+     *     - "port": the nth joystick of the same type
+     */
+    std::unique_ptr<Input::VibrationDevice> Create(const Common::ParamPackage& params) override {
+        const std::string guid = params.Get("guid", "0");
+        const int port = params.Get("port", 0);
+        return std::make_unique<SDLVibration>(state.GetSDLJoystickByGUID(guid, port));
     }
 
 private:
@@ -646,11 +685,13 @@ private:
 
 SDLState::SDLState() {
     using namespace Input;
-    analog_factory = std::make_shared<SDLAnalogFactory>(*this);
     button_factory = std::make_shared<SDLButtonFactory>(*this);
+    analog_factory = std::make_shared<SDLAnalogFactory>(*this);
+    vibration_factory = std::make_shared<SDLVibrationFactory>(*this);
     motion_factory = std::make_shared<SDLMotionFactory>(*this);
-    RegisterFactory<AnalogDevice>("sdl", analog_factory);
     RegisterFactory<ButtonDevice>("sdl", button_factory);
+    RegisterFactory<AnalogDevice>("sdl", analog_factory);
+    RegisterFactory<VibrationDevice>("sdl", vibration_factory);
     RegisterFactory<MotionDevice>("sdl", motion_factory);
 
     // If the frontend is going to manage the event loop, then we don't start one here
@@ -687,6 +728,7 @@ SDLState::~SDLState() {
     using namespace Input;
     UnregisterFactory<ButtonDevice>("sdl");
     UnregisterFactory<AnalogDevice>("sdl");
+    UnregisterFactory<VibrationDevice>("sdl");
     UnregisterFactory<MotionDevice>("sdl");
 
     CloseJoysticks();

@@ -24,6 +24,9 @@ public:
 
     void ApplyConfiguration();
 
+    static void SetVibrationDevices(std::size_t player_index);
+    static void SetAllVibrationDevices();
+
 private:
     void changeEvent(QEvent* event) override;
     void RetranslateUI();

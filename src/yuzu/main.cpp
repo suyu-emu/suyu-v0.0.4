@@ -18,6 +18,7 @@
 #include "applets/web_browser.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
+#include "configuration/configure_vibration.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/frontend/applets/controller.h"
@@ -1095,6 +1096,8 @@ void GMainWindow::BootGame(const QString& filename) {
         // Load per game settings
         Config per_game_config(fmt::format("{:016X}", title_id), Config::ConfigType::PerGameConfig);
     }
+
+    ConfigureVibration::SetAllVibrationDevices();
 
     Settings::LogSettings();
 

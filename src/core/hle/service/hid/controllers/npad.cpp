@@ -271,6 +271,10 @@ void Controller_NPad::OnLoadInputDevices() {
         std::transform(players[i].analogs.begin() + Settings::NativeAnalog::STICK_HID_BEGIN,
                        players[i].analogs.begin() + Settings::NativeAnalog::STICK_HID_END,
                        sticks[i].begin(), Input::CreateDevice<Input::AnalogDevice>);
+        std::transform(players[i].vibrations.begin() +
+                           Settings::NativeVibration::VIBRATION_HID_BEGIN,
+                       players[i].vibrations.begin() + Settings::NativeVibration::VIBRATION_HID_END,
+                       vibrations[i].begin(), Input::CreateDevice<Input::VibrationDevice>);
         std::transform(players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                        players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_END,
                        motions[i].begin(), Input::CreateDevice<Input::MotionDevice>);
@@ -278,8 +282,10 @@ void Controller_NPad::OnLoadInputDevices() {
 }
 
 void Controller_NPad::OnRelease() {
-    for (std::size_t index = 0; index < connected_controllers.size(); ++index) {
-        VibrateControllerAtIndex(index, {});
+    for (std::size_t npad_idx = 0; npad_idx < vibrations.size(); ++npad_idx) {
+        for (std::size_t device_idx = 0; device_idx < vibrations[npad_idx].size(); ++device_idx) {
+            VibrateControllerAtIndex(npad_idx, device_idx);
+        }
     }
 }
 
@@ -674,9 +680,9 @@ void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) 
     }
 }
 
-bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index,
+bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size_t device_index,
                                                const VibrationValue& vibration_value) {
-    if (!connected_controllers[npad_index].is_connected) {
+    if (!connected_controllers[npad_index].is_connected || !vibrations[npad_index][device_index]) {
         return false;
     }
 
@@ -686,10 +692,7 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index,
         return false;
     }
 
-    using namespace Settings::NativeButton;
-    const auto& button_state = buttons[npad_index];
-
-    return button_state[A - BUTTON_HID_BEGIN]->SetRumblePlay(
+    return vibrations[npad_index][device_index]->SetRumblePlay(
         std::min(vibration_value.amp_low * player.vibration_strength / 100.0f, 1.0f),
         vibration_value.freq_low,
         std::min(vibration_value.amp_high * player.vibration_strength / 100.0f, 1.0f),
@@ -714,6 +717,11 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
             static_cast<std::size_t>(vibration_device_handles[i].device_index);
 
         if (!connected_controllers[npad_index].is_connected) {
+            continue;
+        }
+
+        if (vibration_device_handles[i].device_index == DeviceIndex::None) {
+            UNREACHABLE_MSG("DeviceIndex should never be None!");
             continue;
         }
 
@@ -747,28 +755,8 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
             continue;
         }
 
-        // TODO: Vibrate left/right vibration motors independently if possible.
-        if (VibrateControllerAtIndex(npad_index, vibration_values[i])) {
-            switch (connected_controllers[npad_index].type) {
-            case NPadControllerType::None:
-                UNREACHABLE();
-                break;
-            case NPadControllerType::ProController:
-            case NPadControllerType::Handheld:
-            case NPadControllerType::JoyDual:
-                // Since we can't vibrate motors independently yet, we can reduce state changes by
-                // assigning all 3 device indices the current vibration value.
-                latest_vibration_values[npad_index][0] = vibration_values[i];
-                latest_vibration_values[npad_index][1] = vibration_values[i];
-                latest_vibration_values[npad_index][2] = vibration_values[i];
-                break;
-            case NPadControllerType::JoyLeft:
-            case NPadControllerType::JoyRight:
-            case NPadControllerType::Pokeball:
-            default:
-                latest_vibration_values[npad_index][device_index] = vibration_values[i];
-                break;
-            }
+        if (VibrateControllerAtIndex(npad_index, device_index, vibration_values[i])) {
+            latest_vibration_values[npad_index][device_index] = vibration_values[i];
         }
     }
 }

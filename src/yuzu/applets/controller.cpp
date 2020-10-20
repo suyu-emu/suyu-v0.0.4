@@ -478,6 +478,8 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
         return;
     }
 
+    ConfigureVibration::SetVibrationDevices(player_index);
+
     // Player 1 and Handheld
     auto& handheld = Settings::values.players.GetValue()[8];
     // If Handheld is selected, copy all the settings from Player 1 to Handheld.

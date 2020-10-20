@@ -28,6 +28,8 @@ struct InputSubsystem::Impl {
         Input::RegisterFactory<Input::ButtonDevice>("gcpad", gcbuttons);
         gcanalog = std::make_shared<GCAnalogFactory>(gcadapter);
         Input::RegisterFactory<Input::AnalogDevice>("gcpad", gcanalog);
+        gcvibration = std::make_shared<GCVibrationFactory>(gcadapter);
+        Input::RegisterFactory<Input::VibrationDevice>("gcpad", gcvibration);
 
         keyboard = std::make_shared<Keyboard>();
         Input::RegisterFactory<Input::ButtonDevice>("keyboard", keyboard);
@@ -64,9 +66,11 @@ struct InputSubsystem::Impl {
 #endif
         Input::UnregisterFactory<Input::ButtonDevice>("gcpad");
         Input::UnregisterFactory<Input::AnalogDevice>("gcpad");
+        Input::UnregisterFactory<Input::VibrationDevice>("gcpad");
 
         gcbuttons.reset();
         gcanalog.reset();
+        gcvibration.reset();
 
         Input::UnregisterFactory<Input::MotionDevice>("cemuhookudp");
         Input::UnregisterFactory<Input::TouchDevice>("cemuhookudp");
@@ -142,6 +146,7 @@ struct InputSubsystem::Impl {
 #endif
     std::shared_ptr<GCButtonFactory> gcbuttons;
     std::shared_ptr<GCAnalogFactory> gcanalog;
+    std::shared_ptr<GCVibrationFactory> gcvibration;
     std::shared_ptr<UDPMotionFactory> udpmotion;
     std::shared_ptr<UDPTouchFactory> udptouch;
     std::shared_ptr<CemuhookUDP::Client> udp;

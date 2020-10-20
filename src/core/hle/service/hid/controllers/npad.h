@@ -148,7 +148,8 @@ public:
 
     void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
-    bool VibrateControllerAtIndex(std::size_t npad_index, const VibrationValue& vibration_value);
+    bool VibrateControllerAtIndex(std::size_t npad_index, std::size_t device_index,
+                                  const VibrationValue& vibration_value = {});
 
     void VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
                             const std::vector<VibrationValue>& vibration_values);
@@ -399,18 +400,22 @@ private:
     using StickArray = std::array<
         std::array<std::unique_ptr<Input::AnalogDevice>, Settings::NativeAnalog::NUM_STICKS_HID>,
         10>;
+    using VibrationArray = std::array<std::array<std::unique_ptr<Input::VibrationDevice>,
+                                                 Settings::NativeVibration::NUM_VIBRATIONS_HID>,
+                                      10>;
     using MotionArray = std::array<
-        std::array<std::unique_ptr<Input::MotionDevice>, Settings::NativeMotion::NUM_MOTION_HID>,
+        std::array<std::unique_ptr<Input::MotionDevice>, Settings::NativeMotion::NUM_MOTIONS_HID>,
         10>;
     ButtonArray buttons;
     StickArray sticks;
+    VibrationArray vibrations;
     MotionArray motions;
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
-    std::array<std::array<VibrationValue, 3>, 10> latest_vibration_values;
+    std::array<std::array<VibrationValue, 2>, 10> latest_vibration_values{};
     std::array<ControllerHolder, 10> connected_controllers{};
     std::array<bool, 10> unintended_home_button_input_protection{};
     GyroscopeZeroDriftMode gyroscope_zero_drift_mode{GyroscopeZeroDriftMode::Standard};

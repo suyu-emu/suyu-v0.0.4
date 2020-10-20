@@ -344,21 +344,6 @@ void Config::ReadPlayerValue(std::size_t player_index) {
         }
     }
 
-    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
-        auto& player_motions = player.motions[i];
-
-        player_motions = qt_config
-                             ->value(QStringLiteral("%1").arg(player_prefix) +
-                                         QString::fromUtf8(Settings::NativeMotion::mapping[i]),
-                                     QString::fromStdString(default_param))
-                             .toString()
-                             .toStdString();
-        if (player_motions.empty()) {
-            player_motions = default_param;
-        }
-    }
-
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
@@ -373,6 +358,33 @@ void Config::ReadPlayerValue(std::size_t player_index) {
                              .toStdString();
         if (player_analogs.empty()) {
             player_analogs = default_param;
+        }
+    }
+
+    for (int i = 0; i < Settings::NativeVibration::NumVibrations; ++i) {
+        auto& player_vibrations = player.vibrations[i];
+
+        player_vibrations =
+            qt_config
+                ->value(QStringLiteral("%1").arg(player_prefix) +
+                            QString::fromUtf8(Settings::NativeVibration::mapping[i]),
+                        QString{})
+                .toString()
+                .toStdString();
+    }
+
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        auto& player_motions = player.motions[i];
+
+        player_motions = qt_config
+                             ->value(QStringLiteral("%1").arg(player_prefix) +
+                                         QString::fromUtf8(Settings::NativeMotion::mapping[i]),
+                                     QString::fromStdString(default_param))
+                             .toString()
+                             .toStdString();
+        if (player_motions.empty()) {
+            player_motions = default_param;
         }
     }
 }
@@ -1014,13 +1026,6 @@ void Config::SavePlayerValue(std::size_t player_index) {
                      QString::fromStdString(player.buttons[i]),
                      QString::fromStdString(default_param));
     }
-    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
-        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
-        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
-                         QString::fromStdString(Settings::NativeMotion::mapping[i]),
-                     QString::fromStdString(player.motions[i]),
-                     QString::fromStdString(default_param));
-    }
     for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
         const std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
             default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
@@ -1028,6 +1033,18 @@ void Config::SavePlayerValue(std::size_t player_index) {
         WriteSetting(QStringLiteral("%1").arg(player_prefix) +
                          QString::fromStdString(Settings::NativeAnalog::mapping[i]),
                      QString::fromStdString(player.analogs[i]),
+                     QString::fromStdString(default_param));
+    }
+    for (int i = 0; i < Settings::NativeVibration::NumVibrations; ++i) {
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeVibration::mapping[i]),
+                     QString::fromStdString(player.vibrations[i]), QString{});
+    }
+    for (int i = 0; i < Settings::NativeMotion::NumMotions; ++i) {
+        const std::string default_param = InputCommon::GenerateKeyboardParam(default_motions[i]);
+        WriteSetting(QStringLiteral("%1").arg(player_prefix) +
+                         QString::fromStdString(Settings::NativeMotion::mapping[i]),
+                     QString::fromStdString(player.motions[i]),
                      QString::fromStdString(default_param));
     }
 }
