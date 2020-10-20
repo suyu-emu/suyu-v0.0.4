@@ -131,26 +131,25 @@ private:
 
     std::array<Common::ParamPackage, Settings::NativeButton::NumButtons> buttons_param;
     std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> analogs_param;
-    std::array<Common::ParamPackage, Settings::NativeAnalog::NumAnalogs> stick_mod_param;
     std::array<Common::ParamPackage, Settings::NativeMotion::NumMotions> motions_param;
 
     static constexpr int ANALOG_SUB_BUTTONS_NUM = 4;
 
     /// Each button input is represented by a QPushButton.
     std::array<QPushButton*, Settings::NativeButton::NumButtons> button_map;
-    /// Each motion input is represented by a QPushButton.
-    std::array<QPushButton*, Settings::NativeMotion::NumMotions> motion_map;
-    /// Extra buttons for the modifiers.
-    std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> mod_buttons;
 
     /// A group of four QPushButtons represent one analog input. The buttons each represent up,
     /// down, left, right, respectively.
     std::array<std::array<QPushButton*, ANALOG_SUB_BUTTONS_NUM>, Settings::NativeAnalog::NumAnalogs>
         analog_map_buttons;
 
+    /// Each motion input is represented by a QPushButton.
+    std::array<QPushButton*, Settings::NativeMotion::NumMotions> motion_map;
+
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_deadzone_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_groupbox;
+    std::array<QPushButton*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_button;
     std::array<QLabel*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_label;
     std::array<QSlider*, Settings::NativeAnalog::NumAnalogs> analog_map_modifier_slider;
     std::array<QGroupBox*, Settings::NativeAnalog::NumAnalogs> analog_map_range_groupbox;
