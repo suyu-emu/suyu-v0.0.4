@@ -53,6 +53,13 @@ namespace OpenGL {
 struct ScreenInfo;
 struct DrawParameters;
 
+struct BindlessSSBO {
+    GLuint64EXT address;
+    GLsizei length;
+    GLsizei padding;
+};
+static_assert(sizeof(BindlessSSBO) * CHAR_BIT == 128);
+
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
     explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
@@ -126,7 +133,7 @@ private:
 
     /// Configures a global memory buffer.
     void SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry, GPUVAddr gpu_addr,
-                           std::size_t size, GLuint64EXT* pointer);
+                           size_t size, BindlessSSBO* ssbo);
 
     /// Configures the current textures to use for the draw command.
     void SetupDrawTextures(std::size_t stage_index, Shader* shader);
