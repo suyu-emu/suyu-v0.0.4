@@ -62,7 +62,7 @@ public:
             {18, nullptr, "SetRequirementByRevision"},
             {19, nullptr, "GetRequirement"},
             {20, nullptr, "GetRevision"},
-            {21, nullptr, "GetAppletInfo"},
+            {21, &IRequest::GetAppletInfo, "GetAppletInfo"},
             {22, nullptr, "GetAdditionalInfo"},
             {23, nullptr, "SetKeptInSleep"},
             {24, nullptr, "RegisterSocketDescriptor"},
@@ -123,6 +123,16 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
+    }
+
+    void GetAppletInfo(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NIFM, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 8};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push<u32>(0);
+        rb.Push<u32>(0);
+        rb.Push<u32>(0);
     }
 
     Kernel::EventPair event1, event2;
