@@ -139,16 +139,12 @@ void oglEnable(GLenum cap, bool state) {
     (state ? glEnable : glDisable)(cap);
 }
 
-void UpdateBindlessPointers(GLenum target, GLuint64EXT* pointers, std::size_t num_entries) {
-    if (num_entries == 0) {
+void UpdateBindlessSSBOs(GLenum target, const BindlessSSBO* ssbos, size_t num_ssbos) {
+    if (num_ssbos == 0) {
         return;
     }
-    if (num_entries % 2 == 1) {
-        pointers[num_entries] = 0;
-    }
-    const GLsizei num_vectors = static_cast<GLsizei>((num_entries + 1) / 2);
-    glProgramLocalParametersI4uivNV(target, 0, num_vectors,
-                                    reinterpret_cast<const GLuint*>(pointers));
+    glProgramLocalParametersI4uivNV(target, 0, static_cast<GLsizei>(num_ssbos),
+                                    reinterpret_cast<const GLuint*>(ssbos));
 }
 
 } // Anonymous namespace
@@ -900,11 +896,11 @@ bool RasterizerOpenGL::AccelerateDisplay(const Tegra::FramebufferConfig& config,
 }
 
 void RasterizerOpenGL::SetupDrawConstBuffers(std::size_t stage_index, Shader* shader) {
-    static constexpr std::array PARAMETER_LUT = {
-        GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV, GL_TESS_CONTROL_PROGRAM_PARAMETER_BUFFER_NV,
+    static constexpr std::array PARAMETER_LUT{
+        GL_VERTEX_PROGRAM_PARAMETER_BUFFER_NV,          GL_TESS_CONTROL_PROGRAM_PARAMETER_BUFFER_NV,
         GL_TESS_EVALUATION_PROGRAM_PARAMETER_BUFFER_NV, GL_GEOMETRY_PROGRAM_PARAMETER_BUFFER_NV,
-        GL_FRAGMENT_PROGRAM_PARAMETER_BUFFER_NV};
-
+        GL_FRAGMENT_PROGRAM_PARAMETER_BUFFER_NV,
+    };
     MICROPROFILE_SCOPE(OpenGL_UBO);
     const auto& stages = maxwell3d.state.shader_stages;
     const auto& shader_stage = stages[stage_index];
@@ -1007,8 +1003,8 @@ void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, Shader* sh
     const auto& cbufs{maxwell3d.state.shader_stages[stage_index]};
     const auto& entries{shader->GetEntries().global_memory_entries};
 
-    std::array<GLuint64EXT, 32> pointers;
-    ASSERT(entries.size() < pointers.size());
+    std::array<BindlessSSBO, 32> ssbos;
+    ASSERT(entries.size() < ssbos.size());
 
     const bool assembly_shaders = device.UseAssemblyShaders();
     u32 binding = assembly_shaders ? 0 : device.GetBaseBindings(stage_index).shader_storage_buffer;
@@ -1016,11 +1012,11 @@ void RasterizerOpenGL::SetupDrawGlobalMemory(std::size_t stage_index, Shader* sh
         const GPUVAddr addr{cbufs.const_buffers[entry.cbuf_index].address + entry.cbuf_offset};
         const GPUVAddr gpu_addr{gpu_memory.Read<u64>(addr)};
         const u32 size{gpu_memory.Read<u32>(addr + 8)};
-        SetupGlobalMemory(binding, entry, gpu_addr, size, &pointers[binding]);
+        SetupGlobalMemory(binding, entry, gpu_addr, size, &ssbos[binding]);
         ++binding;
     }
     if (assembly_shaders) {
-        UpdateBindlessPointers(TARGET_LUT[stage_index], pointers.data(), entries.size());
+        UpdateBindlessSSBOs(TARGET_LUT[stage_index], ssbos.data(), entries.size());
     }
 }
 
@@ -1028,29 +1024,32 @@ void RasterizerOpenGL::SetupComputeGlobalMemory(Shader* kernel) {
     const auto& cbufs{kepler_compute.launch_description.const_buffer_config};
     const auto& entries{kernel->GetEntries().global_memory_entries};
 
-    std::array<GLuint64EXT, 32> pointers;
-    ASSERT(entries.size() < pointers.size());
+    std::array<BindlessSSBO, 32> ssbos;
+    ASSERT(entries.size() < ssbos.size());
 
     u32 binding = 0;
     for (const auto& entry : entries) {
         const GPUVAddr addr{cbufs[entry.cbuf_index].Address() + entry.cbuf_offset};
         const GPUVAddr gpu_addr{gpu_memory.Read<u64>(addr)};
         const u32 size{gpu_memory.Read<u32>(addr + 8)};
-        SetupGlobalMemory(binding, entry, gpu_addr, size, &pointers[binding]);
+        SetupGlobalMemory(binding, entry, gpu_addr, size, &ssbos[binding]);
         ++binding;
     }
     if (device.UseAssemblyShaders()) {
-        UpdateBindlessPointers(GL_COMPUTE_PROGRAM_NV, pointers.data(), entries.size());
+        UpdateBindlessSSBOs(GL_COMPUTE_PROGRAM_NV, ssbos.data(), ssbos.size());
     }
 }
 
 void RasterizerOpenGL::SetupGlobalMemory(u32 binding, const GlobalMemoryEntry& entry,
-                                         GPUVAddr gpu_addr, std::size_t size,
-                                         GLuint64EXT* pointer) {
-    const std::size_t alignment{device.GetShaderStorageBufferAlignment()};
+                                         GPUVAddr gpu_addr, size_t size, BindlessSSBO* ssbo) {
+    const size_t alignment{device.GetShaderStorageBufferAlignment()};
     const auto info = buffer_cache.UploadMemory(gpu_addr, size, alignment, entry.is_written);
     if (device.UseAssemblyShaders()) {
-        *pointer = info.address + info.offset;
+        *ssbo = BindlessSSBO{
+            .address = static_cast<GLuint64EXT>(info.address + info.offset),
+            .length = static_cast<GLsizei>(size),
+            .padding = 0,
+        };
     } else {
         glBindBufferRange(GL_SHADER_STORAGE_BUFFER, binding, info.handle, info.offset,
                           static_cast<GLsizeiptr>(size));

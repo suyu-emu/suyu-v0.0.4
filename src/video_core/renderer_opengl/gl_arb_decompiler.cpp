@@ -376,9 +376,11 @@ private:
         std::string temporary = AllocTemporary();
         std::string address;
         std::string_view opname;
+        bool robust = false;
         if (const auto gmem = std::get_if<GmemNode>(&*operation[0])) {
             address = GlobalMemoryPointer(*gmem);
             opname = "ATOM";
+            robust = true;
         } else if (const auto smem = std::get_if<SmemNode>(&*operation[0])) {
             address = fmt::format("shared_mem[{}]", Visit(smem->GetAddress()));
             opname = "ATOMS";
@@ -386,7 +388,15 @@ private:
             UNREACHABLE();
             return "{0, 0, 0, 0}";
         }
+        if (robust) {
+            AddLine("IF NE.x;");
+        }
         AddLine("{}.{}.{} {}, {}, {};", opname, op, type, temporary, Visit(operation[1]), address);
+        if (robust) {
+            AddLine("ELSE;");
+            AddLine("MOV.S {}, 0;", temporary);
+            AddLine("ENDIF;");
+        }
         return temporary;
     }
 
@@ -980,10 +990,9 @@ void ARBDecompiler::DeclareLocalMemory() {
 }
 
 void ARBDecompiler::DeclareGlobalMemory() {
-    const std::size_t num_entries = ir.GetGlobalMemory().size();
+    const size_t num_entries = ir.GetGlobalMemory().size();
     if (num_entries > 0) {
-        const std::size_t num_vectors = Common::AlignUp(num_entries, 2) / 2;
-        AddLine("PARAM c[{}] = {{ program.local[0..{}] }};", num_vectors, num_vectors - 1);
+        AddLine("PARAM c[{}] = {{ program.local[0..{}] }};", num_entries, num_entries - 1);
     }
 }
 
@@ -1363,7 +1372,8 @@ std::string ARBDecompiler::Visit(const Node& node) {
 
     if (const auto gmem = std::get_if<GmemNode>(&*node)) {
         std::string temporary = AllocTemporary();
-        AddLine("LOAD.U32 {}, {};", temporary, GlobalMemoryPointer(*gmem));
+        AddLine("MOV {}, 0;", temporary);
+        AddLine("LOAD.U32 {} (NE.x), {};", temporary, GlobalMemoryPointer(*gmem));
         return temporary;
     }
 
@@ -1441,18 +1451,21 @@ std::string ARBDecompiler::BuildAoffi(Operation operation) {
 }
 
 std::string ARBDecompiler::GlobalMemoryPointer(const GmemNode& gmem) {
+    // Read a bindless SSBO, return its address and set CC accordingly
+    // address = c[binding].xy
+    // length  = c[binding].z
     const u32 binding = global_memory_names.at(gmem.GetDescriptor());
-    const char result_swizzle = binding % 2 == 0 ? 'x' : 'y';
 
     const std::string pointer = AllocLongVectorTemporary();
     std::string temporary = AllocTemporary();
 
-    const u32 local_index = binding / 2;
-    AddLine("PK64.U {}, c[{}];", pointer, local_index);
+    AddLine("PK64.U {}, c[{}];", pointer, binding);
     AddLine("SUB.U {}, {}, {};", temporary, Visit(gmem.GetRealAddress()),
             Visit(gmem.GetBaseAddress()));
     AddLine("CVT.U64.U32 {}.z, {};", pointer, temporary);
-    AddLine("ADD.U64 {}.x, {}.{}, {}.z;", pointer, pointer, result_swizzle, pointer);
+    AddLine("ADD.U64 {}.x, {}.x, {}.z;", pointer, pointer, pointer);
+    // Compare offset to length and set CC
+    AddLine("SLT.U.CC RC.x, {}, c[{}].z;", temporary, binding);
     return fmt::format("{}.x", pointer);
 }
 
@@ -1552,7 +1565,9 @@ std::string ARBDecompiler::Assign(Operation operation) {
         ResetTemporaries();
         return {};
     } else if (const auto gmem = std::get_if<GmemNode>(&*dest)) {
+        AddLine("IF NE.x;");
         AddLine("STORE.U32 {}, {};", Visit(src), GlobalMemoryPointer(*gmem));
+        AddLine("ENDIF;");
         ResetTemporaries();
         return {};
     } else {
