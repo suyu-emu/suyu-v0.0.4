@@ -7,7 +7,6 @@
 #include <mutex>
 #include <string>
 
-#include <LUrlParser.h>
 #include <fmt/format.h>
 #include <httplib.h>
 
@@ -18,9 +17,6 @@
 namespace WebService {
 
 constexpr std::array<const char, 1> API_VERSION{'1'};
-
-constexpr int HTTP_PORT = 80;
-constexpr int HTTPS_PORT = 443;
 
 constexpr std::size_t TIMEOUT_SECONDS = 30;
 
@@ -67,21 +63,7 @@ struct Client::Impl {
                              const std::string& jwt = "", const std::string& username = "",
                              const std::string& token = "") {
         if (cli == nullptr) {
-            const auto parsedUrl = LUrlParser::clParseURL::ParseURL(host);
-            int port{};
-            if (parsedUrl.m_Scheme == "http") {
-                if (!parsedUrl.GetPort(&port)) {
-                    port = HTTP_PORT;
-                }
-            } else if (parsedUrl.m_Scheme == "https") {
-                if (!parsedUrl.GetPort(&port)) {
-                    port = HTTPS_PORT;
-                }
-            } else {
-                LOG_ERROR(WebService, "Bad URL scheme {}", parsedUrl.m_Scheme);
-                return WebResult{WebResult::Code::InvalidURL, "Bad URL scheme", ""};
-            }
-            cli = std::make_unique<httplib::Client>(parsedUrl.m_Host.c_str(), port);
+            cli = std::make_unique<httplib::Client>(host.c_str());
         }
         cli->set_connection_timeout(TIMEOUT_SECONDS);
         cli->set_read_timeout(TIMEOUT_SECONDS);
