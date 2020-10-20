@@ -331,8 +331,6 @@ struct PlayerInput {
     ButtonsRaw buttons;
     AnalogsRaw analogs;
     MotionRaw motions;
-    std::string lstick_mod;
-    std::string rstick_mod;
 
     u32 body_color_left;
     u32 body_color_right;

@@ -256,11 +256,6 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         ui->buttonSL,       ui->buttonSR,     ui->buttonHome,      ui->buttonScreenshot,
     };
 
-    mod_buttons = {
-        ui->buttonLStickMod,
-        ui->buttonRStickMod,
-    };
-
     analog_map_buttons = {{
         {
             ui->buttonLStickUp,
@@ -284,6 +279,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     analog_map_deadzone_label = {ui->labelLStickDeadzone, ui->labelRStickDeadzone};
     analog_map_deadzone_slider = {ui->sliderLStickDeadzone, ui->sliderRStickDeadzone};
     analog_map_modifier_groupbox = {ui->buttonLStickModGroup, ui->buttonRStickModGroup};
+    analog_map_modifier_button = {ui->buttonLStickMod, ui->buttonRStickMod};
     analog_map_modifier_label = {ui->labelLStickModifierRange, ui->labelRStickModifierRange};
     analog_map_modifier_slider = {ui->sliderLStickModifierRange, ui->sliderRStickModifierRange};
     analog_map_range_groupbox = {ui->buttonLStickRangeGroup, ui->buttonRStickRangeGroup};
@@ -394,20 +390,26 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
 
         // Handle clicks for the modifier buttons as well.
-        ConfigureButtonClick(mod_buttons[analog_id], &stick_mod_param[analog_id],
-                             Config::default_stick_mod[analog_id],
-                             InputCommon::Polling::DeviceType::Button);
+        connect(analog_map_modifier_button[analog_id], &QPushButton::clicked, [=, this] {
+            HandleClick(
+                analog_map_modifier_button[analog_id],
+                [=, this](const Common::ParamPackage& params) {
+                    analogs_param[analog_id].Set("modifier", params.Serialize());
+                },
+                InputCommon::Polling::DeviceType::Button);
+        });
 
-        mod_buttons[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
+        analog_map_modifier_button[analog_id]->setContextMenuPolicy(Qt::CustomContextMenu);
 
-        connect(mod_buttons[analog_id], &QPushButton::customContextMenuRequested,
+        connect(analog_map_modifier_button[analog_id], &QPushButton::customContextMenuRequested,
                 [=, this](const QPoint& menu_location) {
                     QMenu context_menu;
                     context_menu.addAction(tr("Clear"), [&] {
-                        stick_mod_param[analog_id].Clear();
-                        mod_buttons[analog_id]->setText(tr("[not set]"));
+                        analogs_param[analog_id].Set("modifier", "");
+                        analog_map_modifier_button[analog_id]->setText(tr("[not set]"));
                     });
-                    context_menu.exec(mod_buttons[analog_id]->mapToGlobal(menu_location));
+                    context_menu.exec(
+                        analog_map_modifier_button[analog_id]->mapToGlobal(menu_location));
                 });
 
         connect(analog_map_range_spinbox[analog_id], qOverload<int>(&QSpinBox::valueChanged),
@@ -636,8 +638,8 @@ void ConfigureInputPlayer::RestoreDefaults() {
             SetAnalogParam(params, analogs_param[analog_id], analog_sub_buttons[sub_button_id]);
         }
 
-        stick_mod_param[analog_id] = Common::ParamPackage(
-            InputCommon::GenerateKeyboardParam(Config::default_stick_mod[analog_id]));
+        analogs_param[analog_id].Set(
+            "modifier", InputCommon::GenerateKeyboardParam(Config::default_stick_mod[analog_id]));
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
@@ -669,8 +671,6 @@ void ConfigureInputPlayer::ClearAll() {
 
             analogs_param[analog_id].Clear();
         }
-
-        stick_mod_param[analog_id].Clear();
     }
 
     for (int motion_id = 0; motion_id < Settings::NativeMotion::NumMotions; ++motion_id) {
@@ -707,7 +707,8 @@ void ConfigureInputPlayer::UpdateUI() {
                 AnalogToText(analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
         }
 
-        mod_buttons[analog_id]->setText(ButtonToText(stick_mod_param[analog_id]));
+        analog_map_modifier_button[analog_id]->setText(
+            ButtonToText(Common::ParamPackage{analogs_param[analog_id].Get("modifier", "")}));
 
         const auto deadzone_label = analog_map_deadzone_label[analog_id];
         const auto deadzone_slider = analog_map_deadzone_slider[analog_id];
