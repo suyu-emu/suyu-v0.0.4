@@ -51,9 +51,12 @@ if (NOT MSVC)
         -Werror=implicit-fallthrough
         -Werror=reorder
         -Werror=sign-compare
-        -Werror=unused-but-set-parameter
-        -Werror=unused-but-set-variable
         -Werror=unused-variable
+
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
+
+        -Wno-sign-conversion
     )
 endif()
 
