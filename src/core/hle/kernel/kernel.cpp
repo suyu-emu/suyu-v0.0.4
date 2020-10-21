@@ -194,7 +194,8 @@ struct KernelCore::Impl {
         if (!is_multicore) {
             single_core_thread_id = this_id;
         }
-        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto end =
+            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
         const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
         ASSERT(it == end);
@@ -205,7 +206,8 @@ struct KernelCore::Impl {
 
     void RegisterHostThread() {
         const std::thread::id this_id = std::this_thread::get_id();
-        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto end =
+            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
         const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
         if (it == end) {
             InsertHostThread(registered_thread_ids++);
@@ -224,12 +226,14 @@ struct KernelCore::Impl {
         if (!is_multicore && single_core_thread_id == this_id) {
             return static_cast<u32>(system.GetCpuManager().CurrentCore());
         }
-        const auto end = register_host_thread_keys.begin() + num_host_threads;
+        const auto end =
+            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
         const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
         if (it == end) {
             return Core::INVALID_HOST_THREAD_ID;
         }
-        return register_host_thread_values[std::distance(register_host_thread_keys.begin(), it)];
+        return register_host_thread_values[static_cast<size_t>(
+            std::distance(register_host_thread_keys.begin(), it))];
     }
 
     Core::EmuThreadHandle GetCurrentEmuThreadID() const {
