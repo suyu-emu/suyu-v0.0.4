@@ -155,13 +155,13 @@ public:
         return sdl_joystick.get();
     }
 
-    void SetSDLJoystick(SDL_Joystick* joystick, SDL_GameController* controller) {
-        sdl_controller.reset(controller);
-        sdl_joystick.reset(joystick);
-    }
-
     SDL_GameController* GetSDLGameController() const {
         return sdl_controller.get();
+    }
+
+    void SetSDLJoystick(SDL_Joystick* joystick, SDL_GameController* controller) {
+        sdl_joystick.reset(joystick);
+        sdl_controller.reset(controller);
     }
 
 private:
@@ -186,69 +186,58 @@ private:
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickByGUID(const std::string& guid, int port) {
     std::lock_guard lock{joystick_map_mutex};
     const auto it = joystick_map.find(guid);
+
     if (it != joystick_map.end()) {
         while (it->second.size() <= static_cast<std::size_t>(port)) {
             auto joystick = std::make_shared<SDLJoystick>(guid, static_cast<int>(it->second.size()),
                                                           nullptr, nullptr);
             it->second.emplace_back(std::move(joystick));
         }
+
         return it->second[static_cast<std::size_t>(port)];
     }
+
     auto joystick = std::make_shared<SDLJoystick>(guid, 0, nullptr, nullptr);
+
     return joystick_map[guid].emplace_back(std::move(joystick));
 }
 
 std::shared_ptr<SDLJoystick> SDLState::GetSDLJoystickBySDLID(SDL_JoystickID sdl_id) {
     auto sdl_joystick = SDL_JoystickFromInstanceID(sdl_id);
-    auto sdl_controller = SDL_GameControllerFromInstanceID(sdl_id);
     const std::string guid = GetGUID(sdl_joystick);
 
     std::lock_guard lock{joystick_map_mutex};
     const auto map_it = joystick_map.find(guid);
-    if (map_it != joystick_map.end()) {
-        const auto vec_it =
-            std::find_if(map_it->second.begin(), map_it->second.end(),
-                         [&sdl_joystick](const std::shared_ptr<SDLJoystick>& joystick) {
-                             return sdl_joystick == joystick->GetSDLJoystick();
-                         });
-        if (vec_it != map_it->second.end()) {
-            // This is the common case: There is already an existing SDL_Joystick mapped to a
-            // SDLJoystick. return the SDLJoystick
-            return *vec_it;
-        }
 
-        // Search for a SDLJoystick without a mapped SDL_Joystick...
-        const auto nullptr_it = std::find_if(map_it->second.begin(), map_it->second.end(),
-                                             [](const std::shared_ptr<SDLJoystick>& joystick) {
-                                                 return joystick->GetSDLJoystick() == nullptr;
-                                             });
-        if (nullptr_it != map_it->second.end()) {
-            // ... and map it
-            (*nullptr_it)->SetSDLJoystick(sdl_joystick, sdl_controller);
-            return *nullptr_it;
-        }
-
-        // There is no SDLJoystick without a mapped SDL_Joystick
-        // Create a new SDLJoystick
-        const int port = static_cast<int>(map_it->second.size());
-        auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick, sdl_controller);
-        return map_it->second.emplace_back(std::move(joystick));
+    if (map_it == joystick_map.end()) {
+        return nullptr;
     }
 
-    auto joystick = std::make_shared<SDLJoystick>(guid, 0, sdl_joystick, sdl_controller);
-    return joystick_map[guid].emplace_back(std::move(joystick));
+    const auto vec_it = std::find_if(map_it->second.begin(), map_it->second.end(),
+                                     [&sdl_joystick](const auto& joystick) {
+                                         return joystick->GetSDLJoystick() == sdl_joystick;
+                                     });
+
+    if (vec_it == map_it->second.end()) {
+        return nullptr;
+    }
+
+    return *vec_it;
 }
 
 void SDLState::InitJoystick(int joystick_index) {
     SDL_Joystick* sdl_joystick = SDL_JoystickOpen(joystick_index);
     SDL_GameController* sdl_gamecontroller = nullptr;
+
     if (SDL_IsGameController(joystick_index)) {
         sdl_gamecontroller = SDL_GameControllerOpen(joystick_index);
     }
+
     if (!sdl_joystick) {
         LOG_ERROR(Input, "Failed to open joystick {}", joystick_index);
         return;
     }
+
     const std::string guid = GetGUID(sdl_joystick);
 
     std::lock_guard lock{joystick_map_mutex};
@@ -257,14 +246,17 @@ void SDLState::InitJoystick(int joystick_index) {
         joystick_map[guid].emplace_back(std::move(joystick));
         return;
     }
+
     auto& joystick_guid_list = joystick_map[guid];
-    const auto it = std::find_if(
-        joystick_guid_list.begin(), joystick_guid_list.end(),
-        [](const std::shared_ptr<SDLJoystick>& joystick) { return !joystick->GetSDLJoystick(); });
-    if (it != joystick_guid_list.end()) {
-        (*it)->SetSDLJoystick(sdl_joystick, sdl_gamecontroller);
+    const auto joystick_it =
+        std::find_if(joystick_guid_list.begin(), joystick_guid_list.end(),
+                     [](const auto& joystick) { return !joystick->GetSDLJoystick(); });
+
+    if (joystick_it != joystick_guid_list.end()) {
+        (*joystick_it)->SetSDLJoystick(sdl_joystick, sdl_gamecontroller);
         return;
     }
+
     const int port = static_cast<int>(joystick_guid_list.size());
     auto joystick = std::make_shared<SDLJoystick>(guid, port, sdl_joystick, sdl_gamecontroller);
     joystick_guid_list.emplace_back(std::move(joystick));
@@ -274,18 +266,14 @@ void SDLState::CloseJoystick(SDL_Joystick* sdl_joystick) {
     const std::string guid = GetGUID(sdl_joystick);
 
     std::lock_guard lock{joystick_map_mutex};
-    auto& joystick_guid_list = joystick_map[guid];
-    auto joystick_it = std::find_if(
-        joystick_guid_list.begin(), joystick_guid_list.end(),
-        [&sdl_joystick](auto& joystick) { return joystick->GetSDLJoystick() == sdl_joystick; });
+    // This call to guid is safe since the joystick is guaranteed to be in the map
+    const auto& joystick_guid_list = joystick_map[guid];
+    const auto joystick_it = std::find_if(joystick_guid_list.begin(), joystick_guid_list.end(),
+                                          [&sdl_joystick](const auto& joystick) {
+                                              return joystick->GetSDLJoystick() == sdl_joystick;
+                                          });
 
-    if (joystick_it != joystick_guid_list.end()) {
-        (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
-        joystick_guid_list.erase(joystick_it);
-        if (joystick_guid_list.empty()) {
-            joystick_map.erase(guid);
-        }
-    }
+    (*joystick_it)->SetSDLJoystick(nullptr, nullptr);
 }
 
 void SDLState::HandleGameControllerEvent(const SDL_Event& event) {
@@ -720,8 +708,7 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
     std::vector<Common::ParamPackage> devices;
     for (const auto& [key, value] : joystick_map) {
         for (const auto& joystick : value) {
-            auto* joy = joystick->GetSDLJoystick();
-            if (auto* controller = joystick->GetSDLGameController()) {
+            if (auto* const controller = joystick->GetSDLGameController()) {
                 std::string name =
                     fmt::format("{} {}", SDL_GameControllerName(controller), joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
@@ -730,7 +717,7 @@ std::vector<Common::ParamPackage> SDLState::GetInputDevices() {
                     {"guid", joystick->GetGUID()},
                     {"port", std::to_string(joystick->GetPort())},
                 });
-            } else if (joy) {
+            } else if (auto* const joy = joystick->GetSDLJoystick()) {
                 std::string name = fmt::format("{} {}", SDL_JoystickName(joy), joystick->GetPort());
                 devices.emplace_back(Common::ParamPackage{
                     {"class", "sdl"},
@@ -797,21 +784,27 @@ Common::ParamPackage BuildHatParamPackageForButton(int port, std::string guid, s
 Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Event& event) {
     switch (event.type) {
     case SDL_JOYAXISMOTION: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-        return BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                static_cast<s32>(event.jaxis.axis),
-                                                event.jaxis.value);
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which)) {
+            return BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                    static_cast<s32>(event.jaxis.axis),
+                                                    event.jaxis.value);
+        }
+        break;
     }
     case SDL_JOYBUTTONUP: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which);
-        return BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                static_cast<s32>(event.jbutton.button));
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which)) {
+            return BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                    static_cast<s32>(event.jbutton.button));
+        }
+        break;
     }
     case SDL_JOYHATMOTION: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which);
-        return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                             static_cast<s32>(event.jhat.hat),
-                                             static_cast<s32>(event.jhat.value));
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which)) {
+            return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                 static_cast<s32>(event.jhat.hat),
+                                                 static_cast<s32>(event.jhat.value));
+        }
+        break;
     }
     }
     return {};
@@ -820,21 +813,27 @@ Common::ParamPackage SDLEventToButtonParamPackage(SDLState& state, const SDL_Eve
 Common::ParamPackage SDLEventToMotionParamPackage(SDLState& state, const SDL_Event& event) {
     switch (event.type) {
     case SDL_JOYAXISMOTION: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-        return BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                static_cast<s32>(event.jaxis.axis),
-                                                event.jaxis.value);
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which)) {
+            return BuildAnalogParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                    static_cast<s32>(event.jaxis.axis),
+                                                    event.jaxis.value);
+        }
+        break;
     }
     case SDL_JOYBUTTONUP: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which);
-        return BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                                static_cast<s32>(event.jbutton.button));
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jbutton.which)) {
+            return BuildButtonParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                    static_cast<s32>(event.jbutton.button));
+        }
+        break;
     }
     case SDL_JOYHATMOTION: {
-        const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which);
-        return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
-                                             static_cast<s32>(event.jhat.hat),
-                                             static_cast<s32>(event.jhat.value));
+        if (const auto joystick = state.GetSDLJoystickBySDLID(event.jhat.which)) {
+            return BuildHatParamPackageForButton(joystick->GetPort(), joystick->GetGUID(),
+                                                 static_cast<s32>(event.jhat.hat),
+                                                 static_cast<s32>(event.jhat.value));
+        }
+        break;
     }
     }
     return {};
@@ -1062,9 +1061,8 @@ public:
             // Simplify controller config by testing if game controller support is enabled.
             if (event.type == SDL_JOYAXISMOTION) {
                 const auto axis = event.jaxis.axis;
-                const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-                auto* const controller = joystick->GetSDLGameController();
-                if (controller) {
+                if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
+                    auto* const controller = joystick->GetSDLGameController()) {
                     const auto axis_left_x =
                         SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX)
                             .value.axis;
@@ -1098,12 +1096,13 @@ public:
         }
 
         if (analog_x_axis != -1 && analog_y_axis != -1) {
-            const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-            auto params = BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
-                                                     analog_x_axis, analog_y_axis);
-            analog_x_axis = -1;
-            analog_y_axis = -1;
-            return params;
+            if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which)) {
+                auto params = BuildParamPackageForAnalog(joystick->GetPort(), joystick->GetGUID(),
+                                                         analog_x_axis, analog_y_axis);
+                analog_x_axis = -1;
+                analog_y_axis = -1;
+                return params;
+            }
         }
         return {};
     }
