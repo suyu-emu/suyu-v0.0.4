@@ -278,7 +278,9 @@ else()
         -Wno-error=sign-conversion
         -Werror=switch
         -Werror=unused-variable
-        -Werror=unused-but-set-variable
-        -Werror=class-memaccess
+
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=class-memaccess>
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>
+        $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-variable>
     )
 endif()
