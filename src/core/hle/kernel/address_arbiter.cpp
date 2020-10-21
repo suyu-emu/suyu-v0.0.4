@@ -108,7 +108,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
     auto& monitor = system.Monitor();
     s32 updated_value;
     do {
-        updated_value = static_cast<s32>(monitor.ExclusiveRead32(current_core, address));
+        updated_value = monitor.ExclusiveRead32(current_core, address);
 
         if (updated_value != value) {
             return ERR_INVALID_STATE;
@@ -129,7 +129,7 @@ ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr a
                 updated_value = value;
             }
         }
-    } while (!monitor.ExclusiveWrite32(current_core, address, static_cast<u32>(updated_value)));
+    } while (!monitor.ExclusiveWrite32(current_core, address, updated_value));
 
     WakeThreads(waiting_threads, num_to_wake);
     return RESULT_SUCCESS;

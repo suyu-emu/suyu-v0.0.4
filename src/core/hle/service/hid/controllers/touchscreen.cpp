@@ -22,7 +22,7 @@ void Controller_Touchscreen::OnRelease() {}
 
 void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* data,
                                       std::size_t size) {
-    shared_memory.header.timestamp = static_cast<s64>(core_timing.GetCPUTicks());
+    shared_memory.header.timestamp = core_timing.GetCPUTicks();
     shared_memory.header.total_entry_count = 17;
 
     if (!IsControllerActivated()) {
@@ -33,12 +33,9 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     shared_memory.header.entry_count = 16;
 
     const auto& last_entry =
-        shared_memory
-            .shared_memory_entries[static_cast<u64>(shared_memory.header.last_entry_index)];
+        shared_memory.shared_memory_entries[shared_memory.header.last_entry_index];
     shared_memory.header.last_entry_index = (shared_memory.header.last_entry_index + 1) % 17;
-    auto& cur_entry =
-        shared_memory
-            .shared_memory_entries[static_cast<u64>(shared_memory.header.last_entry_index)];
+    auto& cur_entry = shared_memory.shared_memory_entries[shared_memory.header.last_entry_index];
 
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;

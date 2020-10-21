@@ -350,7 +350,7 @@ ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buf
         std::size_t total_buffer_count{};
         for (std::size_t i = 0; i < mix_count; i++) {
             const auto& in = mix_in_params[i];
-            total_buffer_count += static_cast<size_t>(in.buffer_count);
+            total_buffer_count += in.buffer_count;
             if (static_cast<std::size_t>(in.dest_mix_id) > mix_count &&
                 in.dest_mix_id != AudioCommon::NO_MIX && in.mix_id != AudioCommon::FINAL_MIX) {
                 LOG_ERROR(
@@ -379,7 +379,7 @@ ResultCode InfoUpdater::UpdateMixes(MixContext& mix_context, std::size_t mix_buf
         const auto& mix_in = mix_in_params[i];
         std::size_t target_mix{};
         if (behavior_info.IsMixInParameterDirtyOnlyUpdateSupported()) {
-            target_mix = static_cast<size_t>(mix_in.mix_id);
+            target_mix = mix_in.mix_id;
         } else {
             // Non dirty supported games just use i instead of the actual mix_id
             target_mix = i;

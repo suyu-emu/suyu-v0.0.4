@@ -12,9 +12,8 @@ ProfileSelectApplet::~ProfileSelectApplet() = default;
 
 void DefaultProfileSelectApplet::SelectProfile(
     std::function<void(std::optional<Common::UUID>)> callback) const {
-    const auto user_index = static_cast<std::size_t>(Settings::values.current_user);
     Service::Account::ProfileManager manager;
-    callback(manager.GetUser(user_index).value_or(Common::UUID{}));
+    callback(manager.GetUser(Settings::values.current_user).value_or(Common::UUID{}));
     LOG_INFO(Service_ACC, "called, selecting current user instead of prompting...");
 }
 

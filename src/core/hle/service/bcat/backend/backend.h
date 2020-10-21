@@ -53,10 +53,10 @@ struct DeliveryCacheProgressImpl {
     ResultCode result = RESULT_SUCCESS;
     DirectoryName current_directory;
     FileName current_file;
-    u64 current_downloaded_bytes; ///< Bytes downloaded on current file.
-    u64 current_total_bytes;      ///< Bytes total on current file.
-    u64 total_downloaded_bytes;   ///< Bytes downloaded on overall download.
-    u64 total_bytes;              ///< Bytes total on overall download.
+    s64 current_downloaded_bytes; ///< Bytes downloaded on current file.
+    s64 current_total_bytes;      ///< Bytes total on current file.
+    s64 total_downloaded_bytes;   ///< Bytes downloaded on overall download.
+    s64 total_bytes;              ///< Bytes total on overall download.
     INSERT_PADDING_BYTES(
         0x198); ///< Appears to be unused in official code, possibly reserved for future use.
 };

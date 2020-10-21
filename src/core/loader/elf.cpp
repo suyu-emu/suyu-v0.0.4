@@ -220,19 +220,18 @@ public:
     }
     const char* GetSectionName(int section) const;
     const u8* GetSectionDataPtr(int section) const {
-        if (section < 0 || section >= header->e_shnum) {
+        if (section < 0 || section >= header->e_shnum)
             return nullptr;
-        }
-        if (sections[section].sh_type != SHT_NOBITS) {
-            return GetPtr(static_cast<int>(sections[section].sh_offset));
-        }
-        return nullptr;
+        if (sections[section].sh_type != SHT_NOBITS)
+            return GetPtr(sections[section].sh_offset);
+        else
+            return nullptr;
     }
     bool IsCodeSection(int section) const {
         return sections[section].sh_type == SHT_PROGBITS;
     }
     const u8* GetSegmentPtr(int segment) {
-        return GetPtr(static_cast<int>(segments[segment].p_offset));
+        return GetPtr(segments[segment].p_offset);
     }
     u32 GetSectionAddr(SectionID section) const {
         return sectionAddrs[section];
@@ -259,14 +258,14 @@ ElfReader::ElfReader(void* ptr) {
 }
 
 const char* ElfReader::GetSectionName(int section) const {
-    if (sections[section].sh_type == SHT_NULL) {
+    if (sections[section].sh_type == SHT_NULL)
         return nullptr;
-    }
 
-    const auto name_offset = sections[section].sh_name;
-    if (const auto* ptr = reinterpret_cast<const char*>(GetSectionDataPtr(header->e_shstrndx))) {
+    int name_offset = sections[section].sh_name;
+    const char* ptr = reinterpret_cast<const char*>(GetSectionDataPtr(header->e_shstrndx));
+
+    if (ptr)
         return ptr + name_offset;
-    }
 
     return nullptr;
 }
@@ -292,7 +291,7 @@ Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
     for (unsigned int i = 0; i < header->e_phnum; ++i) {
         const Elf32_Phdr* p = &segments[i];
         if (p->p_type == PT_LOAD) {
-            total_image_size += (p->p_memsz + 0xFFF) & ~0xFFFU;
+            total_image_size += (p->p_memsz + 0xFFF) & ~0xFFF;
         }
     }
 
@@ -301,14 +300,14 @@ Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
 
     Kernel::CodeSet codeset;
 
-    for (u32 i = 0; i < header->e_phnum; ++i) {
+    for (unsigned int i = 0; i < header->e_phnum; ++i) {
         const Elf32_Phdr* p = &segments[i];
         LOG_DEBUG(Loader, "Type: {} Vaddr: {:08X} Filesz: {:08X} Memsz: {:08X} ", p->p_type,
                   p->p_vaddr, p->p_filesz, p->p_memsz);
 
         if (p->p_type == PT_LOAD) {
             Kernel::CodeSet::Segment* codeset_segment;
-            const u32 permission_flags = p->p_flags & (PF_R | PF_W | PF_X);
+            u32 permission_flags = p->p_flags & (PF_R | PF_W | PF_X);
             if (permission_flags == (PF_R | PF_X)) {
                 codeset_segment = &codeset.CodeSegment();
             } else if (permission_flags == (PF_R)) {
@@ -330,14 +329,14 @@ Kernel::CodeSet ElfReader::LoadInto(VAddr vaddr) {
             }
 
             const VAddr segment_addr = base_addr + p->p_vaddr;
-            const u32 aligned_size = (p->p_memsz + 0xFFF) & ~0xFFFU;
+            const u32 aligned_size = (p->p_memsz + 0xFFF) & ~0xFFF;
 
             codeset_segment->offset = current_image_position;
             codeset_segment->addr = segment_addr;
             codeset_segment->size = aligned_size;
 
-            std::memcpy(program_image.data() + current_image_position,
-                        GetSegmentPtr(static_cast<int>(i)), p->p_filesz);
+            std::memcpy(program_image.data() + current_image_position, GetSegmentPtr(i),
+                        p->p_filesz);
             current_image_position += aligned_size;
         }
     }

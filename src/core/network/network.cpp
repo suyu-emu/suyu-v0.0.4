@@ -96,7 +96,7 @@ int LastError() {
 
 bool EnableNonBlock(SOCKET fd, bool enable) {
     u_long value = enable ? 1 : 0;
-    return ioctlsocket(fd, static_cast<long>(FIONBIO), &value) != SOCKET_ERROR;
+    return ioctlsocket(fd, FIONBIO, &value) != SOCKET_ERROR;
 }
 
 #elif __unix__ // ^ _WIN32 v __unix__
@@ -140,9 +140,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 
     result.sin_port = htons(input.portno);
 
-    result.sin_addr.s_addr = static_cast<in_addr_t>(
-        input.ip[0] | static_cast<u32>(input.ip[1] << 8) | static_cast<u32>(input.ip[2] << 16) |
-        static_cast<u32>(input.ip[3] << 24));
+    result.sin_addr.s_addr = input.ip[0] | input.ip[1] << 8 | input.ip[2] << 16 | input.ip[3] << 24;
 
     sockaddr addr;
     std::memcpy(&addr, &result, sizeof(addr));
@@ -150,7 +148,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 }
 
 int WSAPoll(WSAPOLLFD* fds, ULONG nfds, int timeout) {
-    return poll(fds, static_cast<nfds_t>(nfds), timeout);
+    return poll(fds, nfds, timeout);
 }
 
 int closesocket(SOCKET fd) {
@@ -160,7 +158,7 @@ int closesocket(SOCKET fd) {
 linger MakeLinger(bool enable, u32 linger_value) {
     linger value;
     value.l_onoff = enable ? 1 : 0;
-    value.l_linger = static_cast<s32>(linger_value);
+    value.l_linger = linger_value;
     return value;
 }
 
@@ -339,7 +337,7 @@ std::pair<s32, Errno> Poll(std::vector<PollFD>& pollfds, s32 timeout) {
     std::transform(pollfds.begin(), pollfds.end(), host_pollfds.begin(), [](PollFD fd) {
         WSAPOLLFD result;
         result.fd = fd.socket->fd;
-        result.events = static_cast<s16>(TranslatePollEvents(fd.events));
+        result.events = TranslatePollEvents(fd.events);
         result.revents = 0;
         return result;
     });
@@ -501,12 +499,12 @@ Errno Socket::Shutdown(ShutdownHow how) {
     }
 }
 
-std::pair<s32, Errno> Socket::Recv(u32 flags, std::vector<u8>& message) {
+std::pair<s32, Errno> Socket::Recv(int flags, std::vector<u8>& message) {
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
-    const auto result = recv(fd, reinterpret_cast<char*>(message.data()),
-                             static_cast<socklen_t>(message.size()), 0);
+    const auto result =
+        recv(fd, reinterpret_cast<char*>(message.data()), static_cast<int>(message.size()), 0);
     if (result != SOCKET_ERROR) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
@@ -524,7 +522,7 @@ std::pair<s32, Errno> Socket::Recv(u32 flags, std::vector<u8>& message) {
     }
 }
 
-std::pair<s32, Errno> Socket::RecvFrom(u32 flags, std::vector<u8>& message, SockAddrIn* addr) {
+std::pair<s32, Errno> Socket::RecvFrom(int flags, std::vector<u8>& message, SockAddrIn* addr) {
     ASSERT(flags == 0);
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
 
@@ -534,7 +532,7 @@ std::pair<s32, Errno> Socket::RecvFrom(u32 flags, std::vector<u8>& message, Sock
     sockaddr* const p_addr_in = addr ? &addr_in : nullptr;
 
     const auto result = recvfrom(fd, reinterpret_cast<char*>(message.data()),
-                                 static_cast<socklen_t>(message.size()), 0, p_addr_in, p_addrlen);
+                                 static_cast<int>(message.size()), 0, p_addr_in, p_addrlen);
     if (result != SOCKET_ERROR) {
         if (addr) {
             ASSERT(addrlen == sizeof(addr_in));
@@ -556,12 +554,12 @@ std::pair<s32, Errno> Socket::RecvFrom(u32 flags, std::vector<u8>& message, Sock
     }
 }
 
-std::pair<s32, Errno> Socket::Send(const std::vector<u8>& message, u32 flags) {
+std::pair<s32, Errno> Socket::Send(const std::vector<u8>& message, int flags) {
     ASSERT(message.size() < static_cast<size_t>(std::numeric_limits<int>::max()));
     ASSERT(flags == 0);
 
     const auto result = send(fd, reinterpret_cast<const char*>(message.data()),
-                             static_cast<socklen_t>(message.size()), 0);
+                             static_cast<int>(message.size()), 0);
     if (result != SOCKET_ERROR) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }
@@ -593,9 +591,8 @@ std::pair<s32, Errno> Socket::SendTo(u32 flags, const std::vector<u8>& message,
         to = &host_addr_in;
     }
 
-    const auto result =
-        sendto(fd, reinterpret_cast<const char*>(message.data()),
-               static_cast<socklen_t>(message.size()), 0, to, static_cast<socklen_t>(tolen));
+    const auto result = sendto(fd, reinterpret_cast<const char*>(message.data()),
+                               static_cast<int>(message.size()), 0, to, tolen);
     if (result != SOCKET_ERROR) {
         return {static_cast<s32>(result), Errno::SUCCESS};
     }

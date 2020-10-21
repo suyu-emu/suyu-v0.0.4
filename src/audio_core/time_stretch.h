@@ -5,16 +5,8 @@
 #pragma once
 
 #include <cstddef>
-#include "common/common_types.h"
-
-#if defined(__GNUC__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#endif
 #include <SoundTouch.h>
-#if defined(__GNUC__)
-#pragma GCC diagnostic pop
-#endif
+#include "common/common_types.h"
 
 namespace AudioCore {
 

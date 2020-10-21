@@ -41,8 +41,8 @@ public:
     Fiber(const Fiber&) = delete;
     Fiber& operator=(const Fiber&) = delete;
 
-    Fiber(Fiber&&) = delete;
-    Fiber& operator=(Fiber&&) = delete;
+    Fiber(Fiber&&) = default;
+    Fiber& operator=(Fiber&&) = default;
 
     /// Yields control from Fiber 'from' to Fiber 'to'
     /// Fiber 'from' must be the currently running fiber.

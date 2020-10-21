@@ -205,7 +205,7 @@ static Kernel::Thread* FindThreadById(s64 id) {
     const auto& threads = Core::System::GetInstance().GlobalScheduler().GetThreadList();
     for (auto& thread : threads) {
         if (thread->GetThreadID() == static_cast<u64>(id)) {
-            current_core = static_cast<u32>(thread->GetProcessorID());
+            current_core = thread->GetProcessorID();
             return thread.get();
         }
     }
@@ -457,14 +457,7 @@ static u128 GdbHexToU128(const u8* src) {
 /// Read a byte from the gdb client.
 static u8 ReadByte() {
     u8 c;
-
-#ifdef WIN32
-    const auto socket_id = static_cast<SOCKET>(gdbserver_socket);
-#else
-    const auto socket_id = gdbserver_socket;
-#endif
-
-    const auto received_size = recv(socket_id, reinterpret_cast<char*>(&c), 1, MSG_WAITALL);
+    std::size_t received_size = recv(gdbserver_socket, reinterpret_cast<char*>(&c), 1, MSG_WAITALL);
     if (received_size != 1) {
         LOG_ERROR(Debug_GDBStub, "recv failed: {}", received_size);
         Shutdown();
@@ -581,13 +574,7 @@ bool CheckBreakpoint(VAddr addr, BreakpointType type) {
  * @param packet Packet to be sent to client.
  */
 static void SendPacket(const char packet) {
-#ifdef WIN32
-    const auto socket_id = static_cast<SOCKET>(gdbserver_socket);
-#else
-    const auto socket_id = gdbserver_socket;
-#endif
-
-    const auto sent_size = send(socket_id, &packet, 1, 0);
+    std::size_t sent_size = send(gdbserver_socket, &packet, 1, 0);
     if (sent_size != 1) {
         LOG_ERROR(Debug_GDBStub, "send failed");
     }
@@ -624,13 +611,7 @@ static void SendReply(const char* reply) {
     u8* ptr = command_buffer;
     u32 left = command_length + 4;
     while (left > 0) {
-#ifdef WIN32
-        const auto socket_id = static_cast<SOCKET>(gdbserver_socket);
-#else
-        const auto socket_id = gdbserver_socket;
-#endif
-        const auto sent_size =
-            send(socket_id, reinterpret_cast<char*>(ptr), static_cast<socklen_t>(left), 0);
+        const auto sent_size = send(gdbserver_socket, reinterpret_cast<char*>(ptr), left, 0);
         if (sent_size < 0) {
             LOG_ERROR(Debug_GDBStub, "gdb: send failed");
             return Shutdown();
@@ -1313,13 +1294,8 @@ static void Init(u16 port) {
     WSAStartup(MAKEWORD(2, 2), &InitData);
 #endif
 
-#ifdef WIN32
-    using socket_type = SOCKET;
-#else
-    using socket_type = int;
-#endif
-    const auto tmpsock = static_cast<socket_type>(socket(PF_INET, SOCK_STREAM, 0));
-    if (tmpsock == static_cast<socket_type>(-1)) {
+    int tmpsock = static_cast<int>(socket(PF_INET, SOCK_STREAM, 0));
+    if (tmpsock == -1) {
         LOG_ERROR(Debug_GDBStub, "Failed to create gdb socket");
     }
 
@@ -1359,7 +1335,7 @@ static void Init(u16 port) {
     }
 
     // Clean up temporary socket if it's still alive at this point.
-    if (tmpsock != static_cast<socket_type>(-1)) {
+    if (tmpsock != -1) {
         shutdown(tmpsock, SHUT_RDWR);
     }
 }
@@ -1376,12 +1352,7 @@ void Shutdown() {
 
     LOG_INFO(Debug_GDBStub, "Stopping GDB ...");
     if (gdbserver_socket != -1) {
-#ifdef WIN32
-        const auto tmpsock = static_cast<SOCKET>(socket(PF_INET, SOCK_STREAM, 0));
-#else
-        const auto tmpsock = static_cast<int>(socket(PF_INET, SOCK_STREAM, 0));
-#endif
-        shutdown(tmpsock, SHUT_RDWR);
+        shutdown(gdbserver_socket, SHUT_RDWR);
         gdbserver_socket = -1;
     }
 
@@ -1412,7 +1383,7 @@ void SetCpuStepFlag(bool is_step) {
     step_loop = is_step;
 }
 
-void SendTrap(Kernel::Thread* thread, u32 trap) {
+void SendTrap(Kernel::Thread* thread, int trap) {
     if (!send_trap) {
         return;
     }

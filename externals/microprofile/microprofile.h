@@ -857,7 +857,7 @@ inline int64_t MicroProfileLogTickDifference(MicroProfileLogEntry Start, MicroPr
 {
     uint64_t nStart = Start;
     uint64_t nEnd = End;
-    auto nDifference = static_cast<int64_t>((nEnd << 16) - (nStart << 16));
+    int64_t nDifference = ((nEnd<<16) - (nStart<<16));
     return nDifference >> 16;
 }
 
@@ -868,7 +868,7 @@ inline int64_t MicroProfileLogGetTick(MicroProfileLogEntry e)
 
 inline int64_t MicroProfileLogSetTick(MicroProfileLogEntry e, int64_t nTick)
 {
-    return static_cast<int64_t>((MP_LOG_TICK_MASK & static_cast<uint64_t>(nTick)) | (e & static_cast<uint64_t>(~MP_LOG_TICK_MASK)));
+    return (MP_LOG_TICK_MASK & nTick) | (e & ~MP_LOG_TICK_MASK);
 }
 
 template<typename T>

@@ -36,14 +36,14 @@ bool DecompressBLZ(std::vector<u8>& data) {
     while (out_index > 0) {
         --index;
         auto control = data[index + start_offset];
-        for (std::size_t i = 0; i < 8; ++i) {
+        for (size_t i = 0; i < 8; ++i) {
             if (((control << i) & 0x80) > 0) {
                 if (index < 2) {
                     return false;
                 }
                 index -= 2;
-                std::size_t segment_offset = static_cast<u32>(data[index + start_offset]) |
-                                             static_cast<u32>(data[index + start_offset + 1] << 8);
+                std::size_t segment_offset =
+                    data[index + start_offset] | data[index + start_offset + 1] << 8;
                 std::size_t segment_size = ((segment_offset >> 12) & 0xF) + 3;
                 segment_offset &= 0xFFF;
                 segment_offset += 3;

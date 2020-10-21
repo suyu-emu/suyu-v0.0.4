@@ -21,8 +21,8 @@ public:
     CPUInterruptHandler(const CPUInterruptHandler&) = delete;
     CPUInterruptHandler& operator=(const CPUInterruptHandler&) = delete;
 
-    CPUInterruptHandler(CPUInterruptHandler&&) = delete;
-    CPUInterruptHandler& operator=(CPUInterruptHandler&&) = delete;
+    CPUInterruptHandler(CPUInterruptHandler&&) = default;
+    CPUInterruptHandler& operator=(CPUInterruptHandler&&) = default;
 
     bool IsInterrupted() const {
         return is_interrupted;

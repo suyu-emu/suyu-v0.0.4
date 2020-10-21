@@ -240,10 +240,10 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.eye_type.Assign(
         eye_type_info.values[GetRandomValue<std::size_t>(eye_type_info.values_count)]);
 
-    const auto eye_rotate_1{gender != Gender::Male ? 4U : 2U};
-    const auto eye_rotate_2{gender != Gender::Male ? 3U : 4U};
-    const auto eye_rotate_offset{32U - EyeRotateLookup[eye_rotate_1] + eye_rotate_2};
-    const auto eye_rotate{32U - EyeRotateLookup[bf.eye_type]};
+    const auto eye_rotate_1{gender != Gender::Male ? 4 : 2};
+    const auto eye_rotate_2{gender != Gender::Male ? 3 : 4};
+    const auto eye_rotate_offset{32 - EyeRotateLookup[eye_rotate_1] + eye_rotate_2};
+    const auto eye_rotate{32 - EyeRotateLookup[bf.eye_type]};
 
     bf.eye_color.Assign(
         EyeColorLookup[eye_color_info
@@ -257,11 +257,11 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.eyebrow_type.Assign(
         eyebrow_type_info.values[GetRandomValue<std::size_t>(eyebrow_type_info.values_count)]);
 
-    const auto eyebrow_rotate_1{race == Race::Asian ? 6U : 0U};
-    const auto eyebrow_y{race == Race::Asian ? 9U : 10U};
-    const auto eyebrow_rotate_offset{32U - EyebrowRotateLookup[eyebrow_rotate_1] + 6};
+    const auto eyebrow_rotate_1{race == Race::Asian ? 6 : 0};
+    const auto eyebrow_y{race == Race::Asian ? 9 : 10};
+    const auto eyebrow_rotate_offset{32 - EyebrowRotateLookup[eyebrow_rotate_1] + 6};
     const auto eyebrow_rotate{
-        32U - EyebrowRotateLookup[static_cast<std::size_t>(bf.eyebrow_type.Value())]};
+        32 - EyebrowRotateLookup[static_cast<std::size_t>(bf.eyebrow_type.Value())]};
 
     bf.eyebrow_color.Assign(bf.hair_color);
     bf.eyebrow_scale.Assign(4);
@@ -270,14 +270,14 @@ MiiStoreData BuildRandomStoreData(Age age, Gender gender, Race race, const Commo
     bf.eyebrow_x.Assign(2);
     bf.eyebrow_y.Assign(axis_y + eyebrow_y);
 
-    const auto nose_scale{gender == Gender::Female ? 3U : 4U};
+    const auto nose_scale{gender == Gender::Female ? 3 : 4};
 
     bf.nose_type.Assign(
         nose_type_info.values[GetRandomValue<std::size_t>(nose_type_info.values_count)]);
     bf.nose_scale.Assign(nose_scale);
     bf.nose_y.Assign(axis_y + 9);
 
-    const auto mouth_color{gender == Gender::Female ? GetRandomValue<u32>(4) : 0U};
+    const auto mouth_color{gender == Gender::Female ? GetRandomValue<int>(4) : 0};
 
     bf.mouth_type.Assign(
         mouth_type_info.values[GetRandomValue<std::size_t>(mouth_type_info.values_count)]);

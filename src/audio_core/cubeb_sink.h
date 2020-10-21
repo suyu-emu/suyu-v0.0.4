@@ -27,7 +27,7 @@ private:
     std::vector<SinkStreamPtr> sink_streams;
 
 #ifdef _WIN32
-    s32 com_init_result = 0;
+    u32 com_init_result = 0;
 #endif
 };
 

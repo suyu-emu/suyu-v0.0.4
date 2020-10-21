@@ -137,10 +137,9 @@ std::shared_ptr<ResourceLimit> Process::GetResourceLimit() const {
 }
 
 u64 Process::GetTotalPhysicalMemoryAvailable() const {
-    const u64 capacity{
-        static_cast<u64>(resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory)) +
-        page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
-        main_thread_stack_size};
+    const u64 capacity{resource_limit->GetCurrentResourceValue(ResourceType::PhysicalMemory) +
+                       page_table->GetTotalHeapSize() + GetSystemResourceSize() + image_size +
+                       main_thread_stack_size};
 
     if (capacity < memory_usage_capacity) {
         return capacity;
@@ -280,12 +279,12 @@ ResultCode Process::LoadFromMetadata(const FileSys::ProgramMetadata& metadata,
     // Set initial resource limits
     resource_limit->SetLimitValue(
         ResourceType::PhysicalMemory,
-        static_cast<s64>(kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application)));
+        kernel.MemoryManager().GetSize(Memory::MemoryManager::Pool::Application));
     resource_limit->SetLimitValue(ResourceType::Threads, 608);
     resource_limit->SetLimitValue(ResourceType::Events, 700);
     resource_limit->SetLimitValue(ResourceType::TransferMemory, 128);
     resource_limit->SetLimitValue(ResourceType::Sessions, 894);
-    ASSERT(resource_limit->Reserve(ResourceType::PhysicalMemory, static_cast<s64>(code_size)));
+    ASSERT(resource_limit->Reserve(ResourceType::PhysicalMemory, code_size));
 
     // Create TLS region
     tls_region_address = CreateTLSRegion();
@@ -301,9 +300,9 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 
     ChangeStatus(ProcessStatus::Running);
 
-    SetupMainThread(system, *this, static_cast<u32>(main_thread_priority), main_thread_stack_top);
+    SetupMainThread(system, *this, main_thread_priority, main_thread_stack_top);
     resource_limit->Reserve(ResourceType::Threads, 1);
-    resource_limit->Reserve(ResourceType::PhysicalMemory, static_cast<s64>(main_thread_stack_size));
+    resource_limit->Reserve(ResourceType::PhysicalMemory, main_thread_stack_size);
 }
 
 void Process::PrepareForTermination() {
@@ -364,7 +363,7 @@ VAddr Process::CreateTLSRegion() {
             ->AllocateAndMapMemory(1, Memory::PageSize, true, start, size / Memory::PageSize,
                                    Memory::MemoryState::ThreadLocal,
                                    Memory::MemoryPermission::ReadAndWrite, tls_map_addr)
-            .ValueOr(0U)};
+            .ValueOr(0)};
 
     ASSERT(tls_page_addr);
 

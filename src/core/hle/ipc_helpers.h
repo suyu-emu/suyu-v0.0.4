@@ -233,7 +233,7 @@ void ResponseBuilder::PushRaw(const T& value) {
     static_assert(std::is_trivially_copyable_v<T>,
                   "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(cmdbuf + index, &value, sizeof(T));
-    index += static_cast<std::ptrdiff_t>((sizeof(T) + 3) / 4); // round up to word length
+    index += (sizeof(T) + 3) / 4; // round up to word length
 }
 
 template <>
@@ -390,7 +390,7 @@ void RequestParser::PopRaw(T& value) {
     static_assert(std::is_trivially_copyable_v<T>,
                   "It's undefined behavior to use memcpy with non-trivially copyable objects");
     std::memcpy(&value, cmdbuf + index, sizeof(T));
-    index += static_cast<std::ptrdiff_t>((sizeof(T) + 3) / 4); // round up to word length
+    index += (sizeof(T) + 3) / 4; // round up to word length
 }
 
 template <typename T>

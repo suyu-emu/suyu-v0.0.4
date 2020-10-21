@@ -171,7 +171,7 @@ struct KernelCore::Impl {
             const auto type =
                 static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_SUSPEND);
             auto thread_res =
-                Thread::Create(system, type, std::move(name), 0, 0, 0, static_cast<s32>(i), 0,
+                Thread::Create(system, type, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
                                nullptr, std::move(init_func), init_func_parameter);
 
             suspend_threads[i] = std::move(thread_res).Unwrap();

@@ -62,7 +62,7 @@ void MixContext::UpdateDistancesFromFinalMix() {
                 distance_to_final_mix = AudioCommon::NO_FINAL_MIX;
                 break;
             } else {
-                const auto& dest_mix = GetInfo(static_cast<u32>(mix_id));
+                const auto& dest_mix = GetInfo(mix_id);
                 const auto dest_mix_distance = dest_mix.GetInParams().final_mix_distance;
 
                 if (dest_mix_distance == AudioCommon::NO_FINAL_MIX) {
@@ -129,7 +129,7 @@ bool MixContext::TsortInfo(SplitterContext& splitter_context) {
     std::size_t info_id{};
     for (auto itr = sorted_list.rbegin(); itr != sorted_list.rend(); ++itr) {
         // Set our sorted info
-        sorted_info[info_id++] = &GetInfo(static_cast<u32>(*itr));
+        sorted_info[info_id++] = &GetInfo(*itr);
     }
 
     // Calculate the mix buffer offset
@@ -218,8 +218,7 @@ bool ServerMixInfo::Update(EdgeMatrix& edge_matrix, const MixInfo::InParams& mix
     for (std::size_t i = 0; i < effect_count; i++) {
         auto* effect_info = effect_context.GetInfo(i);
         if (effect_info->GetMixID() == in_params.mix_id) {
-            const auto processing_order = static_cast<u32>(effect_info->GetProcessingOrder());
-            effect_processing_order[processing_order] = static_cast<s32>(i);
+            effect_processing_order[effect_info->GetProcessingOrder()] = static_cast<s32>(i);
         }
     }
 
@@ -266,7 +265,7 @@ bool ServerMixInfo::UpdateConnection(EdgeMatrix& edge_matrix, const MixInfo::InP
     if (in_params.dest_mix_id == mix_in.dest_mix_id &&
         in_params.splitter_id == mix_in.splitter_id &&
         ((in_params.splitter_id == AudioCommon::NO_SPLITTER) ||
-         !splitter_context.GetInfo(static_cast<u32>(in_params.splitter_id)).HasNewConnection())) {
+         !splitter_context.GetInfo(in_params.splitter_id).HasNewConnection())) {
         return false;
     }
     // Remove current edges for mix id
@@ -276,11 +275,11 @@ bool ServerMixInfo::UpdateConnection(EdgeMatrix& edge_matrix, const MixInfo::InP
         edge_matrix.Connect(in_params.mix_id, mix_in.dest_mix_id);
     } else if (mix_in.splitter_id != AudioCommon::NO_SPLITTER) {
         // Recurse our splitter linked and set our edges
-        auto& splitter_info = splitter_context.GetInfo(static_cast<u32>(mix_in.splitter_id));
-        const auto length = static_cast<size_t>(splitter_info.GetLength());
-        for (size_t i = 0; i < length; i++) {
+        auto& splitter_info = splitter_context.GetInfo(mix_in.splitter_id);
+        const auto length = splitter_info.GetLength();
+        for (s32 i = 0; i < length; i++) {
             const auto* splitter_destination =
-                splitter_context.GetDestinationData(static_cast<u32>(mix_in.splitter_id), i);
+                splitter_context.GetDestinationData(mix_in.splitter_id, i);
             if (splitter_destination == nullptr) {
                 continue;
             }
