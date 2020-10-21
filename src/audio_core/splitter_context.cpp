@@ -109,7 +109,7 @@ std::size_t ServerSplitterInfo::Update(SplitterInfo::InInfoPrams& header) {
     new_connection = true;
     // We need to update the size here due to the splitter bug being present and providing an
     // incorrect size. We're suppose to also update the header here but we just ignore and continue
-    return (sizeof(s32_le) * static_cast<size_t>(header.length - 1)) + (sizeof(s32_le) * 3);
+    return (sizeof(s32_le) * (header.length - 1)) + (sizeof(s32_le) * 3);
 }
 
 ServerSplitterDestinationData* ServerSplitterInfo::GetHead() {
@@ -306,14 +306,13 @@ bool SplitterContext::UpdateInfo(const std::vector<u8>& input, std::size_t& inpu
             break;
         }
 
-        const auto send_id = static_cast<std::size_t>(header.send_id);
-        if (header.send_id < 0 || send_id > info_count) {
+        if (header.send_id < 0 || static_cast<std::size_t>(header.send_id) > info_count) {
             LOG_ERROR(Audio, "Bad splitter data id");
             break;
         }
 
         UpdateOffsets(sizeof(SplitterInfo::InInfoPrams));
-        auto& info = GetInfo(send_id);
+        auto& info = GetInfo(header.send_id);
         if (!RecomposeDestination(info, header, input, input_offset)) {
             LOG_ERROR(Audio, "Failed to recompose destination for splitter!");
             return false;
@@ -349,12 +348,11 @@ bool SplitterContext::UpdateData(const std::vector<u8>& input, std::size_t& inpu
             break;
         }
 
-        const auto splitter_id = static_cast<std::size_t>(header.splitter_id);
-        if (header.splitter_id < 0 || splitter_id > data_count) {
+        if (header.splitter_id < 0 || static_cast<std::size_t>(header.splitter_id) > data_count) {
             LOG_ERROR(Audio, "Bad splitter data id");
             break;
         }
-        GetData(splitter_id).Update(header);
+        GetData(header.splitter_id).Update(header);
     }
     return true;
 }
@@ -388,9 +386,9 @@ bool SplitterContext::RecomposeDestination(ServerSplitterInfo& info,
         return true;
     }
 
-    auto* start_head = &GetData(static_cast<u32>(header.resource_id_base));
+    auto* start_head = &GetData(header.resource_id_base);
     current_head = start_head;
-    std::vector<s32_le> resource_ids(static_cast<size_t>(size - 1));
+    std::vector<s32_le> resource_ids(size - 1);
     if (!AudioCommon::CanConsumeBuffer(input.size(), input_offset,
                                        resource_ids.size() * sizeof(s32_le))) {
         LOG_ERROR(Audio, "Buffer is an invalid size!");
@@ -399,8 +397,8 @@ bool SplitterContext::RecomposeDestination(ServerSplitterInfo& info,
     std::memcpy(resource_ids.data(), input.data() + input_offset,
                 resource_ids.size() * sizeof(s32_le));
 
-    for (const auto resource_id : resource_ids) {
-        auto* head = &GetData(static_cast<u32>(resource_id));
+    for (auto resource_id : resource_ids) {
+        auto* head = &GetData(resource_id);
         current_head->SetNextDestination(head);
         current_head = head;
     }
@@ -446,7 +444,7 @@ bool NodeStates::DepthFirstSearch(EdgeMatrix& edge_matrix) {
         const auto node_id = static_cast<s32>(i);
 
         // If we don't have a state, send to our index stack for work
-        if (GetState(i) == State::NoState) {
+        if (GetState(i) == NodeStates::State::NoState) {
             index_stack.push(node_id);
         }
 
@@ -455,19 +453,19 @@ bool NodeStates::DepthFirstSearch(EdgeMatrix& edge_matrix) {
             // Get the current node
             const auto current_stack_index = index_stack.top();
             // Check if we've seen the node yet
-            const auto index_state = GetState(static_cast<u32>(current_stack_index));
-            if (index_state == State::NoState) {
+            const auto index_state = GetState(current_stack_index);
+            if (index_state == NodeStates::State::NoState) {
                 // Mark the node as seen
-                UpdateState(State::InFound, static_cast<u32>(current_stack_index));
-            } else if (index_state == State::InFound) {
+                UpdateState(NodeStates::State::InFound, current_stack_index);
+            } else if (index_state == NodeStates::State::InFound) {
                 // We've seen this node before, mark it as completed
-                UpdateState(State::InCompleted, static_cast<u32>(current_stack_index));
+                UpdateState(NodeStates::State::InCompleted, current_stack_index);
                 // Update our index list
                 PushTsortResult(current_stack_index);
                 // Pop the stack
                 index_stack.pop();
                 continue;
-            } else if (index_state == State::InCompleted) {
+            } else if (index_state == NodeStates::State::InCompleted) {
                 // If our node is already sorted, clear it
                 index_stack.pop();
                 continue;
@@ -481,11 +479,11 @@ bool NodeStates::DepthFirstSearch(EdgeMatrix& edge_matrix) {
                 }
 
                 // Check if our node exists
-                const auto node_state = GetState(static_cast<u32>(j));
-                if (node_state == State::NoState) {
+                const auto node_state = GetState(j);
+                if (node_state == NodeStates::State::NoState) {
                     // Add more work
                     index_stack.push(j);
-                } else if (node_state == State::InFound) {
+                } else if (node_state == NodeStates::State::InFound) {
                     UNREACHABLE_MSG("Node start marked as found");
                     ResetState();
                     return false;
@@ -509,17 +507,17 @@ void NodeStates::ResetState() {
     }
 }
 
-void NodeStates::UpdateState(State state, std::size_t i) {
+void NodeStates::UpdateState(NodeStates::State state, std::size_t i) {
     switch (state) {
-    case State::NoState:
+    case NodeStates::State::NoState:
         was_node_found[i] = false;
         was_node_completed[i] = false;
         break;
-    case State::InFound:
+    case NodeStates::State::InFound:
         was_node_found[i] = true;
         was_node_completed[i] = false;
         break;
-    case State::InCompleted:
+    case NodeStates::State::InCompleted:
         was_node_found[i] = false;
         was_node_completed[i] = true;
         break;
@@ -530,13 +528,13 @@ NodeStates::State NodeStates::GetState(std::size_t i) {
     ASSERT(i < node_count);
     if (was_node_found[i]) {
         // If our node exists in our found list
-        return State::InFound;
+        return NodeStates::State::InFound;
     } else if (was_node_completed[i]) {
         // If node is in the completed list
-        return State::InCompleted;
+        return NodeStates::State::InCompleted;
     } else {
         // If in neither
-        return State::NoState;
+        return NodeStates::State::NoState;
     }
 }
 
@@ -603,16 +601,16 @@ std::size_t EdgeMatrix::GetNodeCount() const {
 
 void EdgeMatrix::SetState(s32 a, s32 b, bool state) {
     ASSERT(InRange(a, b));
-    edge_matrix.at(static_cast<u32>(a) * node_count + static_cast<u32>(b)) = state;
+    edge_matrix.at(a * node_count + b) = state;
 }
 
 bool EdgeMatrix::GetState(s32 a, s32 b) {
     ASSERT(InRange(a, b));
-    return edge_matrix.at(static_cast<u32>(a) * node_count + static_cast<u32>(b));
+    return edge_matrix.at(a * node_count + b);
 }
 
 bool EdgeMatrix::InRange(s32 a, s32 b) const {
-    const std::size_t pos = static_cast<u32>(a) * node_count + static_cast<u32>(b);
+    const std::size_t pos = a * node_count + b;
     return pos < (node_count * node_count);
 }
 

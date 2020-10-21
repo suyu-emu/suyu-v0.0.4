@@ -197,7 +197,7 @@ struct Memory::Impl {
         std::string string;
         string.reserve(max_length);
         for (std::size_t i = 0; i < max_length; ++i) {
-            const auto c = static_cast<char>(Read8(vaddr));
+            const char c = Read8(vaddr);
             if (c == '\0') {
                 break;
             }

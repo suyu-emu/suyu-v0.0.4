@@ -341,29 +341,26 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
     }
     for (std::size_t i = 0; i < shared_memory_entries.size(); i++) {
         auto& npad = shared_memory_entries[i];
-        const std::array controller_npads{
-            &npad.main_controller_states,
-            &npad.handheld_states,
-            &npad.dual_states,
-            &npad.left_joy_states,
-            &npad.right_joy_states,
-            &npad.pokeball_states,
-            &npad.libnx,
-        };
+        const std::array<NPadGeneric*, 7> controller_npads{&npad.main_controller_states,
+                                                           &npad.handheld_states,
+                                                           &npad.dual_states,
+                                                           &npad.left_joy_states,
+                                                           &npad.right_joy_states,
+                                                           &npad.pokeball_states,
+                                                           &npad.libnx};
 
         for (auto* main_controller : controller_npads) {
             main_controller->common.entry_count = 16;
             main_controller->common.total_entry_count = 17;
 
             const auto& last_entry =
-                main_controller->npad[static_cast<u64>(main_controller->common.last_entry_index)];
+                main_controller->npad[main_controller->common.last_entry_index];
 
-            main_controller->common.timestamp = static_cast<s64>(core_timing.GetCPUTicks());
+            main_controller->common.timestamp = core_timing.GetCPUTicks();
             main_controller->common.last_entry_index =
                 (main_controller->common.last_entry_index + 1) % 17;
 
-            auto& cur_entry =
-                main_controller->npad[static_cast<u64>(main_controller->common.last_entry_index)];
+            auto& cur_entry = main_controller->npad[main_controller->common.last_entry_index];
 
             cur_entry.timestamp = last_entry.timestamp + 1;
             cur_entry.timestamp2 = cur_entry.timestamp;
@@ -374,29 +371,22 @@ void Controller_NPad::OnUpdate(const Core::Timing::CoreTiming& core_timing, u8* 
         if (controller_type == NPadControllerType::None || !connected_controllers[i].is_connected) {
             continue;
         }
-        const auto npad_index = static_cast<u32>(i);
+        const u32 npad_index = static_cast<u32>(i);
 
         RequestPadStateUpdate(npad_index);
         auto& pad_state = npad_pad_states[npad_index];
 
         auto& main_controller =
-            npad.main_controller_states
-                .npad[static_cast<u64>(npad.main_controller_states.common.last_entry_index)];
+            npad.main_controller_states.npad[npad.main_controller_states.common.last_entry_index];
         auto& handheld_entry =
-            npad.handheld_states
-                .npad[static_cast<u64>(npad.handheld_states.common.last_entry_index)];
-        auto& dual_entry =
-            npad.dual_states.npad[static_cast<u64>(npad.dual_states.common.last_entry_index)];
-        auto& left_entry =
-            npad.left_joy_states
-                .npad[static_cast<u64>(npad.left_joy_states.common.last_entry_index)];
+            npad.handheld_states.npad[npad.handheld_states.common.last_entry_index];
+        auto& dual_entry = npad.dual_states.npad[npad.dual_states.common.last_entry_index];
+        auto& left_entry = npad.left_joy_states.npad[npad.left_joy_states.common.last_entry_index];
         auto& right_entry =
-            npad.right_joy_states
-                .npad[static_cast<u64>(npad.right_joy_states.common.last_entry_index)];
+            npad.right_joy_states.npad[npad.right_joy_states.common.last_entry_index];
         auto& pokeball_entry =
-            npad.pokeball_states
-                .npad[static_cast<u64>(npad.pokeball_states.common.last_entry_index)];
-        auto& libnx_entry = npad.libnx.npad[static_cast<u64>(npad.libnx.common.last_entry_index)];
+            npad.pokeball_states.npad[npad.pokeball_states.common.last_entry_index];
+        auto& libnx_entry = npad.libnx.npad[npad.libnx.common.last_entry_index];
 
         libnx_entry.connection_status.raw = 0;
         libnx_entry.connection_status.IsConnected.Assign(1);
@@ -510,14 +500,13 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
             sixaxis_sensor->common.total_entry_count = 17;
 
             const auto& last_entry =
-                sixaxis_sensor->sixaxis[static_cast<u64>(sixaxis_sensor->common.last_entry_index)];
+                sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
 
-            sixaxis_sensor->common.timestamp = static_cast<s64>(core_timing.GetCPUTicks());
+            sixaxis_sensor->common.timestamp = core_timing.GetCPUTicks();
             sixaxis_sensor->common.last_entry_index =
                 (sixaxis_sensor->common.last_entry_index + 1) % 17;
 
-            auto& cur_entry =
-                sixaxis_sensor->sixaxis[static_cast<u64>(sixaxis_sensor->common.last_entry_index)];
+            auto& cur_entry = sixaxis_sensor->sixaxis[sixaxis_sensor->common.last_entry_index];
 
             cur_entry.timestamp = last_entry.timestamp + 1;
             cur_entry.timestamp2 = cur_entry.timestamp;
@@ -540,21 +529,17 @@ void Controller_NPad::OnMotionUpdate(const Core::Timing::CoreTiming& core_timing
         }
 
         auto& full_sixaxis_entry =
-            npad.sixaxis_full.sixaxis[static_cast<u64>(npad.sixaxis_full.common.last_entry_index)];
+            npad.sixaxis_full.sixaxis[npad.sixaxis_full.common.last_entry_index];
         auto& handheld_sixaxis_entry =
-            npad.sixaxis_handheld
-                .sixaxis[static_cast<u64>(npad.sixaxis_handheld.common.last_entry_index)];
+            npad.sixaxis_handheld.sixaxis[npad.sixaxis_handheld.common.last_entry_index];
         auto& dual_left_sixaxis_entry =
-            npad.sixaxis_dual_left
-                .sixaxis[static_cast<u64>(npad.sixaxis_dual_left.common.last_entry_index)];
+            npad.sixaxis_dual_left.sixaxis[npad.sixaxis_dual_left.common.last_entry_index];
         auto& dual_right_sixaxis_entry =
-            npad.sixaxis_dual_right
-                .sixaxis[static_cast<u64>(npad.sixaxis_dual_right.common.last_entry_index)];
+            npad.sixaxis_dual_right.sixaxis[npad.sixaxis_dual_right.common.last_entry_index];
         auto& left_sixaxis_entry =
-            npad.sixaxis_left.sixaxis[static_cast<u64>(npad.sixaxis_left.common.last_entry_index)];
+            npad.sixaxis_left.sixaxis[npad.sixaxis_left.common.last_entry_index];
         auto& right_sixaxis_entry =
-            npad.sixaxis_right
-                .sixaxis[static_cast<u64>(npad.sixaxis_right.common.last_entry_index)];
+            npad.sixaxis_right.sixaxis[npad.sixaxis_right.common.last_entry_index];
 
         switch (controller_type) {
         case NPadControllerType::None:

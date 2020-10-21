@@ -117,8 +117,7 @@ static constexpr int GetMonthLength(bool is_leap_year, int month) {
     constexpr std::array<int, 12> month_lengths{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
     constexpr std::array<int, 12> month_lengths_leap{31, 29, 31, 30, 31, 30,
                                                      31, 31, 30, 31, 30, 31};
-    const auto month_index = static_cast<u32>(month);
-    return is_leap_year ? month_lengths_leap[month_index] : month_lengths[month_index];
+    return is_leap_year ? month_lengths_leap[month] : month_lengths[month];
 }
 
 static constexpr bool IsDigit(char value) {
@@ -321,7 +320,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
     int dest_len{};
     int dest_offset{};
     const char* dest_name{name + offset};
-    if (rule.chars.size() < static_cast<std::size_t>(char_count)) {
+    if (rule.chars.size() < std::size_t(char_count)) {
         return {};
     }
 
@@ -344,7 +343,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
             return {};
         }
         char_count += dest_len + 1;
-        if (rule.chars.size() < static_cast<std::size_t>(char_count)) {
+        if (rule.chars.size() < std::size_t(char_count)) {
             return {};
         }
         if (name[offset] != '\0' && name[offset] != ',' && name[offset] != ';') {
@@ -387,7 +386,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
             rule.default_type = 0;
 
             s64 jan_first{};
-            u32 time_count{};
+            int time_count{};
             int jan_offset{};
             int year_beginning{epoch_year};
             do {
@@ -415,7 +414,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
                 if (is_reversed ||
                     (start_time < end_time &&
                      (end_time - start_time < (year_seconds + (std_offset - dest_offset))))) {
-                    if (rule.ats.size() - 2 < time_count) {
+                    if (rule.ats.size() - 2 < std::size_t(time_count)) {
                         break;
                     }
 
@@ -439,7 +438,7 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
                 }
                 jan_offset = 0;
             }
-            rule.time_count = static_cast<s32>(time_count);
+            rule.time_count = time_count;
             if (time_count == 0) {
                 rule.type_count = 1;
             } else if (years_per_repeat < year - year_beginning) {
@@ -452,30 +451,26 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
             }
 
             s64 their_std_offset{};
-            for (u32 index = 0; index < static_cast<u32>(rule.time_count); ++index) {
+            for (int index{}; index < rule.time_count; ++index) {
                 const s8 type{rule.types[index]};
-                const auto& tti = rule.ttis[static_cast<u8>(type)];
-
-                if (tti.is_standard_time_daylight) {
-                    their_std_offset = -tti.gmt_offset;
+                if (rule.ttis[type].is_standard_time_daylight) {
+                    their_std_offset = -rule.ttis[type].gmt_offset;
                 }
             }
 
             s64 their_offset{their_std_offset};
-            for (u32 index = 0; index < static_cast<u32>(rule.time_count); ++index) {
+            for (int index{}; index < rule.time_count; ++index) {
                 const s8 type{rule.types[index]};
-                const auto& tti = rule.ttis[static_cast<u8>(type)];
-
-                rule.types[index] = tti.is_dst ? 1 : 0;
-                if (!tti.is_gmt) {
-                    if (!tti.is_standard_time_daylight) {
+                rule.types[index] = rule.ttis[type].is_dst ? 1 : 0;
+                if (!rule.ttis[type].is_gmt) {
+                    if (!rule.ttis[type].is_standard_time_daylight) {
                         rule.ats[index] += dest_offset - their_std_offset;
                     } else {
                         rule.ats[index] += std_offset - their_std_offset;
                     }
                 }
-                their_offset = -tti.gmt_offset;
-                if (!tti.is_dst) {
+                their_offset = -rule.ttis[type].gmt_offset;
+                if (!rule.ttis[type].is_dst) {
                     their_std_offset = their_offset;
                 }
             }
@@ -499,16 +494,16 @@ static bool ParsePosixName(const char* name, TimeZoneRule& rule) {
     }
 
     rule.char_count = char_count;
-    for (std::size_t index = 0; index < static_cast<std::size_t>(std_len); ++index) {
+    for (int index{}; index < std_len; ++index) {
         rule.chars[index] = std_name[index];
     }
 
-    rule.chars[static_cast<size_t>(std_len++)] = '\0';
+    rule.chars[std_len++] = '\0';
     if (dest_len != 0) {
-        for (int index = 0; index < dest_len; ++index) {
-            rule.chars[static_cast<std::size_t>(std_len + index)] = dest_name[index];
+        for (int index{}; index < dest_len; ++index) {
+            rule.chars[std_len + index] = dest_name[index];
         }
-        rule.chars[static_cast<std::size_t>(std_len + dest_len)] = '\0';
+        rule.chars[std_len + dest_len] = '\0';
     }
 
     return true;
@@ -536,33 +531,33 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
 
     int time_count{};
     u64 read_offset = sizeof(TzifHeader);
-    for (size_t index = 0; index < static_cast<size_t>(time_zone_rule.time_count); ++index) {
+    for (int index{}; index < time_zone_rule.time_count; ++index) {
         s64_be at{};
         vfs_file->ReadObject<s64_be>(&at, read_offset);
         time_zone_rule.types[index] = 1;
-        if (time_count != 0 && at <= time_zone_rule.ats[static_cast<size_t>(time_count) - 1]) {
-            if (at < time_zone_rule.ats[static_cast<size_t>(time_count) - 1]) {
+        if (time_count != 0 && at <= time_zone_rule.ats[time_count - 1]) {
+            if (at < time_zone_rule.ats[time_count - 1]) {
                 return {};
             }
             time_zone_rule.types[index - 1] = 0;
             time_count--;
         }
-        time_zone_rule.ats[static_cast<size_t>(time_count++)] = at;
+        time_zone_rule.ats[time_count++] = at;
         read_offset += sizeof(s64_be);
     }
     time_count = 0;
-    for (size_t index = 0; index < static_cast<size_t>(time_zone_rule.time_count); ++index) {
-        const auto type{static_cast<s8>(*vfs_file->ReadByte(read_offset))};
-        read_offset += sizeof(s8);
+    for (int index{}; index < time_zone_rule.time_count; ++index) {
+        const u8 type{*vfs_file->ReadByte(read_offset)};
+        read_offset += sizeof(u8);
         if (time_zone_rule.time_count <= type) {
             return {};
         }
         if (time_zone_rule.types[index] != 0) {
-            time_zone_rule.types[static_cast<size_t>(time_count++)] = type;
+            time_zone_rule.types[time_count++] = type;
         }
     }
     time_zone_rule.time_count = time_count;
-    for (size_t index = 0; index < static_cast<size_t>(time_zone_rule.type_count); ++index) {
+    for (int index{}; index < time_zone_rule.type_count; ++index) {
         TimeTypeInfo& ttis{time_zone_rule.ttis[index]};
         u32_be gmt_offset{};
         vfs_file->ReadObject<u32_be>(&gmt_offset, read_offset);
@@ -584,11 +579,10 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
         ttis.abbreviation_list_index = abbreviation_list_index;
     }
 
-    vfs_file->ReadArray(time_zone_rule.chars.data(), static_cast<u32>(time_zone_rule.char_count),
-                        read_offset);
-    time_zone_rule.chars[static_cast<u32>(time_zone_rule.char_count)] = '\0';
-    read_offset += static_cast<u64>(time_zone_rule.char_count);
-    for (size_t index = 0; index < static_cast<size_t>(time_zone_rule.type_count); ++index) {
+    vfs_file->ReadArray(time_zone_rule.chars.data(), time_zone_rule.char_count, read_offset);
+    time_zone_rule.chars[time_zone_rule.char_count] = '\0';
+    read_offset += time_zone_rule.char_count;
+    for (int index{}; index < time_zone_rule.type_count; ++index) {
         if (header.ttis_std_count == 0) {
             time_zone_rule.ttis[index].is_standard_time_daylight = false;
         } else {
@@ -601,7 +595,7 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
         }
     }
 
-    for (size_t index = 0; index < static_cast<size_t>(time_zone_rule.type_count); ++index) {
+    for (int index{}; index < time_zone_rule.type_count; ++index) {
         if (header.ttis_std_count == 0) {
             time_zone_rule.ttis[index].is_gmt = false;
         } else {
@@ -625,14 +619,13 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     }
 
     std::array<char, time_zone_name_max + 1> temp_name{};
-    vfs_file->ReadArray(temp_name.data(), static_cast<size_t>(bytes_read), read_offset);
-    if (bytes_read > 2 && temp_name[0] == '\n' &&
-        temp_name[static_cast<u64>(bytes_read - 1)] == '\n' &&
-        static_cast<std::size_t>(time_zone_rule.type_count) + 2 <= time_zone_rule.ttis.size()) {
-        temp_name[static_cast<u64>(bytes_read - 1)] = '\0';
+    vfs_file->ReadArray(temp_name.data(), bytes_read, read_offset);
+    if (bytes_read > 2 && temp_name[0] == '\n' && temp_name[bytes_read - 1] == '\n' &&
+        std::size_t(time_zone_rule.type_count) + 2 <= time_zone_rule.ttis.size()) {
+        temp_name[bytes_read - 1] = '\0';
 
         std::array<char, time_zone_name_max> name{};
-        std::memcpy(name.data(), temp_name.data() + 1, static_cast<std::size_t>(bytes_read - 1));
+        std::memcpy(name.data(), temp_name.data() + 1, std::size_t(bytes_read - 1));
 
         TimeZoneRule temp_rule;
         if (ParsePosixName(name.data(), temp_rule)) {
@@ -649,24 +642,24 @@ static bool ParseTimeZoneBinary(TimeZoneRule& time_zone_rule, FileSys::VirtualFi
     s32 default_type{};
 
     for (default_type = 0; default_type < time_zone_rule.time_count; default_type++) {
-        if (time_zone_rule.types[static_cast<u32>(default_type)] == 0) {
+        if (time_zone_rule.types[default_type] == 0) {
             break;
         }
     }
 
     default_type = default_type < time_zone_rule.time_count ? -1 : 0;
     if (default_type < 0 && time_zone_rule.time_count > 0 &&
-        time_zone_rule.ttis[static_cast<u8>(time_zone_rule.types[0])].is_dst) {
+        time_zone_rule.ttis[time_zone_rule.types[0]].is_dst) {
         default_type = time_zone_rule.types[0];
         while (--default_type >= 0) {
-            if (!time_zone_rule.ttis[static_cast<u32>(default_type)].is_dst) {
+            if (!time_zone_rule.ttis[default_type].is_dst) {
                 break;
             }
         }
     }
     if (default_type < 0) {
         default_type = 0;
-        while (time_zone_rule.ttis[static_cast<u32>(default_type)].is_dst) {
+        while (time_zone_rule.ttis[default_type].is_dst) {
             if (++default_type >= time_zone_rule.type_count) {
                 default_type = 0;
                 break;
@@ -756,12 +749,12 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
                                          CalendarTimeInternal& calendar_time,
                                          CalendarAdditionalInfo& calendar_additional_info) {
     if ((rules.go_ahead && time < rules.ats[0]) ||
-        (rules.go_back && time > rules.ats[static_cast<size_t>(rules.time_count - 1)])) {
+        (rules.go_back && time > rules.ats[rules.time_count - 1])) {
         s64 seconds{};
         if (time < rules.ats[0]) {
             seconds = rules.ats[0] - time;
         } else {
-            seconds = time - rules.ats[static_cast<size_t>(rules.time_count - 1)];
+            seconds = time - rules.ats[rules.time_count - 1];
         }
         seconds--;
 
@@ -774,8 +767,7 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
         } else {
             new_time -= seconds;
         }
-        if (new_time < rules.ats[0] &&
-            new_time > rules.ats[static_cast<size_t>(rules.time_count - 1)]) {
+        if (new_time < rules.ats[0] && new_time > rules.ats[rules.time_count - 1]) {
             return ERROR_TIME_NOT_FOUND;
         }
         if (const ResultCode result{
@@ -799,27 +791,25 @@ static ResultCode ToCalendarTimeInternal(const TimeZoneRule& rules, s64 time,
         s32 low{1};
         s32 high{rules.time_count};
         while (low < high) {
-            const s32 mid{(low + high) >> 1};
-            if (time < rules.ats[static_cast<size_t>(mid)]) {
+            s32 mid{(low + high) >> 1};
+            if (time < rules.ats[mid]) {
                 high = mid;
             } else {
                 low = mid + 1;
             }
         }
-        tti_index = rules.types[static_cast<size_t>(low - 1)];
+        tti_index = rules.types[low - 1];
     }
 
-    if (const ResultCode result{
-            CreateCalendarTime(time, rules.ttis[static_cast<u32>(tti_index)].gmt_offset,
-                               calendar_time, calendar_additional_info)};
+    if (const ResultCode result{CreateCalendarTime(time, rules.ttis[tti_index].gmt_offset,
+                                                   calendar_time, calendar_additional_info)};
         result != RESULT_SUCCESS) {
         return result;
     }
 
-    const auto& tti = rules.ttis[static_cast<size_t>(tti_index)];
-    calendar_additional_info.is_dst = tti.is_dst;
-    const char* time_zone{&rules.chars[static_cast<size_t>(tti.abbreviation_list_index)]};
-    for (size_t index = 0; time_zone[index] != '\0'; ++index) {
+    calendar_additional_info.is_dst = rules.ttis[tti_index].is_dst;
+    const char* time_zone{&rules.chars[rules.ttis[tti_index].abbreviation_list_index]};
+    for (int index{}; time_zone[index] != '\0'; ++index) {
         calendar_additional_info.timezone_name[index] = time_zone[index];
     }
     return RESULT_SUCCESS;

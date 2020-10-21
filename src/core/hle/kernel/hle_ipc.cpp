@@ -58,7 +58,7 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
 
     {
         Handle event_handle = InvalidHandle;
-        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), static_cast<s64>(timeout));
+        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
         thread->SetHLECallback(
             [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
                 ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT

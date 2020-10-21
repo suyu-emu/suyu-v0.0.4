@@ -148,7 +148,7 @@ public:
             }
             return 0U;
         }
-        return static_cast<u64>(std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0));
+        return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
     }
 
     u64 GetCNTPCT() override {
@@ -265,19 +265,19 @@ u64 ARM_Dynarmic_64::GetPC() const {
     return jit->GetPC();
 }
 
-u64 ARM_Dynarmic_64::GetReg(std::size_t index) const {
+u64 ARM_Dynarmic_64::GetReg(int index) const {
     return jit->GetRegister(index);
 }
 
-void ARM_Dynarmic_64::SetReg(std::size_t index, u64 value) {
+void ARM_Dynarmic_64::SetReg(int index, u64 value) {
     jit->SetRegister(index, value);
 }
 
-u128 ARM_Dynarmic_64::GetVectorReg(std::size_t index) const {
+u128 ARM_Dynarmic_64::GetVectorReg(int index) const {
     return jit->GetVector(index);
 }
 
-void ARM_Dynarmic_64::SetVectorReg(std::size_t index, u128 value) {
+void ARM_Dynarmic_64::SetVectorReg(int index, u128 value) {
     jit->SetVector(index, value);
 }
 

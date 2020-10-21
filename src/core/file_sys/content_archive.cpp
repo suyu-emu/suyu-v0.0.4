@@ -201,9 +201,9 @@ bool NCA::HandlePotentialHeaderDecryption() {
 }
 
 std::vector<NCASectionHeader> NCA::ReadSectionHeaders() const {
-    const auto number_sections = static_cast<std::size_t>(
+    const std::ptrdiff_t number_sections =
         std::count_if(std::begin(header.section_tables), std::end(header.section_tables),
-                      [](NCASectionTableEntry entry) { return entry.media_offset > 0; }));
+                      [](NCASectionTableEntry entry) { return entry.media_offset > 0; });
 
     std::vector<NCASectionHeader> sections(number_sections);
     const auto length_sections = SECTION_HEADER_SIZE * number_sections;

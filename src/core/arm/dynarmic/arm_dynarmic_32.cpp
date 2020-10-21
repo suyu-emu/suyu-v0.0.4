@@ -111,7 +111,7 @@ public:
             }
             return 0U;
         }
-        return static_cast<u64>(std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0));
+        return std::max<s64>(parent.system.CoreTiming().GetDowncount(), 0);
     }
 
     ARM_Dynarmic_32& parent;
@@ -210,19 +210,19 @@ u64 ARM_Dynarmic_32::GetPC() const {
     return jit->Regs()[15];
 }
 
-u64 ARM_Dynarmic_32::GetReg(std::size_t index) const {
+u64 ARM_Dynarmic_32::GetReg(int index) const {
     return jit->Regs()[index];
 }
 
-void ARM_Dynarmic_32::SetReg(std::size_t index, u64 value) {
+void ARM_Dynarmic_32::SetReg(int index, u64 value) {
     jit->Regs()[index] = static_cast<u32>(value);
 }
 
-u128 ARM_Dynarmic_32::GetVectorReg(std::size_t index) const {
+u128 ARM_Dynarmic_32::GetVectorReg(int index) const {
     return {};
 }
 
-void ARM_Dynarmic_32::SetVectorReg(std::size_t index, u128 value) {}
+void ARM_Dynarmic_32::SetVectorReg(int index, u128 value) {}
 
 u32 ARM_Dynarmic_32::GetPSTATE() const {
     return jit->Cpsr();

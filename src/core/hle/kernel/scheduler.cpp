@@ -89,11 +89,9 @@ u32 GlobalScheduler::SelectThreads() {
             while (iter != suggested_queue[core_id].end()) {
                 suggested = *iter;
                 iter++;
-                const s32 suggested_core_id = suggested->GetProcessorID();
-                Thread* top_thread = suggested_core_id >= 0
-                                         ? top_threads[static_cast<u32>(suggested_core_id)]
-                                         : nullptr;
-
+                s32 suggested_core_id = suggested->GetProcessorID();
+                Thread* top_thread =
+                    suggested_core_id >= 0 ? top_threads[suggested_core_id] : nullptr;
                 if (top_thread != suggested) {
                     if (top_thread != nullptr &&
                         top_thread->GetPriority() < THREADPRIO_MAX_CORE_MIGRATION) {
@@ -104,19 +102,16 @@ u32 GlobalScheduler::SelectThreads() {
                     TransferToCore(suggested->GetPriority(), static_cast<s32>(core_id), suggested);
                     break;
                 }
-
                 suggested = nullptr;
                 migration_candidates[num_candidates++] = suggested_core_id;
             }
-
             // Step 3: Select a suggested thread from another core
             if (suggested == nullptr) {
                 for (std::size_t i = 0; i < num_candidates; i++) {
-                    const auto candidate_core = static_cast<u32>(migration_candidates[i]);
+                    s32 candidate_core = migration_candidates[i];
                     suggested = top_threads[candidate_core];
                     auto it = scheduled_queue[candidate_core].begin();
-                    ++it;
-
+                    it++;
                     Thread* next = it != scheduled_queue[candidate_core].end() ? *it : nullptr;
                     if (next != nullptr) {
                         TransferToCore(suggested->GetPriority(), static_cast<s32>(core_id),
@@ -133,8 +128,7 @@ u32 GlobalScheduler::SelectThreads() {
 
         idle_cores &= ~(1U << core_id);
     }
-
-    u32 cores_needing_context_switch = 0;
+    u32 cores_needing_context_switch{};
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         Scheduler& sched = kernel.Scheduler(core);
         ASSERT(top_threads[core] == nullptr ||
@@ -192,16 +186,13 @@ bool GlobalScheduler::YieldThreadAndBalanceLoad(Thread* yielding_thread) {
     for (auto& thread : suggested_queue[core_id]) {
         const s32 source_core = thread->GetProcessorID();
         if (source_core >= 0) {
-            const auto sanitized_source_core = static_cast<u32>(source_core);
-
-            if (current_threads[sanitized_source_core] != nullptr) {
-                if (thread == current_threads[sanitized_source_core] ||
-                    current_threads[sanitized_source_core]->GetPriority() < min_regular_priority) {
+            if (current_threads[source_core] != nullptr) {
+                if (thread == current_threads[source_core] ||
+                    current_threads[source_core]->GetPriority() < min_regular_priority) {
                     continue;
                 }
             }
         }
-
         if (next_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks() ||
             next_thread->GetPriority() < thread->GetPriority()) {
             if (thread->GetPriority() <= priority) {
@@ -249,25 +240,17 @@ bool GlobalScheduler::YieldThreadAndWaitForLoadBalancing(Thread* yielding_thread
         for (std::size_t i = 0; i < current_threads.size(); i++) {
             current_threads[i] = scheduled_queue[i].empty() ? nullptr : scheduled_queue[i].front();
         }
-
         for (auto& thread : suggested_queue[core_id]) {
             const s32 source_core = thread->GetProcessorID();
-            if (source_core < 0) {
+            if (source_core < 0 || thread == current_threads[source_core]) {
                 continue;
             }
-
-            const auto sanitized_source_core = static_cast<u32>(source_core);
-            if (thread == current_threads[sanitized_source_core]) {
-                continue;
-            }
-
-            if (current_threads[sanitized_source_core] == nullptr ||
-                current_threads[sanitized_source_core]->GetPriority() >= min_regular_priority) {
+            if (current_threads[source_core] == nullptr ||
+                current_threads[source_core]->GetPriority() >= min_regular_priority) {
                 winner = thread;
             }
             break;
         }
-
         if (winner != nullptr) {
             if (winner != yielding_thread) {
                 TransferToCore(winner->GetPriority(), static_cast<s32>(core_id), winner);
@@ -309,22 +292,17 @@ void GlobalScheduler::PreemptThreads() {
             if (thread->GetPriority() != priority) {
                 continue;
             }
-
             if (source_core >= 0) {
-                const auto sanitized_source_core = static_cast<u32>(source_core);
-                Thread* next_thread = scheduled_queue[sanitized_source_core].empty()
+                Thread* next_thread = scheduled_queue[source_core].empty()
                                           ? nullptr
-                                          : scheduled_queue[sanitized_source_core].front();
-
+                                          : scheduled_queue[source_core].front();
                 if (next_thread != nullptr && next_thread->GetPriority() < 2) {
                     break;
                 }
-
                 if (next_thread == thread) {
                     continue;
                 }
             }
-
             if (current_thread != nullptr &&
                 current_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks()) {
                 winner = thread;
@@ -344,22 +322,17 @@ void GlobalScheduler::PreemptThreads() {
                 if (thread->GetPriority() < priority) {
                     continue;
                 }
-
                 if (source_core >= 0) {
-                    const auto sanitized_source_core = static_cast<u32>(source_core);
-                    Thread* next_thread = scheduled_queue[sanitized_source_core].empty()
+                    Thread* next_thread = scheduled_queue[source_core].empty()
                                               ? nullptr
-                                              : scheduled_queue[sanitized_source_core].front();
-
+                                              : scheduled_queue[source_core].front();
                     if (next_thread != nullptr && next_thread->GetPriority() < 2) {
                         break;
                     }
-
                     if (next_thread == thread) {
                         continue;
                     }
                 }
-
                 if (current_thread != nullptr &&
                     current_thread->GetLastRunningTicks() >= thread->GetLastRunningTicks()) {
                     winner = thread;
@@ -379,11 +352,11 @@ void GlobalScheduler::PreemptThreads() {
 
 void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
                                                  Core::EmuThreadHandle global_thread) {
-    const u32 current_core = global_thread.host_handle;
+    u32 current_core = global_thread.host_handle;
     bool must_context_switch = global_thread.guest_handle != InvalidHandle &&
                                (current_core < Core::Hardware::NUM_CPU_CORES);
     while (cores_pending_reschedule != 0) {
-        const u32 core = Common::CountTrailingZeroes32(cores_pending_reschedule);
+        u32 core = Common::CountTrailingZeroes32(cores_pending_reschedule);
         ASSERT(core < Core::Hardware::NUM_CPU_CORES);
         if (!must_context_switch || core != current_core) {
             auto& phys_core = kernel.PhysicalCore(core);
@@ -393,7 +366,6 @@ void GlobalScheduler::EnableInterruptAndSchedule(u32 cores_pending_reschedule,
         }
         cores_pending_reschedule &= ~(1U << core);
     }
-
     if (must_context_switch) {
         auto& core_scheduler = kernel.CurrentScheduler();
         kernel.ExitSVCProfile();
@@ -831,11 +803,9 @@ void Scheduler::Initialize() {
     std::string name = "Idle Thread Id:" + std::to_string(core_id);
     std::function<void(void*)> init_func = Core::CpuManager::GetIdleThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-    const auto type = static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_IDLE);
-    auto thread_res =
-        Thread::Create(system, type, std::move(name), 0, 64, 0, static_cast<s32>(core_id), 0,
-                       nullptr, std::move(init_func), init_func_parameter);
-
+    ThreadType type = static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_IDLE);
+    auto thread_res = Thread::Create(system, type, name, 0, 64, 0, static_cast<u32>(core_id), 0,
+                                     nullptr, std::move(init_func), init_func_parameter);
     idle_thread = std::move(thread_res).Unwrap();
 }
 

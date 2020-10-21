@@ -69,10 +69,9 @@ public:
         buffer_event =
             Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioOutBufferReleased");
 
-        stream =
-            audio_core.OpenStream(system.CoreTiming(), static_cast<u32>(audio_params.sample_rate),
-                                  audio_params.channel_count, std::move(unique_name),
-                                  [this] { buffer_event.writable->Signal(); });
+        stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
+                                       audio_params.channel_count, std::move(unique_name),
+                                       [this] { buffer_event.writable->Signal(); });
     }
 
 private:

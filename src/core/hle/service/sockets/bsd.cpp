@@ -437,9 +437,9 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
         UNIMPLEMENTED_MSG("SOCK_RAW errno management");
     }
 
-    [[maybe_unused]] const bool unk_flag = (static_cast<u32>(type) & 0x20000000U) != 0;
+    [[maybe_unused]] const bool unk_flag = (static_cast<u32>(type) & 0x20000000) != 0;
     UNIMPLEMENTED_IF_MSG(unk_flag, "Unknown flag in type");
-    type = static_cast<Type>(static_cast<u32>(type) & ~0x20000000U);
+    type = static_cast<Type>(static_cast<u32>(type) & ~0x20000000);
 
     const s32 fd = FindFreeFileDescriptorHandle();
     if (fd < 0) {
@@ -447,7 +447,7 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
         return {-1, Errno::MFILE};
     }
 
-    FileDescriptor& descriptor = GetFileDescriptor(fd).emplace();
+    FileDescriptor& descriptor = file_descriptors[fd].emplace();
     // ENONMEM might be thrown here
 
     LOG_INFO(Service, "New socket fd={}", fd);
@@ -461,7 +461,7 @@ std::pair<s32, Errno> BSD::SocketImpl(Domain domain, Type type, Protocol protoco
 
 std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u8> read_buffer,
                                     s32 nfds, s32 timeout) {
-    if (write_buffer.size() < static_cast<size_t>(nfds) * sizeof(PollFD)) {
+    if (write_buffer.size() < nfds * sizeof(PollFD)) {
         return {-1, Errno::INVAL};
     }
 
@@ -471,7 +471,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
     }
 
     const size_t length = std::min(read_buffer.size(), write_buffer.size());
-    std::vector<PollFD> fds(static_cast<size_t>(nfds));
+    std::vector<PollFD> fds(nfds);
     std::memcpy(fds.data(), read_buffer.data(), length);
 
     if (timeout >= 0) {
@@ -497,7 +497,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
             return {0, Errno::SUCCESS};
         }
 
-        const std::optional<FileDescriptor>& descriptor = GetFileDescriptor(pollfd.fd);
+        const std::optional<FileDescriptor>& descriptor = file_descriptors[pollfd.fd];
         if (!descriptor) {
             LOG_ERROR(Service, "File descriptor handle={} is not allocated", pollfd.fd);
             pollfd.revents = POLL_NVAL;
@@ -508,7 +508,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
     std::vector<Network::PollFD> host_pollfds(fds.size());
     std::transform(fds.begin(), fds.end(), host_pollfds.begin(), [this](PollFD pollfd) {
         Network::PollFD result;
-        result.socket = GetFileDescriptor(pollfd.fd)->socket.get();
+        result.socket = file_descriptors[pollfd.fd]->socket.get();
         result.events = TranslatePollEventsToHost(pollfd.events);
         result.revents = 0;
         return result;
@@ -536,13 +536,13 @@ std::pair<s32, Errno> BSD::AcceptImpl(s32 fd, std::vector<u8>& write_buffer) {
         return {-1, Errno::MFILE};
     }
 
-    FileDescriptor& descriptor = *GetFileDescriptor(fd);
+    FileDescriptor& descriptor = *file_descriptors[fd];
     auto [result, bsd_errno] = descriptor.socket->Accept();
     if (bsd_errno != Network::Errno::SUCCESS) {
         return {-1, Translate(bsd_errno)};
     }
 
-    FileDescriptor& new_descriptor = GetFileDescriptor(new_fd).emplace();
+    FileDescriptor& new_descriptor = file_descriptors[new_fd].emplace();
     new_descriptor.socket = std::move(result.socket);
     new_descriptor.is_connection_based = descriptor.is_connection_based;
 
@@ -561,7 +561,7 @@ Errno BSD::BindImpl(s32 fd, const std::vector<u8>& addr) {
     SockAddrIn addr_in;
     std::memcpy(&addr_in, addr.data(), sizeof(addr_in));
 
-    return Translate(GetFileDescriptor(fd)->socket->Bind(Translate(addr_in)));
+    return Translate(file_descriptors[fd]->socket->Bind(Translate(addr_in)));
 }
 
 Errno BSD::ConnectImpl(s32 fd, const std::vector<u8>& addr) {
@@ -573,7 +573,7 @@ Errno BSD::ConnectImpl(s32 fd, const std::vector<u8>& addr) {
     SockAddrIn addr_in;
     std::memcpy(&addr_in, addr.data(), sizeof(addr_in));
 
-    return Translate(GetFileDescriptor(fd)->socket->Connect(Translate(addr_in)));
+    return Translate(file_descriptors[fd]->socket->Connect(Translate(addr_in)));
 }
 
 Errno BSD::GetPeerNameImpl(s32 fd, std::vector<u8>& write_buffer) {
@@ -581,7 +581,7 @@ Errno BSD::GetPeerNameImpl(s32 fd, std::vector<u8>& write_buffer) {
         return Errno::BADF;
     }
 
-    const auto [addr_in, bsd_errno] = GetFileDescriptor(fd)->socket->GetPeerName();
+    const auto [addr_in, bsd_errno] = file_descriptors[fd]->socket->GetPeerName();
     if (bsd_errno != Network::Errno::SUCCESS) {
         return Translate(bsd_errno);
     }
@@ -597,7 +597,7 @@ Errno BSD::GetSockNameImpl(s32 fd, std::vector<u8>& write_buffer) {
         return Errno::BADF;
     }
 
-    const auto [addr_in, bsd_errno] = GetFileDescriptor(fd)->socket->GetSockName();
+    const auto [addr_in, bsd_errno] = file_descriptors[fd]->socket->GetSockName();
     if (bsd_errno != Network::Errno::SUCCESS) {
         return Translate(bsd_errno);
     }
@@ -612,7 +612,7 @@ Errno BSD::ListenImpl(s32 fd, s32 backlog) {
     if (!IsFileDescriptorValid(fd)) {
         return Errno::BADF;
     }
-    return Translate(GetFileDescriptor(fd)->socket->Listen(backlog));
+    return Translate(file_descriptors[fd]->socket->Listen(backlog));
 }
 
 std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
@@ -620,14 +620,14 @@ std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
         return {-1, Errno::BADF};
     }
 
-    FileDescriptor& descriptor = *GetFileDescriptor(fd);
+    FileDescriptor& descriptor = *file_descriptors[fd];
 
     switch (cmd) {
     case FcntlCmd::GETFL:
         ASSERT(arg == 0);
         return {descriptor.flags, Errno::SUCCESS};
     case FcntlCmd::SETFL: {
-        const bool enable = (static_cast<u32>(arg) & FLAG_O_NONBLOCK) != 0;
+        const bool enable = (arg & FLAG_O_NONBLOCK) != 0;
         const Errno bsd_errno = Translate(descriptor.socket->SetNonBlock(enable));
         if (bsd_errno != Errno::SUCCESS) {
             return {-1, bsd_errno};
@@ -648,7 +648,7 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, size_t optlen, con
         return Errno::BADF;
     }
 
-    Network::Socket* const socket = GetFileDescriptor(fd)->socket.get();
+    Network::Socket* const socket = file_descriptors[fd]->socket.get();
 
     if (optname == OptName::LINGER) {
         ASSERT(optlen == sizeof(Linger));
@@ -689,14 +689,14 @@ Errno BSD::ShutdownImpl(s32 fd, s32 how) {
         return Errno::BADF;
     }
     const Network::ShutdownHow host_how = Translate(static_cast<ShutdownHow>(how));
-    return Translate(GetFileDescriptor(fd)->socket->Shutdown(host_how));
+    return Translate(file_descriptors[fd]->socket->Shutdown(host_how));
 }
 
 std::pair<s32, Errno> BSD::RecvImpl(s32 fd, u32 flags, std::vector<u8>& message) {
     if (!IsFileDescriptorValid(fd)) {
         return {-1, Errno::BADF};
     }
-    return Translate(GetFileDescriptor(fd)->socket->Recv(flags, message));
+    return Translate(file_descriptors[fd]->socket->Recv(flags, message));
 }
 
 std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& message,
@@ -705,7 +705,7 @@ std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& mess
         return {-1, Errno::BADF};
     }
 
-    FileDescriptor& descriptor = *GetFileDescriptor(fd);
+    FileDescriptor& descriptor = *file_descriptors[fd];
 
     Network::SockAddrIn addr_in{};
     Network::SockAddrIn* p_addr_in = nullptr;
@@ -719,7 +719,7 @@ std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& mess
     // Apply flags
     if ((flags & FLAG_MSG_DONTWAIT) != 0) {
         flags &= ~FLAG_MSG_DONTWAIT;
-        if ((static_cast<u32>(descriptor.flags) & FLAG_O_NONBLOCK) == 0) {
+        if ((descriptor.flags & FLAG_O_NONBLOCK) == 0) {
             descriptor.socket->SetNonBlock(true);
         }
     }
@@ -727,7 +727,7 @@ std::pair<s32, Errno> BSD::RecvFromImpl(s32 fd, u32 flags, std::vector<u8>& mess
     const auto [ret, bsd_errno] = Translate(descriptor.socket->RecvFrom(flags, message, p_addr_in));
 
     // Restore original state
-    if ((static_cast<u32>(descriptor.flags) & FLAG_O_NONBLOCK) == 0) {
+    if ((descriptor.flags & FLAG_O_NONBLOCK) == 0) {
         descriptor.socket->SetNonBlock(false);
     }
 
@@ -748,7 +748,7 @@ std::pair<s32, Errno> BSD::SendImpl(s32 fd, u32 flags, const std::vector<u8>& me
     if (!IsFileDescriptorValid(fd)) {
         return {-1, Errno::BADF};
     }
-    return Translate(GetFileDescriptor(fd)->socket->Send(message, flags));
+    return Translate(file_descriptors[fd]->socket->Send(message, flags));
 }
 
 std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, const std::vector<u8>& message,
@@ -767,8 +767,7 @@ std::pair<s32, Errno> BSD::SendToImpl(s32 fd, u32 flags, const std::vector<u8>& 
         p_addr_in = &addr_in;
     }
 
-    const auto& descriptor = GetFileDescriptor(fd);
-    return Translate(descriptor->socket->SendTo(flags, message, p_addr_in));
+    return Translate(file_descriptors[fd]->socket->SendTo(flags, message, p_addr_in));
 }
 
 Errno BSD::CloseImpl(s32 fd) {
@@ -776,21 +775,20 @@ Errno BSD::CloseImpl(s32 fd) {
         return Errno::BADF;
     }
 
-    auto& descriptor = GetFileDescriptor(fd);
-    const Errno bsd_errno = Translate(descriptor->socket->Close());
+    const Errno bsd_errno = Translate(file_descriptors[fd]->socket->Close());
     if (bsd_errno != Errno::SUCCESS) {
         return bsd_errno;
     }
 
     LOG_INFO(Service, "Close socket fd={}", fd);
 
-    descriptor.reset();
+    file_descriptors[fd].reset();
     return bsd_errno;
 }
 
 s32 BSD::FindFreeFileDescriptorHandle() noexcept {
     for (s32 fd = 0; fd < static_cast<s32>(file_descriptors.size()); ++fd) {
-        if (!GetFileDescriptor(fd)) {
+        if (!file_descriptors[fd]) {
             return fd;
         }
     }
@@ -802,7 +800,7 @@ bool BSD::IsFileDescriptorValid(s32 fd) const noexcept {
         LOG_ERROR(Service, "Invalid file descriptor handle={}", fd);
         return false;
     }
-    if (!GetFileDescriptor(fd)) {
+    if (!file_descriptors[fd]) {
         LOG_ERROR(Service, "File descriptor handle={} is not allocated", fd);
         return false;
     }
@@ -815,12 +813,10 @@ bool BSD::IsBlockingSocket(s32 fd) const noexcept {
     if (fd > static_cast<s32>(MAX_FD) || fd < 0) {
         return false;
     }
-
-    const auto& descriptor = GetFileDescriptor(fd);
-    if (!descriptor) {
+    if (!file_descriptors[fd]) {
         return false;
     }
-    return (static_cast<u32>(descriptor->flags) & FLAG_O_NONBLOCK) != 0;
+    return (file_descriptors[fd]->flags & FLAG_O_NONBLOCK) != 0;
 }
 
 void BSD::BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) const noexcept {
@@ -829,14 +825,6 @@ void BSD::BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) co
     rb.Push(RESULT_SUCCESS);
     rb.Push<s32>(bsd_errno == Errno::SUCCESS ? 0 : -1);
     rb.PushEnum(bsd_errno);
-}
-
-std::optional<BSD::FileDescriptor>& BSD::GetFileDescriptor(s32 fd) {
-    return file_descriptors[static_cast<u32>(fd)];
-}
-
-const std::optional<BSD::FileDescriptor>& BSD::GetFileDescriptor(s32 fd) const {
-    return file_descriptors[static_cast<u32>(fd)];
 }
 
 BSD::BSD(Core::System& system, const char* name)

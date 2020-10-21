@@ -22,12 +22,12 @@ void Controller_Stubbed::OnUpdate(const Core::Timing::CoreTiming& core_timing, u
         return;
     }
 
-    const CommonHeader header{
-        .timestamp = static_cast<s64>(core_timing.GetCPUTicks()),
-        .total_entry_count = 17,
-        .last_entry_index = 0,
-        .entry_count = 0,
-    };
+    CommonHeader header{};
+    header.timestamp = core_timing.GetCPUTicks();
+    header.total_entry_count = 17;
+    header.entry_count = 0;
+    header.last_entry_index = 0;
+
     std::memcpy(data + common_offset, &header, sizeof(CommonHeader));
 }
 

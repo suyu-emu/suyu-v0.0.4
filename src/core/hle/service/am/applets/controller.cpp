@@ -178,23 +178,23 @@ void Controller::Execute() {
 }
 
 void Controller::ConfigurationComplete() {
+    ControllerSupportResultInfo result_info{};
+
     const auto& players = Settings::values.players;
-
-    const s8 player_count =
-        is_single_mode
-            ? 1
-            : static_cast<s8>(std::count_if(players.begin(), players.end() - 2,
-                                            [](const auto& player) { return player.connected; }));
-
-    const auto index = static_cast<u32>(std::distance(
-        players.begin(), std::find_if(players.begin(), players.end(),
-                                      [](const auto& player) { return player.connected; })));
 
     // If enable_single_mode is enabled, player_count is 1 regardless of any other parameters.
     // Otherwise, only count connected players from P1-P8.
-    ControllerSupportResultInfo result_info{};
-    result_info.player_count = player_count;
-    result_info.selected_id = HID::Controller_NPad::IndexToNPad(index);
+    result_info.player_count =
+        is_single_mode ? 1
+                       : static_cast<s8>(std::count_if(
+                             players.begin(), players.end() - 2,
+                             [](Settings::PlayerInput player) { return player.connected; }));
+
+    result_info.selected_id = HID::Controller_NPad::IndexToNPad(
+        std::distance(players.begin(),
+                      std::find_if(players.begin(), players.end(),
+                                   [](Settings::PlayerInput player) { return player.connected; })));
+
     result_info.result = 0;
 
     LOG_DEBUG(Service_HID, "Result Info: player_count={}, selected_id={}, result={}",

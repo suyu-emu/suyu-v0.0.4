@@ -103,7 +103,7 @@ static u32 romfs_calc_path_hash(u32 parent, std::string_view path, u32 start,
     u32 hash = parent ^ 123456789;
     for (u32 i = 0; i < path_len; i++) {
         hash = (hash >> 5) | (hash << 27);
-        hash ^= static_cast<u32>(path[start + i]);
+        hash ^= path[start + i];
     }
 
     return hash;

@@ -80,10 +80,10 @@ namespace Service {
                                                        std::string_view port_name,
                                                        const u32* cmd_buff) {
     // Number of params == bits 0-5 + bits 6-11
-    const u32 num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
+    int num_params = (cmd_buff[0] & 0x3F) + ((cmd_buff[0] >> 6) & 0x3F);
 
     std::string function_string = fmt::format("function '{}': port={}", name, port_name);
-    for (u32 i = 1; i <= num_params; ++i) {
+    for (int i = 1; i <= num_params; ++i) {
         function_string += fmt::format(", cmd_buff[{}]=0x{:X}", i, cmd_buff[i]);
     }
     return function_string;

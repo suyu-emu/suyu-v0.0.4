@@ -50,12 +50,12 @@ public:
 private:
     void GenerateDataSourceCommand(ServerVoiceInfo& voice_info, VoiceState& dsp_state, s32 channel);
     void GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
-                                             u32 mix_buffer_count, s32 channel);
+                                             s32 mix_buffer_count, s32 channel);
     void GenerateVolumeRampCommand(float last_volume, float current_volume, s32 channel,
                                    s32 node_id);
     void GenerateVoiceMixCommand(const MixVolumeBuffer& mix_volumes,
                                  const MixVolumeBuffer& last_mix_volumes, VoiceState& dsp_state,
-                                 u32 mix_buffer_offset, u32 mix_buffer_count, u32 voice_index,
+                                 s32 mix_buffer_offset, s32 mix_buffer_count, s32 voice_index,
                                  s32 node_id);
     void GenerateSubMixCommand(ServerMixInfo& mix_info);
     void GenerateMixCommands(ServerMixInfo& mix_info);

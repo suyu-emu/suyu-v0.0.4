@@ -51,7 +51,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
             // We found a ready object, acquire it and set the result value
             SynchronizationObject* object = itr->get();
             object->Acquire(thread);
-            const auto index = static_cast<u32>(std::distance(sync_objects.begin(), itr));
+            const u32 index = static_cast<s32>(std::distance(sync_objects.begin(), itr));
             lock.CancelSleep();
             return {RESULT_SUCCESS, index};
         }
@@ -105,7 +105,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
                 });
             ASSERT(itr != sync_objects.end());
             signaling_object->Acquire(thread);
-            const auto index = static_cast<u32>(std::distance(sync_objects.begin(), itr));
+            const u32 index = static_cast<s32>(std::distance(sync_objects.begin(), itr));
             return {signaling_result, index};
         }
         return {signaling_result, -1};

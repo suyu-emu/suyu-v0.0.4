@@ -34,7 +34,7 @@ public:
     PhysicalCore& operator=(const PhysicalCore&) = delete;
 
     PhysicalCore(PhysicalCore&&) = default;
-    PhysicalCore& operator=(PhysicalCore&&) = delete;
+    PhysicalCore& operator=(PhysicalCore&&) = default;
 
     void Idle();
     /// Interrupt this physical core.

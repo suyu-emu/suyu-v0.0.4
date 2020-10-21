@@ -187,8 +187,8 @@ void AudioRenderer::QueueMixedBuffer(Buffer::Tag tag) {
         const auto& in_params = final_mix.GetInParams();
         std::vector<s32*> mix_buffers(channel_count);
         for (std::size_t i = 0; i < channel_count; i++) {
-            mix_buffers[i] = command_generator.GetMixBuffer(
-                static_cast<u32>(in_params.buffer_offset) + buffer_offsets[i]);
+            mix_buffers[i] =
+                command_generator.GetMixBuffer(in_params.buffer_offset + buffer_offsets[i]);
         }
 
         for (std::size_t i = 0; i < BUFFER_SIZE; i++) {

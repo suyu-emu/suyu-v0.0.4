@@ -482,8 +482,7 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
 static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u32 handles_address,
                                         s32 handle_count, u32 timeout_high, Handle* index) {
     const s64 nano_seconds{(static_cast<s64>(timeout_high) << 32) | static_cast<s64>(timeout_low)};
-    return WaitSynchronization(system, index, handles_address, static_cast<u32>(handle_count),
-                               nano_seconds);
+    return WaitSynchronization(system, index, handles_address, handle_count, nano_seconds);
 }
 
 /// Resumes a thread waiting on WaitSynchronization
@@ -2003,7 +2002,7 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
         return ERR_INVALID_HANDLE;
     }
 
-    *core = static_cast<u32>(thread->GetIdealCore());
+    *core = thread->GetIdealCore();
     *mask = thread->GetAffinityMask();
 
     return RESULT_SUCCESS;
@@ -2071,7 +2070,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
         return ERR_INVALID_HANDLE;
     }
 
-    return thread->SetCoreAndAffinityMask(static_cast<s32>(core), affinity_mask);
+    return thread->SetCoreAndAffinityMask(core, affinity_mask);
 }
 
 static ResultCode SetThreadCoreMask32(Core::System& system, Handle thread_handle, u32 core,

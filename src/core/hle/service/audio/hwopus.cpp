@@ -50,8 +50,8 @@ public:
         Enabled,
     };
 
-    explicit OpusDecoderState(OpusDecoderPtr decoder_, s32 sample_rate_, u32 channel_count_)
-        : decoder{std::move(decoder_)}, sample_rate{sample_rate_}, channel_count{channel_count_} {}
+    explicit OpusDecoderState(OpusDecoderPtr decoder, u32 sample_rate, u32 channel_count)
+        : decoder{std::move(decoder)}, sample_rate{sample_rate}, channel_count{channel_count} {}
 
     // Decodes interleaved Opus packets. Optionally allows reporting time taken to
     // perform the decoding, as well as any relevant extra behavior.
@@ -113,16 +113,15 @@ private:
             return false;
         }
 
-        const auto* const frame = input.data() + sizeof(OpusPacketHeader);
+        const auto frame = input.data() + sizeof(OpusPacketHeader);
         const auto decoded_sample_count = opus_packet_get_nb_samples(
-            frame, static_cast<opus_int32>(input.size() - sizeof(OpusPacketHeader)), sample_rate);
-        const auto decoded_size =
-            static_cast<u32>(decoded_sample_count) * channel_count * sizeof(u16);
-        if (decoded_size > raw_output_sz) {
+            frame, static_cast<opus_int32>(input.size() - sizeof(OpusPacketHeader)),
+            static_cast<opus_int32>(sample_rate));
+        if (decoded_sample_count * channel_count * sizeof(u16) > raw_output_sz) {
             LOG_ERROR(
                 Audio,
                 "Decoded data does not fit into the output data, decoded_sz={}, raw_output_sz={}",
-                decoded_size, raw_output_sz);
+                decoded_sample_count * channel_count * sizeof(u16), raw_output_sz);
             return false;
         }
 
@@ -138,11 +137,11 @@ private:
         }
 
         const auto end_time = std::chrono::high_resolution_clock::now() - start_time;
-        sample_count = static_cast<u32>(out_sample_count);
+        sample_count = out_sample_count;
         consumed = static_cast<u32>(sizeof(OpusPacketHeader) + hdr.size);
         if (out_performance_time != nullptr) {
-            *out_performance_time = static_cast<u64>(
-                std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count());
+            *out_performance_time =
+                std::chrono::duration_cast<std::chrono::milliseconds>(end_time).count();
         }
 
         return true;
@@ -155,7 +154,7 @@ private:
     }
 
     OpusDecoderPtr decoder;
-    s32 sample_rate;
+    u32 sample_rate;
     u32 channel_count;
 };
 
@@ -213,7 +212,7 @@ std::size_t WorkerBufferSize(u32 channel_count) {
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
     constexpr int num_streams = 1;
     const int num_stereo_streams = channel_count == 2 ? 1 : 0;
-    return static_cast<size_t>(opus_multistream_decoder_get_size(num_streams, num_stereo_streams));
+    return opus_multistream_decoder_get_size(num_streams, num_stereo_streams);
 }
 
 // Creates the mapping table that maps the input channels to the particular
@@ -245,7 +244,7 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
                "Invalid sample rate");
     ASSERT_MSG(channel_count == 1 || channel_count == 2, "Invalid channel count");
 
-    const auto worker_buffer_sz = static_cast<u32>(WorkerBufferSize(channel_count));
+    const u32 worker_buffer_sz = static_cast<u32>(WorkerBufferSize(channel_count));
     LOG_DEBUG(Audio, "worker_buffer_sz={}", worker_buffer_sz);
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -255,7 +254,7 @@ void HwOpus::GetWorkBufferSize(Kernel::HLERequestContext& ctx) {
 
 void HwOpus::OpenOpusDecoder(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
-    const auto sample_rate = rp.Pop<s32>();
+    const auto sample_rate = rp.Pop<u32>();
     const auto channel_count = rp.Pop<u32>();
     const auto buffer_sz = rp.Pop<u32>();
 

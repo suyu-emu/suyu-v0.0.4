@@ -147,18 +147,10 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktraceFromContex
     auto fp = ctx.cpu_registers[29];
     auto lr = ctx.cpu_registers[30];
     while (true) {
-        out.push_back({
-            .module = "",
-            .address = 0,
-            .original_address = lr,
-            .offset = 0,
-            .name = "",
-        });
-
-        if (fp == 0) {
+        out.push_back({"", 0, lr, 0});
+        if (!fp) {
             break;
         }
-
         lr = memory.Read64(fp + 8) - 4;
         fp = memory.Read64(fp);
     }
@@ -211,18 +203,10 @@ std::vector<ARM_Interface::BacktraceEntry> ARM_Interface::GetBacktrace() const {
     auto fp = GetReg(29);
     auto lr = GetReg(30);
     while (true) {
-        out.push_back({
-            .module = "",
-            .address = 0,
-            .original_address = lr,
-            .offset = 0,
-            .name = "",
-        });
-
-        if (fp == 0) {
+        out.push_back({"", 0, lr, 0, ""});
+        if (!fp) {
             break;
         }
-
         lr = memory.Read64(fp + 8) - 4;
         fp = memory.Read64(fp);
     }

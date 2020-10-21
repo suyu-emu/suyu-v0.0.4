@@ -32,7 +32,7 @@ std::vector<s16> DecodeADPCM(const u8* const data, std::size_t size, const ADPCM
     for (std::size_t framei = 0; framei < NUM_FRAMES; framei++) {
         const int frame_header = data[framei * FRAME_LEN];
         const int scale = 1 << (frame_header & 0xF);
-        const auto idx = static_cast<size_t>((frame_header >> 4) & 0x7);
+        const int idx = (frame_header >> 4) & 0x7;
 
         // Coefficients are fixed point with 11 bits fractional part.
         const int coef1 = coeff[idx * 2 + 0];
@@ -57,11 +57,11 @@ std::vector<s16> DecodeADPCM(const u8* const data, std::size_t size, const ADPCM
         std::size_t outputi = framei * SAMPLES_PER_FRAME;
         std::size_t datai = framei * FRAME_LEN + 1;
         for (std::size_t i = 0; i < SAMPLES_PER_FRAME && outputi < sample_count; i += 2) {
-            const s16 sample1 = decode_sample(SIGNED_NIBBLES[static_cast<u32>(data[datai] >> 4)]);
+            const s16 sample1 = decode_sample(SIGNED_NIBBLES[data[datai] >> 4]);
             ret[outputi] = sample1;
             outputi++;
 
-            const s16 sample2 = decode_sample(SIGNED_NIBBLES[static_cast<u32>(data[datai] & 0xF)]);
+            const s16 sample2 = decode_sample(SIGNED_NIBBLES[data[datai] & 0xF]);
             ret[outputi] = sample2;
             outputi++;
 

@@ -155,7 +155,7 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
 
     const auto object{nvmap_dev->GetObject(params.nvmap_handle)};
     if (!object) {
-        LOG_ERROR(Service_NVDRV, "invalid nvmap_handle={:X}", params.nvmap_handle);
+        LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", params.nvmap_handle);
         std::memcpy(output.data(), &params, output.size());
         return NvErrCodes::InvalidInput;
     }
@@ -167,24 +167,21 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
     auto& gpu = system.GPU();
 
     u64 page_size{params.page_size};
-    if (page_size == 0) {
+    if (!page_size) {
         page_size = object->align;
     }
 
     if ((params.flags & AddressSpaceFlags::Remap) != AddressSpaceFlags::None) {
-        const auto buffer_map = FindBufferMap(static_cast<GPUVAddr>(params.offset));
-
-        if (buffer_map) {
-            const auto cpu_addr{
-                static_cast<VAddr>(buffer_map->CpuAddr() + static_cast<u64>(params.buffer_offset))};
+        if (const auto buffer_map{FindBufferMap(params.offset)}; buffer_map) {
+            const auto cpu_addr{static_cast<VAddr>(buffer_map->CpuAddr() + params.buffer_offset)};
             const auto gpu_addr{static_cast<GPUVAddr>(params.offset + params.buffer_offset)};
 
             if (!gpu.MemoryManager().Map(cpu_addr, gpu_addr, params.mapping_size)) {
-                LOG_ERROR(Service_NVDRV,
-                          "Remap failed, flags={:X}, nvmap_handle={:X}, buffer_offset={}, "
-                          "mapping_size = {}, offset={}",
-                          params.flags, params.nvmap_handle, params.buffer_offset,
-                          params.mapping_size, params.offset);
+                LOG_CRITICAL(Service_NVDRV,
+                             "remap failed, flags={:X}, nvmap_handle={:X}, buffer_offset={}, "
+                             "mapping_size = {}, offset={}",
+                             params.flags, params.nvmap_handle, params.buffer_offset,
+                             params.mapping_size, params.offset);
 
                 std::memcpy(output.data(), &params, output.size());
                 return NvErrCodes::InvalidInput;
@@ -193,7 +190,7 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
             std::memcpy(output.data(), &params, output.size());
             return NvErrCodes::Success;
         } else {
-            LOG_ERROR(Service_NVDRV, "Address not mapped. offset={}", params.offset);
+            LOG_CRITICAL(Service_NVDRV, "address not mapped offset={}", params.offset);
 
             std::memcpy(output.data(), &params, output.size());
             return NvErrCodes::InvalidInput;
@@ -203,27 +200,25 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
     // We can only map objects that have already been assigned a CPU address.
     ASSERT(object->status == nvmap::Object::Status::Allocated);
 
-    const auto physical_address{object->addr + static_cast<VAddr>(params.buffer_offset)};
+    const auto physical_address{object->addr + params.buffer_offset};
     u64 size{params.mapping_size};
-    if (size == 0) {
+    if (!size) {
         size = object->size;
     }
 
     const bool is_alloc{(params.flags & AddressSpaceFlags::FixedOffset) == AddressSpaceFlags::None};
     if (is_alloc) {
-        params.offset =
-            static_cast<s64>(gpu.MemoryManager().MapAllocate(physical_address, size, page_size));
+        params.offset = gpu.MemoryManager().MapAllocate(physical_address, size, page_size);
     } else {
-        params.offset = static_cast<s64>(
-            gpu.MemoryManager().Map(physical_address, static_cast<GPUVAddr>(params.offset), size));
+        params.offset = gpu.MemoryManager().Map(physical_address, params.offset, size);
     }
 
     auto result{NvErrCodes::Success};
-    if (params.offset == 0) {
-        LOG_ERROR(Service_NVDRV, "Failed to map size={}", size);
+    if (!params.offset) {
+        LOG_CRITICAL(Service_NVDRV, "failed to map size={}", size);
         result = NvErrCodes::InvalidInput;
     } else {
-        AddBufferMap(static_cast<GPUVAddr>(params.offset), size, physical_address, is_alloc);
+        AddBufferMap(params.offset, size, physical_address, is_alloc);
     }
 
     std::memcpy(output.data(), &params, output.size());
@@ -234,13 +229,12 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
     IoctlUnmapBuffer params{};
     std::memcpy(&params, input.data(), input.size());
 
-    const auto offset = static_cast<GPUVAddr>(params.offset);
-    LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", offset);
+    LOG_DEBUG(Service_NVDRV, "called, offset=0x{:X}", params.offset);
 
-    if (const auto size{RemoveBufferMap(offset)}; size) {
-        system.GPU().MemoryManager().Unmap(offset, *size);
+    if (const auto size{RemoveBufferMap(params.offset)}; size) {
+        system.GPU().MemoryManager().Unmap(params.offset, *size);
     } else {
-        LOG_ERROR(Service_NVDRV, "invalid offset=0x{:X}", offset);
+        LOG_ERROR(Service_NVDRV, "invalid offset=0x{:X}", params.offset);
     }
 
     std::memcpy(output.data(), &params, output.size());

@@ -94,8 +94,7 @@ private:
         }
 
         // Read the data from the Storage backend
-        const auto output = backend->ReadBytes(static_cast<u64>(length), static_cast<u64>(offset));
-
+        std::vector<u8> output = backend->ReadBytes(length, offset);
         // Write the data to memory
         ctx.WriteBuffer(output);
 
@@ -152,7 +151,7 @@ private:
         }
 
         // Read the data from the Storage backend
-        const auto output = backend->ReadBytes(static_cast<u64>(length), static_cast<u64>(offset));
+        std::vector<u8> output = backend->ReadBytes(length, offset);
 
         // Write the data to memory
         ctx.WriteBuffer(output);
@@ -195,8 +194,7 @@ private:
         // Write the data to the Storage backend
         const auto write_size =
             static_cast<std::size_t>(std::distance(data.begin(), data.begin() + length));
-        const std::size_t written =
-            backend->Write(data.data(), write_size, static_cast<u64>(offset));
+        const std::size_t written = backend->Write(data.data(), write_size, offset);
 
         ASSERT_MSG(static_cast<s64>(written) == length,
                    "Could not write all bytes to file (requested={:016X}, actual={:016X}).", length,
