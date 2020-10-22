@@ -139,7 +139,8 @@ void IAppletResource::UpdateMotion(std::uintptr_t user_data, std::chrono::nanose
 
 class IActiveVibrationDeviceList final : public ServiceFramework<IActiveVibrationDeviceList> {
 public:
-    IActiveVibrationDeviceList() : ServiceFramework("IActiveVibrationDeviceList") {
+    explicit IActiveVibrationDeviceList(std::shared_ptr<IAppletResource> applet_resource_)
+        : ServiceFramework("IActiveVibrationDeviceList"), applet_resource(applet_resource_) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IActiveVibrationDeviceList::InitializeVibrationDevice, "InitializeVibrationDevice"},
@@ -154,13 +155,18 @@ private:
         IPC::RequestParser rp{ctx};
         const auto vibration_device_handle{rp.PopRaw<Controller_NPad::DeviceHandle>()};
 
-        LOG_WARNING(Service_HID, "(STUBBED) called, npad_type={}, npad_id={}, device_index={}",
-                    vibration_device_handle.npad_type, vibration_device_handle.npad_id,
-                    vibration_device_handle.device_index);
+        applet_resource->GetController<Controller_NPad>(HidController::NPad)
+            .InitializeVibrationDevice(vibration_device_handle);
+
+        LOG_DEBUG(Service_HID, "called, npad_type={}, npad_id={}, device_index={}",
+                  vibration_device_handle.npad_type, vibration_device_handle.npad_id,
+                  vibration_device_handle.device_index);
 
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+
+    std::shared_ptr<IAppletResource> applet_resource;
 };
 
 std::shared_ptr<IAppletResource> Hid::GetAppletResource() {
@@ -1062,7 +1068,7 @@ void Hid::CreateActiveVibrationDeviceList(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IActiveVibrationDeviceList>();
+    rb.PushIpcInterface<IActiveVibrationDeviceList>(applet_resource);
 }
 
 void Hid::PermitVibration(Kernel::HLERequestContext& ctx) {
@@ -1137,15 +1143,16 @@ void Hid::IsVibrationDeviceMounted(Kernel::HLERequestContext& ctx) {
 
     const auto parameters{rp.PopRaw<Parameters>()};
 
-    LOG_WARNING(
-        Service_HID,
-        "(STUBBED) called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
-        parameters.vibration_device_handle.npad_type, parameters.vibration_device_handle.npad_id,
-        parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
+    LOG_DEBUG(Service_HID,
+              "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",
+              parameters.vibration_device_handle.npad_type,
+              parameters.vibration_device_handle.npad_id,
+              parameters.vibration_device_handle.device_index, parameters.applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(true);
+    rb.Push(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                .IsVibrationDeviceMounted(parameters.vibration_device_handle));
 }
 
 void Hid::ActivateConsoleSixAxisSensor(Kernel::HLERequestContext& ctx) {

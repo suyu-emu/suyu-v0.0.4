@@ -278,6 +278,9 @@ void Controller_NPad::OnLoadInputDevices() {
         std::transform(players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_BEGIN,
                        players[i].motions.begin() + Settings::NativeMotion::MOTION_HID_END,
                        motions[i].begin(), Input::CreateDevice<Input::MotionDevice>);
+        for (std::size_t device_idx = 0; device_idx < vibrations[i].size(); ++device_idx) {
+            InitializeVibrationDeviceAtIndex(i, device_idx);
+        }
     }
 }
 
@@ -689,6 +692,14 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
     const auto& player = Settings::values.players.GetValue()[npad_index];
 
     if (!player.vibration_enabled) {
+        if (latest_vibration_values[npad_index][device_index].amp_low != 0.0f ||
+            latest_vibration_values[npad_index][device_index].amp_high != 0.0f) {
+            // Send an empty vibration to stop any vibrations.
+            vibrations[npad_index][device_index]->SetRumblePlay(0.0f, 160.0f, 0.0f, 320.0f);
+            // Then reset the vibration value to its default value.
+            latest_vibration_values[npad_index][device_index] = {};
+        }
+
         return false;
     }
 
@@ -716,7 +727,8 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
         const auto device_index =
             static_cast<std::size_t>(vibration_device_handles[i].device_index);
 
-        if (!connected_controllers[npad_index].is_connected) {
+        if (!vibration_devices_mounted[npad_index][device_index] ||
+            !connected_controllers[npad_index].is_connected) {
             continue;
         }
 
@@ -768,6 +780,28 @@ Controller_NPad::VibrationValue Controller_NPad::GetLastVibration(
     return latest_vibration_values[npad_index][device_index];
 }
 
+void Controller_NPad::InitializeVibrationDevice(const DeviceHandle& vibration_device_handle) {
+    const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
+    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
+    InitializeVibrationDeviceAtIndex(npad_index, device_index);
+}
+
+void Controller_NPad::InitializeVibrationDeviceAtIndex(std::size_t npad_index,
+                                                       std::size_t device_index) {
+    if (vibrations[npad_index][device_index]) {
+        vibration_devices_mounted[npad_index][device_index] =
+            vibrations[npad_index][device_index]->GetStatus() == 1;
+    } else {
+        vibration_devices_mounted[npad_index][device_index] = false;
+    }
+}
+
+bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const {
+    const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
+    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
+    return vibration_devices_mounted[npad_index][device_index];
+}
+
 std::shared_ptr<Kernel::ReadableEvent> Controller_NPad::GetStyleSetChangedEvent(u32 npad_id) const {
     const auto& styleset_event = styleset_changed_events[NPadIdToIndex(npad_id)];
     return styleset_event.readable;
@@ -809,6 +843,12 @@ void Controller_NPad::DisconnectNpad(u32 npad_id) {
 }
 
 void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
+    for (std::size_t device_idx = 0; device_idx < vibrations[npad_index].size(); ++device_idx) {
+        // Send an empty vibration to stop any vibrations.
+        VibrateControllerAtIndex(npad_index, device_idx);
+        vibration_devices_mounted[npad_index][device_idx] = false;
+    }
+
     Settings::values.players.GetValue()[npad_index].connected = false;
     connected_controllers[npad_index].is_connected = false;
 
