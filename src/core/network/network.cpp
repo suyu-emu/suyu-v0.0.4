@@ -148,7 +148,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
 }
 
 int WSAPoll(WSAPOLLFD* fds, ULONG nfds, int timeout) {
-    return poll(fds, nfds, timeout);
+    return poll(fds, static_cast<nfds_t>(nfds), timeout);
 }
 
 int closesocket(SOCKET fd) {
