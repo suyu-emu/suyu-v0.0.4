@@ -19,6 +19,8 @@
 
 namespace {
 
+constexpr std::size_t HANDHELD_INDEX = 8;
+
 constexpr std::array<std::array<bool, 4>, 8> led_patterns{{
     {true, false, false, false},
     {true, true, false, false},
@@ -260,11 +262,6 @@ int QtControllerSelectorDialog::exec() {
 }
 
 void QtControllerSelectorDialog::ApplyConfiguration() {
-    // Update the controller state once more, just to be sure they are properly applied.
-    for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        UpdateControllerState(index);
-    }
-
     const bool pre_docked_mode = Settings::values.use_docked_mode.GetValue();
     Settings::values.use_docked_mode.SetValue(ui->radioDocked->isChecked());
     OnDockedModeChanged(pre_docked_mode, Settings::values.use_docked_mode.GetValue());
@@ -275,15 +272,16 @@ void QtControllerSelectorDialog::ApplyConfiguration() {
 
 void QtControllerSelectorDialog::LoadConfiguration() {
     for (std::size_t index = 0; index < NUM_PLAYERS; ++index) {
-        const auto connected = Settings::values.players.GetValue()[index].connected ||
-                               (index == 0 && Settings::values.players.GetValue()[8].connected);
+        const auto connected =
+            Settings::values.players.GetValue()[index].connected ||
+            (index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
         player_groupboxes[index]->setChecked(connected);
         connected_controller_checkboxes[index]->setChecked(connected);
         emulated_controllers[index]->setCurrentIndex(
             GetIndexFromControllerType(Settings::values.players.GetValue()[index].controller_type));
     }
 
-    UpdateDockedState(Settings::values.players.GetValue()[8].connected);
+    UpdateDockedState(Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
 
     ui->vibrationGroup->setChecked(Settings::values.vibration_enabled.GetValue());
     ui->motionGroup->setChecked(Settings::values.motion_enabled.GetValue());
@@ -468,32 +466,46 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
 void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index) {
     auto& player = Settings::values.players.GetValue()[player_index];
 
-    player.controller_type =
+    const auto controller_type =
         GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex());
-    player.connected = player_groupboxes[player_index]->isChecked();
+    const auto player_connected = player_groupboxes[player_index]->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
 
-    // Player 2-8
-    if (player_index != 0) {
-        UpdateController(player.controller_type, player_index, player.connected);
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        // Set vibration devices in the event that the input device has changed.
+        ConfigureVibration::SetVibrationDevices(player_index);
         return;
     }
 
+    // Disconnect the controller first.
+    UpdateController(controller_type, player_index, false);
+
+    player.controller_type = controller_type;
+    player.connected = player_connected;
+
     ConfigureVibration::SetVibrationDevices(player_index);
 
-    // Player 1 and Handheld
-    auto& handheld = Settings::values.players.GetValue()[8];
-    // If Handheld is selected, copy all the settings from Player 1 to Handheld.
-    if (player.controller_type == Settings::ControllerType::Handheld) {
-        handheld = player;
-        handheld.connected = player_groupboxes[player_index]->isChecked();
-        player.connected = false; // Disconnect Player 1
-    } else {
-        player.connected = player_groupboxes[player_index]->isChecked();
-        handheld.connected = false; // Disconnect Handheld
+    // Handheld
+    if (player_index == 0) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        if (controller_type == Settings::ControllerType::Handheld) {
+            handheld = player;
+        }
+        handheld.connected = player_groupboxes[player_index]->isChecked() &&
+                             controller_type == Settings::ControllerType::Handheld;
+        UpdateController(Settings::ControllerType::Handheld, 8, handheld.connected);
     }
 
-    UpdateController(player.controller_type, player_index, player.connected);
-    UpdateController(Settings::ControllerType::Handheld, 8, handheld.connected);
+    if (!player.connected) {
+        return;
+    }
+
+    // This emulates a delay between disconnecting and reconnecting controllers as some games
+    // do not respond to a change in controller type if it was instantaneous.
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(20ms);
+
+    UpdateController(controller_type, player_index, player_connected);
 }
 
 void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {

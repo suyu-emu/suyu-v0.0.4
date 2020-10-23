@@ -26,8 +26,6 @@
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/util/limitable_input_dialog.h"
 
-constexpr std::size_t HANDHELD_INDEX = 8;
-
 const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
     ConfigureInputPlayer::analog_sub_buttons{{
         "up",
@@ -38,12 +36,10 @@ const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
 
 namespace {
 
+constexpr std::size_t HANDHELD_INDEX = 8;
+
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
                       bool connected) {
-    auto& player = Settings::values.players.GetValue()[npad_index];
-    player.controller_type = controller_type;
-    player.connected = connected;
-
     Core::System& system{Core::System::GetInstance()};
     if (!system.IsPoweredOn()) {
         return;
@@ -563,35 +559,50 @@ void ConfigureInputPlayer::ApplyConfiguration() {
     }
 
     auto& motions = player.motions;
+
     std::transform(motions_param.begin(), motions_param.end(), motions.begin(),
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
 
-    player.controller_type =
-        static_cast<Settings::ControllerType>(ui->comboControllerType->currentIndex());
-    player.connected = ui->groupConnectedController->isChecked();
+    const auto controller_type =
+        GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    const auto player_connected = ui->groupConnectedController->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
 
-    ConfigureVibration::SetVibrationDevices(player_index);
-
-    // Player 2-8
-    if (player_index != 0) {
-        UpdateController(player.controller_type, player_index, player.connected);
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        // Set vibration devices in the event that the input device has changed.
+        ConfigureVibration::SetVibrationDevices(player_index);
         return;
     }
 
-    // Player 1 and Handheld
-    auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
-    // If Handheld is selected, copy all the settings from Player 1 to Handheld.
-    if (player.controller_type == Settings::ControllerType::Handheld) {
-        handheld = player;
-        handheld.connected = ui->groupConnectedController->isChecked();
-        player.connected = false; // Disconnect Player 1
-    } else {
-        player.connected = ui->groupConnectedController->isChecked();
-        handheld.connected = false; // Disconnect Handheld
+    // Disconnect the controller first.
+    UpdateController(controller_type, player_index, false);
+
+    player.controller_type = controller_type;
+    player.connected = player_connected;
+
+    ConfigureVibration::SetVibrationDevices(player_index);
+
+    // Handheld
+    if (player_index == 0) {
+        auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
+        if (controller_type == Settings::ControllerType::Handheld) {
+            handheld = player;
+        }
+        handheld.connected = ui->groupConnectedController->isChecked() &&
+                             controller_type == Settings::ControllerType::Handheld;
+        UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
     }
 
-    UpdateController(player.controller_type, player_index, player.connected);
-    UpdateController(Settings::ControllerType::Handheld, HANDHELD_INDEX, handheld.connected);
+    if (!player.connected) {
+        return;
+    }
+
+    // This emulates a delay between disconnecting and reconnecting controllers as some games
+    // do not respond to a change in controller type if it was instantaneous.
+    using namespace std::chrono_literals;
+    std::this_thread::sleep_for(20ms);
+
+    UpdateController(controller_type, player_index, player_connected);
 }
 
 void ConfigureInputPlayer::showEvent(QShowEvent* event) {
