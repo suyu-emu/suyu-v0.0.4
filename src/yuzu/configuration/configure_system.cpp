@@ -12,6 +12,7 @@
 #include "common/assert.h"
 #include "common/file_util.h"
 #include "core/core.h"
+#include "core/hle/service/time/time.h"
 #include "core/settings.h"
 #include "ui_configure_system.h"
 #include "yuzu/configuration/configuration_shared.h"
@@ -104,6 +105,22 @@ void ConfigureSystem::SetConfiguration() {
 void ConfigureSystem::ReadSystemSettings() {}
 
 void ConfigureSystem::ApplyConfiguration() {
+    // Allow setting custom RTC even if system is powered on, to allow in-game time to be fast
+    // forwared
+    if (Settings::values.custom_rtc.UsingGlobal()) {
+        if (ui->custom_rtc_checkbox->isChecked()) {
+            Settings::values.custom_rtc.SetValue(
+                std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
+            if (Core::System::GetInstance().IsPoweredOn()) {
+                const s64 posix_time{Settings::values.custom_rtc.GetValue()->count() +
+                                     Service::Time::TimeManager::GetExternalTimeZoneOffset()};
+                Core::System::GetInstance().GetTimeManager().UpdateLocalSystemClockTime(posix_time);
+            }
+        } else {
+            Settings::values.custom_rtc.SetValue(std::nullopt);
+        }
+    }
+
     if (!enabled) {
         return;
     }
@@ -129,15 +146,6 @@ void ConfigureSystem::ApplyConfiguration() {
                     ui->rng_seed_edit->text().toULongLong(nullptr, 16));
             } else {
                 Settings::values.rng_seed.SetValue(std::nullopt);
-            }
-        }
-
-        if (Settings::values.custom_rtc.UsingGlobal()) {
-            if (ui->custom_rtc_checkbox->isChecked()) {
-                Settings::values.custom_rtc.SetValue(
-                    std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
-            } else {
-                Settings::values.custom_rtc.SetValue(std::nullopt);
             }
         }
     } else {

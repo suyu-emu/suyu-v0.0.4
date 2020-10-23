@@ -5,6 +5,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "common/time_zone.h"
 #include "core/file_sys/vfs_types.h"
 #include "core/hle/service/time/clock_types.h"
 #include "core/hle/service/time/ephemeral_network_system_clock_core.h"
@@ -32,86 +33,46 @@ public:
     explicit TimeManager(Core::System& system);
     ~TimeManager();
 
-    Clock::StandardSteadyClockCore& GetStandardSteadyClockCore() {
-        return standard_steady_clock_core;
-    }
+    void Initialize();
 
-    const Clock::StandardSteadyClockCore& GetStandardSteadyClockCore() const {
-        return standard_steady_clock_core;
-    }
+    Clock::StandardSteadyClockCore& GetStandardSteadyClockCore();
 
-    Clock::StandardLocalSystemClockCore& GetStandardLocalSystemClockCore() {
-        return standard_local_system_clock_core;
-    }
+    const Clock::StandardSteadyClockCore& GetStandardSteadyClockCore() const;
 
-    const Clock::StandardLocalSystemClockCore& GetStandardLocalSystemClockCore() const {
-        return standard_local_system_clock_core;
-    }
+    Clock::StandardLocalSystemClockCore& GetStandardLocalSystemClockCore();
 
-    Clock::StandardNetworkSystemClockCore& GetStandardNetworkSystemClockCore() {
-        return standard_network_system_clock_core;
-    }
+    const Clock::StandardLocalSystemClockCore& GetStandardLocalSystemClockCore() const;
 
-    const Clock::StandardNetworkSystemClockCore& GetStandardNetworkSystemClockCore() const {
-        return standard_network_system_clock_core;
-    }
+    Clock::StandardNetworkSystemClockCore& GetStandardNetworkSystemClockCore();
 
-    Clock::StandardUserSystemClockCore& GetStandardUserSystemClockCore() {
-        return standard_user_system_clock_core;
-    }
+    const Clock::StandardNetworkSystemClockCore& GetStandardNetworkSystemClockCore() const;
 
-    const Clock::StandardUserSystemClockCore& GetStandardUserSystemClockCore() const {
-        return standard_user_system_clock_core;
-    }
+    Clock::StandardUserSystemClockCore& GetStandardUserSystemClockCore();
 
-    TimeZone::TimeZoneContentManager& GetTimeZoneContentManager() {
-        return time_zone_content_manager;
-    }
+    const Clock::StandardUserSystemClockCore& GetStandardUserSystemClockCore() const;
 
-    const TimeZone::TimeZoneContentManager& GetTimeZoneContentManager() const {
-        return time_zone_content_manager;
-    }
+    TimeZone::TimeZoneContentManager& GetTimeZoneContentManager();
 
-    SharedMemory& GetSharedMemory() {
-        return shared_memory;
-    }
+    const TimeZone::TimeZoneContentManager& GetTimeZoneContentManager() const;
 
-    const SharedMemory& GetSharedMemory() const {
-        return shared_memory;
-    }
+    void UpdateLocalSystemClockTime(s64 posix_time);
+
+    SharedMemory& GetSharedMemory();
+
+    const SharedMemory& GetSharedMemory() const;
 
     void SetupTimeZoneManager(std::string location_name,
                               Clock::SteadyClockTimePoint time_zone_updated_time_point,
                               std::size_t total_location_name_count, u128 time_zone_rule_version,
                               FileSys::VirtualFile& vfs_file);
 
+    static s64 GetExternalTimeZoneOffset();
+
 private:
-    void SetupStandardSteadyClock(Core::System& system, Common::UUID clock_source_id,
-                                  Clock::TimeSpanType setup_value,
-                                  Clock::TimeSpanType internal_offset, bool is_rtc_reset_detected);
-    void SetupStandardLocalSystemClock(Core::System& system,
-                                       Clock::SystemClockContext clock_context, s64 posix_time);
-    void SetupStandardNetworkSystemClock(Clock::SystemClockContext clock_context,
-                                         Clock::TimeSpanType sufficient_accuracy);
-    void SetupStandardUserSystemClock(Core::System& system, bool is_automatic_correction_enabled,
-                                      Clock::SteadyClockTimePoint steady_clock_time_point);
-    void SetupEphemeralNetworkSystemClock();
+    Core::System& system;
 
-    SharedMemory shared_memory;
-
-    Clock::StandardSteadyClockCore standard_steady_clock_core;
-    Clock::TickBasedSteadyClockCore tick_based_steady_clock_core;
-    Clock::StandardLocalSystemClockCore standard_local_system_clock_core;
-    Clock::StandardNetworkSystemClockCore standard_network_system_clock_core;
-    Clock::StandardUserSystemClockCore standard_user_system_clock_core;
-    Clock::EphemeralNetworkSystemClockCore ephemeral_network_system_clock_core;
-
-    std::shared_ptr<Clock::LocalSystemClockContextWriter> local_system_clock_context_writer;
-    std::shared_ptr<Clock::NetworkSystemClockContextWriter> network_system_clock_context_writer;
-    std::shared_ptr<Clock::EphemeralNetworkSystemClockContextWriter>
-        ephemeral_network_system_clock_context_writer;
-
-    TimeZone::TimeZoneContentManager time_zone_content_manager;
+    struct Impl;
+    std::unique_ptr<Impl> impl;
 };
 
 } // namespace Service::Time

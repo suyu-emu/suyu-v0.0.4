@@ -69,6 +69,10 @@ namespace SM {
 class ServiceManager;
 } // namespace SM
 
+namespace Time {
+class TimeManager;
+} // namespace Time
+
 } // namespace Service
 
 namespace Tegra {
@@ -360,6 +364,10 @@ public:
     Service::LM::Manager& GetLogManager();
 
     const Service::LM::Manager& GetLogManager() const;
+
+    Service::Time::TimeManager& GetTimeManager();
+
+    const Service::Time::TimeManager& GetTimeManager() const;
 
     void SetExitLock(bool locked);
 
