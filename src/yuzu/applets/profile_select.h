@@ -27,6 +27,7 @@ public:
     explicit QtProfileSelectionDialog(QWidget* parent);
     ~QtProfileSelectionDialog() override;
 
+    int exec() override;
     void accept() override;
     void reject() override;
 

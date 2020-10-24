@@ -114,6 +114,15 @@ QtProfileSelectionDialog::QtProfileSelectionDialog(QWidget* parent)
 
 QtProfileSelectionDialog::~QtProfileSelectionDialog() = default;
 
+int QtProfileSelectionDialog::exec() {
+    // Skip profile selection when there's only one.
+    if (profile_manager->GetUserCount() == 1) {
+        user_index = 0;
+        return QDialog::Accepted;
+    }
+    QDialog::exec();
+}
+
 void QtProfileSelectionDialog::accept() {
     QDialog::accept();
 }
