@@ -18,15 +18,15 @@
 
 namespace {
 
-constexpr std::array<std::array<bool, 4>, 8> led_patterns = {{
-    {1, 0, 0, 0},
-    {1, 1, 0, 0},
-    {1, 1, 1, 0},
-    {1, 1, 1, 1},
-    {1, 0, 0, 1},
-    {1, 0, 1, 0},
-    {1, 0, 1, 1},
-    {0, 1, 1, 0},
+constexpr std::array<std::array<bool, 4>, 8> led_patterns{{
+    {true, false, false, false},
+    {true, true, false, false},
+    {true, true, true, false},
+    {true, true, true, true},
+    {true, false, false, true},
+    {true, false, true, false},
+    {true, false, true, true},
+    {false, true, true, false},
 }};
 
 void UpdateController(Settings::ControllerType controller_type, std::size_t npad_index,
