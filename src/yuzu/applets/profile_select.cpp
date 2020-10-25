@@ -120,7 +120,7 @@ int QtProfileSelectionDialog::exec() {
         user_index = 0;
         return QDialog::Accepted;
     }
-    QDialog::exec();
+    return QDialog::exec();
 }
 
 void QtProfileSelectionDialog::accept() {
