@@ -1029,7 +1029,7 @@ void Hid::SendVibrationValue(Kernel::HLERequestContext& ctx) {
     const auto parameters{rp.PopRaw<Parameters>()};
 
     applet_resource->GetController<Controller_NPad>(HidController::NPad)
-        .VibrateControllers({parameters.vibration_device_handle}, {parameters.vibration_value});
+        .VibrateController(parameters.vibration_device_handle, parameters.vibration_value);
 
     LOG_DEBUG(Service_HID,
               "called, npad_type={}, npad_id={}, device_index={}, applet_resource_user_id={}",

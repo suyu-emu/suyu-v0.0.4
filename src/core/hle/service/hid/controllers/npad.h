@@ -151,6 +151,9 @@ public:
     bool VibrateControllerAtIndex(std::size_t npad_index, std::size_t device_index,
                                   const VibrationValue& vibration_value = {});
 
+    void VibrateController(const DeviceHandle& vibration_device_handle,
+                           const VibrationValue& vibration_value);
+
     void VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
                             const std::vector<VibrationValue>& vibration_values);
 
@@ -421,6 +424,7 @@ private:
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
+    std::array<std::array<std::chrono::steady_clock::time_point, 2>, 10> last_vibration_timepoints;
     std::array<std::array<VibrationValue, 2>, 10> latest_vibration_values{};
     std::array<std::array<bool, 2>, 10> vibration_devices_mounted{};
     std::array<ControllerHolder, 10> connected_controllers{};

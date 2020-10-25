@@ -81,18 +81,6 @@ public:
     }
 
     bool RumblePlay(u16 amp_low, u16 amp_high) {
-        using std::chrono::duration_cast;
-        using std::chrono::milliseconds;
-        using std::chrono::steady_clock;
-
-        // Block non-zero vibrations less than 10ms apart from each other.
-        if ((amp_low != 0 || amp_high != 0) &&
-            duration_cast<milliseconds>(steady_clock::now() - last_vibration) < milliseconds(10)) {
-            return false;
-        }
-
-        last_vibration = steady_clock::now();
-
         if (sdl_controller) {
             return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high, 0) == 0;
         } else if (sdl_joystick) {
@@ -170,9 +158,6 @@ private:
     std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)> sdl_joystick;
     std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)> sdl_controller;
     mutable std::mutex mutex;
-
-    // This is the timepoint of the last vibration and is used to ensure vibrations are 10ms apart.
-    std::chrono::steady_clock::time_point last_vibration;
 
     // Motion is initialized without PID values as motion input is not aviable for SDL2
     MotionInput motion{0.0f, 0.0f, 0.0f};

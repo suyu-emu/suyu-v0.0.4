@@ -703,6 +703,23 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
         return false;
     }
 
+    if (!Settings::values.enable_accurate_vibrations.GetValue()) {
+        using std::chrono::duration_cast;
+        using std::chrono::milliseconds;
+        using std::chrono::steady_clock;
+
+        const auto now = steady_clock::now();
+
+        // Filter out non-zero vibrations that are within 10ms of each other.
+        if ((vibration_value.amp_low != 0.0f || vibration_value.amp_high != 0.0f) &&
+            duration_cast<milliseconds>(now - last_vibration_timepoints[npad_index][device_index]) <
+                milliseconds(10)) {
+            return false;
+        }
+
+        last_vibration_timepoints[npad_index][device_index] = now;
+    }
+
     return vibrations[npad_index][device_index]->SetRumblePlay(
         std::min(vibration_value.amp_low * player.vibration_strength / 100.0f, 1.0f),
         vibration_value.freq_low,
@@ -710,66 +727,59 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
         vibration_value.freq_high);
 }
 
-void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
-                                         const std::vector<VibrationValue>& vibration_values) {
-    LOG_TRACE(Service_HID, "called");
-
+void Controller_NPad::VibrateController(const DeviceHandle& vibration_device_handle,
+                                        const VibrationValue& vibration_value) {
     if (!Settings::values.vibration_enabled.GetValue()) {
         return;
     }
 
-    ASSERT_MSG(vibration_device_handles.size() == vibration_values.size(),
-               "The amount of device handles does not match with the amount of vibration values,"
-               "this is undefined behavior!");
+    const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
+    const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
+
+    if (!vibration_devices_mounted[npad_index][device_index] ||
+        !connected_controllers[npad_index].is_connected) {
+        return;
+    }
+
+    if (vibration_device_handle.device_index == DeviceIndex::None) {
+        UNREACHABLE_MSG("DeviceIndex should never be None!");
+        return;
+    }
+
+    // Some games try to send mismatched parameters in the device handle, block these.
+    if ((connected_controllers[npad_index].type == NPadControllerType::JoyLeft &&
+         (vibration_device_handle.npad_type == NpadType::JoyconRight ||
+          vibration_device_handle.device_index == DeviceIndex::Right)) ||
+        (connected_controllers[npad_index].type == NPadControllerType::JoyRight &&
+         (vibration_device_handle.npad_type == NpadType::JoyconLeft ||
+          vibration_device_handle.device_index == DeviceIndex::Left))) {
+        return;
+    }
+
+    // Filter out vibrations with equivalent values to reduce unnecessary state changes.
+    if (vibration_value.amp_low == latest_vibration_values[npad_index][device_index].amp_low &&
+        vibration_value.amp_high == latest_vibration_values[npad_index][device_index].amp_high) {
+        return;
+    }
+
+    if (VibrateControllerAtIndex(npad_index, device_index, vibration_value)) {
+        latest_vibration_values[npad_index][device_index] = vibration_value;
+    }
+}
+
+void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
+                                         const std::vector<VibrationValue>& vibration_values) {
+    if (!Settings::values.vibration_enabled.GetValue()) {
+        return;
+    }
+
+    ASSERT_OR_EXECUTE_MSG(
+        vibration_device_handles.size() == vibration_values.size(), { return; },
+        "The amount of device handles does not match with the amount of vibration values,"
+        "this is undefined behavior!");
 
     for (std::size_t i = 0; i < vibration_device_handles.size(); ++i) {
-        const auto npad_index = NPadIdToIndex(vibration_device_handles[i].npad_id);
-        const auto device_index =
-            static_cast<std::size_t>(vibration_device_handles[i].device_index);
-
-        if (!vibration_devices_mounted[npad_index][device_index] ||
-            !connected_controllers[npad_index].is_connected) {
-            continue;
-        }
-
-        if (vibration_device_handles[i].device_index == DeviceIndex::None) {
-            UNREACHABLE_MSG("DeviceIndex should never be None!");
-            continue;
-        }
-
-        // Some games try to send mismatched parameters in the device handle, block these.
-        if ((connected_controllers[npad_index].type == NPadControllerType::JoyLeft &&
-             (vibration_device_handles[i].npad_type == NpadType::JoyconRight ||
-              vibration_device_handles[i].device_index == DeviceIndex::Right)) ||
-            (connected_controllers[npad_index].type == NPadControllerType::JoyRight &&
-             (vibration_device_handles[i].npad_type == NpadType::JoyconLeft ||
-              vibration_device_handles[i].device_index == DeviceIndex::Left))) {
-            continue;
-        }
-
-        // Filter out vibrations with equivalent values to reduce unnecessary state changes.
-        if (vibration_values[i].amp_low ==
-                latest_vibration_values[npad_index][device_index].amp_low &&
-            vibration_values[i].amp_high ==
-                latest_vibration_values[npad_index][device_index].amp_high) {
-            continue;
-        }
-
-        // Filter out non-zero vibrations that are within 0.015625 absolute amplitude of each other.
-        if (!Settings::values.enable_accurate_vibrations.GetValue() &&
-            (vibration_values[i].amp_low != 0.0f || vibration_values[i].amp_high != 0.0f) &&
-            (latest_vibration_values[npad_index][device_index].amp_low != 0.0f ||
-             latest_vibration_values[npad_index][device_index].amp_high != 0.0f) &&
-            (abs(vibration_values[i].amp_low -
-                 latest_vibration_values[npad_index][device_index].amp_low) < 0.015625f &&
-             abs(vibration_values[i].amp_high -
-                 latest_vibration_values[npad_index][device_index].amp_high) < 0.015625f)) {
-            continue;
-        }
-
-        if (VibrateControllerAtIndex(npad_index, device_index, vibration_values[i])) {
-            latest_vibration_values[npad_index][device_index] = vibration_values[i];
-        }
+        VibrateController(vibration_device_handles[i], vibration_values[i]);
     }
 }
 
