@@ -596,6 +596,6 @@ void QtControllerSelector::ReconfigureControllers(
 
 void QtControllerSelector::MainWindowReconfigureFinished() {
     // Acquire the HLE mutex
-    std::lock_guard<std::recursive_mutex> lock(HLE::g_hle_lock);
+    std::lock_guard lock(HLE::g_hle_lock);
     callback();
 }
