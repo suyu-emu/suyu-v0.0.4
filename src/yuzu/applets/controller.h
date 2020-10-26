@@ -16,6 +16,8 @@ class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -45,8 +47,8 @@ private:
     // Initializes the "Configure Vibration" Dialog.
     void CallConfigureVibrationDialog();
 
-    // Initializes the "Configure Input" Dialog.
-    void CallConfigureInputDialog();
+    // Initializes the "Create Input Profile" Dialog.
+    void CallConfigureInputProfileDialog();
 
     // Checks the current configuration against the given parameters.
     // This sets and returns the value of parameters_met.
@@ -82,6 +84,8 @@ private:
     Core::Frontend::ControllerParameters parameters;
 
     InputCommon::InputSubsystem* input_subsystem;
+
+    std::unique_ptr<InputProfiles> input_profiles;
 
     // This is true if and only if all parameters are met. Otherwise, this is false.
     // This determines whether the "OK" button can be clicked to exit the applet.

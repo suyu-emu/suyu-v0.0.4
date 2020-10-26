@@ -13,8 +13,10 @@
 #include "core/hle/service/sm/sm.h"
 #include "ui_controller.h"
 #include "yuzu/applets/controller.h"
-#include "yuzu/configuration/configure_input_dialog.h"
+#include "yuzu/configuration/configure_input.h"
+#include "yuzu/configuration/configure_input_profile_dialog.h"
 #include "yuzu/configuration/configure_vibration.h"
+#include "yuzu/configuration/input_profiles.h"
 #include "yuzu/main.h"
 
 namespace {
@@ -109,7 +111,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     QWidget* parent, Core::Frontend::ControllerParameters parameters_,
     InputCommon::InputSubsystem* input_subsystem_)
     : QDialog(parent), ui(std::make_unique<Ui::QtControllerSelectorDialog>()),
-      parameters(std::move(parameters_)), input_subsystem(input_subsystem_) {
+      parameters(std::move(parameters_)), input_subsystem{input_subsystem_},
+      input_profiles(std::make_unique<InputProfiles>()) {
     ui->setupUi(this);
 
     player_widgets = {
@@ -230,7 +233,7 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
             &QtControllerSelectorDialog::CallConfigureVibrationDialog);
 
     connect(ui->inputConfigButton, &QPushButton::clicked, this,
-            &QtControllerSelectorDialog::CallConfigureInputDialog);
+            &QtControllerSelectorDialog::CallConfigureInputProfileDialog);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this,
             &QtControllerSelectorDialog::ApplyConfiguration);
@@ -299,20 +302,13 @@ void QtControllerSelectorDialog::CallConfigureVibrationDialog() {
     }
 }
 
-void QtControllerSelectorDialog::CallConfigureInputDialog() {
-    const auto max_supported_players = parameters.enable_single_mode ? 1 : parameters.max_players;
-
-    ConfigureInputDialog dialog(this, max_supported_players, input_subsystem);
+void QtControllerSelectorDialog::CallConfigureInputProfileDialog() {
+    ConfigureInputProfileDialog dialog(this, input_subsystem, input_profiles.get());
 
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint |
                           Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
-
-    dialog.ApplyConfiguration();
-
-    LoadConfiguration();
-    CheckIfParametersMet();
 }
 
 bool QtControllerSelectorDialog::CheckIfParametersMet() {

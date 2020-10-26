@@ -459,11 +459,14 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                 });
     }
 
+    if (debug || player_index == 9) {
+        ui->groupConnectedController->setCheckable(false);
+    }
+
     // The Debug Controller can only choose the Pro Controller.
     if (debug) {
         ui->buttonScreenshot->setEnabled(false);
         ui->buttonHome->setEnabled(false);
-        ui->groupConnectedController->setCheckable(false);
         QStringList debug_controller_types = {
             tr("Pro Controller"),
         };

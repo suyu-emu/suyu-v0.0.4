@@ -2402,7 +2402,7 @@
          <item>
           <widget class="QGroupBox" name="inputConfigGroup">
            <property name="title">
-            <string>Input Config</string>
+            <string>Profiles</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <property name="leftMargin">
@@ -2429,7 +2429,7 @@
                <string notr="true">min-width: 68px;</string>
               </property>
               <property name="text">
-               <string>Open</string>
+               <string>Create</string>
               </property>
              </widget>
             </item>

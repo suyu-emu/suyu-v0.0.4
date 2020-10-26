@@ -68,12 +68,12 @@ add_executable(yuzu
     configuration/configure_input_advanced.cpp
     configuration/configure_input_advanced.h
     configuration/configure_input_advanced.ui
-    configuration/configure_input_dialog.cpp
-    configuration/configure_input_dialog.h
-    configuration/configure_input_dialog.ui
     configuration/configure_input_player.cpp
     configuration/configure_input_player.h
     configuration/configure_input_player.ui
+    configuration/configure_input_profile_dialog.cpp
+    configuration/configure_input_profile_dialog.h
+    configuration/configure_input_profile_dialog.ui
     configuration/configure_motion_touch.cpp
     configuration/configure_motion_touch.h
     configuration/configure_motion_touch.ui
