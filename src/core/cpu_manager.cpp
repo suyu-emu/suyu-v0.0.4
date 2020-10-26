@@ -365,6 +365,8 @@ void CpuManager::RunThread(std::size_t core) {
     data.enter_barrier.reset();
     data.exit_barrier.reset();
     data.initialized = false;
+
+    MicroProfileOnThreadExit();
 }
 
 } // namespace Core
