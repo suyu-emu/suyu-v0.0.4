@@ -19,7 +19,7 @@ DefaultControllerApplet::DefaultControllerApplet(Service::SM::ServiceManager& se
 DefaultControllerApplet::~DefaultControllerApplet() = default;
 
 void DefaultControllerApplet::ReconfigureControllers(std::function<void()> callback,
-                                                     ControllerParameters parameters) const {
+                                                     const ControllerParameters& parameters) const {
     LOG_INFO(Service_HID, "called, deducing the best configuration based on the given parameters!");
 
     auto& npad =

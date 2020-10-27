@@ -38,7 +38,7 @@ public:
     virtual ~ControllerApplet();
 
     virtual void ReconfigureControllers(std::function<void()> callback,
-                                        ControllerParameters parameters) const = 0;
+                                        const ControllerParameters& parameters) const = 0;
 };
 
 class DefaultControllerApplet final : public ControllerApplet {
@@ -47,7 +47,7 @@ public:
     ~DefaultControllerApplet() override;
 
     void ReconfigureControllers(std::function<void()> callback,
-                                ControllerParameters parameters) const override;
+                                const ControllerParameters& parameters) const override;
 
 private:
     Service::SM::ServiceManager& service_manager;
