@@ -35,7 +35,7 @@ private:
     void RetranslateUI();
     void UpdateUIEnabled();
 
-    void OnControllerButtonClick(int player_idx, int button_idx);
+    void OnControllerButtonClick(std::size_t player_idx, std::size_t button_idx);
 
     void LoadConfiguration();
 

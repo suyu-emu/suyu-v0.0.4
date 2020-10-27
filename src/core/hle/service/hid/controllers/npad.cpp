@@ -287,7 +287,7 @@ void Controller_NPad::OnLoadInputDevices() {
 void Controller_NPad::OnRelease() {
     for (std::size_t npad_idx = 0; npad_idx < vibrations.size(); ++npad_idx) {
         for (std::size_t device_idx = 0; device_idx < vibrations[npad_idx].size(); ++device_idx) {
-            VibrateControllerAtIndex(npad_idx, device_idx);
+            VibrateControllerAtIndex(npad_idx, device_idx, {});
         }
     }
 }
@@ -720,11 +720,14 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
         last_vibration_timepoints[npad_index][device_index] = now;
     }
 
-    return vibrations[npad_index][device_index]->SetRumblePlay(
-        std::min(vibration_value.amp_low * player.vibration_strength / 100.0f, 1.0f),
-        vibration_value.freq_low,
-        std::min(vibration_value.amp_high * player.vibration_strength / 100.0f, 1.0f),
-        vibration_value.freq_high);
+    auto& vibration = vibrations[npad_index][device_index];
+    const auto player_vibration_strength = static_cast<f32>(player.vibration_strength);
+    const auto amp_low =
+        std::min(vibration_value.amp_low * player_vibration_strength / 100.0f, 1.0f);
+    const auto amp_high =
+        std::min(vibration_value.amp_high * player_vibration_strength / 100.0f, 1.0f);
+    return vibration->SetRumblePlay(amp_low, vibration_value.freq_low, amp_high,
+                                    vibration_value.freq_high);
 }
 
 void Controller_NPad::VibrateController(const DeviceHandle& vibration_device_handle,
@@ -855,7 +858,7 @@ void Controller_NPad::DisconnectNpad(u32 npad_id) {
 void Controller_NPad::DisconnectNpadAtIndex(std::size_t npad_index) {
     for (std::size_t device_idx = 0; device_idx < vibrations[npad_index].size(); ++device_idx) {
         // Send an empty vibration to stop any vibrations.
-        VibrateControllerAtIndex(npad_index, device_idx);
+        VibrateControllerAtIndex(npad_index, device_idx, {});
         vibration_devices_mounted[npad_index][device_idx] = false;
     }
 

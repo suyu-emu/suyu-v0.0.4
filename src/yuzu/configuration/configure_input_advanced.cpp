@@ -68,8 +68,7 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
         for (std::size_t button_idx = 0; button_idx < color_buttons.size(); ++button_idx) {
             connect(color_buttons[button_idx], &QPushButton::clicked, this,
                     [this, player_idx, button_idx] {
-                        OnControllerButtonClick(static_cast<int>(player_idx),
-                                                static_cast<int>(button_idx));
+                        OnControllerButtonClick(player_idx, button_idx);
                     });
         }
     }
@@ -94,7 +93,8 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
 
 ConfigureInputAdvanced::~ConfigureInputAdvanced() = default;
 
-void ConfigureInputAdvanced::OnControllerButtonClick(int player_idx, int button_idx) {
+void ConfigureInputAdvanced::OnControllerButtonClick(std::size_t player_idx,
+                                                     std::size_t button_idx) {
     const QColor new_bg_color = QColorDialog::getColor(controllers_colors[player_idx][button_idx]);
     if (!new_bg_color.isValid()) {
         return;

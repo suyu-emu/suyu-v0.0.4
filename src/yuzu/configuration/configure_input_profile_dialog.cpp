@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "ui_configure_input_profile_dialog.h"
+#include "yuzu/configuration/configure_input_player.h"
 #include "yuzu/configuration/configure_input_profile_dialog.h"
 
 ConfigureInputProfileDialog::ConfigureInputProfileDialog(

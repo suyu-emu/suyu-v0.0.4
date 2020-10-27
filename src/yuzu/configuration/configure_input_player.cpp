@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <thread>
 #include <utility>
 #include <QGridLayout>
 #include <QInputDialog>
@@ -857,7 +858,7 @@ void ConfigureInputPlayer::UpdateControllerIcon() {
         }
     }();
 
-    const QString theme = [this] {
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {

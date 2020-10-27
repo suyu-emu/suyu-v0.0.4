@@ -4,6 +4,7 @@
 
 #include "ui_configure_debug_controller.h"
 #include "yuzu/configuration/configure_debug_controller.h"
+#include "yuzu/configuration/configure_input_player.h"
 
 ConfigureDebugController::ConfigureDebugController(QWidget* parent,
                                                    InputCommon::InputSubsystem* input_subsystem,

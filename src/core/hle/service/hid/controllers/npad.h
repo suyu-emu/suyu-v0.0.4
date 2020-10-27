@@ -149,7 +149,7 @@ public:
     void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
     bool VibrateControllerAtIndex(std::size_t npad_index, std::size_t device_index,
-                                  const VibrationValue& vibration_value = {});
+                                  const VibrationValue& vibration_value);
 
     void VibrateController(const DeviceHandle& vibration_device_handle,
                            const VibrationValue& vibration_value);

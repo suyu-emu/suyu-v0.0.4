@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <thread>
 
 #include "common/assert.h"
 #include "common/string_util.h"
@@ -356,7 +357,7 @@ bool QtControllerSelectorDialog::CheckIfParametersMet() {
 }
 
 void QtControllerSelectorDialog::SetSupportedControllers() {
-    const QString theme = [this] {
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {
@@ -445,7 +446,7 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
         }
     }();
 
-    const QString theme = [this] {
+    const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
             return QStringLiteral("_dark");
         } else if (QIcon::themeName().contains(QStringLiteral("midnight"))) {

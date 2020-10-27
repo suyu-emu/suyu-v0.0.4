@@ -6,9 +6,10 @@
 
 #include <memory>
 #include <QDialog>
-#include "yuzu/configuration/configure_input_player.h"
 
 class QPushButton;
+
+class ConfigureInputPlayer;
 
 class InputProfiles;
 
