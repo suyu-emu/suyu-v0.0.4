@@ -61,7 +61,7 @@ public:
     ~Host1x();
 
     /// Writes the method into the state, Invoke Execute() if encountered
-    void ProcessMethod(Host1x::Method method, const std::vector<u32>& arguments);
+    void ProcessMethod(Method method, const std::vector<u32>& arguments);
 
 private:
     /// For Host1x, execute is waiting on a syncpoint previously written into the state

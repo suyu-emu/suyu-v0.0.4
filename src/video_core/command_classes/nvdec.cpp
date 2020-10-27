@@ -2,13 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <bitset>
 #include "common/assert.h"
-#include "common/bit_util.h"
-#include "core/memory.h"
 #include "video_core/command_classes/nvdec.h"
 #include "video_core/gpu.h"
-#include "video_core/memory_manager.h"
 
 namespace Tegra {
 
@@ -16,7 +12,7 @@ Nvdec::Nvdec(GPU& gpu_) : gpu(gpu_), codec(std::make_unique<Codec>(gpu)) {}
 
 Nvdec::~Nvdec() = default;
 
-void Nvdec::ProcessMethod(Nvdec::Method method, const std::vector<u32>& arguments) {
+void Nvdec::ProcessMethod(Method method, const std::vector<u32>& arguments) {
     if (method == Method::SetVideoCodec) {
         codec->StateWrite(static_cast<u32>(method), arguments[0]);
     } else {

@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <fstream>
+#include <vector>
 #include "common/assert.h"
 #include "video_core/command_classes/codecs/codec.h"
 #include "video_core/command_classes/codecs/h264.h"
