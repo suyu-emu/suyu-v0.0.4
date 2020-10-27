@@ -371,7 +371,7 @@ void Config::ReadValues() {
 
     // Core
     Settings::values.use_multi_core.SetValue(
-        sdl2_config->GetBoolean("Core", "use_multi_core", false));
+        sdl2_config->GetBoolean("Core", "use_multi_core", true));
 
     // Renderer
     const int renderer_backend = sdl2_config->GetInteger(
@@ -395,11 +395,11 @@ void Config::ReadValues() {
     const int gpu_accuracy_level = sdl2_config->GetInteger("Renderer", "gpu_accuracy", 0);
     Settings::values.gpu_accuracy.SetValue(static_cast<Settings::GPUAccuracy>(gpu_accuracy_level));
     Settings::values.use_asynchronous_gpu_emulation.SetValue(
-        sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", false));
+        sdl2_config->GetBoolean("Renderer", "use_asynchronous_gpu_emulation", true));
     Settings::values.use_vsync.SetValue(
         static_cast<u16>(sdl2_config->GetInteger("Renderer", "use_vsync", 1)));
     Settings::values.use_assembly_shaders.SetValue(
-        sdl2_config->GetBoolean("Renderer", "use_assembly_shaders", false));
+        sdl2_config->GetBoolean("Renderer", "use_assembly_shaders", true));
     Settings::values.use_asynchronous_shaders.SetValue(
         sdl2_config->GetBoolean("Renderer", "use_asynchronous_shaders", false));
     Settings::values.use_asynchronous_shaders.SetValue(
