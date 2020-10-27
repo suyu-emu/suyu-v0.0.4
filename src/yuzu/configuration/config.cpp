@@ -717,6 +717,8 @@ void Config::ReadRendererValues() {
     ReadSettingGlobal(Settings::values.gpu_accuracy, QStringLiteral("gpu_accuracy"), 0);
     ReadSettingGlobal(Settings::values.use_asynchronous_gpu_emulation,
                       QStringLiteral("use_asynchronous_gpu_emulation"), false);
+    ReadSettingGlobal(Settings::values.use_nvdec_emulation, QStringLiteral("use_nvdec_emulation"),
+                      true);
     ReadSettingGlobal(Settings::values.use_vsync, QStringLiteral("use_vsync"), true);
     ReadSettingGlobal(Settings::values.use_assembly_shaders, QStringLiteral("use_assembly_shaders"),
                       false);
@@ -1265,6 +1267,8 @@ void Config::SaveRendererValues() {
                        Settings::values.gpu_accuracy.UsingGlobal(), 0);
     WriteSettingGlobal(QStringLiteral("use_asynchronous_gpu_emulation"),
                        Settings::values.use_asynchronous_gpu_emulation, false);
+    WriteSettingGlobal(QStringLiteral("use_nvdec_emulation"), Settings::values.use_nvdec_emulation,
+                       true);
     WriteSettingGlobal(QStringLiteral("use_vsync"), Settings::values.use_vsync, true);
     WriteSettingGlobal(QStringLiteral("use_assembly_shaders"),
                        Settings::values.use_assembly_shaders, false);

@@ -206,6 +206,8 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
              TranslateGPUAccuracyLevel(Settings::values.gpu_accuracy.GetValue()));
     AddField(field_type, "Renderer_UseAsynchronousGpuEmulation",
              Settings::values.use_asynchronous_gpu_emulation.GetValue());
+    AddField(field_type, "Renderer_UseNvdecEmulation",
+             Settings::values.use_nvdec_emulation.GetValue());
     AddField(field_type, "Renderer_UseVsync", Settings::values.use_vsync.GetValue());
     AddField(field_type, "Renderer_UseAssemblyShaders",
              Settings::values.use_assembly_shaders.GetValue());

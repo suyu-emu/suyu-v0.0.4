@@ -37,6 +37,7 @@ public:
         VAddr addr;
         Status status;
         u32 refcount;
+        u32 dma_map_addr;
     };
 
     std::shared_ptr<Object> GetObject(u32 handle) const {

@@ -150,6 +150,8 @@ add_library(common STATIC
     scope_exit.h
     spin_lock.cpp
     spin_lock.h
+    stream.cpp
+    stream.h
     string_util.cpp
     string_util.h
     swap.h

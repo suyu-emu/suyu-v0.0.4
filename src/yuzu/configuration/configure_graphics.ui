@@ -98,6 +98,13 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="use_nvdec_emulation">
+          <property name="text">
+           <string>Use NVDEC emulation</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QWidget" name="aspect_ratio_layout" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_6">
            <property name="leftMargin">

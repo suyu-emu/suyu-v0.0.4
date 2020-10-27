@@ -5,6 +5,24 @@ add_library(video_core STATIC
     buffer_cache/buffer_cache.h
     buffer_cache/map_interval.cpp
     buffer_cache/map_interval.h
+    cdma_pusher.cpp
+    cdma_pusher.h
+    command_classes/codecs/codec.cpp
+    command_classes/codecs/codec.h
+    command_classes/codecs/h264.cpp
+    command_classes/codecs/h264.h
+    command_classes/codecs/vp9.cpp
+    command_classes/codecs/vp9.h
+    command_classes/codecs/vp9_types.h
+    command_classes/host1x.cpp
+    command_classes/host1x.h
+    command_classes/nvdec.cpp
+    command_classes/nvdec.h
+    command_classes/nvdec_common.h
+    command_classes/sync_manager.cpp
+    command_classes/sync_manager.h
+    command_classes/vic.cpp
+    command_classes/vic.h
     compatible_formats.cpp
     compatible_formats.h
     dirty_flags.cpp
@@ -249,6 +267,14 @@ create_target_directory_groups(video_core)
 
 target_link_libraries(video_core PUBLIC common core)
 target_link_libraries(video_core PRIVATE glad xbyak)
+
+if (MSVC)
+    target_include_directories(video_core PRIVATE ${FFMPEG_INCLUDE_DIR})
+    target_link_libraries(video_core PUBLIC ${FFMPEG_LIBRARY_DIR}/swscale.lib ${FFMPEG_LIBRARY_DIR}/avcodec.lib ${FFMPEG_LIBRARY_DIR}/avutil.lib)
+else()
+    target_include_directories(video_core PRIVATE ${FFMPEG_INCLUDE_DIR})
+    target_link_libraries(video_core PRIVATE ${FFMPEG_LIBRARIES})
+endif()
 
 add_dependencies(video_core host_shaders)
 target_include_directories(video_core PRIVATE ${HOST_SHADERS_INCLUDE})

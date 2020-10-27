@@ -13,6 +13,7 @@
 #include "common/common_types.h"
 #include "core/hle/service/nvdrv/nvdata.h"
 #include "core/hle/service/nvflinger/buffer_queue.h"
+#include "video_core/cdma_pusher.h"
 #include "video_core/dma_pusher.h"
 
 using CacheAddr = std::uintptr_t;
@@ -157,7 +158,7 @@ public:
               method_count(method_count) {}
     };
 
-    explicit GPU(Core::System& system, bool is_async);
+    explicit GPU(Core::System& system, bool is_async, bool use_nvdec);
     virtual ~GPU();
 
     /// Binds a renderer to the GPU.
@@ -209,6 +210,15 @@ public:
     /// Returns a reference to the GPU DMA pusher.
     Tegra::DmaPusher& DmaPusher();
 
+    /// Returns a const reference to the GPU DMA pusher.
+    const Tegra::DmaPusher& DmaPusher() const;
+
+    /// Returns a reference to the GPU CDMA pusher.
+    Tegra::CDmaPusher& CDmaPusher();
+
+    /// Returns a const reference to the GPU CDMA pusher.
+    const Tegra::CDmaPusher& CDmaPusher() const;
+
     VideoCore::RendererBase& Renderer() {
         return *renderer;
     }
@@ -249,8 +259,9 @@ public:
         return is_async;
     }
 
-    /// Returns a const reference to the GPU DMA pusher.
-    const Tegra::DmaPusher& DmaPusher() const;
+    bool UseNvdec() const {
+        return use_nvdec;
+    }
 
     struct Regs {
         static constexpr size_t NUM_REGS = 0x40;
@@ -311,6 +322,9 @@ public:
     /// Push GPU command entries to be processed
     virtual void PushGPUEntries(Tegra::CommandList&& entries) = 0;
 
+    /// Push GPU command buffer entries to be processed
+    virtual void PushCommandBuffer(Tegra::ChCommandHeaderList& entries) = 0;
+
     /// Swap buffers (render frame)
     virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
 
@@ -349,7 +363,9 @@ protected:
     Core::System& system;
     std::unique_ptr<Tegra::MemoryManager> memory_manager;
     std::unique_ptr<Tegra::DmaPusher> dma_pusher;
+    std::unique_ptr<Tegra::CDmaPusher> cdma_pusher;
     std::unique_ptr<VideoCore::RendererBase> renderer;
+    const bool use_nvdec;
 
 private:
     /// Mapping of command subchannels to their bound engine ids
@@ -372,6 +388,7 @@ private:
     std::array<std::list<u32>, Service::Nvidia::MaxSyncPoints> syncpt_interrupts;
 
     std::mutex sync_mutex;
+    std::mutex device_mutex;
 
     std::condition_variable sync_cv;
 

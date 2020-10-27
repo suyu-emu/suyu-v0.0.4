@@ -46,6 +46,7 @@ private:
     std::unique_ptr<Ui::ConfigureGraphics> ui;
     QColor bg_color;
 
+    ConfigurationShared::CheckState use_nvdec_emulation;
     ConfigurationShared::CheckState use_disk_shader_cache;
     ConfigurationShared::CheckState use_asynchronous_gpu_emulation;
 

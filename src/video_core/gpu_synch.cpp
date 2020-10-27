@@ -7,7 +7,7 @@
 
 namespace VideoCommon {
 
-GPUSynch::GPUSynch(Core::System& system) : GPU{system, false} {}
+GPUSynch::GPUSynch(Core::System& system, bool use_nvdec) : GPU{system, false, use_nvdec} {}
 
 GPUSynch::~GPUSynch() = default;
 
@@ -24,6 +24,22 @@ void GPUSynch::ReleaseContext() {
 void GPUSynch::PushGPUEntries(Tegra::CommandList&& entries) {
     dma_pusher->Push(std::move(entries));
     dma_pusher->DispatchCalls();
+}
+
+void GPUSynch::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
+    if (!use_nvdec) {
+        return;
+    }
+    // This condition fires when a video stream ends, clears all intermediary data
+    if (entries[0].raw == 0xDEADB33F) {
+        cdma_pusher.reset();
+        return;
+    }
+    if (!cdma_pusher) {
+        cdma_pusher = std::make_unique<Tegra::CDmaPusher>(*this);
+    }
+    cdma_pusher->Push(std::move(entries));
+    cdma_pusher->DispatchCalls();
 }
 
 void GPUSynch::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
