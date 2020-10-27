@@ -36,7 +36,7 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
     nvflinger.SetNVDrvInstance(module_);
 }
 
-Module::Module(Core::System& system) {
+Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
