@@ -73,8 +73,8 @@ if (NOT LIBZIP_FOUND)
 endif()
 
 if (ENABLE_WEB_SERVICE)
-    if (USE_SYSTEM_SSL)
-        find_package(OpenSSL 1.1 REQUIRED)
+    find_package(OpenSSL 1.1)
+    if (OPENSSL_FOUND)
         set(OPENSSL_LIBRARIES OpenSSL::SSL OpenSSL::Crypto)
     else()
         # LibreSSL
