@@ -94,7 +94,7 @@ udp_pad_index=
 
 [Core]
 # Whether to use multi-core for CPU emulation
-# 0 (default): Disabled, 1: Enabled
+# 0: Disabled, 1 (default): Enabled
 use_multi_core=
 
 [Cpu]
@@ -163,7 +163,7 @@ max_anisotropy =
 use_vsync =
 
 # Whether to use OpenGL assembly shaders or not. NV_gpu_program5 is required.
-# 0 (default): Off, 1: On
+# 0: Off, 1 (default): On
 use_assembly_shaders =
 
 # Whether to allow asynchronous shader building.
