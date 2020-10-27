@@ -370,6 +370,18 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
             }
 
             connect(analog_button, &QPushButton::clicked, [=, this] {
+                if (!map_analog_stick_accepted) {
+                    map_analog_stick_accepted =
+                        QMessageBox::information(
+                            this, tr("Map Analog Stick"),
+                            tr("After pressing OK, first move your joystick horizontally, and then "
+                               "vertically.\nTo invert the axes, first move your joystick "
+                               "vertically, and then horizontally."),
+                            QMessageBox::Ok | QMessageBox::Cancel) == QMessageBox::Ok;
+                    if (!map_analog_stick_accepted) {
+                        return;
+                    }
+                }
                 HandleClick(
                     analog_map_buttons[analog_id][sub_button_id],
                     [=, this](const Common::ParamPackage& params) {

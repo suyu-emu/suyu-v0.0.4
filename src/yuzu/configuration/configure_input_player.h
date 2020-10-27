@@ -181,9 +181,12 @@ private:
 
     std::vector<std::unique_ptr<InputCommon::Polling::DevicePoller>> device_pollers;
 
+    /// A flag to indicate that the "Map Analog Stick" pop-up has been shown and accepted once.
+    bool map_analog_stick_accepted{};
+
     /// A flag to indicate if keyboard keys are okay when configuring an input. If this is false,
     /// keyboard events are ignored.
-    bool want_keyboard_mouse = false;
+    bool want_keyboard_mouse{};
 
     /// List of physical devices users can map with. If a SDL backed device is selected, then you
     /// can use this device to get a default mapping.

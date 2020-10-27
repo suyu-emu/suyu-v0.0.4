@@ -1068,7 +1068,6 @@ public:
 
     void Start(const std::string& device_id) override {
         SDLPoller::Start(device_id);
-        // Load the game controller
         // Reset stored axes
         analog_x_axis = -1;
         analog_y_axis = -1;
@@ -1081,40 +1080,21 @@ public:
             if (event.type == SDL_JOYAXISMOTION && std::abs(event.jaxis.value / 32767.0) < 0.5) {
                 continue;
             }
-            // Simplify controller config by testing if game controller support is enabled.
             if (event.type == SDL_JOYAXISMOTION) {
                 const auto axis = event.jaxis.axis;
-                if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-                    auto* const controller = joystick->GetSDLGameController()) {
-                    const auto axis_left_x =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX)
-                            .value.axis;
-                    const auto axis_left_y =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTY)
-                            .value.axis;
-                    const auto axis_right_x =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTX)
-                            .value.axis;
-                    const auto axis_right_y =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTY)
-                            .value.axis;
-
-                    if (axis == axis_left_x || axis == axis_left_y) {
-                        analog_x_axis = axis_left_x;
-                        analog_y_axis = axis_left_y;
-                        break;
-                    } else if (axis == axis_right_x || axis == axis_right_y) {
-                        analog_x_axis = axis_right_x;
-                        analog_y_axis = axis_right_y;
-                        break;
-                    }
+                // In order to return a complete analog param, we need inputs for both axes.
+                // First we take the x-axis (horizontal) input, then the y-axis (vertical) input.
+                if (analog_x_axis == -1) {
+                    analog_x_axis = axis;
+                } else if (analog_y_axis == -1 && analog_x_axis != axis) {
+                    analog_y_axis = axis;
                 }
-            }
-
-            // If the press wasn't accepted as a joy axis, check for a button press
-            auto button_press = button_poller.FromEvent(event);
-            if (button_press) {
-                return *button_press;
+            } else {
+                // If the press wasn't accepted as a joy axis, check for a button press
+                auto button_press = button_poller.FromEvent(event);
+                if (button_press) {
+                    return *button_press;
+                }
             }
         }
 
@@ -1127,6 +1107,7 @@ public:
                 return params;
             }
         }
+
         return {};
     }
 
