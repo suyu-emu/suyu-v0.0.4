@@ -677,7 +677,6 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
         current_frame_info.intra_only = true;
 
     } else {
-        std::array<s32, 3> ref_frame_index;
 
         if (!current_frame_info.show_frame) {
             uncomp_writer.WriteBit(current_frame_info.intra_only);
@@ -692,9 +691,9 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
         }
 
         // Last, Golden, Altref frames
-        ref_frame_index = std::array<s32, 3>{0, 1, 2};
+        std::array<s32, 3> ref_frame_index{0, 1, 2};
 
-        // set when next frame is hidden
+        // Set when next frame is hidden
         // altref and golden references are swapped
         if (swap_next_golden) {
             ref_frame_index = std::array<s32, 3>{0, 2, 1};
@@ -783,17 +782,19 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
         for (std::size_t index = 0; index < current_frame_info.ref_deltas.size(); index++) {
             const s8 old_deltas = loop_filter_ref_deltas[index];
             const s8 new_deltas = current_frame_info.ref_deltas[index];
+            const bool differing_delta = old_deltas != new_deltas;
 
-            loop_filter_delta_update |=
-                (update_loop_filter_ref_deltas[index] = old_deltas != new_deltas);
+            update_loop_filter_ref_deltas[index] = differing_delta;
+            loop_filter_delta_update |= differing_delta;
         }
 
         for (std::size_t index = 0; index < current_frame_info.mode_deltas.size(); index++) {
             const s8 old_deltas = loop_filter_mode_deltas[index];
             const s8 new_deltas = current_frame_info.mode_deltas[index];
+            const bool differing_delta = old_deltas != new_deltas;
 
-            loop_filter_delta_update |=
-                (update_loop_filter_mode_deltas[index] = old_deltas != new_deltas);
+            update_loop_filter_mode_deltas[index] = differing_delta;
+            loop_filter_delta_update |= differing_delta;
         }
 
         uncomp_writer.WriteBit(loop_filter_delta_update);
