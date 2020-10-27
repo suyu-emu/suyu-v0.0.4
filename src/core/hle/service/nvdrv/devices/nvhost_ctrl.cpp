@@ -15,8 +15,9 @@
 
 namespace Service::Nvidia::Devices {
 
-nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface)
-    : nvdevice(system), events_interface{events_interface} {}
+nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface,
+                         SyncpointManager& syncpoint_manager)
+    : nvdevice(system), events_interface{events_interface}, syncpoint_manager{syncpoint_manager} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
 u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
@@ -70,19 +71,33 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
         return NvResult::BadParameter;
     }
 
+    if (syncpoint_manager.IsSyncpointExpired(params.syncpt_id, params.threshold)) {
+        params.value = syncpoint_manager.GetSyncpointMin(params.syncpt_id);
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Success;
+    }
+
+    if (const auto new_value = syncpoint_manager.RefreshSyncpoint(params.syncpt_id);
+        syncpoint_manager.IsSyncpointExpired(params.syncpt_id, params.threshold)) {
+        params.value = new_value;
+        std::memcpy(output.data(), &params, sizeof(params));
+        return NvResult::Success;
+    }
+
     auto event = events_interface.events[event_id];
     auto& gpu = system.GPU();
+
     // This is mostly to take into account unimplemented features. As synced
     // gpu is always synced.
     if (!gpu.IsAsync()) {
-        event.writable->Signal();
+        event.event.writable->Signal();
         return NvResult::Success;
     }
     auto lock = gpu.LockSync();
-    const u32 current_syncpoint_value = gpu.GetSyncpointValue(params.syncpt_id);
+    const u32 current_syncpoint_value = event.fence.value;
     const s32 diff = current_syncpoint_value - params.threshold;
     if (diff >= 0) {
-        event.writable->Signal();
+        event.event.writable->Signal();
         params.value = current_syncpoint_value;
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Success;
@@ -109,7 +124,7 @@ u32 nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>&
             params.value = ((params.syncpt_id & 0xfff) << 16) | 0x10000000;
         }
         params.value |= event_id;
-        event.writable->Clear();
+        event.event.writable->Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
         if (!is_async && ctrl.fresh_call) {
             ctrl.must_delay = true;
@@ -157,15 +172,19 @@ u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vecto
 u32 nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventSignalParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
+
     u32 event_id = params.event_id & 0x00FF;
     LOG_WARNING(Service_NVDRV, "cleared event wait on, event_id: {:X}", event_id);
+
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
         events_interface.LiberateEvent(event_id);
-        events_interface.events[event_id].writable->Signal();
     }
+
+    syncpoint_manager.RefreshSyncpoint(events_interface.events[event_id].fence.id);
+
     return NvResult::Success;
 }
 
