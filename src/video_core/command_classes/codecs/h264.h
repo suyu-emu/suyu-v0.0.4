@@ -38,7 +38,7 @@ public:
     /// WriteSe and WriteUe write in the Exp-Golomb-coded syntax
     void WriteU(s32 value, s32 value_sz);
     void WriteSe(s32 value);
-    void WriteUe(s32 value);
+    void WriteUe(u32 value);
 
     /// Finalize the bitstream
     void End();
