@@ -21,6 +21,7 @@
 #include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvmemp.h"
+#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
 
 namespace Service::Nvidia {
@@ -40,7 +41,7 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
-        events_interface.events[i] = Kernel::WritableEvent::CreateEventPair(kernel, event_label);
+        events_interface.events[i] = {Kernel::WritableEvent::CreateEventPair(kernel, event_label)};
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;
     }
@@ -95,17 +96,17 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
         if (events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
             events_interface.LiberateEvent(i);
-            events_interface.events[i].writable->Signal();
+            events_interface.events[i].event.writable->Signal();
         }
     }
 }
 
 std::shared_ptr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) const {
-    return events_interface.events[event_id].readable;
+    return events_interface.events[event_id].event.readable;
 }
 
 std::shared_ptr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) const {
-    return events_interface.events[event_id].writable;
+    return events_interface.events[event_id].event.writable;
 }
 
 } // namespace Service::Nvidia

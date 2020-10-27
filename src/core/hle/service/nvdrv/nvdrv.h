@@ -10,6 +10,7 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/hle/service/nvdrv/nvdata.h"
+#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/service.h"
 
 namespace Core {
@@ -22,15 +23,23 @@ class NVFlinger;
 
 namespace Service::Nvidia {
 
+class SyncpointManager;
+
 namespace Devices {
 class nvdevice;
 }
+
+/// Represents an Nvidia event
+struct NvEvent {
+    Kernel::EventPair event;
+    Fence fence{};
+};
 
 struct EventInterface {
     // Mask representing currently busy events
     u64 events_mask{};
     // Each kernel event associated to an NV event
-    std::array<Kernel::EventPair, MaxNvEvents> events;
+    std::array<NvEvent, MaxNvEvents> events;
     // The status of the current NVEvent
     std::array<EventState, MaxNvEvents> status{};
     // Tells if an NVEvent is registered or not
@@ -119,6 +128,9 @@ public:
     std::shared_ptr<Kernel::WritableEvent> GetEventWriteable(u32 event_id) const;
 
 private:
+    /// Manages syncpoints on the host
+    SyncpointManager syncpoint_manager;
+
     /// Id to use for the next open file descriptor.
     u32 next_fd = 1;
 
