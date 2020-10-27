@@ -263,6 +263,7 @@ if (CONAN_REQUIRED_LIBS)
         libzip:with_openssl=False
         libzip:enable_windows_crypto=False
     )
+
     conan_check(VERSION 1.24.0 REQUIRED)
     # Add the bincrafters remote
     conan_add_remote(NAME bincrafters
@@ -352,6 +353,19 @@ if (NOT LIBUSB_FOUND)
     add_subdirectory(externals/libusb)
     set(LIBUSB_INCLUDE_DIR "")
     set(LIBUSB_LIBRARIES usb)
+endif()
+
+# Use system installed ffmpeg.
+if (NOT MSVC)
+    find_package(FFmpeg REQUIRED)
+else()
+    set(FFMPEG_EXT_NAME "ffmpeg-4.2.1")
+    set(FFMPEG_PATH "${CMAKE_BINARY_DIR}/externals/${FFMPEG_EXT_NAME}")
+    download_bundled_external("ffmpeg/" ${FFMPEG_EXT_NAME} "")
+    set(FFMPEG_FOUND YES)
+    set(FFMPEG_INCLUDE_DIR "${FFMPEG_PATH}/include" CACHE PATH "Path to FFmpeg headers" FORCE)
+    set(FFMPEG_LIBRARY_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg library" FORCE)
+    set(FFMPEG_DLL_DIR "${FFMPEG_PATH}/bin" CACHE PATH "Path to FFmpeg dll's" FORCE)
 endif()
 
 # Prefer the -pthread flag on Linux.

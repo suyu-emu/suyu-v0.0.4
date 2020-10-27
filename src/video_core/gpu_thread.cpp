@@ -18,7 +18,7 @@ namespace VideoCommon::GPUThread {
 /// Runs the GPU thread
 static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
                       Core::Frontend::GraphicsContext& context, Tegra::DmaPusher& dma_pusher,
-                      SynchState& state) {
+                      SynchState& state, Tegra::CDmaPusher& cdma_pusher) {
     std::string name = "yuzu:GPU";
     MicroProfileOnThreadCreate(name.c_str());
     Common::SetCurrentThreadName(name.c_str());
@@ -42,6 +42,10 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
         if (const auto submit_list = std::get_if<SubmitListCommand>(&next.data)) {
             dma_pusher.Push(std::move(submit_list->entries));
             dma_pusher.DispatchCalls();
+        } else if (const auto command_list = std::get_if<SubmitChCommandEntries>(&next.data)) {
+            // NVDEC
+            cdma_pusher.Push(std::move(command_list->entries));
+            cdma_pusher.DispatchCalls();
         } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (std::holds_alternative<OnCommandListEndCommand>(next.data)) {
@@ -75,13 +79,17 @@ ThreadManager::~ThreadManager() {
 
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
                                 Core::Frontend::GraphicsContext& context,
-                                Tegra::DmaPusher& dma_pusher) {
-    thread = std::thread{RunThread,         std::ref(system),     std::ref(renderer),
-                         std::ref(context), std::ref(dma_pusher), std::ref(state)};
+                                Tegra::DmaPusher& dma_pusher, Tegra::CDmaPusher& cdma_pusher) {
+    thread = std::thread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
+                         std::ref(dma_pusher), std::ref(state), std::ref(cdma_pusher));
 }
 
 void ThreadManager::SubmitList(Tegra::CommandList&& entries) {
     PushCommand(SubmitListCommand(std::move(entries)));
+}
+
+void ThreadManager::SubmitCommandBuffer(Tegra::ChCommandHeaderList&& entries) {
+    PushCommand(SubmitChCommandEntries(std::move(entries)));
 }
 
 void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {

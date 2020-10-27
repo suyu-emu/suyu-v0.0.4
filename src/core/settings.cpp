@@ -63,6 +63,7 @@ void LogSettings() {
     log_setting("Renderer_GPUAccuracyLevel", values.gpu_accuracy.GetValue());
     log_setting("Renderer_UseAsynchronousGpuEmulation",
                 values.use_asynchronous_gpu_emulation.GetValue());
+    log_setting("Renderer_UseNvdecEmulation", values.use_nvdec_emulation.GetValue());
     log_setting("Renderer_UseVsync", values.use_vsync.GetValue());
     log_setting("Renderer_UseAssemblyShaders", values.use_assembly_shaders.GetValue());
     log_setting("Renderer_UseAsynchronousShaders", values.use_asynchronous_shaders.GetValue());
@@ -119,6 +120,7 @@ void RestoreGlobalState() {
     values.use_disk_shader_cache.SetGlobal(true);
     values.gpu_accuracy.SetGlobal(true);
     values.use_asynchronous_gpu_emulation.SetGlobal(true);
+    values.use_nvdec_emulation.SetGlobal(true);
     values.use_vsync.SetGlobal(true);
     values.use_assembly_shaders.SetGlobal(true);
     values.use_asynchronous_shaders.SetGlobal(true);

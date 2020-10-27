@@ -116,6 +116,7 @@ public:
 
     [[nodiscard]] GPUVAddr Map(VAddr cpu_addr, GPUVAddr gpu_addr, std::size_t size);
     [[nodiscard]] GPUVAddr MapAllocate(VAddr cpu_addr, std::size_t size, std::size_t align);
+    [[nodiscard]] GPUVAddr MapAllocate32(VAddr cpu_addr, std::size_t size);
     [[nodiscard]] std::optional<GPUVAddr> AllocateFixed(GPUVAddr gpu_addr, std::size_t size);
     [[nodiscard]] GPUVAddr Allocate(std::size_t size, std::size_t align);
     void Unmap(GPUVAddr gpu_addr, std::size_t size);
@@ -124,7 +125,8 @@ private:
     [[nodiscard]] PageEntry GetPageEntry(GPUVAddr gpu_addr) const;
     void SetPageEntry(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size = page_size);
     GPUVAddr UpdateRange(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size);
-    [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align) const;
+    [[nodiscard]] std::optional<GPUVAddr> FindFreeRange(std::size_t size, std::size_t align,
+                                                        bool start_32bit_address = false) const;
 
     void TryLockPage(PageEntry page_entry, std::size_t size);
     void TryUnlockPage(PageEntry page_entry, std::size_t size);
@@ -135,6 +137,7 @@ private:
 
     static constexpr u64 address_space_size = 1ULL << 40;
     static constexpr u64 address_space_start = 1ULL << 32;
+    static constexpr u64 address_space_start_low = 1ULL << 16;
     static constexpr u64 page_bits{16};
     static constexpr u64 page_size{1 << page_bits};
     static constexpr u64 page_mask{page_size - 1};

@@ -44,10 +44,11 @@ namespace VideoCore {
 
 std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system) {
     std::unique_ptr<Tegra::GPU> gpu;
+    const bool use_nvdec = Settings::values.use_nvdec_emulation.GetValue();
     if (Settings::values.use_asynchronous_gpu_emulation.GetValue()) {
-        gpu = std::make_unique<VideoCommon::GPUAsynch>(system);
+        gpu = std::make_unique<VideoCommon::GPUAsynch>(system, use_nvdec);
     } else {
-        gpu = std::make_unique<VideoCommon::GPUSynch>(system);
+        gpu = std::make_unique<VideoCommon::GPUSynch>(system, use_nvdec);
     }
 
     auto context = emu_window.CreateSharedContext();

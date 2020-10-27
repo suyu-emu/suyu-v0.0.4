@@ -111,6 +111,7 @@ struct Values {
     Setting<bool> use_disk_shader_cache;
     Setting<GPUAccuracy> gpu_accuracy;
     Setting<bool> use_asynchronous_gpu_emulation;
+    Setting<bool> use_nvdec_emulation;
     Setting<bool> use_vsync;
     Setting<bool> use_assembly_shaders;
     Setting<bool> use_asynchronous_shaders;
