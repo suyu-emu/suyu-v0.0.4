@@ -634,12 +634,6 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
 
     writer.End();
     return writer.GetBuffer();
-
-    const auto writer_bytearray = writer.GetBuffer();
-
-    std::vector<u8> compressed_header(writer_bytearray.size());
-    std::memcpy(compressed_header.data(), writer_bytearray.data(), writer_bytearray.size());
-    return compressed_header;
 }
 
 VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
