@@ -27,6 +27,31 @@ enum class SubmissionMode : u32 {
     IncreaseOnce = 5
 };
 
+// Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
+// their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.
+// So the values you see in docs might be multiplied by 4.
+enum class BufferMethods : u32 {
+    BindObject = 0x0,
+    Nop = 0x2,
+    SemaphoreAddressHigh = 0x4,
+    SemaphoreAddressLow = 0x5,
+    SemaphoreSequence = 0x6,
+    SemaphoreTrigger = 0x7,
+    NotifyIntr = 0x8,
+    WrcacheFlush = 0x9,
+    Unk28 = 0xA,
+    UnkCacheFlush = 0xB,
+    RefCnt = 0x14,
+    SemaphoreAcquire = 0x1A,
+    SemaphoreRelease = 0x1B,
+    FenceValue = 0x1C,
+    FenceAction = 0x1D,
+    WaitForInterrupt = 0x1E,
+    Unk7c = 0x1F,
+    Yield = 0x20,
+    NonPullerMethods = 0x40,
+};
+
 struct CommandListHeader {
     union {
         u64 raw;
