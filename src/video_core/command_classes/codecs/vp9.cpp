@@ -853,7 +853,7 @@ std::vector<u8>& VP9::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state) {
     {
         Vp9FrameContainer curr_frame = GetCurrentFrame(state);
         current_frame_info = curr_frame.info;
-        bitstream = curr_frame.bit_stream;
+        bitstream = std::move(curr_frame.bit_stream);
     }
 
     // The uncompressed header routine sets PrevProb parameters needed for the compressed header
