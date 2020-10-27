@@ -395,7 +395,7 @@ Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) 
     // to avoid buffering frame data needed for reference frame updating in the header composition.
     std::memcpy(vp9_info.frame_offsets.data(), state.surface_luma_offset.data(), 4 * sizeof(u64));
 
-    return std::move(vp9_info);
+    return vp9_info;
 }
 
 void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
@@ -408,7 +408,7 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
     Vp9FrameContainer frame{};
     {
         gpu.SyncGuestHost();
-        frame.info = std::move(GetVp9PictureInfo(state));
+        frame.info = GetVp9PictureInfo(state);
 
         frame.bit_stream.resize(frame.info.bitstream_size);
         gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.bit_stream.data(),
