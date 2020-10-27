@@ -415,7 +415,7 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
                                       frame.info.bitstream_size);
     }
     // Buffer two frames, saving the last show frame info
-    if (next_next_frame.bit_stream.size() != 0) {
+    if (!next_next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
             .info = frame.info,
             .bit_stream = frame.bit_stream,
@@ -425,15 +425,15 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
         frame.bit_stream = next_next_frame.bit_stream;
         next_next_frame = std::move(temp);
 
-        if (next_frame.bit_stream.size() != 0) {
-            Vp9FrameContainer temp{
+        if (!next_frame.bit_stream.empty()) {
+            Vp9FrameContainer temp2{
                 .info = frame.info,
                 .bit_stream = frame.bit_stream,
             };
             next_frame.info.show_frame = frame.info.last_frame_shown;
             frame.info = next_frame.info;
             frame.bit_stream = next_frame.bit_stream;
-            next_frame = std::move(temp);
+            next_frame = std::move(temp2);
         } else {
             next_frame.info = frame.info;
             next_frame.bit_stream = frame.bit_stream;
