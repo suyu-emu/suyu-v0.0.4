@@ -305,6 +305,7 @@ else()
         -Werror=pessimizing-move
         -Werror=redundant-move
         -Werror=switch
+        -Werror=type-limits
         -Werror=unused-variable
 
         $<$<CXX_COMPILER_ID:GNU>:-Werror=class-memaccess>
