@@ -844,7 +844,7 @@ std::optional<std::vector<VkExtensionProperties>> EnumerateInstanceExtensionProp
         VK_SUCCESS) {
         return std::nullopt;
     }
-    return std::move(properties);
+    return properties;
 }
 
 std::optional<std::vector<VkLayerProperties>> EnumerateInstanceLayerProperties(

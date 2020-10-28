@@ -317,8 +317,7 @@ std::optional<std::vector<ShaderDiskCachePrecompiled>> ShaderDiskCacheOpenGL::Lo
             return std::nullopt;
         }
     }
-
-    return std::move(entries);
+    return entries;
 }
 
 void ShaderDiskCacheOpenGL::InvalidateTransferable() {
