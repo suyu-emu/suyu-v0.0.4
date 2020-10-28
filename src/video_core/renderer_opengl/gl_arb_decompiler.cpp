@@ -39,8 +39,8 @@ using Operation = const OperationNode&;
 constexpr std::array INTERNAL_FLAG_NAMES = {"ZERO", "SIGN", "CARRY", "OVERFLOW"};
 
 char Swizzle(std::size_t component) {
-    ASSERT(component < 4);
-    return component["xyzw"];
+    static constexpr std::string_view SWIZZLE{"xyzw"};
+    return SWIZZLE.at(component);
 }
 
 constexpr bool IsGenericAttribute(Attribute::Index index) {
@@ -224,7 +224,7 @@ private:
 
     std::string Visit(const Node& node);
 
-    std::pair<std::string, std::size_t> BuildCoords(Operation);
+    std::tuple<std::string, std::string, std::size_t> BuildCoords(Operation);
     std::string BuildAoffi(Operation);
     std::string GlobalMemoryPointer(const GmemNode& gmem);
     void Exit();
@@ -1416,12 +1416,12 @@ std::string ARBDecompiler::Visit(const Node& node) {
     return {};
 }
 
-std::pair<std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operation) {
+std::tuple<std::string, std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     UNIMPLEMENTED_IF(meta.sampler.is_indexed);
-    UNIMPLEMENTED_IF(meta.sampler.is_shadow && meta.sampler.is_array &&
-                     meta.sampler.type == Tegra::Shader::TextureType::TextureCube);
 
+    const bool is_extended = meta.sampler.is_shadow && meta.sampler.is_array &&
+                             meta.sampler.type == Tegra::Shader::TextureType::TextureCube;
     const std::size_t count = operation.GetOperandsCount();
     std::string temporary = AllocVectorTemporary();
     std::size_t i = 0;
@@ -1429,12 +1429,21 @@ std::pair<std::string, std::size_t> ARBDecompiler::BuildCoords(Operation operati
         AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i), Visit(operation[i]));
     }
     if (meta.sampler.is_array) {
-        AddLine("I2F.S {}.{}, {};", temporary, Swizzle(i++), Visit(meta.array));
+        AddLine("I2F.S {}.{}, {};", temporary, Swizzle(i), Visit(meta.array));
+        ++i;
     }
     if (meta.sampler.is_shadow) {
-        AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i++), Visit(meta.depth_compare));
+        std::string compare = Visit(meta.depth_compare);
+        if (is_extended) {
+            ASSERT(i == 4);
+            std::string extra_coord = AllocVectorTemporary();
+            AddLine("MOV.F {}.x, {};", extra_coord, compare);
+            return {fmt::format("{}, {}", temporary, extra_coord), extra_coord, 0};
+        }
+        AddLine("MOV.F {}.{}, {};", temporary, Swizzle(i), compare);
+        ++i;
     }
-    return {std::move(temporary), i};
+    return {temporary, temporary, i};
 }
 
 std::string ARBDecompiler::BuildAoffi(Operation operation) {
@@ -1859,7 +1868,7 @@ std::string ARBDecompiler::LogicalAddCarry(Operation operation) {
 std::string ARBDecompiler::Texture(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     std::string_view opcode = "TEX";
     std::string extra;
@@ -1888,7 +1897,7 @@ std::string ARBDecompiler::Texture(Operation operation) {
         }
     }
 
-    AddLine("{}.F {}, {},{} texture[{}], {}{};", opcode, temporary, temporary, extra, sampler_id,
+    AddLine("{}.F {}, {},{} texture[{}], {}{};", opcode, temporary, coords, extra, sampler_id,
             TextureType(meta), BuildAoffi(operation));
     AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
@@ -1897,7 +1906,7 @@ std::string ARBDecompiler::Texture(Operation operation) {
 std::string ARBDecompiler::TextureGather(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     std::string comp;
     if (!meta.sampler.is_shadow) {
@@ -1907,7 +1916,7 @@ std::string ARBDecompiler::TextureGather(Operation operation) {
 
     AddLine("TXG.F {}, {}, texture[{}]{}, {}{};", temporary, temporary, sampler_id, comp,
             TextureType(meta), BuildAoffi(operation));
-    AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
+    AddLine("MOV.U {}.x, {}.{};", temporary, coords, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
 }
 
@@ -1945,13 +1954,13 @@ std::string ARBDecompiler::TextureQueryLod(Operation operation) {
 std::string ARBDecompiler::TexelFetch(Operation operation) {
     const auto& meta = std::get<MetaTexture>(operation.GetMeta());
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
-    const auto [temporary, swizzle] = BuildCoords(operation);
+    const auto [coords, temporary, swizzle] = BuildCoords(operation);
 
     if (!meta.sampler.is_buffer) {
         ASSERT(swizzle < 4);
         AddLine("MOV.F {}.w, {};", temporary, Visit(meta.lod));
     }
-    AddLine("TXF.F {}, {}, texture[{}], {}{};", temporary, temporary, sampler_id, TextureType(meta),
+    AddLine("TXF.F {}, {}, texture[{}], {}{};", temporary, coords, sampler_id, TextureType(meta),
             BuildAoffi(operation));
     AddLine("MOV.U {}.x, {}.{};", temporary, temporary, Swizzle(meta.element));
     return fmt::format("{}.x", temporary);
@@ -1962,7 +1971,7 @@ std::string ARBDecompiler::TextureGradient(Operation operation) {
     const u32 sampler_id = device.GetBaseBindings(stage).sampler + meta.sampler.index;
     const std::string ddx = AllocVectorTemporary();
     const std::string ddy = AllocVectorTemporary();
-    const std::string coord = BuildCoords(operation).first;
+    const std::string coord = std::get<1>(BuildCoords(operation));
 
     const std::size_t num_components = meta.derivates.size() / 2;
     for (std::size_t index = 0; index < num_components; ++index) {
