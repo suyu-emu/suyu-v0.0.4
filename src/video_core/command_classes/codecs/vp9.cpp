@@ -893,7 +893,7 @@ void VpxRangeEncoder::Write(bool bit, s32 probability) {
         if (((low_value << (offset - 1)) >> 31) != 0) {
             const s32 current_pos = static_cast<s32>(base_stream.GetPosition());
             base_stream.Seek(-1, Common::SeekOrigin::FromCurrentPos);
-            while (base_stream.GetPosition() >= 0 && PeekByte() == 0xff) {
+            while (PeekByte() == 0xff) {
                 base_stream.WriteByte(0);
 
                 base_stream.Seek(-2, Common::SeekOrigin::FromCurrentPos);
