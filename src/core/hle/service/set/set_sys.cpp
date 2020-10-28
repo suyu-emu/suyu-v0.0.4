@@ -300,6 +300,8 @@ SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
         {198, nullptr, "SetButtonConfigRegisteredSettingsEmbedded"},
         {199, nullptr, "GetButtonConfigRegisteredSettings"},
         {200, nullptr, "SetButtonConfigRegisteredSettings"},
+        {201, nullptr, "GetFieldTestingFlag"},
+        {202, nullptr, "SetFieldTestingFlag"},
     };
     // clang-format on
 

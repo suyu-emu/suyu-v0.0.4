@@ -47,6 +47,7 @@ public:
             {23, nullptr, "Convert"},
             {24, nullptr, "ConvertCoreDataToCharInfo"},
             {25, nullptr, "ConvertCharInfoToCoreData"},
+            {26, nullptr, "Append"},
         };
         // clang-format on
 
