@@ -86,8 +86,6 @@ struct KernelCore::Impl {
         }
         cores.clear();
 
-        registered_core_threads.reset();
-
         process_list.clear();
         current_process = nullptr;
 
@@ -199,9 +197,7 @@ struct KernelCore::Impl {
         const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
         ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
         ASSERT(it == end);
-        ASSERT(!registered_core_threads[core_id]);
         InsertHostThread(static_cast<u32>(core_id));
-        registered_core_threads.set(core_id);
     }
 
     void RegisterHostThread() {
@@ -332,7 +328,6 @@ struct KernelCore::Impl {
 
     // 0-3 IDs represent core threads, >3 represent others
     std::atomic<u32> registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
-    std::bitset<Core::Hardware::NUM_CPU_CORES> registered_core_threads;
 
     // Number of host threads is a relatively high number to avoid overflowing
     static constexpr size_t NUM_REGISTRABLE_HOST_THREADS = 64;
