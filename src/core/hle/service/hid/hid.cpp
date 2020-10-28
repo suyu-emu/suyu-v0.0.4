@@ -260,7 +260,7 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {404, nullptr, "HasLeftRightBattery"},
         {405, nullptr, "GetNpadInterfaceType"},
         {406, nullptr, "GetNpadLeftRightInterfaceType"},
-        {407, nullptr, "GetNpadOfHighestBatteryLevelForJoyLeft"},
+        {407, nullptr, "GetNpadOfHighestBatteryLevel"},
         {408, nullptr, "GetNpadOfHighestBatteryLevelForJoyRight"},
         {500, nullptr, "GetPalmaConnectionHandle"},
         {501, nullptr, "InitializePalma"},
