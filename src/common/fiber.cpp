@@ -91,7 +91,7 @@ void Fiber::Rewind() {
     SwitchToFiber(impl->rewind_handle);
 }
 
-void Fiber::YieldTo(std::shared_ptr<Fiber>& from, std::shared_ptr<Fiber>& to) {
+void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
     ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
@@ -199,7 +199,7 @@ void Fiber::Rewind() {
     boost::context::detail::jump_fcontext(impl->rewind_context, this);
 }
 
-void Fiber::YieldTo(std::shared_ptr<Fiber>& from, std::shared_ptr<Fiber>& to) {
+void Fiber::YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to) {
     ASSERT_MSG(from != nullptr, "Yielding fiber is null!");
     ASSERT_MSG(to != nullptr, "Next fiber is null!");
     to->guard.lock();
