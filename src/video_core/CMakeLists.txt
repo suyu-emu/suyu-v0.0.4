@@ -302,6 +302,8 @@ else()
     target_compile_options(video_core PRIVATE
         -Werror=conversion
         -Wno-error=sign-conversion
+        -Werror=pessimizing-move
+        -Werror=redundant-move
         -Werror=switch
         -Werror=unused-variable
 

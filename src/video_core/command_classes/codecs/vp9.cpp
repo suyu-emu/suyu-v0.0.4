@@ -366,7 +366,7 @@ Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) 
     // to avoid buffering frame data needed for reference frame updating in the header composition.
     std::memcpy(vp9_info.frame_offsets.data(), state.surface_luma_offset.data(), 4 * sizeof(u64));
 
-    return std::move(vp9_info);
+    return vp9_info;
 }
 
 void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
