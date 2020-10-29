@@ -144,7 +144,7 @@ void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
         }
         case ThiMethod::SetMethod1:
             LOG_DEBUG(Service_NVDRV, "VIC method 0x{:X}, Args=({})",
-                      static_cast<u32>(vic_thi_state.method_0));
+                      static_cast<u32>(vic_thi_state.method_0), data);
             vic_processor->ProcessMethod(static_cast<Tegra::Vic::Method>(vic_thi_state.method_0),
                                          {data});
             break;
