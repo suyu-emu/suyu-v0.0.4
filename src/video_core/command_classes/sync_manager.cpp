@@ -27,22 +27,22 @@ SyncptIncrManager::SyncptIncrManager(GPU& gpu_) : gpu(gpu_) {}
 SyncptIncrManager::~SyncptIncrManager() = default;
 
 void SyncptIncrManager::Increment(u32 id) {
-    increments.push_back(SyncptIncr{0, id, true});
+    increments.emplace_back(0, 0, id, true);
     IncrementAllDone();
 }
 
 u32 SyncptIncrManager::IncrementWhenDone(u32 class_id, u32 id) {
     const u32 handle = current_id++;
-    increments.push_back(SyncptIncr{handle, class_id, id});
+    increments.emplace_back(handle, class_id, id);
     return handle;
 }
 
 void SyncptIncrManager::SignalDone(u32 handle) {
-    auto done_incr = std::find_if(increments.begin(), increments.end(),
-                                  [handle](SyncptIncr incr) { return incr.id == handle; });
-    if (done_incr != increments.end()) {
-        const SyncptIncr incr = *done_incr;
-        *done_incr = SyncptIncr{incr.id, incr.class_id, incr.syncpt_id, true};
+    const auto done_incr =
+        std::find_if(increments.begin(), increments.end(),
+                     [handle](const SyncptIncr& incr) { return incr.id == handle; });
+    if (done_incr != increments.cend()) {
+        done_incr->complete = true;
     }
     IncrementAllDone();
 }

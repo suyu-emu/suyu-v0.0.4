@@ -32,8 +32,8 @@ struct SyncptIncr {
     u32 syncpt_id;
     bool complete;
 
-    SyncptIncr(u32 id, u32 syncpt_id_, u32 class_id_, bool done = false)
-        : id(id), class_id(class_id_), syncpt_id(syncpt_id_), complete(done) {}
+    SyncptIncr(u32 id_, u32 class_id_, u32 syncpt_id_, bool done = false)
+        : id(id_), class_id(class_id_), syncpt_id(syncpt_id_), complete(done) {}
 };
 
 class SyncptIncrManager {
