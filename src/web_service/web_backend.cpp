@@ -71,11 +71,6 @@ struct Client::Impl {
             return {};
         }
 
-        if (!cli->is_socket_open()) {
-            LOG_ERROR(WebService, "Failed to open socket, skipping request!");
-            return {};
-        }
-
         cli->set_connection_timeout(TIMEOUT_SECONDS);
         cli->set_read_timeout(TIMEOUT_SECONDS);
         cli->set_write_timeout(TIMEOUT_SECONDS);
