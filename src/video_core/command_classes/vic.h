@@ -63,11 +63,11 @@ public:
         SetOutputSurfaceChromaVOffset = 0x1ca
     };
 
-    explicit Vic(GPU& gpu, std::shared_ptr<Tegra::Nvdec> nvdec_processor);
+    explicit Vic(GPU& gpu, std::shared_ptr<Nvdec> nvdec_processor);
     ~Vic();
 
     /// Write to the device state.
-    void ProcessMethod(Vic::Method method, const std::vector<u32>& arguments);
+    void ProcessMethod(Method method, const std::vector<u32>& arguments);
 
 private:
     void Execute();

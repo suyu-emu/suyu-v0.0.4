@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include <algorithm>
-#include <list>
+#include <array>
+#include <cstring>
 #include <vector>
-#include "common/cityhash.h"
 #include "common/common_funcs.h"
 #include "common/common_types.h"
-#include "video_core/command_classes/nvdec_common.h"
 
 namespace Tegra {
 class GPU;

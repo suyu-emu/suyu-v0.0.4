@@ -15,7 +15,7 @@ void Tegra::Host1x::StateWrite(u32 offset, u32 arguments) {
     std::memcpy(state_offset, &arguments, sizeof(u32));
 }
 
-void Tegra::Host1x::ProcessMethod(Host1x::Method method, const std::vector<u32>& arguments) {
+void Tegra::Host1x::ProcessMethod(Method method, const std::vector<u32>& arguments) {
     StateWrite(static_cast<u32>(method), arguments[0]);
     switch (method) {
     case Method::WaitSyncpt:

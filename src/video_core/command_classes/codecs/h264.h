@@ -38,7 +38,7 @@ public:
     /// WriteSe and WriteUe write in the Exp-Golomb-coded syntax
     void WriteU(s32 value, s32 value_sz);
     void WriteSe(s32 value);
-    void WriteUe(s32 value);
+    void WriteUe(u32 value);
 
     /// Finalize the bitstream
     void End();
@@ -55,18 +55,6 @@ public:
     const std::vector<u8>& GetByteArray() const;
 
 private:
-    // ZigZag LUTs from libavcodec.
-    static constexpr std::array<u8, 64> zig_zag_direct{
-        0,  1,  8,  16, 9,  2,  3,  10, 17, 24, 32, 25, 18, 11, 4,  5,  12, 19, 26, 33, 40, 48,
-        41, 34, 27, 20, 13, 6,  7,  14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23,
-        30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63,
-    };
-
-    static constexpr std::array<u8, 16> zig_zag_scan{
-        0 + 0 * 4, 1 + 0 * 4, 0 + 1 * 4, 0 + 2 * 4, 1 + 1 * 4, 2 + 0 * 4, 3 + 0 * 4, 2 + 1 * 4,
-        1 + 2 * 4, 0 + 3 * 4, 1 + 3 * 4, 2 + 2 * 4, 3 + 1 * 4, 3 + 2 * 4, 2 + 3 * 4, 3 + 3 * 4,
-    };
-
     void WriteBits(s32 value, s32 bit_count);
     void WriteExpGolombCodedInt(s32 value);
     void WriteExpGolombCodedUInt(u32 value);

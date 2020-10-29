@@ -18,12 +18,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#include <array>
 #include "common/bit_util.h"
 #include "video_core/command_classes/codecs/h264.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 
 namespace Tegra::Decoder {
+namespace {
+// ZigZag LUTs from libavcodec.
+constexpr std::array<u8, 64> zig_zag_direct{
+    0,  1,  8,  16, 9,  2,  3,  10, 17, 24, 32, 25, 18, 11, 4,  5,  12, 19, 26, 33, 40, 48,
+    41, 34, 27, 20, 13, 6,  7,  14, 21, 28, 35, 42, 49, 56, 57, 50, 43, 36, 29, 22, 15, 23,
+    30, 37, 44, 51, 58, 59, 52, 45, 38, 31, 39, 46, 53, 60, 61, 54, 47, 55, 62, 63,
+};
+
+constexpr std::array<u8, 16> zig_zag_scan{
+    0 + 0 * 4, 1 + 0 * 4, 0 + 1 * 4, 0 + 2 * 4, 1 + 1 * 4, 2 + 0 * 4, 3 + 0 * 4, 2 + 1 * 4,
+    1 + 2 * 4, 0 + 3 * 4, 1 + 3 * 4, 2 + 2 * 4, 3 + 1 * 4, 3 + 2 * 4, 2 + 3 * 4, 3 + 3 * 4,
+};
+} // Anonymous namespace
+
 H264::H264(GPU& gpu_) : gpu(gpu_) {}
 
 H264::~H264() = default;
@@ -48,7 +63,8 @@ std::vector<u8>& H264::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state, bo
         writer.WriteU(0, 8);
         writer.WriteU(31, 8);
         writer.WriteUe(0);
-        const s32 chroma_format_idc = (context.h264_parameter_set.flags >> 12) & 0x3;
+        const auto chroma_format_idc =
+            static_cast<u32>((context.h264_parameter_set.flags >> 12) & 3);
         writer.WriteUe(chroma_format_idc);
         if (chroma_format_idc == 3) {
             writer.WriteBit(false);
@@ -59,8 +75,8 @@ std::vector<u8>& H264::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state, bo
         writer.WriteBit(false); // QpprimeYZeroTransformBypassFlag
         writer.WriteBit(false); // Scaling matrix present flag
 
-        const s32 order_cnt_type = static_cast<s32>((context.h264_parameter_set.flags >> 14) & 3);
-        writer.WriteUe(static_cast<s32>((context.h264_parameter_set.flags >> 8) & 0xf));
+        const auto order_cnt_type = static_cast<u32>((context.h264_parameter_set.flags >> 14) & 3);
+        writer.WriteUe(static_cast<u32>((context.h264_parameter_set.flags >> 8) & 0xf));
         writer.WriteUe(order_cnt_type);
         if (order_cnt_type == 0) {
             writer.WriteUe(context.h264_parameter_set.log2_max_pic_order_cnt);
@@ -100,7 +116,7 @@ std::vector<u8>& H264::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state, bo
         writer.WriteUe(0);
         writer.WriteUe(0);
 
-        writer.WriteBit(context.h264_parameter_set.entropy_coding_mode_flag);
+        writer.WriteBit(context.h264_parameter_set.entropy_coding_mode_flag != 0);
         writer.WriteBit(false);
         writer.WriteUe(0);
         writer.WriteUe(context.h264_parameter_set.num_refidx_l0_default_active);
@@ -172,8 +188,8 @@ void H264BitWriter::WriteSe(s32 value) {
     WriteExpGolombCodedInt(value);
 }
 
-void H264BitWriter::WriteUe(s32 value) {
-    WriteExpGolombCodedUInt((u32)value);
+void H264BitWriter::WriteUe(u32 value) {
+    WriteExpGolombCodedUInt(value);
 }
 
 void H264BitWriter::End() {
