@@ -242,6 +242,10 @@ void NVFlinger::Compose() {
 
         const auto& igbp_buffer = buffer->get().igbp_buffer;
 
+        if (!system.IsPoweredOn()) {
+            return; // We are likely shutting down
+        }
+
         auto& gpu = system.GPU();
         const auto& multi_fence = buffer->get().multi_fence;
         guard->unlock();
