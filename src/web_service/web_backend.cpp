@@ -65,6 +65,17 @@ struct Client::Impl {
         if (cli == nullptr) {
             cli = std::make_unique<httplib::Client>(host.c_str());
         }
+
+        if (!cli->is_valid()) {
+            LOG_ERROR(WebService, "Client is invalid, skipping request!");
+            return {};
+        }
+
+        if (!cli->is_socket_open()) {
+            LOG_ERROR(WebService, "Failed to open socket, skipping request!");
+            return {};
+        }
+
         cli->set_connection_timeout(TIMEOUT_SECONDS);
         cli->set_read_timeout(TIMEOUT_SECONDS);
         cli->set_write_timeout(TIMEOUT_SECONDS);
