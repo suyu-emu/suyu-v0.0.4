@@ -52,6 +52,7 @@ private:
 
     void UpdateDockedState(bool is_handheld);
     void UpdateAllInputDevices();
+    void UpdateAllInputProfiles(std::size_t player_index);
 
     /// Load configuration settings.
     void LoadConfiguration();

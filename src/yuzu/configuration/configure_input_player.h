@@ -59,6 +59,9 @@ public:
     /// Update the input devices combobox.
     void UpdateInputDeviceCombobox();
 
+    /// Updates the list of controller profiles.
+    void UpdateInputProfiles();
+
     /// Restore all buttons to their default values.
     void RestoreDefaults();
 
@@ -72,6 +75,12 @@ signals:
     void HandheldStateChanged(bool is_handheld);
     /// Emitted when the input devices combobox is being refreshed.
     void RefreshInputDevices();
+    /**
+     * Emitted when the input profiles combobox is being refreshed.
+     * The player_index represents the current player's index, and the profile combobox
+     * will not be updated for this index as they are already updated by other mechanisms.
+     */
+    void RefreshInputProfiles(std::size_t player_index);
 
 protected:
     void showEvent(QShowEvent* event) override;
@@ -129,9 +138,6 @@ private:
 
     /// Saves the current controller configuration into a selected controller profile.
     void SaveProfile();
-
-    /// Refreshes the list of controller profiles.
-    void RefreshInputProfiles();
 
     std::unique_ptr<Ui::ConfigureInputPlayer> ui;
 

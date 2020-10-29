@@ -541,7 +541,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
         }
     });
 
-    RefreshInputProfiles();
+    UpdateInputProfiles();
 
     connect(ui->buttonProfilesNew, &QPushButton::clicked, this,
             &ConfigureInputPlayer::CreateProfile);
@@ -1132,9 +1132,12 @@ void ConfigureInputPlayer::CreateProfile() {
     if (!profiles->CreateProfile(profile_name.toStdString(), player_index)) {
         QMessageBox::critical(this, tr("Create Input Profile"),
                               tr("Failed to create the input profile \"%1\"").arg(profile_name));
-        RefreshInputProfiles();
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
         return;
     }
+
+    emit RefreshInputProfiles(player_index);
 
     ui->comboProfiles->addItem(profile_name);
     ui->comboProfiles->setCurrentIndex(ui->comboProfiles->count() - 1);
@@ -1150,9 +1153,12 @@ void ConfigureInputPlayer::DeleteProfile() {
     if (!profiles->DeleteProfile(profile_name.toStdString())) {
         QMessageBox::critical(this, tr("Delete Input Profile"),
                               tr("Failed to delete the input profile \"%1\"").arg(profile_name));
-        RefreshInputProfiles();
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
         return;
     }
+
+    emit RefreshInputProfiles(player_index);
 
     ui->comboProfiles->removeItem(ui->comboProfiles->currentIndex());
     ui->comboProfiles->setCurrentIndex(-1);
@@ -1170,7 +1176,8 @@ void ConfigureInputPlayer::LoadProfile() {
     if (!profiles->LoadProfile(profile_name.toStdString(), player_index)) {
         QMessageBox::critical(this, tr("Load Input Profile"),
                               tr("Failed to load the input profile \"%1\"").arg(profile_name));
-        RefreshInputProfiles();
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
         return;
     }
 
@@ -1189,12 +1196,13 @@ void ConfigureInputPlayer::SaveProfile() {
     if (!profiles->SaveProfile(profile_name.toStdString(), player_index)) {
         QMessageBox::critical(this, tr("Save Input Profile"),
                               tr("Failed to save the input profile \"%1\"").arg(profile_name));
-        RefreshInputProfiles();
+        UpdateInputProfiles();
+        emit RefreshInputProfiles(player_index);
         return;
     }
 }
 
-void ConfigureInputPlayer::RefreshInputProfiles() {
+void ConfigureInputPlayer::UpdateInputProfiles() {
     ui->comboProfiles->clear();
 
     for (const auto& profile_name : profiles->GetInputProfileNames()) {
