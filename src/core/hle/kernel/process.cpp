@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <bitset>
+#include <ctime>
 #include <memory>
 #include <random>
 #include "common/alignment.h"
