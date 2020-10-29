@@ -29,6 +29,10 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
         .slot = slot,
         .status = Buffer::Status::Free,
         .igbp_buffer = igbp_buffer,
+        .transform = {},
+        .crop_rect = {},
+        .swap_interval = 0,
+        .multi_fence = {},
     });
 
     buffer_wait_event.writable->Signal();

@@ -240,6 +240,7 @@ SurfaceParams SurfaceParams::CreateForFermiCopySurface(
         .is_tiled = is_tiled,
         .srgb_conversion = config.format == Tegra::RenderTargetFormat::B8G8R8A8_SRGB ||
                            config.format == Tegra::RenderTargetFormat::A8B8G8R8_SRGB,
+        .is_layered = false,
         .block_width = is_tiled ? std::min(config.BlockWidth(), 5U) : 0U,
         .block_height = is_tiled ? std::min(config.BlockHeight(), 5U) : 0U,
         .block_depth = is_tiled ? std::min(config.BlockDepth(), 5U) : 0U,

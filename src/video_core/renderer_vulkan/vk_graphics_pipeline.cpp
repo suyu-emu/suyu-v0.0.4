@@ -159,6 +159,7 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
+        .codeSize = 0,
     };
 
     std::vector<vk::ShaderModule> modules;
@@ -388,6 +389,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .logicOp = VK_LOGIC_OP_COPY,
         .attachmentCount = static_cast<u32>(num_attachments),
         .pAttachments = cb_attachments.data(),
+        .blendConstants = {},
     };
 
     std::vector dynamic_states{
