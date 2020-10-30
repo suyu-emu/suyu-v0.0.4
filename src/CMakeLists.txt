@@ -32,7 +32,6 @@ if (MSVC)
     # /Zc:inline          - Let codegen omit inline functions in object files
     # /Zc:throwingNew     - Let codegen assume `operator new` (without std::nothrow) will never return null
     add_compile_options(
-        /W3
         /MP
         /Zi
         /Zo
@@ -43,6 +42,14 @@ if (MSVC)
         /Zc:externConstexpr
         /Zc:inline
         /Zc:throwingNew
+
+        # Warnings
+        /W3
+        /we4547 # 'operator' : operator before comma has no effect; expected operator with side-effect
+        /we4548 # Expression before comma has no effect; expected expression with side-effect
+        /we4549 # 'operator1': operator before comma has no effect; did you intend 'operator2'?
+        /we4555 # Expression has no effect; expected expression with side-effect
+        /we4834 # Discarding return value of function with 'nodiscard' attribute
     )
 
     # /GS- - No stack buffer overflow checks
@@ -56,6 +63,7 @@ else()
         -Werror=implicit-fallthrough
         -Werror=missing-declarations
         -Werror=reorder
+        -Werror=unused-result
         -Wextra
         -Wmissing-declarations
         -Wno-attributes
