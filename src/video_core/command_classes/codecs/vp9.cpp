@@ -197,6 +197,60 @@ constexpr std::array<s32, 254> map_lut{
     230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 18,  242, 243, 244, 245, 246, 247,
     248, 249, 250, 251, 252, 253, 19,
 };
+
+// 6.2.14 Tile size calculation
+
+s32 CalcMinLog2TileCols(s32 frame_width) {
+    const s32 sb64_cols = (frame_width + 63) / 64;
+    s32 min_log2 = 0;
+
+    while ((64 << min_log2) < sb64_cols) {
+        min_log2++;
+    }
+
+    return min_log2;
+}
+
+s32 CalcMaxLog2TileCols(s32 frame_width) {
+    const s32 sb64_cols = (frame_width + 63) / 64;
+    s32 max_log2 = 1;
+
+    while ((sb64_cols >> max_log2) >= 4) {
+        max_log2++;
+    }
+
+    return max_log2 - 1;
+}
+
+// Recenters probability. Based on section 6.3.6 of VP9 Specification
+s32 RecenterNonNeg(s32 new_prob, s32 old_prob) {
+    if (new_prob > old_prob * 2) {
+        return new_prob;
+    }
+
+    if (new_prob >= old_prob) {
+        return (new_prob - old_prob) * 2;
+    }
+
+    return (old_prob - new_prob) * 2 - 1;
+}
+
+// Adjusts old_prob depending on new_prob. Based on section 6.3.5 of VP9 Specification
+s32 RemapProbability(s32 new_prob, s32 old_prob) {
+    new_prob--;
+    old_prob--;
+
+    std::size_t index{};
+
+    if (old_prob * 2 <= 0xff) {
+        index = static_cast<std::size_t>(std::max(0, RecenterNonNeg(new_prob, old_prob) - 1));
+    } else {
+        index = static_cast<std::size_t>(
+            std::max(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
+    }
+
+    return map_lut[index];
+}
 } // Anonymous namespace
 
 VP9::VP9(GPU& gpu) : gpu(gpu) {}
@@ -234,32 +288,6 @@ void VP9::WriteProbabilityDelta(VpxRangeEncoder& writer, u8 new_prob, u8 old_pro
     const int delta = RemapProbability(new_prob, old_prob);
 
     EncodeTermSubExp(writer, delta);
-}
-
-s32 VP9::RemapProbability(s32 new_prob, s32 old_prob) {
-    new_prob--;
-    old_prob--;
-
-    std::size_t index{};
-
-    if (old_prob * 2 <= 0xff) {
-        index = static_cast<std::size_t>(std::max(0, RecenterNonNeg(new_prob, old_prob) - 1));
-    } else {
-        index = static_cast<std::size_t>(
-            std::max(0, RecenterNonNeg(0xff - 1 - new_prob, 0xff - 1 - old_prob) - 1));
-    }
-
-    return map_lut[index];
-}
-
-s32 VP9::RecenterNonNeg(s32 new_prob, s32 old_prob) {
-    if (new_prob > old_prob * 2) {
-        return new_prob;
-    } else if (new_prob >= old_prob) {
-        return (new_prob - old_prob) * 2;
-    } else {
-        return (old_prob - new_prob) * 2 - 1;
-    }
 }
 
 void VP9::EncodeTermSubExp(VpxRangeEncoder& writer, s32 value) {
@@ -359,28 +387,6 @@ void VP9::WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_
     if (update) {
         writer.Write(new_prob >> 1, 7);
     }
-}
-
-s32 VP9::CalcMinLog2TileCols(s32 frame_width) {
-    const s32 sb64_cols = (frame_width + 63) / 64;
-    s32 min_log2 = 0;
-
-    while ((64 << min_log2) < sb64_cols) {
-        min_log2++;
-    }
-
-    return min_log2;
-}
-
-s32 VP9::CalcMaxLog2TileCols(s32 frameWidth) {
-    const s32 sb64_cols = (frameWidth + 63) / 64;
-    s32 max_log2 = 1;
-
-    while ((sb64_cols >> max_log2) >= 4) {
-        max_log2++;
-    }
-
-    return max_log2 - 1;
 }
 
 Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) {

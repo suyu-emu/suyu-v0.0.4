@@ -121,12 +121,6 @@ private:
     /// Generates compressed header probability deltas in the bitstream writer
     void WriteProbabilityDelta(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
 
-    /// Adjusts old_prob depending on new_prob. Based on section 6.3.5 of VP9 Specification
-    s32 RemapProbability(s32 new_prob, s32 old_prob);
-
-    /// Recenters probability. Based on section 6.3.6 of VP9 Specification
-    s32 RecenterNonNeg(s32 new_prob, s32 old_prob);
-
     /// Inverse of 6.3.4 Decode term subexp
     void EncodeTermSubExp(VpxRangeEncoder& writer, s32 value);
 
@@ -145,10 +139,6 @@ private:
 
     /// Write motion vector probability updates. 6.3.17 in the spec
     void WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
-
-    /// 6.2.14 Tile size calculation
-    s32 CalcMinLog2TileCols(s32 frame_width);
-    s32 CalcMaxLog2TileCols(s32 frame_width);
 
     /// Returns VP9 information from NVDEC provided offset and size
     Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
