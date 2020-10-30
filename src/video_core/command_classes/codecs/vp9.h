@@ -37,11 +37,11 @@ public:
     /// Signal the end of the bitstream
     void End();
 
-    std::vector<u8>& GetBuffer() {
+    [[nodiscard]] std::vector<u8>& GetBuffer() {
         return base_stream.GetBuffer();
     }
 
-    const std::vector<u8>& GetBuffer() const {
+    [[nodiscard]] const std::vector<u8>& GetBuffer() const {
         return base_stream.GetBuffer();
     }
 
@@ -75,10 +75,10 @@ public:
     void Flush();
 
     /// Returns byte_array
-    std::vector<u8>& GetByteArray();
+    [[nodiscard]] std::vector<u8>& GetByteArray();
 
     /// Returns const byte_array
-    const std::vector<u8>& GetByteArray() const;
+    [[nodiscard]] const std::vector<u8>& GetByteArray() const;
 
 private:
     /// Write bit_count bits from value into buffer
@@ -104,7 +104,7 @@ public:
     std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state);
 
     /// Returns true if the most recent frame was a hidden frame.
-    bool WasFrameHidden() const {
+    [[nodiscard]] bool WasFrameHidden() const {
         return hidden;
     }
 
@@ -141,17 +141,17 @@ private:
     void WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
 
     /// Returns VP9 information from NVDEC provided offset and size
-    Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
 
     /// Read and convert NVDEC provided entropy probs to Vp9EntropyProbs struct
     void InsertEntropy(u64 offset, Vp9EntropyProbs& dst);
 
     /// Returns frame to be decoded after buffering
-    Vp9FrameContainer GetCurrentFrame(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9FrameContainer GetCurrentFrame(const NvdecCommon::NvdecRegisters& state);
 
     /// Use NVDEC providied information to compose the headers for the current frame
-    std::vector<u8> ComposeCompressedHeader();
-    VpxBitStreamWriter ComposeUncompressedHeader();
+    [[nodiscard]] std::vector<u8> ComposeCompressedHeader();
+    [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
     GPU& gpu;
     std::vector<u8> frame;

@@ -200,7 +200,7 @@ constexpr std::array<s32, 254> map_lut{
 
 // 6.2.14 Tile size calculation
 
-s32 CalcMinLog2TileCols(s32 frame_width) {
+[[nodiscard]] s32 CalcMinLog2TileCols(s32 frame_width) {
     const s32 sb64_cols = (frame_width + 63) / 64;
     s32 min_log2 = 0;
 
@@ -211,7 +211,7 @@ s32 CalcMinLog2TileCols(s32 frame_width) {
     return min_log2;
 }
 
-s32 CalcMaxLog2TileCols(s32 frame_width) {
+[[nodiscard]] s32 CalcMaxLog2TileCols(s32 frame_width) {
     const s32 sb64_cols = (frame_width + 63) / 64;
     s32 max_log2 = 1;
 
@@ -223,7 +223,7 @@ s32 CalcMaxLog2TileCols(s32 frame_width) {
 }
 
 // Recenters probability. Based on section 6.3.6 of VP9 Specification
-s32 RecenterNonNeg(s32 new_prob, s32 old_prob) {
+[[nodiscard]] s32 RecenterNonNeg(s32 new_prob, s32 old_prob) {
     if (new_prob > old_prob * 2) {
         return new_prob;
     }
@@ -236,7 +236,7 @@ s32 RecenterNonNeg(s32 new_prob, s32 old_prob) {
 }
 
 // Adjusts old_prob depending on new_prob. Based on section 6.3.5 of VP9 Specification
-s32 RemapProbability(s32 new_prob, s32 old_prob) {
+[[nodiscard]] s32 RemapProbability(s32 new_prob, s32 old_prob) {
     new_prob--;
     old_prob--;
 
