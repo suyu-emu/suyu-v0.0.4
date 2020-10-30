@@ -25,6 +25,12 @@ public:
     VpxRangeEncoder();
     ~VpxRangeEncoder();
 
+    VpxRangeEncoder(const VpxRangeEncoder&) = delete;
+    VpxRangeEncoder& operator=(const VpxRangeEncoder&) = delete;
+
+    VpxRangeEncoder(VpxRangeEncoder&&) = default;
+    VpxRangeEncoder& operator=(VpxRangeEncoder&&) = default;
+
     /// Writes the rightmost value_size bits from value into the stream
     void Write(s32 value, s32 value_size);
 
@@ -37,11 +43,11 @@ public:
     /// Signal the end of the bitstream
     void End();
 
-    std::vector<u8>& GetBuffer() {
+    [[nodiscard]] std::vector<u8>& GetBuffer() {
         return base_stream.GetBuffer();
     }
 
-    const std::vector<u8>& GetBuffer() const {
+    [[nodiscard]] const std::vector<u8>& GetBuffer() const {
         return base_stream.GetBuffer();
     }
 
@@ -59,6 +65,12 @@ public:
     VpxBitStreamWriter();
     ~VpxBitStreamWriter();
 
+    VpxBitStreamWriter(const VpxBitStreamWriter&) = delete;
+    VpxBitStreamWriter& operator=(const VpxBitStreamWriter&) = delete;
+
+    VpxBitStreamWriter(VpxBitStreamWriter&&) = default;
+    VpxBitStreamWriter& operator=(VpxBitStreamWriter&&) = default;
+
     /// Write an unsigned integer value
     void WriteU(u32 value, u32 value_size);
 
@@ -75,10 +87,10 @@ public:
     void Flush();
 
     /// Returns byte_array
-    std::vector<u8>& GetByteArray();
+    [[nodiscard]] std::vector<u8>& GetByteArray();
 
     /// Returns const byte_array
-    const std::vector<u8>& GetByteArray() const;
+    [[nodiscard]] const std::vector<u8>& GetByteArray() const;
 
 private:
     /// Write bit_count bits from value into buffer
@@ -99,12 +111,18 @@ public:
     explicit VP9(GPU& gpu);
     ~VP9();
 
+    VP9(const VP9&) = delete;
+    VP9& operator=(const VP9&) = delete;
+
+    VP9(VP9&&) = default;
+    VP9& operator=(VP9&&) = delete;
+
     /// Composes the VP9 frame from the GPU state information. Based on the official VP9 spec
     /// documentation
     std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state);
 
     /// Returns true if the most recent frame was a hidden frame.
-    bool WasFrameHidden() const {
+    [[nodiscard]] bool WasFrameHidden() const {
         return hidden;
     }
 
@@ -120,12 +138,6 @@ private:
 
     /// Generates compressed header probability deltas in the bitstream writer
     void WriteProbabilityDelta(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
-
-    /// Adjusts old_prob depending on new_prob. Based on section 6.3.5 of VP9 Specification
-    s32 RemapProbability(s32 new_prob, s32 old_prob);
-
-    /// Recenters probability. Based on section 6.3.6 of VP9 Specification
-    s32 RecenterNonNeg(s32 new_prob, s32 old_prob);
 
     /// Inverse of 6.3.4 Decode term subexp
     void EncodeTermSubExp(VpxRangeEncoder& writer, s32 value);
@@ -146,22 +158,18 @@ private:
     /// Write motion vector probability updates. 6.3.17 in the spec
     void WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_prob);
 
-    /// 6.2.14 Tile size calculation
-    s32 CalcMinLog2TileCols(s32 frame_width);
-    s32 CalcMaxLog2TileCols(s32 frame_width);
-
     /// Returns VP9 information from NVDEC provided offset and size
-    Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9PictureInfo GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state);
 
     /// Read and convert NVDEC provided entropy probs to Vp9EntropyProbs struct
     void InsertEntropy(u64 offset, Vp9EntropyProbs& dst);
 
     /// Returns frame to be decoded after buffering
-    Vp9FrameContainer GetCurrentFrame(const NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] Vp9FrameContainer GetCurrentFrame(const NvdecCommon::NvdecRegisters& state);
 
     /// Use NVDEC providied information to compose the headers for the current frame
-    std::vector<u8> ComposeCompressedHeader();
-    VpxBitStreamWriter ComposeUncompressedHeader();
+    [[nodiscard]] std::vector<u8> ComposeCompressedHeader();
+    [[nodiscard]] VpxBitStreamWriter ComposeUncompressedHeader();
 
     GPU& gpu;
     std::vector<u8> frame;
@@ -169,7 +177,7 @@ private:
     std::array<s8, 4> loop_filter_ref_deltas{};
     std::array<s8, 2> loop_filter_mode_deltas{};
 
-    bool hidden;
+    bool hidden = false;
     s64 current_frame_number = -2; // since we buffer 2 frames
     s32 grace_period = 6;          // frame offsets need to stabilize
     std::array<FrameContexts, 4> frame_ctxs{};

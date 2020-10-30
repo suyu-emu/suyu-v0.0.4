@@ -21,6 +21,12 @@ public:
     explicit Stream();
     ~Stream();
 
+    Stream(const Stream&) = delete;
+    Stream& operator=(const Stream&) = delete;
+
+    Stream(Stream&&) = default;
+    Stream& operator=(Stream&&) = default;
+
     /// Reposition bitstream "cursor" to the specified offset from origin
     void Seek(s32 offset, SeekOrigin origin);
 
@@ -30,15 +36,15 @@ public:
     /// Writes byte at current position
     void WriteByte(u8 byte);
 
-    std::size_t GetPosition() const {
+    [[nodiscard]] std::size_t GetPosition() const {
         return position;
     }
 
-    std::vector<u8>& GetBuffer() {
+    [[nodiscard]] std::vector<u8>& GetBuffer() {
         return buffer;
     }
 
-    const std::vector<u8>& GetBuffer() const {
+    [[nodiscard]] const std::vector<u8>& GetBuffer() const {
         return buffer;
     }
 
