@@ -159,7 +159,7 @@ private:
     std::array<s8, 4> loop_filter_ref_deltas{};
     std::array<s8, 2> loop_filter_mode_deltas{};
 
-    bool hidden;
+    bool hidden = false;
     s64 current_frame_number = -2; // since we buffer 2 frames
     s32 grace_period = 6;          // frame offsets need to stabilize
     std::array<FrameContexts, 4> frame_ctxs{};
