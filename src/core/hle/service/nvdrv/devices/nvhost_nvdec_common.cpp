@@ -38,7 +38,7 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 
 namespace NvErrCodes {
 constexpr u32 Success{};
-constexpr u32 OutOfMemory{static_cast<u32>(-12)};
+[[maybe_unused]] constexpr u32 OutOfMemory{static_cast<u32>(-12)};
 constexpr u32 InvalidInput{static_cast<u32>(-22)};
 } // namespace NvErrCodes
 
