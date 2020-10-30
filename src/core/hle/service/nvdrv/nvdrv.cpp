@@ -47,7 +47,8 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     }
     auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
-    devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev);
+    devices["/dev/nvhost-gpu"] =
+        std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev, syncpoint_manager);
     devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>(system);
     devices["/dev/nvmap"] = nvmap_dev;
     devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, nvmap_dev);
