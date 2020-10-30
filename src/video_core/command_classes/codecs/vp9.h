@@ -25,6 +25,12 @@ public:
     VpxRangeEncoder();
     ~VpxRangeEncoder();
 
+    VpxRangeEncoder(const VpxRangeEncoder&) = delete;
+    VpxRangeEncoder& operator=(const VpxRangeEncoder&) = delete;
+
+    VpxRangeEncoder(VpxRangeEncoder&&) = default;
+    VpxRangeEncoder& operator=(VpxRangeEncoder&&) = default;
+
     /// Writes the rightmost value_size bits from value into the stream
     void Write(s32 value, s32 value_size);
 
@@ -58,6 +64,12 @@ class VpxBitStreamWriter {
 public:
     VpxBitStreamWriter();
     ~VpxBitStreamWriter();
+
+    VpxBitStreamWriter(const VpxBitStreamWriter&) = delete;
+    VpxBitStreamWriter& operator=(const VpxBitStreamWriter&) = delete;
+
+    VpxBitStreamWriter(VpxBitStreamWriter&&) = default;
+    VpxBitStreamWriter& operator=(VpxBitStreamWriter&&) = default;
 
     /// Write an unsigned integer value
     void WriteU(u32 value, u32 value_size);
@@ -98,6 +110,12 @@ class VP9 {
 public:
     explicit VP9(GPU& gpu);
     ~VP9();
+
+    VP9(const VP9&) = delete;
+    VP9& operator=(const VP9&) = delete;
+
+    VP9(VP9&&) = default;
+    VP9& operator=(VP9&&) = delete;
 
     /// Composes the VP9 frame from the GPU state information. Based on the official VP9 spec
     /// documentation
