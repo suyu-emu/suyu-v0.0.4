@@ -53,7 +53,7 @@ public:
         return Common::Divide128On32(temporary, 1000000000).first;
     }
 
-    void Pause(bool is_paused) override {
+    void Pause([[maybe_unused]] bool is_paused) override {
         // Do nothing in this clock type.
     }
 

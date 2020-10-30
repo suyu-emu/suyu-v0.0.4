@@ -49,7 +49,7 @@ public:
     static void YieldTo(std::shared_ptr<Fiber> from, std::shared_ptr<Fiber> to);
     [[nodiscard]] static std::shared_ptr<Fiber> ThreadToFiber();
 
-    void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* start_parameter);
+    void SetRewindPoint(std::function<void(void*)>&& rewind_func, void* rewind_param);
 
     void Rewind();
 

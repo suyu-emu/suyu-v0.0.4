@@ -190,6 +190,22 @@ if(ARCHITECTURE_x86_64)
     )
 endif()
 
+if (MSVC)
+  target_compile_definitions(common PRIVATE
+    # The standard library doesn't provide any replacement for codecvt yet
+    # so we can disable this deprecation warning for the time being.
+    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+  )
+  target_compile_options(common PRIVATE
+    /W4
+    /WX
+  )
+else()
+  target_compile_options(common PRIVATE
+    -Werror
+  )
+endif()
+
 create_target_directory_groups(common)
 find_package(Boost 1.71 COMPONENTS context headers REQUIRED)
 

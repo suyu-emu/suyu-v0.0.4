@@ -472,13 +472,14 @@ u64 ScanDirectoryTree(const std::string& directory, FSTEntry& parent_entry,
 }
 
 bool DeleteDirRecursively(const std::string& directory, unsigned int recursion) {
-    const auto callback = [recursion](u64* num_entries_out, const std::string& directory,
-                                      const std::string& virtual_name) -> bool {
-        std::string new_path = directory + DIR_SEP_CHR + virtual_name;
+    const auto callback = [recursion](u64*, const std::string& directory,
+                                      const std::string& virtual_name) {
+        const std::string new_path = directory + DIR_SEP_CHR + virtual_name;
 
         if (IsDirectory(new_path)) {
-            if (recursion == 0)
+            if (recursion == 0) {
                 return false;
+            }
             return DeleteDirRecursively(new_path, recursion - 1);
         }
         return Delete(new_path);
@@ -492,7 +493,8 @@ bool DeleteDirRecursively(const std::string& directory, unsigned int recursion) 
     return true;
 }
 
-void CopyDir(const std::string& source_path, const std::string& dest_path) {
+void CopyDir([[maybe_unused]] const std::string& source_path,
+             [[maybe_unused]] const std::string& dest_path) {
 #ifndef _WIN32
     if (source_path == dest_path) {
         return;
@@ -553,7 +555,7 @@ std::optional<std::string> GetCurrentDir() {
     std::string strDir = dir;
 #endif
     free(dir);
-    return std::move(strDir);
+    return strDir;
 }
 
 bool SetCurrentDir(const std::string& directory) {
@@ -772,21 +774,23 @@ std::size_t ReadFileToString(bool text_file, const std::string& filename, std::s
 
 void SplitFilename83(const std::string& filename, std::array<char, 9>& short_name,
                      std::array<char, 4>& extension) {
-    const std::string forbidden_characters = ".\"/\\[]:;=, ";
+    static constexpr std::string_view forbidden_characters = ".\"/\\[]:;=, ";
 
     // On a FAT32 partition, 8.3 names are stored as a 11 bytes array, filled with spaces.
     short_name = {{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'}};
     extension = {{' ', ' ', ' ', '\0'}};
 
-    std::string::size_type point = filename.rfind('.');
-    if (point == filename.size() - 1)
+    auto point = filename.rfind('.');
+    if (point == filename.size() - 1) {
         point = filename.rfind('.', point);
+    }
 
     // Get short name.
     int j = 0;
     for (char letter : filename.substr(0, point)) {
-        if (forbidden_characters.find(letter, 0) != std::string::npos)
+        if (forbidden_characters.find(letter, 0) != std::string::npos) {
             continue;
+        }
         if (j == 8) {
             // TODO(Link Mauve): also do that for filenames containing a space.
             // TODO(Link Mauve): handle multiple files having the same short name.
@@ -794,14 +798,15 @@ void SplitFilename83(const std::string& filename, std::array<char, 9>& short_nam
             short_name[7] = '1';
             break;
         }
-        short_name[j++] = toupper(letter);
+        short_name[j++] = static_cast<char>(std::toupper(letter));
     }
 
     // Get extension.
     if (point != std::string::npos) {
         j = 0;
-        for (char letter : filename.substr(point + 1, 3))
-            extension[j++] = toupper(letter);
+        for (char letter : filename.substr(point + 1, 3)) {
+            extension[j++] = static_cast<char>(std::toupper(letter));
+        }
     }
 }
 
