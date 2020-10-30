@@ -74,9 +74,26 @@ union CommandHeader {
 static_assert(std::is_standard_layout_v<CommandHeader>, "CommandHeader is not standard layout");
 static_assert(sizeof(CommandHeader) == sizeof(u32), "CommandHeader has incorrect size!");
 
+static constexpr CommandHeader BuildCommandHeader(BufferMethods method, u32 arg_count,
+                                                  SubmissionMode mode) {
+    CommandHeader result{};
+    result.method.Assign(static_cast<u32>(method));
+    result.arg_count.Assign(arg_count);
+    result.mode.Assign(mode);
+    return result;
+}
+
 class GPU;
 
-using CommandList = std::vector<Tegra::CommandListHeader>;
+struct CommandList final {
+    CommandList() = default;
+    explicit CommandList(std::size_t size) : command_lists(size) {}
+    explicit CommandList(std::vector<Tegra::CommandHeader>&& prefetch_command_list)
+        : prefetch_command_list{std::move(prefetch_command_list)} {}
+
+    std::vector<Tegra::CommandListHeader> command_lists;
+    std::vector<Tegra::CommandHeader> prefetch_command_list;
+};
 
 /**
  * The DmaPusher class implements DMA submission to FIFOs, providing an area of memory that the
@@ -85,7 +102,7 @@ using CommandList = std::vector<Tegra::CommandListHeader>;
  * See https://envytools.readthedocs.io/en/latest/hw/fifo/dma-pusher.html#fifo-dma-pusher for
  * details on this implementation.
  */
-class DmaPusher {
+class DmaPusher final {
 public:
     explicit DmaPusher(Core::System& system, GPU& gpu);
     ~DmaPusher();
