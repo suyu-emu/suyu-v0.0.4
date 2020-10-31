@@ -212,6 +212,7 @@ private:
 
     std::shared_ptr<nvmap> nvmap_dev;
     SyncpointManager& syncpoint_manager;
+    Fence channel_fence;
 };
 
 } // namespace Service::Nvidia::Devices

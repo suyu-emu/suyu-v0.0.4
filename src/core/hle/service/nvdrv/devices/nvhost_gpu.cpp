@@ -16,7 +16,10 @@ namespace Service::Nvidia::Devices {
 
 nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
                        SyncpointManager& syncpoint_manager)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager{syncpoint_manager} {}
+    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager{syncpoint_manager} {
+    channel_fence.id = syncpoint_manager.AllocateSyncpoint();
+    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+}
 
 nvhost_gpu::~nvhost_gpu() = default;
 
@@ -129,8 +132,9 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
                 params.unk3);
 
-    params.fence_out.id = syncpoint_manager.AllocateSyncpoint();
-    params.fence_out.value = syncpoint_manager.RefreshSyncpoint(params.fence_out.id);
+    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+
+    params.fence_out = channel_fence;
 
     std::memcpy(output.data(), &params, output.size());
     return 0;
@@ -194,6 +198,9 @@ u32 nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>& out
               params.num_entries, params.flags.raw);
 
     auto& gpu = system.GPU();
+
+    params.fence_out.id = channel_fence.id;
+
     if (params.flags.add_wait.Value() &&
         !syncpoint_manager.IsSyncpointExpired(params.fence_out.id, params.fence_out.value)) {
         gpu.PushGPUEntries(Tegra::CommandList{BuildWaitCommandList(params.fence_out)});
