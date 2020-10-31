@@ -166,7 +166,7 @@ public:
             {0, &RelocatableObject::LoadNro, "LoadNro"},
             {1, &RelocatableObject::UnloadNro, "UnloadNro"},
             {2, &RelocatableObject::LoadNrr, "LoadNrr"},
-            {3, nullptr, "UnloadNrr"},
+            {3, &RelocatableObject::UnloadNrr, "UnloadNrr"},
             {4, &RelocatableObject::Initialize, "Initialize"},
             {10, nullptr, "LoadNrrEx"},
         };
@@ -269,6 +269,20 @@ public:
         nrr.insert_or_assign(nrr_address, std::move(hashes));
 
         IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void UnloadNrr(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+        const auto pid = rp.Pop<u64>();
+        const auto nrr_address = rp.Pop<VAddr>();
+
+        LOG_DEBUG(Service_LDR, "called with pid={}, nrr_address={:016X}", pid, nrr_address);
+
+        nrr.erase(nrr_address);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+
         rb.Push(RESULT_SUCCESS);
     }
 
