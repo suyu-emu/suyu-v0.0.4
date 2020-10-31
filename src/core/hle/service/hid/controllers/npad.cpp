@@ -214,6 +214,8 @@ void Controller_NPad::OnInit() {
         return;
     }
 
+    OnLoadInputDevices();
+
     if (style.raw == 0) {
         // We want to support all controllers
         style.handheld.Assign(1);
