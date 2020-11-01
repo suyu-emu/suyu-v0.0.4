@@ -36,8 +36,8 @@ u32 nvhost_ctrl::ioctl(Ioctl command, const std::vector<u8>& input, const std::v
         return IocCtrlEventRegister(input, output);
     case IoctlCommand::IocCtrlEventUnregisterCommand:
         return IocCtrlEventUnregister(input, output);
-    case IoctlCommand::IocCtrlEventSignalCommand:
-        return IocCtrlEventSignal(input, output);
+    case IoctlCommand::IocCtrlClearEventWaitCommand:
+        return IocCtrlClearEventWait(input, output);
     default:
         UNIMPLEMENTED_MSG("Unimplemented ioctl");
         return 0;
@@ -154,23 +154,17 @@ u32 nvhost_ctrl::IocCtrlEventUnregister(const std::vector<u8>& input, std::vecto
     return NvResult::Success;
 }
 
-u32 nvhost_ctrl::IocCtrlEventSignal(const std::vector<u8>& input, std::vector<u8>& output) {
+u32 nvhost_ctrl::IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCtrlEventSignalParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
-    // TODO(Blinkhawk): This is normally called when an NvEvents timeout on WaitSynchronization
-    // It is believed from RE to cancel the GPU Event. However, better research is required
-    u32 event_id = params.user_event_id & 0x00FF;
-    LOG_WARNING(Service_NVDRV, "(STUBBED) called, user_event_id: {:X}", event_id);
+    u32 event_id = params.event_id & 0x00FF;
+    LOG_WARNING(Service_NVDRV, "cleared event wait on, event_id: {:X}", event_id);
     if (event_id >= MaxNvEvents) {
         return NvResult::BadParameter;
     }
     if (events_interface.status[event_id] == EventState::Waiting) {
-        auto& gpu = system.GPU();
-        if (gpu.CancelSyncptInterrupt(events_interface.assigned_syncpt[event_id],
-                                      events_interface.assigned_value[event_id])) {
-            events_interface.LiberateEvent(event_id);
-            events_interface.events[event_id].writable->Signal();
-        }
+        events_interface.LiberateEvent(event_id);
+        events_interface.events[event_id].writable->Signal();
     }
     return NvResult::Success;
 }
