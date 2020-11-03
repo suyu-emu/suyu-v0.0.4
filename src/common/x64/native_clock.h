@@ -34,7 +34,7 @@ private:
     /// value used to reduce the native clocks accuracy as some apss rely on
     /// undefined behavior where the level of accuracy in the clock shouldn't
     /// be higher.
-    static constexpr u64 inaccuracy_mask = ~(0x400 - 1);
+    static constexpr u64 inaccuracy_mask = ~(UINT64_C(0x400) - 1);
 
     SpinLock rtsc_serialize{};
     u64 last_measure{};
