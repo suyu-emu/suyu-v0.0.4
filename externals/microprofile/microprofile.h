@@ -948,7 +948,11 @@ typedef HANDLE MicroProfileThread;
 DWORD _stdcall ThreadTrampoline(void* pFunc)
 {
     MicroProfileThreadFunc F = (MicroProfileThreadFunc)pFunc;
-    return (DWORD)F(0);
+
+    // The return value of F will always return a void*, however, this is for
+    // compatibility with pthreads. The underlying "address" of the pointer
+    // is always a 32-bit value, so this cast is safe to perform.
+    return static_cast<DWORD>(reinterpret_cast<uint64_t>(F(0)));
 }
 
 inline void MicroProfileThreadStart(MicroProfileThread* pThread, MicroProfileThreadFunc Func)
