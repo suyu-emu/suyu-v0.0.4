@@ -771,13 +771,18 @@ void VKDevice::CollectTelemetryParameters() {
     VkPhysicalDeviceDriverPropertiesKHR driver{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
         .pNext = nullptr,
+        .driverID = {},
+        .driverName = {},
+        .driverInfo = {},
+        .conformanceVersion = {},
     };
 
-    VkPhysicalDeviceProperties2KHR properties{
+    VkPhysicalDeviceProperties2KHR device_properties{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR,
         .pNext = &driver,
+        .properties = {},
     };
-    physical.GetProperties2KHR(properties);
+    physical.GetProperties2KHR(device_properties);
 
     driver_id = driver.driverID;
     vendor_name = driver.driverName;
