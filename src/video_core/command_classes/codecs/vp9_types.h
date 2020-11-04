@@ -231,9 +231,8 @@ struct PictureInfo {
     u32 surface_params{};
     INSERT_PADDING_WORDS(3);
 
-    Vp9PictureInfo Convert() const {
-
-        return Vp9PictureInfo{
+    [[nodiscard]] Vp9PictureInfo Convert() const {
+        return {
             .is_key_frame = (vp9_flags & FrameFlags::IsKeyFrame) != 0,
             .intra_only = (vp9_flags & FrameFlags::IntraOnly) != 0,
             .last_frame_was_key = (vp9_flags & FrameFlags::LastFrameIsKeyFrame) != 0,

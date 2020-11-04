@@ -51,14 +51,14 @@ public:
     void WriteScalingList(const std::vector<u8>& list, s32 start, s32 count);
 
     /// Return the bitstream as a vector.
-    std::vector<u8>& GetByteArray();
-    const std::vector<u8>& GetByteArray() const;
+    [[nodiscard]] std::vector<u8>& GetByteArray();
+    [[nodiscard]] const std::vector<u8>& GetByteArray() const;
 
 private:
     void WriteBits(s32 value, s32 bit_count);
     void WriteExpGolombCodedInt(s32 value);
     void WriteExpGolombCodedUInt(u32 value);
-    s32 GetFreeBufferBits();
+    [[nodiscard]] s32 GetFreeBufferBits();
     void Flush();
 
     s32 buffer_size{8};
@@ -74,8 +74,8 @@ public:
     ~H264();
 
     /// Compose the H264 header of the frame for FFmpeg decoding
-    std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state,
-                                        bool is_first_frame = false);
+    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state,
+                                                            bool is_first_frame = false);
 
 private:
     struct H264ParameterSet {
