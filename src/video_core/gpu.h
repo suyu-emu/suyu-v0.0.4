@@ -263,6 +263,24 @@ public:
         return use_nvdec;
     }
 
+    enum class FenceOperation : u32 {
+        Acquire = 0,
+        Increment = 1,
+    };
+
+    union FenceAction {
+        u32 raw;
+        BitField<0, 1, FenceOperation> op;
+        BitField<8, 24, u32> syncpoint_id;
+
+        static constexpr CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
+            FenceAction result{};
+            result.op.Assign(op);
+            result.syncpoint_id.Assign(syncpoint_id);
+            return {result.raw};
+        }
+    };
+
     struct Regs {
         static constexpr size_t NUM_REGS = 0x40;
 
@@ -291,10 +309,7 @@ public:
                 u32 semaphore_acquire;
                 u32 semaphore_release;
                 u32 fence_value;
-                union {
-                    BitField<4, 4, u32> operation;
-                    BitField<8, 8, u32> id;
-                } fence_action;
+                FenceAction fence_action;
                 INSERT_UNION_PADDING_WORDS(0xE2);
 
                 // Puller state
@@ -342,6 +357,8 @@ protected:
 
 private:
     void ProcessBindMethod(const MethodCall& method_call);
+    void ProcessFenceActionMethod();
+    void ProcessWaitForInterruptMethod();
     void ProcessSemaphoreTriggerMethod();
     void ProcessSemaphoreRelease();
     void ProcessSemaphoreAcquire();

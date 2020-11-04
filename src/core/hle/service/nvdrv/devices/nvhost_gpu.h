@@ -11,6 +11,11 @@
 #include "common/swap.h"
 #include "core/hle/service/nvdrv/devices/nvdevice.h"
 #include "core/hle/service/nvdrv/nvdata.h"
+#include "video_core/dma_pusher.h"
+
+namespace Service::Nvidia {
+class SyncpointManager;
+}
 
 namespace Service::Nvidia::Devices {
 
@@ -21,7 +26,8 @@ constexpr u32 NVGPU_IOCTL_CHANNEL_KICKOFF_PB(0x1b);
 
 class nvhost_gpu final : public nvdevice {
 public:
-    explicit nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
+    explicit nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
+                        SyncpointManager& syncpoint_manager);
     ~nvhost_gpu() override;
 
     u32 ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
@@ -162,10 +168,15 @@ private:
             u32_le raw;
             BitField<0, 1, u32_le> add_wait;      // append a wait sync_point to the list
             BitField<1, 1, u32_le> add_increment; // append an increment to the list
-            BitField<2, 1, u32_le> new_hw_format; // Mostly ignored
+            BitField<2, 1, u32_le> new_hw_format; // mostly ignored
+            BitField<4, 1, u32_le> suppress_wfi;  // suppress wait for interrupt
             BitField<8, 1, u32_le> increment;     // increment the returned fence
         } flags;
         Fence fence_out; // returned new fence object for others to wait on
+
+        u32 AddIncrementValue() const {
+            return flags.add_increment.Value() << 1;
+        }
     };
     static_assert(sizeof(IoctlSubmitGpfifo) == 16 + sizeof(Fence),
                   "IoctlSubmitGpfifo is incorrect size");
@@ -190,6 +201,8 @@ private:
     u32 SetChannelPriority(const std::vector<u8>& input, std::vector<u8>& output);
     u32 AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& output);
     u32 AllocateObjectContext(const std::vector<u8>& input, std::vector<u8>& output);
+    u32 SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>& output,
+                         Tegra::CommandList&& entries);
     u32 SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& output);
     u32 KickoffPB(const std::vector<u8>& input, std::vector<u8>& output,
                   const std::vector<u8>& input2, IoctlVersion version);
@@ -198,7 +211,8 @@ private:
     u32 ChannelSetTimeslice(const std::vector<u8>& input, std::vector<u8>& output);
 
     std::shared_ptr<nvmap> nvmap_dev;
-    u32 assigned_syncpoints{};
+    SyncpointManager& syncpoint_manager;
+    Fence channel_fence;
 };
 
 } // namespace Service::Nvidia::Devices

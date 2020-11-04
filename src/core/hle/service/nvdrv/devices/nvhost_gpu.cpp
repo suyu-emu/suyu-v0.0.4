@@ -7,14 +7,20 @@
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/hle/service/nvdrv/devices/nvhost_gpu.h"
+#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/memory.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 
 namespace Service::Nvidia::Devices {
 
-nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
+                       SyncpointManager& syncpoint_manager)
+    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager{syncpoint_manager} {
+    channel_fence.id = syncpoint_manager.AllocateSyncpoint();
+    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+}
+
 nvhost_gpu::~nvhost_gpu() = default;
 
 u32 nvhost_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
@@ -126,10 +132,10 @@ u32 nvhost_gpu::AllocGPFIFOEx2(const std::vector<u8>& input, std::vector<u8>& ou
                 params.num_entries, params.flags, params.unk0, params.unk1, params.unk2,
                 params.unk3);
 
-    auto& gpu = system.GPU();
-    params.fence_out.id = assigned_syncpoints;
-    params.fence_out.value = gpu.GetSyncpointValue(assigned_syncpoints);
-    assigned_syncpoints++;
+    channel_fence.value = system.GPU().GetSyncpointValue(channel_fence.id);
+
+    params.fence_out = channel_fence;
+
     std::memcpy(output.data(), &params, output.size());
     return 0;
 }
@@ -145,37 +151,98 @@ u32 nvhost_gpu::AllocateObjectContext(const std::vector<u8>& input, std::vector<
     return 0;
 }
 
+static std::vector<Tegra::CommandHeader> BuildWaitCommandList(Fence fence) {
+    return {
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceValue, 1,
+                                  Tegra::SubmissionMode::Increasing),
+        {fence.value},
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
+                                  Tegra::SubmissionMode::Increasing),
+        Tegra::GPU::FenceAction::Build(Tegra::GPU::FenceOperation::Acquire, fence.id),
+    };
+}
+
+static std::vector<Tegra::CommandHeader> BuildIncrementCommandList(Fence fence, u32 add_increment) {
+    std::vector<Tegra::CommandHeader> result{
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceValue, 1,
+                                  Tegra::SubmissionMode::Increasing),
+        {}};
+
+    for (u32 count = 0; count < add_increment; ++count) {
+        result.emplace_back(Tegra::BuildCommandHeader(Tegra::BufferMethods::FenceAction, 1,
+                                                      Tegra::SubmissionMode::Increasing));
+        result.emplace_back(
+            Tegra::GPU::FenceAction::Build(Tegra::GPU::FenceOperation::Increment, fence.id));
+    }
+
+    return result;
+}
+
+static std::vector<Tegra::CommandHeader> BuildIncrementWithWfiCommandList(Fence fence,
+                                                                          u32 add_increment) {
+    std::vector<Tegra::CommandHeader> result{
+        Tegra::BuildCommandHeader(Tegra::BufferMethods::WaitForInterrupt, 1,
+                                  Tegra::SubmissionMode::Increasing),
+        {}};
+    const std::vector<Tegra::CommandHeader> increment{
+        BuildIncrementCommandList(fence, add_increment)};
+
+    result.insert(result.end(), increment.begin(), increment.end());
+
+    return result;
+}
+
+u32 nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>& output,
+                                 Tegra::CommandList&& entries) {
+    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
+              params.num_entries, params.flags.raw);
+
+    auto& gpu = system.GPU();
+
+    params.fence_out.id = channel_fence.id;
+
+    if (params.flags.add_wait.Value() &&
+        !syncpoint_manager.IsSyncpointExpired(params.fence_out.id, params.fence_out.value)) {
+        gpu.PushGPUEntries(Tegra::CommandList{BuildWaitCommandList(params.fence_out)});
+    }
+
+    if (params.flags.add_increment.Value() || params.flags.increment.Value()) {
+        const u32 increment_value = params.flags.increment.Value() ? params.fence_out.value : 0;
+        params.fence_out.value = syncpoint_manager.IncreaseSyncpoint(
+            params.fence_out.id, params.AddIncrementValue() + increment_value);
+    } else {
+        params.fence_out.value = syncpoint_manager.GetSyncpointMax(params.fence_out.id);
+    }
+
+    entries.RefreshIntegrityChecks(gpu);
+    gpu.PushGPUEntries(std::move(entries));
+
+    if (params.flags.add_increment.Value()) {
+        if (params.flags.suppress_wfi) {
+            gpu.PushGPUEntries(Tegra::CommandList{
+                BuildIncrementCommandList(params.fence_out, params.AddIncrementValue())});
+        } else {
+            gpu.PushGPUEntries(Tegra::CommandList{
+                BuildIncrementWithWfiCommandList(params.fence_out, params.AddIncrementValue())});
+        }
+    }
+
+    std::memcpy(output.data(), &params, sizeof(IoctlSubmitGpfifo));
+    return 0;
+}
+
 u32 nvhost_gpu::SubmitGPFIFO(const std::vector<u8>& input, std::vector<u8>& output) {
     if (input.size() < sizeof(IoctlSubmitGpfifo)) {
         UNIMPLEMENTED();
     }
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
-    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
-              params.num_entries, params.flags.raw);
-
-    ASSERT_MSG(input.size() == sizeof(IoctlSubmitGpfifo) +
-                                   params.num_entries * sizeof(Tegra::CommandListHeader),
-               "Incorrect input size");
 
     Tegra::CommandList entries(params.num_entries);
-    std::memcpy(entries.data(), &input[sizeof(IoctlSubmitGpfifo)],
+    std::memcpy(entries.command_lists.data(), &input[sizeof(IoctlSubmitGpfifo)],
                 params.num_entries * sizeof(Tegra::CommandListHeader));
 
-    UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
-    UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
-
-    auto& gpu = system.GPU();
-    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
-    if (params.flags.increment.Value()) {
-        params.fence_out.value += current_syncpoint_value;
-    } else {
-        params.fence_out.value = current_syncpoint_value;
-    }
-    gpu.PushGPUEntries(std::move(entries));
-
-    std::memcpy(output.data(), &params, sizeof(IoctlSubmitGpfifo));
-    return 0;
+    return SubmitGPFIFOImpl(params, output, std::move(entries));
 }
 
 u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output,
@@ -185,31 +252,17 @@ u32 nvhost_gpu::KickoffPB(const std::vector<u8>& input, std::vector<u8>& output,
     }
     IoctlSubmitGpfifo params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmitGpfifo));
-    LOG_TRACE(Service_NVDRV, "called, gpfifo={:X}, num_entries={:X}, flags={:X}", params.address,
-              params.num_entries, params.flags.raw);
 
     Tegra::CommandList entries(params.num_entries);
     if (version == IoctlVersion::Version2) {
-        std::memcpy(entries.data(), input2.data(),
+        std::memcpy(entries.command_lists.data(), input2.data(),
                     params.num_entries * sizeof(Tegra::CommandListHeader));
     } else {
-        system.Memory().ReadBlock(params.address, entries.data(),
+        system.Memory().ReadBlock(params.address, entries.command_lists.data(),
                                   params.num_entries * sizeof(Tegra::CommandListHeader));
     }
-    UNIMPLEMENTED_IF(params.flags.add_wait.Value() != 0);
-    UNIMPLEMENTED_IF(params.flags.add_increment.Value() != 0);
 
-    auto& gpu = system.GPU();
-    u32 current_syncpoint_value = gpu.GetSyncpointValue(params.fence_out.id);
-    if (params.flags.increment.Value()) {
-        params.fence_out.value += current_syncpoint_value;
-    } else {
-        params.fence_out.value = current_syncpoint_value;
-    }
-    gpu.PushGPUEntries(std::move(entries));
-
-    std::memcpy(output.data(), &params, output.size());
-    return 0;
+    return SubmitGPFIFOImpl(params, output, std::move(entries));
 }
 
 u32 nvhost_gpu::GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output) {

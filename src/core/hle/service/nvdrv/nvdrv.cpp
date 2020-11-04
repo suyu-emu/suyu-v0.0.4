@@ -21,6 +21,7 @@
 #include "core/hle/service/nvdrv/interface.h"
 #include "core/hle/service/nvdrv/nvdrv.h"
 #include "core/hle/service/nvdrv/nvmemp.h"
+#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/hle/service/nvflinger/nvflinger.h"
 
 namespace Service::Nvidia {
@@ -36,21 +37,23 @@ void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger
     nvflinger.SetNVDrvInstance(module_);
 }
 
-Module::Module(Core::System& system) {
+Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
     auto& kernel = system.Kernel();
     for (u32 i = 0; i < MaxNvEvents; i++) {
         std::string event_label = fmt::format("NVDRV::NvEvent_{}", i);
-        events_interface.events[i] = Kernel::WritableEvent::CreateEventPair(kernel, event_label);
+        events_interface.events[i] = {Kernel::WritableEvent::CreateEventPair(kernel, event_label)};
         events_interface.status[i] = EventState::Free;
         events_interface.registered[i] = false;
     }
     auto nvmap_dev = std::make_shared<Devices::nvmap>(system);
     devices["/dev/nvhost-as-gpu"] = std::make_shared<Devices::nvhost_as_gpu>(system, nvmap_dev);
-    devices["/dev/nvhost-gpu"] = std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev);
+    devices["/dev/nvhost-gpu"] =
+        std::make_shared<Devices::nvhost_gpu>(system, nvmap_dev, syncpoint_manager);
     devices["/dev/nvhost-ctrl-gpu"] = std::make_shared<Devices::nvhost_ctrl_gpu>(system);
     devices["/dev/nvmap"] = nvmap_dev;
     devices["/dev/nvdisp_disp0"] = std::make_shared<Devices::nvdisp_disp0>(system, nvmap_dev);
-    devices["/dev/nvhost-ctrl"] = std::make_shared<Devices::nvhost_ctrl>(system, events_interface);
+    devices["/dev/nvhost-ctrl"] =
+        std::make_shared<Devices::nvhost_ctrl>(system, events_interface, syncpoint_manager);
     devices["/dev/nvhost-nvdec"] = std::make_shared<Devices::nvhost_nvdec>(system, nvmap_dev);
     devices["/dev/nvhost-nvjpg"] = std::make_shared<Devices::nvhost_nvjpg>(system);
     devices["/dev/nvhost-vic"] = std::make_shared<Devices::nvhost_vic>(system, nvmap_dev);
@@ -95,17 +98,17 @@ void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
         if (events_interface.assigned_syncpt[i] == syncpoint_id &&
             events_interface.assigned_value[i] == value) {
             events_interface.LiberateEvent(i);
-            events_interface.events[i].writable->Signal();
+            events_interface.events[i].event.writable->Signal();
         }
     }
 }
 
 std::shared_ptr<Kernel::ReadableEvent> Module::GetEvent(const u32 event_id) const {
-    return events_interface.events[event_id].readable;
+    return events_interface.events[event_id].event.readable;
 }
 
 std::shared_ptr<Kernel::WritableEvent> Module::GetEventWriteable(const u32 event_id) const {
-    return events_interface.events[event_id].writable;
+    return events_interface.events[event_id].event.writable;
 }
 
 } // namespace Service::Nvidia

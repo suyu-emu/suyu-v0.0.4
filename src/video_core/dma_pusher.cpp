@@ -2,6 +2,7 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
+#include "common/cityhash.h"
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -11,6 +12,20 @@
 #include "video_core/memory_manager.h"
 
 namespace Tegra {
+
+void CommandList::RefreshIntegrityChecks(GPU& gpu) {
+    command_list_hashes.resize(command_lists.size());
+
+    for (std::size_t index = 0; index < command_lists.size(); ++index) {
+        const CommandListHeader command_list_header = command_lists[index];
+        std::vector<CommandHeader> command_headers(command_list_header.size);
+        gpu.MemoryManager().ReadBlockUnsafe(command_list_header.addr, command_headers.data(),
+                                            command_list_header.size * sizeof(u32));
+        command_list_hashes[index] =
+            Common::CityHash64(reinterpret_cast<char*>(command_headers.data()),
+                               command_list_header.size * sizeof(u32));
+    }
+}
 
 DmaPusher::DmaPusher(Core::System& system, GPU& gpu) : gpu{gpu}, system{system} {}
 
@@ -45,32 +60,51 @@ bool DmaPusher::Step() {
         return false;
     }
 
-    const CommandList& command_list{dma_pushbuffer.front()};
-    ASSERT_OR_EXECUTE(!command_list.empty(), {
-        // Somehow the command_list is empty, in order to avoid a crash
-        // We ignore it and assume its size is 0.
+    CommandList& command_list{dma_pushbuffer.front()};
+
+    ASSERT_OR_EXECUTE(
+        command_list.command_lists.size() || command_list.prefetch_command_list.size(), {
+            // Somehow the command_list is empty, in order to avoid a crash
+            // We ignore it and assume its size is 0.
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+            return true;
+        });
+
+    if (command_list.prefetch_command_list.size()) {
+        // Prefetched command list from nvdrv, used for things like synchronization
+        command_headers = std::move(command_list.prefetch_command_list);
         dma_pushbuffer.pop();
-        dma_pushbuffer_subindex = 0;
-        return true;
-    });
-    const CommandListHeader command_list_header{command_list[dma_pushbuffer_subindex++]};
-    const GPUVAddr dma_get = command_list_header.addr;
+    } else {
+        const CommandListHeader command_list_header{
+            command_list.command_lists[dma_pushbuffer_subindex]};
+        const u64 next_hash = command_list.command_list_hashes[dma_pushbuffer_subindex++];
+        const GPUVAddr dma_get = command_list_header.addr;
 
-    if (dma_pushbuffer_subindex >= command_list.size()) {
-        // We've gone through the current list, remove it from the queue
-        dma_pushbuffer.pop();
-        dma_pushbuffer_subindex = 0;
+        if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
+            // We've gone through the current list, remove it from the queue
+            dma_pushbuffer.pop();
+            dma_pushbuffer_subindex = 0;
+        }
+
+        if (command_list_header.size == 0) {
+            return true;
+        }
+
+        // Push buffer non-empty, read a word
+        command_headers.resize(command_list_header.size);
+        gpu.MemoryManager().ReadBlockUnsafe(dma_get, command_headers.data(),
+                                            command_list_header.size * sizeof(u32));
+
+        // Integrity check
+        const u64 new_hash = Common::CityHash64(reinterpret_cast<char*>(command_headers.data()),
+                                                command_list_header.size * sizeof(u32));
+        if (new_hash != next_hash) {
+            LOG_CRITICAL(HW_GPU, "CommandList at addr=0x{:X} is corrupt, skipping!", dma_get);
+            dma_pushbuffer.pop();
+            return true;
+        }
     }
-
-    if (command_list_header.size == 0) {
-        return true;
-    }
-
-    // Push buffer non-empty, read a word
-    command_headers.resize(command_list_header.size);
-    gpu.MemoryManager().ReadBlockUnsafe(dma_get, command_headers.data(),
-                                        command_list_header.size * sizeof(u32));
-
     for (std::size_t index = 0; index < command_headers.size();) {
         const CommandHeader& command_header = command_headers[index];
 

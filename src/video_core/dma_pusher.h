@@ -27,6 +27,31 @@ enum class SubmissionMode : u32 {
     IncreaseOnce = 5
 };
 
+// Note that, traditionally, methods are treated as 4-byte addressable locations, and hence
+// their numbers are written down multiplied by 4 in Docs. Here we are not multiply by 4.
+// So the values you see in docs might be multiplied by 4.
+enum class BufferMethods : u32 {
+    BindObject = 0x0,
+    Nop = 0x2,
+    SemaphoreAddressHigh = 0x4,
+    SemaphoreAddressLow = 0x5,
+    SemaphoreSequence = 0x6,
+    SemaphoreTrigger = 0x7,
+    NotifyIntr = 0x8,
+    WrcacheFlush = 0x9,
+    Unk28 = 0xA,
+    UnkCacheFlush = 0xB,
+    RefCnt = 0x14,
+    SemaphoreAcquire = 0x1A,
+    SemaphoreRelease = 0x1B,
+    FenceValue = 0x1C,
+    FenceAction = 0x1D,
+    WaitForInterrupt = 0x1E,
+    Unk7c = 0x1F,
+    Yield = 0x20,
+    NonPullerMethods = 0x40,
+};
+
 struct CommandListHeader {
     union {
         u64 raw;
@@ -49,9 +74,29 @@ union CommandHeader {
 static_assert(std::is_standard_layout_v<CommandHeader>, "CommandHeader is not standard layout");
 static_assert(sizeof(CommandHeader) == sizeof(u32), "CommandHeader has incorrect size!");
 
+static constexpr CommandHeader BuildCommandHeader(BufferMethods method, u32 arg_count,
+                                                  SubmissionMode mode) {
+    CommandHeader result{};
+    result.method.Assign(static_cast<u32>(method));
+    result.arg_count.Assign(arg_count);
+    result.mode.Assign(mode);
+    return result;
+}
+
 class GPU;
 
-using CommandList = std::vector<Tegra::CommandListHeader>;
+struct CommandList final {
+    CommandList() = default;
+    explicit CommandList(std::size_t size) : command_lists(size) {}
+    explicit CommandList(std::vector<Tegra::CommandHeader>&& prefetch_command_list)
+        : prefetch_command_list{std::move(prefetch_command_list)} {}
+
+    void RefreshIntegrityChecks(GPU& gpu);
+
+    std::vector<Tegra::CommandListHeader> command_lists;
+    std::vector<u64> command_list_hashes;
+    std::vector<Tegra::CommandHeader> prefetch_command_list;
+};
 
 /**
  * The DmaPusher class implements DMA submission to FIFOs, providing an area of memory that the
@@ -60,7 +105,7 @@ using CommandList = std::vector<Tegra::CommandListHeader>;
  * See https://envytools.readthedocs.io/en/latest/hw/fifo/dma-pusher.html#fifo-dma-pusher for
  * details on this implementation.
  */
-class DmaPusher {
+class DmaPusher final {
 public:
     explicit DmaPusher(Core::System& system, GPU& gpu);
     ~DmaPusher();

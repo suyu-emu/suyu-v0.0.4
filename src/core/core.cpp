@@ -179,16 +179,18 @@ struct System::Impl {
         arp_manager.ResetAll();
 
         telemetry_session = std::make_unique<Core::TelemetrySession>();
+
+        gpu_core = VideoCore::CreateGPU(emu_window, system);
+        if (!gpu_core) {
+            return ResultStatus::ErrorVideoCore;
+        }
+
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
 
         Service::Init(service_manager, system);
         GDBStub::DeferStart();
 
         interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
-        gpu_core = VideoCore::CreateGPU(emu_window, system);
-        if (!gpu_core) {
-            return ResultStatus::ErrorVideoCore;
-        }
 
         // Initialize time manager, which must happen after kernel is created
         time_manager.Initialize();

@@ -454,6 +454,8 @@ add_library(core STATIC
     hle/service/nvdrv/nvdrv.h
     hle/service/nvdrv/nvmemp.cpp
     hle/service/nvdrv/nvmemp.h
+    hle/service/nvdrv/syncpoint_manager.cpp
+    hle/service/nvdrv/syncpoint_manager.h
     hle/service/nvflinger/buffer_queue.cpp
     hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/nvflinger.cpp
