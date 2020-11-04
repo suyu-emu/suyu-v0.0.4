@@ -31,7 +31,7 @@ ConfigurePerGame::ConfigurePerGame(QWidget* parent, u64 title_id)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigurePerGame>()), title_id(title_id) {
     game_config = std::make_unique<Config>(fmt::format("{:016X}.ini", title_id), false);
 
-    Settings::configuring_global = false;
+    Settings::SetConfiguringGlobal(false);
 
     ui->setupUi(this);
     setFocusPolicy(Qt::ClickFocus);

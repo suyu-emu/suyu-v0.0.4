@@ -33,8 +33,6 @@ enum class CPUAccuracy {
     DebugMode = 2,
 };
 
-extern bool configuring_global;
-
 template <typename Type>
 class Setting final {
 public:
@@ -198,12 +196,17 @@ struct Values {
 
     // Add-Ons
     std::map<u64, std::vector<std::string>> disabled_addons;
-} extern values;
+};
 
-float Volume();
+extern Values values;
+
+bool IsConfiguringGlobal();
+void SetConfiguringGlobal(bool is_global);
 
 bool IsGPULevelExtreme();
 bool IsGPULevelHigh();
+
+float Volume();
 
 std::string GetTimeZoneString();
 

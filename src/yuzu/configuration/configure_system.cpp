@@ -37,8 +37,8 @@ ConfigureSystem::ConfigureSystem(QWidget* parent) : QWidget(parent), ui(new Ui::
         }
     });
 
-    ui->label_console_id->setVisible(Settings::configuring_global);
-    ui->button_regenerate_console_id->setVisible(Settings::configuring_global);
+    ui->label_console_id->setVisible(Settings::IsConfiguringGlobal());
+    ui->button_regenerate_console_id->setVisible(Settings::IsConfiguringGlobal());
 
     SetupPerGameUI();
 
@@ -78,7 +78,7 @@ void ConfigureSystem::SetConfiguration() {
                                     Settings::values.rng_seed.UsingGlobal());
     ui->custom_rtc_edit->setDateTime(QDateTime::fromSecsSinceEpoch(rtc_time.count()));
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->combo_language->setCurrentIndex(Settings::values.language_index.GetValue());
         ui->combo_region->setCurrentIndex(Settings::values.region_index.GetValue());
         ui->combo_time_zone->setCurrentIndex(Settings::values.time_zone_index.GetValue());
@@ -125,7 +125,7 @@ void ConfigureSystem::ApplyConfiguration() {
         return;
     }
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
         if (Settings::values.language_index.UsingGlobal()) {
             Settings::values.language_index.SetValue(ui->combo_language->currentIndex());
@@ -218,7 +218,7 @@ void ConfigureSystem::RefreshConsoleID() {
 }
 
 void ConfigureSystem::SetupPerGameUI() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->combo_language->setEnabled(Settings::values.language_index.UsingGlobal());
         ui->combo_region->setEnabled(Settings::values.region_index.UsingGlobal());
         ui->combo_time_zone->setEnabled(Settings::values.time_zone_index.UsingGlobal());
