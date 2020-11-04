@@ -84,6 +84,13 @@ struct ControllerSupportArgNew {
 static_assert(sizeof(ControllerSupportArgNew) == 0x430,
               "ControllerSupportArgNew has incorrect size.");
 
+struct ControllerUpdateFirmwareArg {
+    bool enable_force_update{};
+    INSERT_PADDING_BYTES(3);
+};
+static_assert(sizeof(ControllerUpdateFirmwareArg) == 0x4,
+              "ControllerUpdateFirmwareArg has incorrect size.");
+
 struct ControllerSupportResultInfo {
     s8 player_count{};
     INSERT_PADDING_BYTES(3);
