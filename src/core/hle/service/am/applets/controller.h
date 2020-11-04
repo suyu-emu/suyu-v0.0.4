@@ -29,14 +29,18 @@ enum class LibraryAppletVersion : u32_le {
 };
 
 enum class ControllerSupportMode : u8 {
-    ShowControllerSupport = 0,
-    ShowControllerStrapGuide = 1,
-    ShowControllerFirmwareUpdate = 2,
+    ShowControllerSupport,
+    ShowControllerStrapGuide,
+    ShowControllerFirmwareUpdate,
+
+    MaxControllerSupportMode,
 };
 
 enum class ControllerSupportCaller : u8 {
-    Application = 0,
-    System = 1,
+    Application,
+    System,
+
+    MaxControllerSupportCaller,
 };
 
 struct ControllerSupportArgPrivate {

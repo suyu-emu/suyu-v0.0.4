@@ -75,6 +75,36 @@ void Controller::Initialize() {
                "Unknown ControllerSupportArgPrivate revision={} with size={}",
                library_applet_version, controller_private_arg.arg_private_size);
 
+    // Some games such as Cave Story+ set invalid values for the ControllerSupportMode.
+    // Defer to arg_size to set the ControllerSupportMode.
+    if (controller_private_arg.mode >= ControllerSupportMode::MaxControllerSupportMode) {
+        switch (controller_private_arg.arg_size) {
+        case sizeof(ControllerSupportArgOld):
+        case sizeof(ControllerSupportArgNew):
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerSupport;
+            break;
+        case sizeof(ControllerUpdateFirmwareArg):
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerFirmwareUpdate;
+            break;
+        default:
+            UNIMPLEMENTED_MSG("Unknown ControllerPrivateArg mode={} with arg_size={}",
+                              controller_private_arg.mode, controller_private_arg.arg_size);
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerSupport;
+            break;
+        }
+    }
+
+    // Some games such as Cave Story+ set invalid values for the ControllerSupportCaller.
+    // This is always 0 (Application) except with ShowControllerFirmwareUpdateForSystem.
+    if (controller_private_arg.caller >= ControllerSupportCaller::MaxControllerSupportCaller) {
+        if (controller_private_arg.flag_1 &&
+            controller_private_arg.mode == ControllerSupportMode::ShowControllerFirmwareUpdate) {
+            controller_private_arg.caller = ControllerSupportCaller::System;
+        } else {
+            controller_private_arg.caller = ControllerSupportCaller::Application;
+        }
+    }
+
     switch (controller_private_arg.mode) {
     case ControllerSupportMode::ShowControllerSupport: {
         const auto user_arg_storage = broker.PopNormalDataToApplet();
