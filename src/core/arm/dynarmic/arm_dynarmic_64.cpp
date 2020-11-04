@@ -6,6 +6,7 @@
 #include <memory>
 #include <dynarmic/A64/a64.h>
 #include <dynarmic/A64/config.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"
@@ -13,7 +14,6 @@
 #include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/core_timing_util.h"
 #include "core/gdbstub/gdbstub.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/process.h"
@@ -82,16 +82,9 @@ public:
     }
 
     void InterpreterFallback(u64 pc, std::size_t num_instructions) override {
-        LOG_INFO(Core_ARM, "Unicorn fallback @ 0x{:X} for {} instructions (instr = {:08X})", pc,
-                 num_instructions, MemoryReadCode(pc));
-
-        ARM_Interface::ThreadContext64 ctx;
-        parent.SaveContext(ctx);
-        parent.inner_unicorn.LoadContext(ctx);
-        parent.inner_unicorn.ExecuteInstructions(num_instructions);
-        parent.inner_unicorn.SaveContext(ctx);
-        parent.LoadContext(ctx);
-        num_interpreted_instructions += num_instructions;
+        LOG_ERROR(Core_ARM,
+                  "Unimplemented instruction @ 0x{:X} for {} instructions (instr = {:08X})", pc,
+                  num_instructions, MemoryReadCode(pc));
     }
 
     void ExceptionRaised(u64 pc, Dynarmic::A64::Exception exception) override {
@@ -127,18 +120,17 @@ public:
         if (parent.uses_wall_clock) {
             return;
         }
+
         // Divide the number of ticks by the amount of CPU cores. TODO(Subv): This yields only a
         // rough approximation of the amount of executed ticks in the system, it may be thrown off
         // if not all cores are doing a similar amount of work. Instead of doing this, we should
         // device a way so that timing is consistent across all cores without increasing the ticks 4
         // times.
-        u64 amortized_ticks =
-            (ticks - num_interpreted_instructions) / Core::Hardware::NUM_CPU_CORES;
+        u64 amortized_ticks = ticks / Core::Hardware::NUM_CPU_CORES;
         // Always execute at least one tick.
         amortized_ticks = std::max<u64>(amortized_ticks, 1);
 
         parent.system.CoreTiming().AddTicks(amortized_ticks);
-        num_interpreted_instructions = 0;
     }
 
     u64 GetTicksRemaining() override {
@@ -156,7 +148,6 @@ public:
     }
 
     ARM_Dynarmic_64& parent;
-    std::size_t num_interpreted_instructions = 0;
     u64 tpidrro_el0 = 0;
     u64 tpidr_el0 = 0;
     static constexpr u64 minimum_run_cycles = 1000U;
@@ -248,12 +239,8 @@ ARM_Dynarmic_64::ARM_Dynarmic_64(System& system, CPUInterrupts& interrupt_handle
                                  bool uses_wall_clock, ExclusiveMonitor& exclusive_monitor,
                                  std::size_t core_index)
     : ARM_Interface{system, interrupt_handlers, uses_wall_clock},
-      cb(std::make_unique<DynarmicCallbacks64>(*this)), inner_unicorn{system, interrupt_handlers,
-                                                                      uses_wall_clock,
-                                                                      ARM_Unicorn::Arch::AArch64,
-                                                                      core_index},
-      core_index{core_index}, exclusive_monitor{
-                                  dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
+      cb(std::make_unique<DynarmicCallbacks64>(*this)), core_index{core_index},
+      exclusive_monitor{dynamic_cast<DynarmicExclusiveMonitor&>(exclusive_monitor)} {}
 
 ARM_Dynarmic_64::~ARM_Dynarmic_64() = default;
 
