@@ -18,6 +18,8 @@ class System;
 
 namespace Tegra {
 
+class GPU;
+
 enum class SubmissionMode : u32 {
     IncreasingOld = 0,
     Increasing = 1,
@@ -74,16 +76,13 @@ union CommandHeader {
 static_assert(std::is_standard_layout_v<CommandHeader>, "CommandHeader is not standard layout");
 static_assert(sizeof(CommandHeader) == sizeof(u32), "CommandHeader has incorrect size!");
 
-static constexpr CommandHeader BuildCommandHeader(BufferMethods method, u32 arg_count,
-                                                  SubmissionMode mode) {
+inline CommandHeader BuildCommandHeader(BufferMethods method, u32 arg_count, SubmissionMode mode) {
     CommandHeader result{};
     result.method.Assign(static_cast<u32>(method));
     result.arg_count.Assign(arg_count);
     result.mode.Assign(mode);
     return result;
 }
-
-class GPU;
 
 struct CommandList final {
     CommandList() = default;

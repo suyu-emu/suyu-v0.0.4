@@ -273,7 +273,7 @@ public:
         BitField<0, 1, FenceOperation> op;
         BitField<8, 24, u32> syncpoint_id;
 
-        static constexpr CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
+        static CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
             FenceAction result{};
             result.op.Assign(op);
             result.syncpoint_id.Assign(syncpoint_id);
