@@ -33,7 +33,7 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
 
     connect(ui->api, qOverload<int>(&QComboBox::currentIndexChanged), this, [this] {
         UpdateDeviceComboBox();
-        if (!Settings::configuring_global) {
+        if (!Settings::IsConfiguringGlobal()) {
             ConfigurationShared::SetHighlight(
                 ui->api_layout, ui->api->currentIndex() != ConfigurationShared::USE_GLOBAL_INDEX);
         }
@@ -49,8 +49,8 @@ ConfigureGraphics::ConfigureGraphics(QWidget* parent)
         UpdateBackgroundColorButton(new_bg_color);
     });
 
-    ui->bg_label->setVisible(Settings::configuring_global);
-    ui->bg_combobox->setVisible(!Settings::configuring_global);
+    ui->bg_label->setVisible(Settings::IsConfiguringGlobal());
+    ui->bg_combobox->setVisible(!Settings::IsConfiguringGlobal());
 }
 
 void ConfigureGraphics::UpdateDeviceSelection(int device) {
@@ -76,7 +76,7 @@ void ConfigureGraphics::SetConfiguration() {
         Settings::values.use_asynchronous_gpu_emulation.GetValue());
     ui->use_nvdec_emulation->setChecked(Settings::values.use_nvdec_emulation.GetValue());
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->api->setCurrentIndex(static_cast<int>(Settings::values.renderer_backend.GetValue()));
         ui->aspect_ratio_combobox->setCurrentIndex(Settings::values.aspect_ratio.GetValue());
     } else {
@@ -100,7 +100,7 @@ void ConfigureGraphics::SetConfiguration() {
 }
 
 void ConfigureGraphics::ApplyConfiguration() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         // Guard if during game and set to game-specific value
         if (Settings::values.renderer_backend.UsingGlobal()) {
             Settings::values.renderer_backend.SetValue(GetCurrentGraphicsBackend());
@@ -194,7 +194,7 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
 
     bool enabled = false;
 
-    if (!Settings::configuring_global &&
+    if (!Settings::IsConfiguringGlobal() &&
         ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX) {
         vulkan_device = Settings::values.vulkan_device.GetValue();
     }
@@ -212,7 +212,7 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
         break;
     }
     // If in per-game config and use global is selected, don't enable.
-    enabled &= !(!Settings::configuring_global &&
+    enabled &= !(!Settings::IsConfiguringGlobal() &&
                  ui->api->currentIndex() == ConfigurationShared::USE_GLOBAL_INDEX);
     ui->device->setEnabled(enabled && !Core::System::GetInstance().IsPoweredOn());
 }
@@ -227,7 +227,7 @@ void ConfigureGraphics::RetrieveVulkanDevices() {
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         return static_cast<Settings::RendererBackend>(ui->api->currentIndex());
     }
 
@@ -241,7 +241,7 @@ Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {
 }
 
 void ConfigureGraphics::SetupPerGameUI() {
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->api->setEnabled(Settings::values.renderer_backend.UsingGlobal());
         ui->device->setEnabled(Settings::values.renderer_backend.UsingGlobal());
         ui->aspect_ratio_combobox->setEnabled(Settings::values.aspect_ratio.UsingGlobal());

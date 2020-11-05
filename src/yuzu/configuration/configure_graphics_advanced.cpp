@@ -32,7 +32,7 @@ void ConfigureGraphicsAdvanced::SetConfiguration() {
     ui->use_asynchronous_shaders->setChecked(Settings::values.use_asynchronous_shaders.GetValue());
     ui->use_fast_gpu_time->setChecked(Settings::values.use_fast_gpu_time.GetValue());
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setCurrentIndex(
             static_cast<int>(Settings::values.gpu_accuracy.GetValue()));
         ui->anisotropic_filtering_combobox->setCurrentIndex(
@@ -52,9 +52,9 @@ void ConfigureGraphicsAdvanced::ApplyConfiguration() {
     // Subtract 2 if configuring per-game (separator and "use global configuration" take 2 slots)
     const auto gpu_accuracy = static_cast<Settings::GPUAccuracy>(
         ui->gpu_accuracy->currentIndex() -
-        ((Settings::configuring_global) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
+        ((Settings::IsConfiguringGlobal()) ? 0 : ConfigurationShared::USE_GLOBAL_OFFSET));
 
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         // Must guard in case of a during-game configuration when set to be game-specific.
         if (Settings::values.gpu_accuracy.UsingGlobal()) {
             Settings::values.gpu_accuracy.SetValue(gpu_accuracy);
@@ -118,7 +118,7 @@ void ConfigureGraphicsAdvanced::RetranslateUI() {
 
 void ConfigureGraphicsAdvanced::SetupPerGameUI() {
     // Disable if not global (only happens during game)
-    if (Settings::configuring_global) {
+    if (Settings::IsConfiguringGlobal()) {
         ui->gpu_accuracy->setEnabled(Settings::values.gpu_accuracy.UsingGlobal());
         ui->use_vsync->setEnabled(Settings::values.use_vsync.UsingGlobal());
         ui->use_assembly_shaders->setEnabled(Settings::values.use_assembly_shaders.UsingGlobal());
