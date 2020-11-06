@@ -2056,15 +2056,19 @@ private:
     }
 
     Expression Texture(Operation operation) {
-        const auto meta = std::get_if<MetaTexture>(&operation.GetMeta());
-        ASSERT(meta);
-
-        std::string expr = GenerateTexture(
-            operation, "", {TextureOffset{}, TextureArgument{Type::Float, meta->bias}});
-        if (meta->sampler.is_shadow) {
-            expr = "vec4(" + expr + ')';
+        const auto meta = std::get<MetaTexture>(operation.GetMeta());
+        const bool separate_dc = meta.sampler.type == TextureType::TextureCube &&
+                                 meta.sampler.is_array && meta.sampler.is_shadow;
+        // TODO: Replace this with an array and make GenerateTexture use C++20 std::span
+        const std::vector<TextureIR> extras{
+            TextureOffset{},
+            TextureArgument{Type::Float, meta.bias},
+        };
+        std::string expr = GenerateTexture(operation, "", extras, separate_dc);
+        if (meta.sampler.is_shadow) {
+            expr = fmt::format("vec4({})", expr);
         }
-        return {expr + GetSwizzle(meta->element), Type::Float};
+        return {expr + GetSwizzle(meta.element), Type::Float};
     }
 
     Expression TextureLod(Operation operation) {

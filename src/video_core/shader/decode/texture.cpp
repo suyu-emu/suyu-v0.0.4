@@ -556,7 +556,6 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
     const bool is_shadow = depth_compare != nullptr;
     const bool is_bindless = bindless_reg.has_value();
 
-    UNIMPLEMENTED_IF(texture_type == TextureType::TextureCube && is_array && is_shadow);
     ASSERT_MSG(texture_type != TextureType::Texture3D || !is_array || !is_shadow,
                "Illegal texture type");
 
