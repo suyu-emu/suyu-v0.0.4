@@ -125,6 +125,7 @@ private:
     ControllerSupportArgPrivate controller_private_arg;
     ControllerSupportArgOld controller_user_arg_old;
     ControllerSupportArgNew controller_user_arg_new;
+    ControllerUpdateFirmwareArg controller_update_arg;
     bool complete{false};
     ResultCode status{RESULT_SUCCESS};
     bool is_single_mode{false};

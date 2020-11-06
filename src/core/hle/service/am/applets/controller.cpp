@@ -70,7 +70,7 @@ void Controller::Initialize() {
     const auto& private_arg = private_arg_storage->GetData();
     ASSERT(private_arg.size() == sizeof(ControllerSupportArgPrivate));
 
-    std::memcpy(&controller_private_arg, private_arg.data(), sizeof(ControllerSupportArgPrivate));
+    std::memcpy(&controller_private_arg, private_arg.data(), private_arg.size());
     ASSERT_MSG(controller_private_arg.arg_private_size == sizeof(ControllerSupportArgPrivate),
                "Unknown ControllerSupportArgPrivate revision={} with size={}",
                library_applet_version, controller_private_arg.arg_private_size);
@@ -106,7 +106,8 @@ void Controller::Initialize() {
     }
 
     switch (controller_private_arg.mode) {
-    case ControllerSupportMode::ShowControllerSupport: {
+    case ControllerSupportMode::ShowControllerSupport:
+    case ControllerSupportMode::ShowControllerStrapGuide: {
         const auto user_arg_storage = broker.PopNormalDataToApplet();
         ASSERT(user_arg_storage != nullptr);
 
@@ -116,11 +117,11 @@ void Controller::Initialize() {
         case LibraryAppletVersion::Version4:
         case LibraryAppletVersion::Version5:
             ASSERT(user_arg.size() == sizeof(ControllerSupportArgOld));
-            std::memcpy(&controller_user_arg_old, user_arg.data(), sizeof(ControllerSupportArgOld));
+            std::memcpy(&controller_user_arg_old, user_arg.data(), user_arg.size());
             break;
         case LibraryAppletVersion::Version7:
             ASSERT(user_arg.size() == sizeof(ControllerSupportArgNew));
-            std::memcpy(&controller_user_arg_new, user_arg.data(), sizeof(ControllerSupportArgNew));
+            std::memcpy(&controller_user_arg_new, user_arg.data(), user_arg.size());
             break;
         default:
             UNIMPLEMENTED_MSG("Unknown ControllerSupportArg revision={} with size={}",
@@ -131,8 +132,16 @@ void Controller::Initialize() {
         }
         break;
     }
-    case ControllerSupportMode::ShowControllerStrapGuide:
-    case ControllerSupportMode::ShowControllerFirmwareUpdate:
+    case ControllerSupportMode::ShowControllerFirmwareUpdate: {
+        const auto update_arg_storage = broker.PopNormalDataToApplet();
+        ASSERT(update_arg_storage != nullptr);
+
+        const auto& update_arg = update_arg_storage->GetData();
+        ASSERT(update_arg.size() == sizeof(ControllerUpdateFirmwareArg));
+
+        std::memcpy(&controller_update_arg, update_arg.data(), update_arg.size());
+        break;
+    }
     default: {
         UNIMPLEMENTED_MSG("Unimplemented ControllerSupportMode={}", controller_private_arg.mode);
         break;
@@ -200,6 +209,9 @@ void Controller::Execute() {
     }
     case ControllerSupportMode::ShowControllerStrapGuide:
     case ControllerSupportMode::ShowControllerFirmwareUpdate:
+        UNIMPLEMENTED_MSG("ControllerSupportMode={} is not implemented",
+                          controller_private_arg.mode);
+        [[fallthrough]];
     default: {
         ConfigurationComplete();
         break;
