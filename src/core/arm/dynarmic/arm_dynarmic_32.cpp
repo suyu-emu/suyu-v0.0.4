@@ -7,6 +7,7 @@
 #include <dynarmic/A32/a32.h>
 #include <dynarmic/A32/config.h>
 #include <dynarmic/A32/context.h>
+#include "common/assert.h"
 #include "common/logging/log.h"
 #include "common/page_table.h"
 #include "core/arm/cpu_interrupt_handler.h"

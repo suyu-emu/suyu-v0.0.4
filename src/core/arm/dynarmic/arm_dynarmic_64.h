@@ -12,7 +12,6 @@
 #include "common/hash.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/exclusive_monitor.h"
-#include "core/arm/unicorn/arm_unicorn.h"
 
 namespace Core::Memory {
 class Memory;
@@ -71,7 +70,6 @@ private:
     std::unique_ptr<DynarmicCallbacks64> cb;
     JitCacheType jit_cache;
     std::shared_ptr<Dynarmic::A64::Jit> jit;
-    ARM_Unicorn inner_unicorn;
 
     std::size_t core_index;
     DynarmicExclusiveMonitor& exclusive_monitor;
