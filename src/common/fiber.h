@@ -7,9 +7,6 @@
 #include <functional>
 #include <memory>
 
-#include "common/common_types.h"
-#include "common/spin_lock.h"
-
 #if !defined(_WIN32) && !defined(WIN32)
 namespace boost::context::detail {
 struct transfer_t;
@@ -41,8 +38,8 @@ public:
     Fiber(const Fiber&) = delete;
     Fiber& operator=(const Fiber&) = delete;
 
-    Fiber(Fiber&&) = delete;
-    Fiber& operator=(Fiber&&) = delete;
+    Fiber(Fiber&&) = default;
+    Fiber& operator=(Fiber&&) = default;
 
     /// Yields control from Fiber 'from' to Fiber 'to'
     /// Fiber 'from' must be the currently running fiber.
@@ -57,9 +54,7 @@ public:
     void Exit();
 
     /// Changes the start parameter of the fiber. Has no effect if the fiber already started
-    void SetStartParameter(void* new_parameter) {
-        start_parameter = new_parameter;
-    }
+    void SetStartParameter(void* new_parameter);
 
 private:
     Fiber();
@@ -77,16 +72,7 @@ private:
 #endif
 
     struct FiberImpl;
-
-    SpinLock guard{};
-    std::function<void(void*)> entry_point;
-    std::function<void(void*)> rewind_point;
-    void* rewind_parameter{};
-    void* start_parameter{};
-    std::shared_ptr<Fiber> previous_fiber;
     std::unique_ptr<FiberImpl> impl;
-    bool is_thread_fiber{};
-    bool released{};
 };
 
 } // namespace Common
