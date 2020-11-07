@@ -90,10 +90,7 @@ struct CommandList final {
     explicit CommandList(std::vector<Tegra::CommandHeader>&& prefetch_command_list)
         : prefetch_command_list{std::move(prefetch_command_list)} {}
 
-    void RefreshIntegrityChecks(GPU& gpu);
-
     std::vector<Tegra::CommandListHeader> command_lists;
-    std::vector<u64> command_list_hashes;
     std::vector<Tegra::CommandHeader> prefetch_command_list;
 };
 

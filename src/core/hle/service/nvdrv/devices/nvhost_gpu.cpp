@@ -214,7 +214,6 @@ u32 nvhost_gpu::SubmitGPFIFOImpl(IoctlSubmitGpfifo& params, std::vector<u8>& out
         params.fence_out.value = syncpoint_manager.GetSyncpointMax(params.fence_out.id);
     }
 
-    entries.RefreshIntegrityChecks(gpu);
     gpu.PushGPUEntries(std::move(entries));
 
     if (params.flags.add_increment.Value()) {

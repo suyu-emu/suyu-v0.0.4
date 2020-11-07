@@ -13,20 +13,6 @@
 
 namespace Tegra {
 
-void CommandList::RefreshIntegrityChecks(GPU& gpu) {
-    command_list_hashes.resize(command_lists.size());
-
-    for (std::size_t index = 0; index < command_lists.size(); ++index) {
-        const CommandListHeader command_list_header = command_lists[index];
-        std::vector<CommandHeader> command_headers(command_list_header.size);
-        gpu.MemoryManager().ReadBlockUnsafe(command_list_header.addr, command_headers.data(),
-                                            command_list_header.size * sizeof(u32));
-        command_list_hashes[index] =
-            Common::CityHash64(reinterpret_cast<char*>(command_headers.data()),
-                               command_list_header.size * sizeof(u32));
-    }
-}
-
 DmaPusher::DmaPusher(Core::System& system, GPU& gpu) : gpu{gpu}, system{system} {}
 
 DmaPusher::~DmaPusher() = default;
@@ -77,8 +63,7 @@ bool DmaPusher::Step() {
         dma_pushbuffer.pop();
     } else {
         const CommandListHeader command_list_header{
-            command_list.command_lists[dma_pushbuffer_subindex]};
-        const u64 next_hash = command_list.command_list_hashes[dma_pushbuffer_subindex++];
+            command_list.command_lists[dma_pushbuffer_subindex++]};
         const GPUVAddr dma_get = command_list_header.addr;
 
         if (dma_pushbuffer_subindex >= command_list.command_lists.size()) {
@@ -95,15 +80,6 @@ bool DmaPusher::Step() {
         command_headers.resize(command_list_header.size);
         gpu.MemoryManager().ReadBlockUnsafe(dma_get, command_headers.data(),
                                             command_list_header.size * sizeof(u32));
-
-        // Integrity check
-        const u64 new_hash = Common::CityHash64(reinterpret_cast<char*>(command_headers.data()),
-                                                command_list_header.size * sizeof(u32));
-        if (new_hash != next_hash) {
-            LOG_CRITICAL(HW_GPU, "CommandList at addr=0x{:X} is corrupt, skipping!", dma_get);
-            dma_pushbuffer.pop();
-            return true;
-        }
     }
     for (std::size_t index = 0; index < command_headers.size();) {
         const CommandHeader& command_header = command_headers[index];
