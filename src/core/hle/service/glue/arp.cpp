@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/hle_ipc.h"

@@ -9,6 +9,7 @@
 #include "common/alignment.h"
 #include "common/hex_util.h"
 #include "common/scope_exit.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/memory/page_table.h"

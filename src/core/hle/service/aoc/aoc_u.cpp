@@ -6,6 +6,7 @@
 #include <numeric>
 #include <vector>
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"

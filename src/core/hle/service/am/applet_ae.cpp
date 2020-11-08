@@ -3,8 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/process.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/nvflinger/nvflinger.h"

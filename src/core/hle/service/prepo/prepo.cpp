@@ -4,6 +4,7 @@
 
 #include "common/hex_util.h"
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/acc/profile_manager.h"
