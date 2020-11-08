@@ -125,14 +125,6 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "yuzu/discord_impl.h"
 #endif
 
-#ifdef YUZU_USE_QT_WEB_ENGINE
-#include <QWebEngineProfile>
-#include <QWebEngineScript>
-#include <QWebEngineScriptCollection>
-#include <QWebEngineSettings>
-#include <QWebEngineView>
-#endif
-
 #ifdef QT_STATICPLUGIN
 Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
 #endif
@@ -348,151 +340,6 @@ void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message
     QMessageBox::warning(this, tr("Text Check Failed"), QString::fromStdU16String(error_message));
     emit SoftwareKeyboardFinishedCheckDialog();
 }
-
-#ifdef YUZU_USE_QT_WEB_ENGINE
-
-void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view additional_args) {
-    NXInputWebEngineView web_browser_view(this);
-
-    // Scope to contain the QProgressDialog for initialization
-    {
-        QProgressDialog progress(this);
-        progress.setMinimumDuration(200);
-        progress.setLabelText(tr("Loading Web Applet..."));
-        progress.setRange(0, 4);
-        progress.setValue(0);
-        progress.show();
-
-        auto future = QtConcurrent::run([this] { emit WebBrowserUnpackRomFS(); });
-
-        while (!future.isFinished())
-            QApplication::processEvents();
-
-        progress.setValue(1);
-
-        // Load the special shim script to handle input and exit.
-        QWebEngineScript nx_shim;
-        nx_shim.setSourceCode(GetNXShimInjectionScript());
-        nx_shim.setWorldId(QWebEngineScript::MainWorld);
-        nx_shim.setName(QStringLiteral("nx_inject.js"));
-        nx_shim.setInjectionPoint(QWebEngineScript::DocumentCreation);
-        nx_shim.setRunsOnSubFrames(true);
-        web_browser_view.page()->profile()->scripts()->insert(nx_shim);
-
-        web_browser_view.load(
-            QUrl(QUrl::fromLocalFile(QString::fromStdString(std::string(filename))).toString() +
-                 QString::fromStdString(std::string(additional_args))));
-
-        progress.setValue(2);
-
-        render_window->hide();
-        web_browser_view.setFocus();
-
-        const auto& layout = render_window->GetFramebufferLayout();
-        web_browser_view.resize(layout.screen.GetWidth(), layout.screen.GetHeight());
-        web_browser_view.move(layout.screen.left, layout.screen.top + menuBar()->height());
-        web_browser_view.setZoomFactor(static_cast<qreal>(layout.screen.GetWidth()) /
-                                       Layout::ScreenUndocked::Width);
-        web_browser_view.settings()->setAttribute(
-            QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
-
-        web_browser_view.show();
-
-        progress.setValue(3);
-
-        QApplication::processEvents();
-
-        progress.setValue(4);
-    }
-
-    bool finished = false;
-    QAction* exit_action = new QAction(tr("Exit Web Applet"), this);
-    connect(exit_action, &QAction::triggered, this, [&finished] { finished = true; });
-    ui.menubar->addAction(exit_action);
-
-    auto& npad =
-        Core::System::GetInstance()
-            .ServiceManager()
-            .GetService<Service::HID::Hid>("hid")
-            ->GetAppletResource()
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
-
-    const auto fire_js_keypress = [&web_browser_view](u32 key_code) {
-        web_browser_view.page()->runJavaScript(
-            QStringLiteral("document.dispatchEvent(new KeyboardEvent('keydown', {'key': %1}));")
-                .arg(key_code));
-    };
-
-    QMessageBox::information(
-        this, tr("Exit"),
-        tr("To exit the web application, use the game provided controls to select exit, select the "
-           "'Exit Web Applet' option in the menu bar, or press the 'Enter' key."));
-
-    bool running_exit_check = false;
-    while (!finished) {
-        QApplication::processEvents();
-
-        if (!running_exit_check) {
-            web_browser_view.page()->runJavaScript(QStringLiteral("applet_done;"),
-                                                   [&](const QVariant& res) {
-                                                       running_exit_check = false;
-                                                       if (res.toBool())
-                                                           finished = true;
-                                                   });
-            running_exit_check = true;
-        }
-
-        const auto input = npad.GetAndResetPressState();
-        for (std::size_t i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            if ((input & (1 << i)) != 0) {
-                LOG_DEBUG(Frontend, "firing input for button id={:02X}", i);
-                web_browser_view.page()->runJavaScript(
-                    QStringLiteral("yuzu_key_callbacks[%1]();").arg(i));
-            }
-        }
-
-        if (input & 0x00888000)      // RStick Down | LStick Down | DPad Down
-            fire_js_keypress(40);    // Down Arrow Key
-        else if (input & 0x00444000) // RStick Right | LStick Right | DPad Right
-            fire_js_keypress(39);    // Right Arrow Key
-        else if (input & 0x00222000) // RStick Up | LStick Up | DPad Up
-            fire_js_keypress(38);    // Up Arrow Key
-        else if (input & 0x00111000) // RStick Left | LStick Left | DPad Left
-            fire_js_keypress(37);    // Left Arrow Key
-        else if (input & 0x00000001) // A Button
-            fire_js_keypress(13);    // Enter Key
-    }
-
-    web_browser_view.hide();
-    render_window->show();
-    render_window->setFocus();
-    ui.menubar->removeAction(exit_action);
-
-    // Needed to update render window focus/show and remove menubar action
-    QApplication::processEvents();
-    emit WebBrowserFinishedBrowsing();
-}
-
-#else
-
-void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view additional_args) {
-#ifndef __linux__
-    QMessageBox::warning(
-        this, tr("Web Applet"),
-        tr("This version of yuzu was built without QtWebEngine support, meaning that yuzu cannot "
-           "properly display the game manual or web page requested."),
-        QMessageBox::Ok, QMessageBox::Ok);
-#endif
-
-    LOG_INFO(Frontend,
-             "(STUBBED) called - Missing QtWebEngine dependency needed to open website page at "
-             "'{}' with arguments '{}'!",
-             filename, additional_args);
-
-    emit WebBrowserFinishedBrowsing();
-}
-
-#endif
 
 void GMainWindow::InitializeWidgets() {
 #ifdef YUZU_ENABLE_COMPATIBILITY_REPORTING
@@ -993,7 +840,6 @@ bool GMainWindow::LoadROM(const QString& filename, std::size_t program_index) {
 
     system.SetAppletFrontendSet({
         std::make_unique<QtControllerSelector>(*this), // Controller Selector
-        nullptr,                                       // E-Commerce
         std::make_unique<QtErrorDisplay>(*this),       // Error Display
         nullptr,                                       // Parental Controls
         nullptr,                                       // Photo Viewer

@@ -142,14 +142,14 @@ void Applet::Initialize() {
 
 AppletFrontendSet::AppletFrontendSet() = default;
 
-AppletFrontendSet::AppletFrontendSet(ControllerApplet controller, ECommerceApplet e_commerce,
-                                     ErrorApplet error, ParentalControlsApplet parental_controls,
-                                     PhotoViewer photo_viewer, ProfileSelect profile_select,
-                                     SoftwareKeyboard software_keyboard, WebBrowser web_browser)
-    : controller{std::move(controller)}, e_commerce{std::move(e_commerce)}, error{std::move(error)},
-      parental_controls{std::move(parental_controls)}, photo_viewer{std::move(photo_viewer)},
-      profile_select{std::move(profile_select)}, software_keyboard{std::move(software_keyboard)},
-      web_browser{std::move(web_browser)} {}
+AppletFrontendSet::AppletFrontendSet(ControllerApplet controller_applet, ErrorApplet error_applet,
+                                     ParentalControlsApplet parental_controls_applet,
+                                     PhotoViewer photo_viewer_, ProfileSelect profile_select_,
+                                     SoftwareKeyboard software_keyboard_, WebBrowser web_browser_)
+    : controller{std::move(controller_applet)}, error{std::move(error_applet)},
+      parental_controls{std::move(parental_controls_applet)},
+      photo_viewer{std::move(photo_viewer_)}, profile_select{std::move(profile_select_)},
+      software_keyboard{std::move(software_keyboard_)}, web_browser{std::move(web_browser_)} {}
 
 AppletFrontendSet::~AppletFrontendSet() = default;
 
@@ -168,10 +168,6 @@ const AppletFrontendSet& AppletManager::GetAppletFrontendSet() const {
 void AppletManager::SetAppletFrontendSet(AppletFrontendSet set) {
     if (set.controller != nullptr) {
         frontend.controller = std::move(set.controller);
-    }
-
-    if (set.e_commerce != nullptr) {
-        frontend.e_commerce = std::move(set.e_commerce);
     }
 
     if (set.error != nullptr) {
@@ -208,10 +204,6 @@ void AppletManager::SetDefaultAppletsIfMissing() {
     if (frontend.controller == nullptr) {
         frontend.controller =
             std::make_unique<Core::Frontend::DefaultControllerApplet>(system.ServiceManager());
-    }
-
-    if (frontend.e_commerce == nullptr) {
-        frontend.e_commerce = std::make_unique<Core::Frontend::DefaultECommerceApplet>();
     }
 
     if (frontend.error == nullptr) {
@@ -257,13 +249,14 @@ std::shared_ptr<Applet> AppletManager::GetApplet(AppletId id) const {
         return std::make_shared<ProfileSelect>(system, *frontend.profile_select);
     case AppletId::SoftwareKeyboard:
         return std::make_shared<SoftwareKeyboard>(system, *frontend.software_keyboard);
+    case AppletId::Web:
+    case AppletId::Shop:
+    case AppletId::OfflineWeb:
+    case AppletId::LoginShare:
+    case AppletId::WebAuth:
+        return std::make_shared<WebBrowser>(system, *frontend.web_browser);
     case AppletId::PhotoViewer:
         return std::make_shared<PhotoViewer>(system, *frontend.photo_viewer);
-    case AppletId::LibAppletShop:
-        return std::make_shared<WebBrowser>(system, *frontend.web_browser,
-                                            frontend.e_commerce.get());
-    case AppletId::LibAppletOff:
-        return std::make_shared<WebBrowser>(system, *frontend.web_browser);
     default:
         UNIMPLEMENTED_MSG(
             "No backend implementation exists for applet_id={:02X}! Falling back to stub applet.",

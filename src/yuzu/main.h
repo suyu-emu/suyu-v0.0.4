@@ -126,9 +126,6 @@ signals:
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
     void SoftwareKeyboardFinishedCheckDialog();
 
-    void WebBrowserUnpackRomFS();
-    void WebBrowserFinishedBrowsing();
-
 public slots:
     void OnLoadComplete();
     void OnExecuteProgram(std::size_t program_index);
@@ -138,7 +135,6 @@ public slots:
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
-    void WebBrowserOpenPage(std::string_view filename, std::string_view arguments);
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
 private:
