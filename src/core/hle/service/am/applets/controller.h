@@ -21,7 +21,7 @@ namespace Service::AM::Applets {
 using IdentificationColor = std::array<u8, 4>;
 using ExplainText = std::array<char, 0x81>;
 
-enum class LibraryAppletVersion : u32_le {
+enum class ControllerAppletVersion : u32_le {
     Version3 = 0x3, // 1.0.0 - 2.3.0
     Version4 = 0x4, // 3.0.0 - 5.1.0
     Version5 = 0x5, // 6.0.0 - 7.0.1
@@ -121,7 +121,7 @@ public:
 private:
     const Core::Frontend::ControllerApplet& frontend;
 
-    LibraryAppletVersion library_applet_version;
+    ControllerAppletVersion controller_applet_version;
     ControllerSupportArgPrivate controller_private_arg;
     ControllerSupportArgOld controller_user_arg_old;
     ControllerSupportArgNew controller_user_arg_new;
