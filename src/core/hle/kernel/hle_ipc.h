@@ -24,6 +24,10 @@ namespace Core::Memory {
 class Memory;
 }
 
+namespace IPC {
+class ResponseBuilder;
+}
+
 namespace Service {
 class ServiceFrameworkBase;
 }
@@ -287,6 +291,8 @@ public:
     }
 
 private:
+    friend class IPC::ResponseBuilder;
+
     void ParseCommandBuffer(const HandleTable& handle_table, u32_le* src_cmdbuf, bool incoming);
 
     std::array<u32, IPC::COMMAND_BUFFER_LENGTH> cmd_buf;

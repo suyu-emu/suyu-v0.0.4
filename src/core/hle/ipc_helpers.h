@@ -12,7 +12,6 @@
 #include <utility>
 #include "common/assert.h"
 #include "common/common_types.h"
-#include "core/core.h"
 #include "core/hle/ipc.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
@@ -73,14 +72,12 @@ public:
         AlwaysMoveHandles = 1,
     };
 
-    explicit ResponseBuilder(u32* command_buffer) : RequestHelperBase(command_buffer) {}
-
     explicit ResponseBuilder(Kernel::HLERequestContext& context, u32 normal_params_size,
                              u32 num_handles_to_copy = 0, u32 num_objects_to_move = 0,
                              Flags flags = Flags::None)
-
         : RequestHelperBase(context), normal_params_size(normal_params_size),
-          num_handles_to_copy(num_handles_to_copy), num_objects_to_move(num_objects_to_move) {
+          num_handles_to_copy(num_handles_to_copy),
+          num_objects_to_move(num_objects_to_move), kernel{context.kernel} {
 
         memset(cmdbuf, 0, sizeof(u32) * IPC::COMMAND_BUFFER_LENGTH);
 
@@ -140,7 +137,6 @@ public:
         if (context->Session()->IsDomain()) {
             context->AddDomainObject(std::move(iface));
         } else {
-            auto& kernel = Core::System::GetInstance().Kernel();
             auto [client, server] = Kernel::Session::Create(kernel, iface->GetServiceName());
             context->AddMoveObject(std::move(client));
             iface->ClientConnected(std::move(server));
@@ -214,6 +210,7 @@ private:
     u32 num_handles_to_copy{};
     u32 num_objects_to_move{}; ///< Domain objects or move handles, context dependent
     std::ptrdiff_t datapayload_index{};
+    Kernel::KernelCore& kernel;
 };
 
 /// Push ///
