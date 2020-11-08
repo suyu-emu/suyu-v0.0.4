@@ -36,26 +36,20 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 }
 } // Anonymous namespace
 
-namespace NvErrCodes {
-constexpr u32 Success{};
-[[maybe_unused]] constexpr u32 OutOfMemory{static_cast<u32>(-12)};
-constexpr u32 InvalidInput{static_cast<u32>(-22)};
-} // namespace NvErrCodes
-
 nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
     : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
-u32 nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
+NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
     IoctlSetNvmapFD params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSetNvmapFD));
     LOG_DEBUG(Service_NVDRV, "called, fd={}", params.nvmap_fd);
 
     nvmap_fd = params.nvmap_fd;
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlSubmit params{};
     std::memcpy(&params, input.data(), sizeof(IoctlSubmit));
     LOG_DEBUG(Service_NVDRV, "called NVDEC Submit, cmd_buffer_count={}", params.cmd_buffer_count);
@@ -83,12 +77,12 @@ u32 nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u8>& o
 
     for (const auto& cmd_buffer : command_buffers) {
         auto object = nvmap_dev->GetObject(cmd_buffer.memory_id);
-        ASSERT_OR_EXECUTE(object, return NvErrCodes::InvalidInput;);
+        ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
         const auto map = FindBufferMap(object->dma_map_addr);
         if (!map) {
             LOG_ERROR(Service_NVDRV, "Tried to submit an invalid offset 0x{:X} dma 0x{:X}",
                       object->addr, object->dma_map_addr);
-            return 0;
+            return NvResult::Success;
         }
         Tegra::ChCommandHeaderList cmdlist(cmd_buffer.word_count);
         gpu.MemoryManager().ReadBlock(map->StartAddr() + cmd_buffer.offset, cmdlist.data(),
@@ -105,10 +99,10 @@ u32 nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u8>& o
     offset = WriteVectors(output, syncpt_increments, offset);
     offset = WriteVectors(output, wait_checks, offset);
 
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlGetSyncpoint params{};
     std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
@@ -118,18 +112,18 @@ u32 nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::vector<
     params.value = 0;
     std::memcpy(output.data(), &params, sizeof(IoctlGetSyncpoint));
 
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::GetWaitbase(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlGetWaitbase params{};
     std::memcpy(&params, input.data(), sizeof(IoctlGetWaitbase));
     params.value = 0; // Seems to be hard coded at 0
     std::memcpy(output.data(), &params, sizeof(IoctlGetWaitbase));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlMapBuffer params{};
     std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
     std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
@@ -143,7 +137,7 @@ u32 nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vector<u8>
         if (!object) {
             LOG_ERROR(Service_NVDRV, "invalid cmd_buffer nvmap_handle={:X}", cmf_buff.map_handle);
             std::memcpy(output.data(), &params, output.size());
-            return NvErrCodes::InvalidInput;
+            return NvResult::InvalidState;
         }
         if (object->dma_map_addr == 0) {
             // NVDEC and VIC memory is in the 32-bit address space
@@ -165,10 +159,10 @@ u32 nvhost_nvdec_common::MapBuffer(const std::vector<u8>& input, std::vector<u8>
     std::memcpy(output.data() + sizeof(IoctlMapBuffer), cmd_buffer_handles.data(),
                 cmd_buffer_handles.size() * sizeof(MapBufferEntry));
 
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlMapBuffer params{};
     std::memcpy(&params, input.data(), sizeof(IoctlMapBuffer));
     std::vector<MapBufferEntry> cmd_buffer_handles(params.num_entries);
@@ -181,7 +175,7 @@ u32 nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u
         if (!object) {
             LOG_ERROR(Service_NVDRV, "invalid cmd_buffer nvmap_handle={:X}", cmf_buff.map_handle);
             std::memcpy(output.data(), &params, output.size());
-            return NvErrCodes::InvalidInput;
+            return NvResult::InvalidState;
         }
         if (const auto size{RemoveBufferMap(object->dma_map_addr)}; size) {
             gpu.MemoryManager().Unmap(object->dma_map_addr, *size);
@@ -193,13 +187,14 @@ u32 nvhost_nvdec_common::UnmapBuffer(const std::vector<u8>& input, std::vector<u
         object->dma_map_addr = 0;
     }
     std::memset(output.data(), 0, output.size());
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_nvdec_common::SetSubmitTimeout(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_nvdec_common::SetSubmitTimeout(const std::vector<u8>& input,
+                                               std::vector<u8>& output) {
     std::memcpy(&submit_timeout, input.data(), input.size());
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
 std::optional<nvhost_nvdec_common::BufferMap> nvhost_nvdec_common::FindBufferMap(
