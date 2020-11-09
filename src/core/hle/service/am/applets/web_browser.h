@@ -8,6 +8,7 @@
 #include "common/common_types.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/applets/web_types.h"
 
 namespace Core {
 class System;
@@ -28,11 +29,35 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
+    void WebBrowserExit(WebExitReason exit_reason, std::string last_url = "");
+
 private:
+    // Initializers for the various types of browser applets
+    void InitializeShop();
+    void InitializeLogin();
+    void InitializeOffline();
+    void InitializeShare();
+    void InitializeWeb();
+    void InitializeWifi();
+    void InitializeLobby();
+
+    // Executors for the various types of browser applets
+    void ExecuteShop();
+    void ExecuteLogin();
+    void ExecuteOffline();
+    void ExecuteShare();
+    void ExecuteWeb();
+    void ExecuteWifi();
+    void ExecuteLobby();
+
     const Core::Frontend::WebBrowserApplet& frontend;
 
     bool complete{false};
     ResultCode status{RESULT_SUCCESS};
+
+    WebAppletVersion web_applet_version;
+    WebArgHeader web_arg_header;
+    WebArgInputTLVMap web_arg_input_tlv_map;
 
     Core::System& system;
 };
