@@ -46,7 +46,7 @@ public:
                 angle += TAU;
             }
         } else if ((angle >= bottom_limit && angle < to_angle) ||
-                    (angle - TAU >= bottom_limit && angle - TAU < to_angle)) {
+                   (angle - TAU >= bottom_limit && angle - TAU < to_angle)) {
             angle += modifier_angle;
             if (angle >= TAU) {
                 angle -= TAU;
