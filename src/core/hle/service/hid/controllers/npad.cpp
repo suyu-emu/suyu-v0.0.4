@@ -734,7 +734,7 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
 
 void Controller_NPad::VibrateController(const DeviceHandle& vibration_device_handle,
                                         const VibrationValue& vibration_value) {
-    if (!Settings::values.vibration_enabled.GetValue()) {
+    if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
         return;
     }
 
@@ -774,7 +774,7 @@ void Controller_NPad::VibrateController(const DeviceHandle& vibration_device_han
 
 void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibration_device_handles,
                                          const std::vector<VibrationValue>& vibration_values) {
-    if (!Settings::values.vibration_enabled.GetValue()) {
+    if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
         return;
     }
 
@@ -809,6 +809,10 @@ void Controller_NPad::InitializeVibrationDeviceAtIndex(std::size_t npad_index,
     } else {
         vibration_devices_mounted[npad_index][device_index] = false;
     }
+}
+
+void Controller_NPad::SetPermitVibrationSession(bool permit_vibration_session) {
+    permit_vibration_session_enabled = permit_vibration_session;
 }
 
 bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const {

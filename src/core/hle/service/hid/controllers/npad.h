@@ -163,6 +163,8 @@ public:
 
     void InitializeVibrationDeviceAtIndex(std::size_t npad_index, std::size_t device_index);
 
+    void SetPermitVibrationSession(bool permit_vibration_session);
+
     bool IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const;
 
     std::shared_ptr<Kernel::ReadableEvent> GetStyleSetChangedEvent(u32 npad_id) const;
@@ -426,6 +428,7 @@ private:
     std::array<Kernel::EventPair, 10> styleset_changed_events;
     std::array<std::array<std::chrono::steady_clock::time_point, 2>, 10> last_vibration_timepoints;
     std::array<std::array<VibrationValue, 2>, 10> latest_vibration_values{};
+    bool permit_vibration_session_enabled{false};
     std::array<std::array<bool, 2>, 10> vibration_devices_mounted{};
     std::array<ControllerHolder, 10> connected_controllers{};
     std::array<bool, 10> unintended_home_button_input_protection{};

@@ -1119,15 +1119,20 @@ void Hid::BeginPermitVibrationSession(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto applet_resource_user_id{rp.Pop<u64>()};
 
-    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
-                applet_resource_user_id);
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetPermitVibrationSession(true);
+
+    LOG_DEBUG(Service_HID, "called, applet_resource_user_id={}", applet_resource_user_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
 }
 
 void Hid::EndPermitVibrationSession(Kernel::HLERequestContext& ctx) {
-    LOG_WARNING(Service_HID, "(STUBBED) called");
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetPermitVibrationSession(false);
+
+    LOG_DEBUG(Service_HID, "called");
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
