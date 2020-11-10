@@ -20,6 +20,7 @@ public:
 private:
     void SetShimLibraryVersion(Kernel::HLERequestContext& ctx);
     void GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& ctx);
+    void GetAlbumFileList3AaeAruid(Kernel::HLERequestContext& ctx);
 };
 
 } // namespace Service::Capture

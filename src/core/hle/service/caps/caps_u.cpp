@@ -41,7 +41,7 @@ CAPS_U::CAPS_U() : ServiceFramework("caps:u") {
         {130, nullptr, "PrecheckToCreateContentsForApplication"},
         {140, nullptr, "GetAlbumFileList1AafeAruidDeprecated"},
         {141, nullptr, "GetAlbumFileList2AafeUidAruidDeprecated"},
-        {142, nullptr, "GetAlbumFileList3AaeAruid"},
+        {142, &CAPS_U::GetAlbumFileList3AaeAruid, "GetAlbumFileList3AaeAruid"},
         {143, nullptr, "GetAlbumFileList4AaeUidAruid"},
         {60002, nullptr, "OpenAccessorSessionForApplication"},
     };
@@ -77,17 +77,24 @@ void CAPS_U::GetAlbumContentsFileListForApplication(Kernel::HLERequestContext& c
 
     // TODO: Update this when we implement the album.
     // Currently we do not have a method of accessing album entries, set this to 0 for now.
-    constexpr s32 total_entries{0};
+    constexpr u32 total_entries_1{};
+    constexpr u32 total_entries_2{};
 
-    LOG_WARNING(Service_Capture,
-                "(STUBBED) called. pid={}, content_type={}, start_posix_time={}, "
-                "end_posix_time={}, applet_resource_user_id={}, total_entries={}",
-                pid, content_type, start_posix_time, end_posix_time, applet_resource_user_id,
-                total_entries);
+    LOG_WARNING(
+        Service_Capture,
+        "(STUBBED) called. pid={}, content_type={}, start_posix_time={}, "
+        "end_posix_time={}, applet_resource_user_id={}, total_entries_1={}, total_entries_2={}",
+        pid, content_type, start_posix_time, end_posix_time, applet_resource_user_id,
+        total_entries_1, total_entries_2);
 
-    IPC::ResponseBuilder rb{ctx, 3};
+    IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
-    rb.Push(total_entries);
+    rb.Push(total_entries_1);
+    rb.Push(total_entries_2);
+}
+
+void CAPS_U::GetAlbumFileList3AaeAruid(Kernel::HLERequestContext& ctx) {
+    GetAlbumContentsFileListForApplication(ctx);
 }
 
 } // namespace Service::Capture
