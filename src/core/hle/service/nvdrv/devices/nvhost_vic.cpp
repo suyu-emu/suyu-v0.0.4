@@ -29,12 +29,19 @@ NvResult nvhost_vic::Ioctl1(Ioctl command, const std::vector<u8>& input, std::ve
             return MapBuffer(input, output);
         case 0xa:
             return UnmapBuffer(input, output);
+        default:
+            break;
         }
+        break;
     case 'H':
         switch (command.cmd) {
         case 0x1:
             return SetNVMAPfd(input);
+        default:
+            break;
         }
+        break;
+    default:
         break;
     }
 

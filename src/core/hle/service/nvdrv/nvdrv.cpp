@@ -62,7 +62,7 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
 
 Module::~Module() = default;
 
-NvResult Module::VerifyFd(DeviceFD fd) const {
+NvResult Module::VerifyFD(DeviceFD fd) const {
     if (fd < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
         return NvResult::InvalidState;
@@ -97,7 +97,7 @@ NvResult Module::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::InvalidState;
     }
 
-    auto itr = open_files.find(fd);
+    const auto itr = open_files.find(fd);
 
     if (itr == open_files.end()) {
         LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
@@ -114,7 +114,7 @@ NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::InvalidState;
     }
 
-    auto itr = open_files.find(fd);
+    const auto itr = open_files.find(fd);
 
     if (itr == open_files.end()) {
         LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
@@ -131,7 +131,7 @@ NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::InvalidState;
     }
 
-    auto itr = open_files.find(fd);
+    const auto itr = open_files.find(fd);
 
     if (itr == open_files.end()) {
         LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
@@ -147,7 +147,7 @@ NvResult Module::Close(DeviceFD fd) {
         return NvResult::InvalidState;
     }
 
-    auto itr = open_files.find(fd);
+    const auto itr = open_files.find(fd);
 
     if (itr == open_files.end()) {
         LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);

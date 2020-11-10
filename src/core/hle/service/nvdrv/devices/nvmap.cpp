@@ -35,7 +35,12 @@ NvResult nvmap::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<
             return IocParam(input, output);
         case 0xe:
             return IocGetId(input, output);
+        default:
+            break;
         }
+        break;
+    default:
+        break;
     }
 
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);

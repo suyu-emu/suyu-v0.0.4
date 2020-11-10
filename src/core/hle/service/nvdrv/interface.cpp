@@ -23,7 +23,7 @@ void NVDRV::SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value) {
 void NVDRV::Open(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
@@ -51,7 +51,7 @@ void NVDRV::Ioctl1(Kernel::HLERequestContext& ctx) {
     const auto command = rp.PopRaw<Ioctl>();
     LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
@@ -78,7 +78,7 @@ void NVDRV::Ioctl2(Kernel::HLERequestContext& ctx) {
     const auto command = rp.PopRaw<Ioctl>();
     LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
@@ -106,7 +106,7 @@ void NVDRV::Ioctl3(Kernel::HLERequestContext& ctx) {
     const auto command = rp.PopRaw<Ioctl>();
     LOG_DEBUG(Service_NVDRV, "called fd={}, ioctl=0x{:08X}", fd, command.raw);
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
@@ -132,7 +132,7 @@ void NVDRV::Ioctl3(Kernel::HLERequestContext& ctx) {
 void NVDRV::Close(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_NVDRV, "called");
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
@@ -150,7 +150,7 @@ void NVDRV::Close(Kernel::HLERequestContext& ctx) {
 void NVDRV::Initialize(Kernel::HLERequestContext& ctx) {
     LOG_WARNING(Service_NVDRV, "(STUBBED) called");
 
-    initialized = true;
+    is_initialized = true;
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
@@ -163,14 +163,13 @@ void NVDRV::QueryEvent(Kernel::HLERequestContext& ctx) {
     const auto event_id = rp.Pop<u32>() & 0x00FF;
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, fd={:X}, event_id={:X}", fd, event_id);
 
-    if (!initialized) {
+    if (!is_initialized) {
         ServiceError(ctx, NvResult::NotInitialized);
         LOG_ERROR(Service_NVDRV, "NvServices is not initalized!");
         return;
     }
 
-    auto nv_result = nvdrv->VerifyFd(fd);
-
+    const auto nv_result = nvdrv->VerifyFD(fd);
     if (nv_result != NvResult::Success) {
         LOG_ERROR(Service_NVDRV, "Invalid FD specified DeviceFD={}!", fd);
         ServiceError(ctx, nv_result);

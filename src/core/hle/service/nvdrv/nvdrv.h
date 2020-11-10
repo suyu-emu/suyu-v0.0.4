@@ -112,7 +112,7 @@ public:
         return std::static_pointer_cast<T>(itr->second);
     }
 
-    NvResult VerifyFd(DeviceFD fd) const;
+    NvResult VerifyFD(DeviceFD fd) const;
 
     /// Opens a device node and returns a file descriptor to it.
     DeviceFD Open(const std::string& device_name);

@@ -39,7 +39,7 @@ private:
     std::shared_ptr<Module> nvdrv;
 
     u64 pid{};
-    bool initialized{};
+    bool is_initialized{};
 };
 
 } // namespace Service::Nvidia

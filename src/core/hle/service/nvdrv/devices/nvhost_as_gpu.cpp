@@ -42,6 +42,8 @@ NvResult nvhost_as_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input,
             return InitalizeEx(input, output);
         case 0x14:
             return Remap(input, output);
+        default:
+            break;
         }
         break;
     default:
@@ -65,7 +67,12 @@ NvResult nvhost_as_gpu::Ioctl3(Ioctl command, const std::vector<u8>& input, std:
         switch (command.cmd) {
         case 0x8:
             return GetVARegions(input, output, inline_output);
+        default:
+            break;
         }
+        break;
+    default:
+        break;
     }
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;

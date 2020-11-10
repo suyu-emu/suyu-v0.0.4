@@ -15,7 +15,6 @@ nvhost_nvjpg::~nvhost_nvjpg() = default;
 
 NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input,
                               std::vector<u8>& output) {
-
     switch (command.group) {
     case 'H':
         switch (command.cmd) {
@@ -24,6 +23,8 @@ NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input,
         default:
             break;
         }
+        break;
+    default:
         break;
     }
 
