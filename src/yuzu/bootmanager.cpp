@@ -604,28 +604,27 @@ bool GRenderWindow::LoadOpenGL() {
     auto context = CreateSharedContext();
     auto scope = context->Acquire();
     if (!gladLoadGL()) {
-        QMessageBox::critical(
+        QMessageBox::warning(
             this, tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support OpenGL, or you do not have the latest graphics driver."));
         return false;
     }
 
-    QString renderer = QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+    const QString renderer =
+        QString::fromUtf8(reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
 
     if (!GLAD_GL_VERSION_4_3) {
-        LOG_CRITICAL(Frontend, "GPU does not support OpenGL 4.3: {:s}", renderer.toStdString());
-        QMessageBox::critical(this, tr("Error while initializing OpenGL 4.3!"),
-                              tr("Your GPU may not support OpenGL 4.3, or you do not have the "
-                                 "latest graphics driver.<br><br>GL Renderer:<br>%1")
-                                  .arg(renderer));
+        LOG_ERROR(Frontend, "GPU does not support OpenGL 4.3: {}", renderer.toStdString());
+        QMessageBox::warning(this, tr("Error while initializing OpenGL 4.3!"),
+                             tr("Your GPU may not support OpenGL 4.3, or you do not have the "
+                                "latest graphics driver.<br><br>GL Renderer:<br>%1")
+                                 .arg(renderer));
         return false;
     }
 
     QStringList unsupported_gl_extensions = GetUnsupportedGLExtensions();
     if (!unsupported_gl_extensions.empty()) {
-        LOG_CRITICAL(Frontend, "GPU does not support all needed extensions: {:s}",
-                     renderer.toStdString());
-        QMessageBox::critical(
+        QMessageBox::warning(
             this, tr("Error while initializing OpenGL!"),
             tr("Your GPU may not support one or more required OpenGL extensions. Please ensure you "
                "have the latest graphics driver.<br><br>GL Renderer:<br>%1<br><br>Unsupported "
@@ -661,8 +660,13 @@ QStringList GRenderWindow::GetUnsupportedGLExtensions() const {
     if (!GLAD_GL_ARB_depth_buffer_float)
         unsupported_ext.append(QStringLiteral("ARB_depth_buffer_float"));
 
-    for (const QString& ext : unsupported_ext)
-        LOG_CRITICAL(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+    if (!unsupported_ext.empty()) {
+        LOG_ERROR(Frontend, "GPU does not support all required extensions: {}",
+                  glGetString(GL_RENDERER));
+    }
+    for (const QString& ext : unsupported_ext) {
+        LOG_ERROR(Frontend, "Unsupported GL extension: {}", ext.toStdString());
+    }
 
     return unsupported_ext;
 }
