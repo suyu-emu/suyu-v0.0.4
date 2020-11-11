@@ -694,6 +694,8 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
     const auto current_guid = button_param->Get("guid", "");
     const auto current_port = button_param->Get("port", "");
 
+    const bool is_keyboard_mouse = current_engine == "keyboard" || current_engine == "mouse";
+
     UpdateInputDevices();
 
     if (buttons_empty) {
@@ -702,13 +704,22 @@ void ConfigureInputPlayer::UpdateInputDeviceCombobox() {
 
     const bool all_one_device =
         std::all_of(buttons_param.begin(), buttons_param.end(),
-                    [current_engine, current_guid, current_port](const Common::ParamPackage param) {
+                    [current_engine, current_guid, current_port,
+                     is_keyboard_mouse](const Common::ParamPackage param) {
+                        if (is_keyboard_mouse) {
+                            return !param.Has("engine") || param.Get("engine", "") == "keyboard" ||
+                                   param.Get("engine", "") == "mouse";
+                        }
                         return !param.Has("engine") || (param.Get("engine", "") == current_engine &&
                                                         param.Get("guid", "") == current_guid &&
                                                         param.Get("port", "") == current_port);
                     });
 
     if (all_one_device) {
+        if (is_keyboard_mouse) {
+            ui->comboDevices->setCurrentIndex(1);
+            return;
+        }
         const auto devices_it = std::find_if(
             input_devices.begin(), input_devices.end(),
             [current_engine, current_guid, current_port](const Common::ParamPackage param) {
@@ -1071,6 +1082,11 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
 bool ConfigureInputPlayer::IsInputAcceptable(const Common::ParamPackage& params) const {
     if (ui->comboDevices->currentIndex() == 0) {
         return true;
+    }
+
+    // Keyboard/Mouse
+    if (ui->comboDevices->currentIndex() == 1) {
+        return params.Get("engine", "") == "keyboard" || params.Get("engine", "") == "mouse";
     }
 
     const auto current_input_device = input_devices[ui->comboDevices->currentIndex()];
