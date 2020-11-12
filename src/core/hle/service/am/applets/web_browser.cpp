@@ -2,16 +2,26 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <optional>
-
 #include "common/assert.h"
+#include "common/common_paths.h"
+#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/file_sys/content_archive.h"
+#include "core/file_sys/mode.h"
+#include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/patch_manager.h"
+#include "core/file_sys/registered_cache.h"
+#include "core/file_sys/romfs.h"
+#include "core/file_sys/system_archive/system_archive.h"
+#include "core/file_sys/vfs_types.h"
 #include "core/frontend/applets/web_browser.h"
+#include "core/hle/kernel/process.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/web_browser.h"
+#include "core/hle/service/filesystem/filesystem.h"
 
 namespace Service::AM::Applets {
 
@@ -34,6 +44,16 @@ T ParseRawValue(const std::vector<u8>& data) {
 std::string ParseStringValue(const std::vector<u8>& data) {
     return Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(data.data()),
                                                        data.size());
+}
+
+std::string GetMainURL(const std::string& url) {
+    const auto index = url.find('?');
+
+    if (index == std::string::npos) {
+        return url;
+    }
+
+    return url.substr(0, index);
 }
 
 WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_arg_header) {
@@ -72,15 +92,35 @@ WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_
     return input_tlv_map;
 }
 
-std::optional<std::vector<u8>> GetInputTLVData(const WebArgInputTLVMap& input_tlv_map,
-                                               WebArgInputTLVType input_tlv_type) {
-    const auto map_it = input_tlv_map.find(input_tlv_type);
+FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
+                                     FileSys::ContentRecordType nca_type) {
+    if (nca_type == FileSys::ContentRecordType::Data) {
+        const auto nca =
+            system.GetFileSystemController().GetSystemNANDContents()->GetEntry(title_id, nca_type);
 
-    if (map_it == input_tlv_map.end()) {
-        return std::nullopt;
+        if (nca == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "NCA of type={} with title_id={:016X} is not found in the System NAND!",
+                      nca_type, title_id);
+            return FileSys::SystemArchive::SynthesizeSystemArchive(title_id);
+        }
+
+        return nca->GetRomFS();
+    } else {
+        const auto nca = system.GetContentProvider().GetEntry(title_id, nca_type);
+
+        if (nca == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "NCA of type={} with title_id={:016X} is not found in the ContentProvider!",
+                      nca_type, title_id);
+            return nullptr;
+        }
+
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
+
+        return pm.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(), nca_type);
     }
-
-    return map_it->second;
 }
 
 } // namespace
@@ -209,11 +249,92 @@ void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url)
     broker.SignalStateChanged();
 }
 
+bool WebBrowser::InputTLVExistsInMap(WebArgInputTLVType input_tlv_type) const {
+    return web_arg_input_tlv_map.find(input_tlv_type) != web_arg_input_tlv_map.end();
+}
+
+std::optional<std::vector<u8>> WebBrowser::GetInputTLVData(WebArgInputTLVType input_tlv_type) {
+    const auto map_it = web_arg_input_tlv_map.find(input_tlv_type);
+
+    if (map_it == web_arg_input_tlv_map.end()) {
+        return std::nullopt;
+    }
+
+    return map_it->second;
+}
+
 void WebBrowser::InitializeShop() {}
 
 void WebBrowser::InitializeLogin() {}
 
-void WebBrowser::InitializeOffline() {}
+void WebBrowser::InitializeOffline() {
+    const auto document_path =
+        ParseStringValue(GetInputTLVData(WebArgInputTLVType::DocumentPath).value());
+
+    const auto document_kind =
+        ParseRawValue<DocumentKind>(GetInputTLVData(WebArgInputTLVType::DocumentKind).value());
+
+    u64 title_id{};
+    FileSys::ContentRecordType nca_type{FileSys::ContentRecordType::HtmlDocument};
+    std::string additional_paths;
+
+    switch (document_kind) {
+    case DocumentKind::OfflineHtmlPage:
+        title_id = system.CurrentProcess()->GetTitleID();
+        nca_type = FileSys::ContentRecordType::HtmlDocument;
+        additional_paths = "html-document";
+        break;
+    case DocumentKind::ApplicationLegalInformation:
+        title_id = ParseRawValue<u64>(GetInputTLVData(WebArgInputTLVType::ApplicationID).value());
+        nca_type = FileSys::ContentRecordType::LegalInformation;
+        break;
+    case DocumentKind::SystemDataPage:
+        title_id = ParseRawValue<u64>(GetInputTLVData(WebArgInputTLVType::SystemDataID).value());
+        nca_type = FileSys::ContentRecordType::Data;
+        break;
+    }
+
+    static constexpr std::array<const char*, 3> RESOURCE_TYPES{
+        "manual",
+        "legal_information",
+        "system_data",
+    };
+
+    offline_cache_dir = Common::FS::SanitizePath(
+        fmt::format("{}/offline_web_applet_{}/{:016X}",
+                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir),
+                    RESOURCE_TYPES[static_cast<u32>(document_kind) - 1], title_id),
+        Common::FS::DirectorySeparator::PlatformDefault);
+
+    offline_document = Common::FS::SanitizePath(
+        fmt::format("{}/{}/{}", offline_cache_dir, additional_paths, document_path),
+        Common::FS::DirectorySeparator::PlatformDefault);
+
+    const auto main_url = Common::FS::SanitizePath(GetMainURL(offline_document),
+                                                   Common::FS::DirectorySeparator::PlatformDefault);
+
+    if (Common::FS::Exists(main_url)) {
+        return;
+    }
+
+    auto offline_romfs = GetOfflineRomFS(system, title_id, nca_type);
+
+    if (offline_romfs == nullptr) {
+        LOG_ERROR(Service_AM, "RomFS with title_id={:016X} and nca_type={} cannot be extracted!",
+                  title_id, nca_type);
+        return;
+    }
+
+    LOG_DEBUG(Service_AM, "Extracting RomFS to {}", offline_cache_dir);
+
+    const auto extracted_romfs_dir =
+        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
+
+    const auto temp_dir =
+        system.GetFilesystem()->CreateDirectory(offline_cache_dir, FileSys::Mode::ReadWrite);
+
+    FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
+}
 
 void WebBrowser::InitializeShare() {}
 
@@ -234,8 +355,8 @@ void WebBrowser::ExecuteLogin() {
 }
 
 void WebBrowser::ExecuteOffline() {
-    LOG_WARNING(Service_AM, "(STUBBED) called, Offline Applet is not implemented");
-    WebBrowserExit(WebExitReason::EndButtonPressed);
+    LOG_INFO(Service_AM, "Opening offline document at {}", offline_document);
+    WebBrowserExit(WebExitReason::WindowClosed);
 }
 
 void WebBrowser::ExecuteShare() {
@@ -257,5 +378,4 @@ void WebBrowser::ExecuteLobby() {
     LOG_WARNING(Service_AM, "(STUBBED) called, Lobby Applet is not implemented");
     WebBrowserExit(WebExitReason::EndButtonPressed);
 }
-
 } // namespace Service::AM::Applets

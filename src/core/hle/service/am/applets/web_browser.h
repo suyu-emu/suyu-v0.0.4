@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <optional>
+
 #include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "core/hle/result.h"
@@ -32,6 +34,10 @@ public:
     void WebBrowserExit(WebExitReason exit_reason, std::string last_url = "");
 
 private:
+    bool InputTLVExistsInMap(WebArgInputTLVType input_tlv_type) const;
+
+    std::optional<std::vector<u8>> GetInputTLVData(WebArgInputTLVType input_tlv_type);
+
     // Initializers for the various types of browser applets
     void InitializeShop();
     void InitializeLogin();
@@ -56,8 +62,12 @@ private:
     ResultCode status{RESULT_SUCCESS};
 
     WebAppletVersion web_applet_version;
+    WebExitReason web_exit_reason;
     WebArgHeader web_arg_header;
     WebArgInputTLVMap web_arg_input_tlv_map;
+
+    std::string offline_cache_dir;
+    std::string offline_document;
 
     Core::System& system;
 };
