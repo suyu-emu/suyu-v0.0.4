@@ -21,7 +21,7 @@ namespace Service::AM::Applets {
 using IdentificationColor = std::array<u8, 4>;
 using ExplainText = std::array<char, 0x81>;
 
-enum class LibraryAppletVersion : u32_le {
+enum class ControllerAppletVersion : u32_le {
     Version3 = 0x3, // 1.0.0 - 2.3.0
     Version4 = 0x4, // 3.0.0 - 5.1.0
     Version5 = 0x5, // 6.0.0 - 7.0.1
@@ -29,14 +29,18 @@ enum class LibraryAppletVersion : u32_le {
 };
 
 enum class ControllerSupportMode : u8 {
-    ShowControllerSupport = 0,
-    ShowControllerStrapGuide = 1,
-    ShowControllerFirmwareUpdate = 2,
+    ShowControllerSupport,
+    ShowControllerStrapGuide,
+    ShowControllerFirmwareUpdate,
+
+    MaxControllerSupportMode,
 };
 
 enum class ControllerSupportCaller : u8 {
-    Application = 0,
-    System = 1,
+    Application,
+    System,
+
+    MaxControllerSupportCaller,
 };
 
 struct ControllerSupportArgPrivate {
@@ -84,6 +88,13 @@ struct ControllerSupportArgNew {
 static_assert(sizeof(ControllerSupportArgNew) == 0x430,
               "ControllerSupportArgNew has incorrect size.");
 
+struct ControllerUpdateFirmwareArg {
+    bool enable_force_update{};
+    INSERT_PADDING_BYTES(3);
+};
+static_assert(sizeof(ControllerUpdateFirmwareArg) == 0x4,
+              "ControllerUpdateFirmwareArg has incorrect size.");
+
 struct ControllerSupportResultInfo {
     s8 player_count{};
     INSERT_PADDING_BYTES(3);
@@ -110,10 +121,11 @@ public:
 private:
     const Core::Frontend::ControllerApplet& frontend;
 
-    LibraryAppletVersion library_applet_version;
+    ControllerAppletVersion controller_applet_version;
     ControllerSupportArgPrivate controller_private_arg;
     ControllerSupportArgOld controller_user_arg_old;
     ControllerSupportArgNew controller_user_arg_new;
+    ControllerUpdateFirmwareArg controller_update_arg;
     bool complete{false};
     ResultCode status{RESULT_SUCCESS};
     bool is_single_mode{false};

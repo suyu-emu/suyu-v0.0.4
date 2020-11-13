@@ -62,7 +62,7 @@ void Controller::Initialize() {
               common_args.play_startup_sound, common_args.size, common_args.system_tick,
               common_args.theme_color);
 
-    library_applet_version = LibraryAppletVersion{common_args.library_version};
+    controller_applet_version = ControllerAppletVersion{common_args.library_version};
 
     const auto private_arg_storage = broker.PopNormalDataToApplet();
     ASSERT(private_arg_storage != nullptr);
@@ -70,39 +70,78 @@ void Controller::Initialize() {
     const auto& private_arg = private_arg_storage->GetData();
     ASSERT(private_arg.size() == sizeof(ControllerSupportArgPrivate));
 
-    std::memcpy(&controller_private_arg, private_arg.data(), sizeof(ControllerSupportArgPrivate));
+    std::memcpy(&controller_private_arg, private_arg.data(), private_arg.size());
     ASSERT_MSG(controller_private_arg.arg_private_size == sizeof(ControllerSupportArgPrivate),
                "Unknown ControllerSupportArgPrivate revision={} with size={}",
-               library_applet_version, controller_private_arg.arg_private_size);
+               controller_applet_version, controller_private_arg.arg_private_size);
+
+    // Some games such as Cave Story+ set invalid values for the ControllerSupportMode.
+    // Defer to arg_size to set the ControllerSupportMode.
+    if (controller_private_arg.mode >= ControllerSupportMode::MaxControllerSupportMode) {
+        switch (controller_private_arg.arg_size) {
+        case sizeof(ControllerSupportArgOld):
+        case sizeof(ControllerSupportArgNew):
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerSupport;
+            break;
+        case sizeof(ControllerUpdateFirmwareArg):
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerFirmwareUpdate;
+            break;
+        default:
+            UNIMPLEMENTED_MSG("Unknown ControllerPrivateArg mode={} with arg_size={}",
+                              controller_private_arg.mode, controller_private_arg.arg_size);
+            controller_private_arg.mode = ControllerSupportMode::ShowControllerSupport;
+            break;
+        }
+    }
+
+    // Some games such as Cave Story+ set invalid values for the ControllerSupportCaller.
+    // This is always 0 (Application) except with ShowControllerFirmwareUpdateForSystem.
+    if (controller_private_arg.caller >= ControllerSupportCaller::MaxControllerSupportCaller) {
+        if (controller_private_arg.flag_1 &&
+            controller_private_arg.mode == ControllerSupportMode::ShowControllerFirmwareUpdate) {
+            controller_private_arg.caller = ControllerSupportCaller::System;
+        } else {
+            controller_private_arg.caller = ControllerSupportCaller::Application;
+        }
+    }
 
     switch (controller_private_arg.mode) {
-    case ControllerSupportMode::ShowControllerSupport: {
+    case ControllerSupportMode::ShowControllerSupport:
+    case ControllerSupportMode::ShowControllerStrapGuide: {
         const auto user_arg_storage = broker.PopNormalDataToApplet();
         ASSERT(user_arg_storage != nullptr);
 
         const auto& user_arg = user_arg_storage->GetData();
-        switch (library_applet_version) {
-        case LibraryAppletVersion::Version3:
-        case LibraryAppletVersion::Version4:
-        case LibraryAppletVersion::Version5:
+        switch (controller_applet_version) {
+        case ControllerAppletVersion::Version3:
+        case ControllerAppletVersion::Version4:
+        case ControllerAppletVersion::Version5:
             ASSERT(user_arg.size() == sizeof(ControllerSupportArgOld));
-            std::memcpy(&controller_user_arg_old, user_arg.data(), sizeof(ControllerSupportArgOld));
+            std::memcpy(&controller_user_arg_old, user_arg.data(), user_arg.size());
             break;
-        case LibraryAppletVersion::Version7:
+        case ControllerAppletVersion::Version7:
             ASSERT(user_arg.size() == sizeof(ControllerSupportArgNew));
-            std::memcpy(&controller_user_arg_new, user_arg.data(), sizeof(ControllerSupportArgNew));
+            std::memcpy(&controller_user_arg_new, user_arg.data(), user_arg.size());
             break;
         default:
             UNIMPLEMENTED_MSG("Unknown ControllerSupportArg revision={} with size={}",
-                              library_applet_version, controller_private_arg.arg_size);
+                              controller_applet_version, controller_private_arg.arg_size);
             ASSERT(user_arg.size() >= sizeof(ControllerSupportArgNew));
             std::memcpy(&controller_user_arg_new, user_arg.data(), sizeof(ControllerSupportArgNew));
             break;
         }
         break;
     }
-    case ControllerSupportMode::ShowControllerStrapGuide:
-    case ControllerSupportMode::ShowControllerFirmwareUpdate:
+    case ControllerSupportMode::ShowControllerFirmwareUpdate: {
+        const auto update_arg_storage = broker.PopNormalDataToApplet();
+        ASSERT(update_arg_storage != nullptr);
+
+        const auto& update_arg = update_arg_storage->GetData();
+        ASSERT(update_arg.size() == sizeof(ControllerUpdateFirmwareArg));
+
+        std::memcpy(&controller_update_arg, update_arg.data(), update_arg.size());
+        break;
+    }
     default: {
         UNIMPLEMENTED_MSG("Unimplemented ControllerSupportMode={}", controller_private_arg.mode);
         break;
@@ -126,10 +165,10 @@ void Controller::Execute() {
     switch (controller_private_arg.mode) {
     case ControllerSupportMode::ShowControllerSupport: {
         const auto parameters = [this] {
-            switch (library_applet_version) {
-            case LibraryAppletVersion::Version3:
-            case LibraryAppletVersion::Version4:
-            case LibraryAppletVersion::Version5:
+            switch (controller_applet_version) {
+            case ControllerAppletVersion::Version3:
+            case ControllerAppletVersion::Version4:
+            case ControllerAppletVersion::Version5:
                 return ConvertToFrontendParameters(
                     controller_private_arg, controller_user_arg_old.header,
                     controller_user_arg_old.enable_explain_text,
@@ -138,7 +177,7 @@ void Controller::Execute() {
                         controller_user_arg_old.identification_colors.end()),
                     std::vector<ExplainText>(controller_user_arg_old.explain_text.begin(),
                                              controller_user_arg_old.explain_text.end()));
-            case LibraryAppletVersion::Version7:
+            case ControllerAppletVersion::Version7:
             default:
                 return ConvertToFrontendParameters(
                     controller_private_arg, controller_user_arg_new.header,
@@ -170,6 +209,9 @@ void Controller::Execute() {
     }
     case ControllerSupportMode::ShowControllerStrapGuide:
     case ControllerSupportMode::ShowControllerFirmwareUpdate:
+        UNIMPLEMENTED_MSG("ControllerSupportMode={} is not implemented",
+                          controller_private_arg.mode);
+        [[fallthrough]];
     default: {
         ConfigurationComplete();
         break;
