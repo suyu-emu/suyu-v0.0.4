@@ -502,7 +502,7 @@ void KernelCore::InvalidateAllInstructionCaches() {
             physical_core.ArmInterface().ClearInstructionCache();
         }
     } else {
-        ASSERT_MSG(false, "UNIMPLEMENTED!!!!!!!!!!!");
+        UNIMPLEMENTED();
     }
 }
 
