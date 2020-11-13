@@ -74,6 +74,9 @@ public:
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 
+    /// Initializes the CPU cores.
+    void InitializeCores();
+
     /// Clears all resources in use by the kernel instance.
     void Shutdown();
 

@@ -220,6 +220,10 @@ void ARM_Dynarmic_64::Run() {
     jit->Run();
 }
 
+void ARM_Dynarmic_64::ExceptionalExit() {
+    jit->ExceptionalExit();
+}
+
 void ARM_Dynarmic_64::Step() {
     cb->InterpreterFallback(jit->GetPC(), 1);
 }

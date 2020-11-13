@@ -40,6 +40,7 @@ public:
     void SetPSTATE(u32 pstate) override;
     void Run() override;
     void Step() override;
+    void ExceptionalExit() override;
     VAddr GetTlsAddress() const override;
     void SetTlsAddress(VAddr address) override;
     void SetTPIDR_EL0(u64 value) override;

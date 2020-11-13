@@ -189,6 +189,10 @@ void ARM_Dynarmic_32::Run() {
     jit->Run();
 }
 
+void ARM_Dynarmic_32::ExceptionalExit() {
+    jit->ExceptionalExit();
+}
+
 void ARM_Dynarmic_32::Step() {
     jit->Step();
 }

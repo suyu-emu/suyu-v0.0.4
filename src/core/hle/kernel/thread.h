@@ -248,10 +248,6 @@ public:
 
     void SetSynchronizationResults(SynchronizationObject* object, ResultCode result);
 
-    Core::ARM_Interface& ArmInterface();
-
-    const Core::ARM_Interface& ArmInterface() const;
-
     SynchronizationObject* GetSignalingObject() const {
         return signaling_object;
     }
@@ -586,7 +582,6 @@ private:
     Common::SpinLock context_guard{};
     ThreadContext32 context_32{};
     ThreadContext64 context_64{};
-    std::unique_ptr<Core::ARM_Interface> arm_interface{};
     std::shared_ptr<Common::Fiber> host_context{};
 
     u64 thread_id = 0;
