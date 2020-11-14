@@ -24,7 +24,10 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
                 return;
             }
             auto thread = this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
-            thread->OnWakeUp();
+            if (thread) {
+                // Thread can be null if process has exited
+                thread->OnWakeUp();
+            }
         });
 }
 
