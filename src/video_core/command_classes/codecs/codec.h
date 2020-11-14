@@ -10,6 +10,7 @@
 
 extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 #include <libavcodec/avcodec.h>
