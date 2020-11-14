@@ -166,6 +166,8 @@ public:
      */
     void InvalidateCpuInstructionCaches();
 
+    void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
+
     /// Shutdown the emulated system.
     void Shutdown();
 

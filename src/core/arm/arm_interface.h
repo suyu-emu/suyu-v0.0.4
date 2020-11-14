@@ -70,12 +70,19 @@ public:
     /// Clear all instruction cache
     virtual void ClearInstructionCache() = 0;
 
-    /// Notifies CPU emulation that the current page table has changed.
-    ///
-    /// @param new_page_table                 The new page table.
-    /// @param new_address_space_size_in_bits The new usable size of the address space in bits.
-    ///                                       This can be either 32, 36, or 39 on official software.
-    ///
+    /**
+     * Clear instruction cache range
+     * @param addr Start address of the cache range to clear
+     * @param size Size of the cache range to clear, starting at addr
+     */
+    virtual void InvalidateCacheRange(VAddr addr, std::size_t size) = 0;
+
+    /**
+     * Notifies CPU emulation that the current page table has changed.
+     *  @param new_page_table                 The new page table.
+     *  @param new_address_space_size_in_bits The new usable size of the address space in bits.
+     *                                        This can be either 32, 36, or 39 on official software.
+     */
     virtual void PageTableChanged(Common::PageTable& new_page_table,
                                   std::size_t new_address_space_size_in_bits) = 0;
 

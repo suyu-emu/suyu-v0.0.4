@@ -457,6 +457,10 @@ void System::InvalidateCpuInstructionCaches() {
     impl->kernel.InvalidateAllInstructionCaches();
 }
 
+void System::InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size) {
+    impl->kernel.InvalidateCpuInstructionCacheRange(addr, size);
+}
+
 void System::Shutdown() {
     impl->Shutdown();
 }

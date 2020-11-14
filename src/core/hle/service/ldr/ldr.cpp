@@ -527,9 +527,6 @@ public:
                                      header.segment_headers[RO_INDEX].memory_size,
                                      header.segment_headers[DATA_INDEX].memory_size, nro_address});
 
-        // Invalidate JIT caches for the newly mapped process code
-        system.InvalidateCpuInstructionCaches();
-
         IPC::ResponseBuilder rb{ctx, 4};
         rb.Push(RESULT_SUCCESS);
         rb.Push(*map_result);
@@ -589,8 +586,6 @@ public:
         }
 
         const auto result{UnmapNro(iter->second)};
-
-        system.InvalidateCpuInstructionCaches();
 
         nro.erase(iter);
 

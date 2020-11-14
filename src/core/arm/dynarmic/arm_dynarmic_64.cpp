@@ -322,6 +322,13 @@ void ARM_Dynarmic_64::ClearInstructionCache() {
     jit->ClearCache();
 }
 
+void ARM_Dynarmic_64::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(addr, size);
+}
+
 void ARM_Dynarmic_64::ClearExclusiveState() {
     jit->ClearExclusiveState();
 }

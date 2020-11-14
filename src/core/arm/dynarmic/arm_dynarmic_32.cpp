@@ -286,6 +286,13 @@ void ARM_Dynarmic_32::ClearInstructionCache() {
     jit->ClearCache();
 }
 
+void ARM_Dynarmic_32::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(static_cast<u32>(addr), size);
+}
+
 void ARM_Dynarmic_32::ClearExclusiveState() {
     jit->ClearExclusiveState();
 }

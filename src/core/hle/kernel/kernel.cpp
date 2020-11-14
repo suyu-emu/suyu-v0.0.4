@@ -497,12 +497,17 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
-    if (!IsMulticore()) {
-        for (auto& physical_core : impl->cores) {
-            physical_core.ArmInterface().ClearInstructionCache();
+    for (auto& physical_core : impl->cores) {
+        physical_core.ArmInterface().ClearInstructionCache();
+    }
+}
+
+void KernelCore::InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size) {
+    for (auto& physical_core : impl->cores) {
+        if (!physical_core.IsInitialized()) {
+            continue;
         }
-    } else {
-        UNIMPLEMENTED();
+        physical_core.ArmInterface().InvalidateCacheRange(addr, size);
     }
 }
 

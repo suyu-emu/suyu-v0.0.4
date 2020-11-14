@@ -156,6 +156,8 @@ public:
 
     void InvalidateAllInstructionCaches();
 
+    void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
+
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);
 

@@ -58,6 +58,10 @@ public:
     // Shutdown this physical core.
     void Shutdown();
 
+    bool IsInitialized() const {
+        return arm_interface != nullptr;
+    }
+
     Core::ARM_Interface& ArmInterface() {
         return *arm_interface;
     }

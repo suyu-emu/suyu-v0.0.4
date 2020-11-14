@@ -670,6 +670,11 @@ ResultCode PageTable::SetCodeMemoryPermission(VAddr addr, std::size_t size, Memo
         return RESULT_SUCCESS;
     }
 
+    if ((prev_perm & MemoryPermission::Execute) != (perm & MemoryPermission::Execute)) {
+        // Memory execution state is changing, invalidate CPU cache range
+        system.InvalidateCpuInstructionCacheRange(addr, size);
+    }
+
     const std::size_t num_pages{size / PageSize};
     const OperationType operation{(perm & MemoryPermission::Execute) != MemoryPermission::None
                                       ? OperationType::ChangePermissionsAndRefresh
