@@ -275,12 +275,6 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
     return current_thread->GetSignalingResult();
 }
 
-void AddressArbiter::HandleWakeupThread(std::shared_ptr<Thread> thread) {
-    ASSERT(thread->GetStatus() == ThreadStatus::WaitArb);
-    RemoveThread(thread);
-    thread->SetArbiterWaitAddress(0);
-}
-
 void AddressArbiter::InsertThread(std::shared_ptr<Thread> thread) {
     const VAddr arb_addr = thread->GetArbiterWaitAddress();
     std::list<std::shared_ptr<Thread>>& thread_list = arb_threads[arb_addr];
