@@ -345,7 +345,6 @@ void Config::ReadValues() {
     // System
     Settings::values.use_docked_mode.SetValue(
         sdl2_config->GetBoolean("System", "use_docked_mode", false));
-    const auto size = sdl2_config->GetInteger("System", "users_size", 0);
 
     Settings::values.current_user = std::clamp<int>(
         sdl2_config->GetInteger("System", "current_user", 0), 0, Service::Account::MAX_USERS - 1);
