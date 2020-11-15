@@ -23,7 +23,7 @@ public:
     /// Unregisters SDL device factories and shut them down.
     virtual ~State() = default;
 
-    virtual Pollers GetPollers(Polling::DeviceType type) {
+    virtual Pollers GetPollers(Polling::DeviceType) {
         return {};
     }
 

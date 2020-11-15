@@ -96,7 +96,6 @@ std::unique_ptr<Input::ButtonDevice> GCButtonFactory::Create(const Common::Param
                                               adapter.get());
     }
 
-    UNREACHABLE();
     return nullptr;
 }
 

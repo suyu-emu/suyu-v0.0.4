@@ -44,8 +44,7 @@ private:
     std::vector<std::tuple<std::unique_ptr<Input::ButtonDevice>, int, int>> map;
 };
 
-std::unique_ptr<Input::TouchDevice> TouchFromButtonFactory::Create(
-    const Common::ParamPackage& params) {
+std::unique_ptr<Input::TouchDevice> TouchFromButtonFactory::Create(const Common::ParamPackage&) {
     return std::make_unique<TouchFromButtonDevice>();
 }
 
