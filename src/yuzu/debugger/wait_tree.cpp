@@ -25,7 +25,6 @@ namespace {
 
 constexpr std::array<std::array<Qt::GlobalColor, 2>, 10> WaitTreeColors{{
     {Qt::GlobalColor::darkGreen, Qt::GlobalColor::green},
-    {Qt::GlobalColor::darkGreen, Qt::GlobalColor::green},
     {Qt::GlobalColor::darkBlue, Qt::GlobalColor::cyan},
     {Qt::GlobalColor::lightGray, Qt::GlobalColor::lightGray},
     {Qt::GlobalColor::lightGray, Qt::GlobalColor::lightGray},
@@ -239,9 +238,6 @@ QString WaitTreeThread::GetText() const {
     const auto& thread = static_cast<const Kernel::Thread&>(object);
     QString status;
     switch (thread.GetStatus()) {
-    case Kernel::ThreadStatus::Running:
-        status = tr("running");
-        break;
     case Kernel::ThreadStatus::Ready:
         if (!thread.IsPaused()) {
             if (thread.WasRunning()) {
@@ -298,34 +294,32 @@ QColor WaitTreeThread::GetColor() const {
 
     const auto& thread = static_cast<const Kernel::Thread&>(object);
     switch (thread.GetStatus()) {
-    case Kernel::ThreadStatus::Running:
-        return QColor(WaitTreeColors[0][color_index]);
     case Kernel::ThreadStatus::Ready:
         if (!thread.IsPaused()) {
             if (thread.WasRunning()) {
-                return QColor(WaitTreeColors[1][color_index]);
+                return QColor(WaitTreeColors[0][color_index]);
             } else {
-                return QColor(WaitTreeColors[2][color_index]);
+                return QColor(WaitTreeColors[1][color_index]);
             }
         } else {
-            return QColor(WaitTreeColors[3][color_index]);
+            return QColor(WaitTreeColors[2][color_index]);
         }
     case Kernel::ThreadStatus::Paused:
-        return QColor(WaitTreeColors[4][color_index]);
+        return QColor(WaitTreeColors[3][color_index]);
     case Kernel::ThreadStatus::WaitHLEEvent:
     case Kernel::ThreadStatus::WaitIPC:
-        return QColor(WaitTreeColors[5][color_index]);
+        return QColor(WaitTreeColors[4][color_index]);
     case Kernel::ThreadStatus::WaitSleep:
-        return QColor(WaitTreeColors[6][color_index]);
+        return QColor(WaitTreeColors[5][color_index]);
     case Kernel::ThreadStatus::WaitSynch:
     case Kernel::ThreadStatus::WaitMutex:
     case Kernel::ThreadStatus::WaitCondVar:
     case Kernel::ThreadStatus::WaitArb:
-        return QColor(WaitTreeColors[7][color_index]);
+        return QColor(WaitTreeColors[6][color_index]);
     case Kernel::ThreadStatus::Dormant:
-        return QColor(WaitTreeColors[8][color_index]);
+        return QColor(WaitTreeColors[7][color_index]);
     case Kernel::ThreadStatus::Dead:
-        return QColor(WaitTreeColors[9][color_index]);
+        return QColor(WaitTreeColors[8][color_index]);
     default:
         return WaitTreeItem::GetColor();
     }

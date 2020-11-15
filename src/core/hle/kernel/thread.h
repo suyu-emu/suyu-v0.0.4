@@ -72,7 +72,6 @@ enum ThreadProcessorId : s32 {
 };
 
 enum class ThreadStatus {
-    Running,      ///< Currently running
     Ready,        ///< Ready to run
     Paused,       ///< Paused by SetThreadActivity or debug
     WaitHLEEvent, ///< Waiting for hle event to finish

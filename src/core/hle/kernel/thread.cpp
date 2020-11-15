@@ -88,10 +88,6 @@ void Thread::ResumeFromWait() {
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
         return;
-
-    case ThreadStatus::Running:
-        DEBUG_ASSERT_MSG(false, "Thread with object id {} has already resumed.", GetObjectId());
-        return;
     case ThreadStatus::Dead:
         // This should never happen, as threads must complete before being stopped.
         DEBUG_ASSERT_MSG(false, "Thread with object id {} cannot be resumed because it's DEAD.",
@@ -260,7 +256,6 @@ void Thread::SetStatus(ThreadStatus new_status) {
 
     switch (new_status) {
     case ThreadStatus::Ready:
-    case ThreadStatus::Running:
         SetSchedulingStatus(ThreadSchedStatus::Runnable);
         break;
     case ThreadStatus::Dormant:
