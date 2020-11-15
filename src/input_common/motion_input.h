@@ -13,7 +13,7 @@ namespace InputCommon {
 
 class MotionInput {
 public:
-    MotionInput(f32 new_kp, f32 new_ki, f32 new_kd);
+    explicit MotionInput(f32 new_kp, f32 new_ki, f32 new_kd);
 
     MotionInput(const MotionInput&) = default;
     MotionInput& operator=(const MotionInput&) = default;
