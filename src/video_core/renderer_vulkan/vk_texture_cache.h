@@ -82,7 +82,7 @@ public:
     }
 
 protected:
-    void DecorateSurfaceName();
+    void DecorateSurfaceName() override;
 
     View CreateView(const ViewParams& view_params) override;
 
