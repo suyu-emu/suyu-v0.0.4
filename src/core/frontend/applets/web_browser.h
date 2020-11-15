@@ -5,17 +5,29 @@
 #pragma once
 
 #include <functional>
+#include <string_view>
+
+#include "core/hle/service/am/applets/web_types.h"
+
+using namespace Service::AM::Applets;
 
 namespace Core::Frontend {
 
 class WebBrowserApplet {
 public:
     virtual ~WebBrowserApplet();
+
+    virtual void OpenLocalWebPage(
+        std::string_view local_url,
+        std::function<void(WebExitReason, std::string)> callback) const = 0;
 };
 
 class DefaultWebBrowserApplet final : public WebBrowserApplet {
 public:
     ~DefaultWebBrowserApplet() override;
+
+    void OpenLocalWebPage(std::string_view local_url,
+                          std::function<void(WebExitReason, std::string)> callback) const override;
 };
 
 } // namespace Core::Frontend

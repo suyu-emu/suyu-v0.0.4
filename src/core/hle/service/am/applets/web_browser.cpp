@@ -356,7 +356,10 @@ void WebBrowser::ExecuteLogin() {
 
 void WebBrowser::ExecuteOffline() {
     LOG_INFO(Service_AM, "Opening offline document at {}", offline_document);
-    WebBrowserExit(WebExitReason::WindowClosed);
+    frontend.OpenLocalWebPage(offline_document,
+                              [this](WebExitReason exit_reason, std::string last_url) {
+                                  WebBrowserExit(exit_reason, last_url);
+                              });
 }
 
 void WebBrowser::ExecuteShare() {

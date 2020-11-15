@@ -11,4 +11,12 @@ WebBrowserApplet::~WebBrowserApplet() = default;
 
 DefaultWebBrowserApplet::~DefaultWebBrowserApplet() = default;
 
+void DefaultWebBrowserApplet::OpenLocalWebPage(
+    std::string_view local_url, std::function<void(WebExitReason, std::string)> callback) const {
+    LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open local web page at {}",
+                local_url);
+
+    callback(WebExitReason::WindowClosed, "http://localhost/");
+}
+
 } // namespace Core::Frontend
