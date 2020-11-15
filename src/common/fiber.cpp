@@ -5,6 +5,7 @@
 #include "common/assert.h"
 #include "common/fiber.h"
 #include "common/spin_lock.h"
+#include "common/virtual_buffer.h"
 
 #include <boost/context/detail/fcontext.hpp>
 
@@ -13,8 +14,10 @@ namespace Common {
 constexpr std::size_t default_stack_size = 256 * 1024;
 
 struct Fiber::FiberImpl {
-    alignas(64) std::array<u8, default_stack_size> stack;
-    alignas(64) std::array<u8, default_stack_size> rewind_stack;
+    FiberImpl() : stack{default_stack_size}, rewind_stack{default_stack_size} {}
+
+    VirtualBuffer<u8> stack;
+    VirtualBuffer<u8> rewind_stack;
 
     SpinLock guard{};
     std::function<void(void*)> entry_point;
