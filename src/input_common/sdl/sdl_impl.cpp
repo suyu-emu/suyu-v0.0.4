@@ -698,7 +698,7 @@ SDLState::SDLState() {
             using namespace std::chrono_literals;
             while (initialized) {
                 SDL_PumpEvents();
-                std::this_thread::sleep_for(5ms);
+                std::this_thread::sleep_for(1ms);
             }
         });
     }
