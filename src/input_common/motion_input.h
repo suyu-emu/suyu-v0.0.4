@@ -13,7 +13,7 @@ namespace InputCommon {
 
 class MotionInput {
 public:
-    MotionInput(f32 new_kp, f32 new_ki, f32 new_kd);
+    explicit MotionInput(f32 new_kp, f32 new_ki, f32 new_kd);
 
     MotionInput(const MotionInput&) = default;
     MotionInput& operator=(const MotionInput&) = default;
@@ -33,16 +33,17 @@ public:
     void UpdateRotation(u64 elapsed_time);
     void UpdateOrientation(u64 elapsed_time);
 
-    std::array<Common::Vec3f, 3> GetOrientation() const;
-    Common::Vec3f GetAcceleration() const;
-    Common::Vec3f GetGyroscope() const;
-    Common::Vec3f GetRotations() const;
-    Common::Quaternion<f32> GetQuaternion() const;
-    Input::MotionStatus GetMotion() const;
-    Input::MotionStatus GetRandomMotion(int accel_magnitude, int gyro_magnitude) const;
+    [[nodiscard]] std::array<Common::Vec3f, 3> GetOrientation() const;
+    [[nodiscard]] Common::Vec3f GetAcceleration() const;
+    [[nodiscard]] Common::Vec3f GetGyroscope() const;
+    [[nodiscard]] Common::Vec3f GetRotations() const;
+    [[nodiscard]] Common::Quaternion<f32> GetQuaternion() const;
+    [[nodiscard]] Input::MotionStatus GetMotion() const;
+    [[nodiscard]] Input::MotionStatus GetRandomMotion(int accel_magnitude,
+                                                      int gyro_magnitude) const;
 
-    bool IsMoving(f32 sensitivity) const;
-    bool IsCalibrated(f32 sensitivity) const;
+    [[nodiscard]] bool IsMoving(f32 sensitivity) const;
+    [[nodiscard]] bool IsCalibrated(f32 sensitivity) const;
 
 private:
     void ResetOrientation();
