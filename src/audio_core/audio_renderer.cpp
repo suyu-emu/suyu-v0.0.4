@@ -17,8 +17,8 @@
 
 namespace {
 [[nodiscard]] static constexpr s16 ClampToS16(s32 value) {
-    return static_cast<s16>(std::clamp(value, static_cast<s32>(std::numeric_limits<s16>::min()),
-                                       static_cast<s32>(std::numeric_limits<s16>::max())));
+    return static_cast<s16>(std::clamp(value, s32{std::numeric_limits<s16>::min()},
+                                       s32{std::numeric_limits<s16>::max()}));
 }
 
 [[nodiscard]] static constexpr s16 Mix2To1(s16 l_channel, s16 r_channel) {

@@ -15,8 +15,8 @@ std::size_t SinkContext::GetCount() const {
 void SinkContext::UpdateMainSink(const SinkInfo::InParams& in) {
     ASSERT(in.type == SinkTypes::Device);
 
-    downmix = in.device.down_matrix_enabled;
-    if (downmix) {
+    has_downmix_coefs = in.device.down_matrix_enabled;
+    if (has_downmix_coefs) {
         downmix_coefficients = in.device.down_matrix_coef;
     }
     in_use = in.in_use;
@@ -35,10 +35,10 @@ std::vector<u8> SinkContext::OutputBuffers() const {
 }
 
 bool SinkContext::HasDownMixingCoefficients() const {
-    return downmix;
+    return has_downmix_coefs;
 }
 
-const std::array<float_le, 4>& SinkContext::GetDownmixCoefficients() const {
+const DownmixCoefficients& SinkContext::GetDownmixCoefficients() const {
     return downmix_coefficients;
 }
 
