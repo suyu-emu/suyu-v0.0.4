@@ -2003,7 +2003,7 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     }
 
     *core = thread->GetIdealCore();
-    *mask = thread->GetAffinityMask();
+    *mask = thread->GetAffinityMask().GetAffinityMask();
 
     return RESULT_SUCCESS;
 }

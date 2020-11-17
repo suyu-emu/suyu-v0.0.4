@@ -191,7 +191,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->last_running_ticks = 0;
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
-    thread->affinity_mask = 1ULL << processor_id;
+    thread->affinity_mask.SetAffinity(processor_id, true);
     thread->wait_objects = nullptr;
     thread->mutex_wait_address = 0;
     thread->condvar_wait_address = 0;
@@ -479,15 +479,16 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     }
     if (use_override) {
         ideal_core_override = new_core;
-        affinity_mask_override = new_affinity_mask;
     } else {
-        const u64 old_affinity_mask = std::exchange(affinity_mask, new_affinity_mask);
+        const auto old_affinity_mask = affinity_mask.GetAffinityMask();
+        affinity_mask.SetAffinityMask(new_affinity_mask);
         ideal_core = new_core;
         if (old_affinity_mask != new_affinity_mask) {
             const s32 old_core = processor_id;
-            if (processor_id >= 0 && ((affinity_mask >> processor_id) & 1) == 0) {
+            if (processor_id >= 0 && !affinity_mask.GetAffinity(processor_id)) {
                 if (static_cast<s32>(ideal_core) < 0) {
-                    processor_id = HighestSetCore(affinity_mask, Core::Hardware::NUM_CPU_CORES);
+                    processor_id = HighestSetCore(affinity_mask.GetAffinityMask(),
+                                                  Core::Hardware::NUM_CPU_CORES);
                 } else {
                     processor_id = ideal_core;
                 }

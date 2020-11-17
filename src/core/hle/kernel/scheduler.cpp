@@ -452,7 +452,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
 
         for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
             if (core != static_cast<u32>(thread->processor_id) &&
-                ((thread->affinity_mask >> core) & 1) != 0) {
+                thread->affinity_mask.GetAffinity(core)) {
                 Unsuggest(thread->current_priority, core, thread);
             }
         }
@@ -464,7 +464,7 @@ void GlobalScheduler::AdjustSchedulingOnStatus(Thread* thread, u32 old_flags) {
 
         for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
             if (core != static_cast<u32>(thread->processor_id) &&
-                ((thread->affinity_mask >> core) & 1) != 0) {
+                thread->affinity_mask.GetAffinity(core)) {
                 Suggest(thread->current_priority, core, thread);
             }
         }
@@ -484,7 +484,7 @@ void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priorit
 
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         if (core != static_cast<u32>(thread->processor_id) &&
-            ((thread->affinity_mask >> core) & 1) != 0) {
+            thread->affinity_mask.GetAffinity(core)) {
             Unsuggest(old_priority, core, thread);
         }
     }
@@ -500,7 +500,7 @@ void GlobalScheduler::AdjustSchedulingOnPriority(Thread* thread, u32 old_priorit
 
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
         if (core != static_cast<u32>(thread->processor_id) &&
-            ((thread->affinity_mask >> core) & 1) != 0) {
+            thread->affinity_mask.GetAffinity(core)) {
             Suggest(thread->current_priority, core, thread);
         }
     }
@@ -527,7 +527,7 @@ void GlobalScheduler::AdjustSchedulingOnAffinity(Thread* thread, u64 old_affinit
     }
 
     for (u32 core = 0; core < Core::Hardware::NUM_CPU_CORES; core++) {
-        if (((thread->affinity_mask >> core) & 1) != 0) {
+        if (thread->affinity_mask.GetAffinity(core)) {
             if (core == static_cast<u32>(thread->processor_id)) {
                 Schedule(thread->current_priority, core, thread);
             } else {

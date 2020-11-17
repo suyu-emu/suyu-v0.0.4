@@ -12,6 +12,7 @@
 #include "common/common_types.h"
 #include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
+#include "core/hle/kernel/k_affinity_mask.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
@@ -469,7 +470,7 @@ public:
         return ideal_core;
     }
 
-    u64 GetAffinityMask() const {
+    constexpr const KAffinityMask& GetAffinityMask() const {
         return affinity_mask;
     }
 
@@ -649,10 +650,9 @@ private:
     Scheduler* scheduler = nullptr;
 
     u32 ideal_core{0xFFFFFFFF};
-    u64 affinity_mask{0x1};
+    KAffinityMask affinity_mask{};
 
     s32 ideal_core_override = -1;
-    u64 affinity_mask_override = 0x1;
     u32 affinity_override_count = 0;
 
     u32 scheduling_state = 0;
