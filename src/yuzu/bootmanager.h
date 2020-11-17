@@ -162,6 +162,8 @@ public:
     /// Destroy the previous run's child_widget which should also destroy the child_window
     void ReleaseRenderTarget();
 
+    bool IsLoadingComplete() const;
+
     void CaptureScreenshot(u32 res_scale, const QString& screenshot_path);
 
     std::pair<u32, u32> ScaleTouch(const QPointF& pos) const;
