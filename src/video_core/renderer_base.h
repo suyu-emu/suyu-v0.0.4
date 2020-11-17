@@ -38,7 +38,7 @@ public:
     virtual ~RendererBase();
 
     /// Initialize the renderer
-    virtual bool Init() = 0;
+    [[nodiscard]] virtual bool Init() = 0;
 
     /// Shutdown the renderer
     virtual void ShutDown() = 0;
@@ -49,43 +49,43 @@ public:
     // Getter/setter functions:
     // ------------------------
 
-    f32 GetCurrentFPS() const {
+    [[nodiscard]] f32 GetCurrentFPS() const {
         return m_current_fps;
     }
 
-    int GetCurrentFrame() const {
+    [[nodiscard]] int GetCurrentFrame() const {
         return m_current_frame;
     }
 
-    RasterizerInterface& Rasterizer() {
+    [[nodiscard]] RasterizerInterface& Rasterizer() {
         return *rasterizer;
     }
 
-    const RasterizerInterface& Rasterizer() const {
+    [[nodiscard]] const RasterizerInterface& Rasterizer() const {
         return *rasterizer;
     }
 
-    Core::Frontend::GraphicsContext& Context() {
+    [[nodiscard]] Core::Frontend::GraphicsContext& Context() {
         return *context;
     }
 
-    const Core::Frontend::GraphicsContext& Context() const {
+    [[nodiscard]] const Core::Frontend::GraphicsContext& Context() const {
         return *context;
     }
 
-    Core::Frontend::EmuWindow& GetRenderWindow() {
+    [[nodiscard]] Core::Frontend::EmuWindow& GetRenderWindow() {
         return render_window;
     }
 
-    const Core::Frontend::EmuWindow& GetRenderWindow() const {
+    [[nodiscard]] const Core::Frontend::EmuWindow& GetRenderWindow() const {
         return render_window;
     }
 
-    RendererSettings& Settings() {
+    [[nodiscard]] RendererSettings& Settings() {
         return renderer_settings;
     }
 
-    const RendererSettings& Settings() const {
+    [[nodiscard]] const RendererSettings& Settings() const {
         return renderer_settings;
     }
 

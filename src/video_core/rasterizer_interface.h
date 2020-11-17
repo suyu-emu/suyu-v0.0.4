@@ -32,7 +32,7 @@ using DiskResourceLoadCallback = std::function<void(LoadCallbackStage, std::size
 
 class RasterizerInterface {
 public:
-    virtual ~RasterizerInterface() {}
+    virtual ~RasterizerInterface() = default;
 
     /// Dispatches a draw invocation
     virtual void Draw(bool is_indexed, bool is_instanced) = 0;
@@ -90,15 +90,16 @@ public:
     virtual void TickFrame() = 0;
 
     /// Attempt to use a faster method to perform a surface copy
-    virtual bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
-                                       const Tegra::Engines::Fermi2D::Regs::Surface& dst,
-                                       const Tegra::Engines::Fermi2D::Config& copy_config) {
+    [[nodiscard]] virtual bool AccelerateSurfaceCopy(
+        const Tegra::Engines::Fermi2D::Regs::Surface& src,
+        const Tegra::Engines::Fermi2D::Regs::Surface& dst,
+        const Tegra::Engines::Fermi2D::Config& copy_config) {
         return false;
     }
 
     /// Attempt to use a faster method to display the framebuffer to screen
-    virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
-                                   u32 pixel_stride) {
+    [[nodiscard]] virtual bool AccelerateDisplay(const Tegra::FramebufferConfig& config,
+                                                 VAddr framebuffer_addr, u32 pixel_stride) {
         return false;
     }
 
@@ -110,12 +111,12 @@ public:
                                    const DiskResourceLoadCallback& callback) {}
 
     /// Grant access to the Guest Driver Profile for recording/obtaining info on the guest driver.
-    GuestDriverProfile& AccessGuestDriverProfile() {
+    [[nodiscard]] GuestDriverProfile& AccessGuestDriverProfile() {
         return guest_driver_profile;
     }
 
     /// Grant access to the Guest Driver Profile for recording/obtaining info on the guest driver.
-    const GuestDriverProfile& AccessGuestDriverProfile() const {
+    [[nodiscard]] const GuestDriverProfile& AccessGuestDriverProfile() const {
         return guest_driver_profile;
     }
 

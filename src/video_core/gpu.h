@@ -17,11 +17,11 @@
 #include "video_core/dma_pusher.h"
 
 using CacheAddr = std::uintptr_t;
-inline CacheAddr ToCacheAddr(const void* host_ptr) {
+[[nodiscard]] inline CacheAddr ToCacheAddr(const void* host_ptr) {
     return reinterpret_cast<CacheAddr>(host_ptr);
 }
 
-inline u8* FromCacheAddr(CacheAddr cache_addr) {
+[[nodiscard]] inline u8* FromCacheAddr(CacheAddr cache_addr) {
     return reinterpret_cast<u8*>(cache_addr);
 }
 
@@ -149,13 +149,13 @@ public:
         u32 subchannel{};
         u32 method_count{};
 
-        bool IsLastCall() const {
-            return method_count <= 1;
-        }
-
         MethodCall(u32 method, u32 argument, u32 subchannel = 0, u32 method_count = 0)
             : method(method), argument(argument), subchannel(subchannel),
               method_count(method_count) {}
+
+        [[nodiscard]] bool IsLastCall() const {
+            return method_count <= 1;
+        }
     };
 
     explicit GPU(Core::System& system, bool is_async, bool use_nvdec);
@@ -179,10 +179,10 @@ public:
     virtual void OnCommandListEnd();
 
     /// Request a host GPU memory flush from the CPU.
-    u64 RequestFlush(VAddr addr, std::size_t size);
+    [[nodiscard]] u64 RequestFlush(VAddr addr, std::size_t size);
 
     /// Obtains current flush request fence id.
-    u64 CurrentFlushRequestFence() const {
+    [[nodiscard]] u64 CurrentFlushRequestFence() const {
         return current_flush_fence.load(std::memory_order_relaxed);
     }
 
@@ -190,48 +190,52 @@ public:
     void TickWork();
 
     /// Returns a reference to the Maxwell3D GPU engine.
-    Engines::Maxwell3D& Maxwell3D();
+    [[nodiscard]] Engines::Maxwell3D& Maxwell3D();
 
     /// Returns a const reference to the Maxwell3D GPU engine.
-    const Engines::Maxwell3D& Maxwell3D() const;
+    [[nodiscard]] const Engines::Maxwell3D& Maxwell3D() const;
 
     /// Returns a reference to the KeplerCompute GPU engine.
-    Engines::KeplerCompute& KeplerCompute();
+    [[nodiscard]] Engines::KeplerCompute& KeplerCompute();
 
     /// Returns a reference to the KeplerCompute GPU engine.
-    const Engines::KeplerCompute& KeplerCompute() const;
+    [[nodiscard]] const Engines::KeplerCompute& KeplerCompute() const;
 
     /// Returns a reference to the GPU memory manager.
-    Tegra::MemoryManager& MemoryManager();
+    [[nodiscard]] Tegra::MemoryManager& MemoryManager();
 
     /// Returns a const reference to the GPU memory manager.
-    const Tegra::MemoryManager& MemoryManager() const;
+    [[nodiscard]] const Tegra::MemoryManager& MemoryManager() const;
 
     /// Returns a reference to the GPU DMA pusher.
-    Tegra::DmaPusher& DmaPusher();
+    [[nodiscard]] Tegra::DmaPusher& DmaPusher();
 
     /// Returns a const reference to the GPU DMA pusher.
-    const Tegra::DmaPusher& DmaPusher() const;
+    [[nodiscard]] const Tegra::DmaPusher& DmaPusher() const;
 
     /// Returns a reference to the GPU CDMA pusher.
-    Tegra::CDmaPusher& CDmaPusher();
+    [[nodiscard]] Tegra::CDmaPusher& CDmaPusher();
 
     /// Returns a const reference to the GPU CDMA pusher.
-    const Tegra::CDmaPusher& CDmaPusher() const;
+    [[nodiscard]] const Tegra::CDmaPusher& CDmaPusher() const;
 
-    VideoCore::RendererBase& Renderer() {
+    /// Returns a reference to the underlying renderer.
+    [[nodiscard]] VideoCore::RendererBase& Renderer() {
         return *renderer;
     }
 
-    const VideoCore::RendererBase& Renderer() const {
+    /// Returns a const reference to the underlying renderer.
+    [[nodiscard]] const VideoCore::RendererBase& Renderer() const {
         return *renderer;
     }
 
-    VideoCore::ShaderNotify& ShaderNotify() {
+    /// Returns a reference to the shader notifier.
+    [[nodiscard]] VideoCore::ShaderNotify& ShaderNotify() {
         return *shader_notify;
     }
 
-    const VideoCore::ShaderNotify& ShaderNotify() const {
+    /// Returns a const reference to the shader notifier.
+    [[nodiscard]] const VideoCore::ShaderNotify& ShaderNotify() const {
         return *shader_notify;
     }
 
@@ -243,23 +247,23 @@ public:
 
     void IncrementSyncPoint(u32 syncpoint_id);
 
-    u32 GetSyncpointValue(u32 syncpoint_id) const;
+    [[nodiscard]] u32 GetSyncpointValue(u32 syncpoint_id) const;
 
     void RegisterSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
+    [[nodiscard]] bool CancelSyncptInterrupt(u32 syncpoint_id, u32 value);
 
-    u64 GetTicks() const;
+    [[nodiscard]] u64 GetTicks() const;
 
-    std::unique_lock<std::mutex> LockSync() {
+    [[nodiscard]] std::unique_lock<std::mutex> LockSync() {
         return std::unique_lock{sync_mutex};
     }
 
-    bool IsAsync() const {
+    [[nodiscard]] bool IsAsync() const {
         return is_async;
     }
 
-    bool UseNvdec() const {
+    [[nodiscard]] bool UseNvdec() const {
         return use_nvdec;
     }
 
@@ -273,7 +277,7 @@ public:
         BitField<0, 1, FenceOperation> op;
         BitField<8, 24, u32> syncpoint_id;
 
-        static CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
+        [[nodiscard]] static CommandHeader Build(FenceOperation op, u32 syncpoint_id) {
             FenceAction result{};
             result.op.Assign(op);
             result.syncpoint_id.Assign(syncpoint_id);
@@ -291,7 +295,7 @@ public:
                     u32 address_high;
                     u32 address_low;
 
-                    GPUVAddr SemaphoreAddress() const {
+                    [[nodiscard]] GPUVAddr SemaphoreAddress() const {
                         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) |
                                                      address_low);
                     }
@@ -374,7 +378,7 @@ private:
                                u32 methods_pending);
 
     /// Determines where the method should be executed.
-    bool ExecuteMethodOnEngine(u32 method);
+    [[nodiscard]] bool ExecuteMethodOnEngine(u32 method);
 
 protected:
     Core::System& system;
