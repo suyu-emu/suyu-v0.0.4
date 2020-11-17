@@ -74,16 +74,21 @@ public:
     explicit SinkContext(std::size_t sink_count);
     ~SinkContext();
 
-    std::size_t GetCount() const;
+    [[nodiscard]] std::size_t GetCount() const;
 
-    void UpdateMainSink(SinkInfo::InParams& in);
-    bool InUse() const;
-    std::vector<u8> OutputBuffers() const;
+    void UpdateMainSink(const SinkInfo::InParams& in);
+    [[nodiscard]] bool InUse() const;
+    [[nodiscard]] std::vector<u8> OutputBuffers() const;
+
+    [[nodiscard]] bool HasDownMixingCoefficients() const;
+    [[nodiscard]] const std::array<float_le, 4>& GetDownmixCoefficients() const;
 
 private:
     bool in_use{false};
     s32 use_count{};
     std::array<u8, AudioCommon::MAX_CHANNEL_COUNT> buffers{};
     std::size_t sink_count{};
+    bool downmix{false};
+    std::array<float_le, 4> downmix_coefficients{};
 };
 } // namespace AudioCore

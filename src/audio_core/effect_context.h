@@ -189,11 +189,11 @@ public:
 
     virtual void Update(EffectInfo::InParams& in_params) = 0;
     virtual void UpdateForCommandGeneration() = 0;
-    UsageState GetUsage() const;
-    EffectType GetType() const;
-    bool IsEnabled() const;
-    s32 GetMixID() const;
-    s32 GetProcessingOrder() const;
+    [[nodiscard]] UsageState GetUsage() const;
+    [[nodiscard]] EffectType GetType() const;
+    [[nodiscard]] bool IsEnabled() const;
+    [[nodiscard]] s32 GetMixID() const;
+    [[nodiscard]] s32 GetProcessingOrder() const;
 
 protected:
     UsageState usage{UsageState::Invalid};
@@ -257,10 +257,10 @@ public:
 
     void Update(EffectInfo::InParams& in_params) override;
     void UpdateForCommandGeneration() override;
-    VAddr GetSendInfo() const;
-    VAddr GetSendBuffer() const;
-    VAddr GetRecvInfo() const;
-    VAddr GetRecvBuffer() const;
+    [[nodiscard]] VAddr GetSendInfo() const;
+    [[nodiscard]] VAddr GetSendBuffer() const;
+    [[nodiscard]] VAddr GetRecvInfo() const;
+    [[nodiscard]] VAddr GetRecvBuffer() const;
 
 private:
     VAddr send_info{};
@@ -309,10 +309,10 @@ public:
     explicit EffectContext(std::size_t effect_count);
     ~EffectContext();
 
-    std::size_t GetCount() const;
-    EffectBase* GetInfo(std::size_t i);
-    EffectBase* RetargetEffect(std::size_t i, EffectType effect);
-    const EffectBase* GetInfo(std::size_t i) const;
+    [[nodiscard]] std::size_t GetCount() const;
+    [[nodiscard]] EffectBase* GetInfo(std::size_t i);
+    [[nodiscard]] EffectBase* RetargetEffect(std::size_t i, EffectType effect);
+    [[nodiscard]] const EffectBase* GetInfo(std::size_t i) const;
 
 private:
     std::size_t effect_count{};

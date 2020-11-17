@@ -43,22 +43,22 @@ public:
     void ClearError();
     void UpdateFlags(u64_le dest_flags);
     void SetUserRevision(u32_le revision);
-    u32_le GetUserRevision() const;
-    u32_le GetProcessRevision() const;
+    [[nodiscard]] u32_le GetUserRevision() const;
+    [[nodiscard]] u32_le GetProcessRevision() const;
 
-    bool IsAdpcmLoopContextBugFixed() const;
-    bool IsSplitterSupported() const;
-    bool IsLongSizePreDelaySupported() const;
-    bool IsAudioRendererProcessingTimeLimit80PercentSupported() const;
-    bool IsAudioRendererProcessingTimeLimit75PercentSupported() const;
-    bool IsAudioRendererProcessingTimeLimit70PercentSupported() const;
-    bool IsElapsedFrameCountSupported() const;
-    bool IsMemoryPoolForceMappingEnabled() const;
-    bool IsFlushVoiceWaveBuffersSupported() const;
-    bool IsVoicePlayedSampleCountResetAtLoopPointSupported() const;
-    bool IsVoicePitchAndSrcSkippedSupported() const;
-    bool IsMixInParameterDirtyOnlyUpdateSupported() const;
-    bool IsSplitterBugFixed() const;
+    [[nodiscard]] bool IsAdpcmLoopContextBugFixed() const;
+    [[nodiscard]] bool IsSplitterSupported() const;
+    [[nodiscard]] bool IsLongSizePreDelaySupported() const;
+    [[nodiscard]] bool IsAudioRendererProcessingTimeLimit80PercentSupported() const;
+    [[nodiscard]] bool IsAudioRendererProcessingTimeLimit75PercentSupported() const;
+    [[nodiscard]] bool IsAudioRendererProcessingTimeLimit70PercentSupported() const;
+    [[nodiscard]] bool IsElapsedFrameCountSupported() const;
+    [[nodiscard]] bool IsMemoryPoolForceMappingEnabled() const;
+    [[nodiscard]] bool IsFlushVoiceWaveBuffersSupported() const;
+    [[nodiscard]] bool IsVoicePlayedSampleCountResetAtLoopPointSupported() const;
+    [[nodiscard]] bool IsVoicePitchAndSrcSkippedSupported() const;
+    [[nodiscard]] bool IsMixInParameterDirtyOnlyUpdateSupported() const;
+    [[nodiscard]] bool IsSplitterBugFixed() const;
     void CopyErrorInfo(OutParams& dst);
 
 private:
