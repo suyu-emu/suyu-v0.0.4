@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <tuple>
+
 #include "common/common_types.h"
 #include "common/memory_hook.h"
 #include "common/virtual_buffer.h"
@@ -47,7 +49,13 @@ struct SpecialRegion {
  */
 struct PageTable {
     PageTable();
-    ~PageTable();
+    ~PageTable() noexcept;
+
+    PageTable(const PageTable&) = delete;
+    PageTable& operator=(const PageTable&) = delete;
+
+    PageTable(PageTable&&) noexcept = default;
+    PageTable& operator=(PageTable&&) noexcept = default;
 
     /**
      * Resizes the page table to be able to accomodate enough pages within
