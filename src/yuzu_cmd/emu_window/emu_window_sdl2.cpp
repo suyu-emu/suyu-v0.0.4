@@ -9,7 +9,7 @@
 #include "core/perf_stats.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "input_common/motion_emu.h"
+#include "input_common/mouse/mouse_input.h"
 #include "input_common/sdl/sdl.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 
@@ -30,7 +30,7 @@ EmuWindow_SDL2::~EmuWindow_SDL2() {
 
 void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
     TouchMoved((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
-    input_subsystem->GetMotionEmu()->Tilt(x, y);
+    input_subsystem->GetMouse()->MouseMove(x, y);
 }
 
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
@@ -42,9 +42,9 @@ void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
         }
     } else if (button == SDL_BUTTON_RIGHT) {
         if (state == SDL_PRESSED) {
-            input_subsystem->GetMotionEmu()->BeginTilt(x, y);
+            input_subsystem->GetMouse()->PressButton(x, y, button);
         } else {
-            input_subsystem->GetMotionEmu()->EndTilt();
+            input_subsystem->GetMouse()->ReleaseButton(button);
         }
     }
 }

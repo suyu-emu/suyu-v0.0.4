@@ -17,7 +17,6 @@
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "input_common/motion_emu.h"
 #include "video_core/renderer_base.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
 

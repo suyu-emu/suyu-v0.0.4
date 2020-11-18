@@ -5,8 +5,6 @@ add_library(input_common STATIC
     keyboard.h
     main.cpp
     main.h
-    motion_emu.cpp
-    motion_emu.h
     motion_from_button.cpp
     motion_from_button.h
     motion_input.cpp
@@ -19,6 +17,10 @@ add_library(input_common STATIC
     gcadapter/gc_adapter.h
     gcadapter/gc_poller.cpp
     gcadapter/gc_poller.h
+    mouse/mouse_input.cpp
+    mouse/mouse_input.h
+    mouse/mouse_poller.cpp
+    mouse/mouse_poller.h
     sdl/sdl.cpp
     sdl/sdl.h
     udp/client.cpp
