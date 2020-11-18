@@ -210,7 +210,7 @@ struct System::Impl {
 
     ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
                       const std::string& filepath) {
-        app_loader = Loader::GetLoader(GetGameFileFromPath(virtual_filesystem, filepath));
+        app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath));
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
@@ -224,7 +224,7 @@ struct System::Impl {
             return init_result;
         }
 
-        telemetry_session->AddInitialInfo(*app_loader);
+        telemetry_session->AddInitialInfo(*app_loader, fs_controller, *content_provider);
         auto main_process =
             Kernel::Process::Create(system, "main", Kernel::Process::ProcessType::Userland);
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
@@ -338,7 +338,7 @@ struct System::Impl {
         Service::Glue::ApplicationLaunchProperty launch{};
         launch.title_id = process.GetTitleID();
 
-        FileSys::PatchManager pm{launch.title_id};
+        FileSys::PatchManager pm{launch.title_id, fs_controller, *content_provider};
         launch.version = pm.GetGameVersion().value_or(0);
 
         // TODO(DarkLordZach): When FSController/Game Card Support is added, if

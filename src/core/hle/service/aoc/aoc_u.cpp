@@ -164,7 +164,8 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 
     const auto title_id = system.CurrentProcess()->GetTitleID();
-    FileSys::PatchManager pm{title_id};
+    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
 
     const auto res = pm.GetControlMetadata();
     if (res.first == nullptr) {

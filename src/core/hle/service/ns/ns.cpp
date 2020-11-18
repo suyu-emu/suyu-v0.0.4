@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "common/logging/log.h"
+#include "core/core.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
 #include "core/file_sys/vfs.h"
@@ -29,8 +30,8 @@ IAccountProxyInterface::IAccountProxyInterface() : ServiceFramework{"IAccountPro
 
 IAccountProxyInterface::~IAccountProxyInterface() = default;
 
-IApplicationManagerInterface::IApplicationManagerInterface()
-    : ServiceFramework{"IApplicationManagerInterface"} {
+IApplicationManagerInterface::IApplicationManagerInterface(Core::System& system_)
+    : ServiceFramework{"IApplicationManagerInterface"}, system{system_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "ListApplicationRecord"},
@@ -298,7 +299,8 @@ void IApplicationManagerInterface::GetApplicationControlData(Kernel::HLERequestC
 
     const auto size = ctx.GetWriteBufferSize();
 
-    const FileSys::PatchManager pm{title_id};
+    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
     const auto control = pm.GetControlMetadata();
 
     std::vector<u8> out;
@@ -538,14 +540,14 @@ IFactoryResetInterface::IFactoryResetInterface::IFactoryResetInterface()
 
 IFactoryResetInterface::~IFactoryResetInterface() = default;
 
-NS::NS(const char* name) : ServiceFramework{name} {
+NS::NS(const char* name, Core::System& system_) : ServiceFramework{name}, system{system_} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {7992, &NS::PushInterface<IECommerceInterface>, "GetECommerceInterface"},
         {7993, &NS::PushInterface<IApplicationVersionInterface>, "GetApplicationVersionInterface"},
         {7994, &NS::PushInterface<IFactoryResetInterface>, "GetFactoryResetInterface"},
         {7995, &NS::PushInterface<IAccountProxyInterface>, "GetAccountProxyInterface"},
-        {7996, &NS::PushInterface<IApplicationManagerInterface>, "GetApplicationManagerInterface"},
+        {7996, &NS::PushIApplicationManagerInterface, "GetApplicationManagerInterface"},
         {7997, &NS::PushInterface<IDownloadTaskInterface>, "GetDownloadTaskInterface"},
         {7998, &NS::PushInterface<IContentManagementInterface>, "GetContentManagementInterface"},
         {7999, &NS::PushInterface<IDocumentInterface>, "GetDocumentInterface"},
@@ -558,7 +560,7 @@ NS::NS(const char* name) : ServiceFramework{name} {
 NS::~NS() = default;
 
 std::shared_ptr<IApplicationManagerInterface> NS::GetApplicationManagerInterface() const {
-    return GetInterface<IApplicationManagerInterface>();
+    return GetInterface<IApplicationManagerInterface>(system);
 }
 
 class NS_DEV final : public ServiceFramework<NS_DEV> {
@@ -678,11 +680,11 @@ public:
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
 
-    std::make_shared<NS>("ns:am2")->InstallAsService(service_manager);
-    std::make_shared<NS>("ns:ec")->InstallAsService(service_manager);
-    std::make_shared<NS>("ns:rid")->InstallAsService(service_manager);
-    std::make_shared<NS>("ns:rt")->InstallAsService(service_manager);
-    std::make_shared<NS>("ns:web")->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:am2", system)->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:ec", system)->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:rid", system)->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:rt", system)->InstallAsService(service_manager);
+    std::make_shared<NS>("ns:web", system)->InstallAsService(service_manager);
 
     std::make_shared<NS_DEV>()->InstallAsService(service_manager);
     std::make_shared<NS_SU>()->InstallAsService(service_manager);

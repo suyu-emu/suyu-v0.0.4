@@ -7,8 +7,16 @@
 #include <string>
 #include "common/telemetry.h"
 
+namespace FileSys {
+class ContentProvider;
+}
+
 namespace Loader {
 class AppLoader;
+}
+
+namespace Service::FileSystem {
+class FileSystemController;
 }
 
 namespace Core {
@@ -40,10 +48,14 @@ public:
      *   - Title file format
      *   - Miscellaneous settings values.
      *
-     * @param app_loader The application loader to use to retrieve
-     *                   title-specific information.
+     * @param app_loader       The application loader to use to retrieve
+     *                         title-specific information.
+     * @param fsc              Filesystem controller to use to retrieve info.
+     * @param content_provider Content provider to use to retrieve info.
      */
-    void AddInitialInfo(Loader::AppLoader& app_loader);
+    void AddInitialInfo(Loader::AppLoader& app_loader,
+                        const Service::FileSystem::FileSystemController& fsc,
+                        const FileSys::ContentProvider& content_provider);
 
     /**
      * Wrapper around the Telemetry::FieldCollection::AddField method.

@@ -112,7 +112,10 @@ bool IsDirValidAndNonEmpty(const VirtualDir& dir) {
 }
 } // Anonymous namespace
 
-PatchManager::PatchManager(u64 title_id) : title_id(title_id) {}
+PatchManager::PatchManager(u64 title_id_,
+                           const Service::FileSystem::FileSystemController& fs_controller_,
+                           const ContentProvider& content_provider_)
+    : title_id{title_id_}, fs_controller{fs_controller_}, content_provider{content_provider_} {}
 
 PatchManager::~PatchManager() = default;
 
@@ -128,15 +131,12 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     if (Settings::values.dump_exefs) {
         LOG_INFO(Loader, "Dumping ExeFS for title_id={:016X}", title_id);
-        const auto dump_dir =
-            Core::System::GetInstance().GetFileSystemController().GetModificationDumpRoot(title_id);
+        const auto dump_dir = fs_controller.GetModificationDumpRoot(title_id);
         if (dump_dir != nullptr) {
             const auto exefs_dir = GetOrCreateDirectoryRelative(dump_dir, "/exefs");
             VfsRawCopyD(exefs, exefs_dir);
         }
     }
-
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
@@ -144,18 +144,17 @@ VirtualDir PatchManager::PatchExeFS(VirtualDir exefs) const {
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = installed.GetEntry(update_tid, ContentRecordType::Program);
+    const auto update = content_provider.GetEntry(update_tid, ContentRecordType::Program);
 
     if (!update_disabled && update != nullptr && update->GetExeFS() != nullptr &&
         update->GetStatus() == Loader::ResultStatus::ErrorMissingBKTRBaseRomFS) {
         LOG_INFO(Loader, "    ExeFS: Update ({}) applied successfully",
-                 FormatTitleVersion(installed.GetEntryVersion(update_tid).value_or(0)));
+                 FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
         exefs = update->GetExeFS();
     }
 
     // LayeredExeFS
-    const auto load_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+    const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir != nullptr && load_dir->GetSize() > 0) {
         auto patch_dirs = load_dir->GetSubdirectories();
         std::sort(
@@ -241,8 +240,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
     if (Settings::values.dump_nso) {
         LOG_INFO(Loader, "Dumping NSO for name={}, build_id={}, title_id={:016X}", name, build_id,
                  title_id);
-        const auto dump_dir =
-            Core::System::GetInstance().GetFileSystemController().GetModificationDumpRoot(title_id);
+        const auto dump_dir = fs_controller.GetModificationDumpRoot(title_id);
         if (dump_dir != nullptr) {
             const auto nso_dir = GetOrCreateDirectoryRelative(dump_dir, "/nso");
             const auto file = nso_dir->CreateFile(fmt::format("{}-{}.nso", name, build_id));
@@ -254,8 +252,7 @@ std::vector<u8> PatchManager::PatchNSO(const std::vector<u8>& nso, const std::st
 
     LOG_INFO(Loader, "Patching NSO for name={}, build_id={}", name, build_id);
 
-    const auto load_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+    const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return nso;
@@ -298,8 +295,7 @@ bool PatchManager::HasNSOPatch(const BuildID& build_id_) const {
 
     LOG_INFO(Loader, "Querying NSO patch existence for build_id={}", build_id);
 
-    const auto load_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+    const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return false;
@@ -313,8 +309,8 @@ bool PatchManager::HasNSOPatch(const BuildID& build_id_) const {
 }
 
 std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
-    const Core::System& system, const BuildID& build_id_) const {
-    const auto load_dir = system.GetFileSystemController().GetModificationLoadRoot(title_id);
+    const BuildID& build_id_) const {
+    const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (load_dir == nullptr) {
         LOG_ERROR(Loader, "Cannot load mods for invalid title_id={:016X}", title_id);
         return {};
@@ -347,9 +343,9 @@ std::vector<Core::Memory::CheatEntry> PatchManager::CreateCheatList(
     return out;
 }
 
-static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type) {
-    const auto load_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+static void ApplyLayeredFS(VirtualFile& romfs, u64 title_id, ContentRecordType type,
+                           const Service::FileSystem::FileSystemController& fs_controller) {
+    const auto load_dir = fs_controller.GetModificationLoadRoot(title_id);
     if ((type != ContentRecordType::Program && type != ContentRecordType::Data) ||
         load_dir == nullptr || load_dir->GetSize() <= 0) {
         return;
@@ -411,19 +407,19 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
     const auto log_string = fmt::format("Patching RomFS for title_id={:016X}, type={:02X}",
                                         title_id, static_cast<u8>(type));
 
-    if (type == ContentRecordType::Program || type == ContentRecordType::Data)
+    if (type == ContentRecordType::Program || type == ContentRecordType::Data) {
         LOG_INFO(Loader, "{}", log_string);
-    else
+    } else {
         LOG_DEBUG(Loader, "{}", log_string);
+    }
 
-    if (romfs == nullptr)
+    if (romfs == nullptr) {
         return romfs;
-
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
+    }
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    const auto update = installed.GetEntryRaw(update_tid, type);
+    const auto update = content_provider.GetEntryRaw(update_tid, type);
 
     const auto& disabled = Settings::values.disabled_addons[title_id];
     const auto update_disabled =
@@ -434,7 +430,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
         if (new_nca->GetStatus() == Loader::ResultStatus::Success &&
             new_nca->GetRomFS() != nullptr) {
             LOG_INFO(Loader, "    RomFS: Update ({}) applied successfully",
-                     FormatTitleVersion(installed.GetEntryVersion(update_tid).value_or(0)));
+                     FormatTitleVersion(content_provider.GetEntryVersion(update_tid).value_or(0)));
             romfs = new_nca->GetRomFS();
         }
     } else if (!update_disabled && update_raw != nullptr) {
@@ -447,7 +443,7 @@ VirtualFile PatchManager::PatchRomFS(VirtualFile romfs, u64 ivfc_offset, Content
     }
 
     // LayeredFS
-    ApplyLayeredFS(romfs, title_id, type);
+    ApplyLayeredFS(romfs, title_id, type, fs_controller);
 
     return romfs;
 }
@@ -458,12 +454,11 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
     }
 
     std::map<std::string, std::string, std::less<>> out;
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
     const auto& disabled = Settings::values.disabled_addons[title_id];
 
     // Game Updates
     const auto update_tid = GetUpdateTitleID(title_id);
-    PatchManager update{update_tid};
+    PatchManager update{update_tid, fs_controller, content_provider};
     const auto metadata = update.GetControlMetadata();
     const auto& nacp = metadata.first;
 
@@ -474,8 +469,8 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
     if (nacp != nullptr) {
         out.insert_or_assign(update_label, nacp->GetVersionString());
     } else {
-        if (installed.HasEntry(update_tid, ContentRecordType::Program)) {
-            const auto meta_ver = installed.GetEntryVersion(update_tid);
+        if (content_provider.HasEntry(update_tid, ContentRecordType::Program)) {
+            const auto meta_ver = content_provider.GetEntryVersion(update_tid);
             if (meta_ver.value_or(0) == 0) {
                 out.insert_or_assign(update_label, "");
             } else {
@@ -487,8 +482,7 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
     }
 
     // General Mods (LayeredFS and IPS)
-    const auto mod_dir =
-        Core::System::GetInstance().GetFileSystemController().GetModificationLoadRoot(title_id);
+    const auto mod_dir = fs_controller.GetModificationLoadRoot(title_id);
     if (mod_dir != nullptr && mod_dir->GetSize() > 0) {
         for (const auto& mod : mod_dir->GetSubdirectories()) {
             std::string types;
@@ -532,13 +526,15 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
     }
 
     // DLC
-    const auto dlc_entries = installed.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
+    const auto dlc_entries =
+        content_provider.ListEntriesFilter(TitleType::AOC, ContentRecordType::Data);
     std::vector<ContentProviderEntry> dlc_match;
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
-                 [this, &installed](const ContentProviderEntry& entry) {
+                 [this](const ContentProviderEntry& entry) {
                      return (entry.title_id & DLC_BASE_TITLE_ID_MASK) == title_id &&
-                            installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success;
+                            content_provider.GetEntry(entry)->GetStatus() ==
+                                Loader::ResultStatus::Success;
                  });
     if (!dlc_match.empty()) {
         // Ensure sorted so DLC IDs show in order.
@@ -559,19 +555,16 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
 }
 
 std::optional<u32> PatchManager::GetGameVersion() const {
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
     const auto update_tid = GetUpdateTitleID(title_id);
-    if (installed.HasEntry(update_tid, ContentRecordType::Program)) {
-        return installed.GetEntryVersion(update_tid);
+    if (content_provider.HasEntry(update_tid, ContentRecordType::Program)) {
+        return content_provider.GetEntryVersion(update_tid);
     }
 
-    return installed.GetEntryVersion(title_id);
+    return content_provider.GetEntryVersion(title_id);
 }
 
 PatchManager::Metadata PatchManager::GetControlMetadata() const {
-    const auto& installed = Core::System::GetInstance().GetContentProvider();
-
-    const auto base_control_nca = installed.GetEntry(title_id, ContentRecordType::Control);
+    const auto base_control_nca = content_provider.GetEntry(title_id, ContentRecordType::Control);
     if (base_control_nca == nullptr) {
         return {};
     }
