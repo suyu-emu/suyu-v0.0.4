@@ -444,6 +444,10 @@ void System::InvalidateCpuInstructionCaches() {
     impl->kernel.InvalidateAllInstructionCaches();
 }
 
+void System::Shutdown() {
+    impl->Shutdown();
+}
+
 System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath) {
     return impl->Load(*this, emu_window, filepath);
 }
@@ -750,14 +754,6 @@ void System::SetCurrentProcessBuildID(const CurrentBuildProcessID& id) {
 
 const System::CurrentBuildProcessID& System::GetCurrentProcessBuildID() const {
     return impl->build_id;
-}
-
-System::ResultStatus System::Init(Frontend::EmuWindow& emu_window) {
-    return impl->Init(*this, emu_window);
-}
-
-void System::Shutdown() {
-    impl->Shutdown();
 }
 
 Service::SM::ServiceManager& System::ServiceManager() {

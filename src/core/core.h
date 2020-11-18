@@ -388,14 +388,6 @@ public:
 private:
     System();
 
-    /**
-     * Initialize the emulated system.
-     * @param emu_window Reference to the host-system window used for video output and keyboard
-     *                   input.
-     * @return ResultStatus code, indicating if the operation succeeded.
-     */
-    [[nodiscard]] ResultStatus Init(Frontend::EmuWindow& emu_window);
-
     struct Impl;
     std::unique_ptr<Impl> impl;
 
