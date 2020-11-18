@@ -21,8 +21,7 @@
 
 namespace InputCommon::CemuhookUDP {
 
-constexpr u16 DEFAULT_PORT = 26760;
-constexpr char DEFAULT_ADDR[] = "127.0.0.1";
+constexpr char DEFAULT_SRV[] = "127.0.0.1:26760";
 
 class Socket;
 
@@ -48,6 +47,9 @@ enum class PadTouch {
 };
 
 struct UDPPadStatus {
+    std::string host{"127.0.0.1"};
+    u16 port{26760};
+    std::size_t pad_index{};
     PadTouch touch{PadTouch::Undefined};
     PadMotion motion{PadMotion::Undefined};
     f32 motion_value{0.0f};
@@ -82,37 +84,41 @@ public:
 
     std::vector<Common::ParamPackage> GetInputDevices() const;
 
-    bool DeviceConnected(std::size_t pad) const;
-    void ReloadUDPClient();
-    void ReloadSocket(const std::string& host = "127.0.0.1", u16 port = 26760,
-                      std::size_t pad_index = 0, u32 client_id = 24872);
+    bool DeviceConnected(std::size_t client) const;
+    void ReloadSockets();
 
-    std::array<Common::SPSCQueue<UDPPadStatus>, 4>& GetPadQueue();
-    const std::array<Common::SPSCQueue<UDPPadStatus>, 4>& GetPadQueue() const;
+    Common::SPSCQueue<UDPPadStatus>& GetPadQueue();
+    const Common::SPSCQueue<UDPPadStatus>& GetPadQueue() const;
 
-    DeviceStatus& GetPadState(std::size_t pad);
-    const DeviceStatus& GetPadState(std::size_t pad) const;
+    DeviceStatus& GetPadState(const std::string& host, u16 port, std::size_t pad);
+    const DeviceStatus& GetPadState(const std::string& host, u16 port, std::size_t pad) const;
 
 private:
     struct ClientData {
+        std::string host{"127.0.0.1"};
+        u16 port{26760};
+        std::size_t pad_index{};
         std::unique_ptr<Socket> socket;
         DeviceStatus status;
         std::thread thread;
-        u64 packet_sequence = 0;
-        u8 active = 0;
+        u64 packet_sequence{};
+        s8 active{-1};
 
         // Realtime values
         // motion is initalized with PID values for drift correction on joycons
         InputCommon::MotionInput motion{0.3f, 0.005f, 0.0f};
-        std::chrono::time_point<std::chrono::system_clock> last_motion_update;
+        std::chrono::time_point<std::chrono::steady_clock> last_motion_update;
     };
 
     // For shutting down, clear all data, join all threads, release usb
     void Reset();
 
+    // Translates configuration to client number
+    std::size_t GetClientNumber(std::string_view host, u16 port, std::size_t pad) const;
+
     void OnVersion(Response::Version);
     void OnPortInfo(Response::PortInfo);
-    void OnPadData(Response::PadData);
+    void OnPadData(Response::PadData, std::size_t client);
     void StartCommunication(std::size_t client, const std::string& host, u16 port,
                             std::size_t pad_index, u32 client_id);
     void UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
@@ -120,8 +126,10 @@ private:
 
     bool configuring = false;
 
-    std::array<ClientData, 4> clients;
-    std::array<Common::SPSCQueue<UDPPadStatus>, 4> pad_queue;
+    // Allocate clients for 8 udp servers
+    const std::size_t max_udp_clients = 32;
+    std::array<ClientData, 4 * 8> clients;
+    Common::SPSCQueue<UDPPadStatus> pad_queue;
 };
 
 /// An async job allowing configuration of the touchpad calibration.

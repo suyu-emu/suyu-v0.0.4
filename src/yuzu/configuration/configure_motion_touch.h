@@ -10,6 +10,7 @@
 
 class QLabel;
 class QPushButton;
+class QStringListModel;
 class QVBoxLayout;
 
 namespace InputCommon {
@@ -62,6 +63,8 @@ public slots:
     void ApplyConfiguration();
 
 private slots:
+    void OnUDPAddServer();
+    void OnUDPDeleteServer();
     void OnCemuhookUDPTest();
     void OnConfigureTouchCalibration();
     void OnConfigureTouchFromButton();
@@ -73,10 +76,12 @@ private:
     void UpdateUiDisplay();
     void ConnectEvents();
     bool CanCloseDialog();
+    std::string GetUDPServerString() const;
 
     InputCommon::InputSubsystem* input_subsystem;
 
     std::unique_ptr<Ui::ConfigureMotionTouch> ui;
+    QStringListModel* udp_server_list_model;
 
     // Coordinate system of the CemuhookUDP touch provider
     int min_x{};
