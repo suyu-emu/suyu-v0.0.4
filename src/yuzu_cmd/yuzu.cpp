@@ -240,11 +240,11 @@ int main(int argc, char** argv) {
         system.CurrentProcess()->GetTitleID(), false,
         [](VideoCore::LoadCallbackStage, size_t value, size_t total) {});
 
-    system.Run();
+    void(system.Run());
     while (emu_window->IsOpen()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    system.Pause();
+    void(system.Pause());
     system.Shutdown();
 
     detached_tasks.WaitForAllTasks();

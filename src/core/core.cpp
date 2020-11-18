@@ -632,7 +632,11 @@ const std::string& System::GetStatusDetails() const {
     return impl->status_details;
 }
 
-Loader::AppLoader& System::GetAppLoader() const {
+Loader::AppLoader& System::GetAppLoader() {
+    return *impl->app_loader;
+}
+
+const Loader::AppLoader& System::GetAppLoader() const {
     return *impl->app_loader;
 }
 

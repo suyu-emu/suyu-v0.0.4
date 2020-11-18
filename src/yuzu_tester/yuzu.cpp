@@ -256,11 +256,11 @@ int main(int argc, char** argv) {
 
     system.GPU().Start();
 
-    system.Run();
+    void(system.Run());
     while (!finished) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
-    system.Pause();
+    void(system.Pause());
 
     detached_tasks.WaitForAllTasks();
     return return_value;
