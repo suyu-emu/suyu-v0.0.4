@@ -47,7 +47,7 @@ FramebufferLayout DefaultFrameLayout(u32 width, u32 height) {
 FramebufferLayout FrameLayoutFromResolutionScale(u32 res_scale) {
     u32 width, height;
 
-    if (Settings::values.use_docked_mode) {
+    if (Settings::values.use_docked_mode.GetValue()) {
         width = ScreenDocked::Width * res_scale;
         height = ScreenDocked::Height * res_scale;
     } else {

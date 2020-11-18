@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ConfigureInputDialog</class>
- <widget class="QDialog" name="ConfigureInputDialog">
+ <class>ConfigureInputProfileDialog</class>
+ <widget class="QDialog" name="ConfigureInputProfileDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Configure Input</string>
+   <string>Create Input Profile</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">
@@ -30,10 +30,24 @@
     <number>9</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="inputLayout"/>
+    <layout class="QHBoxLayout" name="controllerLayout"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="clear_all_button">
+       <property name="text">
+        <string>Clear</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="restore_defaults_button">
+       <property name="text">
+        <string>Defaults</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="standardButtons">
@@ -50,7 +64,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ConfigureInputDialog</receiver>
+   <receiver>ConfigureInputProfileDialog</receiver>
    <slot>accept()</slot>
   </connection>
  </connections>

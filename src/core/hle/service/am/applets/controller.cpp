@@ -25,7 +25,7 @@ namespace Service::AM::Applets {
 static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     ControllerSupportArgPrivate private_arg, ControllerSupportArgHeader header, bool enable_text,
     std::vector<IdentificationColor> identification_colors, std::vector<ExplainText> text) {
-    HID::Controller_NPad::NPadType npad_style_set;
+    HID::Controller_NPad::NpadStyleSet npad_style_set;
     npad_style_set.raw = private_arg.style_set;
 
     return {
@@ -222,7 +222,7 @@ void Controller::Execute() {
 void Controller::ConfigurationComplete() {
     ControllerSupportResultInfo result_info{};
 
-    const auto& players = Settings::values.players;
+    const auto& players = Settings::values.players.GetValue();
 
     // If enable_single_mode is enabled, player_count is 1 regardless of any other parameters.
     // Otherwise, only count connected players from P1-P8.

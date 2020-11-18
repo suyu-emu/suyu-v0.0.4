@@ -47,13 +47,13 @@ bool Config::LoadINI(const std::string& default_contents, bool retry) {
 
 void Config::ReadValues() {
     // Controls
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
-            Settings::values.players[p].buttons[i] = "";
+            Settings::values.players.GetValue()[p].buttons[i] = "";
         }
 
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
-            Settings::values.players[p].analogs[i] = "";
+            Settings::values.players.GetValue()[p].analogs[i] = "";
         }
     }
 
@@ -75,8 +75,9 @@ void Config::ReadValues() {
         Settings::values.debug_pad_analogs[i] = "";
     }
 
-    Settings::values.vibration_enabled = true;
-    Settings::values.motion_enabled = true;
+    Settings::values.vibration_enabled.SetValue(true);
+    Settings::values.enable_accurate_vibrations.SetValue(false);
+    Settings::values.motion_enabled.SetValue(true);
     Settings::values.touchscreen.enabled = "";
     Settings::values.touchscreen.device = "";
     Settings::values.touchscreen.finger = 0;
@@ -84,8 +85,8 @@ void Config::ReadValues() {
     Settings::values.touchscreen.diameter_x = 15;
     Settings::values.touchscreen.diameter_y = 15;
 
-    Settings::values.use_docked_mode =
-        sdl2_config->GetBoolean("Controls", "use_docked_mode", false);
+    Settings::values.use_docked_mode.SetValue(
+        sdl2_config->GetBoolean("Controls", "use_docked_mode", false));
 
     // Data Storage
     Settings::values.use_virtual_sd =

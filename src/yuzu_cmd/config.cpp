@@ -228,24 +228,24 @@ static const std::array<int, 8> keyboard_mods{
 
 void Config::ReadValues() {
     // Controls
-    for (std::size_t p = 0; p < Settings::values.players.size(); ++p) {
+    for (std::size_t p = 0; p < Settings::values.players.GetValue().size(); ++p) {
         const auto group = fmt::format("ControlsP{}", p);
         for (int i = 0; i < Settings::NativeButton::NumButtons; ++i) {
             std::string default_param = InputCommon::GenerateKeyboardParam(default_buttons[i]);
-            Settings::values.players[p].buttons[i] =
+            Settings::values.players.GetValue()[p].buttons[i] =
                 sdl2_config->Get(group, Settings::NativeButton::mapping[i], default_param);
-            if (Settings::values.players[p].buttons[i].empty())
-                Settings::values.players[p].buttons[i] = default_param;
+            if (Settings::values.players.GetValue()[p].buttons[i].empty())
+                Settings::values.players.GetValue()[p].buttons[i] = default_param;
         }
 
         for (int i = 0; i < Settings::NativeAnalog::NumAnalogs; ++i) {
             std::string default_param = InputCommon::GenerateAnalogParamFromKeys(
                 default_analogs[i][0], default_analogs[i][1], default_analogs[i][2],
                 default_analogs[i][3], default_analogs[i][4], 0.5f);
-            Settings::values.players[p].analogs[i] =
+            Settings::values.players.GetValue()[p].analogs[i] =
                 sdl2_config->Get(group, Settings::NativeAnalog::mapping[i], default_param);
-            if (Settings::values.players[p].analogs[i].empty())
-                Settings::values.players[p].analogs[i] = default_param;
+            if (Settings::values.players.GetValue()[p].analogs[i].empty())
+                Settings::values.players.GetValue()[p].analogs[i] = default_param;
         }
     }
 
@@ -288,10 +288,12 @@ void Config::ReadValues() {
             Settings::values.debug_pad_analogs[i] = default_param;
     }
 
-    Settings::values.vibration_enabled =
-        sdl2_config->GetBoolean("ControlsGeneral", "vibration_enabled", true);
-    Settings::values.motion_enabled =
-        sdl2_config->GetBoolean("ControlsGeneral", "motion_enabled", true);
+    Settings::values.vibration_enabled.SetValue(
+        sdl2_config->GetBoolean("ControlsGeneral", "vibration_enabled", true));
+    Settings::values.enable_accurate_vibrations.SetValue(
+        sdl2_config->GetBoolean("ControlsGeneral", "enable_accurate_vibrations", false));
+    Settings::values.motion_enabled.SetValue(
+        sdl2_config->GetBoolean("ControlsGeneral", "motion_enabled", true));
     Settings::values.touchscreen.enabled =
         sdl2_config->GetBoolean("ControlsGeneral", "touch_enabled", true);
     Settings::values.touchscreen.device =
@@ -343,7 +345,8 @@ void Config::ReadValues() {
     Settings::values.gamecard_path = sdl2_config->Get("Data Storage", "gamecard_path", "");
 
     // System
-    Settings::values.use_docked_mode = sdl2_config->GetBoolean("System", "use_docked_mode", false);
+    Settings::values.use_docked_mode.SetValue(
+        sdl2_config->GetBoolean("System", "use_docked_mode", false));
     const auto size = sdl2_config->GetInteger("System", "users_size", 0);
 
     Settings::values.current_user = std::clamp<int>(

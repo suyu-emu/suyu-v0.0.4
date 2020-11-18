@@ -80,30 +80,13 @@ public:
         return static_cast<float>(state.axes.at(axis)) / (32767.0f * range);
     }
 
-    bool RumblePlay(f32 amp_low, f32 amp_high, u32 time) {
-        const u16 raw_amp_low = static_cast<u16>(amp_low * 0xFFFF);
-        const u16 raw_amp_high = static_cast<u16>(amp_high * 0xFFFF);
-        // Lower drastically the number of state changes
-        if (raw_amp_low >> 11 == last_state_rumble_low >> 11 &&
-            raw_amp_high >> 11 == last_state_rumble_high >> 11) {
-            if (raw_amp_low + raw_amp_high != 0 ||
-                last_state_rumble_low + last_state_rumble_high == 0) {
-                return false;
-            }
-        }
-        // Don't change state if last vibration was < 20ms
-        const auto now = std::chrono::system_clock::now();
-        if (std::chrono::duration_cast<std::chrono::milliseconds>(now - last_vibration) <
-            std::chrono::milliseconds(20)) {
-            return raw_amp_low + raw_amp_high == 0;
+    bool RumblePlay(u16 amp_low, u16 amp_high) {
+        if (sdl_controller) {
+            return SDL_GameControllerRumble(sdl_controller.get(), amp_low, amp_high, 0) == 0;
+        } else if (sdl_joystick) {
+            return SDL_JoystickRumble(sdl_joystick.get(), amp_low, amp_high, 0) == 0;
         }
 
-        last_vibration = now;
-        last_state_rumble_low = raw_amp_low;
-        last_state_rumble_high = raw_amp_high;
-        if (sdl_joystick) {
-            SDL_JoystickRumble(sdl_joystick.get(), raw_amp_low, raw_amp_high, time);
-        }
         return false;
     }
 
@@ -172,9 +155,6 @@ private:
     } state;
     std::string guid;
     int port;
-    u16 last_state_rumble_high = 0;
-    u16 last_state_rumble_low = 0;
-    std::chrono::time_point<std::chrono::system_clock> last_vibration;
     std::unique_ptr<SDL_Joystick, decltype(&SDL_JoystickClose)> sdl_joystick;
     std::unique_ptr<SDL_GameController, decltype(&SDL_GameControllerClose)> sdl_controller;
     mutable std::mutex mutex;
@@ -327,12 +307,6 @@ public:
         return joystick->GetButton(button);
     }
 
-    bool SetRumblePlay(f32 amp_high, f32 amp_low, f32 freq_high, f32 freq_low) const override {
-        const f32 new_amp_low = pow(amp_low, 0.5f) * (3.0f - 2.0f * pow(amp_low, 0.15f));
-        const f32 new_amp_high = pow(amp_high, 0.5f) * (3.0f - 2.0f * pow(amp_high, 0.15f));
-        return joystick->RumblePlay(new_amp_low, new_amp_high, 250);
-    }
-
 private:
     std::shared_ptr<SDLJoystick> joystick;
     int button;
@@ -414,6 +388,32 @@ private:
     const int axis_y;
     const float deadzone;
     const float range;
+};
+
+class SDLVibration final : public Input::VibrationDevice {
+public:
+    explicit SDLVibration(std::shared_ptr<SDLJoystick> joystick_)
+        : joystick(std::move(joystick_)) {}
+
+    u8 GetStatus() const override {
+        joystick->RumblePlay(1, 1);
+        return joystick->RumblePlay(0, 0);
+    }
+
+    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
+        const auto process_amplitude = [](f32 amplitude) {
+            return static_cast<u16>(std::pow(amplitude, 0.5f) *
+                                    (3.0f - 2.0f * std::pow(amplitude, 0.15f)) * 0xFFFF);
+        };
+
+        const auto processed_amp_low = process_amplitude(amp_low);
+        const auto processed_amp_high = process_amplitude(amp_high);
+
+        return joystick->RumblePlay(processed_amp_low, processed_amp_high);
+    }
+
+private:
+    std::shared_ptr<SDLJoystick> joystick;
 };
 
 class SDLDirectionMotion final : public Input::MotionDevice {
@@ -558,7 +558,7 @@ class SDLAnalogFactory final : public Input::Factory<Input::AnalogDevice> {
 public:
     explicit SDLAnalogFactory(SDLState& state_) : state(state_) {}
     /**
-     * Creates analog device from joystick axes
+     * Creates an analog device from joystick axes
      * @param params contains parameters for creating the device:
      *     - "guid": the guid of the joystick to bind
      *     - "port": the nth joystick of the same type
@@ -578,6 +578,26 @@ public:
         joystick->SetAxis(axis_x, 0);
         joystick->SetAxis(axis_y, 0);
         return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, deadzone, range);
+    }
+
+private:
+    SDLState& state;
+};
+
+/// An vibration device factory that creates vibration devices from SDL joystick
+class SDLVibrationFactory final : public Input::Factory<Input::VibrationDevice> {
+public:
+    explicit SDLVibrationFactory(SDLState& state_) : state(state_) {}
+    /**
+     * Creates a vibration device from a joystick
+     * @param params contains parameters for creating the device:
+     *     - "guid": the guid of the joystick to bind
+     *     - "port": the nth joystick of the same type
+     */
+    std::unique_ptr<Input::VibrationDevice> Create(const Common::ParamPackage& params) override {
+        const std::string guid = params.Get("guid", "0");
+        const int port = params.Get("port", 0);
+        return std::make_unique<SDLVibration>(state.GetSDLJoystickByGUID(guid, port));
     }
 
 private:
@@ -650,11 +670,13 @@ private:
 
 SDLState::SDLState() {
     using namespace Input;
-    analog_factory = std::make_shared<SDLAnalogFactory>(*this);
     button_factory = std::make_shared<SDLButtonFactory>(*this);
+    analog_factory = std::make_shared<SDLAnalogFactory>(*this);
+    vibration_factory = std::make_shared<SDLVibrationFactory>(*this);
     motion_factory = std::make_shared<SDLMotionFactory>(*this);
-    RegisterFactory<AnalogDevice>("sdl", analog_factory);
     RegisterFactory<ButtonDevice>("sdl", button_factory);
+    RegisterFactory<AnalogDevice>("sdl", analog_factory);
+    RegisterFactory<VibrationDevice>("sdl", vibration_factory);
     RegisterFactory<MotionDevice>("sdl", motion_factory);
 
     // If the frontend is going to manage the event loop, then we don't start one here
@@ -676,7 +698,7 @@ SDLState::SDLState() {
             using namespace std::chrono_literals;
             while (initialized) {
                 SDL_PumpEvents();
-                std::this_thread::sleep_for(5ms);
+                std::this_thread::sleep_for(1ms);
             }
         });
     }
@@ -691,6 +713,7 @@ SDLState::~SDLState() {
     using namespace Input;
     UnregisterFactory<ButtonDevice>("sdl");
     UnregisterFactory<AnalogDevice>("sdl");
+    UnregisterFactory<VibrationDevice>("sdl");
     UnregisterFactory<MotionDevice>("sdl");
 
     CloseJoysticks();
@@ -1045,7 +1068,6 @@ public:
 
     void Start(const std::string& device_id) override {
         SDLPoller::Start(device_id);
-        // Load the game controller
         // Reset stored axes
         analog_x_axis = -1;
         analog_y_axis = -1;
@@ -1058,40 +1080,21 @@ public:
             if (event.type == SDL_JOYAXISMOTION && std::abs(event.jaxis.value / 32767.0) < 0.5) {
                 continue;
             }
-            // Simplify controller config by testing if game controller support is enabled.
             if (event.type == SDL_JOYAXISMOTION) {
                 const auto axis = event.jaxis.axis;
-                if (const auto joystick = state.GetSDLJoystickBySDLID(event.jaxis.which);
-                    auto* const controller = joystick->GetSDLGameController()) {
-                    const auto axis_left_x =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTX)
-                            .value.axis;
-                    const auto axis_left_y =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_LEFTY)
-                            .value.axis;
-                    const auto axis_right_x =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTX)
-                            .value.axis;
-                    const auto axis_right_y =
-                        SDL_GameControllerGetBindForAxis(controller, SDL_CONTROLLER_AXIS_RIGHTY)
-                            .value.axis;
-
-                    if (axis == axis_left_x || axis == axis_left_y) {
-                        analog_x_axis = axis_left_x;
-                        analog_y_axis = axis_left_y;
-                        break;
-                    } else if (axis == axis_right_x || axis == axis_right_y) {
-                        analog_x_axis = axis_right_x;
-                        analog_y_axis = axis_right_y;
-                        break;
-                    }
+                // In order to return a complete analog param, we need inputs for both axes.
+                // First we take the x-axis (horizontal) input, then the y-axis (vertical) input.
+                if (analog_x_axis == -1) {
+                    analog_x_axis = axis;
+                } else if (analog_y_axis == -1 && analog_x_axis != axis) {
+                    analog_y_axis = axis;
                 }
-            }
-
-            // If the press wasn't accepted as a joy axis, check for a button press
-            auto button_press = button_poller.FromEvent(event);
-            if (button_press) {
-                return *button_press;
+            } else {
+                // If the press wasn't accepted as a joy axis, check for a button press
+                auto button_press = button_poller.FromEvent(event);
+                if (button_press) {
+                    return *button_press;
+                }
             }
         }
 
@@ -1104,6 +1107,7 @@ public:
                 return params;
             }
         }
+
         return {};
     }
 

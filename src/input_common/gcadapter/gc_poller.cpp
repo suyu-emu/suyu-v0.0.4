@@ -15,7 +15,7 @@ namespace InputCommon {
 
 class GCButton final : public Input::ButtonDevice {
 public:
-    explicit GCButton(u32 port_, s32 button_, GCAdapter::Adapter* adapter)
+    explicit GCButton(u32 port_, s32 button_, const GCAdapter::Adapter* adapter)
         : port(port_), button(button_), gcadapter(adapter) {}
 
     ~GCButton() override;
@@ -27,18 +27,10 @@ public:
         return false;
     }
 
-    bool SetRumblePlay(f32 amp_high, f32 amp_low, f32 freq_high, f32 freq_low) const override {
-        const float amplitude = amp_high + amp_low > 2.0f ? 1.0f : (amp_high + amp_low) * 0.5f;
-        const auto new_amp =
-            static_cast<f32>(pow(amplitude, 0.5f) * (3.0f - 2.0f * pow(amplitude, 0.15f)));
-
-        return gcadapter->RumblePlay(port, new_amp);
-    }
-
 private:
     const u32 port;
     const s32 button;
-    GCAdapter::Adapter* gcadapter;
+    const GCAdapter::Adapter* gcadapter;
 };
 
 class GCAxisButton final : public Input::ButtonDevice {
@@ -297,6 +289,44 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
         return params;
     }
     return params;
+}
+
+class GCVibration final : public Input::VibrationDevice {
+public:
+    explicit GCVibration(u32 port_, GCAdapter::Adapter* adapter)
+        : port(port_), gcadapter(adapter) {}
+
+    u8 GetStatus() const override {
+        return gcadapter->RumblePlay(port, 0);
+    }
+
+    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
+        const auto mean_amplitude = (amp_low + amp_high) * 0.5f;
+        const auto processed_amplitude = static_cast<u8>(
+            pow(mean_amplitude, 0.5f) * (3.0f - 2.0f * pow(mean_amplitude, 0.15f)) * 0x8);
+
+        return gcadapter->RumblePlay(port, processed_amplitude);
+    }
+
+private:
+    const u32 port;
+    GCAdapter::Adapter* gcadapter;
+};
+
+/// An vibration device factory that creates vibration devices from GC Adapter
+GCVibrationFactory::GCVibrationFactory(std::shared_ptr<GCAdapter::Adapter> adapter_)
+    : adapter(std::move(adapter_)) {}
+
+/**
+ * Creates a vibration device from a joystick
+ * @param params contains parameters for creating the device:
+ *     - "port": the nth gcpad on the adapter
+ */
+std::unique_ptr<Input::VibrationDevice> GCVibrationFactory::Create(
+    const Common::ParamPackage& params) {
+    const auto port = static_cast<u32>(params.Get("port", 0));
+
+    return std::make_unique<GCVibration>(port, adapter.get());
 }
 
 } // namespace InputCommon

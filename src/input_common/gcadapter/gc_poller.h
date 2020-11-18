@@ -64,4 +64,15 @@ private:
     bool polling = false;
 };
 
+/// A vibration device factory creates vibration devices from GC Adapter
+class GCVibrationFactory final : public Input::Factory<Input::VibrationDevice> {
+public:
+    explicit GCVibrationFactory(std::shared_ptr<GCAdapter::Adapter> adapter_);
+
+    std::unique_ptr<Input::VibrationDevice> Create(const Common::ParamPackage& params) override;
+
+private:
+    std::shared_ptr<GCAdapter::Adapter> adapter;
+};
+
 } // namespace InputCommon

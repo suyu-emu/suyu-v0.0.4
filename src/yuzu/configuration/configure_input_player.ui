@@ -83,6 +83,12 @@
           </property>
           <item>
            <widget class="QComboBox" name="comboControllerType">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>21</height>
+             </size>
+            </property>
             <item>
              <property name="text">
               <string>Pro Controller</string>
@@ -136,6 +142,12 @@
           </property>
           <item>
            <widget class="QComboBox" name="comboDevices">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>21</height>
+             </size>
+            </property>
             <item>
              <property name="text">
               <string>Any</string>
@@ -152,14 +164,14 @@
            <widget class="QPushButton" name="buttonRefreshDevices">
             <property name="minimumSize">
              <size>
-              <width>24</width>
-              <height>22</height>
+              <width>21</width>
+              <height>21</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>24</width>
-              <height>22</height>
+              <width>21</width>
+              <height>21</height>
              </size>
             </property>
             <property name="styleSheet">
@@ -198,18 +210,25 @@
            <number>5</number>
           </property>
           <item>
-           <widget class="QComboBox" name="comboProfiles"/>
+           <widget class="QComboBox" name="comboProfiles">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>21</height>
+             </size>
+            </property>
+           </widget>
           </item>
           <item>
            <widget class="QPushButton" name="buttonProfilesSave">
             <property name="maximumSize">
              <size>
-              <width>55</width>
+              <width>68</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">min-width: 55px;</string>
+             <string notr="true">min-width: 68px;</string>
             </property>
             <property name="text">
              <string>Save</string>
@@ -220,12 +239,12 @@
            <widget class="QPushButton" name="buttonProfilesNew">
             <property name="maximumSize">
              <size>
-              <width>55</width>
+              <width>68</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">min-width: 55px;</string>
+             <string notr="true">min-width: 68px;</string>
             </property>
             <property name="text">
              <string>New</string>
@@ -236,12 +255,12 @@
            <widget class="QPushButton" name="buttonProfilesDelete">
             <property name="maximumSize">
              <size>
-              <width>55</width>
+              <width>68</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">min-width: 55px;</string>
+             <string notr="true">min-width: 68px;</string>
             </property>
             <property name="text">
              <string>Delete</string>
@@ -393,18 +412,18 @@
                      <widget class="QPushButton" name="buttonLStickUp">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Up</string>
@@ -463,18 +482,18 @@
                     <widget class="QPushButton" name="buttonLStickLeft">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Left</string>
@@ -512,18 +531,18 @@
                     <widget class="QPushButton" name="buttonLStickRight">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Right</string>
@@ -594,18 +613,18 @@
                      <widget class="QPushButton" name="buttonLStickDown">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Down</string>
@@ -664,18 +683,18 @@
                     <widget class="QPushButton" name="buttonLStick">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Pressed</string>
@@ -713,18 +732,18 @@
                     <widget class="QPushButton" name="buttonLStickMod">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Modifier</string>
@@ -759,13 +778,13 @@
                     <widget class="QSpinBox" name="spinboxLStickRange">
                      <property name="minimumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>21</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
@@ -966,18 +985,18 @@
                      <widget class="QPushButton" name="buttonDpadUp">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Up</string>
@@ -1036,18 +1055,18 @@
                     <widget class="QPushButton" name="buttonDpadLeft">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Left</string>
@@ -1085,18 +1104,18 @@
                     <widget class="QPushButton" name="buttonDpadRight">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Right</string>
@@ -1167,18 +1186,18 @@
                      <widget class="QPushButton" name="buttonDpadDown">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Down</string>
@@ -1292,18 +1311,18 @@
                     <widget class="QPushButton" name="buttonL">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>L</string>
@@ -1341,18 +1360,18 @@
                     <widget class="QPushButton" name="buttonZL">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>ZL</string>
@@ -1445,18 +1464,18 @@
                     <widget class="QPushButton" name="buttonMinus">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Minus</string>
@@ -1494,18 +1513,18 @@
                     <widget class="QPushButton" name="buttonScreenshot">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Capture</string>
@@ -1564,18 +1583,18 @@
                     <widget class="QPushButton" name="buttonPlus">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Plus</string>
@@ -1613,18 +1632,18 @@
                     <widget class="QPushButton" name="buttonHome">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Home</string>
@@ -1717,18 +1736,18 @@
                     <widget class="QPushButton" name="buttonR">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>R</string>
@@ -1766,18 +1785,18 @@
                     <widget class="QPushButton" name="buttonZR">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>ZR</string>
@@ -1870,18 +1889,18 @@
                     <widget class="QPushButton" name="buttonSL">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>SL</string>
@@ -1919,18 +1938,18 @@
                     <widget class="QPushButton" name="buttonSR">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>SR</string>
@@ -2027,18 +2046,18 @@
                  <widget class="QPushButton" name="buttonMotionLeft">
                   <property name="minimumSize">
                    <size>
-                    <width>57</width>
+                    <width>68</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>55</width>
+                    <width>68</width>
                     <height>16777215</height>
                    </size>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">min-width: 55px;</string>
+                   <string notr="true">min-width: 68px;</string>
                   </property>
                   <property name="text">
                    <string>Left</string>
@@ -2076,18 +2095,18 @@
                  <widget class="QPushButton" name="buttonMotionRight">
                   <property name="minimumSize">
                    <size>
-                    <width>57</width>
+                    <width>68</width>
                     <height>0</height>
                    </size>
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>55</width>
+                    <width>68</width>
                     <height>16777215</height>
                    </size>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">min-width: 55px;</string>
+                   <string notr="true">min-width: 68px;</string>
                   </property>
                   <property name="text">
                    <string>Right</string>
@@ -2225,18 +2244,18 @@
                      <widget class="QPushButton" name="buttonX">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>X</string>
@@ -2295,18 +2314,18 @@
                     <widget class="QPushButton" name="buttonY">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Y</string>
@@ -2344,18 +2363,18 @@
                     <widget class="QPushButton" name="buttonA">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>A</string>
@@ -2426,18 +2445,18 @@
                      <widget class="QPushButton" name="buttonB">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>B</string>
@@ -2580,18 +2599,18 @@
                      <widget class="QPushButton" name="buttonRStickUp">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Up</string>
@@ -2650,18 +2669,18 @@
                     <widget class="QPushButton" name="buttonRStickLeft">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Left</string>
@@ -2699,18 +2718,18 @@
                     <widget class="QPushButton" name="buttonRStickRight">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Right</string>
@@ -2781,18 +2800,18 @@
                      <widget class="QPushButton" name="buttonRStickDown">
                       <property name="minimumSize">
                        <size>
-                        <width>57</width>
+                        <width>68</width>
                         <height>0</height>
                        </size>
                       </property>
                       <property name="maximumSize">
                        <size>
-                        <width>55</width>
+                        <width>68</width>
                         <height>16777215</height>
                        </size>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">min-width: 55px;</string>
+                       <string notr="true">min-width: 68px;</string>
                       </property>
                       <property name="text">
                        <string>Down</string>
@@ -2851,18 +2870,18 @@
                     <widget class="QPushButton" name="buttonRStick">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Pressed</string>
@@ -2900,18 +2919,18 @@
                     <widget class="QPushButton" name="buttonRStickMod">
                      <property name="minimumSize">
                       <size>
-                       <width>57</width>
+                       <width>68</width>
                        <height>0</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">min-width: 55px;</string>
+                      <string notr="true">min-width: 68px;</string>
                      </property>
                      <property name="text">
                       <string>Modifier</string>
@@ -2946,13 +2965,13 @@
                     <widget class="QSpinBox" name="spinboxRStickRange">
                      <property name="minimumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>21</height>
                       </size>
                      </property>
                      <property name="maximumSize">
                       <size>
-                       <width>55</width>
+                       <width>68</width>
                        <height>16777215</height>
                       </size>
                      </property>

@@ -66,17 +66,32 @@ constexpr int NUM_STICKS_HID = NumAnalogs;
 extern const std::array<const char*, NumAnalogs> mapping;
 } // namespace NativeAnalog
 
+namespace NativeVibration {
+enum Values : int {
+    LeftVibrationDevice,
+    RightVibrationDevice,
+
+    NumVibrations,
+};
+
+constexpr int VIBRATION_HID_BEGIN = LeftVibrationDevice;
+constexpr int VIBRATION_HID_END = NumVibrations;
+constexpr int NUM_VIBRATIONS_HID = NumVibrations;
+
+extern const std::array<const char*, NumVibrations> mapping;
+}; // namespace NativeVibration
+
 namespace NativeMotion {
 enum Values : int {
-    MOTIONLEFT,
-    MOTIONRIGHT,
+    MotionLeft,
+    MotionRight,
 
     NumMotions,
 };
 
-constexpr int MOTION_HID_BEGIN = MOTIONLEFT;
+constexpr int MOTION_HID_BEGIN = MotionLeft;
 constexpr int MOTION_HID_END = NumMotions;
-constexpr int NUM_MOTION_HID = NumMotions;
+constexpr int NUM_MOTIONS_HID = NumMotions;
 
 extern const std::array<const char*, NumMotions> mapping;
 } // namespace NativeMotion
@@ -305,9 +320,11 @@ constexpr int NUM_KEYBOARD_MODS_HID = NumKeyboardMods;
 
 } // namespace NativeKeyboard
 
-using ButtonsRaw = std::array<std::string, NativeButton::NumButtons>;
 using AnalogsRaw = std::array<std::string, NativeAnalog::NumAnalogs>;
-using MotionRaw = std::array<std::string, NativeMotion::NumMotions>;
+using ButtonsRaw = std::array<std::string, NativeButton::NumButtons>;
+using MotionsRaw = std::array<std::string, NativeMotion::NumMotions>;
+using VibrationsRaw = std::array<std::string, NativeVibration::NumVibrations>;
+
 using MouseButtonsRaw = std::array<std::string, NativeMouseButton::NumMouseButtons>;
 using KeyboardKeysRaw = std::array<std::string, NativeKeyboard::NumKeyboardKeys>;
 using KeyboardModsRaw = std::array<std::string, NativeKeyboard::NumKeyboardMods>;
@@ -330,7 +347,11 @@ struct PlayerInput {
     ControllerType controller_type;
     ButtonsRaw buttons;
     AnalogsRaw analogs;
-    MotionRaw motions;
+    VibrationsRaw vibrations;
+    MotionsRaw motions;
+
+    bool vibration_enabled;
+    int vibration_strength;
 
     u32 body_color_left;
     u32 body_color_right;

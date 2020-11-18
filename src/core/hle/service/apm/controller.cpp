@@ -69,7 +69,8 @@ void Controller::SetFromCpuBoostMode(CpuBoostMode mode) {
 }
 
 PerformanceMode Controller::GetCurrentPerformanceMode() const {
-    return Settings::values.use_docked_mode ? PerformanceMode::Docked : PerformanceMode::Handheld;
+    return Settings::values.use_docked_mode.GetValue() ? PerformanceMode::Docked
+                                                       : PerformanceMode::Handheld;
 }
 
 PerformanceConfiguration Controller::GetCurrentPerformanceConfiguration(PerformanceMode mode) {

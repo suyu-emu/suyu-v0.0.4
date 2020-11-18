@@ -68,8 +68,7 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
         for (std::size_t button_idx = 0; button_idx < color_buttons.size(); ++button_idx) {
             connect(color_buttons[button_idx], &QPushButton::clicked, this,
                     [this, player_idx, button_idx] {
-                        OnControllerButtonClick(static_cast<int>(player_idx),
-                                                static_cast<int>(button_idx));
+                        OnControllerButtonClick(player_idx, button_idx);
                     });
         }
     }
@@ -94,20 +93,21 @@ ConfigureInputAdvanced::ConfigureInputAdvanced(QWidget* parent)
 
 ConfigureInputAdvanced::~ConfigureInputAdvanced() = default;
 
-void ConfigureInputAdvanced::OnControllerButtonClick(int player_idx, int button_idx) {
+void ConfigureInputAdvanced::OnControllerButtonClick(std::size_t player_idx,
+                                                     std::size_t button_idx) {
     const QColor new_bg_color = QColorDialog::getColor(controllers_colors[player_idx][button_idx]);
     if (!new_bg_color.isValid()) {
         return;
     }
     controllers_colors[player_idx][button_idx] = new_bg_color;
     controllers_color_buttons[player_idx][button_idx]->setStyleSheet(
-        QStringLiteral("background-color: %1; min-width: 55px;")
+        QStringLiteral("background-color: %1; min-width: 60px;")
             .arg(controllers_colors[player_idx][button_idx].name()));
 }
 
 void ConfigureInputAdvanced::ApplyConfiguration() {
     for (std::size_t player_idx = 0; player_idx < controllers_color_buttons.size(); ++player_idx) {
-        auto& player = Settings::values.players[player_idx];
+        auto& player = Settings::values.players.GetValue()[player_idx];
         std::array<u32, 4> colors{};
         std::transform(controllers_colors[player_idx].begin(), controllers_colors[player_idx].end(),
                        colors.begin(), [](QColor color) { return color.rgb(); });
@@ -126,7 +126,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
 
 void ConfigureInputAdvanced::LoadConfiguration() {
     for (std::size_t player_idx = 0; player_idx < controllers_color_buttons.size(); ++player_idx) {
-        auto& player = Settings::values.players[player_idx];
+        auto& player = Settings::values.players.GetValue()[player_idx];
         std::array<u32, 4> colors = {
             player.body_color_left,
             player.button_color_left,
@@ -139,7 +139,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
 
         for (std::size_t button_idx = 0; button_idx < colors.size(); ++button_idx) {
             controllers_color_buttons[player_idx][button_idx]->setStyleSheet(
-                QStringLiteral("background-color: %1; min-width: 55px;")
+                QStringLiteral("background-color: %1; min-width: 60px;")
                     .arg(controllers_colors[player_idx][button_idx].name()));
         }
     }

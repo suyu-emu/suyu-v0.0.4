@@ -18,6 +18,7 @@
 #include "applets/web_browser.h"
 #include "configuration/configure_input.h"
 #include "configuration/configure_per_game.h"
+#include "configuration/configure_vibration.h"
 #include "core/file_sys/vfs.h"
 #include "core/file_sys/vfs_real.h"
 #include "core/frontend/applets/controller.h"
@@ -50,12 +51,14 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include <QDesktopServices>
 #include <QDesktopWidget>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QFile>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QProgressDialog>
+#include <QPushButton>
 #include <QShortcut>
 #include <QStatusBar>
 #include <QSysInfo>
@@ -277,6 +280,8 @@ GMainWindow::GMainWindow()
     if (args.length() >= 2) {
         BootGame(args[1]);
     }
+
+    MigrateConfigFiles();
 }
 
 GMainWindow::~GMainWindow() {
@@ -288,6 +293,7 @@ GMainWindow::~GMainWindow() {
 void GMainWindow::ControllerSelectorReconfigureControllers(
     const Core::Frontend::ControllerParameters& parameters) {
     QtControllerSelectorDialog dialog(this, parameters, input_subsystem.get());
+
     dialog.setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowStaysOnTopHint |
                           Qt::WindowTitleHint | Qt::WindowSystemMenuHint);
     dialog.setWindowModality(Qt::WindowModal);
@@ -547,13 +553,14 @@ void GMainWindow::InitializeWidgets() {
     dock_status_button->setObjectName(QStringLiteral("TogglableStatusBarButton"));
     dock_status_button->setFocusPolicy(Qt::NoFocus);
     connect(dock_status_button, &QPushButton::clicked, [&] {
-        Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
-        dock_status_button->setChecked(Settings::values.use_docked_mode);
-        OnDockedModeChanged(!Settings::values.use_docked_mode, Settings::values.use_docked_mode);
+        Settings::values.use_docked_mode.SetValue(!Settings::values.use_docked_mode.GetValue());
+        dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
+        OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
+                            Settings::values.use_docked_mode.GetValue());
     });
     dock_status_button->setText(tr("DOCK"));
     dock_status_button->setCheckable(true);
-    dock_status_button->setChecked(Settings::values.use_docked_mode);
+    dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     statusBar()->insertPermanentWidget(0, dock_status_button);
 
     // Setup ASync button
@@ -792,10 +799,11 @@ void GMainWindow::InitializeHotkeys() {
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Change Docked Mode"), this),
             &QShortcut::activated, this, [&] {
-                Settings::values.use_docked_mode = !Settings::values.use_docked_mode;
-                OnDockedModeChanged(!Settings::values.use_docked_mode,
-                                    Settings::values.use_docked_mode);
-                dock_status_button->setChecked(Settings::values.use_docked_mode);
+                Settings::values.use_docked_mode.SetValue(
+                    !Settings::values.use_docked_mode.GetValue());
+                OnDockedModeChanged(!Settings::values.use_docked_mode.GetValue(),
+                                    Settings::values.use_docked_mode.GetValue());
+                dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
             });
     connect(hotkey_registry.GetHotkey(main_window, QStringLiteral("Mute Audio"), this),
             &QShortcut::activated, this,
@@ -1087,8 +1095,10 @@ void GMainWindow::BootGame(const QString& filename) {
     const auto loader = Loader::GetLoader(v_file);
     if (!(loader == nullptr || loader->ReadProgramId(title_id) != Loader::ResultStatus::Success)) {
         // Load per game settings
-        Config per_game_config(fmt::format("{:016X}.ini", title_id), false);
+        Config per_game_config(fmt::format("{:016X}", title_id), Config::ConfigType::PerGameConfig);
     }
+
+    ConfigureVibration::SetAllVibrationDevices();
 
     Settings::LogSettings();
 
@@ -1577,7 +1587,8 @@ void GMainWindow::RemoveCustomConfiguration(u64 program_id) {
     const QString config_dir =
         QString::fromStdString(Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir));
     const QString custom_config_file_path =
-        config_dir + QString::fromStdString(fmt::format("{:016X}.ini", program_id));
+        config_dir + QStringLiteral("custom") + QDir::separator() +
+        QString::fromStdString(fmt::format("{:016X}.ini", program_id));
 
     if (!QFile::exists(custom_config_file_path)) {
         QMessageBox::warning(this, tr("Error Removing Custom Configuration"),
@@ -2393,6 +2404,29 @@ void GMainWindow::OnCaptureScreenshot() {
     OnStartGame();
 }
 
+// TODO: Written 2020-10-01: Remove per-game config migration code when it is irrelevant
+void GMainWindow::MigrateConfigFiles() {
+    const std::string& config_dir_str = Common::FS::GetUserPath(Common::FS::UserPath::ConfigDir);
+    const QDir config_dir = QDir(QString::fromStdString(config_dir_str));
+    const QStringList config_dir_list = config_dir.entryList(QStringList(QStringLiteral("*.ini")));
+
+    Common::FS::CreateFullPath(fmt::format("{}custom" DIR_SEP, config_dir_str));
+    for (QStringList::const_iterator it = config_dir_list.constBegin();
+         it != config_dir_list.constEnd(); ++it) {
+        const auto filename = it->toStdString();
+        if (filename.find_first_not_of("0123456789abcdefACBDEF", 0) < 16) {
+            continue;
+        }
+        const auto origin = fmt::format("{}{}", config_dir_str, filename);
+        const auto destination = fmt::format("{}custom" DIR_SEP "{}", config_dir_str, filename);
+        LOG_INFO(Frontend, "Migrating config file from {} to {}", origin, destination);
+        if (!Common::FS::Rename(origin, destination)) {
+            // Delete the old config file if one already exists in the new location.
+            Common::FS::Delete(origin);
+        }
+    }
+}
+
 void GMainWindow::UpdateWindowTitle(const std::string& title_name,
                                     const std::string& title_version) {
     const auto full_name = std::string(Common::g_build_fullname);
@@ -2450,7 +2484,7 @@ void GMainWindow::UpdateStatusBar() {
 }
 
 void GMainWindow::UpdateStatusButtons() {
-    dock_status_button->setChecked(Settings::values.use_docked_mode);
+    dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
     Settings::values.use_asynchronous_gpu_emulation.SetValue(
         Settings::values.use_asynchronous_gpu_emulation.GetValue() ||

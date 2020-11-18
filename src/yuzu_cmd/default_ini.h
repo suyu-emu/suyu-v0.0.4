@@ -65,6 +65,14 @@ button_screenshot=
 lstick=
 rstick=
 
+# Whether to enable or disable vibration
+# 0: Disabled, 1 (default): Enabled
+vibration_enabled=
+
+# Whether to enable or disable accurate vibrations
+# 0 (default): Disabled, 1: Enabled
+enable_accurate_vibrations=
+
 # for motion input, the following devices are available:
 #  - "motion_emu" (default) for emulating motion input from mouse input. Required parameters:
 #      - "update_period": update period in milliseconds (default to 100)

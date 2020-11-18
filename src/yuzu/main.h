@@ -251,6 +251,7 @@ private:
     std::optional<u64> SelectRomFSDumpTarget(const FileSys::ContentProvider&, u64 program_id);
     InstallResult InstallNSPXCI(const QString& filename);
     InstallResult InstallNCA(const QString& filename);
+    void MigrateConfigFiles();
     void UpdateWindowTitle(const std::string& title_name = {},
                            const std::string& title_version = {});
     void UpdateStatusBar();

@@ -4,11 +4,14 @@
 
 #include "ui_configure_debug_controller.h"
 #include "yuzu/configuration/configure_debug_controller.h"
+#include "yuzu/configuration/configure_input_player.h"
 
 ConfigureDebugController::ConfigureDebugController(QWidget* parent,
-                                                   InputCommon::InputSubsystem* input_subsystem)
+                                                   InputCommon::InputSubsystem* input_subsystem,
+                                                   InputProfiles* profiles)
     : QDialog(parent), ui(std::make_unique<Ui::ConfigureDebugController>()),
-      debug_controller(new ConfigureInputPlayer(this, 9, nullptr, input_subsystem, true)) {
+      debug_controller(
+          new ConfigureInputPlayer(this, 9, nullptr, input_subsystem, profiles, true)) {
     ui->setupUi(this);
 
     ui->controllerLayout->addWidget(debug_controller);

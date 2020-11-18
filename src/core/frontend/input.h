@@ -33,7 +33,7 @@ public:
     virtual bool GetAnalogDirectionStatus(AnalogDirection direction) const {
         return {};
     }
-    virtual bool SetRumblePlay(f32 amp_high, f32 amp_low, f32 freq_high, f32 freq_low) const {
+    virtual bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const {
         return {};
     }
 };
@@ -120,6 +120,13 @@ using ButtonDevice = InputDevice<bool>;
  * direction
  */
 using AnalogDevice = InputDevice<std::tuple<float, float>>;
+
+/**
+ * A vibration device is an input device that returns an unsigned byte as status.
+ * It represents whether the vibration device supports vibration or not.
+ * If the status returns 1, it supports vibration. Otherwise, it does not support vibration.
+ */
+using VibrationDevice = InputDevice<u8>;
 
 /**
  * A motion status is an object that returns a tuple of accelerometer state vector,

@@ -77,8 +77,8 @@ public:
     Adapter();
     ~Adapter();
 
-    /// Request a vibration for a controlelr
-    bool RumblePlay(std::size_t port, f32 amplitude);
+    /// Request a vibration for a controller
+    bool RumblePlay(std::size_t port, u8 amplitude);
 
     /// Used for polling
     void BeginConfiguration();

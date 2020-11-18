@@ -1217,9 +1217,6 @@
               </item>
               <item>
                <widget class="QComboBox" name="comboPlayer3Emulated">
-                <property name="editable">
-                 <bool>false</bool>
-                </property>
                 <item>
                  <property name="text">
                   <string>Pro Controller</string>
@@ -2279,7 +2276,7 @@
              <number>6</number>
             </property>
             <property name="leftMargin">
-             <number>6</number>
+             <number>8</number>
             </property>
             <property name="topMargin">
              <number>6</number>
@@ -2332,30 +2329,24 @@
              <number>3</number>
             </property>
             <item>
-             <widget class="QSpinBox" name="vibrationSpin">
+             <widget class="QPushButton" name="vibrationButton">
               <property name="minimumSize">
                <size>
-                <width>65</width>
+                <width>68</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>65</width>
+                <width>68</width>
                 <height>16777215</height>
                </size>
               </property>
-              <property name="suffix">
-               <string>%</string>
+              <property name="styleSheet">
+               <string notr="true">min-width: 68px;</string>
               </property>
-              <property name="minimum">
-               <number>1</number>
-              </property>
-              <property name="maximum">
-               <number>200</number>
-              </property>
-              <property name="value">
-               <number>100</number>
+              <property name="text">
+               <string>Configure</string>
               </property>
              </widget>
             </item>
@@ -2387,18 +2378,18 @@
              <widget class="QPushButton" name="motionButton">
               <property name="minimumSize">
                <size>
-                <width>57</width>
+                <width>68</width>
                 <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
                <size>
-                <width>55</width>
+                <width>68</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">min-width: 55px;</string>
+               <string notr="true">min-width: 68px;</string>
               </property>
               <property name="text">
                <string>Configure</string>
@@ -2411,7 +2402,7 @@
          <item>
           <widget class="QGroupBox" name="inputConfigGroup">
            <property name="title">
-            <string>Input Config</string>
+            <string>Profiles</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
             <property name="leftMargin">
@@ -2430,15 +2421,15 @@
              <widget class="QPushButton" name="inputConfigButton">
               <property name="maximumSize">
                <size>
-                <width>65</width>
+                <width>68</width>
                 <height>16777215</height>
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">min-width: 55px;</string>
+               <string notr="true">min-width: 68px;</string>
               </property>
               <property name="text">
-               <string>Open</string>
+               <string>Create</string>
               </property>
              </widget>
             </item>
@@ -2657,16 +2648,6 @@
    <signal>accepted()</signal>
    <receiver>QtControllerSelectorDialog</receiver>
    <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>

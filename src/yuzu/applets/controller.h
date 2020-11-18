@@ -16,6 +16,8 @@ class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 
+class InputProfiles;
+
 namespace InputCommon {
 class InputSubsystem;
 }
@@ -33,6 +35,8 @@ public:
                                         InputCommon::InputSubsystem* input_subsystem_);
     ~QtControllerSelectorDialog() override;
 
+    int exec() override;
+
 private:
     // Applies the current configuration.
     void ApplyConfiguration();
@@ -40,12 +44,15 @@ private:
     // Loads the current input configuration into the frontend applet.
     void LoadConfiguration();
 
-    // Initializes the "Configure Input" Dialog.
-    void CallConfigureInputDialog();
+    // Initializes the "Configure Vibration" Dialog.
+    void CallConfigureVibrationDialog();
 
-    // Checks the current configuration against the given parameters and
-    // sets the value of parameters_met.
-    void CheckIfParametersMet();
+    // Initializes the "Create Input Profile" Dialog.
+    void CallConfigureInputProfileDialog();
+
+    // Checks the current configuration against the given parameters.
+    // This sets and returns the value of parameters_met.
+    bool CheckIfParametersMet();
 
     // Sets the controller icons for "Supported Controller Types".
     void SetSupportedControllers();
@@ -77,6 +84,8 @@ private:
     Core::Frontend::ControllerParameters parameters;
 
     InputCommon::InputSubsystem* input_subsystem;
+
+    std::unique_ptr<InputProfiles> input_profiles;
 
     // This is true if and only if all parameters are met. Otherwise, this is false.
     // This determines whether the "OK" button can be clicked to exit the applet.

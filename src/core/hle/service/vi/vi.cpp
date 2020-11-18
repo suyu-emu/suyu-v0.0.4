@@ -771,7 +771,7 @@ private:
         IPC::ResponseBuilder rb{ctx, 6};
         rb.Push(RESULT_SUCCESS);
 
-        if (Settings::values.use_docked_mode) {
+        if (Settings::values.use_docked_mode.GetValue()) {
             rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedWidth) *
                     static_cast<u32>(Settings::values.resolution_factor.GetValue()));
             rb.Push(static_cast<u32>(Service::VI::DisplayResolution::DockedHeight) *

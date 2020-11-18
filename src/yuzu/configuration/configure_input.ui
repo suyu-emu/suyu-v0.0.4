@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>700</width>
+    <width>680</width>
     <height>540</height>
    </rect>
   </property>
@@ -142,7 +142,7 @@
           <number>6</number>
          </property>
          <property name="leftMargin">
-          <number>3</number>
+          <number>8</number>
          </property>
          <property name="topMargin">
           <number>6</number>
@@ -195,30 +195,24 @@
           <number>3</number>
          </property>
          <item>
-          <widget class="QSpinBox" name="vibrationSpin">
+          <widget class="QPushButton" name="vibrationButton">
            <property name="minimumSize">
             <size>
-             <width>65</width>
-             <height>21</height>
+             <width>68</width>
+             <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>65</width>
+             <width>68</width>
              <height>16777215</height>
             </size>
            </property>
-           <property name="suffix">
-            <string>%</string>
+           <property name="styleSheet">
+            <string notr="true">min-width: 68px;</string>
            </property>
-           <property name="minimum">
-            <number>1</number>
-           </property>
-           <property name="maximum">
-            <number>200</number>
-           </property>
-           <property name="value">
-            <number>100</number>
+           <property name="text">
+            <string>Configure</string>
            </property>
           </widget>
          </item>
@@ -250,18 +244,18 @@
           <widget class="QPushButton" name="motionButton">
            <property name="minimumSize">
             <size>
-             <width>57</width>
+             <width>68</width>
              <height>0</height>
             </size>
            </property>
            <property name="maximumSize">
             <size>
-             <width>55</width>
+             <width>68</width>
              <height>16777215</height>
             </size>
            </property>
            <property name="styleSheet">
-            <string notr="true">min-width: 55px;</string>
+            <string notr="true">min-width: 68px;</string>
            </property>
            <property name="text">
             <string>Configure</string>
@@ -272,7 +266,7 @@
        </widget>
       </item>
       <item alignment="Qt::AlignVCenter">
-       <widget class="QWidget" name="widget" native="true">
+       <widget class="QWidget" name="connectedControllers" native="true">
         <layout class="QGridLayout" name="gridLayout_2">
          <property name="leftMargin">
           <number>5</number>
@@ -468,13 +462,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>57</width>
+          <width>68</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>55</width>
+          <width>68</width>
           <height>16777215</height>
          </size>
         </property>
@@ -494,7 +488,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">min-width: 55px;</string>
+         <string notr="true">min-width: 68px;</string>
         </property>
         <property name="text">
          <string>Defaults</string>
@@ -511,13 +505,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>57</width>
+          <width>68</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>55</width>
+          <width>68</width>
           <height>16777215</height>
          </size>
         </property>
@@ -537,7 +531,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="styleSheet">
-         <string notr="true">min-width: 55px;</string>
+         <string notr="true">min-width: 68px;</string>
         </property>
         <property name="text">
          <string>Clear</string>

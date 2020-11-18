@@ -230,10 +230,8 @@ void Adapter::SendVibrations() {
     vibration_changed = false;
 }
 
-bool Adapter::RumblePlay(std::size_t port, f32 amplitude) {
-    amplitude = std::clamp(amplitude, 0.0f, 1.0f);
-    const auto raw_amp = static_cast<u8>(amplitude * 0x8);
-    pads[port].rumble_amplitude = raw_amp;
+bool Adapter::RumblePlay(std::size_t port, u8 amplitude) {
+    pads[port].rumble_amplitude = amplitude;
 
     return rumble_enabled;
 }
