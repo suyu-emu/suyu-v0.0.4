@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <type_traits>
 #include <utility>
 
 namespace Common {
@@ -14,6 +15,11 @@ void FreeMemoryPages(void* base, std::size_t size) noexcept;
 template <typename T>
 class VirtualBuffer final {
 public:
+    static_assert(
+        std::is_trivially_constructible_v<T>,
+        "T must be trivially constructible, as non-trivial constructors will not be executed "
+        "with the current allocator");
+
     constexpr VirtualBuffer() = default;
     explicit VirtualBuffer(std::size_t count) : alloc_size{count * sizeof(T)} {
         base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
