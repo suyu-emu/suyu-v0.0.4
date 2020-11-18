@@ -4,10 +4,6 @@
 
 #pragma once
 
-#include <vector>
-
-#include <boost/icl/interval_map.hpp>
-
 #include "common/common_types.h"
 #include "common/memory_hook.h"
 #include "common/virtual_buffer.h"
