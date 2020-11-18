@@ -54,6 +54,8 @@ struct PageTable {
      * a given address space.
      *
      * @param address_space_width_in_bits The address size width in bits.
+     * @param page_size_in_bits           The page size in bits.
+     * @param has_attribute               Whether or not this page has any backing attributes.
      */
     void Resize(std::size_t address_space_width_in_bits, std::size_t page_size_in_bits,
                 bool has_attribute);
