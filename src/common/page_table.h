@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include <vector>
-
-#include <boost/icl/interval_map.hpp>
+#include <tuple>
 
 #include "common/common_types.h"
 #include "common/memory_hook.h"
@@ -51,13 +49,21 @@ struct SpecialRegion {
  */
 struct PageTable {
     PageTable();
-    ~PageTable();
+    ~PageTable() noexcept;
+
+    PageTable(const PageTable&) = delete;
+    PageTable& operator=(const PageTable&) = delete;
+
+    PageTable(PageTable&&) noexcept = default;
+    PageTable& operator=(PageTable&&) noexcept = default;
 
     /**
      * Resizes the page table to be able to accomodate enough pages within
      * a given address space.
      *
      * @param address_space_width_in_bits The address size width in bits.
+     * @param page_size_in_bits           The page size in bits.
+     * @param has_attribute               Whether or not this page has any backing attributes.
      */
     void Resize(std::size_t address_space_width_in_bits, std::size_t page_size_in_bits,
                 bool has_attribute);

@@ -4,23 +4,42 @@
 
 #pragma once
 
-#include "common/common_funcs.h"
+#include <type_traits>
+#include <utility>
 
 namespace Common {
 
-void* AllocateMemoryPages(std::size_t size);
-void FreeMemoryPages(void* base, std::size_t size);
+void* AllocateMemoryPages(std::size_t size) noexcept;
+void FreeMemoryPages(void* base, std::size_t size) noexcept;
 
 template <typename T>
-class VirtualBuffer final : NonCopyable {
+class VirtualBuffer final {
 public:
+    static_assert(
+        std::is_trivially_constructible_v<T>,
+        "T must be trivially constructible, as non-trivial constructors will not be executed "
+        "with the current allocator");
+
     constexpr VirtualBuffer() = default;
     explicit VirtualBuffer(std::size_t count) : alloc_size{count * sizeof(T)} {
         base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
     }
 
-    ~VirtualBuffer() {
+    ~VirtualBuffer() noexcept {
         FreeMemoryPages(base_ptr, alloc_size);
+    }
+
+    VirtualBuffer(const VirtualBuffer&) = delete;
+    VirtualBuffer& operator=(const VirtualBuffer&) = delete;
+
+    VirtualBuffer(VirtualBuffer&& other) noexcept
+        : alloc_size{std::exchange(other.alloc_size, 0)}, base_ptr{std::exchange(other.base_ptr),
+                                                                   nullptr} {}
+
+    VirtualBuffer& operator=(VirtualBuffer&& other) noexcept {
+        alloc_size = std::exchange(other.alloc_size, 0);
+        base_ptr = std::exchange(other.base_ptr, nullptr);
+        return *this;
     }
 
     void resize(std::size_t count) {

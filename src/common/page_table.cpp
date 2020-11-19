@@ -8,7 +8,7 @@ namespace Common {
 
 PageTable::PageTable() = default;
 
-PageTable::~PageTable() = default;
+PageTable::~PageTable() noexcept = default;
 
 void PageTable::Resize(std::size_t address_space_width_in_bits, std::size_t page_size_in_bits,
                        bool has_attribute) {
