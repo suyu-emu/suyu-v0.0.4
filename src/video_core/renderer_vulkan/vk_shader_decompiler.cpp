@@ -2075,6 +2075,55 @@ private:
         return {};
     }
 
+    void AlphaTest(const Id& pointer) {
+        const Id true_label = OpLabel();
+        const Id skip_label = OpLabel();
+        Id condition;
+        switch (specialization.alpha_test_func) {
+        case VK_COMPARE_OP_NEVER:
+            condition = Constant(t_float, false); // Never true
+            break;
+        case VK_COMPARE_OP_LESS:
+            condition = OpFOrdLessThan(t_bool, Constant(t_float, specialization.alpha_test_ref),
+                                       OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_EQUAL:
+            condition = OpFOrdEqual(t_bool, Constant(t_float, specialization.alpha_test_ref),
+                                    OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_LESS_OR_EQUAL:
+            condition = OpFOrdLessThanEqual(
+                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_GREATER:
+            // Note: requires "Equal" to properly work for ssbu. perhaps a precision issue
+            condition = OpFOrdGreaterThanEqual(
+                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_NOT_EQUAL:
+            // Note: not accurate when tested against a unit test
+            // TODO: confirm if used by games
+            condition = OpFOrdNotEqual(t_bool, Constant(t_float, specialization.alpha_test_ref),
+                                       OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_GREATER_OR_EQUAL:
+            condition = OpFOrdGreaterThanEqual(
+                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+            break;
+        case VK_COMPARE_OP_ALWAYS:
+            condition = Constant(t_bool, true); // Always true
+            break;
+        default:
+            LOG_WARNING(Render_Vulkan, "Unimplemented alpha test function");
+            condition = Constant(t_bool, true); // Always true
+            break;
+        }
+        OpBranchConditional(condition, true_label, skip_label);
+        AddLabel(true_label);
+        OpKill();
+        AddLabel(skip_label);
+    }
+
     void PreExit() {
         if (stage == ShaderType::Vertex && specialization.ndc_minus_one_to_one) {
             const u32 position_index = out_indices.position.value();
@@ -2097,8 +2146,6 @@ private:
             UNIMPLEMENTED_IF_MSG(header.ps.omap.sample_mask != 0,
                                  "Sample mask write is unimplemented");
 
-            // TODO(Rodrigo): Alpha testing
-
             // Write the color outputs using the data in the shader registers, disabled
             // rendertargets/components are skipped in the register assignment.
             u32 current_reg = 0;
@@ -2110,6 +2157,9 @@ private:
                     }
                     const Id pointer = AccessElement(t_out_float, frag_colors[rt], component);
                     OpStore(pointer, SafeGetRegister(current_reg));
+                    if (specialization.alpha_test_enabled && component == 3) {
+                        AlphaTest(pointer);
+                    }
                     ++current_reg;
                 }
             }

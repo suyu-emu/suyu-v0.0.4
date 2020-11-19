@@ -60,6 +60,11 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
     rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
     topology.Assign(regs.draw.topology);
 
+    alpha_raw = 0;
+    alpha_test_enabled.Assign(regs.alpha_test_enabled);
+    alpha_test_func.Assign(PackComparisonOp(regs.alpha_test_func));
+    std::memcpy(&alpha_test_ref, &regs.alpha_test_ref, sizeof(u32)); // TODO: C++20 std::bit_cast
+
     std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
 
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
