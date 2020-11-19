@@ -43,9 +43,14 @@ public:
     }
 
     void resize(std::size_t count) {
+        const auto new_size = count * sizeof(T);
+        if (new_size == alloc_size) {
+            return;
+        }
+
         FreeMemoryPages(base_ptr, alloc_size);
 
-        alloc_size = count * sizeof(T);
+        alloc_size = new_size;
         base_ptr = reinterpret_cast<T*>(AllocateMemoryPages(alloc_size));
     }
 
