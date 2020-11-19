@@ -212,8 +212,10 @@ public:
 
     /// The next two are for SingleCore Only.
     /// Unload current thread before preempting core.
+    void Unload(Thread* thread);
     void Unload();
     /// Reload current thread after core preemption.
+    void Reload(Thread* thread);
     void Reload();
 
     /// Gets the current running thread
