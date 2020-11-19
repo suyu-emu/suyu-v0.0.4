@@ -2075,48 +2075,42 @@ private:
         return {};
     }
 
-    void AlphaTest(const Id& pointer) {
+    void AlphaTest(Id pointer) {
         const Id true_label = OpLabel();
         const Id skip_label = OpLabel();
+        const Id alpha_reference = Constant(t_float, specialization.alpha_test_ref);
+        const Id alpha_value = OpLoad(t_float, pointer);
         Id condition;
+        using Compare = Maxwell::ComparisonOp;
         switch (specialization.alpha_test_func) {
-        case VK_COMPARE_OP_NEVER:
-            condition = Constant(t_float, false); // Never true
+        case Compare::NeverOld:
+            condition = v_false; // Never true
             break;
-        case VK_COMPARE_OP_LESS:
-            condition = OpFOrdLessThan(t_bool, Constant(t_float, specialization.alpha_test_ref),
-                                       OpLoad(t_float, pointer));
+        case Compare::LessOld:
+            condition = OpFOrdLessThan(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_EQUAL:
-            condition = OpFOrdEqual(t_bool, Constant(t_float, specialization.alpha_test_ref),
-                                    OpLoad(t_float, pointer));
+        case Compare::EqualOld:
+            condition = OpFOrdEqual(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_LESS_OR_EQUAL:
-            condition = OpFOrdLessThanEqual(
-                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+        case Compare::LessEqualOld:
+            condition = OpFOrdLessThanEqual(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_GREATER:
+        case Compare::GreaterOld:
             // Note: requires "Equal" to properly work for ssbu. perhaps a precision issue
-            condition = OpFOrdGreaterThanEqual(
-                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+            condition = OpFOrdGreaterThanEqual(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_NOT_EQUAL:
+        case Compare::NotEqualOld:
             // Note: not accurate when tested against a unit test
             // TODO: confirm if used by games
-            condition = OpFOrdNotEqual(t_bool, Constant(t_float, specialization.alpha_test_ref),
-                                       OpLoad(t_float, pointer));
+            condition = OpFOrdNotEqual(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_GREATER_OR_EQUAL:
-            condition = OpFOrdGreaterThanEqual(
-                t_bool, Constant(t_float, specialization.alpha_test_ref), OpLoad(t_float, pointer));
+        case Compare::GreaterEqualOld:
+            condition = OpFOrdGreaterThanEqual(t_bool, alpha_reference, alpha_value);
             break;
-        case VK_COMPARE_OP_ALWAYS:
-            condition = Constant(t_bool, true); // Always true
-            break;
+        case Compare::AlwaysOld:
+            return;
         default:
-            LOG_WARNING(Render_Vulkan, "Unimplemented alpha test function");
-            condition = Constant(t_bool, true); // Always true
-            break;
+            UNREACHABLE();
         }
         OpBranchConditional(condition, true_label, skip_label);
         AddLabel(true_label);
@@ -2157,7 +2151,7 @@ private:
                     }
                     const Id pointer = AccessElement(t_out_float, frag_colors[rt], component);
                     OpStore(pointer, SafeGetRegister(current_reg));
-                    if (specialization.alpha_test_enabled && component == 3) {
+                    if (rt == 0 && component == 3) {
                         AlphaTest(pointer);
                     }
                     ++current_reg;

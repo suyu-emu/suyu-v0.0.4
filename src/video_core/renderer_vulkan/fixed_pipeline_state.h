@@ -188,11 +188,10 @@ struct FixedPipelineState {
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
     };
 
-    u32 alpha_test_ref; /// < Alpha test reference
+    u32 alpha_test_ref; ///< Alpha test reference value
     union {
         u32 alpha_raw;
         BitField<0, 3, u32> alpha_test_func;
-        BitField<3, 1, u32> alpha_test_enabled;
     };
 
     u32 point_size;

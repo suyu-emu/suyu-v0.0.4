@@ -61,8 +61,9 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
     topology.Assign(regs.draw.topology);
 
     alpha_raw = 0;
-    alpha_test_enabled.Assign(regs.alpha_test_enabled);
-    alpha_test_func.Assign(PackComparisonOp(regs.alpha_test_func));
+    const auto test_func =
+        regs.alpha_test_enabled == 1 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always;
+    alpha_test_func.Assign(PackComparisonOp(test_func));
     std::memcpy(&alpha_test_ref, &regs.alpha_test_ref, sizeof(u32)); // TODO: C++20 std::bit_cast
 
     std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
