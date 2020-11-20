@@ -32,7 +32,7 @@ struct Register {
 
     constexpr Register() = default;
 
-    constexpr Register(u64 value) : value(value) {}
+    constexpr Register(u64 value_) : value(value_) {}
 
     constexpr operator u64() const {
         return value;
@@ -75,7 +75,7 @@ enum class AttributeSize : u64 {
 union Attribute {
     Attribute() = default;
 
-    constexpr explicit Attribute(u64 value) : value(value) {}
+    constexpr explicit Attribute(u64 value_) : value(value_) {}
 
     enum class Index : u64 {
         LayerViewportPointSize = 6,
@@ -124,7 +124,7 @@ union Attribute {
 union Sampler {
     Sampler() = default;
 
-    constexpr explicit Sampler(u64 value) : value(value) {}
+    constexpr explicit Sampler(u64 value_) : value(value_) {}
 
     enum class Index : u64 {
         Sampler_0 = 8,
@@ -137,7 +137,7 @@ union Sampler {
 union Image {
     Image() = default;
 
-    constexpr explicit Image(u64 value) : value{value} {}
+    constexpr explicit Image(u64 value_) : value{value_} {}
 
     BitField<36, 13, u64> index;
     u64 value;
@@ -658,7 +658,7 @@ union Instruction {
         return *this;
     }
 
-    constexpr Instruction(u64 value) : value{value} {}
+    constexpr Instruction(u64 value_) : value{value_} {}
     constexpr Instruction(const Instruction& instr) : value(instr.value) {}
 
     constexpr bool Bit(u64 offset) const {
@@ -1624,12 +1624,13 @@ union Instruction {
 
         s32 GetBranchTarget() const {
             // Sign extend the branch target offset
-            u32 mask = 1U << (24 - 1);
-            u32 value = static_cast<u32>(target);
+            const auto mask = 1U << (24 - 1);
+            const auto target_value = static_cast<u32>(target);
+            constexpr auto instruction_size = static_cast<s32>(sizeof(Instruction));
+
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
-                   1;
+            return static_cast<s32>((target_value ^ mask) - mask) / instruction_size + 1;
         }
     } bra;
 
@@ -1639,12 +1640,13 @@ union Instruction {
 
         s32 GetBranchExtend() const {
             // Sign extend the branch target offset
-            u32 mask = 1U << (24 - 1);
-            u32 value = static_cast<u32>(target);
+            const auto mask = 1U << (24 - 1);
+            const auto target_value = static_cast<u32>(target);
+            constexpr auto instruction_size = static_cast<s32>(sizeof(Instruction));
+
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
-                   1;
+            return static_cast<s32>((target_value ^ mask) - mask) / instruction_size + 1;
         }
     } brx;
 
@@ -2004,8 +2006,8 @@ public:
 
     class Matcher {
     public:
-        constexpr Matcher(const char* const name, u16 mask, u16 expected, Id id, Type type)
-            : name{name}, mask{mask}, expected{expected}, id{id}, type{type} {}
+        constexpr Matcher(const char* const name_, u16 mask_, u16 expected_, Id id_, Type type_)
+            : name{name_}, mask{mask_}, expected{expected_}, id{id_}, type{type_} {}
 
         constexpr const char* GetName() const {
             return name;
