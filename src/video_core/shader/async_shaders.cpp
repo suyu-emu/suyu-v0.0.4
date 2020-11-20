@@ -153,8 +153,8 @@ void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
         .descriptor_pool = &descriptor_pool,
         .update_descriptor_queue = &update_descriptor_queue,
         .renderpass_cache = &renderpass_cache,
-        .bindings = bindings,
-        .program = program,
+        .bindings = std::move(bindings),
+        .program = std::move(program),
         .key = key,
     };
 
