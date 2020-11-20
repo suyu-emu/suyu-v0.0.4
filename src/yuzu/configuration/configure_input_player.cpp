@@ -27,6 +27,8 @@
 #include "yuzu/configuration/input_profiles.h"
 #include "yuzu/util/limitable_input_dialog.h"
 
+using namespace Service::HID;
+
 const std::array<std::string, ConfigureInputPlayer::ANALOG_SUB_BUTTONS_NUM>
     ConfigureInputPlayer::analog_sub_buttons{{
         "up",
@@ -47,46 +49,10 @@ void UpdateController(Settings::ControllerType controller_type, std::size_t npad
     }
     Service::SM::ServiceManager& sm = system.ServiceManager();
 
-    auto& npad =
-        sm.GetService<Service::HID::Hid>("hid")
-            ->GetAppletResource()
-            ->GetController<Service::HID::Controller_NPad>(Service::HID::HidController::NPad);
+    auto& npad = sm.GetService<Hid>("hid")->GetAppletResource()->GetController<Controller_NPad>(
+        HidController::NPad);
 
     npad.UpdateControllerAt(npad.MapSettingsTypeToNPad(controller_type), npad_index, connected);
-}
-
-/// Maps the controller type combobox index to Controller Type enum
-constexpr Settings::ControllerType GetControllerTypeFromIndex(int index) {
-    switch (index) {
-    case 0:
-    default:
-        return Settings::ControllerType::ProController;
-    case 1:
-        return Settings::ControllerType::DualJoyconDetached;
-    case 2:
-        return Settings::ControllerType::LeftJoycon;
-    case 3:
-        return Settings::ControllerType::RightJoycon;
-    case 4:
-        return Settings::ControllerType::Handheld;
-    }
-}
-
-/// Maps the Controller Type enum to controller type combobox index
-constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
-    switch (type) {
-    case Settings::ControllerType::ProController:
-    default:
-        return 0;
-    case Settings::ControllerType::DualJoyconDetached:
-        return 1;
-    case Settings::ControllerType::LeftJoycon:
-        return 2;
-    case Settings::ControllerType::RightJoycon:
-        return 3;
-    case Settings::ControllerType::Handheld:
-        return 4;
-    }
 }
 
 QString GetKeyName(int key_code) {
@@ -453,18 +419,7 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     connect(ui->groupConnectedController, &QGroupBox::toggled,
             [this](bool checked) { emit Connected(checked); });
 
-    // Set up controller type. Only Player 1 can choose Handheld.
-    ui->comboControllerType->clear();
-
-    QStringList controller_types = {
-        tr("Pro Controller"),
-        tr("Dual Joycons"),
-        tr("Left Joycon"),
-        tr("Right Joycon"),
-    };
-
     if (player_index == 0) {
-        controller_types.append(tr("Handheld"));
         connect(ui->comboControllerType, qOverload<int>(&QComboBox::currentIndexChanged),
                 [this](int index) {
                     emit HandheldStateChanged(GetControllerTypeFromIndex(index) ==
@@ -480,12 +435,9 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
     if (debug) {
         ui->buttonScreenshot->setEnabled(false);
         ui->buttonHome->setEnabled(false);
-        QStringList debug_controller_types = {
-            tr("Pro Controller"),
-        };
-        ui->comboControllerType->addItems(debug_controller_types);
+        ui->comboControllerType->addItem(tr("Pro Controller"));
     } else {
-        ui->comboControllerType->addItems(controller_types);
+        SetConnectableControllers();
     }
 
     UpdateControllerIcon();
@@ -667,7 +619,7 @@ void ConfigureInputPlayer::LoadConfiguration() {
         return;
     }
 
-    ui->comboControllerType->setCurrentIndex(static_cast<int>(player.controller_type));
+    ui->comboControllerType->setCurrentIndex(GetIndexFromControllerType(player.controller_type));
     ui->groupConnectedController->setChecked(
         player.connected ||
         (player_index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected));
@@ -839,6 +791,82 @@ void ConfigureInputPlayer::UpdateUI() {
         modifier_slider->setVisible(!is_controller);
         range_groupbox->setVisible(is_controller);
     }
+}
+
+void ConfigureInputPlayer::SetConnectableControllers() {
+    const auto add_controllers = [this](bool enable_all,
+                                        Controller_NPad::NpadStyleSet npad_style_set = {}) {
+        index_controller_type_pairs.clear();
+        ui->comboControllerType->clear();
+
+        if (enable_all || npad_style_set.pro_controller == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::ProController);
+            ui->comboControllerType->addItem(tr("Pro Controller"));
+        }
+
+        if (enable_all || npad_style_set.joycon_dual == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::DualJoyconDetached);
+            ui->comboControllerType->addItem(tr("Dual Joycons"));
+        }
+
+        if (enable_all || npad_style_set.joycon_left == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::LeftJoycon);
+            ui->comboControllerType->addItem(tr("Left Joycon"));
+        }
+
+        if (enable_all || npad_style_set.joycon_right == 1) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::RightJoycon);
+            ui->comboControllerType->addItem(tr("Right Joycon"));
+        }
+
+        if (player_index == 0 && (enable_all || npad_style_set.handheld == 1)) {
+            index_controller_type_pairs.emplace_back(ui->comboControllerType->count(),
+                                                     Settings::ControllerType::Handheld);
+            ui->comboControllerType->addItem(tr("Handheld"));
+        }
+    };
+
+    Core::System& system{Core::System::GetInstance()};
+
+    if (!system.IsPoweredOn()) {
+        add_controllers(true);
+        return;
+    }
+
+    Service::SM::ServiceManager& sm = system.ServiceManager();
+
+    auto& npad = sm.GetService<Hid>("hid")->GetAppletResource()->GetController<Controller_NPad>(
+        HidController::NPad);
+
+    add_controllers(false, npad.GetSupportedStyleSet());
+}
+
+Settings::ControllerType ConfigureInputPlayer::GetControllerTypeFromIndex(int index) const {
+    const auto it =
+        std::find_if(index_controller_type_pairs.begin(), index_controller_type_pairs.end(),
+                     [index](const auto& pair) { return pair.first == index; });
+
+    if (it == index_controller_type_pairs.end()) {
+        return Settings::ControllerType::ProController;
+    }
+
+    return it->second;
+}
+
+int ConfigureInputPlayer::GetIndexFromControllerType(Settings::ControllerType type) const {
+    const auto it =
+        std::find_if(index_controller_type_pairs.begin(), index_controller_type_pairs.end(),
+                     [type](const auto& pair) { return pair.second == type; });
+
+    if (it == index_controller_type_pairs.end()) {
+        return -1;
+    }
+
+    return it->first;
 }
 
 void ConfigureInputPlayer::UpdateInputDevices() {
