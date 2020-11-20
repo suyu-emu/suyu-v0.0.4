@@ -1137,7 +1137,7 @@ void ConfigureInputPlayer::CreateProfile() {
         return;
     }
 
-    if (!profiles->IsProfileNameValid(profile_name.toStdString())) {
+    if (!InputProfiles::IsProfileNameValid(profile_name.toStdString())) {
         QMessageBox::critical(this, tr("Create Input Profile"),
                               tr("The given profile name is not valid!"));
         return;
