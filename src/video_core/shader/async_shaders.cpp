@@ -116,11 +116,10 @@ std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
 void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
                                      Tegra::Engines::ShaderType shader_type, u64 uid,
                                      std::vector<u64> code, std::vector<u64> code_b,
-                                     u32 main_offset,
-                                     VideoCommon::Shader::CompilerSettings compiler_settings,
-                                     const VideoCommon::Shader::Registry& registry,
-                                     VAddr cpu_addr) {
-    WorkerParams params{
+                                     u32 main_offset, CompilerSettings compiler_settings,
+                                     const Registry& registry, VAddr cpu_addr) {
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push({
         .backend = device.UseAssemblyShaders() ? Backend::GLASM : Backend::OpenGL,
         .device = &device,
         .shader_type = shader_type,
@@ -131,9 +130,7 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
         .compiler_settings = compiler_settings,
         .registry = registry,
         .cpu_address = cpu_addr,
-    };
-    std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(params));
+    });
     cv.notify_one();
 }
 
@@ -145,7 +142,8 @@ void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
                                      std::vector<VkDescriptorSetLayoutBinding> bindings,
                                      Vulkan::SPIRVProgram program,
                                      Vulkan::GraphicsPipelineCacheKey key) {
-    WorkerParams params{
+    std::unique_lock lock(queue_mutex);
+    pending_queue.push({
         .backend = Backend::Vulkan,
         .pp_cache = pp_cache,
         .vk_device = &device,
@@ -156,10 +154,7 @@ void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
         .bindings = std::move(bindings),
         .program = std::move(program),
         .key = key,
-    };
-
-    std::unique_lock lock(queue_mutex);
-    pending_queue.push(std::move(params));
+    });
     cv.notify_one();
 }
 
