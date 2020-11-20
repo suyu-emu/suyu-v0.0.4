@@ -43,8 +43,6 @@ public:
     }
 
 private:
-    bool initialized{};
-
     void Initialize(Kernel::HLERequestContext& ctx) {
         LOG_WARNING(Service_OLSC, "(STUBBED) called");
 
@@ -60,6 +58,8 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+
+    bool initialized{};
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager) {
