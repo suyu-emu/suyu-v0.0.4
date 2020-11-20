@@ -43,8 +43,8 @@ void AsyncShaders::AllocateWorkers() {
     // Create workers
     for (std::size_t i = 0; i < num_workers; i++) {
         context_list.push_back(emu_window.CreateSharedContext());
-        worker_threads.push_back(
-            std::thread(&AsyncShaders::ShaderCompilerThread, this, context_list[i].get()));
+        worker_threads.emplace_back(&AsyncShaders::ShaderCompilerThread, this,
+                                    context_list[i].get());
     }
 }
 
