@@ -402,8 +402,7 @@ public:
 
     bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
         const auto process_amplitude = [](f32 amplitude) {
-            return static_cast<u16>(std::pow(amplitude, 0.5f) *
-                                    (3.0f - 2.0f * std::pow(amplitude, 0.15f)) * 0xFFFF);
+            return static_cast<u16>((amplitude + std::pow(amplitude, 0.3f)) * 0.5f * 0xFFFF);
         };
 
         const auto processed_amp_low = process_amplitude(amp_low);
