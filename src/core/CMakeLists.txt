@@ -458,6 +458,8 @@ add_library(core STATIC
     hle/service/nvflinger/buffer_queue.h
     hle/service/nvflinger/nvflinger.cpp
     hle/service/nvflinger/nvflinger.h
+    hle/service/olsc/olsc.cpp
+    hle/service/olsc/olsc.h
     hle/service/pcie/pcie.cpp
     hle/service/pcie/pcie.h
     hle/service/pctl/module.cpp

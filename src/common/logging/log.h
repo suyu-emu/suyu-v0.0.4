@@ -95,6 +95,7 @@ enum class Class : ClassType {
     Service_NPNS,      ///< The NPNS service
     Service_NS,        ///< The NS services
     Service_NVDRV,     ///< The NVDRV (Nvidia driver) service
+    Service_OLSC,      ///< The OLSC service
     Service_PCIE,      ///< The PCIe service
     Service_PCTL,      ///< The PCTL (Parental control) service
     Service_PCV,       ///< The PCV service
