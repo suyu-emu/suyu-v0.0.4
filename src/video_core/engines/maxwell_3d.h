@@ -1461,6 +1461,14 @@ public:
 private:
     void InitializeRegisterDefaults();
 
+    void ProcessMacro(u32 method, const u32* base_start, u32 amount, bool is_last_call);
+
+    u32 ProcessShadowRam(u32 method, u32 argument);
+
+    void ProcessDirtyRegisters(u32 method, u32 argument);
+
+    void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
+
     Core::System& system;
     MemoryManager& memory_manager;
 
