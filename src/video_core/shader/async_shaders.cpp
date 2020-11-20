@@ -106,8 +106,7 @@ std::vector<AsyncShaders::Result> AsyncShaders::GetCompletedWork() {
     std::vector<Result> results;
     {
         std::unique_lock lock{completed_mutex};
-        results.assign(std::make_move_iterator(finished_work.begin()),
-                       std::make_move_iterator(finished_work.end()));
+        results = std::move(finished_work);
         finished_work.clear();
     }
     return results;
