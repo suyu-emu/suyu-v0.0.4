@@ -4,6 +4,7 @@
 
 #include "common/fiber.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/thread.h"
 #include "core/arm/exclusive_monitor.h"
 #include "core/core.h"
@@ -343,6 +344,16 @@ void CpuManager::RunThread(std::size_t core) {
     data.initialized = true;
     const bool sc_sync = !is_async_gpu && !is_multicore;
     bool sc_sync_first_use = sc_sync;
+
+    // Cleanup
+    SCOPE_EXIT({
+        data.host_context->Exit();
+        data.enter_barrier.reset();
+        data.exit_barrier.reset();
+        data.initialized = false;
+        MicroProfileOnThreadExit();
+    });
+
     /// Running
     while (running_mode) {
         data.is_running = false;
@@ -351,6 +362,12 @@ void CpuManager::RunThread(std::size_t core) {
             system.GPU().ObtainContext();
             sc_sync_first_use = false;
         }
+
+        // Abort if emulation was killed before the session really starts
+        if (!system.IsPoweredOn()) {
+            return;
+        }
+
         auto& scheduler = system.Kernel().CurrentScheduler();
         Kernel::Thread* current_thread = scheduler.GetCurrentThread();
         data.is_running = true;
@@ -360,13 +377,6 @@ void CpuManager::RunThread(std::size_t core) {
         data.exit_barrier->Wait();
         data.is_paused = false;
     }
-    /// Time to cleanup
-    data.host_context->Exit();
-    data.enter_barrier.reset();
-    data.exit_barrier.reset();
-    data.initialized = false;
-
-    MicroProfileOnThreadExit();
 }
 
 } // namespace Core
