@@ -1579,10 +1579,6 @@ void RasterizerOpenGL::SyncAlphaTest() {
     flags[Dirty::AlphaTest] = false;
 
     const auto& regs = maxwell3d.regs;
-    if (regs.alpha_test_enabled && regs.rt_control.count > 1) {
-        LOG_WARNING(Render_OpenGL, "Alpha testing with more than one render target is not tested");
-    }
-
     if (regs.alpha_test_enabled) {
         glEnable(GL_ALPHA_TEST);
         glAlphaFunc(MaxwellToGL::ComparisonOp(regs.alpha_test_func), regs.alpha_test_ref);
