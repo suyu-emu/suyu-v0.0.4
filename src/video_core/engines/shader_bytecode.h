@@ -32,31 +32,31 @@ struct Register {
 
     constexpr Register() = default;
 
-    constexpr Register(u64 value) : value(value) {}
+    constexpr Register(u64 value_) : value(value_) {}
 
-    constexpr operator u64() const {
+    [[nodiscard]] constexpr operator u64() const {
         return value;
     }
 
     template <typename T>
-    constexpr u64 operator-(const T& oth) const {
+    [[nodiscard]] constexpr u64 operator-(const T& oth) const {
         return value - oth;
     }
 
     template <typename T>
-    constexpr u64 operator&(const T& oth) const {
+    [[nodiscard]] constexpr u64 operator&(const T& oth) const {
         return value & oth;
     }
 
-    constexpr u64 operator&(const Register& oth) const {
+    [[nodiscard]] constexpr u64 operator&(const Register& oth) const {
         return value & oth.value;
     }
 
-    constexpr u64 operator~() const {
+    [[nodiscard]] constexpr u64 operator~() const {
         return ~value;
     }
 
-    u64 GetSwizzledIndex(u64 elem) const {
+    [[nodiscard]] u64 GetSwizzledIndex(u64 elem) const {
         elem = (value + elem) & 3;
         return (value & ~3) + elem;
     }
@@ -75,7 +75,7 @@ enum class AttributeSize : u64 {
 union Attribute {
     Attribute() = default;
 
-    constexpr explicit Attribute(u64 value) : value(value) {}
+    constexpr explicit Attribute(u64 value_) : value(value_) {}
 
     enum class Index : u64 {
         LayerViewportPointSize = 6,
@@ -107,7 +107,7 @@ union Attribute {
         BitField<31, 1, u64> patch;
         BitField<47, 3, AttributeSize> size;
 
-        bool IsPhysical() const {
+        [[nodiscard]] bool IsPhysical() const {
             return patch == 0 && element == 0 && static_cast<u64>(index.Value()) == 0;
         }
     } fmt20;
@@ -124,7 +124,7 @@ union Attribute {
 union Sampler {
     Sampler() = default;
 
-    constexpr explicit Sampler(u64 value) : value(value) {}
+    constexpr explicit Sampler(u64 value_) : value(value_) {}
 
     enum class Index : u64 {
         Sampler_0 = 8,
@@ -137,7 +137,7 @@ union Sampler {
 union Image {
     Image() = default;
 
-    constexpr explicit Image(u64 value) : value{value} {}
+    constexpr explicit Image(u64 value_) : value{value_} {}
 
     BitField<36, 13, u64> index;
     u64 value;
@@ -505,14 +505,14 @@ struct IpaMode {
     IpaInterpMode interpolation_mode;
     IpaSampleMode sampling_mode;
 
-    bool operator==(const IpaMode& a) const {
+    [[nodiscard]] bool operator==(const IpaMode& a) const {
         return std::tie(interpolation_mode, sampling_mode) ==
                std::tie(a.interpolation_mode, a.sampling_mode);
     }
-    bool operator!=(const IpaMode& a) const {
+    [[nodiscard]] bool operator!=(const IpaMode& a) const {
         return !operator==(a);
     }
-    bool operator<(const IpaMode& a) const {
+    [[nodiscard]] bool operator<(const IpaMode& a) const {
         return std::tie(interpolation_mode, sampling_mode) <
                std::tie(a.interpolation_mode, a.sampling_mode);
     }
@@ -658,10 +658,10 @@ union Instruction {
         return *this;
     }
 
-    constexpr Instruction(u64 value) : value{value} {}
+    constexpr Instruction(u64 value_) : value{value_} {}
     constexpr Instruction(const Instruction& instr) : value(instr.value) {}
 
-    constexpr bool Bit(u64 offset) const {
+    [[nodiscard]] constexpr bool Bit(u64 offset) const {
         return ((value >> offset) & 1) != 0;
     }
 
@@ -746,34 +746,34 @@ union Instruction {
             BitField<28, 8, u64> imm_lut28;
             BitField<48, 8, u64> imm_lut48;
 
-            u32 GetImmLut28() const {
+            [[nodiscard]] u32 GetImmLut28() const {
                 return static_cast<u32>(imm_lut28);
             }
 
-            u32 GetImmLut48() const {
+            [[nodiscard]] u32 GetImmLut48() const {
                 return static_cast<u32>(imm_lut48);
             }
         } lop3;
 
-        u16 GetImm20_16() const {
+        [[nodiscard]] u16 GetImm20_16() const {
             return static_cast<u16>(imm20_16);
         }
 
-        u32 GetImm20_19() const {
+        [[nodiscard]] u32 GetImm20_19() const {
             u32 imm{static_cast<u32>(imm20_19)};
             imm <<= 12;
             imm |= negate_imm ? 0x80000000 : 0;
             return imm;
         }
 
-        u32 GetImm20_32() const {
+        [[nodiscard]] u32 GetImm20_32() const {
             return static_cast<u32>(imm20_32);
         }
 
-        s32 GetSignedImm20_20() const {
-            u32 immediate = static_cast<u32>(imm20_19 | (negate_imm << 19));
+        [[nodiscard]] s32 GetSignedImm20_20() const {
+            const auto immediate = static_cast<u32>(imm20_19 | (negate_imm << 19));
             // Sign extend the 20-bit value.
-            u32 mask = 1U << (20 - 1);
+            const auto mask = 1U << (20 - 1);
             return static_cast<s32>((immediate ^ mask) - mask);
         }
     } alu;
@@ -857,7 +857,7 @@ union Instruction {
         BitField<56, 1, u64> second_negate;
         BitField<30, 9, u64> second;
 
-        u32 PackImmediates() const {
+        [[nodiscard]] u32 PackImmediates() const {
             // Immediates are half floats shifted.
             constexpr u32 imm_shift = 6;
             return static_cast<u32>((first << imm_shift) | (second << (16 + imm_shift)));
@@ -1033,7 +1033,7 @@ union Instruction {
         BitField<28, 2, AtomicType> type;
         BitField<30, 22, s64> offset;
 
-        s32 GetImmediateOffset() const {
+        [[nodiscard]] s32 GetImmediateOffset() const {
             return static_cast<s32>(offset << 2);
         }
     } atoms;
@@ -1215,7 +1215,7 @@ union Instruction {
             BitField<39, 4, u64> rounding;
             // H0, H1 extract for F16 missing
             BitField<41, 1, u64> selector; // Guessed as some games set it, TODO: reverse this value
-            F2fRoundingOp GetRoundingMode() const {
+            [[nodiscard]] F2fRoundingOp GetRoundingMode() const {
                 constexpr u64 rounding_mask = 0x0B;
                 return static_cast<F2fRoundingOp>(rounding.Value() & rounding_mask);
             }
@@ -1239,15 +1239,15 @@ union Instruction {
         BitField<54, 1, u64> aoffi_flag;
         BitField<55, 3, TextureProcessMode> process_mode;
 
-        bool IsComponentEnabled(std::size_t component) const {
-            return ((1ull << component) & component_mask) != 0;
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
+            return ((1ULL << component) & component_mask) != 0;
         }
 
-        TextureProcessMode GetTextureProcessMode() const {
+        [[nodiscard]] TextureProcessMode GetTextureProcessMode() const {
             return process_mode;
         }
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::DC:
                 return dc_flag != 0;
@@ -1271,15 +1271,15 @@ union Instruction {
         BitField<36, 1, u64> aoffi_flag;
         BitField<37, 3, TextureProcessMode> process_mode;
 
-        bool IsComponentEnabled(std::size_t component) const {
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
             return ((1ULL << component) & component_mask) != 0;
         }
 
-        TextureProcessMode GetTextureProcessMode() const {
+        [[nodiscard]] TextureProcessMode GetTextureProcessMode() const {
             return process_mode;
         }
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::DC:
                 return dc_flag != 0;
@@ -1299,7 +1299,7 @@ union Instruction {
         BitField<31, 4, u64> component_mask;
         BitField<49, 1, u64> nodep_flag;
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::NODEP:
                 return nodep_flag != 0;
@@ -1309,7 +1309,7 @@ union Instruction {
             return false;
         }
 
-        bool IsComponentEnabled(std::size_t component) const {
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
             return ((1ULL << component) & component_mask) != 0;
         }
     } txq;
@@ -1321,11 +1321,11 @@ union Instruction {
         BitField<35, 1, u64> ndv_flag;
         BitField<49, 1, u64> nodep_flag;
 
-        bool IsComponentEnabled(std::size_t component) const {
-            return ((1ull << component) & component_mask) != 0;
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
+            return ((1ULL << component) & component_mask) != 0;
         }
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::NDV:
                 return (ndv_flag != 0);
@@ -1347,7 +1347,7 @@ union Instruction {
         BitField<54, 2, u64> offset_mode;
         BitField<56, 2, u64> component;
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::NDV:
                 return ndv_flag != 0;
@@ -1373,7 +1373,7 @@ union Instruction {
         BitField<33, 2, u64> offset_mode;
         BitField<37, 2, u64> component;
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::NDV:
                 return ndv_flag != 0;
@@ -1399,7 +1399,7 @@ union Instruction {
         BitField<52, 2, u64> component;
         BitField<55, 1, u64> fp16_flag;
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::DC:
                 return dc_flag != 0;
@@ -1422,16 +1422,20 @@ union Instruction {
         BitField<53, 4, u64> texture_info;
         BitField<59, 1, u64> fp32_flag;
 
-        TextureType GetTextureType() const {
+        [[nodiscard]] TextureType GetTextureType() const {
             // The TEXS instruction has a weird encoding for the texture type.
-            if (texture_info == 0)
+            if (texture_info == 0) {
                 return TextureType::Texture1D;
-            if (texture_info >= 1 && texture_info <= 9)
+            }
+            if (texture_info >= 1 && texture_info <= 9) {
                 return TextureType::Texture2D;
-            if (texture_info >= 10 && texture_info <= 11)
+            }
+            if (texture_info >= 10 && texture_info <= 11) {
                 return TextureType::Texture3D;
-            if (texture_info >= 12 && texture_info <= 13)
+            }
+            if (texture_info >= 12 && texture_info <= 13) {
                 return TextureType::TextureCube;
+            }
 
             LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
                          static_cast<u32>(texture_info.Value()));
@@ -1439,7 +1443,7 @@ union Instruction {
             return TextureType::Texture1D;
         }
 
-        TextureProcessMode GetTextureProcessMode() const {
+        [[nodiscard]] TextureProcessMode GetTextureProcessMode() const {
             switch (texture_info) {
             case 0:
             case 2:
@@ -1458,7 +1462,7 @@ union Instruction {
             return TextureProcessMode::None;
         }
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::DC:
                 return (texture_info >= 4 && texture_info <= 6) || texture_info == 9;
@@ -1470,16 +1474,16 @@ union Instruction {
             return false;
         }
 
-        bool IsArrayTexture() const {
+        [[nodiscard]] bool IsArrayTexture() const {
             // TEXS only supports Texture2D arrays.
             return texture_info >= 7 && texture_info <= 9;
         }
 
-        bool HasTwoDestinations() const {
+        [[nodiscard]] bool HasTwoDestinations() const {
             return gpr28.Value() != Register::ZeroIndex;
         }
 
-        bool IsComponentEnabled(std::size_t component) const {
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
             static constexpr std::array<std::array<u32, 8>, 4> mask_lut{{
                 {},
                 {0x1, 0x2, 0x4, 0x8, 0x3, 0x9, 0xa, 0xc},
@@ -1506,7 +1510,7 @@ union Instruction {
         BitField<54, 1, u64> cl;
         BitField<55, 1, u64> process_mode;
 
-        TextureProcessMode GetTextureProcessMode() const {
+        [[nodiscard]] TextureProcessMode GetTextureProcessMode() const {
             return process_mode == 0 ? TextureProcessMode::LZ : TextureProcessMode::LL;
         }
     } tld;
@@ -1516,7 +1520,7 @@ union Instruction {
         BitField<53, 4, u64> texture_info;
         BitField<59, 1, u64> fp32_flag;
 
-        TextureType GetTextureType() const {
+        [[nodiscard]] TextureType GetTextureType() const {
             // The TLDS instruction has a weird encoding for the texture type.
             if (texture_info <= 1) {
                 return TextureType::Texture1D;
@@ -1535,13 +1539,14 @@ union Instruction {
             return TextureType::Texture1D;
         }
 
-        TextureProcessMode GetTextureProcessMode() const {
-            if (texture_info == 1 || texture_info == 5 || texture_info == 12)
+        [[nodiscard]] TextureProcessMode GetTextureProcessMode() const {
+            if (texture_info == 1 || texture_info == 5 || texture_info == 12) {
                 return TextureProcessMode::LL;
+            }
             return TextureProcessMode::LZ;
         }
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::AOFFI:
                 return texture_info == 12 || texture_info == 4;
@@ -1555,7 +1560,7 @@ union Instruction {
             return false;
         }
 
-        bool IsArrayTexture() const {
+        [[nodiscard]] bool IsArrayTexture() const {
             // TEXS only supports Texture2D arrays.
             return texture_info == 8;
         }
@@ -1567,7 +1572,7 @@ union Instruction {
         BitField<35, 1, u64> aoffi_flag;
         BitField<49, 1, u64> nodep_flag;
 
-        bool UsesMiscMode(TextureMiscMode mode) const {
+        [[nodiscard]] bool UsesMiscMode(TextureMiscMode mode) const {
             switch (mode) {
             case TextureMiscMode::AOFFI:
                 return aoffi_flag != 0;
@@ -1591,7 +1596,7 @@ union Instruction {
         BitField<20, 3, StoreType> store_data_layout;
         BitField<20, 4, u64> component_mask_selector;
 
-        bool IsComponentEnabled(std::size_t component) const {
+        [[nodiscard]] bool IsComponentEnabled(std::size_t component) const {
             ASSERT(mode == SurfaceDataMode::P);
             constexpr u8 R = 0b0001;
             constexpr u8 G = 0b0010;
@@ -1604,7 +1609,7 @@ union Instruction {
             return std::bitset<4>{mask.at(component_mask_selector)}.test(component);
         }
 
-        StoreType GetStoreDataLayout() const {
+        [[nodiscard]] StoreType GetStoreDataLayout() const {
             ASSERT(mode == SurfaceDataMode::D_BA);
             return store_data_layout;
         }
@@ -1622,14 +1627,15 @@ union Instruction {
         BitField<20, 24, u64> target;
         BitField<5, 1, u64> constant_buffer;
 
-        s32 GetBranchTarget() const {
+        [[nodiscard]] s32 GetBranchTarget() const {
             // Sign extend the branch target offset
-            u32 mask = 1U << (24 - 1);
-            u32 value = static_cast<u32>(target);
+            const auto mask = 1U << (24 - 1);
+            const auto target_value = static_cast<u32>(target);
+            constexpr auto instruction_size = static_cast<s32>(sizeof(Instruction));
+
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
-                   1;
+            return static_cast<s32>((target_value ^ mask) - mask) / instruction_size + 1;
         }
     } bra;
 
@@ -1637,14 +1643,15 @@ union Instruction {
         BitField<20, 24, u64> target;
         BitField<5, 1, u64> constant_buffer;
 
-        s32 GetBranchExtend() const {
+        [[nodiscard]] s32 GetBranchExtend() const {
             // Sign extend the branch target offset
-            u32 mask = 1U << (24 - 1);
-            u32 value = static_cast<u32>(target);
+            const auto mask = 1U << (24 - 1);
+            const auto target_value = static_cast<u32>(target);
+            constexpr auto instruction_size = static_cast<s32>(sizeof(Instruction));
+
             // The branch offset is relative to the next instruction and is stored in bytes, so
             // divide it by the size of an instruction and add 1 to it.
-            return static_cast<s32>((value ^ mask) - mask) / static_cast<s32>(sizeof(Instruction)) +
-                   1;
+            return static_cast<s32>((target_value ^ mask) - mask) / instruction_size + 1;
         }
     } brx;
 
@@ -1697,7 +1704,7 @@ union Instruction {
         BitField<50, 1, u64> is_op_b_register;
         BitField<51, 3, VmnmxOperation> operation;
 
-        VmnmxType SourceFormatA() const {
+        [[nodiscard]] VmnmxType SourceFormatA() const {
             switch (src_format_a) {
             case 0b11:
                 return VmnmxType::Bits32;
@@ -1708,7 +1715,7 @@ union Instruction {
             }
         }
 
-        VmnmxType SourceFormatB() const {
+        [[nodiscard]] VmnmxType SourceFormatB() const {
             switch (src_format_b) {
             case 0b11:
                 return VmnmxType::Bits32;
@@ -1739,7 +1746,7 @@ union Instruction {
         BitField<20, 14, u64> shifted_offset;
         BitField<34, 5, u64> index;
 
-        u64 GetOffset() const {
+        [[nodiscard]] u64 GetOffset() const {
             return shifted_offset * 4;
         }
     } cbuf34;
@@ -1748,7 +1755,7 @@ union Instruction {
         BitField<20, 16, s64> offset;
         BitField<36, 5, u64> index;
 
-        s64 GetOffset() const {
+        [[nodiscard]] s64 GetOffset() const {
             return offset;
         }
     } cbuf36;
@@ -1997,29 +2004,29 @@ public:
 
     /// Returns whether an opcode has an execution predicate field or not (ie, whether it can be
     /// conditionally executed).
-    static bool IsPredicatedInstruction(Id opcode) {
+    [[nodiscard]] static bool IsPredicatedInstruction(Id opcode) {
         // TODO(Subv): Add the rest of unpredicated instructions.
         return opcode != Id::SSY && opcode != Id::PBK;
     }
 
     class Matcher {
     public:
-        constexpr Matcher(const char* const name, u16 mask, u16 expected, Id id, Type type)
-            : name{name}, mask{mask}, expected{expected}, id{id}, type{type} {}
+        constexpr Matcher(const char* const name_, u16 mask_, u16 expected_, Id id_, Type type_)
+            : name{name_}, mask{mask_}, expected{expected_}, id{id_}, type{type_} {}
 
-        constexpr const char* GetName() const {
+        [[nodiscard]] constexpr const char* GetName() const {
             return name;
         }
 
-        constexpr u16 GetMask() const {
+        [[nodiscard]] constexpr u16 GetMask() const {
             return mask;
         }
 
-        constexpr Id GetId() const {
+        [[nodiscard]] constexpr Id GetId() const {
             return id;
         }
 
-        constexpr Type GetType() const {
+        [[nodiscard]] constexpr Type GetType() const {
             return type;
         }
 
@@ -2028,7 +2035,7 @@ public:
          * @param instruction The instruction to test
          * @returns true if the given instruction matches.
          */
-        constexpr bool Matches(u16 instruction) const {
+        [[nodiscard]] constexpr bool Matches(u16 instruction) const {
             return (instruction & mask) == expected;
         }
 
@@ -2040,7 +2047,8 @@ public:
         Type type;
     };
 
-    static std::optional<std::reference_wrapper<const Matcher>> Decode(Instruction instr) {
+    using DecodeResult = std::optional<std::reference_wrapper<const Matcher>>;
+    [[nodiscard]] static DecodeResult Decode(Instruction instr) {
         static const auto table{GetDecodeTable()};
 
         const auto matches_instruction = [instr](const auto& matcher) {
@@ -2062,7 +2070,7 @@ private:
          * A '0' in a bitstring indicates that a zero must be present at that bit position.
          * A '1' in a bitstring indicates that a one must be present at that bit position.
          */
-        static constexpr auto GetMaskAndExpect(const char* const bitstring) {
+        [[nodiscard]] static constexpr auto GetMaskAndExpect(const char* const bitstring) {
             u16 mask = 0, expect = 0;
             for (std::size_t i = 0; i < opcode_bitsize; i++) {
                 const std::size_t bit_position = opcode_bitsize - i - 1;
@@ -2084,14 +2092,14 @@ private:
 
     public:
         /// Creates a matcher that can match and parse instructions based on bitstring.
-        static constexpr auto GetMatcher(const char* const bitstring, Id op, Type type,
-                                         const char* const name) {
+        [[nodiscard]] static constexpr auto GetMatcher(const char* const bitstring, Id op,
+                                                       Type type, const char* const name) {
             const auto [mask, expected] = GetMaskAndExpect(bitstring);
             return Matcher(name, mask, expected, op, type);
         }
     };
 
-    static std::vector<Matcher> GetDecodeTable() {
+    [[nodiscard]] static std::vector<Matcher> GetDecodeTable() {
         std::vector<Matcher> table = {
 #define INST(bitstring, op, type, name) Detail::GetMatcher(bitstring, op, type, name)
             INST("111000110011----", Id::KIL, Type::Flow, "KIL"),
