@@ -112,14 +112,23 @@ public:
         return std::static_pointer_cast<T>(itr->second);
     }
 
+    NvResult VerifyFD(DeviceFD fd) const;
+
     /// Opens a device node and returns a file descriptor to it.
-    u32 Open(const std::string& device_name);
+    DeviceFD Open(const std::string& device_name);
+
     /// Sends an ioctl command to the specified file descriptor.
-    u32 Ioctl(u32 fd, u32 command, const std::vector<u8>& input, const std::vector<u8>& input2,
-              std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-              IoctlVersion version);
+    NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                    std::vector<u8>& output);
+
+    NvResult Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                    const std::vector<u8>& inline_input, std::vector<u8>& output);
+
+    NvResult Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                    std::vector<u8>& output, std::vector<u8>& inline_output);
+
     /// Closes a device file descriptor and returns operation success.
-    ResultCode Close(u32 fd);
+    NvResult Close(DeviceFD fd);
 
     void SignalSyncpt(const u32 syncpoint_id, const u32 value);
 
@@ -132,10 +141,10 @@ private:
     SyncpointManager syncpoint_manager;
 
     /// Id to use for the next open file descriptor.
-    u32 next_fd = 1;
+    DeviceFD next_fd = 1;
 
     /// Mapping of file descriptors to the devices they reference.
-    std::unordered_map<u32, std::shared_ptr<Devices::nvdevice>> open_files;
+    std::unordered_map<DeviceFD, std::shared_ptr<Devices::nvdevice>> open_files;
 
     /// Mapping of device node names to their implementation.
     std::unordered_map<std::string, std::shared_ptr<Devices::nvdevice>> devices;

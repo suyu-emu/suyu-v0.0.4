@@ -30,9 +30,11 @@ public:
     explicit nvhost_as_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
     ~nvhost_as_gpu() override;
 
-    u32 ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-              std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-              IoctlVersion version) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
+    NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
+    NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                    std::vector<u8>& inline_output) override;
 
 private:
     class BufferMap final {
@@ -74,32 +76,21 @@ private:
         bool is_allocated{};
     };
 
-    enum class IoctlCommand : u32_le {
-        IocInitalizeExCommand = 0x40284109,
-        IocAllocateSpaceCommand = 0xC0184102,
-        IocRemapCommand = 0x00000014,
-        IocMapBufferExCommand = 0xC0284106,
-        IocBindChannelCommand = 0x40044101,
-        IocGetVaRegionsCommand = 0xC0404108,
-        IocUnmapBufferCommand = 0xC0084105,
-        IocFreeSpaceCommand = 0xC0104103,
-    };
-
     struct IoctlInitalizeEx {
-        u32_le big_page_size; // depends on GPU's available_big_page_sizes; 0=default
-        s32_le as_fd;         // ignored; passes 0
-        u32_le flags;         // passes 0
-        u32_le reserved;      // ignored; passes 0
-        u64_le unk0;
-        u64_le unk1;
-        u64_le unk2;
+        u32_le big_page_size{}; // depends on GPU's available_big_page_sizes; 0=default
+        s32_le as_fd{};         // ignored; passes 0
+        u32_le flags{};         // passes 0
+        u32_le reserved{};      // ignored; passes 0
+        u64_le unk0{};
+        u64_le unk1{};
+        u64_le unk2{};
     };
     static_assert(sizeof(IoctlInitalizeEx) == 40, "IoctlInitalizeEx is incorrect size");
 
     struct IoctlAllocSpace {
-        u32_le pages;
-        u32_le page_size;
-        AddressSpaceFlags flags;
+        u32_le pages{};
+        u32_le page_size{};
+        AddressSpaceFlags flags{};
         INSERT_PADDING_WORDS(1);
         union {
             u64_le offset;
@@ -109,70 +100,73 @@ private:
     static_assert(sizeof(IoctlAllocSpace) == 24, "IoctlInitalizeEx is incorrect size");
 
     struct IoctlFreeSpace {
-        u64_le offset;
-        u32_le pages;
-        u32_le page_size;
+        u64_le offset{};
+        u32_le pages{};
+        u32_le page_size{};
     };
     static_assert(sizeof(IoctlFreeSpace) == 16, "IoctlFreeSpace is incorrect size");
 
     struct IoctlRemapEntry {
-        u16_le flags;
-        u16_le kind;
-        u32_le nvmap_handle;
-        u32_le map_offset;
-        u32_le offset;
-        u32_le pages;
+        u16_le flags{};
+        u16_le kind{};
+        u32_le nvmap_handle{};
+        u32_le map_offset{};
+        u32_le offset{};
+        u32_le pages{};
     };
     static_assert(sizeof(IoctlRemapEntry) == 20, "IoctlRemapEntry is incorrect size");
 
     struct IoctlMapBufferEx {
-        AddressSpaceFlags flags; // bit0: fixed_offset, bit2: cacheable
-        u32_le kind;             // -1 is default
-        u32_le nvmap_handle;
-        u32_le page_size; // 0 means don't care
-        s64_le buffer_offset;
-        u64_le mapping_size;
-        s64_le offset;
+        AddressSpaceFlags flags{}; // bit0: fixed_offset, bit2: cacheable
+        u32_le kind{};             // -1 is default
+        u32_le nvmap_handle{};
+        u32_le page_size{}; // 0 means don't care
+        s64_le buffer_offset{};
+        u64_le mapping_size{};
+        s64_le offset{};
     };
     static_assert(sizeof(IoctlMapBufferEx) == 40, "IoctlMapBufferEx is incorrect size");
 
     struct IoctlUnmapBuffer {
-        s64_le offset;
+        s64_le offset{};
     };
     static_assert(sizeof(IoctlUnmapBuffer) == 8, "IoctlUnmapBuffer is incorrect size");
 
     struct IoctlBindChannel {
-        u32_le fd;
+        s32_le fd{};
     };
     static_assert(sizeof(IoctlBindChannel) == 4, "IoctlBindChannel is incorrect size");
 
     struct IoctlVaRegion {
-        u64_le offset;
-        u32_le page_size;
+        u64_le offset{};
+        u32_le page_size{};
         INSERT_PADDING_WORDS(1);
-        u64_le pages;
+        u64_le pages{};
     };
     static_assert(sizeof(IoctlVaRegion) == 24, "IoctlVaRegion is incorrect size");
 
     struct IoctlGetVaRegions {
-        u64_le buf_addr; // (contained output user ptr on linux, ignored)
-        u32_le buf_size; // forced to 2*sizeof(struct va_region)
-        u32_le reserved;
-        IoctlVaRegion regions[2];
+        u64_le buf_addr{}; // (contained output user ptr on linux, ignored)
+        u32_le buf_size{}; // forced to 2*sizeof(struct va_region)
+        u32_le reserved{};
+        IoctlVaRegion regions[2]{};
     };
     static_assert(sizeof(IoctlGetVaRegions) == 16 + sizeof(IoctlVaRegion) * 2,
                   "IoctlGetVaRegions is incorrect size");
 
-    u32 channel{};
+    s32 channel{};
 
-    u32 InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 AllocateSpace(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 Remap(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 FreeSpace(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 BindChannel(const std::vector<u8>& input, std::vector<u8>& output);
-    u32 GetVARegions(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult AllocateSpace(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult Remap(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult FreeSpace(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult BindChannel(const std::vector<u8>& input, std::vector<u8>& output);
+
+    NvResult GetVARegions(const std::vector<u8>& input, std::vector<u8>& output);
+    NvResult GetVARegions(const std::vector<u8>& input, std::vector<u8>& output,
+                          std::vector<u8>& inline_output);
 
     std::optional<BufferMap> FindBufferMap(GPUVAddr gpu_addr) const;
     void AddBufferMap(GPUVAddr gpu_addr, std::size_t size, VAddr cpu_addr, bool is_allocated);

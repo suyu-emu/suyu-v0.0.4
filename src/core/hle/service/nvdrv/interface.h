@@ -23,7 +23,7 @@ public:
 
 private:
     void Open(Kernel::HLERequestContext& ctx);
-    void Ioctl(Kernel::HLERequestContext& ctx);
+    void Ioctl1(Kernel::HLERequestContext& ctx);
     void Ioctl2(Kernel::HLERequestContext& ctx);
     void Ioctl3(Kernel::HLERequestContext& ctx);
     void Close(Kernel::HLERequestContext& ctx);
@@ -33,11 +33,13 @@ private:
     void SetGraphicsFirmwareMemoryMarginEnabled(Kernel::HLERequestContext& ctx);
     void GetStatus(Kernel::HLERequestContext& ctx);
     void DumpGraphicsMemoryInfo(Kernel::HLERequestContext& ctx);
-    void IoctlBase(Kernel::HLERequestContext& ctx, IoctlVersion version);
+
+    void ServiceError(Kernel::HLERequestContext& ctx, NvResult result);
 
     std::shared_ptr<Module> nvdrv;
 
     u64 pid{};
+    bool is_initialized{};
 };
 
 } // namespace Service::Nvidia

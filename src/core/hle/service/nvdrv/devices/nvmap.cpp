@@ -11,13 +11,6 @@
 
 namespace Service::Nvidia::Devices {
 
-namespace NvErrCodes {
-enum {
-    OperationNotPermitted = -1,
-    InvalidValue = -22,
-};
-}
-
 nvmap::nvmap(Core::System& system) : nvdevice(system) {
     // Handle 0 appears to be used when remapping, so we create a placeholder empty nvmap object to
     // represent this.
@@ -26,33 +19,51 @@ nvmap::nvmap(Core::System& system) : nvdevice(system) {
 
 nvmap::~nvmap() = default;
 
+NvResult nvmap::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
+    switch (command.group) {
+    case 0x1:
+        switch (command.cmd) {
+        case 0x1:
+            return IocCreate(input, output);
+        case 0x3:
+            return IocFromId(input, output);
+        case 0x4:
+            return IocAlloc(input, output);
+        case 0x5:
+            return IocFree(input, output);
+        case 0x9:
+            return IocParam(input, output);
+        case 0xe:
+            return IocGetId(input, output);
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvmap::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                       const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvmap::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                       std::vector<u8>& inline_output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
 VAddr nvmap::GetObjectAddress(u32 handle) const {
     auto object = GetObject(handle);
     ASSERT(object);
     ASSERT(object->status == Object::Status::Allocated);
     return object->addr;
-}
-
-u32 nvmap::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                 std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                 IoctlVersion version) {
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::Create:
-        return IocCreate(input, output);
-    case IoctlCommand::Alloc:
-        return IocAlloc(input, output);
-    case IoctlCommand::GetId:
-        return IocGetId(input, output);
-    case IoctlCommand::FromId:
-        return IocFromId(input, output);
-    case IoctlCommand::Param:
-        return IocParam(input, output);
-    case IoctlCommand::Free:
-        return IocFree(input, output);
-    }
-
-    UNIMPLEMENTED_MSG("Unimplemented ioctl");
-    return 0;
 }
 
 u32 nvmap::CreateObject(u32 size) {
@@ -70,35 +81,35 @@ u32 nvmap::CreateObject(u32 size) {
     return handle;
 }
 
-u32 nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocCreate(const std::vector<u8>& input, std::vector<u8>& output) {
     IocCreateParams params;
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_DEBUG(Service_NVDRV, "size=0x{:08X}", params.size);
 
     if (!params.size) {
         LOG_ERROR(Service_NVDRV, "Size is 0");
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     params.handle = CreateObject(params.size);
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
     IocAllocParams params;
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_DEBUG(Service_NVDRV, "called, addr={:X}", params.addr);
 
     if (!params.handle) {
         LOG_ERROR(Service_NVDRV, "Handle is 0");
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     if ((params.align - 1) & params.align) {
         LOG_ERROR(Service_NVDRV, "Incorrect alignment used, alignment={:08X}", params.align);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     const u32 min_alignment = 0x1000;
@@ -109,12 +120,12 @@ u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
     auto object = GetObject(params.handle);
     if (!object) {
         LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     if (object->status == Object::Status::Allocated) {
         LOG_ERROR(Service_NVDRV, "Object is already allocated, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::OperationNotPermitted);
+        return NvResult::InsufficientMemory;
     }
 
     object->flags = params.flags;
@@ -124,10 +135,10 @@ u32 nvmap::IocAlloc(const std::vector<u8>& input, std::vector<u8>& output) {
     object->status = Object::Status::Allocated;
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvmap::IocGetId(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocGetId(const std::vector<u8>& input, std::vector<u8>& output) {
     IocGetIdParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
@@ -135,22 +146,22 @@ u32 nvmap::IocGetId(const std::vector<u8>& input, std::vector<u8>& output) {
 
     if (!params.handle) {
         LOG_ERROR(Service_NVDRV, "Handle is zero");
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     auto object = GetObject(params.handle);
     if (!object) {
         LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::OperationNotPermitted);
+        return NvResult::BadValue;
     }
 
     params.id = object->id;
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output) {
     IocFromIdParams params;
     std::memcpy(&params, input.data(), sizeof(params));
 
@@ -160,13 +171,13 @@ u32 nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output) {
                             [&](const auto& entry) { return entry.second->id == params.id; });
     if (itr == handles.end()) {
         LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     auto& object = itr->second;
     if (object->status != Object::Status::Allocated) {
         LOG_ERROR(Service_NVDRV, "Object is not allocated, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     itr->second->refcount++;
@@ -175,10 +186,10 @@ u32 nvmap::IocFromId(const std::vector<u8>& input, std::vector<u8>& output) {
     params.handle = itr->first;
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) {
     enum class ParamTypes { Size = 1, Alignment = 2, Base = 3, Heap = 4, Kind = 5, Compr = 6 };
 
     IocParamParams params;
@@ -189,12 +200,12 @@ u32 nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) {
     auto object = GetObject(params.handle);
     if (!object) {
         LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     if (object->status != Object::Status::Allocated) {
         LOG_ERROR(Service_NVDRV, "Object is not allocated, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::OperationNotPermitted);
+        return NvResult::BadValue;
     }
 
     switch (static_cast<ParamTypes>(params.param)) {
@@ -216,10 +227,10 @@ u32 nvmap::IocParam(const std::vector<u8>& input, std::vector<u8>& output) {
     }
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     // TODO(Subv): These flags are unconfirmed.
     enum FreeFlags {
         Freed = 0,
@@ -234,14 +245,14 @@ u32 nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     auto itr = handles.find(params.handle);
     if (itr == handles.end()) {
         LOG_ERROR(Service_NVDRV, "Object does not exist, handle={:08X}", params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
     if (!itr->second->refcount) {
         LOG_ERROR(
             Service_NVDRV,
             "There is no references to this object. The object is already freed. handle={:08X}",
             params.handle);
-        return static_cast<u32>(NvErrCodes::InvalidValue);
+        return NvResult::BadValue;
     }
 
     itr->second->refcount--;
@@ -261,7 +272,7 @@ u32 nvmap::IocFree(const std::vector<u8>& input, std::vector<u8>& output) {
     handles.erase(params.handle);
 
     std::memcpy(output.data(), &params, sizeof(params));
-    return 0;
+    return NvResult::Success;
 }
 
 } // namespace Service::Nvidia::Devices

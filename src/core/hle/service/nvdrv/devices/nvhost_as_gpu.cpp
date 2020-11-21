@@ -17,59 +17,77 @@
 
 namespace Service::Nvidia::Devices {
 
-namespace NvErrCodes {
-constexpr u32 Success{};
-constexpr u32 OutOfMemory{static_cast<u32>(-12)};
-constexpr u32 InvalidInput{static_cast<u32>(-22)};
-} // namespace NvErrCodes
-
 nvhost_as_gpu::nvhost_as_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
     : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
 nvhost_as_gpu::~nvhost_as_gpu() = default;
 
-u32 nvhost_as_gpu::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                         std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                         IoctlVersion version) {
-    LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
-              command.raw, input.size(), output.size());
-
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::IocInitalizeExCommand:
-        return InitalizeEx(input, output);
-    case IoctlCommand::IocAllocateSpaceCommand:
-        return AllocateSpace(input, output);
-    case IoctlCommand::IocMapBufferExCommand:
-        return MapBufferEx(input, output);
-    case IoctlCommand::IocBindChannelCommand:
-        return BindChannel(input, output);
-    case IoctlCommand::IocGetVaRegionsCommand:
-        return GetVARegions(input, output);
-    case IoctlCommand::IocUnmapBufferCommand:
-        return UnmapBuffer(input, output);
-    case IoctlCommand::IocFreeSpaceCommand:
-        return FreeSpace(input, output);
+NvResult nvhost_as_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input,
+                               std::vector<u8>& output) {
+    switch (command.group) {
+    case 'A':
+        switch (command.cmd) {
+        case 0x1:
+            return BindChannel(input, output);
+        case 0x2:
+            return AllocateSpace(input, output);
+        case 0x3:
+            return FreeSpace(input, output);
+        case 0x5:
+            return UnmapBuffer(input, output);
+        case 0x6:
+            return MapBufferEx(input, output);
+        case 0x8:
+            return GetVARegions(input, output);
+        case 0x9:
+            return InitalizeEx(input, output);
+        case 0x14:
+            return Remap(input, output);
+        default:
+            break;
+        }
+        break;
     default:
         break;
     }
 
-    if (static_cast<IoctlCommand>(command.cmd.Value()) == IoctlCommand::IocRemapCommand) {
-        return Remap(input, output);
-    }
-
-    UNIMPLEMENTED_MSG("Unimplemented ioctl command");
-    return 0;
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
 }
 
-u32 nvhost_as_gpu::InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                               const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_as_gpu::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                               std::vector<u8>& inline_output) {
+    switch (command.group) {
+    case 'A':
+        switch (command.cmd) {
+        case 0x8:
+            return GetVARegions(input, output, inline_output);
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
+    }
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_as_gpu::InitalizeEx(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlInitalizeEx params{};
     std::memcpy(&params, input.data(), input.size());
 
     LOG_WARNING(Service_NVDRV, "(STUBBED) called, big_page_size=0x{:X}", params.big_page_size);
 
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlAllocSpace params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -83,17 +101,17 @@ u32 nvhost_as_gpu::AllocateSpace(const std::vector<u8>& input, std::vector<u8>& 
         params.offset = system.GPU().MemoryManager().Allocate(size, params.align);
     }
 
-    auto result{NvErrCodes::Success};
+    auto result = NvResult::Success;
     if (!params.offset) {
         LOG_CRITICAL(Service_NVDRV, "allocation failed for size {}", size);
-        result = NvErrCodes::OutOfMemory;
+        result = NvResult::InsufficientMemory;
     }
 
     std::memcpy(output.data(), &params, output.size());
     return result;
 }
 
-u32 nvhost_as_gpu::FreeSpace(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::FreeSpace(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlFreeSpace params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -104,15 +122,15 @@ u32 nvhost_as_gpu::FreeSpace(const std::vector<u8>& input, std::vector<u8>& outp
                                        static_cast<std::size_t>(params.pages) * params.page_size);
 
     std::memcpy(output.data(), &params, output.size());
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) {
     const auto num_entries = input.size() / sizeof(IoctlRemapEntry);
 
     LOG_DEBUG(Service_NVDRV, "called, num_entries=0x{:X}", num_entries);
 
-    auto result{NvErrCodes::Success};
+    auto result = NvResult::Success;
     std::vector<IoctlRemapEntry> entries(num_entries);
     std::memcpy(entries.data(), input.data(), input.size());
 
@@ -123,7 +141,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
         const auto object{nvmap_dev->GetObject(entry.nvmap_handle)};
         if (!object) {
             LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", entry.nvmap_handle);
-            result = NvErrCodes::InvalidInput;
+            result = NvResult::InvalidState;
             break;
         }
 
@@ -134,7 +152,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
 
         if (!addr) {
             LOG_CRITICAL(Service_NVDRV, "map returned an invalid address!");
-            result = NvErrCodes::InvalidInput;
+            result = NvResult::InvalidState;
             break;
         }
     }
@@ -143,7 +161,7 @@ u32 nvhost_as_gpu::Remap(const std::vector<u8>& input, std::vector<u8>& output) 
     return result;
 }
 
-u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlMapBufferEx params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -157,7 +175,7 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
     if (!object) {
         LOG_CRITICAL(Service_NVDRV, "invalid nvmap_handle={:X}", params.nvmap_handle);
         std::memcpy(output.data(), &params, output.size());
-        return NvErrCodes::InvalidInput;
+        return NvResult::InvalidState;
     }
 
     // The real nvservices doesn't make a distinction between handles and ids, and
@@ -184,16 +202,16 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
                              params.mapping_size, params.offset);
 
                 std::memcpy(output.data(), &params, output.size());
-                return NvErrCodes::InvalidInput;
+                return NvResult::InvalidState;
             }
 
             std::memcpy(output.data(), &params, output.size());
-            return NvErrCodes::Success;
+            return NvResult::Success;
         } else {
             LOG_CRITICAL(Service_NVDRV, "address not mapped offset={}", params.offset);
 
             std::memcpy(output.data(), &params, output.size());
-            return NvErrCodes::InvalidInput;
+            return NvResult::InvalidState;
         }
     }
 
@@ -213,10 +231,10 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
         params.offset = gpu.MemoryManager().Map(physical_address, params.offset, size);
     }
 
-    auto result{NvErrCodes::Success};
+    auto result = NvResult::Success;
     if (!params.offset) {
         LOG_CRITICAL(Service_NVDRV, "failed to map size={}", size);
-        result = NvErrCodes::InvalidInput;
+        result = NvResult::InvalidState;
     } else {
         AddBufferMap(params.offset, size, physical_address, is_alloc);
     }
@@ -225,7 +243,7 @@ u32 nvhost_as_gpu::MapBufferEx(const std::vector<u8>& input, std::vector<u8>& ou
     return result;
 }
 
-u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlUnmapBuffer params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -238,20 +256,19 @@ u32 nvhost_as_gpu::UnmapBuffer(const std::vector<u8>& input, std::vector<u8>& ou
     }
 
     std::memcpy(output.data(), &params, output.size());
-    return NvErrCodes::Success;
+    return NvResult::Success;
 }
 
-u32 nvhost_as_gpu::BindChannel(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::BindChannel(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlBindChannel params{};
     std::memcpy(&params, input.data(), input.size());
-
-    LOG_DEBUG(Service_NVDRV, "called, fd={:X}", params.fd);
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, fd={:X}", params.fd);
 
     channel = params.fd;
-    return 0;
+    return NvResult::Success;
 }
 
-u32 nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u8>& output) {
+NvResult nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u8>& output) {
     IoctlGetVaRegions params{};
     std::memcpy(&params, input.data(), input.size());
 
@@ -270,7 +287,31 @@ u32 nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u8>& o
     // TODO(ogniK): This probably can stay stubbed but should add support way way later
 
     std::memcpy(output.data(), &params, output.size());
-    return 0;
+    return NvResult::Success;
+}
+
+NvResult nvhost_as_gpu::GetVARegions(const std::vector<u8>& input, std::vector<u8>& output,
+                                     std::vector<u8>& inline_output) {
+    IoctlGetVaRegions params{};
+    std::memcpy(&params, input.data(), input.size());
+
+    LOG_WARNING(Service_NVDRV, "(STUBBED) called, buf_addr={:X}, buf_size={:X}", params.buf_addr,
+                params.buf_size);
+
+    params.buf_size = 0x30;
+    params.regions[0].offset = 0x04000000;
+    params.regions[0].page_size = 0x1000;
+    params.regions[0].pages = 0x3fbfff;
+
+    params.regions[1].offset = 0x04000000;
+    params.regions[1].page_size = 0x10000;
+    params.regions[1].pages = 0x1bffff;
+
+    // TODO(ogniK): This probably can stay stubbed but should add support way way later
+
+    std::memcpy(output.data(), &params, output.size());
+    std::memcpy(inline_output.data(), &params.regions, inline_output.size());
+    return NvResult::Success;
 }
 
 std::optional<nvhost_as_gpu::BufferMap> nvhost_as_gpu::FindBufferMap(GPUVAddr gpu_addr) const {

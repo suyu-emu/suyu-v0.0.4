@@ -15,36 +15,50 @@ nvhost_vic::nvhost_vic(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
 
 nvhost_vic::~nvhost_vic() = default;
 
-u32 nvhost_vic::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                      std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                      IoctlVersion version) {
-    LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
-              command.raw, input.size(), output.size());
-
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::IocSetNVMAPfdCommand:
-        return SetNVMAPfd(input);
-    case IoctlCommand::IocSubmit:
-        return Submit(input, output);
-    case IoctlCommand::IocGetSyncpoint:
-        return GetSyncpoint(input, output);
-    case IoctlCommand::IocGetWaitbase:
-        return GetWaitbase(input, output);
-    case IoctlCommand::IocMapBuffer:
-    case IoctlCommand::IocMapBuffer2:
-    case IoctlCommand::IocMapBuffer3:
-    case IoctlCommand::IocMapBuffer4:
-    case IoctlCommand::IocMapBufferEx:
-        return MapBuffer(input, output);
-    case IoctlCommand::IocUnmapBuffer:
-    case IoctlCommand::IocUnmapBuffer2:
-    case IoctlCommand::IocUnmapBuffer3:
-    case IoctlCommand::IocUnmapBufferEx:
-        return UnmapBuffer(input, output);
+NvResult nvhost_vic::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
+    switch (command.group) {
+    case 0x0:
+        switch (command.cmd) {
+        case 0x1:
+            return Submit(input, output);
+        case 0x2:
+            return GetSyncpoint(input, output);
+        case 0x3:
+            return GetWaitbase(input, output);
+        case 0x9:
+            return MapBuffer(input, output);
+        case 0xa:
+            return UnmapBuffer(input, output);
+        default:
+            break;
+        }
+        break;
+    case 'H':
+        switch (command.cmd) {
+        case 0x1:
+            return SetNVMAPfd(input);
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
 
-    UNIMPLEMENTED_MSG("Unimplemented ioctl 0x{:X}", command.raw);
-    return 0;
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_vic::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                            const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_vic::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                            std::vector<u8>& inline_output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
 }
 
 } // namespace Service::Nvidia::Devices

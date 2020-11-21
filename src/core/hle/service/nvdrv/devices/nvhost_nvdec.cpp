@@ -15,46 +15,58 @@ nvhost_nvdec::nvhost_nvdec(Core::System& system, std::shared_ptr<nvmap> nvmap_de
     : nvhost_nvdec_common(system, std::move(nvmap_dev)) {}
 nvhost_nvdec::~nvhost_nvdec() = default;
 
-u32 nvhost_nvdec::ioctl(Ioctl command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                        std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                        IoctlVersion version) {
-    LOG_DEBUG(Service_NVDRV, "called, command=0x{:08X}, input_size=0x{:X}, output_size=0x{:X}",
-              command.raw, input.size(), output.size());
-
-    switch (static_cast<IoctlCommand>(command.raw)) {
-    case IoctlCommand::IocSetNVMAPfdCommand:
-        return SetNVMAPfd(input);
-    case IoctlCommand::IocSubmit:
-        return Submit(input, output);
-    case IoctlCommand::IocGetSyncpoint:
-        return GetSyncpoint(input, output);
-    case IoctlCommand::IocGetWaitbase:
-        return GetWaitbase(input, output);
-    case IoctlCommand::IocMapBuffer:
-    case IoctlCommand::IocMapBuffer2:
-    case IoctlCommand::IocMapBuffer3:
-    case IoctlCommand::IocMapBufferEx:
-        return MapBuffer(input, output);
-    case IoctlCommand::IocUnmapBufferEx: {
-        // This command is sent when the video stream has ended, flush all video contexts
-        // This is usually sent in the folowing order: vic, nvdec, vic.
-        // Inform the GPU to clear any remaining nvdec buffers when this is detected.
-        LOG_INFO(Service_NVDRV, "NVDEC video stream ended");
-        Tegra::ChCommandHeaderList cmdlist(1);
-        cmdlist[0] = Tegra::ChCommandHeader{0xDEADB33F};
-        system.GPU().PushCommandBuffer(cmdlist);
-        [[fallthrough]]; // fallthrough to unmap buffers
-    };
-    case IoctlCommand::IocUnmapBuffer:
-    case IoctlCommand::IocUnmapBuffer2:
-    case IoctlCommand::IocUnmapBuffer3:
-        return UnmapBuffer(input, output);
-    case IoctlCommand::IocSetSubmitTimeout:
-        return SetSubmitTimeout(input, output);
+NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
+                              std::vector<u8>& output) {
+    switch (command.group) {
+    case 0x0:
+        switch (command.cmd) {
+        case 0x1:
+            return Submit(input, output);
+        case 0x2:
+            return GetSyncpoint(input, output);
+        case 0x3:
+            return GetWaitbase(input, output);
+        case 0x7:
+            return SetSubmitTimeout(input, output);
+        case 0x9:
+            return MapBuffer(input, output);
+        case 0xa: {
+            if (command.length == 0x1c) {
+                LOG_INFO(Service_NVDRV, "NVDEC video stream ended");
+                Tegra::ChCommandHeaderList cmdlist(1);
+                cmdlist[0] = Tegra::ChCommandHeader{0xDEADB33F};
+                system.GPU().PushCommandBuffer(cmdlist);
+            }
+            return UnmapBuffer(input, output);
+        }
+        default:
+            break;
+        }
+        break;
+    case 'H':
+        switch (command.cmd) {
+        case 0x1:
+            return SetNVMAPfd(input);
+        default:
+            break;
+        }
+        break;
     }
 
-    UNIMPLEMENTED_MSG("Unimplemented ioctl 0x{:X}", command.raw);
-    return 0;
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_nvdec::Ioctl2(Ioctl command, const std::vector<u8>& input,
+                              const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
+}
+
+NvResult nvhost_nvdec::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                              std::vector<u8>& inline_output) {
+    UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
+    return NvResult::NotImplemented;
 }
 
 } // namespace Service::Nvidia::Devices

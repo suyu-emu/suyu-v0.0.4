@@ -62,36 +62,101 @@ Module::Module(Core::System& system) : syncpoint_manager{system.GPU()} {
 
 Module::~Module() = default;
 
-u32 Module::Open(const std::string& device_name) {
-    ASSERT_MSG(devices.find(device_name) != devices.end(), "Trying to open unknown device {}",
-               device_name);
+NvResult Module::VerifyFD(DeviceFD fd) const {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
+    }
+
+    if (open_files.find(fd) == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
+    }
+
+    return NvResult::Success;
+}
+
+DeviceFD Module::Open(const std::string& device_name) {
+    if (devices.find(device_name) == devices.end()) {
+        LOG_ERROR(Service_NVDRV, "Trying to open unknown device {}", device_name);
+        return INVALID_NVDRV_FD;
+    }
 
     auto device = devices[device_name];
-    const u32 fd = next_fd++;
+    const DeviceFD fd = next_fd++;
 
     open_files[fd] = std::move(device);
 
     return fd;
 }
 
-u32 Module::Ioctl(u32 fd, u32 command, const std::vector<u8>& input, const std::vector<u8>& input2,
-                  std::vector<u8>& output, std::vector<u8>& output2, IoctlCtrl& ctrl,
-                  IoctlVersion version) {
-    auto itr = open_files.find(fd);
-    ASSERT_MSG(itr != open_files.end(), "Tried to talk to an invalid device");
+NvResult Module::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                        std::vector<u8>& output) {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
+    }
 
-    auto& device = itr->second;
-    return device->ioctl({command}, input, input2, output, output2, ctrl, version);
+    const auto itr = open_files.find(fd);
+
+    if (itr == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
+    }
+
+    return itr->second->Ioctl1(command, input, output);
 }
 
-ResultCode Module::Close(u32 fd) {
-    auto itr = open_files.find(fd);
-    ASSERT_MSG(itr != open_files.end(), "Tried to talk to an invalid device");
+NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                        const std::vector<u8>& inline_input, std::vector<u8>& output) {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
+    }
+
+    const auto itr = open_files.find(fd);
+
+    if (itr == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
+    }
+
+    return itr->second->Ioctl2(command, input, inline_input, output);
+}
+
+NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
+                        std::vector<u8>& output, std::vector<u8>& inline_output) {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
+    }
+
+    const auto itr = open_files.find(fd);
+
+    if (itr == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
+    }
+
+    return itr->second->Ioctl3(command, input, output, inline_output);
+}
+
+NvResult Module::Close(DeviceFD fd) {
+    if (fd < 0) {
+        LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
+        return NvResult::InvalidState;
+    }
+
+    const auto itr = open_files.find(fd);
+
+    if (itr == open_files.end()) {
+        LOG_ERROR(Service_NVDRV, "Could not find DeviceFD={}!", fd);
+        return NvResult::NotImplemented;
+    }
 
     open_files.erase(itr);
 
-    // TODO(flerovium): return correct result code if operation failed.
-    return RESULT_SUCCESS;
+    return NvResult::Success;
 }
 
 void Module::SignalSyncpt(const u32 syncpoint_id, const u32 value) {
