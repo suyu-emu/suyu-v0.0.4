@@ -650,8 +650,10 @@ private:
     u64 next_entry_index = 0;
 };
 
-FSP_SRV::FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter)
-    : ServiceFramework("fsp-srv"), fsc(fsc), reporter(reporter) {
+FSP_SRV::FSP_SRV(FileSystemController& fsc_, const FileSys::ContentProvider& content_provider_,
+                 const Core::Reporter& reporter_)
+    : ServiceFramework("fsp-srv"), fsc(fsc_), content_provider{content_provider_},
+      reporter(reporter_) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "OpenFileSystem"},
@@ -968,7 +970,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
         return;
     }
 
-    FileSys::PatchManager pm{title_id};
+    const FileSys::PatchManager pm{title_id, fsc, content_provider};
 
     auto storage = std::make_shared<IStorage>(
         pm.PatchRomFS(std::move(data.Unwrap()), 0, FileSys::ContentRecordType::Data));

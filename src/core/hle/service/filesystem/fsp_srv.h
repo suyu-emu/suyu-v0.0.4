@@ -12,8 +12,9 @@ class Reporter;
 }
 
 namespace FileSys {
+class ContentProvider;
 class FileSystemBackend;
-}
+} // namespace FileSys
 
 namespace Service::FileSystem {
 
@@ -32,7 +33,8 @@ enum class LogMode : u32 {
 
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
-    explicit FSP_SRV(FileSystemController& fsc, const Core::Reporter& reporter);
+    explicit FSP_SRV(FileSystemController& fsc_, const FileSys::ContentProvider& content_provider_,
+                     const Core::Reporter& reporter_);
     ~FSP_SRV() override;
 
 private:
@@ -55,6 +57,7 @@ private:
     void OpenMultiCommitManager(Kernel::HLERequestContext& ctx);
 
     FileSystemController& fsc;
+    const FileSys::ContentProvider& content_provider;
 
     FileSys::VirtualFile romfs;
     u64 current_process_id = 0;

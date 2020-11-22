@@ -290,9 +290,12 @@ protected:
 
 /**
  * Identifies a bootable file and return a suitable loader
- * @param file The bootable file
- * @return the best loader for this file
+ *
+ * @param system The system context.
+ * @param file   The bootable file.
+ *
+ * @return the best loader for this file.
  */
-std::unique_ptr<AppLoader> GetLoader(FileSys::VirtualFile file);
+std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile file);
 
 } // namespace Loader

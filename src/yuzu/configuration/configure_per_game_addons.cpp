@@ -112,8 +112,10 @@ void ConfigurePerGameAddons::LoadConfiguration() {
         return;
     }
 
-    FileSys::PatchManager pm{title_id};
-    const auto loader = Loader::GetLoader(file);
+    auto& system = Core::System::GetInstance();
+    const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                   system.GetContentProvider()};
+    const auto loader = Loader::GetLoader(system, file);
 
     FileSys::VirtualFile update_raw;
     loader->ReadUpdateRaw(update_raw);

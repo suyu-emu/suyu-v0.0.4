@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service {
 
 namespace FileSystem {
@@ -22,7 +26,7 @@ public:
 
 class IApplicationManagerInterface final : public ServiceFramework<IApplicationManagerInterface> {
 public:
-    explicit IApplicationManagerInterface();
+    explicit IApplicationManagerInterface(Core::System& system_);
     ~IApplicationManagerInterface() override;
 
     ResultVal<u8> GetApplicationDesiredLanguage(u32 supported_languages);
@@ -32,6 +36,8 @@ private:
     void GetApplicationControlData(Kernel::HLERequestContext& ctx);
     void GetApplicationDesiredLanguage(Kernel::HLERequestContext& ctx);
     void ConvertApplicationLanguageToLanguageCode(Kernel::HLERequestContext& ctx);
+
+    Core::System& system;
 };
 
 class IApplicationVersionInterface final : public ServiceFramework<IApplicationVersionInterface> {
@@ -72,13 +78,13 @@ public:
 
 class NS final : public ServiceFramework<NS> {
 public:
-    explicit NS(const char* name);
+    explicit NS(const char* name, Core::System& system_);
     ~NS() override;
 
     std::shared_ptr<IApplicationManagerInterface> GetApplicationManagerInterface() const;
 
 private:
-    template <typename T>
+    template <typename T, typename... Args>
     void PushInterface(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_NS, "called");
 
@@ -87,13 +93,23 @@ private:
         rb.PushIpcInterface<T>();
     }
 
-    template <typename T>
-    std::shared_ptr<T> GetInterface() const {
+    void PushIApplicationManagerInterface(Kernel::HLERequestContext& ctx) {
+        LOG_DEBUG(Service_NS, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushIpcInterface<IApplicationManagerInterface>(system);
+    }
+
+    template <typename T, typename... Args>
+    std::shared_ptr<T> GetInterface(Args&&... args) const {
         static_assert(std::is_base_of_v<Kernel::SessionRequestHandler, T>,
                       "Not a base of ServiceFrameworkBase");
 
-        return std::make_shared<T>();
+        return std::make_shared<T>(std::forward<Args>(args)...);
     }
+
+    Core::System& system;
 };
 
 /// Registers all NS services with the specified service manager.

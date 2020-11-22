@@ -455,7 +455,9 @@ FileSys::SaveDataSize FileSystemController::ReadSaveDataSize(FileSys::SaveDataTy
         const auto res = system.GetAppLoader().ReadControlData(nacp);
 
         if (res != Loader::ResultStatus::Success) {
-            FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID()};
+            const FileSys::PatchManager pm{system.CurrentProcess()->GetTitleID(),
+                                           system.GetFileSystemController(),
+                                           system.GetContentProvider()};
             const auto metadata = pm.GetControlMetadata();
             const auto& nacp_unique = metadata.first;
 
@@ -728,7 +730,8 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
 void InstallInterfaces(Core::System& system) {
     std::make_shared<FSP_LDR>()->InstallAsService(system.ServiceManager());
     std::make_shared<FSP_PR>()->InstallAsService(system.ServiceManager());
-    std::make_shared<FSP_SRV>(system.GetFileSystemController(), system.GetReporter())
+    std::make_shared<FSP_SRV>(system.GetFileSystemController(), system.GetContentProvider(),
+                              system.GetReporter())
         ->InstallAsService(system.ServiceManager());
 }
 

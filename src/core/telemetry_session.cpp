@@ -147,7 +147,9 @@ TelemetrySession::~TelemetrySession() {
     }
 }
 
-void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
+void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader,
+                                      const Service::FileSystem::FileSystemController& fsc,
+                                      const FileSys::ContentProvider& content_provider) {
     // Log one-time top-level information
     AddField(Telemetry::FieldType::None, "TelemetryId", GetTelemetryId());
 
@@ -167,7 +169,10 @@ void TelemetrySession::AddInitialInfo(Loader::AppLoader& app_loader) {
         app_loader.ReadTitle(name);
 
         if (name.empty()) {
-            const auto metadata = FileSys::PatchManager(program_id).GetControlMetadata();
+            const auto metadata = [&content_provider, &fsc, program_id] {
+                const FileSys::PatchManager pm{program_id, fsc, content_provider};
+                return pm.GetControlMetadata();
+            }();
             if (metadata.first != nullptr) {
                 name = metadata.first->GetApplicationName();
             }

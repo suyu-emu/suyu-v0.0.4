@@ -1381,13 +1381,16 @@ void IApplicationFunctions::GetDisplayVersion(Kernel::HLERequestContext& ctx) {
     const auto res = [this] {
         const auto title_id = system.CurrentProcess()->GetTitleID();
 
-        FileSys::PatchManager pm{title_id};
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
         auto res = pm.GetControlMetadata();
         if (res.first != nullptr) {
             return res;
         }
 
-        FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id)};
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
         return pm_update.GetControlMetadata();
     }();
 
@@ -1415,13 +1418,16 @@ void IApplicationFunctions::GetDesiredLanguage(Kernel::HLERequestContext& ctx) {
     const auto res = [this] {
         const auto title_id = system.CurrentProcess()->GetTitleID();
 
-        FileSys::PatchManager pm{title_id};
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
         auto res = pm.GetControlMetadata();
         if (res.first != nullptr) {
             return res;
         }
 
-        FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id)};
+        const FileSys::PatchManager pm_update{FileSys::GetUpdateTitleID(title_id),
+                                              system.GetFileSystemController(),
+                                              system.GetContentProvider()};
         return pm_update.GetControlMetadata();
     }();
 

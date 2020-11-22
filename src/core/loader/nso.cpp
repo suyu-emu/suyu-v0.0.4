@@ -149,7 +149,7 @@ std::optional<VAddr> AppLoader_NSO::LoadModule(Kernel::Process& process, Core::S
     // Apply cheats if they exist and the program has a valid title ID
     if (pm) {
         system.SetCurrentProcessBuildID(nso_header.build_id);
-        const auto cheats = pm->CreateCheatList(system, nso_header.build_id);
+        const auto cheats = pm->CreateCheatList(nso_header.build_id);
         if (!cheats.empty()) {
             system.RegisterCheatList(cheats, nso_header.build_id, load_base, image_size);
         }

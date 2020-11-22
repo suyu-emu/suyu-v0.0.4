@@ -10,6 +10,7 @@
 #include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
+#include "core/core.h"
 #include "core/hle/kernel/process.h"
 #include "core/loader/deconstructed_rom_directory.h"
 #include "core/loader/elf.h"
@@ -194,15 +195,14 @@ AppLoader::~AppLoader() = default;
 
 /**
  * Get a loader for a file with a specific type
- * @param file The file to load
- * @param type The type of the file
- * @param file the file to retrieve the loader for
- * @param type the file type
+ * @param system The system context to use.
+ * @param file   The file to retrieve the loader for
+ * @param type   The file type
  * @return std::unique_ptr<AppLoader> a pointer to a loader object;  nullptr for unsupported type
  */
-static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileType type) {
+static std::unique_ptr<AppLoader> GetFileLoader(Core::System& system, FileSys::VirtualFile file,
+                                                FileType type) {
     switch (type) {
-
     // Standard ELF file format.
     case FileType::ELF:
         return std::make_unique<AppLoader_ELF>(std::move(file));
@@ -221,7 +221,8 @@ static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileT
 
     // NX XCI (nX Card Image) file format.
     case FileType::XCI:
-        return std::make_unique<AppLoader_XCI>(std::move(file));
+        return std::make_unique<AppLoader_XCI>(std::move(file), system.GetFileSystemController(),
+                                               system.GetContentProvider());
 
     // NX NAX (NintendoAesXts) file format.
     case FileType::NAX:
@@ -229,7 +230,8 @@ static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileT
 
     // NX NSP (Nintendo Submission Package) file format
     case FileType::NSP:
-        return std::make_unique<AppLoader_NSP>(std::move(file));
+        return std::make_unique<AppLoader_NSP>(std::move(file), system.GetFileSystemController(),
+                                               system.GetContentProvider());
 
     // NX KIP (Kernel Internal Process) file format
     case FileType::KIP:
@@ -244,20 +246,21 @@ static std::unique_ptr<AppLoader> GetFileLoader(FileSys::VirtualFile file, FileT
     }
 }
 
-std::unique_ptr<AppLoader> GetLoader(FileSys::VirtualFile file) {
+std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile file) {
     FileType type = IdentifyFile(file);
-    FileType filename_type = GuessFromFilename(file->GetName());
+    const FileType filename_type = GuessFromFilename(file->GetName());
 
     // Special case: 00 is either a NCA or NAX.
     if (type != filename_type && !(file->GetName() == "00" && type == FileType::NAX)) {
         LOG_WARNING(Loader, "File {} has a different type than its extension.", file->GetName());
-        if (FileType::Unknown == type)
+        if (FileType::Unknown == type) {
             type = filename_type;
+        }
     }
 
     LOG_DEBUG(Loader, "Loading file {} as {}...", file->GetName(), GetFileTypeString(type));
 
-    return GetFileLoader(std::move(file), type);
+    return GetFileLoader(system, std::move(file), type);
 }
 
 } // namespace Loader

@@ -17,8 +17,13 @@ namespace Core {
 class System;
 }
 
+namespace Service::FileSystem {
+class FileSystemController;
+}
+
 namespace FileSys {
 
+class ContentProvider;
 class NCA;
 class NACP;
 
@@ -29,7 +34,9 @@ public:
     using Metadata = std::pair<std::unique_ptr<NACP>, VirtualFile>;
     using PatchVersionNames = std::map<std::string, std::string, std::less<>>;
 
-    explicit PatchManager(u64 title_id);
+    explicit PatchManager(u64 title_id_,
+                          const Service::FileSystem::FileSystemController& fs_controller_,
+                          const ContentProvider& content_provider_);
     ~PatchManager();
 
     [[nodiscard]] u64 GetTitleID() const;
@@ -50,7 +57,7 @@ public:
 
     // Creates a CheatList object with all
     [[nodiscard]] std::vector<Core::Memory::CheatEntry> CreateCheatList(
-        const Core::System& system, const BuildID& build_id) const;
+        const BuildID& build_id) const;
 
     // Currently tracked RomFS patches:
     // - Game Updates
@@ -80,6 +87,8 @@ private:
                                                           const std::string& build_id) const;
 
     u64 title_id;
+    const Service::FileSystem::FileSystemController& fs_controller;
+    const ContentProvider& content_provider;
 };
 
 } // namespace FileSys
