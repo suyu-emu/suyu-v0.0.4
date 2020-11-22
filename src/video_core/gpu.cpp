@@ -95,22 +95,29 @@ void GPU::WaitFence(u32 syncpoint_id, u32 value) {
     if (!is_async) {
         return;
     }
+    if (syncpoint_id == UINT32_MAX) {
+        // TODO: Research what this does.
+        LOG_ERROR(HW_GPU, "Waiting for syncpoint -1 not implemented");
+        return;
+    }
     MICROPROFILE_SCOPE(GPU_wait);
     std::unique_lock lock{sync_mutex};
-    sync_cv.wait(lock, [=, this] { return syncpoints[syncpoint_id].load() >= value; });
+    sync_cv.wait(lock, [=, this] { return syncpoints.at(syncpoint_id).load() >= value; });
 }
 
 void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
-    syncpoints[syncpoint_id]++;
+    auto& syncpoint = syncpoints.at(syncpoint_id);
+    syncpoint++;
     std::lock_guard lock{sync_mutex};
     sync_cv.notify_all();
-    if (!syncpt_interrupts[syncpoint_id].empty()) {
-        u32 value = syncpoints[syncpoint_id].load();
-        auto it = syncpt_interrupts[syncpoint_id].begin();
-        while (it != syncpt_interrupts[syncpoint_id].end()) {
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
+    if (!interrupt.empty()) {
+        u32 value = syncpoint.load();
+        auto it = interrupt.begin();
+        while (it != interrupt.end()) {
             if (value >= *it) {
                 TriggerCpuInterrupt(syncpoint_id, *it);
-                it = syncpt_interrupts[syncpoint_id].erase(it);
+                it = interrupt.erase(it);
                 continue;
             }
             it++;
@@ -119,22 +126,22 @@ void GPU::IncrementSyncPoint(const u32 syncpoint_id) {
 }
 
 u32 GPU::GetSyncpointValue(const u32 syncpoint_id) const {
-    return syncpoints[syncpoint_id].load();
+    return syncpoints.at(syncpoint_id).load();
 }
 
 void GPU::RegisterSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
-    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
     bool contains = std::any_of(interrupt.begin(), interrupt.end(),
                                 [value](u32 in_value) { return in_value == value; });
     if (contains) {
         return;
     }
-    syncpt_interrupts[syncpoint_id].emplace_back(value);
+    interrupt.emplace_back(value);
 }
 
 bool GPU::CancelSyncptInterrupt(const u32 syncpoint_id, const u32 value) {
     std::lock_guard lock{sync_mutex};
-    auto& interrupt = syncpt_interrupts[syncpoint_id];
+    auto& interrupt = syncpt_interrupts.at(syncpoint_id);
     const auto iter =
         std::find_if(interrupt.begin(), interrupt.end(),
                      [value](u32 interrupt_value) { return value == interrupt_value; });

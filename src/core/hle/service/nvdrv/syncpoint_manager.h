@@ -37,7 +37,7 @@ public:
      * @returns The lower bound for the specified syncpoint.
      */
     u32 GetSyncpointMin(u32 syncpoint_id) const {
-        return syncpoints[syncpoint_id].min.load(std::memory_order_relaxed);
+        return syncpoints.at(syncpoint_id).min.load(std::memory_order_relaxed);
     }
 
     /**
@@ -46,7 +46,7 @@ public:
      * @returns The upper bound for the specified syncpoint.
      */
     u32 GetSyncpointMax(u32 syncpoint_id) const {
-        return syncpoints[syncpoint_id].max.load(std::memory_order_relaxed);
+        return syncpoints.at(syncpoint_id).max.load(std::memory_order_relaxed);
     }
 
     /**
