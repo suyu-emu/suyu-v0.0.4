@@ -1156,7 +1156,7 @@ void RasterizerOpenGL::SyncViewport() {
         flags[Dirty::ClipControl] = false;
 
         bool flip_y = false;
-        if (regs.viewport_transform[0].scale_y < 0.0) {
+        if (regs.viewport_transform[0].scale_y < 0.0f) {
             flip_y = !flip_y;
         }
         if (regs.screen_y_control.y_negate != 0) {
