@@ -151,8 +151,8 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
     rasterizer->TickFrame();
 
-    render_window.PollEvents();
     context->SwapBuffers();
+    render_window.OnFrameDisplayed();
 }
 
 void RendererOpenGL::PrepareRendertarget(const Tegra::FramebufferConfig* framebuffer) {

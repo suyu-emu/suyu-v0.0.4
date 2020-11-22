@@ -308,7 +308,7 @@ GRenderWindow::~GRenderWindow() {
     input_subsystem->Shutdown();
 }
 
-void GRenderWindow::PollEvents() {
+void GRenderWindow::OnFrameDisplayed() {
     if (!first_frame) {
         first_frame = true;
         emit FirstFrameDisplayed();

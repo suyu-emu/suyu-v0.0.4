@@ -252,8 +252,6 @@ RendererVulkan::~RendererVulkan() {
 }
 
 void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
-    render_window.PollEvents();
-
     if (!framebuffer) {
         return;
     }
@@ -283,7 +281,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
         rasterizer->TickFrame();
     }
 
-    render_window.PollEvents();
+    render_window.OnFrameDisplayed();
 }
 
 bool RendererVulkan::Init() {

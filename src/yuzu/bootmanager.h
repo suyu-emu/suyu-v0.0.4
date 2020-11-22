@@ -131,7 +131,7 @@ public:
     ~GRenderWindow() override;
 
     // EmuWindow implementation.
-    void PollEvents() override;
+    void OnFrameDisplayed() override;
     bool IsShown() const override;
     std::unique_ptr<Core::Frontend::GraphicsContext> CreateSharedContext() const override;
 
