@@ -19,20 +19,13 @@ namespace Tegra {
 
 Vic::Vic(GPU& gpu_, std::shared_ptr<Nvdec> nvdec_processor_)
     : gpu(gpu_),
-      nvdec_processor(std::move(nvdec_processor_)), converted_frame_buffer{nullptr, av_free}
+      nvdec_processor(std::move(nvdec_processor_)), converted_frame_buffer{nullptr, av_free} {}
 
-{}
 Vic::~Vic() = default;
 
-void Vic::VicStateWrite(u32 offset, u32 arguments) {
-    u8* const state_offset = reinterpret_cast<u8*>(&vic_state) + offset * sizeof(u32);
-    std::memcpy(state_offset, &arguments, sizeof(u32));
-}
-
-void Vic::ProcessMethod(Method method, const std::vector<u32>& arguments) {
-    LOG_DEBUG(HW_GPU, "Vic method 0x{:X}", method);
-    VicStateWrite(static_cast<u32>(method), arguments[0]);
-    const u64 arg = static_cast<u64>(arguments[0]) << 8;
+void Vic::ProcessMethod(Method method, u32 argument) {
+    LOG_DEBUG(HW_GPU, "Vic method 0x{:X}", static_cast<u32>(method));
+    const u64 arg = static_cast<u64>(argument) << 8;
     switch (method) {
     case Method::Execute:
         Execute();
@@ -56,8 +49,7 @@ void Vic::ProcessMethod(Method method, const std::vector<u32>& arguments) {
 
 void Vic::Execute() {
     if (output_surface_luma_address == 0) {
-        LOG_ERROR(Service_NVDRV, "VIC Luma address not set. Received 0x{:X}",
-                  vic_state.output_surface.luma_offset);
+        LOG_ERROR(Service_NVDRV, "VIC Luma address not set.");
         return;
     }
     const VicConfig config{gpu.MemoryManager().Read<u64>(config_struct_address + 0x20)};
