@@ -37,20 +37,7 @@ CDmaPusher::CDmaPusher(GPU& gpu_)
 
 CDmaPusher::~CDmaPusher() = default;
 
-void CDmaPusher::Push(ChCommandHeaderList&& entries) {
-    cdma_queue.push(std::move(entries));
-}
-
-void CDmaPusher::DispatchCalls() {
-    while (!cdma_queue.empty()) {
-        Step();
-    }
-}
-
-void CDmaPusher::Step() {
-    const auto entries{cdma_queue.front()};
-    cdma_queue.pop();
-
+void CDmaPusher::ProcessEntries(ChCommandHeaderList&& entries) {
     std::vector<u32> values(entries.size());
     std::memcpy(values.data(), entries.data(), entries.size() * sizeof(u32));
 

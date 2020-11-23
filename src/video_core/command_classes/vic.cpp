@@ -18,7 +18,10 @@ extern "C" {
 namespace Tegra {
 
 Vic::Vic(GPU& gpu_, std::shared_ptr<Nvdec> nvdec_processor_)
-    : gpu(gpu_), nvdec_processor(std::move(nvdec_processor_)) {}
+    : gpu(gpu_),
+      nvdec_processor(std::move(nvdec_processor_)), converted_frame_buffer{nullptr, av_free}
+
+{}
 Vic::~Vic() = default;
 
 void Vic::VicStateWrite(u32 offset, u32 arguments) {
@@ -89,8 +92,10 @@ void Vic::Execute() {
         // Get Converted frame
         const std::size_t linear_size = frame->width * frame->height * 4;
 
-        using AVMallocPtr = std::unique_ptr<u8, decltype(&av_free)>;
-        AVMallocPtr converted_frame_buffer{static_cast<u8*>(av_malloc(linear_size)), av_free};
+        // Only allocate frame_buffer once per stream, as the size is not expected to change
+        if (!converted_frame_buffer) {
+            converted_frame_buffer = AVMallocPtr{static_cast<u8*>(av_malloc(linear_size)), av_free};
+        }
 
         const int converted_stride{frame->width * 4};
         u8* const converted_frame_buf_addr{converted_frame_buffer.get()};
@@ -104,12 +109,12 @@ void Vic::Execute() {
             const u32 block_height = static_cast<u32>(config.block_linear_height_log2);
             const auto size = Tegra::Texture::CalculateSize(true, 4, frame->width, frame->height, 1,
                                                             block_height, 0);
-            std::vector<u8> swizzled_data(size);
+            luma_buffer.resize(size);
             Tegra::Texture::SwizzleSubrect(frame->width, frame->height, frame->width * 4,
-                                           frame->width, 4, swizzled_data.data(),
+                                           frame->width, 4, luma_buffer.data(),
                                            converted_frame_buffer.get(), block_height, 0, 0);
 
-            gpu.MemoryManager().WriteBlock(output_surface_luma_address, swizzled_data.data(), size);
+            gpu.MemoryManager().WriteBlock(output_surface_luma_address, luma_buffer.data(), size);
         } else {
             // send pitch linear frame
             gpu.MemoryManager().WriteBlock(output_surface_luma_address, converted_frame_buf_addr,
@@ -132,8 +137,8 @@ void Vic::Execute() {
         const auto stride = frame->linesize[0];
         const auto half_stride = frame->linesize[1];
 
-        std::vector<u8> luma_buffer(aligned_width * surface_height);
-        std::vector<u8> chroma_buffer(aligned_width * half_height);
+        luma_buffer.resize(aligned_width * surface_height);
+        chroma_buffer.resize(aligned_width * half_height);
 
         // Populate luma buffer
         for (std::size_t y = 0; y < surface_height - 1; ++y) {

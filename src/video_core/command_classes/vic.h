@@ -97,6 +97,13 @@ private:
     GPU& gpu;
     std::shared_ptr<Tegra::Nvdec> nvdec_processor;
 
+    /// Avoid reallocation of the following buffers every frame, as their
+    /// size does not change during a stream
+    using AVMallocPtr = std::unique_ptr<u8, decltype(&av_free)>;
+    AVMallocPtr converted_frame_buffer;
+    std::vector<u8> luma_buffer;
+    std::vector<u8> chroma_buffer;
+
     GPUVAddr config_struct_address{};
     GPUVAddr output_surface_luma_address{};
     GPUVAddr output_surface_chroma_u_address{};

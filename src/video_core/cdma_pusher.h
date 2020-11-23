@@ -99,19 +99,13 @@ public:
     explicit CDmaPusher(GPU& gpu_);
     ~CDmaPusher();
 
-    /// Push NVDEC command buffer entries into queue
-    void Push(ChCommandHeaderList&& entries);
+    /// Process the command entry
+    void ProcessEntries(ChCommandHeaderList&& entries);
 
-    /// Process queued command buffer entries
-    void DispatchCalls();
-
-    /// Process one queue element
-    void Step();
-
+private:
     /// Invoke command class devices to execute the command based on the current state
     void ExecuteCommand(u32 state_offset, u32 data);
 
-private:
     /// Write arguments value to the ThiRegisters member at the specified offset
     void ThiStateWrite(ThiRegisters& state, u32 state_offset, const std::vector<u32>& arguments);
 
@@ -128,9 +122,6 @@ private:
     s32 offset{};
     u32 mask{};
     bool incrementing{};
-
-    // Queue of command lists to be processed
-    std::queue<ChCommandHeaderList> cdma_queue;
 };
 
 } // namespace Tegra

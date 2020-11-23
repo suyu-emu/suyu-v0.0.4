@@ -28,8 +28,14 @@ NvResult nvhost_vic::Ioctl1(Ioctl command, const std::vector<u8>& input, std::ve
             return GetWaitbase(input, output);
         case 0x9:
             return MapBuffer(input, output);
-        case 0xa:
+        case 0xa: {
+            if (command.length == 0x1c) {
+                Tegra::ChCommandHeaderList cmdlist(1);
+                cmdlist[0] = Tegra::ChCommandHeader{0xDEADB33F};
+                system.GPU().PushCommandBuffer(cmdlist);
+            }
             return UnmapBuffer(input, output);
+        }
         default:
             break;
         }
