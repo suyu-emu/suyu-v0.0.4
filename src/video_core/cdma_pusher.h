@@ -5,9 +5,7 @@
 #pragma once
 
 #include <memory>
-#include <unordered_map>
 #include <vector>
-#include <queue>
 
 #include "common/bit_field.h"
 #include "common/common_types.h"
@@ -16,9 +14,9 @@
 namespace Tegra {
 
 class GPU;
+class Host1x;
 class Nvdec;
 class Vic;
-class Host1x;
 
 enum class ChSubmissionMode : u32 {
     SetClass = 0,
