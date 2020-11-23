@@ -215,6 +215,7 @@ struct Values {
     bool reporting_services;
     bool quest_flag;
     bool disable_macro_jit;
+    bool extended_logging;
 
     // Misceallaneous
     std::string log_filter;

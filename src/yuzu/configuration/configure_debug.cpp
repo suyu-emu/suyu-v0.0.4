@@ -41,6 +41,7 @@ void ConfigureDebug::SetConfiguration() {
     ui->enable_graphics_debugging->setChecked(Settings::values.renderer_debug);
     ui->disable_macro_jit->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->disable_macro_jit->setChecked(Settings::values.disable_macro_jit);
+    ui->extended_logging->setChecked(Settings::values.extended_logging);
 }
 
 void ConfigureDebug::ApplyConfiguration() {
@@ -53,6 +54,7 @@ void ConfigureDebug::ApplyConfiguration() {
     Settings::values.quest_flag = ui->quest_flag->isChecked();
     Settings::values.renderer_debug = ui->enable_graphics_debugging->isChecked();
     Settings::values.disable_macro_jit = ui->disable_macro_jit->isChecked();
+    Settings::values.extended_logging = ui->extended_logging->isChecked();
     Debugger::ToggleConsole();
     Log::Filter filter;
     filter.ParseFilterString(Settings::values.log_filter);
