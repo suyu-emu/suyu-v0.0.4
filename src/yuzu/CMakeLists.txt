@@ -141,6 +141,8 @@ add_executable(yuzu
     util/limitable_input_dialog.h
     util/sequence_dialog/sequence_dialog.cpp
     util/sequence_dialog/sequence_dialog.h
+    util/url_request_interceptor.cpp
+    util/url_request_interceptor.h
     util/util.cpp
     util/util.h
     compatdb.cpp
