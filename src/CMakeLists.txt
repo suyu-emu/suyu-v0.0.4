@@ -66,6 +66,7 @@ else()
         -Wextra
         -Wmissing-declarations
         -Wno-attributes
+        -Wno-invalid-offsetof
         -Wno-unused-parameter
     )
 
