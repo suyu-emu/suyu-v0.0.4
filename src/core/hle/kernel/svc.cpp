@@ -681,7 +681,7 @@ static void Break32(Core::System& system, u32 reason, u32 info1, u32 info2) {
 }
 
 /// Used to output a message on a debug hardware unit - does nothing on a retail unit
-static void OutputDebugString([[maybe_unused]] Core::System& system, VAddr address, u64 len) {
+static void OutputDebugString(Core::System& system, VAddr address, u64 len) {
     if (len == 0) {
         return;
     }
