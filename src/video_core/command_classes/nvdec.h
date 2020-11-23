@@ -23,7 +23,7 @@ public:
     ~Nvdec();
 
     /// Writes the method into the state, Invoke Execute() if encountered
-    void ProcessMethod(Method method, const std::vector<u32>& arguments);
+    void ProcessMethod(Method method, u32 argument);
 
     /// Return most recently decoded frame
     [[nodiscard]] AVFramePtr GetFrame();

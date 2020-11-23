@@ -48,16 +48,10 @@ enum class ChClassId : u32 {
     NvDec = 0xf0
 };
 
-enum class ChMethod : u32 {
-    Empty = 0,
-    SetMethod = 0x10,
-    SetData = 0x11,
-};
-
 union ChCommandHeader {
     u32 raw;
     BitField<0, 16, u32> value;
-    BitField<16, 12, ChMethod> method_offset;
+    BitField<16, 12, u32> method_offset;
     BitField<28, 4, ChSubmissionMode> submission_mode;
 };
 static_assert(sizeof(ChCommandHeader) == sizeof(u32), "ChCommand header is an invalid size");
@@ -107,7 +101,7 @@ private:
     void ExecuteCommand(u32 state_offset, u32 data);
 
     /// Write arguments value to the ThiRegisters member at the specified offset
-    void ThiStateWrite(ThiRegisters& state, u32 state_offset, const std::vector<u32>& arguments);
+    void ThiStateWrite(ThiRegisters& state, u32 offset, u32 argument);
 
     GPU& gpu;
     std::shared_ptr<Tegra::Nvdec> nvdec_processor;
@@ -118,8 +112,8 @@ private:
     ThiRegisters vic_thi_state{};
     ThiRegisters nvdec_thi_state{};
 
-    s32 count{};
-    s32 offset{};
+    u32 count{};
+    u32 offset{};
     u32 mask{};
     bool incrementing{};
 };

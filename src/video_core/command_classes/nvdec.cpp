@@ -12,16 +12,16 @@ Nvdec::Nvdec(GPU& gpu_) : gpu(gpu_), codec(std::make_unique<Codec>(gpu)) {}
 
 Nvdec::~Nvdec() = default;
 
-void Nvdec::ProcessMethod(Method method, const std::vector<u32>& arguments) {
+void Nvdec::ProcessMethod(Method method, u32 argument) {
     if (method == Method::SetVideoCodec) {
-        codec->StateWrite(static_cast<u32>(method), arguments[0]);
+        codec->StateWrite(static_cast<u32>(method), argument);
     } else {
-        codec->StateWrite(static_cast<u32>(method), static_cast<u64>(arguments[0]) << 8);
+        codec->StateWrite(static_cast<u32>(method), static_cast<u64>(argument) << 8);
     }
 
     switch (method) {
     case Method::SetVideoCodec:
-        codec->SetTargetCodec(static_cast<NvdecCommon::VideoCodec>(arguments[0]));
+        codec->SetTargetCodec(static_cast<NvdecCommon::VideoCodec>(argument));
         break;
     case Method::Execute:
         Execute();

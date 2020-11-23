@@ -38,45 +38,42 @@ CDmaPusher::CDmaPusher(GPU& gpu_)
 CDmaPusher::~CDmaPusher() = default;
 
 void CDmaPusher::ProcessEntries(ChCommandHeaderList&& entries) {
-    std::vector<u32> values(entries.size());
-    std::memcpy(values.data(), entries.data(), entries.size() * sizeof(u32));
-
-    for (const u32 value : values) {
+    for (const auto& value : entries) {
         if (mask != 0) {
             const auto lbs = static_cast<u32>(std::countr_zero(mask));
             mask &= ~(1U << lbs);
-            ExecuteCommand(static_cast<u32>(offset + lbs), value);
+            ExecuteCommand(offset + lbs, value.raw);
             continue;
         } else if (count != 0) {
             --count;
-            ExecuteCommand(static_cast<u32>(offset), value);
+            ExecuteCommand(offset, value.raw);
             if (incrementing) {
                 ++offset;
             }
             continue;
         }
-        const auto mode = static_cast<ChSubmissionMode>((value >> 28) & 0xf);
+        const auto mode = value.submission_mode.Value();
         switch (mode) {
         case ChSubmissionMode::SetClass: {
-            mask = value & 0x3f;
-            offset = (value >> 16) & 0xfff;
-            current_class = static_cast<ChClassId>((value >> 6) & 0x3ff);
+            mask = value.value & 0x3f;
+            offset = value.method_offset;
+            current_class = static_cast<ChClassId>((value.value >> 6) & 0x3ff);
             break;
         }
         case ChSubmissionMode::Incrementing:
         case ChSubmissionMode::NonIncrementing:
-            count = value & 0xffff;
-            offset = (value >> 16) & 0xfff;
+            count = value.value;
+            offset = value.method_offset;
             incrementing = mode == ChSubmissionMode::Incrementing;
             break;
         case ChSubmissionMode::Mask:
-            mask = value & 0xffff;
-            offset = (value >> 16) & 0xfff;
+            mask = value.value;
+            offset = value.method_offset;
             break;
         case ChSubmissionMode::Immediate: {
-            const u32 data = value & 0xfff;
-            offset = (value >> 16) & 0xfff;
-            ExecuteCommand(static_cast<u32>(offset), data);
+            const u32 data = value.value & 0xfff;
+            offset = value.method_offset;
+            ExecuteCommand(offset, data);
             break;
         }
         default:
@@ -89,8 +86,8 @@ void CDmaPusher::ProcessEntries(ChCommandHeaderList&& entries) {
 void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
     switch (current_class) {
     case ChClassId::NvDec:
-        ThiStateWrite(nvdec_thi_state, state_offset, {data});
-        switch (static_cast<ThiMethod>(state_offset)) {
+        ThiStateWrite(nvdec_thi_state, offset, data);
+        switch (static_cast<ThiMethod>(offset)) {
         case ThiMethod::IncSyncpt: {
             LOG_DEBUG(Service_NVDRV, "NVDEC Class IncSyncpt Method");
             const auto syncpoint_id = static_cast<u32>(data & 0xFF);
@@ -106,8 +103,8 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
         case ThiMethod::SetMethod1:
             LOG_DEBUG(Service_NVDRV, "NVDEC method 0x{:X}",
                       static_cast<u32>(nvdec_thi_state.method_0));
-            nvdec_processor->ProcessMethod(static_cast<Nvdec::Method>(nvdec_thi_state.method_0),
-                                           {data});
+            nvdec_processor->ProcessMethod(
+                static_cast<Tegra::Nvdec::Method>(nvdec_thi_state.method_0), data);
             break;
         default:
             break;
@@ -131,7 +128,8 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
         case ThiMethod::SetMethod1:
             LOG_DEBUG(Service_NVDRV, "VIC method 0x{:X}, Args=({})",
                       static_cast<u32>(vic_thi_state.method_0), data);
-            vic_processor->ProcessMethod(static_cast<Vic::Method>(vic_thi_state.method_0), {data});
+            vic_processor->ProcessMethod(static_cast<Tegra::Vic::Method>(vic_thi_state.method_0),
+                                         data);
             break;
         default:
             break;
@@ -140,7 +138,7 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
     case ChClassId::Host1x:
         // This device is mainly for syncpoint synchronization
         LOG_DEBUG(Service_NVDRV, "Host1X Class Method");
-        host1x_processor->ProcessMethod(static_cast<Host1x::Method>(state_offset), {data});
+        host1x_processor->ProcessMethod(static_cast<Tegra::Host1x::Method>(offset), data);
         break;
     default:
         UNIMPLEMENTED_MSG("Current class not implemented {:X}", static_cast<u32>(current_class));
@@ -148,10 +146,9 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
     }
 }
 
-void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 state_offset,
-                               const std::vector<u32>& arguments) {
-    u8* const state_offset_ptr = reinterpret_cast<u8*>(&state) + sizeof(u32) * state_offset;
-    std::memcpy(state_offset_ptr, arguments.data(), sizeof(u32) * arguments.size());
+void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 offset, u32 argument) {
+    u8* const state_offset = reinterpret_cast<u8*>(&state) + sizeof(u32) * offset;
+    std::memcpy(state_offset, &argument, sizeof(u32));
 }
 
 } // namespace Tegra
