@@ -166,6 +166,12 @@ public:
 
     std::pair<u32, u32> ScaleTouch(const QPointF& pos) const;
 
+    /**
+     * Instructs the window to re-launch the application using the specified program_index.
+     * @param program_index Specifies the index within the application of the program to launch.
+     */
+    void ExecuteProgram(std::size_t program_index);
+
 public slots:
     void OnEmulationStarting(EmuThread* emu_thread);
     void OnEmulationStopping();
@@ -175,6 +181,7 @@ signals:
     /// Emitted when the window is closed
     void Closed();
     void FirstFrameDisplayed();
+    void ExecuteProgramSignal(std::size_t program_index);
 
 private:
     void TouchBeginEvent(const QTouchEvent* event);

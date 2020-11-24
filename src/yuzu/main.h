@@ -131,6 +131,7 @@ signals:
 
 public slots:
     void OnLoadComplete();
+    void OnExecuteProgram(std::size_t program_index);
     void ControllerSelectorReconfigureControllers(
         const Core::Frontend::ControllerParameters& parameters);
     void ErrorDisplayDisplayError(QString body);
@@ -154,8 +155,8 @@ private:
     void PreventOSSleep();
     void AllowOSSleep();
 
-    bool LoadROM(const QString& filename);
-    void BootGame(const QString& filename);
+    bool LoadROM(const QString& filename, std::size_t program_index);
+    void BootGame(const QString& filename, std::size_t program_index = 0);
     void ShutdownGame();
 
     void ShowTelemetryCallout();
@@ -316,6 +317,9 @@ private:
 
     // Install progress dialog
     QProgressDialog* install_progress;
+
+    // Last game booted, used for multi-process apps
+    QString last_filename_booted;
 
 protected:
     void dropEvent(QDropEvent* event) override;
