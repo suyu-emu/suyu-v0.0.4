@@ -145,7 +145,7 @@ struct System::Impl {
     }
 
     ResultStatus Init(System& system, Frontend::EmuWindow& emu_window) {
-        LOG_DEBUG(HW_Memory, "initialized OK");
+        LOG_DEBUG(Core, "initialized OK");
 
         device_memory = std::make_unique<Core::DeviceMemory>();
 
@@ -208,9 +208,11 @@ struct System::Impl {
         return ResultStatus::Success;
     }
 
-    ResultStatus Load(System& system, Frontend::EmuWindow& emu_window,
-                      const std::string& filepath) {
-        app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath));
+    ResultStatus Load(System& system, Frontend::EmuWindow& emu_window, const std::string& filepath,
+                      std::size_t program_index) {
+        app_loader = Loader::GetLoader(system, GetGameFileFromPath(virtual_filesystem, filepath),
+                                       program_index);
+
         if (!app_loader) {
             LOG_CRITICAL(Core, "Failed to obtain loader for {}!", filepath);
             return ResultStatus::ErrorGetLoader;
@@ -416,6 +418,8 @@ struct System::Impl {
     bool is_multicore{};
     bool is_async_gpu{};
 
+    ExecuteProgramCallback execute_program_callback;
+
     std::array<u64, Core::Hardware::NUM_CPU_CORES> dynarmic_ticks{};
     std::array<MicroProfileToken, Core::Hardware::NUM_CPU_CORES> microprofile_dynarmic{};
 };
@@ -451,8 +455,9 @@ void System::Shutdown() {
     impl->Shutdown();
 }
 
-System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath) {
-    return impl->Load(*this, emu_window, filepath);
+System::ResultStatus System::Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
+                                  std::size_t program_index) {
+    return impl->Load(*this, emu_window, filepath, program_index);
 }
 
 bool System::IsPoweredOn() const {
@@ -787,6 +792,18 @@ void System::ExitDynarmicProfile() {
 
 bool System::IsMulticore() const {
     return impl->is_multicore;
+}
+
+void System::RegisterExecuteProgramCallback(ExecuteProgramCallback&& callback) {
+    impl->execute_program_callback = std::move(callback);
+}
+
+void System::ExecuteProgram(std::size_t program_index) {
+    if (impl->execute_program_callback) {
+        impl->execute_program_callback(program_index);
+    } else {
+        LOG_CRITICAL(Core, "execute_program_callback must be initialized by the frontend");
+    }
 }
 
 } // namespace Core

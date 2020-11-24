@@ -29,7 +29,7 @@ constexpr std::array partition_names{
     "logo",
 };
 
-XCI::XCI(VirtualFile file_)
+XCI::XCI(VirtualFile file_, std::size_t program_index)
     : file(std::move(file_)), program_nca_status{Loader::ResultStatus::ErrorXCIMissingProgramNCA},
       partitions(partition_names.size()),
       partitions_raw(partition_names.size()), keys{Core::Crypto::KeyManager::Instance()} {
@@ -62,7 +62,8 @@ XCI::XCI(VirtualFile file_)
     }
 
     secure_partition = std::make_shared<NSP>(
-        main_hfs.GetFile(partition_names[static_cast<std::size_t>(XCIPartition::Secure)]));
+        main_hfs.GetFile(partition_names[static_cast<std::size_t>(XCIPartition::Secure)]),
+        program_index);
 
     ncas = secure_partition->GetNCAsCollapsed();
     program =

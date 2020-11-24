@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -173,9 +174,11 @@ public:
      * @param emu_window Reference to the host-system window used for video output and keyboard
      *                   input.
      * @param filepath String path to the executable application to load on the host file system.
+     * @param program_index Specifies the index within the container of the program to launch.
      * @returns ResultStatus code, indicating if the operation succeeded.
      */
-    [[nodiscard]] ResultStatus Load(Frontend::EmuWindow& emu_window, const std::string& filepath);
+    [[nodiscard]] ResultStatus Load(Frontend::EmuWindow& emu_window, const std::string& filepath,
+                                    std::size_t program_index = 0);
 
     /**
      * Indicates if the emulated system is powered on (all subsystems initialized and able to run an
@@ -384,6 +387,23 @@ public:
 
     /// Tells if system is running on multicore.
     [[nodiscard]] bool IsMulticore() const;
+
+    /// Type used for the frontend to designate a callback for System to re-launch the application
+    /// using a specified program index.
+    using ExecuteProgramCallback = std::function<void(std::size_t)>;
+
+    /**
+     * Registers a callback from the frontend for System to re-launch the application using a
+     * specified program index.
+     * @param callback Callback from the frontend to relaunch the application.
+     */
+    void RegisterExecuteProgramCallback(ExecuteProgramCallback&& callback);
+
+    /**
+     * Instructs the frontend to re-launch the application using the specified program_index.
+     * @param program_index Specifies the index within the application of the program to launch.
+     */
+    void ExecuteProgram(std::size_t program_index);
 
 private:
     System();

@@ -1188,9 +1188,9 @@ IApplicationFunctions::IApplicationFunctions(Core::System& system_)
         {102, &IApplicationFunctions::SetApplicationCopyrightVisibility, "SetApplicationCopyrightVisibility"},
         {110, &IApplicationFunctions::QueryApplicationPlayStatistics, "QueryApplicationPlayStatistics"},
         {111, &IApplicationFunctions::QueryApplicationPlayStatisticsByUid, "QueryApplicationPlayStatisticsByUid"},
-        {120, nullptr, "ExecuteProgram"},
-        {121, nullptr, "ClearUserChannel"},
-        {122, nullptr, "UnpopToUserChannel"},
+        {120, &IApplicationFunctions::ExecuteProgram, "ExecuteProgram"},
+        {121, &IApplicationFunctions::ClearUserChannel, "ClearUserChannel"},
+        {122, &IApplicationFunctions::UnpopToUserChannel, "UnpopToUserChannel"},
         {123, &IApplicationFunctions::GetPreviousProgramIndex, "GetPreviousProgramIndex"},
         {124, nullptr, "EnableApplicationAllThreadDumpOnCrash"},
         {130, &IApplicationFunctions::GetGpuErrorDetectedSystemEvent, "GetGpuErrorDetectedSystemEvent"},
@@ -1559,6 +1559,34 @@ void IApplicationFunctions::QueryApplicationPlayStatisticsByUid(Kernel::HLEReque
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
     rb.Push<u32>(0);
+}
+
+void IApplicationFunctions::ExecuteProgram(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::RequestParser rp{ctx};
+    [[maybe_unused]] const auto unk_1 = rp.Pop<u32>();
+    [[maybe_unused]] const auto unk_2 = rp.Pop<u32>();
+    const auto program_index = rp.Pop<u64>();
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+
+    system.ExecuteProgram(program_index);
+}
+
+void IApplicationFunctions::ClearUserChannel(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void IApplicationFunctions::UnpopToUserChannel(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
 }
 
 void IApplicationFunctions::GetPreviousProgramIndex(Kernel::HLERequestContext& ctx) {

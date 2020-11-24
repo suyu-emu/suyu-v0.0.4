@@ -302,6 +302,12 @@ GRenderWindow::GRenderWindow(GMainWindow* parent, EmuThread* emu_thread_,
     this->setMouseTracking(true);
 
     connect(this, &GRenderWindow::FirstFrameDisplayed, parent, &GMainWindow::OnLoadComplete);
+    connect(this, &GRenderWindow::ExecuteProgramSignal, parent, &GMainWindow::OnExecuteProgram,
+            Qt::QueuedConnection);
+}
+
+void GRenderWindow::ExecuteProgram(std::size_t program_index) {
+    emit ExecuteProgramSignal(program_index);
 }
 
 GRenderWindow::~GRenderWindow() {
