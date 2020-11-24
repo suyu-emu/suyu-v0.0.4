@@ -864,6 +864,8 @@ Common::ParamPackage SDLEventToMotionParamPackage(SDLState& state, const SDL_Eve
 Common::ParamPackage BuildParamPackageForBinding(int port, const std::string& guid,
                                                  const SDL_GameControllerButtonBind& binding) {
     switch (binding.bindType) {
+    case SDL_CONTROLLER_BINDTYPE_NONE:
+        break;
     case SDL_CONTROLLER_BINDTYPE_AXIS:
         return BuildAnalogParamPackageForButton(port, guid, binding.value.axis);
     case SDL_CONTROLLER_BINDTYPE_BUTTON:
@@ -984,7 +986,7 @@ class SDLPoller : public InputCommon::Polling::DevicePoller {
 public:
     explicit SDLPoller(SDLState& state_) : state(state_) {}
 
-    void Start(const std::string& device_id) override {
+    void Start([[maybe_unused]] const std::string& device_id) override {
         state.event_queue.Clear();
         state.polling = true;
     }

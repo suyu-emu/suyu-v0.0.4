@@ -31,6 +31,9 @@ add_library(input_common STATIC
 
 if (MSVC)
     target_compile_options(input_common PRIVATE
+        /W4
+        /WX
+
         # 'expression' : signed/unsigned mismatch
         /we4018
         # 'argument' : conversion from 'type1' to 'type2', possible loss of data (floating-point)
@@ -46,6 +49,7 @@ if (MSVC)
     )
 else()
     target_compile_options(input_common PRIVATE
+        -Werror
         -Werror=conversion
         -Werror=ignored-qualifiers
         -Werror=implicit-fallthrough

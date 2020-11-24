@@ -63,7 +63,7 @@ public:
     }
 
 private:
-    void HandleReceive(const boost::system::error_code& error, std::size_t bytes_transferred) {
+    void HandleReceive(const boost::system::error_code&, std::size_t bytes_transferred) {
         if (auto type = Response::Validate(receive_buffer.data(), bytes_transferred)) {
             switch (*type) {
             case Type::Version: {
@@ -90,7 +90,7 @@ private:
         StartReceive();
     }
 
-    void HandleSend(const boost::system::error_code& error) {
+    void HandleSend(const boost::system::error_code&) {
         boost::system::error_code _ignored{};
         // Send a request for getting port info for the pad
         const Request::PortInfo port_info{1, {static_cast<u8>(pad_index), 0, 0, 0}};
@@ -369,7 +369,7 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
         u16 max_y{};
 
         Status current_status{Status::Initialized};
-        SocketCallback callback{[](Response::Version version) {}, [](Response::PortInfo info) {},
+        SocketCallback callback{[](Response::Version) {}, [](Response::PortInfo) {},
                                 [&](Response::PadData data) {
                                     if (current_status == Status::Initialized) {
                                         // Receiving data means the communication is ready now
