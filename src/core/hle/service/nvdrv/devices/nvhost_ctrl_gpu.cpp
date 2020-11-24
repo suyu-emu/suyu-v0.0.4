@@ -16,7 +16,7 @@ nvhost_ctrl_gpu::nvhost_ctrl_gpu(Core::System& system) : nvdevice(system) {}
 nvhost_ctrl_gpu::~nvhost_ctrl_gpu() = default;
 
 NvResult nvhost_ctrl_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input,
-                                 std::vector<u8>& output) {
+                                 std::vector<u8>& output, IoctlCtrl& ctrl) {
     switch (command.group) {
     case 'G':
         switch (command.cmd) {
@@ -48,13 +48,15 @@ NvResult nvhost_ctrl_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input,
 }
 
 NvResult nvhost_ctrl_gpu::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                                 const std::vector<u8>& inline_input, std::vector<u8>& output) {
+                                 const std::vector<u8>& inline_input, std::vector<u8>& output,
+                                 IoctlCtrl& ctrl) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_ctrl_gpu::Ioctl3(Ioctl command, const std::vector<u8>& input,
-                                 std::vector<u8>& output, std::vector<u8>& inline_output) {
+                                 std::vector<u8>& output, std::vector<u8>& inline_output,
+                                 IoctlCtrl& ctrl) {
     switch (command.group) {
     case 'G':
         switch (command.cmd) {
@@ -162,7 +164,7 @@ NvResult nvhost_ctrl_gpu::GetCharacteristics(const std::vector<u8>& input, std::
     params.gpu_characteristics_buf_size = 0xA0;
     params.gpu_characteristics_buf_addr = 0xdeadbeef; // Cannot be 0 (UNUSED)
 
-    std::memcpy(output.data(), input.data(), output.size());
+    std::memcpy(output.data(), &params, output.size());
     std::memcpy(inline_output.data(), &params.gc, inline_output.size());
     return NvResult::Success;
 }

@@ -15,8 +15,8 @@ nvhost_nvdec::nvhost_nvdec(Core::System& system, std::shared_ptr<nvmap> nvmap_de
     : nvhost_nvdec_common(system, std::move(nvmap_dev)) {}
 nvhost_nvdec::~nvhost_nvdec() = default;
 
-NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
-                              std::vector<u8>& output) {
+NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                              IoctlCtrl& ctrl) {
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
@@ -58,13 +58,14 @@ NvResult nvhost_nvdec::Ioctl1(Ioctl command, const std::vector<u8>& input,
 }
 
 NvResult nvhost_nvdec::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                              const std::vector<u8>& inline_input, std::vector<u8>& output) {
+                              const std::vector<u8>& inline_input, std::vector<u8>& output,
+                              IoctlCtrl& ctrl) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_nvdec::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              std::vector<u8>& inline_output) {
+                              std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
