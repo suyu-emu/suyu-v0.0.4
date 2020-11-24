@@ -299,7 +299,8 @@ public:
         return gcadapter->RumblePlay(port, 0);
     }
 
-    bool SetRumblePlay(f32 amp_low, f32 freq_low, f32 amp_high, f32 freq_high) const override {
+    bool SetRumblePlay(f32 amp_low, [[maybe_unused]] f32 freq_low, [[maybe_unused]] f32 amp_high,
+                       f32 freq_high) const override {
         const auto mean_amplitude = (amp_low + amp_high) * 0.5f;
         const auto processed_amplitude =
             static_cast<u8>((mean_amplitude + std::pow(mean_amplitude, 0.3f)) * 0.5f * 0x8);
