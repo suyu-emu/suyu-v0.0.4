@@ -293,9 +293,11 @@ protected:
  *
  * @param system The system context.
  * @param file   The bootable file.
+ * @param program_index Specifies the index within the container of the program to launch.
  *
  * @return the best loader for this file.
  */
-std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile file);
+std::unique_ptr<AppLoader> GetLoader(Core::System& system, FileSys::VirtualFile file,
+                                     std::size_t program_index = 0);
 
 } // namespace Loader

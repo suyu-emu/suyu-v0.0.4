@@ -28,7 +28,8 @@ class AppLoader_NSP final : public AppLoader {
 public:
     explicit AppLoader_NSP(FileSys::VirtualFile file,
                            const Service::FileSystem::FileSystemController& fsc,
-                           const FileSys::ContentProvider& content_provider);
+                           const FileSys::ContentProvider& content_provider,
+                           std::size_t program_index);
     ~AppLoader_NSP() override;
 
     /**

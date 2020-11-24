@@ -20,8 +20,8 @@
 
 namespace FileSys {
 
-NSP::NSP(VirtualFile file_)
-    : file(std::move(file_)), status{Loader::ResultStatus::Success},
+NSP::NSP(VirtualFile file_, std::size_t program_index)
+    : file(std::move(file_)), program_index(program_index), status{Loader::ResultStatus::Success},
       pfs(std::make_shared<PartitionFilesystem>(file)), keys{Core::Crypto::KeyManager::Instance()} {
     if (pfs->GetStatus() != Loader::ResultStatus::Success) {
         status = pfs->GetStatus();
@@ -146,7 +146,7 @@ std::shared_ptr<NCA> NSP::GetNCA(u64 title_id, ContentRecordType type, TitleType
     if (extracted)
         LOG_WARNING(Service_FS, "called on an NSP that is of type extracted.");
 
-    const auto title_id_iter = ncas.find(title_id);
+    const auto title_id_iter = ncas.find(title_id + program_index);
     if (title_id_iter == ncas.end())
         return nullptr;
 
