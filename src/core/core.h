@@ -144,19 +144,19 @@ public:
      * Run the OS and Application
      * This function will start emulation and run the relevant devices
      */
-    ResultStatus Run();
+    [[nodiscard]] ResultStatus Run();
 
     /**
      * Pause the OS and Application
      * This function will pause emulation and stop the relevant devices
      */
-    ResultStatus Pause();
+    [[nodiscard]] ResultStatus Pause();
 
     /**
      * Step the CPU one instruction
      * @return Result status, indicating whether or not the operation succeeded.
      */
-    ResultStatus SingleStep();
+    [[nodiscard]] ResultStatus SingleStep();
 
     /**
      * Invalidate the CPU instruction caches
@@ -175,20 +175,20 @@ public:
      * @param filepath String path to the executable application to load on the host file system.
      * @returns ResultStatus code, indicating if the operation succeeded.
      */
-    ResultStatus Load(Frontend::EmuWindow& emu_window, const std::string& filepath);
+    [[nodiscard]] ResultStatus Load(Frontend::EmuWindow& emu_window, const std::string& filepath);
 
     /**
      * Indicates if the emulated system is powered on (all subsystems initialized and able to run an
      * application).
      * @returns True if the emulated system is powered on, otherwise false.
      */
-    bool IsPoweredOn() const;
+    [[nodiscard]] bool IsPoweredOn() const;
 
     /// Gets a reference to the telemetry session for this emulation session.
-    Core::TelemetrySession& TelemetrySession();
+    [[nodiscard]] Core::TelemetrySession& TelemetrySession();
 
     /// Gets a reference to the telemetry session for this emulation session.
-    const Core::TelemetrySession& TelemetrySession() const;
+    [[nodiscard]] const Core::TelemetrySession& TelemetrySession() const;
 
     /// Prepare the core emulation for a reschedule
     void PrepareReschedule();
@@ -197,185 +197,178 @@ public:
     void PrepareReschedule(u32 core_index);
 
     /// Gets and resets core performance statistics
-    PerfStatsResults GetAndResetPerfStats();
+    [[nodiscard]] PerfStatsResults GetAndResetPerfStats();
 
     /// Gets an ARM interface to the CPU core that is currently running
-    ARM_Interface& CurrentArmInterface();
+    [[nodiscard]] ARM_Interface& CurrentArmInterface();
 
     /// Gets an ARM interface to the CPU core that is currently running
-    const ARM_Interface& CurrentArmInterface() const;
+    [[nodiscard]] const ARM_Interface& CurrentArmInterface() const;
 
     /// Gets the index of the currently running CPU core
-    std::size_t CurrentCoreIndex() const;
+    [[nodiscard]] std::size_t CurrentCoreIndex() const;
 
     /// Gets the scheduler for the CPU core that is currently running
-    Kernel::Scheduler& CurrentScheduler();
+    [[nodiscard]] Kernel::Scheduler& CurrentScheduler();
 
     /// Gets the scheduler for the CPU core that is currently running
-    const Kernel::Scheduler& CurrentScheduler() const;
+    [[nodiscard]] const Kernel::Scheduler& CurrentScheduler() const;
 
     /// Gets the physical core for the CPU core that is currently running
-    Kernel::PhysicalCore& CurrentPhysicalCore();
+    [[nodiscard]] Kernel::PhysicalCore& CurrentPhysicalCore();
 
     /// Gets the physical core for the CPU core that is currently running
-    const Kernel::PhysicalCore& CurrentPhysicalCore() const;
+    [[nodiscard]] const Kernel::PhysicalCore& CurrentPhysicalCore() const;
 
     /// Gets a reference to an ARM interface for the CPU core with the specified index
-    ARM_Interface& ArmInterface(std::size_t core_index);
+    [[nodiscard]] ARM_Interface& ArmInterface(std::size_t core_index);
 
     /// Gets a const reference to an ARM interface from the CPU core with the specified index
-    const ARM_Interface& ArmInterface(std::size_t core_index) const;
+    [[nodiscard]] const ARM_Interface& ArmInterface(std::size_t core_index) const;
 
-    CpuManager& GetCpuManager();
+    /// Gets a reference to the underlying CPU manager.
+    [[nodiscard]] CpuManager& GetCpuManager();
 
-    const CpuManager& GetCpuManager() const;
+    /// Gets a const reference to the underlying CPU manager
+    [[nodiscard]] const CpuManager& GetCpuManager() const;
 
     /// Gets a reference to the exclusive monitor
-    ExclusiveMonitor& Monitor();
+    [[nodiscard]] ExclusiveMonitor& Monitor();
 
     /// Gets a constant reference to the exclusive monitor
-    const ExclusiveMonitor& Monitor() const;
+    [[nodiscard]] const ExclusiveMonitor& Monitor() const;
 
     /// Gets a mutable reference to the system memory instance.
-    Core::Memory::Memory& Memory();
+    [[nodiscard]] Core::Memory::Memory& Memory();
 
     /// Gets a constant reference to the system memory instance.
-    const Core::Memory::Memory& Memory() const;
+    [[nodiscard]] const Core::Memory::Memory& Memory() const;
 
     /// Gets a mutable reference to the GPU interface
-    Tegra::GPU& GPU();
+    [[nodiscard]] Tegra::GPU& GPU();
 
     /// Gets an immutable reference to the GPU interface.
-    const Tegra::GPU& GPU() const;
+    [[nodiscard]] const Tegra::GPU& GPU() const;
 
     /// Gets a mutable reference to the renderer.
-    VideoCore::RendererBase& Renderer();
+    [[nodiscard]] VideoCore::RendererBase& Renderer();
 
     /// Gets an immutable reference to the renderer.
-    const VideoCore::RendererBase& Renderer() const;
+    [[nodiscard]] const VideoCore::RendererBase& Renderer() const;
 
     /// Gets the scheduler for the CPU core with the specified index
-    Kernel::Scheduler& Scheduler(std::size_t core_index);
+    [[nodiscard]] Kernel::Scheduler& Scheduler(std::size_t core_index);
 
     /// Gets the scheduler for the CPU core with the specified index
-    const Kernel::Scheduler& Scheduler(std::size_t core_index) const;
+    [[nodiscard]] const Kernel::Scheduler& Scheduler(std::size_t core_index) const;
 
     /// Gets the global scheduler
-    Kernel::GlobalScheduler& GlobalScheduler();
+    [[nodiscard]] Kernel::GlobalScheduler& GlobalScheduler();
 
     /// Gets the global scheduler
-    const Kernel::GlobalScheduler& GlobalScheduler() const;
+    [[nodiscard]] const Kernel::GlobalScheduler& GlobalScheduler() const;
 
     /// Gets the manager for the guest device memory
-    Core::DeviceMemory& DeviceMemory();
+    [[nodiscard]] Core::DeviceMemory& DeviceMemory();
 
     /// Gets the manager for the guest device memory
-    const Core::DeviceMemory& DeviceMemory() const;
+    [[nodiscard]] const Core::DeviceMemory& DeviceMemory() const;
 
     /// Provides a pointer to the current process
-    Kernel::Process* CurrentProcess();
+    [[nodiscard]] Kernel::Process* CurrentProcess();
 
     /// Provides a constant pointer to the current process.
-    const Kernel::Process* CurrentProcess() const;
+    [[nodiscard]] const Kernel::Process* CurrentProcess() const;
 
     /// Provides a reference to the core timing instance.
-    Timing::CoreTiming& CoreTiming();
+    [[nodiscard]] Timing::CoreTiming& CoreTiming();
 
     /// Provides a constant reference to the core timing instance.
-    const Timing::CoreTiming& CoreTiming() const;
+    [[nodiscard]] const Timing::CoreTiming& CoreTiming() const;
 
     /// Provides a reference to the interrupt manager instance.
-    Core::Hardware::InterruptManager& InterruptManager();
+    [[nodiscard]] Core::Hardware::InterruptManager& InterruptManager();
 
     /// Provides a constant reference to the interrupt manager instance.
-    const Core::Hardware::InterruptManager& InterruptManager() const;
+    [[nodiscard]] const Core::Hardware::InterruptManager& InterruptManager() const;
 
     /// Provides a reference to the kernel instance.
-    Kernel::KernelCore& Kernel();
+    [[nodiscard]] Kernel::KernelCore& Kernel();
 
     /// Provides a constant reference to the kernel instance.
-    const Kernel::KernelCore& Kernel() const;
+    [[nodiscard]] const Kernel::KernelCore& Kernel() const;
 
     /// Provides a reference to the internal PerfStats instance.
-    Core::PerfStats& GetPerfStats();
+    [[nodiscard]] Core::PerfStats& GetPerfStats();
 
     /// Provides a constant reference to the internal PerfStats instance.
-    const Core::PerfStats& GetPerfStats() const;
+    [[nodiscard]] const Core::PerfStats& GetPerfStats() const;
 
     /// Provides a reference to the frame limiter;
-    Core::FrameLimiter& FrameLimiter();
+    [[nodiscard]] Core::FrameLimiter& FrameLimiter();
 
     /// Provides a constant referent to the frame limiter
-    const Core::FrameLimiter& FrameLimiter() const;
+    [[nodiscard]] const Core::FrameLimiter& FrameLimiter() const;
 
     /// Gets the name of the current game
-    Loader::ResultStatus GetGameName(std::string& out) const;
+    [[nodiscard]] Loader::ResultStatus GetGameName(std::string& out) const;
 
     void SetStatus(ResultStatus new_status, const char* details);
 
-    const std::string& GetStatusDetails() const;
+    [[nodiscard]] const std::string& GetStatusDetails() const;
 
-    Loader::AppLoader& GetAppLoader() const;
+    [[nodiscard]] Loader::AppLoader& GetAppLoader();
+    [[nodiscard]] const Loader::AppLoader& GetAppLoader() const;
 
-    Service::SM::ServiceManager& ServiceManager();
-    const Service::SM::ServiceManager& ServiceManager() const;
+    [[nodiscard]] Service::SM::ServiceManager& ServiceManager();
+    [[nodiscard]] const Service::SM::ServiceManager& ServiceManager() const;
 
     void SetFilesystem(FileSys::VirtualFilesystem vfs);
 
-    FileSys::VirtualFilesystem GetFilesystem() const;
+    [[nodiscard]] FileSys::VirtualFilesystem GetFilesystem() const;
 
     void RegisterCheatList(const std::vector<Memory::CheatEntry>& list,
                            const std::array<u8, 0x20>& build_id, VAddr main_region_begin,
                            u64 main_region_size);
 
     void SetAppletFrontendSet(Service::AM::Applets::AppletFrontendSet&& set);
-
     void SetDefaultAppletFrontendSet();
 
-    Service::AM::Applets::AppletManager& GetAppletManager();
-
-    const Service::AM::Applets::AppletManager& GetAppletManager() const;
+    [[nodiscard]] Service::AM::Applets::AppletManager& GetAppletManager();
+    [[nodiscard]] const Service::AM::Applets::AppletManager& GetAppletManager() const;
 
     void SetContentProvider(std::unique_ptr<FileSys::ContentProviderUnion> provider);
 
-    FileSys::ContentProvider& GetContentProvider();
+    [[nodiscard]] FileSys::ContentProvider& GetContentProvider();
+    [[nodiscard]] const FileSys::ContentProvider& GetContentProvider() const;
 
-    const FileSys::ContentProvider& GetContentProvider() const;
-
-    Service::FileSystem::FileSystemController& GetFileSystemController();
-
-    const Service::FileSystem::FileSystemController& GetFileSystemController() const;
+    [[nodiscard]] Service::FileSystem::FileSystemController& GetFileSystemController();
+    [[nodiscard]] const Service::FileSystem::FileSystemController& GetFileSystemController() const;
 
     void RegisterContentProvider(FileSys::ContentProviderUnionSlot slot,
                                  FileSys::ContentProvider* provider);
 
     void ClearContentProvider(FileSys::ContentProviderUnionSlot slot);
 
-    const Reporter& GetReporter() const;
+    [[nodiscard]] const Reporter& GetReporter() const;
 
-    Service::Glue::ARPManager& GetARPManager();
+    [[nodiscard]] Service::Glue::ARPManager& GetARPManager();
+    [[nodiscard]] const Service::Glue::ARPManager& GetARPManager() const;
 
-    const Service::Glue::ARPManager& GetARPManager() const;
+    [[nodiscard]] Service::APM::Controller& GetAPMController();
+    [[nodiscard]] const Service::APM::Controller& GetAPMController() const;
 
-    Service::APM::Controller& GetAPMController();
+    [[nodiscard]] Service::LM::Manager& GetLogManager();
+    [[nodiscard]] const Service::LM::Manager& GetLogManager() const;
 
-    const Service::APM::Controller& GetAPMController() const;
-
-    Service::LM::Manager& GetLogManager();
-
-    const Service::LM::Manager& GetLogManager() const;
-
-    Service::Time::TimeManager& GetTimeManager();
-
-    const Service::Time::TimeManager& GetTimeManager() const;
+    [[nodiscard]] Service::Time::TimeManager& GetTimeManager();
+    [[nodiscard]] const Service::Time::TimeManager& GetTimeManager() const;
 
     void SetExitLock(bool locked);
-
-    bool GetExitLock() const;
+    [[nodiscard]] bool GetExitLock() const;
 
     void SetCurrentProcessBuildID(const CurrentBuildProcessID& id);
-
-    const CurrentBuildProcessID& GetCurrentProcessBuildID() const;
+    [[nodiscard]] const CurrentBuildProcessID& GetCurrentProcessBuildID() const;
 
     /// Register a host thread as an emulated CPU Core.
     void RegisterCoreThread(std::size_t id);
@@ -390,18 +383,10 @@ public:
     void ExitDynarmicProfile();
 
     /// Tells if system is running on multicore.
-    bool IsMulticore() const;
+    [[nodiscard]] bool IsMulticore() const;
 
 private:
     System();
-
-    /**
-     * Initialize the emulated system.
-     * @param emu_window Reference to the host-system window used for video output and keyboard
-     *                   input.
-     * @return ResultStatus code, indicating if the operation succeeded.
-     */
-    ResultStatus Init(Frontend::EmuWindow& emu_window);
 
     struct Impl;
     std::unique_ptr<Impl> impl;
