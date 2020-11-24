@@ -13,10 +13,10 @@ namespace Service::AM {
 
 class ILibraryAppletProxy final : public ServiceFramework<ILibraryAppletProxy> {
 public:
-    explicit ILibraryAppletProxy(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
+    explicit ILibraryAppletProxy(NVFlinger::NVFlinger& nvflinger,
                                  std::shared_ptr<AppletMessageQueue> msg_queue,
                                  Core::System& system)
-        : ServiceFramework("ILibraryAppletProxy"), nvflinger(std::move(nvflinger)),
+        : ServiceFramework("ILibraryAppletProxy"), nvflinger(nvflinger),
           msg_queue(std::move(msg_queue)), system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -109,16 +109,16 @@ private:
         rb.PushIpcInterface<IApplicationFunctions>(system);
     }
 
-    std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
+    NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;
     Core::System& system;
 };
 
 class ISystemAppletProxy final : public ServiceFramework<ISystemAppletProxy> {
 public:
-    explicit ISystemAppletProxy(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
+    explicit ISystemAppletProxy(NVFlinger::NVFlinger& nvflinger,
                                 std::shared_ptr<AppletMessageQueue> msg_queue, Core::System& system)
-        : ServiceFramework("ISystemAppletProxy"), nvflinger(std::move(nvflinger)),
+        : ServiceFramework("ISystemAppletProxy"), nvflinger(nvflinger),
           msg_queue(std::move(msg_queue)), system(system) {
         // clang-format off
         static const FunctionInfo functions[] = {
@@ -220,7 +220,8 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IApplicationCreator>();
     }
-    std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
+
+    NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;
     Core::System& system;
 };
@@ -249,10 +250,10 @@ void AppletAE::OpenLibraryAppletProxyOld(Kernel::HLERequestContext& ctx) {
     rb.PushIpcInterface<ILibraryAppletProxy>(nvflinger, msg_queue, system);
 }
 
-AppletAE::AppletAE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
-                   std::shared_ptr<AppletMessageQueue> msg_queue, Core::System& system)
-    : ServiceFramework("appletAE"), nvflinger(std::move(nvflinger)),
-      msg_queue(std::move(msg_queue)), system(system) {
+AppletAE::AppletAE(NVFlinger::NVFlinger& nvflinger, std::shared_ptr<AppletMessageQueue> msg_queue,
+                   Core::System& system)
+    : ServiceFramework("appletAE"), nvflinger(nvflinger), msg_queue(std::move(msg_queue)),
+      system(system) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {100, &AppletAE::OpenSystemAppletProxy, "OpenSystemAppletProxy"},

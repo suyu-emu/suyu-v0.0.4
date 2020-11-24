@@ -43,12 +43,11 @@ enum class Policy {
 };
 
 namespace detail {
-void GetDisplayServiceImpl(Kernel::HLERequestContext& ctx,
-                           std::shared_ptr<NVFlinger::NVFlinger> nv_flinger, Permission permission);
+void GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, NVFlinger::NVFlinger& nv_flinger,
+                           Permission permission);
 } // namespace detail
 
 /// Registers all VI services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager,
-                       std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nv_flinger);
 
 } // namespace Service::VI

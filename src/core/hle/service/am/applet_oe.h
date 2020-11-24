@@ -23,7 +23,7 @@ class AppletMessageQueue;
 
 class AppletOE final : public ServiceFramework<AppletOE> {
 public:
-    explicit AppletOE(std::shared_ptr<NVFlinger::NVFlinger> nvflinger,
+    explicit AppletOE(NVFlinger::NVFlinger& nvflinger,
                       std::shared_ptr<AppletMessageQueue> msg_queue, Core::System& system);
     ~AppletOE() override;
 
@@ -32,7 +32,7 @@ public:
 private:
     void OpenApplicationProxy(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<NVFlinger::NVFlinger> nvflinger;
+    NVFlinger::NVFlinger& nvflinger;
     std::shared_ptr<AppletMessageQueue> msg_queue;
     Core::System& system;
 };

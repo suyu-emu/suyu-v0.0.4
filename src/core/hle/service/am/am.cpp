@@ -246,9 +246,8 @@ IDebugFunctions::IDebugFunctions() : ServiceFramework{"IDebugFunctions"} {
 
 IDebugFunctions::~IDebugFunctions() = default;
 
-ISelfController::ISelfController(Core::System& system,
-                                 std::shared_ptr<NVFlinger::NVFlinger> nvflinger)
-    : ServiceFramework("ISelfController"), system(system), nvflinger(std::move(nvflinger)) {
+ISelfController::ISelfController(Core::System& system, NVFlinger::NVFlinger& nvflinger)
+    : ServiceFramework("ISelfController"), system(system), nvflinger(nvflinger) {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &ISelfController::Exit, "Exit"},
@@ -458,8 +457,8 @@ void ISelfController::CreateManagedDisplayLayer(Kernel::HLERequestContext& ctx) 
 
     // TODO(Subv): Find out how AM determines the display to use, for now just
     // create the layer in the Default display.
-    const auto display_id = nvflinger->OpenDisplay("Default");
-    const auto layer_id = nvflinger->CreateLayer(*display_id);
+    const auto display_id = nvflinger.OpenDisplay("Default");
+    const auto layer_id = nvflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -476,8 +475,8 @@ void ISelfController::CreateManagedDisplaySeparableLayer(Kernel::HLERequestConte
     // Outputting 1 layer id instead of the expected 2 has not been observed to cause any adverse
     // side effects.
     // TODO: Support multiple layers
-    const auto display_id = nvflinger->OpenDisplay("Default");
-    const auto layer_id = nvflinger->CreateLayer(*display_id);
+    const auto display_id = nvflinger.OpenDisplay("Default");
+    const auto layer_id = nvflinger.CreateLayer(*display_id);
 
     IPC::ResponseBuilder rb{ctx, 4};
     rb.Push(RESULT_SUCCESS);
@@ -1586,8 +1585,8 @@ void IApplicationFunctions::GetFriendInvitationStorageChannelEvent(Kernel::HLERe
     rb.PushCopyObjects(friend_invitation_storage_channel_event.readable);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager,
-                       std::shared_ptr<NVFlinger::NVFlinger> nvflinger, Core::System& system) {
+void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
+                       Core::System& system) {
     auto message_queue = std::make_shared<AppletMessageQueue>(system.Kernel());
     // Needed on game boot
     message_queue->PushMessage(AppletMessageQueue::AppletMessage::FocusStateChanged);

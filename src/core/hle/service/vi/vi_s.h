@@ -18,13 +18,13 @@ namespace Service::VI {
 
 class VI_S final : public ServiceFramework<VI_S> {
 public:
-    explicit VI_S(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger);
+    explicit VI_S(NVFlinger::NVFlinger& nv_flinger);
     ~VI_S() override;
 
 private:
     void GetDisplayService(Kernel::HLERequestContext& ctx);
 
-    std::shared_ptr<NVFlinger::NVFlinger> nv_flinger;
+    NVFlinger::NVFlinger& nv_flinger;
 };
 
 } // namespace Service::VI

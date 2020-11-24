@@ -188,17 +188,19 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
     return RESULT_SUCCESS;
 }
 
-/// Initialize ServiceManager
-void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
+/// Initialize Services
+Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system)
+    : nv_flinger{std::make_unique<NVFlinger::NVFlinger>(system)} {
+
     // NVFlinger needs to be accessed by several services like Vi and AppletOE so we instantiate it
     // here and pass it into the respective InstallInterfaces functions.
-    auto nv_flinger = std::make_shared<NVFlinger::NVFlinger>(system);
+
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
     SM::ServiceManager::InstallInterfaces(sm, system.Kernel());
 
     Account::InstallInterfaces(system);
-    AM::InstallInterfaces(*sm, nv_flinger, system);
+    AM::InstallInterfaces(*sm, *nv_flinger, system);
     AOC::InstallInterfaces(*sm, system);
     APM::InstallInterfaces(system);
     Audio::InstallInterfaces(*sm, system);
@@ -246,14 +248,10 @@ void Init(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system) {
     SSL::InstallInterfaces(*sm);
     Time::InstallInterfaces(system);
     USB::InstallInterfaces(*sm);
-    VI::InstallInterfaces(*sm, nv_flinger);
+    VI::InstallInterfaces(*sm, *nv_flinger);
     WLAN::InstallInterfaces(*sm);
-
-    LOG_DEBUG(Service, "initialized OK");
 }
 
-/// Shutdown ServiceManager
-void Shutdown() {
-    LOG_DEBUG(Service, "shutdown OK");
-}
+Services::~Services() = default;
+
 } // namespace Service

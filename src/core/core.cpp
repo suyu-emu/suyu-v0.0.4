@@ -187,7 +187,7 @@ struct System::Impl {
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
 
-        Service::Init(service_manager, system);
+        services = std::make_unique<Service::Services>(service_manager, system);
         GDBStub::DeferStart();
 
         interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
@@ -296,7 +296,7 @@ struct System::Impl {
 
         // Shutdown emulation session
         GDBStub::Shutdown();
-        Service::Shutdown();
+        services.reset();
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
@@ -306,8 +306,8 @@ struct System::Impl {
         cpu_manager.Shutdown();
 
         // Shutdown kernel and core timing
-        kernel.Shutdown();
         core_timing.Shutdown();
+        kernel.Shutdown();
 
         // Close app loader
         app_loader.reset();
@@ -397,6 +397,9 @@ struct System::Impl {
 
     /// Service manager
     std::shared_ptr<Service::SM::ServiceManager> service_manager;
+
+    /// Services
+    std::unique_ptr<Service::Services> services;
 
     /// Telemetry session for this emulation session
     std::unique_ptr<Core::TelemetrySession> telemetry_session;

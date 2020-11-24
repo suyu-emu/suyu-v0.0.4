@@ -8,8 +8,7 @@
 
 namespace Service::VI {
 
-VI_S::VI_S(std::shared_ptr<NVFlinger::NVFlinger> nv_flinger)
-    : ServiceFramework{"vi:s"}, nv_flinger{std::move(nv_flinger)} {
+VI_S::VI_S(NVFlinger::NVFlinger& nv_flinger) : ServiceFramework{"vi:s"}, nv_flinger{nv_flinger} {
     static const FunctionInfo functions[] = {
         {1, &VI_S::GetDisplayService, "GetDisplayService"},
         {3, nullptr, "GetDisplayServiceWithProxyNameExchange"},
