@@ -189,11 +189,11 @@ void Client::ReloadSocket(const std::string& host, u16 port, std::size_t pad_ind
     StartCommunication(client, host, port, pad_index, client_id);
 }
 
-void Client::OnVersion(Response::Version data) {
+void Client::OnVersion([[maybe_unused]] Response::Version data) {
     LOG_TRACE(Input, "Version packet received: {}", data.version);
 }
 
-void Client::OnPortInfo(Response::PortInfo data) {
+void Client::OnPortInfo([[maybe_unused]] Response::PortInfo data) {
     LOG_TRACE(Input, "PortInfo packet received: {}", data.model);
 }
 
