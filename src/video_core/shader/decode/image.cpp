@@ -212,10 +212,10 @@ u32 GetComponentSize(TextureFormat format, std::size_t component) {
         return 0;
     case TextureFormat::R8G24:
         if (component == 0) {
-            return 8;
+            return 24;
         }
         if (component == 1) {
-            return 24;
+            return 8;
         }
         return 0;
     case TextureFormat::R8G8:
