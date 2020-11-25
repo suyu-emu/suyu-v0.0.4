@@ -242,7 +242,7 @@ int main(int argc, char** argv) {
 
     void(system.Run());
     while (emu_window->IsOpen()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        emu_window->WaitEvent();
     }
     void(system.Pause());
     system.Shutdown();
