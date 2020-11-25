@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <atomic>
 #include "common/bit_field.h"
 #include "common/common_types.h"
 #include "core/frontend/input.h"
@@ -415,7 +416,7 @@ private:
     bool IsControllerSupported(NPadControllerType controller) const;
     void RequestPadStateUpdate(u32 npad_id);
 
-    u32 press_state{};
+    std::atomic<u32> press_state{};
 
     NpadStyleSet style{};
     std::array<NPadEntry, 10> shared_memory_entries{};
