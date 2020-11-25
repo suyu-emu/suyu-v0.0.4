@@ -184,7 +184,7 @@ struct AuxAddress {
 
 class EffectBase {
 public:
-    explicit EffectBase(EffectType effect_type);
+    explicit EffectBase(EffectType effect_type_);
     virtual ~EffectBase();
 
     virtual void Update(EffectInfo::InParams& in_params) = 0;
@@ -206,7 +206,7 @@ protected:
 template <typename T>
 class EffectGeneric : public EffectBase {
 public:
-    explicit EffectGeneric(EffectType effect_type) : EffectBase(effect_type) {}
+    explicit EffectGeneric(EffectType effect_type_) : EffectBase(effect_type_) {}
 
     T& GetParams() {
         return internal_params;
@@ -306,7 +306,7 @@ private:
 
 class EffectContext {
 public:
-    explicit EffectContext(std::size_t effect_count);
+    explicit EffectContext(std::size_t effect_count_);
     ~EffectContext();
 
     [[nodiscard]] std::size_t GetCount() const;

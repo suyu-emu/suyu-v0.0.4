@@ -17,8 +17,8 @@ using base_time_point = std::chrono::time_point<base_timer>;
 
 class StandardWallClock final : public WallClock {
 public:
-    StandardWallClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency)
-        : WallClock(emulated_cpu_frequency, emulated_clock_frequency, false) {
+    explicit StandardWallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_)
+        : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, false) {
         start_time = base_timer::now();
     }
 

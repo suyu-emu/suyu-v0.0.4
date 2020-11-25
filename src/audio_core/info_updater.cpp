@@ -14,9 +14,9 @@
 
 namespace AudioCore {
 
-InfoUpdater::InfoUpdater(const std::vector<u8>& in_params, std::vector<u8>& out_params,
-                         BehaviorInfo& behavior_info)
-    : in_params(in_params), out_params(out_params), behavior_info(behavior_info) {
+InfoUpdater::InfoUpdater(const std::vector<u8>& in_params_, std::vector<u8>& out_params_,
+                         BehaviorInfo& behavior_info_)
+    : in_params(in_params_), out_params(out_params_), behavior_info(behavior_info_) {
     ASSERT(
         AudioCommon::CanConsumeBuffer(in_params.size(), 0, sizeof(AudioCommon::UpdateDataHeader)));
     std::memcpy(&input_header, in_params.data(), sizeof(AudioCommon::UpdateDataHeader));
@@ -135,8 +135,8 @@ bool InfoUpdater::UpdateVoiceChannelResources(VoiceContext& voice_context) {
 }
 
 bool InfoUpdater::UpdateVoices(VoiceContext& voice_context,
-                               std::vector<ServerMemoryPoolInfo>& memory_pool_info,
-                               VAddr audio_codec_dsp_addr) {
+                               [[maybe_unused]] std::vector<ServerMemoryPoolInfo>& memory_pool_info,
+                               [[maybe_unused]] VAddr audio_codec_dsp_addr) {
     const auto voice_count = voice_context.GetVoiceCount();
     std::vector<VoiceInfo::InParams> voice_in(voice_count);
     std::vector<VoiceInfo::OutParams> voice_out(voice_count);
@@ -165,28 +165,28 @@ bool InfoUpdater::UpdateVoices(VoiceContext& voice_context,
 
     // Update our voices
     for (std::size_t i = 0; i < voice_count; i++) {
-        auto& in_params = voice_in[i];
-        const auto channel_count = static_cast<std::size_t>(in_params.channel_count);
+        auto& voice_in_params = voice_in[i];
+        const auto channel_count = static_cast<std::size_t>(voice_in_params.channel_count);
         // Skip if it's not currently in use
-        if (!in_params.is_in_use) {
+        if (!voice_in_params.is_in_use) {
             continue;
         }
         // Voice states for each channel
         std::array<VoiceState*, AudioCommon::MAX_CHANNEL_COUNT> voice_states{};
-        ASSERT(static_cast<std::size_t>(in_params.id) < voice_count);
+        ASSERT(static_cast<std::size_t>(voice_in_params.id) < voice_count);
 
         // Grab our current voice info
-        auto& voice_info = voice_context.GetInfo(static_cast<std::size_t>(in_params.id));
+        auto& voice_info = voice_context.GetInfo(static_cast<std::size_t>(voice_in_params.id));
 
         ASSERT(channel_count <= AudioCommon::MAX_CHANNEL_COUNT);
 
         // Get all our channel voice states
         for (std::size_t channel = 0; channel < channel_count; channel++) {
             voice_states[channel] =
-                &voice_context.GetState(in_params.voice_channel_resource_ids[channel]);
+                &voice_context.GetState(voice_in_params.voice_channel_resource_ids[channel]);
         }
 
-        if (in_params.is_new) {
+        if (voice_in_params.is_new) {
             // Default our values for our voice
             voice_info.Initialize();
             if (channel_count == 0 || channel_count > AudioCommon::MAX_CHANNEL_COUNT) {
@@ -200,12 +200,12 @@ bool InfoUpdater::UpdateVoices(VoiceContext& voice_context,
         }
 
         // Update our voice
-        voice_info.UpdateParameters(in_params, behavior_info);
+        voice_info.UpdateParameters(voice_in_params, behavior_info);
         // TODO(ogniK): Handle mapping errors with behavior info based on in params response
 
         // Update our wave buffers
-        voice_info.UpdateWaveBuffers(in_params, voice_states, behavior_info);
-        voice_info.WriteOutStatus(voice_out[i], in_params, voice_states);
+        voice_info.UpdateWaveBuffers(voice_in_params, voice_states, behavior_info);
+        voice_info.WriteOutStatus(voice_out[i], voice_in_params, voice_states);
     }
 
     if (!AudioCommon::CanConsumeBuffer(out_params.size(), output_offset, voice_out_size)) {
@@ -445,7 +445,7 @@ bool InfoUpdater::UpdatePerformanceBuffer() {
     return true;
 }
 
-bool InfoUpdater::UpdateErrorInfo(BehaviorInfo& in_behavior_info) {
+bool InfoUpdater::UpdateErrorInfo([[maybe_unused]] BehaviorInfo& in_behavior_info) {
     const auto total_beahvior_info_out = sizeof(BehaviorInfo::OutParams);
 
     if (!AudioCommon::CanConsumeBuffer(out_params.size(), output_offset, total_beahvior_info_out)) {

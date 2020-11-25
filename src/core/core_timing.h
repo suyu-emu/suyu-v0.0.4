@@ -27,8 +27,8 @@ using TimedCallback =
 
 /// Contains the characteristics of a particular event.
 struct EventType {
-    EventType(TimedCallback&& callback, std::string&& name)
-        : callback{std::move(callback)}, name{std::move(name)} {}
+    explicit EventType(TimedCallback&& callback_, std::string&& name_)
+        : callback{std::move(callback_)}, name{std::move(name_)} {}
 
     /// The event's callback function.
     TimedCallback callback;
@@ -67,8 +67,8 @@ public:
     void Shutdown();
 
     /// Sets if emulation is multicore or single core, must be set before Initialize
-    void SetMulticore(bool is_multicore) {
-        this->is_multicore = is_multicore;
+    void SetMulticore(bool is_multicore_) {
+        is_multicore = is_multicore_;
     }
 
     /// Check if it's using host timing.

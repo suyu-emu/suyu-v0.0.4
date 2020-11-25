@@ -44,8 +44,8 @@ public:
     /// Callback function type, used to change guest state on a buffer being released
     using ReleaseCallback = std::function<void()>;
 
-    Stream(Core::Timing::CoreTiming& core_timing, u32 sample_rate, Format format,
-           ReleaseCallback&& release_callback, SinkStream& sink_stream, std::string&& name_);
+    Stream(Core::Timing::CoreTiming& core_timing_, u32 sample_rate_, Format format_,
+           ReleaseCallback&& release_callback_, SinkStream& sink_stream_, std::string&& name_);
 
     /// Plays the audio stream
     void Play();

@@ -25,10 +25,10 @@ using MixVolumeBuffer = std::array<float, AudioCommon::MAX_MIX_BUFFERS>;
 
 class CommandGenerator {
 public:
-    explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
-                              VoiceContext& voice_context, MixContext& mix_context,
-                              SplitterContext& splitter_context, EffectContext& effect_context,
-                              Core::Memory::Memory& memory);
+    explicit CommandGenerator(AudioCommon::AudioRendererParameter& worker_params_,
+                              VoiceContext& voice_context_, MixContext& mix_context_,
+                              SplitterContext& splitter_context_, EffectContext& effect_context_,
+                              Core::Memory::Memory& memory_);
     ~CommandGenerator();
 
     void ClearMixBuffers();

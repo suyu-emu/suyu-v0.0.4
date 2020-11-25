@@ -43,10 +43,10 @@ u64 EstimateRDTSCFrequency() {
 }
 
 namespace X64 {
-NativeClock::NativeClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency,
-                         u64 rtsc_frequency)
-    : WallClock(emulated_cpu_frequency, emulated_clock_frequency, true), rtsc_frequency{
-                                                                             rtsc_frequency} {
+NativeClock::NativeClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_,
+                         u64 rtsc_frequency_)
+    : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, true), rtsc_frequency{
+                                                                               rtsc_frequency_} {
     _mm_mfence();
     last_measure = __rdtsc();
     accumulated_ticks = 0U;

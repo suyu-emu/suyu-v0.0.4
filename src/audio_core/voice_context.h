@@ -118,12 +118,12 @@ public:
         bool in_use{};
         INSERT_PADDING_BYTES(11);
     };
-    static_assert(sizeof(VoiceChannelResource::InParams) == 0x70, "InParams is an invalid size");
+    static_assert(sizeof(InParams) == 0x70, "InParams is an invalid size");
 };
 
 class ServerVoiceChannelResource {
 public:
-    explicit ServerVoiceChannelResource(s32 id);
+    explicit ServerVoiceChannelResource(s32 id_);
     ~ServerVoiceChannelResource();
 
     bool InUse() const;
@@ -174,7 +174,7 @@ public:
         BehaviorFlags behavior_flags{};
         INSERT_PADDING_BYTES(16);
     };
-    static_assert(sizeof(VoiceInfo::InParams) == 0x170, "InParams is an invalid size");
+    static_assert(sizeof(InParams) == 0x170, "InParams is an invalid size");
 
     struct OutParams {
         u64_le played_sample_count{};
@@ -182,7 +182,7 @@ public:
         u8 voice_dropped{};
         INSERT_PADDING_BYTES(3);
     };
-    static_assert(sizeof(VoiceInfo::OutParams) == 0x10, "OutParams is an invalid size");
+    static_assert(sizeof(OutParams) == 0x10, "OutParams is an invalid size");
 };
 
 class ServerVoiceInfo {
@@ -263,7 +263,7 @@ private:
 
 class VoiceContext {
 public:
-    VoiceContext(std::size_t voice_count);
+    explicit VoiceContext(std::size_t voice_count_);
     ~VoiceContext();
 
     std::size_t GetVoiceCount() const;

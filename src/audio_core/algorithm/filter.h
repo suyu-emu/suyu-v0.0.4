@@ -25,7 +25,7 @@ public:
     /// Passthrough filter.
     Filter();
 
-    Filter(double a0, double a1, double a2, double b0, double b1, double b2);
+    Filter(double a0_, double a1_, double a2_, double b0_, double b1_, double b2_);
 
     void Process(std::vector<s16>& signal);
 
@@ -51,7 +51,7 @@ public:
     /// Passthrough.
     CascadingFilter();
 
-    explicit CascadingFilter(std::vector<Filter> filters);
+    explicit CascadingFilter(std::vector<Filter> filters_);
 
     void Process(std::vector<s16>& signal);
 

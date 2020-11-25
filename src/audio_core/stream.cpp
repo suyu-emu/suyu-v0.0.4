@@ -31,10 +31,10 @@ u32 Stream::GetNumChannels() const {
     return {};
 }
 
-Stream::Stream(Core::Timing::CoreTiming& core_timing, u32 sample_rate, Format format,
-               ReleaseCallback&& release_callback, SinkStream& sink_stream, std::string&& name_)
-    : sample_rate{sample_rate}, format{format}, release_callback{std::move(release_callback)},
-      sink_stream{sink_stream}, core_timing{core_timing}, name{std::move(name_)} {
+Stream::Stream(Core::Timing::CoreTiming& core_timing_, u32 sample_rate_, Format format_,
+               ReleaseCallback&& release_callback_, SinkStream& sink_stream_, std::string&& name_)
+    : sample_rate{sample_rate_}, format{format_}, release_callback{std::move(release_callback_)},
+      sink_stream{sink_stream_}, core_timing{core_timing_}, name{std::move(name_)} {
     release_event =
         Core::Timing::CreateEvent(name, [this](std::uintptr_t, std::chrono::nanoseconds ns_late) {
             ReleaseActiveBuffer(ns_late);
@@ -122,7 +122,7 @@ bool Stream::QueueBuffer(BufferPtr&& buffer) {
     return false;
 }
 
-bool Stream::ContainsBuffer(Buffer::Tag tag) const {
+bool Stream::ContainsBuffer([[maybe_unused]] Buffer::Tag tag) const {
     UNIMPLEMENTED();
     return {};
 }

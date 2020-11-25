@@ -67,12 +67,12 @@ s32 ApplyMixDepop(s32* output, s32 first_sample, s32 delta, s32 sample_count) {
 
 } // namespace
 
-CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params,
-                                   VoiceContext& voice_context, MixContext& mix_context,
-                                   SplitterContext& splitter_context, EffectContext& effect_context,
-                                   Core::Memory::Memory& memory)
-    : worker_params(worker_params), voice_context(voice_context), mix_context(mix_context),
-      splitter_context(splitter_context), effect_context(effect_context), memory(memory),
+CommandGenerator::CommandGenerator(AudioCommon::AudioRendererParameter& worker_params_,
+                                   VoiceContext& voice_context_, MixContext& mix_context_,
+                                   SplitterContext& splitter_context_,
+                                   EffectContext& effect_context_, Core::Memory::Memory& memory_)
+    : worker_params(worker_params_), voice_context(voice_context_), mix_context(mix_context_),
+      splitter_context(splitter_context_), effect_context(effect_context_), memory(memory_),
       mix_buffer((worker_params.mix_buffer_count + AudioCommon::MAX_CHANNEL_COUNT) *
                  worker_params.sample_count),
       sample_buffer(MIX_BUFFER_SIZE),
@@ -255,7 +255,8 @@ void CommandGenerator::GenerateDataSourceCommand(ServerVoiceInfo& voice_info, Vo
 
 void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voice_info,
                                                            VoiceState& dsp_state,
-                                                           s32 mix_buffer_count, s32 channel) {
+                                                           [[maybe_unused]] s32 mix_buffer_count,
+                                                           [[maybe_unused]] s32 channel) {
     for (std::size_t i = 0; i < AudioCommon::MAX_BIQUAD_FILTERS; i++) {
         const auto& in_params = voice_info.GetInParams();
         auto& biquad_filter = in_params.biquad_filter[i];
@@ -278,9 +279,12 @@ void CommandGenerator::GenerateBiquadFilterCommandForVoice(ServerVoiceInfo& voic
     }
 }
 
-void AudioCore::CommandGenerator::GenerateBiquadFilterCommand(
-    s32 mix_buffer, const BiquadFilterParameter& params, std::array<s64, 2>& state,
-    std::size_t input_offset, std::size_t output_offset, s32 sample_count, s32 node_id) {
+void CommandGenerator::GenerateBiquadFilterCommand([[maybe_unused]] s32 mix_buffer_id,
+                                                   const BiquadFilterParameter& params,
+                                                   std::array<s64, 2>& state,
+                                                   std::size_t input_offset,
+                                                   std::size_t output_offset, s32 sample_count,
+                                                   s32 node_id) {
     if (dumping_frame) {
         LOG_DEBUG(Audio,
                   "(DSP_TRACE) GenerateBiquadFilterCommand node_id={}, "
@@ -714,7 +718,8 @@ s32 CommandGenerator::DecodePcm16(ServerVoiceInfo& voice_info, VoiceState& dsp_s
 }
 
 s32 CommandGenerator::DecodeAdpcm(ServerVoiceInfo& voice_info, VoiceState& dsp_state,
-                                  s32 sample_count, s32 channel, std::size_t mix_offset) {
+                                  s32 sample_count, [[maybe_unused]] s32 channel,
+                                  std::size_t mix_offset) {
     const auto& in_params = voice_info.GetInParams();
     const auto& wave_buffer = in_params.wave_buffer[dsp_state.wave_buffer_index];
     if (wave_buffer.buffer_address == 0) {

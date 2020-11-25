@@ -31,8 +31,8 @@ Filter Filter::LowPass(double cutoff, double Q) {
 
 Filter::Filter() : Filter(1.0, 0.0, 0.0, 1.0, 0.0, 0.0) {}
 
-Filter::Filter(double a0, double a1, double a2, double b0, double b1, double b2)
-    : a1(a1 / a0), a2(a2 / a0), b0(b0 / a0), b1(b1 / a0), b2(b2 / a0) {}
+Filter::Filter(double a0_, double a1_, double a2_, double b0_, double b1_, double b2_)
+    : a1(a1_ / a0_), a2(a2_ / a0_), b0(b0_ / a0_), b1(b1_ / a0_), b2(b2_ / a0_) {}
 
 void Filter::Process(std::vector<s16>& signal) {
     const std::size_t num_frames = signal.size() / 2;
@@ -69,7 +69,7 @@ CascadingFilter CascadingFilter::LowPass(double cutoff, std::size_t cascade_size
 }
 
 CascadingFilter::CascadingFilter() = default;
-CascadingFilter::CascadingFilter(std::vector<Filter> filters) : filters(std::move(filters)) {}
+CascadingFilter::CascadingFilter(std::vector<Filter> filters_) : filters(std::move(filters_)) {}
 
 void CascadingFilter::Process(std::vector<s16>& signal) {
     for (auto& filter : filters) {
