@@ -26,8 +26,7 @@ public:
     void ProcessMethod(Method method, const std::vector<u32>& arguments);
 
     /// Return most recently decoded frame
-    [[nodiscard]] AVFrame* GetFrame();
-    [[nodiscard]] const AVFrame* GetFrame() const;
+    [[nodiscard]] AVFramePtr GetFrame();
 
 private:
     /// Invoke codec to decode a frame

@@ -74,8 +74,8 @@ public:
     ~H264();
 
     /// Compose the H264 header of the frame for FFmpeg decoding
-    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state,
-                                                            bool is_first_frame = false);
+    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(
+        const NvdecCommon::NvdecRegisters& state, bool is_first_frame = false);
 
 private:
     struct H264ParameterSet {

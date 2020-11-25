@@ -29,11 +29,7 @@ void Nvdec::ProcessMethod(Method method, const std::vector<u32>& arguments) {
     }
 }
 
-AVFrame* Nvdec::GetFrame() {
-    return codec->GetCurrentFrame();
-}
-
-const AVFrame* Nvdec::GetFrame() const {
+AVFramePtr Nvdec::GetFrame() {
     return codec->GetCurrentFrame();
 }
 
