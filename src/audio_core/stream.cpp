@@ -136,4 +136,14 @@ std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers(std::size_t max_count)
     return tags;
 }
 
+std::vector<Buffer::Tag> Stream::GetTagsAndReleaseBuffers() {
+    std::vector<Buffer::Tag> tags;
+    tags.reserve(released_buffers.size());
+    while (!released_buffers.empty()) {
+        tags.push_back(released_buffers.front()->GetTag());
+        released_buffers.pop();
+    }
+    return tags;
+}
+
 } // namespace AudioCore

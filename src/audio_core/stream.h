@@ -57,37 +57,40 @@ public:
     bool QueueBuffer(BufferPtr&& buffer);
 
     /// Returns true if the audio stream contains a buffer with the specified tag
-    bool ContainsBuffer(Buffer::Tag tag) const;
+    [[nodiscard]] bool ContainsBuffer(Buffer::Tag tag) const;
 
     /// Returns a vector of recently released buffers specified by tag
-    std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(std::size_t max_count);
+    [[nodiscard]] std::vector<Buffer::Tag> GetTagsAndReleaseBuffers(std::size_t max_count);
+
+    /// Returns a vector of all recently released buffers specified by tag
+    [[nodiscard]] std::vector<Buffer::Tag> GetTagsAndReleaseBuffers();
 
     void SetVolume(float volume);
 
-    float GetVolume() const {
+    [[nodiscard]] float GetVolume() const {
         return game_volume;
     }
 
     /// Returns true if the stream is currently playing
-    bool IsPlaying() const {
+    [[nodiscard]] bool IsPlaying() const {
         return state == State::Playing;
     }
 
     /// Returns the number of queued buffers
-    std::size_t GetQueueSize() const {
+    [[nodiscard]] std::size_t GetQueueSize() const {
         return queued_buffers.size();
     }
 
     /// Gets the sample rate
-    u32 GetSampleRate() const {
+    [[nodiscard]] u32 GetSampleRate() const {
         return sample_rate;
     }
 
     /// Gets the number of channels
-    u32 GetNumChannels() const;
+    [[nodiscard]] u32 GetNumChannels() const;
 
     /// Get the state
-    State GetState() const;
+    [[nodiscard]] State GetState() const;
 
 private:
     /// Plays the next queued buffer in the audio stream, starting playback if necessary
@@ -97,7 +100,7 @@ private:
     void ReleaseActiveBuffer(std::chrono::nanoseconds ns_late = {});
 
     /// Gets the number of core cycles when the specified buffer will be released
-    std::chrono::nanoseconds GetBufferReleaseNS(const Buffer& buffer) const;
+    [[nodiscard]] std::chrono::nanoseconds GetBufferReleaseNS(const Buffer& buffer) const;
 
     u32 sample_rate;                  ///< Sample rate of the stream
     Format format;                    ///< Format of the stream

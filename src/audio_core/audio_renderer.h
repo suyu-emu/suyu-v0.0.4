@@ -36,15 +36,9 @@ class Memory;
 }
 
 namespace AudioCore {
-using DSPStateHolder = std::array<VoiceState*, 6>;
+using DSPStateHolder = std::array<VoiceState*, AudioCommon::MAX_CHANNEL_COUNT>;
 
 class AudioOut;
-
-struct RendererInfo {
-    u64_le elasped_frame_count{};
-    INSERT_PADDING_WORDS(2);
-};
-static_assert(sizeof(RendererInfo) == 0x10, "RendererInfo is an invalid size");
 
 class AudioRenderer {
 public:
@@ -53,14 +47,14 @@ public:
                   std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
     ~AudioRenderer();
 
-    ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
-                                   std::vector<u8>& output_params);
+    [[nodiscard]] ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
+                                                 std::vector<u8>& output_params);
     void QueueMixedBuffer(Buffer::Tag tag);
     void ReleaseAndQueueBuffers();
-    u32 GetSampleRate() const;
-    u32 GetSampleCount() const;
-    u32 GetMixBufferCount() const;
-    Stream::State GetStreamState() const;
+    [[nodiscard]] u32 GetSampleRate() const;
+    [[nodiscard]] u32 GetSampleCount() const;
+    [[nodiscard]] u32 GetMixBufferCount() const;
+    [[nodiscard]] Stream::State GetStreamState() const;
 
 private:
     BehaviorInfo behavior_info{};

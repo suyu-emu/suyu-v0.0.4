@@ -11,6 +11,8 @@
 
 namespace AudioCore {
 
+using DownmixCoefficients = std::array<float_le, 4>;
+
 enum class SinkTypes : u8 {
     Invalid = 0,
     Device = 1,
@@ -50,7 +52,7 @@ public:
         std::array<u8, AudioCommon::MAX_CHANNEL_COUNT> input;
         INSERT_UNION_PADDING_BYTES(1);
         bool down_matrix_enabled;
-        std::array<float_le, 4> down_matrix_coef;
+        DownmixCoefficients down_matrix_coef;
     };
     static_assert(sizeof(SinkInfo::DeviceIn) == 0x11c, "SinkInfo::DeviceIn is an invalid size");
 
@@ -74,16 +76,21 @@ public:
     explicit SinkContext(std::size_t sink_count);
     ~SinkContext();
 
-    std::size_t GetCount() const;
+    [[nodiscard]] std::size_t GetCount() const;
 
-    void UpdateMainSink(SinkInfo::InParams& in);
-    bool InUse() const;
-    std::vector<u8> OutputBuffers() const;
+    void UpdateMainSink(const SinkInfo::InParams& in);
+    [[nodiscard]] bool InUse() const;
+    [[nodiscard]] std::vector<u8> OutputBuffers() const;
+
+    [[nodiscard]] bool HasDownMixingCoefficients() const;
+    [[nodiscard]] const DownmixCoefficients& GetDownmixCoefficients() const;
 
 private:
     bool in_use{false};
     s32 use_count{};
     std::array<u8, AudioCommon::MAX_CHANNEL_COUNT> buffers{};
     std::size_t sink_count{};
+    bool has_downmix_coefs{false};
+    DownmixCoefficients downmix_coefficients{};
 };
 } // namespace AudioCore
