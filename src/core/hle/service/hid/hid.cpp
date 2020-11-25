@@ -155,8 +155,10 @@ private:
         IPC::RequestParser rp{ctx};
         const auto vibration_device_handle{rp.PopRaw<Controller_NPad::DeviceHandle>()};
 
-        applet_resource->GetController<Controller_NPad>(HidController::NPad)
-            .InitializeVibrationDevice(vibration_device_handle);
+        if (applet_resource != nullptr) {
+            applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                .InitializeVibrationDevice(vibration_device_handle);
+        }
 
         LOG_DEBUG(Service_HID, "called, npad_type={}, npad_id={}, device_index={}",
                   vibration_device_handle.npad_type, vibration_device_handle.npad_id,
