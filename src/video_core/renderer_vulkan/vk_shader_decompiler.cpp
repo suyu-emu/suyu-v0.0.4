@@ -2083,16 +2083,12 @@ private:
         case Compare::LessOld:
             return OpFOrdLessThan(t_bool, operand_1, operand_2);
         case Compare::EqualOld:
-            // Note: not accurate when tested against a unit test
-            // TODO: confirm if used by games
             return OpFOrdEqual(t_bool, operand_1, operand_2);
         case Compare::LessEqualOld:
             return OpFOrdLessThanEqual(t_bool, operand_1, operand_2);
         case Compare::GreaterOld:
             return OpFOrdGreaterThan(t_bool, operand_1, operand_2);
         case Compare::NotEqualOld:
-            // Note: not accurate when tested against a unit test
-            // TODO: confirm if used by games
             return OpFOrdNotEqual(t_bool, operand_1, operand_2);
         case Compare::GreaterEqualOld:
             return OpFOrdGreaterThanEqual(t_bool, operand_1, operand_2);
@@ -2105,12 +2101,10 @@ private:
         if (specialization.alpha_test_func == Maxwell::ComparisonOp::AlwaysOld) {
             return;
         }
-
         const Id true_label = OpLabel();
         const Id discard_label = OpLabel();
         const Id alpha_reference = Constant(t_float, specialization.alpha_test_ref);
         const Id alpha_value = OpLoad(t_float, pointer);
-
         const Id condition =
             MaxwellToSpirvComparison(specialization.alpha_test_func, alpha_value, alpha_reference);
 
