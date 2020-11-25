@@ -95,6 +95,8 @@ struct Specialization final {
     std::bitset<Maxwell::NumVertexAttributes> enabled_attributes;
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
     bool ndc_minus_one_to_one{};
+    float alpha_test_ref{};
+    Maxwell::ComparisonOp alpha_test_func{};
 };
 // Old gcc versions don't consider this trivially copyable.
 // static_assert(std::is_trivially_copyable_v<Specialization>);

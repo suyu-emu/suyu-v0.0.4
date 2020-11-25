@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "common/bit_cast.h"
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -343,6 +344,11 @@ VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
         specialization.attribute_types[i] = attribute.Type();
     }
     specialization.ndc_minus_one_to_one = fixed_state.ndc_minus_one_to_one;
+
+    // Alpha test
+    specialization.alpha_test_func =
+        FixedPipelineState::UnpackComparisonOp(fixed_state.alpha_test_func.Value());
+    specialization.alpha_test_ref = Common::BitCast<float>(fixed_state.alpha_test_ref);
 
     SPIRVProgram program;
     std::vector<VkDescriptorSetLayoutBinding> bindings;
