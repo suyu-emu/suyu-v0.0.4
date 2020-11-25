@@ -22,6 +22,10 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
+namespace Settings {
+enum class ControllerType;
+}
+
 namespace Ui {
 class QtControllerSelectorDialog;
 }
@@ -56,6 +60,15 @@ private:
 
     // Sets the controller icons for "Supported Controller Types".
     void SetSupportedControllers();
+
+    // Sets the emulated controllers per player.
+    void SetEmulatedControllers(std::size_t player_index);
+
+    // Gets the Controller Type for a given controller combobox index per player.
+    Settings::ControllerType GetControllerTypeFromIndex(int index, std::size_t player_index) const;
+
+    // Gets the controller combobox index for a given Controller Type per player.
+    int GetIndexFromControllerType(Settings::ControllerType type, std::size_t player_index) const;
 
     // Updates the controller icons per player.
     void UpdateControllerIcon(std::size_t player_index);
@@ -113,6 +126,10 @@ private:
 
     // Comboboxes with a list of emulated controllers per player.
     std::array<QComboBox*, NUM_PLAYERS> emulated_controllers;
+
+    /// Pairs of emulated controller index and Controller Type enum per player.
+    std::array<std::vector<std::pair<int, Settings::ControllerType>>, NUM_PLAYERS>
+        index_controller_type_pairs;
 
     // Labels representing the number of connected controllers
     // above the "Connected Controllers" checkboxes.

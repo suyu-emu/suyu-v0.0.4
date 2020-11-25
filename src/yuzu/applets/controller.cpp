@@ -72,40 +72,6 @@ bool IsControllerCompatible(Settings::ControllerType controller_type,
     }
 }
 
-/// Maps the controller type combobox index to Controller Type enum
-constexpr Settings::ControllerType GetControllerTypeFromIndex(int index) {
-    switch (index) {
-    case 0:
-    default:
-        return Settings::ControllerType::ProController;
-    case 1:
-        return Settings::ControllerType::DualJoyconDetached;
-    case 2:
-        return Settings::ControllerType::LeftJoycon;
-    case 3:
-        return Settings::ControllerType::RightJoycon;
-    case 4:
-        return Settings::ControllerType::Handheld;
-    }
-}
-
-/// Maps the Controller Type enum to controller type combobox index
-constexpr int GetIndexFromControllerType(Settings::ControllerType type) {
-    switch (type) {
-    case Settings::ControllerType::ProController:
-    default:
-        return 0;
-    case Settings::ControllerType::DualJoyconDetached:
-        return 1;
-    case Settings::ControllerType::LeftJoycon:
-        return 2;
-    case Settings::ControllerType::RightJoycon:
-        return 3;
-    case Settings::ControllerType::Handheld:
-        return 4;
-    }
-}
-
 } // namespace
 
 QtControllerSelectorDialog::QtControllerSelectorDialog(
@@ -184,6 +150,11 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
     // This avoids unintentionally changing the states of elements while loading them in.
     SetSupportedControllers();
     DisableUnsupportedPlayers();
+
+    for (std::size_t player_index = 0; player_index < NUM_PLAYERS; ++player_index) {
+        SetEmulatedControllers(player_index);
+    }
+
     LoadConfiguration();
 
     for (std::size_t i = 0; i < NUM_PLAYERS; ++i) {
@@ -223,8 +194,8 @@ QtControllerSelectorDialog::QtControllerSelectorDialog(
 
         if (i == 0) {
             connect(emulated_controllers[i], qOverload<int>(&QComboBox::currentIndexChanged),
-                    [this](int index) {
-                        UpdateDockedState(GetControllerTypeFromIndex(index) ==
+                    [this, i](int index) {
+                        UpdateDockedState(GetControllerTypeFromIndex(index, i) ==
                                           Settings::ControllerType::Handheld);
                     });
         }
@@ -281,8 +252,8 @@ void QtControllerSelectorDialog::LoadConfiguration() {
             (index == 0 && Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
         player_groupboxes[index]->setChecked(connected);
         connected_controller_checkboxes[index]->setChecked(connected);
-        emulated_controllers[index]->setCurrentIndex(
-            GetIndexFromControllerType(Settings::values.players.GetValue()[index].controller_type));
+        emulated_controllers[index]->setCurrentIndex(GetIndexFromControllerType(
+            Settings::values.players.GetValue()[index].controller_type, index));
     }
 
     UpdateDockedState(Settings::values.players.GetValue()[HANDHELD_INDEX].connected);
@@ -338,7 +309,7 @@ bool QtControllerSelectorDialog::CheckIfParametersMet() {
             }
 
             const auto compatible = IsControllerCompatible(
-                GetControllerTypeFromIndex(emulated_controllers[index]->currentIndex()),
+                GetControllerTypeFromIndex(emulated_controllers[index]->currentIndex(), index),
                 parameters);
 
             // If any controller is found to be incompatible, return false early.
@@ -422,6 +393,63 @@ void QtControllerSelectorDialog::SetSupportedControllers() {
     }
 }
 
+void QtControllerSelectorDialog::SetEmulatedControllers(std::size_t player_index) {
+    auto& pairs = index_controller_type_pairs[player_index];
+
+    pairs.clear();
+    emulated_controllers[player_index]->clear();
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::ProController);
+    emulated_controllers[player_index]->addItem(tr("Pro Controller"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::DualJoyconDetached);
+    emulated_controllers[player_index]->addItem(tr("Dual Joycons"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::LeftJoycon);
+    emulated_controllers[player_index]->addItem(tr("Left Joycon"));
+
+    pairs.emplace_back(emulated_controllers[player_index]->count(),
+                       Settings::ControllerType::RightJoycon);
+    emulated_controllers[player_index]->addItem(tr("Right Joycon"));
+
+    if (player_index == 0) {
+        pairs.emplace_back(emulated_controllers[player_index]->count(),
+                           Settings::ControllerType::Handheld);
+        emulated_controllers[player_index]->addItem(tr("Handheld"));
+    }
+}
+
+Settings::ControllerType QtControllerSelectorDialog::GetControllerTypeFromIndex(
+    int index, std::size_t player_index) const {
+    const auto& pairs = index_controller_type_pairs[player_index];
+
+    const auto it = std::find_if(pairs.begin(), pairs.end(),
+                                 [index](const auto& pair) { return pair.first == index; });
+
+    if (it == pairs.end()) {
+        return Settings::ControllerType::ProController;
+    }
+
+    return it->second;
+}
+
+int QtControllerSelectorDialog::GetIndexFromControllerType(Settings::ControllerType type,
+                                                           std::size_t player_index) const {
+    const auto& pairs = index_controller_type_pairs[player_index];
+
+    const auto it = std::find_if(pairs.begin(), pairs.end(),
+                                 [type](const auto& pair) { return pair.second == type; });
+
+    if (it == pairs.end()) {
+        return 0;
+    }
+
+    return it->first;
+}
+
 void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) {
     if (!player_groupboxes[player_index]->isChecked()) {
         connected_controller_icons[player_index]->setStyleSheet(QString{});
@@ -430,7 +458,8 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
     }
 
     const QString stylesheet = [this, player_index] {
-        switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex())) {
+        switch (GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
+                                           player_index)) {
         case Settings::ControllerType::ProController:
             return QStringLiteral("image: url(:/controller/applet_pro_controller%0); ");
         case Settings::ControllerType::DualJoyconDetached:
@@ -445,6 +474,12 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
             return QString{};
         }
     }();
+
+    if (stylesheet.isEmpty()) {
+        connected_controller_icons[player_index]->setStyleSheet(QString{});
+        player_labels[player_index]->show();
+        return;
+    }
 
     const QString theme = [] {
         if (QIcon::themeName().contains(QStringLiteral("dark"))) {
@@ -463,8 +498,8 @@ void QtControllerSelectorDialog::UpdateControllerIcon(std::size_t player_index) 
 void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index) {
     auto& player = Settings::values.players.GetValue()[player_index];
 
-    const auto controller_type =
-        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex());
+    const auto controller_type = GetControllerTypeFromIndex(
+        emulated_controllers[player_index]->currentIndex(), player_index);
     const auto player_connected = player_groupboxes[player_index]->isChecked() &&
                                   controller_type != Settings::ControllerType::Handheld;
 
@@ -507,8 +542,8 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
 
 void QtControllerSelectorDialog::UpdateLEDPattern(std::size_t player_index) {
     if (!player_groupboxes[player_index]->isChecked() ||
-        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex()) ==
-            Settings::ControllerType::Handheld) {
+        GetControllerTypeFromIndex(emulated_controllers[player_index]->currentIndex(),
+                                   player_index) == Settings::ControllerType::Handheld) {
         led_patterns_boxes[player_index][0]->setChecked(false);
         led_patterns_boxes[player_index][1]->setChecked(false);
         led_patterns_boxes[player_index][2]->setChecked(false);
