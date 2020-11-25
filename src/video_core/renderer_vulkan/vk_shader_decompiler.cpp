@@ -2075,47 +2075,49 @@ private:
         return {};
     }
 
-    void AlphaTest(Id pointer) {
-        const Id true_label = OpLabel();
-        const Id skip_label = OpLabel();
-        const Id alpha_reference = Constant(t_float, specialization.alpha_test_ref);
-        const Id alpha_value = OpLoad(t_float, pointer);
-        Id condition;
+    Id MaxwellToSpirvComparison(Maxwell::ComparisonOp compare_op, Id operand_1, Id operand_2) {
         using Compare = Maxwell::ComparisonOp;
-        switch (specialization.alpha_test_func) {
+        switch (compare_op) {
         case Compare::NeverOld:
-            condition = v_false; // Never true
-            break;
+            return v_false; // Never let the test pass
         case Compare::LessOld:
-            condition = OpFOrdLessThan(t_bool, alpha_reference, alpha_value);
-            break;
+            return OpFOrdLessThan(t_bool, operand_1, operand_2);
         case Compare::EqualOld:
-            condition = OpFOrdEqual(t_bool, alpha_reference, alpha_value);
-            break;
+            // Note: not accurate when tested against a unit test
+            // TODO: confirm if used by games
+            return OpFOrdEqual(t_bool, operand_1, operand_2);
         case Compare::LessEqualOld:
-            condition = OpFOrdLessThanEqual(t_bool, alpha_reference, alpha_value);
-            break;
+            return OpFOrdLessThanEqual(t_bool, operand_1, operand_2);
         case Compare::GreaterOld:
-            // Note: requires "Equal" to properly work for ssbu. perhaps a precision issue
-            condition = OpFOrdGreaterThanEqual(t_bool, alpha_reference, alpha_value);
-            break;
+            return OpFOrdGreaterThan(t_bool, operand_1, operand_2);
         case Compare::NotEqualOld:
             // Note: not accurate when tested against a unit test
             // TODO: confirm if used by games
-            condition = OpFOrdNotEqual(t_bool, alpha_reference, alpha_value);
-            break;
+            return OpFOrdNotEqual(t_bool, operand_1, operand_2);
         case Compare::GreaterEqualOld:
-            condition = OpFOrdGreaterThanEqual(t_bool, alpha_reference, alpha_value);
-            break;
-        case Compare::AlwaysOld:
-            return;
+            return OpFOrdGreaterThanEqual(t_bool, operand_1, operand_2);
         default:
             UNREACHABLE();
         }
-        OpBranchConditional(condition, true_label, skip_label);
-        AddLabel(true_label);
+    }
+
+    void AlphaTest(Id pointer) {
+        if (specialization.alpha_test_func == Maxwell::ComparisonOp::AlwaysOld) {
+            return;
+        }
+
+        const Id true_label = OpLabel();
+        const Id discard_label = OpLabel();
+        const Id alpha_reference = Constant(t_float, specialization.alpha_test_ref);
+        const Id alpha_value = OpLoad(t_float, pointer);
+
+        const Id condition =
+            MaxwellToSpirvComparison(specialization.alpha_test_func, alpha_value, alpha_reference);
+
+        OpBranchConditional(condition, true_label, discard_label);
+        AddLabel(discard_label);
         OpKill();
-        AddLabel(skip_label);
+        AddLabel(true_label);
     }
 
     void PreExit() {

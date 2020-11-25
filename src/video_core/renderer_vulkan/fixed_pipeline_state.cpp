@@ -8,6 +8,7 @@
 
 #include <boost/functional/hash.hpp>
 
+#include "common/bit_cast.h"
 #include "common/cityhash.h"
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
@@ -64,9 +65,9 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
     const auto test_func =
         regs.alpha_test_enabled == 1 ? regs.alpha_test_func : Maxwell::ComparisonOp::Always;
     alpha_test_func.Assign(PackComparisonOp(test_func));
-    std::memcpy(&alpha_test_ref, &regs.alpha_test_ref, sizeof(u32)); // TODO: C++20 std::bit_cast
+    alpha_test_ref = Common::BitCast<u32>(regs.alpha_test_ref);
 
-    std::memcpy(&point_size, &regs.point_size, sizeof(point_size)); // TODO: C++20 std::bit_cast
+    point_size = Common::BitCast<u32>(regs.point_size);
 
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
         binding_divisors[index] =
