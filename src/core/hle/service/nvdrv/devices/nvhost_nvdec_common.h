@@ -25,8 +25,8 @@ public:
      * @param output A buffer where the output data will be written to.
      * @returns The result code of the ioctl.
      */
-    virtual NvResult Ioctl1(Ioctl command, const std::vector<u8>& input,
-                            std::vector<u8>& output) = 0;
+    virtual NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
+                            IoctlCtrl& ctrl) = 0;
 
     /**
      * Handles an ioctl2 request.
@@ -37,7 +37,8 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
-                            const std::vector<u8>& inline_input, std::vector<u8>& output) = 0;
+                            const std::vector<u8>& inline_input, std::vector<u8>& output,
+                            IoctlCtrl& ctrl) = 0;
 
     /**
      * Handles an ioctl3 request.
@@ -48,7 +49,7 @@ public:
      * @returns The result code of the ioctl.
      */
     virtual NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                            std::vector<u8>& inline_output) = 0;
+                            std::vector<u8>& inline_output, IoctlCtrl& ctrl) = 0;
 
 protected:
     class BufferMap final {
