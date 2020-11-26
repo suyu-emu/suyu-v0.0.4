@@ -92,33 +92,43 @@ FileSys::VirtualFile GetGameFileFromPath(const FileSys::VirtualFilesystem& vfs,
     std::string dir_name;
     std::string filename;
     Common::SplitPath(path, &dir_name, &filename, nullptr);
+
     if (filename == "00") {
         const auto dir = vfs->OpenDirectory(dir_name, FileSys::Mode::Read);
         std::vector<FileSys::VirtualFile> concat;
-        for (u8 i = 0; i < 0x10; ++i) {
-            auto next = dir->GetFile(fmt::format("{:02X}", i));
-            if (next != nullptr)
+
+        for (u32 i = 0; i < 0x10; ++i) {
+            const auto file_name = fmt::format("{:02X}", i);
+            auto next = dir->GetFile(file_name);
+
+            if (next != nullptr) {
                 concat.push_back(std::move(next));
-            else {
-                next = dir->GetFile(fmt::format("{:02x}", i));
-                if (next != nullptr)
-                    concat.push_back(std::move(next));
-                else
+            } else {
+                next = dir->GetFile(file_name);
+
+                if (next == nullptr) {
                     break;
+                }
+
+                concat.push_back(std::move(next));
             }
         }
 
-        if (concat.empty())
+        if (concat.empty()) {
             return nullptr;
+        }
 
-        return FileSys::ConcatenatedVfsFile::MakeConcatenatedFile(concat, dir->GetName());
+        return FileSys::ConcatenatedVfsFile::MakeConcatenatedFile(std::move(concat),
+                                                                  dir->GetName());
     }
 
-    if (Common::FS::IsDirectory(path))
-        return vfs->OpenFile(path + "/" + "main", FileSys::Mode::Read);
+    if (Common::FS::IsDirectory(path)) {
+        return vfs->OpenFile(path + "/main", FileSys::Mode::Read);
+    }
 
     return vfs->OpenFile(path, FileSys::Mode::Read);
 }
+
 struct System::Impl {
     explicit Impl(System& system)
         : kernel{system}, fs_controller{system}, memory{system},
