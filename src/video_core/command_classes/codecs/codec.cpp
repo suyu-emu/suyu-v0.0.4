@@ -104,6 +104,10 @@ void Codec::Decode() {
         AVFramePtr frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
         avcodec_receive_frame(av_codec_ctx, frame.get());
         av_frames.push(std::move(frame));
+        // Limit queue to 10 frames. Workaround for ZLA decode and queue spam
+        if (av_frames.size() > 10) {
+            av_frames.pop();
+        }
     }
 }
 
