@@ -95,6 +95,7 @@ struct Specialization final {
     std::bitset<Maxwell::NumVertexAttributes> enabled_attributes;
     std::array<Maxwell::VertexAttribute::Type, Maxwell::NumVertexAttributes> attribute_types{};
     bool ndc_minus_one_to_one{};
+    bool early_fragment_tests{};
     float alpha_test_ref{};
     Maxwell::ComparisonOp alpha_test_func{};
 };

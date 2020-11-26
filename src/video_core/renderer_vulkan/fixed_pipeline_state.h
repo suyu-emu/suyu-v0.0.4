@@ -171,7 +171,7 @@ struct FixedPipelineState {
     };
 
     union {
-        u32 raw;
+        u32 raw1;
         BitField<0, 1, u32> no_extended_dynamic_state;
         BitField<2, 1, u32> primitive_restart_enable;
         BitField<3, 1, u32> depth_bias_enable;
@@ -187,13 +187,13 @@ struct FixedPipelineState {
         BitField<23, 1, u32> rasterize_enable;
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
     };
-
-    u32 alpha_test_ref; ///< Alpha test reference value
     union {
-        u32 alpha_raw;
+        u32 raw2;
         BitField<0, 3, u32> alpha_test_func;
+        BitField<3, 1, u32> early_z;
     };
 
+    u32 alpha_test_ref;
     u32 point_size;
     std::array<u32, Maxwell::NumVertexArrays> binding_divisors;
     std::array<VertexAttribute, Maxwell::NumVertexAttributes> attributes;

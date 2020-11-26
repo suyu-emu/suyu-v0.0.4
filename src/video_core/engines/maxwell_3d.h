@@ -755,7 +755,11 @@ public:
 
                 u32 data_upload;
 
-                INSERT_UNION_PADDING_WORDS(0x44);
+                INSERT_UNION_PADDING_WORDS(0x16);
+
+                u32 force_early_fragment_tests;
+
+                INSERT_UNION_PADDING_WORDS(0x2D);
 
                 struct {
                     union {
@@ -1572,6 +1576,7 @@ ASSERT_REG_POSITION(shadow_ram_control, 0x49);
 ASSERT_REG_POSITION(upload, 0x60);
 ASSERT_REG_POSITION(exec_upload, 0x6C);
 ASSERT_REG_POSITION(data_upload, 0x6D);
+ASSERT_REG_POSITION(force_early_fragment_tests, 0x84);
 ASSERT_REG_POSITION(sync_info, 0xB2);
 ASSERT_REG_POSITION(tess_mode, 0xC8);
 ASSERT_REG_POSITION(tess_level_outer, 0xC9);

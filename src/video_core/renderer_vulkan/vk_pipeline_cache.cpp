@@ -344,6 +344,7 @@ VKPipelineCache::DecompileShaders(const FixedPipelineState& fixed_state) {
         specialization.attribute_types[i] = attribute.Type();
     }
     specialization.ndc_minus_one_to_one = fixed_state.ndc_minus_one_to_one;
+    specialization.early_fragment_tests = fixed_state.early_z;
 
     // Alpha test
     specialization.alpha_test_func =
