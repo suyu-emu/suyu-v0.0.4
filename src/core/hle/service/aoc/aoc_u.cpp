@@ -48,8 +48,8 @@ static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
     return add_on_content;
 }
 
-AOC_U::AOC_U(Core::System& system)
-    : ServiceFramework("aoc:u"), add_on_content(AccumulateAOCTitleIDs(system)), system(system) {
+AOC_U::AOC_U(Core::System& system_)
+    : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "CountAddOnContentByApplicationId"},

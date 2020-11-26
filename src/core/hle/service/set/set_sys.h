@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Set {
 
 class SET_SYS final : public ServiceFramework<SET_SYS> {
 public:
-    explicit SET_SYS();
+    explicit SET_SYS(Core::System& system_);
     ~SET_SYS() override;
 
 private:

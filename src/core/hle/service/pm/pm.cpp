@@ -44,7 +44,7 @@ void GetApplicationPidGeneric(Kernel::HLERequestContext& ctx,
 
 class BootMode final : public ServiceFramework<BootMode> {
 public:
-    explicit BootMode() : ServiceFramework{"pm:bm"} {
+    explicit BootMode(Core::System& system_) : ServiceFramework{system_, "pm:bm"} {
         static const FunctionInfo functions[] = {
             {0, &BootMode::GetBootMode, "GetBootMode"},
             {1, &BootMode::SetMaintenanceBoot, "SetMaintenanceBoot"},
@@ -75,8 +75,8 @@ private:
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
-    explicit DebugMonitor(const Kernel::KernelCore& kernel)
-        : ServiceFramework{"pm:dmnt"}, kernel(kernel) {
+    explicit DebugMonitor(Core::System& system_)
+        : ServiceFramework{system_, "pm:dmnt"}, kernel{system_.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetJitDebugProcessIdList"},
@@ -125,8 +125,9 @@ private:
 
 class Info final : public ServiceFramework<Info> {
 public:
-    explicit Info(const std::vector<std::shared_ptr<Kernel::Process>>& process_list)
-        : ServiceFramework{"pm:info"}, process_list(process_list) {
+    explicit Info(Core::System& system_,
+                  const std::vector<std::shared_ptr<Kernel::Process>>& process_list_)
+        : ServiceFramework{system_, "pm:info"}, process_list{process_list_} {
         static const FunctionInfo functions[] = {
             {0, &Info::GetTitleId, "GetTitleId"},
         };
@@ -160,8 +161,8 @@ private:
 
 class Shell final : public ServiceFramework<Shell> {
 public:
-    explicit Shell(const Kernel::KernelCore& kernel)
-        : ServiceFramework{"pm:shell"}, kernel(kernel) {
+    explicit Shell(Core::System& system_)
+        : ServiceFramework{system_, "pm:shell"}, kernel{system_.Kernel()} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "LaunchProgram"},
@@ -190,11 +191,11 @@ private:
 };
 
 void InstallInterfaces(Core::System& system) {
-    std::make_shared<BootMode>()->InstallAsService(system.ServiceManager());
-    std::make_shared<DebugMonitor>(system.Kernel())->InstallAsService(system.ServiceManager());
-    std::make_shared<Info>(system.Kernel().GetProcessList())
+    std::make_shared<BootMode>(system)->InstallAsService(system.ServiceManager());
+    std::make_shared<DebugMonitor>(system)->InstallAsService(system.ServiceManager());
+    std::make_shared<Info>(system, system.Kernel().GetProcessList())
         ->InstallAsService(system.ServiceManager());
-    std::make_shared<Shell>(system.Kernel())->InstallAsService(system.ServiceManager());
+    std::make_shared<Shell>(system)->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::PM

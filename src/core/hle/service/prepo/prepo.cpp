@@ -16,8 +16,7 @@ namespace Service::PlayReport {
 
 class PlayReport final : public ServiceFramework<PlayReport> {
 public:
-    explicit PlayReport(const char* name, Core::System& system)
-        : ServiceFramework{name}, system(system) {
+    explicit PlayReport(const char* name, Core::System& system_) : ServiceFramework{system_, name} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {10100, &PlayReport::SaveReport<Core::Reporter::PlayReportType::Old>, "SaveReportOld"},
@@ -140,8 +139,6 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
-
-    Core::System& system;
 };
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {

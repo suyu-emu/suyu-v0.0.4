@@ -18,8 +18,8 @@ void InstallInterfaces(Core::System& system) {
         ->InstallAsService(system.ServiceManager());
 
     // BackGround Task Controller
-    std::make_shared<BGTC_T>()->InstallAsService(system.ServiceManager());
-    std::make_shared<BGTC_SC>()->InstallAsService(system.ServiceManager());
+    std::make_shared<BGTC_T>(system)->InstallAsService(system.ServiceManager());
+    std::make_shared<BGTC_SC>(system)->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::Glue

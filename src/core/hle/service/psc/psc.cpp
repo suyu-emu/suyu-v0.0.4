@@ -14,7 +14,7 @@ namespace Service::PSC {
 
 class PSC_C final : public ServiceFramework<PSC_C> {
 public:
-    explicit PSC_C() : ServiceFramework{"psc:c"} {
+    explicit PSC_C(Core::System& system_) : ServiceFramework{system_, "psc:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -35,7 +35,7 @@ public:
 
 class IPmModule final : public ServiceFramework<IPmModule> {
 public:
-    explicit IPmModule() : ServiceFramework{"IPmModule"} {
+    explicit IPmModule(Core::System& system_) : ServiceFramework{system_, "IPmModule"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -52,7 +52,7 @@ public:
 
 class PSC_M final : public ServiceFramework<PSC_M> {
 public:
-    explicit PSC_M() : ServiceFramework{"psc:m"} {
+    explicit PSC_M(Core::System& system_) : ServiceFramework{system_, "psc:m"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &PSC_M::GetPmModule, "GetPmModule"},
@@ -68,13 +68,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IPmModule>();
+        rb.PushIpcInterface<IPmModule>(system);
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<PSC_C>()->InstallAsService(sm);
-    std::make_shared<PSC_M>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<PSC_C>(system)->InstallAsService(sm);
+    std::make_shared<PSC_M>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::PSC

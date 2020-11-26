@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Nvidia {
 
 class NVMEMP final : public ServiceFramework<NVMEMP> {
 public:
-    NVMEMP();
+    explicit NVMEMP(Core::System& system_);
     ~NVMEMP() override;
 
 private:

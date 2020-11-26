@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::SM {
 class ServiceManager;
 }
@@ -87,6 +91,6 @@ static_assert(sizeof(ApplicationAlbumFileEntry) == 0x30,
               "ApplicationAlbumFileEntry has incorrect size.");
 
 /// Registers all Capture services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system);
 
 } // namespace Service::Capture

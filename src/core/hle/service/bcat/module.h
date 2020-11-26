@@ -37,9 +37,6 @@ public:
 
         std::shared_ptr<Module> module;
         std::unique_ptr<Backend> backend;
-
-    private:
-        Core::System& system;
     };
 };
 

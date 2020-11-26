@@ -38,7 +38,7 @@ static void LogCurrentStorage(AppletDataBroker& broker, std::string_view prefix)
 }
 
 Auth::Auth(Core::System& system_, Core::Frontend::ParentalControlsApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_) {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 Auth::~Auth() = default;
 
@@ -135,8 +135,8 @@ void Auth::Execute() {
     }
 }
 
-void Auth::AuthFinished(bool successful) {
-    this->successful = successful;
+void Auth::AuthFinished(bool is_successful) {
+    this->successful = is_successful;
 
     struct Return {
         ResultCode result_code;
@@ -148,12 +148,12 @@ void Auth::AuthFinished(bool successful) {
     std::vector<u8> out(sizeof(Return));
     std::memcpy(out.data(), &return_, sizeof(Return));
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(out)));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out)));
     broker.SignalStateChanged();
 }
 
 PhotoViewer::PhotoViewer(Core::System& system_, const Core::Frontend::PhotoViewerApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_), system{system_} {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 PhotoViewer::~PhotoViewer() = default;
 
@@ -198,12 +198,12 @@ void PhotoViewer::Execute() {
 }
 
 void PhotoViewer::ViewFinished() {
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{}));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{}));
     broker.SignalStateChanged();
 }
 
 StubApplet::StubApplet(Core::System& system_, AppletId id_)
-    : Applet{system_.Kernel()}, id(id_), system{system_} {}
+    : Applet{system_.Kernel()}, id{id_}, system{system_} {}
 
 StubApplet::~StubApplet() = default;
 
@@ -234,8 +234,9 @@ void StubApplet::ExecuteInteractive() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     LogCurrentStorage(broker, "ExecuteInteractive");
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    broker.PushInteractiveDataFromApplet(
+        std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
     broker.SignalStateChanged();
 }
 
@@ -243,8 +244,9 @@ void StubApplet::Execute() {
     LOG_WARNING(Service_AM, "called (STUBBED)");
     LogCurrentStorage(broker, "Execute");
 
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
-    broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::vector<u8>(0x1000)));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
+    broker.PushInteractiveDataFromApplet(
+        std::make_shared<IStorage>(system, std::vector<u8>(0x1000)));
     broker.SignalStateChanged();
 }
 

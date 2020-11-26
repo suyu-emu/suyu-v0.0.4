@@ -53,6 +53,7 @@ private:
     bool complete = false;
     ResultCode status = RESULT_SUCCESS;
     std::vector<u8> final_data;
+    Core::System& system;
 };
 
 } // namespace Service::AM::Applets

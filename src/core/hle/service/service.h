@@ -80,6 +80,9 @@ protected:
     template <typename Self>
     using HandlerFnP = void (Self::*)(Kernel::HLERequestContext&);
 
+    /// System context that the service operates under.
+    Core::System& system;
+
 private:
     template <typename T>
     friend class ServiceFramework;
@@ -93,7 +96,8 @@ private:
     using InvokerFn = void(ServiceFrameworkBase* object, HandlerFnP<ServiceFrameworkBase> member,
                            Kernel::HLERequestContext& ctx);
 
-    ServiceFrameworkBase(const char* service_name, u32 max_sessions, InvokerFn* handler_invoker);
+    explicit ServiceFrameworkBase(Core::System& system_, const char* service_name_,
+                                  u32 max_sessions_, InvokerFn* handler_invoker_);
     ~ServiceFrameworkBase() override;
 
     void RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n);
@@ -151,11 +155,15 @@ protected:
 
     /**
      * Initializes the handler with no functions installed.
-     * @param max_sessions Maximum number of sessions that can be
-     * connected to this service at the same time.
+     *
+     * @param system_       The system context to construct this service under.
+     * @param service_name_ Name of the service.
+     * @param max_sessions_ Maximum number of sessions that can be
+     *                      connected to this service at the same time.
      */
-    explicit ServiceFramework(const char* service_name, u32 max_sessions = DefaultMaxSessions)
-        : ServiceFrameworkBase(service_name, max_sessions, Invoker) {}
+    explicit ServiceFramework(Core::System& system_, const char* service_name_,
+                              u32 max_sessions_ = DefaultMaxSessions)
+        : ServiceFrameworkBase(system_, service_name_, max_sessions_, Invoker) {}
 
     /// Registers handlers in the service.
     template <std::size_t N>

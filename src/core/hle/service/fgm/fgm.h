@@ -4,12 +4,16 @@
 
 #pragma once
 
+namespace Core {
+class System;
+}
+
 namespace Service::SM {
 class ServiceManager;
 }
 
 namespace Service::FGM {
 
-void InstallInterfaces(SM::ServiceManager& sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system);
 
 } // namespace Service::FGM

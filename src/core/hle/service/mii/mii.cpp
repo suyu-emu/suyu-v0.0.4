@@ -18,7 +18,8 @@ constexpr ResultCode ERROR_INVALID_ARGUMENT{ErrorModule::Mii, 1};
 
 class IDatabaseService final : public ServiceFramework<IDatabaseService> {
 public:
-    explicit IDatabaseService() : ServiceFramework{"IDatabaseService"} {
+    explicit IDatabaseService(Core::System& system_)
+        : ServiceFramework{system_, "IDatabaseService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDatabaseService::IsUpdated, "IsUpdated"},
@@ -252,7 +253,8 @@ private:
 
 class MiiDBModule final : public ServiceFramework<MiiDBModule> {
 public:
-    explicit MiiDBModule(const char* name) : ServiceFramework{name} {
+    explicit MiiDBModule(Core::System& system_, const char* name)
+        : ServiceFramework{system_, name} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &MiiDBModule::GetDatabaseService, "GetDatabaseService"},
@@ -266,7 +268,7 @@ private:
     void GetDatabaseService(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IDatabaseService>();
+        rb.PushIpcInterface<IDatabaseService>(system);
 
         LOG_DEBUG(Service_Mii, "called");
     }
@@ -274,7 +276,7 @@ private:
 
 class MiiImg final : public ServiceFramework<MiiImg> {
 public:
-    explicit MiiImg() : ServiceFramework{"miiimg"} {
+    explicit MiiImg(Core::System& system_) : ServiceFramework{system_, "miiimg"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -298,11 +300,11 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<MiiDBModule>("mii:e")->InstallAsService(sm);
-    std::make_shared<MiiDBModule>("mii:u")->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<MiiDBModule>(system, "mii:e")->InstallAsService(sm);
+    std::make_shared<MiiDBModule>(system, "mii:u")->InstallAsService(sm);
 
-    std::make_shared<MiiImg>()->InstallAsService(sm);
+    std::make_shared<MiiImg>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::Mii

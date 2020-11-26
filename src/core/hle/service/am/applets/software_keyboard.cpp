@@ -53,7 +53,7 @@ static Core::Frontend::SoftwareKeyboardParameters ConvertToFrontendParameters(
 
 SoftwareKeyboard::SoftwareKeyboard(Core::System& system_,
                                    const Core::Frontend::SoftwareKeyboardApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_) {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 SoftwareKeyboard::~SoftwareKeyboard() = default;
 
@@ -122,7 +122,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
 
         switch (request) {
         case Request::Calc: {
-            broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{1}));
+            broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{1}));
             broker.SignalStateChanged();
             break;
         }
@@ -135,7 +135,7 @@ void SoftwareKeyboard::ExecuteInteractive() {
 
 void SoftwareKeyboard::Execute() {
     if (complete) {
-        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(final_data)));
+        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(final_data)));
         broker.SignalStateChanged();
         return;
     }
@@ -179,15 +179,17 @@ void SoftwareKeyboard::WriteText(std::optional<std::u16string> text) {
         final_data = output_main;
 
         if (complete) {
-            broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(output_main)));
+            broker.PushNormalDataFromApplet(
+                std::make_shared<IStorage>(system, std::move(output_main)));
             broker.SignalStateChanged();
         } else {
-            broker.PushInteractiveDataFromApplet(std::make_shared<IStorage>(std::move(output_sub)));
+            broker.PushInteractiveDataFromApplet(
+                std::make_shared<IStorage>(system, std::move(output_sub)));
         }
     } else {
         output_main[0] = 1;
         complete = true;
-        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(output_main)));
+        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(output_main)));
         broker.SignalStateChanged();
     }
 }

@@ -12,7 +12,7 @@
 
 namespace Service::HID {
 
-IRS::IRS(Core::System& system) : ServiceFramework{"irs"}, system(system) {
+IRS::IRS(Core::System& system_) : ServiceFramework{system_, "irs"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {302, &IRS::ActivateIrsensor, "ActivateIrsensor"},
@@ -175,7 +175,7 @@ void IRS::ActivateIrsensorWithFunctionLevel(Kernel::HLERequestContext& ctx) {
 
 IRS::~IRS() = default;
 
-IRS_SYS::IRS_SYS() : ServiceFramework{"irs:sys"} {
+IRS_SYS::IRS_SYS(Core::System& system_) : ServiceFramework{system_, "irs:sys"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {500, nullptr, "SetAppletResourceUserId"},

@@ -13,7 +13,7 @@ namespace Service::LDN {
 
 class IMonitorService final : public ServiceFramework<IMonitorService> {
 public:
-    explicit IMonitorService() : ServiceFramework{"IMonitorService"} {
+    explicit IMonitorService(Core::System& system_) : ServiceFramework{system_, "IMonitorService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetStateForMonitor"},
@@ -33,7 +33,7 @@ public:
 
 class LDNM final : public ServiceFramework<LDNM> {
 public:
-    explicit LDNM() : ServiceFramework{"ldn:m"} {
+    explicit LDNM(Core::System& system_) : ServiceFramework{system_, "ldn:m"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &LDNM::CreateMonitorService, "CreateMonitorService"}
@@ -48,15 +48,15 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IMonitorService>();
+        rb.PushIpcInterface<IMonitorService>(system);
     }
 };
 
 class ISystemLocalCommunicationService final
     : public ServiceFramework<ISystemLocalCommunicationService> {
 public:
-    explicit ISystemLocalCommunicationService()
-        : ServiceFramework{"ISystemLocalCommunicationService"} {
+    explicit ISystemLocalCommunicationService(Core::System& system_)
+        : ServiceFramework{system_, "ISystemLocalCommunicationService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetState"},
@@ -99,7 +99,8 @@ public:
 class IUserLocalCommunicationService final
     : public ServiceFramework<IUserLocalCommunicationService> {
 public:
-    explicit IUserLocalCommunicationService() : ServiceFramework{"IUserLocalCommunicationService"} {
+    explicit IUserLocalCommunicationService(Core::System& system_)
+        : ServiceFramework{system_, "IUserLocalCommunicationService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetState"},
@@ -148,7 +149,7 @@ public:
 
 class LDNS final : public ServiceFramework<LDNS> {
 public:
-    explicit LDNS() : ServiceFramework{"ldn:s"} {
+    explicit LDNS(Core::System& system_) : ServiceFramework{system_, "ldn:s"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &LDNS::CreateSystemLocalCommunicationService, "CreateSystemLocalCommunicationService"},
@@ -163,13 +164,13 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ISystemLocalCommunicationService>();
+        rb.PushIpcInterface<ISystemLocalCommunicationService>(system);
     }
 };
 
 class LDNU final : public ServiceFramework<LDNU> {
 public:
-    explicit LDNU() : ServiceFramework{"ldn:u"} {
+    explicit LDNU(Core::System& system_) : ServiceFramework{system_, "ldn:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &LDNU::CreateUserLocalCommunicationService, "CreateUserLocalCommunicationService"},
@@ -184,14 +185,14 @@ public:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IUserLocalCommunicationService>();
+        rb.PushIpcInterface<IUserLocalCommunicationService>(system);
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<LDNM>()->InstallAsService(sm);
-    std::make_shared<LDNS>()->InstallAsService(sm);
-    std::make_shared<LDNU>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<LDNM>(system)->InstallAsService(sm);
+    std::make_shared<LDNS>(system)->InstallAsService(sm);
+    std::make_shared<LDNU>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::LDN

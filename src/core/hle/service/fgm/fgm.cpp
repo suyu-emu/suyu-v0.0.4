@@ -14,7 +14,7 @@ namespace Service::FGM {
 
 class IRequest final : public ServiceFramework<IRequest> {
 public:
-    explicit IRequest() : ServiceFramework{"IRequest"} {
+    explicit IRequest(Core::System& system_) : ServiceFramework{system_, "IRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -30,7 +30,7 @@ public:
 
 class FGM final : public ServiceFramework<FGM> {
 public:
-    explicit FGM(const char* name) : ServiceFramework{name} {
+    explicit FGM(Core::System& system_, const char* name) : ServiceFramework{system_, name} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &FGM::Initialize, "Initialize"},
@@ -46,13 +46,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IRequest>();
+        rb.PushIpcInterface<IRequest>(system);
     }
 };
 
 class FGM_DBG final : public ServiceFramework<FGM_DBG> {
 public:
-    explicit FGM_DBG() : ServiceFramework{"fgm:dbg"} {
+    explicit FGM_DBG(Core::System& system_) : ServiceFramework{system_, "fgm:dbg"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -65,11 +65,11 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<FGM>("fgm")->InstallAsService(sm);
-    std::make_shared<FGM>("fgm:0")->InstallAsService(sm);
-    std::make_shared<FGM>("fgm:9")->InstallAsService(sm);
-    std::make_shared<FGM_DBG>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<FGM>(system, "fgm")->InstallAsService(sm);
+    std::make_shared<FGM>(system, "fgm:0")->InstallAsService(sm);
+    std::make_shared<FGM>(system, "fgm:9")->InstallAsService(sm);
+    std::make_shared<FGM_DBG>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::FGM

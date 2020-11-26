@@ -77,13 +77,11 @@ public:
 private:
     void GetAppletResourceUserId(Kernel::HLERequestContext& ctx);
     void AcquireForegroundRights(Kernel::HLERequestContext& ctx);
-
-    Core::System& system;
 };
 
 class IAudioController final : public ServiceFramework<IAudioController> {
 public:
-    IAudioController();
+    explicit IAudioController(Core::System& system_);
     ~IAudioController() override;
 
 private:
@@ -109,13 +107,13 @@ private:
 
 class IDisplayController final : public ServiceFramework<IDisplayController> {
 public:
-    IDisplayController();
+    explicit IDisplayController(Core::System& system_);
     ~IDisplayController() override;
 };
 
 class IDebugFunctions final : public ServiceFramework<IDebugFunctions> {
 public:
-    IDebugFunctions();
+    explicit IDebugFunctions(Core::System& system_);
     ~IDebugFunctions() override;
 };
 
@@ -154,7 +152,6 @@ private:
         Disable = 2,
     };
 
-    Core::System& system;
     NVFlinger::NVFlinger& nvflinger;
     Kernel::EventPair launchable_event;
     Kernel::EventPair accumulated_suspended_tick_changed_event;
@@ -167,8 +164,8 @@ private:
 
 class ICommonStateGetter final : public ServiceFramework<ICommonStateGetter> {
 public:
-    explicit ICommonStateGetter(Core::System& system,
-                                std::shared_ptr<AppletMessageQueue> msg_queue);
+    explicit ICommonStateGetter(Core::System& system_,
+                                std::shared_ptr<AppletMessageQueue> msg_queue_);
     ~ICommonStateGetter() override;
 
 private:
@@ -196,7 +193,6 @@ private:
     void GetDefaultDisplayResolution(Kernel::HLERequestContext& ctx);
     void SetCpuBoostMode(Kernel::HLERequestContext& ctx);
 
-    Core::System& system;
     std::shared_ptr<AppletMessageQueue> msg_queue;
     bool vr_mode_state{};
 };
@@ -211,7 +207,7 @@ public:
 
 class IStorage final : public ServiceFramework<IStorage> {
 public:
-    explicit IStorage(std::vector<u8>&& buffer);
+    explicit IStorage(Core::System& system_, std::vector<u8>&& buffer);
     ~IStorage() override;
 
     std::vector<u8>& GetData() {
@@ -235,7 +231,7 @@ private:
 
 class IStorageAccessor final : public ServiceFramework<IStorageAccessor> {
 public:
-    explicit IStorageAccessor(IStorage& backing);
+    explicit IStorageAccessor(Core::System& system_, IStorage& backing_);
     ~IStorageAccessor() override;
 
 private:
@@ -255,8 +251,6 @@ private:
     void CreateLibraryApplet(Kernel::HLERequestContext& ctx);
     void CreateStorage(Kernel::HLERequestContext& ctx);
     void CreateTransferMemoryStorage(Kernel::HLERequestContext& ctx);
-
-    Core::System& system;
 };
 
 class IApplicationFunctions final : public ServiceFramework<IApplicationFunctions> {
@@ -299,12 +293,11 @@ private:
     s32 previous_program_index{-1};
     Kernel::EventPair gpu_error_detected_event;
     Kernel::EventPair friend_invitation_storage_channel_event;
-    Core::System& system;
 };
 
 class IHomeMenuFunctions final : public ServiceFramework<IHomeMenuFunctions> {
 public:
-    explicit IHomeMenuFunctions(Kernel::KernelCore& kernel);
+    explicit IHomeMenuFunctions(Core::System& system_);
     ~IHomeMenuFunctions() override;
 
 private:
@@ -312,24 +305,23 @@ private:
     void GetPopFromGeneralChannelEvent(Kernel::HLERequestContext& ctx);
 
     Kernel::EventPair pop_from_general_channel_event;
-    Kernel::KernelCore& kernel;
 };
 
 class IGlobalStateController final : public ServiceFramework<IGlobalStateController> {
 public:
-    IGlobalStateController();
+    explicit IGlobalStateController(Core::System& system_);
     ~IGlobalStateController() override;
 };
 
 class IApplicationCreator final : public ServiceFramework<IApplicationCreator> {
 public:
-    IApplicationCreator();
+    explicit IApplicationCreator(Core::System& system_);
     ~IApplicationCreator() override;
 };
 
 class IProcessWindingController final : public ServiceFramework<IProcessWindingController> {
 public:
-    IProcessWindingController();
+    explicit IProcessWindingController(Core::System& system_);
     ~IProcessWindingController() override;
 };
 

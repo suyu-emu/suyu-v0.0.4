@@ -6,7 +6,7 @@
 
 namespace Service::AM {
 
-TCAP::TCAP() : ServiceFramework{"tcap"} {
+TCAP::TCAP(Core::System& system_) : ServiceFramework{system_, "tcap"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetContinuousHighSkinTemperatureEvent"},

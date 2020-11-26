@@ -247,9 +247,10 @@ int main(int argc, char** argv) {
                          "additional help.\n\nError Code: {:04X}-{:04X}\nError Description: {}",
                          loader_id, error_id, static_cast<Loader::ResultStatus>(error_id));
         }
+        break;
     }
 
-    Service::Yuzu::InstallInterfaces(system.ServiceManager(), datastring, callback);
+    Service::Yuzu::InstallInterfaces(system, datastring, callback);
 
     system.TelemetrySession().AddField(Common::Telemetry::FieldType::App, "Frontend",
                                        "SDLHideTester");

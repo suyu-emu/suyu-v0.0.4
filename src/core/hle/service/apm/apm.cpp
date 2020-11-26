@@ -14,13 +14,14 @@ Module::~Module() = default;
 
 void InstallInterfaces(Core::System& system) {
     auto module_ = std::make_shared<Module>();
-    std::make_shared<APM>(module_, system.GetAPMController(), "apm")
+    std::make_shared<APM>(system, module_, system.GetAPMController(), "apm")
         ->InstallAsService(system.ServiceManager());
-    std::make_shared<APM>(module_, system.GetAPMController(), "apm:p")
+    std::make_shared<APM>(system, module_, system.GetAPMController(), "apm:p")
         ->InstallAsService(system.ServiceManager());
-    std::make_shared<APM>(module_, system.GetAPMController(), "apm:am")
+    std::make_shared<APM>(system, module_, system.GetAPMController(), "apm:am")
         ->InstallAsService(system.ServiceManager());
-    std::make_shared<APM_Sys>(system.GetAPMController())->InstallAsService(system.ServiceManager());
+    std::make_shared<APM_Sys>(system, system.GetAPMController())
+        ->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::APM

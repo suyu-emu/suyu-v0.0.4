@@ -33,8 +33,7 @@ enum class LogMode : u32 {
 
 class FSP_SRV final : public ServiceFramework<FSP_SRV> {
 public:
-    explicit FSP_SRV(FileSystemController& fsc_, const FileSys::ContentProvider& content_provider_,
-                     const Core::Reporter& reporter_);
+    explicit FSP_SRV(Core::System& system_);
     ~FSP_SRV() override;
 
 private:

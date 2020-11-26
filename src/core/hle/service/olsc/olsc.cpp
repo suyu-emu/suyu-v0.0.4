@@ -12,7 +12,7 @@ namespace Service::OLSC {
 
 class OLSC final : public ServiceFramework<OLSC> {
 public:
-    explicit OLSC() : ServiceFramework{"olsc:u"} {
+    explicit OLSC(Core::System& system_) : ServiceFramework{system_, "olsc:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &OLSC::Initialize, "Initialize"},
@@ -62,8 +62,8 @@ private:
     bool initialized{};
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<OLSC>()->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<OLSC>(system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::OLSC

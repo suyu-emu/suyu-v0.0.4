@@ -41,7 +41,7 @@ enum class HidController : std::size_t {
 
 class IAppletResource final : public ServiceFramework<IAppletResource> {
 public:
-    explicit IAppletResource(Core::System& system);
+    explicit IAppletResource(Core::System& system_);
     ~IAppletResource() override;
 
     void ActivateController(HidController controller);
@@ -71,7 +71,6 @@ private:
 
     std::shared_ptr<Core::Timing::EventType> pad_update_event;
     std::shared_ptr<Core::Timing::EventType> motion_update_event;
-    Core::System& system;
 
     std::array<std::unique_ptr<ControllerBase>, static_cast<size_t>(HidController::MaxControllers)>
         controllers{};
@@ -79,7 +78,7 @@ private:
 
 class Hid final : public ServiceFramework<Hid> {
 public:
-    explicit Hid(Core::System& system);
+    explicit Hid(Core::System& system_);
     ~Hid() override;
 
     std::shared_ptr<IAppletResource> GetAppletResource();
@@ -164,7 +163,6 @@ private:
     static_assert(sizeof(VibrationDeviceInfo) == 0x8, "VibrationDeviceInfo has incorrect size.");
 
     std::shared_ptr<IAppletResource> applet_resource;
-    Core::System& system;
 };
 
 /// Reload input devices. Used when input configuration changed

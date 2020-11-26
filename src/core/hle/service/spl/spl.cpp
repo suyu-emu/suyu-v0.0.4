@@ -6,7 +6,8 @@
 
 namespace Service::SPL {
 
-SPL::SPL(std::shared_ptr<Module> module) : Module::Interface(std::move(module), "spl:") {
+SPL::SPL(Core::System& system_, std::shared_ptr<Module> module_)
+    : Interface(system_, std::move(module_), "spl:") {
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetConfig"},
         {1, nullptr, "ModularExponentiate"},

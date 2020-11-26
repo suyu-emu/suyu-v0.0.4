@@ -16,10 +16,10 @@ namespace Service::Nvidia {
 
 class NVDRV final : public ServiceFramework<NVDRV> {
 public:
-    NVDRV(std::shared_ptr<Module> nvdrv, const char* name);
+    explicit NVDRV(Core::System& system_, std::shared_ptr<Module> nvdrv_, const char* name);
     ~NVDRV() override;
 
-    void SignalGPUInterruptSyncpt(const u32 syncpoint_id, const u32 value);
+    void SignalGPUInterruptSyncpt(u32 syncpoint_id, u32 value);
 
 private:
     void Open(Kernel::HLERequestContext& ctx);

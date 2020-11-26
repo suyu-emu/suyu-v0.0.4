@@ -21,8 +21,8 @@ namespace Service::Time {
 
 class ISystemClock final : public ServiceFramework<ISystemClock> {
 public:
-    explicit ISystemClock(Clock::SystemClockCore& clock_core, Core::System& system)
-        : ServiceFramework("ISystemClock"), clock_core{clock_core}, system{system} {
+    explicit ISystemClock(Clock::SystemClockCore& clock_core_, Core::System& system_)
+        : ServiceFramework{system_, "ISystemClock"}, clock_core{clock_core_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &ISystemClock::GetCurrentTime, "GetCurrentTime"},
@@ -82,13 +82,12 @@ private:
     }
 
     Clock::SystemClockCore& clock_core;
-    Core::System& system;
 };
 
 class ISteadyClock final : public ServiceFramework<ISteadyClock> {
 public:
-    explicit ISteadyClock(Clock::SteadyClockCore& clock_core, Core::System& system)
-        : ServiceFramework("ISteadyClock"), clock_core{clock_core}, system{system} {
+    explicit ISteadyClock(Clock::SteadyClockCore& clock_core_, Core::System& system_)
+        : ServiceFramework{system_, "ISteadyClock"}, clock_core{clock_core_} {
         static const FunctionInfo functions[] = {
             {0, &ISteadyClock::GetCurrentTimePoint, "GetCurrentTimePoint"},
             {2, nullptr, "GetTestOffset"},
@@ -119,7 +118,6 @@ private:
     }
 
     Clock::SteadyClockCore& clock_core;
-    Core::System& system;
 };
 
 ResultCode Module::Interface::GetClockSnapshotFromSystemClockContextInternal(
@@ -206,7 +204,8 @@ void Module::Interface::GetTimeZoneService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_Time, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<ITimeZoneService>(system.GetTimeManager().GetTimeZoneContentManager());
+    rb.PushIpcInterface<ITimeZoneService>(system,
+                                          system.GetTimeManager().GetTimeZoneContentManager());
 }
 
 void Module::Interface::GetStandardLocalSystemClock(Kernel::HLERequestContext& ctx) {
@@ -375,8 +374,9 @@ void Module::Interface::GetSharedMemoryNativeHandle(Kernel::HLERequestContext& c
     rb.PushCopyObjects(SharedFrom(&system.Kernel().GetTimeSharedMem()));
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : ServiceFramework(name), module{std::move(module)}, system{system} {}
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;
 

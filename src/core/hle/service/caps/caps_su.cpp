@@ -8,7 +8,7 @@
 
 namespace Service::Capture {
 
-CAPS_SU::CAPS_SU() : ServiceFramework("caps:su") {
+CAPS_SU::CAPS_SU(Core::System& system_) : ServiceFramework{system_, "caps:su"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {32, &CAPS_SU::SetShimLibraryVersion, "SetShimLibraryVersion"},

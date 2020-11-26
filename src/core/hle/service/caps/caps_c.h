@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class HLERequestContext;
 }
@@ -14,7 +18,7 @@ namespace Service::Capture {
 
 class CAPS_C final : public ServiceFramework<CAPS_C> {
 public:
-    explicit CAPS_C();
+    explicit CAPS_C(Core::System& system_);
     ~CAPS_C() override;
 
 private:

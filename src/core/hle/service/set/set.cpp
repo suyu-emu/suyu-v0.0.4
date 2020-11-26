@@ -188,7 +188,7 @@ void SET::GetKeyCodeMap2(Kernel::HLERequestContext& ctx) {
     GetKeyCodeMapImpl(ctx);
 }
 
-SET::SET() : ServiceFramework("set") {
+SET::SET(Core::System& system_) : ServiceFramework{system_, "set"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &SET::GetLanguageCode, "GetLanguageCode"},

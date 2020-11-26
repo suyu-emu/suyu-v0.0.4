@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Audio {
 
 class AudOutA final : public ServiceFramework<AudOutA> {
 public:
-    explicit AudOutA();
+    explicit AudOutA(Core::System& system_);
     ~AudOutA() override;
 };
 

@@ -18,7 +18,7 @@ namespace Service::BTM {
 
 class IBtmUserCore final : public ServiceFramework<IBtmUserCore> {
 public:
-    explicit IBtmUserCore(Core::System& system) : ServiceFramework{"IBtmUserCore"} {
+    explicit IBtmUserCore(Core::System& system_) : ServiceFramework{system_, "IBtmUserCore"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IBtmUserCore::AcquireBleScanEvent, "AcquireBleScanEvent"},
@@ -107,7 +107,7 @@ private:
 
 class BTM_USR final : public ServiceFramework<BTM_USR> {
 public:
-    explicit BTM_USR(Core::System& system) : ServiceFramework{"btm:u"}, system(system) {
+    explicit BTM_USR(Core::System& system_) : ServiceFramework{system_, "btm:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &BTM_USR::GetCore, "GetCore"},
@@ -124,13 +124,11 @@ private:
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IBtmUserCore>(system);
     }
-
-    Core::System& system;
 };
 
 class BTM final : public ServiceFramework<BTM> {
 public:
-    explicit BTM() : ServiceFramework{"btm"} {
+    explicit BTM(Core::System& system_) : ServiceFramework{system_, "btm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetState"},
@@ -207,7 +205,7 @@ public:
 
 class BTM_DBG final : public ServiceFramework<BTM_DBG> {
 public:
-    explicit BTM_DBG() : ServiceFramework{"btm:dbg"} {
+    explicit BTM_DBG(Core::System& system_) : ServiceFramework{system_, "btm:dbg"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "AcquireDiscoveryEvent"},
@@ -232,7 +230,7 @@ public:
 
 class IBtmSystemCore final : public ServiceFramework<IBtmSystemCore> {
 public:
-    explicit IBtmSystemCore() : ServiceFramework{"IBtmSystemCore"} {
+    explicit IBtmSystemCore(Core::System& system_) : ServiceFramework{system_, "IBtmSystemCore"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "StartGamepadPairing"},
@@ -254,7 +252,7 @@ public:
 
 class BTM_SYS final : public ServiceFramework<BTM_SYS> {
 public:
-    explicit BTM_SYS() : ServiceFramework{"btm:sys"} {
+    explicit BTM_SYS(Core::System& system_) : ServiceFramework{system_, "btm:sys"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &BTM_SYS::GetCore, "GetCore"},
@@ -270,14 +268,14 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IBtmSystemCore>();
+        rb.PushIpcInterface<IBtmSystemCore>(system);
     }
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
-    std::make_shared<BTM>()->InstallAsService(sm);
-    std::make_shared<BTM_DBG>()->InstallAsService(sm);
-    std::make_shared<BTM_SYS>()->InstallAsService(sm);
+    std::make_shared<BTM>(system)->InstallAsService(sm);
+    std::make_shared<BTM_DBG>(system)->InstallAsService(sm);
+    std::make_shared<BTM_SYS>(system)->InstallAsService(sm);
     std::make_shared<BTM_USR>(system)->InstallAsService(sm);
 }
 

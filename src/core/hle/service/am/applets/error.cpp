@@ -87,7 +87,7 @@ ResultCode Decode64BitError(u64 error) {
 } // Anonymous namespace
 
 Error::Error(Core::System& system_, const Core::Frontend::ErrorApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_), system{system_} {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 Error::~Error() = default;
 
@@ -186,7 +186,7 @@ void Error::Execute() {
 
 void Error::DisplayCompleted() {
     complete = true;
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::vector<u8>{}));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::vector<u8>{}));
     broker.SignalStateChanged();
 }
 

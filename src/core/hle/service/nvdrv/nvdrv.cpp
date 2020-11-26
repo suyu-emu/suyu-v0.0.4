@@ -30,11 +30,11 @@ namespace Service::Nvidia {
 void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nvflinger,
                        Core::System& system) {
     auto module_ = std::make_shared<Module>(system);
-    std::make_shared<NVDRV>(module_, "nvdrv")->InstallAsService(service_manager);
-    std::make_shared<NVDRV>(module_, "nvdrv:a")->InstallAsService(service_manager);
-    std::make_shared<NVDRV>(module_, "nvdrv:s")->InstallAsService(service_manager);
-    std::make_shared<NVDRV>(module_, "nvdrv:t")->InstallAsService(service_manager);
-    std::make_shared<NVMEMP>()->InstallAsService(service_manager);
+    std::make_shared<NVDRV>(system, module_, "nvdrv")->InstallAsService(service_manager);
+    std::make_shared<NVDRV>(system, module_, "nvdrv:a")->InstallAsService(service_manager);
+    std::make_shared<NVDRV>(system, module_, "nvdrv:s")->InstallAsService(service_manager);
+    std::make_shared<NVDRV>(system, module_, "nvdrv:t")->InstallAsService(service_manager);
+    std::make_shared<NVMEMP>(system)->InstallAsService(service_manager);
     nvflinger.SetNVDrvInstance(module_);
 }
 

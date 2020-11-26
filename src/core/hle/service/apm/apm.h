@@ -4,7 +4,9 @@
 
 #pragma once
 
-#include "core/hle/service/service.h"
+namespace Core {
+class System;
+}
 
 namespace Service::APM {
 

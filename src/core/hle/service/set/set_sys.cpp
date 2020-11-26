@@ -103,7 +103,7 @@ void SET_SYS::SetColorSetId(Kernel::HLERequestContext& ctx) {
     rb.Push(RESULT_SUCCESS);
 }
 
-SET_SYS::SET_SYS() : ServiceFramework("set:sys") {
+SET_SYS::SET_SYS(Core::System& system_) : ServiceFramework{system_, "set:sys"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetLanguageCode"},

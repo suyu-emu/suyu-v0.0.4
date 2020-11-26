@@ -115,7 +115,7 @@ static_assert(sizeof(NROInfo) == 0x60, "NROInfo has invalid size.");
 
 class DebugMonitor final : public ServiceFramework<DebugMonitor> {
 public:
-    explicit DebugMonitor() : ServiceFramework{"ldr:dmnt"} {
+    explicit DebugMonitor(Core::System& system_) : ServiceFramework{system_, "ldr:dmnt"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "AddProcessToDebugLaunchQueue"},
@@ -130,7 +130,7 @@ public:
 
 class ProcessManager final : public ServiceFramework<ProcessManager> {
 public:
-    explicit ProcessManager() : ServiceFramework{"ldr:pm"} {
+    explicit ProcessManager(Core::System& system_) : ServiceFramework{system_, "ldr:pm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "CreateProcess"},
@@ -147,7 +147,7 @@ public:
 
 class Shell final : public ServiceFramework<Shell> {
 public:
-    explicit Shell() : ServiceFramework{"ldr:shel"} {
+    explicit Shell(Core::System& system_) : ServiceFramework{system_, "ldr:shel"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "AddProcessToLaunchQueue"},
@@ -161,7 +161,7 @@ public:
 
 class RelocatableObject final : public ServiceFramework<RelocatableObject> {
 public:
-    explicit RelocatableObject(Core::System& system) : ServiceFramework{"ldr:ro"}, system(system) {
+    explicit RelocatableObject(Core::System& system_) : ServiceFramework{system_, "ldr:ro"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &RelocatableObject::LoadNro, "LoadNro"},
@@ -639,13 +639,12 @@ private:
                Common::Is4KBAligned(header.segment_headers[RO_INDEX].memory_size) &&
                Common::Is4KBAligned(header.segment_headers[DATA_INDEX].memory_size);
     }
-    Core::System& system;
 };
 
 void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
-    std::make_shared<DebugMonitor>()->InstallAsService(sm);
-    std::make_shared<ProcessManager>()->InstallAsService(sm);
-    std::make_shared<Shell>()->InstallAsService(sm);
+    std::make_shared<DebugMonitor>(system)->InstallAsService(sm);
+    std::make_shared<ProcessManager>(system)->InstallAsService(sm);
+    std::make_shared<Shell>(system)->InstallAsService(sm);
     std::make_shared<RelocatableObject>(system)->InstallAsService(sm);
 }
 

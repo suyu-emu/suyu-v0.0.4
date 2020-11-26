@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::AM {
 
 class SPSM final : public ServiceFramework<SPSM> {
 public:
-    explicit SPSM();
+    explicit SPSM(Core::System& system_);
     ~SPSM() override;
 };
 

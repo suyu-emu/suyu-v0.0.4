@@ -34,8 +34,6 @@ private:
 
     std::vector<std::shared_ptr<IAudioOut>> audio_out_interfaces;
     std::unique_ptr<AudioCore::AudioOut> audio_core;
-
-    Core::System& system;
 };
 
 } // namespace Service::Audio

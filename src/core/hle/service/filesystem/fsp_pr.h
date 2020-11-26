@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::FileSystem {
 
 class FSP_PR final : public ServiceFramework<FSP_PR> {
 public:
-    explicit FSP_PR();
+    explicit FSP_PR(Core::System& system_);
     ~FSP_PR() override;
 };
 

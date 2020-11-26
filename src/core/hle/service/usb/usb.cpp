@@ -15,7 +15,7 @@ namespace Service::USB {
 
 class IDsInterface final : public ServiceFramework<IDsInterface> {
 public:
-    explicit IDsInterface() : ServiceFramework{"IDsInterface"} {
+    explicit IDsInterface(Core::System& system_) : ServiceFramework{system_, "IDsInterface"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetDsEndpoint"},
@@ -40,7 +40,7 @@ public:
 
 class USB_DS final : public ServiceFramework<USB_DS> {
 public:
-    explicit USB_DS() : ServiceFramework{"usb:ds"} {
+    explicit USB_DS(Core::System& system_) : ServiceFramework{system_, "usb:ds"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "BindDevice"},
@@ -65,7 +65,8 @@ public:
 
 class IClientEpSession final : public ServiceFramework<IClientEpSession> {
 public:
-    explicit IClientEpSession() : ServiceFramework{"IClientEpSession"} {
+    explicit IClientEpSession(Core::System& system_)
+        : ServiceFramework{system_, "IClientEpSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Open"},
@@ -86,7 +87,8 @@ public:
 
 class IClientIfSession final : public ServiceFramework<IClientIfSession> {
 public:
-    explicit IClientIfSession() : ServiceFramework{"IClientIfSession"} {
+    explicit IClientIfSession(Core::System& system_)
+        : ServiceFramework{system_, "IClientIfSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown0"},
@@ -108,7 +110,7 @@ public:
 
 class USB_HS final : public ServiceFramework<USB_HS> {
 public:
-    explicit USB_HS() : ServiceFramework{"usb:hs"} {
+    explicit USB_HS(Core::System& system_) : ServiceFramework{system_, "usb:hs"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "BindClientProcess"},
@@ -129,7 +131,7 @@ public:
 
 class IPdSession final : public ServiceFramework<IPdSession> {
 public:
-    explicit IPdSession() : ServiceFramework{"IPdSession"} {
+    explicit IPdSession(Core::System& system_) : ServiceFramework{system_, "IPdSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "BindNoticeEvent"},
@@ -148,7 +150,7 @@ public:
 
 class USB_PD final : public ServiceFramework<USB_PD> {
 public:
-    explicit USB_PD() : ServiceFramework{"usb:pd"} {
+    explicit USB_PD(Core::System& system_) : ServiceFramework{system_, "usb:pd"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &USB_PD::GetPdSession, "GetPdSession"},
@@ -164,13 +166,14 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IPdSession>();
+        rb.PushIpcInterface<IPdSession>(system);
     }
 };
 
 class IPdCradleSession final : public ServiceFramework<IPdCradleSession> {
 public:
-    explicit IPdCradleSession() : ServiceFramework{"IPdCradleSession"} {
+    explicit IPdCradleSession(Core::System& system_)
+        : ServiceFramework{system_, "IPdCradleSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "VdmUserWrite"},
@@ -191,7 +194,7 @@ public:
 
 class USB_PD_C final : public ServiceFramework<USB_PD_C> {
 public:
-    explicit USB_PD_C() : ServiceFramework{"usb:pd:c"} {
+    explicit USB_PD_C(Core::System& system_) : ServiceFramework{system_, "usb:pd:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &USB_PD_C::GetPdCradleSession, "GetPdCradleSession"},
@@ -205,7 +208,7 @@ private:
     void GetPdCradleSession(Kernel::HLERequestContext& ctx) {
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IPdCradleSession>();
+        rb.PushIpcInterface<IPdCradleSession>(system);
 
         LOG_DEBUG(Service_USB, "called");
     }
@@ -213,7 +216,7 @@ private:
 
 class USB_PM final : public ServiceFramework<USB_PM> {
 public:
-    explicit USB_PM() : ServiceFramework{"usb:pm"} {
+    explicit USB_PM(Core::System& system_) : ServiceFramework{system_, "usb:pm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown0"},
@@ -229,12 +232,12 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<USB_DS>()->InstallAsService(sm);
-    std::make_shared<USB_HS>()->InstallAsService(sm);
-    std::make_shared<USB_PD>()->InstallAsService(sm);
-    std::make_shared<USB_PD_C>()->InstallAsService(sm);
-    std::make_shared<USB_PM>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<USB_DS>(system)->InstallAsService(sm);
+    std::make_shared<USB_HS>(system)->InstallAsService(sm);
+    std::make_shared<USB_PD>(system)->InstallAsService(sm);
+    std::make_shared<USB_PD_C>(system)->InstallAsService(sm);
+    std::make_shared<USB_PM>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::USB

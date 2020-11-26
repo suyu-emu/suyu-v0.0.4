@@ -6,7 +6,7 @@
 
 namespace Service::Audio {
 
-AudOutA::AudOutA() : ServiceFramework{"audout:a"} {
+AudOutA::AudOutA(Core::System& system_) : ServiceFramework{system_, "audout:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestSuspendAudioOuts"},

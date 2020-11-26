@@ -6,7 +6,8 @@
 
 namespace Service::SPL {
 
-CSRNG::CSRNG(std::shared_ptr<Module> module) : Module::Interface(std::move(module), "csrng") {
+CSRNG::CSRNG(Core::System& system_, std::shared_ptr<Module> module_)
+    : Interface(system_, std::move(module_), "csrng") {
     static const FunctionInfo functions[] = {
         {0, &CSRNG::GetRandomBytes, "GetRandomBytes"},
     };

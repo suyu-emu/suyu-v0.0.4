@@ -492,8 +492,8 @@ private:
 
 class IHOSBinderDriver final : public ServiceFramework<IHOSBinderDriver> {
 public:
-    explicit IHOSBinderDriver(NVFlinger::NVFlinger& nv_flinger)
-        : ServiceFramework("IHOSBinderDriver"), nv_flinger(nv_flinger) {
+    explicit IHOSBinderDriver(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_)
+        : ServiceFramework{system_, "IHOSBinderDriver"}, nv_flinger(nv_flinger_) {
         static const FunctionInfo functions[] = {
             {0, &IHOSBinderDriver::TransactParcel, "TransactParcel"},
             {1, &IHOSBinderDriver::AdjustRefcount, "AdjustRefcount"},
@@ -689,7 +689,8 @@ private:
 
 class ISystemDisplayService final : public ServiceFramework<ISystemDisplayService> {
 public:
-    explicit ISystemDisplayService() : ServiceFramework("ISystemDisplayService") {
+    explicit ISystemDisplayService(Core::System& system_)
+        : ServiceFramework{system_, "ISystemDisplayService"} {
         static const FunctionInfo functions[] = {
             {1200, nullptr, "GetZOrderCountMin"},
             {1202, nullptr, "GetZOrderCountMax"},
@@ -790,8 +791,8 @@ private:
 
 class IManagerDisplayService final : public ServiceFramework<IManagerDisplayService> {
 public:
-    explicit IManagerDisplayService(NVFlinger::NVFlinger& nv_flinger)
-        : ServiceFramework("IManagerDisplayService"), nv_flinger(nv_flinger) {
+    explicit IManagerDisplayService(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_)
+        : ServiceFramework{system_, "IManagerDisplayService"}, nv_flinger{nv_flinger_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {200, nullptr, "AllocateProcessHeapBlock"},
@@ -935,7 +936,7 @@ private:
 
 class IApplicationDisplayService final : public ServiceFramework<IApplicationDisplayService> {
 public:
-    explicit IApplicationDisplayService(NVFlinger::NVFlinger& nv_flinger);
+    explicit IApplicationDisplayService(Core::System& system_, NVFlinger::NVFlinger& nv_flinger_);
 
 private:
     enum class ConvertedScaleMode : u64 {
@@ -959,7 +960,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IHOSBinderDriver>(nv_flinger);
+        rb.PushIpcInterface<IHOSBinderDriver>(system, nv_flinger);
     }
 
     void GetSystemDisplayService(Kernel::HLERequestContext& ctx) {
@@ -967,7 +968,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ISystemDisplayService>();
+        rb.PushIpcInterface<ISystemDisplayService>(system);
     }
 
     void GetManagerDisplayService(Kernel::HLERequestContext& ctx) {
@@ -975,7 +976,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IManagerDisplayService>(nv_flinger);
+        rb.PushIpcInterface<IManagerDisplayService>(system, nv_flinger);
     }
 
     void GetIndirectDisplayTransactionService(Kernel::HLERequestContext& ctx) {
@@ -983,7 +984,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IHOSBinderDriver>(nv_flinger);
+        rb.PushIpcInterface<IHOSBinderDriver>(system, nv_flinger);
     }
 
     void OpenDisplay(Kernel::HLERequestContext& ctx) {
@@ -1261,8 +1262,9 @@ private:
     NVFlinger::NVFlinger& nv_flinger;
 };
 
-IApplicationDisplayService::IApplicationDisplayService(NVFlinger::NVFlinger& nv_flinger)
-    : ServiceFramework("IApplicationDisplayService"), nv_flinger(nv_flinger) {
+IApplicationDisplayService::IApplicationDisplayService(Core::System& system_,
+                                                       NVFlinger::NVFlinger& nv_flinger_)
+    : ServiceFramework{system_, "IApplicationDisplayService"}, nv_flinger{nv_flinger_} {
     static const FunctionInfo functions[] = {
         {100, &IApplicationDisplayService::GetRelayService, "GetRelayService"},
         {101, &IApplicationDisplayService::GetSystemDisplayService, "GetSystemDisplayService"},
@@ -1303,8 +1305,8 @@ static bool IsValidServiceAccess(Permission permission, Policy policy) {
     return false;
 }
 
-void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, NVFlinger::NVFlinger& nv_flinger,
-                                   Permission permission) {
+void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, Core::System& system,
+                                   NVFlinger::NVFlinger& nv_flinger, Permission permission) {
     IPC::RequestParser rp{ctx};
     const auto policy = rp.PopEnum<Policy>();
 
@@ -1317,13 +1319,14 @@ void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, NVFlinger::NV
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IApplicationDisplayService>(nv_flinger);
+    rb.PushIpcInterface<IApplicationDisplayService>(system, nv_flinger);
 }
 
-void InstallInterfaces(SM::ServiceManager& service_manager, NVFlinger::NVFlinger& nv_flinger) {
-    std::make_shared<VI_M>(nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_S>(nv_flinger)->InstallAsService(service_manager);
-    std::make_shared<VI_U>(nv_flinger)->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system,
+                       NVFlinger::NVFlinger& nv_flinger) {
+    std::make_shared<VI_M>(system, nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_S>(system, nv_flinger)->InstallAsService(service_manager);
+    std::make_shared<VI_U>(system, nv_flinger)->InstallAsService(service_manager);
 }
 
 } // namespace Service::VI

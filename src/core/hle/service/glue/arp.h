@@ -13,7 +13,7 @@ class IRegistrar;
 
 class ARP_R final : public ServiceFramework<ARP_R> {
 public:
-    explicit ARP_R(const Core::System& system, const ARPManager& manager);
+    explicit ARP_R(Core::System& system_, const ARPManager& manager_);
     ~ARP_R() override;
 
 private:
@@ -22,20 +22,18 @@ private:
     void GetApplicationControlProperty(Kernel::HLERequestContext& ctx);
     void GetApplicationControlPropertyWithApplicationId(Kernel::HLERequestContext& ctx);
 
-    const Core::System& system;
     const ARPManager& manager;
 };
 
 class ARP_W final : public ServiceFramework<ARP_W> {
 public:
-    explicit ARP_W(const Core::System& system, ARPManager& manager);
+    explicit ARP_W(Core::System& system_, ARPManager& manager_);
     ~ARP_W() override;
 
 private:
     void AcquireRegistrar(Kernel::HLERequestContext& ctx);
     void DeleteProperties(Kernel::HLERequestContext& ctx);
 
-    const Core::System& system;
     ARPManager& manager;
     std::shared_ptr<IRegistrar> registrar;
 };

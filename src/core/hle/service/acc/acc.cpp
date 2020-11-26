@@ -47,8 +47,8 @@ static constexpr u32 SanitizeJPEGSize(std::size_t size) {
 
 class IManagerForSystemService final : public ServiceFramework<IManagerForSystemService> {
 public:
-    explicit IManagerForSystemService(Common::UUID user_id)
-        : ServiceFramework("IManagerForSystemService") {
+    explicit IManagerForSystemService(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IManagerForSystemService"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "CheckAvailability"},
@@ -83,8 +83,8 @@ public:
 // 3.0.0+
 class IFloatingRegistrationRequest final : public ServiceFramework<IFloatingRegistrationRequest> {
 public:
-    explicit IFloatingRegistrationRequest(Common::UUID user_id)
-        : ServiceFramework("IFloatingRegistrationRequest") {
+    explicit IFloatingRegistrationRequest(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IFloatingRegistrationRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSessionId"},
@@ -108,7 +108,8 @@ public:
 
 class IAdministrator final : public ServiceFramework<IAdministrator> {
 public:
-    explicit IAdministrator(Common::UUID user_id) : ServiceFramework("IAdministrator") {
+    explicit IAdministrator(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IAdministrator"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "CheckAvailability"},
@@ -165,8 +166,8 @@ public:
 
 class IAuthorizationRequest final : public ServiceFramework<IAuthorizationRequest> {
 public:
-    explicit IAuthorizationRequest(Common::UUID user_id)
-        : ServiceFramework("IAuthorizationRequest") {
+    explicit IAuthorizationRequest(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IAuthorizationRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSessionId"},
@@ -184,7 +185,8 @@ public:
 
 class IOAuthProcedure final : public ServiceFramework<IOAuthProcedure> {
 public:
-    explicit IOAuthProcedure(Common::UUID user_id) : ServiceFramework("IOAuthProcedure") {
+    explicit IOAuthProcedure(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IOAuthProcedure"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "PrepareAsync"},
@@ -202,8 +204,8 @@ public:
 // 3.0.0+
 class IOAuthProcedureForExternalNsa final : public ServiceFramework<IOAuthProcedureForExternalNsa> {
 public:
-    explicit IOAuthProcedureForExternalNsa(Common::UUID user_id)
-        : ServiceFramework("IOAuthProcedureForExternalNsa") {
+    explicit IOAuthProcedureForExternalNsa(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IOAuthProcedureForExternalNsa"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "PrepareAsync"},
@@ -225,8 +227,8 @@ public:
 class IOAuthProcedureForNintendoAccountLinkage final
     : public ServiceFramework<IOAuthProcedureForNintendoAccountLinkage> {
 public:
-    explicit IOAuthProcedureForNintendoAccountLinkage(Common::UUID user_id)
-        : ServiceFramework("IOAuthProcedureForNintendoAccountLinkage") {
+    explicit IOAuthProcedureForNintendoAccountLinkage(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IOAuthProcedureForNintendoAccountLinkage"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "PrepareAsync"},
@@ -246,7 +248,8 @@ public:
 
 class INotifier final : public ServiceFramework<INotifier> {
 public:
-    explicit INotifier(Common::UUID user_id) : ServiceFramework("INotifier") {
+    explicit INotifier(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "INotifier"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSystemEvent"},
@@ -259,9 +262,9 @@ public:
 
 class IProfileCommon : public ServiceFramework<IProfileCommon> {
 public:
-    explicit IProfileCommon(const char* name, bool editor_commands, Common::UUID user_id,
-                            ProfileManager& profile_manager)
-        : ServiceFramework(name), profile_manager(profile_manager), user_id(user_id) {
+    explicit IProfileCommon(Core::System& system_, const char* name, bool editor_commands,
+                            Common::UUID user_id_, ProfileManager& profile_manager_)
+        : ServiceFramework{system_, name}, profile_manager{profile_manager_}, user_id{user_id_} {
         static const FunctionInfo functions[] = {
             {0, &IProfileCommon::Get, "Get"},
             {1, &IProfileCommon::GetBase, "GetBase"},
@@ -427,19 +430,21 @@ protected:
 
 class IProfile final : public IProfileCommon {
 public:
-    IProfile(Common::UUID user_id, ProfileManager& profile_manager)
-        : IProfileCommon("IProfile", false, user_id, profile_manager) {}
+    explicit IProfile(Core::System& system_, Common::UUID user_id_,
+                      ProfileManager& profile_manager_)
+        : IProfileCommon{system_, "IProfile", false, user_id_, profile_manager_} {}
 };
 
 class IProfileEditor final : public IProfileCommon {
 public:
-    IProfileEditor(Common::UUID user_id, ProfileManager& profile_manager)
-        : IProfileCommon("IProfileEditor", true, user_id, profile_manager) {}
+    explicit IProfileEditor(Core::System& system_, Common::UUID user_id_,
+                            ProfileManager& profile_manager_)
+        : IProfileCommon{system_, "IProfileEditor", true, user_id_, profile_manager_} {}
 };
 
 class IAsyncContext final : public ServiceFramework<IAsyncContext> {
 public:
-    explicit IAsyncContext(Common::UUID user_id) : ServiceFramework("IAsyncContext") {
+    explicit IAsyncContext(Core::System& system_) : ServiceFramework{system_, "IAsyncContext"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSystemEvent"},
@@ -455,7 +460,8 @@ public:
 
 class ISessionObject final : public ServiceFramework<ISessionObject> {
 public:
-    explicit ISessionObject(Common::UUID user_id) : ServiceFramework("ISessionObject") {
+    explicit ISessionObject(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "ISessionObject"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {999, nullptr, "Dummy"},
@@ -468,7 +474,8 @@ public:
 
 class IGuestLoginRequest final : public ServiceFramework<IGuestLoginRequest> {
 public:
-    explicit IGuestLoginRequest(Common::UUID) : ServiceFramework("IGuestLoginRequest") {
+    explicit IGuestLoginRequest(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IGuestLoginRequest"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSessionId"},
@@ -487,8 +494,8 @@ public:
 
 class IManagerForApplication final : public ServiceFramework<IManagerForApplication> {
 public:
-    explicit IManagerForApplication(Common::UUID user_id)
-        : ServiceFramework("IManagerForApplication"), user_id(user_id) {
+    explicit IManagerForApplication(Core::System& system_, Common::UUID user_id_)
+        : ServiceFramework{system_, "IManagerForApplication"}, user_id{user_id_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IManagerForApplication::CheckAvailability, "CheckAvailability"},
@@ -534,8 +541,8 @@ private:
 class IAsyncNetworkServiceLicenseKindContext final
     : public ServiceFramework<IAsyncNetworkServiceLicenseKindContext> {
 public:
-    explicit IAsyncNetworkServiceLicenseKindContext(Common::UUID user_id)
-        : ServiceFramework("IAsyncNetworkServiceLicenseKindContext") {
+    explicit IAsyncNetworkServiceLicenseKindContext(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IAsyncNetworkServiceLicenseKindContext"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetSystemEvent"},
@@ -554,8 +561,8 @@ public:
 class IOAuthProcedureForUserRegistration final
     : public ServiceFramework<IOAuthProcedureForUserRegistration> {
 public:
-    explicit IOAuthProcedureForUserRegistration(Common::UUID user_id)
-        : ServiceFramework("IOAuthProcedureForUserRegistration") {
+    explicit IOAuthProcedureForUserRegistration(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IOAuthProcedureForUserRegistration"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "PrepareAsync"},
@@ -578,7 +585,7 @@ public:
 
 class DAUTH_O final : public ServiceFramework<DAUTH_O> {
 public:
-    explicit DAUTH_O(Common::UUID) : ServiceFramework("dauth:o") {
+    explicit DAUTH_O(Core::System& system_, Common::UUID) : ServiceFramework{system_, "dauth:o"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "EnsureAuthenticationTokenCacheAsync"}, // [5.0.0-5.1.0] GeneratePostData
@@ -597,7 +604,8 @@ public:
 // 6.0.0+
 class IAsyncResult final : public ServiceFramework<IAsyncResult> {
 public:
-    explicit IAsyncResult(Common::UUID user_id) : ServiceFramework("IAsyncResult") {
+    explicit IAsyncResult(Core::System& system_, Common::UUID)
+        : ServiceFramework{system_, "IAsyncResult"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetResult"},
@@ -656,7 +664,7 @@ void Module::Interface::GetProfile(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IProfile>(user_id, *profile_manager);
+    rb.PushIpcInterface<IProfile>(system, user_id, *profile_manager);
 }
 
 void Module::Interface::IsUserRegistrationRequestPermitted(Kernel::HLERequestContext& ctx) {
@@ -731,7 +739,7 @@ void Module::Interface::GetBaasAccountManagerForApplication(Kernel::HLERequestCo
     LOG_DEBUG(Service_ACC, "called");
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IManagerForApplication>(profile_manager->GetLastOpenedUser());
+    rb.PushIpcInterface<IManagerForApplication>(system, profile_manager->GetLastOpenedUser());
 }
 
 void Module::Interface::IsUserAccountSwitchLocked(Kernel::HLERequestContext& ctx) {
@@ -769,7 +777,7 @@ void Module::Interface::GetProfileEditor(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IProfileEditor>(user_id, *profile_manager);
+    rb.PushIpcInterface<IProfileEditor>(system, user_id, *profile_manager);
 }
 
 void Module::Interface::ListQualifiedUsers(Kernel::HLERequestContext& ctx) {
@@ -791,7 +799,7 @@ void Module::Interface::LoadOpenContext(Kernel::HLERequestContext& ctx) {
     // TODO: Find the differences between this and GetBaasAccountManagerForApplication
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IManagerForApplication>(profile_manager->GetLastOpenedUser());
+    rb.PushIpcInterface<IManagerForApplication>(system, profile_manager->GetLastOpenedUser());
 }
 
 void Module::Interface::ListOpenContextStoredUsers(Kernel::HLERequestContext& ctx) {
@@ -827,11 +835,11 @@ void Module::Interface::TrySelectUserWithoutInteraction(Kernel::HLERequestContex
     rb.PushRaw<u128>(profile_manager->GetUser(0)->uuid);
 }
 
-Module::Interface::Interface(std::shared_ptr<Module> module,
-                             std::shared_ptr<ProfileManager> profile_manager, Core::System& system,
-                             const char* name)
-    : ServiceFramework(name), module(std::move(module)),
-      profile_manager(std::move(profile_manager)), system(system) {}
+Module::Interface::Interface(std::shared_ptr<Module> module_,
+                             std::shared_ptr<ProfileManager> profile_manager_,
+                             Core::System& system_, const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)}, profile_manager{std::move(
+                                                                       profile_manager_)} {}
 
 Module::Interface::~Interface() = default;
 
