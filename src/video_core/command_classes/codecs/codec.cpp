@@ -18,7 +18,7 @@ extern "C" {
 
 namespace Tegra {
 
-void av_frame_deleter(AVFrame* ptr) {
+void AVFrameDeleter(AVFrame* ptr) {
     av_frame_unref(ptr);
     av_free(ptr);
 }
@@ -101,7 +101,7 @@ void Codec::Decode() {
 
     if (!vp9_hidden_frame) {
         // Only receive/store visible frames
-        AVFramePtr frame = AVFramePtr{av_frame_alloc(), av_frame_deleter};
+        AVFramePtr frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
         avcodec_receive_frame(av_codec_ctx, frame.get());
         av_frames.push(std::move(frame));
     }
@@ -110,12 +110,13 @@ void Codec::Decode() {
 AVFramePtr Codec::GetCurrentFrame() {
     // Sometimes VIC will request more frames than have been decoded.
     // in this case, return a nullptr and don't overwrite previous frame data
-    if (av_frames.size() > 0) {
-        AVFramePtr frame = std::move(av_frames.front());
-        av_frames.pop();
-        return frame;
+    if (av_frames.empty()) {
+        return AVFramePtr{nullptr, AVFrameDeleter};
     }
-    return AVFramePtr{nullptr, av_frame_deleter};
+
+    AVFramePtr frame = std::move(av_frames.front());
+    av_frames.pop();
+    return frame;
 }
 
 NvdecCommon::VideoCodec Codec::GetCurrentCodec() const {

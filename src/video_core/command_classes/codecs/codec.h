@@ -23,8 +23,8 @@ namespace Tegra {
 class GPU;
 struct VicRegisters;
 
-void av_frame_deleter(AVFrame* ptr);
-using AVFramePtr = std::unique_ptr<AVFrame, decltype(&av_frame_deleter)>;
+void AVFrameDeleter(AVFrame* ptr);
+using AVFramePtr = std::unique_ptr<AVFrame, decltype(&AVFrameDeleter)>;
 
 namespace Decoder {
 class H264;

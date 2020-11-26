@@ -245,33 +245,33 @@ struct EntropyProbs {
     std::array<u8, 2304> coef_probs{};
 
     void Convert(Vp9EntropyProbs& fc) {
-        fc.inter_mode_prob = std::move(inter_mode_prob);
-        fc.intra_inter_prob = std::move(intra_inter_prob);
-        fc.tx_8x8_prob = std::move(tx_8x8_prob);
-        fc.tx_16x16_prob = std::move(tx_16x16_prob);
-        fc.tx_32x32_prob = std::move(tx_32x32_prob);
+        fc.inter_mode_prob = inter_mode_prob;
+        fc.intra_inter_prob = intra_inter_prob;
+        fc.tx_8x8_prob = tx_8x8_prob;
+        fc.tx_16x16_prob = tx_16x16_prob;
+        fc.tx_32x32_prob = tx_32x32_prob;
 
-        for (s32 i = 0; i < 4; i++) {
-            for (s32 j = 0; j < 9; j++) {
+        for (std::size_t i = 0; i < 4; i++) {
+            for (std::size_t j = 0; j < 9; j++) {
                 fc.y_mode_prob[j + 9 * i] = j < 8 ? y_mode_prob_e0e7[i][j] : y_mode_prob_e8[i];
             }
         }
 
-        fc.partition_prob = std::move(partition_prob);
-        fc.switchable_interp_prob = std::move(switchable_interp_prob);
-        fc.comp_inter_prob = std::move(comp_inter_prob);
-        fc.skip_probs = std::move(skip_probs);
-        fc.joints = std::move(joints);
-        fc.sign = std::move(sign);
-        fc.class_0 = std::move(class_0);
-        fc.fr = std::move(fr);
-        fc.class_0_hp = std::move(class_0_hp);
-        fc.high_precision = std::move(high_precision);
-        fc.classes = std::move(classes);
-        fc.class_0_fr = std::move(class_0_fr);
-        fc.prob_bits = std::move(pred_bits);
-        fc.single_ref_prob = std::move(single_ref_prob);
-        fc.comp_ref_prob = std::move(comp_ref_prob);
+        fc.partition_prob = partition_prob;
+        fc.switchable_interp_prob = switchable_interp_prob;
+        fc.comp_inter_prob = comp_inter_prob;
+        fc.skip_probs = skip_probs;
+        fc.joints = joints;
+        fc.sign = sign;
+        fc.class_0 = class_0;
+        fc.fr = fr;
+        fc.class_0_hp = class_0_hp;
+        fc.high_precision = high_precision;
+        fc.classes = classes;
+        fc.class_0_fr = class_0_fr;
+        fc.prob_bits = pred_bits;
+        fc.single_ref_prob = single_ref_prob;
+        fc.comp_ref_prob = comp_ref_prob;
 
         // Skip the 4th element as it goes unused
         for (std::size_t i = 0; i < coef_probs.size(); i += 4) {

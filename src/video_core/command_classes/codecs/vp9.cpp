@@ -306,7 +306,7 @@ void VP9::WriteCoefProbabilityUpdate(VpxRangeEncoder& writer, s32 tx_mode,
                                      const std::array<u8, 1728>& old_prob) {
     constexpr u32 block_bytes = 2 * 2 * 6 * 6 * 3;
 
-    const auto needs_update = [&](u32 base_index) -> bool {
+    const auto needs_update = [&](u32 base_index) {
         return !std::equal(new_prob.begin() + base_index,
                            new_prob.begin() + base_index + block_bytes,
                            old_prob.begin() + base_index);
