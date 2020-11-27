@@ -1342,12 +1342,12 @@ void GMainWindow::OnGameListOpenFolder(u64 program_id, GameListOpenTarget target
             const auto user_id = manager.GetUser(static_cast<std::size_t>(index));
             ASSERT(user_id);
             path = nand_dir + FileSys::SaveDataFactory::GetFullPath(
-                                  FileSys::SaveDataSpaceId::NandUser,
+                                  system, FileSys::SaveDataSpaceId::NandUser,
                                   FileSys::SaveDataType::SaveData, program_id, user_id->uuid, 0);
         } else {
             // Device save data
             path = nand_dir + FileSys::SaveDataFactory::GetFullPath(
-                                  FileSys::SaveDataSpaceId::NandUser,
+                                  system, FileSys::SaveDataSpaceId::NandUser,
                                   FileSys::SaveDataType::SaveData, program_id, {}, 0);
         }
 

@@ -12,6 +12,10 @@
 #include "core/file_sys/vfs.h"
 #include "core/hle/result.h"
 
+namespace Core {
+class System;
+}
+
 namespace FileSys {
 
 enum class SaveDataSpaceId : u8 {
@@ -84,7 +88,7 @@ struct SaveDataSize {
 /// File system interface to the SaveData archive
 class SaveDataFactory {
 public:
-    explicit SaveDataFactory(VirtualDir dir);
+    explicit SaveDataFactory(Core::System& system_, VirtualDir save_directory_);
     ~SaveDataFactory();
 
     ResultVal<VirtualDir> Create(SaveDataSpaceId space, const SaveDataAttribute& meta) const;
@@ -93,8 +97,8 @@ public:
     VirtualDir GetSaveDataSpaceDirectory(SaveDataSpaceId space) const;
 
     static std::string GetSaveDataSpaceIdPath(SaveDataSpaceId space);
-    static std::string GetFullPath(SaveDataSpaceId space, SaveDataType type, u64 title_id,
-                                   u128 user_id, u64 save_id);
+    static std::string GetFullPath(Core::System& system, SaveDataSpaceId space, SaveDataType type,
+                                   u64 title_id, u128 user_id, u64 save_id);
 
     SaveDataSize ReadSaveDataSize(SaveDataType type, u64 title_id, u128 user_id) const;
     void WriteSaveDataSize(SaveDataType type, u64 title_id, u128 user_id,
@@ -102,6 +106,7 @@ public:
 
 private:
     VirtualDir dir;
+    Core::System& system;
 };
 
 } // namespace FileSys
