@@ -25,7 +25,6 @@
 #include "core/file_sys/sdmc_factory.h"
 #include "core/file_sys/vfs_concat.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/kernel.h"
@@ -186,11 +185,8 @@ struct System::Impl {
         }
 
         service_manager = std::make_shared<Service::SM::ServiceManager>(kernel);
-
         services = std::make_unique<Service::Services>(service_manager, system);
-        GDBStub::DeferStart();
-
-        interrupt_manager = std::make_unique<Core::Hardware::InterruptManager>(system);
+        interrupt_manager = std::make_unique<Hardware::InterruptManager>(system);
 
         // Initialize time manager, which must happen after kernel is created
         time_manager.Initialize();
@@ -297,7 +293,6 @@ struct System::Impl {
         }
 
         // Shutdown emulation session
-        GDBStub::Shutdown();
         services.reset();
         service_manager.reset();
         cheat_engine.reset();

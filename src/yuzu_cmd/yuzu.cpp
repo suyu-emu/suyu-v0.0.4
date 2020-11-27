@@ -25,7 +25,6 @@
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/vfs_real.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/service/filesystem/filesystem.h"
 #include "core/loader/loader.h"
@@ -174,13 +173,13 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    auto& system{Core::System::GetInstance()};
+    InputCommon::InputSubsystem input_subsystem;
+
     // Apply the command line arguments
     Settings::values.gdbstub_port = gdb_port;
     Settings::values.use_gdbstub = use_gdbstub;
-    Settings::Apply();
-
-    Core::System& system{Core::System::GetInstance()};
-    InputCommon::InputSubsystem input_subsystem;
+    Settings::Apply(system);
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;
     switch (Settings::values.renderer_backend.GetValue()) {

@@ -172,7 +172,7 @@ void GMainWindow::ShowTelemetryCallout() {
            "<br/><br/>Would you like to share your usage data with us?");
     if (QMessageBox::question(this, tr("Telemetry"), telemetry_message) != QMessageBox::Yes) {
         Settings::values.enable_telemetry = false;
-        Settings::Apply();
+        Settings::Apply(Core::System::GetInstance());
     }
 }
 
@@ -302,7 +302,7 @@ void GMainWindow::ControllerSelectorReconfigureControllers(
     emit ControllerSelectorReconfigureFinished();
 
     // Don't forget to apply settings.
-    Settings::Apply();
+    Settings::Apply(Core::System::GetInstance());
     config->Save();
 
     UpdateStatusButtons();
@@ -571,11 +571,11 @@ void GMainWindow::InitializeWidgets() {
         if (emulation_running) {
             return;
         }
-        bool is_async = !Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
-                        Settings::values.use_multi_core.GetValue();
+        const bool is_async = !Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
+                              Settings::values.use_multi_core.GetValue();
         Settings::values.use_asynchronous_gpu_emulation.SetValue(is_async);
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
-        Settings::Apply();
+        Settings::Apply(Core::System::GetInstance());
     });
     async_status_button->setText(tr("ASYNC"));
     async_status_button->setCheckable(true);
@@ -590,12 +590,12 @@ void GMainWindow::InitializeWidgets() {
             return;
         }
         Settings::values.use_multi_core.SetValue(!Settings::values.use_multi_core.GetValue());
-        bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
-                        Settings::values.use_multi_core.GetValue();
+        const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
+                              Settings::values.use_multi_core.GetValue();
         Settings::values.use_asynchronous_gpu_emulation.SetValue(is_async);
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
         multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
-        Settings::Apply();
+        Settings::Apply(Core::System::GetInstance());
     });
     multicore_status_button->setText(tr("MULTICORE"));
     multicore_status_button->setCheckable(true);
@@ -630,7 +630,7 @@ void GMainWindow::InitializeWidgets() {
             Settings::values.renderer_backend.SetValue(Settings::RendererBackend::OpenGL);
         }
 
-        Settings::Apply();
+        Settings::Apply(Core::System::GetInstance());
     });
 #endif // HAS_VULKAN
     statusBar()->insertPermanentWidget(0, renderer_status_button);
@@ -2130,14 +2130,14 @@ void GMainWindow::OnPauseGame() {
 }
 
 void GMainWindow::OnStopGame() {
-    Core::System& system{Core::System::GetInstance()};
+    auto& system{Core::System::GetInstance()};
     if (system.GetExitLock() && !ConfirmForceLockedExit()) {
         return;
     }
 
     ShutdownGame();
 
-    Settings::RestoreGlobalState();
+    Settings::RestoreGlobalState(system.IsPoweredOn());
     UpdateStatusButtons();
 }
 
@@ -2312,10 +2312,11 @@ void GMainWindow::OnConfigurePerGame() {
 
 void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file_name) {
     const auto v_file = Core::GetGameFileFromPath(vfs, file_name);
+    const auto& system = Core::System::GetInstance();
 
     ConfigurePerGame dialog(this, title_id);
     dialog.LoadFromFile(v_file);
-    auto result = dialog.exec();
+    const auto result = dialog.exec();
     if (result == QDialog::Accepted) {
         dialog.ApplyConfiguration();
 
@@ -2325,13 +2326,14 @@ void GMainWindow::OpenPerGameConfiguration(u64 title_id, const std::string& file
         }
 
         // Do not cause the global config to write local settings into the config file
-        Settings::RestoreGlobalState();
+        const bool is_powered_on = system.IsPoweredOn();
+        Settings::RestoreGlobalState(is_powered_on);
 
-        if (!Core::System::GetInstance().IsPoweredOn()) {
+        if (!is_powered_on) {
             config->Save();
         }
     } else {
-        Settings::RestoreGlobalState();
+        Settings::RestoreGlobalState(system.IsPoweredOn());
     }
 }
 
@@ -2602,7 +2604,7 @@ void GMainWindow::OnCoreError(Core::System::ResultStatus result, std::string det
         if (emu_thread) {
             ShutdownGame();
 
-            Settings::RestoreGlobalState();
+            Settings::RestoreGlobalState(Core::System::GetInstance().IsPoweredOn());
             UpdateStatusButtons();
         }
     } else {
@@ -2774,7 +2776,7 @@ void GMainWindow::closeEvent(QCloseEvent* event) {
     if (emu_thread != nullptr) {
         ShutdownGame();
 
-        Settings::RestoreGlobalState();
+        Settings::RestoreGlobalState(Core::System::GetInstance().IsPoweredOn());
         UpdateStatusButtons();
     }
 

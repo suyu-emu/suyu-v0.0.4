@@ -14,6 +14,10 @@
 #include "common/common_types.h"
 #include "input_common/settings.h"
 
+namespace Core {
+class System;
+}
+
 namespace Settings {
 
 enum class RendererBackend {
@@ -247,11 +251,11 @@ float Volume();
 
 std::string GetTimeZoneString();
 
-void Apply();
+void Apply(Core::System& system);
 void LogSettings();
 
 // Restore the global state of all applicable settings in the Values struct
-void RestoreGlobalState();
+void RestoreGlobalState(bool is_powered_on);
 
 // Fixes settings that are known to cause issues with the emulator
 void Sanitize();

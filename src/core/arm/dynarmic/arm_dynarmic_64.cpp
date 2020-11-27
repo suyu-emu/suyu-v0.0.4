@@ -14,7 +14,6 @@
 #include "core/arm/dynarmic/arm_exclusive_monitor.h"
 #include "core/core.h"
 #include "core/core_timing.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/scheduler.h"
@@ -96,16 +95,6 @@ public:
         case Dynarmic::A64::Exception::Yield:
             return;
         case Dynarmic::A64::Exception::Breakpoint:
-            if (GDBStub::IsServerEnabled()) {
-                parent.jit->HaltExecution();
-                parent.SetPC(pc);
-                Kernel::Thread* const thread = parent.system.CurrentScheduler().GetCurrentThread();
-                parent.SaveContext(thread->GetContext64());
-                GDBStub::Break();
-                GDBStub::SendTrap(thread, 5);
-                return;
-            }
-            [[fallthrough]];
         default:
             ASSERT_MSG(false, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
                        static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));

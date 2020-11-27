@@ -9,6 +9,7 @@
 #include <QDirIterator>
 #include "common/common_types.h"
 #include "common/file_util.h"
+#include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_ui.h"
 #include "yuzu/configuration/configure_ui.h"
@@ -84,7 +85,7 @@ void ConfigureUi::ApplyConfiguration() {
     UISettings::values.enable_screenshot_save_as = ui->enable_screenshot_save_as->isChecked();
     Common::FS::GetUserPath(Common::FS::UserPath::ScreenshotsDir,
                             ui->screenshot_path_edit->text().toStdString());
-    Settings::Apply();
+    Settings::Apply(Core::System::GetInstance());
 }
 
 void ConfigureUi::RequestGameListUpdate() {

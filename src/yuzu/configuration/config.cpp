@@ -7,6 +7,7 @@
 #include <QSettings>
 #include "common/common_paths.h"
 #include "common/file_util.h"
+#include "core/core.h"
 #include "core/hle/service/acc/profile_manager.h"
 #include "core/hle/service/hid/controllers/npad.h"
 #include "input_common/main.h"
@@ -1598,7 +1599,7 @@ void Config::Reload() {
     Settings::Sanitize();
     // To apply default value changes
     SaveValues();
-    Settings::Apply();
+    Settings::Apply(Core::System::GetInstance());
 }
 
 void Config::Save() {
