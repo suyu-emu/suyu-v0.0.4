@@ -104,6 +104,7 @@ add_library(common STATIC
     detached_tasks.h
     bit_cast.h
     bit_field.h
+    bit_set.h
     bit_util.h
     cityhash.cpp
     cityhash.h
