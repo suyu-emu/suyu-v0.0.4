@@ -120,6 +120,7 @@ public:
 
 private:
     const Core::Frontend::ControllerApplet& frontend;
+    Core::System& system;
 
     ControllerAppletVersion controller_applet_version;
     ControllerSupportArgPrivate controller_private_arg;

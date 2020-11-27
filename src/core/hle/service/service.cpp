@@ -90,9 +90,10 @@ namespace Service {
     return function_string;
 }
 
-ServiceFrameworkBase::ServiceFrameworkBase(const char* service_name, u32 max_sessions,
-                                           InvokerFn* handler_invoker)
-    : service_name(service_name), max_sessions(max_sessions), handler_invoker(handler_invoker) {}
+ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* service_name_,
+                                           u32 max_sessions_, InvokerFn* handler_invoker_)
+    : system{system_}, service_name{service_name_}, max_sessions{max_sessions_},
+      handler_invoker{handler_invoker_} {}
 
 ServiceFrameworkBase::~ServiceFrameworkBase() = default;
 
@@ -146,8 +147,8 @@ void ServiceFrameworkBase::ReportUnimplementedFunction(Kernel::HLERequestContext
     }
     buf.push_back('}');
 
-    Core::System::GetInstance().GetReporter().SaveUnimplementedFunctionReport(
-        ctx, ctx.GetCommand(), function_name, service_name);
+    system.GetReporter().SaveUnimplementedFunctionReport(ctx, ctx.GetCommand(), function_name,
+                                                         service_name);
     UNIMPLEMENTED_MSG("Unknown / unimplemented {}", fmt::to_string(buf));
 }
 
@@ -171,7 +172,7 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
     }
     case IPC::CommandType::ControlWithContext:
     case IPC::CommandType::Control: {
-        Core::System::GetInstance().ServiceManager().InvokeControlRequest(context);
+        system.ServiceManager().InvokeControlRequest(context);
         break;
     }
     case IPC::CommandType::RequestWithContext:
@@ -197,7 +198,7 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
 
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem(), false);
 
-    SM::ServiceManager::InstallInterfaces(sm, system.Kernel());
+    SM::ServiceManager::InstallInterfaces(sm, system);
 
     Account::InstallInterfaces(system);
     AM::InstallInterfaces(*sm, *nv_flinger, system);
@@ -205,51 +206,51 @@ Services::Services(std::shared_ptr<SM::ServiceManager>& sm, Core::System& system
     APM::InstallInterfaces(system);
     Audio::InstallInterfaces(*sm, system);
     BCAT::InstallInterfaces(system);
-    BPC::InstallInterfaces(*sm);
+    BPC::InstallInterfaces(*sm, system);
     BtDrv::InstallInterfaces(*sm, system);
     BTM::InstallInterfaces(*sm, system);
-    Capture::InstallInterfaces(*sm);
-    ERPT::InstallInterfaces(*sm);
-    ES::InstallInterfaces(*sm);
-    EUPLD::InstallInterfaces(*sm);
+    Capture::InstallInterfaces(*sm, system);
+    ERPT::InstallInterfaces(*sm, system);
+    ES::InstallInterfaces(*sm, system);
+    EUPLD::InstallInterfaces(*sm, system);
     Fatal::InstallInterfaces(*sm, system);
-    FGM::InstallInterfaces(*sm);
+    FGM::InstallInterfaces(*sm, system);
     FileSystem::InstallInterfaces(system);
     Friend::InstallInterfaces(*sm, system);
     Glue::InstallInterfaces(system);
-    GRC::InstallInterfaces(*sm);
+    GRC::InstallInterfaces(*sm, system);
     HID::InstallInterfaces(*sm, system);
-    LBL::InstallInterfaces(*sm);
-    LDN::InstallInterfaces(*sm);
+    LBL::InstallInterfaces(*sm, system);
+    LDN::InstallInterfaces(*sm, system);
     LDR::InstallInterfaces(*sm, system);
     LM::InstallInterfaces(system);
-    Migration::InstallInterfaces(*sm);
-    Mii::InstallInterfaces(*sm);
-    MM::InstallInterfaces(*sm);
-    NCM::InstallInterfaces(*sm);
-    NFC::InstallInterfaces(*sm);
+    Migration::InstallInterfaces(*sm, system);
+    Mii::InstallInterfaces(*sm, system);
+    MM::InstallInterfaces(*sm, system);
+    NCM::InstallInterfaces(*sm, system);
+    NFC::InstallInterfaces(*sm, system);
     NFP::InstallInterfaces(*sm, system);
     NIFM::InstallInterfaces(*sm, system);
     NIM::InstallInterfaces(*sm, system);
-    NPNS::InstallInterfaces(*sm);
+    NPNS::InstallInterfaces(*sm, system);
     NS::InstallInterfaces(*sm, system);
     Nvidia::InstallInterfaces(*sm, *nv_flinger, system);
-    OLSC::InstallInterfaces(*sm);
-    PCIe::InstallInterfaces(*sm);
-    PCTL::InstallInterfaces(*sm);
-    PCV::InstallInterfaces(*sm);
+    OLSC::InstallInterfaces(*sm, system);
+    PCIe::InstallInterfaces(*sm, system);
+    PCTL::InstallInterfaces(*sm, system);
+    PCV::InstallInterfaces(*sm, system);
     PlayReport::InstallInterfaces(*sm, system);
     PM::InstallInterfaces(system);
-    PSC::InstallInterfaces(*sm);
-    PSM::InstallInterfaces(*sm);
-    Set::InstallInterfaces(*sm);
+    PSC::InstallInterfaces(*sm, system);
+    PSM::InstallInterfaces(*sm, system);
+    Set::InstallInterfaces(*sm, system);
     Sockets::InstallInterfaces(*sm, system);
-    SPL::InstallInterfaces(*sm);
-    SSL::InstallInterfaces(*sm);
+    SPL::InstallInterfaces(*sm, system);
+    SSL::InstallInterfaces(*sm, system);
     Time::InstallInterfaces(system);
-    USB::InstallInterfaces(*sm);
-    VI::InstallInterfaces(*sm, *nv_flinger);
-    WLAN::InstallInterfaces(*sm);
+    USB::InstallInterfaces(*sm, system);
+    VI::InstallInterfaces(*sm, system, *nv_flinger);
+    WLAN::InstallInterfaces(*sm, system);
 }
 
 Services::~Services() = default;

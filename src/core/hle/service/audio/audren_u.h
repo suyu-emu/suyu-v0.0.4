@@ -31,7 +31,6 @@ private:
     void OpenAudioRendererImpl(Kernel::HLERequestContext& ctx);
 
     std::size_t audren_instance_count = 0;
-    Core::System& system;
 };
 
 // Describes a particular audio feature that may be supported in a particular revision.

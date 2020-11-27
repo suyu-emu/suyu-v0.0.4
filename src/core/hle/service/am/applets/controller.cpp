@@ -46,7 +46,7 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
 }
 
 Controller::Controller(Core::System& system_, const Core::Frontend::ControllerApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_) {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 Controller::~Controller() = default;
 
@@ -245,7 +245,7 @@ void Controller::ConfigurationComplete() {
     complete = true;
     out_data = std::vector<u8>(sizeof(ControllerSupportResultInfo));
     std::memcpy(out_data.data(), &result_info, out_data.size());
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(out_data)));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
     broker.SignalStateChanged();
 }
 

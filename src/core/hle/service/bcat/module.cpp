@@ -88,9 +88,11 @@ struct DeliveryCacheDirectoryEntry {
 
 class IDeliveryCacheProgressService final : public ServiceFramework<IDeliveryCacheProgressService> {
 public:
-    IDeliveryCacheProgressService(std::shared_ptr<Kernel::ReadableEvent> event,
-                                  const DeliveryCacheProgressImpl& impl)
-        : ServiceFramework{"IDeliveryCacheProgressService"}, event(std::move(event)), impl(impl) {
+    explicit IDeliveryCacheProgressService(Core::System& system_,
+                                           std::shared_ptr<Kernel::ReadableEvent> event_,
+                                           const DeliveryCacheProgressImpl& impl_)
+        : ServiceFramework{system_, "IDeliveryCacheProgressService"}, event{std::move(event_)},
+          impl{impl_} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDeliveryCacheProgressService::GetEvent, "GetEvent"},
@@ -126,7 +128,7 @@ private:
 class IBcatService final : public ServiceFramework<IBcatService> {
 public:
     explicit IBcatService(Core::System& system_, Backend& backend_)
-        : ServiceFramework("IBcatService"), system{system_}, backend{backend_},
+        : ServiceFramework{system_, "IBcatService"}, backend{backend_},
           progress{{
               ProgressServiceBackend{system_.Kernel(), "Normal"},
               ProgressServiceBackend{system_.Kernel(), "Directory"},
@@ -171,7 +173,7 @@ private:
 
     std::shared_ptr<IDeliveryCacheProgressService> CreateProgressService(SyncType type) {
         auto& backend{progress.at(static_cast<std::size_t>(type))};
-        return std::make_shared<IDeliveryCacheProgressService>(backend.GetEvent(),
+        return std::make_shared<IDeliveryCacheProgressService>(system, backend.GetEvent(),
                                                                backend.GetImpl());
     }
 
@@ -261,7 +263,6 @@ private:
         rb.Push(RESULT_SUCCESS);
     }
 
-    Core::System& system;
     Backend& backend;
 
     std::array<ProgressServiceBackend, static_cast<std::size_t>(SyncType::Count)> progress;
@@ -277,8 +278,8 @@ void Module::Interface::CreateBcatService(Kernel::HLERequestContext& ctx) {
 
 class IDeliveryCacheFileService final : public ServiceFramework<IDeliveryCacheFileService> {
 public:
-    IDeliveryCacheFileService(FileSys::VirtualDir root_)
-        : ServiceFramework{"IDeliveryCacheFileService"}, root(std::move(root_)) {
+    explicit IDeliveryCacheFileService(Core::System& system_, FileSys::VirtualDir root_)
+        : ServiceFramework{system_, "IDeliveryCacheFileService"}, root(std::move(root_)) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDeliveryCacheFileService::Open, "Open"},
@@ -394,8 +395,8 @@ private:
 class IDeliveryCacheDirectoryService final
     : public ServiceFramework<IDeliveryCacheDirectoryService> {
 public:
-    IDeliveryCacheDirectoryService(FileSys::VirtualDir root_)
-        : ServiceFramework{"IDeliveryCacheDirectoryService"}, root(std::move(root_)) {
+    explicit IDeliveryCacheDirectoryService(Core::System& system_, FileSys::VirtualDir root_)
+        : ServiceFramework{system_, "IDeliveryCacheDirectoryService"}, root(std::move(root_)) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDeliveryCacheDirectoryService::Open, "Open"},
@@ -492,8 +493,8 @@ private:
 
 class IDeliveryCacheStorageService final : public ServiceFramework<IDeliveryCacheStorageService> {
 public:
-    IDeliveryCacheStorageService(FileSys::VirtualDir root_)
-        : ServiceFramework{"IDeliveryCacheStorageService"}, root(std::move(root_)) {
+    explicit IDeliveryCacheStorageService(Core::System& system_, FileSys::VirtualDir root_)
+        : ServiceFramework{system_, "IDeliveryCacheStorageService"}, root(std::move(root_)) {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IDeliveryCacheStorageService::CreateFileService, "CreateFileService"},
@@ -518,7 +519,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IDeliveryCacheFileService>(root);
+        rb.PushIpcInterface<IDeliveryCacheFileService>(system, root);
     }
 
     void CreateDirectoryService(Kernel::HLERequestContext& ctx) {
@@ -526,7 +527,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IDeliveryCacheDirectoryService>(root);
+        rb.PushIpcInterface<IDeliveryCacheDirectoryService>(system, root);
     }
 
     void EnumerateDeliveryCacheDirectory(Kernel::HLERequestContext& ctx) {
@@ -551,10 +552,10 @@ private:
 void Module::Interface::CreateDeliveryCacheStorageService(Kernel::HLERequestContext& ctx) {
     LOG_DEBUG(Service_BCAT, "called");
 
+    const auto title_id = system.CurrentProcess()->GetTitleID();
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IDeliveryCacheStorageService>(
-        fsc.GetBCATDirectory(system.CurrentProcess()->GetTitleID()));
+    rb.PushIpcInterface<IDeliveryCacheStorageService>(system, fsc.GetBCATDirectory(title_id));
 }
 
 void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
@@ -566,7 +567,7 @@ void Module::Interface::CreateDeliveryCacheStorageServiceWithApplicationId(
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushIpcInterface<IDeliveryCacheStorageService>(fsc.GetBCATDirectory(title_id));
+    rb.PushIpcInterface<IDeliveryCacheStorageService>(system, fsc.GetBCATDirectory(title_id));
 }
 
 std::unique_ptr<Backend> CreateBackendFromSettings([[maybe_unused]] Core::System& system,
@@ -582,10 +583,9 @@ std::unique_ptr<Backend> CreateBackendFromSettings([[maybe_unused]] Core::System
 
 Module::Interface::Interface(Core::System& system_, std::shared_ptr<Module> module_,
                              FileSystem::FileSystemController& fsc_, const char* name)
-    : ServiceFramework(name), fsc{fsc_}, module{std::move(module_)},
+    : ServiceFramework{system_, name}, fsc{fsc_}, module{std::move(module_)},
       backend{CreateBackendFromSettings(system_,
-                                        [&fsc_](u64 tid) { return fsc_.GetBCATDirectory(tid); })},
-      system{system_} {}
+                                        [&fsc_](u64 tid) { return fsc_.GetBCATDirectory(tid); })} {}
 
 Module::Interface::~Interface() = default;
 

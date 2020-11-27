@@ -4,12 +4,12 @@
 
 #pragma once
 
-namespace Service::SM {
-class ServiceManager;
-}
-
 namespace Core {
 class System;
+}
+
+namespace Service::SM {
+class ServiceManager;
 }
 
 namespace Service::NIFM {

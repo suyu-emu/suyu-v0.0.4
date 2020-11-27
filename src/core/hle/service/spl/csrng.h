@@ -6,11 +6,15 @@
 
 #include "core/hle/service/spl/module.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::SPL {
 
 class CSRNG final : public Module::Interface {
 public:
-    explicit CSRNG(std::shared_ptr<Module> module);
+    explicit CSRNG(Core::System& system_, std::shared_ptr<Module> module_);
     ~CSRNG() override;
 };
 

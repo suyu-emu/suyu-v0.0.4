@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class WritableEvent;
 }
@@ -26,7 +30,6 @@ private:
 
     std::vector<u64> add_on_content;
     Kernel::EventPair aoc_change_event;
-    Core::System& system;
 };
 
 /// Registers all AOC services with the specified service manager.

@@ -6,7 +6,7 @@
 
 namespace Service::Audio {
 
-AudRecA::AudRecA() : ServiceFramework{"audrec:a"} {
+AudRecA::AudRecA(Core::System& system_) : ServiceFramework{system_, "audrec:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestSuspendFinalOutputRecorders"},

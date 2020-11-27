@@ -14,8 +14,8 @@ namespace Service::NCM {
 
 class ILocationResolver final : public ServiceFramework<ILocationResolver> {
 public:
-    explicit ILocationResolver(FileSys::StorageId id)
-        : ServiceFramework{"ILocationResolver"}, storage(id) {
+    explicit ILocationResolver(Core::System& system_, FileSys::StorageId id)
+        : ServiceFramework{system_, "ILocationResolver"}, storage{id} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ResolveProgramPath"},
@@ -50,7 +50,8 @@ private:
 
 class IRegisteredLocationResolver final : public ServiceFramework<IRegisteredLocationResolver> {
 public:
-    explicit IRegisteredLocationResolver() : ServiceFramework{"IRegisteredLocationResolver"} {
+    explicit IRegisteredLocationResolver(Core::System& system_)
+        : ServiceFramework{system_, "IRegisteredLocationResolver"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ResolveProgramPath"},
@@ -72,7 +73,8 @@ public:
 
 class IAddOnContentLocationResolver final : public ServiceFramework<IAddOnContentLocationResolver> {
 public:
-    explicit IAddOnContentLocationResolver() : ServiceFramework{"IAddOnContentLocationResolver"} {
+    explicit IAddOnContentLocationResolver(Core::System& system_)
+        : ServiceFramework{system_, "IAddOnContentLocationResolver"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ResolveAddOnContentPath"},
@@ -89,7 +91,7 @@ public:
 
 class LR final : public ServiceFramework<LR> {
 public:
-    explicit LR() : ServiceFramework{"lr"} {
+    explicit LR(Core::System& system_) : ServiceFramework{system_, "lr"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenLocationResolver"},
@@ -105,7 +107,7 @@ public:
 
 class NCM final : public ServiceFramework<NCM> {
 public:
-    explicit NCM() : ServiceFramework{"ncm"} {
+    explicit NCM(Core::System& system_) : ServiceFramework{system_, "ncm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "CreateContentStorage"},
@@ -130,9 +132,9 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<LR>()->InstallAsService(sm);
-    std::make_shared<NCM>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<LR>(system)->InstallAsService(sm);
+    std::make_shared<NCM>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::NCM

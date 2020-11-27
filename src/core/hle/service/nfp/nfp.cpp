@@ -21,8 +21,9 @@ namespace ErrCodes {
 constexpr ResultCode ERR_NO_APPLICATION_AREA(ErrorModule::NFP, 152);
 } // namespace ErrCodes
 
-Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : ServiceFramework(name), module(std::move(module)), system(system) {
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {
     auto& kernel = system.Kernel();
     nfc_tag_load = Kernel::WritableEvent::CreateEventPair(kernel, "IUser:NFCTagDetected");
 }
@@ -31,8 +32,8 @@ Module::Interface::~Interface() = default;
 
 class IUser final : public ServiceFramework<IUser> {
 public:
-    IUser(Module::Interface& nfp_interface, Core::System& system)
-        : ServiceFramework("NFP::IUser"), nfp_interface(nfp_interface) {
+    explicit IUser(Module::Interface& nfp_interface_, Core::System& system_)
+        : ServiceFramework{system_, "NFP::IUser"}, nfp_interface{nfp_interface_} {
         static const FunctionInfo functions[] = {
             {0, &IUser::Initialize, "Initialize"},
             {1, &IUser::Finalize, "Finalize"},

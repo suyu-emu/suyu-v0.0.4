@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Set {
 
 /// This is "nn::settings::LanguageCode", which is a NUL-terminated string stored in a u64.
@@ -32,7 +36,7 @@ LanguageCode GetLanguageCodeFromIndex(std::size_t idx);
 
 class SET final : public ServiceFramework<SET> {
 public:
-    explicit SET();
+    explicit SET(Core::System& system_);
     ~SET() override;
 
 private:

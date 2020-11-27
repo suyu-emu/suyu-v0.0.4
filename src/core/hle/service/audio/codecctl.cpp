@@ -2,14 +2,11 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "common/logging/log.h"
-#include "core/hle/ipc_helpers.h"
-#include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/audio/codecctl.h"
 
 namespace Service::Audio {
 
-CodecCtl::CodecCtl() : ServiceFramework("codecctl") {
+CodecCtl::CodecCtl(Core::System& system_) : ServiceFramework{system_, "codecctl"} {
     static const FunctionInfo functions[] = {
         {0, nullptr, "InitializeCodecController"},
         {1, nullptr, "FinalizeCodecController"},

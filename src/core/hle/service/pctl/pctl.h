@@ -6,11 +6,15 @@
 
 #include "core/hle/service/pctl/module.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::PCTL {
 
 class PCTL final : public Module::Interface {
 public:
-    explicit PCTL(std::shared_ptr<Module> module, const char* name);
+    explicit PCTL(Core::System& system_, std::shared_ptr<Module> module_, const char* name);
     ~PCTL() override;
 };
 

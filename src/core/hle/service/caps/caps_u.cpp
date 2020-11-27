@@ -12,8 +12,8 @@ namespace Service::Capture {
 class IAlbumAccessorApplicationSession final
     : public ServiceFramework<IAlbumAccessorApplicationSession> {
 public:
-    explicit IAlbumAccessorApplicationSession()
-        : ServiceFramework{"IAlbumAccessorApplicationSession"} {
+    explicit IAlbumAccessorApplicationSession(Core::System& system_)
+        : ServiceFramework{system_, "IAlbumAccessorApplicationSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {2001, nullptr, "OpenAlbumMovieReadStream"},
@@ -28,7 +28,7 @@ public:
     }
 };
 
-CAPS_U::CAPS_U() : ServiceFramework("caps:u") {
+CAPS_U::CAPS_U(Core::System& system_) : ServiceFramework{system_, "caps:u"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {32, &CAPS_U::SetShimLibraryVersion, "SetShimLibraryVersion"},

@@ -20,8 +20,9 @@
 
 namespace Service::Fatal {
 
-Module::Interface::Interface(std::shared_ptr<Module> module, Core::System& system, const char* name)
-    : ServiceFramework(name), module(std::move(module)), system(system) {}
+Module::Interface::Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                             const char* name)
+    : ServiceFramework{system_, name}, module{std::move(module_)} {}
 
 Module::Interface::~Interface() = default;
 

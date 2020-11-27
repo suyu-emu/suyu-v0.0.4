@@ -12,7 +12,7 @@ namespace Service::PCIe {
 
 class ISession final : public ServiceFramework<ISession> {
 public:
-    explicit ISession() : ServiceFramework{"ISession"} {
+    explicit ISession(Core::System& system_) : ServiceFramework{system_, "ISession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "QueryFunctions"},
@@ -48,7 +48,7 @@ public:
 
 class PCIe final : public ServiceFramework<PCIe> {
 public:
-    explicit PCIe() : ServiceFramework{"pcie"} {
+    explicit PCIe(Core::System& system_) : ServiceFramework{system, "pcie"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "RegisterClassDriver"},
@@ -60,8 +60,8 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<PCIe>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<PCIe>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::PCIe

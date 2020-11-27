@@ -12,7 +12,7 @@ namespace Service::ERPT {
 
 class ErrorReportContext final : public ServiceFramework<ErrorReportContext> {
 public:
-    explicit ErrorReportContext() : ServiceFramework{"erpt:c"} {
+    explicit ErrorReportContext(Core::System& system_) : ServiceFramework{system_, "erpt:c"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "SubmitContext"},
@@ -35,7 +35,7 @@ public:
 
 class ErrorReportSession final : public ServiceFramework<ErrorReportSession> {
 public:
-    explicit ErrorReportSession() : ServiceFramework{"erpt:r"} {
+    explicit ErrorReportSession(Core::System& system_) : ServiceFramework{system_, "erpt:r"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenReport"},
@@ -48,9 +48,9 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<ErrorReportContext>()->InstallAsService(sm);
-    std::make_shared<ErrorReportSession>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<ErrorReportContext>(system)->InstallAsService(sm);
+    std::make_shared<ErrorReportSession>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::ERPT

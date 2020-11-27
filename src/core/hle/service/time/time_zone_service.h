@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Time {
 
 namespace TimeZone {
@@ -14,7 +18,8 @@ class TimeZoneContentManager;
 
 class ITimeZoneService final : public ServiceFramework<ITimeZoneService> {
 public:
-    explicit ITimeZoneService(TimeZone::TimeZoneContentManager& time_zone_manager);
+    explicit ITimeZoneService(Core::System& system_,
+                              TimeZone::TimeZoneContentManager& time_zone_manager_);
 
 private:
     void GetDeviceLocationName(Kernel::HLERequestContext& ctx);

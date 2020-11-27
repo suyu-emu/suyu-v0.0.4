@@ -7,8 +7,8 @@
 #include <functional>
 #include <string>
 
-namespace Service::SM {
-class ServiceManager;
+namespace Core {
+class System;
 }
 
 namespace Service::Yuzu {
@@ -19,7 +19,7 @@ struct TestResult {
     std::string name;
 };
 
-void InstallInterfaces(SM::ServiceManager& sm, std::string data,
+void InstallInterfaces(Core::System& system, std::string data,
                        std::function<void(std::vector<TestResult>)> finish_callback);
 
 } // namespace Service::Yuzu

@@ -16,7 +16,8 @@ class Module final {
 public:
     class Interface : public ServiceFramework<Interface> {
     public:
-        explicit Interface(std::shared_ptr<Module> module, Core::System& system, const char* name);
+        explicit Interface(std::shared_ptr<Module> module_, Core::System& system_,
+                           const char* name);
         ~Interface() override;
 
         struct ModelInfo {
@@ -43,7 +44,6 @@ public:
 
     protected:
         std::shared_ptr<Module> module;
-        Core::System& system;
     };
 };
 

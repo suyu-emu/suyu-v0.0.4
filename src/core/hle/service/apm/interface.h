@@ -13,7 +13,8 @@ class Module;
 
 class APM final : public ServiceFramework<APM> {
 public:
-    explicit APM(std::shared_ptr<Module> apm, Controller& controller, const char* name);
+    explicit APM(Core::System& system_, std::shared_ptr<Module> apm_, Controller& controller_,
+                 const char* name);
     ~APM() override;
 
 private:
@@ -26,7 +27,7 @@ private:
 
 class APM_Sys final : public ServiceFramework<APM_Sys> {
 public:
-    explicit APM_Sys(Controller& controller);
+    explicit APM_Sys(Core::System& system_, Controller& controller);
     ~APM_Sys() override;
 
     void SetCpuBoostMode(Kernel::HLERequestContext& ctx);

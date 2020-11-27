@@ -6,7 +6,7 @@
 
 namespace Service::Audio {
 
-AudInA::AudInA() : ServiceFramework{"audin:a"} {
+AudInA::AudInA(Core::System& system_) : ServiceFramework{system_, "audin:a"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "RequestSuspendAudioIns"},

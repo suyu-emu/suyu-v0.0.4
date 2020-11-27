@@ -28,7 +28,7 @@ class IAudioRenderer final : public ServiceFramework<IAudioRenderer> {
 public:
     explicit IAudioRenderer(Core::System& system, AudioCommon::AudioRendererParameter audren_params,
                             const std::size_t instance_number)
-        : ServiceFramework("IAudioRenderer") {
+        : ServiceFramework{system, "IAudioRenderer"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IAudioRenderer::GetSampleRate, "GetSampleRate"},
@@ -167,8 +167,8 @@ private:
 
 class IAudioDevice final : public ServiceFramework<IAudioDevice> {
 public:
-    explicit IAudioDevice(Core::System& system, u32_le revision_num)
-        : ServiceFramework("IAudioDevice"), revision{revision_num} {
+    explicit IAudioDevice(Core::System& system_, u32_le revision_num)
+        : ServiceFramework{system_, "IAudioDevice"}, revision{revision_num} {
         static const FunctionInfo functions[] = {
             {0, &IAudioDevice::ListAudioDeviceName, "ListAudioDeviceName"},
             {1, &IAudioDevice::SetAudioDeviceOutputVolume, "SetAudioDeviceOutputVolume"},
@@ -325,7 +325,7 @@ private:
 
 }; // namespace Audio
 
-AudRenU::AudRenU(Core::System& system_) : ServiceFramework("audren:u"), system{system_} {
+AudRenU::AudRenU(Core::System& system_) : ServiceFramework{system_, "audren:u"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &AudRenU::OpenAudioRenderer, "OpenAudioRenderer"},

@@ -6,7 +6,7 @@
 
 namespace Service::Sockets {
 
-ETHC_C::ETHC_C() : ServiceFramework{"ethc:c"} {
+ETHC_C::ETHC_C(Core::System& system_) : ServiceFramework{system_, "ethc:c"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "Initialize"},
@@ -23,7 +23,7 @@ ETHC_C::ETHC_C() : ServiceFramework{"ethc:c"} {
 
 ETHC_C::~ETHC_C() = default;
 
-ETHC_I::ETHC_I() : ServiceFramework{"ethc:i"} {
+ETHC_I::ETHC_I(Core::System& system_) : ServiceFramework{system_, "ethc:i"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "GetReadableHandle"},

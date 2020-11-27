@@ -4,6 +4,10 @@
 
 #pragma once
 
+namespace Core {
+class System;
+}
+
 namespace Service::SM {
 class ServiceManager;
 }
@@ -11,6 +15,6 @@ class ServiceManager;
 namespace Service::ERPT {
 
 /// Registers all ERPT services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system);
 
 } // namespace Service::ERPT

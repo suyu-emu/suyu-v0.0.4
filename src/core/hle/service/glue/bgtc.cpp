@@ -6,7 +6,7 @@
 
 namespace Service::Glue {
 
-BGTC_T::BGTC_T() : ServiceFramework{"bgtc:t"} {
+BGTC_T::BGTC_T(Core::System& system_) : ServiceFramework{system_, "bgtc:t"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "NotifyTaskStarting"},
@@ -31,7 +31,7 @@ BGTC_T::BGTC_T() : ServiceFramework{"bgtc:t"} {
 
 BGTC_T::~BGTC_T() = default;
 
-BGTC_SC::BGTC_SC() : ServiceFramework{"bgtc:sc"} {
+BGTC_SC::BGTC_SC(Core::System& system_) : ServiceFramework{system_, "bgtc:sc"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "GetState"},

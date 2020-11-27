@@ -100,7 +100,7 @@ struct EventInterface {
 
 class Module final {
 public:
-    Module(Core::System& system);
+    explicit Module(Core::System& system_);
     ~Module();
 
     /// Returns a pointer to one of the available devices, identified by its name.

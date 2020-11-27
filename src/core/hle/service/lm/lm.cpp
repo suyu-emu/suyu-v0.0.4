@@ -18,8 +18,9 @@ namespace Service::LM {
 
 class ILogger final : public ServiceFramework<ILogger> {
 public:
-    explicit ILogger(Manager& manager_, Core::Memory::Memory& memory_)
-        : ServiceFramework("ILogger"), manager{manager_}, memory{memory_} {
+    explicit ILogger(Core::System& system_)
+        : ServiceFramework{system_, "ILogger"}, manager{system_.GetLogManager()},
+          memory{system_.Memory()} {
         static const FunctionInfo functions[] = {
             {0, &ILogger::Log, "Log"},
             {1, &ILogger::SetDestination, "SetDestination"},
@@ -81,8 +82,7 @@ private:
 
 class LM final : public ServiceFramework<LM> {
 public:
-    explicit LM(Manager& manager_, Core::Memory::Memory& memory_)
-        : ServiceFramework{"lm"}, manager{manager_}, memory{memory_} {
+    explicit LM(Core::System& system_) : ServiceFramework{system_, "lm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &LM::OpenLogger, "OpenLogger"},
@@ -98,16 +98,12 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ILogger>(manager, memory);
+        rb.PushIpcInterface<ILogger>(system);
     }
-
-    Manager& manager;
-    Core::Memory::Memory& memory;
 };
 
 void InstallInterfaces(Core::System& system) {
-    std::make_shared<LM>(system.GetLogManager(), system.Memory())
-        ->InstallAsService(system.ServiceManager());
+    std::make_shared<LM>(system)->InstallAsService(system.ServiceManager());
 }
 
 } // namespace Service::LM

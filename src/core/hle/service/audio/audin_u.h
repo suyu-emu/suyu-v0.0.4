@@ -6,6 +6,10 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Kernel {
 class HLERequestContext;
 }
@@ -14,7 +18,7 @@ namespace Service::Audio {
 
 class AudInU final : public ServiceFramework<AudInU> {
 public:
-    explicit AudInU();
+    explicit AudInU(Core::System& system_);
     ~AudInU() override;
 
 private:

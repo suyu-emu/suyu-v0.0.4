@@ -12,7 +12,7 @@ namespace Service::BPC {
 
 class BPC final : public ServiceFramework<BPC> {
 public:
-    explicit BPC() : ServiceFramework{"bpc"} {
+    explicit BPC(Core::System& system_) : ServiceFramework{system_, "bpc"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "ShutdownSystem"},
@@ -40,7 +40,7 @@ public:
 
 class BPC_R final : public ServiceFramework<BPC_R> {
 public:
-    explicit BPC_R() : ServiceFramework{"bpc:r"} {
+    explicit BPC_R(Core::System& system_) : ServiceFramework{system_, "bpc:r"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "GetRtcTime"},
@@ -55,9 +55,9 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<BPC>()->InstallAsService(sm);
-    std::make_shared<BPC_R>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<BPC>(system)->InstallAsService(sm);
+    std::make_shared<BPC_R>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::BPC

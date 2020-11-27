@@ -827,8 +827,8 @@ void BSD::BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) co
     rb.PushEnum(bsd_errno);
 }
 
-BSD::BSD(Core::System& system, const char* name)
-    : ServiceFramework(name), worker_pool{system, this} {
+BSD::BSD(Core::System& system_, const char* name)
+    : ServiceFramework{system_, name}, worker_pool{system_, this} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &BSD::RegisterClient, "RegisterClient"},
@@ -873,7 +873,7 @@ BSD::BSD(Core::System& system, const char* name)
 
 BSD::~BSD() = default;
 
-BSDCFG::BSDCFG() : ServiceFramework{"bsdcfg"} {
+BSDCFG::BSDCFG(Core::System& system_) : ServiceFramework{system_, "bsdcfg"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, nullptr, "SetIfUp"},

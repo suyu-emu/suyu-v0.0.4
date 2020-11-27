@@ -141,8 +141,8 @@ struct PL_U::Impl {
     std::vector<FontRegion> shared_font_regions;
 };
 
-PL_U::PL_U(Core::System& system)
-    : ServiceFramework("pl:u"), impl{std::make_unique<Impl>()}, system(system) {
+PL_U::PL_U(Core::System& system_)
+    : ServiceFramework{system_, "pl:u"}, impl{std::make_unique<Impl>()} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {0, &PL_U::RequestLoad, "RequestLoad"},

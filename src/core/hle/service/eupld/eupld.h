@@ -4,6 +4,10 @@
 
 #pragma once
 
+namespace Core {
+class System;
+}
+
 namespace Service::SM {
 class ServiceManager;
 }
@@ -11,6 +15,6 @@ class ServiceManager;
 namespace Service::EUPLD {
 
 /// Registers all EUPLD services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system);
 
 } // namespace Service::EUPLD

@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::SM {
 
 class Controller final : public ServiceFramework<Controller> {
 public:
-    Controller();
+    explicit Controller(Core::System& system_);
     ~Controller() override;
 
 private:

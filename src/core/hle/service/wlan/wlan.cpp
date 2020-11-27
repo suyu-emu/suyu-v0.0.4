@@ -12,7 +12,7 @@ namespace Service::WLAN {
 
 class WLANInfra final : public ServiceFramework<WLANInfra> {
 public:
-    explicit WLANInfra() : ServiceFramework{"wlan:inf"} {
+    explicit WLANInfra(Core::System& system_) : ServiceFramework{system_, "wlan:inf"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "OpenMode"},
@@ -55,7 +55,7 @@ public:
 
 class WLANLocal final : public ServiceFramework<WLANLocal> {
 public:
-    explicit WLANLocal() : ServiceFramework{"wlan:lcl"} {
+    explicit WLANLocal(Core::System& system_) : ServiceFramework{system_, "wlan:lcl"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown0"},
@@ -120,7 +120,7 @@ public:
 
 class WLANLocalGetFrame final : public ServiceFramework<WLANLocalGetFrame> {
 public:
-    explicit WLANLocalGetFrame() : ServiceFramework{"wlan:lg"} {
+    explicit WLANLocalGetFrame(Core::System& system_) : ServiceFramework{system_, "wlan:lg"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown"},
@@ -133,7 +133,7 @@ public:
 
 class WLANSocketGetFrame final : public ServiceFramework<WLANSocketGetFrame> {
 public:
-    explicit WLANSocketGetFrame() : ServiceFramework{"wlan:sg"} {
+    explicit WLANSocketGetFrame(Core::System& system_) : ServiceFramework{system_, "wlan:sg"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown"},
@@ -146,7 +146,7 @@ public:
 
 class WLANSocketManager final : public ServiceFramework<WLANSocketManager> {
 public:
-    explicit WLANSocketManager() : ServiceFramework{"wlan:soc"} {
+    explicit WLANSocketManager(Core::System& system_) : ServiceFramework{system_, "wlan:soc"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Unknown0"},
@@ -169,12 +169,12 @@ public:
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<WLANInfra>()->InstallAsService(sm);
-    std::make_shared<WLANLocal>()->InstallAsService(sm);
-    std::make_shared<WLANLocalGetFrame>()->InstallAsService(sm);
-    std::make_shared<WLANSocketGetFrame>()->InstallAsService(sm);
-    std::make_shared<WLANSocketManager>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<WLANInfra>(system)->InstallAsService(sm);
+    std::make_shared<WLANLocal>(system)->InstallAsService(sm);
+    std::make_shared<WLANLocalGetFrame>(system)->InstallAsService(sm);
+    std::make_shared<WLANSocketGetFrame>(system)->InstallAsService(sm);
+    std::make_shared<WLANSocketManager>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::WLAN

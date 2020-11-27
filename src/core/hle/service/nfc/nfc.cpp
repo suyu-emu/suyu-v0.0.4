@@ -16,7 +16,7 @@ namespace Service::NFC {
 
 class IAm final : public ServiceFramework<IAm> {
 public:
-    explicit IAm() : ServiceFramework{"NFC::IAm"} {
+    explicit IAm(Core::System& system_) : ServiceFramework{system_, "NFC::IAm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -31,7 +31,7 @@ public:
 
 class NFC_AM final : public ServiceFramework<NFC_AM> {
 public:
-    explicit NFC_AM() : ServiceFramework{"nfc:am"} {
+    explicit NFC_AM(Core::System& system_) : ServiceFramework{system_, "nfc:am"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NFC_AM::CreateAmInterface, "CreateAmInterface"},
@@ -47,13 +47,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IAm>();
+        rb.PushIpcInterface<IAm>(system);
     }
 };
 
 class MFIUser final : public ServiceFramework<MFIUser> {
 public:
-    explicit MFIUser() : ServiceFramework{"NFC::MFIUser"} {
+    explicit MFIUser(Core::System& system_) : ServiceFramework{system_, "NFC::MFIUser"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -79,7 +79,7 @@ public:
 
 class NFC_MF_U final : public ServiceFramework<NFC_MF_U> {
 public:
-    explicit NFC_MF_U() : ServiceFramework{"nfc:mf:u"} {
+    explicit NFC_MF_U(Core::System& system_) : ServiceFramework{system_, "nfc:mf:u"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NFC_MF_U::CreateUserInterface, "CreateUserInterface"},
@@ -95,13 +95,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<MFIUser>();
+        rb.PushIpcInterface<MFIUser>(system);
     }
 };
 
 class IUser final : public ServiceFramework<IUser> {
 public:
-    explicit IUser() : ServiceFramework{"NFC::IUser"} {
+    explicit IUser(Core::System& system_) : ServiceFramework{system_, "NFC::IUser"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &IUser::InitializeOld, "InitializeOld"},
@@ -171,7 +171,7 @@ private:
 
 class NFC_U final : public ServiceFramework<NFC_U> {
 public:
-    explicit NFC_U() : ServiceFramework{"nfc:user"} {
+    explicit NFC_U(Core::System& system_) : ServiceFramework{system_, "nfc:user"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NFC_U::CreateUserInterface, "CreateUserInterface"},
@@ -187,13 +187,13 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<IUser>();
+        rb.PushIpcInterface<IUser>(system);
     }
 };
 
 class ISystem final : public ServiceFramework<ISystem> {
 public:
-    explicit ISystem() : ServiceFramework{"ISystem"} {
+    explicit ISystem(Core::System& system_) : ServiceFramework{system_, "ISystem"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "Initialize"},
@@ -230,7 +230,7 @@ public:
 
 class NFC_SYS final : public ServiceFramework<NFC_SYS> {
 public:
-    explicit NFC_SYS() : ServiceFramework{"nfc:sys"} {
+    explicit NFC_SYS(Core::System& system_) : ServiceFramework{system_, "nfc:sys"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &NFC_SYS::CreateSystemInterface, "CreateSystemInterface"},
@@ -246,15 +246,15 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<ISystem>();
+        rb.PushIpcInterface<ISystem>(system);
     }
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<NFC_AM>()->InstallAsService(sm);
-    std::make_shared<NFC_MF_U>()->InstallAsService(sm);
-    std::make_shared<NFC_U>()->InstallAsService(sm);
-    std::make_shared<NFC_SYS>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<NFC_AM>(system)->InstallAsService(sm);
+    std::make_shared<NFC_MF_U>(system)->InstallAsService(sm);
+    std::make_shared<NFC_U>(system)->InstallAsService(sm);
+    std::make_shared<NFC_SYS>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::NFC

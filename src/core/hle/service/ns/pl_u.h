@@ -20,7 +20,7 @@ void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, s
 
 class PL_U final : public ServiceFramework<PL_U> {
 public:
-    explicit PL_U(Core::System& system);
+    explicit PL_U(Core::System& system_);
     ~PL_U() override;
 
 private:
@@ -33,7 +33,6 @@ private:
 
     struct Impl;
     std::unique_ptr<Impl> impl;
-    Core::System& system;
 };
 
 } // namespace NS

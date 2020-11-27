@@ -14,7 +14,7 @@ constexpr ResultCode ERROR_INVALID_RIGHTS_ID{ErrorModule::ETicket, 3};
 
 class ETicket final : public ServiceFramework<ETicket> {
 public:
-    explicit ETicket() : ServiceFramework{"es"} {
+    explicit ETicket(Core::System& system_) : ServiceFramework{system_, "es"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {1, &ETicket::ImportTicket, "ImportTicket"},
@@ -305,8 +305,8 @@ private:
     Core::Crypto::KeyManager& keys = Core::Crypto::KeyManager::Instance();
 };
 
-void InstallInterfaces(SM::ServiceManager& service_manager) {
-    std::make_shared<ETicket>()->InstallAsService(service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
+    std::make_shared<ETicket>(system)->InstallAsService(service_manager);
 }
 
 } // namespace Service::ES

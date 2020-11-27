@@ -6,8 +6,8 @@
 
 namespace Service::Fatal {
 
-Fatal_P::Fatal_P(std::shared_ptr<Module> module, Core::System& system)
-    : Module::Interface(std::move(module), system, "fatal:p") {}
+Fatal_P::Fatal_P(std::shared_ptr<Module> module_, Core::System& system_)
+    : Interface(std::move(module_), system_, "fatal:p") {}
 
 Fatal_P::~Fatal_P() = default;
 

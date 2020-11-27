@@ -38,14 +38,13 @@ static ResultCode ValidateServiceName(const std::string& name) {
     return RESULT_SUCCESS;
 }
 
-void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self,
-                                       Kernel::KernelCore& kernel) {
+void ServiceManager::InstallInterfaces(std::shared_ptr<ServiceManager> self, Core::System& system) {
     ASSERT(self->sm_interface.expired());
 
-    auto sm = std::make_shared<SM>(self, kernel);
-    sm->InstallAsNamedPort(kernel);
+    auto sm = std::make_shared<SM>(self, system);
+    sm->InstallAsNamedPort(system.Kernel());
     self->sm_interface = sm;
-    self->controller_interface = std::make_unique<Controller>();
+    self->controller_interface = std::make_unique<Controller>(system);
 }
 
 ResultVal<std::shared_ptr<Kernel::ServerPort>> ServiceManager::RegisterService(std::string name,
@@ -190,8 +189,9 @@ void SM::UnregisterService(Kernel::HLERequestContext& ctx) {
     rb.Push(service_manager->UnregisterService(name));
 }
 
-SM::SM(std::shared_ptr<ServiceManager> service_manager, Kernel::KernelCore& kernel)
-    : ServiceFramework{"sm:", 4}, service_manager{std::move(service_manager)}, kernel{kernel} {
+SM::SM(std::shared_ptr<ServiceManager> service_manager_, Core::System& system_)
+    : ServiceFramework{system_, "sm:", 4},
+      service_manager{std::move(service_manager_)}, kernel{system_.Kernel()} {
     static const FunctionInfo functions[] = {
         {0x00000000, &SM::Initialize, "Initialize"},
         {0x00000001, &SM::GetService, "GetService"},

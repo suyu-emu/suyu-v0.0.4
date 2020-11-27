@@ -6,7 +6,7 @@
 
 namespace Service::Set {
 
-SET_FD::SET_FD() : ServiceFramework("set:fd") {
+SET_FD::SET_FD(Core::System& system_) : ServiceFramework{system_, "set:fd"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {2, nullptr, "SetSettingsItemValue"},

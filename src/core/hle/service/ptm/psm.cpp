@@ -14,7 +14,7 @@ namespace Service::PSM {
 
 class PSM final : public ServiceFramework<PSM> {
 public:
-    explicit PSM() : ServiceFramework{"psm"} {
+    explicit PSM(Core::System& system_) : ServiceFramework{system_, "psm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, &PSM::GetBatteryChargePercentage, "GetBatteryChargePercentage"},
@@ -72,8 +72,8 @@ private:
     ChargerType charger_type{ChargerType::RegularCharger};
 };
 
-void InstallInterfaces(SM::ServiceManager& sm) {
-    std::make_shared<PSM>()->InstallAsService(sm);
+void InstallInterfaces(SM::ServiceManager& sm, Core::System& system) {
+    std::make_shared<PSM>(system)->InstallAsService(sm);
 }
 
 } // namespace Service::PSM

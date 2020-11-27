@@ -10,7 +10,8 @@ namespace Service::Capture {
 
 class IAlbumControlSession final : public ServiceFramework<IAlbumControlSession> {
 public:
-    explicit IAlbumControlSession() : ServiceFramework{"IAlbumControlSession"} {
+    explicit IAlbumControlSession(Core::System& system_)
+        : ServiceFramework{system_, "IAlbumControlSession"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {2001, nullptr, "OpenAlbumMovieReadStream"},
@@ -44,7 +45,7 @@ public:
     }
 };
 
-CAPS_C::CAPS_C() : ServiceFramework("caps:c") {
+CAPS_C::CAPS_C(Core::System& system_) : ServiceFramework{system_, "caps:c"} {
     // clang-format off
     static const FunctionInfo functions[] = {
         {1, nullptr, "CaptureRawImage"},

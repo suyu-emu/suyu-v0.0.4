@@ -20,7 +20,7 @@ namespace NS {
 
 class IAccountProxyInterface final : public ServiceFramework<IAccountProxyInterface> {
 public:
-    explicit IAccountProxyInterface();
+    explicit IAccountProxyInterface(Core::System& system_);
     ~IAccountProxyInterface() override;
 };
 
@@ -36,43 +36,41 @@ private:
     void GetApplicationControlData(Kernel::HLERequestContext& ctx);
     void GetApplicationDesiredLanguage(Kernel::HLERequestContext& ctx);
     void ConvertApplicationLanguageToLanguageCode(Kernel::HLERequestContext& ctx);
-
-    Core::System& system;
 };
 
 class IApplicationVersionInterface final : public ServiceFramework<IApplicationVersionInterface> {
 public:
-    explicit IApplicationVersionInterface();
+    explicit IApplicationVersionInterface(Core::System& system_);
     ~IApplicationVersionInterface() override;
 };
 
 class IContentManagementInterface final : public ServiceFramework<IContentManagementInterface> {
 public:
-    explicit IContentManagementInterface();
+    explicit IContentManagementInterface(Core::System& system_);
     ~IContentManagementInterface() override;
 };
 
 class IDocumentInterface final : public ServiceFramework<IDocumentInterface> {
 public:
-    explicit IDocumentInterface();
+    explicit IDocumentInterface(Core::System& system_);
     ~IDocumentInterface() override;
 };
 
 class IDownloadTaskInterface final : public ServiceFramework<IDownloadTaskInterface> {
 public:
-    explicit IDownloadTaskInterface();
+    explicit IDownloadTaskInterface(Core::System& system_);
     ~IDownloadTaskInterface() override;
 };
 
 class IECommerceInterface final : public ServiceFramework<IECommerceInterface> {
 public:
-    explicit IECommerceInterface();
+    explicit IECommerceInterface(Core::System& system_);
     ~IECommerceInterface() override;
 };
 
 class IFactoryResetInterface final : public ServiceFramework<IFactoryResetInterface> {
 public:
-    explicit IFactoryResetInterface();
+    explicit IFactoryResetInterface(Core::System& system_);
     ~IFactoryResetInterface() override;
 };
 
@@ -90,7 +88,7 @@ private:
 
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
-        rb.PushIpcInterface<T>();
+        rb.PushIpcInterface<T>(system);
     }
 
     void PushIApplicationManagerInterface(Kernel::HLERequestContext& ctx) {
@@ -108,8 +106,6 @@ private:
 
         return std::make_shared<T>(std::forward<Args>(args)...);
     }
-
-    Core::System& system;
 };
 
 /// Registers all NS services with the specified service manager.

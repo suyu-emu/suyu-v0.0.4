@@ -4,6 +4,7 @@
 
 #include <memory>
 #include "common/string_util.h"
+#include "core/core.h"
 #include "core/hle/ipc_helpers.h"
 #include "core/hle/service/service.h"
 #include "core/hle/service/sm/sm.h"
@@ -15,10 +16,10 @@ constexpr u64 SERVICE_VERSION = 0x00000002;
 
 class YuzuTest final : public ServiceFramework<YuzuTest> {
 public:
-    explicit YuzuTest(std::string data,
-                      std::function<void(std::vector<TestResult>)> finish_callback)
-        : ServiceFramework{"yuzutest"}, data(std::move(data)),
-          finish_callback(std::move(finish_callback)) {
+    explicit YuzuTest(Core::System& system_, std::string data_,
+                      std::function<void(std::vector<TestResult>)> finish_callback_)
+        : ServiceFramework{system_, "yuzutest"}, data{std::move(data_)}, finish_callback{std::move(
+                                                                             finish_callback_)} {
         static const FunctionInfo functions[] = {
             {0, &YuzuTest::Initialize, "Initialize"},
             {1, &YuzuTest::GetServiceVersion, "GetServiceVersion"},
@@ -104,9 +105,11 @@ private:
     std::function<void(std::vector<TestResult>)> finish_callback;
 };
 
-void InstallInterfaces(SM::ServiceManager& sm, std::string data,
+void InstallInterfaces(Core::System& system, std::string data,
                        std::function<void(std::vector<TestResult>)> finish_callback) {
-    std::make_shared<YuzuTest>(data, finish_callback)->InstallAsService(sm);
+    auto& sm = system.ServiceManager();
+    std::make_shared<YuzuTest>(system, std::move(data), std::move(finish_callback))
+        ->InstallAsService(sm);
 }
 
 } // namespace Service::Yuzu

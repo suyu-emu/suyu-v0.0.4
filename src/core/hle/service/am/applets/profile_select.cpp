@@ -17,7 +17,7 @@ constexpr ResultCode ERR_USER_CANCELLED_SELECTION{ErrorModule::Account, 1};
 
 ProfileSelect::ProfileSelect(Core::System& system_,
                              const Core::Frontend::ProfileSelectApplet& frontend_)
-    : Applet{system_.Kernel()}, frontend(frontend_) {}
+    : Applet{system_.Kernel()}, frontend{frontend_}, system{system_} {}
 
 ProfileSelect::~ProfileSelect() = default;
 
@@ -50,7 +50,7 @@ void ProfileSelect::ExecuteInteractive() {
 
 void ProfileSelect::Execute() {
     if (complete) {
-        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(final_data)));
+        broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(final_data)));
         return;
     }
 
@@ -71,7 +71,7 @@ void ProfileSelect::SelectionComplete(std::optional<Common::UUID> uuid) {
 
     final_data = std::vector<u8>(sizeof(UserSelectionOutput));
     std::memcpy(final_data.data(), &output, final_data.size());
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(std::move(final_data)));
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(final_data)));
     broker.SignalStateChanged();
 }
 

@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::AM {
 
 class TCAP final : public ServiceFramework<TCAP> {
 public:
-    explicit TCAP();
+    explicit TCAP(Core::System& system_);
     ~TCAP() override;
 };
 

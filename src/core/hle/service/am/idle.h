@@ -6,11 +6,15 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::AM {
 
 class IdleSys final : public ServiceFramework<IdleSys> {
 public:
-    explicit IdleSys();
+    explicit IdleSys(Core::System& system_);
     ~IdleSys() override;
 };
 

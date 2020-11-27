@@ -4,11 +4,17 @@
 
 #pragma once
 
-#include "core/hle/service/service.h"
+namespace Core {
+class System;
+}
+
+namespace Service::SM {
+class ServiceManager;
+}
 
 namespace Service::Set {
 
 /// Registers all Settings services with the specified service manager.
-void InstallInterfaces(SM::ServiceManager& service_manager);
+void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system);
 
 } // namespace Service::Set

@@ -6,17 +6,21 @@
 
 #include "core/hle/service/service.h"
 
+namespace Core {
+class System;
+}
+
 namespace Service::Glue {
 
 class BGTC_T final : public ServiceFramework<BGTC_T> {
 public:
-    BGTC_T();
+    explicit BGTC_T(Core::System& system_);
     ~BGTC_T() override;
 };
 
 class BGTC_SC final : public ServiceFramework<BGTC_SC> {
 public:
-    BGTC_SC();
+    explicit BGTC_SC(Core::System& system_);
     ~BGTC_SC() override;
 };
 

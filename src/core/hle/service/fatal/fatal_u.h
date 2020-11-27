@@ -10,7 +10,7 @@ namespace Service::Fatal {
 
 class Fatal_U final : public Module::Interface {
 public:
-    explicit Fatal_U(std::shared_ptr<Module> module, Core::System& system);
+    explicit Fatal_U(std::shared_ptr<Module> module_, Core::System& system_);
     ~Fatal_U() override;
 };
 
