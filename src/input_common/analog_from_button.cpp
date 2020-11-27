@@ -6,6 +6,7 @@
 #include <cmath>
 #include <thread>
 #include "common/math_util.h"
+#include "core/settings.h"
 #include "input_common/analog_from_button.h"
 
 namespace InputCommon {
@@ -112,7 +113,26 @@ public:
     }
 
     std::tuple<float, float> GetStatus() const override {
-        return std::make_tuple(std::cos(angle) * amplitude, std::sin(angle) * amplitude);
+        if (Settings::values.emulate_analog_keyboard) {
+            return std::make_tuple(std::cos(angle) * amplitude, std::sin(angle) * amplitude);
+        }
+        constexpr float SQRT_HALF = 0.707106781f;
+        int x = 0, y = 0;
+        if (right->GetStatus()) {
+            ++x;
+        }
+        if (left->GetStatus()) {
+            --x;
+        }
+        if (up->GetStatus()) {
+            ++y;
+        }
+        if (down->GetStatus()) {
+            --y;
+        }
+        const float coef = modifier->GetStatus() ? modifier_scale : 1.0f;
+        return std::make_tuple(static_cast<float>(x) * coef * (y == 0 ? 1.0f : SQRT_HALF),
+                               static_cast<float>(y) * coef * (x == 0 ? 1.0f : SQRT_HALF));
     }
 
     bool GetAnalogDirectionStatus(Input::AnalogDirection direction) const override {

@@ -178,6 +178,8 @@ struct Values {
     u16 udp_input_port;
     u8 udp_pad_index;
 
+    bool emulate_analog_keyboard;
+
     bool mouse_enabled;
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;

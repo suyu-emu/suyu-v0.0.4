@@ -121,6 +121,7 @@ void ConfigureInputAdvanced::ApplyConfiguration() {
     Settings::values.debug_pad_enabled = ui->debug_enabled->isChecked();
     Settings::values.mouse_enabled = ui->mouse_enabled->isChecked();
     Settings::values.keyboard_enabled = ui->keyboard_enabled->isChecked();
+    Settings::values.emulate_analog_keyboard = ui->emulate_analog_keyboard->isChecked();
     Settings::values.touchscreen.enabled = ui->touchscreen_enabled->isChecked();
 }
 
@@ -147,6 +148,7 @@ void ConfigureInputAdvanced::LoadConfiguration() {
     ui->debug_enabled->setChecked(Settings::values.debug_pad_enabled);
     ui->mouse_enabled->setChecked(Settings::values.mouse_enabled);
     ui->keyboard_enabled->setChecked(Settings::values.keyboard_enabled);
+    ui->emulate_analog_keyboard->setChecked(Settings::values.emulate_analog_keyboard);
     ui->touchscreen_enabled->setChecked(Settings::values.touchscreen.enabled);
 
     UpdateUIEnabled();
