@@ -4,9 +4,10 @@
 
 #include <string_view>
 
+#include "common/assert.h"
 #include "common/file_util.h"
+#include "common/logging/log.h"
 #include "core/core.h"
-#include "core/gdbstub/gdbstub.h"
 #include "core/hle/service/hid/hid.h"
 #include "core/settings.h"
 #include "video_core/renderer_base.h"
@@ -31,13 +32,9 @@ std::string GetTimeZoneString() {
     return timezones[time_zone_index];
 }
 
-void Apply() {
-    GDBStub::SetServerPort(values.gdbstub_port);
-    GDBStub::ToggleServer(values.use_gdbstub);
-
-    auto& system_instance = Core::System::GetInstance();
-    if (system_instance.IsPoweredOn()) {
-        system_instance.Renderer().RefreshBaseSettings();
+void Apply(Core::System& system) {
+    if (system.IsPoweredOn()) {
+        system.Renderer().RefreshBaseSettings();
     }
 
     Service::HID::ReloadInputDevices();
@@ -106,9 +103,9 @@ float Volume() {
     return values.volume.GetValue();
 }
 
-void RestoreGlobalState() {
+void RestoreGlobalState(bool is_powered_on) {
     // If a game is running, DO NOT restore the global settings state
-    if (Core::System::GetInstance().IsPoweredOn()) {
+    if (is_powered_on) {
         return;
     }
 

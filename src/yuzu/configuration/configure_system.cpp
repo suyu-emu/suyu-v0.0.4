@@ -105,16 +105,18 @@ void ConfigureSystem::SetConfiguration() {
 void ConfigureSystem::ReadSystemSettings() {}
 
 void ConfigureSystem::ApplyConfiguration() {
-    // Allow setting custom RTC even if system is powered on, to allow in-game time to be fast
-    // forwared
+    auto& system = Core::System::GetInstance();
+
+    // Allow setting custom RTC even if system is powered on,
+    // to allow in-game time to be fast forwarded
     if (Settings::values.custom_rtc.UsingGlobal()) {
         if (ui->custom_rtc_checkbox->isChecked()) {
             Settings::values.custom_rtc.SetValue(
                 std::chrono::seconds(ui->custom_rtc_edit->dateTime().toSecsSinceEpoch()));
-            if (Core::System::GetInstance().IsPoweredOn()) {
+            if (system.IsPoweredOn()) {
                 const s64 posix_time{Settings::values.custom_rtc.GetValue()->count() +
                                      Service::Time::TimeManager::GetExternalTimeZoneOffset()};
-                Core::System::GetInstance().GetTimeManager().UpdateLocalSystemClockTime(posix_time);
+                system.GetTimeManager().UpdateLocalSystemClockTime(posix_time);
             }
         } else {
             Settings::values.custom_rtc.SetValue(std::nullopt);
@@ -197,7 +199,7 @@ void ConfigureSystem::ApplyConfiguration() {
         }
     }
 
-    Settings::Apply();
+    Settings::Apply(system);
 }
 
 void ConfigureSystem::RefreshConsoleID() {

@@ -160,10 +160,12 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    Settings::values.use_gdbstub = false;
-    Settings::Apply();
+    Core::System& system{Core::System::GetInstance()};
 
-    std::unique_ptr<EmuWindow_SDL2_Hide> emu_window{std::make_unique<EmuWindow_SDL2_Hide>()};
+    Settings::values.use_gdbstub = false;
+    Settings::Apply(system);
+
+    const auto emu_window{std::make_unique<EmuWindow_SDL2_Hide>()};
 
     bool finished = false;
     int return_value = 0;
@@ -212,7 +214,6 @@ int main(int argc, char** argv) {
             return_value = -1;
     };
 
-    Core::System& system{Core::System::GetInstance()};
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
     system.SetFilesystem(std::make_shared<FileSys::RealVfsFilesystem>());
     system.GetFileSystemController().CreateFactories(*system.GetFilesystem());
