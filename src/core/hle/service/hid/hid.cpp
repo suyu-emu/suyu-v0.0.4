@@ -306,8 +306,8 @@ Hid::Hid(Core::System& system) : ServiceFramework("hid"), system(system) {
         {527, nullptr, "EnablePalmaBoostMode"},
         {528, nullptr, "GetPalmaBluetoothAddress"},
         {529, nullptr, "SetDisallowedPalmaConnection"},
-        {1000, nullptr, "SetNpadCommunicationMode"},
-        {1001, nullptr, "GetNpadCommunicationMode"},
+        {1000, &Hid::SetNpadCommunicationMode, "SetNpadCommunicationMode"},
+        {1001, &Hid::GetNpadCommunicationMode, "GetNpadCommunicationMode"},
         {1002, nullptr, "SetTouchScreenConfiguration"},
         {1003, nullptr, "IsFirmwareUpdateNeededForNotification"},
         {2000, nullptr, "ActivateDigitizer"},
@@ -1294,6 +1294,34 @@ void Hid::SetPalmaBoostMode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::SetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+    const auto communication_mode{rp.PopEnum<Controller_NPad::NpadCommunicationMode>()};
+
+    applet_resource->GetController<Controller_NPad>(HidController::NPad)
+        .SetNpadCommunicationMode(communication_mode);
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}, communication_mode={}",
+                applet_resource_user_id, communication_mode);
+
+    IPC::ResponseBuilder rb{ctx, 2};
+    rb.Push(RESULT_SUCCESS);
+}
+
+void Hid::GetNpadCommunicationMode(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+    const auto applet_resource_user_id{rp.Pop<u64>()};
+
+    LOG_WARNING(Service_HID, "(STUBBED) called, applet_resource_user_id={}",
+                applet_resource_user_id);
+
+    IPC::ResponseBuilder rb{ctx, 4};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushEnum(applet_resource->GetController<Controller_NPad>(HidController::NPad)
+                    .GetNpadCommunicationMode());
 }
 
 class HidDbg final : public ServiceFramework<HidDbg> {

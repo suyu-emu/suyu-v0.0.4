@@ -677,6 +677,14 @@ Controller_NPad::NpadHandheldActivationMode Controller_NPad::GetNpadHandheldActi
     return handheld_activation_mode;
 }
 
+void Controller_NPad::SetNpadCommunicationMode(NpadCommunicationMode communication_mode_) {
+    communication_mode = communication_mode_;
+}
+
+Controller_NPad::NpadCommunicationMode Controller_NPad::GetNpadCommunicationMode() const {
+    return communication_mode;
+}
+
 void Controller_NPad::SetNpadMode(u32 npad_id, NpadAssignments assignment_mode) {
     const std::size_t npad_index = NPadIdToIndex(npad_id);
     ASSERT(npad_index < shared_memory_entries.size());
