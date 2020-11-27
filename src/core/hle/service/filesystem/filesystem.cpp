@@ -717,7 +717,8 @@ void FileSystemController::CreateFactories(FileSys::VfsFilesystem& vfs, bool ove
     }
 
     if (save_data_factory == nullptr) {
-        save_data_factory = std::make_unique<FileSys::SaveDataFactory>(std::move(nand_directory));
+        save_data_factory =
+            std::make_unique<FileSys::SaveDataFactory>(system, std::move(nand_directory));
     }
 
     if (sdmc_factory == nullptr) {
