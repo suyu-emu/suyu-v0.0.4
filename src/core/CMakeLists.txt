@@ -154,6 +154,7 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_scheduler_lock.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
