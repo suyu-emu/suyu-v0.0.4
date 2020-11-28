@@ -79,8 +79,7 @@ AudioRenderer::AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory
       sink_context(params.sink_count), splitter_context(),
       voices(params.voice_count), memory{memory_},
       command_generator(worker_params, voice_context, mix_context, splitter_context, effect_context,
-                        memory),
-      temp_mix_buffer(AudioCommon::TOTAL_TEMP_MIX_SIZE) {
+                        memory) {
     behavior_info.SetUserRevision(params.revision);
     splitter_context.Initialize(behavior_info, params.splitter_count,
                                 params.num_splitter_send_channels);

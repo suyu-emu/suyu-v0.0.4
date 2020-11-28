@@ -73,7 +73,6 @@ private:
     Core::Memory::Memory& memory;
     CommandGenerator command_generator;
     std::size_t elapsed_frame_count{};
-    std::vector<s32> temp_mix_buffer{};
 };
 
 } // namespace AudioCore
