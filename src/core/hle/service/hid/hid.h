@@ -145,6 +145,8 @@ private:
     void ResetSevenSixAxisSensorTimestamp(Kernel::HLERequestContext& ctx);
     void SetIsPalmaAllConnectable(Kernel::HLERequestContext& ctx);
     void SetPalmaBoostMode(Kernel::HLERequestContext& ctx);
+    void SetNpadCommunicationMode(Kernel::HLERequestContext& ctx);
+    void GetNpadCommunicationMode(Kernel::HLERequestContext& ctx);
 
     enum class VibrationDeviceType : u32 {
         LinearResonantActuator = 1,

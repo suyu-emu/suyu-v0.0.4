@@ -86,6 +86,11 @@ public:
         None = 2,
     };
 
+    enum class NpadCommunicationMode : u64 {
+        Unknown0 = 0,
+        Unknown1 = 1,
+    };
+
     struct DeviceHandle {
         NpadType npad_type{};
         u8 npad_id{};
@@ -145,6 +150,9 @@ public:
 
     void SetNpadHandheldActivationMode(NpadHandheldActivationMode activation_mode);
     NpadHandheldActivationMode GetNpadHandheldActivationMode() const;
+
+    void SetNpadCommunicationMode(NpadCommunicationMode communication_mode_);
+    NpadCommunicationMode GetNpadCommunicationMode() const;
 
     void SetNpadMode(u32 npad_id, NpadAssignments assignment_mode);
 
@@ -424,6 +432,8 @@ private:
     std::vector<u32> supported_npad_id_types{};
     NpadHoldType hold_type{NpadHoldType::Vertical};
     NpadHandheldActivationMode handheld_activation_mode{NpadHandheldActivationMode::Dual};
+    // NpadCommunicationMode is unknown, default value is 1
+    NpadCommunicationMode communication_mode{NpadCommunicationMode::Unknown1};
     // Each controller should have their own styleset changed event
     std::array<Kernel::EventPair, 10> styleset_changed_events;
     std::array<std::array<std::chrono::steady_clock::time_point, 2>, 10> last_vibration_timepoints;
