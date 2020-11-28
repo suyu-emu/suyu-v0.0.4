@@ -1627,13 +1627,6 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
     } else {
         current_thread->Sleep(nanoseconds);
     }
-
-    if (is_redundant && !system.Kernel().IsMulticore()) {
-        system.Kernel().ExitSVCProfile();
-        system.CoreTiming().AddTicks(1000U);
-        system.GetCpuManager().PreemptSingleCore();
-        system.Kernel().EnterSVCProfile();
-    }
 }
 
 static void SleepThread32(Core::System& system, u32 nanoseconds_low, u32 nanoseconds_high) {
