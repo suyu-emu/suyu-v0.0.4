@@ -673,13 +673,22 @@ public:
     explicit NS_VM(Core::System& system_) : ServiceFramework{system_, "ns:vm"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {1200, nullptr, "NeedsUpdateVulnerability"},
+            {1200, &NS_VM::NeedsUpdateVulnerability, "NeedsUpdateVulnerability"},
             {1201, nullptr, "UpdateSafeSystemVersionForDebug"},
             {1202, nullptr, "GetSafeSystemVersion"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void NeedsUpdateVulnerability(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_NS, "(STUBBED) called");
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(false);
     }
 };
 
