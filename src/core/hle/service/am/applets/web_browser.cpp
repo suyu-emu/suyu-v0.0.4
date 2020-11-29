@@ -16,12 +16,14 @@
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
 #include "core/file_sys/vfs_types.h"
+#include "core/file_sys/vfs_vector.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/web_browser.h"
 #include "core/hle/service/filesystem/filesystem.h"
+#include "core/hle/service/ns/pl_u.h"
 
 namespace Service::AM::Applets {
 
@@ -123,6 +125,88 @@ FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
     }
 }
 
+void ExtractSharedFonts(Core::System& system) {
+    static constexpr std::array<const char*, 7> DECRYPTED_SHARED_FONTS{
+        "FontStandard.ttf",
+        "FontChineseSimplified.ttf",
+        "FontExtendedChineseSimplified.ttf",
+        "FontChineseTraditional.ttf",
+        "FontKorean.ttf",
+        "FontNintendoExtended.ttf",
+        "FontNintendoExtended2.ttf",
+    };
+
+    for (std::size_t i = 0; i < NS::SHARED_FONTS.size(); ++i) {
+        const auto fonts_dir = Common::FS::SanitizePath(
+            fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+            Common::FS::DirectorySeparator::PlatformDefault);
+
+        const auto font_file_path =
+            Common::FS::SanitizePath(fmt::format("{}/{}", fonts_dir, DECRYPTED_SHARED_FONTS[i]),
+                                     Common::FS::DirectorySeparator::PlatformDefault);
+
+        if (Common::FS::Exists(font_file_path)) {
+            continue;
+        }
+
+        const auto font = NS::SHARED_FONTS[i];
+        const auto font_title_id = static_cast<u64>(font.first);
+
+        const auto nca = system.GetFileSystemController().GetSystemNANDContents()->GetEntry(
+            font_title_id, FileSys::ContentRecordType::Data);
+
+        FileSys::VirtualFile romfs;
+
+        if (!nca) {
+            romfs = FileSys::SystemArchive::SynthesizeSystemArchive(font_title_id);
+        } else {
+            romfs = nca->GetRomFS();
+        }
+
+        if (!romfs) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} cannot be extracted!",
+                      font_title_id);
+            continue;
+        }
+
+        const auto extracted_romfs = FileSys::ExtractRomFS(romfs);
+
+        if (!extracted_romfs) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} failed to extract!",
+                      font_title_id);
+            continue;
+        }
+
+        const auto font_file = extracted_romfs->GetFile(font.second);
+
+        if (!font_file) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} has no font file \"{}\"!",
+                      font_title_id, font.second);
+            continue;
+        }
+
+        std::vector<u32> font_data_u32(font_file->GetSize() / sizeof(u32));
+        font_file->ReadBytes<u32>(font_data_u32.data(), font_file->GetSize());
+
+        std::transform(font_data_u32.begin(), font_data_u32.end(), font_data_u32.begin(),
+                       Common::swap32);
+
+        std::vector<u8> decrypted_data(font_file->GetSize() - 8);
+
+        NS::DecryptSharedFontToTTF(font_data_u32, decrypted_data);
+
+        FileSys::VirtualFile decrypted_font = std::make_shared<FileSys::VectorVfsFile>(
+            std::move(decrypted_data), DECRYPTED_SHARED_FONTS[i]);
+
+        const auto temp_dir =
+            system.GetFilesystem()->CreateDirectory(fonts_dir, FileSys::Mode::ReadWrite);
+
+        const auto out_file = temp_dir->CreateFile(DECRYPTED_SHARED_FONTS[i]);
+
+        FileSys::VfsRawCopy(decrypted_font, out_file);
+    }
+}
+
 } // namespace
 
 WebBrowser::WebBrowser(Core::System& system_, const Core::Frontend::WebBrowserApplet& frontend_)
@@ -154,6 +238,8 @@ void WebBrowser::Initialize() {
 
     LOG_DEBUG(Service_AM, "WebArgHeader: total_tlv_entries={}, shim_kind={}",
               web_arg_header.total_tlv_entries, web_arg_header.shim_kind);
+
+    ExtractSharedFonts(system);
 
     switch (web_arg_header.shim_kind) {
     case ShimKind::Shop:

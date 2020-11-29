@@ -27,27 +27,9 @@
 
 namespace Service::NS {
 
-enum class FontArchives : u64 {
-    Extension = 0x0100000000000810,
-    Standard = 0x0100000000000811,
-    Korean = 0x0100000000000812,
-    ChineseTraditional = 0x0100000000000813,
-    ChineseSimple = 0x0100000000000814,
-};
-
 struct FontRegion {
     u32 offset;
     u32 size;
-};
-
-constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
-    std::make_pair(FontArchives::Standard, "nintendo_udsg-r_std_003.bfttf"),
-    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_org_zh-cn_003.bfttf"),
-    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_ext_zh-cn_003.bfttf"),
-    std::make_pair(FontArchives::ChineseTraditional, "nintendo_udjxh-db_zh-tw_003.bfttf"),
-    std::make_pair(FontArchives::Korean, "nintendo_udsg-r_ko_003.bfttf"),
-    std::make_pair(FontArchives::Extension, "nintendo_ext_003.bfttf"),
-    std::make_pair(FontArchives::Extension, "nintendo_ext2_003.bfttf"),
 };
 
 // The below data is specific to shared font data dumped from Switch on f/w 2.2
@@ -78,6 +60,18 @@ static void DecryptSharedFont(const std::vector<u32>& input, Kernel::PhysicalMem
     std::memcpy(output.data() + offset, transformed_font.data(),
                 transformed_font.size() * sizeof(u32));
     offset += transformed_font.size() * sizeof(u32);
+}
+
+void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output) {
+    ASSERT_MSG(input[0] == EXPECTED_MAGIC, "Failed to derive key, unexpected magic number");
+
+    const u32 KEY = input[0] ^ EXPECTED_RESULT; // Derive key using an inverse xor
+    std::vector<u32> transformed_font(input.size());
+    // TODO(ogniK): Figure out a better way to do this
+    std::transform(input.begin(), input.end(), transformed_font.begin(),
+                   [&KEY](u32 font_data) { return Common::swap32(font_data ^ KEY); });
+    transformed_font[1] = Common::swap32(transformed_font[1]) ^ KEY; // "re-encrypt" the size
+    std::memcpy(output.data(), transformed_font.data() + 2, transformed_font.size() * sizeof(u32));
 }
 
 void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output,

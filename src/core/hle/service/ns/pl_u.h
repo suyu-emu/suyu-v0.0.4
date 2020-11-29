@@ -16,6 +16,25 @@ class FileSystemController;
 
 namespace NS {
 
+enum class FontArchives : u64 {
+    Extension = 0x0100000000000810,
+    Standard = 0x0100000000000811,
+    Korean = 0x0100000000000812,
+    ChineseTraditional = 0x0100000000000813,
+    ChineseSimple = 0x0100000000000814,
+};
+
+constexpr std::array<std::pair<FontArchives, const char*>, 7> SHARED_FONTS{
+    std::make_pair(FontArchives::Standard, "nintendo_udsg-r_std_003.bfttf"),
+    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_org_zh-cn_003.bfttf"),
+    std::make_pair(FontArchives::ChineseSimple, "nintendo_udsg-r_ext_zh-cn_003.bfttf"),
+    std::make_pair(FontArchives::ChineseTraditional, "nintendo_udjxh-db_zh-tw_003.bfttf"),
+    std::make_pair(FontArchives::Korean, "nintendo_udsg-r_ko_003.bfttf"),
+    std::make_pair(FontArchives::Extension, "nintendo_ext_003.bfttf"),
+    std::make_pair(FontArchives::Extension, "nintendo_ext2_003.bfttf"),
+};
+
+void DecryptSharedFontToTTF(const std::vector<u32>& input, std::vector<u8>& output);
 void EncryptSharedFont(const std::vector<u32>& input, std::vector<u8>& output, std::size_t& offset);
 
 class PL_U final : public ServiceFramework<PL_U> {
