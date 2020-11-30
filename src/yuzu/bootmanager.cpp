@@ -35,7 +35,7 @@
 #include "core/settings.h"
 #include "input_common/keyboard.h"
 #include "input_common/main.h"
-#include "input_common/motion_emu.h"
+#include "input_common/mouse/mouse_input.h"
 #include "video_core/renderer_base.h"
 #include "video_core/video_core.h"
 #include "yuzu/bootmanager.h"
@@ -388,23 +388,19 @@ void GRenderWindow::keyReleaseEvent(QKeyEvent* event) {
 }
 
 void GRenderWindow::mousePressEvent(QMouseEvent* event) {
-    if (!Settings::values.touchscreen.enabled) {
-        input_subsystem->GetKeyboard()->PressKey(event->button());
-        return;
-    }
-
     // Touch input is handled in TouchBeginEvent
     if (event->source() == Qt::MouseEventSynthesizedBySystem) {
         return;
     }
 
     auto pos = event->pos();
+    const auto [x, y] = ScaleTouch(pos);
+    input_subsystem->GetMouse()->PressButton(x, y, event->button());
+
     if (event->button() == Qt::LeftButton) {
-        const auto [x, y] = ScaleTouch(pos);
         this->TouchPressed(x, y);
-    } else if (event->button() == Qt::RightButton) {
-        input_subsystem->GetMotionEmu()->BeginTilt(pos.x(), pos.y());
     }
+
     QWidget::mousePressEvent(event);
 }
 
@@ -416,26 +412,22 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
 
     auto pos = event->pos();
     const auto [x, y] = ScaleTouch(pos);
+    input_subsystem->GetMouse()->MouseMove(x, y);
     this->TouchMoved(x, y);
-    input_subsystem->GetMotionEmu()->Tilt(pos.x(), pos.y());
+
     QWidget::mouseMoveEvent(event);
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
-    if (!Settings::values.touchscreen.enabled) {
-        input_subsystem->GetKeyboard()->ReleaseKey(event->button());
-        return;
-    }
-
     // Touch input is handled in TouchEndEvent
     if (event->source() == Qt::MouseEventSynthesizedBySystem) {
         return;
     }
 
+    input_subsystem->GetMouse()->ReleaseButton(event->button());
+
     if (event->button() == Qt::LeftButton) {
         this->TouchReleased();
-    } else if (event->button() == Qt::RightButton) {
-        input_subsystem->GetMotionEmu()->EndTilt();
     }
 }
 

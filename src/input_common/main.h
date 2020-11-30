@@ -25,6 +25,10 @@ namespace Settings::NativeMotion {
 enum Values : int;
 }
 
+namespace MouseInput {
+class Mouse;
+}
+
 namespace InputCommon {
 namespace Polling {
 
@@ -56,8 +60,11 @@ class GCAnalogFactory;
 class GCButtonFactory;
 class UDPMotionFactory;
 class UDPTouchFactory;
+class MouseButtonFactory;
+class MouseAnalogFactory;
+class MouseMotionFactory;
+class MouseTouchFactory;
 class Keyboard;
-class MotionEmu;
 
 /**
  * Given a ParamPackage for a Device returned from `GetInputDevices`, attempt to get the default
@@ -90,11 +97,11 @@ public:
     /// Retrieves the underlying keyboard device.
     [[nodiscard]] const Keyboard* GetKeyboard() const;
 
-    /// Retrieves the underlying motion emulation factory.
-    [[nodiscard]] MotionEmu* GetMotionEmu();
+    /// Retrieves the underlying mouse device.
+    [[nodiscard]] MouseInput::Mouse* GetMouse();
 
-    /// Retrieves the underlying motion emulation factory.
-    [[nodiscard]] const MotionEmu* GetMotionEmu() const;
+    /// Retrieves the underlying mouse device.
+    [[nodiscard]] const MouseInput::Mouse* GetMouse() const;
 
     /**
      * Returns all available input devices that this Factory can create a new device with.
@@ -136,6 +143,30 @@ public:
 
     /// Retrieves the underlying udp touch handler.
     [[nodiscard]] const UDPTouchFactory* GetUDPTouch() const;
+
+    /// Retrieves the underlying GameCube button handler.
+    [[nodiscard]] MouseButtonFactory* GetMouseButtons();
+
+    /// Retrieves the underlying GameCube button handler.
+    [[nodiscard]] const MouseButtonFactory* GetMouseButtons() const;
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] MouseAnalogFactory* GetMouseAnalogs();
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] const MouseAnalogFactory* GetMouseAnalogs() const;
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] MouseMotionFactory* GetMouseMotions();
+
+    /// Retrieves the underlying udp motion handler.
+    [[nodiscard]] const MouseMotionFactory* GetMouseMotions() const;
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] MouseTouchFactory* GetMouseTouch();
+
+    /// Retrieves the underlying udp touch handler.
+    [[nodiscard]] const MouseTouchFactory* GetMouseTouch() const;
 
     /// Reloads the input devices
     void ReloadInputDevices();

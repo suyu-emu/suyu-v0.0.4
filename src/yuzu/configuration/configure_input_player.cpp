@@ -19,6 +19,7 @@
 #include "core/hle/service/sm/sm.h"
 #include "input_common/gcadapter/gc_poller.h"
 #include "input_common/main.h"
+#include "input_common/mouse/mouse_poller.h"
 #include "input_common/udp/udp.h"
 #include "ui_configure_input_player.h"
 #include "yuzu/configuration/config.h"
@@ -152,6 +153,14 @@ QString ButtonToText(const Common::ParamPackage& param) {
         return {};
     }
 
+    if (param.Get("engine", "") == "mouse") {
+        if (param.Has("button")) {
+            const QString button_str = QString::number(int(param.Get("button", 0)));
+            return QObject::tr("Click %1").arg(button_str);
+        }
+        return GetKeyName(param.Get("code", 0));
+    }
+
     return QObject::tr("[unknown]");
 }
 
@@ -199,6 +208,26 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
             const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
 
             return QObject::tr("GC Axis %1").arg(axis_y_str);
+        }
+
+        return {};
+    }
+
+    if (param.Get("engine", "") == "mouse") {
+        if (dir == "modifier") {
+            return QObject::tr("[unused]");
+        }
+
+        if (dir == "left" || dir == "right") {
+            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
+
+            return QObject::tr("Mouse %1").arg(axis_x_str);
+        }
+
+        if (dir == "up" || dir == "down") {
+            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
+
+            return QObject::tr("Mouse %1").arg(axis_y_str);
         }
 
         return {};
@@ -484,6 +513,34 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                 return;
             }
         }
+        if (input_subsystem->GetMouseButtons()->IsPolling()) {
+            params = input_subsystem->GetMouseButtons()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseAnalogs()->IsPolling()) {
+            params = input_subsystem->GetMouseAnalogs()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseMotions()->IsPolling()) {
+            params = input_subsystem->GetMouseMotions()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
+        if (input_subsystem->GetMouseTouch()->IsPolling()) {
+            params = input_subsystem->GetMouseTouch()->GetNextInput();
+            if (params.Has("engine") && IsInputAcceptable(params)) {
+                SetPollingResult(params, false);
+                return;
+            }
+        }
         for (auto& poller : device_pollers) {
             params = poller->GetNextInput();
             if (params.Has("engine") && IsInputAcceptable(params)) {
@@ -761,8 +818,9 @@ void ConfigureInputPlayer::UpdateUI() {
 
         int slider_value;
         auto& param = analogs_param[analog_id];
-        const bool is_controller =
-            param.Get("engine", "") == "sdl" || param.Get("engine", "") == "gcpad";
+        const bool is_controller = param.Get("engine", "") == "sdl" ||
+                                   param.Get("engine", "") == "gcpad" ||
+                                   param.Get("engine", "") == "mouse";
 
         if (is_controller) {
             if (!param.Has("deadzone")) {
@@ -1078,6 +1136,16 @@ void ConfigureInputPlayer::HandleClick(
         input_subsystem->GetUDPMotions()->BeginConfiguration();
     }
 
+    if (type == InputCommon::Polling::DeviceType::Button) {
+        input_subsystem->GetMouseButtons()->BeginConfiguration();
+    } else if (type == InputCommon::Polling::DeviceType::AnalogPreferred) {
+        input_subsystem->GetMouseAnalogs()->BeginConfiguration();
+    } else if (type == InputCommon::Polling::DeviceType::Motion) {
+        input_subsystem->GetMouseMotions()->BeginConfiguration();
+    } else {
+        input_subsystem->GetMouseTouch()->BeginConfiguration();
+    }
+
     timeout_timer->start(2500); // Cancel after 2.5 seconds
     poll_timer->start(50);      // Check for new inputs every 50ms
 }
@@ -1096,6 +1164,11 @@ void ConfigureInputPlayer::SetPollingResult(const Common::ParamPackage& params, 
     input_subsystem->GetGCAnalogs()->EndConfiguration();
 
     input_subsystem->GetUDPMotions()->EndConfiguration();
+
+    input_subsystem->GetMouseButtons()->EndConfiguration();
+    input_subsystem->GetMouseAnalogs()->EndConfiguration();
+    input_subsystem->GetMouseMotions()->EndConfiguration();
+    input_subsystem->GetMouseTouch()->EndConfiguration();
 
     if (!abort) {
         (*input_setter)(params);
@@ -1128,15 +1201,7 @@ void ConfigureInputPlayer::mousePressEvent(QMouseEvent* event) {
         return;
     }
 
-    if (want_keyboard_mouse) {
-        SetPollingResult(Common::ParamPackage{InputCommon::GenerateKeyboardParam(event->button())},
-                         false);
-    } else {
-        // We don't want any mouse buttons, so don't stop polling
-        return;
-    }
-
-    SetPollingResult({}, true);
+    input_subsystem->GetMouse()->PressButton(0, 0, event->button());
 }
 
 void ConfigureInputPlayer::keyPressEvent(QKeyEvent* event) {
