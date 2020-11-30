@@ -315,7 +315,6 @@ public:
                                          "supported on this device");
             }
         }
-
         if (ir.UsesLayer() || ir.UsesViewportIndex()) {
             if (ir.UsesViewportIndex()) {
                 AddCapability(spv::Capability::MultiViewport);
@@ -325,11 +324,9 @@ public:
                 AddCapability(spv::Capability::ShaderViewportIndexLayerEXT);
             }
         }
-
         if (device.IsFormatlessImageLoadSupported()) {
             AddCapability(spv::Capability::StorageImageReadWithoutFormat);
         }
-
         if (device.IsFloat16Supported()) {
             AddCapability(spv::Capability::Float16);
         }
@@ -376,6 +373,9 @@ public:
             AddExecutionMode(main, spv::ExecutionMode::OriginUpperLeft);
             if (header.ps.omap.depth) {
                 AddExecutionMode(main, spv::ExecutionMode::DepthReplacing);
+            }
+            if (specialization.early_fragment_tests) {
+                AddExecutionMode(main, spv::ExecutionMode::EarlyFragmentTests);
             }
             break;
         case ShaderType::Compute:
