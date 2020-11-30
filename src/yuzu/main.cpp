@@ -28,8 +28,6 @@
 #include "core/hle/service/am/applet_ae.h"
 #include "core/hle/service/am/applet_oe.h"
 #include "core/hle/service/am/applets/applets.h"
-#include "core/hle/service/hid/controllers/npad.h"
-#include "core/hle/service/hid/hid.h"
 
 // These are wrappers to avoid the calls to CreateDirectory and CreateFile because of the Windows
 // defines.
@@ -182,6 +180,30 @@ static void InitializeLogging() {
 #endif
 }
 
+static void RemoveCachedContents() {
+    const auto offline_fonts = Common::FS::SanitizePath(
+        fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+        Common::FS::DirectorySeparator::PlatformDefault);
+
+    const auto offline_manual = Common::FS::SanitizePath(
+        fmt::format("{}/offline_web_applet_manual",
+                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+        Common::FS::DirectorySeparator::PlatformDefault);
+    const auto offline_legal_information = Common::FS::SanitizePath(
+        fmt::format("{}/offline_web_applet_legal_information",
+                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+        Common::FS::DirectorySeparator::PlatformDefault);
+    const auto offline_system_data = Common::FS::SanitizePath(
+        fmt::format("{}/offline_web_applet_system_data",
+                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+        Common::FS::DirectorySeparator::PlatformDefault);
+
+    Common::FS::DeleteDirRecursively(offline_fonts);
+    Common::FS::DeleteDirRecursively(offline_manual);
+    Common::FS::DeleteDirRecursively(offline_legal_information);
+    Common::FS::DeleteDirRecursively(offline_system_data);
+}
+
 GMainWindow::GMainWindow()
     : input_subsystem{std::make_shared<InputCommon::InputSubsystem>()},
       config{std::make_unique<Config>()}, vfs{std::make_shared<FileSys::RealVfsFilesystem>()},
@@ -249,6 +271,9 @@ GMainWindow::GMainWindow()
     Core::System::GetInstance().RegisterContentProvider(
         FileSys::ContentProviderUnionSlot::FrontendManual, provider.get());
     Core::System::GetInstance().GetFileSystemController().CreateFactories(*vfs);
+
+    // Remove cached contents generated during the previous session
+    RemoveCachedContents();
 
     // Gen keys if necessary
     OnReinitializeKeys(ReinitializeKeyBehavior::NoWarning);
@@ -339,6 +364,86 @@ void GMainWindow::SoftwareKeyboardGetText(
 void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message) {
     QMessageBox::warning(this, tr("Text Check Failed"), QString::fromStdU16String(error_message));
     emit SoftwareKeyboardFinishedCheckDialog();
+}
+
+void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
+                                             std::string_view additional_args) {
+#ifdef YUZU_USE_QT_WEB_ENGINE
+
+    QtNXWebEngineView web_browser_view(this, Core::System::GetInstance());
+
+    web_browser_view.LoadLocalWebPage(main_url, additional_args);
+
+    ui.action_Pause->setEnabled(false);
+    ui.action_Restart->setEnabled(false);
+    ui.action_Stop->setEnabled(false);
+
+    if (render_window->IsLoadingComplete()) {
+        render_window->hide();
+    }
+
+    const auto& layout = render_window->GetFramebufferLayout();
+    web_browser_view.resize(layout.screen.GetWidth(), layout.screen.GetHeight());
+    web_browser_view.move(layout.screen.left, layout.screen.top + menuBar()->height());
+    web_browser_view.setZoomFactor(static_cast<qreal>(layout.screen.GetWidth()) /
+                                   static_cast<qreal>(Layout::ScreenUndocked::Width));
+
+    web_browser_view.setFocus();
+    web_browser_view.show();
+
+    bool exit_check = false;
+
+    while (!web_browser_view.IsFinished()) {
+        QCoreApplication::processEvents();
+
+        if (!exit_check) {
+            web_browser_view.page()->runJavaScript(
+                QStringLiteral("end_applet;"), [&](const QVariant& variant) {
+                    exit_check = false;
+                    if (variant.toBool()) {
+                        web_browser_view.SetFinished(true);
+                        web_browser_view.SetExitReason(WebExitReason::EndButtonPressed);
+                    }
+                });
+
+            exit_check = true;
+        }
+
+        if (web_browser_view.GetCurrentURL().contains(QStringLiteral("localhost"))) {
+            if (!web_browser_view.IsFinished()) {
+                web_browser_view.SetFinished(true);
+                web_browser_view.SetExitReason(WebExitReason::CallbackURL);
+            }
+
+            web_browser_view.SetLastURL(web_browser_view.GetCurrentURL().toStdString());
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    const auto exit_reason = web_browser_view.GetExitReason();
+    const auto last_url = web_browser_view.GetLastURL();
+
+    web_browser_view.hide();
+
+    render_window->setFocus();
+
+    if (render_window->IsLoadingComplete()) {
+        render_window->show();
+    }
+
+    ui.action_Pause->setEnabled(true);
+    ui.action_Restart->setEnabled(true);
+    ui.action_Stop->setEnabled(true);
+
+    emit WebBrowserClosed(exit_reason, last_url);
+
+#else
+
+    // Utilize the same fallback as the default web browser applet.
+    emit WebBrowserClosed(WebExitReason::WindowClosed, "http://localhost");
+
+#endif
 }
 
 void GMainWindow::InitializeWidgets() {
@@ -1948,6 +2053,7 @@ void GMainWindow::OnStartGame() {
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<std::optional<std::u16string>>("std::optional<std::u16string>");
     qRegisterMetaType<std::string_view>("std::string_view");
+    qRegisterMetaType<Service::AM::Applets::WebExitReason>("Service::AM::Applets::WebExitReason");
 
     connect(emu_thread.get(), &EmuThread::ErrorThrown, this, &GMainWindow::OnCoreError);
 

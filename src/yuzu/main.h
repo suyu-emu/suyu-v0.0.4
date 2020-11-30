@@ -55,6 +55,10 @@ namespace InputCommon {
 class InputSubsystem;
 }
 
+namespace Service::AM::Applets {
+enum class WebExitReason : u32;
+}
+
 enum class EmulatedDirectoryTarget {
     NAND,
     SDMC,
@@ -126,6 +130,8 @@ signals:
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
     void SoftwareKeyboardFinishedCheckDialog();
 
+    void WebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason, std::string last_url);
+
 public slots:
     void OnLoadComplete();
     void OnExecuteProgram(std::size_t program_index);
@@ -135,6 +141,7 @@ public slots:
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
+    void WebBrowserOpenLocalWebPage(std::string_view main_url, std::string_view additional_args);
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
 private:

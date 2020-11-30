@@ -2,10 +2,339 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include "core/hle/lock.h"
-#include "yuzu/applets/web_browser.h"
-#include "yuzu/main.h"
+#ifdef YUZU_USE_QT_WEB_ENGINE
+#include <QKeyEvent>
 
-QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {}
+#include <QWebEngineProfile>
+#include <QWebEngineScript>
+#include <QWebEngineScriptCollection>
+#include <QWebEngineSettings>
+#include <QWebEngineUrlScheme>
+#endif
+
+#include "common/file_util.h"
+#include "core/core.h"
+#include "core/frontend/input_interpreter.h"
+#include "yuzu/applets/web_browser.h"
+#include "yuzu/applets/web_browser_scripts.h"
+#include "yuzu/main.h"
+#include "yuzu/util/url_request_interceptor.h"
+
+#ifdef YUZU_USE_QT_WEB_ENGINE
+
+namespace {
+
+constexpr int HIDButtonToKey(HIDButton button) {
+    switch (button) {
+    case HIDButton::DLeft:
+    case HIDButton::LStickLeft:
+        return Qt::Key_Left;
+    case HIDButton::DUp:
+    case HIDButton::LStickUp:
+        return Qt::Key_Up;
+    case HIDButton::DRight:
+    case HIDButton::LStickRight:
+        return Qt::Key_Right;
+    case HIDButton::DDown:
+    case HIDButton::LStickDown:
+        return Qt::Key_Down;
+    default:
+        return 0;
+    }
+}
+
+} // Anonymous namespace
+
+QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system)
+    : QWebEngineView(parent), url_interceptor(std::make_unique<UrlRequestInterceptor>()),
+      input_interpreter(std::make_unique<InputInterpreter>(system)) {
+    QWebEngineScript nx_font_css;
+    QWebEngineScript load_nx_font;
+    QWebEngineScript gamepad;
+    QWebEngineScript window_nx;
+
+    const QString fonts_dir = QString::fromStdString(Common::FS::SanitizePath(
+        fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir))));
+
+    nx_font_css.setName(QStringLiteral("nx_font_css.js"));
+    load_nx_font.setName(QStringLiteral("load_nx_font.js"));
+    gamepad.setName(QStringLiteral("gamepad_script.js"));
+    window_nx.setName(QStringLiteral("window_nx_script.js"));
+
+    nx_font_css.setSourceCode(
+        QString::fromStdString(NX_FONT_CSS)
+            .arg(fonts_dir + QStringLiteral("/FontStandard.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontChineseSimplified.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontExtendedChineseSimplified.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontChineseTraditional.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontKorean.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontNintendoExtended.ttf"))
+            .arg(fonts_dir + QStringLiteral("/FontNintendoExtended2.ttf")));
+    load_nx_font.setSourceCode(QString::fromStdString(LOAD_NX_FONT));
+    gamepad.setSourceCode(QString::fromStdString(GAMEPAD_SCRIPT));
+    window_nx.setSourceCode(QString::fromStdString(WINDOW_NX_SCRIPT));
+
+    nx_font_css.setInjectionPoint(QWebEngineScript::DocumentReady);
+    load_nx_font.setInjectionPoint(QWebEngineScript::Deferred);
+    gamepad.setInjectionPoint(QWebEngineScript::DocumentCreation);
+    window_nx.setInjectionPoint(QWebEngineScript::DocumentCreation);
+
+    nx_font_css.setWorldId(QWebEngineScript::MainWorld);
+    load_nx_font.setWorldId(QWebEngineScript::MainWorld);
+    gamepad.setWorldId(QWebEngineScript::MainWorld);
+    window_nx.setWorldId(QWebEngineScript::MainWorld);
+
+    nx_font_css.setRunsOnSubFrames(true);
+    load_nx_font.setRunsOnSubFrames(true);
+    gamepad.setRunsOnSubFrames(true);
+    window_nx.setRunsOnSubFrames(true);
+
+    auto* default_profile = QWebEngineProfile::defaultProfile();
+
+    default_profile->scripts()->insert(nx_font_css);
+    default_profile->scripts()->insert(load_nx_font);
+    default_profile->scripts()->insert(gamepad);
+    default_profile->scripts()->insert(window_nx);
+
+    default_profile->setRequestInterceptor(url_interceptor.get());
+
+    auto* global_settings = QWebEngineSettings::globalSettings();
+
+    global_settings->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
+    global_settings->setAttribute(QWebEngineSettings::FullScreenSupportEnabled, true);
+    global_settings->setAttribute(QWebEngineSettings::AllowRunningInsecureContent, true);
+    global_settings->setAttribute(QWebEngineSettings::FocusOnNavigationEnabled, true);
+    global_settings->setAttribute(QWebEngineSettings::AllowWindowActivationFromJavaScript, true);
+    global_settings->setAttribute(QWebEngineSettings::ShowScrollBars, false);
+
+    connect(
+        url_interceptor.get(), &UrlRequestInterceptor::FrameChanged, url_interceptor.get(),
+        [this] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            page()->runJavaScript(QString::fromStdString(LOAD_NX_FONT));
+        },
+        Qt::QueuedConnection);
+
+    connect(
+        page(), &QWebEnginePage::windowCloseRequested, page(),
+        [this] {
+            if (page()->url() == url_interceptor->GetRequestedURL()) {
+                SetFinished(true);
+                SetExitReason(WebExitReason::WindowClosed);
+            }
+        },
+        Qt::QueuedConnection);
+}
+
+QtNXWebEngineView::~QtNXWebEngineView() {
+    SetFinished(true);
+    StopInputThread();
+}
+
+void QtNXWebEngineView::LoadLocalWebPage(std::string_view main_url,
+                                         std::string_view additional_args) {
+    SetUserAgent(UserAgent::WebApplet);
+    SetFinished(false);
+    SetExitReason(WebExitReason::EndButtonPressed);
+    SetLastURL("http://localhost/");
+    StartInputThread();
+
+    load(QUrl(QUrl::fromLocalFile(QString::fromStdString(std::string(main_url))).toString() +
+              QString::fromStdString(std::string(additional_args))));
+}
+
+void QtNXWebEngineView::SetUserAgent(UserAgent user_agent) {
+    const QString user_agent_str = [user_agent] {
+        switch (user_agent) {
+        case UserAgent::WebApplet:
+        default:
+            return QStringLiteral("WebApplet");
+        case UserAgent::ShopN:
+            return QStringLiteral("ShopN");
+        case UserAgent::LoginApplet:
+            return QStringLiteral("LoginApplet");
+        case UserAgent::ShareApplet:
+            return QStringLiteral("ShareApplet");
+        case UserAgent::LobbyApplet:
+            return QStringLiteral("LobbyApplet");
+        case UserAgent::WifiWebAuthApplet:
+            return QStringLiteral("WifiWebAuthApplet");
+        }
+    }();
+
+    QWebEngineProfile::defaultProfile()->setHttpUserAgent(
+        QStringLiteral("Mozilla/5.0 (Nintendo Switch; %1) AppleWebKit/606.4 "
+                       "(KHTML, like Gecko) NF/6.0.1.15.4 NintendoBrowser/5.1.0.20389")
+            .arg(user_agent_str));
+}
+
+bool QtNXWebEngineView::IsFinished() const {
+    return finished;
+}
+
+void QtNXWebEngineView::SetFinished(bool finished_) {
+    finished = finished_;
+}
+
+WebExitReason QtNXWebEngineView::GetExitReason() const {
+    return exit_reason;
+}
+
+void QtNXWebEngineView::SetExitReason(WebExitReason exit_reason_) {
+    exit_reason = exit_reason_;
+}
+
+const std::string& QtNXWebEngineView::GetLastURL() const {
+    return last_url;
+}
+
+void QtNXWebEngineView::SetLastURL(std::string last_url_) {
+    last_url = std::move(last_url_);
+}
+
+QString QtNXWebEngineView::GetCurrentURL() const {
+    return url_interceptor->GetRequestedURL().toString();
+}
+
+void QtNXWebEngineView::hide() {
+    SetFinished(true);
+    StopInputThread();
+
+    QWidget::hide();
+}
+
+template <HIDButton... T>
+void QtNXWebEngineView::HandleWindowFooterButtonPressedOnce() {
+    const auto f = [this](HIDButton button) {
+        if (input_interpreter->IsButtonPressedOnce(button)) {
+            page()->runJavaScript(
+                QStringLiteral("yuzu_key_callbacks[%1] == null;").arg(static_cast<u8>(button)),
+                [&](const QVariant& variant) {
+                    if (variant.toBool()) {
+                        switch (button) {
+                        case HIDButton::A:
+                            SendMultipleKeyPressEvents<Qt::Key_A, Qt::Key_Space, Qt::Key_Return>();
+                            break;
+                        case HIDButton::B:
+                            SendKeyPressEvent(Qt::Key_B);
+                            break;
+                        case HIDButton::X:
+                            SendKeyPressEvent(Qt::Key_X);
+                            break;
+                        case HIDButton::Y:
+                            SendKeyPressEvent(Qt::Key_Y);
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                });
+
+            page()->runJavaScript(
+                QStringLiteral("if (yuzu_key_callbacks[%1] != null) { yuzu_key_callbacks[%1](); }")
+                    .arg(static_cast<u8>(button)));
+        }
+    };
+
+    (f(T), ...);
+}
+
+template <HIDButton... T>
+void QtNXWebEngineView::HandleWindowKeyButtonPressedOnce() {
+    const auto f = [this](HIDButton button) {
+        if (input_interpreter->IsButtonPressedOnce(button)) {
+            SendKeyPressEvent(HIDButtonToKey(button));
+        }
+    };
+
+    (f(T), ...);
+}
+
+template <HIDButton... T>
+void QtNXWebEngineView::HandleWindowKeyButtonHold() {
+    const auto f = [this](HIDButton button) {
+        if (input_interpreter->IsButtonHeld(button)) {
+            SendKeyPressEvent(HIDButtonToKey(button));
+        }
+    };
+
+    (f(T), ...);
+}
+
+void QtNXWebEngineView::SendKeyPressEvent(int key) {
+    if (key == 0) {
+        return;
+    }
+
+    QCoreApplication::postEvent(focusProxy(),
+                                new QKeyEvent(QKeyEvent::KeyPress, key, Qt::NoModifier));
+    QCoreApplication::postEvent(focusProxy(),
+                                new QKeyEvent(QKeyEvent::KeyRelease, key, Qt::NoModifier));
+}
+
+void QtNXWebEngineView::StartInputThread() {
+    if (input_thread_running) {
+        return;
+    }
+
+    input_thread_running = true;
+    input_thread = std::thread(&QtNXWebEngineView::InputThread, this);
+}
+
+void QtNXWebEngineView::StopInputThread() {
+    input_thread_running = false;
+    if (input_thread.joinable()) {
+        input_thread.join();
+    }
+}
+
+void QtNXWebEngineView::InputThread() {
+    // Wait for 1 second before allowing any inputs to be processed.
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    while (input_thread_running) {
+        input_interpreter->PollInput();
+
+        HandleWindowFooterButtonPressedOnce<HIDButton::A, HIDButton::B, HIDButton::X, HIDButton::Y,
+                                            HIDButton::L, HIDButton::R>();
+
+        HandleWindowKeyButtonPressedOnce<HIDButton::DLeft, HIDButton::DUp, HIDButton::DRight,
+                                         HIDButton::DDown, HIDButton::LStickLeft,
+                                         HIDButton::LStickUp, HIDButton::LStickRight,
+                                         HIDButton::LStickDown>();
+
+        HandleWindowKeyButtonHold<HIDButton::DLeft, HIDButton::DUp, HIDButton::DRight,
+                                  HIDButton::DDown, HIDButton::LStickLeft, HIDButton::LStickUp,
+                                  HIDButton::LStickRight, HIDButton::LStickDown>();
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+}
+
+#endif
+
+QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
+    connect(this, &QtWebBrowser::MainWindowOpenLocalWebPage, &main_window,
+            &GMainWindow::WebBrowserOpenLocalWebPage, Qt::QueuedConnection);
+    connect(&main_window, &GMainWindow::WebBrowserClosed, this,
+            &QtWebBrowser::MainWindowWebBrowserClosed, Qt::QueuedConnection);
+}
 
 QtWebBrowser::~QtWebBrowser() = default;
+
+void QtWebBrowser::OpenLocalWebPage(
+    std::string_view local_url, std::function<void(WebExitReason, std::string)> callback) const {
+    this->callback = std::move(callback);
+
+    const auto index = local_url.find('?');
+
+    if (index == std::string::npos) {
+        emit MainWindowOpenLocalWebPage(local_url, "");
+    } else {
+        emit MainWindowOpenLocalWebPage(local_url.substr(0, index), local_url.substr(index));
+    }
+}
+
+void QtWebBrowser::MainWindowWebBrowserClosed(WebExitReason exit_reason, std::string last_url) {
+    callback(exit_reason, last_url);
+}
