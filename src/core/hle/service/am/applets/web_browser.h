@@ -8,12 +8,17 @@
 
 #include "common/common_funcs.h"
 #include "common/common_types.h"
+#include "core/file_sys/vfs_types.h"
 #include "core/hle/result.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/am/applets/web_types.h"
 
 namespace Core {
 class System;
+}
+
+namespace FileSys {
+enum class ContentRecordType : u8;
 }
 
 namespace Service::AM::Applets {
@@ -30,6 +35,8 @@ public:
     ResultCode GetStatus() const override;
     void ExecuteInteractive() override;
     void Execute() override;
+
+    void ExtractOfflineRomFS();
 
     void WebBrowserExit(WebExitReason exit_reason, std::string last_url = "");
 
@@ -66,8 +73,11 @@ private:
     WebArgHeader web_arg_header;
     WebArgInputTLVMap web_arg_input_tlv_map;
 
+    u64 title_id;
+    FileSys::ContentRecordType nca_type;
     std::string offline_cache_dir;
     std::string offline_document;
+    FileSys::VirtualFile offline_romfs;
 
     Core::System& system;
 };

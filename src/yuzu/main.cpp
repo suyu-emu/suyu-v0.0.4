@@ -372,24 +372,49 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
 
     QtNXWebEngineView web_browser_view(this, Core::System::GetInstance());
 
-    web_browser_view.LoadLocalWebPage(main_url, additional_args);
-
     ui.action_Pause->setEnabled(false);
     ui.action_Restart->setEnabled(false);
     ui.action_Stop->setEnabled(false);
 
-    if (render_window->IsLoadingComplete()) {
-        render_window->hide();
+    {
+        QProgressDialog loading_progress(this);
+        loading_progress.setLabelText(tr("Loading Web Applet..."));
+        loading_progress.setRange(0, 3);
+        loading_progress.setValue(0);
+
+        if (!Common::FS::Exists(std::string(main_url))) {
+            loading_progress.show();
+
+            auto future = QtConcurrent::run([this] { emit WebBrowserExtractOfflineRomFS(); });
+
+            while (!future.isFinished()) {
+                QCoreApplication::processEvents();
+            }
+        }
+
+        loading_progress.setValue(1);
+
+        web_browser_view.LoadLocalWebPage(main_url, additional_args);
+
+        if (render_window->IsLoadingComplete()) {
+            render_window->hide();
+        }
+
+        const auto& layout = render_window->GetFramebufferLayout();
+        web_browser_view.resize(layout.screen.GetWidth(), layout.screen.GetHeight());
+        web_browser_view.move(layout.screen.left, layout.screen.top + menuBar()->height());
+        web_browser_view.setZoomFactor(static_cast<qreal>(layout.screen.GetWidth()) /
+                                       static_cast<qreal>(Layout::ScreenUndocked::Width));
+
+        web_browser_view.setFocus();
+        web_browser_view.show();
+
+        loading_progress.setValue(2);
+
+        QCoreApplication::processEvents();
+
+        loading_progress.setValue(3);
     }
-
-    const auto& layout = render_window->GetFramebufferLayout();
-    web_browser_view.resize(layout.screen.GetWidth(), layout.screen.GetHeight());
-    web_browser_view.move(layout.screen.left, layout.screen.top + menuBar()->height());
-    web_browser_view.setZoomFactor(static_cast<qreal>(layout.screen.GetWidth()) /
-                                   static_cast<qreal>(Layout::ScreenUndocked::Width));
-
-    web_browser_view.setFocus();
-    web_browser_view.show();
 
     bool exit_check = false;
 
@@ -402,7 +427,8 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
                     exit_check = false;
                     if (variant.toBool()) {
                         web_browser_view.SetFinished(true);
-                        web_browser_view.SetExitReason(WebExitReason::EndButtonPressed);
+                        web_browser_view.SetExitReason(
+                            Service::AM::Applets::WebExitReason::EndButtonPressed);
                     }
                 });
 
@@ -412,7 +438,7 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
         if (web_browser_view.GetCurrentURL().contains(QStringLiteral("localhost"))) {
             if (!web_browser_view.IsFinished()) {
                 web_browser_view.SetFinished(true);
-                web_browser_view.SetExitReason(WebExitReason::CallbackURL);
+                web_browser_view.SetExitReason(Service::AM::Applets::WebExitReason::CallbackURL);
             }
 
             web_browser_view.SetLastURL(web_browser_view.GetCurrentURL().toStdString());
@@ -436,12 +462,14 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
     ui.action_Restart->setEnabled(true);
     ui.action_Stop->setEnabled(true);
 
+    QCoreApplication::processEvents();
+
     emit WebBrowserClosed(exit_reason, last_url);
 
 #else
 
     // Utilize the same fallback as the default web browser applet.
-    emit WebBrowserClosed(WebExitReason::WindowClosed, "http://localhost");
+    emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost");
 
 #endif
 }

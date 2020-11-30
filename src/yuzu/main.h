@@ -130,6 +130,7 @@ signals:
     void SoftwareKeyboardFinishedText(std::optional<std::u16string> text);
     void SoftwareKeyboardFinishedCheckDialog();
 
+    void WebBrowserExtractOfflineRomFS();
     void WebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason, std::string last_url);
 
 public slots:

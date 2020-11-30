@@ -15,7 +15,6 @@
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
-#include "core/file_sys/vfs_types.h"
 #include "core/file_sys/vfs_vector.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/process.h"
@@ -311,6 +310,18 @@ void WebBrowser::Execute() {
     }
 }
 
+void WebBrowser::ExtractOfflineRomFS() {
+    LOG_DEBUG(Service_AM, "Extracting RomFS to {}", offline_cache_dir);
+
+    const auto extracted_romfs_dir =
+        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
+
+    const auto temp_dir =
+        system.GetFilesystem()->CreateDirectory(offline_cache_dir, FileSys::Mode::ReadWrite);
+
+    FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
+}
+
 void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url) {
     if ((web_arg_header.shim_kind == ShimKind::Share &&
          web_applet_version >= WebAppletVersion::Version196608) ||
@@ -360,12 +371,11 @@ void WebBrowser::InitializeOffline() {
     const auto document_kind =
         ParseRawValue<DocumentKind>(GetInputTLVData(WebArgInputTLVType::DocumentKind).value());
 
-    u64 title_id{};
-    FileSys::ContentRecordType nca_type{FileSys::ContentRecordType::HtmlDocument};
     std::string additional_paths;
 
     switch (document_kind) {
     case DocumentKind::OfflineHtmlPage:
+    default:
         title_id = system.CurrentProcess()->GetTitleID();
         nca_type = FileSys::ContentRecordType::HtmlDocument;
         additional_paths = "html-document";
@@ -395,31 +405,6 @@ void WebBrowser::InitializeOffline() {
     offline_document = Common::FS::SanitizePath(
         fmt::format("{}/{}/{}", offline_cache_dir, additional_paths, document_path),
         Common::FS::DirectorySeparator::PlatformDefault);
-
-    const auto main_url = Common::FS::SanitizePath(GetMainURL(offline_document),
-                                                   Common::FS::DirectorySeparator::PlatformDefault);
-
-    if (Common::FS::Exists(main_url)) {
-        return;
-    }
-
-    auto offline_romfs = GetOfflineRomFS(system, title_id, nca_type);
-
-    if (offline_romfs == nullptr) {
-        LOG_ERROR(Service_AM, "RomFS with title_id={:016X} and nca_type={} cannot be extracted!",
-                  title_id, nca_type);
-        return;
-    }
-
-    LOG_DEBUG(Service_AM, "Extracting RomFS to {}", offline_cache_dir);
-
-    const auto extracted_romfs_dir =
-        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
-
-    const auto temp_dir =
-        system.GetFilesystem()->CreateDirectory(offline_cache_dir, FileSys::Mode::ReadWrite);
-
-    FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
 }
 
 void WebBrowser::InitializeShare() {}
@@ -441,11 +426,28 @@ void WebBrowser::ExecuteLogin() {
 }
 
 void WebBrowser::ExecuteOffline() {
+    const auto main_url = Common::FS::SanitizePath(GetMainURL(offline_document),
+                                                   Common::FS::DirectorySeparator::PlatformDefault);
+
+    if (!Common::FS::Exists(main_url)) {
+        offline_romfs = GetOfflineRomFS(system, title_id, nca_type);
+
+        if (offline_romfs == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "RomFS with title_id={:016X} and nca_type={} cannot be extracted!", title_id,
+                      nca_type);
+            WebBrowserExit(WebExitReason::WindowClosed);
+            return;
+        }
+    }
+
     LOG_INFO(Service_AM, "Opening offline document at {}", offline_document);
-    frontend.OpenLocalWebPage(offline_document,
-                              [this](WebExitReason exit_reason, std::string last_url) {
-                                  WebBrowserExit(exit_reason, last_url);
-                              });
+
+    frontend.OpenLocalWebPage(
+        offline_document, [this] { ExtractOfflineRomFS(); },
+        [this](WebExitReason exit_reason, std::string last_url) {
+            WebBrowserExit(exit_reason, last_url);
+        });
 }
 
 void WebBrowser::ExecuteShare() {

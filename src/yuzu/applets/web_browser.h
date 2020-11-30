@@ -69,8 +69,8 @@ public:
     [[nodiscard]] bool IsFinished() const;
     void SetFinished(bool finished_);
 
-    [[nodiscard]] WebExitReason GetExitReason() const;
-    void SetExitReason(WebExitReason exit_reason_);
+    [[nodiscard]] Service::AM::Applets::WebExitReason GetExitReason() const;
+    void SetExitReason(Service::AM::Applets::WebExitReason exit_reason_);
 
     [[nodiscard]] const std::string& GetLastURL() const;
     void SetLastURL(std::string last_url_);
@@ -148,7 +148,8 @@ private:
 
     std::atomic<bool> finished{};
 
-    WebExitReason exit_reason{WebExitReason::EndButtonPressed};
+    Service::AM::Applets::WebExitReason exit_reason{
+        Service::AM::Applets::WebExitReason::EndButtonPressed};
 
     std::string last_url{"http://localhost/"};
 };
@@ -162,15 +163,21 @@ public:
     explicit QtWebBrowser(GMainWindow& parent);
     ~QtWebBrowser() override;
 
-    void OpenLocalWebPage(std::string_view local_url,
-                          std::function<void(WebExitReason, std::string)> callback) const override;
+    void OpenLocalWebPage(std::string_view local_url, std::function<void()> extract_romfs_callback,
+                          std::function<void(Service::AM::Applets::WebExitReason, std::string)>
+                              callback) const override;
 
 signals:
     void MainWindowOpenLocalWebPage(std::string_view main_url,
                                     std::string_view additional_args) const;
 
 private:
-    void MainWindowWebBrowserClosed(WebExitReason exit_reason, std::string last_url);
+    void MainWindowExtractOfflineRomFS();
 
-    mutable std::function<void(WebExitReason, std::string)> callback;
+    void MainWindowWebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason,
+                                    std::string last_url);
+
+    mutable std::function<void()> extract_romfs_callback;
+
+    mutable std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback;
 };

@@ -120,7 +120,7 @@ QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system)
         [this] {
             if (page()->url() == url_interceptor->GetRequestedURL()) {
                 SetFinished(true);
-                SetExitReason(WebExitReason::WindowClosed);
+                SetExitReason(Service::AM::Applets::WebExitReason::WindowClosed);
             }
         },
         Qt::QueuedConnection);
@@ -135,7 +135,7 @@ void QtNXWebEngineView::LoadLocalWebPage(std::string_view main_url,
                                          std::string_view additional_args) {
     SetUserAgent(UserAgent::WebApplet);
     SetFinished(false);
-    SetExitReason(WebExitReason::EndButtonPressed);
+    SetExitReason(Service::AM::Applets::WebExitReason::EndButtonPressed);
     SetLastURL("http://localhost/");
     StartInputThread();
 
@@ -176,11 +176,11 @@ void QtNXWebEngineView::SetFinished(bool finished_) {
     finished = finished_;
 }
 
-WebExitReason QtNXWebEngineView::GetExitReason() const {
+Service::AM::Applets::WebExitReason QtNXWebEngineView::GetExitReason() const {
     return exit_reason;
 }
 
-void QtNXWebEngineView::SetExitReason(WebExitReason exit_reason_) {
+void QtNXWebEngineView::SetExitReason(Service::AM::Applets::WebExitReason exit_reason_) {
     exit_reason = exit_reason_;
 }
 
@@ -316,6 +316,8 @@ void QtNXWebEngineView::InputThread() {
 QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
     connect(this, &QtWebBrowser::MainWindowOpenLocalWebPage, &main_window,
             &GMainWindow::WebBrowserOpenLocalWebPage, Qt::QueuedConnection);
+    connect(&main_window, &GMainWindow::WebBrowserExtractOfflineRomFS, this,
+            &QtWebBrowser::MainWindowExtractOfflineRomFS, Qt::QueuedConnection);
     connect(&main_window, &GMainWindow::WebBrowserClosed, this,
             &QtWebBrowser::MainWindowWebBrowserClosed, Qt::QueuedConnection);
 }
@@ -323,7 +325,9 @@ QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
 QtWebBrowser::~QtWebBrowser() = default;
 
 void QtWebBrowser::OpenLocalWebPage(
-    std::string_view local_url, std::function<void(WebExitReason, std::string)> callback) const {
+    std::string_view local_url, std::function<void()> extract_romfs_callback,
+    std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
+    this->extract_romfs_callback = std::move(extract_romfs_callback);
     this->callback = std::move(callback);
 
     const auto index = local_url.find('?');
@@ -335,6 +339,11 @@ void QtWebBrowser::OpenLocalWebPage(
     }
 }
 
-void QtWebBrowser::MainWindowWebBrowserClosed(WebExitReason exit_reason, std::string last_url) {
+void QtWebBrowser::MainWindowExtractOfflineRomFS() {
+    extract_romfs_callback();
+}
+
+void QtWebBrowser::MainWindowWebBrowserClosed(Service::AM::Applets::WebExitReason exit_reason,
+                                              std::string last_url) {
     callback(exit_reason, last_url);
 }
