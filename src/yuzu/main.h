@@ -325,6 +325,9 @@ private:
     // Last game booted, used for multi-process apps
     QString last_filename_booted;
 
+    // Disables the web applet for the rest of the emulated session
+    bool disable_web_applet{};
+
 protected:
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;

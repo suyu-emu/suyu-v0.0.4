@@ -370,6 +370,12 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
                                              std::string_view additional_args) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
+    if (disable_web_applet) {
+        emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed,
+                              "http://localhost");
+        return;
+    }
+
     QtNXWebEngineView web_browser_view(this, Core::System::GetInstance());
 
     ui.action_Pause->setEnabled(false);
@@ -418,6 +424,22 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
 
     bool exit_check = false;
 
+    // TODO (Morph): Remove this
+    QAction* exit_action = new QAction(tr("Disable Web Applet"), this);
+    connect(exit_action, &QAction::triggered, this, [this, &web_browser_view] {
+        const auto result = QMessageBox::warning(
+            this, tr("Disable Web Applet"),
+            tr("Disabling the web applet will cause it to not be shown again for the rest of the "
+               "emulated session. This can lead to undefined behavior and should only be used with "
+               "Super Mario 3D All-Stars. Are you sure you want to disable the web applet?"),
+            QMessageBox::Yes | QMessageBox::No);
+        if (result == QMessageBox::Yes) {
+            disable_web_applet = true;
+            web_browser_view.SetFinished(true);
+        }
+    });
+    ui.menubar->addAction(exit_action);
+
     while (!web_browser_view.IsFinished()) {
         QCoreApplication::processEvents();
 
@@ -461,6 +483,8 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
     ui.action_Pause->setEnabled(true);
     ui.action_Restart->setEnabled(true);
     ui.action_Stop->setEnabled(true);
+
+    ui.menubar->removeAction(exit_action);
 
     QCoreApplication::processEvents();
 
