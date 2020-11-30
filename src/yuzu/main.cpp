@@ -477,11 +477,13 @@ void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view
 #else
 
 void GMainWindow::WebBrowserOpenPage(std::string_view filename, std::string_view additional_args) {
+#ifndef __linux__
     QMessageBox::warning(
         this, tr("Web Applet"),
         tr("This version of yuzu was built without QtWebEngine support, meaning that yuzu cannot "
            "properly display the game manual or web page requested."),
         QMessageBox::Ok, QMessageBox::Ok);
+#endif
 
     LOG_INFO(Frontend,
              "(STUBBED) called - Missing QtWebEngine dependency needed to open website page at "
