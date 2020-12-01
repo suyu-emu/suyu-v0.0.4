@@ -178,9 +178,7 @@ struct Values {
 
     Setting<bool> motion_enabled;
     std::string motion_device;
-    std::string udp_input_address;
-    u16 udp_input_port;
-    u8 udp_pad_index;
+    std::string udp_input_servers;
 
     bool mouse_enabled;
     std::string mouse_device;

@@ -13,17 +13,17 @@ namespace InputCommon {
 
 class UDPMotion final : public Input::MotionDevice {
 public:
-    explicit UDPMotion(std::string ip_, int port_, u32 pad_, CemuhookUDP::Client* client_)
+    explicit UDPMotion(std::string ip_, u16 port_, u16 pad_, CemuhookUDP::Client* client_)
         : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
     Input::MotionStatus GetStatus() const override {
-        return client->GetPadState(pad).motion_status;
+        return client->GetPadState(ip, port, pad).motion_status;
     }
 
 private:
     const std::string ip;
-    const int port;
-    const u32 pad;
+    const u16 port;
+    const u16 pad;
     CemuhookUDP::Client* client;
     mutable std::mutex mutex;
 };
@@ -39,8 +39,8 @@ UDPMotionFactory::UDPMotionFactory(std::shared_ptr<CemuhookUDP::Client> client_)
  */
 std::unique_ptr<Input::MotionDevice> UDPMotionFactory::Create(const Common::ParamPackage& params) {
     auto ip = params.Get("ip", "127.0.0.1");
-    const auto port = params.Get("port", 26760);
-    const auto pad = static_cast<u32>(params.Get("pad_index", 0));
+    const auto port = static_cast<u16>(params.Get("port", 26760));
+    const auto pad = static_cast<u16>(params.Get("pad_index", 0));
 
     return std::make_unique<UDPMotion>(std::move(ip), port, pad, client.get());
 }
@@ -59,35 +59,33 @@ Common::ParamPackage UDPMotionFactory::GetNextInput() {
     Common::ParamPackage params;
     CemuhookUDP::UDPPadStatus pad;
     auto& queue = client->GetPadQueue();
-    for (std::size_t pad_number = 0; pad_number < queue.size(); ++pad_number) {
-        while (queue[pad_number].Pop(pad)) {
-            if (pad.motion == CemuhookUDP::PadMotion::Undefined || std::abs(pad.motion_value) < 1) {
-                continue;
-            }
-            params.Set("engine", "cemuhookudp");
-            params.Set("ip", "127.0.0.1");
-            params.Set("port", 26760);
-            params.Set("pad_index", static_cast<int>(pad_number));
-            params.Set("motion", static_cast<u16>(pad.motion));
-            return params;
+    while (queue.Pop(pad)) {
+        if (pad.motion == CemuhookUDP::PadMotion::Undefined || std::abs(pad.motion_value) < 1) {
+            continue;
         }
+        params.Set("engine", "cemuhookudp");
+        params.Set("ip", pad.host);
+        params.Set("port", static_cast<u16>(pad.port));
+        params.Set("pad_index", static_cast<u16>(pad.pad_index));
+        params.Set("motion", static_cast<u16>(pad.motion));
+        return params;
     }
     return params;
 }
 
 class UDPTouch final : public Input::TouchDevice {
 public:
-    explicit UDPTouch(std::string ip_, int port_, u32 pad_, CemuhookUDP::Client* client_)
+    explicit UDPTouch(std::string ip_, u16 port_, u16 pad_, CemuhookUDP::Client* client_)
         : ip(std::move(ip_)), port(port_), pad(pad_), client(client_) {}
 
     std::tuple<float, float, bool> GetStatus() const override {
-        return client->GetPadState(pad).touch_status;
+        return client->GetPadState(ip, port, pad).touch_status;
     }
 
 private:
     const std::string ip;
-    const int port;
-    const u32 pad;
+    const u16 port;
+    const u16 pad;
     CemuhookUDP::Client* client;
     mutable std::mutex mutex;
 };
@@ -103,8 +101,8 @@ UDPTouchFactory::UDPTouchFactory(std::shared_ptr<CemuhookUDP::Client> client_)
  */
 std::unique_ptr<Input::TouchDevice> UDPTouchFactory::Create(const Common::ParamPackage& params) {
     auto ip = params.Get("ip", "127.0.0.1");
-    const auto port = params.Get("port", 26760);
-    const auto pad = static_cast<u32>(params.Get("pad_index", 0));
+    const auto port = static_cast<u16>(params.Get("port", 26760));
+    const auto pad = static_cast<u16>(params.Get("pad_index", 0));
 
     return std::make_unique<UDPTouch>(std::move(ip), port, pad, client.get());
 }
@@ -123,18 +121,16 @@ Common::ParamPackage UDPTouchFactory::GetNextInput() {
     Common::ParamPackage params;
     CemuhookUDP::UDPPadStatus pad;
     auto& queue = client->GetPadQueue();
-    for (std::size_t pad_number = 0; pad_number < queue.size(); ++pad_number) {
-        while (queue[pad_number].Pop(pad)) {
-            if (pad.touch == CemuhookUDP::PadTouch::Undefined) {
-                continue;
-            }
-            params.Set("engine", "cemuhookudp");
-            params.Set("ip", "127.0.0.1");
-            params.Set("port", 26760);
-            params.Set("pad_index", static_cast<int>(pad_number));
-            params.Set("touch", static_cast<u16>(pad.touch));
-            return params;
+    while (queue.Pop(pad)) {
+        if (pad.touch == CemuhookUDP::PadTouch::Undefined) {
+            continue;
         }
+        params.Set("engine", "cemuhookudp");
+        params.Set("ip", pad.host);
+        params.Set("port", static_cast<u16>(pad.port));
+        params.Set("pad_index", static_cast<u16>(pad.pad_index));
+        params.Set("touch", static_cast<u16>(pad.touch));
+        return params;
     }
     return params;
 }

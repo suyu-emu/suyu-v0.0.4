@@ -569,16 +569,11 @@ void Config::ReadMotionTouchValues() {
         ReadSetting(QStringLiteral("touch_from_button_map"), 0).toInt();
     Settings::values.touch_from_button_map_index =
         std::clamp(Settings::values.touch_from_button_map_index, 0, num_touch_from_button_maps - 1);
-    Settings::values.udp_input_address =
-        ReadSetting(QStringLiteral("udp_input_address"),
-                    QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR))
+    Settings::values.udp_input_servers =
+        ReadSetting(QStringLiteral("udp_input_servers"),
+                    QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_SRV))
             .toString()
             .toStdString();
-    Settings::values.udp_input_port = static_cast<u16>(
-        ReadSetting(QStringLiteral("udp_input_port"), InputCommon::CemuhookUDP::DEFAULT_PORT)
-            .toInt());
-    Settings::values.udp_pad_index =
-        static_cast<u8>(ReadSetting(QStringLiteral("udp_pad_index"), 0).toUInt());
 }
 
 void Config::ReadCoreValues() {
@@ -1109,12 +1104,9 @@ void Config::SaveMotionTouchValues() {
                  false);
     WriteSetting(QStringLiteral("touch_from_button_map"),
                  Settings::values.touch_from_button_map_index, 0);
-    WriteSetting(QStringLiteral("udp_input_address"),
-                 QString::fromStdString(Settings::values.udp_input_address),
-                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_ADDR));
-    WriteSetting(QStringLiteral("udp_input_port"), Settings::values.udp_input_port,
-                 InputCommon::CemuhookUDP::DEFAULT_PORT);
-    WriteSetting(QStringLiteral("udp_pad_index"), Settings::values.udp_pad_index, 0);
+    WriteSetting(QStringLiteral("udp_input_servers"),
+                 QString::fromStdString(Settings::values.udp_input_servers),
+                 QString::fromUtf8(InputCommon::CemuhookUDP::DEFAULT_SRV));
 
     qt_config->beginWriteArray(QStringLiteral("touch_from_button_maps"));
     for (std::size_t p = 0; p < Settings::values.touch_from_button_maps.size(); ++p) {

@@ -286,7 +286,7 @@ void InputSubsystem::ReloadInputDevices() {
     if (!impl->udp) {
         return;
     }
-    impl->udp->ReloadUDPClient();
+    impl->udp->ReloadSockets();
 }
 
 std::vector<std::unique_ptr<Polling::DevicePoller>> InputSubsystem::GetPollers(
