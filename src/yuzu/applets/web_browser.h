@@ -26,6 +26,10 @@ namespace Core {
 class System;
 }
 
+namespace InputCommon {
+class InputSubsystem;
+}
+
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
 enum class UserAgent {
@@ -41,7 +45,8 @@ class QtNXWebEngineView : public QWebEngineView {
     Q_OBJECT
 
 public:
-    explicit QtNXWebEngineView(QWidget* parent, Core::System& system);
+    explicit QtNXWebEngineView(QWidget* parent, Core::System& system,
+                               InputCommon::InputSubsystem* input_subsystem_);
     ~QtNXWebEngineView() override;
 
     /**
@@ -85,6 +90,10 @@ public:
 
 public slots:
     void hide();
+
+protected:
+    void keyPressEvent(QKeyEvent* event) override;
+    void keyReleaseEvent(QKeyEvent* event) override;
 
 private:
     /**
@@ -137,6 +146,8 @@ private:
 
     /// The thread where input is being polled and processed.
     void InputThread();
+
+    InputCommon::InputSubsystem* input_subsystem;
 
     std::unique_ptr<UrlRequestInterceptor> url_interceptor;
 

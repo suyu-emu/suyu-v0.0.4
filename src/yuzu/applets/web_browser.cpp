@@ -15,6 +15,8 @@
 #include "common/file_util.h"
 #include "core/core.h"
 #include "core/frontend/input_interpreter.h"
+#include "input_common/keyboard.h"
+#include "input_common/main.h"
 #include "yuzu/applets/web_browser.h"
 #include "yuzu/applets/web_browser_scripts.h"
 #include "yuzu/main.h"
@@ -45,8 +47,10 @@ constexpr int HIDButtonToKey(HIDButton button) {
 
 } // Anonymous namespace
 
-QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system)
-    : QWebEngineView(parent), url_interceptor(std::make_unique<UrlRequestInterceptor>()),
+QtNXWebEngineView::QtNXWebEngineView(QWidget* parent, Core::System& system,
+                                     InputCommon::InputSubsystem* input_subsystem_)
+    : QWebEngineView(parent), input_subsystem{input_subsystem_},
+      url_interceptor(std::make_unique<UrlRequestInterceptor>()),
       input_interpreter(std::make_unique<InputInterpreter>(system)) {
     QWebEngineScript nx_font_css;
     QWebEngineScript load_nx_font;
@@ -203,6 +207,14 @@ void QtNXWebEngineView::hide() {
     QWidget::hide();
 }
 
+void QtNXWebEngineView::keyPressEvent(QKeyEvent* event) {
+    input_subsystem->GetKeyboard()->PressKey(event->key());
+}
+
+void QtNXWebEngineView::keyReleaseEvent(QKeyEvent* event) {
+    input_subsystem->GetKeyboard()->ReleaseKey(event->key());
+}
+
 template <HIDButton... T>
 void QtNXWebEngineView::HandleWindowFooterButtonPressedOnce() {
     const auto f = [this](HIDButton button) {
@@ -282,6 +294,7 @@ void QtNXWebEngineView::StartInputThread() {
 }
 
 void QtNXWebEngineView::StopInputThread() {
+    QWidget::releaseKeyboard();
     input_thread_running = false;
     if (input_thread.joinable()) {
         input_thread.join();
@@ -291,6 +304,8 @@ void QtNXWebEngineView::StopInputThread() {
 void QtNXWebEngineView::InputThread() {
     // Wait for 1 second before allowing any inputs to be processed.
     std::this_thread::sleep_for(std::chrono::seconds(1));
+
+    QWidget::grabKeyboard();
 
     while (input_thread_running) {
         input_interpreter->PollInput();

@@ -376,7 +376,7 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
         return;
     }
 
-    QtNXWebEngineView web_browser_view(this, Core::System::GetInstance());
+    QtNXWebEngineView web_browser_view(this, Core::System::GetInstance(), input_subsystem.get());
 
     ui.action_Pause->setEnabled(false);
     ui.action_Restart->setEnabled(false);
