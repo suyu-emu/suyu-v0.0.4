@@ -31,62 +31,6 @@ enum FrameFlags : u32 {
     IntraOnly = 1 << 5,
 };
 
-enum class MvJointType {
-    MvJointZero = 0,   /* Zero vector */
-    MvJointHnzvz = 1,  /* Vert zero, hor nonzero */
-    MvJointHzvnz = 2,  /* Hor zero, vert nonzero */
-    MvJointHnzvnz = 3, /* Both components nonzero */
-};
-enum class MvClassType {
-    MvClass0 = 0,   /* (0, 2]     integer pel */
-    MvClass1 = 1,   /* (2, 4]     integer pel */
-    MvClass2 = 2,   /* (4, 8]     integer pel */
-    MvClass3 = 3,   /* (8, 16]    integer pel */
-    MvClass4 = 4,   /* (16, 32]   integer pel */
-    MvClass5 = 5,   /* (32, 64]   integer pel */
-    MvClass6 = 6,   /* (64, 128]  integer pel */
-    MvClass7 = 7,   /* (128, 256] integer pel */
-    MvClass8 = 8,   /* (256, 512] integer pel */
-    MvClass9 = 9,   /* (512, 1024] integer pel */
-    MvClass10 = 10, /* (1024,2048] integer pel */
-};
-
-enum class BlockSize {
-    Block4x4 = 0,
-    Block4x8 = 1,
-    Block8x4 = 2,
-    Block8x8 = 3,
-    Block8x16 = 4,
-    Block16x8 = 5,
-    Block16x16 = 6,
-    Block16x32 = 7,
-    Block32x16 = 8,
-    Block32x32 = 9,
-    Block32x64 = 10,
-    Block64x32 = 11,
-    Block64x64 = 12,
-    BlockSizes = 13,
-    BlockInvalid = BlockSizes
-};
-
-enum class PredictionMode {
-    DcPred = 0,   // Average of above and left pixels
-    VPred = 1,    // Vertical
-    HPred = 2,    // Horizontal
-    D45Pred = 3,  // Directional 45  deg = round(arctan(1 / 1) * 180 / pi)
-    D135Pred = 4, // Directional 135 deg = 180 - 45
-    D117Pred = 5, // Directional 117 deg = 180 - 63
-    D153Pred = 6, // Directional 153 deg = 180 - 27
-    D207Pred = 7, // Directional 207 deg = 180 + 27
-    D63Pred = 8,  // Directional 63  deg = round(arctan(2 / 1) * 180 / pi)
-    TmPred = 9,   // True-motion
-    NearestMv = 10,
-    NearMv = 11,
-    ZeroMv = 12,
-    NewMv = 13,
-    MbModeCount = 14
-};
-
 enum class TxSize {
     Tx4x4 = 0,   // 4x4 transform
     Tx8x8 = 1,   // 8x8 transform
@@ -102,13 +46,6 @@ enum class TxMode {
     Allow32X32 = 3,   // Allow block transform size up to 32x32
     TxModeSelect = 4, // Transform specified for each block
     TxModes = 5
-};
-
-enum class reference_mode {
-    SingleReference = 0,
-    CompoundReference = 1,
-    ReferenceModeSelect = 2,
-    ReferenceModes = 3
 };
 
 struct Segmentation {
@@ -131,7 +68,7 @@ static_assert(sizeof(LoopFilter) == 0x7, "LoopFilter is an invalid size");
 struct Vp9EntropyProbs {
     std::array<u8, 36> y_mode_prob{};
     std::array<u8, 64> partition_prob{};
-    std::array<u8, 2304> coef_probs{};
+    std::array<u8, 1728> coef_probs{};
     std::array<u8, 8> switchable_interp_prob{};
     std::array<u8, 28> inter_mode_prob{};
     std::array<u8, 4> intra_inter_prob{};
@@ -152,7 +89,7 @@ struct Vp9EntropyProbs {
     std::array<u8, 2> class_0_hp{};
     std::array<u8, 2> high_precision{};
 };
-static_assert(sizeof(Vp9EntropyProbs) == 0x9F4, "Vp9EntropyProbs is an invalid size");
+static_assert(sizeof(Vp9EntropyProbs) == 0x7B4, "Vp9EntropyProbs is an invalid size");
 
 struct Vp9PictureInfo {
     bool is_key_frame{};
@@ -278,72 +215,71 @@ static_assert(sizeof(PictureInfo) == 0x100, "PictureInfo is an invalid size");
 
 struct EntropyProbs {
     INSERT_PADDING_BYTES(1024);
-    std::array<std::array<u8, 4>, 7> inter_mode_prob{};
+    std::array<u8, 28> inter_mode_prob{};
     std::array<u8, 4> intra_inter_prob{};
     INSERT_PADDING_BYTES(80);
-    std::array<std::array<u8, 1>, 2> tx_8x8_prob{};
-    std::array<std::array<u8, 2>, 2> tx_16x16_prob{};
-    std::array<std::array<u8, 3>, 2> tx_32x32_prob{};
+    std::array<u8, 2> tx_8x8_prob{};
+    std::array<u8, 4> tx_16x16_prob{};
+    std::array<u8, 6> tx_32x32_prob{};
     std::array<u8, 4> y_mode_prob_e8{};
     std::array<std::array<u8, 8>, 4> y_mode_prob_e0e7{};
     INSERT_PADDING_BYTES(64);
-    std::array<std::array<u8, 4>, 16> partition_prob{};
+    std::array<u8, 64> partition_prob{};
     INSERT_PADDING_BYTES(10);
-    std::array<std::array<u8, 2>, 4> switchable_interp_prob{};
+    std::array<u8, 8> switchable_interp_prob{};
     std::array<u8, 5> comp_inter_prob{};
-    std::array<u8, 4> skip_probs{};
+    std::array<u8, 3> skip_probs{};
+    INSERT_PADDING_BYTES(1);
     std::array<u8, 3> joints{};
     std::array<u8, 2> sign{};
-    std::array<std::array<u8, 1>, 2> class_0{};
-    std::array<std::array<u8, 3>, 2> fr{};
+    std::array<u8, 2> class_0{};
+    std::array<u8, 6> fr{};
     std::array<u8, 2> class_0_hp{};
     std::array<u8, 2> high_precision{};
-    std::array<std::array<u8, 10>, 2> classes{};
-    std::array<std::array<std::array<u8, 3>, 2>, 2> class_0_fr{};
-    std::array<std::array<u8, 10>, 2> pred_bits{};
-    std::array<std::array<u8, 2>, 5> single_ref_prob{};
+    std::array<u8, 20> classes{};
+    std::array<u8, 12> class_0_fr{};
+    std::array<u8, 20> pred_bits{};
+    std::array<u8, 10> single_ref_prob{};
     std::array<u8, 5> comp_ref_prob{};
     INSERT_PADDING_BYTES(17);
-    std::array<std::array<std::array<std::array<std::array<std::array<u8, 4>, 6>, 6>, 2>, 2>, 4>
-        coef_probs{};
+    std::array<u8, 2304> coef_probs{};
 
     void Convert(Vp9EntropyProbs& fc) {
-        std::memcpy(fc.inter_mode_prob.data(), inter_mode_prob.data(), fc.inter_mode_prob.size());
+        fc.inter_mode_prob = inter_mode_prob;
+        fc.intra_inter_prob = intra_inter_prob;
+        fc.tx_8x8_prob = tx_8x8_prob;
+        fc.tx_16x16_prob = tx_16x16_prob;
+        fc.tx_32x32_prob = tx_32x32_prob;
 
-        std::memcpy(fc.intra_inter_prob.data(), intra_inter_prob.data(),
-                    fc.intra_inter_prob.size());
-
-        std::memcpy(fc.tx_8x8_prob.data(), tx_8x8_prob.data(), fc.tx_8x8_prob.size());
-        std::memcpy(fc.tx_16x16_prob.data(), tx_16x16_prob.data(), fc.tx_16x16_prob.size());
-        std::memcpy(fc.tx_32x32_prob.data(), tx_32x32_prob.data(), fc.tx_32x32_prob.size());
-
-        for (s32 i = 0; i < 4; i++) {
-            for (s32 j = 0; j < 9; j++) {
+        for (std::size_t i = 0; i < 4; i++) {
+            for (std::size_t j = 0; j < 9; j++) {
                 fc.y_mode_prob[j + 9 * i] = j < 8 ? y_mode_prob_e0e7[i][j] : y_mode_prob_e8[i];
             }
         }
 
-        std::memcpy(fc.partition_prob.data(), partition_prob.data(), fc.partition_prob.size());
+        fc.partition_prob = partition_prob;
+        fc.switchable_interp_prob = switchable_interp_prob;
+        fc.comp_inter_prob = comp_inter_prob;
+        fc.skip_probs = skip_probs;
+        fc.joints = joints;
+        fc.sign = sign;
+        fc.class_0 = class_0;
+        fc.fr = fr;
+        fc.class_0_hp = class_0_hp;
+        fc.high_precision = high_precision;
+        fc.classes = classes;
+        fc.class_0_fr = class_0_fr;
+        fc.prob_bits = pred_bits;
+        fc.single_ref_prob = single_ref_prob;
+        fc.comp_ref_prob = comp_ref_prob;
 
-        std::memcpy(fc.switchable_interp_prob.data(), switchable_interp_prob.data(),
-                    fc.switchable_interp_prob.size());
-        std::memcpy(fc.comp_inter_prob.data(), comp_inter_prob.data(), fc.comp_inter_prob.size());
-        std::memcpy(fc.skip_probs.data(), skip_probs.data(), fc.skip_probs.size());
-
-        std::memcpy(fc.joints.data(), joints.data(), fc.joints.size());
-
-        std::memcpy(fc.sign.data(), sign.data(), fc.sign.size());
-        std::memcpy(fc.class_0.data(), class_0.data(), fc.class_0.size());
-        std::memcpy(fc.fr.data(), fr.data(), fc.fr.size());
-        std::memcpy(fc.class_0_hp.data(), class_0_hp.data(), fc.class_0_hp.size());
-        std::memcpy(fc.high_precision.data(), high_precision.data(), fc.high_precision.size());
-        std::memcpy(fc.classes.data(), classes.data(), fc.classes.size());
-        std::memcpy(fc.class_0_fr.data(), class_0_fr.data(), fc.class_0_fr.size());
-        std::memcpy(fc.prob_bits.data(), pred_bits.data(), fc.prob_bits.size());
-        std::memcpy(fc.single_ref_prob.data(), single_ref_prob.data(), fc.single_ref_prob.size());
-        std::memcpy(fc.comp_ref_prob.data(), comp_ref_prob.data(), fc.comp_ref_prob.size());
-
-        std::memcpy(fc.coef_probs.data(), coef_probs.data(), fc.coef_probs.size());
+        // Skip the 4th element as it goes unused
+        for (std::size_t i = 0; i < coef_probs.size(); i += 4) {
+            const std::size_t j = i - i / 4;
+            fc.coef_probs[j] = coef_probs[i];
+            fc.coef_probs[j + 1] = coef_probs[i + 1];
+            fc.coef_probs[j + 2] = coef_probs[i + 2];
+        }
     }
 };
 static_assert(sizeof(EntropyProbs) == 0xEA0, "EntropyProbs is an invalid size");

@@ -119,7 +119,8 @@ public:
 
     /// Composes the VP9 frame from the GPU state information. Based on the official VP9 spec
     /// documentation
-    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(NvdecCommon::NvdecRegisters& state);
+    [[nodiscard]] const std::vector<u8>& ComposeFrameHeader(
+        const NvdecCommon::NvdecRegisters& state);
 
     /// Returns true if the most recent frame was a hidden frame.
     [[nodiscard]] bool WasFrameHidden() const {
@@ -147,8 +148,8 @@ private:
 
     /// Writes probability updates for the Coef probabilities
     void WriteCoefProbabilityUpdate(VpxRangeEncoder& writer, s32 tx_mode,
-                                    const std::array<u8, 2304>& new_prob,
-                                    const std::array<u8, 2304>& old_prob);
+                                    const std::array<u8, 1728>& new_prob,
+                                    const std::array<u8, 1728>& old_prob);
 
     /// Write probabilities for 4-byte aligned structures
     template <typename T, std::size_t N>

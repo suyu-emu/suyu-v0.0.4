@@ -23,122 +23,102 @@ constexpr Vp9EntropyProbs default_probs{
         222, 34,  30,  0, 72,  16, 44,  0, 58,  32,  12,  0, 10,  7,   6,   0,
     },
     .coef_probs{
-        195, 29,  183, 0, 84,  49,  136, 0, 8,   42,  71,  0, 0,   0,   0,   0, 0,   0,   0,   0,
-        0,   0,   0,   0, 31,  107, 169, 0, 35,  99,  159, 0, 17,  82,  140, 0, 8,   66,  114, 0,
-        2,   44,  76,  0, 1,   19,  32,  0, 40,  132, 201, 0, 29,  114, 187, 0, 13,  91,  157, 0,
-        7,   75,  127, 0, 3,   58,  95,  0, 1,   28,  47,  0, 69,  142, 221, 0, 42,  122, 201, 0,
-        15,  91,  159, 0, 6,   67,  121, 0, 1,   42,  77,  0, 1,   17,  31,  0, 102, 148, 228, 0,
-        67,  117, 204, 0, 17,  82,  154, 0, 6,   59,  114, 0, 2,   39,  75,  0, 1,   15,  29,  0,
-        156, 57,  233, 0, 119, 57,  212, 0, 58,  48,  163, 0, 29,  40,  124, 0, 12,  30,  81,  0,
-        3,   12,  31,  0, 191, 107, 226, 0, 124, 117, 204, 0, 25,  99,  155, 0, 0,   0,   0,   0,
-        0,   0,   0,   0, 0,   0,   0,   0, 29,  148, 210, 0, 37,  126, 194, 0, 8,   93,  157, 0,
-        2,   68,  118, 0, 1,   39,  69,  0, 1,   17,  33,  0, 41,  151, 213, 0, 27,  123, 193, 0,
-        3,   82,  144, 0, 1,   58,  105, 0, 1,   32,  60,  0, 1,   13,  26,  0, 59,  159, 220, 0,
-        23,  126, 198, 0, 4,   88,  151, 0, 1,   66,  114, 0, 1,   38,  71,  0, 1,   18,  34,  0,
-        114, 136, 232, 0, 51,  114, 207, 0, 11,  83,  155, 0, 3,   56,  105, 0, 1,   33,  65,  0,
-        1,   17,  34,  0, 149, 65,  234, 0, 121, 57,  215, 0, 61,  49,  166, 0, 28,  36,  114, 0,
-        12,  25,  76,  0, 3,   16,  42,  0, 214, 49,  220, 0, 132, 63,  188, 0, 42,  65,  137, 0,
-        0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 85,  137, 221, 0, 104, 131, 216, 0,
-        49,  111, 192, 0, 21,  87,  155, 0, 2,   49,  87,  0, 1,   16,  28,  0, 89,  163, 230, 0,
-        90,  137, 220, 0, 29,  100, 183, 0, 10,  70,  135, 0, 2,   42,  81,  0, 1,   17,  33,  0,
-        108, 167, 237, 0, 55,  133, 222, 0, 15,  97,  179, 0, 4,   72,  135, 0, 1,   45,  85,  0,
-        1,   19,  38,  0, 124, 146, 240, 0, 66,  124, 224, 0, 17,  88,  175, 0, 4,   58,  122, 0,
-        1,   36,  75,  0, 1,   18,  37,  0, 141, 79,  241, 0, 126, 70,  227, 0, 66,  58,  182, 0,
-        30,  44,  136, 0, 12,  34,  96,  0, 2,   20,  47,  0, 229, 99,  249, 0, 143, 111, 235, 0,
-        46,  109, 192, 0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 82,  158, 236, 0,
-        94,  146, 224, 0, 25,  117, 191, 0, 9,   87,  149, 0, 3,   56,  99,  0, 1,   33,  57,  0,
-        83,  167, 237, 0, 68,  145, 222, 0, 10,  103, 177, 0, 2,   72,  131, 0, 1,   41,  79,  0,
-        1,   20,  39,  0, 99,  167, 239, 0, 47,  141, 224, 0, 10,  104, 178, 0, 2,   73,  133, 0,
-        1,   44,  85,  0, 1,   22,  47,  0, 127, 145, 243, 0, 71,  129, 228, 0, 17,  93,  177, 0,
-        3,   61,  124, 0, 1,   41,  84,  0, 1,   21,  52,  0, 157, 78,  244, 0, 140, 72,  231, 0,
-        69,  58,  184, 0, 31,  44,  137, 0, 14,  38,  105, 0, 8,   23,  61,  0, 125, 34,  187, 0,
-        52,  41,  133, 0, 6,   31,  56,  0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0,
-        37,  109, 153, 0, 51,  102, 147, 0, 23,  87,  128, 0, 8,   67,  101, 0, 1,   41,  63,  0,
-        1,   19,  29,  0, 31,  154, 185, 0, 17,  127, 175, 0, 6,   96,  145, 0, 2,   73,  114, 0,
-        1,   51,  82,  0, 1,   28,  45,  0, 23,  163, 200, 0, 10,  131, 185, 0, 2,   93,  148, 0,
-        1,   67,  111, 0, 1,   41,  69,  0, 1,   14,  24,  0, 29,  176, 217, 0, 12,  145, 201, 0,
-        3,   101, 156, 0, 1,   69,  111, 0, 1,   39,  63,  0, 1,   14,  23,  0, 57,  192, 233, 0,
-        25,  154, 215, 0, 6,   109, 167, 0, 3,   78,  118, 0, 1,   48,  69,  0, 1,   21,  29,  0,
-        202, 105, 245, 0, 108, 106, 216, 0, 18,  90,  144, 0, 0,   0,   0,   0, 0,   0,   0,   0,
-        0,   0,   0,   0, 33,  172, 219, 0, 64,  149, 206, 0, 14,  117, 177, 0, 5,   90,  141, 0,
-        2,   61,  95,  0, 1,   37,  57,  0, 33,  179, 220, 0, 11,  140, 198, 0, 1,   89,  148, 0,
-        1,   60,  104, 0, 1,   33,  57,  0, 1,   12,  21,  0, 30,  181, 221, 0, 8,   141, 198, 0,
-        1,   87,  145, 0, 1,   58,  100, 0, 1,   31,  55,  0, 1,   12,  20,  0, 32,  186, 224, 0,
-        7,   142, 198, 0, 1,   86,  143, 0, 1,   58,  100, 0, 1,   31,  55,  0, 1,   12,  22,  0,
-        57,  192, 227, 0, 20,  143, 204, 0, 3,   96,  154, 0, 1,   68,  112, 0, 1,   42,  69,  0,
-        1,   19,  32,  0, 212, 35,  215, 0, 113, 47,  169, 0, 29,  48,  105, 0, 0,   0,   0,   0,
-        0,   0,   0,   0, 0,   0,   0,   0, 74,  129, 203, 0, 106, 120, 203, 0, 49,  107, 178, 0,
-        19,  84,  144, 0, 4,   50,  84,  0, 1,   15,  25,  0, 71,  172, 217, 0, 44,  141, 209, 0,
-        15,  102, 173, 0, 6,   76,  133, 0, 2,   51,  89,  0, 1,   24,  42,  0, 64,  185, 231, 0,
-        31,  148, 216, 0, 8,   103, 175, 0, 3,   74,  131, 0, 1,   46,  81,  0, 1,   18,  30,  0,
-        65,  196, 235, 0, 25,  157, 221, 0, 5,   105, 174, 0, 1,   67,  120, 0, 1,   38,  69,  0,
-        1,   15,  30,  0, 65,  204, 238, 0, 30,  156, 224, 0, 7,   107, 177, 0, 2,   70,  124, 0,
-        1,   42,  73,  0, 1,   18,  34,  0, 225, 86,  251, 0, 144, 104, 235, 0, 42,  99,  181, 0,
-        0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 85,  175, 239, 0, 112, 165, 229, 0,
-        29,  136, 200, 0, 12,  103, 162, 0, 6,   77,  123, 0, 2,   53,  84,  0, 75,  183, 239, 0,
-        30,  155, 221, 0, 3,   106, 171, 0, 1,   74,  128, 0, 1,   44,  76,  0, 1,   17,  28,  0,
-        73,  185, 240, 0, 27,  159, 222, 0, 2,   107, 172, 0, 1,   75,  127, 0, 1,   42,  73,  0,
-        1,   17,  29,  0, 62,  190, 238, 0, 21,  159, 222, 0, 2,   107, 172, 0, 1,   72,  122, 0,
-        1,   40,  71,  0, 1,   18,  32,  0, 61,  199, 240, 0, 27,  161, 226, 0, 4,   113, 180, 0,
-        1,   76,  129, 0, 1,   46,  80,  0, 1,   23,  41,  0, 7,   27,  153, 0, 5,   30,  95,  0,
-        1,   16,  30,  0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 50,  75,  127, 0,
-        57,  75,  124, 0, 27,  67,  108, 0, 10,  54,  86,  0, 1,   33,  52,  0, 1,   12,  18,  0,
-        43,  125, 151, 0, 26,  108, 148, 0, 7,   83,  122, 0, 2,   59,  89,  0, 1,   38,  60,  0,
-        1,   17,  27,  0, 23,  144, 163, 0, 13,  112, 154, 0, 2,   75,  117, 0, 1,   50,  81,  0,
-        1,   31,  51,  0, 1,   14,  23,  0, 18,  162, 185, 0, 6,   123, 171, 0, 1,   78,  125, 0,
-        1,   51,  86,  0, 1,   31,  54,  0, 1,   14,  23,  0, 15,  199, 227, 0, 3,   150, 204, 0,
-        1,   91,  146, 0, 1,   55,  95,  0, 1,   30,  53,  0, 1,   11,  20,  0, 19,  55,  240, 0,
-        19,  59,  196, 0, 3,   52,  105, 0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0,
-        41,  166, 207, 0, 104, 153, 199, 0, 31,  123, 181, 0, 14,  101, 152, 0, 5,   72,  106, 0,
-        1,   36,  52,  0, 35,  176, 211, 0, 12,  131, 190, 0, 2,   88,  144, 0, 1,   60,  101, 0,
-        1,   36,  60,  0, 1,   16,  28,  0, 28,  183, 213, 0, 8,   134, 191, 0, 1,   86,  142, 0,
-        1,   56,  96,  0, 1,   30,  53,  0, 1,   12,  20,  0, 20,  190, 215, 0, 4,   135, 192, 0,
-        1,   84,  139, 0, 1,   53,  91,  0, 1,   28,  49,  0, 1,   11,  20,  0, 13,  196, 216, 0,
-        2,   137, 192, 0, 1,   86,  143, 0, 1,   57,  99,  0, 1,   32,  56,  0, 1,   13,  24,  0,
-        211, 29,  217, 0, 96,  47,  156, 0, 22,  43,  87,  0, 0,   0,   0,   0, 0,   0,   0,   0,
-        0,   0,   0,   0, 78,  120, 193, 0, 111, 116, 186, 0, 46,  102, 164, 0, 15,  80,  128, 0,
-        2,   49,  76,  0, 1,   18,  28,  0, 71,  161, 203, 0, 42,  132, 192, 0, 10,  98,  150, 0,
-        3,   69,  109, 0, 1,   44,  70,  0, 1,   18,  29,  0, 57,  186, 211, 0, 30,  140, 196, 0,
-        4,   93,  146, 0, 1,   62,  102, 0, 1,   38,  65,  0, 1,   16,  27,  0, 47,  199, 217, 0,
-        14,  145, 196, 0, 1,   88,  142, 0, 1,   57,  98,  0, 1,   36,  62,  0, 1,   15,  26,  0,
-        26,  219, 229, 0, 5,   155, 207, 0, 1,   94,  151, 0, 1,   60,  104, 0, 1,   36,  62,  0,
-        1,   16,  28,  0, 233, 29,  248, 0, 146, 47,  220, 0, 43,  52,  140, 0, 0,   0,   0,   0,
-        0,   0,   0,   0, 0,   0,   0,   0, 100, 163, 232, 0, 179, 161, 222, 0, 63,  142, 204, 0,
-        37,  113, 174, 0, 26,  89,  137, 0, 18,  68,  97,  0, 85,  181, 230, 0, 32,  146, 209, 0,
-        7,   100, 164, 0, 3,   71,  121, 0, 1,   45,  77,  0, 1,   18,  30,  0, 65,  187, 230, 0,
-        20,  148, 207, 0, 2,   97,  159, 0, 1,   68,  116, 0, 1,   40,  70,  0, 1,   14,  29,  0,
-        40,  194, 227, 0, 8,   147, 204, 0, 1,   94,  155, 0, 1,   65,  112, 0, 1,   39,  66,  0,
-        1,   14,  26,  0, 16,  208, 228, 0, 3,   151, 207, 0, 1,   98,  160, 0, 1,   67,  117, 0,
-        1,   41,  74,  0, 1,   17,  31,  0, 17,  38,  140, 0, 7,   34,  80,  0, 1,   17,  29,  0,
-        0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 37,  75,  128, 0, 41,  76,  128, 0,
-        26,  66,  116, 0, 12,  52,  94,  0, 2,   32,  55,  0, 1,   10,  16,  0, 50,  127, 154, 0,
-        37,  109, 152, 0, 16,  82,  121, 0, 5,   59,  85,  0, 1,   35,  54,  0, 1,   13,  20,  0,
-        40,  142, 167, 0, 17,  110, 157, 0, 2,   71,  112, 0, 1,   44,  72,  0, 1,   27,  45,  0,
-        1,   11,  17,  0, 30,  175, 188, 0, 9,   124, 169, 0, 1,   74,  116, 0, 1,   48,  78,  0,
-        1,   30,  49,  0, 1,   11,  18,  0, 10,  222, 223, 0, 2,   150, 194, 0, 1,   83,  128, 0,
-        1,   48,  79,  0, 1,   27,  45,  0, 1,   11,  17,  0, 36,  41,  235, 0, 29,  36,  193, 0,
-        10,  27,  111, 0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0, 85,  165, 222, 0,
-        177, 162, 215, 0, 110, 135, 195, 0, 57,  113, 168, 0, 23,  83,  120, 0, 10,  49,  61,  0,
-        85,  190, 223, 0, 36,  139, 200, 0, 5,   90,  146, 0, 1,   60,  103, 0, 1,   38,  65,  0,
-        1,   18,  30,  0, 72,  202, 223, 0, 23,  141, 199, 0, 2,   86,  140, 0, 1,   56,  97,  0,
-        1,   36,  61,  0, 1,   16,  27,  0, 55,  218, 225, 0, 13,  145, 200, 0, 1,   86,  141, 0,
-        1,   57,  99,  0, 1,   35,  61,  0, 1,   13,  22,  0, 15,  235, 212, 0, 1,   132, 184, 0,
-        1,   84,  139, 0, 1,   57,  97,  0, 1,   34,  56,  0, 1,   14,  23,  0, 181, 21,  201, 0,
-        61,  37,  123, 0, 10,  38,  71,  0, 0,   0,   0,   0, 0,   0,   0,   0, 0,   0,   0,   0,
-        47,  106, 172, 0, 95,  104, 173, 0, 42,  93,  159, 0, 18,  77,  131, 0, 4,   50,  81,  0,
-        1,   17,  23,  0, 62,  147, 199, 0, 44,  130, 189, 0, 28,  102, 154, 0, 18,  75,  115, 0,
-        2,   44,  65,  0, 1,   12,  19,  0, 55,  153, 210, 0, 24,  130, 194, 0, 3,   93,  146, 0,
-        1,   61,  97,  0, 1,   31,  50,  0, 1,   10,  16,  0, 49,  186, 223, 0, 17,  148, 204, 0,
-        1,   96,  142, 0, 1,   53,  83,  0, 1,   26,  44,  0, 1,   11,  17,  0, 13,  217, 212, 0,
-        2,   136, 180, 0, 1,   78,  124, 0, 1,   50,  83,  0, 1,   29,  49,  0, 1,   14,  23,  0,
-        197, 13,  247, 0, 82,  17,  222, 0, 25,  17,  162, 0, 0,   0,   0,   0, 0,   0,   0,   0,
-        0,   0,   0,   0, 126, 186, 247, 0, 234, 191, 243, 0, 176, 177, 234, 0, 104, 158, 220, 0,
-        66,  128, 186, 0, 55,  90,  137, 0, 111, 197, 242, 0, 46,  158, 219, 0, 9,   104, 171, 0,
-        2,   65,  125, 0, 1,   44,  80,  0, 1,   17,  91,  0, 104, 208, 245, 0, 39,  168, 224, 0,
-        3,   109, 162, 0, 1,   79,  124, 0, 1,   50,  102, 0, 1,   43,  102, 0, 84,  220, 246, 0,
-        31,  177, 231, 0, 2,   115, 180, 0, 1,   79,  134, 0, 1,   55,  77,  0, 1,   60,  79,  0,
-        43,  243, 240, 0, 8,   180, 217, 0, 1,   115, 166, 0, 1,   84,  121, 0, 1,   51,  67,  0,
-        1,   16,  6,   0,
+        195, 29,  183, 84,  49,  136, 8,   42,  71,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        31,  107, 169, 35,  99,  159, 17,  82,  140, 8,   66,  114, 2,  44,  76,  1,  19, 32,
+        40,  132, 201, 29,  114, 187, 13,  91,  157, 7,   75,  127, 3,  58,  95,  1,  28, 47,
+        69,  142, 221, 42,  122, 201, 15,  91,  159, 6,   67,  121, 1,  42,  77,  1,  17, 31,
+        102, 148, 228, 67,  117, 204, 17,  82,  154, 6,   59,  114, 2,  39,  75,  1,  15, 29,
+        156, 57,  233, 119, 57,  212, 58,  48,  163, 29,  40,  124, 12, 30,  81,  3,  12, 31,
+        191, 107, 226, 124, 117, 204, 25,  99,  155, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        29,  148, 210, 37,  126, 194, 8,   93,  157, 2,   68,  118, 1,  39,  69,  1,  17, 33,
+        41,  151, 213, 27,  123, 193, 3,   82,  144, 1,   58,  105, 1,  32,  60,  1,  13, 26,
+        59,  159, 220, 23,  126, 198, 4,   88,  151, 1,   66,  114, 1,  38,  71,  1,  18, 34,
+        114, 136, 232, 51,  114, 207, 11,  83,  155, 3,   56,  105, 1,  33,  65,  1,  17, 34,
+        149, 65,  234, 121, 57,  215, 61,  49,  166, 28,  36,  114, 12, 25,  76,  3,  16, 42,
+        214, 49,  220, 132, 63,  188, 42,  65,  137, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        85,  137, 221, 104, 131, 216, 49,  111, 192, 21,  87,  155, 2,  49,  87,  1,  16, 28,
+        89,  163, 230, 90,  137, 220, 29,  100, 183, 10,  70,  135, 2,  42,  81,  1,  17, 33,
+        108, 167, 237, 55,  133, 222, 15,  97,  179, 4,   72,  135, 1,  45,  85,  1,  19, 38,
+        124, 146, 240, 66,  124, 224, 17,  88,  175, 4,   58,  122, 1,  36,  75,  1,  18, 37,
+        141, 79,  241, 126, 70,  227, 66,  58,  182, 30,  44,  136, 12, 34,  96,  2,  20, 47,
+        229, 99,  249, 143, 111, 235, 46,  109, 192, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        82,  158, 236, 94,  146, 224, 25,  117, 191, 9,   87,  149, 3,  56,  99,  1,  33, 57,
+        83,  167, 237, 68,  145, 222, 10,  103, 177, 2,   72,  131, 1,  41,  79,  1,  20, 39,
+        99,  167, 239, 47,  141, 224, 10,  104, 178, 2,   73,  133, 1,  44,  85,  1,  22, 47,
+        127, 145, 243, 71,  129, 228, 17,  93,  177, 3,   61,  124, 1,  41,  84,  1,  21, 52,
+        157, 78,  244, 140, 72,  231, 69,  58,  184, 31,  44,  137, 14, 38,  105, 8,  23, 61,
+        125, 34,  187, 52,  41,  133, 6,   31,  56,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        37,  109, 153, 51,  102, 147, 23,  87,  128, 8,   67,  101, 1,  41,  63,  1,  19, 29,
+        31,  154, 185, 17,  127, 175, 6,   96,  145, 2,   73,  114, 1,  51,  82,  1,  28, 45,
+        23,  163, 200, 10,  131, 185, 2,   93,  148, 1,   67,  111, 1,  41,  69,  1,  14, 24,
+        29,  176, 217, 12,  145, 201, 3,   101, 156, 1,   69,  111, 1,  39,  63,  1,  14, 23,
+        57,  192, 233, 25,  154, 215, 6,   109, 167, 3,   78,  118, 1,  48,  69,  1,  21, 29,
+        202, 105, 245, 108, 106, 216, 18,  90,  144, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        33,  172, 219, 64,  149, 206, 14,  117, 177, 5,   90,  141, 2,  61,  95,  1,  37, 57,
+        33,  179, 220, 11,  140, 198, 1,   89,  148, 1,   60,  104, 1,  33,  57,  1,  12, 21,
+        30,  181, 221, 8,   141, 198, 1,   87,  145, 1,   58,  100, 1,  31,  55,  1,  12, 20,
+        32,  186, 224, 7,   142, 198, 1,   86,  143, 1,   58,  100, 1,  31,  55,  1,  12, 22,
+        57,  192, 227, 20,  143, 204, 3,   96,  154, 1,   68,  112, 1,  42,  69,  1,  19, 32,
+        212, 35,  215, 113, 47,  169, 29,  48,  105, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        74,  129, 203, 106, 120, 203, 49,  107, 178, 19,  84,  144, 4,  50,  84,  1,  15, 25,
+        71,  172, 217, 44,  141, 209, 15,  102, 173, 6,   76,  133, 2,  51,  89,  1,  24, 42,
+        64,  185, 231, 31,  148, 216, 8,   103, 175, 3,   74,  131, 1,  46,  81,  1,  18, 30,
+        65,  196, 235, 25,  157, 221, 5,   105, 174, 1,   67,  120, 1,  38,  69,  1,  15, 30,
+        65,  204, 238, 30,  156, 224, 7,   107, 177, 2,   70,  124, 1,  42,  73,  1,  18, 34,
+        225, 86,  251, 144, 104, 235, 42,  99,  181, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        85,  175, 239, 112, 165, 229, 29,  136, 200, 12,  103, 162, 6,  77,  123, 2,  53, 84,
+        75,  183, 239, 30,  155, 221, 3,   106, 171, 1,   74,  128, 1,  44,  76,  1,  17, 28,
+        73,  185, 240, 27,  159, 222, 2,   107, 172, 1,   75,  127, 1,  42,  73,  1,  17, 29,
+        62,  190, 238, 21,  159, 222, 2,   107, 172, 1,   72,  122, 1,  40,  71,  1,  18, 32,
+        61,  199, 240, 27,  161, 226, 4,   113, 180, 1,   76,  129, 1,  46,  80,  1,  23, 41,
+        7,   27,  153, 5,   30,  95,  1,   16,  30,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        50,  75,  127, 57,  75,  124, 27,  67,  108, 10,  54,  86,  1,  33,  52,  1,  12, 18,
+        43,  125, 151, 26,  108, 148, 7,   83,  122, 2,   59,  89,  1,  38,  60,  1,  17, 27,
+        23,  144, 163, 13,  112, 154, 2,   75,  117, 1,   50,  81,  1,  31,  51,  1,  14, 23,
+        18,  162, 185, 6,   123, 171, 1,   78,  125, 1,   51,  86,  1,  31,  54,  1,  14, 23,
+        15,  199, 227, 3,   150, 204, 1,   91,  146, 1,   55,  95,  1,  30,  53,  1,  11, 20,
+        19,  55,  240, 19,  59,  196, 3,   52,  105, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        41,  166, 207, 104, 153, 199, 31,  123, 181, 14,  101, 152, 5,  72,  106, 1,  36, 52,
+        35,  176, 211, 12,  131, 190, 2,   88,  144, 1,   60,  101, 1,  36,  60,  1,  16, 28,
+        28,  183, 213, 8,   134, 191, 1,   86,  142, 1,   56,  96,  1,  30,  53,  1,  12, 20,
+        20,  190, 215, 4,   135, 192, 1,   84,  139, 1,   53,  91,  1,  28,  49,  1,  11, 20,
+        13,  196, 216, 2,   137, 192, 1,   86,  143, 1,   57,  99,  1,  32,  56,  1,  13, 24,
+        211, 29,  217, 96,  47,  156, 22,  43,  87,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        78,  120, 193, 111, 116, 186, 46,  102, 164, 15,  80,  128, 2,  49,  76,  1,  18, 28,
+        71,  161, 203, 42,  132, 192, 10,  98,  150, 3,   69,  109, 1,  44,  70,  1,  18, 29,
+        57,  186, 211, 30,  140, 196, 4,   93,  146, 1,   62,  102, 1,  38,  65,  1,  16, 27,
+        47,  199, 217, 14,  145, 196, 1,   88,  142, 1,   57,  98,  1,  36,  62,  1,  15, 26,
+        26,  219, 229, 5,   155, 207, 1,   94,  151, 1,   60,  104, 1,  36,  62,  1,  16, 28,
+        233, 29,  248, 146, 47,  220, 43,  52,  140, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        100, 163, 232, 179, 161, 222, 63,  142, 204, 37,  113, 174, 26, 89,  137, 18, 68, 97,
+        85,  181, 230, 32,  146, 209, 7,   100, 164, 3,   71,  121, 1,  45,  77,  1,  18, 30,
+        65,  187, 230, 20,  148, 207, 2,   97,  159, 1,   68,  116, 1,  40,  70,  1,  14, 29,
+        40,  194, 227, 8,   147, 204, 1,   94,  155, 1,   65,  112, 1,  39,  66,  1,  14, 26,
+        16,  208, 228, 3,   151, 207, 1,   98,  160, 1,   67,  117, 1,  41,  74,  1,  17, 31,
+        17,  38,  140, 7,   34,  80,  1,   17,  29,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        37,  75,  128, 41,  76,  128, 26,  66,  116, 12,  52,  94,  2,  32,  55,  1,  10, 16,
+        50,  127, 154, 37,  109, 152, 16,  82,  121, 5,   59,  85,  1,  35,  54,  1,  13, 20,
+        40,  142, 167, 17,  110, 157, 2,   71,  112, 1,   44,  72,  1,  27,  45,  1,  11, 17,
+        30,  175, 188, 9,   124, 169, 1,   74,  116, 1,   48,  78,  1,  30,  49,  1,  11, 18,
+        10,  222, 223, 2,   150, 194, 1,   83,  128, 1,   48,  79,  1,  27,  45,  1,  11, 17,
+        36,  41,  235, 29,  36,  193, 10,  27,  111, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        85,  165, 222, 177, 162, 215, 110, 135, 195, 57,  113, 168, 23, 83,  120, 10, 49, 61,
+        85,  190, 223, 36,  139, 200, 5,   90,  146, 1,   60,  103, 1,  38,  65,  1,  18, 30,
+        72,  202, 223, 23,  141, 199, 2,   86,  140, 1,   56,  97,  1,  36,  61,  1,  16, 27,
+        55,  218, 225, 13,  145, 200, 1,   86,  141, 1,   57,  99,  1,  35,  61,  1,  13, 22,
+        15,  235, 212, 1,   132, 184, 1,   84,  139, 1,   57,  97,  1,  34,  56,  1,  14, 23,
+        181, 21,  201, 61,  37,  123, 10,  38,  71,  0,   0,   0,   0,  0,   0,   0,  0,  0,
+        47,  106, 172, 95,  104, 173, 42,  93,  159, 18,  77,  131, 4,  50,  81,  1,  17, 23,
+        62,  147, 199, 44,  130, 189, 28,  102, 154, 18,  75,  115, 2,  44,  65,  1,  12, 19,
+        55,  153, 210, 24,  130, 194, 3,   93,  146, 1,   61,  97,  1,  31,  50,  1,  10, 16,
+        49,  186, 223, 17,  148, 204, 1,   96,  142, 1,   53,  83,  1,  26,  44,  1,  11, 17,
+        13,  217, 212, 2,   136, 180, 1,   78,  124, 1,   50,  83,  1,  29,  49,  1,  14, 23,
+        197, 13,  247, 82,  17,  222, 25,  17,  162, 0,   0,   0,   0,  0,   0,   0,  0,  0,
+        126, 186, 247, 234, 191, 243, 176, 177, 234, 104, 158, 220, 66, 128, 186, 55, 90, 137,
+        111, 197, 242, 46,  158, 219, 9,   104, 171, 2,   65,  125, 1,  44,  80,  1,  17, 91,
+        104, 208, 245, 39,  168, 224, 3,   109, 162, 1,   79,  124, 1,  50,  102, 1,  43, 102,
+        84,  220, 246, 31,  177, 231, 2,   115, 180, 1,   79,  134, 1,  55,  77,  1,  60, 79,
+        43,  243, 240, 8,   180, 217, 1,   115, 166, 1,   84,  121, 1,  51,  67,  1,  16, 6,
     },
     .switchable_interp_prob{235, 162, 36, 255, 34, 3, 149, 144},
     .inter_mode_prob{
@@ -322,39 +302,23 @@ bool VP9::WriteLessThan(VpxRangeEncoder& writer, s32 value, s32 test) {
 }
 
 void VP9::WriteCoefProbabilityUpdate(VpxRangeEncoder& writer, s32 tx_mode,
-                                     const std::array<u8, 2304>& new_prob,
-                                     const std::array<u8, 2304>& old_prob) {
-    // Note: There's 1 byte added on each packet for alignment,
-    // this byte is ignored when doing updates.
-    constexpr s32 block_bytes = 2 * 2 * 6 * 6 * 4;
+                                     const std::array<u8, 1728>& new_prob,
+                                     const std::array<u8, 1728>& old_prob) {
+    constexpr u32 block_bytes = 2 * 2 * 6 * 6 * 3;
 
-    const auto needs_update = [&](s32 base_index) -> bool {
-        s32 index = base_index;
-        for (s32 i = 0; i < 2; i++) {
-            for (s32 j = 0; j < 2; j++) {
-                for (s32 k = 0; k < 6; k++) {
-                    for (s32 l = 0; l < 6; l++) {
-                        if (new_prob[index + 0] != old_prob[index + 0] ||
-                            new_prob[index + 1] != old_prob[index + 1] ||
-                            new_prob[index + 2] != old_prob[index + 2]) {
-                            return true;
-                        }
-
-                        index += 4;
-                    }
-                }
-            }
-        }
-        return false;
+    const auto needs_update = [&](u32 base_index) {
+        return !std::equal(new_prob.begin() + base_index,
+                           new_prob.begin() + base_index + block_bytes,
+                           old_prob.begin() + base_index);
     };
 
-    for (s32 block_index = 0; block_index < 4; block_index++) {
-        const s32 base_index = block_index * block_bytes;
+    for (u32 block_index = 0; block_index < 4; block_index++) {
+        const u32 base_index = block_index * block_bytes;
         const bool update = needs_update(base_index);
         writer.Write(update);
 
         if (update) {
-            s32 index = base_index;
+            u32 index = base_index;
             for (s32 i = 0; i < 2; i++) {
                 for (s32 j = 0; j < 2; j++) {
                     for (s32 k = 0; k < 6; k++) {
@@ -367,14 +331,13 @@ void VP9::WriteCoefProbabilityUpdate(VpxRangeEncoder& writer, s32 tx_mode,
                                 WriteProbabilityUpdate(writer, new_prob[index + 2],
                                                        old_prob[index + 2]);
                             }
-                            index += 4;
+                            index += 3;
                         }
                     }
                 }
             }
         }
-
-        if (block_index == tx_mode) {
+        if (block_index == static_cast<u32>(tx_mode)) {
             break;
         }
     }
@@ -392,7 +355,7 @@ void VP9::WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_
 Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) {
     PictureInfo picture_info{};
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &picture_info, sizeof(PictureInfo));
-    Vp9PictureInfo vp9_info = picture_info.Convert();
+    Vp9PictureInfo vp9_info = std::move(picture_info.Convert());
 
     InsertEntropy(state.vp9_entropy_probs_offset, vp9_info.entropy);
 
@@ -414,8 +377,7 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
     Vp9FrameContainer frame{};
     {
         gpu.SyncGuestHost();
-        frame.info = GetVp9PictureInfo(state);
-
+        frame.info = std::move(GetVp9PictureInfo(state));
         frame.bit_stream.resize(frame.info.bitstream_size);
         gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.bit_stream.data(),
                                       frame.info.bitstream_size);
@@ -423,37 +385,37 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
     // Buffer two frames, saving the last show frame info
     if (!next_next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
-            .info = frame.info,
-            .bit_stream = frame.bit_stream,
+            .info = std::move(frame.info),
+            .bit_stream = std::move(frame.bit_stream),
         };
         next_next_frame.info.show_frame = frame.info.last_frame_shown;
-        frame.info = next_next_frame.info;
-        frame.bit_stream = next_next_frame.bit_stream;
+        frame.info = std::move(next_next_frame.info);
+        frame.bit_stream = std::move(next_next_frame.bit_stream);
         next_next_frame = std::move(temp);
 
         if (!next_frame.bit_stream.empty()) {
             Vp9FrameContainer temp2{
-                .info = frame.info,
-                .bit_stream = frame.bit_stream,
+                .info = std::move(frame.info),
+                .bit_stream = std::move(frame.bit_stream),
             };
             next_frame.info.show_frame = frame.info.last_frame_shown;
-            frame.info = next_frame.info;
-            frame.bit_stream = next_frame.bit_stream;
+            frame.info = std::move(next_frame.info);
+            frame.bit_stream = std::move(next_frame.bit_stream);
             next_frame = std::move(temp2);
         } else {
-            next_frame.info = frame.info;
-            next_frame.bit_stream = frame.bit_stream;
+            next_frame.info = std::move(frame.info);
+            next_frame.bit_stream = std::move(frame.bit_stream);
         }
     } else {
-        next_next_frame.info = frame.info;
-        next_next_frame.bit_stream = frame.bit_stream;
+        next_next_frame.info = std::move(frame.info);
+        next_next_frame.bit_stream = std::move(frame.bit_stream);
     }
     return frame;
 }
 
 std::vector<u8> VP9::ComposeCompressedHeader() {
     VpxRangeEncoder writer{};
-
+    const bool update_probs = current_frame_info.show_frame && !current_frame_info.is_key_frame;
     if (!current_frame_info.lossless) {
         if (static_cast<u32>(current_frame_info.transform_mode) >= 3) {
             writer.Write(3, 2);
@@ -471,7 +433,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
                                prev_frame_probs.tx_16x16_prob);
         WriteProbabilityUpdate(writer, current_frame_info.entropy.tx_32x32_prob,
                                prev_frame_probs.tx_32x32_prob);
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+        if (update_probs) {
             prev_frame_probs.tx_8x8_prob = current_frame_info.entropy.tx_8x8_prob;
             prev_frame_probs.tx_16x16_prob = current_frame_info.entropy.tx_16x16_prob;
             prev_frame_probs.tx_32x32_prob = current_frame_info.entropy.tx_32x32_prob;
@@ -484,7 +446,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
     WriteProbabilityUpdate(writer, current_frame_info.entropy.skip_probs,
                            prev_frame_probs.skip_probs);
 
-    if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+    if (update_probs) {
         prev_frame_probs.coef_probs = current_frame_info.entropy.coef_probs;
         prev_frame_probs.skip_probs = current_frame_info.entropy.skip_probs;
     }
@@ -493,15 +455,12 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         // read_inter_probs() in the spec
         WriteProbabilityUpdateAligned4(writer, current_frame_info.entropy.inter_mode_prob,
                                        prev_frame_probs.inter_mode_prob);
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
-            prev_frame_probs.inter_mode_prob = current_frame_info.entropy.inter_mode_prob;
-        }
 
         if (current_frame_info.interp_filter == 4) {
             // read_interp_filter_probs() in the spec
             WriteProbabilityUpdate(writer, current_frame_info.entropy.switchable_interp_prob,
                                    prev_frame_probs.switchable_interp_prob);
-            if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+            if (update_probs) {
                 prev_frame_probs.switchable_interp_prob =
                     current_frame_info.entropy.switchable_interp_prob;
             }
@@ -510,9 +469,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         // read_is_inter_probs() in the spec
         WriteProbabilityUpdate(writer, current_frame_info.entropy.intra_inter_prob,
                                prev_frame_probs.intra_inter_prob);
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
-            prev_frame_probs.intra_inter_prob = current_frame_info.entropy.intra_inter_prob;
-        }
+
         // frame_reference_mode() in the spec
         if ((current_frame_info.ref_frame_sign_bias[1] & 1) !=
                 (current_frame_info.ref_frame_sign_bias[2] & 1) ||
@@ -530,7 +487,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         if (current_frame_info.reference_mode == 2) {
             WriteProbabilityUpdate(writer, current_frame_info.entropy.comp_inter_prob,
                                    prev_frame_probs.comp_inter_prob);
-            if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+            if (update_probs) {
                 prev_frame_probs.comp_inter_prob = current_frame_info.entropy.comp_inter_prob;
             }
         }
@@ -538,7 +495,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         if (current_frame_info.reference_mode != 1) {
             WriteProbabilityUpdate(writer, current_frame_info.entropy.single_ref_prob,
                                    prev_frame_probs.single_ref_prob);
-            if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+            if (update_probs) {
                 prev_frame_probs.single_ref_prob = current_frame_info.entropy.single_ref_prob;
             }
         }
@@ -546,7 +503,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         if (current_frame_info.reference_mode != 0) {
             WriteProbabilityUpdate(writer, current_frame_info.entropy.comp_ref_prob,
                                    prev_frame_probs.comp_ref_prob);
-            if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+            if (update_probs) {
                 prev_frame_probs.comp_ref_prob = current_frame_info.entropy.comp_ref_prob;
             }
         }
@@ -557,42 +514,37 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
             WriteProbabilityUpdate(writer, current_frame_info.entropy.y_mode_prob[index],
                                    prev_frame_probs.y_mode_prob[index]);
         }
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
-            prev_frame_probs.y_mode_prob = current_frame_info.entropy.y_mode_prob;
-        }
+
         // read_partition_probs
         WriteProbabilityUpdateAligned4(writer, current_frame_info.entropy.partition_prob,
                                        prev_frame_probs.partition_prob);
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
-            prev_frame_probs.partition_prob = current_frame_info.entropy.partition_prob;
-        }
 
         // mv_probs
         for (s32 i = 0; i < 3; i++) {
             WriteMvProbabilityUpdate(writer, current_frame_info.entropy.joints[i],
                                      prev_frame_probs.joints[i]);
         }
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+        if (update_probs) {
+            prev_frame_probs.inter_mode_prob = current_frame_info.entropy.inter_mode_prob;
+            prev_frame_probs.intra_inter_prob = current_frame_info.entropy.intra_inter_prob;
+            prev_frame_probs.y_mode_prob = current_frame_info.entropy.y_mode_prob;
+            prev_frame_probs.partition_prob = current_frame_info.entropy.partition_prob;
             prev_frame_probs.joints = current_frame_info.entropy.joints;
         }
 
         for (s32 i = 0; i < 2; i++) {
             WriteMvProbabilityUpdate(writer, current_frame_info.entropy.sign[i],
                                      prev_frame_probs.sign[i]);
-
             for (s32 j = 0; j < 10; j++) {
                 const int index = i * 10 + j;
-
                 WriteMvProbabilityUpdate(writer, current_frame_info.entropy.classes[index],
                                          prev_frame_probs.classes[index]);
             }
-
             WriteMvProbabilityUpdate(writer, current_frame_info.entropy.class_0[i],
                                      prev_frame_probs.class_0[i]);
 
             for (s32 j = 0; j < 10; j++) {
                 const int index = i * 10 + j;
-
                 WriteMvProbabilityUpdate(writer, current_frame_info.entropy.prob_bits[index],
                                          prev_frame_probs.prob_bits[index]);
             }
@@ -602,7 +554,6 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
             for (s32 j = 0; j < 2; j++) {
                 for (s32 k = 0; k < 3; k++) {
                     const int index = i * 2 * 3 + j * 3 + k;
-
                     WriteMvProbabilityUpdate(writer, current_frame_info.entropy.class_0_fr[index],
                                              prev_frame_probs.class_0_fr[index]);
                 }
@@ -610,7 +561,6 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
 
             for (s32 j = 0; j < 3; j++) {
                 const int index = i * 3 + j;
-
                 WriteMvProbabilityUpdate(writer, current_frame_info.entropy.fr[index],
                                          prev_frame_probs.fr[index]);
             }
@@ -626,7 +576,7 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
         }
 
         // save previous probs
-        if (current_frame_info.show_frame && !current_frame_info.is_key_frame) {
+        if (update_probs) {
             prev_frame_probs.sign = current_frame_info.entropy.sign;
             prev_frame_probs.classes = current_frame_info.entropy.classes;
             prev_frame_probs.class_0 = current_frame_info.entropy.class_0;
@@ -637,7 +587,6 @@ std::vector<u8> VP9::ComposeCompressedHeader() {
             prev_frame_probs.high_precision = current_frame_info.entropy.high_precision;
         }
     }
-
     writer.End();
     return writer.GetBuffer();
 }
@@ -854,11 +803,11 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
     return uncomp_writer;
 }
 
-const std::vector<u8>& VP9::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state) {
+const std::vector<u8>& VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state) {
     std::vector<u8> bitstream;
     {
-        Vp9FrameContainer curr_frame = GetCurrentFrame(state);
-        current_frame_info = curr_frame.info;
+        Vp9FrameContainer curr_frame = std::move(GetCurrentFrame(state));
+        current_frame_info = std::move(curr_frame.info);
         bitstream = std::move(curr_frame.bit_stream);
     }
 

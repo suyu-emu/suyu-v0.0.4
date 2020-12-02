@@ -18,6 +18,11 @@ extern "C" {
 
 namespace Tegra {
 
+void AVFrameDeleter(AVFrame* ptr) {
+    av_frame_unref(ptr);
+    av_free(ptr);
+}
+
 Codec::Codec(GPU& gpu_)
     : gpu(gpu_), h264_decoder(std::make_unique<Decoder::H264>(gpu)),
       vp9_decoder(std::make_unique<Decoder::VP9>(gpu)) {}
@@ -27,7 +32,9 @@ Codec::~Codec() {
         return;
     }
     // Free libav memory
+    AVFrame* av_frame{nullptr};
     avcodec_send_packet(av_codec_ctx, nullptr);
+    av_frame = av_frame_alloc();
     avcodec_receive_frame(av_codec_ctx, av_frame);
     avcodec_flush_buffers(av_codec_ctx);
 
@@ -60,7 +67,7 @@ void Codec::Decode() {
         }
 
         av_codec_ctx = avcodec_alloc_context3(av_codec);
-        av_frame = av_frame_alloc();
+        av_codec_ctx->refcounted_frames = 1;
         av_opt_set(av_codec_ctx->priv_data, "tune", "zerolatency", 0);
 
         // TODO(ameerj): libavcodec gpu hw acceleration
@@ -68,8 +75,6 @@ void Codec::Decode() {
         const auto av_error = avcodec_open2(av_codec_ctx, av_codec, nullptr);
         if (av_error < 0) {
             LOG_ERROR(Service_NVDRV, "avcodec_open2() Failed.");
-            av_frame_unref(av_frame);
-            av_free(av_frame);
             avcodec_close(av_codec_ctx);
             return;
         }
@@ -96,16 +101,26 @@ void Codec::Decode() {
 
     if (!vp9_hidden_frame) {
         // Only receive/store visible frames
-        avcodec_receive_frame(av_codec_ctx, av_frame);
+        AVFramePtr frame = AVFramePtr{av_frame_alloc(), AVFrameDeleter};
+        avcodec_receive_frame(av_codec_ctx, frame.get());
+        av_frames.push(std::move(frame));
+        // Limit queue to 10 frames. Workaround for ZLA decode and queue spam
+        if (av_frames.size() > 10) {
+            av_frames.pop();
+        }
     }
 }
 
-AVFrame* Codec::GetCurrentFrame() {
-    return av_frame;
-}
+AVFramePtr Codec::GetCurrentFrame() {
+    // Sometimes VIC will request more frames than have been decoded.
+    // in this case, return a nullptr and don't overwrite previous frame data
+    if (av_frames.empty()) {
+        return AVFramePtr{nullptr, AVFrameDeleter};
+    }
 
-const AVFrame* Codec::GetCurrentFrame() const {
-    return av_frame;
+    AVFramePtr frame = std::move(av_frames.front());
+    av_frames.pop();
+    return frame;
 }
 
 NvdecCommon::VideoCodec Codec::GetCurrentCodec() const {

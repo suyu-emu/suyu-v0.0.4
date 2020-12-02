@@ -43,7 +43,7 @@ H264::H264(GPU& gpu_) : gpu(gpu_) {}
 
 H264::~H264() = default;
 
-const std::vector<u8>& H264::ComposeFrameHeader(NvdecCommon::NvdecRegisters& state,
+const std::vector<u8>& H264::ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state,
                                                 bool is_first_frame) {
     H264DecoderContext context{};
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &context, sizeof(H264DecoderContext));

@@ -58,17 +58,18 @@ void Vic::Execute() {
         return;
     }
     const VicConfig config{gpu.MemoryManager().Read<u64>(config_struct_address + 0x20)};
+    const AVFramePtr frame_ptr = std::move(nvdec_processor->GetFrame());
+    const auto* frame = frame_ptr.get();
+    if (!frame || frame->width == 0 || frame->height == 0) {
+        return;
+    }
     const VideoPixelFormat pixel_format =
         static_cast<VideoPixelFormat>(config.pixel_format.Value());
     switch (pixel_format) {
     case VideoPixelFormat::BGRA8:
     case VideoPixelFormat::RGBA8: {
         LOG_TRACE(Service_NVDRV, "Writing RGB Frame");
-        const auto* frame = nvdec_processor->GetFrame();
 
-        if (!frame || frame->width == 0 || frame->height == 0) {
-            return;
-        }
         if (scaler_ctx == nullptr || frame->width != scaler_width ||
             frame->height != scaler_height) {
             const AVPixelFormat target_format =
@@ -120,12 +121,6 @@ void Vic::Execute() {
     }
     case VideoPixelFormat::Yuv420: {
         LOG_TRACE(Service_NVDRV, "Writing YUV420 Frame");
-
-        const auto* frame = nvdec_processor->GetFrame();
-
-        if (!frame || frame->width == 0 || frame->height == 0) {
-            return;
-        }
 
         const std::size_t surface_width = config.surface_width_minus1 + 1;
         const std::size_t surface_height = config.surface_height_minus1 + 1;

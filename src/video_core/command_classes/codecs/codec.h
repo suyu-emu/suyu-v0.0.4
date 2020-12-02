@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <queue>
 #include "common/common_types.h"
 #include "video_core/command_classes/nvdec_common.h"
 
@@ -22,6 +23,9 @@ extern "C" {
 namespace Tegra {
 class GPU;
 struct VicRegisters;
+
+void AVFrameDeleter(AVFrame* ptr);
+using AVFramePtr = std::unique_ptr<AVFrame, decltype(&AVFrameDeleter)>;
 
 namespace Decoder {
 class H264;
@@ -42,9 +46,8 @@ public:
     /// Call decoders to construct headers, decode AVFrame with ffmpeg
     void Decode();
 
-    /// Returns most recently decoded frame
-    [[nodiscard]] AVFrame* GetCurrentFrame();
-    [[nodiscard]] const AVFrame* GetCurrentFrame() const;
+    /// Returns next decoded frame
+    [[nodiscard]] AVFramePtr GetCurrentFrame();
 
     /// Returns the value of current_codec
     [[nodiscard]] NvdecCommon::VideoCodec GetCurrentCodec() const;
@@ -55,13 +58,13 @@ private:
 
     AVCodec* av_codec{nullptr};
     AVCodecContext* av_codec_ctx{nullptr};
-    AVFrame* av_frame{nullptr};
 
     GPU& gpu;
     std::unique_ptr<Decoder::H264> h264_decoder;
     std::unique_ptr<Decoder::VP9> vp9_decoder;
 
     NvdecCommon::NvdecRegisters state{};
+    std::queue<AVFramePtr> av_frames{};
 };
 
 } // namespace Tegra
