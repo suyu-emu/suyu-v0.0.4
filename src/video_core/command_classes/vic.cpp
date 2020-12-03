@@ -58,7 +58,7 @@ void Vic::Execute() {
         return;
     }
     const VicConfig config{gpu.MemoryManager().Read<u64>(config_struct_address + 0x20)};
-    const AVFramePtr frame_ptr = std::move(nvdec_processor->GetFrame());
+    const AVFramePtr frame_ptr = nvdec_processor->GetFrame();
     const auto* frame = frame_ptr.get();
     if (!frame || frame->width == 0 || frame->height == 0) {
         return;
