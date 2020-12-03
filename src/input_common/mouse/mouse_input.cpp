@@ -2,9 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "common/logging/log.h"
-#include "common/math_util.h"
-#include "common/param_package.h"
 #include "input_common/mouse/mouse_input.h"
 
 namespace MouseInput {
