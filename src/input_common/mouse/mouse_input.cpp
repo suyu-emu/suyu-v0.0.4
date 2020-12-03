@@ -41,11 +41,13 @@ void Mouse::UpdateThread() {
 }
 
 void Mouse::UpdateYuzuSettings() {
-    MouseStatus pad_status{};
-    if (buttons != 0) {
-        pad_status.button = last_button;
-        mouse_queue.Push(pad_status);
+    if (buttons == 0) {
+        return;
     }
+
+    mouse_queue.Push(MouseStatus{
+        .button = last_button,
+    });
 }
 
 void Mouse::PressButton(int x, int y, int button_) {
