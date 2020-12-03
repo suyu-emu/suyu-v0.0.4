@@ -49,7 +49,7 @@ public:
      * Signals that a button is pressed.
      * @param x the x-coordinate of the cursor
      * @param y the y-coordinate of the cursor
-     * @param button the button pressed
+     * @param button_ the button pressed
      */
     void PressButton(int x, int y, int button_);
 
