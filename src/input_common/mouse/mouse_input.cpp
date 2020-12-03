@@ -21,8 +21,11 @@ void Mouse::UpdateThread() {
     constexpr int update_time = 10;
     while (update_thread_running) {
         for (MouseInfo& info : mouse_info) {
-            Common::Vec3f angular_direction = {-info.tilt_direction.y, 0.0f,
-                                               -info.tilt_direction.x};
+            const Common::Vec3f angular_direction{
+                -info.tilt_direction.y,
+                0.0f,
+                -info.tilt_direction.x,
+            };
 
             info.motion.SetGyroscope(angular_direction * info.tilt_speed);
             info.motion.UpdateRotation(update_time * 1000);
@@ -46,14 +49,14 @@ void Mouse::UpdateYuzuSettings() {
 }
 
 void Mouse::PressButton(int x, int y, int button_) {
-    if (button_ >= static_cast<int>(mouse_info.size())) {
+    const auto button_index = static_cast<std::size_t>(button_);
+    if (button_index >= mouse_info.size()) {
         return;
     }
 
-    int button = 1 << button_;
-    const auto button_index = static_cast<std::size_t>(button_);
+    const auto button = 1U << button_index;
     buttons |= static_cast<u16>(button);
-    last_button = static_cast<MouseButton>(button_);
+    last_button = static_cast<MouseButton>(button_index);
 
     mouse_info[button_index].mouse_origin = Common::MakeVec(x, y);
     mouse_info[button_index].last_mouse_position = Common::MakeVec(x, y);
@@ -63,8 +66,8 @@ void Mouse::PressButton(int x, int y, int button_) {
 void Mouse::MouseMove(int x, int y) {
     for (MouseInfo& info : mouse_info) {
         if (info.data.pressed) {
-            auto mouse_move = Common::MakeVec(x, y) - info.mouse_origin;
-            auto mouse_change = Common::MakeVec(x, y) - info.last_mouse_position;
+            const auto mouse_move = Common::MakeVec(x, y) - info.mouse_origin;
+            const auto mouse_change = Common::MakeVec(x, y) - info.last_mouse_position;
             info.last_mouse_position = Common::MakeVec(x, y);
             info.data.axis = {mouse_move.x, -mouse_move.y};
 
@@ -79,12 +82,12 @@ void Mouse::MouseMove(int x, int y) {
 }
 
 void Mouse::ReleaseButton(int button_) {
-    if (button_ >= static_cast<int>(mouse_info.size())) {
+    const auto button_index = static_cast<std::size_t>(button_);
+    if (button_index >= mouse_info.size()) {
         return;
     }
 
-    int button = 1 << button_;
-    const auto button_index = static_cast<std::size_t>(button_);
+    const auto button = 1U << button_index;
     buttons &= static_cast<u16>(0xFF - button);
 
     mouse_info[button_index].tilt_speed = 0;
