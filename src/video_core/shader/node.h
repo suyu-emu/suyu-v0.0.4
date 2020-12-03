@@ -379,7 +379,7 @@ struct GlobalMemoryBase {
     u32 cbuf_index = 0;
     u32 cbuf_offset = 0;
 
-    bool operator<(const GlobalMemoryBase& rhs) const {
+    [[nodiscard]] bool operator<(const GlobalMemoryBase& rhs) const {
         return std::tie(cbuf_index, cbuf_offset) < std::tie(rhs.cbuf_index, rhs.cbuf_offset);
     }
 };
@@ -416,7 +416,7 @@ using Meta =
 
 class AmendNode {
 public:
-    std::optional<std::size_t> GetAmendIndex() const {
+    [[nodiscard]] std::optional<std::size_t> GetAmendIndex() const {
         if (amend_index == amend_null_index) {
             return std::nullopt;
         }
@@ -454,19 +454,19 @@ public:
     explicit OperationNode(OperationCode code_, Meta meta_, Args&&... operands_)
         : code{code_}, meta{std::move(meta_)}, operands{operands_...} {}
 
-    OperationCode GetCode() const {
+    [[nodiscard]] OperationCode GetCode() const {
         return code;
     }
 
-    const Meta& GetMeta() const {
+    [[nodiscard]] const Meta& GetMeta() const {
         return meta;
     }
 
-    std::size_t GetOperandsCount() const {
+    [[nodiscard]] std::size_t GetOperandsCount() const {
         return operands.size();
     }
 
-    const Node& operator[](std::size_t operand_index) const {
+    [[nodiscard]] const Node& operator[](std::size_t operand_index) const {
         return operands.at(operand_index);
     }
 
@@ -482,11 +482,11 @@ public:
     explicit ConditionalNode(Node condition_, std::vector<Node>&& code_)
         : condition{std::move(condition_)}, code{std::move(code_)} {}
 
-    const Node& GetCondition() const {
+    [[nodiscard]] const Node& GetCondition() const {
         return condition;
     }
 
-    const std::vector<Node>& GetCode() const {
+    [[nodiscard]] const std::vector<Node>& GetCode() const {
         return code;
     }
 
@@ -500,7 +500,7 @@ class GprNode final {
 public:
     explicit constexpr GprNode(Tegra::Shader::Register index_) : index{index_} {}
 
-    u32 GetIndex() const {
+    [[nodiscard]] constexpr u32 GetIndex() const {
         return static_cast<u32>(index);
     }
 
@@ -513,7 +513,7 @@ class CustomVarNode final {
 public:
     explicit constexpr CustomVarNode(u32 index_) : index{index_} {}
 
-    constexpr u32 GetIndex() const {
+    [[nodiscard]] constexpr u32 GetIndex() const {
         return index;
     }
 
@@ -526,7 +526,7 @@ class ImmediateNode final {
 public:
     explicit constexpr ImmediateNode(u32 value_) : value{value_} {}
 
-    u32 GetValue() const {
+    [[nodiscard]] constexpr u32 GetValue() const {
         return value;
     }
 
@@ -539,7 +539,7 @@ class InternalFlagNode final {
 public:
     explicit constexpr InternalFlagNode(InternalFlag flag_) : flag{flag_} {}
 
-    InternalFlag GetFlag() const {
+    [[nodiscard]] constexpr InternalFlag GetFlag() const {
         return flag;
     }
 
@@ -553,11 +553,11 @@ public:
     explicit constexpr PredicateNode(Tegra::Shader::Pred index_, bool negated_)
         : index{index_}, negated{negated_} {}
 
-    Tegra::Shader::Pred GetIndex() const {
+    [[nodiscard]] constexpr Tegra::Shader::Pred GetIndex() const {
         return index;
     }
 
-    bool IsNegated() const {
+    [[nodiscard]] constexpr bool IsNegated() const {
         return negated;
     }
 
@@ -577,23 +577,23 @@ public:
     explicit AbufNode(Node physical_address_, Node buffer_ = {})
         : physical_address{std::move(physical_address_)}, buffer{std::move(buffer_)} {}
 
-    Tegra::Shader::Attribute::Index GetIndex() const {
+    [[nodiscard]] Tegra::Shader::Attribute::Index GetIndex() const {
         return index;
     }
 
-    u32 GetElement() const {
+    [[nodiscard]] u32 GetElement() const {
         return element;
     }
 
-    const Node& GetBuffer() const {
+    [[nodiscard]] const Node& GetBuffer() const {
         return buffer;
     }
 
-    bool IsPhysicalBuffer() const {
+    [[nodiscard]] bool IsPhysicalBuffer() const {
         return static_cast<bool>(physical_address);
     }
 
-    const Node& GetPhysicalAddress() const {
+    [[nodiscard]] const Node& GetPhysicalAddress() const {
         return physical_address;
     }
 
@@ -607,9 +607,9 @@ private:
 /// Patch memory (used to communicate tessellation stages).
 class PatchNode final {
 public:
-    explicit PatchNode(u32 offset_) : offset{offset_} {}
+    explicit constexpr PatchNode(u32 offset_) : offset{offset_} {}
 
-    u32 GetOffset() const {
+    [[nodiscard]] constexpr u32 GetOffset() const {
         return offset;
     }
 
@@ -622,11 +622,11 @@ class CbufNode final {
 public:
     explicit CbufNode(u32 index_, Node offset_) : index{index_}, offset{std::move(offset_)} {}
 
-    u32 GetIndex() const {
+    [[nodiscard]] u32 GetIndex() const {
         return index;
     }
 
-    const Node& GetOffset() const {
+    [[nodiscard]] const Node& GetOffset() const {
         return offset;
     }
 
@@ -640,7 +640,7 @@ class LmemNode final {
 public:
     explicit LmemNode(Node address_) : address{std::move(address_)} {}
 
-    const Node& GetAddress() const {
+    [[nodiscard]] const Node& GetAddress() const {
         return address;
     }
 
@@ -653,7 +653,7 @@ class SmemNode final {
 public:
     explicit SmemNode(Node address_) : address{std::move(address_)} {}
 
-    const Node& GetAddress() const {
+    [[nodiscard]] const Node& GetAddress() const {
         return address;
     }
 
@@ -668,15 +668,15 @@ public:
         : real_address{std::move(real_address_)}, base_address{std::move(base_address_)},
           descriptor{descriptor_} {}
 
-    const Node& GetRealAddress() const {
+    [[nodiscard]] const Node& GetRealAddress() const {
         return real_address;
     }
 
-    const Node& GetBaseAddress() const {
+    [[nodiscard]] const Node& GetBaseAddress() const {
         return base_address;
     }
 
-    const GlobalMemoryBase& GetDescriptor() const {
+    [[nodiscard]] const GlobalMemoryBase& GetDescriptor() const {
         return descriptor;
     }
 
@@ -691,7 +691,7 @@ class CommentNode final {
 public:
     explicit CommentNode(std::string text_) : text{std::move(text_)} {}
 
-    const std::string& GetText() const {
+    [[nodiscard]] const std::string& GetText() const {
         return text;
     }
 
