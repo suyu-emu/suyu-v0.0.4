@@ -15,7 +15,7 @@ class SpinLock;
 }
 
 namespace Kernel {
-class Scheduler;
+class KScheduler;
 } // namespace Kernel
 
 namespace Core {
@@ -28,7 +28,7 @@ namespace Kernel {
 
 class PhysicalCore {
 public:
-    PhysicalCore(std::size_t core_index, Core::System& system, Kernel::Scheduler& scheduler,
+    PhysicalCore(std::size_t core_index, Core::System& system, Kernel::KScheduler& scheduler,
                  Core::CPUInterrupts& interrupts);
     ~PhysicalCore();
 
@@ -55,9 +55,6 @@ public:
     /// Check if this core is interrupted
     bool IsInterrupted() const;
 
-    // Shutdown this physical core.
-    void Shutdown();
-
     bool IsInitialized() const {
         return arm_interface != nullptr;
     }
@@ -82,18 +79,18 @@ public:
         return core_index;
     }
 
-    Kernel::Scheduler& Scheduler() {
+    Kernel::KScheduler& Scheduler() {
         return scheduler;
     }
 
-    const Kernel::Scheduler& Scheduler() const {
+    const Kernel::KScheduler& Scheduler() const {
         return scheduler;
     }
 
 private:
     const std::size_t core_index;
     Core::System& system;
-    Kernel::Scheduler& scheduler;
+    Kernel::KScheduler& scheduler;
     Core::CPUInterrupts& interrupts;
     std::unique_ptr<Common::SpinLock> guard;
     std::unique_ptr<Core::ARM_Interface> arm_interface;

@@ -12,8 +12,8 @@
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -153,7 +153,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
                                                     bool should_decrement) {
     auto& memory = system.Memory();
     auto& kernel = system.Kernel();
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     Handle event_handle = InvalidHandle;
     {
@@ -223,7 +223,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
     auto& memory = system.Memory();
     auto& kernel = system.Kernel();
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     Handle event_handle = InvalidHandle;
     {

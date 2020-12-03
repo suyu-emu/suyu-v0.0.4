@@ -15,13 +15,13 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
@@ -314,7 +314,7 @@ void Process::PrepareForTermination() {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread.get() == system.CurrentScheduler().GetCurrentThread())
+            if (thread.get() == kernel.CurrentScheduler()->GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
@@ -325,7 +325,7 @@ void Process::PrepareForTermination() {
         }
     };
 
-    stop_threads(system.GlobalScheduler().GetThreadList());
+    stop_threads(system.GlobalSchedulerContext().GetThreadList());
 
     FreeTLSRegion(tls_region_address);
     tls_region_address = 0;

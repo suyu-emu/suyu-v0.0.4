@@ -24,6 +24,7 @@
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/page_table.h"
@@ -32,7 +33,6 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/resource_limit.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_types.h"
@@ -332,7 +332,8 @@ static ResultCode ConnectToNamedPort32(Core::System& system, Handle* out_handle,
 
 /// Makes a blocking IPC call to an OS service.
 static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
-    const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
+    auto& kernel = system.Kernel();
+    const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
     std::shared_ptr<ClientSession> session = handle_table.Get<ClientSession>(handle);
     if (!session) {
         LOG_ERROR(Kernel_SVC, "called with invalid handle=0x{:08X}", handle);
@@ -341,9 +342,9 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     LOG_TRACE(Kernel_SVC, "called handle=0x{:08X}({})", handle, session->GetName());
 
-    auto thread = system.CurrentScheduler().GetCurrentThread();
+    auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
-        SchedulerLock lock(system.Kernel());
+        SchedulerLock lock(kernel);
         thread->InvalidateHLECallback();
         thread->SetStatus(ThreadStatus::WaitIPC);
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
@@ -352,12 +353,12 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     if (thread->HasHLECallback()) {
         Handle event_handle = thread->GetHLETimeEvent();
         if (event_handle != InvalidHandle) {
-            auto& time_manager = system.Kernel().TimeManager();
+            auto& time_manager = kernel.TimeManager();
             time_manager.UnscheduleTimeEvent(event_handle);
         }
 
         {
-            SchedulerLock lock(system.Kernel());
+            SchedulerLock lock(kernel);
             auto* sync_object = thread->GetHLESyncObject();
             sync_object->RemoveWaitingThread(SharedFrom(thread));
         }
@@ -665,7 +666,7 @@ static void Break(Core::System& system, u32 reason, u64 info1, u64 info2) {
 
         handle_debug_buffer(info1, info2);
 
-        auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
+        auto* const current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
         const auto thread_processor_id = current_thread->GetProcessorID();
         system.ArmInterface(static_cast<std::size_t>(thread_processor_id)).LogBacktrace();
     }
@@ -917,7 +918,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
         }
 
         const auto& core_timing = system.CoreTiming();
-        const auto& scheduler = system.CurrentScheduler();
+        const auto& scheduler = *system.Kernel().CurrentScheduler();
         const auto* const current_thread = scheduler.GetCurrentThread();
         const bool same_thread = current_thread == thread.get();
 
@@ -1085,7 +1086,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 act
         return ERR_INVALID_HANDLE;
     }
 
-    if (thread.get() == system.CurrentScheduler().GetCurrentThread()) {
+    if (thread.get() == system.Kernel().CurrentScheduler()->GetCurrentThread()) {
         LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
         return ERR_BUSY;
     }
@@ -1118,7 +1119,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
         return ERR_INVALID_HANDLE;
     }
 
-    if (thread.get() == system.CurrentScheduler().GetCurrentThread()) {
+    if (thread.get() == system.Kernel().CurrentScheduler()->GetCurrentThread()) {
         LOG_ERROR(Kernel_SVC, "The thread handle specified is the current running thread");
         return ERR_BUSY;
     }
@@ -1475,7 +1476,7 @@ static void ExitProcess(Core::System& system) {
     current_process->PrepareForTermination();
 
     // Kill the current thread
-    system.CurrentScheduler().GetCurrentThread()->Stop();
+    system.Kernel().CurrentScheduler()->GetCurrentThread()->Stop();
 }
 
 static void ExitProcess32(Core::System& system) {
@@ -1576,8 +1577,8 @@ static ResultCode StartThread32(Core::System& system, Handle thread_handle) {
 static void ExitThread(Core::System& system) {
     LOG_DEBUG(Kernel_SVC, "called, pc=0x{:08X}", system.CurrentArmInterface().GetPC());
 
-    auto* const current_thread = system.CurrentScheduler().GetCurrentThread();
-    system.GlobalScheduler().RemoveThread(SharedFrom(current_thread));
+    auto* const current_thread = system.Kernel().CurrentScheduler()->GetCurrentThread();
+    system.GlobalSchedulerContext().RemoveThread(SharedFrom(current_thread));
     current_thread->Stop();
 }
 
@@ -1590,37 +1591,31 @@ static void SleepThread(Core::System& system, s64 nanoseconds) {
     LOG_DEBUG(Kernel_SVC, "called nanoseconds={}", nanoseconds);
 
     enum class SleepType : s64 {
-        YieldWithoutLoadBalancing = 0,
-        YieldWithLoadBalancing = -1,
+        YieldWithoutCoreMigration = 0,
+        YieldWithCoreMigration = -1,
         YieldAndWaitForLoadBalancing = -2,
     };
 
-    auto& scheduler = system.CurrentScheduler();
-    auto* const current_thread = scheduler.GetCurrentThread();
-    bool is_redundant = false;
-
+    auto& scheduler = *system.Kernel().CurrentScheduler();
     if (nanoseconds <= 0) {
         switch (static_cast<SleepType>(nanoseconds)) {
-        case SleepType::YieldWithoutLoadBalancing: {
-            auto pair = current_thread->YieldSimple();
-            is_redundant = pair.second;
+        case SleepType::YieldWithoutCoreMigration: {
+            scheduler.YieldWithoutCoreMigration();
             break;
         }
-        case SleepType::YieldWithLoadBalancing: {
-            auto pair = current_thread->YieldAndBalanceLoad();
-            is_redundant = pair.second;
+        case SleepType::YieldWithCoreMigration: {
+            scheduler.YieldWithCoreMigration();
             break;
         }
         case SleepType::YieldAndWaitForLoadBalancing: {
-            auto pair = current_thread->YieldAndWaitForLoadBalancing();
-            is_redundant = pair.second;
+            scheduler.YieldToAnyThread();
             break;
         }
         default:
             UNREACHABLE_MSG("Unimplemented sleep yield type '{:016X}'!", nanoseconds);
         }
     } else {
-        current_thread->Sleep(nanoseconds);
+        scheduler.GetCurrentThread()->Sleep(nanoseconds);
     }
 }
 
@@ -1656,8 +1651,8 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
     auto& kernel = system.Kernel();
     Handle event_handle;
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
-    auto* const current_process = system.Kernel().CurrentProcess();
+    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
+    auto* const current_process = kernel.CurrentProcess();
     {
         SchedulerLockAndSleep lock(kernel, event_handle, current_thread, nano_seconds);
         const auto& handle_table = current_process->GetHandleTable();
@@ -2627,7 +2622,7 @@ void Call(Core::System& system, u32 immediate) {
     auto& kernel = system.Kernel();
     kernel.EnterSVCProfile();
 
-    auto* thread = system.CurrentScheduler().GetCurrentThread();
+    auto* thread = kernel.CurrentScheduler()->GetCurrentThread();
     thread->SetContinuousOnSVC(true);
 
     const FunctionDef* info = system.CurrentProcess()->Is64BitProcess() ? GetSVCInfo64(immediate)

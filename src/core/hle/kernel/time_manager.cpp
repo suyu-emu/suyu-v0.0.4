@@ -7,8 +7,8 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 

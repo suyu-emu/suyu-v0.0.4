@@ -5,8 +5,8 @@
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/thread.h"
@@ -37,7 +37,7 @@ void Synchronization::SignalObject(SynchronizationObject& obj) const {
 std::pair<ResultCode, Handle> Synchronization::WaitFor(
     std::vector<std::shared_ptr<SynchronizationObject>>& sync_objects, s64 nano_seconds) {
     auto& kernel = system.Kernel();
-    auto* const thread = system.CurrentScheduler().GetCurrentThread();
+    auto* const thread = kernel.CurrentScheduler()->GetCurrentThread();
     Handle event_handle = InvalidHandle;
     {
         SchedulerLockAndSleep lock(kernel, event_handle, thread, nano_seconds);

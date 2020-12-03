@@ -11,11 +11,11 @@
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -73,7 +73,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
 
     auto& kernel = system.Kernel();
     std::shared_ptr<Thread> current_thread =
-        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+        SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
     {
         SchedulerLock lock(kernel);
         // The mutex address must be 4-byte aligned
@@ -156,7 +156,7 @@ ResultCode Mutex::Release(VAddr address) {
     SchedulerLock lock(kernel);
 
     std::shared_ptr<Thread> current_thread =
-        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+        SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
 
     auto [result, new_owner] = Unlock(current_thread, address);
 

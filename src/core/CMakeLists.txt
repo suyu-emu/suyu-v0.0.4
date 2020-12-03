@@ -154,6 +154,8 @@ add_library(core STATIC
     hle/kernel/hle_ipc.h
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_priority_queue.h
+    hle/kernel/k_scheduler.cpp
+    hle/kernel/k_scheduler.h
     hle/kernel/k_scheduler_lock.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
@@ -189,8 +191,6 @@ add_library(core STATIC
     hle/kernel/readable_event.h
     hle/kernel/resource_limit.cpp
     hle/kernel/resource_limit.h
-    hle/kernel/scheduler.cpp
-    hle/kernel/scheduler.h
     hle/kernel/server_port.cpp
     hle/kernel/server_port.h
     hle/kernel/server_session.cpp

@@ -28,10 +28,10 @@ class System;
 
 namespace Kernel {
 
-class GlobalScheduler;
+class GlobalSchedulerContext;
 class KernelCore;
 class Process;
-class Scheduler;
+class KScheduler;
 
 enum ThreadPriority : u32 {
     THREADPRIO_HIGHEST = 0,            ///< Highest thread priority
@@ -346,8 +346,11 @@ public:
 
     void SetStatus(ThreadStatus new_status);
 
-    u64 GetLastRunningTicks() const {
-        return last_running_ticks;
+    constexpr s64 GetLastScheduledTick() const {
+        return this->last_scheduled_tick;
+    }
+    constexpr void SetLastScheduledTick(s64 tick) {
+        this->last_scheduled_tick = tick;
     }
 
     u64 GetTotalCPUTimeTicks() const {
@@ -362,7 +365,15 @@ public:
         return processor_id;
     }
 
+    s32 GetActiveCore() const {
+        return GetProcessorID();
+    }
+
     void SetProcessorID(s32 new_core) {
+        processor_id = new_core;
+    }
+
+    void SetActiveCore(s32 new_core) {
         processor_id = new_core;
     }
 
@@ -479,21 +490,11 @@ public:
     /// Sleeps this thread for the given amount of nanoseconds.
     ResultCode Sleep(s64 nanoseconds);
 
-    /// Yields this thread without rebalancing loads.
-    std::pair<ResultCode, bool> YieldSimple();
-
-    /// Yields this thread and does a load rebalancing.
-    std::pair<ResultCode, bool> YieldAndBalanceLoad();
-
-    /// Yields this thread and if the core is left idle, loads are rebalanced
-    std::pair<ResultCode, bool> YieldAndWaitForLoadBalancing();
-
-    void IncrementYieldCount() {
-        yield_count++;
+    constexpr s64 GetYieldScheduleCount() const {
+        return this->schedule_count;
     }
-
-    u64 GetYieldCount() const {
-        return yield_count;
+    constexpr void SetYieldScheduleCount(s64 count) {
+        this->schedule_count = count;
     }
 
     ThreadSchedStatus GetSchedulingStatus() const {
@@ -569,9 +570,62 @@ public:
         return has_exited;
     }
 
+    struct QueueEntry {
+    private:
+        Thread* prev;
+        Thread* next;
+
+    public:
+        constexpr QueueEntry() : prev(nullptr), next(nullptr) { /* ... */
+        }
+
+        constexpr void Initialize() {
+            this->prev = nullptr;
+            this->next = nullptr;
+        }
+
+        constexpr Thread* GetPrev() const {
+            return this->prev;
+        }
+        constexpr Thread* GetNext() const {
+            return this->next;
+        }
+        constexpr void SetPrev(Thread* t) {
+            this->prev = t;
+        }
+        constexpr void SetNext(Thread* t) {
+            this->next = t;
+        }
+    };
+
+    constexpr QueueEntry& GetPriorityQueueEntry(s32 core) {
+        return this->per_core_priority_queue_entry[core];
+    }
+    constexpr const QueueEntry& GetPriorityQueueEntry(s32 core) const {
+        return this->per_core_priority_queue_entry[core];
+    }
+
+    s32 GetDisableDispatchCount() const {
+        return disable_count;
+    }
+
+    void DisableDispatch() {
+        ASSERT(GetDisableDispatchCount() >= 0);
+        disable_count++;
+    }
+
+    void EnableDispatch() {
+        ASSERT(GetDisableDispatchCount() > 0);
+        disable_count--;
+    }
+
+    ThreadStatus status = ThreadStatus::Dormant;
+    u32 scheduling_state = 0;
+
 private:
-    friend class GlobalScheduler;
-    friend class Scheduler;
+    friend class GlobalSchedulerContext;
+    friend class KScheduler;
+    friend class Process;
 
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void AddSchedulingFlag(ThreadSchedFlags flag);
@@ -586,10 +640,9 @@ private:
 
     u64 thread_id = 0;
 
-    ThreadStatus status = ThreadStatus::Dormant;
-
     VAddr entry_point = 0;
     VAddr stack_top = 0;
+    std::atomic_int disable_count = 0;
 
     ThreadType type;
 
@@ -603,9 +656,8 @@ private:
     u32 current_priority = 0;
 
     u64 total_cpu_time_ticks = 0; ///< Total CPU running ticks.
-    u64 last_running_ticks = 0;   ///< CPU tick when thread was last running
-    u64 yield_count = 0;          ///< Number of redundant yields carried by this thread.
-                                  ///< a redundant yield is one where no scheduling is changed
+    s64 schedule_count{};
+    s64 last_scheduled_tick{};
 
     s32 processor_id = 0;
 
@@ -647,7 +699,9 @@ private:
     Handle hle_time_event;
     SynchronizationObject* hle_object;
 
-    Scheduler* scheduler = nullptr;
+    KScheduler* scheduler = nullptr;
+
+    QueueEntry per_core_priority_queue_entry[Core::Hardware::NUM_CPU_CORES]{};
 
     u32 ideal_core{0xFFFFFFFF};
     KAffinityMask affinity_mask{};
@@ -655,7 +709,6 @@ private:
     s32 ideal_core_override = -1;
     u32 affinity_override_count = 0;
 
-    u32 scheduling_state = 0;
     u32 pausing_state = 0;
     bool is_running = false;
     bool is_waiting_on_sync = false;

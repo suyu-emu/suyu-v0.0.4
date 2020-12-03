@@ -35,12 +35,12 @@ class SlabHeap;
 
 class AddressArbiter;
 class ClientPort;
-class GlobalScheduler;
+class GlobalSchedulerContext;
 class HandleTable;
 class PhysicalCore;
 class Process;
 class ResourceLimit;
-class Scheduler;
+class KScheduler;
 class SharedMemory;
 class Synchronization;
 class Thread;
@@ -102,16 +102,16 @@ public:
     const std::vector<std::shared_ptr<Process>>& GetProcessList() const;
 
     /// Gets the sole instance of the global scheduler
-    Kernel::GlobalScheduler& GlobalScheduler();
+    Kernel::GlobalSchedulerContext& GlobalSchedulerContext();
 
     /// Gets the sole instance of the global scheduler
-    const Kernel::GlobalScheduler& GlobalScheduler() const;
+    const Kernel::GlobalSchedulerContext& GlobalSchedulerContext() const;
 
     /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
-    Kernel::Scheduler& Scheduler(std::size_t id);
+    Kernel::KScheduler& Scheduler(std::size_t id);
 
     /// Gets the sole instance of the Scheduler assoviated with cpu core 'id'
-    const Kernel::Scheduler& Scheduler(std::size_t id) const;
+    const Kernel::KScheduler& Scheduler(std::size_t id) const;
 
     /// Gets the an instance of the respective physical CPU core.
     Kernel::PhysicalCore& PhysicalCore(std::size_t id);
@@ -120,10 +120,7 @@ public:
     const Kernel::PhysicalCore& PhysicalCore(std::size_t id) const;
 
     /// Gets the sole instance of the Scheduler at the current running core.
-    Kernel::Scheduler& CurrentScheduler();
-
-    /// Gets the sole instance of the Scheduler at the current running core.
-    const Kernel::Scheduler& CurrentScheduler() const;
+    Kernel::KScheduler* CurrentScheduler();
 
     /// Gets the an instance of the current physical CPU core.
     Kernel::PhysicalCore& CurrentPhysicalCore();

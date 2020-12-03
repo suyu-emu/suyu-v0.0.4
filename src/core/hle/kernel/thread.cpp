@@ -17,10 +17,10 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -186,9 +186,11 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->status = ThreadStatus::Dormant;
     thread->entry_point = entry_point;
     thread->stack_top = stack_top;
+    thread->disable_count = 1;
     thread->tpidr_el0 = 0;
     thread->nominal_priority = thread->current_priority = priority;
-    thread->last_running_ticks = 0;
+    thread->schedule_count = -1;
+    thread->last_scheduled_tick = 0;
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
     thread->affinity_mask.SetAffinity(processor_id, true);
@@ -201,7 +203,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->owner_process = owner_process;
     thread->type = type_flags;
     if ((type_flags & THREADTYPE_IDLE) == 0) {
-        auto& scheduler = kernel.GlobalScheduler();
+        auto& scheduler = kernel.GlobalSchedulerContext();
         scheduler.AddThread(thread);
     }
     if (owner_process) {
@@ -402,39 +404,12 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     return RESULT_SUCCESS;
 }
 
-std::pair<ResultCode, bool> Thread::YieldSimple() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThread(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
-std::pair<ResultCode, bool> Thread::YieldAndBalanceLoad() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThreadAndBalanceLoad(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
-std::pair<ResultCode, bool> Thread::YieldAndWaitForLoadBalancing() {
-    bool is_redundant = false;
-    {
-        SchedulerLock lock(kernel);
-        is_redundant = kernel.GlobalScheduler().YieldThreadAndWaitForLoadBalancing(this);
-    }
-    return {RESULT_SUCCESS, is_redundant};
-}
-
 void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
     const u32 old_state = scheduling_state;
     pausing_state |= static_cast<u32>(flag);
     const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
     scheduling_state = base_scheduling | pausing_state;
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
@@ -442,19 +417,20 @@ void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     pausing_state &= ~static_cast<u32>(flag);
     const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
     scheduling_state = base_scheduling | pausing_state;
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
     const u32 old_state = scheduling_state;
     scheduling_state = (scheduling_state & static_cast<u32>(ThreadSchedMasks::HighMask)) |
                        static_cast<u32>(new_status);
-    kernel.GlobalScheduler().AdjustSchedulingOnStatus(this, old_state);
+    KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::SetCurrentPriority(u32 new_priority) {
     const u32 old_priority = std::exchange(current_priority, new_priority);
-    kernel.GlobalScheduler().AdjustSchedulingOnPriority(this, old_priority);
+    KScheduler::OnThreadPriorityChanged(kernel, this, kernel.CurrentScheduler()->GetCurrentThread(),
+                                        old_priority);
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
@@ -480,10 +456,10 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     if (use_override) {
         ideal_core_override = new_core;
     } else {
-        const auto old_affinity_mask = affinity_mask.GetAffinityMask();
+        const auto old_affinity_mask = affinity_mask;
         affinity_mask.SetAffinityMask(new_affinity_mask);
         ideal_core = new_core;
-        if (old_affinity_mask != new_affinity_mask) {
+        if (old_affinity_mask.GetAffinityMask() != new_affinity_mask) {
             const s32 old_core = processor_id;
             if (processor_id >= 0 && !affinity_mask.GetAffinity(processor_id)) {
                 if (static_cast<s32>(ideal_core) < 0) {
@@ -493,7 +469,7 @@ ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
                     processor_id = ideal_core;
                 }
             }
-            kernel.GlobalScheduler().AdjustSchedulingOnAffinity(this, old_affinity_mask, old_core);
+            KScheduler::OnThreadAffinityMaskChanged(kernel, this, old_affinity_mask, old_core);
         }
     }
     return RESULT_SUCCESS;

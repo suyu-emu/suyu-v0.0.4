@@ -26,11 +26,11 @@ class VfsFilesystem;
 } // namespace FileSys
 
 namespace Kernel {
-class GlobalScheduler;
+class GlobalSchedulerContext;
 class KernelCore;
 class PhysicalCore;
 class Process;
-class Scheduler;
+class KScheduler;
 } // namespace Kernel
 
 namespace Loader {
@@ -213,12 +213,6 @@ public:
     /// Gets the index of the currently running CPU core
     [[nodiscard]] std::size_t CurrentCoreIndex() const;
 
-    /// Gets the scheduler for the CPU core that is currently running
-    [[nodiscard]] Kernel::Scheduler& CurrentScheduler();
-
-    /// Gets the scheduler for the CPU core that is currently running
-    [[nodiscard]] const Kernel::Scheduler& CurrentScheduler() const;
-
     /// Gets the physical core for the CPU core that is currently running
     [[nodiscard]] Kernel::PhysicalCore& CurrentPhysicalCore();
 
@@ -261,17 +255,11 @@ public:
     /// Gets an immutable reference to the renderer.
     [[nodiscard]] const VideoCore::RendererBase& Renderer() const;
 
-    /// Gets the scheduler for the CPU core with the specified index
-    [[nodiscard]] Kernel::Scheduler& Scheduler(std::size_t core_index);
-
-    /// Gets the scheduler for the CPU core with the specified index
-    [[nodiscard]] const Kernel::Scheduler& Scheduler(std::size_t core_index) const;
+    /// Gets the global scheduler
+    [[nodiscard]] Kernel::GlobalSchedulerContext& GlobalSchedulerContext();
 
     /// Gets the global scheduler
-    [[nodiscard]] Kernel::GlobalScheduler& GlobalScheduler();
-
-    /// Gets the global scheduler
-    [[nodiscard]] const Kernel::GlobalScheduler& GlobalScheduler() const;
+    [[nodiscard]] const Kernel::GlobalSchedulerContext& GlobalSchedulerContext() const;
 
     /// Gets the manager for the guest device memory
     [[nodiscard]] Core::DeviceMemory& DeviceMemory();
