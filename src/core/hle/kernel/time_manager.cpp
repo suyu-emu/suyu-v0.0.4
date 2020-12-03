@@ -24,11 +24,15 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
                 return;
             }
             auto thread = this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
-            thread->OnWakeUp();
+            if (thread) {
+                // Thread can be null if process has exited
+                thread->OnWakeUp();
+            }
         });
 }
 
 void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 nanoseconds) {
+    std::lock_guard lock{mutex};
     event_handle = timetask->GetGlobalHandle();
     if (nanoseconds > 0) {
         ASSERT(timetask);
@@ -43,6 +47,7 @@ void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 
 }
 
 void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
+    std::lock_guard lock{mutex};
     if (event_handle == InvalidHandle) {
         return;
     }
@@ -51,7 +56,7 @@ void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
 }
 
 void TimeManager::CancelTimeEvent(Thread* time_task) {
-    Handle event_handle = time_task->GetGlobalHandle();
+    const Handle event_handle = time_task->GetGlobalHandle();
     UnscheduleTimeEvent(event_handle);
 }
 

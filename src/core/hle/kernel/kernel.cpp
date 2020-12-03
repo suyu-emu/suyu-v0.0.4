@@ -68,6 +68,12 @@ struct KernelCore::Impl {
         InitializeSuspendThreads();
     }
 
+    void InitializeCores() {
+        for (auto& core : cores) {
+            core.Initialize(current_process->Is64BitProcess());
+        }
+    }
+
     void Shutdown() {
         next_object_id = 0;
         next_kernel_process_id = Process::InitialKIPIDMin;
@@ -116,7 +122,7 @@ struct KernelCore::Impl {
             Core::MakeExclusiveMonitor(system.Memory(), Core::Hardware::NUM_CPU_CORES);
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             schedulers[i] = std::make_unique<Kernel::Scheduler>(system, i);
-            cores.emplace_back(system, i, *schedulers[i], interrupts[i]);
+            cores.emplace_back(i, system, *schedulers[i], interrupts);
         }
     }
 
@@ -181,6 +187,7 @@ struct KernelCore::Impl {
         if (process == nullptr) {
             return;
         }
+
         const u32 core_id = GetCurrentHostThreadID();
         if (core_id < Core::Hardware::NUM_CPU_CORES) {
             system.Memory().SetCurrentPageTable(*process, core_id);
@@ -372,6 +379,10 @@ void KernelCore::Initialize() {
     impl->Initialize(*this);
 }
 
+void KernelCore::InitializeCores() {
+    impl->InitializeCores();
+}
+
 void KernelCore::Shutdown() {
     impl->Shutdown();
 }
@@ -486,12 +497,17 @@ const Core::ExclusiveMonitor& KernelCore::GetExclusiveMonitor() const {
 }
 
 void KernelCore::InvalidateAllInstructionCaches() {
-    auto& threads = GlobalScheduler().GetThreadList();
-    for (auto& thread : threads) {
-        if (!thread->IsHLEThread()) {
-            auto& arm_interface = thread->ArmInterface();
-            arm_interface.ClearInstructionCache();
+    for (auto& physical_core : impl->cores) {
+        physical_core.ArmInterface().ClearInstructionCache();
+    }
+}
+
+void KernelCore::InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size) {
+    for (auto& physical_core : impl->cores) {
+        if (!physical_core.IsInitialized()) {
+            continue;
         }
+        physical_core.ArmInterface().InvalidateCacheRange(addr, size);
     }
 }
 

@@ -74,6 +74,9 @@ public:
     /// Resets the kernel to a clean slate for use.
     void Initialize();
 
+    /// Initializes the CPU cores.
+    void InitializeCores();
+
     /// Clears all resources in use by the kernel instance.
     void Shutdown();
 
@@ -152,6 +155,8 @@ public:
     const std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES>& Interrupts() const;
 
     void InvalidateAllInstructionCaches();
+
+    void InvalidateCpuInstructionCacheRange(VAddr addr, std::size_t size);
 
     /// Adds a port to the named port table
     void AddNamedPort(std::string name, std::shared_ptr<ClientPort> port);

@@ -12,7 +12,6 @@
 #include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/thread_queue_list.h"
-#include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/cpu_manager.h"
 #include "core/hardware_properties.h"
@@ -62,7 +61,6 @@ void Thread::Stop() {
             // Mark the TLS slot in the thread's page as free.
             owner_process->FreeTLSRegion(tls_address);
         }
-        arm_interface.reset();
         has_exited = true;
     }
     global_handle = 0;
@@ -89,10 +87,6 @@ void Thread::ResumeFromWait() {
         // If the thread is waiting on multiple wait objects, it might be awoken more than once
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
-        return;
-
-    case ThreadStatus::Running:
-        DEBUG_ASSERT_MSG(false, "Thread with object id {} has already resumed.", GetObjectId());
         return;
     case ThreadStatus::Dead:
         // This should never happen, as threads must complete before being stopped.
@@ -217,22 +211,9 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
         thread->tls_address = 0;
     }
 
-    thread->arm_interface.reset();
+    // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
+    // to initialize the context
     if ((type_flags & THREADTYPE_HLE) == 0) {
-#ifdef ARCHITECTURE_x86_64
-        if (owner_process && !owner_process->Is64BitProcess()) {
-            thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_32>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
-                processor_id);
-        } else {
-            thread->arm_interface = std::make_unique<Core::ARM_Dynarmic_64>(
-                system, kernel.Interrupts(), kernel.IsMulticore(), kernel.GetExclusiveMonitor(),
-                processor_id);
-        }
-#else
-#error Platform not supported yet.
-#endif
-
         ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
                              static_cast<u32>(entry_point), static_cast<u32>(arg));
         ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
@@ -268,14 +249,6 @@ VAddr Thread::GetCommandBufferAddress() const {
     return GetTLSAddress() + command_header_offset;
 }
 
-Core::ARM_Interface& Thread::ArmInterface() {
-    return *arm_interface;
-}
-
-const Core::ARM_Interface& Thread::ArmInterface() const {
-    return *arm_interface;
-}
-
 void Thread::SetStatus(ThreadStatus new_status) {
     if (new_status == status) {
         return;
@@ -283,7 +256,6 @@ void Thread::SetStatus(ThreadStatus new_status) {
 
     switch (new_status) {
     case ThreadStatus::Ready:
-    case ThreadStatus::Running:
         SetSchedulingStatus(ThreadSchedStatus::Runnable);
         break;
     case ThreadStatus::Dormant:

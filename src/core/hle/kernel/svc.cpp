@@ -2639,6 +2639,9 @@ void Call(Core::System& system, u32 immediate) {
     auto& kernel = system.Kernel();
     kernel.EnterSVCProfile();
 
+    auto* thread = system.CurrentScheduler().GetCurrentThread();
+    thread->SetContinuousOnSVC(true);
+
     const FunctionDef* info = system.CurrentProcess()->Is64BitProcess() ? GetSVCInfo64(immediate)
                                                                         : GetSVCInfo32(immediate);
     if (info) {
@@ -2652,6 +2655,12 @@ void Call(Core::System& system, u32 immediate) {
     }
 
     kernel.ExitSVCProfile();
+
+    if (!thread->IsContinuousOnSVC()) {
+        auto* host_context = thread->GetHostContext().get();
+        host_context->Rewind();
+    }
+
     system.EnterDynarmicProfile();
 }
 

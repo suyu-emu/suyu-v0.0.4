@@ -220,6 +220,10 @@ void ARM_Dynarmic_64::Run() {
     jit->Run();
 }
 
+void ARM_Dynarmic_64::ExceptionalExit() {
+    jit->ExceptionalExit();
+}
+
 void ARM_Dynarmic_64::Step() {
     cb->InterpreterFallback(jit->GetPC(), 1);
 }
@@ -316,6 +320,13 @@ void ARM_Dynarmic_64::ClearInstructionCache() {
         return;
     }
     jit->ClearCache();
+}
+
+void ARM_Dynarmic_64::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(addr, size);
 }
 
 void ARM_Dynarmic_64::ClearExclusiveState() {

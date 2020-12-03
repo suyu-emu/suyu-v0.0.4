@@ -618,14 +618,16 @@ void Scheduler::OnThreadStart() {
     SwitchContextStep2();
 }
 
-void Scheduler::Unload() {
-    Thread* thread = current_thread.get();
+void Scheduler::Unload(Thread* thread) {
     if (thread) {
-        thread->SetContinuousOnSVC(false);
         thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
         thread->SetIsRunning(false);
+        if (thread->IsContinuousOnSVC() && !thread->IsHLEThread()) {
+            system.ArmInterface(core_id).ExceptionalExit();
+            thread->SetContinuousOnSVC(false);
+        }
         if (!thread->IsHLEThread() && !thread->HasExited()) {
-            Core::ARM_Interface& cpu_core = thread->ArmInterface();
+            Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
             cpu_core.SaveContext(thread->GetContext32());
             cpu_core.SaveContext(thread->GetContext64());
             // Save the TPIDR_EL0 system register in case it was modified.
@@ -636,8 +638,11 @@ void Scheduler::Unload() {
     }
 }
 
-void Scheduler::Reload() {
-    Thread* thread = current_thread.get();
+void Scheduler::Unload() {
+    Unload(current_thread.get());
+}
+
+void Scheduler::Reload(Thread* thread) {
     if (thread) {
         ASSERT_MSG(thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
                    "Thread must be runnable.");
@@ -652,42 +657,23 @@ void Scheduler::Reload() {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
         if (!thread->IsHLEThread()) {
-            Core::ARM_Interface& cpu_core = thread->ArmInterface();
+            Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
             cpu_core.LoadContext(thread->GetContext32());
             cpu_core.LoadContext(thread->GetContext64());
             cpu_core.SetTlsAddress(thread->GetTLSAddress());
             cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
-            cpu_core.ChangeProcessorID(this->core_id);
             cpu_core.ClearExclusiveState();
         }
     }
 }
 
+void Scheduler::Reload() {
+    Reload(current_thread.get());
+}
+
 void Scheduler::SwitchContextStep2() {
     // Load context of new thread
-    if (selected_thread) {
-        ASSERT_MSG(selected_thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
-                   "Thread must be runnable.");
-
-        // Cancel any outstanding wakeup events for this thread
-        selected_thread->SetIsRunning(true);
-        selected_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
-        selected_thread->SetWasRunning(false);
-
-        auto* const thread_owner_process = current_thread->GetOwnerProcess();
-        if (thread_owner_process != nullptr) {
-            system.Kernel().MakeCurrentProcess(thread_owner_process);
-        }
-        if (!selected_thread->IsHLEThread()) {
-            Core::ARM_Interface& cpu_core = selected_thread->ArmInterface();
-            cpu_core.LoadContext(selected_thread->GetContext32());
-            cpu_core.LoadContext(selected_thread->GetContext64());
-            cpu_core.SetTlsAddress(selected_thread->GetTLSAddress());
-            cpu_core.SetTPIDR_EL0(selected_thread->GetTPIDR_EL0());
-            cpu_core.ChangeProcessorID(this->core_id);
-            cpu_core.ClearExclusiveState();
-        }
-    }
+    Reload(selected_thread.get());
 
     TryDoContextSwitch();
 }
@@ -711,23 +697,7 @@ void Scheduler::SwitchContext() {
     UpdateLastContextSwitchTime(previous_thread, previous_process);
 
     // Save context for previous thread
-    if (previous_thread) {
-        if (new_thread != nullptr && new_thread->IsSuspendThread()) {
-            previous_thread->SetWasRunning(true);
-        }
-        previous_thread->SetContinuousOnSVC(false);
-        previous_thread->last_running_ticks = system.CoreTiming().GetCPUTicks();
-        previous_thread->SetIsRunning(false);
-        if (!previous_thread->IsHLEThread() && !previous_thread->HasExited()) {
-            Core::ARM_Interface& cpu_core = previous_thread->ArmInterface();
-            cpu_core.SaveContext(previous_thread->GetContext32());
-            cpu_core.SaveContext(previous_thread->GetContext64());
-            // Save the TPIDR_EL0 system register in case it was modified.
-            previous_thread->SetTPIDR_EL0(cpu_core.GetTPIDR_EL0());
-            cpu_core.ClearExclusiveState();
-        }
-        previous_thread->context_guard.unlock();
-    }
+    Unload(previous_thread);
 
     std::shared_ptr<Common::Fiber>* old_context;
     if (previous_thread != nullptr) {

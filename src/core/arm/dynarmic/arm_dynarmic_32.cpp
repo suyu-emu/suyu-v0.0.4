@@ -189,6 +189,10 @@ void ARM_Dynarmic_32::Run() {
     jit->Run();
 }
 
+void ARM_Dynarmic_32::ExceptionalExit() {
+    jit->ExceptionalExit();
+}
+
 void ARM_Dynarmic_32::Step() {
     jit->Step();
 }
@@ -280,6 +284,13 @@ void ARM_Dynarmic_32::ClearInstructionCache() {
         return;
     }
     jit->ClearCache();
+}
+
+void ARM_Dynarmic_32::InvalidateCacheRange(VAddr addr, std::size_t size) {
+    if (!jit) {
+        return;
+    }
+    jit->InvalidateCacheRange(static_cast<u32>(addr), size);
 }
 
 void ARM_Dynarmic_32::ClearExclusiveState() {
