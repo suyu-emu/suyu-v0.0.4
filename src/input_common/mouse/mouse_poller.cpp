@@ -2,11 +2,9 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <atomic>
-#include <list>
 #include <mutex>
 #include <utility>
-#include "common/assert.h"
+
 #include "common/threadsafe_queue.h"
 #include "input_common/mouse/mouse_input.h"
 #include "input_common/mouse/mouse_poller.h"
