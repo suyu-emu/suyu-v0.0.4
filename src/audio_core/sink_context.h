@@ -42,7 +42,7 @@ public:
         bool in_use;
         INSERT_UNION_PADDING_BYTES(5);
     };
-    static_assert(sizeof(SinkInfo::CircularBufferIn) == 0x28,
+    static_assert(sizeof(CircularBufferIn) == 0x28,
                   "SinkInfo::CircularBufferIn is in invalid size");
 
     struct DeviceIn {
@@ -54,7 +54,7 @@ public:
         bool down_matrix_enabled;
         DownmixCoefficients down_matrix_coef;
     };
-    static_assert(sizeof(SinkInfo::DeviceIn) == 0x11c, "SinkInfo::DeviceIn is an invalid size");
+    static_assert(sizeof(DeviceIn) == 0x11c, "SinkInfo::DeviceIn is an invalid size");
 
     struct InParams {
         SinkTypes type{};
@@ -64,16 +64,16 @@ public:
         INSERT_PADDING_WORDS(6);
         union {
             // std::array<u8, 0x120> raw{};
-            SinkInfo::DeviceIn device;
-            SinkInfo::CircularBufferIn circular_buffer;
+            DeviceIn device;
+            CircularBufferIn circular_buffer;
         };
     };
-    static_assert(sizeof(SinkInfo::InParams) == 0x140, "SinkInfo::InParams are an invalid size!");
+    static_assert(sizeof(InParams) == 0x140, "SinkInfo::InParams are an invalid size!");
 };
 
 class SinkContext {
 public:
-    explicit SinkContext(std::size_t sink_count);
+    explicit SinkContext(std::size_t sink_count_);
     ~SinkContext();
 
     [[nodiscard]] std::size_t GetCount() const;

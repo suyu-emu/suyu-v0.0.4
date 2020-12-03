@@ -63,7 +63,7 @@ public:
     NodeStates();
     ~NodeStates();
 
-    void Initialize(std::size_t _node_count);
+    void Initialize(std::size_t node_count_);
     bool Tsort(EdgeMatrix& edge_matrix);
     std::size_t GetIndexPos() const;
     const std::vector<s32>& GetIndexList() const;
@@ -72,15 +72,15 @@ private:
     void PushTsortResult(s32 index);
     bool DepthFirstSearch(EdgeMatrix& edge_matrix);
     void ResetState();
-    void UpdateState(NodeStates::State state, std::size_t i);
-    NodeStates::State GetState(std::size_t i);
+    void UpdateState(State state, std::size_t i);
+    State GetState(std::size_t i);
 
     std::size_t node_count{};
     std::vector<bool> was_node_found{};
     std::vector<bool> was_node_completed{};
     std::size_t index_pos{};
     std::vector<s32> index_list{};
-    NodeStates::Stack index_stack{};
+    Stack index_stack{};
 };
 
 enum class SplitterMagic : u32_le {
@@ -97,8 +97,7 @@ public:
         s32_le data_count{};
         INSERT_PADDING_WORDS(5);
     };
-    static_assert(sizeof(SplitterInfo::InHeader) == 0x20,
-                  "SplitterInfo::InHeader is an invalid size");
+    static_assert(sizeof(InHeader) == 0x20, "SplitterInfo::InHeader is an invalid size");
 
     struct InInfoPrams {
         SplitterMagic magic{};
@@ -107,8 +106,7 @@ public:
         s32_le length{};
         s32_le resource_id_base{};
     };
-    static_assert(sizeof(SplitterInfo::InInfoPrams) == 0x14,
-                  "SplitterInfo::InInfoPrams is an invalid size");
+    static_assert(sizeof(InInfoPrams) == 0x14, "SplitterInfo::InInfoPrams is an invalid size");
 
     struct InDestinationParams {
         SplitterMagic magic{};
@@ -118,13 +116,13 @@ public:
         bool in_use{};
         INSERT_PADDING_BYTES(3);
     };
-    static_assert(sizeof(SplitterInfo::InDestinationParams) == 0x70,
+    static_assert(sizeof(InDestinationParams) == 0x70,
                   "SplitterInfo::InDestinationParams is an invalid size");
 };
 
 class ServerSplitterDestinationData {
 public:
-    explicit ServerSplitterDestinationData(s32 id);
+    explicit ServerSplitterDestinationData(s32 id_);
     ~ServerSplitterDestinationData();
 
     void Update(SplitterInfo::InDestinationParams& header);
@@ -153,7 +151,7 @@ private:
 
 class ServerSplitterInfo {
 public:
-    explicit ServerSplitterInfo(s32 id);
+    explicit ServerSplitterInfo(s32 id_);
     ~ServerSplitterInfo();
 
     void InitializeInfos();

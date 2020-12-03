@@ -8,7 +8,7 @@
 
 namespace AudioCore {
 
-ServerVoiceChannelResource::ServerVoiceChannelResource(s32 id) : id(id) {}
+ServerVoiceChannelResource::ServerVoiceChannelResource(s32 id_) : id(id_) {}
 ServerVoiceChannelResource::~ServerVoiceChannelResource() = default;
 
 bool ServerVoiceChannelResource::InUse() const {
@@ -209,7 +209,8 @@ void ServerVoiceInfo::UpdateWaveBuffers(
 
 void ServerVoiceInfo::UpdateWaveBuffer(ServerWaveBuffer& out_wavebuffer,
                                        const WaveBuffer& in_wave_buffer, SampleFormat sample_format,
-                                       bool is_buffer_valid, BehaviorInfo& behavior_info) {
+                                       bool is_buffer_valid,
+                                       [[maybe_unused]] BehaviorInfo& behavior_info) {
     if (!is_buffer_valid && out_wavebuffer.sent_to_dsp) {
         out_wavebuffer.buffer_address = 0;
         out_wavebuffer.buffer_size = 0;
@@ -400,7 +401,7 @@ bool ServerVoiceInfo::HasValidWaveBuffer(const VoiceState* state) const {
     return std::find(valid_wb.begin(), valid_wb.end(), true) != valid_wb.end();
 }
 
-VoiceContext::VoiceContext(std::size_t voice_count) : voice_count(voice_count) {
+VoiceContext::VoiceContext(std::size_t voice_count_) : voice_count{voice_count_} {
     for (std::size_t i = 0; i < voice_count; i++) {
         voice_channel_resources.emplace_back(static_cast<s32>(i));
         sorted_voice_info.push_back(&voice_info.emplace_back());

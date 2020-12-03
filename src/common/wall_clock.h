@@ -38,9 +38,9 @@ public:
     }
 
 protected:
-    WallClock(u64 emulated_cpu_frequency, u64 emulated_clock_frequency, bool is_native)
-        : emulated_cpu_frequency{emulated_cpu_frequency},
-          emulated_clock_frequency{emulated_clock_frequency}, is_native{is_native} {}
+    explicit WallClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequency_, bool is_native_)
+        : emulated_cpu_frequency{emulated_cpu_frequency_},
+          emulated_clock_frequency{emulated_clock_frequency_}, is_native{is_native_} {}
 
     u64 emulated_cpu_frequency;
     u64 emulated_clock_frequency;

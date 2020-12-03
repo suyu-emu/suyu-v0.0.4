@@ -18,7 +18,7 @@ class Buffer {
 public:
     using Tag = u64;
 
-    Buffer(Tag tag, std::vector<s16>&& samples) : tag{tag}, samples{std::move(samples)} {}
+    Buffer(Tag tag_, std::vector<s16>&& samples_) : tag{tag_}, samples{std::move(samples_)} {}
 
     /// Returns the raw audio data for the buffer
     std::vector<s16>& GetSamples() {

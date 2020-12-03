@@ -51,6 +51,8 @@ if (NOT MSVC)
         -Werror=implicit-fallthrough
         -Werror=reorder
         -Werror=sign-compare
+        -Werror=shadow
+        -Werror=unused-parameter
         -Werror=unused-variable
 
         $<$<CXX_COMPILER_ID:GNU>:-Werror=unused-but-set-parameter>

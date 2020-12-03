@@ -44,7 +44,8 @@ class AudioRenderer {
 public:
     AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
                   AudioCommon::AudioRendererParameter params,
-                  std::shared_ptr<Kernel::WritableEvent> buffer_event, std::size_t instance_number);
+                  std::shared_ptr<Kernel::WritableEvent> buffer_event_,
+                  std::size_t instance_number);
     ~AudioRenderer();
 
     [[nodiscard]] ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,

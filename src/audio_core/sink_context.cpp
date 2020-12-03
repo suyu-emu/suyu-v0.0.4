@@ -5,7 +5,7 @@
 #include "audio_core/sink_context.h"
 
 namespace AudioCore {
-SinkContext::SinkContext(std::size_t sink_count) : sink_count(sink_count) {}
+SinkContext::SinkContext(std::size_t sink_count_) : sink_count{sink_count_} {}
 SinkContext::~SinkContext() = default;
 
 std::size_t SinkContext::GetCount() const {

@@ -21,8 +21,8 @@ class SplitterContext;
 class InfoUpdater {
 public:
     // TODO(ogniK): Pass process handle when we support it
-    InfoUpdater(const std::vector<u8>& in_params, std::vector<u8>& out_params,
-                BehaviorInfo& behavior_info);
+    InfoUpdater(const std::vector<u8>& in_params_, std::vector<u8>& out_params_,
+                BehaviorInfo& behavior_info_);
     ~InfoUpdater();
 
     bool UpdateBehaviorInfo(BehaviorInfo& in_behavior_info);

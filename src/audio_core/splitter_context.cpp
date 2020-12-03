@@ -10,7 +10,7 @@
 
 namespace AudioCore {
 
-ServerSplitterDestinationData::ServerSplitterDestinationData(s32 id) : id(id) {}
+ServerSplitterDestinationData::ServerSplitterDestinationData(s32 id_) : id{id_} {}
 ServerSplitterDestinationData::~ServerSplitterDestinationData() = default;
 
 void ServerSplitterDestinationData::Update(SplitterInfo::InDestinationParams& header) {
@@ -87,7 +87,7 @@ void ServerSplitterDestinationData::UpdateInternalState() {
     needs_update = false;
 }
 
-ServerSplitterInfo::ServerSplitterInfo(s32 id) : id(id) {}
+ServerSplitterInfo::ServerSplitterInfo(s32 id_) : id(id_) {}
 ServerSplitterInfo::~ServerSplitterInfo() = default;
 
 void ServerSplitterInfo::InitializeInfos() {
@@ -121,7 +121,7 @@ const ServerSplitterDestinationData* ServerSplitterInfo::GetHead() const {
 }
 
 ServerSplitterDestinationData* ServerSplitterInfo::GetData(std::size_t depth) {
-    auto current_head = head;
+    auto* current_head = head;
     for (std::size_t i = 0; i < depth; i++) {
         if (current_head == nullptr) {
             return nullptr;
@@ -132,7 +132,7 @@ ServerSplitterDestinationData* ServerSplitterInfo::GetData(std::size_t depth) {
 }
 
 const ServerSplitterDestinationData* ServerSplitterInfo::GetData(std::size_t depth) const {
-    auto current_head = head;
+    auto* current_head = head;
     for (std::size_t i = 0; i < depth; i++) {
         if (current_head == nullptr) {
             return nullptr;
@@ -245,7 +245,7 @@ ServerSplitterDestinationData* SplitterContext::GetDestinationData(std::size_t i
 const ServerSplitterDestinationData* SplitterContext::GetDestinationData(std::size_t info,
                                                                          std::size_t data) const {
     ASSERT(info < info_count);
-    auto& cur_info = GetInfo(info);
+    const auto& cur_info = GetInfo(info);
     return cur_info.GetData(data);
 }
 
@@ -267,11 +267,11 @@ std::size_t SplitterContext::GetDataCount() const {
     return data_count;
 }
 
-void SplitterContext::Setup(std::size_t _info_count, std::size_t _data_count,
+void SplitterContext::Setup(std::size_t info_count_, std::size_t data_count_,
                             bool is_splitter_bug_fixed) {
 
-    info_count = _info_count;
-    data_count = _data_count;
+    info_count = info_count_;
+    data_count = data_count_;
 
     for (std::size_t i = 0; i < info_count; i++) {
         auto& splitter = infos.emplace_back(static_cast<s32>(i));
@@ -364,7 +364,7 @@ bool SplitterContext::RecomposeDestination(ServerSplitterInfo& info,
     // Clear our current destinations
     auto* current_head = info.GetHead();
     while (current_head != nullptr) {
-        auto next_head = current_head->GetNextDestination();
+        auto* next_head = current_head->GetNextDestination();
         current_head->SetNextDestination(nullptr);
         current_head = next_head;
     }
@@ -471,8 +471,8 @@ bool NodeStates::DepthFirstSearch(EdgeMatrix& edge_matrix) {
                 continue;
             }
 
-            const auto node_count = edge_matrix.GetNodeCount();
-            for (s32 j = 0; j < static_cast<s32>(node_count); j++) {
+            const auto edge_node_count = edge_matrix.GetNodeCount();
+            for (s32 j = 0; j < static_cast<s32>(edge_node_count); j++) {
                 // Check if our node is connected to our edge matrix
                 if (!edge_matrix.Connected(current_stack_index, j)) {
                     continue;
