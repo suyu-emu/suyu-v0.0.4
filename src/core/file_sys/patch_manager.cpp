@@ -12,6 +12,7 @@
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/ips_layer.h"
@@ -30,7 +31,6 @@ namespace FileSys {
 namespace {
 
 constexpr u32 SINGLE_BYTE_MODULUS = 0x100;
-constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
 constexpr std::array<const char*, 14> EXEFS_FILE_NAMES{
     "main",    "main.npdm", "rtld",    "sdk",     "subsdk0", "subsdk1", "subsdk2",
@@ -532,7 +532,7 @@ PatchManager::PatchVersionNames PatchManager::GetPatchVersionNames(VirtualFile u
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
                  [this](const ContentProviderEntry& entry) {
-                     return (entry.title_id & DLC_BASE_TITLE_ID_MASK) == title_id &&
+                     return GetBaseTitleID(entry.title_id) == title_id &&
                             content_provider.GetEntry(entry)->GetStatus() ==
                                 Loader::ResultStatus::Success;
                  });
