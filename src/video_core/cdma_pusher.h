@@ -68,8 +68,8 @@ struct ChCommand {
     std::vector<u32> arguments;
 };
 
-using ChCommandHeaderList = std::vector<Tegra::ChCommandHeader>;
-using ChCommandList = std::vector<Tegra::ChCommand>;
+using ChCommandHeaderList = std::vector<ChCommandHeader>;
+using ChCommandList = std::vector<ChCommand>;
 
 struct ThiRegisters {
     u32_le increment_syncpt{};
@@ -96,7 +96,7 @@ enum class ThiMethod : u32 {
 
 class CDmaPusher {
 public:
-    explicit CDmaPusher(GPU& gpu);
+    explicit CDmaPusher(GPU& gpu_);
     ~CDmaPusher();
 
     /// Push NVDEC command buffer entries into queue
@@ -109,17 +109,17 @@ public:
     void Step();
 
     /// Invoke command class devices to execute the command based on the current state
-    void ExecuteCommand(u32 offset, u32 data);
+    void ExecuteCommand(u32 state_offset, u32 data);
 
 private:
     /// Write arguments value to the ThiRegisters member at the specified offset
-    void ThiStateWrite(ThiRegisters& state, u32 offset, const std::vector<u32>& arguments);
+    void ThiStateWrite(ThiRegisters& state, u32 state_offset, const std::vector<u32>& arguments);
 
     GPU& gpu;
 
-    std::shared_ptr<Tegra::Nvdec> nvdec_processor;
-    std::unique_ptr<Tegra::Vic> vic_processor;
-    std::unique_ptr<Tegra::Host1x> host1x_processor;
+    std::shared_ptr<Nvdec> nvdec_processor;
+    std::unique_ptr<Vic> vic_processor;
+    std::unique_ptr<Host1x> host1x_processor;
     std::unique_ptr<SyncptIncrManager> nvdec_sync;
     std::unique_ptr<SyncptIncrManager> vic_sync;
     ChClassId current_class{};

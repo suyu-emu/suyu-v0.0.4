@@ -19,7 +19,7 @@ namespace VideoCommon {
 /// Implementation of GPU interface that runs the GPU synchronously
 class GPUSynch final : public Tegra::GPU {
 public:
-    explicit GPUSynch(Core::System& system, bool use_nvdec);
+    explicit GPUSynch(Core::System& system_, bool use_nvdec_);
     ~GPUSynch() override;
 
     void Start() override;

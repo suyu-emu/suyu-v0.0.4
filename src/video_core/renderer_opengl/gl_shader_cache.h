@@ -108,7 +108,7 @@ public:
 
 private:
     explicit Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry, ShaderEntries entries,
-                    ProgramSharedPtr program, bool is_built = true);
+                    ProgramSharedPtr program, bool is_built_ = true);
 
     std::shared_ptr<VideoCommon::Shader::Registry> registry;
     ShaderEntries entries;

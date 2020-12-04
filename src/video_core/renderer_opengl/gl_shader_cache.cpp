@@ -198,10 +198,10 @@ ProgramSharedPtr BuildShader(const Device& device, ShaderType shader_type, u64 u
     return program;
 }
 
-Shader::Shader(std::shared_ptr<VideoCommon::Shader::Registry> registry_, ShaderEntries entries_,
-               ProgramSharedPtr program_, bool is_built)
+Shader::Shader(std::shared_ptr<Registry> registry_, ShaderEntries entries_,
+               ProgramSharedPtr program_, bool is_built_)
     : registry{std::move(registry_)}, entries{std::move(entries_)}, program{std::move(program_)},
-      is_built(is_built) {
+      is_built{is_built_} {
     handle = program->assembly_program.handle;
     if (handle == 0) {
         handle = program->source_program.handle;

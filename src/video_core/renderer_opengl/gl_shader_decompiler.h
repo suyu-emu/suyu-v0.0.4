@@ -25,8 +25,8 @@ using ImageEntry = VideoCommon::Shader::Image;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
-    explicit ConstBufferEntry(u32 max_offset, bool is_indirect, u32 index)
-        : VideoCommon::Shader::ConstBuffer{max_offset, is_indirect}, index{index} {}
+    explicit ConstBufferEntry(u32 max_offset, bool is_indirect, u32 index_)
+        : ConstBuffer{max_offset, is_indirect}, index{index_} {}
 
     u32 GetIndex() const {
         return index;
@@ -37,10 +37,10 @@ private:
 };
 
 struct GlobalMemoryEntry {
-    constexpr explicit GlobalMemoryEntry(u32 cbuf_index, u32 cbuf_offset, bool is_read,
-                                         bool is_written)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, is_read{is_read}, is_written{
-                                                                                  is_written} {}
+    constexpr explicit GlobalMemoryEntry(u32 cbuf_index_, u32 cbuf_offset_, bool is_read_,
+                                         bool is_written_)
+        : cbuf_index{cbuf_index_}, cbuf_offset{cbuf_offset_}, is_read{is_read_}, is_written{
+                                                                                     is_written_} {}
 
     u32 cbuf_index = 0;
     u32 cbuf_offset = 0;

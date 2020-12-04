@@ -108,7 +108,7 @@ private:
 
 class VP9 {
 public:
-    explicit VP9(GPU& gpu);
+    explicit VP9(GPU& gpu_);
     ~VP9();
 
     VP9(const VP9&) = delete;

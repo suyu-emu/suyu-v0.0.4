@@ -29,8 +29,8 @@
 #include "video_core/memory_manager.h"
 
 namespace Tegra {
-CDmaPusher::CDmaPusher(GPU& gpu)
-    : gpu(gpu), nvdec_processor(std::make_shared<Nvdec>(gpu)),
+CDmaPusher::CDmaPusher(GPU& gpu_)
+    : gpu{gpu_}, nvdec_processor(std::make_shared<Nvdec>(gpu)),
       vic_processor(std::make_unique<Vic>(gpu, nvdec_processor)),
       host1x_processor(std::make_unique<Host1x>(gpu)),
       nvdec_sync(std::make_unique<SyncptIncrManager>(gpu)),
@@ -100,11 +100,11 @@ void CDmaPusher::Step() {
     }
 }
 
-void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
+void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
     switch (current_class) {
     case ChClassId::NvDec:
-        ThiStateWrite(nvdec_thi_state, offset, {data});
-        switch (static_cast<ThiMethod>(offset)) {
+        ThiStateWrite(nvdec_thi_state, state_offset, {data});
+        switch (static_cast<ThiMethod>(state_offset)) {
         case ThiMethod::IncSyncpt: {
             LOG_DEBUG(Service_NVDRV, "NVDEC Class IncSyncpt Method");
             const auto syncpoint_id = static_cast<u32>(data & 0xFF);
@@ -120,16 +120,16 @@ void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
         case ThiMethod::SetMethod1:
             LOG_DEBUG(Service_NVDRV, "NVDEC method 0x{:X}",
                       static_cast<u32>(nvdec_thi_state.method_0));
-            nvdec_processor->ProcessMethod(
-                static_cast<Tegra::Nvdec::Method>(nvdec_thi_state.method_0), {data});
+            nvdec_processor->ProcessMethod(static_cast<Nvdec::Method>(nvdec_thi_state.method_0),
+                                           {data});
             break;
         default:
             break;
         }
         break;
     case ChClassId::GraphicsVic:
-        ThiStateWrite(vic_thi_state, static_cast<u32>(offset), {data});
-        switch (static_cast<ThiMethod>(offset)) {
+        ThiStateWrite(vic_thi_state, static_cast<u32>(state_offset), {data});
+        switch (static_cast<ThiMethod>(state_offset)) {
         case ThiMethod::IncSyncpt: {
             LOG_DEBUG(Service_NVDRV, "VIC Class IncSyncpt Method");
             const auto syncpoint_id = static_cast<u32>(data & 0xFF);
@@ -145,8 +145,7 @@ void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
         case ThiMethod::SetMethod1:
             LOG_DEBUG(Service_NVDRV, "VIC method 0x{:X}, Args=({})",
                       static_cast<u32>(vic_thi_state.method_0), data);
-            vic_processor->ProcessMethod(static_cast<Tegra::Vic::Method>(vic_thi_state.method_0),
-                                         {data});
+            vic_processor->ProcessMethod(static_cast<Vic::Method>(vic_thi_state.method_0), {data});
             break;
         default:
             break;
@@ -155,7 +154,7 @@ void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
     case ChClassId::Host1x:
         // This device is mainly for syncpoint synchronization
         LOG_DEBUG(Service_NVDRV, "Host1X Class Method");
-        host1x_processor->ProcessMethod(static_cast<Tegra::Host1x::Method>(offset), {data});
+        host1x_processor->ProcessMethod(static_cast<Host1x::Method>(state_offset), {data});
         break;
     default:
         UNIMPLEMENTED_MSG("Current class not implemented {:X}", static_cast<u32>(current_class));
@@ -163,9 +162,10 @@ void CDmaPusher::ExecuteCommand(u32 offset, u32 data) {
     }
 }
 
-void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 offset, const std::vector<u32>& arguments) {
-    u8* const state_offset = reinterpret_cast<u8*>(&state) + sizeof(u32) * offset;
-    std::memcpy(state_offset, arguments.data(), sizeof(u32) * arguments.size());
+void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 state_offset,
+                               const std::vector<u32>& arguments) {
+    u8* const state_offset_ptr = reinterpret_cast<u8*>(&state) + sizeof(u32) * state_offset;
+    std::memcpy(state_offset_ptr, arguments.data(), sizeof(u32) * arguments.size());
 }
 
 } // namespace Tegra

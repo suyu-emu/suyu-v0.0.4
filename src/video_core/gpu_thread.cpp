@@ -39,23 +39,23 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     CommandDataContainer next;
     while (state.is_running) {
         next = state.queue.PopWait();
-        if (const auto submit_list = std::get_if<SubmitListCommand>(&next.data)) {
+        if (auto* submit_list = std::get_if<SubmitListCommand>(&next.data)) {
             dma_pusher.Push(std::move(submit_list->entries));
             dma_pusher.DispatchCalls();
-        } else if (const auto command_list = std::get_if<SubmitChCommandEntries>(&next.data)) {
+        } else if (auto* command_list = std::get_if<SubmitChCommandEntries>(&next.data)) {
             // NVDEC
             cdma_pusher.Push(std::move(command_list->entries));
             cdma_pusher.DispatchCalls();
-        } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
+        } else if (const auto* data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (std::holds_alternative<OnCommandListEndCommand>(next.data)) {
             renderer.Rasterizer().ReleaseFences();
         } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
             system.GPU().TickWork();
-        } else if (const auto data = std::get_if<FlushRegionCommand>(&next.data)) {
-            renderer.Rasterizer().FlushRegion(data->addr, data->size);
-        } else if (const auto data = std::get_if<InvalidateRegionCommand>(&next.data)) {
-            renderer.Rasterizer().OnCPUWrite(data->addr, data->size);
+        } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
+            renderer.Rasterizer().FlushRegion(flush->addr, flush->size);
+        } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
+            renderer.Rasterizer().OnCPUWrite(invalidate->addr, invalidate->size);
         } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
             return;
         } else {
@@ -65,7 +65,7 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     }
 }
 
-ThreadManager::ThreadManager(Core::System& system) : system{system} {}
+ThreadManager::ThreadManager(Core::System& system_) : system{system_} {}
 
 ThreadManager::~ThreadManager() {
     if (!thread.joinable()) {

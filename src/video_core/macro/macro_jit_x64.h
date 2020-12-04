@@ -23,7 +23,7 @@ constexpr size_t MAX_CODE_SIZE = 0x10000;
 
 class MacroJITx64 final : public MacroEngine {
 public:
-    explicit MacroJITx64(Engines::Maxwell3D& maxwell3d);
+    explicit MacroJITx64(Engines::Maxwell3D& maxwell3d_);
 
 protected:
     std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code) override;
@@ -34,7 +34,7 @@ private:
 
 class MacroJITx64Impl : public Xbyak::CodeGenerator, public CachedMacro {
 public:
-    MacroJITx64Impl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
+    explicit MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_);
     ~MacroJITx64Impl();
 
     void Execute(const std::vector<u32>& parameters, u32 method) override;

@@ -16,8 +16,10 @@ namespace Tegra::Engines {
 
 using namespace Texture;
 
-MaxwellDMA::MaxwellDMA(Core::System& system, MemoryManager& memory_manager)
-    : system{system}, memory_manager{memory_manager} {}
+MaxwellDMA::MaxwellDMA(Core::System& system_, MemoryManager& memory_manager_)
+    : system{system_}, memory_manager{memory_manager_} {}
+
+MaxwellDMA::~MaxwellDMA() = default;
 
 void MaxwellDMA::CallMethod(u32 method, u32 method_argument, bool is_last_call) {
     ASSERT_MSG(method < NUM_REGS, "Invalid MaxwellDMA register");

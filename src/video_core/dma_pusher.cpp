@@ -13,7 +13,7 @@
 
 namespace Tegra {
 
-DmaPusher::DmaPusher(Core::System& system, GPU& gpu) : gpu{gpu}, system{system} {}
+DmaPusher::DmaPusher(Core::System& system_, GPU& gpu_) : gpu{gpu_}, system{system_} {}
 
 DmaPusher::~DmaPusher() = default;
 
@@ -152,7 +152,12 @@ void DmaPusher::SetState(const CommandHeader& command_header) {
 
 void DmaPusher::CallMethod(u32 argument) const {
     if (dma_state.method < non_puller_methods) {
-        gpu.CallMethod({dma_state.method, argument, dma_state.subchannel, dma_state.method_count});
+        gpu.CallMethod(GPU::MethodCall{
+            dma_state.method,
+            argument,
+            dma_state.subchannel,
+            dma_state.method_count,
+        });
     } else {
         subchannels[dma_state.subchannel]->CallMethod(dma_state.method, argument,
                                                       dma_state.is_last_call);

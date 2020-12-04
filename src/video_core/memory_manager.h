@@ -28,7 +28,7 @@ public:
     };
 
     constexpr PageEntry() = default;
-    constexpr PageEntry(State state) : state{state} {}
+    constexpr PageEntry(State state_) : state{state_} {}
     constexpr PageEntry(VAddr addr) : state{static_cast<State>(addr >> ShiftBits)} {}
 
     [[nodiscard]] constexpr bool IsUnmapped() const {
@@ -68,7 +68,7 @@ static_assert(sizeof(PageEntry) == 4, "PageEntry is too large");
 
 class MemoryManager final {
 public:
-    explicit MemoryManager(Core::System& system);
+    explicit MemoryManager(Core::System& system_);
     ~MemoryManager();
 
     /// Binds a renderer to the memory manager.

@@ -28,15 +28,15 @@ static const std::bitset<32> PERSISTENT_REGISTERS = Common::X64::BuildRegSet({
     BRANCH_HOLDER,
 });
 
-MacroJITx64::MacroJITx64(Engines::Maxwell3D& maxwell3d)
-    : MacroEngine::MacroEngine(maxwell3d), maxwell3d(maxwell3d) {}
+MacroJITx64::MacroJITx64(Engines::Maxwell3D& maxwell3d_)
+    : MacroEngine{maxwell3d_}, maxwell3d{maxwell3d_} {}
 
 std::unique_ptr<CachedMacro> MacroJITx64::Compile(const std::vector<u32>& code) {
     return std::make_unique<MacroJITx64Impl>(maxwell3d, code);
 }
 
-MacroJITx64Impl::MacroJITx64Impl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code)
-    : Xbyak::CodeGenerator(MAX_CODE_SIZE), code(code), maxwell3d(maxwell3d) {
+MacroJITx64Impl::MacroJITx64Impl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_)
+    : CodeGenerator{MAX_CODE_SIZE}, code{code_}, maxwell3d{maxwell3d_} {
     Compile();
 }
 
@@ -553,15 +553,15 @@ Xbyak::Reg32 MacroJITx64Impl::Compile_GetRegister(u32 index, Xbyak::Reg32 dst) {
 }
 
 void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u32 reg) {
-    const auto SetRegister = [this](u32 reg, const Xbyak::Reg32& result) {
+    const auto SetRegister = [this](u32 reg_index, const Xbyak::Reg32& result) {
         // Register 0 is supposed to always return 0. NOP is implemented as a store to the zero
         // register.
-        if (reg == 0) {
+        if (reg_index == 0) {
             return;
         }
-        mov(dword[STATE + offsetof(JITState, registers) + reg * sizeof(u32)], result);
+        mov(dword[STATE + offsetof(JITState, registers) + reg_index * sizeof(u32)], result);
     };
-    const auto SetMethodAddress = [this](const Xbyak::Reg32& reg) { mov(METHOD_ADDRESS, reg); };
+    const auto SetMethodAddress = [this](const Xbyak::Reg32& reg32) { mov(METHOD_ADDRESS, reg32); };
 
     switch (operation) {
     case Macro::ResultOperation::IgnoreAndFetch:

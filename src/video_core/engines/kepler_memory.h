@@ -35,7 +35,7 @@ namespace Tegra::Engines {
 
 class KeplerMemory final : public EngineInterface {
 public:
-    KeplerMemory(Core::System& system, MemoryManager& memory_manager);
+    explicit KeplerMemory(Core::System& system_, MemoryManager& memory_manager);
     ~KeplerMemory();
 
     /// Write the value to the register identified by method.

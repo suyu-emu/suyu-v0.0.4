@@ -17,11 +17,11 @@ namespace VideoCommon {
 
 class FenceBase {
 public:
-    FenceBase(u32 payload, bool is_stubbed)
-        : address{}, payload{payload}, is_semaphore{false}, is_stubbed{is_stubbed} {}
+    explicit FenceBase(u32 payload_, bool is_stubbed_)
+        : address{}, payload{payload_}, is_semaphore{false}, is_stubbed{is_stubbed_} {}
 
-    FenceBase(GPUVAddr address, u32 payload, bool is_stubbed)
-        : address{address}, payload{payload}, is_semaphore{true}, is_stubbed{is_stubbed} {}
+    explicit FenceBase(GPUVAddr address_, u32 payload_, bool is_stubbed_)
+        : address{address_}, payload{payload_}, is_semaphore{true}, is_stubbed{is_stubbed_} {}
 
     GPUVAddr GetAddress() const {
         return address;

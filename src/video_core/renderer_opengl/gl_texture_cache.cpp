@@ -258,9 +258,9 @@ constexpr u32 EncodeSwizzle(SwizzleSource x_source, SwizzleSource y_source, Swiz
 
 } // Anonymous namespace
 
-CachedSurface::CachedSurface(const GPUVAddr gpu_addr, const SurfaceParams& params,
-                             bool is_astc_supported)
-    : VideoCommon::SurfaceBase<View>(gpu_addr, params, is_astc_supported) {
+CachedSurface::CachedSurface(const GPUVAddr gpu_addr_, const SurfaceParams& params_,
+                             bool is_astc_supported_)
+    : SurfaceBase<View>{gpu_addr_, params_, is_astc_supported_} {
     if (is_converted) {
         internal_format = params.srgb_conversion ? GL_SRGB8_ALPHA8 : GL_RGBA8;
         format = GL_RGBA;
@@ -419,11 +419,11 @@ View CachedSurface::CreateViewInner(const ViewParams& view_key, const bool is_pr
     return view;
 }
 
-CachedSurfaceView::CachedSurfaceView(CachedSurface& surface, const ViewParams& params,
-                                     bool is_proxy)
-    : VideoCommon::ViewBase(params), surface{surface}, format{surface.internal_format},
-      target{GetTextureTarget(params.target)}, is_proxy{is_proxy} {
-    if (!is_proxy) {
+CachedSurfaceView::CachedSurfaceView(CachedSurface& surface_, const ViewParams& params_,
+                                     bool is_proxy_)
+    : ViewBase{params_}, surface{surface_}, format{surface_.internal_format},
+      target{GetTextureTarget(params_.target)}, is_proxy{is_proxy_} {
+    if (!is_proxy_) {
         main_view = CreateTextureView();
     }
 }
@@ -493,13 +493,13 @@ GLuint CachedSurfaceView::GetTexture(SwizzleSource x_source, SwizzleSource y_sou
 
     std::array swizzle{x_source, y_source, z_source, w_source};
 
-    switch (const PixelFormat format = GetSurfaceParams().pixel_format) {
+    switch (const PixelFormat pixel_format = GetSurfaceParams().pixel_format) {
     case PixelFormat::D24_UNORM_S8_UINT:
     case PixelFormat::D32_FLOAT_S8_UINT:
     case PixelFormat::S8_UINT_D24_UNORM:
         UNIMPLEMENTED_IF(x_source != SwizzleSource::R && x_source != SwizzleSource::G);
         glTextureParameteri(view.handle, GL_DEPTH_STENCIL_TEXTURE_MODE,
-                            GetComponent(format, x_source == SwizzleSource::R));
+                            GetComponent(pixel_format, x_source == SwizzleSource::R));
 
         // Make sure we sample the first component
         std::transform(swizzle.begin(), swizzle.end(), swizzle.begin(), [](SwizzleSource value) {
