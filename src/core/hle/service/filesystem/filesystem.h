@@ -66,6 +66,10 @@ public:
 
     void SetPackedUpdate(FileSys::VirtualFile update_raw);
     ResultVal<FileSys::VirtualFile> OpenRomFSCurrentProcess() const;
+    ResultVal<FileSys::VirtualFile> OpenPatchedRomFS(u64 title_id,
+                                                     FileSys::ContentRecordType type) const;
+    ResultVal<FileSys::VirtualFile> OpenPatchedRomFSWithProgramIndex(
+        u64 title_id, u8 program_index, FileSys::ContentRecordType type) const;
     ResultVal<FileSys::VirtualFile> OpenRomFS(u64 title_id, FileSys::StorageId storage_id,
                                               FileSys::ContentRecordType type) const;
     ResultVal<FileSys::VirtualDir> CreateSaveData(

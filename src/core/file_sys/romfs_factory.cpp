@@ -7,6 +7,7 @@
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/nca_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -45,6 +46,27 @@ ResultVal<VirtualFile> RomFSFactory::OpenCurrentProcess(u64 current_process_titl
                                      content_provider};
     return MakeResult<VirtualFile>(
         patch_manager.PatchRomFS(file, ivfc_offset, ContentRecordType::Program, update_raw));
+}
+
+ResultVal<VirtualFile> RomFSFactory::OpenPatchedRomFS(u64 title_id, ContentRecordType type) const {
+    auto nca = content_provider.GetEntry(title_id, type);
+
+    if (nca == nullptr) {
+        // TODO: Find the right error code to use here
+        return RESULT_UNKNOWN;
+    }
+
+    const PatchManager patch_manager{title_id, filesystem_controller, content_provider};
+
+    return MakeResult<VirtualFile>(
+        patch_manager.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(), type));
+}
+
+ResultVal<VirtualFile> RomFSFactory::OpenPatchedRomFSWithProgramIndex(
+    u64 title_id, u8 program_index, ContentRecordType type) const {
+    const auto res_title_id = GetBaseTitleIDWithProgramIndex(title_id, program_index);
+
+    return OpenPatchedRomFS(res_title_id, type);
 }
 
 ResultVal<VirtualFile> RomFSFactory::Open(u64 title_id, StorageId storage,
