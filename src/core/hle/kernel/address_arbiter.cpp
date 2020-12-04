@@ -13,6 +13,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
@@ -157,7 +158,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 
     Handle event_handle = InvalidHandle;
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
         if (current_thread->IsPendingTermination()) {
             lock.CancelSleep();
@@ -227,7 +228,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
 
     Handle event_handle = InvalidHandle;
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
         if (current_thread->IsPendingTermination()) {
             lock.CancelSleep();

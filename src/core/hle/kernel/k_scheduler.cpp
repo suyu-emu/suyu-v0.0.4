@@ -14,6 +14,7 @@
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
@@ -798,30 +799,6 @@ SchedulerLock::SchedulerLock(KernelCore& kernel) : kernel{kernel} {
 
 SchedulerLock::~SchedulerLock() {
     kernel.GlobalSchedulerContext().Unlock();
-}
-
-SchedulerLockAndSleep::SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle,
-                                             Thread* time_task, s64 nanoseconds)
-    : SchedulerLock{kernel}, event_handle{event_handle}, time_task{time_task}, nanoseconds{
-                                                                                   nanoseconds} {
-    event_handle = InvalidHandle;
-}
-
-SchedulerLockAndSleep::~SchedulerLockAndSleep() {
-    if (sleep_cancelled) {
-        return;
-    }
-    auto& time_manager = kernel.TimeManager();
-    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
-}
-
-void SchedulerLockAndSleep::Release() {
-    if (sleep_cancelled) {
-        return;
-    }
-    auto& time_manager = kernel.TimeManager();
-    time_manager.ScheduleTimeEvent(event_handle, time_task, nanoseconds);
-    sleep_cancelled = true;
 }
 
 } // namespace Kernel

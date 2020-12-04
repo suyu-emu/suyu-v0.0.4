@@ -18,6 +18,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
@@ -393,7 +394,7 @@ ResultCode Thread::SetActivity(ThreadActivity value) {
 ResultCode Thread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
         SetStatus(ThreadStatus::WaitSleep);
     }
 

@@ -6,6 +6,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/synchronization_object.h"
@@ -40,7 +41,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
     auto* const thread = kernel.CurrentScheduler()->GetCurrentThread();
     Handle event_handle = InvalidHandle;
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, thread, nano_seconds);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, thread, nano_seconds);
         const auto itr =
             std::find_if(sync_objects.begin(), sync_objects.end(),
                          [thread](const std::shared_ptr<SynchronizationObject>& object) {

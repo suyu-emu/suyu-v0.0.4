@@ -55,15 +55,7 @@ public:
 
 private:
     friend class SchedulerLock;
-
-    /// Lock the scheduler to the current thread.
-    void Lock();
-
-    /// Unlocks the scheduler, reselects threads, interrupts cores for rescheduling
-    /// and reschedules current core if needed.
-    void Unlock();
-
-    using LockType = KAbstractSchedulerLock<KScheduler>;
+    friend class KScopedSchedulerLockAndSleep;
 
     KernelCore& kernel;
 

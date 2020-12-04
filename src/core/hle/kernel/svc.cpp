@@ -25,6 +25,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/page_table.h"
@@ -1654,7 +1655,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
     auto* const current_process = kernel.CurrentProcess();
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, nano_seconds);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, nano_seconds);
         const auto& handle_table = current_process->GetHandleTable();
         std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
         ASSERT(thread);

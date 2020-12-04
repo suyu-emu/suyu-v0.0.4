@@ -44,12 +44,4 @@ bool GlobalSchedulerContext::IsLocked() const {
     return scheduler_lock.IsLockedByCurrentThread();
 }
 
-void GlobalSchedulerContext::Lock() {
-    scheduler_lock.Lock();
-}
-
-void GlobalSchedulerContext::Unlock() {
-    scheduler_lock.Unlock();
-}
-
 } // namespace Kernel

@@ -207,23 +207,4 @@ protected:
     KernelCore& kernel;
 };
 
-class SchedulerLockAndSleep : public SchedulerLock {
-public:
-    explicit SchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* time_task,
-                                   s64 nanoseconds);
-    ~SchedulerLockAndSleep();
-
-    void CancelSleep() {
-        sleep_cancelled = true;
-    }
-
-    void Release();
-
-private:
-    Handle& event_handle;
-    Thread* time_task;
-    s64 nanoseconds;
-    bool sleep_cancelled{};
-};
-
 } // namespace Kernel
