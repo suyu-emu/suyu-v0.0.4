@@ -8,6 +8,7 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
@@ -17,20 +18,16 @@ namespace Kernel {
 class KScopedSchedulerLockAndSleep {
 private:
     KernelCore& kernel;
-    s64 timeout_tick{};
+    Handle& event_handle;
     Thread* thread{};
-    Handle* event_handle{};
+    s64 timeout_tick{};
 
 public:
-    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Thread* t, s64 timeout)
-        : kernel(kernel), timeout_tick(timeout), thread(t) {
-        /* Lock the scheduler. */
-        kernel.GlobalSchedulerContext().scheduler_lock.Lock();
-    }
-
     explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* t,
                                           s64 timeout)
-        : kernel(kernel), event_handle(&event_handle), timeout_tick(timeout), thread(t) {
+        : kernel(kernel), event_handle(event_handle), thread(t), timeout_tick(timeout) {
+        event_handle = InvalidHandle;
+
         /* Lock the scheduler. */
         kernel.GlobalSchedulerContext().scheduler_lock.Lock();
     }
@@ -38,10 +35,7 @@ public:
     ~KScopedSchedulerLockAndSleep() {
         /* Register the sleep. */
         if (this->timeout_tick > 0) {
-            auto& time_manager = kernel.TimeManager();
-            Handle handle{};
-            time_manager.ScheduleTimeEvent(event_handle ? *event_handle : handle, this->thread,
-                                           this->timeout_tick);
+            kernel.TimeManager().ScheduleTimeEvent(event_handle, this->thread, this->timeout_tick);
         }
 
         /* Unlock the scheduler. */
