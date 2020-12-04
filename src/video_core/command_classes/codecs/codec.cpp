@@ -67,7 +67,6 @@ void Codec::Decode() {
         }
 
         av_codec_ctx = avcodec_alloc_context3(av_codec);
-        av_codec_ctx->refcounted_frames = 1;
         av_opt_set(av_codec_ctx->priv_data, "tune", "zerolatency", 0);
 
         // TODO(ameerj): libavcodec gpu hw acceleration
