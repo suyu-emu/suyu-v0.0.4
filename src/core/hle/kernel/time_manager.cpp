@@ -20,10 +20,16 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
         [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
             const KScopedSchedulerLock lock(system.Kernel());
             const auto proper_handle = static_cast<Handle>(thread_handle);
-            if (cancelled_events[proper_handle]) {
-                return;
+
+            std::shared_ptr<Thread> thread;
+            {
+                std::lock_guard lock{mutex};
+                if (cancelled_events[proper_handle]) {
+                    return;
+                }
+                thread = system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
             }
-            auto thread = this->system.Kernel().RetrieveThreadFromGlobalHandleTable(proper_handle);
+
             if (thread) {
                 // Thread can be null if process has exited
                 thread->OnWakeUp();
@@ -56,6 +62,7 @@ void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
 }
 
 void TimeManager::CancelTimeEvent(Thread* time_task) {
+    std::lock_guard lock{mutex};
     const Handle event_handle = time_task->GetGlobalHandle();
     UnscheduleTimeEvent(event_handle);
 }
