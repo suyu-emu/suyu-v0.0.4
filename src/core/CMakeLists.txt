@@ -148,6 +148,8 @@ add_library(core STATIC
     hle/kernel/code_set.cpp
     hle/kernel/code_set.h
     hle/kernel/errors.h
+    hle/kernel/global_scheduler_context.cpp
+    hle/kernel/global_scheduler_context.h
     hle/kernel/handle_table.cpp
     hle/kernel/handle_table.h
     hle/kernel/hle_ipc.cpp

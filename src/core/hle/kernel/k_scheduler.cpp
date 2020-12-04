@@ -5,12 +5,6 @@
 // This file references various implementation details from Atmosphere, an open-source firmware for
 // the Nintendo Switch. Copyright 2018-2020 Atmosphere-NX.
 
-#include <algorithm>
-#include <mutex>
-#include <set>
-#include <unordered_set>
-#include <utility>
-
 #include "common/assert.h"
 #include "common/bit_util.h"
 #include "common/fiber.h"
@@ -19,10 +13,10 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 
@@ -33,11 +27,6 @@ static void IncrementScheduledCount(Kernel::Thread* thread) {
         process->IncrementScheduledCount();
     }
 }
-
-GlobalSchedulerContext::GlobalSchedulerContext(KernelCore& kernel)
-    : kernel{kernel}, scheduler_lock{kernel} {}
-
-GlobalSchedulerContext::~GlobalSchedulerContext() = default;
 
 /*static*/ void KScheduler::RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule,
                                             Core::EmuThreadHandle global_thread) {
@@ -203,33 +192,6 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     }
 
     return cores_needing_scheduling;
-}
-
-void GlobalSchedulerContext::AddThread(std::shared_ptr<Thread> thread) {
-    std::scoped_lock lock{global_list_guard};
-    thread_list.push_back(std::move(thread));
-}
-
-void GlobalSchedulerContext::RemoveThread(std::shared_ptr<Thread> thread) {
-    std::scoped_lock lock{global_list_guard};
-    thread_list.erase(std::remove(thread_list.begin(), thread_list.end(), thread),
-                      thread_list.end());
-}
-
-void GlobalSchedulerContext::PreemptThreads() {
-    // The priority levels at which the global scheduler preempts threads every 10 ms. They are
-    // ordered from Core 0 to Core 3.
-    std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 63};
-
-    ASSERT(IsLocked());
-    for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-        const u32 priority = preemption_priorities[core_id];
-        kernel.Scheduler(core_id).RotateScheduledQueue(core_id, priority);
-    }
-}
-
-bool GlobalSchedulerContext::IsLocked() const {
-    return scheduler_lock.IsLockedByCurrentThread();
 }
 
 /*static*/ void KScheduler::OnThreadStateChanged(KernelCore& kernel, Thread* thread,
@@ -633,14 +595,6 @@ void KScheduler::YieldToAnyThread() {
             }
         }
     }
-}
-
-void GlobalSchedulerContext::Lock() {
-    scheduler_lock.Lock();
-}
-
-void GlobalSchedulerContext::Unlock() {
-    scheduler_lock.Unlock();
 }
 
 KScheduler::KScheduler(Core::System& system, std::size_t core_id)
