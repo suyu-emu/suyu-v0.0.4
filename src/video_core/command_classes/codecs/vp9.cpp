@@ -355,7 +355,7 @@ void VP9::WriteMvProbabilityUpdate(VpxRangeEncoder& writer, u8 new_prob, u8 old_
 Vp9PictureInfo VP9::GetVp9PictureInfo(const NvdecCommon::NvdecRegisters& state) {
     PictureInfo picture_info{};
     gpu.MemoryManager().ReadBlock(state.picture_info_offset, &picture_info, sizeof(PictureInfo));
-    Vp9PictureInfo vp9_info = std::move(picture_info.Convert());
+    Vp9PictureInfo vp9_info = picture_info.Convert();
 
     InsertEntropy(state.vp9_entropy_probs_offset, vp9_info.entropy);
 
@@ -377,7 +377,7 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
     Vp9FrameContainer frame{};
     {
         gpu.SyncGuestHost();
-        frame.info = std::move(GetVp9PictureInfo(state));
+        frame.info = GetVp9PictureInfo(state);
         frame.bit_stream.resize(frame.info.bitstream_size);
         gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.bit_stream.data(),
                                       frame.info.bitstream_size);
@@ -385,29 +385,29 @@ Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state)
     // Buffer two frames, saving the last show frame info
     if (!next_next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
-            .info = std::move(frame.info),
+            .info = frame.info,
             .bit_stream = std::move(frame.bit_stream),
         };
         next_next_frame.info.show_frame = frame.info.last_frame_shown;
-        frame.info = std::move(next_next_frame.info);
+        frame.info = next_next_frame.info;
         frame.bit_stream = std::move(next_next_frame.bit_stream);
         next_next_frame = std::move(temp);
 
         if (!next_frame.bit_stream.empty()) {
             Vp9FrameContainer temp2{
-                .info = std::move(frame.info),
+                .info = frame.info,
                 .bit_stream = std::move(frame.bit_stream),
             };
             next_frame.info.show_frame = frame.info.last_frame_shown;
-            frame.info = std::move(next_frame.info);
+            frame.info = next_frame.info;
             frame.bit_stream = std::move(next_frame.bit_stream);
             next_frame = std::move(temp2);
         } else {
-            next_frame.info = std::move(frame.info);
+            next_frame.info = frame.info;
             next_frame.bit_stream = std::move(frame.bit_stream);
         }
     } else {
-        next_next_frame.info = std::move(frame.info);
+        next_next_frame.info = frame.info;
         next_next_frame.bit_stream = std::move(frame.bit_stream);
     }
     return frame;
@@ -806,8 +806,8 @@ VpxBitStreamWriter VP9::ComposeUncompressedHeader() {
 const std::vector<u8>& VP9::ComposeFrameHeader(const NvdecCommon::NvdecRegisters& state) {
     std::vector<u8> bitstream;
     {
-        Vp9FrameContainer curr_frame = std::move(GetCurrentFrame(state));
-        current_frame_info = std::move(curr_frame.info);
+        Vp9FrameContainer curr_frame = GetCurrentFrame(state);
+        current_frame_info = curr_frame.info;
         bitstream = std::move(curr_frame.bit_stream);
     }
 
