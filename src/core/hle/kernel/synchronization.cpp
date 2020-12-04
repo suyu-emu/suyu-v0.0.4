@@ -19,7 +19,7 @@ Synchronization::Synchronization(Core::System& system) : system{system} {}
 
 void Synchronization::SignalObject(SynchronizationObject& obj) const {
     auto& kernel = system.Kernel();
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     if (obj.IsSignaled()) {
         for (auto thread : obj.GetWaitingThreads()) {
             if (thread->GetSchedulingStatus() == ThreadSchedStatus::Paused) {
@@ -90,7 +90,7 @@ std::pair<ResultCode, Handle> Synchronization::WaitFor(
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         ResultCode signaling_result = thread->GetSignalingResult();
         SynchronizationObject* signaling_object = thread->GetSignalingObject();
         thread->SetSynchronizationObjects(nullptr);

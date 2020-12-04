@@ -171,7 +171,7 @@ ResultCode ServerSession::CompleteSyncRequest() {
 
     // Some service requests require the thread to block
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (!context.IsThreadWaiting()) {
             context.GetThread().ResumeFromWait();
             context.GetThread().SetSynchronizationResults(nullptr, result);

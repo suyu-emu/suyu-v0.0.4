@@ -27,6 +27,8 @@ class GlobalSchedulerContext final {
     friend class KScheduler;
 
 public:
+    using LockType = KAbstractSchedulerLock<KScheduler>;
+
     explicit GlobalSchedulerContext(KernelCore& kernel);
     ~GlobalSchedulerContext();
 
@@ -53,8 +55,16 @@ public:
     /// Returns true if the global scheduler lock is acquired
     bool IsLocked() const;
 
+    LockType& SchedulerLock() {
+        return scheduler_lock;
+    }
+
+    const LockType& SchedulerLock() const {
+        return scheduler_lock;
+    }
+
 private:
-    friend class SchedulerLock;
+    friend class KScopedSchedulerLock;
     friend class KScopedSchedulerLockAndSleep;
 
     KernelCore& kernel;

@@ -14,6 +14,7 @@
 #include "core/hle/kernel/global_scheduler_context.h"
 #include "core/hle/kernel/k_priority_queue.h"
 #include "core/hle/kernel/k_scheduler_lock.h"
+#include "core/hle/kernel/k_scoped_lock.h"
 
 namespace Common {
 class Fiber;
@@ -198,13 +199,10 @@ private:
     Common::SpinLock guard{};
 };
 
-class SchedulerLock {
+class KScopedSchedulerLock : KScopedLock<GlobalSchedulerContext::LockType> {
 public:
-    [[nodiscard]] explicit SchedulerLock(KernelCore& kernel);
-    ~SchedulerLock();
-
-protected:
-    KernelCore& kernel;
+    explicit KScopedSchedulerLock(KernelCore& kernel);
+    ~KScopedSchedulerLock();
 };
 
 } // namespace Kernel

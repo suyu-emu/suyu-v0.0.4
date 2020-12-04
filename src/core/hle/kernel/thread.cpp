@@ -51,7 +51,7 @@ Thread::~Thread() = default;
 
 void Thread::Stop() {
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         SetStatus(ThreadStatus::Dead);
         Signal();
         kernel.GlobalHandleTable().Close(global_handle);
@@ -68,7 +68,7 @@ void Thread::Stop() {
 }
 
 void Thread::ResumeFromWait() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     switch (status) {
     case ThreadStatus::Paused:
     case ThreadStatus::WaitSynch:
@@ -100,19 +100,18 @@ void Thread::ResumeFromWait() {
 }
 
 void Thread::OnWakeUp() {
-    SchedulerLock lock(kernel);
-
+    KScopedSchedulerLock lock(kernel);
     SetStatus(ThreadStatus::Ready);
 }
 
 ResultCode Thread::Start() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     SetStatus(ThreadStatus::Ready);
     return RESULT_SUCCESS;
 }
 
 void Thread::CancelWait() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     if (GetSchedulingStatus() != ThreadSchedStatus::Paused || !is_waiting_on_sync) {
         is_sync_cancelled = true;
         return;
@@ -228,7 +227,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
 }
 
 void Thread::SetPriority(u32 priority) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
                "Invalid priority value.");
     nominal_priority = priority;
@@ -365,7 +364,7 @@ bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {
 }
 
 ResultCode Thread::SetActivity(ThreadActivity value) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
 
     auto sched_status = GetSchedulingStatus();
 
@@ -435,7 +434,7 @@ void Thread::SetCurrentPriority(u32 new_priority) {
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     const auto HighestSetCore = [](u64 mask, u32 max_cores) {
         for (s32 core = static_cast<s32>(max_cores - 1); core >= 0; core--) {
             if (((mask >> core) & 1) != 0) {

@@ -39,7 +39,7 @@ void ReadableEvent::Clear() {
 }
 
 ResultCode ReadableEvent::Reset() {
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     if (!is_signaled) {
         LOG_TRACE(Kernel, "Handle is not signaled! object_id={}, object_type={}, object_name={}",
                   GetObjectId(), GetTypeName(), GetName());

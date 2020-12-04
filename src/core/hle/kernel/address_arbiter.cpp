@@ -59,7 +59,7 @@ ResultCode AddressArbiter::SignalToAddress(VAddr address, SignalType type, s32 v
 }
 
 ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     const std::vector<std::shared_ptr<Thread>> waiting_threads =
         GetThreadsWaitingOnAddress(address);
     WakeThreads(waiting_threads, num_to_wake);
@@ -68,7 +68,7 @@ ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
 
 ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                               s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     auto& memory = system.Memory();
 
     // Ensure that we can write to the address.
@@ -93,7 +93,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
 
 ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                                          s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     auto& memory = system.Memory();
 
     // Ensure that we can write to the address.
@@ -211,7 +211,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (current_thread->IsWaitingForArbitration()) {
             RemoveThread(SharedFrom(current_thread));
             current_thread->WaitForArbitration(false);
@@ -266,7 +266,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (current_thread->IsWaitingForArbitration()) {
             RemoveThread(SharedFrom(current_thread));
             current_thread->WaitForArbitration(false);

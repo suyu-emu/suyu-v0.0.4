@@ -410,7 +410,7 @@ void KScheduler::YieldWithoutCoreMigration() {
 
     /* Perform the yield. */
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
 
         const auto cur_state = cur_thread.scheduling_state;
         if (cur_state == static_cast<u32>(ThreadSchedStatus::Runnable)) {
@@ -451,7 +451,7 @@ void KScheduler::YieldWithCoreMigration() {
 
     /* Perform the yield. */
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
 
         const auto cur_state = cur_thread.scheduling_state;
         if (cur_state == static_cast<u32>(ThreadSchedStatus::Runnable)) {
@@ -541,7 +541,7 @@ void KScheduler::YieldToAnyThread() {
 
     /* Perform the yield. */
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
 
         const auto cur_state = cur_thread.scheduling_state;
         if (cur_state == static_cast<u32>(ThreadSchedStatus::Runnable)) {
@@ -793,12 +793,9 @@ void KScheduler::Initialize() {
     }
 }
 
-SchedulerLock::SchedulerLock(KernelCore& kernel) : kernel{kernel} {
-    kernel.GlobalSchedulerContext().Lock();
-}
+KScopedSchedulerLock::KScopedSchedulerLock(KernelCore& kernel)
+    : KScopedLock(kernel.GlobalSchedulerContext().SchedulerLock()) {}
 
-SchedulerLock::~SchedulerLock() {
-    kernel.GlobalSchedulerContext().Unlock();
-}
+KScopedSchedulerLock::~KScopedSchedulerLock() = default;
 
 } // namespace Kernel

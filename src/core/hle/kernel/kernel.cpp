@@ -146,7 +146,7 @@ struct KernelCore::Impl {
         preemption_event = Core::Timing::CreateEvent(
             "PreemptionCallback", [this, &kernel](std::uintptr_t, std::chrono::nanoseconds) {
                 {
-                    SchedulerLock lock(kernel);
+                    KScopedSchedulerLock lock(kernel);
                     global_scheduler_context->PreemptThreads();
                 }
                 const auto time_interval = std::chrono::nanoseconds{
@@ -612,7 +612,7 @@ const Kernel::SharedMemory& KernelCore::GetTimeSharedMem() const {
 void KernelCore::Suspend(bool in_suspention) {
     const bool should_suspend = exception_exited || in_suspention;
     {
-        SchedulerLock lock(*this);
+        KScopedSchedulerLock lock(*this);
         ThreadStatus status = should_suspend ? ThreadStatus::Ready : ThreadStatus::WaitSleep;
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             impl->suspend_threads[i]->SetStatus(status);

@@ -345,7 +345,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
 
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         thread->InvalidateHLECallback();
         thread->SetStatus(ThreadStatus::WaitIPC);
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
@@ -359,7 +359,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         }
 
         {
-            SchedulerLock lock(kernel);
+            KScopedSchedulerLock lock(kernel);
             auto* sync_object = thread->GetHLESyncObject();
             sync_object->RemoveWaitingThread(SharedFrom(thread));
         }
@@ -1691,7 +1691,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
 
         auto* owner = current_thread->GetLockOwner();
         if (owner != nullptr) {
@@ -1724,7 +1724,7 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
 
     // Retrieve a list of all threads that are waiting for this condition variable.
     auto& kernel = system.Kernel();
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
     auto* const current_process = kernel.CurrentProcess();
     std::vector<std::shared_ptr<Thread>> waiting_threads =
         current_process->GetConditionVariableThreads(condition_variable_addr);

@@ -18,7 +18,7 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
     time_manager_event_type = Core::Timing::CreateEvent(
         "Kernel::TimeManagerCallback",
         [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
-            const SchedulerLock lock(system.Kernel());
+            const KScopedSchedulerLock lock(system.Kernel());
             const auto proper_handle = static_cast<Handle>(thread_handle);
             if (cancelled_events[proper_handle]) {
                 return;
