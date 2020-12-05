@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "common/assert.h"
 #include "common/bit_set.h"
 #include "common/bit_util.h"
@@ -17,7 +19,7 @@ namespace Kernel {
 class Thread;
 
 template <typename T>
-concept KPriorityQueueAffinityMask = !std::is_reference<T>::value && requires(T & t) {
+concept KPriorityQueueAffinityMask = !std::is_reference_v<T> && requires(T & t) {
     { t.GetAffinityMask() }
     ->std::convertible_to<u64>;
     {t.SetAffinityMask(std::declval<u64>())};
@@ -29,7 +31,7 @@ concept KPriorityQueueAffinityMask = !std::is_reference<T>::value && requires(T 
 };
 
 template <typename T>
-concept KPriorityQueueMember = !std::is_reference<T>::value && requires(T & t) {
+concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     {typename T::QueueEntry()};
     {(typename T::QueueEntry()).Initialize()};
     {(typename T::QueueEntry()).SetPrev(std::addressof(t))};
@@ -54,8 +56,8 @@ concept KPriorityQueueMember = !std::is_reference<T>::value && requires(T & t) {
 template <typename Member, size_t _NumCores, int LowestPriority, int HighestPriority>
 requires KPriorityQueueMember<Member> class KPriorityQueue {
 public:
-    using AffinityMaskType = typename std::remove_cv<typename std::remove_reference<decltype(
-        std::declval<Member>().GetAffinityMask())>::type>::type;
+    using AffinityMaskType = typename std::remove_cv_t<
+        typename std::remove_reference<decltype(std::declval<Member>().GetAffinityMask())>::type>;
 
     static_assert(LowestPriority >= 0);
     static_assert(HighestPriority >= 0);
@@ -77,12 +79,12 @@ private:
 public:
     class KPerCoreQueue {
     private:
-        Entry root[NumCores];
+        std::array<Entry, NumCores> root{};
 
     public:
-        constexpr KPerCoreQueue() : root() {
-            for (size_t i = 0; i < NumCores; i++) {
-                this->root[i].Initialize();
+        constexpr KPerCoreQueue() {
+            for (auto& per_core_root : root) {
+                per_core_root.Initialize();
             }
         }
 
@@ -101,7 +103,7 @@ public:
             tail_entry.SetNext(member);
             this->root[core].SetPrev(member);
 
-            return (tail == nullptr);
+            return tail == nullptr;
         }
 
         constexpr bool PushFront(s32 core, Member* member) {
@@ -147,21 +149,19 @@ public:
     };
 
     class KPriorityQueueImpl {
-    private:
-        KPerCoreQueue queues[NumPriority];
-        Common::BitSet64<NumPriority> available_priorities[NumCores];
-
     public:
-        constexpr KPriorityQueueImpl() : queues(), available_priorities() {}
+        constexpr KPriorityQueueImpl() = default;
 
         constexpr void PushBack(s32 priority, s32 core, Member* member) {
             ASSERT(IsValidCore(core));
             ASSERT(IsValidPriority(priority));
 
-            if (priority <= LowestPriority) {
-                if (this->queues[priority].PushBack(core, member)) {
-                    this->available_priorities[core].SetBit(priority);
-                }
+            if (priority > LowestPriority) {
+                return;
+            }
+
+            if (this->queues[priority].PushBack(core, member)) {
+                this->available_priorities[core].SetBit(priority);
             }
         }
 
@@ -169,10 +169,12 @@ public:
             ASSERT(IsValidCore(core));
             ASSERT(IsValidPriority(priority));
 
-            if (priority <= LowestPriority) {
-                if (this->queues[priority].PushFront(core, member)) {
-                    this->available_priorities[core].SetBit(priority);
-                }
+            if (priority > LowestPriority) {
+                return;
+            }
+
+            if (this->queues[priority].PushFront(core, member)) {
+                this->available_priorities[core].SetBit(priority);
             }
         }
 
@@ -180,10 +182,12 @@ public:
             ASSERT(IsValidCore(core));
             ASSERT(IsValidPriority(priority));
 
-            if (priority <= LowestPriority) {
-                if (this->queues[priority].Remove(core, member)) {
-                    this->available_priorities[core].ClearBit(priority);
-                }
+            if (priority > LowestPriority) {
+                return;
+            }
+
+            if (this->queues[priority].Remove(core, member)) {
+                this->available_priorities[core].ClearBit(priority);
             }
         }
 
@@ -246,6 +250,10 @@ public:
                 return nullptr;
             }
         }
+
+    private:
+        std::array<KPerCoreQueue, NumPriority> queues{};
+        std::array<Common::BitSet64<NumPriority>, NumCores> available_priorities{};
     };
 
 private:
@@ -254,7 +262,7 @@ private:
 
 private:
     constexpr void ClearAffinityBit(u64& affinity, s32 core) {
-        affinity &= ~(u64(1ul) << core);
+        affinity &= ~(u64(1) << core);
     }
 
     constexpr s32 GetNextCore(u64& affinity) {
@@ -313,8 +321,7 @@ private:
     }
 
 public:
-    constexpr KPriorityQueue() : scheduled_queue(), suggested_queue() { // ...
-    }
+    constexpr KPriorityQueue() = default;
 
     // Getters.
     constexpr Member* GetScheduledFront(s32 core) const {
