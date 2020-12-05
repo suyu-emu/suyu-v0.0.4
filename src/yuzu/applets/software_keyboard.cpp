@@ -135,8 +135,8 @@ void QtSoftwareKeyboard::RequestText(std::function<void(std::optional<std::u16st
 }
 
 void QtSoftwareKeyboard::SendTextCheckDialog(std::u16string error_message,
-                                             std::function<void()> finished_check) const {
-    this->finished_check = std::move(finished_check);
+                                             std::function<void()> finished_check_) const {
+    finished_check = std::move(finished_check_);
     emit MainWindowTextCheckDialog(error_message);
 }
 

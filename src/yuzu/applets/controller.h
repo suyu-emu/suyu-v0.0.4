@@ -147,7 +147,7 @@ public:
     ~QtControllerSelector() override;
 
     void ReconfigureControllers(
-        std::function<void()> callback,
+        std::function<void()> callback_,
         const Core::Frontend::ControllerParameters& parameters) const override;
 
 signals:

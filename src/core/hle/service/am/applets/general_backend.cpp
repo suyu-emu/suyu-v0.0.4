@@ -136,7 +136,7 @@ void Auth::Execute() {
 }
 
 void Auth::AuthFinished(bool is_successful) {
-    this->successful = is_successful;
+    successful = is_successful;
 
     struct Return {
         ResultCode result_code;

@@ -61,7 +61,7 @@ public:
     void RequestText(std::function<void(std::optional<std::u16string>)> out,
                      Core::Frontend::SoftwareKeyboardParameters parameters) const override;
     void SendTextCheckDialog(std::u16string error_message,
-                             std::function<void()> finished_check) const override;
+                             std::function<void()> finished_check_) const override;
 
 signals:
     void MainWindowGetText(Core::Frontend::SoftwareKeyboardParameters parameters) const;
