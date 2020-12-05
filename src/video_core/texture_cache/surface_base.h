@@ -148,8 +148,8 @@ public:
     }
 
 protected:
-    explicit SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params,
-                             bool is_astc_supported);
+    explicit SurfaceBaseImpl(GPUVAddr gpu_addr_, const SurfaceParams& params_,
+                             bool is_astc_supported_);
     ~SurfaceBaseImpl() = default;
 
     virtual void DecorateSurfaceName() = 0;
@@ -297,9 +297,9 @@ public:
     }
 
 protected:
-    explicit SurfaceBase(const GPUVAddr gpu_addr, const SurfaceParams& params,
-                         bool is_astc_supported)
-        : SurfaceBaseImpl(gpu_addr, params, is_astc_supported) {}
+    explicit SurfaceBase(const GPUVAddr gpu_addr_, const SurfaceParams& params_,
+                         bool is_astc_supported_)
+        : SurfaceBaseImpl{gpu_addr_, params_, is_astc_supported_} {}
 
     ~SurfaceBase() = default;
 

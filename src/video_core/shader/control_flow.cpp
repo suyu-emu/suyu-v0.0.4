@@ -66,8 +66,8 @@ struct BlockInfo {
 };
 
 struct CFGRebuildState {
-    explicit CFGRebuildState(const ProgramCode& program_code, u32 start, Registry& registry)
-        : program_code{program_code}, registry{registry}, start{start} {}
+    explicit CFGRebuildState(const ProgramCode& program_code_, u32 start_, Registry& registry_)
+        : program_code{program_code_}, registry{registry_}, start{start_} {}
 
     const ProgramCode& program_code;
     Registry& registry;

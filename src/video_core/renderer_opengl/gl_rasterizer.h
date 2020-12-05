@@ -62,10 +62,10 @@ static_assert(sizeof(BindlessSSBO) * CHAR_BIT == 128);
 
 class RasterizerOpenGL : public VideoCore::RasterizerAccelerated {
 public:
-    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
-                              Core::Memory::Memory& cpu_memory, const Device& device,
-                              ScreenInfo& screen_info, ProgramManager& program_manager,
-                              StateTracker& state_tracker);
+    explicit RasterizerOpenGL(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
+                              Core::Memory::Memory& cpu_memory_, const Device& device_,
+                              ScreenInfo& screen_info_, ProgramManager& program_manager_,
+                              StateTracker& state_tracker_);
     ~RasterizerOpenGL() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;

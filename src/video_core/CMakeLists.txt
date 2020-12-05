@@ -297,13 +297,20 @@ if (ENABLE_NSIGHT_AFTERMATH)
 endif()
 
 if (MSVC)
-    target_compile_options(video_core PRIVATE /we4267)
+    target_compile_options(video_core PRIVATE
+        /we4267 # 'var' : conversion from 'size_t' to 'type', possible loss of data
+        /we4456 # Declaration of 'identifier' hides previous local declaration
+        /we4457 # Declaration of 'identifier' hides function parameter
+        /we4458 # Declaration of 'identifier' hides class member
+        /we4459 # Declaration of 'identifier' hides global declaration
+    )
 else()
     target_compile_options(video_core PRIVATE
         -Werror=conversion
         -Wno-error=sign-conversion
         -Werror=pessimizing-move
         -Werror=redundant-move
+        -Werror=shadow
         -Werror=switch
         -Werror=type-limits
         -Werror=unused-variable

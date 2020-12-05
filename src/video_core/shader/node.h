@@ -290,18 +290,18 @@ struct Sampler {
           is_buffer{is_buffer_}, is_indexed{is_indexed_} {}
 
     /// Separate sampler constructor
-    constexpr explicit Sampler(u32 index_, std::pair<u32, u32> offsets, std::pair<u32, u32> buffers,
-                               Tegra::Shader::TextureType type, bool is_array_, bool is_shadow_,
-                               bool is_buffer_)
-        : index{index_}, offset{offsets.first}, secondary_offset{offsets.second},
-          buffer{buffers.first}, secondary_buffer{buffers.second}, type{type}, is_array{is_array_},
-          is_shadow{is_shadow_}, is_buffer{is_buffer_}, is_separated{true} {}
+    constexpr explicit Sampler(u32 index_, std::pair<u32, u32> offsets_,
+                               std::pair<u32, u32> buffers_, Tegra::Shader::TextureType type_,
+                               bool is_array_, bool is_shadow_, bool is_buffer_)
+        : index{index_}, offset{offsets_.first}, secondary_offset{offsets_.second},
+          buffer{buffers_.first}, secondary_buffer{buffers_.second}, type{type_},
+          is_array{is_array_}, is_shadow{is_shadow_}, is_buffer{is_buffer_}, is_separated{true} {}
 
     /// Bindless samplers constructor
     constexpr explicit Sampler(u32 index_, u32 offset_, u32 buffer_,
-                               Tegra::Shader::TextureType type, bool is_array_, bool is_shadow_,
+                               Tegra::Shader::TextureType type_, bool is_array_, bool is_shadow_,
                                bool is_buffer_, bool is_indexed_)
-        : index{index_}, offset{offset_}, buffer{buffer_}, type{type}, is_array{is_array_},
+        : index{index_}, offset{offset_}, buffer{buffer_}, type{type_}, is_array{is_array_},
           is_shadow{is_shadow_}, is_buffer{is_buffer_}, is_bindless{true}, is_indexed{is_indexed_} {
     }
 

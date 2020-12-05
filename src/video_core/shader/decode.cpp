@@ -66,7 +66,7 @@ std::optional<u32> TryDeduceSamplerSize(const Sampler& sampler_to_deduce,
 
 class ASTDecoder {
 public:
-    ASTDecoder(ShaderIR& ir) : ir(ir) {}
+    explicit ASTDecoder(ShaderIR& ir_) : ir(ir_) {}
 
     void operator()(ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();

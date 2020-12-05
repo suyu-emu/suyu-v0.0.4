@@ -17,9 +17,9 @@ namespace FileSys {
 template <std::size_t size>
 class ArrayVfsFile : public VfsFile {
 public:
-    explicit ArrayVfsFile(const std::array<u8, size>& data, std::string name = "",
-                          VirtualDir parent = nullptr)
-        : data(data), name(std::move(name)), parent(std::move(parent)) {}
+    explicit ArrayVfsFile(const std::array<u8, size>& data_, std::string name_ = "",
+                          VirtualDir parent_ = nullptr)
+        : data(data_), name(std::move(name_)), parent(std::move(parent_)) {}
 
     std::string GetName() const override {
         return name;
@@ -51,12 +51,12 @@ public:
         return read;
     }
 
-    std::size_t Write(const u8* data, std::size_t length, std::size_t offset) override {
+    std::size_t Write(const u8* data_, std::size_t length, std::size_t offset) override {
         return 0;
     }
 
-    bool Rename(std::string_view name) override {
-        this->name = name;
+    bool Rename(std::string_view new_name) override {
+        name = new_name;
         return true;
     }
 

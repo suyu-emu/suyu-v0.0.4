@@ -22,11 +22,11 @@ using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 
 MICROPROFILE_DEFINE(OpenGL_Buffer_Download, "OpenGL", "Buffer Download", MP_RGB(192, 192, 128));
 
-Buffer::Buffer(const Device& device, VAddr cpu_addr, std::size_t size)
-    : VideoCommon::BufferBlock{cpu_addr, size} {
+Buffer::Buffer(const Device& device_, VAddr cpu_addr_, std::size_t size_)
+    : BufferBlock{cpu_addr_, size_} {
     gl_buffer.Create();
-    glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size), nullptr, GL_DYNAMIC_DRAW);
-    if (device.UseAssemblyShaders() || device.HasVertexBufferUnifiedMemory()) {
+    glNamedBufferData(gl_buffer.handle, static_cast<GLsizeiptr>(size_), nullptr, GL_DYNAMIC_DRAW);
+    if (device_.UseAssemblyShaders() || device_.HasVertexBufferUnifiedMemory()) {
         glMakeNamedBufferResidentNV(gl_buffer.handle, GL_READ_WRITE);
         glGetNamedBufferParameterui64vNV(gl_buffer.handle, GL_BUFFER_GPU_ADDRESS_NV, &gpu_address);
     }
@@ -34,14 +34,14 @@ Buffer::Buffer(const Device& device, VAddr cpu_addr, std::size_t size)
 
 Buffer::~Buffer() = default;
 
-void Buffer::Upload(std::size_t offset, std::size_t size, const u8* data) {
-    glNamedBufferSubData(Handle(), static_cast<GLintptr>(offset), static_cast<GLsizeiptr>(size),
-                         data);
+void Buffer::Upload(std::size_t offset, std::size_t data_size, const u8* data) {
+    glNamedBufferSubData(Handle(), static_cast<GLintptr>(offset),
+                         static_cast<GLsizeiptr>(data_size), data);
 }
 
-void Buffer::Download(std::size_t offset, std::size_t size, u8* data) {
+void Buffer::Download(std::size_t offset, std::size_t data_size, u8* data) {
     MICROPROFILE_SCOPE(OpenGL_Buffer_Download);
-    const GLsizeiptr gl_size = static_cast<GLsizeiptr>(size);
+    const GLsizeiptr gl_size = static_cast<GLsizeiptr>(data_size);
     const GLintptr gl_offset = static_cast<GLintptr>(offset);
     if (read_buffer.handle == 0) {
         read_buffer.Create();
@@ -54,16 +54,16 @@ void Buffer::Download(std::size_t offset, std::size_t size, u8* data) {
 }
 
 void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                      std::size_t size) {
+                      std::size_t copy_size) {
     glCopyNamedBufferSubData(src.Handle(), Handle(), static_cast<GLintptr>(src_offset),
-                             static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(size));
+                             static_cast<GLintptr>(dst_offset), static_cast<GLsizeiptr>(copy_size));
 }
 
-OGLBufferCache::OGLBufferCache(VideoCore::RasterizerInterface& rasterizer,
-                               Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
-                               const Device& device_, std::size_t stream_size)
-    : GenericBufferCache{rasterizer, gpu_memory, cpu_memory,
-                         std::make_unique<OGLStreamBuffer>(device_, stream_size, true)},
+OGLBufferCache::OGLBufferCache(VideoCore::RasterizerInterface& rasterizer_,
+                               Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
+                               const Device& device_, std::size_t stream_size_)
+    : GenericBufferCache{rasterizer_, gpu_memory_, cpu_memory_,
+                         std::make_unique<OGLStreamBuffer>(device_, stream_size_, true)},
       device{device_} {
     if (!device.HasFastBufferSubData()) {
         return;

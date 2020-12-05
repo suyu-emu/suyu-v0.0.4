@@ -29,8 +29,8 @@ struct ShaderBlock;
 constexpr u32 MAX_PROGRAM_LENGTH = 0x1000;
 
 struct ConstBuffer {
-    constexpr explicit ConstBuffer(u32 max_offset, bool is_indirect)
-        : max_offset{max_offset}, is_indirect{is_indirect} {}
+    constexpr explicit ConstBuffer(u32 max_offset_, bool is_indirect_)
+        : max_offset{max_offset_}, is_indirect{is_indirect_} {}
 
     constexpr ConstBuffer() = default;
 
@@ -66,8 +66,8 @@ struct GlobalMemoryUsage {
 
 class ShaderIR final {
 public:
-    explicit ShaderIR(const ProgramCode& program_code, u32 main_offset, CompilerSettings settings,
-                      Registry& registry);
+    explicit ShaderIR(const ProgramCode& program_code_, u32 main_offset_,
+                      CompilerSettings settings_, Registry& registry_);
     ~ShaderIR();
 
     const std::map<u32, NodeBlock>& GetBasicBlocks() const {

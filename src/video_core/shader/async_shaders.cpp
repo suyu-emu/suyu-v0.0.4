@@ -13,7 +13,7 @@
 
 namespace VideoCommon::Shader {
 
-AsyncShaders::AsyncShaders(Core::Frontend::EmuWindow& emu_window) : emu_window(emu_window) {}
+AsyncShaders::AsyncShaders(Core::Frontend::EmuWindow& emu_window_) : emu_window(emu_window_) {}
 
 AsyncShaders::~AsyncShaders() {
     KillWorkers();

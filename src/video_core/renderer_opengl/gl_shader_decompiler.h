@@ -25,8 +25,8 @@ using ImageEntry = VideoCommon::Shader::Image;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
-    explicit ConstBufferEntry(u32 max_offset, bool is_indirect, u32 index_)
-        : ConstBuffer{max_offset, is_indirect}, index{index_} {}
+    explicit ConstBufferEntry(u32 max_offset_, bool is_indirect_, u32 index_)
+        : ConstBuffer{max_offset_, is_indirect_}, index{index_} {}
 
     u32 GetIndex() const {
         return index;

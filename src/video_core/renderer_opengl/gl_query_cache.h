@@ -29,8 +29,8 @@ using CounterStream = VideoCommon::CounterStreamBase<QueryCache, HostCounter>;
 class QueryCache final
     : public VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit QueryCache(RasterizerOpenGL& rasterizer, Tegra::Engines::Maxwell3D& maxwell3d,
-                        Tegra::MemoryManager& gpu_memory);
+    explicit QueryCache(RasterizerOpenGL& rasterizer_, Tegra::Engines::Maxwell3D& maxwell3d_,
+                        Tegra::MemoryManager& gpu_memory_);
     ~QueryCache();
 
     OGLQuery AllocateQuery(VideoCore::QueryType type);
@@ -46,7 +46,7 @@ private:
 
 class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
 public:
-    explicit HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency,
+    explicit HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
                          VideoCore::QueryType type_);
     ~HostCounter();
 
@@ -62,8 +62,8 @@ private:
 
 class CachedQuery final : public VideoCommon::CachedQueryBase<HostCounter> {
 public:
-    explicit CachedQuery(QueryCache& cache_, VideoCore::QueryType type_, VAddr cpu_addr,
-                         u8* host_ptr);
+    explicit CachedQuery(QueryCache& cache_, VideoCore::QueryType type_, VAddr cpu_addr_,
+                         u8* host_ptr_);
     ~CachedQuery() override;
 
     CachedQuery(CachedQuery&& rhs) noexcept;

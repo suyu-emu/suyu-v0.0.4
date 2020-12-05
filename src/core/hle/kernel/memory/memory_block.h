@@ -222,9 +222,9 @@ public:
 
 public:
     constexpr MemoryBlock() = default;
-    constexpr MemoryBlock(VAddr addr, std::size_t num_pages, MemoryState state,
-                          MemoryPermission perm, MemoryAttribute attribute)
-        : addr{addr}, num_pages(num_pages), state{state}, perm{perm}, attribute{attribute} {}
+    constexpr MemoryBlock(VAddr addr_, std::size_t num_pages_, MemoryState state_,
+                          MemoryPermission perm_, MemoryAttribute attribute_)
+        : addr{addr_}, num_pages(num_pages_), state{state_}, perm{perm_}, attribute{attribute_} {}
 
     constexpr VAddr GetAddress() const {
         return addr;

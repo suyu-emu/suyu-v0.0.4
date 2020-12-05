@@ -25,11 +25,11 @@ StagingCache::StagingCache() = default;
 
 StagingCache::~StagingCache() = default;
 
-SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr, const SurfaceParams& params,
-                                 bool is_astc_supported)
-    : params{params}, gpu_addr{gpu_addr}, mipmap_sizes(params.num_levels),
+SurfaceBaseImpl::SurfaceBaseImpl(GPUVAddr gpu_addr_, const SurfaceParams& params_,
+                                 bool is_astc_supported_)
+    : params{params_}, gpu_addr{gpu_addr_}, mipmap_sizes(params_.num_levels),
       mipmap_offsets(params.num_levels) {
-    is_converted = IsPixelFormatASTC(params.pixel_format) && !is_astc_supported;
+    is_converted = IsPixelFormatASTC(params.pixel_format) && !is_astc_supported_;
     host_memory_size = params.GetHostSizeInBytes(is_converted);
 
     std::size_t offset = 0;

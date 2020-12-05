@@ -193,10 +193,11 @@ private:
 
 class VKTextureCache final : public TextureCacheBase {
 public:
-    explicit VKTextureCache(VideoCore::RasterizerInterface& rasterizer,
-                            Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                            const VKDevice& device, VKMemoryManager& memory_manager,
-                            VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
+    explicit VKTextureCache(VideoCore::RasterizerInterface& rasterizer_,
+                            Tegra::Engines::Maxwell3D& maxwell3d_,
+                            Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
+                            VKMemoryManager& memory_manager_, VKScheduler& scheduler_,
+                            VKStagingBufferPool& staging_pool_);
     ~VKTextureCache();
 
 private:

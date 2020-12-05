@@ -30,11 +30,9 @@ constexpr GLenum GetTarget(VideoCore::QueryType type) {
 
 } // Anonymous namespace
 
-QueryCache::QueryCache(RasterizerOpenGL& rasterizer, Tegra::Engines::Maxwell3D& maxwell3d,
-                       Tegra::MemoryManager& gpu_memory)
-    : VideoCommon::QueryCacheBase<QueryCache, CachedQuery, CounterStream, HostCounter>(
-          rasterizer, maxwell3d, gpu_memory),
-      gl_rasterizer{rasterizer} {}
+QueryCache::QueryCache(RasterizerOpenGL& rasterizer_, Tegra::Engines::Maxwell3D& maxwell3d_,
+                       Tegra::MemoryManager& gpu_memory_)
+    : QueryCacheBase(rasterizer_, maxwell3d_, gpu_memory_), gl_rasterizer{rasterizer_} {}
 
 QueryCache::~QueryCache() = default;
 
@@ -59,10 +57,11 @@ bool QueryCache::AnyCommandQueued() const noexcept {
     return gl_rasterizer.AnyCommandQueued();
 }
 
-HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency,
+HostCounter::HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
                          VideoCore::QueryType type_)
-    : HostCounterBase<QueryCache, HostCounter>{std::move(dependency)}, cache{cache_}, type{type_},
-      query{cache.AllocateQuery(type)} {
+    : HostCounterBase{std::move(dependency_)}, cache{cache_}, type{type_}, query{
+                                                                               cache.AllocateQuery(
+                                                                                   type)} {
     glBeginQuery(GetTarget(type), query.handle);
 }
 
@@ -86,14 +85,14 @@ u64 HostCounter::BlockingQuery() const {
     return static_cast<u64>(value);
 }
 
-CachedQuery::CachedQuery(QueryCache& cache_, VideoCore::QueryType type_, VAddr cpu_addr,
-                         u8* host_ptr)
-    : CachedQueryBase<HostCounter>{cpu_addr, host_ptr}, cache{&cache_}, type{type_} {}
+CachedQuery::CachedQuery(QueryCache& cache_, VideoCore::QueryType type_, VAddr cpu_addr_,
+                         u8* host_ptr_)
+    : CachedQueryBase{cpu_addr_, host_ptr_}, cache{&cache_}, type{type_} {}
 
 CachedQuery::~CachedQuery() = default;
 
 CachedQuery::CachedQuery(CachedQuery&& rhs) noexcept
-    : CachedQueryBase<HostCounter>(std::move(rhs)), cache{rhs.cache}, type{rhs.type} {}
+    : CachedQueryBase(std::move(rhs)), cache{rhs.cache}, type{rhs.type} {}
 
 CachedQuery& CachedQuery::operator=(CachedQuery&& rhs) noexcept {
     cache = rhs.cache;
