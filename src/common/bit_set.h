@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <array>
+#include <bit>
+
 #include "common/alignment.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
@@ -24,33 +27,11 @@ namespace Common {
 
 namespace impl {
 
-#define BITSIZEOF(x) (sizeof(x) * CHAR_BIT)
-
 template <typename Storage, size_t N>
 class BitSet {
-private:
-    static_assert(std::is_integral<Storage>::value);
-    static_assert(std::is_unsigned<Storage>::value);
-    static_assert(sizeof(Storage) <= sizeof(u64));
-
-    static constexpr size_t FlagsPerWord = BITSIZEOF(Storage);
-    static constexpr size_t NumWords = AlignUp(N, FlagsPerWord) / FlagsPerWord;
-
-    static constexpr auto CountLeadingZeroImpl(Storage word) {
-        return CountLeadingZeroes64(static_cast<unsigned long long>(word)) -
-               (BITSIZEOF(unsigned long long) - FlagsPerWord);
-    }
-
-    static constexpr Storage GetBitMask(size_t bit) {
-        return Storage(1) << (FlagsPerWord - 1 - bit);
-    }
-
-private:
-    Storage words[NumWords];
 
 public:
-    constexpr BitSet() : words() { /* ... */
-    }
+    constexpr BitSet() = default;
 
     constexpr void SetBit(size_t i) {
         this->words[i / FlagsPerWord] |= GetBitMask(i % FlagsPerWord);
@@ -81,6 +62,24 @@ public:
         }
         return FlagsPerWord * NumWords;
     }
+
+private:
+    static_assert(std::is_unsigned_v<Storage>);
+    static_assert(sizeof(Storage) <= sizeof(u64));
+
+    static constexpr size_t FlagsPerWord = BitSize<Storage>();
+    static constexpr size_t NumWords = AlignUp(N, FlagsPerWord) / FlagsPerWord;
+
+    static constexpr auto CountLeadingZeroImpl(Storage word) {
+        return std::countl_zero(static_cast<unsigned long long>(word)) -
+               (BitSize<unsigned long long>() - FlagsPerWord);
+    }
+
+    static constexpr Storage GetBitMask(size_t bit) {
+        return Storage(1) << (FlagsPerWord - 1 - bit);
+    }
+
+    std::array<Storage, NumWords> words{};
 };
 
 } // namespace impl
