@@ -167,8 +167,8 @@ protected:
     std::vector<std::size_t> mipmap_offsets;
 
 private:
-    void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params, u8* buffer,
-                     u32 level);
+    void SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& surface_params,
+                     u8* buffer, u32 level);
 
     std::vector<CopyParams> BreakDownLayered(const SurfaceParams& in_params) const;
 

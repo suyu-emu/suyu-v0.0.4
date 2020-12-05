@@ -180,19 +180,19 @@ VkImageCreateInfo GenerateImageCreateInfo(const VKDevice& device, const SurfaceP
     return ci;
 }
 
-u32 EncodeSwizzle(Tegra::Texture::SwizzleSource x_source, Tegra::Texture::SwizzleSource y_source,
-                  Tegra::Texture::SwizzleSource z_source, Tegra::Texture::SwizzleSource w_source) {
+u32 EncodeSwizzle(SwizzleSource x_source, SwizzleSource y_source, SwizzleSource z_source,
+                  SwizzleSource w_source) {
     return (static_cast<u32>(x_source) << 24) | (static_cast<u32>(y_source) << 16) |
            (static_cast<u32>(z_source) << 8) | static_cast<u32>(w_source);
 }
 
 } // Anonymous namespace
 
-CachedSurface::CachedSurface(const VKDevice& device, VKMemoryManager& memory_manager,
-                             VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
-                             GPUVAddr gpu_addr, const SurfaceParams& params)
-    : SurfaceBase<View>{gpu_addr, params, device.IsOptimalAstcSupported()}, device{device},
-      memory_manager{memory_manager}, scheduler{scheduler}, staging_pool{staging_pool} {
+CachedSurface::CachedSurface(const VKDevice& device_, VKMemoryManager& memory_manager_,
+                             VKScheduler& scheduler_, VKStagingBufferPool& staging_pool_,
+                             GPUVAddr gpu_addr_, const SurfaceParams& params_)
+    : SurfaceBase<View>{gpu_addr_, params_, device_.IsOptimalAstcSupported()}, device{device_},
+      memory_manager{memory_manager_}, scheduler{scheduler_}, staging_pool{staging_pool_} {
     if (params.IsBuffer()) {
         buffer = CreateBuffer(device, params, host_memory_size);
         commit = memory_manager.Commit(buffer, false);
@@ -234,7 +234,7 @@ void CachedSurface::UploadTexture(const std::vector<u8>& staging_buffer) {
 void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     UNIMPLEMENTED_IF(params.IsBuffer());
 
-    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM) {
+    if (params.pixel_format == PixelFormat::A1B5G5R5_UNORM) {
         LOG_WARNING(Render_Vulkan, "A1B5G5R5 flushing is stubbed");
     }
 
@@ -244,10 +244,10 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     FullTransition(VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_READ_BIT,
                    VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-    const auto& buffer = staging_pool.GetUnusedBuffer(host_memory_size, true);
+    const auto& unused_buffer = staging_pool.GetUnusedBuffer(host_memory_size, true);
     // TODO(Rodrigo): Do this in a single copy
     for (u32 level = 0; level < params.num_levels; ++level) {
-        scheduler.Record([image = *image->GetHandle(), buffer = *buffer.handle,
+        scheduler.Record([image = *image->GetHandle(), buffer = *unused_buffer.handle,
                           copy = GetBufferImageCopy(level)](vk::CommandBuffer cmdbuf) {
             cmdbuf.CopyImageToBuffer(image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, buffer, copy);
         });
@@ -255,16 +255,17 @@ void CachedSurface::DownloadTexture(std::vector<u8>& staging_buffer) {
     scheduler.Finish();
 
     // TODO(Rodrigo): Use an intern buffer for staging buffers and avoid this unnecessary memcpy.
-    std::memcpy(staging_buffer.data(), buffer.commit->Map(host_memory_size), host_memory_size);
+    std::memcpy(staging_buffer.data(), unused_buffer.commit->Map(host_memory_size),
+                host_memory_size);
 }
 
 void CachedSurface::DecorateSurfaceName() {
     // TODO(Rodrigo): Add name decorations
 }
 
-View CachedSurface::CreateView(const ViewParams& params) {
+View CachedSurface::CreateView(const ViewParams& view_params) {
     // TODO(Rodrigo): Add name decorations
-    return views[params] = std::make_shared<CachedSurfaceView>(device, *this, params);
+    return views[view_params] = std::make_shared<CachedSurfaceView>(device, *this, view_params);
 }
 
 void CachedSurface::UploadBuffer(const std::vector<u8>& staging_buffer) {
@@ -348,21 +349,21 @@ VkImageSubresourceRange CachedSurface::GetImageSubresourceRange() const {
             static_cast<u32>(params.GetNumLayers())};
 }
 
-CachedSurfaceView::CachedSurfaceView(const VKDevice& device, CachedSurface& surface,
-                                     const ViewParams& params)
-    : VideoCommon::ViewBase{params}, params{surface.GetSurfaceParams()},
-      image{surface.GetImageHandle()}, buffer_view{surface.GetBufferViewHandle()},
-      aspect_mask{surface.GetAspectMask()}, device{device}, surface{surface},
-      base_level{params.base_level}, num_levels{params.num_levels},
-      image_view_type{image ? GetImageViewType(params.target) : VK_IMAGE_VIEW_TYPE_1D} {
+CachedSurfaceView::CachedSurfaceView(const VKDevice& device_, CachedSurface& surface_,
+                                     const ViewParams& view_params_)
+    : ViewBase{view_params_}, surface_params{surface_.GetSurfaceParams()},
+      image{surface_.GetImageHandle()}, buffer_view{surface_.GetBufferViewHandle()},
+      aspect_mask{surface_.GetAspectMask()}, device{device_}, surface{surface_},
+      base_level{view_params_.base_level}, num_levels{view_params_.num_levels},
+      image_view_type{image ? GetImageViewType(view_params_.target) : VK_IMAGE_VIEW_TYPE_1D} {
     if (image_view_type == VK_IMAGE_VIEW_TYPE_3D) {
         base_layer = 0;
         num_layers = 1;
-        base_slice = params.base_layer;
-        num_slices = params.num_layers;
+        base_slice = view_params_.base_layer;
+        num_slices = view_params_.num_layers;
     } else {
-        base_layer = params.base_layer;
-        num_layers = params.num_layers;
+        base_layer = view_params_.base_layer;
+        num_layers = view_params_.num_layers;
     }
 }
 
@@ -384,7 +385,7 @@ VkImageView CachedSurfaceView::GetImageView(SwizzleSource x_source, SwizzleSourc
 
     std::array swizzle{MaxwellToVK::SwizzleSource(x_source), MaxwellToVK::SwizzleSource(y_source),
                        MaxwellToVK::SwizzleSource(z_source), MaxwellToVK::SwizzleSource(w_source)};
-    if (params.pixel_format == VideoCore::Surface::PixelFormat::A1B5G5R5_UNORM) {
+    if (surface_params.pixel_format == PixelFormat::A1B5G5R5_UNORM) {
         // A1B5G5R5 is implemented as A1R5G5B5, we have to change the swizzle here.
         std::swap(swizzle[0], swizzle[2]);
     }
@@ -395,12 +396,12 @@ VkImageView CachedSurfaceView::GetImageView(SwizzleSource x_source, SwizzleSourc
     if (aspect == (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)) {
         UNIMPLEMENTED_IF(x_source != SwizzleSource::R && x_source != SwizzleSource::G);
         const bool is_first = x_source == SwizzleSource::R;
-        switch (params.pixel_format) {
-        case VideoCore::Surface::PixelFormat::D24_UNORM_S8_UINT:
-        case VideoCore::Surface::PixelFormat::D32_FLOAT_S8_UINT:
+        switch (surface_params.pixel_format) {
+        case PixelFormat::D24_UNORM_S8_UINT:
+        case PixelFormat::D32_FLOAT_S8_UINT:
             aspect = is_first ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_STENCIL_BIT;
             break;
-        case VideoCore::Surface::PixelFormat::S8_UINT_D24_UNORM:
+        case PixelFormat::S8_UINT_D24_UNORM:
             aspect = is_first ? VK_IMAGE_ASPECT_STENCIL_BIT : VK_IMAGE_ASPECT_DEPTH_BIT;
             break;
         default:
@@ -417,7 +418,7 @@ VkImageView CachedSurfaceView::GetImageView(SwizzleSource x_source, SwizzleSourc
 
     if (image_view_type == VK_IMAGE_VIEW_TYPE_3D) {
         ASSERT(base_slice == 0);
-        ASSERT(num_slices == params.depth);
+        ASSERT(num_slices == surface_params.depth);
     }
 
     image_view = device.GetLogical().CreateImageView({

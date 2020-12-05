@@ -167,27 +167,28 @@ std::vector<CopyParams> SurfaceBaseImpl::BreakDownNonLayered(const SurfaceParams
     return result;
 }
 
-void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory, const SurfaceParams& params,
-                                  u8* buffer, u32 level) {
-    const u32 width{params.GetMipWidth(level)};
-    const u32 height{params.GetMipHeight(level)};
-    const u32 block_height{params.GetMipBlockHeight(level)};
-    const u32 block_depth{params.GetMipBlockDepth(level)};
+void SurfaceBaseImpl::SwizzleFunc(MortonSwizzleMode mode, u8* memory,
+                                  const SurfaceParams& surface_params, u8* buffer, u32 level) {
+    const u32 width{surface_params.GetMipWidth(level)};
+    const u32 height{surface_params.GetMipHeight(level)};
+    const u32 block_height{surface_params.GetMipBlockHeight(level)};
+    const u32 block_depth{surface_params.GetMipBlockDepth(level)};
 
     std::size_t guest_offset{mipmap_offsets[level]};
-    if (params.is_layered) {
+    if (surface_params.is_layered) {
         std::size_t host_offset = 0;
         const std::size_t guest_stride = layer_size;
-        const std::size_t host_stride = params.GetHostLayerSize(level);
-        for (u32 layer = 0; layer < params.depth; ++layer) {
-            MortonSwizzle(mode, params.pixel_format, width, block_height, height, block_depth, 1,
-                          params.tile_width_spacing, buffer + host_offset, memory + guest_offset);
+        const std::size_t host_stride = surface_params.GetHostLayerSize(level);
+        for (u32 layer = 0; layer < surface_params.depth; ++layer) {
+            MortonSwizzle(mode, surface_params.pixel_format, width, block_height, height,
+                          block_depth, 1, surface_params.tile_width_spacing, buffer + host_offset,
+                          memory + guest_offset);
             guest_offset += guest_stride;
             host_offset += host_stride;
         }
     } else {
-        MortonSwizzle(mode, params.pixel_format, width, block_height, height, block_depth,
-                      params.GetMipDepth(level), params.tile_width_spacing, buffer,
+        MortonSwizzle(mode, surface_params.pixel_format, width, block_height, height, block_depth,
+                      surface_params.GetMipDepth(level), surface_params.tile_width_spacing, buffer,
                       memory + guest_offset);
     }
 }

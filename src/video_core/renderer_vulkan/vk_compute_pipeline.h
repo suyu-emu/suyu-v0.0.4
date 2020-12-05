@@ -17,10 +17,10 @@ class VKUpdateDescriptorQueue;
 
 class VKComputePipeline final {
 public:
-    explicit VKComputePipeline(const VKDevice& device, VKScheduler& scheduler,
-                               VKDescriptorPool& descriptor_pool,
-                               VKUpdateDescriptorQueue& update_descriptor_queue,
-                               const SPIRVShader& shader);
+    explicit VKComputePipeline(const VKDevice& device_, VKScheduler& scheduler_,
+                               VKDescriptorPool& descriptor_pool_,
+                               VKUpdateDescriptorQueue& update_descriptor_queue_,
+                               const SPIRVShader& shader_);
     ~VKComputePipeline();
 
     VkDescriptorSet CommitDescriptorSet();

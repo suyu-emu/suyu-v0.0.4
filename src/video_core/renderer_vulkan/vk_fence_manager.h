@@ -28,10 +28,10 @@ class VKTextureCache;
 
 class InnerFence : public VideoCommon::FenceBase {
 public:
-    explicit InnerFence(const VKDevice& device, VKScheduler& scheduler, u32 payload,
-                        bool is_stubbed);
-    explicit InnerFence(const VKDevice& device, VKScheduler& scheduler, GPUVAddr address,
-                        u32 payload, bool is_stubbed);
+    explicit InnerFence(const VKDevice& device_, VKScheduler& scheduler_, u32 payload_,
+                        bool is_stubbed_);
+    explicit InnerFence(const VKDevice& device_, VKScheduler& scheduler_, GPUVAddr address_,
+                        u32 payload_, bool is_stubbed_);
     ~InnerFence();
 
     void Queue();
@@ -55,10 +55,10 @@ using GenericFenceManager =
 
 class VKFenceManager final : public GenericFenceManager {
 public:
-    explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer, Tegra::GPU& gpu,
-                            Tegra::MemoryManager& memory_manager, VKTextureCache& texture_cache,
-                            VKBufferCache& buffer_cache, VKQueryCache& query_cache,
-                            const VKDevice& device, VKScheduler& scheduler);
+    explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
+                            Tegra::MemoryManager& memory_manager_, VKTextureCache& texture_cache_,
+                            VKBufferCache& buffer_cache_, VKQueryCache& query_cache_,
+                            const VKDevice& device_, VKScheduler& scheduler_);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;

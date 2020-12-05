@@ -14,7 +14,7 @@ class VKDevice;
 
 class VKSamplerCache final : public VideoCommon::SamplerCache<VkSampler, vk::Sampler> {
 public:
-    explicit VKSamplerCache(const VKDevice& device);
+    explicit VKSamplerCache(const VKDevice& device_);
     ~VKSamplerCache();
 
 protected:

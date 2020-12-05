@@ -52,7 +52,7 @@ public:
 
     /// Construct a span from a pointer and a size.
     /// This is inteded for subranges.
-    constexpr Span(const T* ptr, std::size_t num) noexcept : ptr{ptr}, num{num} {}
+    constexpr Span(const T* ptr_, std::size_t num_) noexcept : ptr{ptr_}, num{num_} {}
 
     /// Returns the data pointer by the span.
     constexpr const T* data() const noexcept {
@@ -469,9 +469,10 @@ public:
     PoolAllocations() = default;
 
     /// Construct an allocation. Errors are reported through IsOutOfPoolMemory().
-    explicit PoolAllocations(std::unique_ptr<AllocationType[]> allocations, std::size_t num,
-                             VkDevice device, PoolType pool, const DeviceDispatch& dld) noexcept
-        : allocations{std::move(allocations)}, num{num}, device{device}, pool{pool}, dld{&dld} {}
+    explicit PoolAllocations(std::unique_ptr<AllocationType[]> allocations_, std::size_t num_,
+                             VkDevice device_, PoolType pool_, const DeviceDispatch& dld_) noexcept
+        : allocations{std::move(allocations_)}, num{num_}, device{device_}, pool{pool_},
+          dld{&dld_} {}
 
     /// Copying Vulkan allocations is not supported and will never be.
     PoolAllocations(const PoolAllocations&) = delete;
@@ -565,7 +566,7 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
 public:
     /// Creates a Vulkan instance. Use "operator bool" for error handling.
     static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
-                           InstanceDispatch& dld) noexcept;
+                           InstanceDispatch& dispatch) noexcept;
 
     /// Enumerates physical devices.
     /// @return Physical devices and an empty handle on failure.
@@ -581,7 +582,8 @@ public:
     constexpr Queue() noexcept = default;
 
     /// Construct a queue handle.
-    constexpr Queue(VkQueue queue, const DeviceDispatch& dld) noexcept : queue{queue}, dld{&dld} {}
+    constexpr Queue(VkQueue queue_, const DeviceDispatch& dld_) noexcept
+        : queue{queue_}, dld{&dld_} {}
 
     VkResult Submit(Span<VkSubmitInfo> submit_infos,
                     VkFence fence = VK_NULL_HANDLE) const noexcept {
@@ -720,7 +722,7 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
 public:
     static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
                          Span<const char*> enabled_extensions, const void* next,
-                         DeviceDispatch& dld) noexcept;
+                         DeviceDispatch& dispatch) noexcept;
 
     Queue GetQueue(u32 family_index) const noexcept;
 
@@ -809,8 +811,9 @@ class PhysicalDevice {
 public:
     constexpr PhysicalDevice() noexcept = default;
 
-    constexpr PhysicalDevice(VkPhysicalDevice physical_device, const InstanceDispatch& dld) noexcept
-        : physical_device{physical_device}, dld{&dld} {}
+    constexpr PhysicalDevice(VkPhysicalDevice physical_device_,
+                             const InstanceDispatch& dld_) noexcept
+        : physical_device{physical_device_}, dld{&dld_} {}
 
     constexpr operator VkPhysicalDevice() const noexcept {
         return physical_device;
@@ -849,8 +852,8 @@ class CommandBuffer {
 public:
     CommandBuffer() noexcept = default;
 
-    explicit CommandBuffer(VkCommandBuffer handle, const DeviceDispatch& dld) noexcept
-        : handle{handle}, dld{&dld} {}
+    explicit CommandBuffer(VkCommandBuffer handle_, const DeviceDispatch& dld_) noexcept
+        : handle{handle_}, dld{&dld_} {}
 
     const VkCommandBuffer* address() const noexcept {
         return &handle;

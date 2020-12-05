@@ -241,10 +241,10 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
     ParseInfo parse_info{};
     SingleBranch single_branch{};
 
-    const auto insert_label = [](CFGRebuildState& state, u32 address) {
-        const auto pair = state.labels.emplace(address);
+    const auto insert_label = [](CFGRebuildState& rebuild_state, u32 label_address) {
+        const auto pair = rebuild_state.labels.emplace(label_address);
         if (pair.second) {
-            state.inspect_queries.push_back(address);
+            rebuild_state.inspect_queries.push_back(label_address);
         }
     };
 

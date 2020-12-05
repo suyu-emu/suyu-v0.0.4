@@ -90,11 +90,11 @@ u32 ShaderIR::DecodeOther(NodeBlock& bb, u32 pc) {
                 UNIMPLEMENTED_MSG("S2R WscaleFactorZ is not implemented");
                 return Immediate(0U);
             case SystemVariable::Tid: {
-                Node value = Immediate(0);
-                value = BitfieldInsert(value, Operation(OperationCode::LocalInvocationIdX), 0, 9);
-                value = BitfieldInsert(value, Operation(OperationCode::LocalInvocationIdY), 16, 9);
-                value = BitfieldInsert(value, Operation(OperationCode::LocalInvocationIdZ), 26, 5);
-                return value;
+                Node val = Immediate(0);
+                val = BitfieldInsert(val, Operation(OperationCode::LocalInvocationIdX), 0, 9);
+                val = BitfieldInsert(val, Operation(OperationCode::LocalInvocationIdY), 16, 9);
+                val = BitfieldInsert(val, Operation(OperationCode::LocalInvocationIdZ), 26, 5);
+                return val;
             }
             case SystemVariable::TidX:
                 return Operation(OperationCode::LocalInvocationIdX);

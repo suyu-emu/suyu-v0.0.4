@@ -36,7 +36,7 @@ VkBorderColor ConvertBorderColor(std::array<float, 4> color) {
 
 } // Anonymous namespace
 
-VKSamplerCache::VKSamplerCache(const VKDevice& device) : device{device} {}
+VKSamplerCache::VKSamplerCache(const VKDevice& device_) : device{device_} {}
 
 VKSamplerCache::~VKSamplerCache() = default;
 

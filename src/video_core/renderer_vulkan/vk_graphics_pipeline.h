@@ -51,13 +51,13 @@ using SPIRVProgram = std::array<std::optional<SPIRVShader>, Maxwell::MaxShaderSt
 
 class VKGraphicsPipeline final {
 public:
-    explicit VKGraphicsPipeline(const VKDevice& device, VKScheduler& scheduler,
-                                VKDescriptorPool& descriptor_pool,
-                                VKUpdateDescriptorQueue& update_descriptor_queue,
-                                VKRenderPassCache& renderpass_cache,
-                                const GraphicsPipelineCacheKey& key,
-                                vk::Span<VkDescriptorSetLayoutBinding> bindings,
-                                const SPIRVProgram& program);
+    explicit VKGraphicsPipeline(const VKDevice& device_, VKScheduler& scheduler_,
+                                VKDescriptorPool& descriptor_pool_,
+                                VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                VKRenderPassCache& renderpass_cache_,
+                                const GraphicsPipelineCacheKey& key_,
+                                vk::Span<VkDescriptorSetLayoutBinding> bindings_,
+                                const SPIRVProgram& program_);
     ~VKGraphicsPipeline();
 
     VkDescriptorSet CommitDescriptorSet();

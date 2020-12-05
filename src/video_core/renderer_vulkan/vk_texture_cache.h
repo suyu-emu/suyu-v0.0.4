@@ -40,9 +40,9 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(const VKDevice& device, VKMemoryManager& memory_manager,
-                           VKScheduler& scheduler, VKStagingBufferPool& staging_pool,
-                           GPUVAddr gpu_addr, const SurfaceParams& params);
+    explicit CachedSurface(const VKDevice& device_, VKMemoryManager& memory_manager_,
+                           VKScheduler& scheduler_, VKStagingBufferPool& staging_pool_,
+                           GPUVAddr gpu_addr_, const SurfaceParams& params_);
     ~CachedSurface();
 
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
@@ -84,7 +84,7 @@ public:
 protected:
     void DecorateSurfaceName();
 
-    View CreateView(const ViewParams& params) override;
+    View CreateView(const ViewParams& view_params) override;
 
 private:
     void UploadBuffer(const std::vector<u8>& staging_buffer);
@@ -110,8 +110,8 @@ private:
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
-    explicit CachedSurfaceView(const VKDevice& device, CachedSurface& surface,
-                               const ViewParams& params);
+    explicit CachedSurfaceView(const VKDevice& device_, CachedSurface& surface_,
+                               const ViewParams& view_params_);
     ~CachedSurfaceView();
 
     VkImageView GetImageView(Tegra::Texture::SwizzleSource x_source,
@@ -126,11 +126,11 @@ public:
     }
 
     u32 GetWidth() const {
-        return params.GetMipWidth(base_level);
+        return surface_params.GetMipWidth(base_level);
     }
 
     u32 GetHeight() const {
-        return params.GetMipHeight(base_level);
+        return surface_params.GetMipHeight(base_level);
     }
 
     u32 GetNumLayers() const {
@@ -169,7 +169,7 @@ public:
 
 private:
     // Store a copy of these values to avoid double dereference when reading them
-    const SurfaceParams params;
+    const SurfaceParams surface_params;
     const VkImage image;
     const VkBufferView buffer_view;
     const VkImageAspectFlags aspect_mask;

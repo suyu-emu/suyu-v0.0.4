@@ -17,8 +17,8 @@ class VKScheduler;
 
 class VKImage {
 public:
-    explicit VKImage(const VKDevice& device, VKScheduler& scheduler,
-                     const VkImageCreateInfo& image_ci, VkImageAspectFlags aspect_mask);
+    explicit VKImage(const VKDevice& device_, VKScheduler& scheduler_,
+                     const VkImageCreateInfo& image_ci_, VkImageAspectFlags aspect_mask_);
     ~VKImage();
 
     /// Records in the passed command buffer an image transition and updates the state of the image.

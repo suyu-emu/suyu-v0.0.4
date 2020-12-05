@@ -461,15 +461,15 @@ VkDescriptorSet VKComputePass::CommitDescriptorSet(
     return set;
 }
 
-QuadArrayPass::QuadArrayPass(const VKDevice& device, VKScheduler& scheduler,
-                             VKDescriptorPool& descriptor_pool,
-                             VKStagingBufferPool& staging_buffer_pool,
-                             VKUpdateDescriptorQueue& update_descriptor_queue)
-    : VKComputePass(device, descriptor_pool, BuildQuadArrayPassDescriptorSetLayoutBinding(),
+QuadArrayPass::QuadArrayPass(const VKDevice& device_, VKScheduler& scheduler_,
+                             VKDescriptorPool& descriptor_pool_,
+                             VKStagingBufferPool& staging_buffer_pool_,
+                             VKUpdateDescriptorQueue& update_descriptor_queue_)
+    : VKComputePass(device_, descriptor_pool_, BuildQuadArrayPassDescriptorSetLayoutBinding(),
                     BuildQuadArrayPassDescriptorUpdateTemplateEntry(),
                     BuildComputePushConstantRange(sizeof(u32)), std::size(quad_array), quad_array),
-      scheduler{scheduler}, staging_buffer_pool{staging_buffer_pool},
-      update_descriptor_queue{update_descriptor_queue} {}
+      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
+      update_descriptor_queue{update_descriptor_queue_} {}
 
 QuadArrayPass::~QuadArrayPass() = default;
 
@@ -510,14 +510,14 @@ std::pair<VkBuffer, VkDeviceSize> QuadArrayPass::Assemble(u32 num_vertices, u32 
     return {*buffer.handle, 0};
 }
 
-Uint8Pass::Uint8Pass(const VKDevice& device, VKScheduler& scheduler,
-                     VKDescriptorPool& descriptor_pool, VKStagingBufferPool& staging_buffer_pool,
-                     VKUpdateDescriptorQueue& update_descriptor_queue)
-    : VKComputePass(device, descriptor_pool, BuildInputOutputDescriptorSetBindings(),
+Uint8Pass::Uint8Pass(const VKDevice& device_, VKScheduler& scheduler_,
+                     VKDescriptorPool& descriptor_pool_, VKStagingBufferPool& staging_buffer_pool_,
+                     VKUpdateDescriptorQueue& update_descriptor_queue_)
+    : VKComputePass(device_, descriptor_pool_, BuildInputOutputDescriptorSetBindings(),
                     BuildInputOutputDescriptorUpdateTemplate(), {}, std::size(uint8_pass),
                     uint8_pass),
-      scheduler{scheduler}, staging_buffer_pool{staging_buffer_pool},
-      update_descriptor_queue{update_descriptor_queue} {}
+      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
+      update_descriptor_queue{update_descriptor_queue_} {}
 
 Uint8Pass::~Uint8Pass() = default;
 
@@ -555,16 +555,16 @@ std::pair<VkBuffer, u64> Uint8Pass::Assemble(u32 num_vertices, VkBuffer src_buff
     return {*buffer.handle, 0};
 }
 
-QuadIndexedPass::QuadIndexedPass(const VKDevice& device, VKScheduler& scheduler,
-                                 VKDescriptorPool& descriptor_pool,
-                                 VKStagingBufferPool& staging_buffer_pool,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue)
-    : VKComputePass(device, descriptor_pool, BuildInputOutputDescriptorSetBindings(),
+QuadIndexedPass::QuadIndexedPass(const VKDevice& device_, VKScheduler& scheduler_,
+                                 VKDescriptorPool& descriptor_pool_,
+                                 VKStagingBufferPool& staging_buffer_pool_,
+                                 VKUpdateDescriptorQueue& update_descriptor_queue_)
+    : VKComputePass(device_, descriptor_pool_, BuildInputOutputDescriptorSetBindings(),
                     BuildInputOutputDescriptorUpdateTemplate(),
                     BuildComputePushConstantRange(sizeof(u32) * 2), std::size(QUAD_INDEXED_SPV),
                     QUAD_INDEXED_SPV),
-      scheduler{scheduler}, staging_buffer_pool{staging_buffer_pool},
-      update_descriptor_queue{update_descriptor_queue} {}
+      scheduler{scheduler_}, staging_buffer_pool{staging_buffer_pool_},
+      update_descriptor_queue{update_descriptor_queue_} {}
 
 QuadIndexedPass::~QuadIndexedPass() = default;
 
