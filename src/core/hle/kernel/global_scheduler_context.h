@@ -21,7 +21,7 @@ class SchedulerLock;
 
 using KSchedulerPriorityQueue =
     KPriorityQueue<Thread, Core::Hardware::NUM_CPU_CORES, THREADPRIO_LOWEST, THREADPRIO_HIGHEST>;
-static constexpr s32 HighestCoreMigrationAllowedPriority = 2;
+constexpr s32 HighestCoreMigrationAllowedPriority = 2;
 
 class GlobalSchedulerContext final {
     friend class KScheduler;
@@ -39,7 +39,7 @@ public:
     void RemoveThread(std::shared_ptr<Thread> thread);
 
     /// Returns a list of all threads managed by the scheduler
-    const std::vector<std::shared_ptr<Thread>>& GetThreadList() const {
+    [[nodiscard]] const std::vector<std::shared_ptr<Thread>>& GetThreadList() const {
         return thread_list;
     }
 
@@ -55,11 +55,11 @@ public:
     /// Returns true if the global scheduler lock is acquired
     bool IsLocked() const;
 
-    LockType& SchedulerLock() {
+    [[nodiscard]] LockType& SchedulerLock() {
         return scheduler_lock;
     }
 
-    const LockType& SchedulerLock() const {
+    [[nodiscard]] const LockType& SchedulerLock() const {
         return scheduler_lock;
     }
 

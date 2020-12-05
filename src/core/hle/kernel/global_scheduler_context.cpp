@@ -31,7 +31,12 @@ void GlobalSchedulerContext::RemoveThread(std::shared_ptr<Thread> thread) {
 void GlobalSchedulerContext::PreemptThreads() {
     // The priority levels at which the global scheduler preempts threads every 10 ms. They are
     // ordered from Core 0 to Core 3.
-    std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities = {59, 59, 59, 63};
+    static constexpr std::array<u32, Core::Hardware::NUM_CPU_CORES> preemption_priorities{
+        59,
+        59,
+        59,
+        63,
+    };
 
     ASSERT(IsLocked());
     for (u32 core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
