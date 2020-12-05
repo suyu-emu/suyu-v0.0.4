@@ -55,7 +55,7 @@ namespace Vulkan {
 
 class VKRenderPassCache final {
 public:
-    explicit VKRenderPassCache(const VKDevice& device);
+    explicit VKRenderPassCache(const VKDevice& device_);
     ~VKRenderPassCache();
 
     VkRenderPass GetRenderPass(const RenderPassParams& params);

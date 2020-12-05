@@ -491,8 +491,8 @@ bool VKDevice::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) 
         VK_FORMAT_FEATURE_BLIT_DST_BIT | VK_FORMAT_FEATURE_TRANSFER_SRC_BIT |
         VK_FORMAT_FEATURE_TRANSFER_DST_BIT};
     for (const auto format : astc_formats) {
-        const auto format_properties{physical.GetFormatProperties(format)};
-        if (!(format_properties.optimalTilingFeatures & format_feature_usage)) {
+        const auto physical_format_properties{physical.GetFormatProperties(format)};
+        if ((physical_format_properties.optimalTilingFeatures & format_feature_usage) == 0) {
             return false;
         }
     }
@@ -644,8 +644,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
     VkPhysicalDeviceFeatures2KHR features;
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR;
 
-    VkPhysicalDeviceProperties2KHR properties;
-    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
+    VkPhysicalDeviceProperties2KHR physical_properties;
+    physical_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR;
 
     if (has_khr_shader_float16_int8) {
         VkPhysicalDeviceFloat16Int8FeaturesKHR float16_int8_features;
@@ -670,8 +670,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         subgroup_properties.sType =
             VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_SIZE_CONTROL_PROPERTIES_EXT;
         subgroup_properties.pNext = nullptr;
-        properties.pNext = &subgroup_properties;
-        physical.GetProperties2KHR(properties);
+        physical_properties.pNext = &subgroup_properties;
+        physical.GetProperties2KHR(physical_properties);
 
         is_warp_potentially_bigger = subgroup_properties.maxSubgroupSize > GuestWarpSize;
 
@@ -695,8 +695,8 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         VkPhysicalDeviceTransformFeedbackPropertiesEXT tfb_properties;
         tfb_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_TRANSFORM_FEEDBACK_PROPERTIES_EXT;
         tfb_properties.pNext = nullptr;
-        properties.pNext = &tfb_properties;
-        physical.GetProperties2KHR(properties);
+        physical_properties.pNext = &tfb_properties;
+        physical.GetProperties2KHR(physical_properties);
 
         if (tfb_features.transformFeedback && tfb_features.geometryStreams &&
             tfb_properties.maxTransformFeedbackStreams >= 4 &&

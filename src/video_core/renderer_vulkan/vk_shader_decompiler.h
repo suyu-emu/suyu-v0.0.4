@@ -30,8 +30,8 @@ constexpr u32 DESCRIPTOR_SET = 0;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:
-    explicit constexpr ConstBufferEntry(const VideoCommon::Shader::ConstBuffer& entry, u32 index)
-        : VideoCommon::Shader::ConstBuffer{entry}, index{index} {}
+    explicit constexpr ConstBufferEntry(const ConstBuffer& entry_, u32 index_)
+        : ConstBuffer{entry_}, index{index_} {}
 
     constexpr u32 GetIndex() const {
         return index;
@@ -43,8 +43,8 @@ private:
 
 class GlobalBufferEntry {
 public:
-    constexpr explicit GlobalBufferEntry(u32 cbuf_index, u32 cbuf_offset, bool is_written)
-        : cbuf_index{cbuf_index}, cbuf_offset{cbuf_offset}, is_written{is_written} {}
+    constexpr explicit GlobalBufferEntry(u32 cbuf_index_, u32 cbuf_offset_, bool is_written_)
+        : cbuf_index{cbuf_index_}, cbuf_offset{cbuf_offset_}, is_written{is_written_} {}
 
     constexpr u32 GetCbufIndex() const {
         return cbuf_index;

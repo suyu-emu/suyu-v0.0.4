@@ -243,8 +243,8 @@ std::string BuildCommaSeparatedExtensions(std::vector<std::string> available_ext
 RendererVulkan::RendererVulkan(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context)
-    : RendererBase{emu_window, std::move(context)}, telemetry_session{telemetry_session_},
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
+    : RendererBase{emu_window, std::move(context_)}, telemetry_session{telemetry_session_},
       cpu_memory{cpu_memory_}, gpu{gpu_} {}
 
 RendererVulkan::~RendererVulkan() {

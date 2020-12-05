@@ -53,9 +53,9 @@ private:
 class VKQueryCache final
     : public VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter> {
 public:
-    explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
-                          Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                          const VKDevice& device, VKScheduler& scheduler);
+    explicit VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                          Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
+                          const VKDevice& device_, VKScheduler& scheduler_);
     ~VKQueryCache();
 
     std::pair<VkQueryPool, u32> AllocateQuery(VideoCore::QueryType type);
@@ -78,8 +78,8 @@ private:
 
 class HostCounter final : public VideoCommon::HostCounterBase<VKQueryCache, HostCounter> {
 public:
-    explicit HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         VideoCore::QueryType type);
+    explicit HostCounter(VKQueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
+                         VideoCore::QueryType type_);
     ~HostCounter();
 
     void EndQuery();

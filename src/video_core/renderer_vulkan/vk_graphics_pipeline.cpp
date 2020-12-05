@@ -71,21 +71,21 @@ VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
 
 } // Anonymous namespace
 
-VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device, VKScheduler& scheduler,
-                                       VKDescriptorPool& descriptor_pool,
-                                       VKUpdateDescriptorQueue& update_descriptor_queue,
-                                       VKRenderPassCache& renderpass_cache,
-                                       const GraphicsPipelineCacheKey& key,
-                                       vk::Span<VkDescriptorSetLayoutBinding> bindings,
-                                       const SPIRVProgram& program)
-    : device{device}, scheduler{scheduler}, cache_key{key}, hash{cache_key.Hash()},
-      descriptor_set_layout{CreateDescriptorSetLayout(bindings)},
-      descriptor_allocator{descriptor_pool, *descriptor_set_layout},
-      update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
-      descriptor_template{CreateDescriptorUpdateTemplate(program)}, modules{CreateShaderModules(
-                                                                        program)},
-      renderpass{renderpass_cache.GetRenderPass(cache_key.renderpass_params)},
-      pipeline{CreatePipeline(cache_key.renderpass_params, program)} {}
+VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device_, VKScheduler& scheduler_,
+                                       VKDescriptorPool& descriptor_pool_,
+                                       VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                       VKRenderPassCache& renderpass_cache_,
+                                       const GraphicsPipelineCacheKey& key_,
+                                       vk::Span<VkDescriptorSetLayoutBinding> bindings_,
+                                       const SPIRVProgram& program_)
+    : device{device_}, scheduler{scheduler_}, cache_key{key_}, hash{cache_key.Hash()},
+      descriptor_set_layout{CreateDescriptorSetLayout(bindings_)},
+      descriptor_allocator{descriptor_pool_, *descriptor_set_layout},
+      update_descriptor_queue{update_descriptor_queue_}, layout{CreatePipelineLayout()},
+      descriptor_template{CreateDescriptorUpdateTemplate(program_)}, modules{CreateShaderModules(
+                                                                         program_)},
+      renderpass{renderpass_cache_.GetRenderPass(cache_key.renderpass_params)},
+      pipeline{CreatePipeline(cache_key.renderpass_params, program_)} {}
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 
@@ -162,8 +162,8 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
         .codeSize = 0,
     };
 
-    std::vector<vk::ShaderModule> modules;
-    modules.reserve(Maxwell::MaxShaderStage);
+    std::vector<vk::ShaderModule> shader_modules;
+    shader_modules.reserve(Maxwell::MaxShaderStage);
     for (std::size_t i = 0; i < Maxwell::MaxShaderStage; ++i) {
         const auto& stage = program[i];
         if (!stage) {
@@ -174,9 +174,9 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
 
         ci.codeSize = stage->code.size() * sizeof(u32);
         ci.pCode = stage->code.data();
-        modules.push_back(device.GetLogical().CreateShaderModule(ci));
+        shader_modules.push_back(device.GetLogical().CreateShaderModule(ci));
     }
-    return modules;
+    return shader_modules;
 }
 
 vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,

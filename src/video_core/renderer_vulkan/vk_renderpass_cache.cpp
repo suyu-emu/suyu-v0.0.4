@@ -24,7 +24,7 @@ bool RenderPassParams::operator==(const RenderPassParams& rhs) const noexcept {
     return std::memcmp(&rhs, this, sizeof *this) == 0;
 }
 
-VKRenderPassCache::VKRenderPassCache(const VKDevice& device) : device{device} {}
+VKRenderPassCache::VKRenderPassCache(const VKDevice& device_) : device{device_} {}
 
 VKRenderPassCache::~VKRenderPassCache() = default;
 

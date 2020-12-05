@@ -66,15 +66,15 @@ void QueryPool::Reserve(std::pair<VkQueryPool, u32> query) {
     usage[pool_index * GROW_STEP + static_cast<std::ptrdiff_t>(query.second)] = false;
 }
 
-VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer,
-                           Tegra::Engines::Maxwell3D& maxwell3d, Tegra::MemoryManager& gpu_memory,
-                           const VKDevice& device, VKScheduler& scheduler)
-    : VideoCommon::QueryCacheBase<VKQueryCache, CachedQuery, CounterStream,
-                                  HostCounter>{rasterizer, maxwell3d, gpu_memory},
-      device{device}, scheduler{scheduler}, query_pools{
-                                                QueryPool{device, scheduler,
-                                                          QueryType::SamplesPassed},
-                                            } {}
+VKQueryCache::VKQueryCache(VideoCore::RasterizerInterface& rasterizer_,
+                           Tegra::Engines::Maxwell3D& maxwell3d_, Tegra::MemoryManager& gpu_memory_,
+                           const VKDevice& device_, VKScheduler& scheduler_)
+    : QueryCacheBase<VKQueryCache, CachedQuery, CounterStream, HostCounter>{rasterizer_, maxwell3d_,
+                                                                            gpu_memory_},
+      device{device_}, scheduler{scheduler_}, query_pools{
+                                                  QueryPool{device_, scheduler_,
+                                                            QueryType::SamplesPassed},
+                                              } {}
 
 VKQueryCache::~VKQueryCache() {
     // TODO(Rodrigo): This is a hack to destroy all HostCounter instances before the base class
@@ -95,12 +95,12 @@ void VKQueryCache::Reserve(QueryType type, std::pair<VkQueryPool, u32> query) {
     query_pools[static_cast<std::size_t>(type)].Reserve(query);
 }
 
-HostCounter::HostCounter(VKQueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         QueryType type)
-    : VideoCommon::HostCounterBase<VKQueryCache, HostCounter>{std::move(dependency)}, cache{cache},
-      type{type}, query{cache.AllocateQuery(type)}, tick{cache.Scheduler().CurrentTick()} {
-    const vk::Device* logical = &cache.Device().GetLogical();
-    cache.Scheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
+HostCounter::HostCounter(VKQueryCache& cache_, std::shared_ptr<HostCounter> dependency_,
+                         QueryType type_)
+    : HostCounterBase<VKQueryCache, HostCounter>{std::move(dependency_)}, cache{cache_},
+      type{type_}, query{cache_.AllocateQuery(type_)}, tick{cache_.Scheduler().CurrentTick()} {
+    const vk::Device* logical = &cache_.Device().GetLogical();
+    cache_.Scheduler().Record([logical, query = query](vk::CommandBuffer cmdbuf) {
         logical->ResetQueryPoolEXT(query.first, query.second, 1);
         cmdbuf.BeginQuery(query.first, query.second, VK_QUERY_CONTROL_PRECISE_BIT);
     });

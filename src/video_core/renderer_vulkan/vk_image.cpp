@@ -13,18 +13,18 @@
 
 namespace Vulkan {
 
-VKImage::VKImage(const VKDevice& device, VKScheduler& scheduler, const VkImageCreateInfo& image_ci,
-                 VkImageAspectFlags aspect_mask)
-    : device{device}, scheduler{scheduler}, format{image_ci.format}, aspect_mask{aspect_mask},
-      image_num_layers{image_ci.arrayLayers}, image_num_levels{image_ci.mipLevels} {
-    UNIMPLEMENTED_IF_MSG(image_ci.queueFamilyIndexCount != 0,
+VKImage::VKImage(const VKDevice& device_, VKScheduler& scheduler_,
+                 const VkImageCreateInfo& image_ci_, VkImageAspectFlags aspect_mask_)
+    : device{device_}, scheduler{scheduler_}, format{image_ci_.format}, aspect_mask{aspect_mask_},
+      image_num_layers{image_ci_.arrayLayers}, image_num_levels{image_ci_.mipLevels} {
+    UNIMPLEMENTED_IF_MSG(image_ci_.queueFamilyIndexCount != 0,
                          "Queue family tracking is not implemented");
 
-    image = device.GetLogical().CreateImage(image_ci);
+    image = device_.GetLogical().CreateImage(image_ci_);
 
     const u32 num_ranges = image_num_layers * image_num_levels;
     barriers.resize(num_ranges);
-    subrange_states.resize(num_ranges, {{}, image_ci.initialLayout});
+    subrange_states.resize(num_ranges, {{}, image_ci_.initialLayout});
 }
 
 VKImage::~VKImage() = default;

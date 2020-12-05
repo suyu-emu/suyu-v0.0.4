@@ -55,8 +55,8 @@ enum class Type { Void, Bool, Bool2, Float, Int, Uint, HalfFloat };
 
 class Expression final {
 public:
-    Expression(Id id, Type type) : id{id}, type{type} {
-        ASSERT(type != Type::Void);
+    Expression(Id id_, Type type_) : id{id_}, type{type_} {
+        ASSERT(type_ != Type::Void);
     }
     Expression() : type{Type::Void} {}
 
@@ -281,12 +281,12 @@ u32 ShaderVersion(const VKDevice& device) {
 
 class SPIRVDecompiler final : public Sirit::Module {
 public:
-    explicit SPIRVDecompiler(const VKDevice& device, const ShaderIR& ir, ShaderType stage,
-                             const Registry& registry, const Specialization& specialization)
-        : Module(ShaderVersion(device)), device{device}, ir{ir}, stage{stage},
-          header{ir.GetHeader()}, registry{registry}, specialization{specialization} {
-        if (stage != ShaderType::Compute) {
-            transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
+    explicit SPIRVDecompiler(const VKDevice& device_, const ShaderIR& ir_, ShaderType stage_,
+                             const Registry& registry_, const Specialization& specialization_)
+        : Module(ShaderVersion(device_)), device{device_}, ir{ir_}, stage{stage_},
+          header{ir_.GetHeader()}, registry{registry_}, specialization{specialization_} {
+        if (stage_ != ShaderType::Compute) {
+            transform_feedback = BuildTransformFeedback(registry_.GetGraphicsInfo());
         }
 
         AddCapability(spv::Capability::Shader);
@@ -330,7 +330,7 @@ public:
         if (device.IsFloat16Supported()) {
             AddCapability(spv::Capability::Float16);
         }
-        t_scalar_half = Name(TypeFloat(device.IsFloat16Supported() ? 16 : 32), "scalar_half");
+        t_scalar_half = Name(TypeFloat(device_.IsFloat16Supported() ? 16 : 32), "scalar_half");
         t_half = Name(TypeVector(t_scalar_half, 2), "half");
 
         const Id main = Decompile();
@@ -1088,9 +1088,9 @@ private:
             indices.point_size = AddBuiltIn(t_float, spv::BuiltIn::PointSize, "point_size");
         }
 
-        const auto& output_attributes = ir.GetOutputAttributes();
-        const bool declare_clip_distances =
-            std::any_of(output_attributes.begin(), output_attributes.end(), [](const auto& index) {
+        const auto& ir_output_attributes = ir.GetOutputAttributes();
+        const bool declare_clip_distances = std::any_of(
+            ir_output_attributes.begin(), ir_output_attributes.end(), [](const auto& index) {
                 return index == Attribute::Index::ClipDistances0123 ||
                        index == Attribute::Index::ClipDistances4567;
             });
@@ -2891,7 +2891,7 @@ private:
 
 class ExprDecompiler {
 public:
-    explicit ExprDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
+    explicit ExprDecompiler(SPIRVDecompiler& decomp_) : decomp{decomp_} {}
 
     Id operator()(const ExprAnd& expr) {
         const Id type_def = decomp.GetTypeDefinition(Type::Bool);
@@ -2947,7 +2947,7 @@ private:
 
 class ASTDecompiler {
 public:
-    explicit ASTDecompiler(SPIRVDecompiler& decomp) : decomp{decomp} {}
+    explicit ASTDecompiler(SPIRVDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();

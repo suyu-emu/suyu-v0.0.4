@@ -374,43 +374,43 @@ void VP9::InsertEntropy(u64 offset, Vp9EntropyProbs& dst) {
 }
 
 Vp9FrameContainer VP9::GetCurrentFrame(const NvdecCommon::NvdecRegisters& state) {
-    Vp9FrameContainer frame{};
+    Vp9FrameContainer current_frame{};
     {
         gpu.SyncGuestHost();
-        frame.info = GetVp9PictureInfo(state);
-        frame.bit_stream.resize(frame.info.bitstream_size);
-        gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, frame.bit_stream.data(),
-                                      frame.info.bitstream_size);
+        current_frame.info = GetVp9PictureInfo(state);
+        current_frame.bit_stream.resize(current_frame.info.bitstream_size);
+        gpu.MemoryManager().ReadBlock(state.frame_bitstream_offset, current_frame.bit_stream.data(),
+                                      current_frame.info.bitstream_size);
     }
     // Buffer two frames, saving the last show frame info
     if (!next_next_frame.bit_stream.empty()) {
         Vp9FrameContainer temp{
-            .info = frame.info,
-            .bit_stream = std::move(frame.bit_stream),
+            .info = current_frame.info,
+            .bit_stream = std::move(current_frame.bit_stream),
         };
-        next_next_frame.info.show_frame = frame.info.last_frame_shown;
-        frame.info = next_next_frame.info;
-        frame.bit_stream = std::move(next_next_frame.bit_stream);
+        next_next_frame.info.show_frame = current_frame.info.last_frame_shown;
+        current_frame.info = next_next_frame.info;
+        current_frame.bit_stream = std::move(next_next_frame.bit_stream);
         next_next_frame = std::move(temp);
 
         if (!next_frame.bit_stream.empty()) {
             Vp9FrameContainer temp2{
-                .info = frame.info,
-                .bit_stream = std::move(frame.bit_stream),
+                .info = current_frame.info,
+                .bit_stream = std::move(current_frame.bit_stream),
             };
-            next_frame.info.show_frame = frame.info.last_frame_shown;
-            frame.info = next_frame.info;
-            frame.bit_stream = std::move(next_frame.bit_stream);
+            next_frame.info.show_frame = current_frame.info.last_frame_shown;
+            current_frame.info = next_frame.info;
+            current_frame.bit_stream = std::move(next_frame.bit_stream);
             next_frame = std::move(temp2);
         } else {
-            next_frame.info = frame.info;
-            next_frame.bit_stream = std::move(frame.bit_stream);
+            next_frame.info = current_frame.info;
+            next_frame.bit_stream = std::move(current_frame.bit_stream);
         }
     } else {
-        next_next_frame.info = frame.info;
-        next_next_frame.bit_stream = std::move(frame.bit_stream);
+        next_next_frame.info = current_frame.info;
+        next_next_frame.bit_stream = std::move(current_frame.bit_stream);
     }
-    return frame;
+    return current_frame;
 }
 
 std::vector<u8> VP9::ComposeCompressedHeader() {

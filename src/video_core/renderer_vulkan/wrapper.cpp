@@ -417,7 +417,7 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 }
 
 Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
-                          InstanceDispatch& dld) noexcept {
+                          InstanceDispatch& dispatch) noexcept {
     const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
@@ -439,17 +439,17 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
     };
 
     VkInstance instance;
-    if (dld.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
+    if (dispatch.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
         // Failed to create the instance.
         return {};
     }
-    if (!Proc(dld.vkDestroyInstance, dld, "vkDestroyInstance", instance)) {
+    if (!Proc(dispatch.vkDestroyInstance, dispatch, "vkDestroyInstance", instance)) {
         // We successfully created an instance but the destroy function couldn't be loaded.
         // This is a good moment to panic.
         return {};
     }
 
-    return Instance(instance, dld);
+    return Instance(instance, dispatch);
 }
 
 std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() {
@@ -540,7 +540,7 @@ std::vector<VkImage> SwapchainKHR::GetImages() const {
 
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
                       Span<const char*> enabled_extensions, const void* next,
-                      DeviceDispatch& dld) noexcept {
+                      DeviceDispatch& dispatch) noexcept {
     const VkDeviceCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = next,
@@ -555,11 +555,11 @@ Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreate
     };
 
     VkDevice device;
-    if (dld.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
+    if (dispatch.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
         return {};
     }
-    Load(device, dld);
-    return Device(device, dld);
+    Load(device, dispatch);
+    return Device(device, dispatch);
 }
 
 Queue Device::GetQueue(u32 family_index) const noexcept {

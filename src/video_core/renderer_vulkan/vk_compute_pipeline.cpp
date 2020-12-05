@@ -15,16 +15,16 @@
 
 namespace Vulkan {
 
-VKComputePipeline::VKComputePipeline(const VKDevice& device, VKScheduler& scheduler,
-                                     VKDescriptorPool& descriptor_pool,
-                                     VKUpdateDescriptorQueue& update_descriptor_queue,
-                                     const SPIRVShader& shader)
-    : device{device}, scheduler{scheduler}, entries{shader.entries},
+VKComputePipeline::VKComputePipeline(const VKDevice& device_, VKScheduler& scheduler_,
+                                     VKDescriptorPool& descriptor_pool_,
+                                     VKUpdateDescriptorQueue& update_descriptor_queue_,
+                                     const SPIRVShader& shader_)
+    : device{device_}, scheduler{scheduler_}, entries{shader_.entries},
       descriptor_set_layout{CreateDescriptorSetLayout()},
-      descriptor_allocator{descriptor_pool, *descriptor_set_layout},
-      update_descriptor_queue{update_descriptor_queue}, layout{CreatePipelineLayout()},
+      descriptor_allocator{descriptor_pool_, *descriptor_set_layout},
+      update_descriptor_queue{update_descriptor_queue_}, layout{CreatePipelineLayout()},
       descriptor_template{CreateDescriptorUpdateTemplate()},
-      shader_module{CreateShaderModule(shader.code)}, pipeline{CreatePipeline()} {}
+      shader_module{CreateShaderModule(shader_.code)}, pipeline{CreatePipeline()} {}
 
 VKComputePipeline::~VKComputePipeline() = default;
 

@@ -904,15 +904,14 @@ void RasterizerVulkan::SetupShaderDescriptors(
     texture_cache.GuardSamplers(false);
 }
 
-void RasterizerVulkan::SetupImageTransitions(
-    Texceptions texceptions, const std::array<View, Maxwell::NumRenderTargets>& color_attachments,
-    const View& zeta_attachment) {
+void RasterizerVulkan::SetupImageTransitions(Texceptions texceptions, const ColorAttachments& color,
+                                             const ZetaAttachment& zeta) {
     TransitionImages(sampled_views, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_ACCESS_SHADER_READ_BIT);
     TransitionImages(image_views, VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT,
                      VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
 
-    for (std::size_t rt = 0; rt < std::size(color_attachments); ++rt) {
-        const auto color_attachment = color_attachments[rt];
+    for (std::size_t rt = 0; rt < color.size(); ++rt) {
+        const auto color_attachment = color[rt];
         if (color_attachment == nullptr) {
             continue;
         }
@@ -923,13 +922,13 @@ void RasterizerVulkan::SetupImageTransitions(
                                          VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
     }
 
-    if (zeta_attachment != nullptr) {
+    if (zeta != nullptr) {
         const auto image_layout = texceptions[ZETA_TEXCEPTION_INDEX]
                                       ? VK_IMAGE_LAYOUT_GENERAL
                                       : VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        zeta_attachment->Transition(image_layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
-                                    VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
-                                        VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
+        zeta->Transition(image_layout, VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+                         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                             VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT);
     }
 }
 
