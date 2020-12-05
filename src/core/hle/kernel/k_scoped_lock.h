@@ -12,7 +12,7 @@
 namespace Kernel {
 
 template <typename T>
-concept KLockable = !std::is_reference<T>::value && requires(T & t) {
+concept KLockable = !std::is_reference_v<T> && requires(T & t) {
     { t.Lock() }
     ->std::same_as<void>;
     { t.Unlock() }
@@ -20,11 +20,7 @@ concept KLockable = !std::is_reference<T>::value && requires(T & t) {
 };
 
 template <typename T>
-requires KLockable<T> class KScopedLock : NonCopyable {
-
-private:
-    T* lock_ptr;
-
+requires KLockable<T> class KScopedLock {
 public:
     explicit KScopedLock(T* l) : lock_ptr(l) {
         this->lock_ptr->Lock();
@@ -34,6 +30,12 @@ public:
     ~KScopedLock() {
         this->lock_ptr->Unlock();
     }
+
+    KScopedLock(const KScopedLock&) = delete;
+    KScopedLock(KScopedLock&&) = delete;
+
+private:
+    T* lock_ptr;
 };
 
 } // namespace Kernel
