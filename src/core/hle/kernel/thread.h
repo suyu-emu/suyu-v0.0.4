@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <string>
 #include <utility>
@@ -346,10 +347,11 @@ public:
 
     void SetStatus(ThreadStatus new_status);
 
-    constexpr s64 GetLastScheduledTick() const {
+    s64 GetLastScheduledTick() const {
         return this->last_scheduled_tick;
     }
-    constexpr void SetLastScheduledTick(s64 tick) {
+
+    void SetLastScheduledTick(s64 tick) {
         this->last_scheduled_tick = tick;
     }
 
@@ -481,7 +483,7 @@ public:
         return ideal_core;
     }
 
-    constexpr const KAffinityMask& GetAffinityMask() const {
+    const KAffinityMask& GetAffinityMask() const {
         return affinity_mask;
     }
 
@@ -490,10 +492,11 @@ public:
     /// Sleeps this thread for the given amount of nanoseconds.
     ResultCode Sleep(s64 nanoseconds);
 
-    constexpr s64 GetYieldScheduleCount() const {
+    s64 GetYieldScheduleCount() const {
         return this->schedule_count;
     }
-    constexpr void SetYieldScheduleCount(s64 count) {
+
+    void SetYieldScheduleCount(s64 count) {
         this->schedule_count = count;
     }
 
@@ -570,14 +573,9 @@ public:
         return has_exited;
     }
 
-    struct QueueEntry {
-    private:
-        Thread* prev;
-        Thread* next;
-
+    class QueueEntry {
     public:
-        constexpr QueueEntry() : prev(nullptr), next(nullptr) { /* ... */
-        }
+        constexpr QueueEntry() = default;
 
         constexpr void Initialize() {
             this->prev = nullptr;
@@ -590,18 +588,23 @@ public:
         constexpr Thread* GetNext() const {
             return this->next;
         }
-        constexpr void SetPrev(Thread* t) {
-            this->prev = t;
+        constexpr void SetPrev(Thread* thread) {
+            this->prev = thread;
         }
-        constexpr void SetNext(Thread* t) {
-            this->next = t;
+        constexpr void SetNext(Thread* thread) {
+            this->next = thread;
         }
+
+    private:
+        Thread* prev{};
+        Thread* next{};
     };
 
-    constexpr QueueEntry& GetPriorityQueueEntry(s32 core) {
+    QueueEntry& GetPriorityQueueEntry(s32 core) {
         return this->per_core_priority_queue_entry[core];
     }
-    constexpr const QueueEntry& GetPriorityQueueEntry(s32 core) const {
+
+    const QueueEntry& GetPriorityQueueEntry(s32 core) const {
         return this->per_core_priority_queue_entry[core];
     }
 
@@ -619,9 +622,6 @@ public:
         disable_count--;
     }
 
-    ThreadStatus status = ThreadStatus::Dormant;
-    u32 scheduling_state = 0;
-
 private:
     friend class GlobalSchedulerContext;
     friend class KScheduler;
@@ -637,6 +637,9 @@ private:
     ThreadContext32 context_32{};
     ThreadContext64 context_64{};
     std::shared_ptr<Common::Fiber> host_context{};
+
+    ThreadStatus status = ThreadStatus::Dormant;
+    u32 scheduling_state = 0;
 
     u64 thread_id = 0;
 
@@ -701,7 +704,7 @@ private:
 
     KScheduler* scheduler = nullptr;
 
-    QueueEntry per_core_priority_queue_entry[Core::Hardware::NUM_CPU_CORES]{};
+    std::array<QueueEntry, Core::Hardware::NUM_CPU_CORES> per_core_priority_queue_entry{};
 
     u32 ideal_core{0xFFFFFFFF};
     KAffinityMask affinity_mask{};
