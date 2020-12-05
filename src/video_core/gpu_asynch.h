@@ -20,7 +20,7 @@ namespace VideoCommon {
 /// Implementation of GPU interface that runs the GPU asynchronously
 class GPUAsynch final : public Tegra::GPU {
 public:
-    explicit GPUAsynch(Core::System& system, bool use_nvdec);
+    explicit GPUAsynch(Core::System& system_, bool use_nvdec_);
     ~GPUAsynch() override;
 
     void Start() override;

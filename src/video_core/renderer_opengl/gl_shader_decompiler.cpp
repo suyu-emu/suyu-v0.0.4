@@ -131,7 +131,7 @@ private:
 
 class Expression final {
 public:
-    Expression(std::string code, Type type) : code{std::move(code)}, type{type} {
+    Expression(std::string code_, Type type_) : code{std::move(code_)}, type{type_} {
         ASSERT(type != Type::Void);
     }
     Expression() : type{Type::Void} {}
@@ -148,8 +148,8 @@ public:
         ASSERT(type == Type::Void);
     }
 
-    std::string As(Type type) const {
-        switch (type) {
+    std::string As(Type type_) const {
+        switch (type_) {
         case Type::Bool:
             return AsBool();
         case Type::Bool2:
@@ -418,11 +418,12 @@ struct GenericVaryingDescription {
 
 class GLSLDecompiler final {
 public:
-    explicit GLSLDecompiler(const Device& device, const ShaderIR& ir, const Registry& registry,
-                            ShaderType stage, std::string_view identifier, std::string_view suffix)
-        : device{device}, ir{ir}, registry{registry}, stage{stage}, identifier{identifier},
-          suffix{suffix}, header{ir.GetHeader()}, use_unified_uniforms{
-                                                      UseUnifiedUniforms(device, ir, stage)} {
+    explicit GLSLDecompiler(const Device& device_, const ShaderIR& ir_, const Registry& registry_,
+                            ShaderType stage_, std::string_view identifier_,
+                            std::string_view suffix_)
+        : device{device_}, ir{ir_}, registry{registry_}, stage{stage_}, identifier{identifier_},
+          suffix{suffix_}, header{ir.GetHeader()}, use_unified_uniforms{
+                                                       UseUnifiedUniforms(device_, ir_, stage_)} {
         if (stage != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry.GetGraphicsInfo());
         }
@@ -777,16 +778,16 @@ private:
             name = "gs_" + name + "[]";
         }
 
-        std::string suffix;
+        std::string suffix_;
         if (stage == ShaderType::Fragment) {
             const auto input_mode{header.ps.GetPixelImap(location)};
             if (input_mode == PixelImap::Unused) {
                 return;
             }
-            suffix = GetInputFlags(input_mode);
+            suffix_ = GetInputFlags(input_mode);
         }
 
-        code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix, name);
+        code.AddLine("layout (location = {}) {} in vec4 {};", location, suffix_, name);
     }
 
     void DeclareOutputAttributes() {
@@ -2100,13 +2101,13 @@ private:
         const auto type = meta.sampler.is_shadow ? Type::Float : Type::Int;
         const bool separate_dc = meta.sampler.is_shadow;
 
-        std::vector<TextureIR> ir;
+        std::vector<TextureIR> ir_;
         if (meta.sampler.is_shadow) {
-            ir = {TextureOffset{}};
+            ir_ = {TextureOffset{}};
         } else {
-            ir = {TextureOffset{}, TextureArgument{type, meta.component}};
+            ir_ = {TextureOffset{}, TextureArgument{type, meta.component}};
         }
-        return {GenerateTexture(operation, "Gather", ir, separate_dc) + GetSwizzle(meta.element),
+        return {GenerateTexture(operation, "Gather", ir_, separate_dc) + GetSwizzle(meta.element),
                 Type::Float};
     }
 
@@ -2801,7 +2802,7 @@ std::string GetFlowVariable(u32 index) {
 
 class ExprDecompiler {
 public:
-    explicit ExprDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+    explicit ExprDecompiler(GLSLDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ExprAnd& expr) {
         inner += '(';
@@ -2856,7 +2857,7 @@ private:
 
 class ASTDecompiler {
 public:
-    explicit ASTDecompiler(GLSLDecompiler& decomp) : decomp{decomp} {}
+    explicit ASTDecompiler(GLSLDecompiler& decomp_) : decomp{decomp_} {}
 
     void operator()(const ASTProgram& ast) {
         ASTNode current = ast.nodes.GetFirst();

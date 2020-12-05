@@ -149,16 +149,16 @@ public:
         u32 subchannel{};
         u32 method_count{};
 
-        MethodCall(u32 method, u32 argument, u32 subchannel = 0, u32 method_count = 0)
-            : method(method), argument(argument), subchannel(subchannel),
-              method_count(method_count) {}
+        explicit MethodCall(u32 method_, u32 argument_, u32 subchannel_ = 0, u32 method_count_ = 0)
+            : method(method_), argument(argument_), subchannel(subchannel_),
+              method_count(method_count_) {}
 
         [[nodiscard]] bool IsLastCall() const {
             return method_count <= 1;
         }
     };
 
-    explicit GPU(Core::System& system, bool is_async, bool use_nvdec);
+    explicit GPU(Core::System& system_, bool is_async_, bool use_nvdec_);
     virtual ~GPU();
 
     /// Binds a renderer to the GPU.
@@ -414,8 +414,8 @@ private:
     std::condition_variable sync_cv;
 
     struct FlushRequest {
-        FlushRequest(u64 fence, VAddr addr, std::size_t size)
-            : fence{fence}, addr{addr}, size{size} {}
+        explicit FlushRequest(u64 fence_, VAddr addr_, std::size_t size_)
+            : fence{fence_}, addr{addr_}, size{size_} {}
         u64 fence;
         VAddr addr;
         std::size_t size;

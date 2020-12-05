@@ -87,11 +87,11 @@ inline CommandHeader BuildCommandHeader(BufferMethods method, u32 arg_count, Sub
 struct CommandList final {
     CommandList() = default;
     explicit CommandList(std::size_t size) : command_lists(size) {}
-    explicit CommandList(std::vector<Tegra::CommandHeader>&& prefetch_command_list)
-        : prefetch_command_list{std::move(prefetch_command_list)} {}
+    explicit CommandList(std::vector<CommandHeader>&& prefetch_command_list_)
+        : prefetch_command_list{std::move(prefetch_command_list_)} {}
 
-    std::vector<Tegra::CommandListHeader> command_lists;
-    std::vector<Tegra::CommandHeader> prefetch_command_list;
+    std::vector<CommandListHeader> command_lists;
+    std::vector<CommandHeader> prefetch_command_list;
 };
 
 /**
@@ -103,7 +103,7 @@ struct CommandList final {
  */
 class DmaPusher final {
 public:
-    explicit DmaPusher(Core::System& system, GPU& gpu);
+    explicit DmaPusher(Core::System& system_, GPU& gpu_);
     ~DmaPusher();
 
     void Push(CommandList&& entries) {
@@ -112,7 +112,7 @@ public:
 
     void DispatchCalls();
 
-    void BindSubchannel(Tegra::Engines::EngineInterface* engine, u32 subchannel_id) {
+    void BindSubchannel(Engines::EngineInterface* engine, u32 subchannel_id) {
         subchannels[subchannel_id] = engine;
     }
 
@@ -145,7 +145,7 @@ private:
 
     bool ib_enable{true}; ///< IB mode enabled
 
-    std::array<Tegra::Engines::EngineInterface*, max_subchannels> subchannels{};
+    std::array<Engines::EngineInterface*, max_subchannels> subchannels{};
 
     GPU& gpu;
     Core::System& system;

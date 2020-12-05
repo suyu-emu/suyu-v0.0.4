@@ -17,7 +17,7 @@ class Maxwell3D;
 
 class MacroInterpreter final : public MacroEngine {
 public:
-    explicit MacroInterpreter(Engines::Maxwell3D& maxwell3d);
+    explicit MacroInterpreter(Engines::Maxwell3D& maxwell3d_);
 
 protected:
     std::unique_ptr<CachedMacro> Compile(const std::vector<u32>& code) override;
@@ -28,8 +28,8 @@ private:
 
 class MacroInterpreterImpl : public CachedMacro {
 public:
-    MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d, const std::vector<u32>& code);
-    void Execute(const std::vector<u32>& parameters, u32 method) override;
+    explicit MacroInterpreterImpl(Engines::Maxwell3D& maxwell3d_, const std::vector<u32>& code_);
+    void Execute(const std::vector<u32>& params, u32 method) override;
 
 private:
     /// Resets the execution engine state, zeroing registers, etc.
@@ -38,9 +38,9 @@ private:
     /**
      * Executes a single macro instruction located at the current program counter. Returns whether
      * the interpreter should keep running.
-     * @param offset Offset to start execution at.
+     *
      * @param is_delay_slot Whether the current step is being executed due to a delay slot in a
-     * previous instruction.
+     *                      previous instruction.
      */
     bool Step(bool is_delay_slot);
 

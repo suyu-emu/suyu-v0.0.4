@@ -7,7 +7,7 @@
 
 namespace VideoCommon {
 
-GPUSynch::GPUSynch(Core::System& system, bool use_nvdec) : GPU{system, false, use_nvdec} {}
+GPUSynch::GPUSynch(Core::System& system_, bool use_nvdec_) : GPU{system_, false, use_nvdec_} {}
 
 GPUSynch::~GPUSynch() = default;
 

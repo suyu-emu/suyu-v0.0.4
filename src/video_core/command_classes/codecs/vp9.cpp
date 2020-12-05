@@ -233,7 +233,7 @@ constexpr std::array<s32, 254> map_lut{
 }
 } // Anonymous namespace
 
-VP9::VP9(GPU& gpu) : gpu(gpu) {}
+VP9::VP9(GPU& gpu_) : gpu{gpu_} {}
 
 VP9::~VP9() = default;
 

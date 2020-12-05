@@ -10,8 +10,8 @@
 
 namespace VideoCommon {
 
-GPUAsynch::GPUAsynch(Core::System& system, bool use_nvdec)
-    : GPU{system, true, use_nvdec}, gpu_thread{system} {}
+GPUAsynch::GPUAsynch(Core::System& system_, bool use_nvdec_)
+    : GPU{system_, true, use_nvdec_}, gpu_thread{system_} {}
 
 GPUAsynch::~GPUAsynch() = default;
 

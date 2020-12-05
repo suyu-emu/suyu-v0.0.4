@@ -232,8 +232,12 @@ void GPU::CallMultiMethod(u32 method, u32 subchannel, const u32* base_start, u32
         CallEngineMultiMethod(method, subchannel, base_start, amount, methods_pending);
     } else {
         for (std::size_t i = 0; i < amount; i++) {
-            CallPullerMethod(
-                {method, base_start[i], subchannel, methods_pending - static_cast<u32>(i)});
+            CallPullerMethod(MethodCall{
+                method,
+                base_start[i],
+                subchannel,
+                methods_pending - static_cast<u32>(i),
+            });
         }
     }
 }

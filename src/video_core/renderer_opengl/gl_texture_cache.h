@@ -37,7 +37,8 @@ class CachedSurface final : public VideoCommon::SurfaceBase<View> {
     friend CachedSurfaceView;
 
 public:
-    explicit CachedSurface(GPUVAddr gpu_addr, const SurfaceParams& params, bool is_astc_supported);
+    explicit CachedSurface(GPUVAddr gpu_addr_, const SurfaceParams& params_,
+                           bool is_astc_supported_);
     ~CachedSurface();
 
     void UploadTexture(const std::vector<u8>& staging_buffer) override;
@@ -77,7 +78,7 @@ private:
 
 class CachedSurfaceView final : public VideoCommon::ViewBase {
 public:
-    explicit CachedSurfaceView(CachedSurface& surface, const ViewParams& params, bool is_proxy);
+    explicit CachedSurfaceView(CachedSurface& surface_, const ViewParams& params_, bool is_proxy_);
     ~CachedSurfaceView();
 
     /// @brief Attaches this texture view to the currently bound fb_target framebuffer

@@ -46,8 +46,8 @@ private:
 
 class HostCounter final : public VideoCommon::HostCounterBase<QueryCache, HostCounter> {
 public:
-    explicit HostCounter(QueryCache& cache, std::shared_ptr<HostCounter> dependency,
-                         VideoCore::QueryType type);
+    explicit HostCounter(QueryCache& cache_, std::shared_ptr<HostCounter> dependency,
+                         VideoCore::QueryType type_);
     ~HostCounter();
 
     void EndQuery();
@@ -62,7 +62,7 @@ private:
 
 class CachedQuery final : public VideoCommon::CachedQueryBase<HostCounter> {
 public:
-    explicit CachedQuery(QueryCache& cache, VideoCore::QueryType type, VAddr cpu_addr,
+    explicit CachedQuery(QueryCache& cache_, VideoCore::QueryType type_, VAddr cpu_addr,
                          u8* host_ptr);
     ~CachedQuery() override;
 
