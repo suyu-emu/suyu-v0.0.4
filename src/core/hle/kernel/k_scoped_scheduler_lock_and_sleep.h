@@ -28,17 +28,17 @@ public:
         : kernel(kernel), event_handle(event_handle), thread(t), timeout_tick(timeout) {
         event_handle = InvalidHandle;
 
-        /* Lock the scheduler. */
+        // Lock the scheduler.
         kernel.GlobalSchedulerContext().scheduler_lock.Lock();
     }
 
     ~KScopedSchedulerLockAndSleep() {
-        /* Register the sleep. */
+        // Register the sleep.
         if (this->timeout_tick > 0) {
             kernel.TimeManager().ScheduleTimeEvent(event_handle, this->thread, this->timeout_tick);
         }
 
-        /* Unlock the scheduler. */
+        // Unlock the scheduler.
         kernel.GlobalSchedulerContext().scheduler_lock.Unlock();
     }
 

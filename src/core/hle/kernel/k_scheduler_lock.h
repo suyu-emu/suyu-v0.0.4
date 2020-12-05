@@ -34,19 +34,19 @@ public:
 
     void Lock() {
         if (this->IsLockedByCurrentThread()) {
-            /* If we already own the lock, we can just increment the count. */
+            // If we already own the lock, we can just increment the count.
             ASSERT(this->lock_count > 0);
             this->lock_count++;
         } else {
-            /* Otherwise, we want to disable scheduling and acquire the spinlock. */
+            // Otherwise, we want to disable scheduling and acquire the spinlock.
             SchedulerType::DisableScheduling(kernel);
             this->spin_lock.lock();
 
-            /* For debug, ensure that our state is valid. */
+            // For debug, ensure that our state is valid.
             ASSERT(this->lock_count == 0);
             ASSERT(this->owner_thread == Core::EmuThreadHandle::InvalidHandle());
 
-            /* Increment count, take ownership. */
+            // Increment count, take ownership.
             this->lock_count = 1;
             this->owner_thread = kernel.GetCurrentEmuThreadID();
         }
@@ -56,18 +56,18 @@ public:
         ASSERT(this->IsLockedByCurrentThread());
         ASSERT(this->lock_count > 0);
 
-        /* Release an instance of the lock. */
+        // Release an instance of the lock.
         if ((--this->lock_count) == 0) {
-            /* We're no longer going to hold the lock. Take note of what cores need scheduling. */
+            // We're no longer going to hold the lock. Take note of what cores need scheduling.
             const u64 cores_needing_scheduling =
                 SchedulerType::UpdateHighestPriorityThreads(kernel);
             Core::EmuThreadHandle leaving_thread = owner_thread;
 
-            /* Note that we no longer hold the lock, and unlock the spinlock. */
+            // Note that we no longer hold the lock, and unlock the spinlock.
             this->owner_thread = Core::EmuThreadHandle::InvalidHandle();
             this->spin_lock.unlock();
 
-            /* Enable scheduling, and perform a rescheduling operation. */
+            // Enable scheduling, and perform a rescheduling operation.
             SchedulerType::EnableScheduling(kernel, cores_needing_scheduling, leaving_thread);
         }
     }

@@ -87,15 +87,15 @@ public:
         }
 
         constexpr bool PushBack(s32 core, Member* member) {
-            /* Get the entry associated with the member. */
+            // Get the entry associated with the member.
             Entry& member_entry = member->GetPriorityQueueEntry(core);
 
-            /* Get the entry associated with the end of the queue. */
+            // Get the entry associated with the end of the queue.
             Member* tail = this->root[core].GetPrev();
             Entry& tail_entry =
                 (tail != nullptr) ? tail->GetPriorityQueueEntry(core) : this->root[core];
 
-            /* Link the entries. */
+            // Link the entries.
             member_entry.SetPrev(tail);
             member_entry.SetNext(nullptr);
             tail_entry.SetNext(member);
@@ -105,15 +105,15 @@ public:
         }
 
         constexpr bool PushFront(s32 core, Member* member) {
-            /* Get the entry associated with the member. */
+            // Get the entry associated with the member.
             Entry& member_entry = member->GetPriorityQueueEntry(core);
 
-            /* Get the entry associated with the front of the queue. */
+            // Get the entry associated with the front of the queue.
             Member* head = this->root[core].GetNext();
             Entry& head_entry =
                 (head != nullptr) ? head->GetPriorityQueueEntry(core) : this->root[core];
 
-            /* Link the entries. */
+            // Link the entries.
             member_entry.SetPrev(nullptr);
             member_entry.SetNext(head);
             head_entry.SetPrev(member);
@@ -123,10 +123,10 @@ public:
         }
 
         constexpr bool Remove(s32 core, Member* member) {
-            /* Get the entry associated with the member. */
+            // Get the entry associated with the member.
             Entry& member_entry = member->GetPriorityQueueEntry(core);
 
-            /* Get the entries associated with next and prev. */
+            // Get the entries associated with next and prev.
             Member* prev = member_entry.GetPrev();
             Member* next = member_entry.GetNext();
             Entry& prev_entry =
@@ -134,7 +134,7 @@ public:
             Entry& next_entry =
                 (next != nullptr) ? next->GetPriorityQueueEntry(core) : this->root[core];
 
-            /* Unlink. */
+            // Unlink.
             prev_entry.SetNext(next);
             next_entry.SetPrev(prev);
 
@@ -152,8 +152,7 @@ public:
         Common::BitSet64<NumPriority> available_priorities[NumCores];
 
     public:
-        constexpr KPriorityQueueImpl() : queues(), available_priorities() { /* ... */
-        }
+        constexpr KPriorityQueueImpl() : queues(), available_priorities() {}
 
         constexpr void PushBack(s32 priority, s32 core, Member* member) {
             ASSERT(IsValidCore(core));
@@ -267,14 +266,14 @@ private:
     constexpr void PushBack(s32 priority, Member* member) {
         ASSERT(IsValidPriority(priority));
 
-        /* Push onto the scheduled queue for its core, if we can. */
+        // Push onto the scheduled queue for its core, if we can.
         u64 affinity = member->GetAffinityMask().GetAffinityMask();
         if (const s32 core = member->GetActiveCore(); core >= 0) {
             this->scheduled_queue.PushBack(priority, core, member);
             ClearAffinityBit(affinity, core);
         }
 
-        /* And suggest the thread for all other cores. */
+        // And suggest the thread for all other cores.
         while (affinity) {
             this->suggested_queue.PushBack(priority, GetNextCore(affinity), member);
         }
@@ -283,15 +282,15 @@ private:
     constexpr void PushFront(s32 priority, Member* member) {
         ASSERT(IsValidPriority(priority));
 
-        /* Push onto the scheduled queue for its core, if we can. */
+        // Push onto the scheduled queue for its core, if we can.
         u64 affinity = member->GetAffinityMask().GetAffinityMask();
         if (const s32 core = member->GetActiveCore(); core >= 0) {
             this->scheduled_queue.PushFront(priority, core, member);
             ClearAffinityBit(affinity, core);
         }
 
-        /* And suggest the thread for all other cores. */
-        /* Note: Nintendo pushes onto the back of the suggested queue, not the front. */
+        // And suggest the thread for all other cores.
+        // Note: Nintendo pushes onto the back of the suggested queue, not the front.
         while (affinity) {
             this->suggested_queue.PushBack(priority, GetNextCore(affinity), member);
         }
@@ -300,24 +299,24 @@ private:
     constexpr void Remove(s32 priority, Member* member) {
         ASSERT(IsValidPriority(priority));
 
-        /* Remove from the scheduled queue for its core. */
+        // Remove from the scheduled queue for its core.
         u64 affinity = member->GetAffinityMask().GetAffinityMask();
         if (const s32 core = member->GetActiveCore(); core >= 0) {
             this->scheduled_queue.Remove(priority, core, member);
             ClearAffinityBit(affinity, core);
         }
 
-        /* Remove from the suggested queue for all other cores. */
+        // Remove from the suggested queue for all other cores.
         while (affinity) {
             this->suggested_queue.Remove(priority, GetNextCore(affinity), member);
         }
     }
 
 public:
-    constexpr KPriorityQueue() : scheduled_queue(), suggested_queue() { /* ... */
+    constexpr KPriorityQueue() : scheduled_queue(), suggested_queue() { // ...
     }
 
-    /* Getters. */
+    // Getters.
     constexpr Member* GetScheduledFront(s32 core) const {
         return this->scheduled_queue.GetFront(core);
     }
@@ -346,7 +345,7 @@ public:
         return member->GetPriorityQueueEntry(core).GetNext();
     }
 
-    /* Mutators. */
+    // Mutators.
     constexpr void PushBack(Member* member) {
         this->PushBack(member->GetPriority(), member);
     }
@@ -364,15 +363,15 @@ public:
                                                 member);
     }
 
-    /* First class fancy operations. */
+    // First class fancy operations.
     constexpr void ChangePriority(s32 prev_priority, bool is_running, Member* member) {
         ASSERT(IsValidPriority(prev_priority));
 
-        /* Remove the member from the queues. */
+        // Remove the member from the queues.
         const s32 new_priority = member->GetPriority();
         this->Remove(prev_priority, member);
 
-        /* And enqueue. If the member is running, we want to keep it running. */
+        // And enqueue. If the member is running, we want to keep it running.
         if (is_running) {
             this->PushFront(new_priority, member);
         } else {
@@ -382,12 +381,12 @@ public:
 
     constexpr void ChangeAffinityMask(s32 prev_core, const AffinityMaskType& prev_affinity,
                                       Member* member) {
-        /* Get the new information. */
+        // Get the new information.
         const s32 priority = member->GetPriority();
         const AffinityMaskType& new_affinity = member->GetAffinityMask();
         const s32 new_core = member->GetActiveCore();
 
-        /* Remove the member from all queues it was in before. */
+        // Remove the member from all queues it was in before.
         for (s32 core = 0; core < static_cast<s32>(NumCores); core++) {
             if (prev_affinity.GetAffinity(core)) {
                 if (core == prev_core) {
@@ -398,7 +397,7 @@ public:
             }
         }
 
-        /* And add the member to all queues it should be in now. */
+        // And add the member to all queues it should be in now.
         for (s32 core = 0; core < static_cast<s32>(NumCores); core++) {
             if (new_affinity.GetAffinity(core)) {
                 if (core == new_core) {
@@ -411,18 +410,18 @@ public:
     }
 
     constexpr void ChangeCore(s32 prev_core, Member* member, bool to_front = false) {
-        /* Get the new information. */
+        // Get the new information.
         const s32 new_core = member->GetActiveCore();
         const s32 priority = member->GetPriority();
 
-        /* We don't need to do anything if the core is the same. */
+        // We don't need to do anything if the core is the same.
         if (prev_core != new_core) {
-            /* Remove from the scheduled queue for the previous core. */
+            // Remove from the scheduled queue for the previous core.
             if (prev_core >= 0) {
                 this->scheduled_queue.Remove(priority, prev_core, member);
             }
 
-            /* Remove from the suggested queue and add to the scheduled queue for the new core. */
+            // Remove from the suggested queue and add to the scheduled queue for the new core.
             if (new_core >= 0) {
                 this->suggested_queue.Remove(priority, new_core, member);
                 if (to_front) {
@@ -432,7 +431,7 @@ public:
                 }
             }
 
-            /* Add to the suggested queue for the previous core. */
+            // Add to the suggested queue for the previous core.
             if (prev_core >= 0) {
                 this->suggested_queue.PushBack(priority, prev_core, member);
             }
