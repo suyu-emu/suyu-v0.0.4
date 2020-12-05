@@ -16,12 +16,6 @@
 namespace Kernel {
 
 class KScopedSchedulerLockAndSleep {
-private:
-    KernelCore& kernel;
-    Handle& event_handle;
-    Thread* thread{};
-    s64 timeout_tick{};
-
 public:
     explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* t,
                                           s64 timeout)
@@ -45,6 +39,12 @@ public:
     void CancelSleep() {
         this->timeout_tick = 0;
     }
+
+private:
+    KernelCore& kernel;
+    Handle& event_handle;
+    Thread* thread{};
+    s64 timeout_tick{};
 };
 
 } // namespace Kernel
