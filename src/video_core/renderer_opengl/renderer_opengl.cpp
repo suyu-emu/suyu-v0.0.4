@@ -275,9 +275,9 @@ void RendererOpenGL::AddTelemetryFields() {
     LOG_INFO(Render_OpenGL, "GL_RENDERER: {}", gpu_model);
 
     constexpr auto user_system = Common::Telemetry::FieldType::UserSystem;
-    telemetry_session.AddField(user_system, "GPU_Vendor", gpu_vendor);
-    telemetry_session.AddField(user_system, "GPU_Model", gpu_model);
-    telemetry_session.AddField(user_system, "GPU_OpenGL_Version", gl_version);
+    telemetry_session.AddField(user_system, "GPU_Vendor", std::string(gpu_vendor));
+    telemetry_session.AddField(user_system, "GPU_Model", std::string(gpu_model));
+    telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
 }
 
 void RendererOpenGL::CreateRasterizer() {
