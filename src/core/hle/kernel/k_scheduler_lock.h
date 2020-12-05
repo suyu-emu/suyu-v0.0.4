@@ -17,16 +17,8 @@ class KernelCore;
 
 template <typename SchedulerType>
 class KAbstractSchedulerLock {
-private:
-    KernelCore& kernel;
-    Common::SpinLock spin_lock;
-    s32 lock_count;
-    Core::EmuThreadHandle owner_thread;
-
 public:
-    KAbstractSchedulerLock(KernelCore& kernel)
-        : kernel{kernel}, spin_lock(), lock_count(0),
-          owner_thread(Core::EmuThreadHandle::InvalidHandle()) {}
+    explicit KAbstractSchedulerLock(KernelCore& kernel) : kernel{kernel} {}
 
     bool IsLockedByCurrentThread() const {
         return this->owner_thread == kernel.GetCurrentEmuThreadID();
@@ -71,6 +63,12 @@ public:
             SchedulerType::EnableScheduling(kernel, cores_needing_scheduling, leaving_thread);
         }
     }
+
+private:
+    KernelCore& kernel;
+    Common::SpinLock spin_lock{};
+    s32 lock_count{};
+    Core::EmuThreadHandle owner_thread{Core::EmuThreadHandle::InvalidHandle()};
 };
 
 } // namespace Kernel
