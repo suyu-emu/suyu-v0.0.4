@@ -29,8 +29,8 @@ static void IncrementScheduledCount(Kernel::Thread* thread) {
     }
 }
 
-/*static*/ void KScheduler::RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule,
-                                            Core::EmuThreadHandle global_thread) {
+void KScheduler::RescheduleCores(KernelCore& kernel, u64 cores_pending_reschedule,
+                                 Core::EmuThreadHandle global_thread) {
     u32 current_core = global_thread.host_handle;
     bool must_context_switch = global_thread.guest_handle != InvalidHandle &&
                                (current_core < Core::Hardware::NUM_CPU_CORES);
@@ -81,7 +81,7 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     }
 }
 
-/*static*/ u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
+u64 KScheduler::UpdateHighestPriorityThreadsImpl(KernelCore& kernel) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Clear that we need to update.
@@ -94,7 +94,7 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     /// We want to go over all cores, finding the highest priority thread and determining if
     /// scheduling is needed for that core.
     for (size_t core_id = 0; core_id < Core::Hardware::NUM_CPU_CORES; core_id++) {
-        Thread* top_thread = priority_queue.GetScheduledFront((s32)core_id);
+        Thread* top_thread = priority_queue.GetScheduledFront(static_cast<s32>(core_id));
         if (top_thread != nullptr) {
             // If the thread has no waiters, we need to check if the process has a thread pinned.
             // TODO(bunnei): Implement thread pinning
@@ -180,8 +180,7 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     return cores_needing_scheduling;
 }
 
-/*static*/ void KScheduler::OnThreadStateChanged(KernelCore& kernel, Thread* thread,
-                                                 u32 old_state) {
+void KScheduler::OnThreadStateChanged(KernelCore& kernel, Thread* thread, u32 old_state) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Check if the state has changed, because if it hasn't there's nothing to do.
@@ -204,8 +203,8 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     }
 }
 
-/*static*/ void KScheduler::OnThreadPriorityChanged(KernelCore& kernel, Thread* thread,
-                                                    Thread* current_thread, u32 old_priority) {
+void KScheduler::OnThreadPriorityChanged(KernelCore& kernel, Thread* thread, Thread* current_thread,
+                                         u32 old_priority) {
 
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
@@ -218,9 +217,8 @@ u64 KScheduler::UpdateHighestPriorityThread(Thread* highest_thread) {
     }
 }
 
-/*static*/ void KScheduler::OnThreadAffinityMaskChanged(KernelCore& kernel, Thread* thread,
-                                                        const KAffinityMask& old_affinity,
-                                                        s32 old_core) {
+void KScheduler::OnThreadAffinityMaskChanged(KernelCore& kernel, Thread* thread,
+                                             const KAffinityMask& old_affinity, s32 old_core) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // If the thread is runnable, we want to change its affinity in the queue.
@@ -331,38 +329,38 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
     SetSchedulerUpdateNeeded(kernel);
 }
 
-/*static*/ bool KScheduler::CanSchedule(KernelCore& kernel) {
+bool KScheduler::CanSchedule(KernelCore& kernel) {
     return kernel.CurrentScheduler()->GetCurrentThread()->GetDisableDispatchCount() <= 1;
 }
 
-/*static*/ bool KScheduler::IsSchedulerUpdateNeeded(const KernelCore& kernel) {
+bool KScheduler::IsSchedulerUpdateNeeded(const KernelCore& kernel) {
     return kernel.GlobalSchedulerContext().scheduler_update_needed.load(std::memory_order_acquire);
 }
 
-/*static*/ void KScheduler::SetSchedulerUpdateNeeded(KernelCore& kernel) {
+void KScheduler::SetSchedulerUpdateNeeded(KernelCore& kernel) {
     kernel.GlobalSchedulerContext().scheduler_update_needed.store(true, std::memory_order_release);
 }
 
-/*static*/ void KScheduler::ClearSchedulerUpdateNeeded(KernelCore& kernel) {
+void KScheduler::ClearSchedulerUpdateNeeded(KernelCore& kernel) {
     kernel.GlobalSchedulerContext().scheduler_update_needed.store(false, std::memory_order_release);
 }
 
-/*static*/ void KScheduler::DisableScheduling(KernelCore& kernel) {
+void KScheduler::DisableScheduling(KernelCore& kernel) {
     if (auto* scheduler = kernel.CurrentScheduler(); scheduler) {
         ASSERT(scheduler->GetCurrentThread()->GetDisableDispatchCount() >= 0);
         scheduler->GetCurrentThread()->DisableDispatch();
     }
 }
 
-/*static*/ void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling,
-                                             Core::EmuThreadHandle global_thread) {
+void KScheduler::EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling,
+                                  Core::EmuThreadHandle global_thread) {
     if (auto* scheduler = kernel.CurrentScheduler(); scheduler) {
         scheduler->GetCurrentThread()->EnableDispatch();
     }
     RescheduleCores(kernel, cores_needing_scheduling, global_thread);
 }
 
-/*static*/ u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
+u64 KScheduler::UpdateHighestPriorityThreads(KernelCore& kernel) {
     if (IsSchedulerUpdateNeeded(kernel)) {
         return UpdateHighestPriorityThreadsImpl(kernel);
     } else {
@@ -370,7 +368,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
     }
 }
 
-/*static*/ KSchedulerPriorityQueue& KScheduler::GetPriorityQueue(KernelCore& kernel) {
+KSchedulerPriorityQueue& KScheduler::GetPriorityQueue(KernelCore& kernel) {
     return kernel.GlobalSchedulerContext().priority_queue;
 }
 
@@ -585,7 +583,7 @@ void KScheduler::YieldToAnyThread() {
 
 KScheduler::KScheduler(Core::System& system, std::size_t core_id)
     : system(system), core_id(core_id) {
-    switch_fiber = std::make_shared<Common::Fiber>(std::function<void(void*)>(OnSwitch), this);
+    switch_fiber = std::make_shared<Common::Fiber>(OnSwitch, this);
     this->state.needs_scheduling = true;
     this->state.interrupt_task_thread_runnable = false;
     this->state.should_count_idle = false;
@@ -722,7 +720,7 @@ void KScheduler::SwitchToCurrent() {
         }
         const auto is_switch_pending = [this] {
             std::scoped_lock lock{guard};
-            return !!this->state.needs_scheduling;
+            return state.needs_scheduling.load(std::memory_order_relaxed);
         };
         do {
             if (current_thread != nullptr && !current_thread->IsHLEThread()) {

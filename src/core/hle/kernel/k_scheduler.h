@@ -51,32 +51,28 @@ public:
     void Reload(Thread* thread);
 
     /// Gets the current running thread
-    Thread* GetCurrentThread() const;
+    [[nodiscard]] Thread* GetCurrentThread() const;
 
     /// Gets the timestamp for the last context switch in ticks.
-    u64 GetLastContextSwitchTicks() const;
+    [[nodiscard]] u64 GetLastContextSwitchTicks() const;
 
-    bool ContextSwitchPending() const {
-        return this->state.needs_scheduling;
+    [[nodiscard]] bool ContextSwitchPending() const {
+        return state.needs_scheduling.load(std::memory_order_relaxed);
     }
 
     void Initialize();
 
     void OnThreadStart();
 
-    std::shared_ptr<Common::Fiber>& ControlContext() {
+    [[nodiscard]] std::shared_ptr<Common::Fiber>& ControlContext() {
         return switch_fiber;
     }
 
-    const std::shared_ptr<Common::Fiber>& ControlContext() const {
+    [[nodiscard]] const std::shared_ptr<Common::Fiber>& ControlContext() const {
         return switch_fiber;
     }
 
-    std::size_t CurrentCoreId() const {
-        return core_id;
-    }
-
-    u64 UpdateHighestPriorityThread(Thread* highest_thread);
+    [[nodiscard]] u64 UpdateHighestPriorityThread(Thread* highest_thread);
 
     /**
      * Takes a thread and moves it to the back of the it's priority list.
@@ -114,7 +110,18 @@ public:
     static void OnThreadAffinityMaskChanged(KernelCore& kernel, Thread* thread,
                                             const KAffinityMask& old_affinity, s32 old_core);
 
+    static bool CanSchedule(KernelCore& kernel);
+    static bool IsSchedulerUpdateNeeded(const KernelCore& kernel);
+    static void SetSchedulerUpdateNeeded(KernelCore& kernel);
+    static void ClearSchedulerUpdateNeeded(KernelCore& kernel);
+    static void DisableScheduling(KernelCore& kernel);
+    static void EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling,
+                                 Core::EmuThreadHandle global_thread);
+    [[nodiscard]] static u64 UpdateHighestPriorityThreads(KernelCore& kernel);
+
 private:
+    friend class GlobalSchedulerContext;
+
     /**
      * Takes care of selecting the new scheduled threads in three steps:
      *
@@ -129,24 +136,11 @@ private:
      *
      * returns the cores needing scheduling.
      */
-    static u64 UpdateHighestPriorityThreadsImpl(KernelCore& kernel);
+    [[nodiscard]] static u64 UpdateHighestPriorityThreadsImpl(KernelCore& kernel);
+
+    [[nodiscard]] static KSchedulerPriorityQueue& GetPriorityQueue(KernelCore& kernel);
 
     void RotateScheduledQueue(s32 core_id, s32 priority);
-
-public:
-    static bool CanSchedule(KernelCore& kernel);
-    static bool IsSchedulerUpdateNeeded(const KernelCore& kernel);
-    static void SetSchedulerUpdateNeeded(KernelCore& kernel);
-    static void ClearSchedulerUpdateNeeded(KernelCore& kernel);
-    static void DisableScheduling(KernelCore& kernel);
-    static void EnableScheduling(KernelCore& kernel, u64 cores_needing_scheduling,
-                                 Core::EmuThreadHandle global_thread);
-    static u64 UpdateHighestPriorityThreads(KernelCore& kernel);
-
-private:
-    friend class GlobalSchedulerContext;
-
-    static KSchedulerPriorityQueue& GetPriorityQueue(KernelCore& kernel);
 
     void Schedule() {
         ASSERT(GetCurrentThread()->GetDisableDispatchCount() == 1);
@@ -175,7 +169,6 @@ private:
     static void OnSwitch(void* this_scheduler);
     void SwitchToCurrent();
 
-private:
     Thread* current_thread{};
     Thread* idle_thread{};
 
