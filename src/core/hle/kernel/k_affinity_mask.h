@@ -14,24 +14,10 @@
 namespace Kernel {
 
 class KAffinityMask {
-private:
-    static constexpr u64 AllowedAffinityMask = (1ul << Core::Hardware::NUM_CPU_CORES) - 1;
-
-private:
-    u64 mask;
-
-private:
-    static constexpr u64 GetCoreBit(s32 core) {
-        ASSERT(0 <= core && core < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
-        return (1ull << core);
-    }
-
 public:
-    constexpr KAffinityMask() : mask(0) {
-        ASSERT(this);
-    }
+    constexpr KAffinityMask() = default;
 
-    constexpr u64 GetAffinityMask() const {
+    [[nodiscard]] constexpr u64 GetAffinityMask() const {
         return this->mask;
     }
 
@@ -40,7 +26,7 @@ public:
         this->mask = new_mask;
     }
 
-    constexpr bool GetAffinity(s32 core) const {
+    [[nodiscard]] constexpr bool GetAffinity(s32 core) const {
         return this->mask & GetCoreBit(core);
     }
 
@@ -57,6 +43,16 @@ public:
     constexpr void SetAll() {
         this->mask = AllowedAffinityMask;
     }
+
+private:
+    [[nodiscard]] static constexpr u64 GetCoreBit(s32 core) {
+        ASSERT(0 <= core && core < static_cast<s32>(Core::Hardware::NUM_CPU_CORES));
+        return (1ULL << core);
+    }
+
+    static constexpr u64 AllowedAffinityMask = (1ULL << Core::Hardware::NUM_CPU_CORES) - 1;
+
+    u64 mask{};
 };
 
 } // namespace Kernel
