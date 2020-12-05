@@ -11,12 +11,12 @@
 
 namespace Common::X64 {
 
-constexpr std::size_t RegToIndex(const Xbyak::Reg& reg) {
+constexpr size_t RegToIndex(const Xbyak::Reg& reg) {
     using Kind = Xbyak::Reg::Kind;
     ASSERT_MSG((reg.getKind() & (Kind::REG | Kind::XMM)) != 0,
                "RegSet only support GPRs and XMM registers.");
     ASSERT_MSG(reg.getIdx() < 16, "RegSet only supports XXM0-15.");
-    return reg.getIdx() + (reg.getKind() == Kind::REG ? 0 : 16);
+    return static_cast<size_t>(reg.getIdx()) + (reg.getKind() == Kind::REG ? 0 : 16);
 }
 
 constexpr Xbyak::Reg64 IndexToReg64(std::size_t reg_index) {
