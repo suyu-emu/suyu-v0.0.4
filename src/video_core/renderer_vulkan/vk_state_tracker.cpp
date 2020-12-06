@@ -14,7 +14,7 @@
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 
 #define OFF(field_name) MAXWELL3D_REG_INDEX(field_name)
-#define NUM(field_name) (sizeof(Maxwell3D::Regs::field_name) / sizeof(u32))
+#define NUM(field_name) (sizeof(Maxwell3D::Regs::field_name) / (sizeof(u32)))
 
 namespace Vulkan {
 
