@@ -11,25 +11,25 @@
 
 namespace Common::X64 {
 
-constexpr std::size_t RegToIndex(const Xbyak::Reg& reg) {
+constexpr size_t RegToIndex(const Xbyak::Reg& reg) {
     using Kind = Xbyak::Reg::Kind;
     ASSERT_MSG((reg.getKind() & (Kind::REG | Kind::XMM)) != 0,
                "RegSet only support GPRs and XMM registers.");
     ASSERT_MSG(reg.getIdx() < 16, "RegSet only supports XXM0-15.");
-    return reg.getIdx() + (reg.getKind() == Kind::REG ? 0 : 16);
+    return static_cast<size_t>(reg.getIdx()) + (reg.getKind() == Kind::REG ? 0 : 16);
 }
 
-constexpr Xbyak::Reg64 IndexToReg64(std::size_t reg_index) {
+constexpr Xbyak::Reg64 IndexToReg64(size_t reg_index) {
     ASSERT(reg_index < 16);
     return Xbyak::Reg64(static_cast<int>(reg_index));
 }
 
-constexpr Xbyak::Xmm IndexToXmm(std::size_t reg_index) {
+constexpr Xbyak::Xmm IndexToXmm(size_t reg_index) {
     ASSERT(reg_index >= 16 && reg_index < 32);
     return Xbyak::Xmm(static_cast<int>(reg_index - 16));
 }
 
-constexpr Xbyak::Reg IndexToReg(std::size_t reg_index) {
+constexpr Xbyak::Reg IndexToReg(size_t reg_index) {
     if (reg_index < 16) {
         return IndexToReg64(reg_index);
     } else {
@@ -182,7 +182,7 @@ inline size_t ABI_PushRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::b
                                               size_t rsp_alignment, size_t needed_frame_size = 0) {
     auto frame_info = ABI_CalculateFrameSize(regs, rsp_alignment, needed_frame_size);
 
-    for (std::size_t i = 0; i < regs.size(); ++i) {
+    for (size_t i = 0; i < regs.size(); ++i) {
         if (regs[i] && ABI_ALL_GPRS[i]) {
             code.push(IndexToReg64(i));
         }
@@ -192,7 +192,7 @@ inline size_t ABI_PushRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::b
         code.sub(code.rsp, frame_info.subtraction);
     }
 
-    for (std::size_t i = 0; i < regs.size(); ++i) {
+    for (size_t i = 0; i < regs.size(); ++i) {
         if (regs[i] && ABI_ALL_XMMS[i]) {
             code.movaps(code.xword[code.rsp + frame_info.xmm_offset], IndexToXmm(i));
             frame_info.xmm_offset += 0x10;
@@ -206,7 +206,7 @@ inline void ABI_PopRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::bits
                                            size_t rsp_alignment, size_t needed_frame_size = 0) {
     auto frame_info = ABI_CalculateFrameSize(regs, rsp_alignment, needed_frame_size);
 
-    for (std::size_t i = 0; i < regs.size(); ++i) {
+    for (size_t i = 0; i < regs.size(); ++i) {
         if (regs[i] && ABI_ALL_XMMS[i]) {
             code.movaps(IndexToXmm(i), code.xword[code.rsp + frame_info.xmm_offset]);
             frame_info.xmm_offset += 0x10;
@@ -218,8 +218,8 @@ inline void ABI_PopRegistersAndAdjustStack(Xbyak::CodeGenerator& code, std::bits
     }
 
     // GPRs need to be popped in reverse order
-    for (std::size_t j = 0; j < regs.size(); ++j) {
-        const std::size_t i = regs.size() - j - 1;
+    for (size_t j = 0; j < regs.size(); ++j) {
+        const size_t i = regs.size() - j - 1;
         if (regs[i] && ABI_ALL_GPRS[i]) {
             code.pop(IndexToReg64(i));
         }
