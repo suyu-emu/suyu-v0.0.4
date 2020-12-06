@@ -217,12 +217,12 @@ public:
     }
 
     /// Gets the process schedule count, used for thread yelding
-    constexpr s64 GetScheduledCount() const {
+    s64 GetScheduledCount() const {
         return schedule_count;
     }
 
     /// Increments the process schedule count, used for thread yielding.
-    constexpr void IncrementScheduledCount() {
+    void IncrementScheduledCount() {
         ++schedule_count;
     }
 
