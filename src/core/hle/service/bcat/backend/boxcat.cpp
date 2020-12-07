@@ -483,7 +483,7 @@ Boxcat::StatusResult Boxcat::GetStatus(std::optional<std::string>& global,
             global = json["global"].get<std::string>();
 
         if (json["games"].is_array()) {
-            for (const auto object : json["games"]) {
+            for (const auto& object : json["games"]) {
                 if (object.is_object() && object.find("name") != object.end()) {
                     EventStatus detail{};
                     if (object["header"].is_string()) {
