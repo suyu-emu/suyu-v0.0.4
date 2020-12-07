@@ -114,7 +114,7 @@ spv::Dim GetSamplerDim(const Sampler& sampler) {
     case Tegra::Shader::TextureType::TextureCube:
         return spv::Dim::Cube;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", static_cast<int>(sampler.type));
+        UNIMPLEMENTED_MSG("Unimplemented sampler type={}", sampler.type);
         return spv::Dim::Dim2D;
     }
 }
@@ -134,7 +134,7 @@ std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
     case Tegra::Shader::ImageType::Texture3D:
         return {spv::Dim::Dim3D, false};
     default:
-        UNIMPLEMENTED_MSG("Unimplemented image type={}", static_cast<int>(image.type));
+        UNIMPLEMENTED_MSG("Unimplemented image type={}", image.type);
         return {spv::Dim::Dim2D, false};
     }
 }
@@ -1254,7 +1254,7 @@ private:
                 const Id pointer = ArrayPass(type_descriptor.scalar, attribute_id, elements);
                 return {OpLoad(GetTypeDefinition(type), pointer), type};
             }
-            UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+            UNIMPLEMENTED_MSG("Unhandled input attribute: {}", attribute);
             return {v_float_zero, Type::Float};
         }
 
@@ -1890,7 +1890,7 @@ private:
             case Tegra::Shader::TextureType::Texture3D:
                 return 3;
             default:
-                UNREACHABLE_MSG("Invalid texture type={}", static_cast<int>(type));
+                UNREACHABLE_MSG("Invalid texture type={}", type);
                 return 2;
             }
         }();

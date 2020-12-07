@@ -107,7 +107,7 @@ OperationCode SignedToUnsignedCode(OperationCode operation_code, bool is_signed)
         UNREACHABLE_MSG("Can't apply absolute to an unsigned integer");
         return {};
     default:
-        UNREACHABLE_MSG("Unknown signed operation with code={}", static_cast<u32>(operation_code));
+        UNREACHABLE_MSG("Unknown signed operation with code={}", operation_code);
         return {};
     }
 }

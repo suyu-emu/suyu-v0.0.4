@@ -71,7 +71,7 @@ std::string_view GetInputFlags(PixelImap attribute) {
     case PixelImap::Unused:
         break;
     }
-    UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<int>(attribute));
+    UNIMPLEMENTED_MSG("Unknown attribute usage index={}", attribute);
     return {};
 }
 
@@ -123,7 +123,7 @@ std::string_view PrimitiveDescription(Tegra::Engines::Maxwell3D::Regs::Primitive
     case Tegra::Engines::Maxwell3D::Regs::PrimitiveTopology::TriangleStripAdjacency:
         return "TRIANGLES_ADJACENCY";
     default:
-        UNIMPLEMENTED_MSG("topology={}", static_cast<int>(topology));
+        UNIMPLEMENTED_MSG("topology={}", topology);
         return "POINTS";
     }
 }
@@ -137,7 +137,7 @@ std::string_view TopologyName(Tegra::Shader::OutputTopology topology) {
     case Tegra::Shader::OutputTopology::TriangleStrip:
         return "TRIANGLE_STRIP";
     default:
-        UNIMPLEMENTED_MSG("Unknown output topology: {}", static_cast<u32>(topology));
+        UNIMPLEMENTED_MSG("Unknown output topology: {}", topology);
         return "points";
     }
 }
@@ -1351,7 +1351,7 @@ std::string ARBDecompiler::Visit(const Node& node) {
                                        GetGenericAttributeIndex(index), swizzle);
                 }
             }
-            UNIMPLEMENTED_MSG("Unimplemented input attribute={}", static_cast<int>(index));
+            UNIMPLEMENTED_MSG("Unimplemented input attribute={}", index);
             break;
         }
         return "{0, 0, 0, 0}.x";

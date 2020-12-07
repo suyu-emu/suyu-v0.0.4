@@ -165,8 +165,7 @@ void MacroJITx64Impl::Compile_ALU(Macro::Opcode opcode) {
         }
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}",
-                          static_cast<std::size_t>(opcode.alu_operation.Value()));
+        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", opcode.alu_operation.Value());
         break;
     }
     Compile_ProcessResult(opcode.result_operation, opcode.dst);
@@ -604,7 +603,7 @@ void MacroJITx64Impl::Compile_ProcessResult(Macro::ResultOperation operation, u3
         Compile_Send(RESULT);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented macro operation {}", static_cast<std::size_t>(operation));
+        UNIMPLEMENTED_MSG("Unimplemented macro operation {}", operation);
     }
 }
 

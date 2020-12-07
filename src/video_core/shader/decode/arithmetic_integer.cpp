@@ -83,7 +83,7 @@ u32 ShaderIR::DecodeArithmeticInteger(NodeBlock& bb, u32 pc) {
             case IAdd3Height::UpperHalfWord:
                 return BitfieldExtract(value, 16, 16);
             default:
-                UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", static_cast<u32>(height));
+                UNIMPLEMENTED_MSG("Unhandled IADD3 height: {}", height);
                 return Immediate(0);
             }
         };

@@ -48,8 +48,7 @@ static std::pair<u32, u32> DelimitLine(u32 src_1, u32 src_2, u32 dst_1, u32 dst_
 }
 
 void Fermi2D::HandleSurfaceCopy() {
-    LOG_DEBUG(HW_GPU, "Requested a surface copy with operation {}",
-              static_cast<u32>(regs.operation));
+    LOG_DEBUG(HW_GPU, "Requested a surface copy with operation {}", regs.operation);
 
     // TODO(Subv): Only raw copies are implemented.
     ASSERT(regs.operation == Operation::SrcCopy);

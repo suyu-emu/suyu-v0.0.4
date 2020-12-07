@@ -107,7 +107,7 @@ inline GLenum IndexFormat(Maxwell::IndexFormat index_format) {
     case Maxwell::IndexFormat::UnsignedInt:
         return GL_UNSIGNED_INT;
     }
-    UNREACHABLE_MSG("Invalid index_format={}", static_cast<u32>(index_format));
+    UNREACHABLE_MSG("Invalid index_format={}", index_format);
     return {};
 }
 
@@ -144,7 +144,7 @@ inline GLenum PrimitiveTopology(Maxwell::PrimitiveTopology topology) {
     case Maxwell::PrimitiveTopology::Patches:
         return GL_PATCHES;
     }
-    UNREACHABLE_MSG("Invalid topology={}", static_cast<int>(topology));
+    UNREACHABLE_MSG("Invalid topology={}", topology);
     return GL_POINTS;
 }
 
@@ -172,8 +172,8 @@ inline GLenum TextureFilterMode(Tegra::Texture::TextureFilter filter_mode,
         }
         break;
     }
-    UNREACHABLE_MSG("Invalid texture filter mode={} and mipmap filter mode={}",
-                    static_cast<u32>(filter_mode), static_cast<u32>(mipmap_filter_mode));
+    UNREACHABLE_MSG("Invalid texture filter mode={} and mipmap filter mode={}", filter_mode,
+                    mipmap_filter_mode);
     return GL_NEAREST;
 }
 
@@ -204,7 +204,7 @@ inline GLenum WrapMode(Tegra::Texture::WrapMode wrap_mode) {
             return GL_MIRROR_CLAMP_TO_EDGE;
         }
     }
-    UNIMPLEMENTED_MSG("Unimplemented texture wrap mode={}", static_cast<u32>(wrap_mode));
+    UNIMPLEMENTED_MSG("Unimplemented texture wrap mode={}", wrap_mode);
     return GL_REPEAT;
 }
 
@@ -227,7 +227,7 @@ inline GLenum DepthCompareFunc(Tegra::Texture::DepthCompareFunc func) {
     case Tegra::Texture::DepthCompareFunc::Always:
         return GL_ALWAYS;
     }
-    UNIMPLEMENTED_MSG("Unimplemented texture depth compare function={}", static_cast<u32>(func));
+    UNIMPLEMENTED_MSG("Unimplemented texture depth compare function={}", func);
     return GL_GREATER;
 }
 
@@ -249,7 +249,7 @@ inline GLenum BlendEquation(Maxwell::Blend::Equation equation) {
     case Maxwell::Blend::Equation::MaxGL:
         return GL_MAX;
     }
-    UNIMPLEMENTED_MSG("Unimplemented blend equation={}", static_cast<u32>(equation));
+    UNIMPLEMENTED_MSG("Unimplemented blend equation={}", equation);
     return GL_FUNC_ADD;
 }
 
@@ -313,7 +313,7 @@ inline GLenum BlendFunc(Maxwell::Blend::Factor factor) {
     case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
         return GL_ONE_MINUS_CONSTANT_ALPHA;
     }
-    UNIMPLEMENTED_MSG("Unimplemented blend factor={}", static_cast<u32>(factor));
+    UNIMPLEMENTED_MSG("Unimplemented blend factor={}", factor);
     return GL_ZERO;
 }
 
@@ -333,7 +333,7 @@ inline GLenum SwizzleSource(Tegra::Texture::SwizzleSource source) {
     case Tegra::Texture::SwizzleSource::OneFloat:
         return GL_ONE;
     }
-    UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", static_cast<u32>(source));
+    UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", source);
     return GL_ZERO;
 }
 
@@ -364,7 +364,7 @@ inline GLenum ComparisonOp(Maxwell::ComparisonOp comparison) {
     case Maxwell::ComparisonOp::AlwaysOld:
         return GL_ALWAYS;
     }
-    UNIMPLEMENTED_MSG("Unimplemented comparison op={}", static_cast<u32>(comparison));
+    UNIMPLEMENTED_MSG("Unimplemented comparison op={}", comparison);
     return GL_ALWAYS;
 }
 
@@ -395,7 +395,7 @@ inline GLenum StencilOp(Maxwell::StencilOp stencil) {
     case Maxwell::StencilOp::DecrWrapOGL:
         return GL_DECR_WRAP;
     }
-    UNIMPLEMENTED_MSG("Unimplemented stencil op={}", static_cast<u32>(stencil));
+    UNIMPLEMENTED_MSG("Unimplemented stencil op={}", stencil);
     return GL_KEEP;
 }
 
@@ -406,7 +406,7 @@ inline GLenum FrontFace(Maxwell::FrontFace front_face) {
     case Maxwell::FrontFace::CounterClockWise:
         return GL_CCW;
     }
-    UNIMPLEMENTED_MSG("Unimplemented front face cull={}", static_cast<u32>(front_face));
+    UNIMPLEMENTED_MSG("Unimplemented front face cull={}", front_face);
     return GL_CCW;
 }
 
@@ -419,7 +419,7 @@ inline GLenum CullFace(Maxwell::CullFace cull_face) {
     case Maxwell::CullFace::FrontAndBack:
         return GL_FRONT_AND_BACK;
     }
-    UNIMPLEMENTED_MSG("Unimplemented cull face={}", static_cast<u32>(cull_face));
+    UNIMPLEMENTED_MSG("Unimplemented cull face={}", cull_face);
     return GL_BACK;
 }
 
@@ -458,7 +458,7 @@ inline GLenum LogicOp(Maxwell::LogicOperation operation) {
     case Maxwell::LogicOperation::Set:
         return GL_SET;
     }
-    UNIMPLEMENTED_MSG("Unimplemented logic operation={}", static_cast<u32>(operation));
+    UNIMPLEMENTED_MSG("Unimplemented logic operation={}", operation);
     return GL_COPY;
 }
 
@@ -471,7 +471,7 @@ inline GLenum PolygonMode(Maxwell::PolygonMode polygon_mode) {
     case Maxwell::PolygonMode::Fill:
         return GL_FILL;
     }
-    UNREACHABLE_MSG("Invalid polygon mode={}", static_cast<int>(polygon_mode));
+    UNREACHABLE_MSG("Invalid polygon mode={}", polygon_mode);
     return GL_FILL;
 }
 

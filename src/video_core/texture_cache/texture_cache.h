@@ -1191,9 +1191,8 @@ private:
         const SurfaceParams& src_params = src->GetSurfaceParams();
         const SurfaceParams& dst_params = dst->GetSurfaceParams();
         if (!format_compatibility.TestCopy(src_params.pixel_format, dst_params.pixel_format)) {
-            LOG_ERROR(HW_GPU, "Illegal copy between formats={{{}, {}}}",
-                      static_cast<int>(dst_params.pixel_format),
-                      static_cast<int>(src_params.pixel_format));
+            LOG_ERROR(HW_GPU, "Illegal copy between formats={{{}, {}}}", dst_params.pixel_format,
+                      src_params.pixel_format);
             return;
         }
         ImageCopy(src, dst, copy);

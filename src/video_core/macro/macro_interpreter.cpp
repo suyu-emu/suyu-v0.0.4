@@ -133,8 +133,7 @@ bool MacroInterpreterImpl::Step(bool is_delay_slot) {
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented macro operation {}",
-                          static_cast<u32>(opcode.operation.Value()));
+        UNIMPLEMENTED_MSG("Unimplemented macro operation {}", opcode.operation.Value());
     }
 
     // An instruction with the Exit flag will not actually
@@ -182,7 +181,7 @@ u32 MacroInterpreterImpl::GetALUResult(Macro::ALUOperation operation, u32 src_a,
         return ~(src_a & src_b);
 
     default:
-        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", static_cast<u32>(operation));
+        UNIMPLEMENTED_MSG("Unimplemented ALU operation {}", operation);
         return 0;
     }
 }
@@ -230,7 +229,7 @@ void MacroInterpreterImpl::ProcessResult(Macro::ResultOperation operation, u32 r
         Send((result >> 12) & 0b111111);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented result operation {}", static_cast<u32>(operation));
+        UNIMPLEMENTED_MSG("Unimplemented result operation {}", operation);
     }
 }
 

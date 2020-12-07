@@ -44,7 +44,7 @@ Codec::~Codec() {
 }
 
 void Codec::SetTargetCodec(NvdecCommon::VideoCodec codec) {
-    LOG_INFO(Service_NVDRV, "NVDEC video codec initialized to {}", static_cast<u32>(codec));
+    LOG_INFO(Service_NVDRV, "NVDEC video codec initialized to {}", codec);
     current_codec = codec;
 }
 
@@ -62,7 +62,7 @@ void Codec::Decode() {
         } else if (current_codec == NvdecCommon::VideoCodec::Vp9) {
             av_codec = avcodec_find_decoder(AV_CODEC_ID_VP9);
         } else {
-            LOG_ERROR(Service_NVDRV, "Unknown video codec {}", static_cast<u32>(current_codec));
+            LOG_ERROR(Service_NVDRV, "Unknown video codec {}", current_codec);
             return;
         }
 

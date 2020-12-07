@@ -110,8 +110,7 @@ u32 ShaderIR::DecodeArithmetic(NodeBlock& bb, u32 pc) {
             case SubOp::Sqrt:
                 return Operation(OperationCode::FSqrt, PRECISE, op_a);
             default:
-                UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}",
-                                  static_cast<unsigned>(instr.sub_op.Value()));
+                UNIMPLEMENTED_MSG("Unhandled MUFU sub op={0:x}", instr.sub_op.Value());
                 return Immediate(0);
             }
         }();
