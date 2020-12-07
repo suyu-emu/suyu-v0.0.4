@@ -11,7 +11,7 @@
 #ifdef _WIN32
 #define _WINSOCK_DEPRECATED_NO_WARNINGS // gethostname
 #include <winsock2.h>
-#elif __unix__
+#elif YUZU_UNIX
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -54,7 +54,7 @@ constexpr IPv4Address TranslateIPv4(in_addr addr) {
 sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
     sockaddr_in result;
 
-#ifdef __unix__
+#if YUZU_UNIX
     result.sin_len = sizeof(result);
 #endif
 
@@ -99,7 +99,7 @@ bool EnableNonBlock(SOCKET fd, bool enable) {
     return ioctlsocket(fd, FIONBIO, &value) != SOCKET_ERROR;
 }
 
-#elif __unix__ // ^ _WIN32 v __unix__
+#elif YUZU_UNIX // ^ _WIN32 v YUZU_UNIX
 
 using SOCKET = int;
 using WSAPOLLFD = pollfd;
