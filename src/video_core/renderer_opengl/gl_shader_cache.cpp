@@ -459,7 +459,7 @@ void ShaderCacheOpenGL::LoadDiskCache(u64 title_id, const std::atomic_bool& stop
 ProgramSharedPtr ShaderCacheOpenGL::GeneratePrecompiledProgram(
     const ShaderDiskCacheEntry& entry, const ShaderDiskCachePrecompiled& precompiled_entry,
     const std::unordered_set<GLenum>& supported_formats) {
-    if (supported_formats.find(precompiled_entry.binary_format) == supported_formats.end()) {
+    if (!supported_formats.contains(precompiled_entry.binary_format)) {
         LOG_INFO(Render_OpenGL, "Precompiled cache entry with unsupported format, removing");
         return {};
     }
