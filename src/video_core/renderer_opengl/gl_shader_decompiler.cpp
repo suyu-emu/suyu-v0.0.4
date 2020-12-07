@@ -878,7 +878,7 @@ private:
         }
 
         u32 binding = device.GetBaseBindings(stage).uniform_buffer;
-        for (const auto [index, info] : ir.GetConstantBuffers()) {
+        for (const auto& [index, info] : ir.GetConstantBuffers()) {
             const u32 num_elements = Common::AlignUp(info.GetSize(), 4) / 4;
             const u32 size = info.IsIndirect() ? MAX_CONSTBUFFER_ELEMENTS : num_elements;
             code.AddLine("layout (std140, binding = {}) uniform {} {{", binding++,
