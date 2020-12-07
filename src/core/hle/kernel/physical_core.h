@@ -36,7 +36,7 @@ public:
     PhysicalCore& operator=(const PhysicalCore&) = delete;
 
     PhysicalCore(PhysicalCore&&) = default;
-    PhysicalCore& operator=(PhysicalCore&&) = default;
+    PhysicalCore& operator=(PhysicalCore&&) = delete;
 
     /// Initialize the core for the specified parameters.
     void Initialize(bool is_64_bit);
