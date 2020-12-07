@@ -452,8 +452,8 @@ void ShaderIR::MarkAttributeUsage(Attribute::Index index, u64 element) {
 }
 
 std::size_t ShaderIR::DeclareAmend(Node new_amend) {
-    const std::size_t id = amend_code.size();
-    amend_code.push_back(new_amend);
+    const auto id = amend_code.size();
+    amend_code.push_back(std::move(new_amend));
     return id;
 }
 
