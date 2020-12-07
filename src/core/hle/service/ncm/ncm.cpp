@@ -45,7 +45,7 @@ public:
     }
 
 private:
-    FileSys::StorageId storage;
+    [[maybe_unused]] FileSys::StorageId storage;
 };
 
 class IRegisteredLocationResolver final : public ServiceFramework<IRegisteredLocationResolver> {
