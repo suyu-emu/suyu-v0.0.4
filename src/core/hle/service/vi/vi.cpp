@@ -1230,8 +1230,8 @@ private:
         const auto height = rp.Pop<u64>();
         LOG_DEBUG(Service_VI, "called width={}, height={}", width, height);
 
-        constexpr std::size_t base_size = 0x20000;
-        constexpr std::size_t alignment = 0x1000;
+        constexpr u64 base_size = 0x20000;
+        constexpr u64 alignment = 0x1000;
         const auto texture_size = width * height * 4;
         const auto out_size = (texture_size + base_size - 1) / base_size * base_size;
 
