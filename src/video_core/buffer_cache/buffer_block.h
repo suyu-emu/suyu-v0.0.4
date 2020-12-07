@@ -4,12 +4,7 @@
 
 #pragma once
 
-#include <unordered_set>
-#include <utility>
-
-#include "common/alignment.h"
 #include "common/common_types.h"
-#include "video_core/gpu.h"
 
 namespace VideoCommon {
 
