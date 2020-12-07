@@ -1512,8 +1512,8 @@ private:
 
     /**
      * Call a macro on this engine.
+     *
      * @param method Method to call
-     * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
      */
     void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
