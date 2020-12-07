@@ -24,12 +24,12 @@ constexpr bool C = false; // Normal color
 constexpr bool S = true;  // Srgb
 
 struct Table {
-    constexpr Table(TextureFormat texture_format, bool is_srgb, ComponentType red_component,
-                    ComponentType green_component, ComponentType blue_component,
-                    ComponentType alpha_component, PixelFormat pixel_format)
-        : texture_format{texture_format}, pixel_format{pixel_format}, red_component{red_component},
-          green_component{green_component}, blue_component{blue_component},
-          alpha_component{alpha_component}, is_srgb{is_srgb} {}
+    constexpr Table(TextureFormat texture_format_, bool is_srgb_, ComponentType red_component_,
+                    ComponentType green_component_, ComponentType blue_component_,
+                    ComponentType alpha_component_, PixelFormat pixel_format_)
+        : texture_format{texture_format_}, pixel_format{pixel_format_},
+          red_component{red_component_}, green_component{green_component_},
+          blue_component{blue_component_}, alpha_component{alpha_component_}, is_srgb{is_srgb_} {}
 
     TextureFormat texture_format;
     PixelFormat pixel_format;

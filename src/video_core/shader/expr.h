@@ -76,7 +76,7 @@ public:
 
 class ExprPredicate final {
 public:
-    explicit ExprPredicate(u32 predicate) : predicate{predicate} {}
+    explicit ExprPredicate(u32 predicate_) : predicate{predicate_} {}
 
     bool operator==(const ExprPredicate& b) const {
         return predicate == b.predicate;
@@ -91,7 +91,7 @@ public:
 
 class ExprCondCode final {
 public:
-    explicit ExprCondCode(ConditionCode cc) : cc{cc} {}
+    explicit ExprCondCode(ConditionCode condition_code) : cc{condition_code} {}
 
     bool operator==(const ExprCondCode& b) const {
         return cc == b.cc;
@@ -121,7 +121,7 @@ public:
 
 class ExprGprEqual final {
 public:
-    ExprGprEqual(u32 gpr, u32 value) : gpr{gpr}, value{value} {}
+    explicit ExprGprEqual(u32 gpr_, u32 value_) : gpr{gpr_}, value{value_} {}
 
     bool operator==(const ExprGprEqual& b) const {
         return gpr == b.gpr && value == b.value;

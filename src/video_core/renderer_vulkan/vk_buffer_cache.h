@@ -22,15 +22,15 @@ class VKScheduler;
 class Buffer final : public VideoCommon::BufferBlock {
 public:
     explicit Buffer(const VKDevice& device, VKMemoryManager& memory_manager, VKScheduler& scheduler,
-                    VKStagingBufferPool& staging_pool, VAddr cpu_addr, std::size_t size);
+                    VKStagingBufferPool& staging_pool, VAddr cpu_addr_, std::size_t size_);
     ~Buffer();
 
-    void Upload(std::size_t offset, std::size_t size, const u8* data);
+    void Upload(std::size_t offset, std::size_t data_size, const u8* data);
 
-    void Download(std::size_t offset, std::size_t size, u8* data);
+    void Download(std::size_t offset, std::size_t data_size, u8* data);
 
     void CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst_offset,
-                  std::size_t size);
+                  std::size_t copy_size);
 
     VkBuffer Handle() const {
         return *buffer.handle;
@@ -49,10 +49,10 @@ private:
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
-    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer,
-                           Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
-                           const VKDevice& device, VKMemoryManager& memory_manager,
-                           VKScheduler& scheduler, VKStagingBufferPool& staging_pool);
+    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer_,
+                           Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
+                           const VKDevice& device_, VKMemoryManager& memory_manager_,
+                           VKScheduler& scheduler_, VKStagingBufferPool& staging_pool_);
     ~VKBufferCache();
 
     BufferInfo GetEmptyBuffer(std::size_t size) override;

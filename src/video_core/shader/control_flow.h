@@ -42,10 +42,10 @@ struct Condition {
 class SingleBranch {
 public:
     SingleBranch() = default;
-    SingleBranch(Condition condition, s32 address, bool kill, bool is_sync, bool is_brk,
-                 bool ignore)
-        : condition{condition}, address{address}, kill{kill}, is_sync{is_sync}, is_brk{is_brk},
-          ignore{ignore} {}
+    explicit SingleBranch(Condition condition_, s32 address_, bool kill_, bool is_sync_,
+                          bool is_brk_, bool ignore_)
+        : condition{condition_}, address{address_}, kill{kill_}, is_sync{is_sync_}, is_brk{is_brk_},
+          ignore{ignore_} {}
 
     bool operator==(const SingleBranch& b) const {
         return std::tie(condition, address, kill, is_sync, is_brk, ignore) ==
@@ -65,15 +65,15 @@ public:
 };
 
 struct CaseBranch {
-    CaseBranch(u32 cmp_value, u32 address) : cmp_value{cmp_value}, address{address} {}
+    explicit CaseBranch(u32 cmp_value_, u32 address_) : cmp_value{cmp_value_}, address{address_} {}
     u32 cmp_value;
     u32 address;
 };
 
 class MultiBranch {
 public:
-    MultiBranch(u32 gpr, std::vector<CaseBranch>&& branches)
-        : gpr{gpr}, branches{std::move(branches)} {}
+    explicit MultiBranch(u32 gpr_, std::vector<CaseBranch>&& branches_)
+        : gpr{gpr_}, branches{std::move(branches_)} {}
 
     u32 gpr{};
     std::vector<CaseBranch> branches{};

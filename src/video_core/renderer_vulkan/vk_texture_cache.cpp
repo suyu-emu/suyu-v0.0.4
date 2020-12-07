@@ -489,12 +489,12 @@ VkImageView CachedSurfaceView::GetAttachment() {
     return *render_target;
 }
 
-VKTextureCache::VKTextureCache(VideoCore::RasterizerInterface& rasterizer,
-                               Tegra::Engines::Maxwell3D& maxwell3d,
-                               Tegra::MemoryManager& gpu_memory, const VKDevice& device_,
+VKTextureCache::VKTextureCache(VideoCore::RasterizerInterface& rasterizer_,
+                               Tegra::Engines::Maxwell3D& maxwell3d_,
+                               Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
                                VKMemoryManager& memory_manager_, VKScheduler& scheduler_,
                                VKStagingBufferPool& staging_pool_)
-    : TextureCache(rasterizer, maxwell3d, gpu_memory, device_.IsOptimalAstcSupported()),
+    : TextureCache(rasterizer_, maxwell3d_, gpu_memory_, device_.IsOptimalAstcSupported()),
       device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_}, staging_pool{
                                                                                    staging_pool_} {}
 

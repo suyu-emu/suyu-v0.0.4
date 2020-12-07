@@ -84,9 +84,9 @@ namespace Vulkan {
 
 class Shader {
 public:
-    explicit Shader(Tegra::Engines::ConstBufferEngineInterface& engine,
-                    Tegra::Engines::ShaderType stage, GPUVAddr gpu_addr, VAddr cpu_addr,
-                    VideoCommon::Shader::ProgramCode program_code, u32 main_offset);
+    explicit Shader(Tegra::Engines::ConstBufferEngineInterface& engine_,
+                    Tegra::Engines::ShaderType stage_, GPUVAddr gpu_addr, VAddr cpu_addr_,
+                    VideoCommon::Shader::ProgramCode program_code, u32 main_offset_);
     ~Shader();
 
     GPUVAddr GetGpuAddr() const {
@@ -119,13 +119,13 @@ private:
 
 class VKPipelineCache final : public VideoCommon::ShaderCache<Shader> {
 public:
-    explicit VKPipelineCache(RasterizerVulkan& rasterizer, Tegra::GPU& gpu,
-                             Tegra::Engines::Maxwell3D& maxwell3d,
-                             Tegra::Engines::KeplerCompute& kepler_compute,
-                             Tegra::MemoryManager& gpu_memory, const VKDevice& device,
-                             VKScheduler& scheduler, VKDescriptorPool& descriptor_pool,
-                             VKUpdateDescriptorQueue& update_descriptor_queue,
-                             VKRenderPassCache& renderpass_cache);
+    explicit VKPipelineCache(RasterizerVulkan& rasterizer_, Tegra::GPU& gpu_,
+                             Tegra::Engines::Maxwell3D& maxwell3d_,
+                             Tegra::Engines::KeplerCompute& kepler_compute_,
+                             Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
+                             VKScheduler& scheduler_, VKDescriptorPool& descriptor_pool_,
+                             VKUpdateDescriptorQueue& update_descriptor_queue_,
+                             VKRenderPassCache& renderpass_cache_);
     ~VKPipelineCache() override;
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();

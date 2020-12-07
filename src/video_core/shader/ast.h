@@ -76,7 +76,7 @@ public:
 
 class ASTIfThen {
 public:
-    explicit ASTIfThen(Expr condition) : condition{std::move(condition)} {}
+    explicit ASTIfThen(Expr condition_) : condition{std::move(condition_)} {}
     Expr condition;
     ASTZipper nodes{};
 };
@@ -88,63 +88,68 @@ public:
 
 class ASTBlockEncoded {
 public:
-    explicit ASTBlockEncoded(u32 start, u32 end) : start{start}, end{end} {}
+    explicit ASTBlockEncoded(u32 start_, u32 _) : start{start_}, end{_} {}
     u32 start;
     u32 end;
 };
 
 class ASTBlockDecoded {
 public:
-    explicit ASTBlockDecoded(NodeBlock&& new_nodes) : nodes(std::move(new_nodes)) {}
+    explicit ASTBlockDecoded(NodeBlock&& new_nodes_) : nodes(std::move(new_nodes_)) {}
     NodeBlock nodes;
 };
 
 class ASTVarSet {
 public:
-    explicit ASTVarSet(u32 index, Expr condition) : index{index}, condition{std::move(condition)} {}
+    explicit ASTVarSet(u32 index_, Expr condition_)
+        : index{index_}, condition{std::move(condition_)} {}
+
     u32 index;
     Expr condition;
 };
 
 class ASTLabel {
 public:
-    explicit ASTLabel(u32 index) : index{index} {}
+    explicit ASTLabel(u32 index_) : index{index_} {}
     u32 index;
     bool unused{};
 };
 
 class ASTGoto {
 public:
-    explicit ASTGoto(Expr condition, u32 label) : condition{std::move(condition)}, label{label} {}
+    explicit ASTGoto(Expr condition_, u32 label_)
+        : condition{std::move(condition_)}, label{label_} {}
+
     Expr condition;
     u32 label;
 };
 
 class ASTDoWhile {
 public:
-    explicit ASTDoWhile(Expr condition) : condition{std::move(condition)} {}
+    explicit ASTDoWhile(Expr condition_) : condition{std::move(condition_)} {}
     Expr condition;
     ASTZipper nodes{};
 };
 
 class ASTReturn {
 public:
-    explicit ASTReturn(Expr condition, bool kills)
-        : condition{std::move(condition)}, kills{kills} {}
+    explicit ASTReturn(Expr condition_, bool kills_)
+        : condition{std::move(condition_)}, kills{kills_} {}
+
     Expr condition;
     bool kills;
 };
 
 class ASTBreak {
 public:
-    explicit ASTBreak(Expr condition) : condition{std::move(condition)} {}
+    explicit ASTBreak(Expr condition_) : condition{std::move(condition_)} {}
     Expr condition;
 };
 
 class ASTBase {
 public:
-    explicit ASTBase(ASTNode parent, ASTData data)
-        : data{std::move(data)}, parent{std::move(parent)} {}
+    explicit ASTBase(ASTNode parent_, ASTData data_)
+        : data{std::move(data_)}, parent{std::move(parent_)} {}
 
     template <class U, class... Args>
     static ASTNode Make(ASTNode parent, Args&&... args) {
@@ -300,7 +305,7 @@ private:
 
 class ASTManager final {
 public:
-    ASTManager(bool full_decompile, bool disable_else_derivation);
+    explicit ASTManager(bool do_full_decompile, bool disable_else_derivation_);
     ~ASTManager();
 
     ASTManager(const ASTManager& o) = delete;

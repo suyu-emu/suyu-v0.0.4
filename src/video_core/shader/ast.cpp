@@ -374,8 +374,8 @@ std::string ASTManager::Print() const {
     return printer.GetResult();
 }
 
-ASTManager::ASTManager(bool full_decompile, bool disable_else_derivation)
-    : full_decompile{full_decompile}, disable_else_derivation{disable_else_derivation} {};
+ASTManager::ASTManager(bool do_full_decompile, bool disable_else_derivation_)
+    : full_decompile{do_full_decompile}, disable_else_derivation{disable_else_derivation_} {}
 
 ASTManager::~ASTManager() {
     Clear();

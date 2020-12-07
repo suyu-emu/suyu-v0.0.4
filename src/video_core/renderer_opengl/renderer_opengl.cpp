@@ -130,8 +130,8 @@ void APIENTRY DebugHandler(GLenum source, GLenum type, GLuint id, GLenum severit
 RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Frontend::EmuWindow& emu_window_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
-                               std::unique_ptr<Core::Frontend::GraphicsContext> context)
-    : RendererBase{emu_window_, std::move(context)}, telemetry_session{telemetry_session_},
+                               std::unique_ptr<Core::Frontend::GraphicsContext> context_)
+    : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
       emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device} {}
 
 RendererOpenGL::~RendererOpenGL() = default;

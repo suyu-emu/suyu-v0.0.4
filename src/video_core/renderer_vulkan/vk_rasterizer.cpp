@@ -128,12 +128,12 @@ Tegra::Texture::FullTextureInfo GetTextureInfo(const Engine& engine, const Entry
             const u32 offset_2 = entry.secondary_offset;
             const u32 handle_1 = engine.AccessConstBuffer32(stage_type, buffer_1, offset_1);
             const u32 handle_2 = engine.AccessConstBuffer32(stage_type, buffer_2, offset_2);
-            return engine.GetTextureInfo(handle_1 | handle_2);
+            return engine.GetTextureInfo(Tegra::Texture::TextureHandle{handle_1 | handle_2});
         }
     }
     if (entry.is_bindless) {
         const auto tex_handle = engine.AccessConstBuffer32(stage_type, entry.buffer, entry.offset);
-        return engine.GetTextureInfo(tex_handle);
+        return engine.GetTextureInfo(Tegra::Texture::TextureHandle{tex_handle});
     }
     const auto& gpu_profile = engine.AccessGuestDriverProfile();
     const u32 entry_offset = static_cast<u32>(index * gpu_profile.GetTextureHandlerSize());
@@ -380,12 +380,12 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
     }
 }
 
-RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu_,
+RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Tegra::MemoryManager& gpu_memory_,
-                                   Core::Memory::Memory& cpu_memory, VKScreenInfo& screen_info_,
+                                   Core::Memory::Memory& cpu_memory_, VKScreenInfo& screen_info_,
                                    const VKDevice& device_, VKMemoryManager& memory_manager_,
                                    StateTracker& state_tracker_, VKScheduler& scheduler_)
-    : RasterizerAccelerated(cpu_memory), gpu(gpu_), gpu_memory(gpu_memory_),
+    : RasterizerAccelerated(cpu_memory_), gpu(gpu_), gpu_memory(gpu_memory_),
       maxwell3d(gpu.Maxwell3D()), kepler_compute(gpu.KeplerCompute()), screen_info(screen_info_),
       device(device_), memory_manager(memory_manager_), state_tracker(state_tracker_),
       scheduler(scheduler_), staging_pool(device, memory_manager, scheduler),
@@ -397,11 +397,11 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra:
       texture_cache(*this, maxwell3d, gpu_memory, device, memory_manager, scheduler, staging_pool),
       pipeline_cache(*this, gpu, maxwell3d, kepler_compute, gpu_memory, device, scheduler,
                      descriptor_pool, update_descriptor_queue, renderpass_cache),
-      buffer_cache(*this, gpu_memory, cpu_memory, device, memory_manager, scheduler, staging_pool),
+      buffer_cache(*this, gpu_memory, cpu_memory_, device, memory_manager, scheduler, staging_pool),
       sampler_cache(device), query_cache(*this, maxwell3d, gpu_memory, device, scheduler),
       fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, device,
                     scheduler),
-      wfi_event(device.GetLogical().CreateEvent()), async_shaders(emu_window) {
+      wfi_event(device.GetLogical().CreateEvent()), async_shaders(emu_window_) {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
         async_shaders.AllocateWorkers();

@@ -347,14 +347,14 @@ void CachedSurface::UploadTextureMipmap(u32 level, const std::vector<u8>& stagin
                                           internal_format, image_size, buffer);
             break;
         case SurfaceTarget::TextureCubemap: {
-            const std::size_t layer_size{params.GetHostLayerSize(level)};
+            const std::size_t host_layer_size{params.GetHostLayerSize(level)};
             for (std::size_t face = 0; face < params.depth; ++face) {
                 glCompressedTextureSubImage3D(texture.handle, level, 0, 0, static_cast<GLint>(face),
                                               static_cast<GLsizei>(params.GetMipWidth(level)),
                                               static_cast<GLsizei>(params.GetMipHeight(level)), 1,
-                                              internal_format, static_cast<GLsizei>(layer_size),
-                                              buffer);
-                buffer += layer_size;
+                                              internal_format,
+                                              static_cast<GLsizei>(host_layer_size), buffer);
+                buffer += host_layer_size;
             }
             break;
         }
@@ -532,12 +532,12 @@ OGLTextureView CachedSurfaceView::CreateTextureView() const {
     return texture_view;
 }
 
-TextureCacheOpenGL::TextureCacheOpenGL(VideoCore::RasterizerInterface& rasterizer,
-                                       Tegra::Engines::Maxwell3D& maxwell3d,
-                                       Tegra::MemoryManager& gpu_memory, const Device& device,
+TextureCacheOpenGL::TextureCacheOpenGL(VideoCore::RasterizerInterface& rasterizer_,
+                                       Tegra::Engines::Maxwell3D& maxwell3d_,
+                                       Tegra::MemoryManager& gpu_memory_, const Device& device_,
                                        StateTracker& state_tracker_)
-    : TextureCacheBase{rasterizer, maxwell3d, gpu_memory, device.HasASTC()}, state_tracker{
-                                                                                 state_tracker_} {
+    : TextureCacheBase{rasterizer_, maxwell3d_, gpu_memory_, device_.HasASTC()},
+      state_tracker{state_tracker_} {
     src_framebuffer.Create();
     dst_framebuffer.Create();
 }

@@ -146,7 +146,7 @@ enum class MsaaMode : u32 {
 };
 
 union TextureHandle {
-    TextureHandle(u32 raw) : raw{raw} {}
+    /* implicit */ TextureHandle(u32 raw_) : raw{raw_} {}
 
     u32 raw;
     BitField<0, 20, u32> tic_id;

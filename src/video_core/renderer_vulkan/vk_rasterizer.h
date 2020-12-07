@@ -105,11 +105,11 @@ struct ImageView {
 
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
-    explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window, Tegra::GPU& gpu,
-                              Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
-                              VKScreenInfo& screen_info, const VKDevice& device,
-                              VKMemoryManager& memory_manager, StateTracker& state_tracker,
-                              VKScheduler& scheduler);
+    explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
+                              Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
+                              VKScreenInfo& screen_info_, const VKDevice& device_,
+                              VKMemoryManager& memory_manager_, StateTracker& state_tracker_,
+                              VKScheduler& scheduler_);
     ~RasterizerVulkan() override;
 
     void Draw(bool is_indexed, bool is_instanced) override;

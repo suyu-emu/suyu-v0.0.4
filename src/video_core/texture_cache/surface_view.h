@@ -13,10 +13,10 @@
 namespace VideoCommon {
 
 struct ViewParams {
-    constexpr explicit ViewParams(VideoCore::Surface::SurfaceTarget target, u32 base_layer,
-                                  u32 num_layers, u32 base_level, u32 num_levels)
-        : target{target}, base_layer{base_layer}, num_layers{num_layers}, base_level{base_level},
-          num_levels{num_levels} {}
+    constexpr explicit ViewParams(VideoCore::Surface::SurfaceTarget target_, u32 base_layer_,
+                                  u32 num_layers_, u32 base_level_, u32 num_levels_)
+        : target{target_}, base_layer{base_layer_}, num_layers{num_layers_},
+          base_level{base_level_}, num_levels{num_levels_} {}
 
     std::size_t Hash() const;
 
@@ -44,7 +44,7 @@ struct ViewParams {
 
 class ViewBase {
 public:
-    constexpr explicit ViewBase(const ViewParams& params) : params{params} {}
+    constexpr explicit ViewBase(const ViewParams& view_params) : params{view_params} {}
 
     constexpr const ViewParams& GetViewParams() const {
         return params;
