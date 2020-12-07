@@ -4,34 +4,29 @@
 
 #pragma once
 
-#include <unordered_set>
-#include <utility>
-
-#include "common/alignment.h"
 #include "common/common_types.h"
-#include "video_core/gpu.h"
 
 namespace VideoCommon {
 
 class BufferBlock {
 public:
-    bool Overlaps(VAddr start, VAddr end) const {
+    [[nodiscard]] bool Overlaps(VAddr start, VAddr end) const {
         return (cpu_addr < end) && (cpu_addr_end > start);
     }
 
-    bool IsInside(VAddr other_start, VAddr other_end) const {
+    [[nodiscard]] bool IsInside(VAddr other_start, VAddr other_end) const {
         return cpu_addr <= other_start && other_end <= cpu_addr_end;
     }
 
-    std::size_t Offset(VAddr in_addr) const {
+    [[nodiscard]] std::size_t Offset(VAddr in_addr) const {
         return static_cast<std::size_t>(in_addr - cpu_addr);
     }
 
-    VAddr CpuAddr() const {
+    [[nodiscard]] VAddr CpuAddr() const {
         return cpu_addr;
     }
 
-    VAddr CpuAddrEnd() const {
+    [[nodiscard]] VAddr CpuAddrEnd() const {
         return cpu_addr_end;
     }
 
@@ -40,11 +35,11 @@ public:
         cpu_addr_end = new_addr + size;
     }
 
-    std::size_t Size() const {
+    [[nodiscard]] std::size_t Size() const {
         return size;
     }
 
-    u64 Epoch() const {
+    [[nodiscard]] u64 Epoch() const {
         return epoch;
     }
 
