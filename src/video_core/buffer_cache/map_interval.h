@@ -84,9 +84,10 @@ private:
     void FillFreeList(Chunk& chunk);
 
     std::vector<MapInterval*> free_list;
-    std::unique_ptr<Chunk>* new_chunk = &first_chunk.next;
 
     Chunk first_chunk;
+
+    std::unique_ptr<Chunk>* new_chunk = &first_chunk.next;
 };
 
 } // namespace VideoCommon
