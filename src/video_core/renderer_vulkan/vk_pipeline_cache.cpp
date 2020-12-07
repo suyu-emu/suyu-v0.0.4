@@ -75,7 +75,7 @@ ShaderType GetShaderType(Maxwell::ShaderProgram program) {
     case Maxwell::ShaderProgram::Fragment:
         return ShaderType::Fragment;
     default:
-        UNIMPLEMENTED_MSG("program={}", static_cast<u32>(program));
+        UNIMPLEMENTED_MSG("program={}", program);
         return ShaderType::Vertex;
     }
 }

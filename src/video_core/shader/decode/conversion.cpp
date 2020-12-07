@@ -244,7 +244,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
                 return Operation(OperationCode::FTrunc, value);
             default:
                 UNIMPLEMENTED_MSG("Unimplemented F2F rounding mode {}",
-                                  static_cast<u32>(instr.conversion.f2f.rounding.Value()));
+                                  instr.conversion.f2f.rounding.Value());
                 return value;
             }
         }();
@@ -300,7 +300,7 @@ u32 ShaderIR::DecodeConversion(NodeBlock& bb, u32 pc) {
                 return Operation(OperationCode::FTrunc, PRECISE, value);
             default:
                 UNIMPLEMENTED_MSG("Unimplemented F2I rounding mode {}",
-                                  static_cast<u32>(instr.conversion.f2i.rounding.Value()));
+                                  instr.conversion.f2i.rounding.Value());
                 return Immediate(0);
             }
         }();

@@ -72,7 +72,7 @@ void ShaderIR::WriteLogicOperation(NodeBlock& bb, Register dest, LogicOperation 
         case LogicOperation::PassB:
             return op_b;
         default:
-            UNIMPLEMENTED_MSG("Unimplemented logic operation={}", static_cast<u32>(logic_op));
+            UNIMPLEMENTED_MSG("Unimplemented logic operation={}", logic_op);
             return Immediate(0);
         }
     }();
@@ -92,8 +92,7 @@ void ShaderIR::WriteLogicOperation(NodeBlock& bb, Register dest, LogicOperation 
         break;
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented predicate result mode: {}",
-                          static_cast<u32>(predicate_mode));
+        UNIMPLEMENTED_MSG("Unimplemented predicate result mode: {}", predicate_mode);
     }
 }
 

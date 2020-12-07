@@ -171,7 +171,7 @@ Node ShaderIR::ConvertIntegerSize(Node value, Register::Size size, bool is_signe
         // Default - do nothing
         return value;
     default:
-        UNREACHABLE_MSG("Unimplemented conversion size: {}", static_cast<u32>(size));
+        UNREACHABLE_MSG("Unimplemented conversion size: {}", size);
         return value;
     }
 }
@@ -336,15 +336,15 @@ OperationCode ShaderIR::GetPredicateCombiner(PredOperation operation) {
     return operation_table[index];
 }
 
-Node ShaderIR::GetConditionCode(Tegra::Shader::ConditionCode cc) const {
+Node ShaderIR::GetConditionCode(ConditionCode cc) const {
     switch (cc) {
-    case Tegra::Shader::ConditionCode::NEU:
+    case ConditionCode::NEU:
         return GetInternalFlag(InternalFlag::Zero, true);
-    case Tegra::Shader::ConditionCode::FCSM_TR:
+    case ConditionCode::FCSM_TR:
         UNIMPLEMENTED_MSG("EXIT.FCSM_TR is not implemented");
         return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     default:
-        UNIMPLEMENTED_MSG("Unimplemented condition code: {}", static_cast<u32>(cc));
+        UNIMPLEMENTED_MSG("Unimplemented condition code: {}", cc);
         return MakeNode<PredicateNode>(Pred::NeverExecute, false);
     }
 }

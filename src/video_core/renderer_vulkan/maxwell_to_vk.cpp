@@ -26,7 +26,7 @@ VkFilter Filter(Tegra::Texture::TextureFilter filter) {
     case Tegra::Texture::TextureFilter::Linear:
         return VK_FILTER_LINEAR;
     }
-    UNREACHABLE_MSG("Invalid sampler filter={}", static_cast<u32>(filter));
+    UNREACHABLE_MSG("Invalid sampler filter={}", filter);
     return {};
 }
 
@@ -43,7 +43,7 @@ VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter
     case Tegra::Texture::TextureMipmapFilter::Linear:
         return VK_SAMPLER_MIPMAP_MODE_LINEAR;
     }
-    UNREACHABLE_MSG("Invalid sampler mipmap mode={}", static_cast<u32>(mipmap_filter));
+    UNREACHABLE_MSG("Invalid sampler mipmap mode={}", mipmap_filter);
     return {};
 }
 
@@ -79,7 +79,7 @@ VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode w
         UNIMPLEMENTED();
         return VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", static_cast<u32>(wrap_mode));
+        UNIMPLEMENTED_MSG("Unimplemented wrap mode={}", wrap_mode);
         return {};
     }
 }
@@ -103,8 +103,7 @@ VkCompareOp DepthCompareFunction(Tegra::Texture::DepthCompareFunc depth_compare_
     case Tegra::Texture::DepthCompareFunc::Always:
         return VK_COMPARE_OP_ALWAYS;
     }
-    UNIMPLEMENTED_MSG("Unimplemented sampler depth compare function={}",
-                      static_cast<u32>(depth_compare_func));
+    UNIMPLEMENTED_MSG("Unimplemented sampler depth compare function={}", depth_compare_func);
     return {};
 }
 
@@ -228,8 +227,7 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
 
     auto tuple = tex_format_tuples[static_cast<std::size_t>(pixel_format)];
     if (tuple.format == VK_FORMAT_UNDEFINED) {
-        UNIMPLEMENTED_MSG("Unimplemented texture format with pixel format={}",
-                          static_cast<u32>(pixel_format));
+        UNIMPLEMENTED_MSG("Unimplemented texture format with pixel format={}", pixel_format);
         return {VK_FORMAT_A8B8G8R8_UNORM_PACK32, true, true};
     }
 
@@ -275,7 +273,7 @@ VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     case Tegra::Engines::ShaderType::Compute:
         return VK_SHADER_STAGE_COMPUTE_BIT;
     }
-    UNIMPLEMENTED_MSG("Unimplemented shader stage={}", static_cast<u32>(stage));
+    UNIMPLEMENTED_MSG("Unimplemented shader stage={}", stage);
     return {};
 }
 
@@ -300,7 +298,7 @@ VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
     case Maxwell::PrimitiveTopology::Patches:
         return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented topology={}", static_cast<u32>(topology));
+        UNIMPLEMENTED_MSG("Unimplemented topology={}", topology);
         return {};
     }
 }
@@ -490,8 +488,7 @@ VkFormat VertexFormat(Maxwell::VertexAttribute::Type type, Maxwell::VertexAttrib
         }
         break;
     }
-    UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", static_cast<u32>(type),
-                      static_cast<u32>(size));
+    UNIMPLEMENTED_MSG("Unimplemented vertex format of type={} and size={}", type, size);
     return {};
 }
 
@@ -522,7 +519,7 @@ VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     case Maxwell::ComparisonOp::AlwaysOld:
         return VK_COMPARE_OP_ALWAYS;
     }
-    UNIMPLEMENTED_MSG("Unimplemented comparison op={}", static_cast<u32>(comparison));
+    UNIMPLEMENTED_MSG("Unimplemented comparison op={}", comparison);
     return {};
 }
 
@@ -539,7 +536,7 @@ VkIndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_forma
     case Maxwell::IndexFormat::UnsignedInt:
         return VK_INDEX_TYPE_UINT32;
     }
-    UNIMPLEMENTED_MSG("Unimplemented index_format={}", static_cast<u32>(index_format));
+    UNIMPLEMENTED_MSG("Unimplemented index_format={}", index_format);
     return {};
 }
 
@@ -570,7 +567,7 @@ VkStencilOp StencilOp(Maxwell::StencilOp stencil_op) {
     case Maxwell::StencilOp::DecrWrapOGL:
         return VK_STENCIL_OP_DECREMENT_AND_WRAP;
     }
-    UNIMPLEMENTED_MSG("Unimplemented stencil op={}", static_cast<u32>(stencil_op));
+    UNIMPLEMENTED_MSG("Unimplemented stencil op={}", stencil_op);
     return {};
 }
 
@@ -592,7 +589,7 @@ VkBlendOp BlendEquation(Maxwell::Blend::Equation equation) {
     case Maxwell::Blend::Equation::MaxGL:
         return VK_BLEND_OP_MAX;
     }
-    UNIMPLEMENTED_MSG("Unimplemented blend equation={}", static_cast<u32>(equation));
+    UNIMPLEMENTED_MSG("Unimplemented blend equation={}", equation);
     return {};
 }
 
@@ -656,7 +653,7 @@ VkBlendFactor BlendFactor(Maxwell::Blend::Factor factor) {
     case Maxwell::Blend::Factor::OneMinusConstantAlphaGL:
         return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
     }
-    UNIMPLEMENTED_MSG("Unimplemented blend factor={}", static_cast<u32>(factor));
+    UNIMPLEMENTED_MSG("Unimplemented blend factor={}", factor);
     return {};
 }
 
@@ -667,7 +664,7 @@ VkFrontFace FrontFace(Maxwell::FrontFace front_face) {
     case Maxwell::FrontFace::CounterClockWise:
         return VK_FRONT_FACE_COUNTER_CLOCKWISE;
     }
-    UNIMPLEMENTED_MSG("Unimplemented front face={}", static_cast<u32>(front_face));
+    UNIMPLEMENTED_MSG("Unimplemented front face={}", front_face);
     return {};
 }
 
@@ -680,7 +677,7 @@ VkCullModeFlags CullFace(Maxwell::CullFace cull_face) {
     case Maxwell::CullFace::FrontAndBack:
         return VK_CULL_MODE_FRONT_AND_BACK;
     }
-    UNIMPLEMENTED_MSG("Unimplemented cull face={}", static_cast<u32>(cull_face));
+    UNIMPLEMENTED_MSG("Unimplemented cull face={}", cull_face);
     return {};
 }
 
@@ -700,7 +697,7 @@ VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle) {
     case Tegra::Texture::SwizzleSource::OneFloat:
         return VK_COMPONENT_SWIZZLE_ONE;
     }
-    UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", static_cast<u32>(swizzle));
+    UNIMPLEMENTED_MSG("Unimplemented swizzle source={}", swizzle);
     return {};
 }
 
@@ -723,7 +720,7 @@ VkViewportCoordinateSwizzleNV ViewportSwizzle(Maxwell::ViewportSwizzle swizzle) 
     case Maxwell::ViewportSwizzle::NegativeW:
         return VK_VIEWPORT_COORDINATE_SWIZZLE_NEGATIVE_W_NV;
     }
-    UNREACHABLE_MSG("Invalid swizzle={}", static_cast<int>(swizzle));
+    UNREACHABLE_MSG("Invalid swizzle={}", swizzle);
     return {};
 }
 

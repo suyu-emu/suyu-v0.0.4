@@ -1437,8 +1437,7 @@ union Instruction {
                 return TextureType::TextureCube;
             }
 
-            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
-                         static_cast<u32>(texture_info.Value()));
+            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}", texture_info.Value());
             UNREACHABLE();
             return TextureType::Texture1D;
         }
@@ -1533,8 +1532,7 @@ union Instruction {
                 return TextureType::Texture3D;
             }
 
-            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}",
-                         static_cast<u32>(texture_info.Value()));
+            LOG_CRITICAL(HW_GPU, "Unhandled texture_info: {}", texture_info.Value());
             UNREACHABLE();
             return TextureType::Texture1D;
         }

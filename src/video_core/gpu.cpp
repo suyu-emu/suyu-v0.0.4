@@ -299,8 +299,7 @@ void GPU::CallPullerMethod(const MethodCall& method_call) {
         break;
     }
     default:
-        LOG_ERROR(HW_GPU, "Special puller engine method {:X} not implemented",
-                  static_cast<u32>(method));
+        LOG_ERROR(HW_GPU, "Special puller engine method {:X} not implemented", method);
         break;
     }
 }
@@ -379,7 +378,7 @@ void GPU::ProcessBindMethod(const MethodCall& method_call) {
         dma_pusher->BindSubchannel(kepler_memory.get(), method_call.subchannel);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", static_cast<u32>(engine_id));
+        UNIMPLEMENTED_MSG("Unimplemented engine {:04X}", engine_id);
     }
 }
 
@@ -392,8 +391,7 @@ void GPU::ProcessFenceActionMethod() {
         IncrementSyncPoint(regs.fence_action.syncpoint_id);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented operation {}",
-                          static_cast<u32>(regs.fence_action.op.Value()));
+        UNIMPLEMENTED_MSG("Unimplemented operation {}", regs.fence_action.op.Value());
     }
 }
 

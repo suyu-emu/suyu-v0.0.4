@@ -131,7 +131,7 @@ std::pair<GLint, GLint> TransformFeedbackEnum(u8 location) {
     case 43:
         return {GL_BACK_SECONDARY_COLOR_NV, 0};
     }
-    UNIMPLEMENTED_MSG("index={}", static_cast<int>(index));
+    UNIMPLEMENTED_MSG("index={}", index);
     return {GL_POSITION, 0};
 }
 

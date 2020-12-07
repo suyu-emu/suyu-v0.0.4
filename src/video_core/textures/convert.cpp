@@ -82,7 +82,7 @@ void ConvertFromHostToGuest(u8* data, PixelFormat pixel_format, u32 width, u32 h
                             bool convert_astc, bool convert_s8z24) {
     if (convert_astc && IsPixelFormatASTC(pixel_format)) {
         LOG_CRITICAL(HW_GPU, "Conversion of format {} after texture flushing is not implemented",
-                     static_cast<u32>(pixel_format));
+                     pixel_format);
         UNREACHABLE();
 
     } else if (convert_s8z24 && pixel_format == PixelFormat::S8_UINT_D24_UNORM) {

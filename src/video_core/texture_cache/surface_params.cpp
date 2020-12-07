@@ -398,9 +398,9 @@ std::string SurfaceParams::TargetName() const {
     case SurfaceTarget::TextureCubeArray:
         return "CubeArray";
     default:
-        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", static_cast<u32>(target));
+        LOG_CRITICAL(HW_GPU, "Unimplemented surface_target={}", target);
         UNREACHABLE();
-        return fmt::format("TUK({})", static_cast<u32>(target));
+        return fmt::format("TUK({})", target);
     }
 }
 

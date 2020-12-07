@@ -52,7 +52,7 @@ VkImageType SurfaceTargetToImage(SurfaceTarget target) {
         UNREACHABLE();
         return {};
     }
-    UNREACHABLE_MSG("Unknown texture target={}", static_cast<u32>(target));
+    UNREACHABLE_MSG("Unknown texture target={}", target);
     return {};
 }
 
@@ -64,7 +64,7 @@ VkImageAspectFlags PixelFormatToImageAspect(PixelFormat pixel_format) {
     } else if (pixel_format < PixelFormat::MaxDepthStencilFormat) {
         return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
     } else {
-        UNREACHABLE_MSG("Invalid pixel format={}", static_cast<int>(pixel_format));
+        UNREACHABLE_MSG("Invalid pixel format={}", pixel_format);
         return VK_IMAGE_ASPECT_COLOR_BIT;
     }
 }

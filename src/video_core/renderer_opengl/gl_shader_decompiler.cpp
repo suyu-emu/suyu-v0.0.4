@@ -316,7 +316,7 @@ std::pair<const char*, u32> GetPrimitiveDescription(Maxwell::PrimitiveTopology t
     case Maxwell::PrimitiveTopology::TriangleStripAdjacency:
         return {"triangles_adjacency", 6};
     default:
-        UNIMPLEMENTED_MSG("topology={}", static_cast<int>(topology));
+        UNIMPLEMENTED_MSG("topology={}", topology);
         return {"points", 1};
     }
 }
@@ -342,7 +342,7 @@ std::string GetTopologyName(Tegra::Shader::OutputTopology topology) {
     case Tegra::Shader::OutputTopology::TriangleStrip:
         return "triangle_strip";
     default:
-        UNIMPLEMENTED_MSG("Unknown output topology: {}", static_cast<u32>(topology));
+        UNIMPLEMENTED_MSG("Unknown output topology: {}", topology);
         return "points";
     }
 }
@@ -745,7 +745,7 @@ private:
         case PixelImap::Unused:
             break;
         }
-        UNIMPLEMENTED_MSG("Unknown attribute usage index={}", static_cast<int>(attribute));
+        UNIMPLEMENTED_MSG("Unknown attribute usage index={}", attribute);
         return {};
     }
 
@@ -1252,7 +1252,7 @@ private:
             }
             break;
         }
-        UNIMPLEMENTED_MSG("Unhandled input attribute: {}", static_cast<u32>(attribute));
+        UNIMPLEMENTED_MSG("Unhandled input attribute: {}", attribute);
         return {"0", Type::Int};
     }
 
@@ -1332,7 +1332,7 @@ private:
                                      GetSwizzle(element)),
                          Type::Float}};
             }
-            UNIMPLEMENTED_MSG("Unhandled output attribute: {}", static_cast<u32>(attribute));
+            UNIMPLEMENTED_MSG("Unhandled output attribute: {}", attribute);
             return std::nullopt;
         }
     }

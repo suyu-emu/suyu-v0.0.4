@@ -34,7 +34,7 @@ static std::size_t GetCoordCount(TextureType texture_type) {
     case TextureType::TextureCube:
         return 3;
     default:
-        UNIMPLEMENTED_MSG("Unhandled texture type: {}", static_cast<u32>(texture_type));
+        UNIMPLEMENTED_MSG("Unhandled texture type: {}", texture_type);
         return 0;
     }
 }
@@ -255,8 +255,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             break;
         }
         default:
-            UNIMPLEMENTED_MSG("Unhandled texture query type: {}",
-                              static_cast<u32>(instr.txq.query_type.Value()));
+            UNIMPLEMENTED_MSG("Unhandled texture query type: {}", instr.txq.query_type.Value());
         }
         break;
     }
@@ -302,7 +301,7 @@ u32 ShaderIR::DecodeTexture(NodeBlock& bb, u32 pc) {
             case TextureType::TextureCube:
                 return 3;
             default:
-                UNIMPLEMENTED_MSG("Unhandled texture type {}", static_cast<int>(texture_type));
+                UNIMPLEMENTED_MSG("Unhandled texture type {}", texture_type);
                 return 2;
             }
         }();
@@ -595,7 +594,7 @@ Node4 ShaderIR::GetTextureCode(Instruction instr, TextureType texture_type,
         lod = GetRegister(instr.gpr20.Value() + bias_offset);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented process mode={}", static_cast<u32>(process_mode));
+        UNIMPLEMENTED_MSG("Unimplemented process mode={}", process_mode);
         break;
     }
 

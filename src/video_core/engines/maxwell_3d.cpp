@@ -359,7 +359,7 @@ void Maxwell3D::CallMethodFromMME(u32 method, u32 method_argument) {
 }
 
 void Maxwell3D::FlushMMEInlineDraw() {
-    LOG_TRACE(HW_GPU, "called, topology={}, count={}", static_cast<u32>(regs.draw.topology.Value()),
+    LOG_TRACE(HW_GPU, "called, topology={}, count={}", regs.draw.topology.Value(),
               regs.vertex_buffer.count);
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
     ASSERT(mme_draw.instance_count == mme_draw.gl_end_count);
@@ -504,8 +504,7 @@ void Maxwell3D::ProcessCounterReset() {
         rasterizer->ResetCounter(QueryType::SamplesPassed);
         break;
     default:
-        LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}",
-                  static_cast<int>(regs.counter_reset));
+        LOG_DEBUG(Render_OpenGL, "Unimplemented counter reset={}", regs.counter_reset);
         break;
     }
 }
@@ -520,7 +519,7 @@ void Maxwell3D::ProcessSyncPoint() {
 }
 
 void Maxwell3D::DrawArrays() {
-    LOG_TRACE(HW_GPU, "called, topology={}, count={}", static_cast<u32>(regs.draw.topology.Value()),
+    LOG_TRACE(HW_GPU, "called, topology={}, count={}", regs.draw.topology.Value(),
               regs.vertex_buffer.count);
     ASSERT_MSG(!(regs.index_array.count && regs.vertex_buffer.count), "Both indexed and direct?");
 
@@ -558,12 +557,12 @@ std::optional<u64> Maxwell3D::GetQueryResult() {
         return 0;
     case Regs::QuerySelect::SamplesPassed:
         // Deferred.
-        rasterizer->Query(regs.query.QueryAddress(), VideoCore::QueryType::SamplesPassed,
+        rasterizer->Query(regs.query.QueryAddress(), QueryType::SamplesPassed,
                           system.GPU().GetTicks());
         return std::nullopt;
     default:
         LOG_DEBUG(HW_GPU, "Unimplemented query select type {}",
-                  static_cast<u32>(regs.query.query_get.select.Value()));
+                  regs.query.query_get.select.Value());
         return 1;
     }
 }

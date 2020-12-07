@@ -348,7 +348,7 @@ void RendererOpenGL::DrawScreen(const Layout::FramebufferLayout& layout) {
         } else {
             // Other transformations are unsupported
             LOG_CRITICAL(Render_OpenGL, "Unsupported framebuffer_transform_flags={}",
-                         static_cast<u32>(framebuffer_transform_flags));
+                         framebuffer_transform_flags);
             UNIMPLEMENTED();
         }
     }

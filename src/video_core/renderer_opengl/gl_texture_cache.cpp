@@ -689,8 +689,7 @@ void TextureCacheOpenGL::BufferCopy(Surface& src_surface, Surface& dst_surface) 
                                 dest_format.format, dest_format.type, nullptr);
             break;
         default:
-            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}",
-                         static_cast<u32>(dst_params.target));
+            LOG_CRITICAL(Render_OpenGL, "Unimplemented surface target={}", dst_params.target);
             UNREACHABLE();
         }
     }
