@@ -511,6 +511,9 @@ void Config::ReadControlValues() {
     ReadTouchscreenValues();
     ReadMotionTouchValues();
 
+    Settings::values.emulate_analog_keyboard =
+        ReadSetting(QStringLiteral("emulate_analog_keyboard"), false).toBool();
+
     ReadSettingGlobal(Settings::values.use_docked_mode, QStringLiteral("use_docked_mode"), false);
     ReadSettingGlobal(Settings::values.vibration_enabled, QStringLiteral("vibration_enabled"),
                       true);
@@ -1186,6 +1189,8 @@ void Config::SaveControlValues() {
                  QString::fromStdString(Settings::values.touch_device),
                  QStringLiteral("engine:emu_window"));
     WriteSetting(QStringLiteral("keyboard_enabled"), Settings::values.keyboard_enabled, false);
+    WriteSetting(QStringLiteral("emulate_analog_keyboard"),
+                 Settings::values.emulate_analog_keyboard, false);
 
     qt_config->endGroup();
 }

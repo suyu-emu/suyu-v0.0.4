@@ -180,6 +180,8 @@ struct Values {
     std::string motion_device;
     std::string udp_input_servers;
 
+    bool emulate_analog_keyboard;
+
     bool mouse_enabled;
     std::string mouse_device;
     MouseButtonsRaw mouse_buttons;
