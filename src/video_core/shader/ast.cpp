@@ -212,16 +212,15 @@ public:
     }
 
     void operator()(const ExprPredicate& expr) {
-        inner += "P" + std::to_string(expr.predicate);
+        inner += fmt::format("P{}", expr.predicate);
     }
 
     void operator()(const ExprCondCode& expr) {
-        u32 cc = static_cast<u32>(expr.cc);
-        inner += "CC" + std::to_string(cc);
+        inner += fmt::format("CC{}", expr.cc);
     }
 
     void operator()(const ExprVar& expr) {
-        inner += "V" + std::to_string(expr.var_index);
+        inner += fmt::format("V{}", expr.var_index);
     }
 
     void operator()(const ExprBoolean& expr) {
@@ -229,7 +228,7 @@ public:
     }
 
     void operator()(const ExprGprEqual& expr) {
-        inner += "( gpr_" + std::to_string(expr.gpr) + " == " + std::to_string(expr.value) + ')';
+        inner += fmt::format("(gpr_{} == {})", expr.gpr, expr.value);
     }
 
     const std::string& GetResult() const {
