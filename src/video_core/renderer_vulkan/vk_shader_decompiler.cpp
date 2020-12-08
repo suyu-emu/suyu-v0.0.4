@@ -2125,8 +2125,7 @@ private:
             OpStore(z_pointer, depth);
         }
         if (stage == ShaderType::Fragment) {
-            const auto SafeGetRegister = [&](u32 reg) {
-                // TODO(Rodrigo): Replace with contains once C++20 releases
+            const auto SafeGetRegister = [this](u32 reg) {
                 if (const auto it = registers.find(reg); it != registers.end()) {
                     return OpLoad(t_float, it->second);
                 }

@@ -545,7 +545,7 @@ private:
     bool IsRegionWritten(VAddr start, VAddr end) const {
         const u64 page_end = end >> WRITE_PAGE_BIT;
         for (u64 page_start = start >> WRITE_PAGE_BIT; page_start <= page_end; ++page_start) {
-            if (written_pages.count(page_start) > 0) {
+            if (written_pages.contains(page_start)) {
                 return true;
             }
         }

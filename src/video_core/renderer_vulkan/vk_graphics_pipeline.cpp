@@ -230,7 +230,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         if (!attribute.enabled) {
             continue;
         }
-        if (input_attributes.find(static_cast<u32>(index)) == input_attributes.end()) {
+        if (!input_attributes.contains(static_cast<u32>(index))) {
             // Skip attributes not used by the vertex shaders.
             continue;
         }

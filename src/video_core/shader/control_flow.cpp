@@ -257,7 +257,7 @@ std::pair<ParseResult, ParseInfo> ParseCode(CFGRebuildState& state, u32 address)
             single_branch.ignore = false;
             break;
         }
-        if (state.registered.count(offset) != 0) {
+        if (state.registered.contains(offset)) {
             single_branch.address = offset;
             single_branch.ignore = true;
             break;
@@ -632,12 +632,12 @@ void DecompileShader(CFGRebuildState& state) {
     for (auto label : state.labels) {
         state.manager->DeclareLabel(label);
     }
-    for (auto& block : state.block_info) {
-        if (state.labels.count(block.start) != 0) {
+    for (const auto& block : state.block_info) {
+        if (state.labels.contains(block.start)) {
             state.manager->InsertLabel(block.start);
         }
         const bool ignore = BlockBranchIsIgnored(block.branch);
-        u32 end = ignore ? block.end + 1 : block.end;
+        const u32 end = ignore ? block.end + 1 : block.end;
         state.manager->InsertBlock(block.start, end);
         if (!ignore) {
             InsertBranch(*state.manager, block.branch);
@@ -737,7 +737,7 @@ std::unique_ptr<ShaderCharacteristics> ScanFlow(const ProgramCode& program_code,
     auto back = result_out->blocks.begin();
     auto next = std::next(back);
     while (next != result_out->blocks.end()) {
-        if (state.labels.count(next->start) == 0 && next->start == back->end + 1) {
+        if (!state.labels.contains(next->start) && next->start == back->end + 1) {
             back->end = next->end;
             next = result_out->blocks.erase(next);
             continue;
