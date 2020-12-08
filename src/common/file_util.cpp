@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <filesystem>
 #include <limits>
 #include <memory>
 #include <sstream>
@@ -75,62 +76,16 @@
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!
 namespace Common::FS {
+namespace fs = std::filesystem;
 
-// Remove any ending forward slashes from directory paths
-// Modifies argument.
-static void StripTailDirSlashes(std::string& fname) {
-    if (fname.length() <= 1) {
-        return;
-    }
-
-    std::size_t i = fname.length();
-    while (i > 0 && fname[i - 1] == DIR_SEP_CHR) {
-        --i;
-    }
-    fname.resize(i);
+bool Exists(const fs::path& path) {
+    std::error_code ec;
+    return fs::exists(path, ec);
 }
 
-bool Exists(const std::string& filename) {
-    struct stat file_info;
-
-    std::string copy(filename);
-    StripTailDirSlashes(copy);
-
-#ifdef _WIN32
-    // Windows needs a slash to identify a driver root
-    if (copy.size() != 0 && copy.back() == ':')
-        copy += DIR_SEP_CHR;
-
-    int result = _wstat64(Common::UTF8ToUTF16W(copy).c_str(), &file_info);
-#else
-    int result = stat(copy.c_str(), &file_info);
-#endif
-
-    return (result == 0);
-}
-
-bool IsDirectory(const std::string& filename) {
-    struct stat file_info;
-
-    std::string copy(filename);
-    StripTailDirSlashes(copy);
-
-#ifdef _WIN32
-    // Windows needs a slash to identify a driver root
-    if (copy.size() != 0 && copy.back() == ':')
-        copy += DIR_SEP_CHR;
-
-    int result = _wstat64(Common::UTF8ToUTF16W(copy).c_str(), &file_info);
-#else
-    int result = stat(copy.c_str(), &file_info);
-#endif
-
-    if (result < 0) {
-        LOG_DEBUG(Common_Filesystem, "stat failed on {}: {}", filename, GetLastErrorMsg());
-        return false;
-    }
-
-    return S_ISDIR(file_info.st_mode);
+bool IsDirectory(const fs::path& path) {
+    std::error_code ec;
+    return fs::is_directory(path, ec);
 }
 
 bool Delete(const std::string& filename) {

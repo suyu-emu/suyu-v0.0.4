@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -47,11 +48,11 @@ struct FSTEntry {
     std::vector<FSTEntry> children;
 };
 
-// Returns true if file filename exists
-[[nodiscard]] bool Exists(const std::string& filename);
+// Returns true if the exists
+[[nodiscard]] bool Exists(const std::filesystem::path& path);
 
-// Returns true if filename is a directory
-[[nodiscard]] bool IsDirectory(const std::string& filename);
+// Returns true if path is a directory
+[[nodiscard]] bool IsDirectory(const std::filesystem::path& path);
 
 // Returns the size of filename (64bit)
 [[nodiscard]] u64 GetSize(const std::string& filename);
