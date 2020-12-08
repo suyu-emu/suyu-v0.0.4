@@ -667,8 +667,6 @@ struct Memory::Impl {
      * @tparam T The data type to write to memory. This type *must* be
      *           trivially copyable, otherwise the behavior of this function
      *           is undefined.
-     *
-     * @returns The instance of T write to the specified virtual address.
      */
     template <typename T>
     void Write(const VAddr vaddr, const T data) {
