@@ -142,7 +142,8 @@ public slots:
     void ProfileSelectorSelectProfile();
     void SoftwareKeyboardGetText(const Core::Frontend::SoftwareKeyboardParameters& parameters);
     void SoftwareKeyboardInvokeCheckDialog(std::u16string error_message);
-    void WebBrowserOpenLocalWebPage(std::string_view main_url, std::string_view additional_args);
+    void WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
+                               bool is_local);
     void OnAppFocusStateChanged(Qt::ApplicationState state);
 
 private:

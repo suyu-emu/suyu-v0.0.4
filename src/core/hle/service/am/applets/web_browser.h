@@ -79,6 +79,8 @@ private:
     std::string offline_document;
     FileSys::VirtualFile offline_romfs;
 
+    std::string external_url;
+
     Core::System& system;
 };
 

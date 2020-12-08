@@ -366,13 +366,13 @@ void GMainWindow::SoftwareKeyboardInvokeCheckDialog(std::u16string error_message
     emit SoftwareKeyboardFinishedCheckDialog();
 }
 
-void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
-                                             std::string_view additional_args) {
+void GMainWindow::WebBrowserOpenWebPage(std::string_view main_url, std::string_view additional_args,
+                                        bool is_local) {
 #ifdef YUZU_USE_QT_WEB_ENGINE
 
     if (disable_web_applet) {
         emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed,
-                              "http://localhost");
+                              "http://localhost/");
         return;
     }
 
@@ -388,7 +388,7 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
         loading_progress.setRange(0, 3);
         loading_progress.setValue(0);
 
-        if (!Common::FS::Exists(std::string(main_url))) {
+        if (is_local && !Common::FS::Exists(std::string(main_url))) {
             loading_progress.show();
 
             auto future = QtConcurrent::run([this] { emit WebBrowserExtractOfflineRomFS(); });
@@ -400,7 +400,11 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
 
         loading_progress.setValue(1);
 
-        web_browser_view.LoadLocalWebPage(main_url, additional_args);
+        if (is_local) {
+            web_browser_view.LoadLocalWebPage(main_url, additional_args);
+        } else {
+            web_browser_view.LoadExternalWebPage(main_url, additional_args);
+        }
 
         if (render_window->IsLoadingComplete()) {
             render_window->hide();
@@ -493,7 +497,7 @@ void GMainWindow::WebBrowserOpenLocalWebPage(std::string_view main_url,
 #else
 
     // Utilize the same fallback as the default web browser applet.
-    emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost");
+    emit WebBrowserClosed(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
 
 #endif
 }

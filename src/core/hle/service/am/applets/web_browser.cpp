@@ -409,7 +409,9 @@ void WebBrowser::InitializeOffline() {
 
 void WebBrowser::InitializeShare() {}
 
-void WebBrowser::InitializeWeb() {}
+void WebBrowser::InitializeWeb() {
+    external_url = ParseStringValue(GetInputTLVData(WebArgInputTLVType::InitialURL).value());
+}
 
 void WebBrowser::InitializeWifi() {}
 
@@ -456,8 +458,12 @@ void WebBrowser::ExecuteShare() {
 }
 
 void WebBrowser::ExecuteWeb() {
-    LOG_WARNING(Service_AM, "(STUBBED) called, Web Applet is not implemented");
-    WebBrowserExit(WebExitReason::EndButtonPressed);
+    LOG_INFO(Service_AM, "Opening external URL at {}", external_url);
+
+    frontend.OpenExternalWebPage(external_url,
+                                 [this](WebExitReason exit_reason, std::string last_url) {
+                                     WebBrowserExit(exit_reason, last_url);
+                                 });
 }
 
 void WebBrowser::ExecuteWifi() {

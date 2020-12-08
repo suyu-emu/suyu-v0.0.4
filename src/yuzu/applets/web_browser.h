@@ -18,8 +18,8 @@
 
 enum class HIDButton : u8;
 
-class InputInterpreter;
 class GMainWindow;
+class InputInterpreter;
 class UrlRequestInterceptor;
 
 namespace Core {
@@ -41,6 +41,9 @@ enum class UserAgent {
     WifiWebAuthApplet,
 };
 
+class QWebEngineProfile;
+class QWebEngineSettings;
+
 class QtNXWebEngineView : public QWebEngineView {
     Q_OBJECT
 
@@ -56,6 +59,14 @@ public:
      * @param additional_args Additional arguments appended to the main url.
      */
     void LoadLocalWebPage(std::string_view main_url, std::string_view additional_args);
+
+    /**
+     * Loads an external website. Cannot be used to load local urls.
+     *
+     * @param main_url The url to the website.
+     * @param additional_args Additional arguments appended to the main url.
+     */
+    void LoadExternalWebPage(std::string_view main_url, std::string_view additional_args);
 
     /**
      * Sets the background color of the web page.
@@ -147,6 +158,9 @@ private:
     /// The thread where input is being polled and processed.
     void InputThread();
 
+    /// Loads the extracted fonts using JavaScript.
+    void LoadExtractedFonts();
+
     InputCommon::InputSubsystem* input_subsystem;
 
     std::unique_ptr<UrlRequestInterceptor> url_interceptor;
@@ -163,6 +177,11 @@ private:
         Service::AM::Applets::WebExitReason::EndButtonPressed};
 
     std::string last_url{"http://localhost/"};
+
+    bool is_local{};
+
+    QWebEngineProfile* default_profile;
+    QWebEngineSettings* global_settings;
 };
 
 #endif
@@ -174,13 +193,17 @@ public:
     explicit QtWebBrowser(GMainWindow& parent);
     ~QtWebBrowser() override;
 
-    void OpenLocalWebPage(std::string_view local_url, std::function<void()> extract_romfs_callback,
+    void OpenLocalWebPage(std::string_view local_url, std::function<void()> extract_romfs_callback_,
                           std::function<void(Service::AM::Applets::WebExitReason, std::string)>
-                              callback) const override;
+                              callback_) const override;
+
+    void OpenExternalWebPage(std::string_view external_url,
+                             std::function<void(Service::AM::Applets::WebExitReason, std::string)>
+                                 callback_) const override;
 
 signals:
-    void MainWindowOpenLocalWebPage(std::string_view main_url,
-                                    std::string_view additional_args) const;
+    void MainWindowOpenWebPage(std::string_view main_url, std::string_view additional_args,
+                               bool is_local) const;
 
 private:
     void MainWindowExtractOfflineRomFS();

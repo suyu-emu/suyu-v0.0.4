@@ -20,4 +20,13 @@ void DefaultWebBrowserApplet::OpenLocalWebPage(
     callback(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
 }
 
+void DefaultWebBrowserApplet::OpenExternalWebPage(
+    std::string_view external_url,
+    std::function<void(Service::AM::Applets::WebExitReason, std::string)> callback) const {
+    LOG_WARNING(Service_AM, "(STUBBED) called, backend requested to open external web page at {}",
+                external_url);
+
+    callback(Service::AM::Applets::WebExitReason::WindowClosed, "http://localhost/");
+}
+
 } // namespace Core::Frontend
