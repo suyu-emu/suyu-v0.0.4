@@ -48,6 +48,24 @@ static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
     return add_on_content;
 }
 
+class IPurchaseEventManager final : public ServiceFramework<IPurchaseEventManager> {
+public:
+    explicit IPurchaseEventManager(Core::System& system_)
+        : ServiceFramework{system_, "IPurchaseEventManager"} {
+        // clang-format off
+        static const FunctionInfo functions[] = {
+            {0, nullptr, "SetDefaultDeliveryTarget"},
+            {1, nullptr, "SetDeliveryTarget"},
+            {2, nullptr, "GetPurchasedEventReadableHandle"},
+            {3, nullptr, "PopPurchasedProductInfo"},
+            {4, nullptr, "PopPurchasedProductInfoWithUid"},
+        };
+        // clang-format on
+
+        RegisterHandlers(functions);
+    }
+};
+
 AOC_U::AOC_U(Core::System& system_)
     : ServiceFramework{system_, "aoc:u"}, add_on_content{AccumulateAOCTitleIDs(system)} {
     // clang-format off
@@ -62,8 +80,8 @@ AOC_U::AOC_U(Core::System& system_)
         {7, &AOC_U::PrepareAddOnContent, "PrepareAddOnContent"},
         {8, &AOC_U::GetAddOnContentListChangedEvent, "GetAddOnContentListChangedEvent"},
         {9, nullptr, "GetAddOnContentLostErrorCode"},
-        {100, nullptr, "CreateEcPurchasedEventManager"},
-        {101, nullptr, "CreatePermanentEcPurchasedEventManager"},
+        {100, &AOC_U::CreateEcPurchasedEventManager, "CreateEcPurchasedEventManager"},
+        {101, &AOC_U::CreatePermanentEcPurchasedEventManager, "CreatePermanentEcPurchasedEventManager"},
     };
     // clang-format on
 
@@ -199,6 +217,22 @@ void AOC_U::GetAddOnContentListChangedEvent(Kernel::HLERequestContext& ctx) {
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
     rb.PushCopyObjects(aoc_change_event.readable);
+}
+
+void AOC_U::CreateEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IPurchaseEventManager>(system);
+}
+
+void AOC_U::CreatePermanentEcPurchasedEventManager(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_AOC, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IPurchaseEventManager>(system);
 }
 
 void InstallInterfaces(SM::ServiceManager& service_manager, Core::System& system) {
