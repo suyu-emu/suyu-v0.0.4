@@ -29,14 +29,14 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
     npad_style_set.raw = private_arg.style_set;
 
     return {
-        .min_players = std::max(s8(1), header.player_count_min),
+        .min_players = std::max(s8{1}, header.player_count_min),
         .max_players = header.player_count_max,
         .keep_controllers_connected = header.enable_take_over_connection,
         .enable_single_mode = header.enable_single_mode,
         .enable_border_color = header.enable_identification_color,
-        .border_colors = identification_colors,
+        .border_colors = std::move(identification_colors),
         .enable_explain_text = enable_text,
-        .explain_text = text,
+        .explain_text = std::move(text),
         .allow_pro_controller = npad_style_set.pro_controller == 1,
         .allow_handheld = npad_style_set.handheld == 1,
         .allow_dual_joycons = npad_style_set.joycon_dual == 1,
@@ -227,15 +227,14 @@ void Controller::ConfigurationComplete() {
     // If enable_single_mode is enabled, player_count is 1 regardless of any other parameters.
     // Otherwise, only count connected players from P1-P8.
     result_info.player_count =
-        is_single_mode ? 1
-                       : static_cast<s8>(std::count_if(
-                             players.begin(), players.end() - 2,
-                             [](Settings::PlayerInput player) { return player.connected; }));
+        is_single_mode
+            ? 1
+            : static_cast<s8>(std::count_if(players.begin(), players.end() - 2,
+                                            [](const auto& player) { return player.connected; }));
 
-    result_info.selected_id = HID::Controller_NPad::IndexToNPad(
-        std::distance(players.begin(),
-                      std::find_if(players.begin(), players.end(),
-                                   [](Settings::PlayerInput player) { return player.connected; })));
+    result_info.selected_id = HID::Controller_NPad::IndexToNPad(std::distance(
+        players.begin(), std::find_if(players.begin(), players.end(),
+                                      [](const auto& player) { return player.connected; })));
 
     result_info.result = 0;
 
