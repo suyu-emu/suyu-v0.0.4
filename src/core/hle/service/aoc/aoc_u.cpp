@@ -56,13 +56,16 @@ public:
         static const FunctionInfo functions[] = {
             {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
             {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
-            {2, nullptr, "GetPurchasedEventReadableHandle"},
+            {2, &IPurchaseEventManager::GetPurchasedEventReadableHandle, "GetPurchasedEventReadableHandle"},
             {3, nullptr, "PopPurchasedProductInfo"},
             {4, nullptr, "PopPurchasedProductInfoWithUid"},
         };
         // clang-format on
 
         RegisterHandlers(functions);
+
+        purchased_event = Kernel::WritableEvent::CreateEventPair(
+            system.Kernel(), "IPurchaseEventManager:PurchasedEvent");
     }
 
 private:
@@ -89,6 +92,16 @@ private:
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_SUCCESS);
     }
+
+    void GetPurchasedEventReadableHandle(Kernel::HLERequestContext& ctx) {
+        LOG_WARNING(Service_AOC, "called");
+
+        IPC::ResponseBuilder rb{ctx, 2, 1};
+        rb.Push(RESULT_SUCCESS);
+        rb.PushCopyObjects(purchased_event.readable);
+    }
+
+    Kernel::EventPair purchased_event;
 };
 
 AOC_U::AOC_U(Core::System& system_)
