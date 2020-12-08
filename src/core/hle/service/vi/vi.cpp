@@ -528,7 +528,7 @@ private:
         const u32 flags = rp.Pop<u32>();
 
         LOG_DEBUG(Service_VI, "called. id=0x{:08X} transaction={:X}, flags=0x{:08X}", id,
-                  static_cast<u32>(transaction), flags);
+                  transaction, flags);
 
         const auto guard = nv_flinger.Lock();
         auto& buffer_queue = nv_flinger.FindBufferQueue(id);
@@ -1066,8 +1066,8 @@ private:
         const auto scaling_mode = rp.PopEnum<NintendoScaleMode>();
         const u64 unknown = rp.Pop<u64>();
 
-        LOG_DEBUG(Service_VI, "called. scaling_mode=0x{:08X}, unknown=0x{:016X}",
-                  static_cast<u32>(scaling_mode), unknown);
+        LOG_DEBUG(Service_VI, "called. scaling_mode=0x{:08X}, unknown=0x{:016X}", scaling_mode,
+                  unknown);
 
         IPC::ResponseBuilder rb{ctx, 2};
 
@@ -1210,7 +1210,7 @@ private:
     void ConvertScalingMode(Kernel::HLERequestContext& ctx) {
         IPC::RequestParser rp{ctx};
         const auto mode = rp.PopEnum<NintendoScaleMode>();
-        LOG_DEBUG(Service_VI, "called mode={}", static_cast<u32>(mode));
+        LOG_DEBUG(Service_VI, "called mode={}", mode);
 
         const auto converted_mode = ConvertScalingModeImpl(mode);
 
@@ -1311,7 +1311,7 @@ void detail::GetDisplayServiceImpl(Kernel::HLERequestContext& ctx, Core::System&
     const auto policy = rp.PopEnum<Policy>();
 
     if (!IsValidServiceAccess(permission, policy)) {
-        LOG_ERROR(Service_VI, "Permission denied for policy {}", static_cast<u32>(policy));
+        LOG_ERROR(Service_VI, "Permission denied for policy {}", policy);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(ERR_PERMISSION_DENIED);
         return;

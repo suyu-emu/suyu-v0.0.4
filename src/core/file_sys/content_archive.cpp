@@ -410,8 +410,9 @@ u8 NCA::GetCryptoRevision() const {
 std::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType type) const {
     const auto master_key_id = GetCryptoRevision();
 
-    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, header.key_index))
-        return {};
+    if (!keys.HasKey(Core::Crypto::S128KeyType::KeyArea, master_key_id, header.key_index)) {
+        return std::nullopt;
+    }
 
     std::vector<u8> key_area(header.key_area.begin(), header.key_area.end());
     Core::Crypto::AESCipher<Core::Crypto::Key128> cipher(
@@ -420,15 +421,17 @@ std::optional<Core::Crypto::Key128> NCA::GetKeyAreaKey(NCASectionCryptoType type
     cipher.Transcode(key_area.data(), key_area.size(), key_area.data(), Core::Crypto::Op::Decrypt);
 
     Core::Crypto::Key128 out;
-    if (type == NCASectionCryptoType::XTS)
+    if (type == NCASectionCryptoType::XTS) {
         std::copy(key_area.begin(), key_area.begin() + 0x10, out.begin());
-    else if (type == NCASectionCryptoType::CTR || type == NCASectionCryptoType::BKTR)
+    } else if (type == NCASectionCryptoType::CTR || type == NCASectionCryptoType::BKTR) {
         std::copy(key_area.begin() + 0x20, key_area.begin() + 0x30, out.begin());
-    else
+    } else {
         LOG_CRITICAL(Crypto, "Called GetKeyAreaKey on invalid NCASectionCryptoType type={:02X}",
-                     static_cast<u8>(type));
+                     type);
+    }
+
     u128 out_128{};
-    memcpy(out_128.data(), out.data(), 16);
+    std::memcpy(out_128.data(), out.data(), sizeof(u128));
     LOG_TRACE(Crypto, "called with crypto_rev={:02X}, kak_index={:02X}, key={:016X}{:016X}",
               master_key_id, header.key_index, out_128[1], out_128[0]);
 
@@ -507,7 +510,7 @@ VirtualFile NCA::Decrypt(const NCASectionHeader& s_header, VirtualFile in, u64 s
         // TODO(DarkLordZach): Find a test case for XTS-encrypted NCAs
     default:
         LOG_ERROR(Crypto, "called with unhandled crypto type={:02X}",
-                  static_cast<u8>(s_header.raw.header.crypto_type));
+                  s_header.raw.header.crypto_type);
         return nullptr;
     }
 }

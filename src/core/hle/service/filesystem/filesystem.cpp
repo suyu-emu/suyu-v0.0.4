@@ -301,7 +301,7 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
     u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
-              title_id, static_cast<u8>(storage_id), static_cast<u8>(type));
+              title_id, storage_id, type);
 
     if (romfs_factory == nullptr) {
         // TODO(bunnei): Find a better error code for this
@@ -313,8 +313,8 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
     FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& save_struct) const {
-    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), save_struct.DebugInfo());
+    LOG_TRACE(Service_FS, "Creating Save Data for space_id={:01X}, save_struct={}", space,
+              save_struct.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -325,8 +325,8 @@ ResultVal<FileSys::VirtualDir> FileSystemController::CreateSaveData(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
     FileSys::SaveDataSpaceId space, const FileSys::SaveDataAttribute& attribute) const {
-    LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}",
-              static_cast<u8>(space), attribute.DebugInfo());
+    LOG_TRACE(Service_FS, "Opening Save Data for space_id={:01X}, save_struct={}", space,
+              attribute.DebugInfo());
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -337,7 +337,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveData(
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenSaveDataSpace(
     FileSys::SaveDataSpaceId space) const {
-    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", static_cast<u8>(space));
+    LOG_TRACE(Service_FS, "Opening Save Data Space for space_id={:01X}", space);
 
     if (save_data_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -358,7 +358,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenSDMC() const {
 
 ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
     FileSys::BisPartitionId id) const {
-    LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", static_cast<u32>(id));
+    LOG_TRACE(Service_FS, "Opening BIS Partition with id={:08X}", id);
 
     if (bis_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;
@@ -374,7 +374,7 @@ ResultVal<FileSys::VirtualDir> FileSystemController::OpenBISPartition(
 
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenBISPartitionStorage(
     FileSys::BisPartitionId id) const {
-    LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", static_cast<u32>(id));
+    LOG_TRACE(Service_FS, "Opening BIS Partition Storage with id={:08X}", id);
 
     if (bis_factory == nullptr) {
         return FileSys::ERROR_ENTITY_NOT_FOUND;

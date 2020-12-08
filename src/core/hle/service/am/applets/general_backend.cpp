@@ -90,7 +90,7 @@ void Auth::Execute() {
     const auto unimplemented_log = [this] {
         UNIMPLEMENTED_MSG("Unimplemented Auth applet type for type={:08X}, arg0={:02X}, "
                           "arg1={:02X}, arg2={:02X}",
-                          static_cast<u32>(type), arg0, arg1, arg2);
+                          type, arg0, arg1, arg2);
     };
 
     switch (type) {
@@ -193,7 +193,7 @@ void PhotoViewer::Execute() {
         frontend.ShowAllPhotos(callback);
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented PhotoViewer applet mode={:02X}!", static_cast<u8>(mode));
+        UNIMPLEMENTED_MSG("Unimplemented PhotoViewer applet mode={:02X}!", mode);
     }
 }
 

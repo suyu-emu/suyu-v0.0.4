@@ -182,21 +182,18 @@ PL_U::PL_U(Core::System& system_)
         }
 
         if (!romfs) {
-            LOG_ERROR(Service_NS, "Failed to find or synthesize {:016X}! Skipping",
-                      static_cast<u64>(font.first));
+            LOG_ERROR(Service_NS, "Failed to find or synthesize {:016X}! Skipping", font.first);
             continue;
         }
 
         const auto extracted_romfs = FileSys::ExtractRomFS(romfs);
         if (!extracted_romfs) {
-            LOG_ERROR(Service_NS, "Failed to extract RomFS for {:016X}! Skipping",
-                      static_cast<u64>(font.first));
+            LOG_ERROR(Service_NS, "Failed to extract RomFS for {:016X}! Skipping", font.first);
             continue;
         }
         const auto font_fp = extracted_romfs->GetFile(font.second);
         if (!font_fp) {
-            LOG_ERROR(Service_NS, "{:016X} has no file \"{}\"! Skipping",
-                      static_cast<u64>(font.first), font.second);
+            LOG_ERROR(Service_NS, "{:016X} has no file \"{}\"! Skipping", font.first, font.second);
             continue;
         }
         std::vector<u32> font_data_u32(font_fp->GetSize() / sizeof(u32));

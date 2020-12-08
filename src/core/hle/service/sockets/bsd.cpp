@@ -30,7 +30,7 @@ bool IsConnectionBased(Type type) {
     case Type::DGRAM:
         return false;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return false;
     }
 }
@@ -636,7 +636,7 @@ std::pair<s32, Errno> BSD::FcntlImpl(s32 fd, FcntlCmd cmd, s32 arg) {
         return {0, Errno::SUCCESS};
     }
     default:
-        UNIMPLEMENTED_MSG("Unimplemented cmd={}", static_cast<int>(cmd));
+        UNIMPLEMENTED_MSG("Unimplemented cmd={}", cmd);
         return {-1, Errno::SUCCESS};
     }
 }
@@ -679,7 +679,7 @@ Errno BSD::SetSockOptImpl(s32 fd, u32 level, OptName optname, size_t optlen, con
     case OptName::RCVTIMEO:
         return Translate(socket->SetRcvTimeo(value));
     default:
-        UNIMPLEMENTED_MSG("Unimplemented optname={}", static_cast<int>(optname));
+        UNIMPLEMENTED_MSG("Unimplemented optname={}", optname);
         return Errno::SUCCESS;
     }
 }
