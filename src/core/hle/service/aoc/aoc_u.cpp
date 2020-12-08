@@ -54,8 +54,8 @@ public:
         : ServiceFramework{system_, "IPurchaseEventManager"} {
         // clang-format off
         static const FunctionInfo functions[] = {
-            {0, nullptr, "SetDefaultDeliveryTarget"},
-            {1, nullptr, "SetDeliveryTarget"},
+            {0, &IPurchaseEventManager::SetDefaultDeliveryTarget, "SetDefaultDeliveryTarget"},
+            {1, &IPurchaseEventManager::SetDeliveryTarget, "SetDeliveryTarget"},
             {2, nullptr, "GetPurchasedEventReadableHandle"},
             {3, nullptr, "PopPurchasedProductInfo"},
             {4, nullptr, "PopPurchasedProductInfoWithUid"},
@@ -63,6 +63,31 @@ public:
         // clang-format on
 
         RegisterHandlers(functions);
+    }
+
+private:
+    void SetDefaultDeliveryTarget(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown_1 = rp.Pop<u64>();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+
+        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
+    }
+
+    void SetDeliveryTarget(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown_1 = rp.Pop<u64>();
+        [[maybe_unused]] const auto unknown_2 = ctx.ReadBuffer();
+
+        LOG_WARNING(Service_AOC, "(STUBBED) called, unknown_1={}", unknown_1);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_SUCCESS);
     }
 };
 
