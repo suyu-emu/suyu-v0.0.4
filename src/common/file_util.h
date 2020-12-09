@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <limits>
@@ -38,48 +39,34 @@ enum class UserPath {
     UserDir,
 };
 
-// FileSystem tree node/
-struct FSTEntry {
-    bool isDirectory;
-    u64 size;                 // file length or number of entries from children
-    std::string physicalName; // name on disk
-    std::string virtualName;  // name in FST names table
-    std::vector<FSTEntry> children;
-};
+// Returns true if the path exists
+[[nodiscard]] bool Exists(const std::filesystem::path& path);
 
-// Returns true if file filename exists
-[[nodiscard]] bool Exists(const std::string& filename);
-
-// Returns true if filename is a directory
-[[nodiscard]] bool IsDirectory(const std::string& filename);
+// Returns true if path is a directory
+[[nodiscard]] bool IsDirectory(const std::filesystem::path& path);
 
 // Returns the size of filename (64bit)
-[[nodiscard]] u64 GetSize(const std::string& filename);
-
-// Overloaded GetSize, accepts file descriptor
-[[nodiscard]] u64 GetSize(int fd);
+[[nodiscard]] u64 GetSize(const std::filesystem::path& path);
 
 // Overloaded GetSize, accepts FILE*
 [[nodiscard]] u64 GetSize(FILE* f);
 
 // Returns true if successful, or path already exists.
-bool CreateDir(const std::string& filename);
+bool CreateDir(const std::filesystem::path& path);
 
-// Creates the full path of fullPath returns true on success
-bool CreateFullPath(const std::string& fullPath);
+// Creates the full path of path. Returns true on success
+bool CreateFullPath(const std::filesystem::path& path);
 
-// Deletes a given filename, return true on success
-// Doesn't supports deleting a directory
-bool Delete(const std::string& filename);
+// Deletes a given file at the path.
+// This will also delete empty directories.
+// Return true on success
+bool Delete(const std::filesystem::path& path);
 
-// Deletes a directory filename, returns true on success
-bool DeleteDir(const std::string& filename);
+// Renames file src to dst, returns true on success
+bool Rename(const std::filesystem::path& src, const std::filesystem::path& dst);
 
-// renames file srcFilename to destFilename, returns true on success
-bool Rename(const std::string& srcFilename, const std::string& destFilename);
-
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename);
+// copies file src to dst, returns true on success
+bool Copy(const std::filesystem::path& src, const std::filesystem::path& dst);
 
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
@@ -106,27 +93,17 @@ using DirectoryEntryCallable = std::function<bool(
 bool ForeachDirectoryEntry(u64* num_entries_out, const std::string& directory,
                            DirectoryEntryCallable callback);
 
-/**
- * Scans the directory tree, storing the results.
- * @param directory the parent directory to start scanning from
- * @param parent_entry FSTEntry where the filesystem tree results will be stored.
- * @param recursion Number of children directories to read before giving up.
- * @return the total number of files/directories found
- */
-u64 ScanDirectoryTree(const std::string& directory, FSTEntry& parent_entry,
-                      unsigned int recursion = 0);
-
-// deletes the given directory and anything under it. Returns true on success.
-bool DeleteDirRecursively(const std::string& directory, unsigned int recursion = 256);
+// Deletes the given path and anything under it. Returns true on success.
+bool DeleteDirRecursively(const std::filesystem::path& path);
 
 // Returns the current directory
-[[nodiscard]] std::optional<std::string> GetCurrentDir();
+[[nodiscard]] std::optional<std::filesystem::path> GetCurrentDir();
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path);
+void CopyDir(const std::filesystem::path& src, const std::filesystem::path& dst);
 
-// Set the current directory to given directory
-bool SetCurrentDir(const std::string& directory);
+// Set the current directory to given path
+bool SetCurrentDir(const std::filesystem::path& path);
 
 // Returns a pointer to a string with a yuzu data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
