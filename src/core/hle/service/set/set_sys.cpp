@@ -34,9 +34,9 @@ void GetFirmwareVersionImpl(Kernel::HLERequestContext& ctx, GetFirmwareVersionTy
     // consistence (currently reports as 5.1.0-0.0)
     const auto archive = FileSys::SystemArchive::SystemVersion();
 
-    const auto early_exit_failure = [&ctx](const std::string& desc, ResultCode code) {
+    const auto early_exit_failure = [&ctx](std::string_view desc, ResultCode code) {
         LOG_ERROR(Service_SET, "General failure while attempting to resolve firmware version ({}).",
-                  desc.c_str());
+                  desc);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(code);
     };

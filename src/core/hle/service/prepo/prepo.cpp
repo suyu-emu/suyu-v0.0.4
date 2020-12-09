@@ -65,7 +65,7 @@ private:
         }
 
         LOG_DEBUG(Service_PREPO, "called, type={:02X}, process_id={:016X}, data1_size={:016X}",
-                  static_cast<u8>(Type), process_id, data[0].size());
+                  Type, process_id, data[0].size());
 
         const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), data, process_id);
@@ -92,7 +92,7 @@ private:
         LOG_DEBUG(
             Service_PREPO,
             "called, type={:02X}, user_id={:016X}{:016X}, process_id={:016X}, data1_size={:016X}",
-            static_cast<u8>(Type), user_id[1], user_id[0], process_id, data[0].size());
+            Type, user_id[1], user_id[0], process_id, data[0].size());
 
         const auto& reporter{system.GetReporter()};
         reporter.SavePlayReport(Type, system.CurrentProcess()->GetTitleID(), data, process_id,

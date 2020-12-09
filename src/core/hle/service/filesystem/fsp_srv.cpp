@@ -413,7 +413,7 @@ public:
 
         const auto mode = static_cast<FileSys::Mode>(rp.Pop<u32>());
 
-        LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, static_cast<u32>(mode));
+        LOG_DEBUG(Service_FS, "called. file={}, mode={}", name, mode);
 
         auto result = backend.OpenFile(name, mode);
         if (result.Failed()) {
@@ -553,8 +553,7 @@ private:
         const auto save_root = fsc.OpenSaveDataSpace(space);
 
         if (save_root.Failed() || *save_root == nullptr) {
-            LOG_ERROR(Service_FS, "The save root for the space_id={:02X} was invalid!",
-                      static_cast<u8>(space));
+            LOG_ERROR(Service_FS, "The save root for the space_id={:02X} was invalid!", space);
             return;
         }
 
@@ -795,8 +794,7 @@ void FSP_SRV::OpenFileSystemWithPatch(Kernel::HLERequestContext& ctx) {
 
     const auto type = rp.PopRaw<FileSystemType>();
     const auto title_id = rp.PopRaw<u64>();
-    LOG_WARNING(Service_FS, "(STUBBED) called with type={}, title_id={:016X}",
-                static_cast<u8>(type), title_id);
+    LOG_WARNING(Service_FS, "(STUBBED) called with type={}, title_id={:016X}", type, title_id);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 0};
     rb.Push(RESULT_UNKNOWN);
@@ -883,7 +881,7 @@ void FSP_SRV::OpenReadOnlySaveDataFileSystem(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenSaveDataInfoReaderBySaveDataSpaceId(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     const auto space = rp.PopRaw<FileSys::SaveDataSpaceId>();
-    LOG_INFO(Service_FS, "called, space={}", static_cast<u8>(space));
+    LOG_INFO(Service_FS, "called, space={}", space);
 
     IPC::ResponseBuilder rb{ctx, 2, 0, 1};
     rb.Push(RESULT_SUCCESS);
@@ -915,10 +913,10 @@ void FSP_SRV::ReadSaveDataFileSystemExtraDataWithMaskBySaveDataAttribute(
                 "(STUBBED) called, flags={}, space_id={}, attribute.title_id={:016X}\n"
                 "attribute.user_id={:016X}{:016X}, attribute.save_id={:016X}\n"
                 "attribute.type={}, attribute.rank={}, attribute.index={}",
-                flags, static_cast<u32>(parameters.space_id), parameters.attribute.title_id,
+                flags, parameters.space_id, parameters.attribute.title_id,
                 parameters.attribute.user_id[1], parameters.attribute.user_id[0],
-                parameters.attribute.save_id, static_cast<u32>(parameters.attribute.type),
-                static_cast<u32>(parameters.attribute.rank), parameters.attribute.index);
+                parameters.attribute.save_id, parameters.attribute.type, parameters.attribute.rank,
+                parameters.attribute.index);
 
     IPC::ResponseBuilder rb{ctx, 3};
     rb.Push(RESULT_SUCCESS);
@@ -951,7 +949,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
     const auto title_id = rp.PopRaw<u64>();
 
     LOG_DEBUG(Service_FS, "called with storage_id={:02X}, unknown={:08X}, title_id={:016X}",
-              static_cast<u8>(storage_id), unknown, title_id);
+              storage_id, unknown, title_id);
 
     auto data = fsc.OpenRomFS(title_id, storage_id, FileSys::ContentRecordType::Data);
 
@@ -968,7 +966,7 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
         // TODO(DarkLordZach): Find the right error code to use here
         LOG_ERROR(Service_FS,
                   "could not open data storage with title_id={:016X}, storage_id={:02X}", title_id,
-                  static_cast<u8>(storage_id));
+                  storage_id);
         IPC::ResponseBuilder rb{ctx, 2};
         rb.Push(RESULT_UNKNOWN);
         return;
@@ -987,11 +985,10 @@ void FSP_SRV::OpenDataStorageByDataId(Kernel::HLERequestContext& ctx) {
 void FSP_SRV::OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
 
-    auto storage_id = rp.PopRaw<FileSys::StorageId>();
-    auto title_id = rp.PopRaw<u64>();
+    const auto storage_id = rp.PopRaw<FileSys::StorageId>();
+    const auto title_id = rp.PopRaw<u64>();
 
-    LOG_DEBUG(Service_FS, "called with storage_id={:02X}, title_id={:016X}",
-              static_cast<u8>(storage_id), title_id);
+    LOG_DEBUG(Service_FS, "called with storage_id={:02X}, title_id={:016X}", storage_id, title_id);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
@@ -1001,7 +998,7 @@ void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {
     IPC::RequestParser rp{ctx};
     log_mode = rp.PopEnum<LogMode>();
 
-    LOG_DEBUG(Service_FS, "called, log_mode={:08X}", static_cast<u32>(log_mode));
+    LOG_DEBUG(Service_FS, "called, log_mode={:08X}", log_mode);
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(RESULT_SUCCESS);

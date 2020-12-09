@@ -63,7 +63,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
         result.sin_family = AF_INET;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", static_cast<int>(input.family));
+        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", input.family);
         result.sin_family = AF_INET;
         break;
     }
@@ -133,7 +133,7 @@ sockaddr TranslateFromSockAddrIn(SockAddrIn input) {
         result.sin_family = AF_INET;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", static_cast<int>(input.family));
+        UNIMPLEMENTED_MSG("Unhandled sockaddr family={}", input.family);
         result.sin_family = AF_INET;
         break;
     }
@@ -186,7 +186,7 @@ int TranslateDomain(Domain domain) {
     case Domain::INET:
         return AF_INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return 0;
     }
 }
@@ -198,7 +198,7 @@ int TranslateType(Type type) {
     case Type::DGRAM:
         return SOCK_DGRAM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
         return 0;
     }
 }
@@ -210,7 +210,7 @@ int TranslateProtocol(Protocol protocol) {
     case Protocol::UDP:
         return IPPROTO_UDP;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented protocol={}", static_cast<int>(protocol));
+        UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return 0;
     }
 }
@@ -482,7 +482,7 @@ Errno Socket::Shutdown(ShutdownHow how) {
         host_how = SD_BOTH;
         break;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented flag how={}", static_cast<int>(how));
+        UNIMPLEMENTED_MSG("Unimplemented flag how={}", how);
         return Errno::SUCCESS;
     }
     if (shutdown(fd, host_how) != SOCKET_ERROR) {

@@ -153,7 +153,7 @@ void BufferQueue::Disconnect() {
 }
 
 u32 BufferQueue::Query(QueryType type) {
-    LOG_WARNING(Service, "(STUBBED) called type={}", static_cast<u32>(type));
+    LOG_WARNING(Service, "(STUBBED) called type={}", type);
 
     switch (type) {
     case QueryType::NativeWindowFormat:

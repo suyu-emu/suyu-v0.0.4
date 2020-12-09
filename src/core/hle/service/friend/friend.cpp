@@ -229,8 +229,7 @@ private:
             break;
         default:
             // HOS seems not have an error case for an unknown notification
-            LOG_WARNING(Service_ACC, "Unknown notification {:08X}",
-                        static_cast<u32>(notification.notification_type));
+            LOG_WARNING(Service_ACC, "Unknown notification {:08X}", notification.notification_type);
             break;
         }
 

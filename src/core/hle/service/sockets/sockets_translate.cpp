@@ -27,7 +27,7 @@ Errno Translate(Network::Errno value) {
     case Network::Errno::NOTCONN:
         return Errno::NOTCONN;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented errno={}", static_cast<int>(value));
+        UNIMPLEMENTED_MSG("Unimplemented errno={}", value);
         return Errno::SUCCESS;
     }
 }
@@ -41,7 +41,7 @@ Network::Domain Translate(Domain domain) {
     case Domain::INET:
         return Network::Domain::INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return {};
     }
 }
@@ -51,7 +51,7 @@ Domain Translate(Network::Domain domain) {
     case Network::Domain::INET:
         return Domain::INET;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented domain={}", static_cast<int>(domain));
+        UNIMPLEMENTED_MSG("Unimplemented domain={}", domain);
         return {};
     }
 }
@@ -63,7 +63,7 @@ Network::Type Translate(Type type) {
     case Type::DGRAM:
         return Network::Type::DGRAM;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented type={}", static_cast<int>(type));
+        UNIMPLEMENTED_MSG("Unimplemented type={}", type);
     }
 }
 
@@ -84,7 +84,7 @@ Network::Protocol Translate(Type type, Protocol protocol) {
     case Protocol::UDP:
         return Network::Protocol::UDP;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented protocol={}", static_cast<int>(protocol));
+        UNIMPLEMENTED_MSG("Unimplemented protocol={}", protocol);
         return Network::Protocol::TCP;
     }
 }
@@ -157,7 +157,7 @@ Network::ShutdownHow Translate(ShutdownHow how) {
     case ShutdownHow::RDWR:
         return Network::ShutdownHow::RDWR;
     default:
-        UNIMPLEMENTED_MSG("Unimplemented how={}", static_cast<int>(how));
+        UNIMPLEMENTED_MSG("Unimplemented how={}", how);
         return {};
     }
 }

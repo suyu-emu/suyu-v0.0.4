@@ -237,7 +237,7 @@ struct System::Impl {
             Kernel::Process::Create(system, "main", Kernel::Process::ProcessType::Userland);
         const auto [load_result, load_parameters] = app_loader->Load(*main_process, system);
         if (load_result != Loader::ResultStatus::Success) {
-            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", static_cast<int>(load_result));
+            LOG_CRITICAL(Core, "Failed to load ROM (Error {})!", load_result);
             Shutdown();
 
             return static_cast<ResultStatus>(static_cast<u32>(ResultStatus::ErrorLoader) +
@@ -267,8 +267,7 @@ struct System::Impl {
 
         u64 title_id{0};
         if (app_loader->ReadProgramId(title_id) != Loader::ResultStatus::Success) {
-            LOG_ERROR(Core, "Failed to find title id for ROM (Error {})",
-                      static_cast<u32>(load_result));
+            LOG_ERROR(Core, "Failed to find title id for ROM (Error {})", load_result);
         }
         perf_stats = std::make_unique<PerfStats>(title_id);
         // Reset counters and set time origin to current frame
