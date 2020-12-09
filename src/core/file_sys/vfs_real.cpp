@@ -94,9 +94,13 @@ VirtualFile RealVfsFilesystem::OpenFile(std::string_view path_, Mode perms) {
 
 VirtualFile RealVfsFilesystem::CreateFile(std::string_view path_, Mode perms) {
     const auto path = FS::SanitizePath(path_, FS::DirectorySeparator::PlatformDefault);
-    const auto path_fwd = FS::SanitizePath(path, FS::DirectorySeparator::ForwardSlash);
+    const auto parent_path = FS::GetParentPath(path);
+
     if (!FS::Exists(path)) {
-        FS::CreateFullPath(path_fwd);
+        if (!FS::CreateDirs(parent_path)) {
+            return nullptr;
+        }
+
         if (!FS::CreateEmptyFile(path)) {
             return nullptr;
         }
