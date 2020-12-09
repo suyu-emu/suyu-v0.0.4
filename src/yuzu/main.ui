@@ -97,7 +97,8 @@
     <addaction name="action_Display_Dock_Widget_Headers"/>
     <addaction name="action_Show_Filter_Bar"/>
     <addaction name="action_Show_Status_Bar"/>
-    <addaction name="action_Reset_Window_Size"/>
+    <addaction name="action_Reset_Window_Size_720"/>
+    <addaction name="action_Reset_Window_Size_1080"/>
     <addaction name="separator"/>
     <addaction name="menu_View_Debugging"/>
    </widget>
@@ -220,9 +221,14 @@
     <string>Show Status Bar</string>
    </property>
   </action>
-  <action name="action_Reset_Window_Size">
+  <action name="action_Reset_Window_Size_720">
    <property name="text">
-    <string>Reset Window Size</string>
+    <string>Reset Window Size to 720p</string>
+   </property>
+  </action>
+  <action name="action_Reset_Window_Size_1080">
+   <property name="text">
+    <string>Reset Window Size to 1080p</string>
    </property>
   </action>
   <action name="action_Fullscreen">
