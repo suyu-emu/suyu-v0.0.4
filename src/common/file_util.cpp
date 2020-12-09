@@ -98,6 +98,11 @@ bool Delete(const fs::path& path) {
 bool CreateDir(const fs::path& path) {
     LOG_TRACE(Common_Filesystem, "directory {}", path.string());
 
+    if (Exists(path)) {
+        LOG_DEBUG(Common_Filesystem, "path exists {}", path.string());
+        return true;
+    }
+
     std::error_code ec;
     const bool success = fs::create_directory(path, ec);
 
@@ -109,18 +114,39 @@ bool CreateDir(const fs::path& path) {
     return true;
 }
 
-bool CreateFullPath(const fs::path& path) {
+bool CreateDirs(const fs::path& path) {
     LOG_TRACE(Common_Filesystem, "path {}", path.string());
+
+    if (Exists(path)) {
+        LOG_DEBUG(Common_Filesystem, "path exists {}", path.string());
+        return true;
+    }
 
     std::error_code ec;
     const bool success = fs::create_directories(path, ec);
 
     if (!success) {
-        LOG_ERROR(Common_Filesystem, "Unable to create full path: {}", ec.message());
+        LOG_ERROR(Common_Filesystem, "Unable to create directories: {}", ec.message());
         return false;
     }
 
     return true;
+}
+
+bool CreateFullPath(const fs::path& path) {
+    LOG_TRACE(Common_Filesystem, "path {}", path);
+
+    // Removes trailing slashes and turns any '\' into '/'
+    const auto new_path = SanitizePath(path.string(), DirectorySeparator::ForwardSlash);
+
+    if (new_path.rfind('.') == std::string::npos) {
+        // The path is a directory
+        return CreateDirs(new_path);
+    } else {
+        // The path is a file
+        // Creates directory preceding the last '/'
+        return CreateDirs(new_path.substr(0, new_path.rfind('/')));
+    }
 }
 
 bool Rename(const fs::path& src, const fs::path& dst) {

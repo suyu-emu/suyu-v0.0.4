@@ -54,8 +54,14 @@ enum class UserPath {
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::filesystem::path& path);
 
-// Creates the full path of path. Returns true on success
-bool CreateFullPath(const std::filesystem::path& path);
+// Create all directories in path
+// Returns true if successful, or path already exists.
+[[nodiscard("Directory creation can fail and must be tested")]] bool CreateDirs(
+    const std::filesystem::path& path);
+
+// Creates directories in path. Returns true on success.
+[[deprecated("This function is deprecated, use CreateDirs")]] bool CreateFullPath(
+    const std::filesystem::path& path);
 
 // Deletes a given file at the path.
 // This will also delete empty directories.
