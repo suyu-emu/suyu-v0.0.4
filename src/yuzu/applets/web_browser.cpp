@@ -87,10 +87,10 @@ QtWebBrowser::QtWebBrowser(GMainWindow& main_window) {
 
 QtWebBrowser::~QtWebBrowser() = default;
 
-void QtWebBrowser::OpenPageLocal(std::string_view url, std::function<void()> unpack_romfs_callback,
-                                 std::function<void()> finished_callback) {
-    this->unpack_romfs_callback = std::move(unpack_romfs_callback);
-    this->finished_callback = std::move(finished_callback);
+void QtWebBrowser::OpenPageLocal(std::string_view url, std::function<void()> unpack_romfs_callback_,
+                                 std::function<void()> finished_callback_) {
+    unpack_romfs_callback = std::move(unpack_romfs_callback_);
+    finished_callback = std::move(finished_callback_);
 
     const auto index = url.find('?');
     if (index == std::string::npos) {

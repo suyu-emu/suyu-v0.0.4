@@ -17,7 +17,7 @@ QtErrorDisplay::QtErrorDisplay(GMainWindow& parent) {
 QtErrorDisplay::~QtErrorDisplay() = default;
 
 void QtErrorDisplay::ShowError(ResultCode error, std::function<void()> finished) const {
-    this->callback = std::move(finished);
+    callback = std::move(finished);
     emit MainWindowDisplayError(
         tr("An error has occured.\nPlease try again or contact the developer of the "
            "software.\n\nError Code: %1-%2 (0x%3)")
@@ -28,7 +28,7 @@ void QtErrorDisplay::ShowError(ResultCode error, std::function<void()> finished)
 
 void QtErrorDisplay::ShowErrorWithTimestamp(ResultCode error, std::chrono::seconds time,
                                             std::function<void()> finished) const {
-    this->callback = std::move(finished);
+    callback = std::move(finished);
 
     const QDateTime date_time = QDateTime::fromSecsSinceEpoch(time.count());
     emit MainWindowDisplayError(
@@ -44,7 +44,7 @@ void QtErrorDisplay::ShowErrorWithTimestamp(ResultCode error, std::chrono::secon
 void QtErrorDisplay::ShowCustomErrorText(ResultCode error, std::string dialog_text,
                                          std::string fullscreen_text,
                                          std::function<void()> finished) const {
-    this->callback = std::move(finished);
+    callback = std::move(finished);
     emit MainWindowDisplayError(
         tr("An error has occured.\nError Code: %1-%2 (0x%3)\n\n%4\n\n%5")
             .arg(static_cast<u32>(error.module.Value()) + 2000, 4, 10, QChar::fromLatin1('0'))
