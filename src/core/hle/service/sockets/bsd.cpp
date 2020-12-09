@@ -489,18 +489,18 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
     }
 
     for (PollFD& pollfd : fds) {
-        ASSERT(pollfd.revents == 0);
+        ASSERT(False(pollfd.revents));
 
         if (pollfd.fd > static_cast<s32>(MAX_FD) || pollfd.fd < 0) {
             LOG_ERROR(Service, "File descriptor handle={} is invalid", pollfd.fd);
-            pollfd.revents = 0;
+            pollfd.revents = PollEvents{};
             return {0, Errno::SUCCESS};
         }
 
         const std::optional<FileDescriptor>& descriptor = file_descriptors[pollfd.fd];
         if (!descriptor) {
             LOG_ERROR(Service, "File descriptor handle={} is not allocated", pollfd.fd);
-            pollfd.revents = POLL_NVAL;
+            pollfd.revents = PollEvents::Nval;
             return {0, Errno::SUCCESS};
         }
     }
@@ -510,7 +510,7 @@ std::pair<s32, Errno> BSD::PollImpl(std::vector<u8>& write_buffer, std::vector<u
         Network::PollFD result;
         result.socket = file_descriptors[pollfd.fd]->socket.get();
         result.events = TranslatePollEventsToHost(pollfd.events);
-        result.revents = 0;
+        result.revents = Network::PollEvents{};
         return result;
     });
 
