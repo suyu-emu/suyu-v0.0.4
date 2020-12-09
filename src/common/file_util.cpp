@@ -98,6 +98,11 @@ bool Delete(const fs::path& path) {
 bool CreateDir(const fs::path& path) {
     LOG_TRACE(Common_Filesystem, "directory {}", path.string());
 
+    if (Exists(path)) {
+        LOG_DEBUG(Common_Filesystem, "path exists {}", path.string());
+        return true;
+    }
+
     std::error_code ec;
     const bool success = fs::create_directory(path, ec);
 
