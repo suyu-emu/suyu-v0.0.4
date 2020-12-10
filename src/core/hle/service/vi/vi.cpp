@@ -536,9 +536,6 @@ private:
         LOG_DEBUG(Service_VI, "called. id=0x{:08X} transaction={:X}, flags=0x{:08X}", id,
                   transaction, flags);
 
-        const auto guard = nv_flinger.Lock();
-        auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-
         switch (transaction) {
         case TransactionId::Connect: {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
@@ -553,7 +550,11 @@ private:
         case TransactionId::SetPreallocatedBuffer: {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer_container.buffer);
+            {
+                const auto guard = nv_flinger.Lock();
+                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+                buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer_container.buffer);
+            }
 
             IGBPSetPreallocatedBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -563,48 +564,46 @@ private:
             IGBPDequeueBufferRequestParcel request{ctx.ReadBuffer()};
             const u32 width{request.data.width};
             const u32 height{request.data.height};
-            auto result = buffer_queue.DequeueBuffer(width, height);
 
-            if (result) {
-                // Buffer is available
-                IGBPDequeueBufferResponseParcel response{result->first, *result->second};
-                ctx.WriteBuffer(response.Serialize());
-            } else {
-                // Wait the current thread until a buffer becomes available
-                ctx.SleepClientThread(
-                    "IHOSBinderDriver::DequeueBuffer", UINT64_MAX,
-                    [=, this](std::shared_ptr<Kernel::Thread> thread,
-                              Kernel::HLERequestContext& ctx, Kernel::ThreadWakeupReason reason) {
-                        // Repeat TransactParcel DequeueBuffer when a buffer is available
-                        const auto guard = nv_flinger.Lock();
-                        auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                        auto result = buffer_queue.DequeueBuffer(width, height);
-                        ASSERT_MSG(result != std::nullopt, "Could not dequeue buffer.");
+            std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> result;
 
-                        IGBPDequeueBufferResponseParcel response{result->first, *result->second};
-                        ctx.WriteBuffer(response.Serialize());
-                        IPC::ResponseBuilder rb{ctx, 2};
-                        rb.Push(RESULT_SUCCESS);
-                    },
-                    buffer_queue.GetWritableBufferWaitEvent());
+            while (!result) {
+                {
+                    const auto guard = nv_flinger.Lock();
+                    auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+                    result = buffer_queue.DequeueBuffer(width, height);
+                }
+
+                if (result) {
+                    // Buffer is available
+                    IGBPDequeueBufferResponseParcel response{result->first, *result->second};
+                    ctx.WriteBuffer(response.Serialize());
+                }
             }
+
             break;
         }
         case TransactionId::RequestBuffer: {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};
 
+            const auto guard = nv_flinger.Lock();
+            auto& buffer_queue = nv_flinger.FindBufferQueue(id);
             auto& buffer = buffer_queue.RequestBuffer(request.slot);
-
             IGBPRequestBufferResponseParcel response{buffer};
             ctx.WriteBuffer(response.Serialize());
+
             break;
         }
         case TransactionId::QueueBuffer: {
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
-                                     request.data.GetCropRect(), request.data.swap_interval,
-                                     request.data.multi_fence);
+            {
+                const auto guard = nv_flinger.Lock();
+                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+                buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
+                                         request.data.GetCropRect(), request.data.swap_interval,
+                                         request.data.multi_fence);
+            }
 
             IGBPQueueBufferResponseParcel response{1280, 720};
             ctx.WriteBuffer(response.Serialize());
@@ -613,6 +612,8 @@ private:
         case TransactionId::Query: {
             IGBPQueryRequestParcel request{ctx.ReadBuffer()};
 
+            const auto guard = nv_flinger.Lock();
+            auto& buffer_queue = nv_flinger.FindBufferQueue(id);
             const u32 value =
                 buffer_queue.Query(static_cast<NVFlinger::BufferQueue::QueryType>(request.type));
 
@@ -623,7 +624,11 @@ private:
         case TransactionId::CancelBuffer: {
             IGBPCancelBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
+            {
+                const auto guard = nv_flinger.Lock();
+                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+                buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
+            }
 
             IGBPCancelBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -633,7 +638,11 @@ private:
             LOG_WARNING(Service_VI, "(STUBBED) called, transaction=Disconnect");
             const auto buffer = ctx.ReadBuffer();
 
-            buffer_queue.Disconnect();
+            {
+                const auto guard = nv_flinger.Lock();
+                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+                buffer_queue.Disconnect();
+            }
 
             IGBPEmptyResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
