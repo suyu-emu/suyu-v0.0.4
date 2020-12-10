@@ -21,20 +21,20 @@ public:
     /// Wrapper function to allow for more efficient handling of dirs.size() == 0, 1 cases.
     static VirtualDir MakeLayeredDirectory(std::vector<VirtualDir> dirs, std::string name = "");
 
-    std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const override;
-    std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const override;
-    std::shared_ptr<VfsFile> GetFile(std::string_view name) const override;
-    std::shared_ptr<VfsDirectory> GetSubdirectory(std::string_view name) const override;
+    VirtualFile GetFileRelative(std::string_view path) const override;
+    VirtualDir GetDirectoryRelative(std::string_view path) const override;
+    VirtualFile GetFile(std::string_view name) const override;
+    VirtualDir GetSubdirectory(std::string_view name) const override;
     std::string GetFullPath() const override;
 
-    std::vector<std::shared_ptr<VfsFile>> GetFiles() const override;
-    std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const override;
+    std::vector<VirtualFile> GetFiles() const override;
+    std::vector<VirtualDir> GetSubdirectories() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::string GetName() const override;
-    std::shared_ptr<VfsDirectory> GetParentDirectory() const override;
-    std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) override;
-    std::shared_ptr<VfsFile> CreateFile(std::string_view name) override;
+    VirtualDir GetParentDirectory() const override;
+    VirtualDir CreateSubdirectory(std::string_view name) override;
+    VirtualFile CreateFile(std::string_view name) override;
     bool DeleteSubdirectory(std::string_view name) override;
     bool DeleteFile(std::string_view name) override;
     bool Rename(std::string_view name) override;

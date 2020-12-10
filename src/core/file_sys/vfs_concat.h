@@ -31,7 +31,7 @@ public:
     std::string GetName() const override;
     std::size_t GetSize() const override;
     bool Resize(std::size_t new_size) override;
-    std::shared_ptr<VfsDirectory> GetContainingDirectory() const override;
+    VirtualDir GetContainingDirectory() const override;
     bool IsWritable() const override;
     bool IsReadable() const override;
     std::size_t Read(u8* data, std::size_t length, std::size_t offset) const override;

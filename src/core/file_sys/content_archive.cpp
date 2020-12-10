@@ -519,15 +519,17 @@ Loader::ResultStatus NCA::GetStatus() const {
     return status;
 }
 
-std::vector<std::shared_ptr<VfsFile>> NCA::GetFiles() const {
-    if (status != Loader::ResultStatus::Success)
+std::vector<VirtualFile> NCA::GetFiles() const {
+    if (status != Loader::ResultStatus::Success) {
         return {};
+    }
     return files;
 }
 
-std::vector<std::shared_ptr<VfsDirectory>> NCA::GetSubdirectories() const {
-    if (status != Loader::ResultStatus::Success)
+std::vector<VirtualDir> NCA::GetSubdirectories() const {
+    if (status != Loader::ResultStatus::Success) {
         return {};
+    }
     return dirs;
 }
 
@@ -535,7 +537,7 @@ std::string NCA::GetName() const {
     return file->GetName();
 }
 
-std::shared_ptr<VfsDirectory> NCA::GetParentDirectory() const {
+VirtualDir NCA::GetParentDirectory() const {
     return file->GetContainingDirectory();
 }
 
