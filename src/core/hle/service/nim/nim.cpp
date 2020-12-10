@@ -217,7 +217,7 @@ public:
             {1, nullptr, "RefreshDebugAvailability"},
             {2, nullptr, "ClearDebugResponse"},
             {3, nullptr, "RegisterDebugResponse"},
-            {4, nullptr, "IsLargeResourceAvailable"},
+            {4, &NIM_ECA::IsLargeResourceAvailable, "IsLargeResourceAvailable"},
         };
         // clang-format on
 
@@ -230,6 +230,18 @@ private:
         IPC::ResponseBuilder rb{ctx, 2, 0, 1};
         rb.Push(RESULT_SUCCESS);
         rb.PushIpcInterface<IShopServiceAccessServer>(system);
+    }
+
+    void IsLargeResourceAvailable(Kernel::HLERequestContext& ctx) {
+        IPC::RequestParser rp{ctx};
+
+        const auto unknown{rp.Pop<u64>()};
+
+        LOG_INFO(Service_NIM, "(STUBBED) called, unknown={}", unknown);
+
+        IPC::ResponseBuilder rb{ctx, 3};
+        rb.Push(RESULT_SUCCESS);
+        rb.Push(false);
     }
 };
 
