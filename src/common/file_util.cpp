@@ -136,16 +136,10 @@ bool CreateDirs(const fs::path& path) {
 bool CreateFullPath(const fs::path& path) {
     LOG_TRACE(Common_Filesystem, "path {}", path);
 
-    // Removes trailing slashes and turns any '\' into '/'
-    const auto new_path = SanitizePath(path.string(), DirectorySeparator::ForwardSlash);
-
-    if (new_path.rfind('.') == std::string::npos) {
-        // The path is a directory
-        return CreateDirs(new_path);
+    if (path.has_extension()) {
+        return CreateDirs(path.parent_path());
     } else {
-        // The path is a file
-        // Creates directory preceding the last '/'
-        return CreateDirs(new_path.substr(0, new_path.rfind('/')));
+        return CreateDirs(path);
     }
 }
 
