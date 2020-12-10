@@ -329,7 +329,7 @@ struct KernelCore::Impl {
     std::atomic<u32> registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
 
     // Number of host threads is a relatively high number to avoid overflowing
-    static constexpr size_t NUM_REGISTRABLE_HOST_THREADS = 64;
+    static constexpr size_t NUM_REGISTRABLE_HOST_THREADS = 1024;
     std::atomic<size_t> num_host_threads{0};
     std::array<std::atomic<std::thread::id>, NUM_REGISTRABLE_HOST_THREADS>
         register_host_thread_keys{};

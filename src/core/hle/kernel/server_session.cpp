@@ -32,12 +32,9 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
                                                                 std::string name) {
     std::shared_ptr<ServerSession> session{std::make_shared<ServerSession>(kernel)};
 
-    session->request_event =
-        Core::Timing::CreateEvent(name, [session](std::uintptr_t, std::chrono::nanoseconds) {
-            session->CompleteSyncRequest();
-        });
     session->name = std::move(name);
     session->parent = std::move(parent);
+    session->service_thread = std::make_unique<ServiceThread>(kernel);
 
     return MakeResult(std::move(session));
 }
@@ -142,16 +139,12 @@ ResultCode ServerSession::QueueSyncRequest(std::shared_ptr<Thread> thread,
         std::make_shared<HLERequestContext>(kernel, memory, SharedFrom(this), std::move(thread));
 
     context->PopulateFromIncomingCommandBuffer(kernel.CurrentProcess()->GetHandleTable(), cmd_buf);
-    request_queue.Push(std::move(context));
+    service_thread->QueueSyncRequest(*this, std::move(context));
 
     return RESULT_SUCCESS;
 }
 
-ResultCode ServerSession::CompleteSyncRequest() {
-    ASSERT(!request_queue.Empty());
-
-    auto& context = *request_queue.Front();
-
+ResultCode ServerSession::CompleteSyncRequest(HLERequestContext& context) {
     ResultCode result = RESULT_SUCCESS;
     // If the session has been converted to a domain, handle the domain request
     if (IsDomain() && context.HasDomainMessageHeader()) {
@@ -177,18 +170,13 @@ ResultCode ServerSession::CompleteSyncRequest() {
         }
     }
 
-    request_queue.Pop();
-
     return result;
 }
 
 ResultCode ServerSession::HandleSyncRequest(std::shared_ptr<Thread> thread,
                                             Core::Memory::Memory& memory,
                                             Core::Timing::CoreTiming& core_timing) {
-    const ResultCode result = QueueSyncRequest(std::move(thread), memory);
-    const auto delay = std::chrono::nanoseconds{kernel.IsMulticore() ? 0 : 20000};
-    core_timing.ScheduleEvent(delay, request_event, {});
-    return result;
+    return QueueSyncRequest(std::move(thread), memory);
 }
 
 } // namespace Kernel
