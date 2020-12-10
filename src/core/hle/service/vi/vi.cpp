@@ -551,9 +551,9 @@ private:
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
             {
-                const auto guard = nv_flinger.Lock();
-                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer_container.buffer);
+                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+                buffer_queue.SetPreallocatedBuffer(request.data.slot,
+                                                   request.buffer_container.buffer);
             }
 
             IGBPSetPreallocatedBufferResponseParcel response{};
@@ -568,11 +568,8 @@ private:
             std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> result;
 
             while (!result) {
-                {
-                    const auto guard = nv_flinger.Lock();
-                    auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                    result = buffer_queue.DequeueBuffer(width, height);
-                }
+                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+                result = buffer_queue.DequeueBuffer(width, height);
 
                 if (result) {
                     // Buffer is available
@@ -586,8 +583,7 @@ private:
         case TransactionId::RequestBuffer: {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};
 
-            const auto guard = nv_flinger.Lock();
-            auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             auto& buffer = buffer_queue.RequestBuffer(request.slot);
             IGBPRequestBufferResponseParcel response{buffer};
             ctx.WriteBuffer(response.Serialize());
@@ -597,13 +593,10 @@ private:
         case TransactionId::QueueBuffer: {
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
-            {
-                const auto guard = nv_flinger.Lock();
-                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
-                                         request.data.GetCropRect(), request.data.swap_interval,
-                                         request.data.multi_fence);
-            }
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+            buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
+                                     request.data.GetCropRect(), request.data.swap_interval,
+                                     request.data.multi_fence);
 
             IGBPQueueBufferResponseParcel response{1280, 720};
             ctx.WriteBuffer(response.Serialize());
@@ -612,8 +605,7 @@ private:
         case TransactionId::Query: {
             IGBPQueryRequestParcel request{ctx.ReadBuffer()};
 
-            const auto guard = nv_flinger.Lock();
-            auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             const u32 value =
                 buffer_queue.Query(static_cast<NVFlinger::BufferQueue::QueryType>(request.type));
 
@@ -624,11 +616,8 @@ private:
         case TransactionId::CancelBuffer: {
             IGBPCancelBufferRequestParcel request{ctx.ReadBuffer()};
 
-            {
-                const auto guard = nv_flinger.Lock();
-                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
-            }
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+            buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
 
             IGBPCancelBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -638,11 +627,8 @@ private:
             LOG_WARNING(Service_VI, "(STUBBED) called, transaction=Disconnect");
             const auto buffer = ctx.ReadBuffer();
 
-            {
-                const auto guard = nv_flinger.Lock();
-                auto& buffer_queue = nv_flinger.FindBufferQueue(id);
-                buffer_queue.Disconnect();
-            }
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+            buffer_queue.Disconnect();
 
             IGBPEmptyResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -691,7 +677,7 @@ private:
 
         LOG_WARNING(Service_VI, "(STUBBED) called id={}, unknown={:08X}", id, unknown);
 
-        const auto& buffer_queue = nv_flinger.FindBufferQueue(id);
+        const auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
 
         // TODO(Subv): Find out what this actually is.
         IPC::ResponseBuilder rb{ctx, 2, 1};
