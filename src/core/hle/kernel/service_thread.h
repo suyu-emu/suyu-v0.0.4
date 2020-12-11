@@ -14,7 +14,7 @@ class ServerSession;
 
 class ServiceThread final {
 public:
-    explicit ServiceThread(KernelCore& kernel);
+    explicit ServiceThread(KernelCore& kernel, std::size_t num_threads);
     ~ServiceThread();
 
     void QueueSyncRequest(ServerSession& session, std::shared_ptr<HLERequestContext>&& context);

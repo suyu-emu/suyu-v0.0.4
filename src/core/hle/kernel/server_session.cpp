@@ -34,7 +34,7 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
 
     session->name = std::move(name);
     session->parent = std::move(parent);
-    session->service_thread = std::make_unique<ServiceThread>(kernel);
+    session->service_thread = std::make_unique<ServiceThread>(kernel, 1);
 
     return MakeResult(std::move(session));
 }

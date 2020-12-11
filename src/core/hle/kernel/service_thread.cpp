@@ -22,7 +22,7 @@ namespace Kernel {
 
 class ServiceThread::Impl final {
 public:
-    explicit Impl(KernelCore& kernel);
+    explicit Impl(KernelCore& kernel, std::size_t num_threads);
     ~Impl();
 
     void QueueSyncRequest(ServerSession& session, std::shared_ptr<HLERequestContext>&& context);
@@ -35,9 +35,8 @@ private:
     bool stop{};
 };
 
-ServiceThread::Impl::Impl(KernelCore& kernel) {
-    constexpr std::size_t SizeOfPool{1};
-    for (std::size_t i = 0; i < SizeOfPool; ++i)
+ServiceThread::Impl::Impl(KernelCore& kernel, std::size_t num_threads) {
+    for (std::size_t i = 0; i < num_threads; ++i)
         threads.emplace_back([&] {
             // Wait for first request before trying to acquire a render context
             {
@@ -88,7 +87,8 @@ ServiceThread::Impl::~Impl() {
     }
 }
 
-ServiceThread::ServiceThread(KernelCore& kernel) : impl{std::make_unique<Impl>(kernel)} {}
+ServiceThread::ServiceThread(KernelCore& kernel, std::size_t num_threads)
+    : impl{std::make_unique<Impl>(kernel, num_threads)} {}
 
 ServiceThread::~ServiceThread() = default;
 
