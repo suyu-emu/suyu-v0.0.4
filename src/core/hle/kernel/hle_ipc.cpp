@@ -46,43 +46,6 @@ void SessionRequestHandler::ClientDisconnected(
     boost::range::remove_erase(connected_sessions, server_session);
 }
 
-std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
-    const std::string& reason, u64 timeout, WakeupCallback&& callback,
-    std::shared_ptr<WritableEvent> writable_event) {
-    // Put the client thread to sleep until the wait event is signaled or the timeout expires.
-
-    if (!writable_event) {
-        // Create event if not provided
-        const auto pair = WritableEvent::CreateEventPair(kernel, "HLE Pause Event: " + reason);
-        writable_event = pair.writable;
-    }
-
-    Handle event_handle = InvalidHandle;
-    {
-        KScopedSchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
-        thread->SetHLECallback(
-            [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
-                ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT
-                                                ? ThreadWakeupReason::Timeout
-                                                : ThreadWakeupReason::Signal;
-                callback(thread, context, reason);
-                context.WriteToOutgoingCommandBuffer(*thread);
-                return true;
-            });
-        const auto readable_event{writable_event->GetReadableEvent()};
-        writable_event->Clear();
-        thread->SetHLESyncObject(readable_event.get());
-        thread->SetStatus(ThreadStatus::WaitHLEEvent);
-        thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
-        readable_event->AddWaitingThread(thread);
-    }
-    thread->SetHLETimeEvent(event_handle);
-
-    is_thread_waiting = true;
-
-    return writable_event;
-}
-
 HLERequestContext::HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
                                      std::shared_ptr<ServerSession> server_session,
                                      std::shared_ptr<Thread> thread)
