@@ -580,9 +580,8 @@ void GMainWindow::InitializeWidgets() {
         if (emulation_running) {
             return;
         }
-        const bool is_async = !Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
-                              Settings::values.use_multi_core.GetValue();
-        Settings::values.use_asynchronous_gpu_emulation.SetValue(is_async);
+        Settings::values.use_asynchronous_gpu_emulation.SetValue(
+            !Settings::values.use_asynchronous_gpu_emulation.GetValue());
         async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
         Settings::Apply(Core::System::GetInstance());
     });
@@ -599,16 +598,13 @@ void GMainWindow::InitializeWidgets() {
             return;
         }
         Settings::values.use_multi_core.SetValue(!Settings::values.use_multi_core.GetValue());
-        const bool is_async = Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
-                              Settings::values.use_multi_core.GetValue();
-        Settings::values.use_asynchronous_gpu_emulation.SetValue(is_async);
-        async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
         multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
         Settings::Apply(Core::System::GetInstance());
     });
     multicore_status_button->setText(tr("MULTICORE"));
     multicore_status_button->setCheckable(true);
     multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
+
     statusBar()->insertPermanentWidget(0, multicore_status_button);
     statusBar()->insertPermanentWidget(0, async_status_button);
 
@@ -2533,9 +2529,6 @@ void GMainWindow::UpdateStatusBar() {
 void GMainWindow::UpdateStatusButtons() {
     dock_status_button->setChecked(Settings::values.use_docked_mode.GetValue());
     multicore_status_button->setChecked(Settings::values.use_multi_core.GetValue());
-    Settings::values.use_asynchronous_gpu_emulation.SetValue(
-        Settings::values.use_asynchronous_gpu_emulation.GetValue() ||
-        Settings::values.use_multi_core.GetValue());
     async_status_button->setChecked(Settings::values.use_asynchronous_gpu_emulation.GetValue());
     renderer_status_button->setChecked(Settings::values.renderer_backend.GetValue() ==
                                        Settings::RendererBackend::Vulkan);

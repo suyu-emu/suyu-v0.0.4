@@ -159,7 +159,7 @@ struct System::Impl {
         device_memory = std::make_unique<Core::DeviceMemory>();
 
         is_multicore = Settings::values.use_multi_core.GetValue();
-        is_async_gpu = is_multicore || Settings::values.use_asynchronous_gpu_emulation.GetValue();
+        is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
 
         kernel.SetMulticore(is_multicore);
         cpu_manager.SetMulticore(is_multicore);

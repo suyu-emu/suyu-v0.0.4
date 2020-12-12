@@ -148,9 +148,4 @@ void RestoreGlobalState(bool is_powered_on) {
     values.motion_enabled.SetGlobal(true);
 }
 
-void Sanitize() {
-    values.use_asynchronous_gpu_emulation.SetValue(
-        values.use_asynchronous_gpu_emulation.GetValue() || values.use_multi_core.GetValue());
-}
-
 } // namespace Settings
