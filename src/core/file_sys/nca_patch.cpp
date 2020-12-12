@@ -191,7 +191,7 @@ bool BKTR::Resize(std::size_t new_size) {
     return false;
 }
 
-std::shared_ptr<VfsDirectory> BKTR::GetContainingDirectory() const {
+VirtualDir BKTR::GetContainingDirectory() const {
     return base_romfs->GetContainingDirectory();
 }
 

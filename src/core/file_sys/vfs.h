@@ -91,7 +91,7 @@ public:
     // Resizes the file to new_size. Returns whether or not the operation was successful.
     virtual bool Resize(std::size_t new_size) = 0;
     // Gets a pointer to the directory containing this file, returning nullptr if there is none.
-    virtual std::shared_ptr<VfsDirectory> GetContainingDirectory() const = 0;
+    virtual VirtualDir GetContainingDirectory() const = 0;
 
     // Returns whether or not the file can be written to.
     virtual bool IsWritable() const = 0;
@@ -183,27 +183,27 @@ public:
 
     // Retrives the file located at path as if the current directory was root. Returns nullptr if
     // not found.
-    virtual std::shared_ptr<VfsFile> GetFileRelative(std::string_view path) const;
+    virtual VirtualFile GetFileRelative(std::string_view path) const;
     // Calls GetFileRelative(path) on the root of the current directory.
-    virtual std::shared_ptr<VfsFile> GetFileAbsolute(std::string_view path) const;
+    virtual VirtualFile GetFileAbsolute(std::string_view path) const;
 
     // Retrives the directory located at path as if the current directory was root. Returns nullptr
     // if not found.
-    virtual std::shared_ptr<VfsDirectory> GetDirectoryRelative(std::string_view path) const;
+    virtual VirtualDir GetDirectoryRelative(std::string_view path) const;
     // Calls GetDirectoryRelative(path) on the root of the current directory.
-    virtual std::shared_ptr<VfsDirectory> GetDirectoryAbsolute(std::string_view path) const;
+    virtual VirtualDir GetDirectoryAbsolute(std::string_view path) const;
 
     // Returns a vector containing all of the files in this directory.
-    virtual std::vector<std::shared_ptr<VfsFile>> GetFiles() const = 0;
+    virtual std::vector<VirtualFile> GetFiles() const = 0;
     // Returns the file with filename matching name. Returns nullptr if directory dosen't have a
     // file with name.
-    virtual std::shared_ptr<VfsFile> GetFile(std::string_view name) const;
+    virtual VirtualFile GetFile(std::string_view name) const;
 
     // Returns a vector containing all of the subdirectories in this directory.
-    virtual std::vector<std::shared_ptr<VfsDirectory>> GetSubdirectories() const = 0;
+    virtual std::vector<VirtualDir> GetSubdirectories() const = 0;
     // Returns the directory with name matching name. Returns nullptr if directory dosen't have a
     // directory with name.
-    virtual std::shared_ptr<VfsDirectory> GetSubdirectory(std::string_view name) const;
+    virtual VirtualDir GetSubdirectory(std::string_view name) const;
 
     // Returns whether or not the directory can be written to.
     virtual bool IsWritable() const = 0;
@@ -219,31 +219,31 @@ public:
     virtual std::size_t GetSize() const;
     // Returns the parent directory of this directory. Returns nullptr if this directory is root or
     // has no parent.
-    virtual std::shared_ptr<VfsDirectory> GetParentDirectory() const = 0;
+    virtual VirtualDir GetParentDirectory() const = 0;
 
     // Creates a new subdirectory with name name. Returns a pointer to the new directory or nullptr
     // if the operation failed.
-    virtual std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) = 0;
+    virtual VirtualDir CreateSubdirectory(std::string_view name) = 0;
     // Creates a new file with name name. Returns a pointer to the new file or nullptr if the
     // operation failed.
-    virtual std::shared_ptr<VfsFile> CreateFile(std::string_view name) = 0;
+    virtual VirtualFile CreateFile(std::string_view name) = 0;
 
     // Creates a new file at the path relative to this directory. Also creates directories if
     // they do not exist and is supported by this implementation. Returns nullptr on any failure.
-    virtual std::shared_ptr<VfsFile> CreateFileRelative(std::string_view path);
+    virtual VirtualFile CreateFileRelative(std::string_view path);
 
     // Creates a new file at the path relative to root of this directory. Also creates directories
     // if they do not exist and is supported by this implementation. Returns nullptr on any failure.
-    virtual std::shared_ptr<VfsFile> CreateFileAbsolute(std::string_view path);
+    virtual VirtualFile CreateFileAbsolute(std::string_view path);
 
     // Creates a new directory at the path relative to this directory. Also creates directories if
     // they do not exist and is supported by this implementation. Returns nullptr on any failure.
-    virtual std::shared_ptr<VfsDirectory> CreateDirectoryRelative(std::string_view path);
+    virtual VirtualDir CreateDirectoryRelative(std::string_view path);
 
     // Creates a new directory at the path relative to root of this directory. Also creates
     // directories if they do not exist and is supported by this implementation. Returns nullptr on
     // any failure.
-    virtual std::shared_ptr<VfsDirectory> CreateDirectoryAbsolute(std::string_view path);
+    virtual VirtualDir CreateDirectoryAbsolute(std::string_view path);
 
     // Deletes the subdirectory with the given name and returns true on success.
     virtual bool DeleteSubdirectory(std::string_view name) = 0;
@@ -280,12 +280,12 @@ class ReadOnlyVfsDirectory : public VfsDirectory {
 public:
     bool IsWritable() const override;
     bool IsReadable() const override;
-    std::shared_ptr<VfsDirectory> CreateSubdirectory(std::string_view name) override;
-    std::shared_ptr<VfsFile> CreateFile(std::string_view name) override;
-    std::shared_ptr<VfsFile> CreateFileAbsolute(std::string_view path) override;
-    std::shared_ptr<VfsFile> CreateFileRelative(std::string_view path) override;
-    std::shared_ptr<VfsDirectory> CreateDirectoryAbsolute(std::string_view path) override;
-    std::shared_ptr<VfsDirectory> CreateDirectoryRelative(std::string_view path) override;
+    VirtualDir CreateSubdirectory(std::string_view name) override;
+    VirtualFile CreateFile(std::string_view name) override;
+    VirtualFile CreateFileAbsolute(std::string_view path) override;
+    VirtualFile CreateFileRelative(std::string_view path) override;
+    VirtualDir CreateDirectoryAbsolute(std::string_view path) override;
+    VirtualDir CreateDirectoryRelative(std::string_view path) override;
     bool DeleteSubdirectory(std::string_view name) override;
     bool DeleteSubdirectoryRecursive(std::string_view name) override;
     bool CleanSubdirectoryRecursive(std::string_view name) override;
