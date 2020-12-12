@@ -135,7 +135,8 @@ void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::WaitIdle() const {
-    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed)) {
+    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed) &&
+           system.IsPoweredOn()) {
     }
 }
 
