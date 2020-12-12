@@ -116,6 +116,31 @@ u32 Controller_NPad::IndexToNPad(std::size_t index) {
     }
 }
 
+bool Controller_NPad::IsNpadIdValid(u32 npad_id) {
+    switch (npad_id) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case NPAD_UNKNOWN:
+    case NPAD_HANDHELD:
+        return true;
+    default:
+        LOG_ERROR(Service_HID, "Invalid npad id {}", npad_id);
+        return false;
+    }
+}
+
+bool Controller_NPad::IsDeviceHandleValid(const DeviceHandle& device_handle) {
+    return IsNpadIdValid(device_handle.npad_id) &&
+           device_handle.npad_type < NpadType::MaxNpadType &&
+           device_handle.device_index < DeviceIndex::MaxDeviceIndex;
+}
+
 Controller_NPad::Controller_NPad(Core::System& system) : ControllerBase(system), system(system) {}
 
 Controller_NPad::~Controller_NPad() {
@@ -742,6 +767,10 @@ bool Controller_NPad::VibrateControllerAtIndex(std::size_t npad_index, std::size
 
 void Controller_NPad::VibrateController(const DeviceHandle& vibration_device_handle,
                                         const VibrationValue& vibration_value) {
+    if (!IsDeviceHandleValid(vibration_device_handle)) {
+        return;
+    }
+
     if (!Settings::values.vibration_enabled.GetValue() && !permit_vibration_session_enabled) {
         return;
     }
@@ -798,12 +827,20 @@ void Controller_NPad::VibrateControllers(const std::vector<DeviceHandle>& vibrat
 
 Controller_NPad::VibrationValue Controller_NPad::GetLastVibration(
     const DeviceHandle& vibration_device_handle) const {
+    if (!IsDeviceHandleValid(vibration_device_handle)) {
+        return {};
+    }
+
     const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
     const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
     return latest_vibration_values[npad_index][device_index];
 }
 
 void Controller_NPad::InitializeVibrationDevice(const DeviceHandle& vibration_device_handle) {
+    if (!IsDeviceHandleValid(vibration_device_handle)) {
+        return;
+    }
+
     const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
     const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
     InitializeVibrationDeviceAtIndex(npad_index, device_index);
@@ -824,6 +861,10 @@ void Controller_NPad::SetPermitVibrationSession(bool permit_vibration_session) {
 }
 
 bool Controller_NPad::IsVibrationDeviceMounted(const DeviceHandle& vibration_device_handle) const {
+    if (!IsDeviceHandleValid(vibration_device_handle)) {
+        return false;
+    }
+
     const auto npad_index = NPadIdToIndex(vibration_device_handle.npad_id);
     const auto device_index = static_cast<std::size_t>(vibration_device_handle.device_index);
     return vibration_devices_mounted[npad_index][device_index];
