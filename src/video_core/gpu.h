@@ -406,10 +406,10 @@ private:
     u64 last_flush_fence{};
     std::mutex flush_request_mutex;
 
+    const bool is_async;
+
     VideoCommon::GPUThread::ThreadManager gpu_thread;
     std::unique_ptr<Core::Frontend::GraphicsContext> cpu_context;
-
-    const bool is_async;
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \

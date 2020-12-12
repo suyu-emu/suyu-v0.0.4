@@ -38,7 +38,7 @@ GPU::GPU(Core::System& system_, bool is_async_, bool use_nvdec_)
       maxwell_dma{std::make_unique<Engines::MaxwellDMA>(system, *memory_manager)},
       kepler_memory{std::make_unique<Engines::KeplerMemory>(system, *memory_manager)},
       shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_},
-      gpu_thread{system_} {}
+      gpu_thread{system_, is_async_} {}
 
 GPU::~GPU() = default;
 
@@ -524,7 +524,10 @@ void GPU::WaitIdle() const {
 }
 
 void GPU::OnCommandListEnd() {
-    gpu_thread.OnCommandListEnd();
+    if (is_async) {
+        // This command only applies to asynchronous GPU mode
+        gpu_thread.OnCommandListEnd();
+    }
 }
 
 } // namespace Tegra

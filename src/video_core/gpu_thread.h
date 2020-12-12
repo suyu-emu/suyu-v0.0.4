@@ -27,7 +27,7 @@ class System;
 } // namespace Core
 
 namespace VideoCore {
-    class RendererBase;
+class RendererBase;
 } // namespace VideoCore
 
 namespace VideoCommon::GPUThread {
@@ -117,7 +117,7 @@ struct SynchState final {
 /// Class used to manage the GPU thread
 class ThreadManager final {
 public:
-    explicit ThreadManager(Core::System& system_);
+    explicit ThreadManager(Core::System& system_, bool is_async_);
     ~ThreadManager();
 
     /// Creates and starts the GPU thread.
@@ -155,6 +155,7 @@ private:
     Core::System& system;
     std::thread thread;
     std::thread::id thread_id;
+    const bool is_async;
 };
 
 } // namespace VideoCommon::GPUThread
