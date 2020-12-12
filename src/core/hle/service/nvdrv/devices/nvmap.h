@@ -19,13 +19,11 @@ public:
     explicit nvmap(Core::System& system);
     ~nvmap() override;
 
-    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
     NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
-                    const std::vector<u8>& inline_input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
     NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output, IoctlCtrl& ctrl) override;
+                    std::vector<u8>& inline_output) override;
 
     /// Returns the allocated address of an nvmap object given its handle.
     VAddr GetObjectAddress(u32 handle) const;

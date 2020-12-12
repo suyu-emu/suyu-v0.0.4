@@ -23,8 +23,7 @@ nvhost_gpu::nvhost_gpu(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
 
 nvhost_gpu::~nvhost_gpu() = default;
 
-NvResult nvhost_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                            IoctlCtrl& ctrl) {
+NvResult nvhost_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
@@ -76,8 +75,7 @@ NvResult nvhost_gpu::Ioctl1(Ioctl command, const std::vector<u8>& input, std::ve
 };
 
 NvResult nvhost_gpu::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                            const std::vector<u8>& inline_input, std::vector<u8>& output,
-                            IoctlCtrl& ctrl) {
+                            const std::vector<u8>& inline_input, std::vector<u8>& output) {
     switch (command.group) {
     case 'H':
         switch (command.cmd) {
@@ -91,7 +89,7 @@ NvResult nvhost_gpu::Ioctl2(Ioctl command, const std::vector<u8>& input,
 }
 
 NvResult nvhost_gpu::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                            std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                            std::vector<u8>& inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }

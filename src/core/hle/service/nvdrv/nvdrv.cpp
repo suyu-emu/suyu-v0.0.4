@@ -91,7 +91,7 @@ DeviceFD Module::Open(const std::string& device_name) {
 }
 
 NvResult Module::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                        std::vector<u8>& output, IoctlCtrl& ctrl) {
+                        std::vector<u8>& output) {
     if (fd < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
         return NvResult::InvalidState;
@@ -104,12 +104,11 @@ NvResult Module::Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl1(command, input, output, ctrl);
+    return itr->second->Ioctl1(command, input, output);
 }
 
 NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                        const std::vector<u8>& inline_input, std::vector<u8>& output,
-                        IoctlCtrl& ctrl) {
+                        const std::vector<u8>& inline_input, std::vector<u8>& output) {
     if (fd < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
         return NvResult::InvalidState;
@@ -122,11 +121,11 @@ NvResult Module::Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl2(command, input, inline_input, output, ctrl);
+    return itr->second->Ioctl2(command, input, inline_input, output);
 }
 
 NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                        std::vector<u8>& output, std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                        std::vector<u8>& output, std::vector<u8>& inline_output) {
     if (fd < 0) {
         LOG_ERROR(Service_NVDRV, "Invalid DeviceFD={}!", fd);
         return NvResult::InvalidState;
@@ -139,7 +138,7 @@ NvResult Module::Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input
         return NvResult::NotImplemented;
     }
 
-    return itr->second->Ioctl3(command, input, output, inline_output, ctrl);
+    return itr->second->Ioctl3(command, input, output, inline_output);
 }
 
 NvResult Module::Close(DeviceFD fd) {

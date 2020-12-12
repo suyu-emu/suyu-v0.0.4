@@ -14,12 +14,10 @@ public:
     explicit nvhost_vic(Core::System& system, std::shared_ptr<nvmap> nvmap_dev);
     ~nvhost_vic();
 
-    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
     NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
-                    const std::vector<u8>& inline_input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
     NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output, IoctlCtrl& ctrl) override;
+                    std::vector<u8>& inline_output) override;
 };
 } // namespace Service::Nvidia::Devices

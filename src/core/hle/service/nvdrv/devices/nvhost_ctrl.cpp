@@ -20,8 +20,7 @@ nvhost_ctrl::nvhost_ctrl(Core::System& system, EventInterface& events_interface,
     : nvdevice(system), events_interface{events_interface}, syncpoint_manager{syncpoint_manager} {}
 nvhost_ctrl::~nvhost_ctrl() = default;
 
-NvResult nvhost_ctrl::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                             IoctlCtrl& ctrl) {
+NvResult nvhost_ctrl::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     switch (command.group) {
     case 0x0:
         switch (command.cmd) {
@@ -30,9 +29,9 @@ NvResult nvhost_ctrl::Ioctl1(Ioctl command, const std::vector<u8>& input, std::v
         case 0x1c:
             return IocCtrlClearEventWait(input, output);
         case 0x1d:
-            return IocCtrlEventWait(input, output, false, ctrl);
+            return IocCtrlEventWait(input, output, false);
         case 0x1e:
-            return IocCtrlEventWait(input, output, true, ctrl);
+            return IocCtrlEventWait(input, output, true);
         case 0x1f:
             return IocCtrlEventRegister(input, output);
         case 0x20:
@@ -48,14 +47,13 @@ NvResult nvhost_ctrl::Ioctl1(Ioctl command, const std::vector<u8>& input, std::v
 }
 
 NvResult nvhost_ctrl::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                             const std::vector<u8>& inline_input, std::vector<u8>& output,
-                             IoctlCtrl& ctrl) {
+                             const std::vector<u8>& inline_input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_ctrl::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                             std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                             std::vector<u8>& inline_outpu) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
@@ -69,7 +67,7 @@ NvResult nvhost_ctrl::NvOsGetConfigU32(const std::vector<u8>& input, std::vector
 }
 
 NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output,
-                                       bool is_async, IoctlCtrl& ctrl) {
+                                       bool is_async) {
     IocCtrlEventWaitParams params{};
     std::memcpy(&params, input.data(), sizeof(params));
     LOG_DEBUG(Service_NVDRV, "syncpt_id={}, threshold={}, timeout={}, is_async={}",
@@ -141,12 +139,6 @@ NvResult nvhost_ctrl::IocCtrlEventWait(const std::vector<u8>& input, std::vector
         params.value |= event_id;
         event.event.writable->Clear();
         gpu.RegisterSyncptInterrupt(params.syncpt_id, target_value);
-        if (!is_async && ctrl.fresh_call) {
-            ctrl.must_delay = true;
-            ctrl.timeout = params.timeout;
-            ctrl.event_id = event_id;
-            return NvResult::Timeout;
-        }
         std::memcpy(output.data(), &params, sizeof(params));
         return NvResult::Timeout;
     }

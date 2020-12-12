@@ -97,15 +97,4 @@ union Ioctl {
     BitField<31, 1, u32> is_out;
 };
 
-struct IoctlCtrl {
-    // First call done to the servioce for services that call itself again after a call.
-    bool fresh_call{true};
-    // Tells the Ioctl Wrapper that it must delay the IPC response and send the thread to sleep
-    bool must_delay{};
-    // Timeout for the delay
-    s64 timeout{};
-    // NV Event Id
-    s32 event_id{-1};
-};
-
 } // namespace Service::Nvidia
