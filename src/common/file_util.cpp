@@ -239,7 +239,7 @@ bool ForeachDirectoryEntry(u64* num_entries_out, const std::string& directory,
     }
     // windows loop
     do {
-        const std::string virtual_name = std::filesystem::path(ffd.cFileName).string();
+        const std::string virtual_name(Common::UTF16ToUTF8(ffd.cFileName));
 #else
     DIR* dirp = opendir(directory.c_str());
     if (!dirp)
