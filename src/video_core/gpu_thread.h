@@ -10,8 +10,9 @@
 #include <optional>
 #include <thread>
 #include <variant>
+
 #include "common/threadsafe_queue.h"
-#include "video_core/gpu.h"
+#include "video_core/framebuffer_config.h"
 
 namespace Tegra {
 struct FramebufferConfig;
@@ -24,6 +25,10 @@ class GraphicsContext;
 }
 class System;
 } // namespace Core
+
+namespace VideoCore {
+    class RendererBase;
+} // namespace VideoCore
 
 namespace VideoCommon::GPUThread {
 
