@@ -502,7 +502,6 @@ add_library(core STATIC
     hle/service/sm/controller.h
     hle/service/sm/sm.cpp
     hle/service/sm/sm.h
-    hle/service/sockets/blocking_worker.h
     hle/service/sockets/bsd.cpp
     hle/service/sockets/bsd.h
     hle/service/sockets/ethc.cpp

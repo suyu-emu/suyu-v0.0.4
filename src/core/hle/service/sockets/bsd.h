@@ -11,7 +11,6 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/service/service.h"
-#include "core/hle/service/sockets/blocking_worker.h"
 #include "core/hle/service/sockets/sockets.h"
 
 namespace Core {
@@ -138,8 +137,7 @@ private:
     void Close(Kernel::HLERequestContext& ctx);
 
     template <typename Work>
-    void ExecuteWork(Kernel::HLERequestContext& ctx, std::string_view sleep_reason,
-                     bool is_blocking, Work work);
+    void ExecuteWork(Kernel::HLERequestContext& ctx, Work work);
 
     std::pair<s32, Errno> SocketImpl(Domain domain, Type type, Protocol protocol);
     std::pair<s32, Errno> PollImpl(std::vector<u8>& write_buffer, std::vector<u8> read_buffer,
@@ -163,15 +161,10 @@ private:
 
     s32 FindFreeFileDescriptorHandle() noexcept;
     bool IsFileDescriptorValid(s32 fd) const noexcept;
-    bool IsBlockingSocket(s32 fd) const noexcept;
 
     void BuildErrnoResponse(Kernel::HLERequestContext& ctx, Errno bsd_errno) const noexcept;
 
     std::array<std::optional<FileDescriptor>, MAX_FD> file_descriptors;
-
-    BlockingWorkerPool<BSD, PollWork, AcceptWork, ConnectWork, RecvWork, RecvFromWork, SendWork,
-                       SendToWork>
-        worker_pool;
 };
 
 class BSDCFG final : public ServiceFramework<BSDCFG> {
