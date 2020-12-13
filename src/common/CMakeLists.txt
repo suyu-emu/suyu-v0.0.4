@@ -210,7 +210,7 @@ endif()
 
 create_target_directory_groups(common)
 
-target_link_libraries(common PUBLIC Boost::boost fmt::fmt microprofile)
+target_link_libraries(common PUBLIC ${Boost_LIBRARIES} fmt::fmt microprofile)
 target_link_libraries(common PRIVATE lz4::lz4 xbyak)
 if (MSVC)
   target_link_libraries(common PRIVATE zstd::zstd)

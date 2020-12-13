@@ -160,7 +160,6 @@ macro(yuzu_find_packages)
     # Capitalization matters here. We need the naming to match the generated paths from Conan
     set(REQUIRED_LIBS
     #    Cmake Pkg Prefix  Version     Conan Pkg
-        "Boost             1.73        boost/1.73.0"
         "Catch2            2.13        catch2/2.13.0"
         "fmt               7.1         fmt/7.1.2"
     # can't use until https://github.com/bincrafters/community/issues/1173
@@ -194,6 +193,17 @@ macro(yuzu_find_packages)
     endforeach()
     unset(FN_FORCE_REQUIRED)
 endmacro()
+
+if (NOT Boost_FOUND)
+    find_package(Boost 1.73.0 COMPONENTS context headers QUIET)
+    if (Boost_FOUND)
+        set(Boost_LIBRARIES Boost::boost Boost::context)
+    endif()
+endif()
+if (NOT Boost_FOUND)
+    message(STATUS "Boost 1.73.0 or newer not found, falling back to Conan")
+    list(APPEND CONAN_REQUIRED_LIBS "boost/1.73.0")
+endif()
 
 # Attempt to locate any packages that are required and report the missing ones in CONAN_REQUIRED_LIBS
 yuzu_find_packages()
@@ -299,6 +309,11 @@ if (CONAN_REQUIRED_LIBS)
     # this time with required, so we bail if its not found.
     yuzu_find_packages(FORCE_REQUIRED)
 
+    if (NOT Boost_FOUND)
+        find_package(Boost 1.73.0 REQUIRED COMPONENTS context headers)
+        set(Boost_LIBRARIES Boost::boost)
+    endif()
+    
     # Due to issues with variable scopes in functions, we need to also find_package(qt5) outside of the function
     if(ENABLE_QT)
         list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
