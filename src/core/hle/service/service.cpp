@@ -184,7 +184,11 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
         UNIMPLEMENTED_MSG("command_type={}", context.GetCommandType());
     }
 
-    context.WriteToOutgoingCommandBuffer(context.GetThread());
+    // If emulation was shutdown, we are closing service threads, do not write the response back to
+    // memory that may be shutting down as well.
+    if (system.IsPoweredOn()) {
+        context.WriteToOutgoingCommandBuffer(context.GetThread());
+    }
 
     return RESULT_SUCCESS;
 }
