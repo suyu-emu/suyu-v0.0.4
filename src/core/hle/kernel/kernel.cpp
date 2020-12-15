@@ -76,6 +76,8 @@ struct KernelCore::Impl {
     }
 
     void Shutdown() {
+        process_list.clear();
+
         next_object_id = 0;
         next_kernel_process_id = Process::InitialKIPIDMin;
         next_user_process_id = Process::ProcessIDMin;
@@ -88,8 +90,6 @@ struct KernelCore::Impl {
         }
 
         cores.clear();
-
-        process_list.clear();
 
         current_process = nullptr;
 
