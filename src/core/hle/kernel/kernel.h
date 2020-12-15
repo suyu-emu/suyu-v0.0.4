@@ -42,6 +42,7 @@ class Process;
 class ResourceLimit;
 class KScheduler;
 class SharedMemory;
+class ServiceThread;
 class Synchronization;
 class Thread;
 class TimeManager;
@@ -226,6 +227,22 @@ public:
     void EnterSVCProfile();
 
     void ExitSVCProfile();
+
+    /**
+     * Creates an HLE service thread, which are used to execute service routines asynchronously.
+     * While these are allocated per ServerSession, these need to be owned and managed outside of
+     * ServerSession to avoid a circular dependency.
+     * @param name String name for the ServerSession creating this thread, used for debug purposes.
+     * @returns The a weak pointer newly created service thread.
+     */
+    std::weak_ptr<Kernel::ServiceThread> CreateServiceThread(const std::string& name);
+
+    /**
+     * Releases a HLE service thread, instructing KernelCore to free it. This should be called when
+     * the ServerSession associated with the thread is destroyed.
+     * @param service_thread Service thread to release.
+     */
+    void ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread);
 
 private:
     friend class Object;

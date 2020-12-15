@@ -8,7 +8,7 @@
 #include <functional>
 #include <memory>
 #include <thread>
-#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 
 #include "common/assert.h"
@@ -35,6 +35,7 @@
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
+#include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
@@ -107,6 +108,9 @@ struct KernelCore::Impl {
         std::fill(register_host_thread_keys.begin(), register_host_thread_keys.end(),
                   std::thread::id{});
         std::fill(register_host_thread_values.begin(), register_host_thread_values.end(), 0);
+
+        // Ensures all service threads gracefully shutdown
+        service_threads.clear();
     }
 
     void InitializePhysicalCores() {
@@ -344,6 +348,9 @@ struct KernelCore::Impl {
     std::shared_ptr<Kernel::SharedMemory> font_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> irs_shared_mem;
     std::shared_ptr<Kernel::SharedMemory> time_shared_mem;
+
+    // Threads used for services
+    std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
@@ -637,6 +644,18 @@ void KernelCore::EnterSVCProfile() {
 void KernelCore::ExitSVCProfile() {
     std::size_t core = impl->GetCurrentHostThreadID();
     MicroProfileLeave(MICROPROFILE_TOKEN(Kernel_SVC), impl->svc_ticks[core]);
+}
+
+std::weak_ptr<Kernel::ServiceThread> KernelCore::CreateServiceThread(const std::string& name) {
+    auto service_thread = std::make_shared<Kernel::ServiceThread>(*this, 1, name);
+    impl->service_threads.emplace(service_thread);
+    return service_thread;
+}
+
+void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread) {
+    if (auto strong_ptr = service_thread.lock()) {
+        impl->service_threads.erase(strong_ptr);
+    }
 }
 
 } // namespace Kernel
