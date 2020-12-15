@@ -7,6 +7,7 @@
 #include <vector>
 #include "common/logging/log.h"
 #include "core/core.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/nca_metadata.h"
@@ -23,11 +24,8 @@
 
 namespace Service::AOC {
 
-constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
-constexpr u64 DLC_BASE_TO_AOC_ID = 0x1000;
-
 static bool CheckAOCTitleIDMatchesBase(u64 title_id, u64 base) {
-    return (title_id & DLC_BASE_TITLE_ID_MASK) == base;
+    return FileSys::GetBaseTitleID(title_id) == base;
 }
 
 static std::vector<u64> AccumulateAOCTitleIDs(Core::System& system) {
@@ -179,11 +177,11 @@ void AOC_U::ListAddOnContent(Kernel::HLERequestContext& ctx) {
     const auto& disabled = Settings::values.disabled_addons[current];
     if (std::find(disabled.begin(), disabled.end(), "DLC") == disabled.end()) {
         for (u64 content_id : add_on_content) {
-            if ((content_id & DLC_BASE_TITLE_ID_MASK) != current) {
+            if (FileSys::GetBaseTitleID(content_id) != current) {
                 continue;
             }
 
-            out.push_back(static_cast<u32>(content_id & 0x7FF));
+            out.push_back(static_cast<u32>(FileSys::GetAOCID(content_id)));
         }
     }
 
@@ -225,7 +223,7 @@ void AOC_U::GetAddOnContentBaseId(Kernel::HLERequestContext& ctx) {
 
     const auto res = pm.GetControlMetadata();
     if (res.first == nullptr) {
-        rb.Push(title_id + DLC_BASE_TO_AOC_ID);
+        rb.Push(FileSys::GetAOCBaseTitleID(title_id));
         return;
     }
 

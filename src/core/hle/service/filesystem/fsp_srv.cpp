@@ -717,7 +717,7 @@ FSP_SRV::FSP_SRV(Core::System& system_)
         {202, &FSP_SRV::OpenDataStorageByDataId, "OpenDataStorageByDataId"},
         {203, &FSP_SRV::OpenPatchDataStorageByCurrentProcess, "OpenPatchDataStorageByCurrentProcess"},
         {204, nullptr, "OpenDataFileSystemByProgramIndex"},
-        {205, nullptr, "OpenDataStorageByProgramIndex"},
+        {205, &FSP_SRV::OpenDataStorageWithProgramIndex, "OpenDataStorageWithProgramIndex"},
         {400, nullptr, "OpenDeviceOperator"},
         {500, nullptr, "OpenSdCardDetectionEventNotifier"},
         {501, nullptr, "OpenGameCardDetectionEventNotifier"},
@@ -992,6 +992,32 @@ void FSP_SRV::OpenPatchDataStorageByCurrentProcess(Kernel::HLERequestContext& ct
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.Push(FileSys::ERROR_ENTITY_NOT_FOUND);
+}
+
+void FSP_SRV::OpenDataStorageWithProgramIndex(Kernel::HLERequestContext& ctx) {
+    IPC::RequestParser rp{ctx};
+
+    const auto program_index = rp.PopRaw<u8>();
+
+    LOG_DEBUG(Service_FS, "called, program_index={}", program_index);
+
+    auto romfs = fsc.OpenPatchedRomFSWithProgramIndex(
+        system.CurrentProcess()->GetTitleID(), program_index, FileSys::ContentRecordType::Program);
+
+    if (romfs.Failed()) {
+        // TODO: Find the right error code to use here
+        LOG_ERROR(Service_FS, "could not open storage with program_index={}", program_index);
+
+        IPC::ResponseBuilder rb{ctx, 2};
+        rb.Push(RESULT_UNKNOWN);
+        return;
+    }
+
+    auto storage = std::make_shared<IStorage>(system, std::move(romfs.Unwrap()));
+
+    IPC::ResponseBuilder rb{ctx, 2, 0, 1};
+    rb.Push(RESULT_SUCCESS);
+    rb.PushIpcInterface<IStorage>(std::move(storage));
 }
 
 void FSP_SRV::SetGlobalAccessLogMode(Kernel::HLERequestContext& ctx) {

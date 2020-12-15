@@ -83,6 +83,7 @@ static FileSys::VirtualFile VfsDirectoryCreateFileWrapper(const FileSys::Virtual
 #include "core/core.h"
 #include "core/crypto/key_manager.h"
 #include "core/file_sys/card_image.h"
+#include "core/file_sys/common_funcs.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/control_metadata.h"
 #include "core/file_sys/patch_manager.h"
@@ -147,8 +148,6 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif
 
 constexpr int default_mouse_timeout = 2500;
-
-constexpr u64 DLC_BASE_TITLE_ID_MASK = 0xFFFFFFFFFFFFE000;
 
 /**
  * "Callouts" are one-time instructional messages shown to the user. In the config settings, there
@@ -1529,7 +1528,7 @@ void GMainWindow::RemoveAddOnContent(u64 program_id, const QString& entry_type) 
         FileSys::TitleType::AOC, FileSys::ContentRecordType::Data);
 
     for (const auto& entry : dlc_entries) {
-        if ((entry.title_id & DLC_BASE_TITLE_ID_MASK) == program_id) {
+        if (FileSys::GetBaseTitleID(entry.title_id) == program_id) {
             const auto res =
                 fs_controller.GetUserNANDContents()->RemoveExistingEntry(entry.title_id) ||
                 fs_controller.GetSDMCContents()->RemoveExistingEntry(entry.title_id);
@@ -2709,7 +2708,7 @@ std::optional<u64> GMainWindow::SelectRomFSDumpTarget(const FileSys::ContentProv
     dlc_match.reserve(dlc_entries.size());
     std::copy_if(dlc_entries.begin(), dlc_entries.end(), std::back_inserter(dlc_match),
                  [&program_id, &installed](const FileSys::ContentProviderEntry& entry) {
-                     return (entry.title_id & DLC_BASE_TITLE_ID_MASK) == program_id &&
+                     return FileSys::GetBaseTitleID(entry.title_id) == program_id &&
                             installed.GetEntry(entry)->GetStatus() == Loader::ResultStatus::Success;
                  });
 

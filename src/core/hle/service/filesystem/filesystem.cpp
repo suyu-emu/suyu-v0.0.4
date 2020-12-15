@@ -298,6 +298,31 @@ ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFSCurrentProcess() 
     return romfs_factory->OpenCurrentProcess(system.CurrentProcess()->GetTitleID());
 }
 
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFS(
+    u64 title_id, FileSys::ContentRecordType type) const {
+    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}", title_id);
+
+    if (romfs_factory == nullptr) {
+        // TODO: Find a better error code for this
+        return RESULT_UNKNOWN;
+    }
+
+    return romfs_factory->OpenPatchedRomFS(title_id, type);
+}
+
+ResultVal<FileSys::VirtualFile> FileSystemController::OpenPatchedRomFSWithProgramIndex(
+    u64 title_id, u8 program_index, FileSys::ContentRecordType type) const {
+    LOG_TRACE(Service_FS, "Opening patched RomFS for title_id={:016X}, program_index={}", title_id,
+              program_index);
+
+    if (romfs_factory == nullptr) {
+        // TODO: Find a better error code for this
+        return RESULT_UNKNOWN;
+    }
+
+    return romfs_factory->OpenPatchedRomFSWithProgramIndex(title_id, program_index, type);
+}
+
 ResultVal<FileSys::VirtualFile> FileSystemController::OpenRomFS(
     u64 title_id, FileSys::StorageId storage_id, FileSys::ContentRecordType type) const {
     LOG_TRACE(Service_FS, "Opening RomFS for title_id={:016X}, storage_id={:02X}, type={:02X}",
