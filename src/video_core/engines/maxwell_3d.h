@@ -1473,39 +1473,6 @@ private:
 
     void ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argument, bool is_last_call);
 
-    Core::System& system;
-    MemoryManager& memory_manager;
-
-    VideoCore::RasterizerInterface* rasterizer = nullptr;
-
-    /// Start offsets of each macro in macro_memory
-    std::array<u32, 0x80> macro_positions = {};
-
-    std::array<bool, Regs::NUM_REGS> mme_inline{};
-
-    /// Macro method that is currently being executed / being fed parameters.
-    u32 executing_macro = 0;
-    /// Parameters that have been submitted to the macro call so far.
-    std::vector<u32> macro_params;
-
-    /// Interpreter for the macro codes uploaded to the GPU.
-    std::unique_ptr<MacroEngine> macro_engine;
-
-    static constexpr u32 null_cb_data = 0xFFFFFFFF;
-    struct {
-        std::array<std::array<u32, 0x4000>, 16> buffer;
-        u32 current{null_cb_data};
-        u32 id{null_cb_data};
-        u32 start_pos{};
-        u32 counter{};
-    } cb_data_state;
-
-    Upload::State upload_state;
-
-    bool execute_on{true};
-
-    std::array<u8, Regs::NUM_REGS> dirty_pointers{};
-
     /// Retrieves information about a specific TIC entry from the TIC buffer.
     Texture::TICEntry GetTICEntry(u32 tic_index) const;
 
@@ -1514,8 +1481,8 @@ private:
 
     /**
      * Call a macro on this engine.
+     *
      * @param method Method to call
-     * @param num_parameters Number of arguments
      * @param parameters Arguments to the method call
      */
     void CallMacroMethod(u32 method, const std::vector<u32>& parameters);
@@ -1564,6 +1531,38 @@ private:
 
     /// Returns a query's value or an empty object if the value will be deferred through a cache.
     std::optional<u64> GetQueryResult();
+
+    Core::System& system;
+    MemoryManager& memory_manager;
+
+    VideoCore::RasterizerInterface* rasterizer = nullptr;
+
+    /// Start offsets of each macro in macro_memory
+    std::array<u32, 0x80> macro_positions{};
+
+    std::array<bool, Regs::NUM_REGS> mme_inline{};
+
+    /// Macro method that is currently being executed / being fed parameters.
+    u32 executing_macro = 0;
+    /// Parameters that have been submitted to the macro call so far.
+    std::vector<u32> macro_params;
+
+    /// Interpreter for the macro codes uploaded to the GPU.
+    std::unique_ptr<MacroEngine> macro_engine;
+
+    static constexpr u32 null_cb_data = 0xFFFFFFFF;
+    struct CBDataState {
+        std::array<std::array<u32, 0x4000>, 16> buffer;
+        u32 current{null_cb_data};
+        u32 id{null_cb_data};
+        u32 start_pos{};
+        u32 counter{};
+    };
+    CBDataState cb_data_state;
+
+    Upload::State upload_state;
+
+    bool execute_on{true};
 };
 
 #define ASSERT_REG_POSITION(field_name, position)                                                  \
