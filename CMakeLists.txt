@@ -194,13 +194,18 @@ macro(yuzu_find_packages)
     unset(FN_FORCE_REQUIRED)
 endmacro()
 
-if (NOT Boost_FOUND)
-    find_package(Boost 1.73.0 COMPONENTS context headers QUIET)
-    if (Boost_FOUND)
-        set(Boost_LIBRARIES Boost::boost Boost::context)
+find_package(Boost 1.73.0 COMPONENTS context headers QUIET)
+if (Boost_FOUND)
+    set(Boost_LIBRARIES Boost::boost)
+    # Conditionally add Boost::context only if the active version of the Conan or system Boost package provides it
+    # The old version is missing Boost::context, so we want to avoid adding in that case
+    # The new version requires adding Boost::context to prevent linking issues
+    #
+    # This one is used by Conan on subsequent CMake configures, not the first configure.
+    if (TARGET Boost::context)
+        list(APPEND Boost_LIBRARIES Boost::context)
     endif()
-endif()
-if (NOT Boost_FOUND)
+else()
     message(STATUS "Boost 1.73.0 or newer not found, falling back to Conan")
     list(APPEND CONAN_REQUIRED_LIBS "boost/1.73.0")
 endif()
@@ -312,6 +317,12 @@ if (CONAN_REQUIRED_LIBS)
     if (NOT Boost_FOUND)
         find_package(Boost 1.73.0 REQUIRED COMPONENTS context headers)
         set(Boost_LIBRARIES Boost::boost)
+        # Conditionally add Boost::context only if the active version of the Conan Boost package provides it
+        # The old version is missing Boost::context, so we want to avoid adding in that case
+        # The new version requires adding Boost::context to prevent linking issues
+        if (TARGET Boost::context)
+            list(APPEND Boost_LIBRARIES Boost::context)
+        endif()
     endif()
     
     # Due to issues with variable scopes in functions, we need to also find_package(qt5) outside of the function
