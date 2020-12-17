@@ -21,6 +21,7 @@ class KernelCore;
 
 namespace Service::NVFlinger {
 
+constexpr u32 buffer_slots = 0x40;
 struct IGBPBuffer {
     u32_le magic;
     u32_le width;
@@ -114,7 +115,7 @@ private:
     u64 layer_id;
 
     std::list<u32> free_buffers;
-    std::vector<Buffer> queue;
+    std::array<Buffer, buffer_slots> buffers;
     std::list<u32> queue_sequence;
     Kernel::EventPair buffer_wait_event;
 };

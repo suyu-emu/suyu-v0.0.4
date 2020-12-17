@@ -25,7 +25,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
     free_buffers.push_back(slot);
-    queue.push_back({
+    buffers[slot] = {
         .slot = slot,
         .status = Buffer::Status::Free,
         .igbp_buffer = igbp_buffer,
@@ -33,7 +33,7 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
         .crop_rect = {},
         .swap_interval = 0,
         .multi_fence = {},
-    });
+    };
 
     buffer_wait_event.writable->Signal();
 }
@@ -46,11 +46,11 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
     }
 
     auto f_itr = free_buffers.begin();
-    auto itr = queue.end();
+    auto itr = buffers.end();
 
     while (f_itr != free_buffers.end()) {
         auto slot = *f_itr;
-        itr = std::find_if(queue.begin(), queue.end(), [&](const Buffer& buffer) {
+        itr = std::find_if(buffers.begin(), buffers.end(), [&](const Buffer& buffer) {
             // Only consider free buffers. Buffers become free once again after they've been
             // Acquired and Released by the compositor, see the NVFlinger::Compose method.
             if (buffer.status != Buffer::Status::Free) {
@@ -65,14 +65,14 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
             return buffer.igbp_buffer.width == width && buffer.igbp_buffer.height == height;
         });
 
-        if (itr != queue.end()) {
+        if (itr != buffers.end()) {
             free_buffers.erase(f_itr);
             break;
         }
         ++f_itr;
     }
 
-    if (itr == queue.end()) {
+    if (itr == buffers.end()) {
         return std::nullopt;
     }
 
@@ -81,9 +81,9 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
 }
 
 const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
-    auto itr = std::find_if(queue.begin(), queue.end(),
+    auto itr = std::find_if(buffers.begin(), buffers.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
+    ASSERT(itr != buffers.end());
     ASSERT(itr->status == Buffer::Status::Dequeued);
     return itr->igbp_buffer;
 }
@@ -91,9 +91,9 @@ const IGBPBuffer& BufferQueue::RequestBuffer(u32 slot) const {
 void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
                               const Common::Rectangle<int>& crop_rect, u32 swap_interval,
                               Service::Nvidia::MultiFence& multi_fence) {
-    auto itr = std::find_if(queue.begin(), queue.end(),
+    auto itr = std::find_if(buffers.begin(), buffers.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
+    ASSERT(itr != buffers.end());
     ASSERT(itr->status == Buffer::Status::Dequeued);
     itr->status = Buffer::Status::Queued;
     itr->transform = transform;
@@ -104,9 +104,9 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
 }
 
 void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& multi_fence) {
-    const auto itr = std::find_if(queue.begin(), queue.end(),
+    const auto itr = std::find_if(buffers.begin(), buffers.end(),
                                   [slot](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
+    ASSERT(itr != buffers.end());
     ASSERT(itr->status != Buffer::Status::Free);
     itr->status = Buffer::Status::Free;
     itr->multi_fence = multi_fence;
@@ -118,16 +118,16 @@ void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& mult
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
-    auto itr = queue.end();
+    auto itr = buffers.end();
     // Iterate to find a queued buffer matching the requested slot.
-    while (itr == queue.end() && !queue_sequence.empty()) {
+    while (itr == buffers.end() && !queue_sequence.empty()) {
         const u32 slot = queue_sequence.front();
-        itr = std::find_if(queue.begin(), queue.end(), [&slot](const Buffer& buffer) {
+        itr = std::find_if(buffers.begin(), buffers.end(), [&slot](const Buffer& buffer) {
             return buffer.status == Buffer::Status::Queued && buffer.slot == slot;
         });
         queue_sequence.pop_front();
     }
-    if (itr == queue.end()) {
+    if (itr == buffers.end()) {
         return std::nullopt;
     }
     itr->status = Buffer::Status::Acquired;
@@ -135,9 +135,9 @@ std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::Ac
 }
 
 void BufferQueue::ReleaseBuffer(u32 slot) {
-    auto itr = std::find_if(queue.begin(), queue.end(),
+    auto itr = std::find_if(buffers.begin(), buffers.end(),
                             [&](const Buffer& buffer) { return buffer.slot == slot; });
-    ASSERT(itr != queue.end());
+    ASSERT(itr != buffers.end());
     ASSERT(itr->status == Buffer::Status::Acquired);
     itr->status = Buffer::Status::Free;
     free_buffers.push_back(slot);
@@ -146,10 +146,9 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
 }
 
 void BufferQueue::Disconnect() {
-    queue.clear();
+    buffers.fill({});
     queue_sequence.clear();
-    id = 1;
-    layer_id = 1;
+    buffer_wait_event.writable->Signal();
 }
 
 u32 BufferQueue::Query(QueryType type) {
