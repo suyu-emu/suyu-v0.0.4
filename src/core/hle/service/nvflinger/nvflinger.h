@@ -107,7 +107,7 @@ private:
     std::shared_ptr<Nvidia::Module> nvdrv;
 
     std::vector<VI::Display> displays;
-    std::vector<BufferQueue> buffer_queues;
+    std::vector<std::unique_ptr<BufferQueue>> buffer_queues;
 
     /// Id to use for the next layer that is created, this counter is shared among all displays.
     u64 next_layer_id = 1;

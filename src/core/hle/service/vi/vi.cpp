@@ -544,6 +544,12 @@ private:
                                  Settings::values.resolution_factor.GetValue()),
                 static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedHeight) *
                                  Settings::values.resolution_factor.GetValue())};
+
+            {
+                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+                buffer_queue.Connect();
+            }
+
             ctx.WriteBuffer(response.Serialize());
             break;
         }
@@ -565,18 +571,15 @@ private:
             const u32 width{request.data.width};
             const u32 height{request.data.height};
 
-            std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> result;
-
-            while (!result) {
-                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
-                result = buffer_queue.DequeueBuffer(width, height);
-
-                if (result) {
+            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+            do {
+                if (auto result = buffer_queue.DequeueBuffer(width, height); result) {
                     // Buffer is available
                     IGBPDequeueBufferResponseParcel response{result->first, *result->second};
                     ctx.WriteBuffer(response.Serialize());
+                    break;
                 }
-            }
+            } while (buffer_queue.IsConnected());
 
             break;
         }
