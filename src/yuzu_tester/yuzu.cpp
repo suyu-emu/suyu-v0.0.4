@@ -162,7 +162,6 @@ int main(int argc, char** argv) {
 
     Core::System& system{Core::System::GetInstance()};
 
-    Settings::values.use_gdbstub = false;
     Settings::Apply(system);
 
     const auto emu_window{std::make_unique<EmuWindow_SDL2_Hide>()};

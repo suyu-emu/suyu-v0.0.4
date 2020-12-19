@@ -158,7 +158,6 @@ void Config::ReadValues() {
     Settings::values.use_dev_keys = sdl2_config->GetBoolean("Miscellaneous", "use_dev_keys", false);
 
     // Debugging
-    Settings::values.use_gdbstub = false;
     Settings::values.program_args = "";
     Settings::values.dump_exefs = sdl2_config->GetBoolean("Debugging", "dump_exefs", false);
     Settings::values.dump_nso = sdl2_config->GetBoolean("Debugging", "dump_nso", false);

@@ -318,9 +318,6 @@ log_filter = *:Trace
 [Debugging]
 # Record frame time data, can be found in the log directory. Boolean value
 record_frame_times =
-# Port for listening to GDB connections.
-use_gdbstub=false
-gdbstub_port=24689
 # Determines whether or not yuzu will dump the ExeFS of all games it attempts to load while loading them
 dump_exefs=false
 # Determines whether or not yuzu will dump all NSOs it attempts to load while loading them
