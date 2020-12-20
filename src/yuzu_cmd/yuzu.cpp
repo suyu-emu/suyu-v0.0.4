@@ -64,7 +64,6 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 static void PrintHelp(const char* argv0) {
     std::cout << "Usage: " << argv0
               << " [options] <filename>\n"
-                 "-g, --gdbport=NUMBER  Enable gdb stub on port NUMBER\n"
                  "-f, --fullscreen      Start in fullscreen mode\n"
                  "-h, --help            Display this help and exit\n"
                  "-v, --version         Output version information and exit\n"
@@ -96,8 +95,6 @@ int main(int argc, char** argv) {
     Config config;
 
     int option_index = 0;
-    bool use_gdbstub = Settings::values.use_gdbstub;
-    u32 gdb_port = static_cast<u32>(Settings::values.gdbstub_port);
 
     InitializeLogging();
 
@@ -116,26 +113,17 @@ int main(int argc, char** argv) {
     bool fullscreen = false;
 
     static struct option long_options[] = {
-        {"gdbport", required_argument, 0, 'g'}, {"fullscreen", no_argument, 0, 'f'},
-        {"help", no_argument, 0, 'h'},          {"version", no_argument, 0, 'v'},
-        {"program", optional_argument, 0, 'p'}, {0, 0, 0, 0},
+        {"fullscreen", no_argument, 0, 'f'},
+        {"help", no_argument, 0, 'h'},
+        {"version", no_argument, 0, 'v'},
+        {"program", optional_argument, 0, 'p'},
+        {0, 0, 0, 0},
     };
 
     while (optind < argc) {
         int arg = getopt_long(argc, argv, "g:fhvp::", long_options, &option_index);
         if (arg != -1) {
             switch (static_cast<char>(arg)) {
-            case 'g':
-                errno = 0;
-                gdb_port = strtoul(optarg, &endarg, 0);
-                use_gdbstub = true;
-                if (endarg == optarg)
-                    errno = EINVAL;
-                if (errno != 0) {
-                    perror("--gdbport");
-                    exit(1);
-                }
-                break;
             case 'f':
                 fullscreen = true;
                 LOG_INFO(Frontend, "Starting in fullscreen mode...");
@@ -177,8 +165,6 @@ int main(int argc, char** argv) {
     InputCommon::InputSubsystem input_subsystem;
 
     // Apply the command line arguments
-    Settings::values.gdbstub_port = gdb_port;
-    Settings::values.use_gdbstub = use_gdbstub;
     Settings::Apply(system);
 
     std::unique_ptr<EmuWindow_SDL2> emu_window;

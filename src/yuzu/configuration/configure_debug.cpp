@@ -28,9 +28,6 @@ ConfigureDebug::ConfigureDebug(QWidget* parent) : QWidget(parent), ui(new Ui::Co
 ConfigureDebug::~ConfigureDebug() = default;
 
 void ConfigureDebug::SetConfiguration() {
-    ui->toggle_gdbstub->setChecked(Settings::values.use_gdbstub);
-    ui->gdbport_spinbox->setEnabled(Settings::values.use_gdbstub);
-    ui->gdbport_spinbox->setValue(Settings::values.gdbstub_port);
     ui->toggle_console->setEnabled(!Core::System::GetInstance().IsPoweredOn());
     ui->toggle_console->setChecked(UISettings::values.show_console);
     ui->log_filter_edit->setText(QString::fromStdString(Settings::values.log_filter));
@@ -45,8 +42,6 @@ void ConfigureDebug::SetConfiguration() {
 }
 
 void ConfigureDebug::ApplyConfiguration() {
-    Settings::values.use_gdbstub = ui->toggle_gdbstub->isChecked();
-    Settings::values.gdbstub_port = ui->gdbport_spinbox->value();
     UISettings::values.show_console = ui->toggle_console->isChecked();
     Settings::values.log_filter = ui->log_filter_edit->text().toStdString();
     Settings::values.program_args = ui->homebrew_args_edit->text().toStdString();

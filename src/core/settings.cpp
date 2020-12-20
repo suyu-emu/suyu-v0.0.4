@@ -72,8 +72,6 @@ void LogSettings() {
     log_setting("DataStorage_UseVirtualSd", values.use_virtual_sd);
     log_setting("DataStorage_NandDir", Common::FS::GetUserPath(Common::FS::UserPath::NANDDir));
     log_setting("DataStorage_SdmcDir", Common::FS::GetUserPath(Common::FS::UserPath::SDMCDir));
-    log_setting("Debugging_UseGdbstub", values.use_gdbstub);
-    log_setting("Debugging_GdbstubPort", values.gdbstub_port);
     log_setting("Debugging_ProgramArgs", values.program_args);
     log_setting("Services_BCATBackend", values.bcat_backend);
     log_setting("Services_BCATBoxcatLocal", values.bcat_boxcat_local);
