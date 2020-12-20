@@ -282,18 +282,24 @@ public:
     void DeserializeData() override {
         [[maybe_unused]] const std::u16string token = ReadInterfaceToken();
         data = Read<Data>();
-        buffer = Read<NVFlinger::IGBPBuffer>();
+        if (data.contains_object != 0) {
+            buffer_container = Read<BufferContainer>();
+        }
     }
 
     struct Data {
         u32_le slot;
-        INSERT_PADDING_WORDS(1);
-        u32_le graphic_buffer_length;
-        INSERT_PADDING_WORDS(1);
+        u32_le contains_object;
     };
 
-    Data data;
-    NVFlinger::IGBPBuffer buffer;
+    struct BufferContainer {
+        u32_le graphic_buffer_length;
+        INSERT_PADDING_WORDS(1);
+        NVFlinger::IGBPBuffer buffer{};
+    };
+
+    Data data{};
+    BufferContainer buffer_container{};
 };
 
 class IGBPSetPreallocatedBufferResponseParcel : public Parcel {
@@ -547,7 +553,7 @@ private:
         case TransactionId::SetPreallocatedBuffer: {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
-            buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer);
+            buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer_container.buffer);
 
             IGBPSetPreallocatedBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
