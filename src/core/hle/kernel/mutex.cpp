@@ -11,11 +11,11 @@
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -73,9 +73,9 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
 
     auto& kernel = system.Kernel();
     std::shared_ptr<Thread> current_thread =
-        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+        SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         // The mutex address must be 4-byte aligned
         if ((address % sizeof(u32)) != 0) {
             return ERR_INVALID_ADDRESS;
@@ -114,7 +114,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         auto* owner = current_thread->GetLockOwner();
         if (owner != nullptr) {
             owner->RemoveMutexWaiter(current_thread);
@@ -153,10 +153,10 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
 
 ResultCode Mutex::Release(VAddr address) {
     auto& kernel = system.Kernel();
-    SchedulerLock lock(kernel);
+    KScopedSchedulerLock lock(kernel);
 
     std::shared_ptr<Thread> current_thread =
-        SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+        SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
 
     auto [result, new_owner] = Unlock(current_thread, address);
 

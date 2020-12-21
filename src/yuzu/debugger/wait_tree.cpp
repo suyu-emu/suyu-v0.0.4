@@ -13,10 +13,10 @@
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/memory.h"
@@ -101,7 +101,7 @@ std::vector<std::unique_ptr<WaitTreeThread>> WaitTreeItem::MakeThreadItemList() 
     };
 
     const auto& system = Core::System::GetInstance();
-    add_threads(system.GlobalScheduler().GetThreadList());
+    add_threads(system.GlobalSchedulerContext().GetThreadList());
 
     return item_list;
 }
@@ -349,14 +349,14 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     list.push_back(std::make_unique<WaitTreeText>(tr("processor = %1").arg(processor)));
     list.push_back(
         std::make_unique<WaitTreeText>(tr("ideal core = %1").arg(thread.GetIdealCore())));
-    list.push_back(
-        std::make_unique<WaitTreeText>(tr("affinity mask = %1").arg(thread.GetAffinityMask())));
+    list.push_back(std::make_unique<WaitTreeText>(
+        tr("affinity mask = %1").arg(thread.GetAffinityMask().GetAffinityMask())));
     list.push_back(std::make_unique<WaitTreeText>(tr("thread id = %1").arg(thread.GetThreadID())));
     list.push_back(std::make_unique<WaitTreeText>(tr("priority = %1(current) / %2(normal)")
                                                       .arg(thread.GetPriority())
                                                       .arg(thread.GetNominalPriority())));
     list.push_back(std::make_unique<WaitTreeText>(
-        tr("last running ticks = %1").arg(thread.GetLastRunningTicks())));
+        tr("last running ticks = %1").arg(thread.GetLastScheduledTick())));
 
     const VAddr mutex_wait_address = thread.GetMutexWaitAddress();
     if (mutex_wait_address != 0) {

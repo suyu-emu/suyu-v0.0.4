@@ -294,6 +294,9 @@ void ARM_Dynarmic_32::InvalidateCacheRange(VAddr addr, std::size_t size) {
 }
 
 void ARM_Dynarmic_32::ClearExclusiveState() {
+    if (!jit) {
+        return;
+    }
     jit->ClearExclusiveState();
 }
 

@@ -17,11 +17,12 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
@@ -56,9 +57,9 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
         writable_event = pair.writable;
     }
 
+    Handle event_handle = InvalidHandle;
     {
-        Handle event_handle = InvalidHandle;
-        SchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, thread.get(), timeout);
         thread->SetHLECallback(
             [context = *this, callback](std::shared_ptr<Thread> thread) mutable -> bool {
                 ThreadWakeupReason reason = thread->GetSignalingResult() == RESULT_TIMEOUT
@@ -74,9 +75,8 @@ std::shared_ptr<WritableEvent> HLERequestContext::SleepClientThread(
         thread->SetStatus(ThreadStatus::WaitHLEEvent);
         thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         readable_event->AddWaitingThread(thread);
-        lock.Release();
-        thread->SetHLETimeEvent(event_handle);
     }
+    thread->SetHLETimeEvent(event_handle);
 
     is_thread_waiting = true;
 

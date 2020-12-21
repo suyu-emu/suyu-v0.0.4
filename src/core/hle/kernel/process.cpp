@@ -15,13 +15,13 @@
 #include "core/file_sys/program_metadata.h"
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
@@ -54,7 +54,7 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     auto& kernel = system.Kernel();
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     {
-        SchedulerLock lock{kernel};
+        KScopedSchedulerLock lock{kernel};
         thread->SetStatus(ThreadStatus::Ready);
     }
 }
@@ -213,7 +213,7 @@ void Process::UnregisterThread(const Thread* thread) {
 }
 
 ResultCode Process::ClearSignalState() {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     if (status == ProcessStatus::Exited) {
         LOG_ERROR(Kernel, "called on a terminated process instance.");
         return ERR_INVALID_STATE;
@@ -314,7 +314,7 @@ void Process::PrepareForTermination() {
             if (thread->GetOwnerProcess() != this)
                 continue;
 
-            if (thread.get() == system.CurrentScheduler().GetCurrentThread())
+            if (thread.get() == kernel.CurrentScheduler()->GetCurrentThread())
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
@@ -325,7 +325,7 @@ void Process::PrepareForTermination() {
         }
     };
 
-    stop_threads(system.GlobalScheduler().GetThreadList());
+    stop_threads(system.GlobalSchedulerContext().GetThreadList());
 
     FreeTLSRegion(tls_region_address);
     tls_region_address = 0;
@@ -347,7 +347,7 @@ static auto FindTLSPageWithAvailableSlots(std::vector<TLSPage>& tls_pages) {
 }
 
 VAddr Process::CreateTLSRegion() {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     if (auto tls_page_iter{FindTLSPageWithAvailableSlots(tls_pages)};
         tls_page_iter != tls_pages.cend()) {
         return *tls_page_iter->ReserveSlot();
@@ -378,7 +378,7 @@ VAddr Process::CreateTLSRegion() {
 }
 
 void Process::FreeTLSRegion(VAddr tls_address) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     const VAddr aligned_address = Common::AlignDown(tls_address, Core::Memory::PAGE_SIZE);
     auto iter =
         std::find_if(tls_pages.begin(), tls_pages.end(), [aligned_address](const auto& page) {

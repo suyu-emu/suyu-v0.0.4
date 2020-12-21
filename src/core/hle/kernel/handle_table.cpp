@@ -8,9 +8,9 @@
 #include "core/core.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 
 namespace Kernel {
@@ -105,7 +105,7 @@ bool HandleTable::IsValid(Handle handle) const {
 
 std::shared_ptr<Object> HandleTable::GetGeneric(Handle handle) const {
     if (handle == CurrentThread) {
-        return SharedFrom(kernel.CurrentScheduler().GetCurrentThread());
+        return SharedFrom(kernel.CurrentScheduler()->GetCurrentThread());
     } else if (handle == CurrentProcess) {
         return SharedFrom(kernel.CurrentProcess());
     }

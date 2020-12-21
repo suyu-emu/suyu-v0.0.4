@@ -12,8 +12,9 @@
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
@@ -58,7 +59,7 @@ ResultCode AddressArbiter::SignalToAddress(VAddr address, SignalType type, s32 v
 }
 
 ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     const std::vector<std::shared_ptr<Thread>> waiting_threads =
         GetThreadsWaitingOnAddress(address);
     WakeThreads(waiting_threads, num_to_wake);
@@ -67,7 +68,7 @@ ResultCode AddressArbiter::SignalToAddressOnly(VAddr address, s32 num_to_wake) {
 
 ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                               s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     auto& memory = system.Memory();
 
     // Ensure that we can write to the address.
@@ -92,7 +93,7 @@ ResultCode AddressArbiter::IncrementAndSignalToAddressIfEqual(VAddr address, s32
 
 ResultCode AddressArbiter::ModifyByWaitingCountAndSignalToAddressIfEqual(VAddr address, s32 value,
                                                                          s32 num_to_wake) {
-    SchedulerLock lock(system.Kernel());
+    KScopedSchedulerLock lock(system.Kernel());
     auto& memory = system.Memory();
 
     // Ensure that we can write to the address.
@@ -153,11 +154,11 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
                                                     bool should_decrement) {
     auto& memory = system.Memory();
     auto& kernel = system.Kernel();
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     Handle event_handle = InvalidHandle;
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
         if (current_thread->IsPendingTermination()) {
             lock.CancelSleep();
@@ -210,7 +211,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (current_thread->IsWaitingForArbitration()) {
             RemoveThread(SharedFrom(current_thread));
             current_thread->WaitForArbitration(false);
@@ -223,11 +224,11 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 timeout) {
     auto& memory = system.Memory();
     auto& kernel = system.Kernel();
-    Thread* current_thread = system.CurrentScheduler().GetCurrentThread();
+    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
 
     Handle event_handle = InvalidHandle;
     {
-        SchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
+        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
         if (current_thread->IsPendingTermination()) {
             lock.CancelSleep();
@@ -265,7 +266,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
     }
 
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (current_thread->IsWaitingForArbitration()) {
             RemoveThread(SharedFrom(current_thread));
             current_thread->WaitForArbitration(false);

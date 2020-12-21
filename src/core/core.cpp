@@ -27,10 +27,10 @@
 #include "core/file_sys/vfs_real.h"
 #include "core/hardware_interrupt_manager.h"
 #include "core/hle/kernel/client_port.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/service/am/applets/applets.h"
 #include "core/hle/service/apm/controller.h"
@@ -507,14 +507,6 @@ std::size_t System::CurrentCoreIndex() const {
     return core;
 }
 
-Kernel::Scheduler& System::CurrentScheduler() {
-    return impl->kernel.CurrentScheduler();
-}
-
-const Kernel::Scheduler& System::CurrentScheduler() const {
-    return impl->kernel.CurrentScheduler();
-}
-
 Kernel::PhysicalCore& System::CurrentPhysicalCore() {
     return impl->kernel.CurrentPhysicalCore();
 }
@@ -523,22 +515,14 @@ const Kernel::PhysicalCore& System::CurrentPhysicalCore() const {
     return impl->kernel.CurrentPhysicalCore();
 }
 
-Kernel::Scheduler& System::Scheduler(std::size_t core_index) {
-    return impl->kernel.Scheduler(core_index);
-}
-
-const Kernel::Scheduler& System::Scheduler(std::size_t core_index) const {
-    return impl->kernel.Scheduler(core_index);
+/// Gets the global scheduler
+Kernel::GlobalSchedulerContext& System::GlobalSchedulerContext() {
+    return impl->kernel.GlobalSchedulerContext();
 }
 
 /// Gets the global scheduler
-Kernel::GlobalScheduler& System::GlobalScheduler() {
-    return impl->kernel.GlobalScheduler();
-}
-
-/// Gets the global scheduler
-const Kernel::GlobalScheduler& System::GlobalScheduler() const {
-    return impl->kernel.GlobalScheduler();
+const Kernel::GlobalSchedulerContext& System::GlobalSchedulerContext() const {
+    return impl->kernel.GlobalSchedulerContext();
 }
 
 Kernel::Process* System::CurrentProcess() {

@@ -15,8 +15,8 @@
 #include "core/core.h"
 #include "core/core_timing.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/svc.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -330,6 +330,9 @@ void ARM_Dynarmic_64::InvalidateCacheRange(VAddr addr, std::size_t size) {
 }
 
 void ARM_Dynarmic_64::ClearExclusiveState() {
+    if (!jit) {
+        return;
+    }
     jit->ClearExclusiveState();
 }
 

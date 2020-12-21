@@ -7,14 +7,14 @@
 #include "core/arm/dynarmic/arm_dynarmic_32.h"
 #include "core/arm/dynarmic/arm_dynarmic_64.h"
 #include "core/core.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/scheduler.h"
 
 namespace Kernel {
 
 PhysicalCore::PhysicalCore(std::size_t core_index, Core::System& system,
-                           Kernel::Scheduler& scheduler, Core::CPUInterrupts& interrupts)
+                           Kernel::KScheduler& scheduler, Core::CPUInterrupts& interrupts)
     : core_index{core_index}, system{system}, scheduler{scheduler},
       interrupts{interrupts}, guard{std::make_unique<Common::SpinLock>()} {}
 
@@ -41,10 +41,6 @@ void PhysicalCore::Run() {
 
 void PhysicalCore::Idle() {
     interrupts[core_index].AwaitInterrupt();
-}
-
-void PhysicalCore::Shutdown() {
-    scheduler.Shutdown();
 }
 
 bool PhysicalCore::IsInterrupted() const {

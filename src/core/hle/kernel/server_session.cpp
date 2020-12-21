@@ -14,9 +14,9 @@
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/hle_ipc.h"
+#include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/scheduler.h"
 #include "core/hle/kernel/server_session.h"
 #include "core/hle/kernel/session.h"
 #include "core/hle/kernel/thread.h"
@@ -170,7 +170,7 @@ ResultCode ServerSession::CompleteSyncRequest() {
 
     // Some service requests require the thread to block
     {
-        SchedulerLock lock(kernel);
+        KScopedSchedulerLock lock(kernel);
         if (!context.IsThreadWaiting()) {
             context.GetThread().ResumeFromWait();
             context.GetThread().SetSynchronizationResults(nullptr, result);
