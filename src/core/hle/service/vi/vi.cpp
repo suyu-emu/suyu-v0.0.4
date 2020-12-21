@@ -536,6 +536,8 @@ private:
         LOG_DEBUG(Service_VI, "called. id=0x{:08X} transaction={:X}, flags=0x{:08X}", id,
                   transaction, flags);
 
+        auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
+
         switch (transaction) {
         case TransactionId::Connect: {
             IGBPConnectRequestParcel request{ctx.ReadBuffer()};
@@ -545,10 +547,7 @@ private:
                 static_cast<u32>(static_cast<u32>(DisplayResolution::UndockedHeight) *
                                  Settings::values.resolution_factor.GetValue())};
 
-            {
-                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
-                buffer_queue.Connect();
-            }
+            buffer_queue.Connect();
 
             ctx.WriteBuffer(response.Serialize());
             break;
@@ -556,11 +555,7 @@ private:
         case TransactionId::SetPreallocatedBuffer: {
             IGBPSetPreallocatedBufferRequestParcel request{ctx.ReadBuffer()};
 
-            {
-                auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
-                buffer_queue.SetPreallocatedBuffer(request.data.slot,
-                                                   request.buffer_container.buffer);
-            }
+            buffer_queue.SetPreallocatedBuffer(request.data.slot, request.buffer_container.buffer);
 
             IGBPSetPreallocatedBufferResponseParcel response{};
             ctx.WriteBuffer(response.Serialize());
@@ -571,7 +566,6 @@ private:
             const u32 width{request.data.width};
             const u32 height{request.data.height};
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             do {
                 if (auto result = buffer_queue.DequeueBuffer(width, height); result) {
                     // Buffer is available
@@ -586,7 +580,6 @@ private:
         case TransactionId::RequestBuffer: {
             IGBPRequestBufferRequestParcel request{ctx.ReadBuffer()};
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             auto& buffer = buffer_queue.RequestBuffer(request.slot);
             IGBPRequestBufferResponseParcel response{buffer};
             ctx.WriteBuffer(response.Serialize());
@@ -596,7 +589,6 @@ private:
         case TransactionId::QueueBuffer: {
             IGBPQueueBufferRequestParcel request{ctx.ReadBuffer()};
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             buffer_queue.QueueBuffer(request.data.slot, request.data.transform,
                                      request.data.GetCropRect(), request.data.swap_interval,
                                      request.data.multi_fence);
@@ -608,7 +600,6 @@ private:
         case TransactionId::Query: {
             IGBPQueryRequestParcel request{ctx.ReadBuffer()};
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             const u32 value =
                 buffer_queue.Query(static_cast<NVFlinger::BufferQueue::QueryType>(request.type));
 
@@ -619,7 +610,6 @@ private:
         case TransactionId::CancelBuffer: {
             IGBPCancelBufferRequestParcel request{ctx.ReadBuffer()};
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             buffer_queue.CancelBuffer(request.data.slot, request.data.multi_fence);
 
             IGBPCancelBufferResponseParcel response{};
@@ -630,7 +620,6 @@ private:
             LOG_WARNING(Service_VI, "(STUBBED) called, transaction=Disconnect");
             const auto buffer = ctx.ReadBuffer();
 
-            auto& buffer_queue = *nv_flinger.FindBufferQueue(id);
             buffer_queue.Disconnect();
 
             IGBPEmptyResponseParcel response{};
