@@ -13,9 +13,9 @@
 #include "common/common_types.h"
 #include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process_capability.h"
-#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Core {
@@ -63,7 +63,7 @@ enum class ProcessStatus {
     DebugBreak,
 };
 
-class Process final : public SynchronizationObject {
+class Process final : public KSynchronizationObject {
 public:
     explicit Process(Core::System& system);
     ~Process() override;
@@ -304,6 +304,8 @@ public:
 
     void LoadModule(CodeSet code_set, VAddr base_addr);
 
+    bool IsSignaled() const override;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // Thread-local storage management
 
@@ -314,12 +316,6 @@ public:
     void FreeTLSRegion(VAddr tls_address);
 
 private:
-    /// Checks if the specified thread should wait until this process is available.
-    bool ShouldWait(const Thread* thread) const override;
-
-    /// Acquires/locks this process for the specified thread if it's available.
-    void Acquire(Thread* thread) override;
-
     /// Changes the process status. If the status is different
     /// from the current process status, then this will trigger
     /// a process signal.
@@ -409,6 +405,8 @@ private:
 
     /// Schedule count of this process
     s64 schedule_count{};
+
+    bool is_signaled{};
 
     /// System context
     Core::System& system;

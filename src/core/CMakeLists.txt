@@ -164,6 +164,8 @@ add_library(core STATIC
     hle/kernel/k_scheduler_lock.h
     hle/kernel/k_scoped_lock.h
     hle/kernel/k_scoped_scheduler_lock_and_sleep.h
+    hle/kernel/k_synchronization_object.cpp
+    hle/kernel/k_synchronization_object.h
     hle/kernel/kernel.cpp
     hle/kernel/kernel.h
     hle/kernel/memory/address_space_info.cpp
@@ -213,10 +215,6 @@ add_library(core STATIC
     hle/kernel/svc_results.h
     hle/kernel/svc_types.h
     hle/kernel/svc_wrap.h
-    hle/kernel/synchronization_object.cpp
-    hle/kernel/synchronization_object.h
-    hle/kernel/synchronization.cpp
-    hle/kernel/synchronization.h
     hle/kernel/thread.cpp
     hle/kernel/thread.h
     hle/kernel/time_manager.cpp

@@ -8,7 +8,7 @@
 #include <string>
 #include <utility>
 
-#include "core/hle/kernel/synchronization_object.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 
 namespace Kernel {
 
@@ -19,7 +19,7 @@ class ServerSession;
  * Parent structure to link the client and server endpoints of a session with their associated
  * client port.
  */
-class Session final : public SynchronizationObject {
+class Session final : public KSynchronizationObject {
 public:
     explicit Session(KernelCore& kernel);
     ~Session() override;
@@ -37,11 +37,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    bool ShouldWait(const Thread* thread) const override;
-
     bool IsSignaled() const override;
-
-    void Acquire(Thread* thread) override;
 
     std::shared_ptr<ClientSession> Client() {
         if (auto result{client.lock()}) {

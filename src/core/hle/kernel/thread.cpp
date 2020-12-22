@@ -34,26 +34,19 @@
 
 namespace Kernel {
 
-bool Thread::ShouldWait(const Thread* thread) const {
-    return status != ThreadStatus::Dead;
-}
-
 bool Thread::IsSignaled() const {
-    return status == ThreadStatus::Dead;
+    return signaled;
 }
 
-void Thread::Acquire(Thread* thread) {
-    ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
-}
-
-Thread::Thread(KernelCore& kernel) : SynchronizationObject{kernel} {}
+Thread::Thread(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 Thread::~Thread() = default;
 
 void Thread::Stop() {
     {
         KScopedSchedulerLock lock(kernel);
-        SetStatus(ThreadStatus::Dead);
-        Signal();
+        SetState(ThreadStatus::Dead);
+        signaled = true;
+        NotifyAvailable();
         kernel.GlobalHandleTable().Close(global_handle);
 
         if (owner_process) {
@@ -67,7 +60,7 @@ void Thread::Stop() {
     global_handle = 0;
 }
 
-void Thread::ResumeFromWait() {
+void Thread::Wakeup() {
     KScopedSchedulerLock lock(kernel);
     switch (status) {
     case ThreadStatus::Paused:
@@ -82,9 +75,6 @@ void Thread::ResumeFromWait() {
         break;
 
     case ThreadStatus::Ready:
-        // The thread's wakeup callback must have already been cleared when the thread was first
-        // awoken.
-        ASSERT(hle_callback == nullptr);
         // If the thread is waiting on multiple wait objects, it might be awoken more than once
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
@@ -96,30 +86,30 @@ void Thread::ResumeFromWait() {
         return;
     }
 
-    SetStatus(ThreadStatus::Ready);
+    SetState(ThreadStatus::Ready);
 }
 
 void Thread::OnWakeUp() {
     KScopedSchedulerLock lock(kernel);
-    SetStatus(ThreadStatus::Ready);
+    SetState(ThreadStatus::Ready);
 }
 
 ResultCode Thread::Start() {
     KScopedSchedulerLock lock(kernel);
-    SetStatus(ThreadStatus::Ready);
+    SetState(ThreadStatus::Ready);
     return RESULT_SUCCESS;
 }
 
 void Thread::CancelWait() {
     KScopedSchedulerLock lock(kernel);
-    if (GetSchedulingStatus() != ThreadSchedStatus::Paused || !is_waiting_on_sync) {
+    if (GetState() != ThreadSchedStatus::Paused || !is_cancellable) {
         is_sync_cancelled = true;
         return;
     }
     // TODO(Blinkhawk): Implement cancel of server session
     is_sync_cancelled = false;
     SetSynchronizationResults(nullptr, ERR_SYNCHRONIZATION_CANCELED);
-    SetStatus(ThreadStatus::Ready);
+    SetState(ThreadStatus::Ready);
 }
 
 static void ResetThreadContext32(Core::ARM_Interface::ThreadContext32& context, u32 stack_top,
@@ -194,7 +184,6 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
     thread->affinity_mask.SetAffinity(processor_id, true);
-    thread->wait_objects = nullptr;
     thread->mutex_wait_address = 0;
     thread->condvar_wait_address = 0;
     thread->wait_handle = 0;
@@ -202,6 +191,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->global_handle = kernel.GlobalHandleTable().Create(thread).Unwrap();
     thread->owner_process = owner_process;
     thread->type = type_flags;
+    thread->signaled = false;
     if ((type_flags & THREADTYPE_IDLE) == 0) {
         auto& scheduler = kernel.GlobalSchedulerContext();
         scheduler.AddThread(thread);
@@ -234,15 +224,9 @@ void Thread::SetPriority(u32 priority) {
     UpdatePriority();
 }
 
-void Thread::SetSynchronizationResults(SynchronizationObject* object, ResultCode result) {
+void Thread::SetSynchronizationResults(KSynchronizationObject* object, ResultCode result) {
     signaling_object = object;
     signaling_result = result;
-}
-
-s32 Thread::GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const {
-    ASSERT_MSG(!wait_objects->empty(), "Thread is not waiting for anything");
-    const auto match = std::find(wait_objects->rbegin(), wait_objects->rend(), object);
-    return static_cast<s32>(std::distance(match, wait_objects->rend()) - 1);
 }
 
 VAddr Thread::GetCommandBufferAddress() const {
@@ -251,7 +235,7 @@ VAddr Thread::GetCommandBufferAddress() const {
     return GetTLSAddress() + command_header_offset;
 }
 
-void Thread::SetStatus(ThreadStatus new_status) {
+void Thread::SetState(ThreadStatus new_status) {
     if (new_status == status) {
         return;
     }
@@ -351,28 +335,16 @@ void Thread::UpdatePriority() {
     lock_owner->UpdatePriority();
 }
 
-bool Thread::AllSynchronizationObjectsReady() const {
-    return std::none_of(wait_objects->begin(), wait_objects->end(),
-                        [this](const std::shared_ptr<SynchronizationObject>& object) {
-                            return object->ShouldWait(this);
-                        });
-}
-
-bool Thread::InvokeHLECallback(std::shared_ptr<Thread> thread) {
-    ASSERT(hle_callback);
-    return hle_callback(std::move(thread));
-}
-
 ResultCode Thread::SetActivity(ThreadActivity value) {
     KScopedSchedulerLock lock(kernel);
 
-    auto sched_status = GetSchedulingStatus();
+    auto sched_status = GetState();
 
     if (sched_status != ThreadSchedStatus::Runnable && sched_status != ThreadSchedStatus::Paused) {
         return ERR_INVALID_STATE;
     }
 
-    if (IsPendingTermination()) {
+    if (IsTerminationRequested()) {
         return RESULT_SUCCESS;
     }
 
@@ -394,7 +366,7 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
-        SetStatus(ThreadStatus::WaitSleep);
+        SetState(ThreadStatus::WaitSleep);
     }
 
     if (event_handle != InvalidHandle) {
@@ -407,7 +379,7 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
 void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
     const u32 old_state = scheduling_state;
     pausing_state |= static_cast<u32>(flag);
-    const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
+    const u32 base_scheduling = static_cast<u32>(GetState());
     scheduling_state = base_scheduling | pausing_state;
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
@@ -415,7 +387,7 @@ void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
 void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     const u32 old_state = scheduling_state;
     pausing_state &= ~static_cast<u32>(flag);
-    const u32 base_scheduling = static_cast<u32>(GetSchedulingStatus());
+    const u32 base_scheduling = static_cast<u32>(GetState());
     scheduling_state = base_scheduling | pausing_state;
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }

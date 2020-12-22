@@ -215,9 +215,10 @@ void SvcWrap64(Core::System& system) {
         func(system, static_cast<u32>(Param(system, 0)), Param(system, 1), Param(system, 2)).raw);
 }
 
-template <ResultCode func(Core::System&, u32*, u64, u64, s64)>
+// Used by WaitSynchronization
+template <ResultCode func(Core::System&, s32*, u64, u64, s64)>
 void SvcWrap64(Core::System& system) {
-    u32 param_1 = 0;
+    s32 param_1 = 0;
     const u32 retval = func(system, &param_1, Param(system, 1), static_cast<u32>(Param(system, 2)),
                             static_cast<s64>(Param(system, 3)))
                            .raw;
@@ -539,9 +540,9 @@ void SvcWrap32(Core::System& system) {
 }
 
 // Used by WaitSynchronization32
-template <ResultCode func(Core::System&, u32, u32, s32, u32, Handle*)>
+template <ResultCode func(Core::System&, u32, u32, s32, u32, s32*)>
 void SvcWrap32(Core::System& system) {
-    u32 param_1 = 0;
+    s32 param_1 = 0;
     const u32 retval = func(system, Param32(system, 0), Param32(system, 1), Param32(system, 2),
                             Param32(system, 3), &param_1)
                            .raw;

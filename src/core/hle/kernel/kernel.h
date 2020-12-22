@@ -129,12 +129,6 @@ public:
     /// Gets the an instance of the current physical CPU core.
     const Kernel::PhysicalCore& CurrentPhysicalCore() const;
 
-    /// Gets the an instance of the Synchronization Interface.
-    Kernel::Synchronization& Synchronization();
-
-    /// Gets the an instance of the Synchronization Interface.
-    const Kernel::Synchronization& Synchronization() const;
-
     /// Gets the an instance of the TimeManager Interface.
     Kernel::TimeManager& TimeManager();
 

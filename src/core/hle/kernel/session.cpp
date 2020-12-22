@@ -9,7 +9,7 @@
 
 namespace Kernel {
 
-Session::Session(KernelCore& kernel) : SynchronizationObject{kernel} {}
+Session::Session(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 Session::~Session() = default;
 
 Session::SessionPair Session::Create(KernelCore& kernel, std::string name) {
@@ -24,18 +24,9 @@ Session::SessionPair Session::Create(KernelCore& kernel, std::string name) {
     return std::make_pair(std::move(client_session), std::move(server_session));
 }
 
-bool Session::ShouldWait(const Thread* thread) const {
-    UNIMPLEMENTED();
-    return {};
-}
-
 bool Session::IsSignaled() const {
     UNIMPLEMENTED();
     return true;
-}
-
-void Session::Acquire(Thread* thread) {
-    UNIMPLEMENTED();
 }
 
 } // namespace Kernel

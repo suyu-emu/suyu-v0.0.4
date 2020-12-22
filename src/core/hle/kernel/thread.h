@@ -14,8 +14,8 @@
 #include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/k_affinity_mask.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
-#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
 namespace Common {
@@ -117,7 +117,7 @@ enum class ThreadSchedMasks : u32 {
     ForcePauseMask = 0x0070,
 };
 
-class Thread final : public SynchronizationObject {
+class Thread final : public KSynchronizationObject {
 public:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
@@ -126,10 +126,6 @@ public:
 
     using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
     using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
-
-    using ThreadSynchronizationObjects = std::vector<std::shared_ptr<SynchronizationObject>>;
-
-    using HLECallback = std::function<bool(std::shared_ptr<Thread> thread)>;
 
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
@@ -186,10 +182,6 @@ public:
         return HANDLE_TYPE;
     }
 
-    bool ShouldWait(const Thread* thread) const override;
-    void Acquire(Thread* thread) override;
-    bool IsSignaled() const override;
-
     /**
      * Gets the thread's current priority
      * @return The current thread's priority
@@ -233,11 +225,13 @@ public:
     }
 
     /// Resumes a thread from waiting
-    void ResumeFromWait();
+    void Wakeup();
 
     void OnWakeUp();
 
     ResultCode Start();
+
+    virtual bool IsSignaled() const override;
 
     /// Cancels a waiting operation that this thread may or may not be within.
     ///
@@ -247,29 +241,20 @@ public:
     ///
     void CancelWait();
 
-    void SetSynchronizationResults(SynchronizationObject* object, ResultCode result);
+    void SetSynchronizationResults(KSynchronizationObject* object, ResultCode result);
 
-    SynchronizationObject* GetSignalingObject() const {
-        return signaling_object;
+    void SetSyncedObject(KSynchronizationObject* object, ResultCode result) {
+        SetSynchronizationResults(object, result);
+    }
+
+    ResultCode GetWaitResult(KSynchronizationObject** out) const {
+        *out = this->signaling_object;
+        return signaling_result;
     }
 
     ResultCode GetSignalingResult() const {
         return signaling_result;
     }
-
-    /**
-     * Retrieves the index that this particular object occupies in the list of objects
-     * that the thread passed to WaitSynchronization, starting the search from the last element.
-     *
-     * It is used to set the output index of WaitSynchronization when the thread is awakened.
-     *
-     * When a thread wakes up due to an object signal, the kernel will use the index of the last
-     * matching object in the wait objects list in case of having multiple instances of the same
-     * object in the list.
-     *
-     * @param object Object to query the index of.
-     */
-    s32 GetSynchronizationObjectIndex(std::shared_ptr<SynchronizationObject> object) const;
 
     /**
      * Stops a thread, invalidating it from further use
@@ -345,7 +330,7 @@ public:
         return status;
     }
 
-    void SetStatus(ThreadStatus new_status);
+    void SetState(ThreadStatus new_status);
 
     s64 GetLastScheduledTick() const {
         return this->last_scheduled_tick;
@@ -386,24 +371,6 @@ public:
     const Process* GetOwnerProcess() const {
         return owner_process;
     }
-
-    const ThreadSynchronizationObjects& GetSynchronizationObjects() const {
-        return *wait_objects;
-    }
-
-    void SetSynchronizationObjects(ThreadSynchronizationObjects* objects) {
-        wait_objects = objects;
-    }
-
-    void ClearSynchronizationObjects() {
-        for (const auto& waiting_object : *wait_objects) {
-            waiting_object->RemoveWaitingThread(SharedFrom(this));
-        }
-        wait_objects->clear();
-    }
-
-    /// Determines whether all the objects this thread is waiting on are ready.
-    bool AllSynchronizationObjectsReady() const;
 
     const MutexWaitingThreads& GetMutexWaitingThreads() const {
         return wait_mutex_threads;
@@ -449,32 +416,12 @@ public:
         arb_wait_address = address;
     }
 
-    bool HasHLECallback() const {
-        return hle_callback != nullptr;
-    }
-
-    void SetHLECallback(HLECallback callback) {
-        hle_callback = std::move(callback);
-    }
-
     void SetHLETimeEvent(Handle time_event) {
         hle_time_event = time_event;
     }
 
-    void SetHLESyncObject(SynchronizationObject* object) {
-        hle_object = object;
-    }
-
     Handle GetHLETimeEvent() const {
         return hle_time_event;
-    }
-
-    SynchronizationObject* GetHLESyncObject() const {
-        return hle_object;
-    }
-
-    void InvalidateHLECallback() {
-        SetHLECallback(nullptr);
     }
 
     bool InvokeHLECallback(std::shared_ptr<Thread> thread);
@@ -500,7 +447,7 @@ public:
         this->schedule_count = count;
     }
 
-    ThreadSchedStatus GetSchedulingStatus() const {
+    ThreadSchedStatus GetState() const {
         return static_cast<ThreadSchedStatus>(scheduling_state &
                                               static_cast<u32>(ThreadSchedMasks::LowMask));
     }
@@ -517,12 +464,12 @@ public:
         is_running = value;
     }
 
-    bool IsSyncCancelled() const {
+    bool IsWaitCancelled() const {
         return is_sync_cancelled;
     }
 
-    void SetSyncCancelled(bool value) {
-        is_sync_cancelled = value;
+    void ClearWaitCancelled() {
+        is_sync_cancelled = false;
     }
 
     Handle GetGlobalHandle() const {
@@ -537,16 +484,20 @@ public:
         waiting_for_arbitration = set;
     }
 
-    bool IsWaitingSync() const {
-        return is_waiting_on_sync;
+    bool IsCancellable() const {
+        return is_cancellable;
     }
 
-    void SetWaitingSync(bool is_waiting) {
-        is_waiting_on_sync = is_waiting;
+    void SetCancellable() {
+        is_cancellable = true;
     }
 
-    bool IsPendingTermination() const {
-        return will_be_terminated || GetSchedulingStatus() == ThreadSchedStatus::Exited;
+    void ClearCancellable() {
+        is_cancellable = false;
+    }
+
+    bool IsTerminationRequested() const {
+        return will_be_terminated || GetState() == ThreadSchedStatus::Exited;
     }
 
     bool IsPaused() const {
@@ -622,6 +573,18 @@ public:
         disable_count--;
     }
 
+    void SetWaitObjectsForDebugging(KSynchronizationObject** objects, s32 num_objects) {
+        wait_objects_for_debugging.clear();
+        wait_objects_for_debugging.reserve(num_objects);
+        for (auto i = 0; i < num_objects; ++i) {
+            wait_objects_for_debugging.emplace_back(objects[i]);
+        }
+    }
+
+    const std::vector<KSynchronizationObject*>& GetWaitObjectsForDebugging() const {
+        return wait_objects_for_debugging;
+    }
+
 private:
     friend class GlobalSchedulerContext;
     friend class KScheduler;
@@ -630,7 +593,6 @@ private:
     void SetSchedulingStatus(ThreadSchedStatus new_status);
     void AddSchedulingFlag(ThreadSchedFlags flag);
     void RemoveSchedulingFlag(ThreadSchedFlags flag);
-
     void SetCurrentPriority(u32 new_priority);
 
     Common::SpinLock context_guard{};
@@ -671,10 +633,10 @@ private:
     Process* owner_process;
 
     /// Objects that the thread is waiting on, in the same order as they were
-    /// passed to WaitSynchronization.
-    ThreadSynchronizationObjects* wait_objects;
+    /// passed to WaitSynchronization. This is used for debugging only.
+    std::vector<KSynchronizationObject*> wait_objects_for_debugging;
 
-    SynchronizationObject* signaling_object;
+    KSynchronizationObject* signaling_object;
     ResultCode signaling_result{RESULT_SUCCESS};
 
     /// List of threads that are waiting for a mutex that is held by this thread.
@@ -697,10 +659,7 @@ private:
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
     Handle global_handle = 0;
 
-    /// Callback for HLE Events
-    HLECallback hle_callback;
     Handle hle_time_event;
-    SynchronizationObject* hle_object;
 
     KScheduler* scheduler = nullptr;
 
@@ -714,7 +673,7 @@ private:
 
     u32 pausing_state = 0;
     bool is_running = false;
-    bool is_waiting_on_sync = false;
+    bool is_cancellable = false;
     bool is_sync_cancelled = false;
 
     bool is_continuous_on_svc = false;
@@ -724,6 +683,8 @@ private:
     bool has_exited = false;
 
     bool was_running = false;
+
+    bool signaled{};
 
     std::string name;
 };

@@ -645,8 +645,7 @@ void KScheduler::Unload(Thread* thread) {
 
 void KScheduler::Reload(Thread* thread) {
     if (thread) {
-        ASSERT_MSG(thread->GetSchedulingStatus() == ThreadSchedStatus::Runnable,
-                   "Thread must be runnable.");
+        ASSERT_MSG(thread->GetState() == ThreadSchedStatus::Runnable, "Thread must be runnable.");
 
         // Cancel any outstanding wakeup events for this thread
         thread->SetIsRunning(true);
@@ -772,7 +771,7 @@ void KScheduler::Initialize() {
 
     {
         KScopedSchedulerLock lock{system.Kernel()};
-        idle_thread->SetStatus(ThreadStatus::Ready);
+        idle_thread->SetState(ThreadStatus::Ready);
     }
 }
 

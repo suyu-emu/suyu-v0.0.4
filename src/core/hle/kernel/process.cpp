@@ -55,7 +55,7 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     {
         KScopedSchedulerLock lock{kernel};
-        thread->SetStatus(ThreadStatus::Ready);
+        thread->SetState(ThreadStatus::Ready);
     }
 }
 } // Anonymous namespace
@@ -406,20 +406,17 @@ void Process::LoadModule(CodeSet code_set, VAddr base_addr) {
     ReprotectSegment(code_set.DataSegment(), Memory::MemoryPermission::ReadAndWrite);
 }
 
+bool Process::IsSignaled() const {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+    return is_signaled;
+}
+
 Process::Process(Core::System& system)
-    : SynchronizationObject{system.Kernel()}, page_table{std::make_unique<Memory::PageTable>(
-                                                  system)},
+    : KSynchronizationObject{system.Kernel()}, page_table{std::make_unique<Memory::PageTable>(
+                                                   system)},
       handle_table{system.Kernel()}, address_arbiter{system}, mutex{system}, system{system} {}
 
 Process::~Process() = default;
-
-void Process::Acquire(Thread* thread) {
-    ASSERT_MSG(!ShouldWait(thread), "Object unavailable!");
-}
-
-bool Process::ShouldWait(const Thread* thread) const {
-    return !is_signaled;
-}
 
 void Process::ChangeStatus(ProcessStatus new_status) {
     if (status == new_status) {
@@ -428,7 +425,7 @@ void Process::ChangeStatus(ProcessStatus new_status) {
 
     status = new_status;
     is_signaled = true;
-    Signal();
+    NotifyAvailable();
 }
 
 ResultCode Process::AllocateMainThreadStack(std::size_t stack_size) {

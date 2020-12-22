@@ -107,7 +107,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
         current_thread->SetMutexWaitAddress(address);
         current_thread->SetWaitHandle(requesting_thread_handle);
 
-        current_thread->SetStatus(ThreadStatus::WaitMutex);
+        current_thread->SetState(ThreadStatus::WaitMutex);
 
         // Update the lock holder thread's priority to prevent priority inversion.
         holding_thread->AddMutexWaiter(current_thread);
@@ -145,7 +145,7 @@ std::pair<ResultCode, std::shared_ptr<Thread>> Mutex::Unlock(std::shared_ptr<Thr
     }
     new_owner->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
     new_owner->SetLockOwner(nullptr);
-    new_owner->ResumeFromWait();
+    new_owner->Wakeup();
 
     system.Memory().Write32(address, mutex_value);
     return {RESULT_SUCCESS, new_owner};

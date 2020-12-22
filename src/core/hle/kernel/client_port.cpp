@@ -33,9 +33,6 @@ ResultVal<std::shared_ptr<ClientSession>> ClientPort::Connect() {
         server_port->AppendPendingSession(std::move(server));
     }
 
-    // Wake the threads waiting on the ServerPort
-    server_port->Signal();
-
     return MakeResult(std::move(client));
 }
 

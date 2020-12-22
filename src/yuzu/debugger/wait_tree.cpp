@@ -14,10 +14,10 @@
 #include "core/core.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/kernel/thread.h"
 #include "core/memory.h"
 
@@ -169,7 +169,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeCallstack::GetChildren() cons
     return list;
 }
 
-WaitTreeSynchronizationObject::WaitTreeSynchronizationObject(const Kernel::SynchronizationObject& o)
+WaitTreeSynchronizationObject::WaitTreeSynchronizationObject(
+    const Kernel::KSynchronizationObject& o)
     : object(o) {}
 WaitTreeSynchronizationObject::~WaitTreeSynchronizationObject() = default;
 
@@ -188,7 +189,7 @@ QString WaitTreeSynchronizationObject::GetText() const {
 }
 
 std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::make(
-    const Kernel::SynchronizationObject& object) {
+    const Kernel::KSynchronizationObject& object) {
     switch (object.GetHandleType()) {
     case Kernel::HandleType::ReadableEvent:
         return std::make_unique<WaitTreeEvent>(static_cast<const Kernel::ReadableEvent&>(object));
@@ -202,7 +203,7 @@ std::unique_ptr<WaitTreeSynchronizationObject> WaitTreeSynchronizationObject::ma
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSynchronizationObject::GetChildren() const {
     std::vector<std::unique_ptr<WaitTreeItem>> list;
 
-    const auto& threads = object.GetWaitingThreads();
+    const auto& threads = object.GetWaitingThreadsForDebugging();
     if (threads.empty()) {
         list.push_back(std::make_unique<WaitTreeText>(tr("waited by no thread")));
     } else {
@@ -211,8 +212,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeSynchronizationObject::GetChi
     return list;
 }
 
-WaitTreeObjectList::WaitTreeObjectList(
-    const std::vector<std::shared_ptr<Kernel::SynchronizationObject>>& list, bool w_all)
+WaitTreeObjectList::WaitTreeObjectList(const std::vector<Kernel::KSynchronizationObject*>& list,
+                                       bool w_all)
     : object_list(list), wait_all(w_all) {}
 
 WaitTreeObjectList::~WaitTreeObjectList() = default;
@@ -367,8 +368,8 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     }
 
     if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynch) {
-        list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetSynchronizationObjects(),
-                                                            thread.IsWaitingSync()));
+        list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetWaitObjectsForDebugging(),
+                                                            thread.IsCancellable()));
     }
 
     list.push_back(std::make_unique<WaitTreeCallstack>(thread));
@@ -380,7 +381,7 @@ WaitTreeEvent::WaitTreeEvent(const Kernel::ReadableEvent& object)
     : WaitTreeSynchronizationObject(object) {}
 WaitTreeEvent::~WaitTreeEvent() = default;
 
-WaitTreeThreadList::WaitTreeThreadList(const std::vector<std::shared_ptr<Kernel::Thread>>& list)
+WaitTreeThreadList::WaitTreeThreadList(const std::vector<Kernel::Thread*>& list)
     : thread_list(list) {}
 WaitTreeThreadList::~WaitTreeThreadList() = default;
 

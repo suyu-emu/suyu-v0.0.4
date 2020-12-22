@@ -24,7 +24,7 @@
 
 namespace Kernel {
 
-ServerSession::ServerSession(KernelCore& kernel) : SynchronizationObject{kernel} {}
+ServerSession::ServerSession(KernelCore& kernel) : KSynchronizationObject{kernel} {}
 
 ServerSession::~ServerSession() {
     kernel.ReleaseServiceThread(service_thread);
@@ -42,16 +42,6 @@ ResultVal<std::shared_ptr<ServerSession>> ServerSession::Create(KernelCore& kern
     return MakeResult(std::move(session));
 }
 
-bool ServerSession::ShouldWait(const Thread* thread) const {
-    // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
-    if (!parent->Client()) {
-        return false;
-    }
-
-    // Wait if we have no pending requests, or if we're currently handling a request.
-    return pending_requesting_threads.empty() || currently_handling != nullptr;
-}
-
 bool ServerSession::IsSignaled() const {
     // Closed sessions should never wait, an error will be returned from svcReplyAndReceive.
     if (!parent->Client()) {
@@ -60,15 +50,6 @@ bool ServerSession::IsSignaled() const {
 
     // Wait if we have no pending requests, or if we're currently handling a request.
     return !pending_requesting_threads.empty() && currently_handling == nullptr;
-}
-
-void ServerSession::Acquire(Thread* thread) {
-    ASSERT_MSG(!ShouldWait(thread), "object unavailable!");
-    // We are now handling a request, pop it from the stack.
-    // TODO(Subv): What happens if the client endpoint is closed before any requests are made?
-    ASSERT(!pending_requesting_threads.empty());
-    currently_handling = pending_requesting_threads.back();
-    pending_requesting_threads.pop_back();
 }
 
 void ServerSession::ClientDisconnected() {
@@ -172,7 +153,7 @@ ResultCode ServerSession::CompleteSyncRequest(HLERequestContext& context) {
     {
         KScopedSchedulerLock lock(kernel);
         if (!context.IsThreadWaiting()) {
-            context.GetThread().ResumeFromWait();
+            context.GetThread().Wakeup();
             context.GetThread().SetSynchronizationResults(nullptr, result);
         }
     }

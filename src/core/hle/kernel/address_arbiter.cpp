@@ -37,7 +37,7 @@ void AddressArbiter::WakeThreads(const std::vector<std::shared_ptr<Thread>>& wai
         waiting_threads[i]->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
         RemoveThread(waiting_threads[i]);
         waiting_threads[i]->WaitForArbitration(false);
-        waiting_threads[i]->ResumeFromWait();
+        waiting_threads[i]->Wakeup();
     }
 }
 
@@ -160,7 +160,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
-        if (current_thread->IsPendingTermination()) {
+        if (current_thread->IsTerminationRequested()) {
             lock.CancelSleep();
             return ERR_THREAD_TERMINATING;
         }
@@ -201,7 +201,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 
         current_thread->SetArbiterWaitAddress(address);
         InsertThread(SharedFrom(current_thread));
-        current_thread->SetStatus(ThreadStatus::WaitArb);
+        current_thread->SetState(ThreadStatus::WaitArb);
         current_thread->WaitForArbitration(true);
     }
 
@@ -230,7 +230,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, timeout);
 
-        if (current_thread->IsPendingTermination()) {
+        if (current_thread->IsTerminationRequested()) {
             lock.CancelSleep();
             return ERR_THREAD_TERMINATING;
         }
@@ -256,7 +256,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
         current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         current_thread->SetArbiterWaitAddress(address);
         InsertThread(SharedFrom(current_thread));
-        current_thread->SetStatus(ThreadStatus::WaitArb);
+        current_thread->SetState(ThreadStatus::WaitArb);
         current_thread->WaitForArbitration(true);
     }
 

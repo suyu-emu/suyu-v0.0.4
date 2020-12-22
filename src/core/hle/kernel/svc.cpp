@@ -26,6 +26,7 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/page_table.h"
@@ -38,7 +39,6 @@
 #include "core/hle/kernel/svc.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
-#include "core/hle/kernel/synchronization.h"
 #include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/transfer_memory.h"
@@ -343,25 +343,14 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
         KScopedSchedulerLock lock(kernel);
-        thread->InvalidateHLECallback();
-        thread->SetStatus(ThreadStatus::WaitIPC);
+        thread->SetState(ThreadStatus::WaitIPC);
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
     }
 
-    if (thread->HasHLECallback()) {
-        Handle event_handle = thread->GetHLETimeEvent();
-        if (event_handle != InvalidHandle) {
-            auto& time_manager = kernel.TimeManager();
-            time_manager.UnscheduleTimeEvent(event_handle);
-        }
-
-        {
-            KScopedSchedulerLock lock(kernel);
-            auto* sync_object = thread->GetHLESyncObject();
-            sync_object->RemoveWaitingThread(SharedFrom(thread));
-        }
-
-        thread->InvokeHLECallback(SharedFrom(thread));
+    Handle event_handle = thread->GetHLETimeEvent();
+    if (event_handle != InvalidHandle) {
+        auto& time_manager = kernel.TimeManager();
+        time_manager.UnscheduleTimeEvent(event_handle);
     }
 
     return thread->GetSignalingResult();
@@ -436,7 +425,7 @@ static ResultCode GetProcessId32(Core::System& system, u32* process_id_low, u32*
 }
 
 /// Wait for the given handles to synchronize, timeout after the specified nanoseconds
-static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr handles_address,
+static ResultCode WaitSynchronization(Core::System& system, s32* index, VAddr handles_address,
                                       u64 handle_count, s64 nano_seconds) {
     LOG_TRACE(Kernel_SVC, "called handles_address=0x{:X}, handle_count={}, nano_seconds={}",
               handles_address, handle_count, nano_seconds);
@@ -458,28 +447,26 @@ static ResultCode WaitSynchronization(Core::System& system, Handle* index, VAddr
     }
 
     auto& kernel = system.Kernel();
-    Thread::ThreadSynchronizationObjects objects(handle_count);
+    std::vector<KSynchronizationObject*> objects(handle_count);
     const auto& handle_table = kernel.CurrentProcess()->GetHandleTable();
 
     for (u64 i = 0; i < handle_count; ++i) {
         const Handle handle = memory.Read32(handles_address + i * sizeof(Handle));
-        const auto object = handle_table.Get<SynchronizationObject>(handle);
+        const auto object = handle_table.Get<KSynchronizationObject>(handle);
 
         if (object == nullptr) {
             LOG_ERROR(Kernel_SVC, "Object is a nullptr");
             return ERR_INVALID_HANDLE;
         }
 
-        objects[i] = object;
+        objects[i] = object.get();
     }
-    auto& synchronization = kernel.Synchronization();
-    const auto [result, handle_result] = synchronization.WaitFor(objects, nano_seconds);
-    *index = handle_result;
-    return result;
+    return KSynchronizationObject::Wait(kernel, index, objects.data(),
+                                        static_cast<s32>(objects.size()), nano_seconds);
 }
 
 static ResultCode WaitSynchronization32(Core::System& system, u32 timeout_low, u32 handles_address,
-                                        s32 handle_count, u32 timeout_high, Handle* index) {
+                                        s32 handle_count, u32 timeout_high, s32* index) {
     const s64 nano_seconds{(static_cast<s64>(timeout_high) << 32) | static_cast<s64>(timeout_low)};
     return WaitSynchronization(system, index, handles_address, handle_count, nano_seconds);
 }
@@ -1655,7 +1642,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
 
         current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
 
-        if (thread->IsPendingTermination()) {
+        if (thread->IsTerminationRequested()) {
             lock.CancelSleep();
             return ERR_THREAD_TERMINATING;
         }
@@ -1674,7 +1661,7 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         current_thread->SetCondVarWaitAddress(condition_variable_addr);
         current_thread->SetMutexWaitAddress(mutex_addr);
         current_thread->SetWaitHandle(thread_handle);
-        current_thread->SetStatus(ThreadStatus::WaitCondVar);
+        current_thread->SetState(ThreadStatus::WaitCondVar);
         current_process->InsertConditionVariableThread(SharedFrom(current_thread));
     }
 
@@ -1761,7 +1748,7 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
 
             thread->SetLockOwner(nullptr);
             thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
-            thread->ResumeFromWait();
+            thread->Wakeup();
         } else {
             // The mutex is already owned by some other thread, make this thread wait on it.
             const Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
@@ -1769,7 +1756,7 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
             auto owner = handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
             if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
-                thread->SetStatus(ThreadStatus::WaitMutex);
+                thread->SetState(ThreadStatus::WaitMutex);
             }
 
             owner->AddMutexWaiter(thread);
