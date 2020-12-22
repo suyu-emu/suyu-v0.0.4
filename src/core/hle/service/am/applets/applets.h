@@ -50,13 +50,13 @@ enum class AppletId : u32 {
     ProfileSelect = 0x10,
     SoftwareKeyboard = 0x11,
     MiiEdit = 0x12,
-    LibAppletWeb = 0x13,
-    LibAppletShop = 0x14,
+    Web = 0x13,
+    Shop = 0x14,
     PhotoViewer = 0x15,
     Settings = 0x16,
-    LibAppletOff = 0x17,
-    LibAppletWhitelisted = 0x18,
-    LibAppletAuth = 0x19,
+    OfflineWeb = 0x17,
+    LoginShare = 0x18,
+    WebAuth = 0x19,
     MyPage = 0x1A,
 };
 
@@ -157,7 +157,6 @@ protected:
 
 struct AppletFrontendSet {
     using ControllerApplet = std::unique_ptr<Core::Frontend::ControllerApplet>;
-    using ECommerceApplet = std::unique_ptr<Core::Frontend::ECommerceApplet>;
     using ErrorApplet = std::unique_ptr<Core::Frontend::ErrorApplet>;
     using ParentalControlsApplet = std::unique_ptr<Core::Frontend::ParentalControlsApplet>;
     using PhotoViewer = std::unique_ptr<Core::Frontend::PhotoViewerApplet>;
@@ -166,10 +165,10 @@ struct AppletFrontendSet {
     using WebBrowser = std::unique_ptr<Core::Frontend::WebBrowserApplet>;
 
     AppletFrontendSet();
-    AppletFrontendSet(ControllerApplet controller, ECommerceApplet e_commerce, ErrorApplet error,
-                      ParentalControlsApplet parental_controls, PhotoViewer photo_viewer,
-                      ProfileSelect profile_select, SoftwareKeyboard software_keyboard,
-                      WebBrowser web_browser);
+    AppletFrontendSet(ControllerApplet controller_applet, ErrorApplet error_applet,
+                      ParentalControlsApplet parental_controls_applet, PhotoViewer photo_viewer_,
+                      ProfileSelect profile_select_, SoftwareKeyboard software_keyboard_,
+                      WebBrowser web_browser_);
     ~AppletFrontendSet();
 
     AppletFrontendSet(const AppletFrontendSet&) = delete;
@@ -179,7 +178,6 @@ struct AppletFrontendSet {
     AppletFrontendSet& operator=(AppletFrontendSet&&) noexcept;
 
     ControllerApplet controller;
-    ECommerceApplet e_commerce;
     ErrorApplet error;
     ParentalControlsApplet parental_controls;
     PhotoViewer photo_viewer;

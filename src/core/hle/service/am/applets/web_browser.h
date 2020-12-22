@@ -1,28 +1,31 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2020 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
 #pragma once
 
-#include <map>
+#include <optional>
+
+#include "common/common_funcs.h"
+#include "common/common_types.h"
 #include "core/file_sys/vfs_types.h"
-#include "core/hle/service/am/am.h"
+#include "core/hle/result.h"
 #include "core/hle/service/am/applets/applets.h"
+#include "core/hle/service/am/applets/web_types.h"
 
 namespace Core {
 class System;
 }
 
-namespace Service::AM::Applets {
+namespace FileSys {
+enum class ContentRecordType : u8;
+}
 
-enum class ShimKind : u32;
-enum class ShopWebTarget;
-enum class WebArgTLVType : u16;
+namespace Service::AM::Applets {
 
 class WebBrowser final : public Applet {
 public:
-    WebBrowser(Core::System& system_, Core::Frontend::WebBrowserApplet& frontend_,
-               Core::Frontend::ECommerceApplet* frontend_e_commerce_ = nullptr);
+    WebBrowser(Core::System& system_, const Core::Frontend::WebBrowserApplet& frontend_);
 
     ~WebBrowser() override;
 
@@ -33,49 +36,50 @@ public:
     void ExecuteInteractive() override;
     void Execute() override;
 
-    // Callback to be fired when the frontend needs the manual RomFS unpacked to temporary
-    // directory. This is a blocking call and may take a while as some manuals can be up to 100MB in
-    // size. Attempting to access files at filename before invocation is likely to not work.
-    void UnpackRomFS();
+    void ExtractOfflineRomFS();
 
-    // Callback to be fired when the frontend is finished browsing. This will delete the temporary
-    // manual RomFS extracted files, so ensure this is only called at actual finalization.
-    void Finalize();
+    void WebBrowserExit(WebExitReason exit_reason, std::string last_url = "");
 
 private:
-    void InitializeInternal();
-    void ExecuteInternal();
+    bool InputTLVExistsInMap(WebArgInputTLVType input_tlv_type) const;
 
-    // Specific initializers for the types of web applets
+    std::optional<std::vector<u8>> GetInputTLVData(WebArgInputTLVType input_tlv_type);
+
+    // Initializers for the various types of browser applets
     void InitializeShop();
+    void InitializeLogin();
     void InitializeOffline();
+    void InitializeShare();
+    void InitializeWeb();
+    void InitializeWifi();
+    void InitializeLobby();
 
-    // Specific executors for the types of web applets
+    // Executors for the various types of browser applets
     void ExecuteShop();
+    void ExecuteLogin();
     void ExecuteOffline();
+    void ExecuteShare();
+    void ExecuteWeb();
+    void ExecuteWifi();
+    void ExecuteLobby();
 
-    Core::Frontend::WebBrowserApplet& frontend;
+    const Core::Frontend::WebBrowserApplet& frontend;
 
-    // Extra frontends for specialized functions
-    Core::Frontend::ECommerceApplet* frontend_e_commerce;
+    bool complete{false};
+    ResultCode status{RESULT_SUCCESS};
 
-    bool complete = false;
-    bool unpacked = false;
-    ResultCode status = RESULT_SUCCESS;
+    WebAppletVersion web_applet_version;
+    WebExitReason web_exit_reason;
+    WebArgHeader web_arg_header;
+    WebArgInputTLVMap web_arg_input_tlv_map;
 
-    ShimKind kind;
-    std::map<WebArgTLVType, std::vector<u8>> args;
-
+    u64 title_id;
+    FileSys::ContentRecordType nca_type;
+    std::string offline_cache_dir;
+    std::string offline_document;
     FileSys::VirtualFile offline_romfs;
-    std::string temporary_dir;
-    std::string filename;
 
-    ShopWebTarget shop_web_target;
-    std::map<std::string, std::string, std::less<>> shop_query;
-    std::optional<u64> title_id = 0;
-    std::optional<u128> user_id;
-    std::optional<bool> shop_full_display;
-    std::string shop_extra_parameter;
+    std::string external_url;
 
     Core::System& system;
 };

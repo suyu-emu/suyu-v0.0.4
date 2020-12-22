@@ -1,238 +1,271 @@
-// Copyright 2018 yuzu emulator team
+// Copyright 2020 yuzu Emulator Project
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <array>
-#include <cstring>
-#include <vector>
-
 #include "common/assert.h"
-#include "common/common_funcs.h"
 #include "common/common_paths.h"
 #include "common/file_util.h"
-#include "common/hex_util.h"
 #include "common/logging/log.h"
 #include "common/string_util.h"
 #include "core/core.h"
 #include "core/file_sys/content_archive.h"
 #include "core/file_sys/mode.h"
 #include "core/file_sys/nca_metadata.h"
+#include "core/file_sys/patch_manager.h"
 #include "core/file_sys/registered_cache.h"
 #include "core/file_sys/romfs.h"
 #include "core/file_sys/system_archive/system_archive.h"
-#include "core/file_sys/vfs_types.h"
-#include "core/frontend/applets/general_frontend.h"
+#include "core/file_sys/vfs_vector.h"
 #include "core/frontend/applets/web_browser.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/result.h"
+#include "core/hle/service/am/am.h"
 #include "core/hle/service/am/applets/web_browser.h"
 #include "core/hle/service/filesystem/filesystem.h"
-#include "core/loader/loader.h"
+#include "core/hle/service/ns/pl_u.h"
 
 namespace Service::AM::Applets {
 
-enum class WebArgTLVType : u16 {
-    InitialURL = 0x1,
-    ShopArgumentsURL = 0x2, ///< TODO(DarkLordZach): This is not the official name.
-    CallbackURL = 0x3,
-    CallbackableURL = 0x4,
-    ApplicationID = 0x5,
-    DocumentPath = 0x6,
-    DocumentKind = 0x7,
-    SystemDataID = 0x8,
-    ShareStartPage = 0x9,
-    Whitelist = 0xA,
-    News = 0xB,
-    UserID = 0xE,
-    AlbumEntry0 = 0xF,
-    ScreenShotEnabled = 0x10,
-    EcClientCertEnabled = 0x11,
-    Unk12 = 0x12,
-    PlayReportEnabled = 0x13,
-    Unk14 = 0x14,
-    Unk15 = 0x15,
-    BootDisplayKind = 0x17,
-    BackgroundKind = 0x18,
-    FooterEnabled = 0x19,
-    PointerEnabled = 0x1A,
-    LeftStickMode = 0x1B,
-    KeyRepeatFrame1 = 0x1C,
-    KeyRepeatFrame2 = 0x1D,
-    BootAsMediaPlayerInv = 0x1E,
-    DisplayUrlKind = 0x1F,
-    BootAsMediaPlayer = 0x21,
-    ShopJumpEnabled = 0x22,
-    MediaAutoPlayEnabled = 0x23,
-    LobbyParameter = 0x24,
-    ApplicationAlbumEntry = 0x26,
-    JsExtensionEnabled = 0x27,
-    AdditionalCommentText = 0x28,
-    TouchEnabledOnContents = 0x29,
-    UserAgentAdditionalString = 0x2A,
-    AdditionalMediaData0 = 0x2B,
-    MediaPlayerAutoCloseEnabled = 0x2C,
-    PageCacheEnabled = 0x2D,
-    WebAudioEnabled = 0x2E,
-    Unk2F = 0x2F,
-    YouTubeVideoWhitelist = 0x31,
-    FooterFixedKind = 0x32,
-    PageFadeEnabled = 0x33,
-    MediaCreatorApplicationRatingAge = 0x34,
-    BootLoadingIconEnabled = 0x35,
-    PageScrollIndicationEnabled = 0x36,
-    MediaPlayerSpeedControlEnabled = 0x37,
-    AlbumEntry1 = 0x38,
-    AlbumEntry2 = 0x39,
-    AlbumEntry3 = 0x3A,
-    AdditionalMediaData1 = 0x3B,
-    AdditionalMediaData2 = 0x3C,
-    AdditionalMediaData3 = 0x3D,
-    BootFooterButton = 0x3E,
-    OverrideWebAudioVolume = 0x3F,
-    OverrideMediaAudioVolume = 0x40,
-    BootMode = 0x41,
-    WebSessionEnabled = 0x42,
-};
-
-enum class ShimKind : u32 {
-    Shop = 1,
-    Login = 2,
-    Offline = 3,
-    Share = 4,
-    Web = 5,
-    Wifi = 6,
-    Lobby = 7,
-};
-
-enum class ShopWebTarget {
-    ApplicationInfo,
-    AddOnContentList,
-    SubscriptionList,
-    ConsumableItemList,
-    Home,
-    Settings,
-};
-
 namespace {
 
-constexpr std::size_t SHIM_KIND_COUNT = 0x8;
+template <typename T>
+void ParseRawValue(T& value, const std::vector<u8>& data) {
+    static_assert(std::is_trivially_copyable_v<T>,
+                  "It's undefined behavior to use memcpy with non-trivially copyable objects");
+    std::memcpy(&value, data.data(), data.size());
+}
 
-struct WebArgHeader {
-    u16 count;
-    INSERT_PADDING_BYTES(2);
-    ShimKind kind;
-};
-static_assert(sizeof(WebArgHeader) == 0x8, "WebArgHeader has incorrect size.");
+template <typename T>
+T ParseRawValue(const std::vector<u8>& data) {
+    T value;
+    ParseRawValue(value, data);
+    return value;
+}
 
-struct WebArgTLV {
-    WebArgTLVType type;
-    u16 size;
-    u32 offset;
-};
-static_assert(sizeof(WebArgTLV) == 0x8, "WebArgTLV has incorrect size.");
+std::string ParseStringValue(const std::vector<u8>& data) {
+    return Common::StringFromFixedZeroTerminatedBuffer(reinterpret_cast<const char*>(data.data()),
+                                                       data.size());
+}
 
-struct WebCommonReturnValue {
-    u32 result_code;
-    INSERT_PADDING_BYTES(0x4);
-    std::array<char, 0x1000> last_url;
-    u64 last_url_size;
-};
-static_assert(sizeof(WebCommonReturnValue) == 0x1010, "WebCommonReturnValue has incorrect size.");
+std::string GetMainURL(const std::string& url) {
+    const auto index = url.find('?');
 
-struct WebWifiPageArg {
-    INSERT_PADDING_BYTES(4);
-    std::array<char, 0x100> connection_test_url;
-    std::array<char, 0x400> initial_url;
-    std::array<u8, 0x10> nifm_network_uuid;
-    u32 nifm_requirement;
-};
-static_assert(sizeof(WebWifiPageArg) == 0x518, "WebWifiPageArg has incorrect size.");
+    if (index == std::string::npos) {
+        return url;
+    }
 
-struct WebWifiReturnValue {
-    INSERT_PADDING_BYTES(4);
-    u32 result;
-};
-static_assert(sizeof(WebWifiReturnValue) == 0x8, "WebWifiReturnValue has incorrect size.");
+    return url.substr(0, index);
+}
 
-enum class OfflineWebSource : u32 {
-    OfflineHtmlPage = 0x1,
-    ApplicationLegalInformation = 0x2,
-    SystemDataPage = 0x3,
-};
+WebArgInputTLVMap ReadWebArgs(const std::vector<u8>& web_arg, WebArgHeader& web_arg_header) {
+    std::memcpy(&web_arg_header, web_arg.data(), sizeof(WebArgHeader));
 
-std::map<WebArgTLVType, std::vector<u8>> GetWebArguments(const std::vector<u8>& arg) {
-    if (arg.size() < sizeof(WebArgHeader))
+    if (web_arg.size() == sizeof(WebArgHeader)) {
         return {};
-
-    WebArgHeader header{};
-    std::memcpy(&header, arg.data(), sizeof(WebArgHeader));
-
-    std::map<WebArgTLVType, std::vector<u8>> out;
-    u64 offset = sizeof(WebArgHeader);
-    for (std::size_t i = 0; i < header.count; ++i) {
-        if (arg.size() < (offset + sizeof(WebArgTLV)))
-            return out;
-
-        WebArgTLV tlv{};
-        std::memcpy(&tlv, arg.data() + offset, sizeof(WebArgTLV));
-        offset += sizeof(WebArgTLV);
-
-        offset += tlv.offset;
-        if (arg.size() < (offset + tlv.size))
-            return out;
-
-        std::vector<u8> data(tlv.size);
-        std::memcpy(data.data(), arg.data() + offset, tlv.size);
-        offset += tlv.size;
-
-        out.insert_or_assign(tlv.type, data);
     }
 
-    return out;
+    WebArgInputTLVMap input_tlv_map;
+
+    u64 current_offset = sizeof(WebArgHeader);
+
+    for (std::size_t i = 0; i < web_arg_header.total_tlv_entries; ++i) {
+        if (web_arg.size() < current_offset + sizeof(WebArgInputTLV)) {
+            return input_tlv_map;
+        }
+
+        WebArgInputTLV input_tlv;
+        std::memcpy(&input_tlv, web_arg.data() + current_offset, sizeof(WebArgInputTLV));
+
+        current_offset += sizeof(WebArgInputTLV);
+
+        if (web_arg.size() < current_offset + input_tlv.arg_data_size) {
+            return input_tlv_map;
+        }
+
+        std::vector<u8> data(input_tlv.arg_data_size);
+        std::memcpy(data.data(), web_arg.data() + current_offset, input_tlv.arg_data_size);
+
+        current_offset += input_tlv.arg_data_size;
+
+        input_tlv_map.insert_or_assign(input_tlv.input_tlv_type, std::move(data));
+    }
+
+    return input_tlv_map;
 }
 
-FileSys::VirtualFile GetApplicationRomFS(const Core::System& system, u64 title_id,
-                                         FileSys::ContentRecordType type) {
-    const auto& installed{system.GetContentProvider()};
-    const auto res = installed.GetEntry(title_id, type);
+FileSys::VirtualFile GetOfflineRomFS(Core::System& system, u64 title_id,
+                                     FileSys::ContentRecordType nca_type) {
+    if (nca_type == FileSys::ContentRecordType::Data) {
+        const auto nca =
+            system.GetFileSystemController().GetSystemNANDContents()->GetEntry(title_id, nca_type);
 
-    if (res != nullptr) {
-        return res->GetRomFS();
+        if (nca == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "NCA of type={} with title_id={:016X} is not found in the System NAND!",
+                      nca_type, title_id);
+            return FileSys::SystemArchive::SynthesizeSystemArchive(title_id);
+        }
+
+        return nca->GetRomFS();
+    } else {
+        const auto nca = system.GetContentProvider().GetEntry(title_id, nca_type);
+
+        if (nca == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "NCA of type={} with title_id={:016X} is not found in the ContentProvider!",
+                      nca_type, title_id);
+            return nullptr;
+        }
+
+        const FileSys::PatchManager pm{title_id, system.GetFileSystemController(),
+                                       system.GetContentProvider()};
+
+        return pm.PatchRomFS(nca->GetRomFS(), nca->GetBaseIVFCOffset(), nca_type);
     }
-
-    if (type == FileSys::ContentRecordType::Data) {
-        return FileSys::SystemArchive::SynthesizeSystemArchive(title_id);
-    }
-
-    return nullptr;
 }
 
-} // Anonymous namespace
+void ExtractSharedFonts(Core::System& system) {
+    static constexpr std::array<const char*, 7> DECRYPTED_SHARED_FONTS{
+        "FontStandard.ttf",
+        "FontChineseSimplified.ttf",
+        "FontExtendedChineseSimplified.ttf",
+        "FontChineseTraditional.ttf",
+        "FontKorean.ttf",
+        "FontNintendoExtended.ttf",
+        "FontNintendoExtended2.ttf",
+    };
 
-WebBrowser::WebBrowser(Core::System& system_, Core::Frontend::WebBrowserApplet& frontend_,
-                       Core::Frontend::ECommerceApplet* frontend_e_commerce_)
-    : Applet{system_.Kernel()}, frontend(frontend_),
-      frontend_e_commerce(frontend_e_commerce_), system{system_} {}
+    for (std::size_t i = 0; i < NS::SHARED_FONTS.size(); ++i) {
+        const auto fonts_dir = Common::FS::SanitizePath(
+            fmt::format("{}/fonts", Common::FS::GetUserPath(Common::FS::UserPath::CacheDir)),
+            Common::FS::DirectorySeparator::PlatformDefault);
+
+        const auto font_file_path =
+            Common::FS::SanitizePath(fmt::format("{}/{}", fonts_dir, DECRYPTED_SHARED_FONTS[i]),
+                                     Common::FS::DirectorySeparator::PlatformDefault);
+
+        if (Common::FS::Exists(font_file_path)) {
+            continue;
+        }
+
+        const auto font = NS::SHARED_FONTS[i];
+        const auto font_title_id = static_cast<u64>(font.first);
+
+        const auto nca = system.GetFileSystemController().GetSystemNANDContents()->GetEntry(
+            font_title_id, FileSys::ContentRecordType::Data);
+
+        FileSys::VirtualFile romfs;
+
+        if (!nca) {
+            romfs = FileSys::SystemArchive::SynthesizeSystemArchive(font_title_id);
+        } else {
+            romfs = nca->GetRomFS();
+        }
+
+        if (!romfs) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} cannot be extracted!",
+                      font_title_id);
+            continue;
+        }
+
+        const auto extracted_romfs = FileSys::ExtractRomFS(romfs);
+
+        if (!extracted_romfs) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} failed to extract!",
+                      font_title_id);
+            continue;
+        }
+
+        const auto font_file = extracted_romfs->GetFile(font.second);
+
+        if (!font_file) {
+            LOG_ERROR(Service_AM, "SharedFont RomFS with title_id={:016X} has no font file \"{}\"!",
+                      font_title_id, font.second);
+            continue;
+        }
+
+        std::vector<u32> font_data_u32(font_file->GetSize() / sizeof(u32));
+        font_file->ReadBytes<u32>(font_data_u32.data(), font_file->GetSize());
+
+        std::transform(font_data_u32.begin(), font_data_u32.end(), font_data_u32.begin(),
+                       Common::swap32);
+
+        std::vector<u8> decrypted_data(font_file->GetSize() - 8);
+
+        NS::DecryptSharedFontToTTF(font_data_u32, decrypted_data);
+
+        FileSys::VirtualFile decrypted_font = std::make_shared<FileSys::VectorVfsFile>(
+            std::move(decrypted_data), DECRYPTED_SHARED_FONTS[i]);
+
+        const auto temp_dir =
+            system.GetFilesystem()->CreateDirectory(fonts_dir, FileSys::Mode::ReadWrite);
+
+        const auto out_file = temp_dir->CreateFile(DECRYPTED_SHARED_FONTS[i]);
+
+        FileSys::VfsRawCopy(decrypted_font, out_file);
+    }
+}
+
+} // namespace
+
+WebBrowser::WebBrowser(Core::System& system_, const Core::Frontend::WebBrowserApplet& frontend_)
+    : Applet{system_.Kernel()}, frontend(frontend_), system{system_} {}
 
 WebBrowser::~WebBrowser() = default;
 
 void WebBrowser::Initialize() {
     Applet::Initialize();
 
-    complete = false;
-    temporary_dir.clear();
-    filename.clear();
-    status = RESULT_SUCCESS;
+    LOG_INFO(Service_AM, "Initializing Web Browser Applet.");
+
+    LOG_DEBUG(Service_AM,
+              "Initializing Applet with common_args: arg_version={}, lib_version={}, "
+              "play_startup_sound={}, size={}, system_tick={}, theme_color={}",
+              common_args.arguments_version, common_args.library_version,
+              common_args.play_startup_sound, common_args.size, common_args.system_tick,
+              common_args.theme_color);
+
+    web_applet_version = WebAppletVersion{common_args.library_version};
 
     const auto web_arg_storage = broker.PopNormalDataToApplet();
     ASSERT(web_arg_storage != nullptr);
+
     const auto& web_arg = web_arg_storage->GetData();
+    ASSERT_OR_EXECUTE(web_arg.size() >= sizeof(WebArgHeader), { return; });
 
-    ASSERT(web_arg.size() >= 0x8);
-    std::memcpy(&kind, web_arg.data() + 0x4, sizeof(ShimKind));
+    web_arg_input_tlv_map = ReadWebArgs(web_arg, web_arg_header);
 
-    args = GetWebArguments(web_arg);
+    LOG_DEBUG(Service_AM, "WebArgHeader: total_tlv_entries={}, shim_kind={}",
+              web_arg_header.total_tlv_entries, web_arg_header.shim_kind);
 
-    InitializeInternal();
+    ExtractSharedFonts(system);
+
+    switch (web_arg_header.shim_kind) {
+    case ShimKind::Shop:
+        InitializeShop();
+        break;
+    case ShimKind::Login:
+        InitializeLogin();
+        break;
+    case ShimKind::Offline:
+        InitializeOffline();
+        break;
+    case ShimKind::Share:
+        InitializeShare();
+        break;
+    case ShimKind::Web:
+        InitializeWeb();
+        break;
+    case ShimKind::Wifi:
+        InitializeWifi();
+        break;
+    case ShimKind::Lobby:
+        InitializeLobby();
+        break;
+    default:
+        UNREACHABLE_MSG("Invalid ShimKind={}", web_arg_header.shim_kind);
+        break;
+    }
 }
 
 bool WebBrowser::TransactionComplete() const {
@@ -244,315 +277,202 @@ ResultCode WebBrowser::GetStatus() const {
 }
 
 void WebBrowser::ExecuteInteractive() {
-    UNIMPLEMENTED_MSG("Unexpected interactive data recieved!");
+    UNIMPLEMENTED_MSG("WebSession is not implemented");
 }
 
 void WebBrowser::Execute() {
-    if (complete) {
-        return;
-    }
-
-    if (status != RESULT_SUCCESS) {
-        complete = true;
-
-        // This is a workaround in order not to softlock yuzu when an error happens during the
-        // webapplet init. In order to avoid an svcBreak, the status is set to RESULT_SUCCESS
-        Finalize();
-        status = RESULT_SUCCESS;
-
-        return;
-    }
-
-    ExecuteInternal();
-}
-
-void WebBrowser::UnpackRomFS() {
-    if (unpacked)
-        return;
-
-    ASSERT(offline_romfs != nullptr);
-    const auto dir =
-        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
-    const auto& vfs{system.GetFilesystem()};
-    const auto temp_dir = vfs->CreateDirectory(temporary_dir, FileSys::Mode::ReadWrite);
-    FileSys::VfsRawCopyD(dir, temp_dir);
-
-    unpacked = true;
-}
-
-void WebBrowser::Finalize() {
-    complete = true;
-
-    WebCommonReturnValue out{};
-    out.result_code = 0;
-    out.last_url_size = 0;
-
-    std::vector<u8> data(sizeof(WebCommonReturnValue));
-    std::memcpy(data.data(), &out, sizeof(WebCommonReturnValue));
-
-    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(data)));
-    broker.SignalStateChanged();
-
-    if (!temporary_dir.empty() && Common::FS::IsDirectory(temporary_dir)) {
-        Common::FS::DeleteDirRecursively(temporary_dir);
-    }
-}
-
-void WebBrowser::InitializeInternal() {
-    using WebAppletInitializer = void (WebBrowser::*)();
-
-    constexpr std::array<WebAppletInitializer, SHIM_KIND_COUNT> functions{
-        nullptr, &WebBrowser::InitializeShop,
-        nullptr, &WebBrowser::InitializeOffline,
-        nullptr, nullptr,
-        nullptr, nullptr,
-    };
-
-    const auto index = static_cast<u32>(kind);
-
-    if (index > functions.size() || functions[index] == nullptr) {
-        LOG_ERROR(Service_AM, "Invalid shim_kind={:08X}", index);
-        return;
-    }
-
-    const auto function = functions[index];
-    (this->*function)();
-}
-
-void WebBrowser::ExecuteInternal() {
-    using WebAppletExecutor = void (WebBrowser::*)();
-
-    constexpr std::array<WebAppletExecutor, SHIM_KIND_COUNT> functions{
-        nullptr, &WebBrowser::ExecuteShop,
-        nullptr, &WebBrowser::ExecuteOffline,
-        nullptr, nullptr,
-        nullptr, nullptr,
-    };
-
-    const auto index = static_cast<u32>(kind);
-
-    if (index > functions.size() || functions[index] == nullptr) {
-        LOG_ERROR(Service_AM, "Invalid shim_kind={:08X}", index);
-        return;
-    }
-
-    const auto function = functions[index];
-    (this->*function)();
-}
-
-void WebBrowser::InitializeShop() {
-    if (frontend_e_commerce == nullptr) {
-        LOG_ERROR(Service_AM, "Missing ECommerce Applet frontend!");
-        status = RESULT_UNKNOWN;
-        return;
-    }
-
-    const auto user_id_data = args.find(WebArgTLVType::UserID);
-
-    user_id = std::nullopt;
-    if (user_id_data != args.end()) {
-        user_id = u128{};
-        std::memcpy(user_id->data(), user_id_data->second.data(), sizeof(u128));
-    }
-
-    const auto url = args.find(WebArgTLVType::ShopArgumentsURL);
-
-    if (url == args.end()) {
-        LOG_ERROR(Service_AM, "Missing EShop Arguments URL for initialization!");
-        status = RESULT_UNKNOWN;
-        return;
-    }
-
-    std::vector<std::string> split_query;
-    Common::SplitString(Common::StringFromFixedZeroTerminatedBuffer(
-                            reinterpret_cast<const char*>(url->second.data()), url->second.size()),
-                        '?', split_query);
-
-    // 2 -> Main URL '?' Query Parameters
-    // Less is missing info, More is malformed
-    if (split_query.size() != 2) {
-        LOG_ERROR(Service_AM, "EShop Arguments has more than one question mark, malformed");
-        status = RESULT_UNKNOWN;
-        return;
-    }
-
-    std::vector<std::string> queries;
-    Common::SplitString(split_query[1], '&', queries);
-
-    const auto split_single_query =
-        [](const std::string& in) -> std::pair<std::string, std::string> {
-        const auto index = in.find('=');
-        if (index == std::string::npos || index == in.size() - 1) {
-            return {in, ""};
-        }
-
-        return {in.substr(0, index), in.substr(index + 1)};
-    };
-
-    std::transform(queries.begin(), queries.end(),
-                   std::inserter(shop_query, std::next(shop_query.begin())), split_single_query);
-
-    const auto scene = shop_query.find("scene");
-
-    if (scene == shop_query.end()) {
-        LOG_ERROR(Service_AM, "No scene parameter was passed via shop query!");
-        status = RESULT_UNKNOWN;
-        return;
-    }
-
-    const std::map<std::string, ShopWebTarget, std::less<>> target_map{
-        {"product_detail", ShopWebTarget::ApplicationInfo},
-        {"aocs", ShopWebTarget::AddOnContentList},
-        {"subscriptions", ShopWebTarget::SubscriptionList},
-        {"consumption", ShopWebTarget::ConsumableItemList},
-        {"settings", ShopWebTarget::Settings},
-        {"top", ShopWebTarget::Home},
-    };
-
-    const auto target = target_map.find(scene->second);
-    if (target == target_map.end()) {
-        LOG_ERROR(Service_AM, "Scene for shop query is invalid! (scene={})", scene->second);
-        status = RESULT_UNKNOWN;
-        return;
-    }
-
-    shop_web_target = target->second;
-
-    const auto title_id_data = shop_query.find("dst_app_id");
-    if (title_id_data != shop_query.end()) {
-        title_id = std::stoull(title_id_data->second, nullptr, 0x10);
-    }
-
-    const auto mode_data = shop_query.find("mode");
-    if (mode_data != shop_query.end()) {
-        shop_full_display = mode_data->second == "full";
-    }
-}
-
-void WebBrowser::InitializeOffline() {
-    if (args.find(WebArgTLVType::DocumentPath) == args.end() ||
-        args.find(WebArgTLVType::DocumentKind) == args.end() ||
-        args.find(WebArgTLVType::ApplicationID) == args.end()) {
-        status = RESULT_UNKNOWN;
-        LOG_ERROR(Service_AM, "Missing necessary parameters for initialization!");
-    }
-
-    const auto url_data = args[WebArgTLVType::DocumentPath];
-    filename = Common::StringFromFixedZeroTerminatedBuffer(
-        reinterpret_cast<const char*>(url_data.data()), url_data.size());
-
-    OfflineWebSource source;
-    ASSERT(args[WebArgTLVType::DocumentKind].size() >= 4);
-    std::memcpy(&source, args[WebArgTLVType::DocumentKind].data(), sizeof(OfflineWebSource));
-
-    constexpr std::array<const char*, 3> WEB_SOURCE_NAMES{
-        "manual",
-        "legal",
-        "system",
-    };
-
-    temporary_dir =
-        Common::FS::SanitizePath(Common::FS::GetUserPath(Common::FS::UserPath::CacheDir) +
-                                     "web_applet_" + WEB_SOURCE_NAMES[static_cast<u32>(source) - 1],
-                                 Common::FS::DirectorySeparator::PlatformDefault);
-    Common::FS::DeleteDirRecursively(temporary_dir);
-
-    u64 title_id = 0; // 0 corresponds to current process
-    ASSERT(args[WebArgTLVType::ApplicationID].size() >= 0x8);
-    std::memcpy(&title_id, args[WebArgTLVType::ApplicationID].data(), sizeof(u64));
-    FileSys::ContentRecordType type = FileSys::ContentRecordType::Data;
-
-    switch (source) {
-    case OfflineWebSource::OfflineHtmlPage:
-        // While there is an AppID TLV field, in official SW this is always ignored.
-        title_id = 0;
-        type = FileSys::ContentRecordType::HtmlDocument;
+    switch (web_arg_header.shim_kind) {
+    case ShimKind::Shop:
+        ExecuteShop();
         break;
-    case OfflineWebSource::ApplicationLegalInformation:
-        type = FileSys::ContentRecordType::LegalInformation;
+    case ShimKind::Login:
+        ExecuteLogin();
         break;
-    case OfflineWebSource::SystemDataPage:
-        type = FileSys::ContentRecordType::Data;
+    case ShimKind::Offline:
+        ExecuteOffline();
         break;
-    }
-
-    if (title_id == 0) {
-        title_id = system.CurrentProcess()->GetTitleID();
-    }
-
-    offline_romfs = GetApplicationRomFS(system, title_id, type);
-    if (offline_romfs == nullptr) {
-        status = RESULT_UNKNOWN;
-        LOG_ERROR(Service_AM, "Failed to find offline data for request!");
-    }
-
-    std::string path_additional_directory;
-    if (source == OfflineWebSource::OfflineHtmlPage) {
-        path_additional_directory = std::string(DIR_SEP).append("html-document");
-    }
-
-    filename =
-        Common::FS::SanitizePath(temporary_dir + path_additional_directory + DIR_SEP + filename,
-                                 Common::FS::DirectorySeparator::PlatformDefault);
-}
-
-void WebBrowser::ExecuteShop() {
-    const auto callback = [this]() { Finalize(); };
-
-    const auto check_optional_parameter = [this](const auto& p) {
-        if (!p.has_value()) {
-            LOG_ERROR(Service_AM, "Missing one or more necessary parameters for execution!");
-            status = RESULT_UNKNOWN;
-            return false;
-        }
-
-        return true;
-    };
-
-    switch (shop_web_target) {
-    case ShopWebTarget::ApplicationInfo:
-        if (!check_optional_parameter(title_id))
-            return;
-        frontend_e_commerce->ShowApplicationInformation(callback, *title_id, user_id,
-                                                        shop_full_display, shop_extra_parameter);
+    case ShimKind::Share:
+        ExecuteShare();
         break;
-    case ShopWebTarget::AddOnContentList:
-        if (!check_optional_parameter(title_id))
-            return;
-        frontend_e_commerce->ShowAddOnContentList(callback, *title_id, user_id, shop_full_display);
+    case ShimKind::Web:
+        ExecuteWeb();
         break;
-    case ShopWebTarget::ConsumableItemList:
-        if (!check_optional_parameter(title_id))
-            return;
-        frontend_e_commerce->ShowConsumableItemList(callback, *title_id, user_id);
+    case ShimKind::Wifi:
+        ExecuteWifi();
         break;
-    case ShopWebTarget::Home:
-        if (!check_optional_parameter(user_id))
-            return;
-        if (!check_optional_parameter(shop_full_display))
-            return;
-        frontend_e_commerce->ShowShopHome(callback, *user_id, *shop_full_display);
-        break;
-    case ShopWebTarget::Settings:
-        if (!check_optional_parameter(user_id))
-            return;
-        if (!check_optional_parameter(shop_full_display))
-            return;
-        frontend_e_commerce->ShowSettings(callback, *user_id, *shop_full_display);
-        break;
-    case ShopWebTarget::SubscriptionList:
-        if (!check_optional_parameter(title_id))
-            return;
-        frontend_e_commerce->ShowSubscriptionList(callback, *title_id, user_id);
+    case ShimKind::Lobby:
+        ExecuteLobby();
         break;
     default:
-        UNREACHABLE();
+        UNREACHABLE_MSG("Invalid ShimKind={}", web_arg_header.shim_kind);
+        WebBrowserExit(WebExitReason::EndButtonPressed);
+        break;
     }
+}
+
+void WebBrowser::ExtractOfflineRomFS() {
+    LOG_DEBUG(Service_AM, "Extracting RomFS to {}", offline_cache_dir);
+
+    const auto extracted_romfs_dir =
+        FileSys::ExtractRomFS(offline_romfs, FileSys::RomFSExtractionType::SingleDiscard);
+
+    const auto temp_dir =
+        system.GetFilesystem()->CreateDirectory(offline_cache_dir, FileSys::Mode::ReadWrite);
+
+    FileSys::VfsRawCopyD(extracted_romfs_dir, temp_dir);
+}
+
+void WebBrowser::WebBrowserExit(WebExitReason exit_reason, std::string last_url) {
+    if ((web_arg_header.shim_kind == ShimKind::Share &&
+         web_applet_version >= WebAppletVersion::Version196608) ||
+        (web_arg_header.shim_kind == ShimKind::Web &&
+         web_applet_version >= WebAppletVersion::Version524288)) {
+        // TODO: Push Output TLVs instead of a WebCommonReturnValue
+    }
+
+    WebCommonReturnValue web_common_return_value;
+
+    web_common_return_value.exit_reason = exit_reason;
+    std::memcpy(&web_common_return_value.last_url, last_url.data(), last_url.size());
+    web_common_return_value.last_url_size = last_url.size();
+
+    LOG_DEBUG(Service_AM, "WebCommonReturnValue: exit_reason={}, last_url={}, last_url_size={}",
+              exit_reason, last_url, last_url.size());
+
+    complete = true;
+    std::vector<u8> out_data(sizeof(WebCommonReturnValue));
+    std::memcpy(out_data.data(), &web_common_return_value, out_data.size());
+    broker.PushNormalDataFromApplet(std::make_shared<IStorage>(system, std::move(out_data)));
+    broker.SignalStateChanged();
+}
+
+bool WebBrowser::InputTLVExistsInMap(WebArgInputTLVType input_tlv_type) const {
+    return web_arg_input_tlv_map.find(input_tlv_type) != web_arg_input_tlv_map.end();
+}
+
+std::optional<std::vector<u8>> WebBrowser::GetInputTLVData(WebArgInputTLVType input_tlv_type) {
+    const auto map_it = web_arg_input_tlv_map.find(input_tlv_type);
+
+    if (map_it == web_arg_input_tlv_map.end()) {
+        return std::nullopt;
+    }
+
+    return map_it->second;
+}
+
+void WebBrowser::InitializeShop() {}
+
+void WebBrowser::InitializeLogin() {}
+
+void WebBrowser::InitializeOffline() {
+    const auto document_path =
+        ParseStringValue(GetInputTLVData(WebArgInputTLVType::DocumentPath).value());
+
+    const auto document_kind =
+        ParseRawValue<DocumentKind>(GetInputTLVData(WebArgInputTLVType::DocumentKind).value());
+
+    std::string additional_paths;
+
+    switch (document_kind) {
+    case DocumentKind::OfflineHtmlPage:
+    default:
+        title_id = system.CurrentProcess()->GetTitleID();
+        nca_type = FileSys::ContentRecordType::HtmlDocument;
+        additional_paths = "html-document";
+        break;
+    case DocumentKind::ApplicationLegalInformation:
+        title_id = ParseRawValue<u64>(GetInputTLVData(WebArgInputTLVType::ApplicationID).value());
+        nca_type = FileSys::ContentRecordType::LegalInformation;
+        break;
+    case DocumentKind::SystemDataPage:
+        title_id = ParseRawValue<u64>(GetInputTLVData(WebArgInputTLVType::SystemDataID).value());
+        nca_type = FileSys::ContentRecordType::Data;
+        break;
+    }
+
+    static constexpr std::array<const char*, 3> RESOURCE_TYPES{
+        "manual",
+        "legal_information",
+        "system_data",
+    };
+
+    offline_cache_dir = Common::FS::SanitizePath(
+        fmt::format("{}/offline_web_applet_{}/{:016X}",
+                    Common::FS::GetUserPath(Common::FS::UserPath::CacheDir),
+                    RESOURCE_TYPES[static_cast<u32>(document_kind) - 1], title_id),
+        Common::FS::DirectorySeparator::PlatformDefault);
+
+    offline_document = Common::FS::SanitizePath(
+        fmt::format("{}/{}/{}", offline_cache_dir, additional_paths, document_path),
+        Common::FS::DirectorySeparator::PlatformDefault);
+}
+
+void WebBrowser::InitializeShare() {}
+
+void WebBrowser::InitializeWeb() {
+    external_url = ParseStringValue(GetInputTLVData(WebArgInputTLVType::InitialURL).value());
+}
+
+void WebBrowser::InitializeWifi() {}
+
+void WebBrowser::InitializeLobby() {}
+
+void WebBrowser::ExecuteShop() {
+    LOG_WARNING(Service_AM, "(STUBBED) called, Shop Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
+}
+
+void WebBrowser::ExecuteLogin() {
+    LOG_WARNING(Service_AM, "(STUBBED) called, Login Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
 }
 
 void WebBrowser::ExecuteOffline() {
-    frontend.OpenPageLocal(
-        filename, [this] { UnpackRomFS(); }, [this] { Finalize(); });
+    const auto main_url = Common::FS::SanitizePath(GetMainURL(offline_document),
+                                                   Common::FS::DirectorySeparator::PlatformDefault);
+
+    if (!Common::FS::Exists(main_url)) {
+        offline_romfs = GetOfflineRomFS(system, title_id, nca_type);
+
+        if (offline_romfs == nullptr) {
+            LOG_ERROR(Service_AM,
+                      "RomFS with title_id={:016X} and nca_type={} cannot be extracted!", title_id,
+                      nca_type);
+            WebBrowserExit(WebExitReason::WindowClosed);
+            return;
+        }
+    }
+
+    LOG_INFO(Service_AM, "Opening offline document at {}", offline_document);
+
+    frontend.OpenLocalWebPage(
+        offline_document, [this] { ExtractOfflineRomFS(); },
+        [this](WebExitReason exit_reason, std::string last_url) {
+            WebBrowserExit(exit_reason, last_url);
+        });
 }
 
+void WebBrowser::ExecuteShare() {
+    LOG_WARNING(Service_AM, "(STUBBED) called, Share Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
+}
+
+void WebBrowser::ExecuteWeb() {
+    LOG_INFO(Service_AM, "Opening external URL at {}", external_url);
+
+    frontend.OpenExternalWebPage(external_url,
+                                 [this](WebExitReason exit_reason, std::string last_url) {
+                                     WebBrowserExit(exit_reason, last_url);
+                                 });
+}
+
+void WebBrowser::ExecuteWifi() {
+    LOG_WARNING(Service_AM, "(STUBBED) called, Wifi Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
+}
+
+void WebBrowser::ExecuteLobby() {
+    LOG_WARNING(Service_AM, "(STUBBED) called, Lobby Applet is not implemented");
+    WebBrowserExit(WebExitReason::EndButtonPressed);
+}
 } // namespace Service::AM::Applets
