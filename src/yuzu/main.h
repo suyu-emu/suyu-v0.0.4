@@ -257,6 +257,7 @@ private:
                            const std::string& title_version = {});
     void UpdateStatusBar();
     void UpdateStatusButtons();
+    void UpdateUISettings();
     void HideMouseCursor();
     void ShowMouseCursor();
     void OpenURL(const QUrl& url);
