@@ -48,7 +48,7 @@ private:
 
 MicroProfileDialog::MicroProfileDialog(QWidget* parent) : QWidget(parent, Qt::Dialog) {
     setObjectName(QStringLiteral("MicroProfile"));
-    setWindowTitle(tr("MicroProfile"));
+    setWindowTitle(tr("&MicroProfile"));
     resize(1000, 600);
     // Remove the "?" button from the titlebar and enable the maximize button
     setWindowFlags((windowFlags() & ~Qt::WindowContextHelpButtonHint) |
