@@ -219,7 +219,8 @@ target_link_libraries(yuzu PRIVATE common core input_common video_core)
 target_link_libraries(yuzu PRIVATE Boost::boost glad Qt5::Widgets)
 target_link_libraries(yuzu PRIVATE ${PLATFORM_LIBRARIES} Threads::Threads)
 
-if (ENABLE_VULKAN AND NOT WIN32)
+target_include_directories(yuzu PRIVATE ../../externals/Vulkan-Headers/include)
+if (NOT WIN32)
     target_include_directories(yuzu PRIVATE ${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 endif()
 
@@ -279,9 +280,4 @@ endif()
 
 if (NOT APPLE)
     target_compile_definitions(yuzu PRIVATE HAS_OPENGL)
-endif()
-
-if (ENABLE_VULKAN)
-    target_include_directories(yuzu PRIVATE ../../externals/Vulkan-Headers/include)
-    target_compile_definitions(yuzu PRIVATE HAS_VULKAN)
 endif()

@@ -19,7 +19,7 @@
 #include <QOpenGLContext>
 #endif
 
-#if !defined(WIN32) && HAS_VULKAN
+#if !defined(WIN32)
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
@@ -241,14 +241,12 @@ private:
     std::unique_ptr<Core::Frontend::GraphicsContext> context;
 };
 
-#ifdef HAS_VULKAN
 class VulkanRenderWidget : public RenderWidget {
 public:
     explicit VulkanRenderWidget(GRenderWindow* parent) : RenderWidget(parent) {
         windowHandle()->setSurfaceType(QWindow::VulkanSurface);
     }
 };
-#endif
 
 static Core::Frontend::WindowSystemType GetWindowSystemType() {
     // Determine WSI type based on Qt platform.
@@ -268,7 +266,6 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
     Core::Frontend::EmuWindow::WindowSystemInfo wsi;
     wsi.type = GetWindowSystemType();
 
-#ifdef HAS_VULKAN
     // Our Win32 Qt external doesn't have the private API.
 #if defined(WIN32) || defined(__APPLE__)
     wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
@@ -281,7 +278,6 @@ static Core::Frontend::EmuWindow::WindowSystemInfo GetWindowSystemInfo(QWindow* 
         wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
 #endif
     wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
-#endif
 
     return wsi;
 }
@@ -598,18 +594,12 @@ bool GRenderWindow::InitializeOpenGL() {
 }
 
 bool GRenderWindow::InitializeVulkan() {
-#ifdef HAS_VULKAN
     auto child = new VulkanRenderWidget(this);
     child_widget = child;
     child_widget->windowHandle()->create();
     main_context = std::make_unique<DummyContext>();
 
     return true;
-#else
-    QMessageBox::critical(this, tr("Vulkan not available!"),
-                          tr("yuzu has not been compiled with Vulkan support."));
-    return false;
-#endif
 }
 
 bool GRenderWindow::LoadOpenGL() {

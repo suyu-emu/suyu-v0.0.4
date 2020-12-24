@@ -11,9 +11,7 @@
 #include "video_core/gpu_synch.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/renderer_opengl.h"
-#ifdef HAS_VULKAN
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
-#endif
 #include "video_core/video_core.h"
 
 namespace {
@@ -28,11 +26,9 @@ std::unique_ptr<VideoCore::RendererBase> CreateRenderer(
     case Settings::RendererBackend::OpenGL:
         return std::make_unique<OpenGL::RendererOpenGL>(telemetry_session, emu_window, cpu_memory,
                                                         gpu, std::move(context));
-#ifdef HAS_VULKAN
     case Settings::RendererBackend::Vulkan:
         return std::make_unique<Vulkan::RendererVulkan>(telemetry_session, emu_window, cpu_memory,
                                                         gpu, std::move(context));
-#endif
     default:
         return nullptr;
     }
