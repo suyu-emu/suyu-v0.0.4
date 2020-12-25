@@ -170,8 +170,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_texture_cache.h
     renderer_vulkan/vk_update_descriptor.cpp
     renderer_vulkan/vk_update_descriptor.h
-    renderer_vulkan/wrapper.cpp
-    renderer_vulkan/wrapper.h
     shader_cache.h
     shader_notify.cpp
     shader_notify.h
@@ -262,6 +260,8 @@ add_library(video_core STATIC
     video_core.h
     vulkan_common/vulkan_library.cpp
     vulkan_common/vulkan_library.h
+    vulkan_common/vulkan_wrapper.cpp
+    vulkan_common/vulkan_wrapper.h
 )
 
 create_target_directory_groups(video_core)

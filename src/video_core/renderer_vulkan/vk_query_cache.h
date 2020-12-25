@@ -12,7 +12,7 @@
 #include "common/common_types.h"
 #include "video_core/query_cache.h"
 #include "video_core/renderer_vulkan/vk_resource_pool.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace VideoCore {
 class RasterizerInterface;

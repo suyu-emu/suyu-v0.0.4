@@ -25,11 +25,11 @@
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/compiler_settings.h"
 #include "video_core/shader/memory_util.h"
 #include "video_core/shader_cache.h"
 #include "video_core/shader_notify.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 

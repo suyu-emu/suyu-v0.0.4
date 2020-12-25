@@ -8,8 +8,8 @@
 #include <span>
 
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/texture_cache/texture_cache.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 

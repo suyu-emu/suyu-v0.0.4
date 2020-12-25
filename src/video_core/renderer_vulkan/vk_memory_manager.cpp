@@ -13,7 +13,7 @@
 #include "common/logging/log.h"
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 

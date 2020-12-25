@@ -29,8 +29,8 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
-#include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/vulkan_common/vulkan_library.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 // Include these late to avoid polluting previous headers
 #ifdef _WIN32

@@ -13,7 +13,7 @@
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_descriptor_pool.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
