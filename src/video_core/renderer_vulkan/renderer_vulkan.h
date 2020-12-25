@@ -56,8 +56,6 @@ public:
     static std::vector<std::string> EnumerateDevices();
 
 private:
-    bool CreateDebugCallback();
-
     bool CreateSurface();
 
     bool PickDevices();
@@ -78,7 +76,7 @@ private:
 
     VKScreenInfo screen_info;
 
-    vk::DebugCallback debug_callback;
+    vk::DebugUtilsMessenger debug_callback;
     std::unique_ptr<VKDevice> device;
     std::unique_ptr<VKMemoryManager> memory_manager;
     std::unique_ptr<StateTracker> state_tracker;

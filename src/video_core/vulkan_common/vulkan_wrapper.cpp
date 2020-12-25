@@ -435,7 +435,7 @@ VkResult Free(VkDevice device, VkCommandPool handle, Span<VkCommandBuffer> buffe
 }
 
 Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
-                          InstanceDispatch& dispatch) noexcept {
+                          InstanceDispatch& dispatch) {
     const VkApplicationInfo application_info{
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
         .pNext = nullptr,
@@ -455,22 +455,17 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
         .enabledExtensionCount = extensions.size(),
         .ppEnabledExtensionNames = extensions.data(),
     };
-
     VkInstance instance;
-    if (dispatch.vkCreateInstance(&ci, nullptr, &instance) != VK_SUCCESS) {
-        // Failed to create the instance.
-        return {};
-    }
+    Check(dispatch.vkCreateInstance(&ci, nullptr, &instance));
     if (!Proc(dispatch.vkDestroyInstance, dispatch, "vkDestroyInstance", instance)) {
         // We successfully created an instance but the destroy function couldn't be loaded.
         // This is a good moment to panic.
-        return {};
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
-
     return Instance(instance, dispatch);
 }
 
-std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() {
+std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() const {
     u32 num;
     if (dld->vkEnumeratePhysicalDevices(handle, &num, nullptr) != VK_SUCCESS) {
         return std::nullopt;
@@ -483,27 +478,11 @@ std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices(
     return std::make_optional(std::move(physical_devices));
 }
 
-DebugCallback Instance::TryCreateDebugCallback(
-    PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept {
-    const VkDebugUtilsMessengerCreateInfoEXT ci{
-        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
-        .pNext = nullptr,
-        .flags = 0,
-        .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
-                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-                           VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
-        .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
-        .pfnUserCallback = callback,
-        .pUserData = nullptr,
-    };
-
-    VkDebugUtilsMessengerEXT messenger;
-    if (dld->vkCreateDebugUtilsMessengerEXT(handle, &ci, nullptr, &messenger) != VK_SUCCESS) {
-        return {};
-    }
-    return DebugCallback(messenger, handle, *dld);
+DebugUtilsMessenger Instance::CreateDebugUtilsMessenger(
+    const VkDebugUtilsMessengerCreateInfoEXT& create_info) const {
+    VkDebugUtilsMessengerEXT object;
+    Check(dld->vkCreateDebugUtilsMessengerEXT(handle, &create_info, nullptr, &object));
+    return DebugUtilsMessenger(object, handle, *dld);
 }
 
 void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {

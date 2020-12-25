@@ -117,21 +117,20 @@ std::pair<vk::Instance, u32> CreateInstance(Common::DynamicLibrary& library,
                                             bool enable_debug_utils, bool enable_layers) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
-        return {};
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     if (!library.GetSymbol("vkGetInstanceProcAddr", &dld.vkGetInstanceProcAddr)) {
         LOG_ERROR(Render_Vulkan, "vkGetInstanceProcAddr not present in Vulkan");
-        return {};
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     if (!vk::Load(dld)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan function pointers");
-        return {};
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     const std::vector<const char*> extensions = RequiredExtensions(window_type, enable_debug_utils);
     if (!AreExtensionsSupported(dld, extensions)) {
-        return {};
+        throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
-
     std::vector<const char*> layers = Layers(enable_layers);
     RemoveUnavailableLayers(dld, layers);
 
@@ -139,12 +138,9 @@ std::pair<vk::Instance, u32> CreateInstance(Common::DynamicLibrary& library,
     const u32 version = std::min(vk::AvailableVersion(dld), VK_API_VERSION_1_1);
 
     vk::Instance instance = vk::Instance::Create(version, layers, extensions, dld);
-    if (!instance) {
-        LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
-        return {};
-    }
     if (!vk::Load(*instance, dld)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     return std::make_pair(std::move(instance), version);
 }

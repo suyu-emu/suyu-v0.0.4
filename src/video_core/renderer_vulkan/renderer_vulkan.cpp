@@ -29,6 +29,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/vulkan_common/vulkan_debug_callback.h"
 #include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
@@ -48,24 +49,6 @@
 
 namespace Vulkan {
 namespace {
-VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-                       VkDebugUtilsMessageTypeFlagsEXT type,
-                       const VkDebugUtilsMessengerCallbackDataEXT* data,
-                       [[maybe_unused]] void* user_data) {
-    const char* const message{data->pMessage};
-
-    if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-        LOG_CRITICAL(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-        LOG_WARNING(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-        LOG_INFO(Render_Vulkan, "{}", message);
-    } else if (severity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-        LOG_DEBUG(Render_Vulkan, "{}", message);
-    }
-    return VK_FALSE;
-}
-
 std::string GetReadableVersion(u32 version) {
     return fmt::format("{}.{}.{}", VK_VERSION_MAJOR(version), VK_VERSION_MINOR(version),
                        VK_VERSION_PATCH(version));
@@ -158,7 +141,11 @@ bool RendererVulkan::Init() {
     library = OpenLibrary();
     std::tie(instance, instance_version) = CreateInstance(
         library, dld, render_window.GetWindowInfo().type, true, Settings::values.renderer_debug);
-    if (!instance || !CreateDebugCallback() || !CreateSurface() || !PickDevices()) {
+    if (Settings::values.renderer_debug) {
+        debug_callback = CreateDebugCallback(instance);
+    }
+
+    if (!CreateSurface() || !PickDevices()) {
         return false;
     }
 
@@ -199,18 +186,6 @@ void RendererVulkan::ShutDown() {
     swapchain.reset();
     memory_manager.reset();
     device.reset();
-}
-
-bool RendererVulkan::CreateDebugCallback() {
-    if (!Settings::values.renderer_debug) {
-        return true;
-    }
-    debug_callback = instance.TryCreateDebugCallback(DebugCallback);
-    if (!debug_callback) {
-        LOG_ERROR(Render_Vulkan, "Failed to create debug callback");
-        return false;
-    }
-    return true;
 }
 
 bool RendererVulkan::CreateSurface() {

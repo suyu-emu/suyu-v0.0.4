@@ -258,6 +258,8 @@ add_library(video_core STATIC
     textures/texture.h
     video_core.cpp
     video_core.h
+    vulkan_common/vulkan_debug_callback.cpp
+    vulkan_common/vulkan_debug_callback.h
     vulkan_common/vulkan_instance.cpp
     vulkan_common/vulkan_instance.h
     vulkan_common/vulkan_library.cpp
