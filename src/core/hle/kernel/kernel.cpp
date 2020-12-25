@@ -57,6 +57,8 @@ struct KernelCore::Impl {
     }
 
     void Initialize(KernelCore& kernel) {
+        process_list.clear();
+
         RegisterHostThread();
 
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
@@ -76,8 +78,6 @@ struct KernelCore::Impl {
     }
 
     void Shutdown() {
-        process_list.clear();
-
         next_object_id = 0;
         next_kernel_process_id = Process::InitialKIPIDMin;
         next_user_process_id = Process::ProcessIDMin;
