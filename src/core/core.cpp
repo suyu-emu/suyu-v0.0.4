@@ -307,7 +307,6 @@ struct System::Impl {
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
-        device_memory.reset();
 
         // Close all CPU/threading state
         cpu_manager.Shutdown();
