@@ -137,7 +137,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     render_window.OnFrameDisplayed();
 }
 
-bool RendererVulkan::Init() {
+bool RendererVulkan::Init() try {
     library = OpenLibrary();
     std::tie(instance, instance_version) = CreateInstance(
         library, dld, render_window.GetWindowInfo().type, true, Settings::values.renderer_debug);
@@ -168,8 +168,11 @@ bool RendererVulkan::Init() {
     blit_screen =
         std::make_unique<VKBlitScreen>(cpu_memory, render_window, *rasterizer, *device,
                                        *memory_manager, *swapchain, *scheduler, screen_info);
-
     return true;
+
+} catch (const vk::Exception& exception) {
+    LOG_ERROR(Render_Vulkan, "Vulkan initialization failed with error: {}", exception.what());
+    return false;
 }
 
 void RendererVulkan::ShutDown() {
