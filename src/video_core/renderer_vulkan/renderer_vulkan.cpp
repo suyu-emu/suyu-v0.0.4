@@ -29,6 +29,7 @@
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
+#include "video_core/vulkan_common/vulkan_instance.h"
 #include "video_core/vulkan_common/vulkan_library.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -46,11 +47,7 @@
 #endif
 
 namespace Vulkan {
-
 namespace {
-
-using Core::Frontend::WindowSystemType;
-
 VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
                        VkDebugUtilsMessageTypeFlagsEXT type,
                        const VkDebugUtilsMessengerCallbackDataEXT* data,
@@ -67,109 +64,6 @@ VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
         LOG_DEBUG(Render_Vulkan, "{}", message);
     }
     return VK_FALSE;
-}
-
-std::pair<vk::Instance, u32> CreateInstance(
-    Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
-    WindowSystemType window_type = WindowSystemType::Headless, bool enable_debug_utils = false,
-    bool enable_layers = false) {
-    if (!library.IsOpen()) {
-        LOG_ERROR(Render_Vulkan, "Vulkan library not available");
-        return {};
-    }
-    if (!library.GetSymbol("vkGetInstanceProcAddr", &dld.vkGetInstanceProcAddr)) {
-        LOG_ERROR(Render_Vulkan, "vkGetInstanceProcAddr not present in Vulkan");
-        return {};
-    }
-    if (!vk::Load(dld)) {
-        LOG_ERROR(Render_Vulkan, "Failed to load Vulkan function pointers");
-        return {};
-    }
-
-    std::vector<const char*> extensions;
-    extensions.reserve(6);
-    switch (window_type) {
-    case Core::Frontend::WindowSystemType::Headless:
-        break;
-#ifdef _WIN32
-    case Core::Frontend::WindowSystemType::Windows:
-        extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-        break;
-#endif
-#if !defined(_WIN32) && !defined(__APPLE__)
-    case Core::Frontend::WindowSystemType::X11:
-        extensions.push_back(VK_KHR_XLIB_SURFACE_EXTENSION_NAME);
-        break;
-    case Core::Frontend::WindowSystemType::Wayland:
-        extensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-        break;
-#endif
-    default:
-        LOG_ERROR(Render_Vulkan, "Presentation not supported on this platform");
-        break;
-    }
-    if (window_type != Core::Frontend::WindowSystemType::Headless) {
-        extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
-    }
-    if (enable_debug_utils) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    }
-    extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-
-    const std::optional properties = vk::EnumerateInstanceExtensionProperties(dld);
-    if (!properties) {
-        LOG_ERROR(Render_Vulkan, "Failed to query extension properties");
-        return {};
-    }
-
-    for (const char* extension : extensions) {
-        const auto it =
-            std::find_if(properties->begin(), properties->end(), [extension](const auto& prop) {
-                return !std::strcmp(extension, prop.extensionName);
-            });
-        if (it == properties->end()) {
-            LOG_ERROR(Render_Vulkan, "Required instance extension {} is not available", extension);
-            return {};
-        }
-    }
-
-    std::vector<const char*> layers;
-    layers.reserve(1);
-    if (enable_layers) {
-        layers.push_back("VK_LAYER_KHRONOS_validation");
-    }
-
-    const std::optional layer_properties = vk::EnumerateInstanceLayerProperties(dld);
-    if (!layer_properties) {
-        LOG_ERROR(Render_Vulkan, "Failed to query layer properties, disabling layers");
-        layers.clear();
-    }
-
-    for (auto layer_it = layers.begin(); layer_it != layers.end();) {
-        const char* const layer = *layer_it;
-        const auto it = std::find_if(
-            layer_properties->begin(), layer_properties->end(),
-            [layer](const VkLayerProperties& prop) { return !std::strcmp(layer, prop.layerName); });
-        if (it == layer_properties->end()) {
-            LOG_ERROR(Render_Vulkan, "Layer {} not available, removing it", layer);
-            layer_it = layers.erase(layer_it);
-        } else {
-            ++layer_it;
-        }
-    }
-
-    // Limit the maximum version of Vulkan to avoid using untested version.
-    const u32 version = std::min(vk::AvailableVersion(dld), static_cast<u32>(VK_API_VERSION_1_1));
-
-    vk::Instance instance = vk::Instance::Create(version, layers, extensions, dld);
-    if (!instance) {
-        LOG_ERROR(Render_Vulkan, "Failed to create Vulkan instance");
-        return {};
-    }
-    if (!vk::Load(*instance, dld)) {
-        LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
-    }
-    return std::make_pair(std::move(instance), version);
 }
 
 std::string GetReadableVersion(u32 version) {
@@ -194,7 +88,6 @@ std::string GetDriverVersion(const VKDevice& device) {
         const u32 minor = version & 0x3fff;
         return fmt::format("{}.{}", major, minor);
     }
-
     return GetReadableVersion(version);
 }
 
@@ -233,7 +126,6 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
     if (!framebuffer) {
         return;
     }
-
     const auto& layout = render_window.GetFramebufferLayout();
     if (layout.width > 0 && layout.height > 0 && render_window.IsShown()) {
         const VAddr framebuffer_addr = framebuffer->address + framebuffer->offset;
@@ -429,12 +321,10 @@ std::vector<std::string> RendererVulkan::EnumerateDevices() {
     if (!instance) {
         return {};
     }
-
     const std::optional physical_devices = instance.EnumeratePhysicalDevices();
     if (!physical_devices) {
         return {};
     }
-
     std::vector<std::string> names;
     names.reserve(physical_devices->size());
     for (const auto& device : *physical_devices) {
