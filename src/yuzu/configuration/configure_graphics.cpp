@@ -4,21 +4,16 @@
 
 #include <QColorDialog>
 #include <QComboBox>
-#ifdef HAS_VULKAN
 #include <QVulkanInstance>
-#endif
 
 #include "common/common_types.h"
 #include "common/logging/log.h"
 #include "core/core.h"
 #include "core/settings.h"
 #include "ui_configure_graphics.h"
+#include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "yuzu/configuration/configuration_shared.h"
 #include "yuzu/configuration/configure_graphics.h"
-
-#ifdef HAS_VULKAN
-#include "video_core/renderer_vulkan/renderer_vulkan.h"
-#endif
 
 ConfigureGraphics::ConfigureGraphics(QWidget* parent)
     : QWidget(parent), ui(new Ui::ConfigureGraphics) {
@@ -218,12 +213,10 @@ void ConfigureGraphics::UpdateDeviceComboBox() {
 }
 
 void ConfigureGraphics::RetrieveVulkanDevices() {
-#ifdef HAS_VULKAN
     vulkan_devices.clear();
-    for (auto& name : Vulkan::RendererVulkan::EnumerateDevices()) {
+    for (const auto& name : Vulkan::RendererVulkan::EnumerateDevices()) {
         vulkan_devices.push_back(QString::fromStdString(name));
     }
-#endif
 }
 
 Settings::RendererBackend ConfigureGraphics::GetCurrentGraphicsBackend() const {

@@ -61,9 +61,7 @@ if (USE_DISCORD_PRESENCE)
 endif()
 
 # Sirit
-if (ENABLE_VULKAN)
-    add_subdirectory(sirit)
-endif()
+add_subdirectory(sirit)
 
 # libzip
 find_package(Libzip 1.5)

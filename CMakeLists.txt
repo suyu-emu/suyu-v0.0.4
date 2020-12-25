@@ -24,8 +24,6 @@ option(YUZU_ENABLE_BOXCAT "Enable the Boxcat service, a yuzu high-level implemen
 
 option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
-option(ENABLE_VULKAN "Enables Vulkan backend" ON)
-
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
 # Default to a Release build

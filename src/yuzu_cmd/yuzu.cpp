@@ -35,9 +35,7 @@
 #include "yuzu_cmd/config.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2.h"
 #include "yuzu_cmd/emu_window/emu_window_sdl2_gl.h"
-#ifdef HAS_VULKAN
 #include "yuzu_cmd/emu_window/emu_window_sdl2_vk.h"
-#endif
 
 #ifdef _WIN32
 // windows.h needs to be included before shellapi.h
@@ -173,13 +171,8 @@ int main(int argc, char** argv) {
         emu_window = std::make_unique<EmuWindow_SDL2_GL>(&input_subsystem, fullscreen);
         break;
     case Settings::RendererBackend::Vulkan:
-#ifdef HAS_VULKAN
         emu_window = std::make_unique<EmuWindow_SDL2_VK>(&input_subsystem);
         break;
-#else
-        LOG_CRITICAL(Frontend, "Vulkan backend has not been compiled!");
-        return 1;
-#endif
     }
 
     system.SetContentProvider(std::make_unique<FileSys::ContentProviderUnion>());
