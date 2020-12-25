@@ -28,9 +28,6 @@ public:
                       VkSurfaceKHR surface, const vk::InstanceDispatch& dld);
     ~VKDevice();
 
-    /// Initializes the device. Returns true on success.
-    bool Create();
-
     /**
      * Returns a format supported by the device for the passed requeriments.
      * @param wanted_format The ideal format to be returned. It may not be the returned format.

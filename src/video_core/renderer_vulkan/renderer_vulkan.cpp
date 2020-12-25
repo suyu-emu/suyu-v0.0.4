@@ -133,10 +133,8 @@ bool RendererVulkan::Init() try {
         debug_callback = CreateDebugCallback(instance);
     }
     surface = CreateSurface(instance, render_window);
-    if (!PickDevices()) {
-        return false;
-    }
 
+    InitializeDevice();
     Report();
 
     memory_manager = std::make_unique<VKMemoryManager>(*device);
@@ -178,21 +176,16 @@ void RendererVulkan::ShutDown() {
     device.reset();
 }
 
-bool RendererVulkan::PickDevices() {
+void RendererVulkan::InitializeDevice() {
     const std::vector<VkPhysicalDevice> devices = instance.EnumeratePhysicalDevices();
     const s32 device_index = Settings::values.vulkan_device.GetValue();
     if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
-        return false;
+        throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
-    const vk::PhysicalDevice physical_device(devices[static_cast<std::size_t>(device_index)], dld);
-    if (!VKDevice::IsSuitable(physical_device, *surface)) {
-        return false;
-    }
-
+    const vk::PhysicalDevice physical_device(devices[static_cast<size_t>(device_index)], dld);
     device =
         std::make_unique<VKDevice>(*instance, instance_version, physical_device, *surface, dld);
-    return device->Create();
 }
 
 void RendererVulkan::Report() const {

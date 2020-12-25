@@ -212,11 +212,7 @@ VKDevice::VKDevice(VkInstance instance_, u32 instance_version_, vk::PhysicalDevi
       instance_version{instance_version_}, format_properties{GetFormatProperties(physical, dld)} {
     SetupFamilies(surface);
     SetupFeatures();
-}
 
-VKDevice::~VKDevice() = default;
-
-bool VKDevice::Create() {
     const auto queue_cis = GetDeviceQueueCreateInfos();
     const std::vector extensions = LoadExtensions();
 
@@ -426,12 +422,7 @@ bool VKDevice::Create() {
         };
         first_next = &diagnostics_nv;
     }
-
     logical = vk::Device::Create(physical, queue_cis, extensions, first_next, dld);
-    if (!logical) {
-        LOG_ERROR(Render_Vulkan, "Failed to create logical device");
-        return false;
-    }
 
     CollectTelemetryParameters();
     CollectToolingInfo();
@@ -455,8 +446,9 @@ bool VKDevice::Create() {
     present_queue = logical.GetQueue(present_family);
 
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
-    return true;
 }
+
+VKDevice::~VKDevice() = default;
 
 VkFormat VKDevice::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                                       FormatType format_type) const {

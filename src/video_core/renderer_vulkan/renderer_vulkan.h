@@ -56,7 +56,7 @@ public:
     static std::vector<std::string> EnumerateDevices();
 
 private:
-    bool PickDevices();
+    void InitializeDevice();
 
     void Report() const;
 

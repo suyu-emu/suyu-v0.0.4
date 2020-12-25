@@ -580,7 +580,7 @@ void Semaphore::SetObjectNameEXT(const char* name) const {
 
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
                       Span<const char*> enabled_extensions, const void* next,
-                      DeviceDispatch& dispatch) noexcept {
+                      DeviceDispatch& dispatch) {
     const VkDeviceCreateInfo ci{
         .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
         .pNext = next,
@@ -593,11 +593,8 @@ Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreate
         .ppEnabledExtensionNames = enabled_extensions.data(),
         .pEnabledFeatures = nullptr,
     };
-
     VkDevice device;
-    if (dispatch.vkCreateDevice(physical_device, &ci, nullptr, &device) != VK_SUCCESS) {
-        return {};
-    }
+    Check(dispatch.vkCreateDevice(physical_device, &ci, nullptr, &device));
     Load(device, dispatch);
     return Device(device, dispatch);
 }
