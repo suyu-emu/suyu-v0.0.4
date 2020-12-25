@@ -170,7 +170,6 @@ void RendererVulkan::ShutDown() {
     if (const auto& dev = device->GetLogical()) {
         dev.WaitIdle();
     }
-
     rasterizer.reset();
     blit_screen.reset();
     scheduler.reset();
@@ -180,19 +179,13 @@ void RendererVulkan::ShutDown() {
 }
 
 bool RendererVulkan::PickDevices() {
-    const auto devices = instance.EnumeratePhysicalDevices();
-    if (!devices) {
-        LOG_ERROR(Render_Vulkan, "Failed to enumerate physical devices");
-        return false;
-    }
-
+    const std::vector<VkPhysicalDevice> devices = instance.EnumeratePhysicalDevices();
     const s32 device_index = Settings::values.vulkan_device.GetValue();
-    if (device_index < 0 || device_index >= static_cast<s32>(devices->size())) {
+    if (device_index < 0 || device_index >= static_cast<s32>(devices.size())) {
         LOG_ERROR(Render_Vulkan, "Invalid device index {}!", device_index);
         return false;
     }
-    const vk::PhysicalDevice physical_device((*devices)[static_cast<std::size_t>(device_index)],
-                                             dld);
+    const vk::PhysicalDevice physical_device(devices[static_cast<std::size_t>(device_index)], dld);
     if (!VKDevice::IsSuitable(physical_device, *surface)) {
         return false;
     }
@@ -224,23 +217,21 @@ void RendererVulkan::Report() const {
     telemetry_session.AddField(field, "GPU_Vulkan_Extensions", extensions);
 }
 
-std::vector<std::string> RendererVulkan::EnumerateDevices() {
+std::vector<std::string> RendererVulkan::EnumerateDevices() try {
     vk::InstanceDispatch dld;
-    Common::DynamicLibrary library = OpenLibrary();
-    vk::Instance instance = CreateInstance(library, dld).first;
-    if (!instance) {
-        return {};
-    }
-    const std::optional physical_devices = instance.EnumeratePhysicalDevices();
-    if (!physical_devices) {
-        return {};
-    }
+    const Common::DynamicLibrary library = OpenLibrary();
+    const vk::Instance instance = CreateInstance(library, dld).first;
+    const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
     std::vector<std::string> names;
-    names.reserve(physical_devices->size());
-    for (const auto& device : *physical_devices) {
+    names.reserve(physical_devices.size());
+    for (const VkPhysicalDevice device : physical_devices) {
         names.push_back(vk::PhysicalDevice(device, dld).GetProperties().deviceName);
     }
     return names;
+
+} catch (const vk::Exception& exception) {
+    LOG_ERROR(Render_Vulkan, "Failed to enumerate devices with error: {}", exception.what());
+    return {};
 }
 
 } // namespace Vulkan

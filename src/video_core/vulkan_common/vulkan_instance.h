@@ -14,7 +14,7 @@
 namespace Vulkan {
 
 [[nodiscard]] std::pair<vk::Instance, u32> CreateInstance(
-    Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
+    const Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
     Core::Frontend::WindowSystemType window_type = Core::Frontend::WindowSystemType::Headless,
     bool enable_debug_utils = false, bool enable_layers = false);
 

@@ -580,7 +580,8 @@ public:
 
     /// Enumerates physical devices.
     /// @return Physical devices and an empty handle on failure.
-    std::optional<std::vector<VkPhysicalDevice>> EnumeratePhysicalDevices() const;
+    /// @throw Exception on Vulkan error.
+    std::vector<VkPhysicalDevice> EnumeratePhysicalDevices() const;
 
     /// Creates a debug callback messenger.
     /// @throw Exception on creation failure.

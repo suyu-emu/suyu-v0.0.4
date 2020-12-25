@@ -465,17 +465,13 @@ Instance Instance::Create(u32 version, Span<const char*> layers, Span<const char
     return Instance(instance, dispatch);
 }
 
-std::optional<std::vector<VkPhysicalDevice>> Instance::EnumeratePhysicalDevices() const {
+std::vector<VkPhysicalDevice> Instance::EnumeratePhysicalDevices() const {
     u32 num;
-    if (dld->vkEnumeratePhysicalDevices(handle, &num, nullptr) != VK_SUCCESS) {
-        return std::nullopt;
-    }
+    Check(dld->vkEnumeratePhysicalDevices(handle, &num, nullptr));
     std::vector<VkPhysicalDevice> physical_devices(num);
-    if (dld->vkEnumeratePhysicalDevices(handle, &num, physical_devices.data()) != VK_SUCCESS) {
-        return std::nullopt;
-    }
+    Check(dld->vkEnumeratePhysicalDevices(handle, &num, physical_devices.data()));
     SortPhysicalDevices(physical_devices, *dld);
-    return std::make_optional(std::move(physical_devices));
+    return physical_devices;
 }
 
 DebugUtilsMessenger Instance::CreateDebugUtilsMessenger(

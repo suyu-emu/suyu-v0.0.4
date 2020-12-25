@@ -111,7 +111,7 @@ void RemoveUnavailableLayers(const vk::InstanceDispatch& dld, std::vector<const 
 }
 } // Anonymous namespace
 
-std::pair<vk::Instance, u32> CreateInstance(Common::DynamicLibrary& library,
+std::pair<vk::Instance, u32> CreateInstance(const Common::DynamicLibrary& library,
                                             vk::InstanceDispatch& dld,
                                             Core::Frontend::WindowSystemType window_type,
                                             bool enable_debug_utils, bool enable_layers) {
