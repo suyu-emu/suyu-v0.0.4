@@ -2094,6 +2094,7 @@ private:
             return OpFOrdGreaterThanEqual(t_bool, operand_1, operand_2);
         default:
             UNREACHABLE();
+            return v_true;
         }
     }
 
