@@ -303,6 +303,7 @@ if (MSVC)
         /we4457 # Declaration of 'identifier' hides function parameter
         /we4458 # Declaration of 'identifier' hides class member
         /we4459 # Declaration of 'identifier' hides global declaration
+        /we4715 # 'function' : not all control paths return a value
     )
 else()
     target_compile_options(video_core PRIVATE
