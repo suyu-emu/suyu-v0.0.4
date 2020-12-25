@@ -260,6 +260,8 @@ add_library(video_core STATIC
     textures/texture.h
     video_core.cpp
     video_core.h
+    vulkan_common/vulkan_library.cpp
+    vulkan_common/vulkan_library.h
 )
 
 create_target_directory_groups(video_core)

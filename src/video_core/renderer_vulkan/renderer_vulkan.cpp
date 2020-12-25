@@ -12,8 +12,6 @@
 
 #include <fmt/format.h>
 
-#include "common/dynamic_library.h"
-#include "common/file_util.h"
 #include "common/logging/log.h"
 #include "common/telemetry.h"
 #include "core/core.h"
@@ -32,6 +30,7 @@
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_library.h"
 
 // Include these late to avoid polluting previous headers
 #ifdef _WIN32
@@ -70,31 +69,10 @@ VkBool32 DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
     return VK_FALSE;
 }
 
-Common::DynamicLibrary OpenVulkanLibrary() {
-    Common::DynamicLibrary library;
-#ifdef __APPLE__
-    // Check if a path to a specific Vulkan library has been specified.
-    char* libvulkan_env = getenv("LIBVULKAN_PATH");
-    if (!libvulkan_env || !library.Open(libvulkan_env)) {
-        // Use the libvulkan.dylib from the application bundle.
-        const std::string filename =
-            Common::FS::GetBundleDirectory() + "/Contents/Frameworks/libvulkan.dylib";
-        library.Open(filename.c_str());
-    }
-#else
-    std::string filename = Common::DynamicLibrary::GetVersionedFilename("vulkan", 1);
-    if (!library.Open(filename.c_str())) {
-        // Android devices may not have libvulkan.so.1, only libvulkan.so.
-        filename = Common::DynamicLibrary::GetVersionedFilename("vulkan");
-        (void)library.Open(filename.c_str());
-    }
-#endif
-    return library;
-}
-
-std::pair<vk::Instance, u32> CreateInstance(Common::DynamicLibrary& library,
-                                            vk::InstanceDispatch& dld, WindowSystemType window_type,
-                                            bool enable_debug_utils, bool enable_layers) {
+std::pair<vk::Instance, u32> CreateInstance(
+    Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
+    WindowSystemType window_type = WindowSystemType::Headless, bool enable_debug_utils = false,
+    bool enable_layers = false) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
         return {};
@@ -285,7 +263,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 }
 
 bool RendererVulkan::Init() {
-    library = OpenVulkanLibrary();
+    library = OpenLibrary();
     std::tie(instance, instance_version) = CreateInstance(
         library, dld, render_window.GetWindowInfo().type, true, Settings::values.renderer_debug);
     if (!instance || !CreateDebugCallback() || !CreateSurface() || !PickDevices()) {
@@ -446,9 +424,8 @@ void RendererVulkan::Report() const {
 
 std::vector<std::string> RendererVulkan::EnumerateDevices() {
     vk::InstanceDispatch dld;
-    Common::DynamicLibrary library = OpenVulkanLibrary();
-    vk::Instance instance =
-        CreateInstance(library, dld, WindowSystemType::Headless, false, false).first;
+    Common::DynamicLibrary library = OpenLibrary();
+    vk::Instance instance = CreateInstance(library, dld).first;
     if (!instance) {
         return {};
     }
