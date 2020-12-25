@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
@@ -21,6 +22,8 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
                       SynchState& state, Tegra::CDmaPusher& cdma_pusher) {
     std::string name = "yuzu:GPU";
     MicroProfileOnThreadCreate(name.c_str());
+    SCOPE_EXIT({ MicroProfileOnThreadExit(); });
+
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     system.RegisterHostThread();
