@@ -56,8 +56,6 @@ public:
     static std::vector<std::string> EnumerateDevices();
 
 private:
-    bool CreateSurface();
-
     bool PickDevices();
 
     void Report() const;

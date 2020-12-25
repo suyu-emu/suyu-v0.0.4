@@ -586,6 +586,11 @@ public:
     /// @throw Exception on creation failure.
     DebugUtilsMessenger CreateDebugUtilsMessenger(
         const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
+
+    /// Returns dispatch table.
+    const InstanceDispatch& Dispatch() const noexcept {
+        return *dld;
+    }
 };
 
 class Queue {
