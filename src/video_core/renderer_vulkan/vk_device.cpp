@@ -567,20 +567,24 @@ void VKDevice::CheckSuitability() const {
         LOG_ERROR(Render_Vulkan, "Missing required extension: {}", REQUIRED_EXTENSIONS[i]);
         throw vk::Exception(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
-    // TODO(Rodrigo): Check if the device matches all requeriments.
+    struct LimitTuple {
+        u32 minimum;
+        u32 value;
+        const char* name;
+    };
     const VkPhysicalDeviceLimits& limits{properties.limits};
-
-    constexpr u32 required_ubo_size = 65536;
-    if (limits.maxUniformBufferRange < required_ubo_size) {
-        LOG_ERROR(Render_Vulkan, "Device UBO size {} is too small, {} is required",
-                  limits.maxUniformBufferRange, required_ubo_size);
-        throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
-    }
-    constexpr u32 required_num_viewports = 16;
-    if (limits.maxViewports < required_num_viewports) {
-        LOG_INFO(Render_Vulkan, "Device number of viewports {} is too small, {} is required",
-                 limits.maxViewports, required_num_viewports);
-        throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
+    const std::array limits_report{
+        LimitTuple{65536, limits.maxUniformBufferRange, "maxUniformBufferRange"},
+        LimitTuple{16, limits.maxViewports, "maxViewports"},
+        LimitTuple{8, limits.maxColorAttachments, "maxColorAttachments"},
+        LimitTuple{8, limits.maxClipDistances, "maxClipDistances"},
+    };
+    for (const auto& tuple : limits_report) {
+        if (tuple.value < tuple.minimum) {
+            LOG_ERROR(Render_Vulkan, "{} has to be {} or greater but it is {}", tuple.name,
+                      tuple.minimum, tuple.value);
+            throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
+        }
     }
     const VkPhysicalDeviceFeatures features{physical.GetFeatures()};
     const std::array feature_report{
