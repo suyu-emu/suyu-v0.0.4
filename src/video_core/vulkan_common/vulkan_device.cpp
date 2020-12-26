@@ -775,7 +775,7 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
     std::optional<u32> graphics;
     std::optional<u32> present;
     for (u32 index = 0; index < static_cast<u32>(queue_family_properties.size()); ++index) {
-        if (graphics && present) {
+        if (graphics && (present || !surface)) {
             break;
         }
         const VkQueueFamilyProperties& queue_family = queue_family_properties[index];
@@ -785,7 +785,7 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             graphics = index;
         }
-        if (physical.GetSurfaceSupportKHR(index, surface)) {
+        if (surface && physical.GetSurfaceSupportKHR(index, surface)) {
             present = index;
         }
     }
@@ -793,7 +793,7 @@ void Device::SetupFamilies(VkSurfaceKHR surface) {
         LOG_ERROR(Render_Vulkan, "Device lacks a graphics queue");
         throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
     }
-    if (!present) {
+    if (surface && !present) {
         LOG_ERROR(Render_Vulkan, "Device lacks a present queue");
         throw vk::Exception(VK_ERROR_FEATURE_NOT_PRESENT);
     }
