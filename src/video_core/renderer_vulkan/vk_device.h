@@ -229,10 +229,10 @@ public:
         return use_asynchronous_shaders;
     }
 
-    /// Checks if the physical device is suitable.
-    static bool IsSuitable(vk::PhysicalDevice physical, VkSurfaceKHR surface);
-
 private:
+    /// Checks if the physical device is suitable.
+    void CheckSuitability() const;
+
     /// Loads extensions into a vector and stores available ones in this object.
     std::vector<const char*> LoadExtensions();
 
