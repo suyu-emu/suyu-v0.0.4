@@ -10,10 +10,11 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/nsight_aftermath_tracker.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
+
+class NsightAftermathTracker;
 
 /// Format usage descriptor.
 enum class FormatType { Linear, Optimal, Buffer };
@@ -300,7 +301,7 @@ private:
     std::unordered_map<VkFormat, VkFormatProperties> format_properties;
 
     /// Nsight Aftermath GPU crash tracker
-    NsightAftermathTracker nsight_aftermath_tracker;
+    std::unique_ptr<NsightAftermathTracker> nsight_aftermath_tracker;
 };
 
 } // namespace Vulkan

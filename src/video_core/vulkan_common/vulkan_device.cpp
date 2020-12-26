@@ -13,6 +13,7 @@
 
 #include "common/assert.h"
 #include "core/settings.h"
+#include "video_core/vulkan_common/nsight_aftermath_tracker.h"
 #include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
@@ -412,7 +413,7 @@ Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR 
 
     VkDeviceDiagnosticsConfigCreateInfoNV diagnostics_nv;
     if (nv_device_diagnostics_config) {
-        nsight_aftermath_tracker.Initialize();
+        nsight_aftermath_tracker = std::make_unique<NsightAftermathTracker>();
 
         diagnostics_nv = {
             .sType = VK_STRUCTURE_TYPE_DEVICE_DIAGNOSTICS_CONFIG_CREATE_INFO_NV,
@@ -491,7 +492,9 @@ void Device::ReportLoss() const {
 }
 
 void Device::SaveShader(const std::vector<u32>& spirv) const {
-    nsight_aftermath_tracker.SaveShader(spirv);
+    if (nsight_aftermath_tracker) {
+        nsight_aftermath_tracker->SaveShader(spirv);
+    }
 }
 
 bool Device::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const {
