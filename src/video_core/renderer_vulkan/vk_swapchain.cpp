@@ -56,7 +56,7 @@ VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, u32 wi
 
 } // Anonymous namespace
 
-VKSwapchain::VKSwapchain(VkSurfaceKHR surface_, const VKDevice& device_, VKScheduler& scheduler_)
+VKSwapchain::VKSwapchain(VkSurfaceKHR surface_, const Device& device_, VKScheduler& scheduler_)
     : surface{surface_}, device{device_}, scheduler{scheduler_} {}
 
 VKSwapchain::~VKSwapchain() = default;

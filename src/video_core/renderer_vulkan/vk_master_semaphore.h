@@ -12,11 +12,11 @@
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 
 class MasterSemaphore {
 public:
-    explicit MasterSemaphore(const VKDevice& device);
+    explicit MasterSemaphore(const Device& device);
     ~MasterSemaphore();
 
     /// Returns the current logical tick.

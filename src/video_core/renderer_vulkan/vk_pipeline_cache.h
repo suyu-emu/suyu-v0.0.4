@@ -33,10 +33,10 @@ class System;
 
 namespace Vulkan {
 
+class Device;
 class RasterizerVulkan;
 class VKComputePipeline;
 class VKDescriptorPool;
-class VKDevice;
 class VKScheduler;
 class VKUpdateDescriptorQueue;
 
@@ -121,7 +121,7 @@ public:
     explicit VKPipelineCache(RasterizerVulkan& rasterizer, Tegra::GPU& gpu,
                              Tegra::Engines::Maxwell3D& maxwell3d,
                              Tegra::Engines::KeplerCompute& kepler_compute,
-                             Tegra::MemoryManager& gpu_memory, const VKDevice& device,
+                             Tegra::MemoryManager& gpu_memory, const Device& device,
                              VKScheduler& scheduler, VKDescriptorPool& descriptor_pool,
                              VKUpdateDescriptorQueue& update_descriptor_queue);
     ~VKPipelineCache() override;
@@ -148,7 +148,7 @@ private:
     Tegra::Engines::KeplerCompute& kepler_compute;
     Tegra::MemoryManager& gpu_memory;
 
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     VKDescriptorPool& descriptor_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;

@@ -13,7 +13,7 @@
 
 namespace Vulkan {
 
-vk::ShaderModule BuildShader(const VKDevice& device, std::span<const u32> code) {
+vk::ShaderModule BuildShader(const Device& device, std::span<const u32> code) {
     return device.GetLogical().CreateShaderModule({
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .pNext = nullptr,

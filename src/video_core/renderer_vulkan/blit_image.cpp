@@ -225,7 +225,7 @@ constexpr std::array<VkPipelineShaderStageCreateInfo, 2> MakeStages(
     };
 }
 
-void UpdateOneTextureDescriptorSet(const VKDevice& device, VkDescriptorSet descriptor_set,
+void UpdateOneTextureDescriptorSet(const Device& device, VkDescriptorSet descriptor_set,
                                    VkSampler sampler, VkImageView image_view) {
     const VkDescriptorImageInfo image_info{
         .sampler = sampler,
@@ -247,7 +247,7 @@ void UpdateOneTextureDescriptorSet(const VKDevice& device, VkDescriptorSet descr
     device.GetLogical().UpdateDescriptorSets(write_descriptor_set, nullptr);
 }
 
-void UpdateTwoTexturesDescriptorSet(const VKDevice& device, VkDescriptorSet descriptor_set,
+void UpdateTwoTexturesDescriptorSet(const Device& device, VkDescriptorSet descriptor_set,
                                     VkSampler sampler, VkImageView image_view_0,
                                     VkImageView image_view_1) {
     const VkDescriptorImageInfo image_info_0{
@@ -326,7 +326,7 @@ void BindBlitState(vk::CommandBuffer cmdbuf, VkPipelineLayout layout,
 
 } // Anonymous namespace
 
-BlitImageHelper::BlitImageHelper(const VKDevice& device_, VKScheduler& scheduler_,
+BlitImageHelper::BlitImageHelper(const Device& device_, VKScheduler& scheduler_,
                                  StateTracker& state_tracker_, VKDescriptorPool& descriptor_pool)
     : device{device_}, scheduler{scheduler_}, state_tracker{state_tracker_},
       one_texture_set_layout(device.GetLogical().CreateDescriptorSetLayout(

@@ -42,7 +42,7 @@ std::string GetReadableVersion(u32 version) {
                        VK_VERSION_PATCH(version));
 }
 
-std::string GetDriverVersion(const VKDevice& device) {
+std::string GetDriverVersion(const Device& device) {
     // Extracted from
     // https://github.com/SaschaWillems/vulkan.gpuinfo.org/blob/5dddea46ea1120b0df14eef8f15ff8e318e35462/functions.php#L308-L314
     const u32 version = device.GetDriverVersion();
@@ -184,7 +184,7 @@ void RendererVulkan::InitializeDevice() {
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     const vk::PhysicalDevice physical_device(devices[static_cast<size_t>(device_index)], dld);
-    device = std::make_unique<VKDevice>(*instance, physical_device, *surface, dld);
+    device = std::make_unique<Device>(*instance, physical_device, *surface, dld);
 }
 
 void RendererVulkan::Report() const {

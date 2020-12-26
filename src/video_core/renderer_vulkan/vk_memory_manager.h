@@ -13,8 +13,8 @@
 
 namespace Vulkan {
 
+class Device;
 class MemoryMap;
-class VKDevice;
 class VKMemoryAllocation;
 class VKMemoryCommitImpl;
 
@@ -22,7 +22,7 @@ using VKMemoryCommit = std::unique_ptr<VKMemoryCommitImpl>;
 
 class VKMemoryManager final {
 public:
-    explicit VKMemoryManager(const VKDevice& device_);
+    explicit VKMemoryManager(const Device& device_);
     VKMemoryManager(const VKMemoryManager&) = delete;
     ~VKMemoryManager();
 
@@ -49,7 +49,7 @@ private:
     VKMemoryCommit TryAllocCommit(const VkMemoryRequirements& requirements,
                                   VkMemoryPropertyFlags wanted_properties);
 
-    const VKDevice& device;                                       ///< Device handler.
+    const Device& device;                                         ///< Device handler.
     const VkPhysicalDeviceMemoryProperties properties;            ///< Physical device properties.
     std::vector<std::unique_ptr<VKMemoryAllocation>> allocations; ///< Current allocations.
 };
@@ -59,7 +59,7 @@ class VKMemoryCommitImpl final {
     friend MemoryMap;
 
 public:
-    explicit VKMemoryCommitImpl(const VKDevice& device_, VKMemoryAllocation* allocation_,
+    explicit VKMemoryCommitImpl(const Device& device_, VKMemoryAllocation* allocation_,
                                 const vk::DeviceMemory& memory_, u64 begin_, u64 end_);
     ~VKMemoryCommitImpl();
 
@@ -85,7 +85,7 @@ private:
     /// Unmaps memory.
     void Unmap() const;
 
-    const VKDevice& device;           ///< Vulkan device.
+    const Device& device;             ///< Vulkan device.
     const vk::DeviceMemory& memory;   ///< Vulkan device memory handler.
     std::pair<u64, u64> interval{};   ///< Interval where the commit exists.
     VKMemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.

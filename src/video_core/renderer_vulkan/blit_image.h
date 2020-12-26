@@ -15,12 +15,11 @@ namespace Vulkan {
 
 using VideoCommon::Offset2D;
 
-class VKDevice;
-class VKScheduler;
-class StateTracker;
-
+class Device;
 class Framebuffer;
 class ImageView;
+class StateTracker;
+class VKScheduler;
 
 struct BlitImagePipelineKey {
     constexpr auto operator<=>(const BlitImagePipelineKey&) const noexcept = default;
@@ -31,7 +30,7 @@ struct BlitImagePipelineKey {
 
 class BlitImageHelper {
 public:
-    explicit BlitImageHelper(const VKDevice& device, VKScheduler& scheduler,
+    explicit BlitImageHelper(const Device& device, VKScheduler& scheduler,
                              StateTracker& state_tracker, VKDescriptorPool& descriptor_pool);
     ~BlitImageHelper();
 
@@ -67,7 +66,7 @@ private:
 
     void ConvertColorToDepthPipeline(vk::Pipeline& pipeline, VkRenderPass renderpass);
 
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     StateTracker& state_tracker;
 

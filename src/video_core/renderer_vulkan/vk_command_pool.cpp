@@ -17,7 +17,7 @@ struct CommandPool::Pool {
     vk::CommandBuffers cmdbufs;
 };
 
-CommandPool::CommandPool(MasterSemaphore& master_semaphore_, const VKDevice& device_)
+CommandPool::CommandPool(MasterSemaphore& master_semaphore_, const Device& device_)
     : ResourcePool(master_semaphore_, COMMAND_BUFFER_POOL_SIZE), device{device_} {}
 
 CommandPool::~CommandPool() = default;

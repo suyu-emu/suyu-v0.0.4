@@ -14,7 +14,7 @@ namespace Vulkan {
 
 using namespace std::chrono_literals;
 
-MasterSemaphore::MasterSemaphore(const VKDevice& device) {
+MasterSemaphore::MasterSemaphore(const Device& device) {
     static constexpr VkSemaphoreTypeCreateInfoKHR semaphore_type_ci{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO_KHR,
         .pNext = nullptr,

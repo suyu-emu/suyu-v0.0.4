@@ -47,7 +47,7 @@ VkSamplerMipmapMode MipmapMode(Tegra::Texture::TextureMipmapFilter mipmap_filter
     return {};
 }
 
-VkSamplerAddressMode WrapMode(const VKDevice& device, Tegra::Texture::WrapMode wrap_mode,
+VkSamplerAddressMode WrapMode(const Device& device, Tegra::Texture::WrapMode wrap_mode,
                               Tegra::Texture::TextureFilter filter) {
     switch (wrap_mode) {
     case Tegra::Texture::WrapMode::Wrap:
@@ -222,7 +222,7 @@ constexpr bool IsZetaFormat(PixelFormat pixel_format) {
 
 } // Anonymous namespace
 
-FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFormat pixel_format) {
+FormatInfo SurfaceFormat(const Device& device, FormatType format_type, PixelFormat pixel_format) {
     ASSERT(static_cast<std::size_t>(pixel_format) < std::size(tex_format_tuples));
 
     auto tuple = tex_format_tuples[static_cast<std::size_t>(pixel_format)];
@@ -280,7 +280,7 @@ VkShaderStageFlagBits ShaderStage(Tegra::Engines::ShaderType stage) {
     return {};
 }
 
-VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const VKDevice& device,
+VkPrimitiveTopology PrimitiveTopology([[maybe_unused]] const Device& device,
                                       Maxwell::PrimitiveTopology topology) {
     switch (topology) {
     case Maxwell::PrimitiveTopology::Points:
@@ -526,7 +526,7 @@ VkCompareOp ComparisonOp(Maxwell::ComparisonOp comparison) {
     return {};
 }
 
-VkIndexType IndexFormat(const VKDevice& device, Maxwell::IndexFormat index_format) {
+VkIndexType IndexFormat(const Device& device, Maxwell::IndexFormat index_format) {
     switch (index_format) {
     case Maxwell::IndexFormat::UnsignedByte:
         if (!device.IsExtIndexTypeUint8Supported()) {

@@ -34,13 +34,13 @@ constexpr VkAccessFlags UPLOAD_ACCESS_BARRIERS =
 constexpr VkAccessFlags TRANSFORM_FEEDBACK_WRITE_ACCESS =
     VK_ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT | VK_ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT;
 
-std::unique_ptr<VKStreamBuffer> CreateStreamBuffer(const VKDevice& device, VKScheduler& scheduler) {
+std::unique_ptr<VKStreamBuffer> CreateStreamBuffer(const Device& device, VKScheduler& scheduler) {
     return std::make_unique<VKStreamBuffer>(device, scheduler);
 }
 
 } // Anonymous namespace
 
-Buffer::Buffer(const VKDevice& device_, VKMemoryManager& memory_manager, VKScheduler& scheduler_,
+Buffer::Buffer(const Device& device_, VKMemoryManager& memory_manager, VKScheduler& scheduler_,
                VKStagingBufferPool& staging_pool_, VAddr cpu_addr_, std::size_t size_)
     : BufferBlock{cpu_addr_, size_}, device{device_}, scheduler{scheduler_}, staging_pool{
                                                                                  staging_pool_} {
@@ -168,7 +168,7 @@ void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst
 
 VKBufferCache::VKBufferCache(VideoCore::RasterizerInterface& rasterizer_,
                              Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                             const VKDevice& device_, VKMemoryManager& memory_manager_,
+                             const Device& device_, VKMemoryManager& memory_manager_,
                              VKScheduler& scheduler_, VKStreamBuffer& stream_buffer_,
                              VKStagingBufferPool& staging_pool_)
     : VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer>{rasterizer_, gpu_memory_,

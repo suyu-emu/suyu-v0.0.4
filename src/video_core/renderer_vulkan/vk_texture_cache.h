@@ -19,11 +19,11 @@ using VideoCommon::Offset2D;
 using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
-class VKDevice;
 class VKScheduler;
 class VKStagingBufferPool;
 
 class BlitImageHelper;
+class Device;
 class Image;
 class ImageView;
 class Framebuffer;
@@ -68,7 +68,7 @@ struct ImageBufferMap {
 };
 
 struct TextureCacheRuntime {
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     VKMemoryManager& memory_manager;
     VKStagingBufferPool& staging_buffer_pool;
@@ -177,7 +177,7 @@ public:
 private:
     [[nodiscard]] vk::ImageView MakeDepthStencilView(VkImageAspectFlags aspect_mask);
 
-    const VKDevice* device = nullptr;
+    const Device* device = nullptr;
     std::array<vk::ImageView, VideoCommon::NUM_IMAGE_VIEW_TYPES> image_views;
     vk::ImageView depth_view;
     vk::ImageView stencil_view;

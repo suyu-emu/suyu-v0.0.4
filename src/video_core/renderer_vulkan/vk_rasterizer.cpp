@@ -62,7 +62,7 @@ namespace {
 
 constexpr auto COMPUTE_SHADER_INDEX = static_cast<size_t>(Tegra::Engines::ShaderType::Compute);
 
-VkViewport GetViewportState(const VKDevice& device, const Maxwell& regs, size_t index) {
+VkViewport GetViewportState(const Device& device, const Maxwell& regs, size_t index) {
     const auto& src = regs.viewport_transform[index];
     const float width = src.scale_x * 2.0f;
     const float height = src.scale_y * 2.0f;
@@ -239,7 +239,7 @@ public:
         index.type = type;
     }
 
-    void Bind(const VKDevice& device, VKScheduler& scheduler) const {
+    void Bind(const Device& device, VKScheduler& scheduler) const {
         // Use this large switch case to avoid dispatching more memory in the record lambda than
         // what we need. It looks horrible, but it's the best we can do on standard C++.
         switch (vertex.num_buffers) {
@@ -330,7 +330,7 @@ private:
     } index;
 
     template <size_t N>
-    void BindStatic(const VKDevice& device, VKScheduler& scheduler) const {
+    void BindStatic(const Device& device, VKScheduler& scheduler) const {
         if (device.IsExtExtendedDynamicStateSupported()) {
             if (index.buffer) {
                 BindStatic<N, true, true>(scheduler);
@@ -409,7 +409,7 @@ void RasterizerVulkan::DrawParameters::Draw(vk::CommandBuffer cmdbuf) const {
 RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                                    Tegra::MemoryManager& gpu_memory_,
                                    Core::Memory::Memory& cpu_memory_, VKScreenInfo& screen_info_,
-                                   const VKDevice& device_, VKMemoryManager& memory_manager_,
+                                   const Device& device_, VKMemoryManager& memory_manager_,
                                    StateTracker& state_tracker_, VKScheduler& scheduler_)
     : RasterizerAccelerated{cpu_memory_}, gpu{gpu_},
       gpu_memory{gpu_memory_}, maxwell3d{gpu.Maxwell3D()}, kepler_compute{gpu.KeplerCompute()},
