@@ -139,10 +139,10 @@ void GCButtonFactory::EndConfiguration() {
 
 class GCAnalog final : public Input::AnalogDevice {
 public:
-    explicit GCAnalog(u32 port_, u32 axis_x_, u32 axis_y_, float deadzone_,
-                      const GCAdapter::Adapter* adapter, float range_)
-        : port(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), gcadapter(adapter),
-          range(range_) {}
+    explicit GCAnalog(u32 port_, u32 axis_x_, u32 axis_y_, bool invert_x_, bool invert_y_,
+                      float deadzone_, float range_, const GCAdapter::Adapter* adapter)
+        : port(port_), axis_x(axis_x_), axis_y(axis_y_), invert_x(invert_x_), invert_y(invert_y_),
+          deadzone(deadzone_), range(range_), gcadapter(adapter) {}
 
     float GetAxis(u32 axis) const {
         if (gcadapter->DeviceConnected(port)) {
@@ -157,7 +157,12 @@ public:
     std::pair<float, float> GetAnalog(u32 analog_axis_x, u32 analog_axis_y) const {
         float x = GetAxis(analog_axis_x);
         float y = GetAxis(analog_axis_y);
-
+        if (invert_x) {
+            x = -x;
+        }
+        if (invert_y) {
+            y = -y;
+        }
         // Make sure the coordinates are in the unit circle,
         // otherwise normalize it.
         float r = x * x + y * y;
@@ -200,9 +205,11 @@ private:
     const u32 port;
     const u32 axis_x;
     const u32 axis_y;
+    const bool invert_x;
+    const bool invert_y;
     const float deadzone;
-    const GCAdapter::Adapter* gcadapter;
     const float range;
+    const GCAdapter::Adapter* gcadapter;
     mutable std::mutex mutex;
 };
 
@@ -223,8 +230,13 @@ std::unique_ptr<Input::AnalogDevice> GCAnalogFactory::Create(const Common::Param
     const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
     const auto deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
     const auto range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
+    const std::string invert_x_value = params.Get("invert_x", "+");
+    const std::string invert_y_value = params.Get("invert_y", "+");
+    const bool invert_x = invert_x_value == "-";
+    const bool invert_y = invert_y_value == "-";
 
-    return std::make_unique<GCAnalog>(port, axis_x, axis_y, deadzone, adapter.get(), range);
+    return std::make_unique<GCAnalog>(port, axis_x, axis_y, invert_x, invert_y, deadzone, range,
+                                      adapter.get());
 }
 
 void GCAnalogFactory::BeginConfiguration() {
@@ -282,6 +294,8 @@ Common::ParamPackage GCAnalogFactory::GetNextInput() {
         params.Set("port", controller_number);
         params.Set("axis_x", analog_x_axis);
         params.Set("axis_y", analog_y_axis);
+        params.Set("invert_x", "+");
+        params.Set("invert_y", "+");
         analog_x_axis = -1;
         analog_y_axis = -1;
         controller_number = -1;

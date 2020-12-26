@@ -62,10 +62,10 @@ void MouseButtonFactory::EndConfiguration() {
 
 class MouseAnalog final : public Input::AnalogDevice {
 public:
-    explicit MouseAnalog(u32 port_, u32 axis_x_, u32 axis_y_, float deadzone_, float range_,
-                         const MouseInput::Mouse* mouse_input_)
-        : button(port_), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_), range(range_),
-          mouse_input(mouse_input_) {}
+    explicit MouseAnalog(u32 port_, u32 axis_x_, u32 axis_y_, bool invert_x_, bool invert_y_,
+                         float deadzone_, float range_, const MouseInput::Mouse* mouse_input_)
+        : button(port_), axis_x(axis_x_), axis_y(axis_y_), invert_x(invert_x_), invert_y(invert_y_),
+          deadzone(deadzone_), range(range_), mouse_input(mouse_input_) {}
 
     float GetAxis(u32 axis) const {
         std::lock_guard lock{mutex};
@@ -77,6 +77,12 @@ public:
     std::pair<float, float> GetAnalog(u32 analog_axis_x, u32 analog_axis_y) const {
         float x = GetAxis(analog_axis_x);
         float y = GetAxis(analog_axis_y);
+        if (invert_x) {
+            x = -x;
+        }
+        if (invert_y) {
+            y = -y;
+        }
 
         // Make sure the coordinates are in the unit circle,
         // otherwise normalize it.
@@ -104,6 +110,8 @@ private:
     const u32 button;
     const u32 axis_x;
     const u32 axis_y;
+    const bool invert_x;
+    const bool invert_y;
     const float deadzone;
     const float range;
     const MouseInput::Mouse* mouse_input;
@@ -128,8 +136,13 @@ std::unique_ptr<Input::AnalogDevice> MouseAnalogFactory::Create(
     const auto axis_y = static_cast<u32>(params.Get("axis_y", 1));
     const auto deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
     const auto range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
+    const std::string invert_x_value = params.Get("invert_x", "+");
+    const std::string invert_y_value = params.Get("invert_y", "+");
+    const bool invert_x = invert_x_value == "-";
+    const bool invert_y = invert_y_value == "-";
 
-    return std::make_unique<MouseAnalog>(port, axis_x, axis_y, deadzone, range, mouse_input.get());
+    return std::make_unique<MouseAnalog>(port, axis_x, axis_y, invert_x, invert_y, deadzone, range,
+                                         mouse_input.get());
 }
 
 void MouseAnalogFactory::BeginConfiguration() {
@@ -153,6 +166,8 @@ Common::ParamPackage MouseAnalogFactory::GetNextInput() const {
             params.Set("port", static_cast<u16>(pad.button));
             params.Set("axis_x", 0);
             params.Set("axis_y", 1);
+            params.Set("invert_x", "+");
+            params.Set("invert_y", "+");
             return params;
         }
     }
