@@ -9,8 +9,8 @@
 #include "common/logging/log.h"
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/maxwell_to_vk.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/surface.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan::MaxwellToVK {

@@ -22,11 +22,11 @@
 #include "video_core/engines/shader_bytecode.h"
 #include "video_core/engines/shader_header.h"
 #include "video_core/engines/shader_type.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/shader/node.h"
 #include "video_core/shader/shader_ir.h"
 #include "video_core/shader/transform_feedback.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 
 namespace Vulkan {
 

@@ -13,7 +13,7 @@
 
 #include "common/assert.h"
 #include "core/settings.h"
-#include "video_core/renderer_vulkan/vk_device.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {

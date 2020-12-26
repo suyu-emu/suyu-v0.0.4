@@ -131,8 +131,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_compute_pipeline.h
     renderer_vulkan/vk_descriptor_pool.cpp
     renderer_vulkan/vk_descriptor_pool.h
-    renderer_vulkan/vk_device.cpp
-    renderer_vulkan/vk_device.h
     renderer_vulkan/vk_fence_manager.cpp
     renderer_vulkan/vk_fence_manager.h
     renderer_vulkan/vk_graphics_pipeline.cpp
@@ -257,6 +255,8 @@ add_library(video_core STATIC
     video_core.h
     vulkan_common/vulkan_debug_callback.cpp
     vulkan_common/vulkan_debug_callback.h
+    vulkan_common/vulkan_device.cpp
+    vulkan_common/vulkan_device.h
     vulkan_common/vulkan_instance.cpp
     vulkan_common/vulkan_instance.h
     vulkan_common/vulkan_library.cpp
