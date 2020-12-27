@@ -225,6 +225,11 @@ void Client::OnPortInfo([[maybe_unused]] Response::PortInfo data) {
 }
 
 void Client::OnPadData(Response::PadData data, std::size_t client) {
+    // Accept packets only for the correct pad
+    if (static_cast<u8>(clients[client].pad_index) != data.info.id) {
+        return;
+    }
+
     LOG_TRACE(Input, "PadData packet received");
     if (data.packet_counter == clients[client].packet_sequence) {
         LOG_WARNING(
