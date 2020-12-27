@@ -123,6 +123,7 @@ add_library(common STATIC
     hash.h
     hex_util.cpp
     hex_util.h
+    intrusive_red_black_tree.h
     logging/backend.cpp
     logging/backend.h
     logging/filter.cpp
@@ -143,6 +144,7 @@ add_library(common STATIC
     page_table.h
     param_package.cpp
     param_package.h
+    parent_of_member.h
     quaternion.h
     ring_buffer.h
     scm_rev.cpp
@@ -167,6 +169,7 @@ add_library(common STATIC
     time_zone.h
     timer.cpp
     timer.h
+    tree.h
     uint128.cpp
     uint128.h
     uuid.cpp
