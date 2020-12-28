@@ -210,6 +210,7 @@ add_library(core STATIC
     hle/kernel/shared_memory.h
     hle/kernel/svc.cpp
     hle/kernel/svc.h
+    hle/kernel/svc_results.h
     hle/kernel/svc_types.h
     hle/kernel/svc_wrap.h
     hle/kernel/synchronization_object.cpp
