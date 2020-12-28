@@ -65,4 +65,16 @@ struct MemoryInfo {
     u32 padding{};
 };
 
+enum class SignalType : u32 {
+    Signal = 0,
+    SignalAndIncrementIfEqual = 1,
+    SignalAndModifyByWaitingCountIfEqual = 2,
+};
+
+enum class ArbitrationType : u32 {
+    WaitIfLessThan = 0,
+    DecrementAndWaitIfLessThan = 1,
+    WaitIfEqual = 2,
+};
+
 } // namespace Kernel::Svc
