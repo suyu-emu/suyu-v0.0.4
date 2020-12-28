@@ -602,9 +602,9 @@ void KernelCore::Suspend(bool in_suspention) {
     const bool should_suspend = exception_exited || in_suspention;
     {
         KScopedSchedulerLock lock(*this);
-        const auto status = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
+        const auto state = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
-            impl->suspend_threads[i]->SetState(status);
+            impl->suspend_threads[i]->SetState(state);
         }
     }
 }
