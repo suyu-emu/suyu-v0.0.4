@@ -343,7 +343,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     auto thread = kernel.CurrentScheduler()->GetCurrentThread();
     {
         KScopedSchedulerLock lock(kernel);
-        thread->SetState(ThreadStatus::WaitIPC);
+        thread->SetState(ThreadState::Waiting);
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
     }
 
@@ -1546,7 +1546,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
         return ERR_INVALID_HANDLE;
     }
 
-    ASSERT(thread->GetStatus() == ThreadStatus::Dormant);
+    ASSERT(thread->GetState() == ThreadState::Initialized);
 
     return thread->Start();
 }
@@ -1661,7 +1661,8 @@ static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_add
         current_thread->SetCondVarWaitAddress(condition_variable_addr);
         current_thread->SetMutexWaitAddress(mutex_addr);
         current_thread->SetWaitHandle(thread_handle);
-        current_thread->SetState(ThreadStatus::WaitCondVar);
+        current_thread->SetState(ThreadState::Waiting);
+        current_thread->SetWaitingCondVar(true);
         current_process->InsertConditionVariableThread(SharedFrom(current_thread));
     }
 
@@ -1755,9 +1756,7 @@ static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_
             const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
             auto owner = handle_table.Get<Thread>(owner_handle);
             ASSERT(owner);
-            if (thread->GetStatus() == ThreadStatus::WaitCondVar) {
-                thread->SetState(ThreadStatus::WaitMutex);
-            }
+            thread->SetWaitingCondVar(false);
 
             owner->AddMutexWaiter(thread);
         }

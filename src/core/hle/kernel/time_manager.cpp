@@ -42,8 +42,7 @@ void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 
     event_handle = timetask->GetGlobalHandle();
     if (nanoseconds > 0) {
         ASSERT(timetask);
-        ASSERT(timetask->GetStatus() != ThreadStatus::Ready);
-        ASSERT(timetask->GetStatus() != ThreadStatus::WaitMutex);
+        ASSERT(timetask->GetState() != ThreadState::Runnable);
         system.CoreTiming().ScheduleEvent(std::chrono::nanoseconds{nanoseconds},
                                           time_manager_event_type, event_handle);
     } else {

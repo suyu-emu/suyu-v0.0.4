@@ -55,7 +55,7 @@ void SetupMainThread(Core::System& system, Process& owner_process, u32 priority,
     // Threads by default are dormant, wake up the main thread so it runs when the scheduler fires
     {
         KScopedSchedulerLock lock{kernel};
-        thread->SetState(ThreadStatus::Ready);
+        thread->SetState(ThreadState::Runnable);
     }
 }
 } // Anonymous namespace
@@ -318,7 +318,7 @@ void Process::PrepareForTermination() {
                 continue;
 
             // TODO(Subv): When are the other running/ready threads terminated?
-            ASSERT_MSG(thread->GetStatus() == ThreadStatus::WaitSynch,
+            ASSERT_MSG(thread->GetState() == ThreadState::Waiting,
                        "Exiting processes with non-waiting threads is currently unimplemented");
 
             thread->Stop();

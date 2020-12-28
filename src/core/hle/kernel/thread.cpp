@@ -44,7 +44,7 @@ Thread::~Thread() = default;
 void Thread::Stop() {
     {
         KScopedSchedulerLock lock(kernel);
-        SetState(ThreadStatus::Dead);
+        SetState(ThreadState::Terminated);
         signaled = true;
         NotifyAvailable();
         kernel.GlobalHandleTable().Close(global_handle);
@@ -62,54 +62,43 @@ void Thread::Stop() {
 
 void Thread::Wakeup() {
     KScopedSchedulerLock lock(kernel);
-    switch (status) {
-    case ThreadStatus::Paused:
-    case ThreadStatus::WaitSynch:
-    case ThreadStatus::WaitHLEEvent:
-    case ThreadStatus::WaitSleep:
-    case ThreadStatus::WaitIPC:
-    case ThreadStatus::WaitMutex:
-    case ThreadStatus::WaitCondVar:
-    case ThreadStatus::WaitArb:
-    case ThreadStatus::Dormant:
-        break;
-
-    case ThreadStatus::Ready:
+    switch (thread_state) {
+    case ThreadState::Runnable:
         // If the thread is waiting on multiple wait objects, it might be awoken more than once
         // before actually resuming. We can ignore subsequent wakeups if the thread status has
         // already been set to ThreadStatus::Ready.
         return;
-    case ThreadStatus::Dead:
+    case ThreadState::Terminated:
         // This should never happen, as threads must complete before being stopped.
         DEBUG_ASSERT_MSG(false, "Thread with object id {} cannot be resumed because it's DEAD.",
                          GetObjectId());
         return;
     }
 
-    SetState(ThreadStatus::Ready);
+    SetState(ThreadState::Runnable);
 }
 
 void Thread::OnWakeUp() {
     KScopedSchedulerLock lock(kernel);
-    SetState(ThreadStatus::Ready);
+    SetState(ThreadState::Runnable);
 }
 
 ResultCode Thread::Start() {
     KScopedSchedulerLock lock(kernel);
-    SetState(ThreadStatus::Ready);
+    SetState(ThreadState::Runnable);
     return RESULT_SUCCESS;
 }
 
 void Thread::CancelWait() {
     KScopedSchedulerLock lock(kernel);
-    if (GetState() != ThreadSchedStatus::Paused || !is_cancellable) {
+    if (GetState() != ThreadState::Waiting || !is_cancellable) {
         is_sync_cancelled = true;
         return;
     }
     // TODO(Blinkhawk): Implement cancel of server session
     is_sync_cancelled = false;
     SetSynchronizationResults(nullptr, ERR_SYNCHRONIZATION_CANCELED);
-    SetState(ThreadStatus::Ready);
+    SetState(ThreadState::Runnable);
 }
 
 static void ResetThreadContext32(Core::ARM_Interface::ThreadContext32& context, u32 stack_top,
@@ -173,7 +162,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     std::shared_ptr<Thread> thread = std::make_shared<Thread>(kernel);
 
     thread->thread_id = kernel.CreateNewThreadID();
-    thread->status = ThreadStatus::Dormant;
+    thread->thread_state = ThreadState::Initialized;
     thread->entry_point = entry_point;
     thread->stack_top = stack_top;
     thread->disable_count = 1;
@@ -235,27 +224,18 @@ VAddr Thread::GetCommandBufferAddress() const {
     return GetTLSAddress() + command_header_offset;
 }
 
-void Thread::SetState(ThreadStatus new_status) {
-    if (new_status == status) {
+void Thread::SetState(ThreadState new_status) {
+    if (new_status == thread_state) {
         return;
     }
 
-    switch (new_status) {
-    case ThreadStatus::Ready:
-        SetSchedulingStatus(ThreadSchedStatus::Runnable);
-        break;
-    case ThreadStatus::Dormant:
-        SetSchedulingStatus(ThreadSchedStatus::None);
-        break;
-    case ThreadStatus::Dead:
-        SetSchedulingStatus(ThreadSchedStatus::Exited);
-        break;
-    default:
-        SetSchedulingStatus(ThreadSchedStatus::Paused);
-        break;
+    if (new_status != ThreadState::Waiting) {
+        SetWaitingCondVar(false);
     }
 
-    status = new_status;
+    SetSchedulingStatus(new_status);
+
+    thread_state = new_status;
 }
 
 void Thread::AddMutexWaiter(std::shared_ptr<Thread> thread) {
@@ -312,13 +292,13 @@ void Thread::UpdatePriority() {
         return;
     }
 
-    if (GetStatus() == ThreadStatus::WaitCondVar) {
+    if (GetState() == ThreadState::Waiting && is_waiting_on_condvar) {
         owner_process->RemoveConditionVariableThread(SharedFrom(this));
     }
 
     SetCurrentPriority(new_priority);
 
-    if (GetStatus() == ThreadStatus::WaitCondVar) {
+    if (GetState() == ThreadState::Waiting && is_waiting_on_condvar) {
         owner_process->InsertConditionVariableThread(SharedFrom(this));
     }
 
@@ -340,7 +320,7 @@ ResultCode Thread::SetActivity(ThreadActivity value) {
 
     auto sched_status = GetState();
 
-    if (sched_status != ThreadSchedStatus::Runnable && sched_status != ThreadSchedStatus::Paused) {
+    if (sched_status != ThreadState::Runnable && sched_status != ThreadState::Waiting) {
         return ERR_INVALID_STATE;
     }
 
@@ -366,7 +346,7 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
-        SetState(ThreadStatus::WaitSleep);
+        SetState(ThreadState::Waiting);
     }
 
     if (event_handle != InvalidHandle) {
@@ -377,25 +357,24 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
 }
 
 void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
-    const u32 old_state = scheduling_state;
+    const auto old_state = GetRawState();
     pausing_state |= static_cast<u32>(flag);
-    const u32 base_scheduling = static_cast<u32>(GetState());
-    scheduling_state = base_scheduling | pausing_state;
+    const auto base_scheduling = GetState();
+    thread_state = base_scheduling | static_cast<ThreadState>(pausing_state);
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
 void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
-    const u32 old_state = scheduling_state;
+    const auto old_state = GetRawState();
     pausing_state &= ~static_cast<u32>(flag);
-    const u32 base_scheduling = static_cast<u32>(GetState());
-    scheduling_state = base_scheduling | pausing_state;
+    const auto base_scheduling = GetState();
+    thread_state = base_scheduling | static_cast<ThreadState>(pausing_state);
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
-void Thread::SetSchedulingStatus(ThreadSchedStatus new_status) {
-    const u32 old_state = scheduling_state;
-    scheduling_state = (scheduling_state & static_cast<u32>(ThreadSchedMasks::HighMask)) |
-                       static_cast<u32>(new_status);
+void Thread::SetSchedulingStatus(ThreadState new_status) {
+    const auto old_state = GetRawState();
+    thread_state = (thread_state & ThreadState::HighMask) | new_status;
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 

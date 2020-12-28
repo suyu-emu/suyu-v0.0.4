@@ -73,19 +73,26 @@ enum ThreadProcessorId : s32 {
                                      (1 << THREADPROCESSORID_2) | (1 << THREADPROCESSORID_3)
 };
 
-enum class ThreadStatus {
-    Ready,        ///< Ready to run
-    Paused,       ///< Paused by SetThreadActivity or debug
-    WaitHLEEvent, ///< Waiting for hle event to finish
-    WaitSleep,    ///< Waiting due to a SleepThread SVC
-    WaitIPC,      ///< Waiting for the reply from an IPC request
-    WaitSynch,    ///< Waiting due to WaitSynchronization
-    WaitMutex,    ///< Waiting due to an ArbitrateLock svc
-    WaitCondVar,  ///< Waiting due to an WaitProcessWideKey svc
-    WaitArb,      ///< Waiting due to a SignalToAddress/WaitForAddress svc
-    Dormant,      ///< Created but not yet made ready
-    Dead          ///< Run to completion, or forcefully terminated
+enum class ThreadState : u16 {
+    Initialized = 0,
+    Waiting = 1,
+    Runnable = 2,
+    Terminated = 3,
+
+    SuspendShift = 4,
+    Mask = (1 << SuspendShift) - 1,
+
+    ProcessSuspended = (1 << (0 + SuspendShift)),
+    ThreadSuspended = (1 << (1 + SuspendShift)),
+    DebugSuspended = (1 << (2 + SuspendShift)),
+    BacktraceSuspended = (1 << (3 + SuspendShift)),
+    InitSuspended = (1 << (4 + SuspendShift)),
+
+    SuspendFlagMask = ((1 << 5) - 1) << SuspendShift,
+
+    HighMask = 0xfff0,
 };
+DECLARE_ENUM_FLAG_OPERATORS(ThreadState);
 
 enum class ThreadWakeupReason {
     Signal, // The thread was woken up by WakeupAllWaitingThreads due to an object signal.
@@ -97,24 +104,11 @@ enum class ThreadActivity : u32 {
     Paused = 1,
 };
 
-enum class ThreadSchedStatus : u32 {
-    None = 0,
-    Paused = 1,
-    Runnable = 2,
-    Exited = 3,
-};
-
 enum class ThreadSchedFlags : u32 {
     ProcessPauseFlag = 1 << 4,
     ThreadPauseFlag = 1 << 5,
     ProcessDebugPauseFlag = 1 << 6,
     KernelInitPauseFlag = 1 << 8,
-};
-
-enum class ThreadSchedMasks : u32 {
-    LowMask = 0x000f,
-    HighMask = 0xfff0,
-    ForcePauseMask = 0x0070,
 };
 
 class Thread final : public KSynchronizationObject {
@@ -326,11 +320,19 @@ public:
 
     std::shared_ptr<Common::Fiber>& GetHostContext();
 
-    ThreadStatus GetStatus() const {
-        return status;
+    ThreadState GetState() const {
+        return thread_state & ThreadState::Mask;
     }
 
-    void SetState(ThreadStatus new_status);
+    ThreadState GetRawState() const {
+        return thread_state;
+    }
+
+    void SetState(ThreadState new_state);
+
+    void SetWaitingCondVar(bool value) {
+        is_waiting_on_condvar = value;
+    }
 
     s64 GetLastScheduledTick() const {
         return this->last_scheduled_tick;
@@ -447,15 +449,6 @@ public:
         this->schedule_count = count;
     }
 
-    ThreadSchedStatus GetState() const {
-        return static_cast<ThreadSchedStatus>(scheduling_state &
-                                              static_cast<u32>(ThreadSchedMasks::LowMask));
-    }
-
-    bool IsRunnable() const {
-        return scheduling_state == static_cast<u32>(ThreadSchedStatus::Runnable);
-    }
-
     bool IsRunning() const {
         return is_running;
     }
@@ -497,7 +490,7 @@ public:
     }
 
     bool IsTerminationRequested() const {
-        return will_be_terminated || GetState() == ThreadSchedStatus::Exited;
+        return will_be_terminated || GetState() == ThreadState::Terminated;
     }
 
     bool IsPaused() const {
@@ -590,7 +583,7 @@ private:
     friend class KScheduler;
     friend class Process;
 
-    void SetSchedulingStatus(ThreadSchedStatus new_status);
+    void SetSchedulingStatus(ThreadState new_status);
     void AddSchedulingFlag(ThreadSchedFlags flag);
     void RemoveSchedulingFlag(ThreadSchedFlags flag);
     void SetCurrentPriority(u32 new_priority);
@@ -600,8 +593,7 @@ private:
     ThreadContext64 context_64{};
     std::shared_ptr<Common::Fiber> host_context{};
 
-    ThreadStatus status = ThreadStatus::Dormant;
-    u32 scheduling_state = 0;
+    ThreadState thread_state = ThreadState::Initialized;
 
     u64 thread_id = 0;
 
@@ -647,6 +639,7 @@ private:
 
     /// If waiting on a ConditionVariable, this is the ConditionVariable address
     VAddr condvar_wait_address = 0;
+    bool is_waiting_on_condvar{};
     /// If waiting on a Mutex, this is the mutex address
     VAddr mutex_wait_address = 0;
     /// The handle used to wait for the mutex.

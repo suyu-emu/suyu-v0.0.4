@@ -238,8 +238,8 @@ WaitTreeThread::~WaitTreeThread() = default;
 QString WaitTreeThread::GetText() const {
     const auto& thread = static_cast<const Kernel::Thread&>(object);
     QString status;
-    switch (thread.GetStatus()) {
-    case Kernel::ThreadStatus::Ready:
+    switch (thread.GetState()) {
+    case Kernel::ThreadState::Runnable:
         if (!thread.IsPaused()) {
             if (thread.WasRunning()) {
                 status = tr("running");
@@ -250,35 +250,14 @@ QString WaitTreeThread::GetText() const {
             status = tr("paused");
         }
         break;
-    case Kernel::ThreadStatus::Paused:
-        status = tr("paused");
+    case Kernel::ThreadState::Waiting:
+        status = tr("waiting");
         break;
-    case Kernel::ThreadStatus::WaitHLEEvent:
-        status = tr("waiting for HLE return");
+    case Kernel::ThreadState::Initialized:
+        status = tr("initialized");
         break;
-    case Kernel::ThreadStatus::WaitSleep:
-        status = tr("sleeping");
-        break;
-    case Kernel::ThreadStatus::WaitIPC:
-        status = tr("waiting for IPC reply");
-        break;
-    case Kernel::ThreadStatus::WaitSynch:
-        status = tr("waiting for objects");
-        break;
-    case Kernel::ThreadStatus::WaitMutex:
-        status = tr("waiting for mutex");
-        break;
-    case Kernel::ThreadStatus::WaitCondVar:
-        status = tr("waiting for condition variable");
-        break;
-    case Kernel::ThreadStatus::WaitArb:
-        status = tr("waiting for address arbiter");
-        break;
-    case Kernel::ThreadStatus::Dormant:
-        status = tr("dormant");
-        break;
-    case Kernel::ThreadStatus::Dead:
-        status = tr("dead");
+    case Kernel::ThreadState::Terminated:
+        status = tr("terminated");
         break;
     }
 
@@ -294,8 +273,8 @@ QColor WaitTreeThread::GetColor() const {
     const std::size_t color_index = IsDarkTheme() ? 1 : 0;
 
     const auto& thread = static_cast<const Kernel::Thread&>(object);
-    switch (thread.GetStatus()) {
-    case Kernel::ThreadStatus::Ready:
+    switch (thread.GetState()) {
+    case Kernel::ThreadState::Runnable:
         if (!thread.IsPaused()) {
             if (thread.WasRunning()) {
                 return QColor(WaitTreeColors[0][color_index]);
@@ -305,21 +284,11 @@ QColor WaitTreeThread::GetColor() const {
         } else {
             return QColor(WaitTreeColors[2][color_index]);
         }
-    case Kernel::ThreadStatus::Paused:
+    case Kernel::ThreadState::Waiting:
         return QColor(WaitTreeColors[3][color_index]);
-    case Kernel::ThreadStatus::WaitHLEEvent:
-    case Kernel::ThreadStatus::WaitIPC:
-        return QColor(WaitTreeColors[4][color_index]);
-    case Kernel::ThreadStatus::WaitSleep:
-        return QColor(WaitTreeColors[5][color_index]);
-    case Kernel::ThreadStatus::WaitSynch:
-    case Kernel::ThreadStatus::WaitMutex:
-    case Kernel::ThreadStatus::WaitCondVar:
-    case Kernel::ThreadStatus::WaitArb:
-        return QColor(WaitTreeColors[6][color_index]);
-    case Kernel::ThreadStatus::Dormant:
+    case Kernel::ThreadState::Initialized:
         return QColor(WaitTreeColors[7][color_index]);
-    case Kernel::ThreadStatus::Dead:
+    case Kernel::ThreadState::Terminated:
         return QColor(WaitTreeColors[8][color_index]);
     default:
         return WaitTreeItem::GetColor();
@@ -367,7 +336,7 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
         list.push_back(std::make_unique<WaitTreeText>(tr("not waiting for mutex")));
     }
 
-    if (thread.GetStatus() == Kernel::ThreadStatus::WaitSynch) {
+    if (thread.GetState() == Kernel::ThreadState::Waiting) {
         list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetWaitObjectsForDebugging(),
                                                             thread.IsCancellable()));
     }

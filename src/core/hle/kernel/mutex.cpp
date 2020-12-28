@@ -107,7 +107,7 @@ ResultCode Mutex::TryAcquire(VAddr address, Handle holding_thread_handle,
         current_thread->SetMutexWaitAddress(address);
         current_thread->SetWaitHandle(requesting_thread_handle);
 
-        current_thread->SetState(ThreadStatus::WaitMutex);
+        current_thread->SetState(ThreadState::Waiting);
 
         // Update the lock holder thread's priority to prevent priority inversion.
         holding_thread->AddMutexWaiter(current_thread);

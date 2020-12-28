@@ -201,7 +201,7 @@ ResultCode AddressArbiter::WaitForAddressIfLessThan(VAddr address, s32 value, s6
 
         current_thread->SetArbiterWaitAddress(address);
         InsertThread(SharedFrom(current_thread));
-        current_thread->SetState(ThreadStatus::WaitArb);
+        current_thread->SetState(ThreadState::Waiting);
         current_thread->WaitForArbitration(true);
     }
 
@@ -256,7 +256,7 @@ ResultCode AddressArbiter::WaitForAddressIfEqual(VAddr address, s32 value, s64 t
         current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
         current_thread->SetArbiterWaitAddress(address);
         InsertThread(SharedFrom(current_thread));
-        current_thread->SetState(ThreadStatus::WaitArb);
+        current_thread->SetState(ThreadState::Waiting);
         current_thread->WaitForArbitration(true);
     }
 

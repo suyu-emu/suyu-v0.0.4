@@ -77,7 +77,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
         // Mark the thread as waiting.
         thread->SetCancellable();
         thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
-        thread->SetState(ThreadState::WaitSynch);
+        thread->SetState(ThreadState::Waiting);
     }
 
     // The lock/sleep is done, so we should be able to get our result.
@@ -148,9 +148,9 @@ void KSynchronizationObject::NotifyAvailable(ResultCode result) {
     // Iterate over each thread.
     for (auto* cur_node = thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
         Thread* thread = cur_node->thread;
-        if (thread->GetState() == ThreadSchedStatus::Paused) {
+        if (thread->GetState() == ThreadState::Waiting) {
             thread->SetSyncedObject(this, result);
-            thread->SetState(ThreadStatus::Ready);
+            thread->SetState(ThreadState::Runnable);
         }
     }
 }
