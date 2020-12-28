@@ -73,14 +73,15 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
     offset = SpliceVectors(input, wait_checks, params.syncpoint_count, offset);
     offset = SpliceVectors(input, fences, params.fence_count, offset);
 
-    for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
-        SyncptIncr syncpt_incr = syncpt_increments[i];
-
-        fences[i].id = syncpt_incr.id;
-        fences[i].value =
-            syncpoint_manager.IncreaseSyncpoint(syncpt_incr.id, syncpt_incr.increments);
-    }
     auto& gpu = system.GPU();
+    if (gpu.UseNvdec()) {
+        for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
+            const SyncptIncr& syncpt_incr = syncpt_increments[i];
+            fences[i].id = syncpt_incr.id;
+            fences[i].value =
+                syncpoint_manager.IncreaseSyncpoint(syncpt_incr.id, syncpt_incr.increments);
+        }
+    }
     for (const auto& cmd_buffer : command_buffers) {
         auto object = nvmap_dev->GetObject(cmd_buffer.memory_id);
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
@@ -95,11 +96,13 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
                                       cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(cmdlist);
     }
-    fences[0].value = syncpoint_manager.IncreaseSyncpoint(fences[0].id, 1);
+    if (gpu.UseNvdec()) {
 
-    Tegra::ChCommandHeaderList cmdlist{{(4 << 28) | fences[0].id}};
-    gpu.PushCommandBuffer(cmdlist);
+        fences[0].value = syncpoint_manager.IncreaseSyncpoint(fences[0].id, 1);
 
+        Tegra::ChCommandHeaderList cmdlist{{(4 << 28) | fences[0].id}};
+        gpu.PushCommandBuffer(cmdlist);
+    }
     std::memcpy(output.data(), &params, sizeof(IoctlSubmit));
     // Some games expect command_buffers to be written back
     offset = sizeof(IoctlSubmit);
@@ -118,7 +121,7 @@ NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::ve
     std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
 
-    if (device_syncpoints[params.param] == 0) {
+    if (device_syncpoints[params.param] == 0 && system.GPU().UseNvdec()) {
         device_syncpoints[params.param] = syncpoint_manager.AllocateSyncpoint();
     }
     params.value = device_syncpoints[params.param];
