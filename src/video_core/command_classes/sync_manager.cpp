@@ -38,7 +38,7 @@ u32 SyncptIncrManager::IncrementWhenDone(u32 class_id, u32 id) {
 }
 
 void SyncptIncrManager::SignalDone(u32 handle) {
-    const auto done_incr =
+    const auto& done_incr =
         std::find_if(increments.begin(), increments.end(),
                      [handle](const SyncptIncr& incr) { return incr.id == handle; });
     if (done_incr != increments.cend()) {

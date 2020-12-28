@@ -116,12 +116,10 @@ private:
     void ThiStateWrite(ThiRegisters& state, u32 state_offset, const std::vector<u32>& arguments);
 
     GPU& gpu;
-
-    std::shared_ptr<Nvdec> nvdec_processor;
-    std::unique_ptr<Vic> vic_processor;
-    std::unique_ptr<Host1x> host1x_processor;
-    std::unique_ptr<SyncptIncrManager> nvdec_sync;
-    std::unique_ptr<SyncptIncrManager> vic_sync;
+    std::shared_ptr<Tegra::Nvdec> nvdec_processor;
+    std::unique_ptr<Tegra::Vic> vic_processor;
+    std::unique_ptr<Tegra::Host1x> host1x_processor;
+    std::unique_ptr<SyncptIncrManager> sync_manager;
     ChClassId current_class{};
     ThiRegisters vic_thi_state{};
     ThiRegisters nvdec_thi_state{};

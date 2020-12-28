@@ -33,8 +33,7 @@ CDmaPusher::CDmaPusher(GPU& gpu_)
     : gpu{gpu_}, nvdec_processor(std::make_shared<Nvdec>(gpu)),
       vic_processor(std::make_unique<Vic>(gpu, nvdec_processor)),
       host1x_processor(std::make_unique<Host1x>(gpu)),
-      nvdec_sync(std::make_unique<SyncptIncrManager>(gpu)),
-      vic_sync(std::make_unique<SyncptIncrManager>(gpu)) {}
+      sync_manager(std::make_unique<SyncptIncrManager>(gpu)) {}
 
 CDmaPusher::~CDmaPusher() = default;
 
@@ -110,10 +109,10 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
             const auto syncpoint_id = static_cast<u32>(data & 0xFF);
             const auto cond = static_cast<u32>((data >> 8) & 0xFF);
             if (cond == 0) {
-                nvdec_sync->Increment(syncpoint_id);
+                sync_manager->Increment(syncpoint_id);
             } else {
-                nvdec_sync->IncrementWhenDone(static_cast<u32>(current_class), syncpoint_id);
-                nvdec_sync->SignalDone(syncpoint_id);
+                sync_manager->SignalDone(
+                    sync_manager->IncrementWhenDone(static_cast<u32>(current_class), syncpoint_id));
             }
             break;
         }
@@ -135,10 +134,10 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
             const auto syncpoint_id = static_cast<u32>(data & 0xFF);
             const auto cond = static_cast<u32>((data >> 8) & 0xFF);
             if (cond == 0) {
-                vic_sync->Increment(syncpoint_id);
+                sync_manager->Increment(syncpoint_id);
             } else {
-                vic_sync->IncrementWhenDone(static_cast<u32>(current_class), syncpoint_id);
-                vic_sync->SignalDone(syncpoint_id);
+                sync_manager->SignalDone(
+                    sync_manager->IncrementWhenDone(static_cast<u32>(current_class), syncpoint_id));
             }
             break;
         }

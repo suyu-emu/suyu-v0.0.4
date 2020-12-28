@@ -34,6 +34,8 @@ void Tegra::Host1x::ProcessMethod(Method method, const std::vector<u32>& argumen
 }
 
 void Tegra::Host1x::Execute(u32 data) {
-    // This method waits on a valid syncpoint.
-    // TODO: Implement when proper Async is in place
+    u32 syncpointId = (data & 0xFF);
+    u32 threshold = state.load_syncpoint_payload32;
+
+    gpu.WaitFence(syncpointId, threshold);
 }
