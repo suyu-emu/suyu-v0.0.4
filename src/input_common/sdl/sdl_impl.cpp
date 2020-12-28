@@ -352,13 +352,20 @@ private:
 class SDLAnalog final : public Input::AnalogDevice {
 public:
     explicit SDLAnalog(std::shared_ptr<SDLJoystick> joystick_, int axis_x_, int axis_y_,
-                       float deadzone_, float range_)
-        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), deadzone(deadzone_),
-          range(range_) {}
+                       bool invert_x_, bool invert_y_, float deadzone_, float range_)
+        : joystick(std::move(joystick_)), axis_x(axis_x_), axis_y(axis_y_), invert_x(invert_x_),
+          invert_y(invert_y_), deadzone(deadzone_), range(range_) {}
 
     std::tuple<float, float> GetStatus() const override {
-        const auto [x, y] = joystick->GetAnalog(axis_x, axis_y, range);
+        auto [x, y] = joystick->GetAnalog(axis_x, axis_y, range);
         const float r = std::sqrt((x * x) + (y * y));
+        if (invert_x) {
+            x = -x;
+        }
+        if (invert_y) {
+            y = -y;
+        }
+
         if (r > deadzone) {
             return std::make_tuple(x / r * (r - deadzone) / (1 - deadzone),
                                    y / r * (r - deadzone) / (1 - deadzone));
@@ -386,6 +393,8 @@ private:
     std::shared_ptr<SDLJoystick> joystick;
     const int axis_x;
     const int axis_y;
+    const bool invert_x;
+    const bool invert_y;
     const float deadzone;
     const float range;
 };
@@ -572,12 +581,17 @@ public:
         const int axis_y = params.Get("axis_y", 1);
         const float deadzone = std::clamp(params.Get("deadzone", 0.0f), 0.0f, 1.0f);
         const float range = std::clamp(params.Get("range", 1.0f), 0.50f, 1.50f);
+        const std::string invert_x_value = params.Get("invert_x", "+");
+        const std::string invert_y_value = params.Get("invert_y", "+");
+        const bool invert_x = invert_x_value == "-";
+        const bool invert_y = invert_y_value == "-";
         auto joystick = state.GetSDLJoystickByGUID(guid, port);
 
         // This is necessary so accessing GetAxis with axis_x and axis_y won't crash
         joystick->SetAxis(axis_x, 0);
         joystick->SetAxis(axis_y, 0);
-        return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, deadzone, range);
+        return std::make_unique<SDLAnalog>(joystick, axis_x, axis_y, invert_x, invert_y, deadzone,
+                                           range);
     }
 
 private:
@@ -886,6 +900,8 @@ Common::ParamPackage BuildParamPackageForAnalog(int port, const std::string& gui
     params.Set("guid", guid);
     params.Set("axis_x", axis_x);
     params.Set("axis_y", axis_y);
+    params.Set("invert_x", "+");
+    params.Set("invert_y", "+");
     return params;
 }
 } // Anonymous namespace

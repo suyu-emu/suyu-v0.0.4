@@ -173,61 +173,31 @@ QString AnalogToText(const Common::ParamPackage& param, const std::string& dir) 
         return ButtonToText(Common::ParamPackage{param.Get(dir, "")});
     }
 
-    if (param.Get("engine", "") == "sdl") {
+    const auto engine_str = param.Get("engine", "");
+    const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
+    const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
+    const bool invert_x = param.Get("invert_x", "+") == "-";
+    const bool invert_y = param.Get("invert_y", "+") == "-";
+    if (engine_str == "sdl" || engine_str == "gcpad" || engine_str == "mouse") {
         if (dir == "modifier") {
             return QObject::tr("[unused]");
         }
 
-        if (dir == "left" || dir == "right") {
-            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
-
-            return QObject::tr("Axis %1").arg(axis_x_str);
+        if (dir == "left") {
+            const QString invert_x_str = QString::fromStdString(invert_x ? "+" : "-");
+            return QObject::tr("Axis %1%2").arg(axis_x_str, invert_x_str);
         }
-
-        if (dir == "up" || dir == "down") {
-            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
-
-            return QObject::tr("Axis %1").arg(axis_y_str);
+        if (dir == "right") {
+            const QString invert_x_str = QString::fromStdString(invert_x ? "-" : "+");
+            return QObject::tr("Axis %1%2").arg(axis_x_str, invert_x_str);
         }
-
-        return {};
-    }
-
-    if (param.Get("engine", "") == "gcpad") {
-        if (dir == "modifier") {
-            return QObject::tr("[unused]");
+        if (dir == "up") {
+            const QString invert_y_str = QString::fromStdString(invert_y ? "-" : "+");
+            return QObject::tr("Axis %1%2").arg(axis_y_str, invert_y_str);
         }
-
-        if (dir == "left" || dir == "right") {
-            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
-
-            return QObject::tr("GC Axis %1").arg(axis_x_str);
-        }
-
-        if (dir == "up" || dir == "down") {
-            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
-
-            return QObject::tr("GC Axis %1").arg(axis_y_str);
-        }
-
-        return {};
-    }
-
-    if (param.Get("engine", "") == "mouse") {
-        if (dir == "modifier") {
-            return QObject::tr("[unused]");
-        }
-
-        if (dir == "left" || dir == "right") {
-            const QString axis_x_str = QString::fromStdString(param.Get("axis_x", ""));
-
-            return QObject::tr("Mouse %1").arg(axis_x_str);
-        }
-
-        if (dir == "up" || dir == "down") {
-            const QString axis_y_str = QString::fromStdString(param.Get("axis_y", ""));
-
-            return QObject::tr("Mouse %1").arg(axis_y_str);
+        if (dir == "down") {
+            const QString invert_y_str = QString::fromStdString(invert_y ? "+" : "-");
+            return QObject::tr("Axis %1%2").arg(axis_y_str, invert_y_str);
         }
 
         return {};
@@ -395,6 +365,25 @@ ConfigureInputPlayer::ConfigureInputPlayer(QWidget* parent, std::size_t player_i
                         context_menu.addAction(tr("Clear"), [&] {
                             analogs_param[analog_id].Clear();
                             analog_map_buttons[analog_id][sub_button_id]->setText(tr("[not set]"));
+                        });
+                        context_menu.addAction(tr("Invert axis"), [&] {
+                            if (sub_button_id == 2 || sub_button_id == 3) {
+                                const bool invert_value =
+                                    analogs_param[analog_id].Get("invert_x", "+") == "-";
+                                const std::string invert_str = invert_value ? "+" : "-";
+                                analogs_param[analog_id].Set("invert_x", invert_str);
+                            }
+                            if (sub_button_id == 0 || sub_button_id == 1) {
+                                const bool invert_value =
+                                    analogs_param[analog_id].Get("invert_y", "+") == "-";
+                                const std::string invert_str = invert_value ? "+" : "-";
+                                analogs_param[analog_id].Set("invert_y", invert_str);
+                            }
+                            for (int sub_button_id = 0; sub_button_id < ANALOG_SUB_BUTTONS_NUM;
+                                 ++sub_button_id) {
+                                analog_map_buttons[analog_id][sub_button_id]->setText(AnalogToText(
+                                    analogs_param[analog_id], analog_sub_buttons[sub_button_id]));
+                            }
                         });
                         context_menu.exec(analog_map_buttons[analog_id][sub_button_id]->mapToGlobal(
                             menu_location));
