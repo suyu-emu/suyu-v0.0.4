@@ -5,8 +5,27 @@
 #pragma once
 
 #include "common/common_types.h"
+#include "core/device_memory.h"
 
 namespace Kernel::Memory {
+
+constexpr std::size_t KernelAslrAlignment = 2 * 1024 * 1024;
+constexpr std::size_t KernelVirtualAddressSpaceWidth = 1ULL << 39;
+constexpr std::size_t KernelPhysicalAddressSpaceWidth = 1ULL << 48;
+constexpr std::size_t KernelVirtualAddressSpaceBase = 0ULL - KernelVirtualAddressSpaceWidth;
+constexpr std::size_t KernelVirtualAddressSpaceEnd =
+    KernelVirtualAddressSpaceBase + (KernelVirtualAddressSpaceWidth - KernelAslrAlignment);
+constexpr std::size_t KernelVirtualAddressSpaceLast = KernelVirtualAddressSpaceEnd - 1;
+constexpr std::size_t KernelVirtualAddressSpaceSize =
+    KernelVirtualAddressSpaceEnd - KernelVirtualAddressSpaceBase;
+
+constexpr bool IsKernelAddressKey(VAddr key) {
+    return KernelVirtualAddressSpaceBase <= key && key <= KernelVirtualAddressSpaceLast;
+}
+
+constexpr bool IsKernelAddress(VAddr address) {
+    return KernelVirtualAddressSpaceBase <= address && address < KernelVirtualAddressSpaceEnd;
+}
 
 class MemoryRegion final {
     friend class MemoryLayout;
