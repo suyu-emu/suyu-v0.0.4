@@ -1583,7 +1583,7 @@ static void ExitThread32(Core::System& system) {
 
 /// Sleep the current thread
 static void SleepThread(Core::System& system, s64 nanoseconds) {
-    LOG_DEBUG(Kernel_SVC, "called nanoseconds={}", nanoseconds);
+    LOG_TRACE(Kernel_SVC, "called nanoseconds={}", nanoseconds);
 
     enum class SleepType : s64 {
         YieldWithoutCoreMigration = 0,
