@@ -158,6 +158,8 @@ add_library(core STATIC
     hle/kernel/hle_ipc.cpp
     hle/kernel/hle_ipc.h
     hle/kernel/k_affinity_mask.h
+    hle/kernel/k_condition_variable.cpp
+    hle/kernel/k_condition_variable.h
     hle/kernel/k_priority_queue.h
     hle/kernel/k_scheduler.cpp
     hle/kernel/k_scheduler.h
