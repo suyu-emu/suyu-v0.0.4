@@ -78,11 +78,13 @@ IAppletResource::IAppletResource(Core::System& system_)
     pad_update_event = Core::Timing::CreateEvent(
         "HID::UpdatePadCallback",
         [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            const auto guard = LockService();
             UpdateControllers(user_data, ns_late);
         });
     motion_update_event = Core::Timing::CreateEvent(
         "HID::MotionPadCallback",
         [this](std::uintptr_t user_data, std::chrono::nanoseconds ns_late) {
+            const auto guard = LockService();
             UpdateMotion(user_data, ns_late);
         });
 

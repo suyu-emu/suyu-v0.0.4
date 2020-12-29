@@ -27,10 +27,6 @@ namespace Core::Timing {
 class CoreTiming;
 }
 
-namespace Kernel {
-class WritableEvent;
-}
-
 namespace Core::Memory {
 class Memory;
 }
@@ -44,8 +40,7 @@ class AudioRenderer {
 public:
     AudioRenderer(Core::Timing::CoreTiming& core_timing, Core::Memory::Memory& memory_,
                   AudioCommon::AudioRendererParameter params,
-                  std::shared_ptr<Kernel::WritableEvent> buffer_event_,
-                  std::size_t instance_number);
+                  Stream::ReleaseCallback&& release_callback, std::size_t instance_number);
     ~AudioRenderer();
 
     [[nodiscard]] ResultCode UpdateAudioRenderer(const std::vector<u8>& input_params,
@@ -61,7 +56,6 @@ private:
     BehaviorInfo behavior_info{};
 
     AudioCommon::AudioRendererParameter worker_params;
-    std::shared_ptr<Kernel::WritableEvent> buffer_event;
     std::vector<ServerMemoryPoolInfo> memory_pool_info;
     VoiceContext voice_context;
     EffectContext effect_context;

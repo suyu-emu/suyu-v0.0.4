@@ -49,16 +49,16 @@ public:
 
         system_event =
             Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioRenderer:SystemEvent");
-        renderer = std::make_unique<AudioCore::AudioRenderer>(system.CoreTiming(), system.Memory(),
-                                                              audren_params, system_event.writable,
-                                                              instance_number);
+        renderer = std::make_unique<AudioCore::AudioRenderer>(
+            system.CoreTiming(), system.Memory(), audren_params,
+            [this]() {
+                const auto guard = LockService();
+                system_event.writable->Signal();
+            },
+            instance_number);
     }
 
 private:
-    void UpdateAudioCallback() {
-        system_event.writable->Signal();
-    }
-
     void GetSampleRate(Kernel::HLERequestContext& ctx) {
         LOG_DEBUG(Service_Audio, "called");
 
