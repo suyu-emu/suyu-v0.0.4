@@ -10,6 +10,7 @@
 #include "common/assert.h"
 #include "common/spin_lock.h"
 #include "core/hardware_properties.h"
+#include "core/hle/kernel/kernel.h"
 
 namespace Kernel {
 
