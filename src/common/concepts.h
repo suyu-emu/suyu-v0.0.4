@@ -31,4 +31,8 @@ concept DerivedFrom = requires {
     std::is_convertible_v<const volatile Derived*, const volatile Base*>;
 };
 
+// TODO: Replace with std::convertible_to when libc++ implements it.
+template <typename From, typename To>
+concept ConvertibleTo = std::is_convertible_v<From, To>;
+
 } // namespace Common
