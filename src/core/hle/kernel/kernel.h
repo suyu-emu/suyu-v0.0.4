@@ -33,7 +33,6 @@ template <typename T>
 class SlabHeap;
 } // namespace Memory
 
-class AddressArbiter;
 class ClientPort;
 class GlobalSchedulerContext;
 class HandleTable;
