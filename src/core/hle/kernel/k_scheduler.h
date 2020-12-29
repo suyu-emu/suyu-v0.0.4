@@ -103,8 +103,7 @@ public:
     static void OnThreadStateChanged(KernelCore& kernel, Thread* thread, ThreadState old_state);
 
     /// Notify the scheduler a thread's priority has changed.
-    static void OnThreadPriorityChanged(KernelCore& kernel, Thread* thread, Thread* current_thread,
-                                        s32 old_priority);
+    static void OnThreadPriorityChanged(KernelCore& kernel, Thread* thread, s32 old_priority);
 
     /// Notify the scheduler a thread's core and/or affinity mask has changed.
     static void OnThreadAffinityMaskChanged(KernelCore& kernel, Thread* thread,

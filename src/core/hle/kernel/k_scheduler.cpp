@@ -203,9 +203,7 @@ void KScheduler::OnThreadStateChanged(KernelCore& kernel, Thread* thread, Thread
     }
 }
 
-void KScheduler::OnThreadPriorityChanged(KernelCore& kernel, Thread* thread, Thread* current_thread,
-                                         s32 old_priority) {
-
+void KScheduler::OnThreadPriorityChanged(KernelCore& kernel, Thread* thread, s32 old_priority) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // If the thread is runnable, we want to change its priority in the queue.
@@ -292,7 +290,7 @@ void KScheduler::RotateScheduledQueue(s32 core_id, s32 priority) {
 
         // If the best thread we can choose has a priority the same or worse than ours, try to
         // migrate a higher priority thread.
-        if (best_thread != nullptr && best_thread->GetPriority() >= static_cast<u32>(priority)) {
+        if (best_thread != nullptr && best_thread->GetPriority() >= priority) {
             Thread* suggested = priority_queue.GetSuggestedFront(core_id);
             while (suggested != nullptr) {
                 // If the suggestion's priority is the same as ours, don't bother.
