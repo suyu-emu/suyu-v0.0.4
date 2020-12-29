@@ -104,10 +104,8 @@ struct KernelCore::Impl {
 
         exclusive_monitor.reset();
 
-        num_host_threads = 0;
-        std::fill(register_host_thread_keys.begin(), register_host_thread_keys.end(),
-                  std::thread::id{});
-        std::fill(register_host_thread_values.begin(), register_host_thread_values.end(), 0);
+        // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
+        next_host_thread_id = Core::Hardware::NUM_CPU_CORES;
 
         // Ensures all service threads gracefully shutdown
         service_threads.clear();
@@ -190,52 +188,46 @@ struct KernelCore::Impl {
         }
     }
 
+    /// Creates a new host thread ID, should only be called by GetHostThreadId
+    u32 AllocateHostThreadId(std::optional<std::size_t> core_id) {
+        if (core_id) {
+            // The first for slots are reserved for CPU core threads
+            ASSERT(*core_id < Core::Hardware::NUM_CPU_CORES);
+            return static_cast<u32>(*core_id);
+        } else {
+            return next_host_thread_id++;
+        }
+    }
+
+    /// Gets the host thread ID for the caller, allocating a new one if this is the first time
+    u32 GetHostThreadId(std::optional<std::size_t> core_id = std::nullopt) {
+        const thread_local auto host_thread_id{AllocateHostThreadId(core_id)};
+        return host_thread_id;
+    }
+
+    /// Registers a CPU core thread by allocating a host thread ID for it
     void RegisterCoreThread(std::size_t core_id) {
-        const std::thread::id this_id = std::this_thread::get_id();
+        ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
+        const auto this_id = GetHostThreadId(core_id);
         if (!is_multicore) {
             single_core_thread_id = this_id;
         }
-        const auto end =
-            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
-        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
-        ASSERT(core_id < Core::Hardware::NUM_CPU_CORES);
-        ASSERT(it == end);
-        InsertHostThread(static_cast<u32>(core_id));
     }
 
+    /// Registers a new host thread by allocating a host thread ID for it
     void RegisterHostThread() {
-        const std::thread::id this_id = std::this_thread::get_id();
-        const auto end =
-            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
-        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
-        if (it == end) {
-            InsertHostThread(registered_thread_ids++);
-        }
+        [[maybe_unused]] const auto this_id = GetHostThreadId();
     }
 
-    void InsertHostThread(u32 value) {
-        const size_t index = num_host_threads++;
-        ASSERT_MSG(index < NUM_REGISTRABLE_HOST_THREADS, "Too many host threads");
-        register_host_thread_values[index] = value;
-        register_host_thread_keys[index] = std::this_thread::get_id();
-    }
-
-    [[nodiscard]] u32 GetCurrentHostThreadID() const {
-        const std::thread::id this_id = std::this_thread::get_id();
+    [[nodiscard]] u32 GetCurrentHostThreadID() {
+        const auto this_id = GetHostThreadId();
         if (!is_multicore && single_core_thread_id == this_id) {
             return static_cast<u32>(system.GetCpuManager().CurrentCore());
         }
-        const auto end =
-            register_host_thread_keys.begin() + static_cast<ptrdiff_t>(num_host_threads);
-        const auto it = std::find(register_host_thread_keys.begin(), end, this_id);
-        if (it == end) {
-            return Core::INVALID_HOST_THREAD_ID;
-        }
-        return register_host_thread_values[static_cast<size_t>(
-            std::distance(register_host_thread_keys.begin(), it))];
+        return this_id;
     }
 
-    Core::EmuThreadHandle GetCurrentEmuThreadID() const {
+    [[nodiscard]] Core::EmuThreadHandle GetCurrentEmuThreadID() {
         Core::EmuThreadHandle result = Core::EmuThreadHandle::InvalidHandle();
         result.host_handle = GetCurrentHostThreadID();
         if (result.host_handle >= Core::Hardware::NUM_CPU_CORES) {
@@ -329,15 +321,8 @@ struct KernelCore::Impl {
     std::unique_ptr<Core::ExclusiveMonitor> exclusive_monitor;
     std::vector<Kernel::PhysicalCore> cores;
 
-    // 0-3 IDs represent core threads, >3 represent others
-    std::atomic<u32> registered_thread_ids{Core::Hardware::NUM_CPU_CORES};
-
-    // Number of host threads is a relatively high number to avoid overflowing
-    static constexpr size_t NUM_REGISTRABLE_HOST_THREADS = 1024;
-    std::atomic<size_t> num_host_threads{0};
-    std::array<std::atomic<std::thread::id>, NUM_REGISTRABLE_HOST_THREADS>
-        register_host_thread_keys{};
-    std::array<std::atomic<u32>, NUM_REGISTRABLE_HOST_THREADS> register_host_thread_values{};
+    // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
+    std::atomic<u32> next_host_thread_id{Core::Hardware::NUM_CPU_CORES};
 
     // Kernel memory management
     std::unique_ptr<Memory::MemoryManager> memory_manager;
@@ -357,7 +342,7 @@ struct KernelCore::Impl {
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
     bool is_multicore{};
-    std::thread::id single_core_thread_id{};
+    u32 single_core_thread_id{};
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
 
