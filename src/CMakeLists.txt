@@ -62,6 +62,7 @@ else()
         -Werror=implicit-fallthrough
         -Werror=missing-declarations
         -Werror=reorder
+        -Werror=uninitialized
         -Werror=unused-result
         -Wextra
         -Wmissing-declarations
