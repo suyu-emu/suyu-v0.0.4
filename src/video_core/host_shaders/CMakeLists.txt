@@ -12,6 +12,9 @@ set(SHADER_FILES
     vulkan_blit_depth_stencil.frag
     vulkan_present.frag
     vulkan_present.vert
+    vulkan_quad_array.comp
+    vulkan_quad_indexed.comp
+    vulkan_uint8.comp
 )
 
 find_program(GLSLANGVALIDATOR "glslangValidator" REQUIRED)
