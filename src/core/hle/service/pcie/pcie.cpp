@@ -48,7 +48,7 @@ public:
 
 class PCIe final : public ServiceFramework<PCIe> {
 public:
-    explicit PCIe(Core::System& system_) : ServiceFramework{system, "pcie"} {
+    explicit PCIe(Core::System& system_) : ServiceFramework{system_, "pcie"} {
         // clang-format off
         static const FunctionInfo functions[] = {
             {0, nullptr, "RegisterClassDriver"},
