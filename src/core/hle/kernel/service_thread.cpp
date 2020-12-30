@@ -41,7 +41,7 @@ ServiceThread::Impl::Impl(KernelCore& kernel, std::size_t num_threads, const std
     : service_name{name} {
     for (std::size_t i = 0; i < num_threads; ++i)
         threads.emplace_back([this, &kernel] {
-            Common::SetCurrentThreadName(std::string{"Hle_" + service_name}.c_str());
+            Common::SetCurrentThreadName(std::string{"yuzu:HleService:" + service_name}.c_str());
 
             // Wait for first request before trying to acquire a render context
             {
