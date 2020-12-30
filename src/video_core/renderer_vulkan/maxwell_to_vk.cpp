@@ -239,7 +239,7 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
     const bool attachable = tuple.usage & Attachable;
     const bool storage = tuple.usage & Storage;
 
-    VkFormatFeatureFlags usage;
+    VkFormatFeatureFlags usage{};
     switch (format_type) {
     case FormatType::Buffer:
         usage =
