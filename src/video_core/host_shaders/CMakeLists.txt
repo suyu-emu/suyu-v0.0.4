@@ -2,6 +2,7 @@ set(SHADER_FILES
     block_linear_unswizzle_2d.comp
     block_linear_unswizzle_3d.comp
     full_screen_triangle.vert
+    opengl_copy_bc4.comp
     opengl_present.frag
     opengl_present.vert
     pitch_unswizzle.comp
