@@ -142,8 +142,6 @@ add_library(core STATIC
     hardware_interrupt_manager.h
     hle/ipc.h
     hle/ipc_helpers.h
-    hle/kernel/address_arbiter.cpp
-    hle/kernel/address_arbiter.h
     hle/kernel/client_port.cpp
     hle/kernel/client_port.h
     hle/kernel/client_session.cpp
@@ -189,8 +187,6 @@ add_library(core STATIC
     hle/kernel/memory/slab_heap.h
     hle/kernel/memory/system_control.cpp
     hle/kernel/memory/system_control.h
-    hle/kernel/mutex.cpp
-    hle/kernel/mutex.h
     hle/kernel/object.cpp
     hle/kernel/object.h
     hle/kernel/physical_core.cpp

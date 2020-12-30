@@ -162,48 +162,6 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
-void Process::InsertConditionVariableThread(std::shared_ptr<Thread> thread) {
-    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread> current_thread = *it;
-        if (current_thread->GetPriority() > thread->GetPriority()) {
-            thread_list.insert(it, thread);
-            return;
-        }
-        ++it;
-    }
-    thread_list.push_back(thread);
-}
-
-void Process::RemoveConditionVariableThread(std::shared_ptr<Thread> thread) {
-    VAddr cond_var_addr = thread->GetCondVarWaitAddress();
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        const std::shared_ptr<Thread> current_thread = *it;
-        if (current_thread.get() == thread.get()) {
-            thread_list.erase(it);
-            return;
-        }
-        ++it;
-    }
-}
-
-std::vector<std::shared_ptr<Thread>> Process::GetConditionVariableThreads(
-    const VAddr cond_var_addr) {
-    std::vector<std::shared_ptr<Thread>> result{};
-    std::list<std::shared_ptr<Thread>>& thread_list = cond_var_threads[cond_var_addr];
-    auto it = thread_list.begin();
-    while (it != thread_list.end()) {
-        std::shared_ptr<Thread> current_thread = *it;
-        result.push_back(current_thread);
-        ++it;
-    }
-    return result;
-}
-
 void Process::RegisterThread(const Thread* thread) {
     thread_list.push_back(thread);
 }
@@ -412,9 +370,9 @@ bool Process::IsSignaled() const {
 }
 
 Process::Process(Core::System& system)
-    : KSynchronizationObject{system.Kernel()}, page_table{std::make_unique<Memory::PageTable>(
-                                                   system)},
-      handle_table{system.Kernel()}, address_arbiter{system}, mutex{system}, system{system} {}
+    : KSynchronizationObject{system.Kernel()},
+      page_table{std::make_unique<Memory::PageTable>(system)}, handle_table{system.Kernel()},
+      address_arbiter{system}, condition_var{system}, system{system} {}
 
 Process::~Process() = default;
 

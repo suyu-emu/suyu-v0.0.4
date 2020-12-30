@@ -8,6 +8,7 @@
 
 namespace Kernel::Svc {
 
+constexpr s32 ArgumentHandleCountMax = 0x40;
 constexpr u32 HandleWaitMask{1u << 30};
 
 } // namespace Kernel::Svc

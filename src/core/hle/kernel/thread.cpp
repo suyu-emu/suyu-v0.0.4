@@ -17,9 +17,11 @@
 #include "core/hardware_properties.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/kernel.h"
+#include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/thread.h"
@@ -61,24 +63,6 @@ void Thread::Stop() {
 }
 
 void Thread::Wakeup() {
-    KScopedSchedulerLock lock(kernel);
-    switch (thread_state) {
-    case ThreadState::Runnable:
-        // If the thread is waiting on multiple wait objects, it might be awoken more than once
-        // before actually resuming. We can ignore subsequent wakeups if the thread status has
-        // already been set to ThreadStatus::Ready.
-        return;
-    case ThreadState::Terminated:
-        // This should never happen, as threads must complete before being stopped.
-        DEBUG_ASSERT_MSG(false, "Thread with object id {} cannot be resumed because it's DEAD.",
-                         GetObjectId());
-        return;
-    }
-
-    SetState(ThreadState::Runnable);
-}
-
-void Thread::OnWakeUp() {
     KScopedSchedulerLock lock(kernel);
     SetState(ThreadState::Runnable);
 }
@@ -167,15 +151,14 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->stack_top = stack_top;
     thread->disable_count = 1;
     thread->tpidr_el0 = 0;
-    thread->nominal_priority = thread->current_priority = priority;
+    thread->current_priority = priority;
+    thread->base_priority = priority;
+    thread->lock_owner = nullptr;
     thread->schedule_count = -1;
     thread->last_scheduled_tick = 0;
     thread->processor_id = processor_id;
     thread->ideal_core = processor_id;
     thread->affinity_mask.SetAffinity(processor_id, true);
-    thread->mutex_wait_address = 0;
-    thread->condvar_wait_address = 0;
-    thread->wait_handle = 0;
     thread->name = std::move(name);
     thread->global_handle = kernel.GlobalHandleTable().Create(thread).Unwrap();
     thread->owner_process = owner_process;
@@ -205,12 +188,17 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     return MakeResult<std::shared_ptr<Thread>>(std::move(thread));
 }
 
-void Thread::SetPriority(u32 priority) {
-    KScopedSchedulerLock lock(kernel);
+void Thread::SetBasePriority(u32 priority) {
     ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
                "Invalid priority value.");
-    nominal_priority = priority;
-    UpdatePriority();
+
+    KScopedSchedulerLock lock(kernel);
+
+    // Change our base priority.
+    base_priority = priority;
+
+    // Perform a priority restoration.
+    RestorePriority(kernel, this);
 }
 
 void Thread::SetSynchronizationResults(KSynchronizationObject* object, ResultCode result) {
@@ -224,95 +212,146 @@ VAddr Thread::GetCommandBufferAddress() const {
     return GetTLSAddress() + command_header_offset;
 }
 
-void Thread::SetState(ThreadState new_status) {
-    if (new_status == thread_state) {
-        return;
+void Thread::SetState(ThreadState state) {
+    KScopedSchedulerLock sl(kernel);
+
+    SetMutexWaitAddressForDebugging(0);
+    const ThreadState old_state = thread_state;
+    thread_state =
+        static_cast<ThreadState>((old_state & ~ThreadState::Mask) | (state & ThreadState::Mask));
+    if (thread_state != old_state) {
+        KScheduler::OnThreadStateChanged(kernel, this, old_state);
     }
-
-    if (new_status != ThreadState::Waiting) {
-        SetWaitingCondVar(false);
-    }
-
-    SetSchedulingStatus(new_status);
-
-    thread_state = new_status;
 }
 
-void Thread::AddMutexWaiter(std::shared_ptr<Thread> thread) {
-    if (thread->lock_owner.get() == this) {
-        // If the thread is already waiting for this thread to release the mutex, ensure that the
-        // waiters list is consistent and return without doing anything.
-        const auto iter = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
-        ASSERT(iter != wait_mutex_threads.end());
-        return;
+void Thread::AddWaiterImpl(Thread* thread) {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    // Find the right spot to insert the waiter.
+    auto it = waiter_list.begin();
+    while (it != waiter_list.end()) {
+        if (it->GetPriority() > thread->GetPriority()) {
+            break;
+        }
+        it++;
     }
 
-    // A thread can't wait on two different mutexes at the same time.
-    ASSERT(thread->lock_owner == nullptr);
+    // Keep track of how many kernel waiters we have.
+    if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+        ASSERT((num_kernel_waiters++) >= 0);
+    }
 
-    // Ensure that the thread is not already in the list of mutex waiters
-    const auto iter = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
-    ASSERT(iter == wait_mutex_threads.end());
-
-    // Keep the list in an ordered fashion
-    const auto insertion_point = std::find_if(
-        wait_mutex_threads.begin(), wait_mutex_threads.end(),
-        [&thread](const auto& entry) { return entry->GetPriority() > thread->GetPriority(); });
-    wait_mutex_threads.insert(insertion_point, thread);
-    thread->lock_owner = SharedFrom(this);
-
-    UpdatePriority();
+    // Insert the waiter.
+    waiter_list.insert(it, *thread);
+    thread->SetLockOwner(this);
 }
 
-void Thread::RemoveMutexWaiter(std::shared_ptr<Thread> thread) {
-    ASSERT(thread->lock_owner.get() == this);
+void Thread::RemoveWaiterImpl(Thread* thread) {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
-    // Ensure that the thread is in the list of mutex waiters
-    const auto iter = std::find(wait_mutex_threads.begin(), wait_mutex_threads.end(), thread);
-    ASSERT(iter != wait_mutex_threads.end());
+    // Keep track of how many kernel waiters we have.
+    if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+        ASSERT((num_kernel_waiters--) > 0);
+    }
 
-    wait_mutex_threads.erase(iter);
-
-    thread->lock_owner = nullptr;
-    UpdatePriority();
+    // Remove the waiter.
+    waiter_list.erase(waiter_list.iterator_to(*thread));
+    thread->SetLockOwner(nullptr);
 }
 
-void Thread::UpdatePriority() {
-    // If any of the threads waiting on the mutex have a higher priority
-    // (taking into account priority inheritance), then this thread inherits
-    // that thread's priority.
-    u32 new_priority = nominal_priority;
-    if (!wait_mutex_threads.empty()) {
-        if (wait_mutex_threads.front()->current_priority < new_priority) {
-            new_priority = wait_mutex_threads.front()->current_priority;
+void Thread::RestorePriority(KernelCore& kernel, Thread* thread) {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    while (true) {
+        // We want to inherit priority where possible.
+        s32 new_priority = thread->GetBasePriority();
+        if (thread->HasWaiters()) {
+            new_priority = std::min(new_priority, thread->waiter_list.front().GetPriority());
+        }
+
+        // If the priority we would inherit is not different from ours, don't do anything.
+        if (new_priority == thread->GetPriority()) {
+            return;
+        }
+
+        // Ensure we don't violate condition variable red black tree invariants.
+        if (auto* cv_tree = thread->GetConditionVariableTree(); cv_tree != nullptr) {
+            BeforeUpdatePriority(kernel, cv_tree, thread);
+        }
+
+        // Change the priority.
+        const s32 old_priority = thread->GetPriority();
+        thread->SetPriority(new_priority);
+
+        // Restore the condition variable, if relevant.
+        if (auto* cv_tree = thread->GetConditionVariableTree(); cv_tree != nullptr) {
+            AfterUpdatePriority(kernel, cv_tree, thread);
+        }
+
+        // Update the scheduler.
+        KScheduler::OnThreadPriorityChanged(kernel, thread, old_priority);
+
+        // Keep the lock owner up to date.
+        Thread* lock_owner = thread->GetLockOwner();
+        if (lock_owner == nullptr) {
+            return;
+        }
+
+        // Update the thread in the lock owner's sorted list, and continue inheriting.
+        lock_owner->RemoveWaiterImpl(thread);
+        lock_owner->AddWaiterImpl(thread);
+        thread = lock_owner;
+    }
+}
+
+void Thread::AddWaiter(Thread* thread) {
+    AddWaiterImpl(thread);
+    RestorePriority(kernel, this);
+}
+
+void Thread::RemoveWaiter(Thread* thread) {
+    RemoveWaiterImpl(thread);
+    RestorePriority(kernel, this);
+}
+
+Thread* Thread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
+    ASSERT(kernel.GlobalSchedulerContext().IsLocked());
+
+    s32 num_waiters{};
+    Thread* next_lock_owner{};
+    auto it = waiter_list.begin();
+    while (it != waiter_list.end()) {
+        if (it->GetAddressKey() == key) {
+            Thread* thread = std::addressof(*it);
+
+            // Keep track of how many kernel waiters we have.
+            if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
+                ASSERT((num_kernel_waiters--) > 0);
+            }
+            it = waiter_list.erase(it);
+
+            // Update the next lock owner.
+            if (next_lock_owner == nullptr) {
+                next_lock_owner = thread;
+                next_lock_owner->SetLockOwner(nullptr);
+            } else {
+                next_lock_owner->AddWaiterImpl(thread);
+            }
+            num_waiters++;
+        } else {
+            it++;
         }
     }
 
-    if (new_priority == current_priority) {
-        return;
+    // Do priority updates, if we have a next owner.
+    if (next_lock_owner) {
+        RestorePriority(kernel, this);
+        RestorePriority(kernel, next_lock_owner);
     }
 
-    if (GetState() == ThreadState::Waiting && is_waiting_on_condvar) {
-        owner_process->RemoveConditionVariableThread(SharedFrom(this));
-    }
-
-    SetCurrentPriority(new_priority);
-
-    if (GetState() == ThreadState::Waiting && is_waiting_on_condvar) {
-        owner_process->InsertConditionVariableThread(SharedFrom(this));
-    }
-
-    if (!lock_owner) {
-        return;
-    }
-
-    // Ensure that the thread is within the correct location in the waiting list.
-    auto old_owner = lock_owner;
-    lock_owner->RemoveMutexWaiter(SharedFrom(this));
-    old_owner->AddMutexWaiter(SharedFrom(this));
-
-    // Recursively update the priority of the thread that depends on the priority of this one.
-    lock_owner->UpdatePriority();
+    // Return output.
+    *out_num_waiters = num_waiters;
+    return next_lock_owner;
 }
 
 ResultCode Thread::SetActivity(ThreadActivity value) {
@@ -370,18 +409,6 @@ void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     const auto base_scheduling = GetState();
     thread_state = base_scheduling | static_cast<ThreadState>(pausing_state);
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
-}
-
-void Thread::SetSchedulingStatus(ThreadState new_status) {
-    const auto old_state = GetRawState();
-    thread_state = (thread_state & ThreadState::HighMask) | new_status;
-    KScheduler::OnThreadStateChanged(kernel, this, old_state);
-}
-
-void Thread::SetCurrentPriority(u32 new_priority) {
-    const u32 old_priority = std::exchange(current_priority, new_priority);
-    KScheduler::OnThreadPriorityChanged(kernel, this, kernel.CurrentScheduler()->GetCurrentThread(),
-                                        old_priority);
 }
 
 ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {

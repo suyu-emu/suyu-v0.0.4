@@ -15,9 +15,9 @@
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_synchronization_object.h"
-#include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
+#include "core/hle/kernel/svc_common.h"
 #include "core/hle/kernel/thread.h"
 #include "core/memory.h"
 
@@ -116,7 +116,7 @@ QString WaitTreeText::GetText() const {
 WaitTreeMutexInfo::WaitTreeMutexInfo(VAddr mutex_address, const Kernel::HandleTable& handle_table)
     : mutex_address(mutex_address) {
     mutex_value = Core::System::GetInstance().Memory().Read32(mutex_address);
-    owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Mutex::MutexOwnerMask);
+    owner_handle = static_cast<Kernel::Handle>(mutex_value & Kernel::Svc::HandleWaitMask);
     owner = handle_table.Get<Kernel::Thread>(owner_handle);
 }
 
@@ -127,7 +127,7 @@ QString WaitTreeMutexInfo::GetText() const {
 }
 
 std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeMutexInfo::GetChildren() const {
-    const bool has_waiters = (mutex_value & Kernel::Mutex::MutexHasWaitersFlag) != 0;
+    const bool has_waiters = (mutex_value & Kernel::Svc::HandleWaitMask) != 0;
 
     std::vector<std::unique_ptr<WaitTreeItem>> list;
     list.push_back(std::make_unique<WaitTreeText>(tr("has waiters: %1").arg(has_waiters)));
@@ -324,11 +324,11 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
     list.push_back(std::make_unique<WaitTreeText>(tr("thread id = %1").arg(thread.GetThreadID())));
     list.push_back(std::make_unique<WaitTreeText>(tr("priority = %1(current) / %2(normal)")
                                                       .arg(thread.GetPriority())
-                                                      .arg(thread.GetNominalPriority())));
+                                                      .arg(thread.GetBasePriority())));
     list.push_back(std::make_unique<WaitTreeText>(
         tr("last running ticks = %1").arg(thread.GetLastScheduledTick())));
 
-    const VAddr mutex_wait_address = thread.GetMutexWaitAddress();
+    const VAddr mutex_wait_address = thread.GetMutexWaitAddressForDebugging();
     if (mutex_wait_address != 0) {
         const auto& handle_table = thread.GetOwnerProcess()->GetHandleTable();
         list.push_back(std::make_unique<WaitTreeMutexInfo>(mutex_wait_address, handle_table));

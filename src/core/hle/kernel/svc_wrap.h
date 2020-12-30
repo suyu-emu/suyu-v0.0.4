@@ -7,6 +7,7 @@
 #include "common/common_types.h"
 #include "core/arm/arm_interface.h"
 #include "core/core.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/hle/result.h"
 
 namespace Kernel {
@@ -277,18 +278,22 @@ void SvcWrap64(Core::System& system) {
     FuncReturn(system, retval);
 }
 
-template <ResultCode func(Core::System&, u64, u32, s32, s64)>
+// Used by WaitForAddress
+template <ResultCode func(Core::System&, u64, Svc::ArbitrationType, s32, s64)>
 void SvcWrap64(Core::System& system) {
-    FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1)),
-                            static_cast<s32>(Param(system, 2)), static_cast<s64>(Param(system, 3)))
-                           .raw);
+    FuncReturn(system,
+               func(system, Param(system, 0), static_cast<Svc::ArbitrationType>(Param(system, 1)),
+                    static_cast<s32>(Param(system, 2)), static_cast<s64>(Param(system, 3)))
+                   .raw);
 }
 
-template <ResultCode func(Core::System&, u64, u32, s32, s32)>
+// Used by SignalToAddress
+template <ResultCode func(Core::System&, u64, Svc::SignalType, s32, s32)>
 void SvcWrap64(Core::System& system) {
-    FuncReturn(system, func(system, Param(system, 0), static_cast<u32>(Param(system, 1)),
-                            static_cast<s32>(Param(system, 2)), static_cast<s32>(Param(system, 3)))
-                           .raw);
+    FuncReturn(system,
+               func(system, Param(system, 0), static_cast<Svc::SignalType>(Param(system, 1)),
+                    static_cast<s32>(Param(system, 2)), static_cast<s32>(Param(system, 3)))
+                   .raw);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,22 +509,23 @@ void SvcWrap32(Core::System& system) {
 }
 
 // Used by WaitForAddress32
-template <ResultCode func(Core::System&, u32, u32, s32, u32, u32)>
+template <ResultCode func(Core::System&, u32, Svc::ArbitrationType, s32, u32, u32)>
 void SvcWrap32(Core::System& system) {
     const u32 retval = func(system, static_cast<u32>(Param(system, 0)),
-                            static_cast<u32>(Param(system, 1)), static_cast<s32>(Param(system, 2)),
-                            static_cast<u32>(Param(system, 3)), static_cast<u32>(Param(system, 4)))
+                            static_cast<Svc::ArbitrationType>(Param(system, 1)),
+                            static_cast<s32>(Param(system, 2)), static_cast<u32>(Param(system, 3)),
+                            static_cast<u32>(Param(system, 4)))
                            .raw;
     FuncReturn(system, retval);
 }
 
 // Used by SignalToAddress32
-template <ResultCode func(Core::System&, u32, u32, s32, s32)>
+template <ResultCode func(Core::System&, u32, Svc::SignalType, s32, s32)>
 void SvcWrap32(Core::System& system) {
-    const u32 retval =
-        func(system, static_cast<u32>(Param(system, 0)), static_cast<u32>(Param(system, 1)),
-             static_cast<s32>(Param(system, 2)), static_cast<s32>(Param(system, 3)))
-            .raw;
+    const u32 retval = func(system, static_cast<u32>(Param(system, 0)),
+                            static_cast<Svc::SignalType>(Param(system, 1)),
+                            static_cast<s32>(Param(system, 2)), static_cast<s32>(Param(system, 3)))
+                           .raw;
     FuncReturn(system, retval);
 }
 

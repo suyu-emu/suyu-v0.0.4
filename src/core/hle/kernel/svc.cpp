@@ -10,6 +10,7 @@
 
 #include "common/alignment.h"
 #include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/fiber.h"
 #include "common/logging/log.h"
 #include "common/microprofile.h"
@@ -19,24 +20,26 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/cpu_manager.h"
-#include "core/hle/kernel/address_arbiter.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/client_session.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_address_arbiter.h"
+#include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
+#include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/memory/page_table.h"
-#include "core/hle/kernel/mutex.h"
 #include "core/hle/kernel/physical_core.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/shared_memory.h"
 #include "core/hle/kernel/svc.h"
+#include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
 #include "core/hle/kernel/thread.h"
@@ -347,12 +350,6 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
     }
 
-    Handle event_handle = thread->GetHLETimeEvent();
-    if (event_handle != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(event_handle);
-    }
-
     return thread->GetSignalingResult();
 }
 
@@ -491,56 +488,37 @@ static ResultCode CancelSynchronization32(Core::System& system, Handle thread_ha
     return CancelSynchronization(system, thread_handle);
 }
 
-/// Attempts to locks a mutex, creating it if it does not already exist
-static ResultCode ArbitrateLock(Core::System& system, Handle holding_thread_handle,
-                                VAddr mutex_addr, Handle requesting_thread_handle) {
-    LOG_TRACE(Kernel_SVC,
-              "called holding_thread_handle=0x{:08X}, mutex_addr=0x{:X}, "
-              "requesting_current_thread_handle=0x{:08X}",
-              holding_thread_handle, mutex_addr, requesting_thread_handle);
+/// Attempts to locks a mutex
+static ResultCode ArbitrateLock(Core::System& system, Handle thread_handle, VAddr address,
+                                u32 tag) {
+    LOG_TRACE(Kernel_SVC, "called thread_handle=0x{:08X}, address=0x{:X}, tag=0x{:08X}",
+              thread_handle, address, tag);
 
-    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
-                  mutex_addr);
-        return ERR_INVALID_ADDRESS_STATE;
-    }
+    // Validate the input address.
+    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
+    R_UNLESS(Common::IsAligned(address, sizeof(u32)), Svc::ResultInvalidAddress);
 
-    if (!Common::IsWordAligned(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex Address is not word aligned, mutex_addr={:016X}", mutex_addr);
-        return ERR_INVALID_ADDRESS;
-    }
-
-    auto* const current_process = system.Kernel().CurrentProcess();
-    return current_process->GetMutex().TryAcquire(mutex_addr, holding_thread_handle,
-                                                  requesting_thread_handle);
+    return system.Kernel().CurrentProcess()->WaitForAddress(thread_handle, address, tag);
 }
 
-static ResultCode ArbitrateLock32(Core::System& system, Handle holding_thread_handle,
-                                  u32 mutex_addr, Handle requesting_thread_handle) {
-    return ArbitrateLock(system, holding_thread_handle, mutex_addr, requesting_thread_handle);
+static ResultCode ArbitrateLock32(Core::System& system, Handle thread_handle, u32 address,
+                                  u32 tag) {
+    return ArbitrateLock(system, thread_handle, address, tag);
 }
 
 /// Unlock a mutex
-static ResultCode ArbitrateUnlock(Core::System& system, VAddr mutex_addr) {
-    LOG_TRACE(Kernel_SVC, "called mutex_addr=0x{:X}", mutex_addr);
+static ResultCode ArbitrateUnlock(Core::System& system, VAddr address) {
+    LOG_TRACE(Kernel_SVC, "called address=0x{:X}", address);
 
-    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex Address is a kernel virtual address, mutex_addr={:016X}",
-                  mutex_addr);
-        return ERR_INVALID_ADDRESS_STATE;
-    }
+    // Validate the input address.
+    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
+    R_UNLESS(Common::IsAligned(address, sizeof(u32)), Svc::ResultInvalidAddress);
 
-    if (!Common::IsWordAligned(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Mutex Address is not word aligned, mutex_addr={:016X}", mutex_addr);
-        return ERR_INVALID_ADDRESS;
-    }
-
-    auto* const current_process = system.Kernel().CurrentProcess();
-    return current_process->GetMutex().Release(mutex_addr);
+    return system.Kernel().CurrentProcess()->SignalToAddress(address);
 }
 
-static ResultCode ArbitrateUnlock32(Core::System& system, u32 mutex_addr) {
-    return ArbitrateUnlock(system, mutex_addr);
+static ResultCode ArbitrateUnlock32(Core::System& system, u32 address) {
+    return ArbitrateUnlock(system, address);
 }
 
 enum class BreakType : u32 {
@@ -1167,7 +1145,7 @@ static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 pri
         return ERR_INVALID_HANDLE;
     }
 
-    thread->SetPriority(priority);
+    thread->SetBasePriority(priority);
 
     return RESULT_SUCCESS;
 }
@@ -1607,223 +1585,135 @@ static void SleepThread32(Core::System& system, u32 nanoseconds_low, u32 nanosec
 }
 
 /// Wait process wide key atomic
-static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr mutex_addr,
-                                           VAddr condition_variable_addr, Handle thread_handle,
-                                           s64 nano_seconds) {
-    LOG_TRACE(
-        Kernel_SVC,
-        "called mutex_addr={:X}, condition_variable_addr={:X}, thread_handle=0x{:08X}, timeout={}",
-        mutex_addr, condition_variable_addr, thread_handle, nano_seconds);
+static ResultCode WaitProcessWideKeyAtomic(Core::System& system, VAddr address, VAddr cv_key,
+                                           u32 tag, s64 timeout_ns) {
+    LOG_TRACE(Kernel_SVC, "called address={:X}, cv_key={:X}, tag=0x{:08X}, timeout_ns={}", address,
+              cv_key, tag, timeout_ns);
 
-    if (Core::Memory::IsKernelVirtualAddress(mutex_addr)) {
-        LOG_ERROR(
-            Kernel_SVC,
-            "Given mutex address must not be within the kernel address space. address=0x{:016X}",
-            mutex_addr);
-        return ERR_INVALID_ADDRESS_STATE;
-    }
+    // Validate input.
+    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
+    R_UNLESS(Common::IsAligned(address, sizeof(int32_t)), Svc::ResultInvalidAddress);
 
-    if (!Common::IsWordAligned(mutex_addr)) {
-        LOG_ERROR(Kernel_SVC, "Given mutex address must be word-aligned. address=0x{:016X}",
-                  mutex_addr);
-        return ERR_INVALID_ADDRESS;
-    }
-
-    ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
-    auto& kernel = system.Kernel();
-    Handle event_handle;
-    Thread* current_thread = kernel.CurrentScheduler()->GetCurrentThread();
-    auto* const current_process = kernel.CurrentProcess();
-    {
-        KScopedSchedulerLockAndSleep lock(kernel, event_handle, current_thread, nano_seconds);
-        const auto& handle_table = current_process->GetHandleTable();
-        std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
-        ASSERT(thread);
-
-        current_thread->SetSynchronizationResults(nullptr, RESULT_TIMEOUT);
-
-        if (thread->IsTerminationRequested()) {
-            lock.CancelSleep();
-            return ERR_THREAD_TERMINATING;
+    // Convert timeout from nanoseconds to ticks.
+    s64 timeout{};
+    if (timeout_ns > 0) {
+        const s64 offset_tick(timeout_ns);
+        if (offset_tick > 0) {
+            timeout = offset_tick + 2;
+            if (timeout <= 0) {
+                timeout = std::numeric_limits<s64>::max();
+            }
+        } else {
+            timeout = std::numeric_limits<s64>::max();
         }
-
-        const auto release_result = current_process->GetMutex().Release(mutex_addr);
-        if (release_result.IsError()) {
-            lock.CancelSleep();
-            return release_result;
-        }
-
-        if (nano_seconds == 0) {
-            lock.CancelSleep();
-            return RESULT_TIMEOUT;
-        }
-
-        current_thread->SetCondVarWaitAddress(condition_variable_addr);
-        current_thread->SetMutexWaitAddress(mutex_addr);
-        current_thread->SetWaitHandle(thread_handle);
-        current_thread->SetState(ThreadState::Waiting);
-        current_thread->SetWaitingCondVar(true);
-        current_process->InsertConditionVariableThread(SharedFrom(current_thread));
+    } else {
+        timeout = timeout_ns;
     }
 
-    if (event_handle != InvalidHandle) {
-        auto& time_manager = kernel.TimeManager();
-        time_manager.UnscheduleTimeEvent(event_handle);
-    }
-
-    {
-        KScopedSchedulerLock lock(kernel);
-
-        auto* owner = current_thread->GetLockOwner();
-        if (owner != nullptr) {
-            owner->RemoveMutexWaiter(SharedFrom(current_thread));
-        }
-
-        current_process->RemoveConditionVariableThread(SharedFrom(current_thread));
-    }
-    // Note: Deliberately don't attempt to inherit the lock owner's priority.
-
-    return current_thread->GetSignalingResult();
+    // Wait on the condition variable.
+    return system.Kernel().CurrentProcess()->WaitConditionVariable(
+        address, Common::AlignDown(cv_key, sizeof(u32)), tag, timeout);
 }
 
-static ResultCode WaitProcessWideKeyAtomic32(Core::System& system, u32 mutex_addr,
-                                             u32 condition_variable_addr, Handle thread_handle,
-                                             u32 nanoseconds_low, u32 nanoseconds_high) {
-    const auto nanoseconds = static_cast<s64>(nanoseconds_low | (u64{nanoseconds_high} << 32));
-    return WaitProcessWideKeyAtomic(system, mutex_addr, condition_variable_addr, thread_handle,
-                                    nanoseconds);
+static ResultCode WaitProcessWideKeyAtomic32(Core::System& system, u32 address, u32 cv_key, u32 tag,
+                                             u32 timeout_ns_low, u32 timeout_ns_high) {
+    const auto timeout_ns = static_cast<s64>(timeout_ns_low | (u64{timeout_ns_high} << 32));
+    return WaitProcessWideKeyAtomic(system, address, cv_key, tag, timeout_ns);
 }
 
 /// Signal process wide key
-static void SignalProcessWideKey(Core::System& system, VAddr condition_variable_addr, s32 target) {
-    LOG_TRACE(Kernel_SVC, "called, condition_variable_addr=0x{:X}, target=0x{:08X}",
-              condition_variable_addr, target);
+static void SignalProcessWideKey(Core::System& system, VAddr cv_key, s32 count) {
+    LOG_TRACE(Kernel_SVC, "called, cv_key=0x{:X}, count=0x{:08X}", cv_key, count);
 
-    ASSERT(condition_variable_addr == Common::AlignDown(condition_variable_addr, 4));
+    // Signal the condition variable.
+    return system.Kernel().CurrentProcess()->SignalConditionVariable(
+        Common::AlignDown(cv_key, sizeof(u32)), count);
+}
 
-    // Retrieve a list of all threads that are waiting for this condition variable.
-    auto& kernel = system.Kernel();
-    KScopedSchedulerLock lock(kernel);
-    auto* const current_process = kernel.CurrentProcess();
-    std::vector<std::shared_ptr<Thread>> waiting_threads =
-        current_process->GetConditionVariableThreads(condition_variable_addr);
+static void SignalProcessWideKey32(Core::System& system, u32 cv_key, s32 count) {
+    SignalProcessWideKey(system, cv_key, count);
+}
 
-    // Only process up to 'target' threads, unless 'target' is less equal 0, in which case process
-    // them all.
-    std::size_t last = waiting_threads.size();
-    if (target > 0) {
-        last = std::min(waiting_threads.size(), static_cast<std::size_t>(target));
-    }
-    for (std::size_t index = 0; index < last; ++index) {
-        auto& thread = waiting_threads[index];
+namespace {
 
-        ASSERT(thread->GetCondVarWaitAddress() == condition_variable_addr);
-
-        // liberate Cond Var Thread.
-        current_process->RemoveConditionVariableThread(thread);
-
-        const std::size_t current_core = system.CurrentCoreIndex();
-        auto& monitor = system.Monitor();
-
-        // Atomically read the value of the mutex.
-        u32 mutex_val = 0;
-        u32 update_val = 0;
-        const VAddr mutex_address = thread->GetMutexWaitAddress();
-        do {
-            // If the mutex is not yet acquired, acquire it.
-            mutex_val = monitor.ExclusiveRead32(current_core, mutex_address);
-
-            if (mutex_val != 0) {
-                update_val = mutex_val | Mutex::MutexHasWaitersFlag;
-            } else {
-                update_val = thread->GetWaitHandle();
-            }
-        } while (!monitor.ExclusiveWrite32(current_core, mutex_address, update_val));
-        monitor.ClearExclusive();
-        if (mutex_val == 0) {
-            // We were able to acquire the mutex, resume this thread.
-            auto* const lock_owner = thread->GetLockOwner();
-            if (lock_owner != nullptr) {
-                lock_owner->RemoveMutexWaiter(thread);
-            }
-
-            thread->SetLockOwner(nullptr);
-            thread->SetSynchronizationResults(nullptr, RESULT_SUCCESS);
-            thread->Wakeup();
-        } else {
-            // The mutex is already owned by some other thread, make this thread wait on it.
-            const Handle owner_handle = static_cast<Handle>(mutex_val & Mutex::MutexOwnerMask);
-            const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-            auto owner = handle_table.Get<Thread>(owner_handle);
-            ASSERT(owner);
-            thread->SetWaitingCondVar(false);
-
-            owner->AddMutexWaiter(thread);
-        }
+constexpr bool IsValidSignalType(Svc::SignalType type) {
+    switch (type) {
+    case Svc::SignalType::Signal:
+    case Svc::SignalType::SignalAndIncrementIfEqual:
+    case Svc::SignalType::SignalAndModifyByWaitingCountIfEqual:
+        return true;
+    default:
+        return false;
     }
 }
 
-static void SignalProcessWideKey32(Core::System& system, u32 condition_variable_addr, s32 target) {
-    SignalProcessWideKey(system, condition_variable_addr, target);
+constexpr bool IsValidArbitrationType(Svc::ArbitrationType type) {
+    switch (type) {
+    case Svc::ArbitrationType::WaitIfLessThan:
+    case Svc::ArbitrationType::DecrementAndWaitIfLessThan:
+    case Svc::ArbitrationType::WaitIfEqual:
+        return true;
+    default:
+        return false;
+    }
 }
+
+} // namespace
 
 // Wait for an address (via Address Arbiter)
-static ResultCode WaitForAddress(Core::System& system, VAddr address, u32 type, s32 value,
-                                 s64 timeout) {
-    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, timeout={}", address,
-              type, value, timeout);
+static ResultCode WaitForAddress(Core::System& system, VAddr address, Svc::ArbitrationType arb_type,
+                                 s32 value, s64 timeout_ns) {
+    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, arb_type=0x{:X}, value=0x{:X}, timeout_ns={}",
+              address, arb_type, value, timeout_ns);
 
-    // If the passed address is a kernel virtual address, return invalid memory state.
-    if (Core::Memory::IsKernelVirtualAddress(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
-        return ERR_INVALID_ADDRESS_STATE;
+    // Validate input.
+    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
+    R_UNLESS(Common::IsAligned(address, sizeof(int32_t)), Svc::ResultInvalidAddress);
+    R_UNLESS(IsValidArbitrationType(arb_type), Svc::ResultInvalidEnumValue);
+
+    // Convert timeout from nanoseconds to ticks.
+    s64 timeout{};
+    if (timeout_ns > 0) {
+        const s64 offset_tick(timeout_ns);
+        if (offset_tick > 0) {
+            timeout = offset_tick + 2;
+            if (timeout <= 0) {
+                timeout = std::numeric_limits<s64>::max();
+            }
+        } else {
+            timeout = std::numeric_limits<s64>::max();
+        }
+    } else {
+        timeout = timeout_ns;
     }
 
-    // If the address is not properly aligned to 4 bytes, return invalid address.
-    if (!Common::IsWordAligned(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is not word aligned, address={:016X}", address);
-        return ERR_INVALID_ADDRESS;
-    }
-
-    const auto arbitration_type = static_cast<AddressArbiter::ArbitrationType>(type);
-    auto& address_arbiter = system.Kernel().CurrentProcess()->GetAddressArbiter();
-    const ResultCode result =
-        address_arbiter.WaitForAddress(address, arbitration_type, value, timeout);
-    return result;
+    return system.Kernel().CurrentProcess()->WaitAddressArbiter(address, arb_type, value, timeout);
 }
 
-static ResultCode WaitForAddress32(Core::System& system, u32 address, u32 type, s32 value,
-                                   u32 timeout_low, u32 timeout_high) {
-    const auto timeout = static_cast<s64>(timeout_low | (u64{timeout_high} << 32));
-    return WaitForAddress(system, address, type, value, timeout);
+static ResultCode WaitForAddress32(Core::System& system, u32 address, Svc::ArbitrationType arb_type,
+                                   s32 value, u32 timeout_ns_low, u32 timeout_ns_high) {
+    const auto timeout = static_cast<s64>(timeout_ns_low | (u64{timeout_ns_high} << 32));
+    return WaitForAddress(system, address, arb_type, value, timeout);
 }
 
 // Signals to an address (via Address Arbiter)
-static ResultCode SignalToAddress(Core::System& system, VAddr address, u32 type, s32 value,
-                                  s32 num_to_wake) {
-    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, type=0x{:X}, value=0x{:X}, num_to_wake=0x{:X}",
-              address, type, value, num_to_wake);
+static ResultCode SignalToAddress(Core::System& system, VAddr address, Svc::SignalType signal_type,
+                                  s32 value, s32 count) {
+    LOG_TRACE(Kernel_SVC, "called, address=0x{:X}, signal_type=0x{:X}, value=0x{:X}, count=0x{:X}",
+              address, signal_type, value, count);
 
-    // If the passed address is a kernel virtual address, return invalid memory state.
-    if (Core::Memory::IsKernelVirtualAddress(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is a kernel virtual address, address={:016X}", address);
-        return ERR_INVALID_ADDRESS_STATE;
-    }
+    // Validate input.
+    R_UNLESS(!Memory::IsKernelAddress(address), Svc::ResultInvalidCurrentMemory);
+    R_UNLESS(Common::IsAligned(address, sizeof(s32)), Svc::ResultInvalidAddress);
+    R_UNLESS(IsValidSignalType(signal_type), Svc::ResultInvalidEnumValue);
 
-    // If the address is not properly aligned to 4 bytes, return invalid address.
-    if (!Common::IsWordAligned(address)) {
-        LOG_ERROR(Kernel_SVC, "Address is not word aligned, address={:016X}", address);
-        return ERR_INVALID_ADDRESS;
-    }
-
-    const auto signal_type = static_cast<AddressArbiter::SignalType>(type);
-    auto& address_arbiter = system.Kernel().CurrentProcess()->GetAddressArbiter();
-    return address_arbiter.SignalToAddress(address, signal_type, value, num_to_wake);
+    return system.Kernel().CurrentProcess()->SignalAddressArbiter(address, signal_type, value,
+                                                                  count);
 }
 
-static ResultCode SignalToAddress32(Core::System& system, u32 address, u32 type, s32 value,
-                                    s32 num_to_wake) {
-    return SignalToAddress(system, address, type, value, num_to_wake);
+static ResultCode SignalToAddress32(Core::System& system, u32 address, Svc::SignalType signal_type,
+                                    s32 value, s32 count) {
+    return SignalToAddress(system, address, signal_type, value, count);
 }
 
 static void KernelDebug([[maybe_unused]] Core::System& system,

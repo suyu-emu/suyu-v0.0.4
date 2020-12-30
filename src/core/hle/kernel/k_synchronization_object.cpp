@@ -72,7 +72,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
         }
 
         // For debugging only
-        thread->SetWaitObjectsForDebugging(objects, num_objects);
+        thread->SetWaitObjectsForDebugging({objects, static_cast<std::size_t>(num_objects)});
 
         // Mark the thread as waiting.
         thread->SetCancellable();
@@ -86,7 +86,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     thread->ClearCancellable();
 
     // For debugging only
-    thread->SetWaitObjectsForDebugging(nullptr, 0);
+    thread->SetWaitObjectsForDebugging({});
 
     // Cancel the timer as needed.
     if (timer != InvalidHandle) {

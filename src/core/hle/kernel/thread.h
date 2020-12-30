@@ -6,16 +6,21 @@
 
 #include <array>
 #include <functional>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <boost/intrusive/list.hpp>
+
 #include "common/common_types.h"
+#include "common/intrusive_red_black_tree.h"
 #include "common/spin_lock.h"
 #include "core/arm/arm_interface.h"
 #include "core/hle/kernel/k_affinity_mask.h"
 #include "core/hle/kernel/k_synchronization_object.h"
 #include "core/hle/kernel/object.h"
+#include "core/hle/kernel/svc_common.h"
 #include "core/hle/result.h"
 
 namespace Common {
@@ -89,8 +94,6 @@ enum class ThreadState : u16 {
     InitSuspended = (1 << (4 + SuspendShift)),
 
     SuspendFlagMask = ((1 << 5) - 1) << SuspendShift,
-
-    HighMask = 0xfff0,
 };
 DECLARE_ENUM_FLAG_OPERATORS(ThreadState);
 
@@ -111,7 +114,10 @@ enum class ThreadSchedFlags : u32 {
     KernelInitPauseFlag = 1 << 8,
 };
 
-class Thread final : public KSynchronizationObject {
+class Thread final : public KSynchronizationObject, public boost::intrusive::list_base_hook<> {
+    friend class KScheduler;
+    friend class Process;
+
 public:
     explicit Thread(KernelCore& kernel);
     ~Thread() override;
@@ -180,48 +186,45 @@ public:
      * Gets the thread's current priority
      * @return The current thread's priority
      */
-    u32 GetPriority() const {
+    [[nodiscard]] s32 GetPriority() const {
         return current_priority;
+    }
+
+    /**
+     * Sets the thread's current priority.
+     * @param priority The new priority.
+     */
+    void SetPriority(s32 priority) {
+        current_priority = priority;
     }
 
     /**
      * Gets the thread's nominal priority.
      * @return The current thread's nominal priority.
      */
-    u32 GetNominalPriority() const {
-        return nominal_priority;
+    [[nodiscard]] s32 GetBasePriority() const {
+        return base_priority;
     }
 
     /**
-     * Sets the thread's current priority
-     * @param priority The new priority
+     * Sets the thread's nominal priority.
+     * @param priority The new priority.
      */
-    void SetPriority(u32 priority);
-
-    /// Adds a thread to the list of threads that are waiting for a lock held by this thread.
-    void AddMutexWaiter(std::shared_ptr<Thread> thread);
-
-    /// Removes a thread from the list of threads that are waiting for a lock held by this thread.
-    void RemoveMutexWaiter(std::shared_ptr<Thread> thread);
-
-    /// Recalculates the current priority taking into account priority inheritance.
-    void UpdatePriority();
+    void SetBasePriority(u32 priority);
 
     /// Changes the core that the thread is running or scheduled to run on.
-    ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
+    [[nodiscard]] ResultCode SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask);
 
     /**
      * Gets the thread's thread ID
      * @return The thread's ID
      */
-    u64 GetThreadID() const {
+    [[nodiscard]] u64 GetThreadID() const {
         return thread_id;
     }
 
     /// Resumes a thread from waiting
     void Wakeup();
-
-    void OnWakeUp();
 
     ResultCode Start();
 
@@ -242,7 +245,7 @@ public:
     }
 
     ResultCode GetWaitResult(KSynchronizationObject** out) const {
-        *out = this->signaling_object;
+        *out = signaling_object;
         return signaling_result;
     }
 
@@ -328,18 +331,14 @@ public:
         return thread_state;
     }
 
-    void SetState(ThreadState new_state);
-
-    void SetWaitingCondVar(bool value) {
-        is_waiting_on_condvar = value;
-    }
+    void SetState(ThreadState state);
 
     s64 GetLastScheduledTick() const {
-        return this->last_scheduled_tick;
+        return last_scheduled_tick;
     }
 
     void SetLastScheduledTick(s64 tick) {
-        this->last_scheduled_tick = tick;
+        last_scheduled_tick = tick;
     }
 
     u64 GetTotalCPUTimeTicks() const {
@@ -379,54 +378,12 @@ public:
     }
 
     Thread* GetLockOwner() const {
-        return lock_owner.get();
+        return lock_owner;
     }
 
-    void SetLockOwner(std::shared_ptr<Thread> owner) {
-        lock_owner = std::move(owner);
+    void SetLockOwner(Thread* owner) {
+        lock_owner = owner;
     }
-
-    VAddr GetCondVarWaitAddress() const {
-        return condvar_wait_address;
-    }
-
-    void SetCondVarWaitAddress(VAddr address) {
-        condvar_wait_address = address;
-    }
-
-    VAddr GetMutexWaitAddress() const {
-        return mutex_wait_address;
-    }
-
-    void SetMutexWaitAddress(VAddr address) {
-        mutex_wait_address = address;
-    }
-
-    Handle GetWaitHandle() const {
-        return wait_handle;
-    }
-
-    void SetWaitHandle(Handle handle) {
-        wait_handle = handle;
-    }
-
-    VAddr GetArbiterWaitAddress() const {
-        return arb_wait_address;
-    }
-
-    void SetArbiterWaitAddress(VAddr address) {
-        arb_wait_address = address;
-    }
-
-    void SetHLETimeEvent(Handle time_event) {
-        hle_time_event = time_event;
-    }
-
-    Handle GetHLETimeEvent() const {
-        return hle_time_event;
-    }
-
-    bool InvokeHLECallback(std::shared_ptr<Thread> thread);
 
     u32 GetIdealCore() const {
         return ideal_core;
@@ -442,11 +399,11 @@ public:
     ResultCode Sleep(s64 nanoseconds);
 
     s64 GetYieldScheduleCount() const {
-        return this->schedule_count;
+        return schedule_count;
     }
 
     void SetYieldScheduleCount(s64 count) {
-        this->schedule_count = count;
+        schedule_count = count;
     }
 
     bool IsRunning() const {
@@ -469,14 +426,6 @@ public:
         return global_handle;
     }
 
-    bool IsWaitingForArbitration() const {
-        return waiting_for_arbitration;
-    }
-
-    void WaitForArbitration(bool set) {
-        waiting_for_arbitration = set;
-    }
-
     bool IsCancellable() const {
         return is_cancellable;
     }
@@ -490,7 +439,7 @@ public:
     }
 
     bool IsTerminationRequested() const {
-        return will_be_terminated || GetState() == ThreadState::Terminated;
+        return will_be_terminated || GetRawState() == ThreadState::Terminated;
     }
 
     bool IsPaused() const {
@@ -522,21 +471,21 @@ public:
         constexpr QueueEntry() = default;
 
         constexpr void Initialize() {
-            this->prev = nullptr;
-            this->next = nullptr;
+            prev = nullptr;
+            next = nullptr;
         }
 
         constexpr Thread* GetPrev() const {
-            return this->prev;
+            return prev;
         }
         constexpr Thread* GetNext() const {
-            return this->next;
+            return next;
         }
         constexpr void SetPrev(Thread* thread) {
-            this->prev = thread;
+            prev = thread;
         }
         constexpr void SetNext(Thread* thread) {
-            this->next = thread;
+            next = thread;
         }
 
     private:
@@ -545,11 +494,11 @@ public:
     };
 
     QueueEntry& GetPriorityQueueEntry(s32 core) {
-        return this->per_core_priority_queue_entry[core];
+        return per_core_priority_queue_entry[core];
     }
 
     const QueueEntry& GetPriorityQueueEntry(s32 core) const {
-        return this->per_core_priority_queue_entry[core];
+        return per_core_priority_queue_entry[core];
     }
 
     s32 GetDisableDispatchCount() const {
@@ -566,27 +515,155 @@ public:
         disable_count--;
     }
 
-    void SetWaitObjectsForDebugging(KSynchronizationObject** objects, s32 num_objects) {
+    void SetWaitObjectsForDebugging(const std::span<KSynchronizationObject*>& objects) {
         wait_objects_for_debugging.clear();
-        wait_objects_for_debugging.reserve(num_objects);
-        for (auto i = 0; i < num_objects; ++i) {
-            wait_objects_for_debugging.emplace_back(objects[i]);
+        wait_objects_for_debugging.reserve(objects.size());
+        for (const auto& object : objects) {
+            wait_objects_for_debugging.emplace_back(object);
         }
     }
 
-    const std::vector<KSynchronizationObject*>& GetWaitObjectsForDebugging() const {
+    [[nodiscard]] const std::vector<KSynchronizationObject*>& GetWaitObjectsForDebugging() const {
         return wait_objects_for_debugging;
     }
 
-private:
-    friend class GlobalSchedulerContext;
-    friend class KScheduler;
-    friend class Process;
+    void SetMutexWaitAddressForDebugging(VAddr address) {
+        mutex_wait_address_for_debugging = address;
+    }
 
-    void SetSchedulingStatus(ThreadState new_status);
+    [[nodiscard]] VAddr GetMutexWaitAddressForDebugging() const {
+        return mutex_wait_address_for_debugging;
+    }
+
+    void AddWaiter(Thread* thread);
+
+    void RemoveWaiter(Thread* thread);
+
+    [[nodiscard]] Thread* RemoveWaiterByKey(s32* out_num_waiters, VAddr key);
+
+    [[nodiscard]] VAddr GetAddressKey() const {
+        return address_key;
+    }
+
+    [[nodiscard]] u32 GetAddressKeyValue() const {
+        return address_key_value;
+    }
+
+    void SetAddressKey(VAddr key) {
+        address_key = key;
+    }
+
+    void SetAddressKey(VAddr key, u32 val) {
+        address_key = key;
+        address_key_value = val;
+    }
+
+private:
+    static constexpr size_t PriorityInheritanceCountMax = 10;
+    union SyncObjectBuffer {
+        std::array<KSynchronizationObject*, Svc::ArgumentHandleCountMax> sync_objects{};
+        std::array<Handle,
+                   Svc::ArgumentHandleCountMax*(sizeof(KSynchronizationObject*) / sizeof(Handle))>
+            handles;
+        constexpr SyncObjectBuffer() {}
+    };
+    static_assert(sizeof(SyncObjectBuffer::sync_objects) == sizeof(SyncObjectBuffer::handles));
+
+    struct ConditionVariableComparator {
+        struct LightCompareType {
+            u64 cv_key{};
+            s32 priority{};
+
+            [[nodiscard]] constexpr u64 GetConditionVariableKey() const {
+                return cv_key;
+            }
+
+            [[nodiscard]] constexpr s32 GetPriority() const {
+                return priority;
+            }
+        };
+
+        template <typename T>
+        requires(
+            std::same_as<T, Thread> ||
+            std::same_as<T, LightCompareType>) static constexpr int Compare(const T& lhs,
+                                                                            const Thread& rhs) {
+            const uintptr_t l_key = lhs.GetConditionVariableKey();
+            const uintptr_t r_key = rhs.GetConditionVariableKey();
+
+            if (l_key < r_key) {
+                // Sort first by key
+                return -1;
+            } else if (l_key == r_key && lhs.GetPriority() < rhs.GetPriority()) {
+                // And then by priority.
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+    };
+
+    Common::IntrusiveRedBlackTreeNode condvar_arbiter_tree_node{};
+
+    using ConditionVariableThreadTreeTraits =
+        Common::IntrusiveRedBlackTreeMemberTraitsDeferredAssert<&Thread::condvar_arbiter_tree_node>;
+    using ConditionVariableThreadTree =
+        ConditionVariableThreadTreeTraits::TreeType<ConditionVariableComparator>;
+
+public:
+    using ConditionVariableThreadTreeType = ConditionVariableThreadTree;
+
+    [[nodiscard]] uintptr_t GetConditionVariableKey() const {
+        return condvar_key;
+    }
+
+    [[nodiscard]] uintptr_t GetAddressArbiterKey() const {
+        return condvar_key;
+    }
+
+    void SetConditionVariable(ConditionVariableThreadTree* tree, VAddr address, uintptr_t cv_key,
+                              u32 value) {
+        condvar_tree = tree;
+        condvar_key = cv_key;
+        address_key = address;
+        address_key_value = value;
+    }
+
+    void ClearConditionVariable() {
+        condvar_tree = nullptr;
+    }
+
+    [[nodiscard]] bool IsWaitingForConditionVariable() const {
+        return condvar_tree != nullptr;
+    }
+
+    void SetAddressArbiter(ConditionVariableThreadTree* tree, uintptr_t address) {
+        condvar_tree = tree;
+        condvar_key = address;
+    }
+
+    void ClearAddressArbiter() {
+        condvar_tree = nullptr;
+    }
+
+    [[nodiscard]] bool IsWaitingForAddressArbiter() const {
+        return condvar_tree != nullptr;
+    }
+
+    [[nodiscard]] ConditionVariableThreadTree* GetConditionVariableTree() const {
+        return condvar_tree;
+    }
+
+    [[nodiscard]] bool HasWaiters() const {
+        return !waiter_list.empty();
+    }
+
+private:
     void AddSchedulingFlag(ThreadSchedFlags flag);
     void RemoveSchedulingFlag(ThreadSchedFlags flag);
-    void SetCurrentPriority(u32 new_priority);
+    void AddWaiterImpl(Thread* thread);
+    void RemoveWaiterImpl(Thread* thread);
+    static void RestorePriority(KernelCore& kernel, Thread* thread);
 
     Common::SpinLock context_guard{};
     ThreadContext32 context_32{};
@@ -606,11 +683,11 @@ private:
     /// Nominal thread priority, as set by the emulated application.
     /// The nominal priority is the thread priority without priority
     /// inheritance taken into account.
-    u32 nominal_priority = 0;
+    s32 base_priority{};
 
     /// Current thread priority. This may change over the course of the
     /// thread's lifetime in order to facilitate priority inheritance.
-    u32 current_priority = 0;
+    s32 current_priority{};
 
     u64 total_cpu_time_ticks = 0; ///< Total CPU running ticks.
     s64 schedule_count{};
@@ -628,6 +705,9 @@ private:
     /// passed to WaitSynchronization. This is used for debugging only.
     std::vector<KSynchronizationObject*> wait_objects_for_debugging;
 
+    /// The current mutex wait address. This is used for debugging only.
+    VAddr mutex_wait_address_for_debugging{};
+
     KSynchronizationObject* signaling_object;
     ResultCode signaling_result{RESULT_SUCCESS};
 
@@ -635,24 +715,10 @@ private:
     MutexWaitingThreads wait_mutex_threads;
 
     /// Thread that owns the lock that this thread is waiting for.
-    std::shared_ptr<Thread> lock_owner;
-
-    /// If waiting on a ConditionVariable, this is the ConditionVariable address
-    VAddr condvar_wait_address = 0;
-    bool is_waiting_on_condvar{};
-    /// If waiting on a Mutex, this is the mutex address
-    VAddr mutex_wait_address = 0;
-    /// The handle used to wait for the mutex.
-    Handle wait_handle = 0;
-
-    /// If waiting for an AddressArbiter, this is the address being waited on.
-    VAddr arb_wait_address{0};
-    bool waiting_for_arbitration{};
+    Thread* lock_owner{};
 
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
     Handle global_handle = 0;
-
-    Handle hle_time_event;
 
     KScheduler* scheduler = nullptr;
 
@@ -678,6 +744,16 @@ private:
     bool was_running = false;
 
     bool signaled{};
+
+    ConditionVariableThreadTree* condvar_tree{};
+    uintptr_t condvar_key{};
+    VAddr address_key{};
+    u32 address_key_value{};
+    s32 num_kernel_waiters{};
+
+    using WaiterList = boost::intrusive::list<Thread>;
+    WaiterList waiter_list{};
+    WaiterList pinned_waiter_list{};
 
     std::string name;
 };
