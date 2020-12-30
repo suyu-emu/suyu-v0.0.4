@@ -157,6 +157,8 @@ add_library(core STATIC
     hle/kernel/handle_table.h
     hle/kernel/hle_ipc.cpp
     hle/kernel/hle_ipc.h
+    hle/kernel/k_address_arbiter.cpp
+    hle/kernel/k_address_arbiter.h
     hle/kernel/k_affinity_mask.h
     hle/kernel/k_condition_variable.cpp
     hle/kernel/k_condition_variable.h
