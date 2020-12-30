@@ -8,6 +8,8 @@ set(SHADER_FILES
     opengl_present.frag
     opengl_present.vert
     pitch_unswizzle.comp
+    vulkan_present.frag
+    vulkan_present.vert
 )
 
 find_program(GLSLANGVALIDATOR "glslangValidator" REQUIRED)
