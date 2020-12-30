@@ -1,4 +1,6 @@
 set(SHADER_FILES
+    block_linear_unswizzle_2d.comp
+    block_linear_unswizzle_3d.comp
     opengl_present.frag
     opengl_present.vert
 )
