@@ -1,6 +1,7 @@
 add_subdirectory(host_shaders)
 
 add_library(video_core STATIC
+    buffer_cache/buffer_base.h
     buffer_cache/buffer_block.h
     buffer_cache/buffer_cache.h
     buffer_cache/map_interval.cpp
