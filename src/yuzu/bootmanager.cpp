@@ -397,7 +397,7 @@ void GRenderWindow::mousePressEvent(QMouseEvent* event) {
         this->TouchPressed(x, y);
     }
 
-    QWidget::mousePressEvent(event);
+    emit MouseActivity();
 }
 
 void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
@@ -411,7 +411,7 @@ void GRenderWindow::mouseMoveEvent(QMouseEvent* event) {
     input_subsystem->GetMouse()->MouseMove(x, y);
     this->TouchMoved(x, y);
 
-    QWidget::mouseMoveEvent(event);
+    emit MouseActivity();
 }
 
 void GRenderWindow::mouseReleaseEvent(QMouseEvent* event) {
@@ -687,4 +687,11 @@ void GRenderWindow::showEvent(QShowEvent* event) {
     // windowHandle() is not initialized until the Window is shown, so we connect it here.
     connect(windowHandle(), &QWindow::screenChanged, this, &GRenderWindow::OnFramebufferSizeChanged,
             Qt::UniqueConnection);
+}
+
+bool GRenderWindow::eventFilter(QObject* object, QEvent* event) {
+    if (event->type() == QEvent::HoverMove) {
+        emit MouseActivity();
+    }
+    return false;
 }
