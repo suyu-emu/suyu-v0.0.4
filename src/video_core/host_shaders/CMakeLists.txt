@@ -9,6 +9,7 @@ set(SHADER_FILES
     opengl_present.vert
     pitch_unswizzle.comp
     vulkan_blit_color_float.frag
+    vulkan_blit_depth_stencil.frag
     vulkan_present.frag
     vulkan_present.vert
 )
