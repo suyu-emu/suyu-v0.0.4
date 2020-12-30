@@ -127,8 +127,8 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
 bool RendererVulkan::Init() try {
     library = OpenLibrary();
-    std::tie(instance, instance_version) = CreateInstance(
-        library, dld, render_window.GetWindowInfo().type, true, Settings::values.renderer_debug);
+    instance = CreateInstance(library, dld, VK_API_VERSION_1_1, render_window.GetWindowInfo().type,
+                              true, Settings::values.renderer_debug);
     if (Settings::values.renderer_debug) {
         debug_callback = CreateDebugCallback(instance);
     }
@@ -184,8 +184,7 @@ void RendererVulkan::InitializeDevice() {
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
     const vk::PhysicalDevice physical_device(devices[static_cast<size_t>(device_index)], dld);
-    device =
-        std::make_unique<VKDevice>(*instance, instance_version, physical_device, *surface, dld);
+    device = std::make_unique<VKDevice>(*instance, physical_device, *surface, dld);
 }
 
 void RendererVulkan::Report() const {
@@ -213,7 +212,7 @@ void RendererVulkan::Report() const {
 std::vector<std::string> RendererVulkan::EnumerateDevices() try {
     vk::InstanceDispatch dld;
     const Common::DynamicLibrary library = OpenLibrary();
-    const vk::Instance instance = CreateInstance(library, dld).first;
+    const vk::Instance instance = CreateInstance(library, dld, VK_API_VERSION_1_0);
     const std::vector<VkPhysicalDevice> physical_devices = instance.EnumeratePhysicalDevices();
     std::vector<std::string> names;
     names.reserve(physical_devices.size());

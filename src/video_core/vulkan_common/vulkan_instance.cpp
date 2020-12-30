@@ -111,10 +111,9 @@ void RemoveUnavailableLayers(const vk::InstanceDispatch& dld, std::vector<const 
 }
 } // Anonymous namespace
 
-std::pair<vk::Instance, u32> CreateInstance(const Common::DynamicLibrary& library,
-                                            vk::InstanceDispatch& dld,
-                                            Core::Frontend::WindowSystemType window_type,
-                                            bool enable_debug_utils, bool enable_layers) {
+vk::Instance CreateInstance(const Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
+                            u32 required_version, Core::Frontend::WindowSystemType window_type,
+                            bool enable_debug_utils, bool enable_layers) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
@@ -134,15 +133,19 @@ std::pair<vk::Instance, u32> CreateInstance(const Common::DynamicLibrary& librar
     std::vector<const char*> layers = Layers(enable_layers);
     RemoveUnavailableLayers(dld, layers);
 
-    // Limit the maximum version of Vulkan to avoid using untested version.
-    const u32 version = std::min(vk::AvailableVersion(dld), VK_API_VERSION_1_1);
-
-    vk::Instance instance = vk::Instance::Create(version, layers, extensions, dld);
+    const u32 available_version = vk::AvailableVersion(dld);
+    if (available_version < required_version) {
+        LOG_ERROR(Render_Vulkan, "Vulkan {}.{} is not supported, {}.{} is required",
+                  VK_VERSION_MAJOR(available_version), VK_VERSION_MINOR(available_version),
+                  VK_VERSION_MAJOR(required_version), VK_VERSION_MINOR(required_version));
+        throw vk::Exception(VK_ERROR_INCOMPATIBLE_DRIVER);
+    }
+    vk::Instance instance = vk::Instance::Create(required_version, layers, extensions, dld);
     if (!vk::Load(*instance, dld)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Vulkan instance function pointers");
         throw vk::Exception(VK_ERROR_INITIALIZATION_FAILED);
     }
-    return std::make_pair(std::move(instance), version);
+    return instance;
 }
 
 } // namespace Vulkan

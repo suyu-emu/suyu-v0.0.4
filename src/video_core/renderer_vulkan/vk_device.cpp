@@ -206,10 +206,10 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(
 
 } // Anonymous namespace
 
-VKDevice::VKDevice(VkInstance instance_, u32 instance_version_, vk::PhysicalDevice physical_,
-                   VkSurfaceKHR surface, const vk::InstanceDispatch& dld_)
+VKDevice::VKDevice(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface,
+                   const vk::InstanceDispatch& dld_)
     : instance{instance_}, dld{dld_}, physical{physical_}, properties{physical.GetProperties()},
-      instance_version{instance_version_}, format_properties{GetFormatProperties(physical, dld)} {
+      format_properties{GetFormatProperties(physical, dld)} {
     CheckSuitability();
     SetupFamilies(surface);
     SetupFeatures();
@@ -653,9 +653,7 @@ std::vector<const char*> VKDevice::LoadExtensions() {
         test(has_ext_custom_border_color, VK_EXT_CUSTOM_BORDER_COLOR_EXTENSION_NAME, false);
         test(has_ext_extended_dynamic_state, VK_EXT_EXTENDED_DYNAMIC_STATE_EXTENSION_NAME, false);
         test(has_ext_robustness2, VK_EXT_ROBUSTNESS_2_EXTENSION_NAME, false);
-        if (instance_version >= VK_API_VERSION_1_1) {
-            test(has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, false);
-        }
+        test(has_ext_subgroup_size_control, VK_EXT_SUBGROUP_SIZE_CONTROL_EXTENSION_NAME, false);
         if (Settings::values.renderer_debug) {
             test(nv_device_diagnostics_config, VK_NV_DEVICE_DIAGNOSTICS_CONFIG_EXTENSION_NAME,
                  true);

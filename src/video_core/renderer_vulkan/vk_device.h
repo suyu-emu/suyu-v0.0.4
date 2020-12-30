@@ -24,8 +24,8 @@ const u32 GuestWarpSize = 32;
 /// Handles data specific to a physical device.
 class VKDevice final {
 public:
-    explicit VKDevice(VkInstance instance, u32 instance_version, vk::PhysicalDevice physical,
-                      VkSurfaceKHR surface, const vk::InstanceDispatch& dld);
+    explicit VKDevice(VkInstance instance, vk::PhysicalDevice physical, VkSurfaceKHR surface,
+                      const vk::InstanceDispatch& dld);
     ~VKDevice();
 
     /**
@@ -77,11 +77,6 @@ public:
     /// Returns main present queue family index.
     u32 GetPresentFamily() const {
         return present_family;
-    }
-
-    /// Returns the current instance Vulkan API version in Vulkan-formatted version numbers.
-    u32 InstanceApiVersion() const {
-        return instance_version;
     }
 
     /// Returns the current Vulkan API version provided in Vulkan-formatted version numbers.
