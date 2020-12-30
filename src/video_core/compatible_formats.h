@@ -4,31 +4,12 @@
 
 #pragma once
 
-#include <array>
-#include <bitset>
-#include <cstddef>
-
 #include "video_core/surface.h"
 
 namespace VideoCore::Surface {
 
-class FormatCompatibility {
-public:
-    using Table = std::array<std::bitset<MaxPixelFormat>, MaxPixelFormat>;
+bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b);
 
-    explicit FormatCompatibility();
-
-    bool TestView(PixelFormat format_a, PixelFormat format_b) const noexcept {
-        return view[static_cast<size_t>(format_a)][static_cast<size_t>(format_b)];
-    }
-
-    bool TestCopy(PixelFormat format_a, PixelFormat format_b) const noexcept {
-        return copy[static_cast<size_t>(format_a)][static_cast<size_t>(format_b)];
-    }
-
-private:
-    Table view;
-    Table copy;
-};
+bool IsCopyCompatible(PixelFormat format_a, PixelFormat format_b);
 
 } // namespace VideoCore::Surface

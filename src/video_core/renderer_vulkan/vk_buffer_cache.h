@@ -41,6 +41,7 @@ public:
     }
 
 private:
+    const VKDevice& device;
     VKScheduler& scheduler;
     VKStagingBufferPool& staging_pool;
 
@@ -49,10 +50,11 @@ private:
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
 public:
-    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer_,
-                           Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                           const VKDevice& device_, VKMemoryManager& memory_manager_,
-                           VKScheduler& scheduler_, VKStagingBufferPool& staging_pool_);
+    explicit VKBufferCache(VideoCore::RasterizerInterface& rasterizer,
+                           Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
+                           const VKDevice& device, VKMemoryManager& memory_manager,
+                           VKScheduler& scheduler, VKStreamBuffer& stream_buffer,
+                           VKStagingBufferPool& staging_pool);
     ~VKBufferCache();
 
     BufferInfo GetEmptyBuffer(std::size_t size) override;

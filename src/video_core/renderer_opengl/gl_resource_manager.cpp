@@ -71,7 +71,7 @@ void OGLSampler::Create() {
         return;
 
     MICROPROFILE_SCOPE(OpenGL_ResourceCreation);
-    glGenSamplers(1, &handle);
+    glCreateSamplers(1, &handle);
 }
 
 void OGLSampler::Release() {

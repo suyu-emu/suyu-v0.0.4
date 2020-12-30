@@ -61,4 +61,6 @@ VkComponentSwizzle SwizzleSource(Tegra::Texture::SwizzleSource swizzle);
 
 VkViewportCoordinateSwizzleNV ViewportSwizzle(Maxwell::ViewportSwizzle swizzle);
 
+VkSamplerReductionMode SamplerReduction(Tegra::Texture::SamplerReduction reduction);
+
 } // namespace Vulkan::MaxwellToVK

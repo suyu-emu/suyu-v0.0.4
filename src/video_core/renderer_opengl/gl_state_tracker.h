@@ -92,12 +92,22 @@ class StateTracker {
 public:
     explicit StateTracker(Tegra::GPU& gpu);
 
+    void InvalidateStreamBuffer();
+
     void BindIndexBuffer(GLuint new_index_buffer) {
         if (index_buffer == new_index_buffer) {
             return;
         }
         index_buffer = new_index_buffer;
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, new_index_buffer);
+    }
+
+    void BindFramebuffer(GLuint new_framebuffer) {
+        if (framebuffer == new_framebuffer) {
+            return;
+        }
+        framebuffer = new_framebuffer;
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer);
     }
 
     void NotifyScreenDrawVertexArray() {
@@ -129,9 +139,9 @@ public:
         flags[OpenGL::Dirty::Scissor0] = true;
     }
 
-    void NotifyColorMask0() {
+    void NotifyColorMask(size_t index) {
         flags[OpenGL::Dirty::ColorMasks] = true;
-        flags[OpenGL::Dirty::ColorMask0] = true;
+        flags[OpenGL::Dirty::ColorMask0 + index] = true;
     }
 
     void NotifyBlend0() {
@@ -190,6 +200,7 @@ public:
 private:
     Tegra::Engines::Maxwell3D::DirtyState::Flags& flags;
 
+    GLuint framebuffer = 0;
     GLuint index_buffer = 0;
 };
 

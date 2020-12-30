@@ -122,7 +122,7 @@ struct FormatTuple {
     {VK_FORMAT_A8B8G8R8_SINT_PACK32, Attachable | Storage},     // A8B8G8R8_SINT
     {VK_FORMAT_A8B8G8R8_UINT_PACK32, Attachable | Storage},     // A8B8G8R8_UINT
     {VK_FORMAT_R5G6B5_UNORM_PACK16, Attachable},                // R5G6B5_UNORM
-    {VK_FORMAT_B5G6R5_UNORM_PACK16, Attachable},                // B5G6R5_UNORM
+    {VK_FORMAT_B5G6R5_UNORM_PACK16},                            // B5G6R5_UNORM
     {VK_FORMAT_A1R5G5B5_UNORM_PACK16, Attachable},              // A1R5G5B5_UNORM
     {VK_FORMAT_A2B10G10R10_UNORM_PACK32, Attachable | Storage}, // A2B10G10R10_UNORM
     {VK_FORMAT_A2B10G10R10_UINT_PACK32, Attachable | Storage},  // A2B10G10R10_UINT
@@ -163,7 +163,7 @@ struct FormatTuple {
     {VK_FORMAT_R16G16_UNORM, Attachable | Storage},            // R16G16_UNORM
     {VK_FORMAT_R16G16_SFLOAT, Attachable | Storage},           // R16G16_FLOAT
     {VK_FORMAT_UNDEFINED},                                     // R16G16_UINT
-    {VK_FORMAT_UNDEFINED},                                     // R16G16_SINT
+    {VK_FORMAT_R16G16_SINT, Attachable | Storage},             // R16G16_SINT
     {VK_FORMAT_R16G16_SNORM, Attachable | Storage},            // R16G16_SNORM
     {VK_FORMAT_UNDEFINED},                                     // R32G32B32_FLOAT
     {VK_FORMAT_R8G8B8A8_SRGB, Attachable},                     // A8B8G8R8_SRGB
@@ -233,18 +233,20 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
 
     // Use A8B8G8R8_UNORM on hardware that doesn't support ASTC natively
     if (!device.IsOptimalAstcSupported() && VideoCore::Surface::IsPixelFormatASTC(pixel_format)) {
-        tuple.format = VideoCore::Surface::IsPixelFormatSRGB(pixel_format)
-                           ? VK_FORMAT_A8B8G8R8_SRGB_PACK32
-                           : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
+        const bool is_srgb = VideoCore::Surface::IsPixelFormatSRGB(pixel_format);
+        tuple.format = is_srgb ? VK_FORMAT_A8B8G8R8_SRGB_PACK32 : VK_FORMAT_A8B8G8R8_UNORM_PACK32;
     }
     const bool attachable = tuple.usage & Attachable;
     const bool storage = tuple.usage & Storage;
 
     VkFormatFeatureFlags usage;
-    if (format_type == FormatType::Buffer) {
+    switch (format_type) {
+    case FormatType::Buffer:
         usage =
             VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT | VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT;
-    } else {
+        break;
+    case FormatType::Linear:
+    case FormatType::Optimal:
         usage = VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_TRANSFER_DST_BIT |
                 VK_FORMAT_FEATURE_TRANSFER_SRC_BIT;
         if (attachable) {
@@ -254,6 +256,7 @@ FormatInfo SurfaceFormat(const VKDevice& device, FormatType format_type, PixelFo
         if (storage) {
             usage |= VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT;
         }
+        break;
     }
     return {device.GetSupportedFormat(tuple.format, usage, format_type), attachable, storage};
 }
@@ -722,6 +725,19 @@ VkViewportCoordinateSwizzleNV ViewportSwizzle(Maxwell::ViewportSwizzle swizzle) 
     }
     UNREACHABLE_MSG("Invalid swizzle={}", swizzle);
     return {};
+}
+
+VkSamplerReductionMode SamplerReduction(Tegra::Texture::SamplerReduction reduction) {
+    switch (reduction) {
+    case Tegra::Texture::SamplerReduction::WeightedAverage:
+        return VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT;
+    case Tegra::Texture::SamplerReduction::Min:
+        return VK_SAMPLER_REDUCTION_MODE_MIN_EXT;
+    case Tegra::Texture::SamplerReduction::Max:
+        return VK_SAMPLER_REDUCTION_MODE_MAX_EXT;
+    }
+    UNREACHABLE_MSG("Invalid sampler mode={}", static_cast<int>(reduction));
+    return VK_SAMPLER_REDUCTION_MODE_WEIGHTED_AVERAGE_EXT;
 }
 
 } // namespace Vulkan::MaxwellToVK

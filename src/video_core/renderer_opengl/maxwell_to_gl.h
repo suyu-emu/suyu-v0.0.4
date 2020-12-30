@@ -475,6 +475,19 @@ inline GLenum PolygonMode(Maxwell::PolygonMode polygon_mode) {
     return GL_FILL;
 }
 
+inline GLenum ReductionFilter(Tegra::Texture::SamplerReduction filter) {
+    switch (filter) {
+    case Tegra::Texture::SamplerReduction::WeightedAverage:
+        return GL_WEIGHTED_AVERAGE_ARB;
+    case Tegra::Texture::SamplerReduction::Min:
+        return GL_MIN;
+    case Tegra::Texture::SamplerReduction::Max:
+        return GL_MAX;
+    }
+    UNREACHABLE_MSG("Invalid reduction filter={}", static_cast<int>(filter));
+    return GL_WEIGHTED_AVERAGE_ARB;
+}
+
 inline GLenum ViewportSwizzle(Maxwell::ViewportSwizzle swizzle) {
     // Enumeration order matches register order. We can convert it arithmetically.
     return GL_VIEWPORT_SWIZZLE_POSITIVE_X_NV + static_cast<GLenum>(swizzle);

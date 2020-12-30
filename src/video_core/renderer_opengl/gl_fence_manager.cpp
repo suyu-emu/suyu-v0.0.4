@@ -46,7 +46,7 @@ void GLInnerFence::Wait() {
 }
 
 FenceManagerOpenGL::FenceManagerOpenGL(VideoCore::RasterizerInterface& rasterizer_,
-                                       Tegra::GPU& gpu_, TextureCacheOpenGL& texture_cache_,
+                                       Tegra::GPU& gpu_, TextureCache& texture_cache_,
                                        OGLBufferCache& buffer_cache_, QueryCache& query_cache_)
     : GenericFenceManager{rasterizer_, gpu_, texture_cache_, buffer_cache_, query_cache_} {}
 

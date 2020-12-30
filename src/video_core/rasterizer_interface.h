@@ -76,12 +76,21 @@ public:
     /// Sync memory between guest and host.
     virtual void SyncGuestHost() = 0;
 
+    /// Unmap memory range
+    virtual void UnmapMemory(VAddr addr, u64 size) = 0;
+
     /// Notify rasterizer that any caches of the specified region should be flushed to Switch memory
     /// and invalidated
     virtual void FlushAndInvalidateRegion(VAddr addr, u64 size) = 0;
 
     /// Notify the host renderer to wait for previous primitive and compute operations.
     virtual void WaitForIdle() = 0;
+
+    /// Notify the host renderer to wait for reads and writes to render targets and flush caches.
+    virtual void FragmentBarrier() = 0;
+
+    /// Notify the host renderer to make available previous render target writes.
+    virtual void TiledCacheBarrier() = 0;
 
     /// Notify the rasterizer to send all written commands to the host GPU.
     virtual void FlushCommands() = 0;
@@ -91,8 +100,7 @@ public:
 
     /// Attempt to use a faster method to perform a surface copy
     [[nodiscard]] virtual bool AccelerateSurfaceCopy(
-        const Tegra::Engines::Fermi2D::Regs::Surface& src,
-        const Tegra::Engines::Fermi2D::Regs::Surface& dst,
+        const Tegra::Engines::Fermi2D::Surface& src, const Tegra::Engines::Fermi2D::Surface& dst,
         const Tegra::Engines::Fermi2D::Config& copy_config) {
         return false;
     }

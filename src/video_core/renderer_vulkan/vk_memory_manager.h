@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <utility>
 #include <vector>
 #include "common/common_types.h"
@@ -93,8 +94,8 @@ private:
 /// Holds ownership of a memory map.
 class MemoryMap final {
 public:
-    explicit MemoryMap(const VKMemoryCommitImpl* commit_, u8* address_)
-        : commit{commit_}, address{address_} {}
+    explicit MemoryMap(const VKMemoryCommitImpl* commit_, std::span<u8> span_)
+        : commit{commit_}, span{span_} {}
 
     ~MemoryMap() {
         if (commit) {
@@ -108,19 +109,24 @@ public:
         commit = nullptr;
     }
 
+    /// Returns a span to the memory map.
+    [[nodiscard]] std::span<u8> Span() const noexcept {
+        return span;
+    }
+
     /// Returns the address of the memory map.
-    u8* GetAddress() const {
-        return address;
+    [[nodiscard]] u8* Address() const noexcept {
+        return span.data();
     }
 
     /// Returns the address of the memory map;
-    operator u8*() const {
-        return address;
+    [[nodiscard]] operator u8*() const noexcept {
+        return span.data();
     }
 
 private:
     const VKMemoryCommitImpl* commit{}; ///< Mapped memory commit.
-    u8* address{};                      ///< Address to the mapped memory.
+    std::span<u8> span;                 ///< Address to the mapped memory.
 };
 
 } // namespace Vulkan

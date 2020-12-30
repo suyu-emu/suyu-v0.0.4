@@ -16,6 +16,7 @@
 #include "video_core/renderer_vulkan/vk_query_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_state_tracker.h"
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Vulkan {
@@ -96,38 +97,39 @@ void VKScheduler::DispatchWork() {
     AcquireNewChunk();
 }
 
-void VKScheduler::RequestRenderpass(VkRenderPass renderpass, VkFramebuffer framebuffer,
-                                    VkExtent2D render_area) {
-    if (renderpass == state.renderpass && framebuffer == state.framebuffer &&
+void VKScheduler::RequestRenderpass(const Framebuffer* framebuffer) {
+    const VkRenderPass renderpass = framebuffer->RenderPass();
+    const VkFramebuffer framebuffer_handle = framebuffer->Handle();
+    const VkExtent2D render_area = framebuffer->RenderArea();
+    if (renderpass == state.renderpass && framebuffer_handle == state.framebuffer &&
         render_area.width == state.render_area.width &&
         render_area.height == state.render_area.height) {
         return;
     }
-    const bool end_renderpass = state.renderpass != nullptr;
+    EndRenderPass();
     state.renderpass = renderpass;
-    state.framebuffer = framebuffer;
+    state.framebuffer = framebuffer_handle;
     state.render_area = render_area;
 
-    const VkRenderPassBeginInfo renderpass_bi{
-        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-        .pNext = nullptr,
-        .renderPass = renderpass,
-        .framebuffer = framebuffer,
-        .renderArea =
-            {
-                .offset = {.x = 0, .y = 0},
-                .extent = render_area,
-            },
-        .clearValueCount = 0,
-        .pClearValues = nullptr,
-    };
-
-    Record([renderpass_bi, end_renderpass](vk::CommandBuffer cmdbuf) {
-        if (end_renderpass) {
-            cmdbuf.EndRenderPass();
-        }
+    Record([renderpass, framebuffer_handle, render_area](vk::CommandBuffer cmdbuf) {
+        const VkRenderPassBeginInfo renderpass_bi{
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+            .pNext = nullptr,
+            .renderPass = renderpass,
+            .framebuffer = framebuffer_handle,
+            .renderArea =
+                {
+                    .offset = {.x = 0, .y = 0},
+                    .extent = render_area,
+                },
+            .clearValueCount = 0,
+            .pClearValues = nullptr,
+        };
         cmdbuf.BeginRenderPass(renderpass_bi, VK_SUBPASS_CONTENTS_INLINE);
     });
+    num_renderpass_images = framebuffer->NumImages();
+    renderpass_images = framebuffer->Images();
+    renderpass_image_ranges = framebuffer->ImageRanges();
 }
 
 void VKScheduler::RequestOutsideRenderPassOperationContext() {
@@ -241,8 +243,37 @@ void VKScheduler::EndRenderPass() {
     if (!state.renderpass) {
         return;
     }
+    Record([num_images = num_renderpass_images, images = renderpass_images,
+            ranges = renderpass_image_ranges](vk::CommandBuffer cmdbuf) {
+        std::array<VkImageMemoryBarrier, 9> barriers;
+        for (size_t i = 0; i < num_images; ++i) {
+            barriers[i] = VkImageMemoryBarrier{
+                .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+                .pNext = nullptr,
+                .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_READ_BIT |
+                                 VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                 VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .oldLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .newLayout = VK_IMAGE_LAYOUT_GENERAL,
+                .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+                .image = images[i],
+                .subresourceRange = ranges[i],
+            };
+        }
+        cmdbuf.EndRenderPass();
+        cmdbuf.PipelineBarrier(VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT |
+                                   VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                               VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, 0, nullptr, nullptr,
+                               vk::Span(barriers.data(), num_images));
+    });
     state.renderpass = nullptr;
-    Record([](vk::CommandBuffer cmdbuf) { cmdbuf.EndRenderPass(); });
+    num_renderpass_images = 0;
 }
 
 void VKScheduler::AcquireNewChunk() {

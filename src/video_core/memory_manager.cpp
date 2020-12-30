@@ -57,7 +57,10 @@ void MemoryManager::Unmap(GPUVAddr gpu_addr, std::size_t size) {
     }
 
     // Flush and invalidate through the GPU interface, to be asynchronous if possible.
-    system.GPU().FlushAndInvalidateRegion(*GpuToCpuAddress(gpu_addr), size);
+    const std::optional<VAddr> cpu_addr = GpuToCpuAddress(gpu_addr);
+    ASSERT(cpu_addr);
+
+    rasterizer->UnmapMemory(*cpu_addr, size);
 
     UpdateRange(gpu_addr, PageEntry::State::Unmapped, size);
 }

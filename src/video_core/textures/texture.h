@@ -53,27 +53,27 @@ enum class TextureFormat : u32 {
     BC4 = 0x27,
     BC5 = 0x28,
     S8D24 = 0x29,
-    X8Z24 = 0x2a,
+    X8D24 = 0x2a,
     D24S8 = 0x2b,
-    X4V4Z24__COV4R4V = 0x2c,
-    X4V4Z24__COV8R8V = 0x2d,
-    V8Z24__COV4R12V = 0x2e,
+    X4V4D24__COV4R4V = 0x2c,
+    X4V4D24__COV8R8V = 0x2d,
+    V8D24__COV4R12V = 0x2e,
     D32 = 0x2f,
     D32S8 = 0x30,
-    X8Z24_X20V4S8__COV4R4V = 0x31,
-    X8Z24_X20V4S8__COV8R8V = 0x32,
-    ZF32_X20V4X8__COV4R4V = 0x33,
-    ZF32_X20V4X8__COV8R8V = 0x34,
-    ZF32_X20V4S8__COV4R4V = 0x35,
-    ZF32_X20V4S8__COV8R8V = 0x36,
-    X8Z24_X16V8S8__COV4R12V = 0x37,
-    ZF32_X16V8X8__COV4R12V = 0x38,
-    ZF32_X16V8S8__COV4R12V = 0x39,
+    X8D24_X20V4S8__COV4R4V = 0x31,
+    X8D24_X20V4S8__COV8R8V = 0x32,
+    D32_X20V4X8__COV4R4V = 0x33,
+    D32_X20V4X8__COV8R8V = 0x34,
+    D32_X20V4S8__COV4R4V = 0x35,
+    D32_X20V4S8__COV8R8V = 0x36,
+    X8D24_X16V8S8__COV4R12V = 0x37,
+    D32_X16V8X8__COV4R12V = 0x38,
+    D32_X16V8S8__COV4R12V = 0x39,
     D16 = 0x3a,
-    V8Z24__COV8R24V = 0x3b,
-    X8Z24_X16V8S8__COV8R24V = 0x3c,
-    ZF32_X16V8X8__COV8R24V = 0x3d,
-    ZF32_X16V8S8__COV8R24V = 0x3e,
+    V8D24__COV8R24V = 0x3b,
+    X8D24_X16V8S8__COV8R24V = 0x3c,
+    D32_X16V8X8__COV8R24V = 0x3d,
+    D32_X16V8S8__COV8R24V = 0x3e,
     ASTC_2D_4X4 = 0x40,
     ASTC_2D_5X5 = 0x41,
     ASTC_2D_6X6 = 0x42,
@@ -146,7 +146,7 @@ enum class MsaaMode : u32 {
 };
 
 union TextureHandle {
-    /* implicit */ TextureHandle(u32 raw_) : raw{raw_} {}
+    /* implicit */ constexpr TextureHandle(u32 raw_) : raw{raw_} {}
 
     u32 raw;
     BitField<0, 20, u32> tic_id;
@@ -155,123 +155,123 @@ union TextureHandle {
 static_assert(sizeof(TextureHandle) == 4, "TextureHandle has wrong size");
 
 struct TICEntry {
-    static constexpr u32 DefaultBlockHeight = 16;
-    static constexpr u32 DefaultBlockDepth = 1;
-
     union {
-        u32 raw;
-        BitField<0, 7, TextureFormat> format;
-        BitField<7, 3, ComponentType> r_type;
-        BitField<10, 3, ComponentType> g_type;
-        BitField<13, 3, ComponentType> b_type;
-        BitField<16, 3, ComponentType> a_type;
+        struct {
+            union {
+                BitField<0, 7, TextureFormat> format;
+                BitField<7, 3, ComponentType> r_type;
+                BitField<10, 3, ComponentType> g_type;
+                BitField<13, 3, ComponentType> b_type;
+                BitField<16, 3, ComponentType> a_type;
 
-        BitField<19, 3, SwizzleSource> x_source;
-        BitField<22, 3, SwizzleSource> y_source;
-        BitField<25, 3, SwizzleSource> z_source;
-        BitField<28, 3, SwizzleSource> w_source;
-    };
-    u32 address_low;
-    union {
-        BitField<0, 16, u32> address_high;
-        BitField<21, 3, TICHeaderVersion> header_version;
-    };
-    union {
-        BitField<0, 3, u32> block_width;
-        BitField<3, 3, u32> block_height;
-        BitField<6, 3, u32> block_depth;
+                BitField<19, 3, SwizzleSource> x_source;
+                BitField<22, 3, SwizzleSource> y_source;
+                BitField<25, 3, SwizzleSource> z_source;
+                BitField<28, 3, SwizzleSource> w_source;
+            };
+            u32 address_low;
+            union {
+                BitField<0, 16, u32> address_high;
+                BitField<16, 5, u32> layer_base_3_7;
+                BitField<21, 3, TICHeaderVersion> header_version;
+                BitField<24, 1, u32> load_store_hint;
+                BitField<25, 4, u32> view_coherency_hash;
+                BitField<29, 3, u32> layer_base_8_10;
+            };
+            union {
+                BitField<0, 3, u32> block_width;
+                BitField<3, 3, u32> block_height;
+                BitField<6, 3, u32> block_depth;
 
-        BitField<10, 3, u32> tile_width_spacing;
+                BitField<10, 3, u32> tile_width_spacing;
 
-        // High 16 bits of the pitch value
-        BitField<0, 16, u32> pitch_high;
-        BitField<26, 1, u32> use_header_opt_control;
-        BitField<27, 1, u32> depth_texture;
-        BitField<28, 4, u32> max_mip_level;
+                // High 16 bits of the pitch value
+                BitField<0, 16, u32> pitch_high;
+                BitField<26, 1, u32> use_header_opt_control;
+                BitField<27, 1, u32> depth_texture;
+                BitField<28, 4, u32> max_mip_level;
 
-        BitField<0, 16, u32> buffer_high_width_minus_one;
-    };
-    union {
-        BitField<0, 16, u32> width_minus_1;
-        BitField<22, 1, u32> srgb_conversion;
-        BitField<23, 4, TextureType> texture_type;
-        BitField<29, 3, u32> border_size;
+                BitField<0, 16, u32> buffer_high_width_minus_one;
+            };
+            union {
+                BitField<0, 16, u32> width_minus_one;
+                BitField<16, 3, u32> layer_base_0_2;
+                BitField<22, 1, u32> srgb_conversion;
+                BitField<23, 4, TextureType> texture_type;
+                BitField<29, 3, u32> border_size;
 
-        BitField<0, 16, u32> buffer_low_width_minus_one;
-    };
-    union {
-        BitField<0, 16, u32> height_minus_1;
-        BitField<16, 14, u32> depth_minus_1;
-    };
-    union {
-        BitField<6, 13, u32> mip_lod_bias;
-        BitField<27, 3, u32> max_anisotropy;
+                BitField<0, 16, u32> buffer_low_width_minus_one;
+            };
+            union {
+                BitField<0, 16, u32> height_minus_1;
+                BitField<16, 14, u32> depth_minus_1;
+                BitField<30, 1, u32> is_sparse;
+                BitField<31, 1, u32> normalized_coords;
+            };
+            union {
+                BitField<6, 13, u32> mip_lod_bias;
+                BitField<27, 3, u32> max_anisotropy;
+            };
+            union {
+                BitField<0, 4, u32> res_min_mip_level;
+                BitField<4, 4, u32> res_max_mip_level;
+                BitField<8, 4, MsaaMode> msaa_mode;
+                BitField<12, 12, u32> min_lod_clamp;
+            };
+        };
+        std::array<u64, 4> raw;
     };
 
-    union {
-        BitField<0, 4, u32> res_min_mip_level;
-        BitField<4, 4, u32> res_max_mip_level;
-        BitField<8, 4, MsaaMode> msaa_mode;
-        BitField<12, 12, u32> min_lod_clamp;
-    };
+    constexpr bool operator==(const TICEntry& rhs) const noexcept {
+        return raw == rhs.raw;
+    }
 
-    GPUVAddr Address() const {
+    constexpr bool operator!=(const TICEntry& rhs) const noexcept {
+        return raw != rhs.raw;
+    }
+
+    constexpr GPUVAddr Address() const {
         return static_cast<GPUVAddr>((static_cast<GPUVAddr>(address_high) << 32) | address_low);
     }
 
-    u32 Pitch() const {
+    constexpr u32 Pitch() const {
         ASSERT(header_version == TICHeaderVersion::Pitch ||
                header_version == TICHeaderVersion::PitchColorKey);
         // The pitch value is 21 bits, and is 32B aligned.
         return pitch_high << 5;
     }
 
-    u32 Width() const {
+    constexpr u32 Width() const {
         if (header_version != TICHeaderVersion::OneDBuffer) {
-            return width_minus_1 + 1;
+            return width_minus_one + 1;
         }
-        return ((buffer_high_width_minus_one << 16) | buffer_low_width_minus_one) + 1;
+        return (buffer_high_width_minus_one << 16 | buffer_low_width_minus_one) + 1;
     }
 
-    u32 Height() const {
+    constexpr u32 Height() const {
         return height_minus_1 + 1;
     }
 
-    u32 Depth() const {
+    constexpr u32 Depth() const {
         return depth_minus_1 + 1;
     }
 
-    u32 BlockWidth() const {
-        ASSERT(IsTiled());
-        return block_width;
+    constexpr u32 BaseLayer() const {
+        return layer_base_0_2 | layer_base_3_7 << 3 | layer_base_8_10 << 8;
     }
 
-    u32 BlockHeight() const {
-        ASSERT(IsTiled());
-        return block_height;
-    }
-
-    u32 BlockDepth() const {
-        ASSERT(IsTiled());
-        return block_depth;
-    }
-
-    bool IsTiled() const {
+    constexpr bool IsBlockLinear() const {
         return header_version == TICHeaderVersion::BlockLinear ||
                header_version == TICHeaderVersion::BlockLinearColorKey;
     }
 
-    bool IsLineal() const {
+    constexpr bool IsPitchLinear() const {
         return header_version == TICHeaderVersion::Pitch ||
                header_version == TICHeaderVersion::PitchColorKey;
     }
 
-    bool IsBuffer() const {
+    constexpr bool IsBuffer() const {
         return header_version == TICHeaderVersion::OneDBuffer;
-    }
-
-    bool IsSrgbConversionEnabled() const {
-        return srgb_conversion != 0;
     }
 };
 static_assert(sizeof(TICEntry) == 0x20, "TICEntry has wrong size");
@@ -309,6 +309,12 @@ enum class TextureMipmapFilter : u32 {
     Linear = 3,
 };
 
+enum class SamplerReduction : u32 {
+    WeightedAverage = 0,
+    Min = 1,
+    Max = 2,
+};
+
 enum class Anisotropy {
     Default,
     Filter2x,
@@ -333,8 +339,12 @@ struct TSCEntry {
                 BitField<0, 2, TextureFilter> mag_filter;
                 BitField<4, 2, TextureFilter> min_filter;
                 BitField<6, 2, TextureMipmapFilter> mipmap_filter;
+                BitField<8, 1, u32> cubemap_anisotropy;
                 BitField<9, 1, u32> cubemap_interface_filtering;
+                BitField<10, 2, SamplerReduction> reduction_filter;
                 BitField<12, 13, u32> mip_lod_bias;
+                BitField<25, 1, u32> float_coord_normalization;
+                BitField<26, 5, u32> trilin_opt;
             };
             union {
                 BitField<0, 12, u32> min_lod_clamp;
@@ -347,32 +357,45 @@ struct TSCEntry {
             };
             std::array<f32, 4> border_color;
         };
-        std::array<u8, 0x20> raw;
+        std::array<u64, 4> raw;
     };
 
-    std::array<float, 4> GetBorderColor() const noexcept;
+    constexpr bool operator==(const TSCEntry& rhs) const noexcept {
+        return raw == rhs.raw;
+    }
 
-    float GetMaxAnisotropy() const noexcept;
+    constexpr bool operator!=(const TSCEntry& rhs) const noexcept {
+        return raw != rhs.raw;
+    }
 
-    float GetMinLod() const {
+    std::array<float, 4> BorderColor() const noexcept;
+
+    float MaxAnisotropy() const noexcept;
+
+    float MinLod() const {
         return static_cast<float>(min_lod_clamp) / 256.0f;
     }
 
-    float GetMaxLod() const {
+    float MaxLod() const {
         return static_cast<float>(max_lod_clamp) / 256.0f;
     }
 
-    float GetLodBias() const {
+    float LodBias() const {
         // Sign extend the 13-bit value.
-        constexpr u32 mask = 1U << (13 - 1);
+        static constexpr u32 mask = 1U << (13 - 1);
         return static_cast<float>(static_cast<s32>((mip_lod_bias ^ mask) - mask)) / 256.0f;
     }
 };
 static_assert(sizeof(TSCEntry) == 0x20, "TSCEntry has wrong size");
 
-struct FullTextureInfo {
-    TICEntry tic;
-    TSCEntry tsc;
+} // namespace Tegra::Texture
+
+template <>
+struct std::hash<Tegra::Texture::TICEntry> {
+    size_t operator()(const Tegra::Texture::TICEntry& tic) const noexcept;
 };
 
-} // namespace Tegra::Texture
+template <>
+struct std::hash<Tegra::Texture::TSCEntry> {
+    size_t operator()(const Tegra::Texture::TSCEntry& tsc) const noexcept;
+};

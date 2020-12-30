@@ -92,9 +92,9 @@ Common::DynamicLibrary OpenVulkanLibrary() {
     return library;
 }
 
-std::pair<vk::Instance, u32> CreateInstance(
-    Common::DynamicLibrary& library, vk::InstanceDispatch& dld,
-    WindowSystemType window_type = WindowSystemType::Headless, bool enable_layers = false) {
+std::pair<vk::Instance, u32> CreateInstance(Common::DynamicLibrary& library,
+                                            vk::InstanceDispatch& dld, WindowSystemType window_type,
+                                            bool enable_debug_utils, bool enable_layers) {
     if (!library.IsOpen()) {
         LOG_ERROR(Render_Vulkan, "Vulkan library not available");
         return {};
@@ -133,7 +133,7 @@ std::pair<vk::Instance, u32> CreateInstance(
     if (window_type != Core::Frontend::WindowSystemType::Headless) {
         extensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
     }
-    if (enable_layers) {
+    if (enable_debug_utils) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
     }
     extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
@@ -287,7 +287,7 @@ void RendererVulkan::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 bool RendererVulkan::Init() {
     library = OpenVulkanLibrary();
     std::tie(instance, instance_version) = CreateInstance(
-        library, dld, render_window.GetWindowInfo().type, Settings::values.renderer_debug);
+        library, dld, render_window.GetWindowInfo().type, true, Settings::values.renderer_debug);
     if (!instance || !CreateDebugCallback() || !CreateSurface() || !PickDevices()) {
         return false;
     }
@@ -447,7 +447,8 @@ void RendererVulkan::Report() const {
 std::vector<std::string> RendererVulkan::EnumerateDevices() {
     vk::InstanceDispatch dld;
     Common::DynamicLibrary library = OpenVulkanLibrary();
-    vk::Instance instance = CreateInstance(library, dld).first;
+    vk::Instance instance =
+        CreateInstance(library, dld, WindowSystemType::Headless, false, false).first;
     if (!instance) {
         return {};
     }

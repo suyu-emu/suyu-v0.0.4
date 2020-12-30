@@ -25,6 +25,7 @@ add_library(video_core STATIC
     command_classes/vic.h
     compatible_formats.cpp
     compatible_formats.h
+    delayed_destruction_ring.h
     dirty_flags.cpp
     dirty_flags.h
     dma_pusher.cpp
@@ -84,14 +85,10 @@ add_library(video_core STATIC
     renderer_opengl/gl_device.h
     renderer_opengl/gl_fence_manager.cpp
     renderer_opengl/gl_fence_manager.h
-    renderer_opengl/gl_framebuffer_cache.cpp
-    renderer_opengl/gl_framebuffer_cache.h
     renderer_opengl/gl_rasterizer.cpp
     renderer_opengl/gl_rasterizer.h
     renderer_opengl/gl_resource_manager.cpp
     renderer_opengl/gl_resource_manager.h
-    renderer_opengl/gl_sampler_cache.cpp
-    renderer_opengl/gl_sampler_cache.h
     renderer_opengl/gl_shader_cache.cpp
     renderer_opengl/gl_shader_cache.h
     renderer_opengl/gl_shader_decompiler.cpp
@@ -113,8 +110,10 @@ add_library(video_core STATIC
     renderer_opengl/maxwell_to_gl.h
     renderer_opengl/renderer_opengl.cpp
     renderer_opengl/renderer_opengl.h
-    renderer_opengl/utils.cpp
-    renderer_opengl/utils.h
+    renderer_opengl/util_shaders.cpp
+    renderer_opengl/util_shaders.h
+    renderer_vulkan/blit_image.cpp
+    renderer_vulkan/blit_image.h
     renderer_vulkan/fixed_pipeline_state.cpp
     renderer_vulkan/fixed_pipeline_state.h
     renderer_vulkan/maxwell_to_vk.cpp
@@ -141,8 +140,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_fence_manager.h
     renderer_vulkan/vk_graphics_pipeline.cpp
     renderer_vulkan/vk_graphics_pipeline.h
-    renderer_vulkan/vk_image.cpp
-    renderer_vulkan/vk_image.h
     renderer_vulkan/vk_master_semaphore.cpp
     renderer_vulkan/vk_master_semaphore.h
     renderer_vulkan/vk_memory_manager.cpp
@@ -153,12 +150,8 @@ add_library(video_core STATIC
     renderer_vulkan/vk_query_cache.h
     renderer_vulkan/vk_rasterizer.cpp
     renderer_vulkan/vk_rasterizer.h
-    renderer_vulkan/vk_renderpass_cache.cpp
-    renderer_vulkan/vk_renderpass_cache.h
     renderer_vulkan/vk_resource_pool.cpp
     renderer_vulkan/vk_resource_pool.h
-    renderer_vulkan/vk_sampler_cache.cpp
-    renderer_vulkan/vk_sampler_cache.h
     renderer_vulkan/vk_scheduler.cpp
     renderer_vulkan/vk_scheduler.h
     renderer_vulkan/vk_shader_decompiler.cpp
@@ -179,8 +172,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_update_descriptor.h
     renderer_vulkan/wrapper.cpp
     renderer_vulkan/wrapper.h
-    sampler_cache.cpp
-    sampler_cache.h
     shader_cache.h
     shader_notify.cpp
     shader_notify.h
@@ -237,19 +228,32 @@ add_library(video_core STATIC
     shader/transform_feedback.h
     surface.cpp
     surface.h
+    texture_cache/accelerated_swizzle.cpp
+    texture_cache/accelerated_swizzle.h
+    texture_cache/decode_bc4.cpp
+    texture_cache/decode_bc4.h
+    texture_cache/descriptor_table.h
+    texture_cache/formatter.cpp
+    texture_cache/formatter.h
     texture_cache/format_lookup_table.cpp
     texture_cache/format_lookup_table.h
-    texture_cache/surface_base.cpp
-    texture_cache/surface_base.h
-    texture_cache/surface_params.cpp
-    texture_cache/surface_params.h
-    texture_cache/surface_view.cpp
-    texture_cache/surface_view.h
+    texture_cache/image_base.cpp
+    texture_cache/image_base.h
+    texture_cache/image_info.cpp
+    texture_cache/image_info.h
+    texture_cache/image_view_base.cpp
+    texture_cache/image_view_base.h
+    texture_cache/image_view_info.cpp
+    texture_cache/image_view_info.h
+    texture_cache/render_targets.h
+    texture_cache/samples_helper.h
+    texture_cache/slot_vector.h
     texture_cache/texture_cache.h
+    texture_cache/types.h
+    texture_cache/util.cpp
+    texture_cache/util.h
     textures/astc.cpp
     textures/astc.h
-    textures/convert.cpp
-    textures/convert.h
     textures/decoders.cpp
     textures/decoders.h
     textures/texture.cpp

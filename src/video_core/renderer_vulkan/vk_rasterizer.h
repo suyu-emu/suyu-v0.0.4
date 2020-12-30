@@ -11,11 +11,11 @@
 #include <vector>
 
 #include <boost/container/static_vector.hpp>
-#include <boost/functional/hash.hpp>
 
 #include "common/common_types.h"
 #include "video_core/rasterizer_accelerated.h"
 #include "video_core/rasterizer_interface.h"
+#include "video_core/renderer_vulkan/blit_image.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_compute_pass.h"
@@ -24,10 +24,9 @@
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_query_cache.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
-#include "video_core/renderer_vulkan/vk_sampler_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_stream_buffer.h"
 #include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
@@ -49,59 +48,8 @@ namespace Vulkan {
 
 struct VKScreenInfo;
 
-using ImageViewsPack = boost::container::static_vector<VkImageView, Maxwell::NumRenderTargets + 1>;
-
-struct FramebufferCacheKey {
-    VkRenderPass renderpass{};
-    u32 width = 0;
-    u32 height = 0;
-    u32 layers = 0;
-    ImageViewsPack views;
-
-    std::size_t Hash() const noexcept {
-        std::size_t hash = 0;
-        boost::hash_combine(hash, static_cast<VkRenderPass>(renderpass));
-        for (const auto& view : views) {
-            boost::hash_combine(hash, static_cast<VkImageView>(view));
-        }
-        boost::hash_combine(hash, width);
-        boost::hash_combine(hash, height);
-        boost::hash_combine(hash, layers);
-        return hash;
-    }
-
-    bool operator==(const FramebufferCacheKey& rhs) const noexcept {
-        return std::tie(renderpass, views, width, height, layers) ==
-               std::tie(rhs.renderpass, rhs.views, rhs.width, rhs.height, rhs.layers);
-    }
-
-    bool operator!=(const FramebufferCacheKey& rhs) const noexcept {
-        return !operator==(rhs);
-    }
-};
-
-} // namespace Vulkan
-
-namespace std {
-
-template <>
-struct hash<Vulkan::FramebufferCacheKey> {
-    std::size_t operator()(const Vulkan::FramebufferCacheKey& k) const noexcept {
-        return k.Hash();
-    }
-};
-
-} // namespace std
-
-namespace Vulkan {
-
 class StateTracker;
 class BufferBindings;
-
-struct ImageView {
-    View view;
-    VkImageLayout* layout = nullptr;
-};
 
 class RasterizerVulkan final : public VideoCore::RasterizerAccelerated {
 public:
@@ -123,15 +71,18 @@ public:
     void InvalidateRegion(VAddr addr, u64 size) override;
     void OnCPUWrite(VAddr addr, u64 size) override;
     void SyncGuestHost() override;
+    void UnmapMemory(VAddr addr, u64 size) override;
     void SignalSemaphore(GPUVAddr addr, u32 value) override;
     void SignalSyncPoint(u32 value) override;
     void ReleaseFences() override;
     void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void WaitForIdle() override;
+    void FragmentBarrier() override;
+    void TiledCacheBarrier() override;
     void FlushCommands() override;
     void TickFrame() override;
-    bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
-                               const Tegra::Engines::Fermi2D::Regs::Surface& dst,
+    bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
+                               const Tegra::Engines::Fermi2D::Surface& dst,
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
@@ -145,11 +96,17 @@ public:
     }
 
     /// Maximum supported size that a constbuffer can have in bytes.
-    static constexpr std::size_t MaxConstbufferSize = 0x10000;
+    static constexpr size_t MaxConstbufferSize = 0x10000;
     static_assert(MaxConstbufferSize % (4 * sizeof(float)) == 0,
                   "The maximum size of a constbuffer must be a multiple of the size of GLvec4");
 
 private:
+    static constexpr size_t MAX_TEXTURES = 192;
+    static constexpr size_t MAX_IMAGES = 48;
+    static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
+
+    static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
+
     struct DrawParameters {
         void Draw(vk::CommandBuffer cmdbuf) const;
 
@@ -160,22 +117,7 @@ private:
         bool is_indexed = 0;
     };
 
-    using ColorAttachments = std::array<View, Maxwell::NumRenderTargets>;
-    using ZetaAttachment = View;
-
-    using Texceptions = std::bitset<Maxwell::NumRenderTargets + 1>;
-
-    static constexpr std::size_t ZETA_TEXCEPTION_INDEX = 8;
-    static constexpr VkDeviceSize DEFAULT_BUFFER_SIZE = 4 * sizeof(float);
-
     void FlushWork();
-
-    /// @brief Updates the currently bound attachments
-    /// @param is_clear True when the framebuffer is updated as a clear
-    /// @return Bitfield of attachments being used as sampled textures
-    Texceptions UpdateAttachments(bool is_clear);
-
-    std::tuple<VkFramebuffer, VkExtent2D> ConfigureFramebuffers(VkRenderPass renderpass);
 
     /// Setups geometry buffers and state.
     DrawParameters SetupGeometry(FixedPipelineState& fixed_state, BufferBindings& buffer_bindings,
@@ -184,16 +126,11 @@ private:
     /// Setup descriptors in the graphics pipeline.
     void SetupShaderDescriptors(const std::array<Shader*, Maxwell::MaxShaderProgram>& shaders);
 
-    void SetupImageTransitions(Texceptions texceptions, const ColorAttachments& color,
-                               const ZetaAttachment& zeta);
-
     void UpdateDynamicStates();
 
     void BeginTransformFeedback();
 
     void EndTransformFeedback();
-
-    bool WalkAttachmentOverlaps(const CachedSurfaceView& attachment);
 
     void SetupVertexArrays(BufferBindings& buffer_bindings);
 
@@ -240,14 +177,6 @@ private:
 
     void SetupGlobalBuffer(const GlobalBufferEntry& entry, GPUVAddr address);
 
-    void SetupUniformTexels(const Tegra::Texture::TICEntry& image, const UniformTexelEntry& entry);
-
-    void SetupTexture(const Tegra::Texture::FullTextureInfo& texture, const SamplerEntry& entry);
-
-    void SetupStorageTexel(const Tegra::Texture::TICEntry& tic, const StorageTexelEntry& entry);
-
-    void SetupImage(const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);
-
     void UpdateViewportsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateScissorsState(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateDepthBias(Tegra::Engines::Maxwell3D::Regs& regs);
@@ -264,18 +193,16 @@ private:
     void UpdateStencilOp(Tegra::Engines::Maxwell3D::Regs& regs);
     void UpdateStencilTestEnable(Tegra::Engines::Maxwell3D::Regs& regs);
 
-    std::size_t CalculateGraphicsStreamBufferSize(bool is_indexed) const;
+    size_t CalculateGraphicsStreamBufferSize(bool is_indexed) const;
 
-    std::size_t CalculateComputeStreamBufferSize() const;
+    size_t CalculateComputeStreamBufferSize() const;
 
-    std::size_t CalculateVertexArraysSize() const;
+    size_t CalculateVertexArraysSize() const;
 
-    std::size_t CalculateIndexBufferSize() const;
+    size_t CalculateIndexBufferSize() const;
 
-    std::size_t CalculateConstBufferSize(const ConstBufferEntry& entry,
-                                         const Tegra::Engines::ConstBufferInfo& buffer) const;
-
-    RenderPassParams GetRenderPassParams(Texceptions texceptions) const;
+    size_t CalculateConstBufferSize(const ConstBufferEntry& entry,
+                                    const Tegra::Engines::ConstBufferInfo& buffer) const;
 
     VkBuffer DefaultBuffer();
 
@@ -290,18 +217,19 @@ private:
     StateTracker& state_tracker;
     VKScheduler& scheduler;
 
+    VKStreamBuffer stream_buffer;
     VKStagingBufferPool staging_pool;
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
-    VKRenderPassCache renderpass_cache;
+    BlitImageHelper blit_image;
     QuadArrayPass quad_array_pass;
     QuadIndexedPass quad_indexed_pass;
     Uint8Pass uint8_pass;
 
-    VKTextureCache texture_cache;
+    TextureCacheRuntime texture_cache_runtime;
+    TextureCache texture_cache;
     VKPipelineCache pipeline_cache;
     VKBufferCache buffer_cache;
-    VKSamplerCache sampler_cache;
     VKQueryCache query_cache;
     VKFenceManager fence_manager;
 
@@ -310,16 +238,11 @@ private:
     vk::Event wfi_event;
     VideoCommon::Shader::AsyncShaders async_shaders;
 
-    ColorAttachments color_attachments;
-    ZetaAttachment zeta_attachment;
-
-    std::vector<ImageView> sampled_views;
-    std::vector<ImageView> image_views;
+    boost::container::static_vector<u32, MAX_IMAGE_VIEWS> image_view_indices;
+    std::array<VideoCommon::ImageViewId, MAX_IMAGE_VIEWS> image_view_ids;
+    boost::container::static_vector<VkSampler, MAX_TEXTURES> sampler_handles;
 
     u32 draw_counter = 0;
-
-    // TODO(Rodrigo): Invalidate on image destruction
-    std::unordered_map<FramebufferCacheKey, vk::Framebuffer> framebuffer_cache;
 };
 
 } // namespace Vulkan

@@ -280,7 +280,7 @@ bool IsPixelFormatSRGB(PixelFormat format) {
 }
 
 std::pair<u32, u32> GetASTCBlockSize(PixelFormat format) {
-    return {GetDefaultBlockWidth(format), GetDefaultBlockHeight(format)};
+    return {DefaultBlockWidth(format), DefaultBlockHeight(format)};
 }
 
 } // namespace VideoCore::Surface

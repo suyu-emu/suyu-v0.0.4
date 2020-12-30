@@ -60,6 +60,7 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
     logic_op.Assign(PackLogicOp(regs.logic_op.operation));
     rasterize_enable.Assign(regs.rasterize_enable != 0 ? 1 : 0);
     topology.Assign(regs.draw.topology);
+    msaa_mode.Assign(regs.multisample_mode);
 
     raw2 = 0;
     const auto test_func =

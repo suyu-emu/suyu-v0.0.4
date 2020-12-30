@@ -186,6 +186,7 @@ struct FixedPipelineState {
         BitField<19, 4, u32> logic_op;
         BitField<23, 1, u32> rasterize_enable;
         BitField<24, 4, Maxwell::PrimitiveTopology> topology;
+        BitField<28, 4, Tegra::Texture::MsaaMode> msaa_mode;
     };
     union {
         u32 raw2;

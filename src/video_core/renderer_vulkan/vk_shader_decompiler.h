@@ -21,10 +21,10 @@ class VKDevice;
 namespace Vulkan {
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using UniformTexelEntry = VideoCommon::Shader::Sampler;
-using SamplerEntry = VideoCommon::Shader::Sampler;
-using StorageTexelEntry = VideoCommon::Shader::Image;
-using ImageEntry = VideoCommon::Shader::Image;
+using UniformTexelEntry = VideoCommon::Shader::SamplerEntry;
+using SamplerEntry = VideoCommon::Shader::SamplerEntry;
+using StorageTexelEntry = VideoCommon::Shader::ImageEntry;
+using ImageEntry = VideoCommon::Shader::ImageEntry;
 
 constexpr u32 DESCRIPTOR_SET = 0;
 

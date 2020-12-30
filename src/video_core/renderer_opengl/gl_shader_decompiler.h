@@ -20,8 +20,8 @@ namespace OpenGL {
 class Device;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
-using SamplerEntry = VideoCommon::Shader::Sampler;
-using ImageEntry = VideoCommon::Shader::Image;
+using SamplerEntry = VideoCommon::Shader::SamplerEntry;
+using ImageEntry = VideoCommon::Shader::ImageEntry;
 
 class ConstBufferEntry : public VideoCommon::Shader::ConstBuffer {
 public:

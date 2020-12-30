@@ -16,6 +16,9 @@ namespace VideoCommon::Dirty {
 using Tegra::Engines::Maxwell3D;
 
 void SetupDirtyRenderTargets(Tegra::Engines::Maxwell3D::DirtyState::Tables& tables) {
+    FillBlock(tables[0], OFF(tic), NUM(tic), Descriptors);
+    FillBlock(tables[0], OFF(tsc), NUM(tsc), Descriptors);
+
     static constexpr std::size_t num_per_rt = NUM(rt[0]);
     static constexpr std::size_t begin = OFF(rt);
     static constexpr std::size_t num = num_per_rt * Maxwell3D::Regs::NumRenderTargets;
@@ -23,6 +26,10 @@ void SetupDirtyRenderTargets(Tegra::Engines::Maxwell3D::DirtyState::Tables& tabl
         FillBlock(tables[0], begin + rt * num_per_rt, num_per_rt, ColorBuffer0 + rt);
     }
     FillBlock(tables[1], begin, num, RenderTargets);
+    FillBlock(tables[0], OFF(render_area), NUM(render_area), RenderTargets);
+
+    tables[0][OFF(rt_control)] = RenderTargets;
+    tables[1][OFF(rt_control)] = RenderTargetControl;
 
     static constexpr std::array zeta_flags{ZetaBuffer, RenderTargets};
     for (std::size_t i = 0; i < std::size(zeta_flags); ++i) {

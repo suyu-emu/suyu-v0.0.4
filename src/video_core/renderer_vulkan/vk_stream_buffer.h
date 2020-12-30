@@ -5,7 +5,7 @@
 #pragma once
 
 #include <optional>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 #include "common/common_types.h"
@@ -19,17 +19,15 @@ class VKScheduler;
 
 class VKStreamBuffer final {
 public:
-    explicit VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler,
-                            VkBufferUsageFlags usage);
+    explicit VKStreamBuffer(const VKDevice& device, VKScheduler& scheduler);
     ~VKStreamBuffer();
 
     /**
      * Reserves a region of memory from the stream buffer.
      * @param size Size to reserve.
-     * @returns A tuple in the following order: Raw memory pointer (with offset added), buffer
-     * offset and a boolean that's true when buffer has been invalidated.
+     * @returns A pair of a raw memory pointer (with offset added), and the buffer offset
      */
-    std::tuple<u8*, u64, bool> Map(u64 size, u64 alignment);
+    std::pair<u8*, u64> Map(u64 size, u64 alignment);
 
     /// Ensures that "size" bytes of memory are available to the GPU, potentially recording a copy.
     void Unmap(u64 size);
@@ -49,7 +47,7 @@ private:
     };
 
     /// Creates Vulkan buffer handles committing the required the required memory.
-    void CreateBuffers(VkBufferUsageFlags usage);
+    void CreateBuffers();
 
     /// Increases the amount of watches available.
     void ReserveWatches(std::vector<Watch>& watches, std::size_t grow_size);

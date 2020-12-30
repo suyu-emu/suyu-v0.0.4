@@ -19,7 +19,6 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/renderer_vulkan/fixed_pipeline_state.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_shader_decompiler.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 #include "video_core/shader/async_shaders.h"
@@ -119,18 +118,18 @@ private:
 
 class VKPipelineCache final : public VideoCommon::ShaderCache<Shader> {
 public:
-    explicit VKPipelineCache(RasterizerVulkan& rasterizer_, Tegra::GPU& gpu_,
-                             Tegra::Engines::Maxwell3D& maxwell3d_,
-                             Tegra::Engines::KeplerCompute& kepler_compute_,
-                             Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
-                             VKScheduler& scheduler_, VKDescriptorPool& descriptor_pool_,
-                             VKUpdateDescriptorQueue& update_descriptor_queue_,
-                             VKRenderPassCache& renderpass_cache_);
+    explicit VKPipelineCache(RasterizerVulkan& rasterizer, Tegra::GPU& gpu,
+                             Tegra::Engines::Maxwell3D& maxwell3d,
+                             Tegra::Engines::KeplerCompute& kepler_compute,
+                             Tegra::MemoryManager& gpu_memory, const VKDevice& device,
+                             VKScheduler& scheduler, VKDescriptorPool& descriptor_pool,
+                             VKUpdateDescriptorQueue& update_descriptor_queue);
     ~VKPipelineCache() override;
 
     std::array<Shader*, Maxwell::MaxShaderProgram> GetShaders();
 
     VKGraphicsPipeline* GetGraphicsPipeline(const GraphicsPipelineCacheKey& key,
+                                            u32 num_color_buffers,
                                             VideoCommon::Shader::AsyncShaders& async_shaders);
 
     VKComputePipeline& GetComputePipeline(const ComputePipelineCacheKey& key);
@@ -153,7 +152,6 @@ private:
     VKScheduler& scheduler;
     VKDescriptorPool& descriptor_pool;
     VKUpdateDescriptorQueue& update_descriptor_queue;
-    VKRenderPassCache& renderpass_cache;
 
     std::unique_ptr<Shader> null_shader;
     std::unique_ptr<Shader> null_kernel;

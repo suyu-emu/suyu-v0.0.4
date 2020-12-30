@@ -7,11 +7,12 @@
 #include <array>
 #include <atomic>
 #include <cstddef>
-#include <map>
 #include <memory>
 #include <optional>
 #include <tuple>
 #include <utility>
+
+#include <boost/container/static_vector.hpp>
 
 #include <glad/glad.h>
 
@@ -23,16 +24,14 @@
 #include "video_core/renderer_opengl/gl_buffer_cache.h"
 #include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_fence_manager.h"
-#include "video_core/renderer_opengl/gl_framebuffer_cache.h"
 #include "video_core/renderer_opengl/gl_query_cache.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
-#include "video_core/renderer_opengl/gl_sampler_cache.h"
 #include "video_core/renderer_opengl/gl_shader_cache.h"
 #include "video_core/renderer_opengl/gl_shader_decompiler.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
+#include "video_core/renderer_opengl/gl_stream_buffer.h"
 #include "video_core/renderer_opengl/gl_texture_cache.h"
-#include "video_core/renderer_opengl/utils.h"
 #include "video_core/shader/async_shaders.h"
 #include "video_core/textures/texture.h"
 
@@ -51,7 +50,7 @@ class MemoryManager;
 namespace OpenGL {
 
 struct ScreenInfo;
-struct DrawParameters;
+struct ShaderEntries;
 
 struct BindlessSSBO {
     GLuint64EXT address;
@@ -79,15 +78,18 @@ public:
     void InvalidateRegion(VAddr addr, u64 size) override;
     void OnCPUWrite(VAddr addr, u64 size) override;
     void SyncGuestHost() override;
+    void UnmapMemory(VAddr addr, u64 size) override;
     void SignalSemaphore(GPUVAddr addr, u32 value) override;
     void SignalSyncPoint(u32 value) override;
     void ReleaseFences() override;
     void FlushAndInvalidateRegion(VAddr addr, u64 size) override;
     void WaitForIdle() override;
+    void FragmentBarrier() override;
+    void TiledCacheBarrier() override;
     void FlushCommands() override;
     void TickFrame() override;
-    bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Regs::Surface& src,
-                               const Tegra::Engines::Fermi2D::Regs::Surface& dst,
+    bool AccelerateSurfaceCopy(const Tegra::Engines::Fermi2D::Surface& src,
+                               const Tegra::Engines::Fermi2D::Surface& dst,
                                const Tegra::Engines::Fermi2D::Config& copy_config) override;
     bool AccelerateDisplay(const Tegra::FramebufferConfig& config, VAddr framebuffer_addr,
                            u32 pixel_stride) override;
@@ -108,11 +110,14 @@ public:
     }
 
 private:
-    /// Configures the color and depth framebuffer states.
-    void ConfigureFramebuffers();
+    static constexpr size_t MAX_TEXTURES = 192;
+    static constexpr size_t MAX_IMAGES = 48;
+    static constexpr size_t MAX_IMAGE_VIEWS = MAX_TEXTURES + MAX_IMAGES;
 
-    /// Configures the color and depth framebuffer for clearing.
-    void ConfigureClearFramebuffer(bool using_color, bool using_depth_stencil);
+    void BindComputeTextures(Shader* kernel);
+
+    void BindTextures(const ShaderEntries& entries, GLuint base_texture, GLuint base_image,
+                      size_t& image_view_index, size_t& texture_index, size_t& image_index);
 
     /// Configures the current constbuffers to use for the draw command.
     void SetupDrawConstBuffers(std::size_t stage_index, Shader* shader);
@@ -136,23 +141,16 @@ private:
                            size_t size, BindlessSSBO* ssbo);
 
     /// Configures the current textures to use for the draw command.
-    void SetupDrawTextures(std::size_t stage_index, Shader* shader);
+    void SetupDrawTextures(const Shader* shader, size_t stage_index);
 
     /// Configures the textures used in a compute shader.
-    void SetupComputeTextures(Shader* kernel);
-
-    /// Configures a texture.
-    void SetupTexture(u32 binding, const Tegra::Texture::FullTextureInfo& texture,
-                      const SamplerEntry& entry);
+    void SetupComputeTextures(const Shader* kernel);
 
     /// Configures images in a graphics shader.
-    void SetupDrawImages(std::size_t stage_index, Shader* shader);
+    void SetupDrawImages(const Shader* shader, size_t stage_index);
 
     /// Configures images in a compute shader.
-    void SetupComputeImages(Shader* shader);
-
-    /// Configures an image.
-    void SetupImage(u32 binding, const Tegra::Texture::TICEntry& tic, const ImageEntry& entry);
+    void SetupComputeImages(const Shader* shader);
 
     /// Syncs the viewport and depth range to match the guest state
     void SyncViewport();
@@ -227,9 +225,6 @@ private:
     /// End a transform feedback
     void EndTransformFeedback();
 
-    /// Check for extension that are not strictly required but are needed for correct emulation
-    void CheckExtensions();
-
     std::size_t CalculateVertexArraysSize() const;
 
     std::size_t CalculateIndexBufferSize() const;
@@ -242,7 +237,7 @@ private:
 
     GLintptr SetupIndexBuffer();
 
-    void SetupShaders(GLenum primitive_mode);
+    void SetupShaders();
 
     Tegra::GPU& gpu;
     Tegra::Engines::Maxwell3D& maxwell3d;
@@ -254,19 +249,21 @@ private:
     ProgramManager& program_manager;
     StateTracker& state_tracker;
 
-    TextureCacheOpenGL texture_cache;
+    OGLStreamBuffer stream_buffer;
+    TextureCacheRuntime texture_cache_runtime;
+    TextureCache texture_cache;
     ShaderCacheOpenGL shader_cache;
-    SamplerCacheOpenGL sampler_cache;
-    FramebufferCacheOpenGL framebuffer_cache;
     QueryCache query_cache;
     OGLBufferCache buffer_cache;
     FenceManagerOpenGL fence_manager;
 
     VideoCommon::Shader::AsyncShaders async_shaders;
 
-    static constexpr std::size_t STREAM_BUFFER_SIZE = 128 * 1024 * 1024;
-
-    GLint vertex_binding = 0;
+    boost::container::static_vector<u32, MAX_IMAGE_VIEWS> image_view_indices;
+    std::array<ImageViewId, MAX_IMAGE_VIEWS> image_view_ids;
+    boost::container::static_vector<GLuint, MAX_TEXTURES> sampler_handles;
+    std::array<GLuint, MAX_TEXTURES> texture_handles;
+    std::array<GLuint, MAX_IMAGES> image_handles;
 
     std::array<OGLBuffer, Tegra::Engines::Maxwell3D::Regs::NumTransformFeedbackBuffers>
         transform_feedback_buffers;
@@ -280,7 +277,7 @@ private:
     std::size_t current_cbuf = 0;
     OGLBuffer unified_uniform_buffer;
 
-    /// Number of commands queued to the OpenGL driver. Reseted on flush.
+    /// Number of commands queued to the OpenGL driver. Resetted on flush.
     std::size_t num_queued_commands = 0;
 
     u32 last_clip_distance_mask = 0;

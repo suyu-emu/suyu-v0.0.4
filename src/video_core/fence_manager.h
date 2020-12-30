@@ -9,6 +9,7 @@
 
 #include "common/common_types.h"
 #include "core/core.h"
+#include "video_core/delayed_destruction_ring.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
 #include "video_core/rasterizer_interface.h"
@@ -47,6 +48,11 @@ protected:
 template <typename TFence, typename TTextureCache, typename TTBufferCache, typename TQueryCache>
 class FenceManager {
 public:
+    /// Notify the fence manager about a new frame
+    void TickFrame() {
+        delayed_destruction_ring.Tick();
+    }
+
     void SignalSemaphore(GPUVAddr addr, u32 value) {
         TryReleasePendingFences();
         const bool should_flush = ShouldFlush();
@@ -86,7 +92,7 @@ public:
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
-            fences.pop();
+            PopFence();
         }
     }
 
@@ -132,7 +138,7 @@ private:
             } else {
                 gpu.IncrementSyncPoint(current_fence->GetPayload());
             }
-            fences.pop();
+            PopFence();
         }
     }
 
@@ -158,7 +164,14 @@ private:
         query_cache.CommitAsyncFlushes();
     }
 
+    void PopFence() {
+        delayed_destruction_ring.Push(std::move(fences.front()));
+        fences.pop();
+    }
+
     std::queue<TFence> fences;
+
+    DelayedDestructionRing<TFence, 6> delayed_destruction_ring;
 };
 
 } // namespace VideoCommon

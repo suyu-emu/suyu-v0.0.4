@@ -33,10 +33,9 @@ class VKDevice;
 class VKMemoryManager;
 class VKSwapchain;
 class VKScheduler;
-class VKImage;
 
 struct VKScreenInfo {
-    VKImage* image{};
+    VkImageView image_view{};
     u32 width{};
     u32 height{};
     bool is_srgb{};

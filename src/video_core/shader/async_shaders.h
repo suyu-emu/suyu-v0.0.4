@@ -98,9 +98,9 @@ public:
                            Vulkan::VKScheduler& scheduler,
                            Vulkan::VKDescriptorPool& descriptor_pool,
                            Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
-                           Vulkan::VKRenderPassCache& renderpass_cache,
                            std::vector<VkDescriptorSetLayoutBinding> bindings,
-                           Vulkan::SPIRVProgram program, Vulkan::GraphicsPipelineCacheKey key);
+                           Vulkan::SPIRVProgram program, Vulkan::GraphicsPipelineCacheKey key,
+                           u32 num_color_buffers);
 
 private:
     void ShaderCompilerThread(Core::Frontend::GraphicsContext* context);
@@ -127,10 +127,10 @@ private:
         Vulkan::VKScheduler* scheduler;
         Vulkan::VKDescriptorPool* descriptor_pool;
         Vulkan::VKUpdateDescriptorQueue* update_descriptor_queue;
-        Vulkan::VKRenderPassCache* renderpass_cache;
         std::vector<VkDescriptorSetLayoutBinding> bindings;
         Vulkan::SPIRVProgram program;
         Vulkan::GraphicsPipelineCacheKey key;
+        u32 num_color_buffers;
     };
 
     std::condition_variable cv;

@@ -15,7 +15,6 @@
 #include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
@@ -69,23 +68,45 @@ VkViewportSwizzleNV UnpackViewportSwizzle(u16 swizzle) {
     };
 }
 
+VkSampleCountFlagBits ConvertMsaaMode(Tegra::Texture::MsaaMode msaa_mode) {
+    switch (msaa_mode) {
+    case Tegra::Texture::MsaaMode::Msaa1x1:
+        return VK_SAMPLE_COUNT_1_BIT;
+    case Tegra::Texture::MsaaMode::Msaa2x1:
+    case Tegra::Texture::MsaaMode::Msaa2x1_D3D:
+        return VK_SAMPLE_COUNT_2_BIT;
+    case Tegra::Texture::MsaaMode::Msaa2x2:
+    case Tegra::Texture::MsaaMode::Msaa2x2_VC4:
+    case Tegra::Texture::MsaaMode::Msaa2x2_VC12:
+        return VK_SAMPLE_COUNT_4_BIT;
+    case Tegra::Texture::MsaaMode::Msaa4x2:
+    case Tegra::Texture::MsaaMode::Msaa4x2_D3D:
+    case Tegra::Texture::MsaaMode::Msaa4x2_VC8:
+    case Tegra::Texture::MsaaMode::Msaa4x2_VC24:
+        return VK_SAMPLE_COUNT_8_BIT;
+    case Tegra::Texture::MsaaMode::Msaa4x4:
+        return VK_SAMPLE_COUNT_16_BIT;
+    default:
+        UNREACHABLE_MSG("Invalid msaa_mode={}", static_cast<int>(msaa_mode));
+        return VK_SAMPLE_COUNT_1_BIT;
+    }
+}
+
 } // Anonymous namespace
 
 VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device_, VKScheduler& scheduler_,
                                        VKDescriptorPool& descriptor_pool_,
                                        VKUpdateDescriptorQueue& update_descriptor_queue_,
-                                       VKRenderPassCache& renderpass_cache_,
-                                       const GraphicsPipelineCacheKey& key_,
-                                       vk::Span<VkDescriptorSetLayoutBinding> bindings_,
-                                       const SPIRVProgram& program_)
-    : device{device_}, scheduler{scheduler_}, cache_key{key_}, hash{cache_key.Hash()},
-      descriptor_set_layout{CreateDescriptorSetLayout(bindings_)},
+                                       const GraphicsPipelineCacheKey& key,
+                                       vk::Span<VkDescriptorSetLayoutBinding> bindings,
+                                       const SPIRVProgram& program, u32 num_color_buffers)
+    : device{device_}, scheduler{scheduler_}, cache_key{key}, hash{cache_key.Hash()},
+      descriptor_set_layout{CreateDescriptorSetLayout(bindings)},
       descriptor_allocator{descriptor_pool_, *descriptor_set_layout},
       update_descriptor_queue{update_descriptor_queue_}, layout{CreatePipelineLayout()},
-      descriptor_template{CreateDescriptorUpdateTemplate(program_)}, modules{CreateShaderModules(
-                                                                         program_)},
-      renderpass{renderpass_cache_.GetRenderPass(cache_key.renderpass_params)},
-      pipeline{CreatePipeline(cache_key.renderpass_params, program_)} {}
+      descriptor_template{CreateDescriptorUpdateTemplate(program)},
+      modules(CreateShaderModules(program)),
+      pipeline(CreatePipeline(program, cache_key.renderpass, num_color_buffers)) {}
 
 VKGraphicsPipeline::~VKGraphicsPipeline() = default;
 
@@ -179,8 +200,9 @@ std::vector<vk::ShaderModule> VKGraphicsPipeline::CreateShaderModules(
     return shader_modules;
 }
 
-vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpass_params,
-                                                const SPIRVProgram& program) const {
+vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
+                                                VkRenderPass renderpass,
+                                                u32 num_color_buffers) const {
     const auto& state = cache_key.fixed_state;
     const auto& viewport_swizzles = state.viewport_swizzles;
 
@@ -290,8 +312,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     };
 
     std::array<VkViewportSwizzleNV, Maxwell::NumViewports> swizzles;
-    std::transform(viewport_swizzles.begin(), viewport_swizzles.end(), swizzles.begin(),
-                   UnpackViewportSwizzle);
+    std::ranges::transform(viewport_swizzles, swizzles.begin(), UnpackViewportSwizzle);
     VkPipelineViewportSwizzleStateCreateInfoNV swizzle_ci{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_SWIZZLE_STATE_CREATE_INFO_NV,
         .pNext = nullptr,
@@ -326,7 +347,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
-        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .rasterizationSamples = ConvertMsaaMode(state.msaa_mode),
         .sampleShadingEnable = VK_FALSE,
         .minSampleShading = 0.0f,
         .pSampleMask = nullptr,
@@ -352,8 +373,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
     };
 
     std::array<VkPipelineColorBlendAttachmentState, Maxwell::NumRenderTargets> cb_attachments;
-    const auto num_attachments = static_cast<std::size_t>(renderpass_params.num_color_attachments);
-    for (std::size_t index = 0; index < num_attachments; ++index) {
+    for (std::size_t index = 0; index < num_color_buffers; ++index) {
         static constexpr std::array COMPONENT_TABLE{
             VK_COLOR_COMPONENT_R_BIT,
             VK_COLOR_COMPONENT_G_BIT,
@@ -387,7 +407,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .flags = 0,
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_COPY,
-        .attachmentCount = static_cast<u32>(num_attachments),
+        .attachmentCount = num_color_buffers,
         .pAttachments = cb_attachments.data(),
         .blendConstants = {},
     };
@@ -447,8 +467,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
             stage_ci.pNext = &subgroup_size_ci;
         }
     }
-
-    const VkGraphicsPipelineCreateInfo ci{
+    return device.GetLogical().CreateGraphicsPipeline(VkGraphicsPipelineCreateInfo{
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0,
@@ -468,8 +487,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const RenderPassParams& renderpa
         .subpass = 0,
         .basePipelineHandle = nullptr,
         .basePipelineIndex = 0,
-    };
-    return device.GetLogical().CreateGraphicsPipeline(ci);
+    });
 }
 
 } // namespace Vulkan

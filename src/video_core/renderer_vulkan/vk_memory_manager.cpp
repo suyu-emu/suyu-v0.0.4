@@ -216,7 +216,7 @@ VKMemoryCommitImpl::~VKMemoryCommitImpl() {
 }
 
 MemoryMap VKMemoryCommitImpl::Map(u64 size, u64 offset_) const {
-    return MemoryMap{this, memory.Map(interval.first + offset_, size)};
+    return MemoryMap(this, std::span<u8>(memory.Map(interval.first + offset_, size), size));
 }
 
 void VKMemoryCommitImpl::Unmap() const {
