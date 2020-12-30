@@ -22,13 +22,13 @@ u32 ShaderIR::DecodeHalfSet(NodeBlock& bb, u32 pc) {
     const Instruction instr = {program_code[pc]};
     const auto opcode = OpCode::Decode(instr);
 
-    PredCondition cond;
-    bool bf;
-    bool ftz;
-    bool neg_a;
-    bool abs_a;
-    bool neg_b;
-    bool abs_b;
+    PredCondition cond{};
+    bool bf = false;
+    bool ftz = false;
+    bool neg_a = false;
+    bool abs_a = false;
+    bool neg_b = false;
+    bool abs_b = false;
     switch (opcode->get().GetId()) {
     case OpCode::Id::HSET2_C:
     case OpCode::Id::HSET2_IMM:
