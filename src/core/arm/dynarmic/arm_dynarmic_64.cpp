@@ -152,6 +152,7 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
     // Memory
     config.page_table = reinterpret_cast<void**>(page_table.pointers.data());
     config.page_table_address_space_bits = address_space_bits;
+    config.page_table_pointer_mask_bits = Common::PageTable::ATTRIBUTE_BITS;
     config.silently_mirror_page_table = false;
     config.absolute_offset_page_table = true;
     config.detect_misaligned_access_via_page_table = 16 | 32 | 64 | 128;
