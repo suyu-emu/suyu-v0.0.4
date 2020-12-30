@@ -3,6 +3,7 @@ set(SHADER_FILES
     block_linear_unswizzle_3d.comp
     opengl_present.frag
     opengl_present.vert
+    pitch_unswizzle.comp
 )
 
 find_program(GLSLANGVALIDATOR "glslangValidator" REQUIRED)
