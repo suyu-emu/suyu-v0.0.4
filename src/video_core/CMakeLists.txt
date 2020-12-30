@@ -25,6 +25,7 @@ add_library(video_core STATIC
     command_classes/vic.h
     compatible_formats.cpp
     compatible_formats.h
+    delayed_destruction_ring.h
     dirty_flags.cpp
     dirty_flags.h
     dma_pusher.cpp
