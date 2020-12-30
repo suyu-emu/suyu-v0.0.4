@@ -15,6 +15,7 @@
 #include "common/logging/log.h"
 #include "common/microprofile.h"
 #include "common/thread.h"
+#include "common/thread_worker.h"
 #include "core/arm/arm_interface.h"
 #include "core/arm/cpu_interrupt_handler.h"
 #include "core/arm/exclusive_monitor.h"
@@ -58,11 +59,11 @@ struct KernelCore::Impl {
     }
 
     void Initialize(KernelCore& kernel) {
-        process_list.clear();
-
         RegisterHostThread();
 
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
+        service_thread_manager =
+            std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
 
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
@@ -79,6 +80,12 @@ struct KernelCore::Impl {
     }
 
     void Shutdown() {
+        process_list.clear();
+
+        // Ensures all service threads gracefully shutdown
+        service_thread_manager.reset();
+        service_threads.clear();
+
         next_object_id = 0;
         next_kernel_process_id = Process::InitialKIPIDMin;
         next_user_process_id = Process::ProcessIDMin;
@@ -106,9 +113,6 @@ struct KernelCore::Impl {
 
         // Next host thead ID to use, 0-3 IDs represent core threads, >3 represent others
         next_host_thread_id = Core::Hardware::NUM_CPU_CORES;
-
-        // Ensures all service threads gracefully shutdown
-        service_threads.clear();
     }
 
     void InitializePhysicalCores() {
@@ -336,6 +340,10 @@ struct KernelCore::Impl {
 
     // Threads used for services
     std::unordered_set<std::shared_ptr<Kernel::ServiceThread>> service_threads;
+
+    // Service threads are managed by a worker thread, so that a calling service thread can queue up
+    // the release of itself
+    std::unique_ptr<Common::ThreadWorker> service_thread_manager;
 
     std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
@@ -633,14 +641,17 @@ void KernelCore::ExitSVCProfile() {
 
 std::weak_ptr<Kernel::ServiceThread> KernelCore::CreateServiceThread(const std::string& name) {
     auto service_thread = std::make_shared<Kernel::ServiceThread>(*this, 1, name);
-    impl->service_threads.emplace(service_thread);
+    impl->service_thread_manager->QueueWork(
+        [this, service_thread] { impl->service_threads.emplace(service_thread); });
     return service_thread;
 }
 
 void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread) {
-    if (auto strong_ptr = service_thread.lock()) {
-        impl->service_threads.erase(strong_ptr);
-    }
+    impl->service_thread_manager->QueueWork([this, service_thread] {
+        if (auto strong_ptr = service_thread.lock()) {
+            impl->service_threads.erase(strong_ptr);
+        }
+    });
 }
 
 } // namespace Kernel
