@@ -61,10 +61,9 @@ void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst
 
 OGLBufferCache::OGLBufferCache(VideoCore::RasterizerInterface& rasterizer_,
                                Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                               const Device& device_, std::size_t stream_size_)
-    : GenericBufferCache{rasterizer_, gpu_memory_, cpu_memory_,
-                         std::make_unique<OGLStreamBuffer>(device_, stream_size_, true)},
-      device{device_} {
+                               const Device& device_, OGLStreamBuffer& stream_buffer_,
+                               StateTracker& state_tracker)
+    : GenericBufferCache{rasterizer_, gpu_memory_, cpu_memory_, stream_buffer_}, device{device_} {
     if (!device.HasFastBufferSubData()) {
         return;
     }

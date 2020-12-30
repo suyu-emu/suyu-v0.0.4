@@ -118,20 +118,17 @@ public:
     /// Prepares the buffer cache for data uploading
     /// @param max_size Maximum number of bytes that will be uploaded
     /// @return True when a stream buffer invalidation was required, false otherwise
-    bool Map(std::size_t max_size) {
+    void Map(std::size_t max_size) {
         std::lock_guard lock{mutex};
 
-        bool invalidated;
-        std::tie(buffer_ptr, buffer_offset_base, invalidated) = stream_buffer->Map(max_size, 4);
+        std::tie(buffer_ptr, buffer_offset_base) = stream_buffer.Map(max_size, 4);
         buffer_offset = buffer_offset_base;
-
-        return invalidated;
     }
 
     /// Finishes the upload stream
     void Unmap() {
         std::lock_guard lock{mutex};
-        stream_buffer->Unmap(buffer_offset - buffer_offset_base);
+        stream_buffer.Unmap(buffer_offset - buffer_offset_base);
     }
 
     /// Function called at the end of each frame, inteded for deferred operations
@@ -261,9 +258,9 @@ public:
 protected:
     explicit BufferCache(VideoCore::RasterizerInterface& rasterizer_,
                          Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                         std::unique_ptr<StreamBuffer> stream_buffer_)
+                         StreamBuffer& stream_buffer_)
         : rasterizer{rasterizer_}, gpu_memory{gpu_memory_}, cpu_memory{cpu_memory_},
-          stream_buffer{std::move(stream_buffer_)}, stream_buffer_handle{stream_buffer->Handle()} {}
+          stream_buffer{stream_buffer_} {}
 
     ~BufferCache() = default;
 
@@ -441,7 +438,7 @@ private:
 
         buffer_ptr += size;
         buffer_offset += size;
-        return BufferInfo{stream_buffer->Handle(), uploaded_offset, stream_buffer->Address()};
+        return BufferInfo{stream_buffer.Handle(), uploaded_offset, stream_buffer.Address()};
     }
 
     void AlignBuffer(std::size_t alignment) {
@@ -567,9 +564,7 @@ private:
     VideoCore::RasterizerInterface& rasterizer;
     Tegra::MemoryManager& gpu_memory;
     Core::Memory::Memory& cpu_memory;
-
-    std::unique_ptr<StreamBuffer> stream_buffer;
-    BufferType stream_buffer_handle;
+    StreamBuffer& stream_buffer;
 
     u8* buffer_ptr = nullptr;
     u64 buffer_offset = 0;

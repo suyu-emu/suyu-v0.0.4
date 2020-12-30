@@ -94,11 +94,11 @@ public:
         return used_cbufs;
     }
 
-    const std::list<Sampler>& GetSamplers() const {
+    const std::list<SamplerEntry>& GetSamplers() const {
         return used_samplers;
     }
 
-    const std::list<Image>& GetImages() const {
+    const std::list<ImageEntry>& GetImages() const {
         return used_images;
     }
 
@@ -334,17 +334,17 @@ private:
                                std::optional<Tegra::Engines::SamplerDescriptor> sampler);
 
     /// Accesses a texture sampler.
-    std::optional<Sampler> GetSampler(Tegra::Shader::Sampler sampler, SamplerInfo info);
+    std::optional<SamplerEntry> GetSampler(Tegra::Shader::Sampler sampler, SamplerInfo info);
 
     /// Accesses a texture sampler for a bindless texture.
-    std::optional<Sampler> GetBindlessSampler(Tegra::Shader::Register reg, SamplerInfo info,
-                                              Node& index_var);
+    std::optional<SamplerEntry> GetBindlessSampler(Tegra::Shader::Register reg, SamplerInfo info,
+                                                   Node& index_var);
 
     /// Accesses an image.
-    Image& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);
+    ImageEntry& GetImage(Tegra::Shader::Image image, Tegra::Shader::ImageType type);
 
     /// Access a bindless image sampler.
-    Image& GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type);
+    ImageEntry& GetBindlessImage(Tegra::Shader::Register reg, Tegra::Shader::ImageType type);
 
     /// Extracts a sequence of bits from a node
     Node BitfieldExtract(Node value, u32 offset, u32 bits);
@@ -454,8 +454,8 @@ private:
     std::set<Tegra::Shader::Attribute::Index> used_input_attributes;
     std::set<Tegra::Shader::Attribute::Index> used_output_attributes;
     std::map<u32, ConstBuffer> used_cbufs;
-    std::list<Sampler> used_samplers;
-    std::list<Image> used_images;
+    std::list<SamplerEntry> used_samplers;
+    std::list<ImageEntry> used_images;
     std::array<bool, Tegra::Engines::Maxwell3D::Regs::NumClipDistances> used_clip_distances{};
     std::map<GlobalMemoryBase, GlobalMemoryUsage> used_global_memory;
     bool uses_layer{};

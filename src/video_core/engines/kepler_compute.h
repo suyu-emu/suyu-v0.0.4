@@ -209,11 +209,6 @@ public:
     void CallMultiMethod(u32 method, const u32* base_start, u32 amount,
                          u32 methods_pending) override;
 
-    Texture::FullTextureInfo GetTexture(std::size_t offset) const;
-
-    /// Given a texture handle, returns the TSC and TIC entries.
-    Texture::FullTextureInfo GetTextureInfo(Texture::TextureHandle tex_handle) const;
-
     u32 AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offset) const override;
 
     SamplerDescriptor AccessBoundSampler(ShaderType stage, u64 offset) const override;

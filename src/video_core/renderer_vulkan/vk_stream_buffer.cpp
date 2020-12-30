@@ -19,6 +19,10 @@ namespace Vulkan {
 
 namespace {
 
+constexpr VkBufferUsageFlags BUFFER_USAGE =
+    VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT |
+    VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+
 constexpr u64 WATCHES_INITIAL_RESERVE = 0x4000;
 constexpr u64 WATCHES_RESERVE_CHUNK = 0x1000;
 
@@ -56,17 +60,16 @@ u32 GetMemoryType(const VkPhysicalDeviceMemoryProperties& properties,
 
 } // Anonymous namespace
 
-VKStreamBuffer::VKStreamBuffer(const VKDevice& device_, VKScheduler& scheduler_,
-                               VkBufferUsageFlags usage)
+VKStreamBuffer::VKStreamBuffer(const VKDevice& device_, VKScheduler& scheduler_)
     : device{device_}, scheduler{scheduler_} {
-    CreateBuffers(usage);
+    CreateBuffers();
     ReserveWatches(current_watches, WATCHES_INITIAL_RESERVE);
     ReserveWatches(previous_watches, WATCHES_INITIAL_RESERVE);
 }
 
 VKStreamBuffer::~VKStreamBuffer() = default;
 
-std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
+std::pair<u8*, u64> VKStreamBuffer::Map(u64 size, u64 alignment) {
     ASSERT(size <= stream_buffer_size);
     mapped_size = size;
 
@@ -76,7 +79,6 @@ std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
 
     WaitPendingOperations(offset);
 
-    bool invalidated = false;
     if (offset + size > stream_buffer_size) {
         // The buffer would overflow, save the amount of used watches and reset the state.
         invalidation_mark = current_watch_cursor;
@@ -90,11 +92,9 @@ std::tuple<u8*, u64, bool> VKStreamBuffer::Map(u64 size, u64 alignment) {
 
         // Ensure that we don't wait for uncommitted fences.
         scheduler.Flush();
-
-        invalidated = true;
     }
 
-    return {memory.Map(offset, size), offset, invalidated};
+    return std::make_pair(memory.Map(offset, size), offset);
 }
 
 void VKStreamBuffer::Unmap(u64 size) {
@@ -113,7 +113,7 @@ void VKStreamBuffer::Unmap(u64 size) {
     watch.tick = scheduler.CurrentTick();
 }
 
-void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
+void VKStreamBuffer::CreateBuffers() {
     const auto memory_properties = device.GetPhysical().GetMemoryProperties();
     const u32 preferred_type = GetMemoryType(memory_properties);
     const u32 preferred_heap = memory_properties.memoryTypes[preferred_type].heapIndex;
@@ -127,7 +127,7 @@ void VKStreamBuffer::CreateBuffers(VkBufferUsageFlags usage) {
         .pNext = nullptr,
         .flags = 0,
         .size = std::min(PREFERRED_STREAM_BUFFER_SIZE, allocable_size),
-        .usage = usage,
+        .usage = BUFFER_USAGE,
         .sharingMode = VK_SHARING_MODE_EXCLUSIVE,
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,

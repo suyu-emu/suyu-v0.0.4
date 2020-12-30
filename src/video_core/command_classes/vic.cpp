@@ -9,7 +9,7 @@
 #include "video_core/engines/maxwell_3d.h"
 #include "video_core/gpu.h"
 #include "video_core/memory_manager.h"
-#include "video_core/texture_cache/surface_params.h"
+#include "video_core/textures/decoders.h"
 
 extern "C" {
 #include <libswscale/swscale.h>
@@ -105,9 +105,9 @@ void Vic::Execute() {
             const auto size = Tegra::Texture::CalculateSize(true, 4, frame->width, frame->height, 1,
                                                             block_height, 0);
             std::vector<u8> swizzled_data(size);
-            Tegra::Texture::CopySwizzledData(frame->width, frame->height, 1, 4, 4,
-                                             swizzled_data.data(), converted_frame_buffer.get(),
-                                             false, block_height, 0, 1);
+            Tegra::Texture::SwizzleSubrect(frame->width, frame->height, frame->width * 4,
+                                           frame->width, 4, swizzled_data.data(),
+                                           converted_frame_buffer.get(), block_height, 0, 0);
 
             gpu.MemoryManager().WriteBlock(output_surface_luma_address, swizzled_data.data(), size);
             gpu.Maxwell3D().OnMemoryWrite();

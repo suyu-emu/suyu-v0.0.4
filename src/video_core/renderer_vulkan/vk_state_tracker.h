@@ -52,6 +52,14 @@ public:
         current_topology = INVALID_TOPOLOGY;
     }
 
+    void InvalidateViewports() {
+        flags[Dirty::Viewports] = true;
+    }
+
+    void InvalidateScissors() {
+        flags[Dirty::Scissors] = true;
+    }
+
     bool TouchViewports() {
         return Exchange(Dirty::Viewports, false);
     }

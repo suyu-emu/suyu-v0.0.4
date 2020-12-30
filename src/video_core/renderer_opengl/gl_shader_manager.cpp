@@ -83,6 +83,21 @@ void ProgramManager::RestoreGuestPipeline() {
     }
 }
 
+void ProgramManager::BindHostCompute(GLuint program) {
+    if (use_assembly_programs) {
+        glDisable(GL_COMPUTE_PROGRAM_NV);
+    }
+    glUseProgram(program);
+    is_graphics_bound = false;
+}
+
+void ProgramManager::RestoreGuestCompute() {
+    if (use_assembly_programs) {
+        glEnable(GL_COMPUTE_PROGRAM_NV);
+        glUseProgram(0);
+    }
+}
+
 void ProgramManager::UseVertexShader(GLuint program) {
     if (use_assembly_programs) {
         BindProgram(GL_VERTEX_PROGRAM_NV, program, current_state.vertex, vertex_enabled);

@@ -17,6 +17,7 @@
 namespace Vulkan {
 
 class CommandPool;
+class Framebuffer;
 class MasterSemaphore;
 class StateTracker;
 class VKDevice;
@@ -52,8 +53,7 @@ public:
     void DispatchWork();
 
     /// Requests to begin a renderpass.
-    void RequestRenderpass(VkRenderPass renderpass, VkFramebuffer framebuffer,
-                           VkExtent2D render_area);
+    void RequestRenderpass(const Framebuffer* framebuffer);
 
     /// Requests the current executino context to be able to execute operations only allowed outside
     /// of a renderpass.
@@ -61,6 +61,9 @@ public:
 
     /// Binds a pipeline to the current execution context.
     void BindGraphicsPipeline(VkPipeline pipeline);
+
+    /// Invalidates current command buffer state except for render passes
+    void InvalidateState();
 
     /// Assigns the query cache.
     void SetQueryCache(VKQueryCache& query_cache_) {
@@ -170,8 +173,6 @@ private:
 
     void AllocateNewContext();
 
-    void InvalidateState();
-
     void EndPendingOperations();
 
     void EndRenderPass();
@@ -192,6 +193,11 @@ private:
     std::thread worker_thread;
 
     State state;
+
+    u32 num_renderpass_images = 0;
+    std::array<VkImage, 9> renderpass_images{};
+    std::array<VkImageSubresourceRange, 9> renderpass_image_ranges{};
+
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_queue;
     Common::SPSCQueue<std::unique_ptr<CommandChunk>> chunk_reserve;
     std::mutex mutex;

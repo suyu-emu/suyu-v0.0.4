@@ -102,6 +102,7 @@ private:
     StateTracker state_tracker{gpu};
 
     // OpenGL object IDs
+    OGLSampler present_sampler;
     OGLBuffer vertex_buffer;
     OGLProgram vertex_program;
     OGLProgram fragment_program;

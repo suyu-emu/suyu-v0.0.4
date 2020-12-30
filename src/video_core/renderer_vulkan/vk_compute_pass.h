@@ -5,6 +5,7 @@
 #pragma once
 
 #include <optional>
+#include <span>
 #include <utility>
 
 #include "common/common_types.h"
@@ -24,8 +25,7 @@ public:
     explicit VKComputePass(const VKDevice& device, VKDescriptorPool& descriptor_pool,
                            vk::Span<VkDescriptorSetLayoutBinding> bindings,
                            vk::Span<VkDescriptorUpdateTemplateEntryKHR> templates,
-                           vk::Span<VkPushConstantRange> push_constants, std::size_t code_size,
-                           const u8* code);
+                           vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code);
     ~VKComputePass();
 
 protected:

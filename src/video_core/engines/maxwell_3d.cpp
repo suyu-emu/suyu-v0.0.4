@@ -2,7 +2,6 @@
 // Licensed under GPLv2 or any later version
 // Refer to the license.txt file included.
 
-#include <cinttypes>
 #include <cstring>
 #include <optional>
 #include "common/assert.h"
@@ -227,6 +226,10 @@ void Maxwell3D::ProcessMethodCall(u32 method, u32 argument, u32 nonshadow_argume
             OnMemoryWrite();
         }
         return;
+    case MAXWELL3D_REG_INDEX(fragment_barrier):
+        return rasterizer->FragmentBarrier();
+    case MAXWELL3D_REG_INDEX(tiled_cache_barrier):
+        return rasterizer->TiledCacheBarrier();
     }
 }
 
@@ -639,7 +642,7 @@ void Maxwell3D::FinishCBData() {
 }
 
 Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
-    const GPUVAddr tic_address_gpu{regs.tic.TICAddress() + tic_index * sizeof(Texture::TICEntry)};
+    const GPUVAddr tic_address_gpu{regs.tic.Address() + tic_index * sizeof(Texture::TICEntry)};
 
     Texture::TICEntry tic_entry;
     memory_manager.ReadBlockUnsafe(tic_address_gpu, &tic_entry, sizeof(Texture::TICEntry));
@@ -648,31 +651,11 @@ Texture::TICEntry Maxwell3D::GetTICEntry(u32 tic_index) const {
 }
 
 Texture::TSCEntry Maxwell3D::GetTSCEntry(u32 tsc_index) const {
-    const GPUVAddr tsc_address_gpu{regs.tsc.TSCAddress() + tsc_index * sizeof(Texture::TSCEntry)};
+    const GPUVAddr tsc_address_gpu{regs.tsc.Address() + tsc_index * sizeof(Texture::TSCEntry)};
 
     Texture::TSCEntry tsc_entry;
     memory_manager.ReadBlockUnsafe(tsc_address_gpu, &tsc_entry, sizeof(Texture::TSCEntry));
     return tsc_entry;
-}
-
-Texture::FullTextureInfo Maxwell3D::GetTextureInfo(Texture::TextureHandle tex_handle) const {
-    return Texture::FullTextureInfo{GetTICEntry(tex_handle.tic_id), GetTSCEntry(tex_handle.tsc_id)};
-}
-
-Texture::FullTextureInfo Maxwell3D::GetStageTexture(ShaderType stage, std::size_t offset) const {
-    const auto stage_index = static_cast<std::size_t>(stage);
-    const auto& shader = state.shader_stages[stage_index];
-    const auto& tex_info_buffer = shader.const_buffers[regs.tex_cb_index];
-    ASSERT(tex_info_buffer.enabled && tex_info_buffer.address != 0);
-
-    const GPUVAddr tex_info_address =
-        tex_info_buffer.address + offset * sizeof(Texture::TextureHandle);
-
-    ASSERT(tex_info_address < tex_info_buffer.address + tex_info_buffer.size);
-
-    const Texture::TextureHandle tex_handle{memory_manager.Read<u32>(tex_info_address)};
-
-    return GetTextureInfo(tex_handle);
 }
 
 u32 Maxwell3D::GetRegisterValue(u32 method) const {
@@ -681,10 +664,6 @@ u32 Maxwell3D::GetRegisterValue(u32 method) const {
 }
 
 void Maxwell3D::ProcessClearBuffers() {
-    ASSERT(regs.clear_buffers.R == regs.clear_buffers.G &&
-           regs.clear_buffers.R == regs.clear_buffers.B &&
-           regs.clear_buffers.R == regs.clear_buffers.A);
-
     rasterizer->Clear();
 }
 
@@ -692,9 +671,7 @@ u32 Maxwell3D::AccessConstBuffer32(ShaderType stage, u64 const_buffer, u64 offse
     ASSERT(stage != ShaderType::Compute);
     const auto& shader_stage = state.shader_stages[static_cast<std::size_t>(stage)];
     const auto& buffer = shader_stage.const_buffers[const_buffer];
-    u32 result;
-    std::memcpy(&result, memory_manager.GetPointer(buffer.address + offset), sizeof(u32));
-    return result;
+    return memory_manager.Read<u32>(buffer.address + offset);
 }
 
 SamplerDescriptor Maxwell3D::AccessBoundSampler(ShaderType stage, u64 offset) const {
@@ -712,9 +689,11 @@ SamplerDescriptor Maxwell3D::AccessBindlessSampler(ShaderType stage, u64 const_b
 
 SamplerDescriptor Maxwell3D::AccessSampler(u32 handle) const {
     const Texture::TextureHandle tex_handle{handle};
-    const Texture::FullTextureInfo tex_info = GetTextureInfo(tex_handle);
-    SamplerDescriptor result = SamplerDescriptor::FromTIC(tex_info.tic);
-    result.is_shadow.Assign(tex_info.tsc.depth_compare_enabled.Value());
+    const Texture::TICEntry tic = GetTICEntry(tex_handle.tic_id);
+    const Texture::TSCEntry tsc = GetTSCEntry(tex_handle.tsc_id);
+
+    SamplerDescriptor result = SamplerDescriptor::FromTIC(tic);
+    result.is_shadow.Assign(tsc.depth_compare_enabled.Value());
     return result;
 }
 

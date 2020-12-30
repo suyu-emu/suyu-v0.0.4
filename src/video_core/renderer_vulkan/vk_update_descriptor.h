@@ -40,28 +40,32 @@ public:
 
     void Send(VkDescriptorUpdateTemplateKHR update_template, VkDescriptorSet set);
 
-    void AddSampledImage(VkSampler sampler, VkImageView image_view) {
-        payload.emplace_back(VkDescriptorImageInfo{sampler, image_view, {}});
+    void AddSampledImage(VkImageView image_view, VkSampler sampler) {
+        payload.emplace_back(VkDescriptorImageInfo{
+            .sampler = sampler,
+            .imageView = image_view,
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        });
     }
 
     void AddImage(VkImageView image_view) {
-        payload.emplace_back(VkDescriptorImageInfo{{}, image_view, {}});
+        payload.emplace_back(VkDescriptorImageInfo{
+            .sampler = VK_NULL_HANDLE,
+            .imageView = image_view,
+            .imageLayout = VK_IMAGE_LAYOUT_GENERAL,
+        });
     }
 
-    void AddBuffer(VkBuffer buffer, u64 offset, std::size_t size) {
-        payload.emplace_back(VkDescriptorBufferInfo{buffer, offset, size});
+    void AddBuffer(VkBuffer buffer, u64 offset, size_t size) {
+        payload.emplace_back(VkDescriptorBufferInfo{
+            .buffer = buffer,
+            .offset = offset,
+            .range = size,
+        });
     }
 
     void AddTexelBuffer(VkBufferView texel_buffer) {
         payload.emplace_back(texel_buffer);
-    }
-
-    VkImageLayout* LastImageLayout() {
-        return &payload.back().image.imageLayout;
-    }
-
-    const VkImageLayout* LastImageLayout() const {
-        return &payload.back().image.imageLayout;
     }
 
 private:

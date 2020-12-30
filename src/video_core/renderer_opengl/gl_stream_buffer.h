@@ -4,29 +4,31 @@
 
 #pragma once
 
-#include <tuple>
+#include <utility>
+
 #include <glad/glad.h>
+
 #include "common/common_types.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 
 namespace OpenGL {
 
 class Device;
+class StateTracker;
 
 class OGLStreamBuffer : private NonCopyable {
 public:
-    explicit OGLStreamBuffer(const Device& device, GLsizeiptr size, bool vertex_data_usage);
+    explicit OGLStreamBuffer(const Device& device, StateTracker& state_tracker_);
     ~OGLStreamBuffer();
 
     /*
      * Allocates a linear chunk of memory in the GPU buffer with at least "size" bytes
      * and the optional alignment requirement.
      * If the buffer is full, the whole buffer is reallocated which invalidates old chunks.
-     * The return values are the pointer to the new chunk, the offset within the buffer,
-     * and the invalidation flag for previous chunks.
+     * The return values are the pointer to the new chunk, and the offset within the buffer.
      * The actual used size must be specified on unmapping the chunk.
      */
-    std::tuple<u8*, GLintptr, bool> Map(GLsizeiptr size, GLintptr alignment = 0);
+    std::pair<u8*, GLintptr> Map(GLsizeiptr size, GLintptr alignment = 0);
 
     void Unmap(GLsizeiptr size);
 
@@ -39,15 +41,18 @@ public:
     }
 
     GLsizeiptr Size() const noexcept {
-        return buffer_size;
+        return BUFFER_SIZE;
     }
 
 private:
+    static constexpr GLsizeiptr BUFFER_SIZE = 256 * 1024 * 1024;
+
+    StateTracker& state_tracker;
+
     OGLBuffer gl_buffer;
 
     GLuint64EXT gpu_address = 0;
     GLintptr buffer_pos = 0;
-    GLsizeiptr buffer_size = 0;
     GLsizeiptr mapped_size = 0;
     u8* mapped_ptr = nullptr;
 };

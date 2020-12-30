@@ -5,8 +5,12 @@
 #include <algorithm>
 #include <array>
 
+#include "common/cityhash.h"
 #include "core/settings.h"
 #include "video_core/textures/texture.h"
+
+using Tegra::Texture::TICEntry;
+using Tegra::Texture::TSCEntry;
 
 namespace Tegra::Texture {
 
@@ -65,7 +69,7 @@ unsigned SettingsMinimumAnisotropy() noexcept {
 
 } // Anonymous namespace
 
-std::array<float, 4> TSCEntry::GetBorderColor() const noexcept {
+std::array<float, 4> TSCEntry::BorderColor() const noexcept {
     if (!srgb_conversion) {
         return border_color;
     }
@@ -73,8 +77,16 @@ std::array<float, 4> TSCEntry::GetBorderColor() const noexcept {
             SRGB_CONVERSION_LUT[srgb_border_color_b], border_color[3]};
 }
 
-float TSCEntry::GetMaxAnisotropy() const noexcept {
+float TSCEntry::MaxAnisotropy() const noexcept {
     return static_cast<float>(std::max(1U << max_anisotropy, SettingsMinimumAnisotropy()));
 }
 
 } // namespace Tegra::Texture
+
+size_t std::hash<TICEntry>::operator()(const TICEntry& tic) const noexcept {
+    return Common::CityHash64(reinterpret_cast<const char*>(&tic), sizeof tic);
+}
+
+size_t std::hash<TSCEntry>::operator()(const TSCEntry& tsc) const noexcept {
+    return Common::CityHash64(reinterpret_cast<const char*>(&tsc), sizeof tsc);
+}

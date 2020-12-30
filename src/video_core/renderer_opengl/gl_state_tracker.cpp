@@ -249,4 +249,11 @@ StateTracker::StateTracker(Tegra::GPU& gpu) : flags{gpu.Maxwell3D().dirty.flags}
     }
 }
 
+void StateTracker::InvalidateStreamBuffer() {
+    flags[Dirty::VertexBuffers] = true;
+    for (int index = Dirty::VertexBuffer0; index <= Dirty::VertexBuffer31; ++index) {
+        flags[index] = true;
+    }
+}
+
 } // namespace OpenGL

@@ -81,6 +81,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdBeginQuery);
     X(vkCmdBeginRenderPass);
     X(vkCmdBeginTransformFeedbackEXT);
+    X(vkCmdBeginDebugUtilsLabelEXT);
     X(vkCmdBindDescriptorSets);
     X(vkCmdBindIndexBuffer);
     X(vkCmdBindPipeline);
@@ -98,6 +99,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdEndQuery);
     X(vkCmdEndRenderPass);
     X(vkCmdEndTransformFeedbackEXT);
+    X(vkCmdEndDebugUtilsLabelEXT);
     X(vkCmdFillBuffer);
     X(vkCmdPipelineBarrier);
     X(vkCmdPushConstants);
@@ -121,6 +123,7 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkCmdSetPrimitiveTopologyEXT);
     X(vkCmdSetStencilOpEXT);
     X(vkCmdSetStencilTestEnableEXT);
+    X(vkCmdResolveImage);
     X(vkCreateBuffer);
     X(vkCreateBufferView);
     X(vkCreateCommandPool);
@@ -176,12 +179,27 @@ void Load(VkDevice device, DeviceDispatch& dld) noexcept {
     X(vkQueueSubmit);
     X(vkResetFences);
     X(vkResetQueryPoolEXT);
+    X(vkSetDebugUtilsObjectNameEXT);
+    X(vkSetDebugUtilsObjectTagEXT);
     X(vkUnmapMemory);
     X(vkUpdateDescriptorSetWithTemplateKHR);
     X(vkUpdateDescriptorSets);
     X(vkWaitForFences);
     X(vkWaitSemaphoresKHR);
 #undef X
+}
+
+template <typename T>
+void SetObjectName(const DeviceDispatch* dld, VkDevice device, T handle, VkObjectType type,
+                   const char* name) {
+    const VkDebugUtilsObjectNameInfoEXT name_info{
+        .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT,
+        .pNext = nullptr,
+        .objectType = VK_OBJECT_TYPE_IMAGE,
+        .objectHandle = reinterpret_cast<u64>(handle),
+        .pObjectName = name,
+    };
+    Check(dld->vkSetDebugUtilsObjectNameEXT(device, &name_info));
 }
 
 } // Anonymous namespace
@@ -476,8 +494,7 @@ DebugCallback Instance::TryCreateDebugCallback(
                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
                            VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT,
         .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                       VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+                       VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
         .pfnUserCallback = callback,
         .pUserData = nullptr,
     };
@@ -493,8 +510,36 @@ void Buffer::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
     Check(dld->vkBindBufferMemory(owner, handle, memory, offset));
 }
 
+void Buffer::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER, name);
+}
+
+void BufferView::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_BUFFER_VIEW, name);
+}
+
 void Image::BindMemory(VkDeviceMemory memory, VkDeviceSize offset) const {
     Check(dld->vkBindImageMemory(owner, handle, memory, offset));
+}
+
+void Image::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE, name);
+}
+
+void ImageView::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_IMAGE_VIEW, name);
+}
+
+void DeviceMemory::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_DEVICE_MEMORY, name);
+}
+
+void Fence::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_FENCE, name);
+}
+
+void Framebuffer::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_FRAMEBUFFER, name);
 }
 
 DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) const {
@@ -508,6 +553,10 @@ DescriptorSets DescriptorPool::Allocate(const VkDescriptorSetAllocateInfo& ai) c
     default:
         throw Exception(result);
     }
+}
+
+void DescriptorPool::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_DESCRIPTOR_POOL, name);
 }
 
 CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLevel level) const {
@@ -530,12 +579,28 @@ CommandBuffers CommandPool::Allocate(std::size_t num_buffers, VkCommandBufferLev
     }
 }
 
+void CommandPool::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_COMMAND_POOL, name);
+}
+
 std::vector<VkImage> SwapchainKHR::GetImages() const {
     u32 num;
     Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, nullptr));
     std::vector<VkImage> images(num);
     Check(dld->vkGetSwapchainImagesKHR(owner, handle, &num, images.data()));
     return images;
+}
+
+void Event::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_EVENT, name);
+}
+
+void ShaderModule::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_SHADER_MODULE, name);
+}
+
+void Semaphore::SetObjectNameEXT(const char* name) const {
+    SetObjectName(dld, owner, handle, VK_OBJECT_TYPE_SEMAPHORE, name);
 }
 
 Device Device::Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,

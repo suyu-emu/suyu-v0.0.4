@@ -102,7 +102,7 @@ struct GenericVaryingDescription {
     bool is_scalar = false;
 };
 
-spv::Dim GetSamplerDim(const Sampler& sampler) {
+spv::Dim GetSamplerDim(const SamplerEntry& sampler) {
     ASSERT(!sampler.is_buffer);
     switch (sampler.type) {
     case Tegra::Shader::TextureType::Texture1D:
@@ -119,7 +119,7 @@ spv::Dim GetSamplerDim(const Sampler& sampler) {
     }
 }
 
-std::pair<spv::Dim, bool> GetImageDim(const Image& image) {
+std::pair<spv::Dim, bool> GetImageDim(const ImageEntry& image) {
     switch (image.type) {
     case Tegra::Shader::ImageType::Texture1D:
         return {spv::Dim::Dim1D, false};
@@ -980,7 +980,7 @@ private:
         return binding;
     }
 
-    void DeclareImage(const Image& image, u32& binding) {
+    void DeclareImage(const ImageEntry& image, u32& binding) {
         const auto [dim, arrayed] = GetImageDim(image);
         constexpr int depth = 0;
         constexpr bool ms = false;

@@ -4,7 +4,8 @@
 
 #pragma once
 
-#include <vector>
+#include <span>
+
 #include "common/common_types.h"
 #include "video_core/textures/texture.h"
 
@@ -15,28 +16,25 @@ constexpr u32 GOB_SIZE_Y = 8;
 constexpr u32 GOB_SIZE_Z = 1;
 constexpr u32 GOB_SIZE = GOB_SIZE_X * GOB_SIZE_Y * GOB_SIZE_Z;
 
-constexpr std::size_t GOB_SIZE_X_SHIFT = 6;
-constexpr std::size_t GOB_SIZE_Y_SHIFT = 3;
-constexpr std::size_t GOB_SIZE_Z_SHIFT = 0;
-constexpr std::size_t GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_SHIFT;
+constexpr u32 GOB_SIZE_X_SHIFT = 6;
+constexpr u32 GOB_SIZE_Y_SHIFT = 3;
+constexpr u32 GOB_SIZE_Z_SHIFT = 0;
+constexpr u32 GOB_SIZE_SHIFT = GOB_SIZE_X_SHIFT + GOB_SIZE_Y_SHIFT + GOB_SIZE_Z_SHIFT;
 
-/// Unswizzles a swizzled texture without changing its format.
-void UnswizzleTexture(u8* unswizzled_data, u8* address, u32 tile_size_x, u32 tile_size_y,
-                      u32 bytes_per_pixel, u32 width, u32 height, u32 depth,
-                      u32 block_height = TICEntry::DefaultBlockHeight,
-                      u32 block_depth = TICEntry::DefaultBlockHeight, u32 width_spacing = 0);
+using SwizzleTable = std::array<std::array<u32, GOB_SIZE_X>, GOB_SIZE_Y>;
 
-/// Unswizzles a swizzled texture without changing its format.
-std::vector<u8> UnswizzleTexture(u8* address, u32 tile_size_x, u32 tile_size_y, u32 bytes_per_pixel,
-                                 u32 width, u32 height, u32 depth,
-                                 u32 block_height = TICEntry::DefaultBlockHeight,
-                                 u32 block_depth = TICEntry::DefaultBlockHeight,
-                                 u32 width_spacing = 0);
+/// Returns a z-order swizzle table
+SwizzleTable MakeSwizzleTable();
 
-/// Copies texture data from a buffer and performs swizzling/unswizzling as necessary.
-void CopySwizzledData(u32 width, u32 height, u32 depth, u32 bytes_per_pixel,
-                      u32 out_bytes_per_pixel, u8* swizzled_data, u8* unswizzled_data,
-                      bool unswizzle, u32 block_height, u32 block_depth, u32 width_spacing);
+/// Unswizzles a block linear texture into linear memory.
+void UnswizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel,
+                      u32 width, u32 height, u32 depth, u32 block_height, u32 block_depth,
+                      u32 stride_alignment = 1);
+
+/// Swizzles linear memory into a block linear texture.
+void SwizzleTexture(std::span<u8> output, std::span<const u8> input, u32 bytes_per_pixel, u32 width,
+                    u32 height, u32 depth, u32 block_height, u32 block_depth,
+                    u32 stride_alignment = 1);
 
 /// This function calculates the correct size of a texture depending if it's tiled or not.
 std::size_t CalculateSize(bool tiled, u32 bytes_per_pixel, u32 width, u32 height, u32 depth,

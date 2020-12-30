@@ -4,157 +4,247 @@
 
 #pragma once
 
-#include <array>
-#include <functional>
 #include <memory>
-#include <unordered_map>
-#include <utility>
-#include <vector>
+#include <span>
 
 #include <glad/glad.h>
 
-#include "common/common_types.h"
-#include "video_core/engines/shader_bytecode.h"
-#include "video_core/renderer_opengl/gl_device.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
+#include "video_core/renderer_opengl/util_shaders.h"
 #include "video_core/texture_cache/texture_cache.h"
 
 namespace OpenGL {
 
-using VideoCommon::SurfaceParams;
-using VideoCommon::ViewParams;
-
-class CachedSurfaceView;
-class CachedSurface;
-class TextureCacheOpenGL;
+class Device;
+class ProgramManager;
 class StateTracker;
 
-using Surface = std::shared_ptr<CachedSurface>;
-using View = std::shared_ptr<CachedSurfaceView>;
-using TextureCacheBase = VideoCommon::TextureCache<Surface, View>;
+class Framebuffer;
+class Image;
+class ImageView;
+class Sampler;
 
-class CachedSurface final : public VideoCommon::SurfaceBase<View> {
-    friend CachedSurfaceView;
+using VideoCommon::ImageId;
+using VideoCommon::ImageViewId;
+using VideoCommon::ImageViewType;
+using VideoCommon::NUM_RT;
+using VideoCommon::Offset2D;
+using VideoCommon::RenderTargets;
 
+class ImageBufferMap {
 public:
-    explicit CachedSurface(GPUVAddr gpu_addr_, const SurfaceParams& params_,
-                           bool is_astc_supported_);
-    ~CachedSurface();
+    explicit ImageBufferMap(GLuint handle, u8* map, size_t size, OGLSync* sync);
+    ~ImageBufferMap();
 
-    void UploadTexture(const std::vector<u8>& staging_buffer) override;
-    void DownloadTexture(std::vector<u8>& staging_buffer) override;
-
-    GLenum GetTarget() const {
-        return target;
+    GLuint Handle() const noexcept {
+        return handle;
     }
 
-    GLuint GetTexture() const {
+    std::span<u8> Span() const noexcept {
+        return span;
+    }
+
+private:
+    std::span<u8> span;
+    OGLSync* sync;
+    GLuint handle;
+};
+
+struct FormatProperties {
+    GLenum compatibility_class;
+    bool compatibility_by_size;
+    bool is_compressed;
+};
+
+class TextureCacheRuntime {
+    friend Framebuffer;
+    friend Image;
+    friend ImageView;
+    friend Sampler;
+
+public:
+    explicit TextureCacheRuntime(const Device& device, ProgramManager& program_manager,
+                                 StateTracker& state_tracker);
+    ~TextureCacheRuntime();
+
+    void Finish();
+
+    ImageBufferMap MapUploadBuffer(size_t size);
+
+    ImageBufferMap MapDownloadBuffer(size_t size);
+
+    void CopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+
+    void ConvertImage(Framebuffer* dst, ImageView& dst_view, ImageView& src_view) {
+        UNIMPLEMENTED();
+    }
+
+    bool CanImageBeCopied(const Image& dst, const Image& src);
+
+    void EmulateCopyImage(Image& dst, Image& src, std::span<const VideoCommon::ImageCopy> copies);
+
+    void BlitFramebuffer(Framebuffer* dst, Framebuffer* src,
+                         const std::array<Offset2D, 2>& dst_region,
+                         const std::array<Offset2D, 2>& src_region,
+                         Tegra::Engines::Fermi2D::Filter filter,
+                         Tegra::Engines::Fermi2D::Operation operation);
+
+    void AccelerateImageUpload(Image& image, const ImageBufferMap& map, size_t buffer_offset,
+                               std::span<const VideoCommon::SwizzleParameters> swizzles);
+
+    void InsertUploadMemoryBarrier();
+
+    FormatProperties FormatInfo(VideoCommon::ImageType type, GLenum internal_format) const;
+
+private:
+    struct StagingBuffers {
+        explicit StagingBuffers(GLenum storage_flags_, GLenum map_flags_);
+        ~StagingBuffers();
+
+        ImageBufferMap RequestMap(size_t requested_size, bool insert_fence);
+
+        size_t RequestBuffer(size_t requested_size);
+
+        std::optional<size_t> FindBuffer(size_t requested_size);
+
+        std::vector<OGLSync> syncs;
+        std::vector<OGLBuffer> buffers;
+        std::vector<u8*> maps;
+        std::vector<size_t> sizes;
+        GLenum storage_flags;
+        GLenum map_flags;
+    };
+
+    const Device& device;
+    StateTracker& state_tracker;
+    UtilShaders util_shaders;
+
+    std::array<std::unordered_map<GLenum, FormatProperties>, 3> format_properties;
+
+    StagingBuffers upload_buffers{GL_MAP_WRITE_BIT, GL_MAP_WRITE_BIT | GL_MAP_FLUSH_EXPLICIT_BIT};
+    StagingBuffers download_buffers{GL_MAP_READ_BIT, GL_MAP_READ_BIT};
+
+    OGLTexture null_image_1d_array;
+    OGLTexture null_image_cube_array;
+    OGLTexture null_image_3d;
+    OGLTexture null_image_rect;
+    OGLTextureView null_image_view_1d;
+    OGLTextureView null_image_view_2d;
+    OGLTextureView null_image_view_2d_array;
+    OGLTextureView null_image_view_cube;
+
+    std::array<GLuint, VideoCommon::NUM_IMAGE_VIEW_TYPES> null_image_views;
+};
+
+class Image : public VideoCommon::ImageBase {
+    friend ImageView;
+
+public:
+    explicit Image(TextureCacheRuntime&, const VideoCommon::ImageInfo& info, GPUVAddr gpu_addr,
+                   VAddr cpu_addr);
+
+    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
+                      std::span<const VideoCommon::BufferImageCopy> copies);
+
+    void UploadMemory(const ImageBufferMap& map, size_t buffer_offset,
+                      std::span<const VideoCommon::BufferCopy> copies);
+
+    void DownloadMemory(ImageBufferMap& map, size_t buffer_offset,
+                        std::span<const VideoCommon::BufferImageCopy> copies);
+
+    GLuint Handle() const noexcept {
         return texture.handle;
     }
 
-    bool IsCompressed() const {
-        return is_compressed;
-    }
-
-protected:
-    void DecorateSurfaceName() override;
-
-    View CreateView(const ViewParams& view_key) override;
-    View CreateViewInner(const ViewParams& view_key, bool is_proxy);
-
 private:
-    void UploadTextureMipmap(u32 level, const std::vector<u8>& staging_buffer);
+    void CopyBufferToImage(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
-    GLenum internal_format{};
-    GLenum format{};
-    GLenum type{};
-    bool is_compressed{};
-    GLenum target{};
-    u32 view_count{};
+    void CopyImageToBuffer(const VideoCommon::BufferImageCopy& copy, size_t buffer_offset);
 
     OGLTexture texture;
-    OGLBuffer texture_buffer;
+    OGLTextureView store_view;
+    OGLBuffer buffer;
+    GLenum gl_internal_format = GL_NONE;
+    GLenum gl_store_format = GL_NONE;
+    GLenum gl_format = GL_NONE;
+    GLenum gl_type = GL_NONE;
 };
 
-class CachedSurfaceView final : public VideoCommon::ViewBase {
+class ImageView : public VideoCommon::ImageViewBase {
+    friend Image;
+
 public:
-    explicit CachedSurfaceView(CachedSurface& surface_, const ViewParams& params_, bool is_proxy_);
-    ~CachedSurfaceView();
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::ImageViewInfo&, ImageId, Image&);
+    explicit ImageView(TextureCacheRuntime&, const VideoCommon::NullImageParams&);
 
-    /// @brief Attaches this texture view to the currently bound fb_target framebuffer
-    /// @param attachment   Attachment to bind textures to
-    /// @param fb_target    Framebuffer target to attach to (e.g. DRAW_FRAMEBUFFER)
-    void Attach(GLenum attachment, GLenum fb_target) const;
-
-    GLuint GetTexture(Tegra::Texture::SwizzleSource x_source,
-                      Tegra::Texture::SwizzleSource y_source,
-                      Tegra::Texture::SwizzleSource z_source,
-                      Tegra::Texture::SwizzleSource w_source);
-
-    void DecorateViewName(GPUVAddr gpu_addr, const std::string& prefix);
-
-    void MarkAsModified(u64 tick) {
-        surface.MarkAsModified(true, tick);
+    [[nodiscard]] GLuint Handle(ImageViewType query_type) const noexcept {
+        return views[static_cast<size_t>(query_type)];
     }
 
-    GLuint GetTexture() const {
-        if (is_proxy) {
-            return surface.GetTexture();
-        }
-        return main_view.handle;
+    [[nodiscard]] GLuint DefaultHandle() const noexcept {
+        return default_handle;
     }
 
-    GLenum GetFormat() const {
-        return format;
-    }
-
-    const SurfaceParams& GetSurfaceParams() const {
-        return surface.GetSurfaceParams();
+    [[nodiscard]] GLenum Format() const noexcept {
+        return internal_format;
     }
 
 private:
-    OGLTextureView CreateTextureView() const;
+    void SetupView(const Device& device, Image& image, ImageViewType view_type, GLuint handle,
+                   const VideoCommon::ImageViewInfo& info,
+                   VideoCommon::SubresourceRange view_range);
 
-    CachedSurface& surface;
-    const GLenum format;
-    const GLenum target;
-    const bool is_proxy;
-
-    std::unordered_map<u32, OGLTextureView> view_cache;
-    OGLTextureView main_view;
-
-    // Use an invalid default so it always fails the comparison test
-    u32 current_swizzle = 0xffffffff;
-    GLuint current_view = 0;
+    std::array<GLuint, VideoCommon::NUM_IMAGE_VIEW_TYPES> views{};
+    std::vector<OGLTextureView> stored_views;
+    GLuint default_handle = 0;
+    GLenum internal_format = GL_NONE;
 };
 
-class TextureCacheOpenGL final : public TextureCacheBase {
+class ImageAlloc : public VideoCommon::ImageAllocBase {};
+
+class Sampler {
 public:
-    explicit TextureCacheOpenGL(VideoCore::RasterizerInterface& rasterizer_,
-                                Tegra::Engines::Maxwell3D& maxwell3d_,
-                                Tegra::MemoryManager& gpu_memory_, const Device& device_,
-                                StateTracker& state_tracker);
-    ~TextureCacheOpenGL();
+    explicit Sampler(TextureCacheRuntime&, const Tegra::Texture::TSCEntry&);
 
-protected:
-    Surface CreateSurface(GPUVAddr gpu_addr, const SurfaceParams& params) override;
-
-    void ImageCopy(Surface& src_surface, Surface& dst_surface,
-                   const VideoCommon::CopyParams& copy_params) override;
-
-    void ImageBlit(View& src_view, View& dst_view,
-                   const Tegra::Engines::Fermi2D::Config& copy_config) override;
-
-    void BufferCopy(Surface& src_surface, Surface& dst_surface) override;
+    GLuint Handle() const noexcept {
+        return sampler.handle;
+    }
 
 private:
-    GLuint FetchPBO(std::size_t buffer_size);
-
-    StateTracker& state_tracker;
-
-    OGLFramebuffer src_framebuffer;
-    OGLFramebuffer dst_framebuffer;
-    std::unordered_map<u32, OGLBuffer> copy_pbo_cache;
+    OGLSampler sampler;
 };
+
+class Framebuffer {
+public:
+    explicit Framebuffer(TextureCacheRuntime&, std::span<ImageView*, NUM_RT> color_buffers,
+                         ImageView* depth_buffer, const VideoCommon::RenderTargets& key);
+
+    [[nodiscard]] GLuint Handle() const noexcept {
+        return framebuffer.handle;
+    }
+
+    [[nodiscard]] GLbitfield BufferBits() const noexcept {
+        return buffer_bits;
+    }
+
+private:
+    OGLFramebuffer framebuffer;
+    GLbitfield buffer_bits = GL_NONE;
+};
+
+struct TextureCacheParams {
+    static constexpr bool ENABLE_VALIDATION = true;
+    static constexpr bool FRAMEBUFFER_BLITS = true;
+    static constexpr bool HAS_EMULATED_COPIES = true;
+
+    using Runtime = OpenGL::TextureCacheRuntime;
+    using Image = OpenGL::Image;
+    using ImageAlloc = OpenGL::ImageAlloc;
+    using ImageView = OpenGL::ImageView;
+    using Sampler = OpenGL::Sampler;
+    using Framebuffer = OpenGL::Framebuffer;
+};
+
+using TextureCache = VideoCommon::TextureCache<TextureCacheParams>;
 
 } // namespace OpenGL

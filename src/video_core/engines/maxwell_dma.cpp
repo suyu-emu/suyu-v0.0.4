@@ -96,6 +96,7 @@ void MaxwellDMA::CopyPitchToPitch() {
 }
 
 void MaxwellDMA::CopyBlockLinearToPitch() {
+    UNIMPLEMENTED_IF(regs.src_params.block_size.width != 0);
     UNIMPLEMENTED_IF(regs.src_params.block_size.depth != 0);
     UNIMPLEMENTED_IF(regs.src_params.layer != 0);
 
@@ -135,6 +136,8 @@ void MaxwellDMA::CopyBlockLinearToPitch() {
 }
 
 void MaxwellDMA::CopyPitchToBlockLinear() {
+    UNIMPLEMENTED_IF_MSG(regs.dst_params.block_size.width != 0, "Block width is not one");
+
     const auto& dst_params = regs.dst_params;
     const u32 bytes_per_pixel = regs.pitch_in / regs.line_length_in;
     const u32 width = dst_params.width;

@@ -45,6 +45,12 @@ public:
     /// Rewinds BindHostPipeline state changes.
     void RestoreGuestPipeline();
 
+    /// Binds an OpenGL GLSL program object unsynchronized with the guest state.
+    void BindHostCompute(GLuint program);
+
+    /// Rewinds BindHostCompute state changes.
+    void RestoreGuestCompute();
+
     void UseVertexShader(GLuint program);
     void UseGeometryShader(GLuint program);
     void UseFragmentShader(GLuint program);

@@ -157,6 +157,11 @@ public:
         return is_formatless_image_load_supported;
     }
 
+    /// Returns true when blitting from and to depth stencil images is supported.
+    bool IsBlitDepthStencilSupported() const {
+        return is_blit_depth_stencil_supported;
+    }
+
     /// Returns true if the device supports VK_NV_viewport_swizzle.
     bool IsNvViewportSwizzleSupported() const {
         return nv_viewport_swizzle;
@@ -170,6 +175,11 @@ public:
     /// Returns true if the device supports VK_EXT_index_type_uint8.
     bool IsExtIndexTypeUint8Supported() const {
         return ext_index_type_uint8;
+    }
+
+    /// Returns true if the device supports VK_EXT_sampler_filter_minmax.
+    bool IsExtSamplerFilterMinmaxSupported() const {
+        return ext_sampler_filter_minmax;
     }
 
     /// Returns true if the device supports VK_EXT_depth_range_unrestricted.
@@ -195,6 +205,16 @@ public:
     /// Returns true if the device supports VK_EXT_extended_dynamic_state.
     bool IsExtExtendedDynamicStateSupported() const {
         return ext_extended_dynamic_state;
+    }
+
+    /// Returns true if the device supports VK_EXT_shader_stencil_export.
+    bool IsExtShaderStencilExportSupported() const {
+        return ext_shader_stencil_export;
+    }
+
+    /// Returns true when a known debugging tool is attached.
+    bool HasDebuggingToolAttached() const {
+        return has_renderdoc || has_nsight_graphics;
     }
 
     /// Returns the vendor name reported from Vulkan.
@@ -228,16 +248,23 @@ private:
     /// Collects telemetry information from the device.
     void CollectTelemetryParameters();
 
+    /// Collects information about attached tools.
+    void CollectToolingInfo();
+
     /// Returns a list of queue initialization descriptors.
     std::vector<VkDeviceQueueCreateInfo> GetDeviceQueueCreateInfos() const;
 
     /// Returns true if ASTC textures are natively supported.
     bool IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const;
 
+    /// Returns true if the device natively supports blitting depth stencil images.
+    bool TestDepthStencilBlits() const;
+
     /// Returns true if a format is supported.
     bool IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
                            FormatType format_type) const;
 
+    VkInstance instance;                    ///< Vulkan instance.
     vk::DeviceDispatch dld;                 ///< Device function pointers.
     vk::PhysicalDevice physical;            ///< Physical device.
     VkPhysicalDeviceProperties properties;  ///< Device properties.
@@ -253,15 +280,22 @@ private:
     bool is_float16_supported{};            ///< Support for float16 arithmetics.
     bool is_warp_potentially_bigger{};      ///< Host warp size can be bigger than guest.
     bool is_formatless_image_load_supported{}; ///< Support for shader image read without format.
+    bool is_blit_depth_stencil_supported{};    ///< Support for blitting from and to depth stencil.
     bool nv_viewport_swizzle{};                ///< Support for VK_NV_viewport_swizzle.
     bool khr_uniform_buffer_standard_layout{}; ///< Support for std430 on UBOs.
     bool ext_index_type_uint8{};               ///< Support for VK_EXT_index_type_uint8.
+    bool ext_sampler_filter_minmax{};          ///< Support for VK_EXT_sampler_filter_minmax.
     bool ext_depth_range_unrestricted{};       ///< Support for VK_EXT_depth_range_unrestricted.
     bool ext_shader_viewport_index_layer{};    ///< Support for VK_EXT_shader_viewport_index_layer.
+    bool ext_tooling_info{};                   ///< Support for VK_EXT_tooling_info.
     bool ext_transform_feedback{};             ///< Support for VK_EXT_transform_feedback.
     bool ext_custom_border_color{};            ///< Support for VK_EXT_custom_border_color.
     bool ext_extended_dynamic_state{};         ///< Support for VK_EXT_extended_dynamic_state.
+    bool ext_robustness2{};                    ///< Support for VK_EXT_robustness2.
+    bool ext_shader_stencil_export{};          ///< Support for VK_EXT_shader_stencil_export.
     bool nv_device_diagnostics_config{};       ///< Support for VK_NV_device_diagnostics_config.
+    bool has_renderdoc{};                      ///< Has RenderDoc attached
+    bool has_nsight_graphics{};                ///< Has Nsight Graphics attached
 
     // Asynchronous Graphics Pipeline setting
     bool use_asynchronous_shaders{}; ///< Setting to use asynchronous shaders/graphics pipeline

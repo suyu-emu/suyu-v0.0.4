@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <iterator>
 
@@ -29,21 +30,15 @@ using Table = Maxwell3D::DirtyState::Table;
 using Flags = Maxwell3D::DirtyState::Flags;
 
 Flags MakeInvalidationFlags() {
+    static constexpr std::array INVALIDATION_FLAGS{
+        Viewports,         Scissors,  DepthBias,         BlendConstants,    DepthBounds,
+        StencilProperties, CullMode,  DepthBoundsEnable, DepthTestEnable,   DepthWriteEnable,
+        DepthCompareOp,    FrontFace, StencilOp,         StencilTestEnable,
+    };
     Flags flags{};
-    flags[Viewports] = true;
-    flags[Scissors] = true;
-    flags[DepthBias] = true;
-    flags[BlendConstants] = true;
-    flags[DepthBounds] = true;
-    flags[StencilProperties] = true;
-    flags[CullMode] = true;
-    flags[DepthBoundsEnable] = true;
-    flags[DepthTestEnable] = true;
-    flags[DepthWriteEnable] = true;
-    flags[DepthCompareOp] = true;
-    flags[FrontFace] = true;
-    flags[StencilOp] = true;
-    flags[StencilTestEnable] = true;
+    for (const int flag : INVALIDATION_FLAGS) {
+        flags[flag] = true;
+    }
     return flags;
 }
 

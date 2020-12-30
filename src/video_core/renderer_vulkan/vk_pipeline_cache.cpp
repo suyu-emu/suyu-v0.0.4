@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/bit_cast.h"
+#include "common/cityhash.h"
 #include "common/microprofile.h"
 #include "core/core.h"
 #include "core/memory.h"
@@ -22,7 +23,6 @@
 #include "video_core/renderer_vulkan/vk_graphics_pipeline.h"
 #include "video_core/renderer_vulkan/vk_pipeline_cache.h"
 #include "video_core/renderer_vulkan/vk_rasterizer.h"
-#include "video_core/renderer_vulkan/vk_renderpass_cache.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_update_descriptor.h"
 #include "video_core/renderer_vulkan/wrapper.h"
@@ -52,7 +52,9 @@ constexpr VkDescriptorType STORAGE_TEXEL_BUFFER = VK_DESCRIPTOR_TYPE_STORAGE_TEX
 constexpr VkDescriptorType STORAGE_IMAGE = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
 
 constexpr VideoCommon::Shader::CompilerSettings compiler_settings{
-    VideoCommon::Shader::CompileDepth::FullDecompile};
+    .depth = VideoCommon::Shader::CompileDepth::FullDecompile,
+    .disable_else_derivation = true,
+};
 
 constexpr std::size_t GetStageFromProgram(std::size_t program) {
     return program == 0 ? 0 : program - 1;
@@ -149,12 +151,11 @@ VKPipelineCache::VKPipelineCache(RasterizerVulkan& rasterizer_, Tegra::GPU& gpu_
                                  Tegra::Engines::KeplerCompute& kepler_compute_,
                                  Tegra::MemoryManager& gpu_memory_, const VKDevice& device_,
                                  VKScheduler& scheduler_, VKDescriptorPool& descriptor_pool_,
-                                 VKUpdateDescriptorQueue& update_descriptor_queue_,
-                                 VKRenderPassCache& renderpass_cache_)
-    : ShaderCache{rasterizer_}, gpu{gpu_}, maxwell3d{maxwell3d_}, kepler_compute{kepler_compute_},
-      gpu_memory{gpu_memory_}, device{device_}, scheduler{scheduler_},
-      descriptor_pool{descriptor_pool_}, update_descriptor_queue{update_descriptor_queue_},
-      renderpass_cache{renderpass_cache_} {}
+                                 VKUpdateDescriptorQueue& update_descriptor_queue_)
+    : VideoCommon::ShaderCache<Shader>{rasterizer_}, gpu{gpu_}, maxwell3d{maxwell3d_},
+      kepler_compute{kepler_compute_}, gpu_memory{gpu_memory_}, device{device_},
+      scheduler{scheduler_}, descriptor_pool{descriptor_pool_}, update_descriptor_queue{
+                                                                    update_descriptor_queue_} {}
 
 VKPipelineCache::~VKPipelineCache() = default;
 
@@ -199,7 +200,8 @@ std::array<Shader*, Maxwell::MaxShaderProgram> VKPipelineCache::GetShaders() {
 }
 
 VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
-    const GraphicsPipelineCacheKey& key, VideoCommon::Shader::AsyncShaders& async_shaders) {
+    const GraphicsPipelineCacheKey& key, u32 num_color_buffers,
+    VideoCommon::Shader::AsyncShaders& async_shaders) {
     MICROPROFILE_SCOPE(Vulkan_PipelineCache);
 
     if (last_graphics_pipeline && last_graphics_key == key) {
@@ -215,8 +217,8 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
             LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
             const auto [program, bindings] = DecompileShaders(key.fixed_state);
             async_shaders.QueueVulkanShader(this, device, scheduler, descriptor_pool,
-                                            update_descriptor_queue, renderpass_cache, bindings,
-                                            program, key);
+                                            update_descriptor_queue, bindings, program, key,
+                                            num_color_buffers);
         }
         last_graphics_pipeline = pair->second.get();
         return last_graphics_pipeline;
@@ -229,8 +231,8 @@ VKGraphicsPipeline* VKPipelineCache::GetGraphicsPipeline(
         LOG_INFO(Render_Vulkan, "Compile 0x{:016X}", key.Hash());
         const auto [program, bindings] = DecompileShaders(key.fixed_state);
         entry = std::make_unique<VKGraphicsPipeline>(device, scheduler, descriptor_pool,
-                                                     update_descriptor_queue, renderpass_cache, key,
-                                                     bindings, program);
+                                                     update_descriptor_queue, key, bindings,
+                                                     program, num_color_buffers);
         gpu.ShaderNotify().MarkShaderComplete();
     }
     last_graphics_pipeline = entry.get();

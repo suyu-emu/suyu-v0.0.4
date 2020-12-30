@@ -38,11 +38,9 @@ using Tegra::Shader::IpaSampleMode;
 using Tegra::Shader::PixelImap;
 using Tegra::Shader::Register;
 using Tegra::Shader::TextureType;
-using VideoCommon::Shader::BuildTransformFeedback;
-using VideoCommon::Shader::Registry;
 
-using namespace std::string_literals;
 using namespace VideoCommon::Shader;
+using namespace std::string_literals;
 
 using Maxwell = Tegra::Engines::Maxwell3D::Regs;
 using Operation = const OperationNode&;
@@ -2753,11 +2751,11 @@ private:
         }
     }
 
-    std::string GetSampler(const Sampler& sampler) const {
+    std::string GetSampler(const SamplerEntry& sampler) const {
         return AppendSuffix(sampler.index, "sampler");
     }
 
-    std::string GetImage(const Image& image) const {
+    std::string GetImage(const ImageEntry& image) const {
         return AppendSuffix(image.index, "image");
     }
 

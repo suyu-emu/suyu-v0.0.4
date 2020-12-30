@@ -8,6 +8,7 @@
 
 #include "video_core/fence_manager.h"
 #include "video_core/renderer_vulkan/vk_buffer_cache.h"
+#include "video_core/renderer_vulkan/vk_texture_cache.h"
 #include "video_core/renderer_vulkan/wrapper.h"
 
 namespace Core {
@@ -24,7 +25,6 @@ class VKBufferCache;
 class VKDevice;
 class VKQueryCache;
 class VKScheduler;
-class VKTextureCache;
 
 class InnerFence : public VideoCommon::FenceBase {
 public:
@@ -51,12 +51,12 @@ private:
 using Fence = std::shared_ptr<InnerFence>;
 
 using GenericFenceManager =
-    VideoCommon::FenceManager<Fence, VKTextureCache, VKBufferCache, VKQueryCache>;
+    VideoCommon::FenceManager<Fence, TextureCache, VKBufferCache, VKQueryCache>;
 
 class VKFenceManager final : public GenericFenceManager {
 public:
     explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
-                            Tegra::MemoryManager& memory_manager_, VKTextureCache& texture_cache_,
+                            Tegra::MemoryManager& memory_manager_, TextureCache& texture_cache_,
                             VKBufferCache& buffer_cache_, VKQueryCache& query_cache_,
                             const VKDevice& device_, VKScheduler& scheduler_);
 
