@@ -8,11 +8,13 @@
 #pragma once
 
 #include <array>
+#include <concepts>
 
 #include "common/assert.h"
 #include "common/bit_set.h"
 #include "common/bit_util.h"
 #include "common/common_types.h"
+#include "common/concepts.h"
 
 namespace Kernel {
 
@@ -21,7 +23,7 @@ class Thread;
 template <typename T>
 concept KPriorityQueueAffinityMask = !std::is_reference_v<T> && requires(T & t) {
     { t.GetAffinityMask() }
-    ->std::convertible_to<u64>;
+    ->Common::ConvertibleTo<u64>;
     {t.SetAffinityMask(std::declval<u64>())};
 
     { t.GetAffinity(std::declval<int32_t>()) }
@@ -48,9 +50,9 @@ concept KPriorityQueueMember = !std::is_reference_v<T> && requires(T & t) {
     ->KPriorityQueueAffinityMask;
 
     { t.GetActiveCore() }
-    ->std::convertible_to<s32>;
+    ->Common::ConvertibleTo<s32>;
     { t.GetPriority() }
-    ->std::convertible_to<s32>;
+    ->Common::ConvertibleTo<s32>;
 };
 
 template <typename Member, size_t _NumCores, int LowestPriority, int HighestPriority>
