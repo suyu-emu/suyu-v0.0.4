@@ -62,6 +62,7 @@ struct KernelCore::Impl {
         global_scheduler_context = std::make_unique<Kernel::GlobalSchedulerContext>(kernel);
         service_thread_manager =
             std::make_unique<Common::ThreadWorker>(1, "yuzu:ServiceThreadManager");
+        is_phantom_mode_for_singlecore = false;
 
         InitializePhysicalCores();
         InitializeSystemResourceLimit(kernel);
@@ -227,6 +228,15 @@ struct KernelCore::Impl {
         return this_id;
     }
 
+    bool IsPhantomModeForSingleCore() const {
+        return is_phantom_mode_for_singlecore;
+    }
+
+    void SetIsPhantomModeForSingleCore(bool value) {
+        ASSERT(!is_multicore);
+        is_phantom_mode_for_singlecore = value;
+    }
+
     [[nodiscard]] Core::EmuThreadHandle GetCurrentEmuThreadID() {
         Core::EmuThreadHandle result = Core::EmuThreadHandle::InvalidHandle();
         result.host_handle = GetCurrentHostThreadID();
@@ -235,7 +245,7 @@ struct KernelCore::Impl {
         }
         const Kernel::KScheduler& sched = cores[result.host_handle].Scheduler();
         const Kernel::KThread* current = sched.GetCurrentThread();
-        if (current != nullptr && !current->IsPhantomMode()) {
+        if (current != nullptr && !IsPhantomModeForSingleCore()) {
             result.guest_handle = current->GetGlobalHandle();
         } else {
             result.guest_handle = InvalidHandle;
@@ -345,6 +355,7 @@ struct KernelCore::Impl {
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
     bool is_multicore{};
+    bool is_phantom_mode_for_singlecore{};
     u32 single_core_thread_id{};
 
     std::array<u64, Core::Hardware::NUM_CPU_CORES> svc_ticks{};
@@ -641,6 +652,14 @@ void KernelCore::ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> servi
             impl->service_threads.erase(strong_ptr);
         }
     });
+}
+
+bool KernelCore::IsPhantomModeForSingleCore() const {
+    return impl->IsPhantomModeForSingleCore();
+}
+
+void KernelCore::SetIsPhantomModeForSingleCore(bool value) {
+    impl->SetIsPhantomModeForSingleCore(value);
 }
 
 } // namespace Kernel

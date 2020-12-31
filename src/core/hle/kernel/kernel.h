@@ -237,6 +237,10 @@ public:
      */
     void ReleaseServiceThread(std::weak_ptr<Kernel::ServiceThread> service_thread);
 
+    /// Workaround for single-core mode when preempting threads while idle.
+    bool IsPhantomModeForSingleCore() const;
+    void SetIsPhantomModeForSingleCore(bool value);
+
 private:
     friend class Object;
     friend class Process;

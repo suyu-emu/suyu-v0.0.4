@@ -451,14 +451,6 @@ public:
         is_continuous_on_svc = is_continuous;
     }
 
-    bool IsPhantomMode() const {
-        return is_phantom_mode;
-    }
-
-    void SetPhantomMode(bool phantom) {
-        is_phantom_mode = phantom;
-    }
-
     bool HasExited() const {
         return has_exited;
     }
@@ -747,7 +739,6 @@ private:
     bool is_continuous_on_svc = false;
 
     bool will_be_terminated = false;
-    bool is_phantom_mode = false;
     bool has_exited = false;
 
     bool was_running = false;

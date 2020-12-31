@@ -217,9 +217,9 @@ void CpuManager::SingleCoreRunGuestLoop() {
             physical_core = &kernel.CurrentPhysicalCore();
         }
         system.ExitDynarmicProfile();
-        thread->SetPhantomMode(true);
+        kernel.SetIsPhantomModeForSingleCore(true);
         system.CoreTiming().Advance();
-        thread->SetPhantomMode(false);
+        kernel.SetIsPhantomModeForSingleCore(false);
         physical_core->ArmInterface().ClearExclusiveState();
         PreemptSingleCore();
         auto& scheduler = kernel.Scheduler(current_core);
@@ -255,22 +255,23 @@ void CpuManager::SingleCoreRunSuspendThread() {
 
 void CpuManager::PreemptSingleCore(bool from_running_enviroment) {
     {
-        auto& scheduler = system.Kernel().Scheduler(current_core);
+        auto& kernel = system.Kernel();
+        auto& scheduler = kernel.Scheduler(current_core);
         Kernel::KThread* current_thread = scheduler.GetCurrentThread();
         if (idle_count >= 4 || from_running_enviroment) {
             if (!from_running_enviroment) {
                 system.CoreTiming().Idle();
                 idle_count = 0;
             }
-            current_thread->SetPhantomMode(true);
+            kernel.SetIsPhantomModeForSingleCore(true);
             system.CoreTiming().Advance();
-            current_thread->SetPhantomMode(false);
+            kernel.SetIsPhantomModeForSingleCore(false);
         }
         current_core.store((current_core + 1) % Core::Hardware::NUM_CPU_CORES);
         system.CoreTiming().ResetTicks();
         scheduler.Unload(scheduler.GetCurrentThread());
 
-        auto& next_scheduler = system.Kernel().Scheduler(current_core);
+        auto& next_scheduler = kernel.Scheduler(current_core);
         Common::Fiber::YieldTo(current_thread->GetHostContext(), next_scheduler.ControlContext());
     }
 
