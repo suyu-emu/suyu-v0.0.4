@@ -290,10 +290,16 @@ void ARM_Dynarmic_64::SetTPIDR_EL0(u64 value) {
 }
 
 void ARM_Dynarmic_64::ChangeProcessorID(std::size_t new_core_id) {
+    if (!jit) {
+        return;
+    }
     jit->ChangeProcessorID(new_core_id);
 }
 
 void ARM_Dynarmic_64::SaveContext(ThreadContext64& ctx) {
+    if (!jit) {
+        return;
+    }
     ctx.cpu_registers = jit->GetRegisters();
     ctx.sp = jit->GetSP();
     ctx.pc = jit->GetPC();
@@ -305,6 +311,9 @@ void ARM_Dynarmic_64::SaveContext(ThreadContext64& ctx) {
 }
 
 void ARM_Dynarmic_64::LoadContext(const ThreadContext64& ctx) {
+    if (!jit) {
+        return;
+    }
     jit->SetRegisters(ctx.cpu_registers);
     jit->SetSP(ctx.sp);
     jit->SetPC(ctx.pc);
@@ -316,6 +325,9 @@ void ARM_Dynarmic_64::LoadContext(const ThreadContext64& ctx) {
 }
 
 void ARM_Dynarmic_64::PrepareReschedule() {
+    if (!jit) {
+        return;
+    }
     jit->HaltExecution();
 }
 
