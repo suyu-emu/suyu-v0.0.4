@@ -125,7 +125,7 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
                                                     void* thread_start_parameter) {
     auto& kernel = system.Kernel();
     // Check if priority is in ranged. Lowest priority -> highest priority id.
-    if (priority > THREADPRIO_LOWEST && ((type_flags & THREADTYPE_IDLE) == 0)) {
+    if (priority > THREADPRIO_LOWEST) {
         LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
         return ERR_INVALID_THREAD_PRIORITY;
     }
@@ -164,10 +164,10 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
     thread->owner_process = owner_process;
     thread->type = type_flags;
     thread->signaled = false;
-    if ((type_flags & THREADTYPE_IDLE) == 0) {
-        auto& scheduler = kernel.GlobalSchedulerContext();
-        scheduler.AddThread(thread);
-    }
+
+    auto& scheduler = kernel.GlobalSchedulerContext();
+    scheduler.AddThread(thread);
+
     if (owner_process) {
         thread->tls_address = thread->owner_process->CreateTLSRegion();
         thread->owner_process->RegisterThread(thread.get());
@@ -175,13 +175,10 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
         thread->tls_address = 0;
     }
 
-    // TODO(peachum): move to ScheduleThread() when scheduler is added so selected core is used
-    // to initialize the context
-    if ((type_flags & THREADTYPE_HLE) == 0) {
-        ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
-                             static_cast<u32>(entry_point), static_cast<u32>(arg));
-        ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
-    }
+    ResetThreadContext32(thread->context_32, static_cast<u32>(stack_top),
+                         static_cast<u32>(entry_point), static_cast<u32>(arg));
+    ResetThreadContext64(thread->context_64, stack_top, entry_point, arg);
+
     thread->host_context =
         std::make_shared<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
 

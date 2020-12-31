@@ -627,11 +627,11 @@ void KScheduler::OnThreadStart() {
 void KScheduler::Unload(KThread* thread) {
     if (thread) {
         thread->SetIsRunning(false);
-        if (thread->IsContinuousOnSVC() && !thread->IsHLEThread()) {
+        if (thread->IsContinuousOnSVC()) {
             system.ArmInterface(core_id).ExceptionalExit();
             thread->SetContinuousOnSVC(false);
         }
-        if (!thread->IsHLEThread() && !thread->HasExited()) {
+        if (!thread->HasExited()) {
             Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
             cpu_core.SaveContext(thread->GetContext32());
             cpu_core.SaveContext(thread->GetContext64());
@@ -655,14 +655,13 @@ void KScheduler::Reload(KThread* thread) {
         if (thread_owner_process != nullptr) {
             system.Kernel().MakeCurrentProcess(thread_owner_process);
         }
-        if (!thread->IsHLEThread()) {
-            Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
-            cpu_core.LoadContext(thread->GetContext32());
-            cpu_core.LoadContext(thread->GetContext64());
-            cpu_core.SetTlsAddress(thread->GetTLSAddress());
-            cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
-            cpu_core.ClearExclusiveState();
-        }
+
+        Core::ARM_Interface& cpu_core = system.ArmInterface(core_id);
+        cpu_core.LoadContext(thread->GetContext32());
+        cpu_core.LoadContext(thread->GetContext64());
+        cpu_core.SetTlsAddress(thread->GetTLSAddress());
+        cpu_core.SetTPIDR_EL0(thread->GetTPIDR_EL0());
+        cpu_core.ClearExclusiveState();
     }
 }
 
@@ -722,7 +721,7 @@ void KScheduler::SwitchToCurrent() {
             return state.needs_scheduling.load(std::memory_order_relaxed);
         };
         do {
-            if (current_thread != nullptr && !current_thread->IsHLEThread()) {
+            if (current_thread != nullptr) {
                 current_thread->context_guard.lock();
                 if (current_thread->GetRawState() != ThreadState::Runnable) {
                     current_thread->context_guard.unlock();
@@ -764,9 +763,9 @@ void KScheduler::Initialize() {
     std::string name = "Idle Thread Id:" + std::to_string(core_id);
     std::function<void(void*)> init_func = Core::CpuManager::GetIdleThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-    ThreadType type = static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_IDLE);
-    auto thread_res = KThread::Create(system, type, name, 0, 64, 0, static_cast<u32>(core_id), 0,
-                                      nullptr, std::move(init_func), init_func_parameter);
+    auto thread_res = KThread::Create(system, THREADTYPE_KERNEL, name, 0, THREADPRIO_LOWEST, 0,
+                                      static_cast<u32>(core_id), 0, nullptr, std::move(init_func),
+                                      init_func_parameter);
     idle_thread = thread_res.Unwrap().get();
 
     {

@@ -51,9 +51,6 @@ enum ThreadPriority : u32 {
 enum ThreadType : u32 {
     THREADTYPE_USER = 0x1,
     THREADTYPE_KERNEL = 0x2,
-    THREADTYPE_HLE = 0x4,
-    THREADTYPE_IDLE = 0x8,
-    THREADTYPE_SUSPEND = 0x10,
 };
 
 enum ThreadProcessorId : s32 {
@@ -309,16 +306,8 @@ public:
         return context_64;
     }
 
-    bool IsHLEThread() const {
-        return (type & THREADTYPE_HLE) != 0;
-    }
-
-    bool IsSuspendThread() const {
-        return (type & THREADTYPE_SUSPEND) != 0;
-    }
-
-    bool IsIdleThread() const {
-        return (type & THREADTYPE_IDLE) != 0;
+    bool IsKernelThread() const {
+        return (type & THREADTYPE_KERNEL) != 0;
     }
 
     bool WasRunning() const {

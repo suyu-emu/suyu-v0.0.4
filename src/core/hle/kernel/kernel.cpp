@@ -168,11 +168,9 @@ struct KernelCore::Impl {
             std::string name = "Suspend Thread Id:" + std::to_string(i);
             std::function<void(void*)> init_func = Core::CpuManager::GetSuspendThreadStartFunc();
             void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-            const auto type =
-                static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_SUSPEND);
-            auto thread_res =
-                KThread::Create(system, type, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
-                                nullptr, std::move(init_func), init_func_parameter);
+            auto thread_res = KThread::Create(system, THREADTYPE_KERNEL, std::move(name), 0, 0, 0,
+                                              static_cast<u32>(i), 0, nullptr, std::move(init_func),
+                                              init_func_parameter);
 
             suspend_threads[i] = std::move(thread_res).Unwrap();
         }
