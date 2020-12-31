@@ -10,19 +10,19 @@
 #include "video_core/buffer_cache/buffer_cache.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
+#include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_stream_buffer.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
 class Device;
-class VKMemoryManager;
 class VKScheduler;
 
 class Buffer final : public VideoCommon::BufferBlock {
 public:
     explicit Buffer(const Device& device, VKMemoryManager& memory_manager, VKScheduler& scheduler,
-                    VKStagingBufferPool& staging_pool, VAddr cpu_addr_, std::size_t size_);
+                    StagingBufferPool& staging_pool, VAddr cpu_addr_, std::size_t size_);
     ~Buffer();
 
     void Upload(std::size_t offset, std::size_t data_size, const u8* data);
@@ -33,7 +33,7 @@ public:
                   std::size_t copy_size);
 
     VkBuffer Handle() const {
-        return *buffer.handle;
+        return *buffer;
     }
 
     u64 Address() const {
@@ -43,9 +43,10 @@ public:
 private:
     const Device& device;
     VKScheduler& scheduler;
-    VKStagingBufferPool& staging_pool;
+    StagingBufferPool& staging_pool;
 
-    VKBuffer buffer;
+    vk::Buffer buffer;
+    MemoryCommit commit;
 };
 
 class VKBufferCache final : public VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer> {
@@ -54,7 +55,7 @@ public:
                            Tegra::MemoryManager& gpu_memory, Core::Memory::Memory& cpu_memory,
                            const Device& device, VKMemoryManager& memory_manager,
                            VKScheduler& scheduler, VKStreamBuffer& stream_buffer,
-                           VKStagingBufferPool& staging_pool);
+                           StagingBufferPool& staging_pool);
     ~VKBufferCache();
 
     BufferInfo GetEmptyBuffer(std::size_t size) override;
@@ -66,7 +67,7 @@ private:
     const Device& device;
     VKMemoryManager& memory_manager;
     VKScheduler& scheduler;
-    VKStagingBufferPool& staging_pool;
+    StagingBufferPool& staging_pool;
 };
 
 } // namespace Vulkan

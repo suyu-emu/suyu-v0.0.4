@@ -554,10 +554,10 @@ void TextureCacheRuntime::Finish() {
 }
 
 ImageBufferMap TextureCacheRuntime::MapUploadBuffer(size_t size) {
-    const auto& buffer = staging_buffer_pool.GetUnusedBuffer(size, true);
+    const auto staging_ref = staging_buffer_pool.Request(size, true);
     return ImageBufferMap{
-        .handle = *buffer.handle,
-        .map = buffer.commit->Map(size),
+        .handle = staging_ref.buffer,
+        .span = staging_ref.mapped_span,
     };
 }
 

@@ -15,118 +15,81 @@ namespace Vulkan {
 
 class Device;
 class MemoryMap;
-class VKMemoryAllocation;
-class VKMemoryCommitImpl;
+class MemoryAllocation;
 
-using VKMemoryCommit = std::unique_ptr<VKMemoryCommitImpl>;
-
-class VKMemoryManager final {
+class MemoryCommit final {
 public:
-    explicit VKMemoryManager(const Device& device_);
-    VKMemoryManager(const VKMemoryManager&) = delete;
-    ~VKMemoryManager();
+    explicit MemoryCommit() noexcept = default;
+    explicit MemoryCommit(const Device& device_, MemoryAllocation* allocation_,
+                          VkDeviceMemory memory_, u64 begin, u64 end) noexcept;
+    ~MemoryCommit();
 
-    /**
-     * Commits a memory with the specified requeriments.
-     * @param requirements Requirements returned from a Vulkan call.
-     * @param host_visible Signals the allocator that it *must* use host visible and coherent
-     *                     memory. When passing false, it will try to allocate device local memory.
-     * @returns A memory commit.
-     */
-    VKMemoryCommit Commit(const VkMemoryRequirements& requirements, bool host_visible);
+    MemoryCommit& operator=(MemoryCommit&&) noexcept;
+    MemoryCommit(MemoryCommit&&) noexcept;
 
-    /// Commits memory required by the buffer and binds it.
-    VKMemoryCommit Commit(const vk::Buffer& buffer, bool host_visible);
+    MemoryCommit& operator=(const MemoryCommit&) = delete;
+    MemoryCommit(const MemoryCommit&) = delete;
 
-    /// Commits memory required by the image and binds it.
-    VKMemoryCommit Commit(const vk::Image& image, bool host_visible);
-
-private:
-    /// Allocates a chunk of memory.
-    bool AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
-
-    /// Tries to allocate a memory commit.
-    VKMemoryCommit TryAllocCommit(const VkMemoryRequirements& requirements,
-                                  VkMemoryPropertyFlags wanted_properties);
-
-    const Device& device;                                         ///< Device handler.
-    const VkPhysicalDeviceMemoryProperties properties;            ///< Physical device properties.
-    std::vector<std::unique_ptr<VKMemoryAllocation>> allocations; ///< Current allocations.
-};
-
-class VKMemoryCommitImpl final {
-    friend VKMemoryAllocation;
-    friend MemoryMap;
-
-public:
-    explicit VKMemoryCommitImpl(const Device& device_, VKMemoryAllocation* allocation_,
-                                const vk::DeviceMemory& memory_, u64 begin_, u64 end_);
-    ~VKMemoryCommitImpl();
-
-    /// Maps a memory region and returns a pointer to it.
-    /// It's illegal to have more than one memory map at the same time.
-    MemoryMap Map(u64 size, u64 offset = 0) const;
-
-    /// Maps the whole commit and returns a pointer to it.
-    /// It's illegal to have more than one memory map at the same time.
-    MemoryMap Map() const;
+    /// Returns a host visible memory map.
+    /// It will map the backing allocation if it hasn't been mapped before.
+    std::span<u8> Map();
 
     /// Returns the Vulkan memory handler.
-    VkDeviceMemory GetMemory() const {
-        return *memory;
+    VkDeviceMemory Memory() const {
+        return memory;
     }
 
     /// Returns the start position of the commit relative to the allocation.
-    VkDeviceSize GetOffset() const {
+    VkDeviceSize Offset() const {
         return static_cast<VkDeviceSize>(interval.first);
     }
 
 private:
-    /// Unmaps memory.
-    void Unmap() const;
+    void Release();
 
-    const Device& device;             ///< Vulkan device.
-    const vk::DeviceMemory& memory;   ///< Vulkan device memory handler.
-    std::pair<u64, u64> interval{};   ///< Interval where the commit exists.
-    VKMemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.
+    const Device* device{};         ///< Vulkan device.
+    MemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.
+    VkDeviceMemory memory{};        ///< Vulkan device memory handler.
+    std::pair<u64, u64> interval{}; ///< Interval where the commit exists.
+    std::span<u8> span;             ///< Host visible memory span. Empty if not queried before.
 };
 
-/// Holds ownership of a memory map.
-class MemoryMap final {
+class VKMemoryManager final {
 public:
-    explicit MemoryMap(const VKMemoryCommitImpl* commit_, std::span<u8> span_)
-        : commit{commit_}, span{span_} {}
+    explicit VKMemoryManager(const Device& device_);
+    ~VKMemoryManager();
 
-    ~MemoryMap() {
-        if (commit) {
-            commit->Unmap();
-        }
-    }
+    VKMemoryManager& operator=(const VKMemoryManager&) = delete;
+    VKMemoryManager(const VKMemoryManager&) = delete;
 
-    /// Prematurely releases the memory map.
-    void Release() {
-        commit->Unmap();
-        commit = nullptr;
-    }
+    /**
+     * Commits a memory with the specified requeriments.
+     *
+     * @param requirements Requirements returned from a Vulkan call.
+     * @param host_visible Signals the allocator that it *must* use host visible and coherent
+     *                     memory. When passing false, it will try to allocate device local memory.
+     *
+     * @returns A memory commit.
+     */
+    MemoryCommit Commit(const VkMemoryRequirements& requirements, bool host_visible);
 
-    /// Returns a span to the memory map.
-    [[nodiscard]] std::span<u8> Span() const noexcept {
-        return span;
-    }
+    /// Commits memory required by the buffer and binds it.
+    MemoryCommit Commit(const vk::Buffer& buffer, bool host_visible);
 
-    /// Returns the address of the memory map.
-    [[nodiscard]] u8* Address() const noexcept {
-        return span.data();
-    }
-
-    /// Returns the address of the memory map;
-    [[nodiscard]] operator u8*() const noexcept {
-        return span.data();
-    }
+    /// Commits memory required by the image and binds it.
+    MemoryCommit Commit(const vk::Image& image, bool host_visible);
 
 private:
-    const VKMemoryCommitImpl* commit{}; ///< Mapped memory commit.
-    std::span<u8> span;                 ///< Address to the mapped memory.
+    /// Allocates a chunk of memory.
+    void AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
+
+    /// Tries to allocate a memory commit.
+    std::optional<MemoryCommit> TryAllocCommit(const VkMemoryRequirements& requirements,
+                                               VkMemoryPropertyFlags wanted_properties);
+
+    const Device& device;                                       ///< Device handler.
+    const VkPhysicalDeviceMemoryProperties properties;          ///< Physical device properties.
+    std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
 };
 
 } // namespace Vulkan

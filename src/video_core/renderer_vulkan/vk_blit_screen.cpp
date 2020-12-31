@@ -150,8 +150,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
     SetUniformData(data, framebuffer);
     SetVertexData(data, framebuffer);
 
-    auto map = buffer_commit->Map();
-    std::memcpy(map.Address(), &data, sizeof(data));
+    const std::span<u8> map = buffer_commit.Map();
+    std::memcpy(map.data(), &data, sizeof(data));
 
     if (!use_accelerated) {
         const u64 image_offset = GetRawImageOffset(framebuffer, image_index);
@@ -165,8 +165,8 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         constexpr u32 block_height_log2 = 4;
         const u32 bytes_per_pixel = GetBytesPerPixel(framebuffer);
         Tegra::Texture::UnswizzleTexture(
-            std::span(map.Address() + image_offset, size_bytes), std::span(host_ptr, size_bytes),
-            bytes_per_pixel, framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
+            map.subspan(image_offset, size_bytes), std::span(host_ptr, size_bytes), bytes_per_pixel,
+            framebuffer.width, framebuffer.height, 1, block_height_log2, 0);
 
         const VkBufferImageCopy copy{
             .bufferOffset = image_offset,
@@ -224,8 +224,6 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
                                        VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, write_barrier);
             });
     }
-    map.Release();
-
     scheduler.Record([renderpass = *renderpass, framebuffer = *framebuffers[image_index],
                       descriptor_set = descriptor_sets[image_index], buffer = *buffer,
                       size = swapchain.GetSize(), pipeline = *pipeline,
@@ -642,7 +640,7 @@ void VKBlitScreen::ReleaseRawImages() {
     raw_images.clear();
     raw_buffer_commits.clear();
     buffer.reset();
-    buffer_commit.reset();
+    buffer_commit = MemoryCommit{};
 }
 
 void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuffer) {

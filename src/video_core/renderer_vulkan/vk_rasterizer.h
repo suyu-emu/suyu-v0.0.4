@@ -218,7 +218,7 @@ private:
     VKScheduler& scheduler;
 
     VKStreamBuffer stream_buffer;
-    VKStagingBufferPool staging_pool;
+    StagingBufferPool staging_pool;
     VKDescriptorPool descriptor_pool;
     VKUpdateDescriptorQueue update_descriptor_queue;
     BlitImageHelper blit_image;
@@ -234,7 +234,7 @@ private:
     VKFenceManager fence_manager;
 
     vk::Buffer default_buffer;
-    VKMemoryCommit default_buffer_commit;
+    MemoryCommit default_buffer_commit;
     vk::Event wfi_event;
     VideoCommon::Shader::AsyncShaders async_shaders;
 

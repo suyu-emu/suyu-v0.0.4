@@ -19,14 +19,13 @@ using VideoCommon::Offset2D;
 using VideoCommon::RenderTargets;
 using VideoCore::Surface::PixelFormat;
 
-class VKScheduler;
-class VKStagingBufferPool;
-
 class BlitImageHelper;
 class Device;
 class Image;
 class ImageView;
 class Framebuffer;
+class StagingBufferPool;
+class VKScheduler;
 
 struct RenderPassKey {
     constexpr auto operator<=>(const RenderPassKey&) const noexcept = default;
@@ -60,18 +59,18 @@ struct ImageBufferMap {
     }
 
     [[nodiscard]] std::span<u8> Span() const noexcept {
-        return map.Span();
+        return span;
     }
 
     VkBuffer handle;
-    MemoryMap map;
+    std::span<u8> span;
 };
 
 struct TextureCacheRuntime {
     const Device& device;
     VKScheduler& scheduler;
     VKMemoryManager& memory_manager;
-    VKStagingBufferPool& staging_buffer_pool;
+    StagingBufferPool& staging_buffer_pool;
     BlitImageHelper& blit_image_helper;
     std::unordered_map<RenderPassKey, vk::RenderPass> renderpass_cache;
 
@@ -141,7 +140,7 @@ private:
     VKScheduler* scheduler;
     vk::Image image;
     vk::Buffer buffer;
-    VKMemoryCommit commit;
+    MemoryCommit commit;
     VkImageAspectFlags aspect_mask = 0;
     bool initialized = false;
 };

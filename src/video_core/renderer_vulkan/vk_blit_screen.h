@@ -104,14 +104,14 @@ private:
     vk::Sampler sampler;
 
     vk::Buffer buffer;
-    VKMemoryCommit buffer_commit;
+    MemoryCommit buffer_commit;
 
     std::vector<u64> resource_ticks;
 
     std::vector<vk::Semaphore> semaphores;
     std::vector<vk::Image> raw_images;
     std::vector<vk::ImageView> raw_image_views;
-    std::vector<VKMemoryCommit> raw_buffer_commits;
+    std::vector<MemoryCommit> raw_buffer_commits;
     u32 raw_width = 0;
     u32 raw_height = 0;
 };
