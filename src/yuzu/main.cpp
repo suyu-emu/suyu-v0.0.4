@@ -1049,8 +1049,7 @@ bool GMainWindow::LoadROM(const QString& filename, std::size_t program_index) {
             break;
 
         default:
-            if (static_cast<u32>(result) >
-                static_cast<u32>(Core::System::ResultStatus::ErrorLoader)) {
+            if (result > Core::System::ResultStatus::ErrorLoader) {
                 const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
                 const u16 error_id = static_cast<u16>(result) - loader_id;
                 const std::string error_code = fmt::format("({:04X}-{:04X})", loader_id, error_id);
