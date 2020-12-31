@@ -218,7 +218,7 @@ void Resample(s32* output, const s32* input, s32 pitch, s32& fraction, std::size
         const auto l2 = lut[lut_index + 2];
         const auto l3 = lut[lut_index + 3];
 
-        const auto s0 = static_cast<s32>(input[index]);
+        const auto s0 = static_cast<s32>(input[index + 0]);
         const auto s1 = static_cast<s32>(input[index + 1]);
         const auto s2 = static_cast<s32>(input[index + 2]);
         const auto s3 = static_cast<s32>(input[index + 3]);
