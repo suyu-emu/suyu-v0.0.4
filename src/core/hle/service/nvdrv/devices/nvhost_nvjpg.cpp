@@ -13,8 +13,8 @@ namespace Service::Nvidia::Devices {
 nvhost_nvjpg::nvhost_nvjpg(Core::System& system) : nvdevice(system) {}
 nvhost_nvjpg::~nvhost_nvjpg() = default;
 
-NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              IoctlCtrl& ctrl) {
+NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input,
+                              std::vector<u8>& output) {
     switch (command.group) {
     case 'H':
         switch (command.cmd) {
@@ -33,14 +33,13 @@ NvResult nvhost_nvjpg::Ioctl1(Ioctl command, const std::vector<u8>& input, std::
 }
 
 NvResult nvhost_nvjpg::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                              const std::vector<u8>& inline_input, std::vector<u8>& output,
-                              IoctlCtrl& ctrl) {
+                              const std::vector<u8>& inline_input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvhost_nvjpg::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                              std::vector<u8>& inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }

@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <list>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -99,6 +101,7 @@ public:
     void CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& multi_fence);
     std::optional<std::reference_wrapper<const Buffer>> AcquireBuffer();
     void ReleaseBuffer(u32 slot);
+    void Connect();
     void Disconnect();
     u32 Query(QueryType type);
 
@@ -106,18 +109,28 @@ public:
         return id;
     }
 
+    bool IsConnected() const {
+        return is_connect;
+    }
+
     std::shared_ptr<Kernel::WritableEvent> GetWritableBufferWaitEvent() const;
 
     std::shared_ptr<Kernel::ReadableEvent> GetBufferWaitEvent() const;
 
 private:
-    u32 id;
-    u64 layer_id;
+    BufferQueue(const BufferQueue&) = delete;
+
+    u32 id{};
+    u64 layer_id{};
+    std::atomic_bool is_connect{};
 
     std::list<u32> free_buffers;
     std::array<Buffer, buffer_slots> buffers;
     std::list<u32> queue_sequence;
     Kernel::EventPair buffer_wait_event;
+
+    std::mutex queue_mutex;
+    std::condition_variable condition;
 };
 
 } // namespace Service::NVFlinger

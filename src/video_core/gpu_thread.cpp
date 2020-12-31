@@ -4,6 +4,7 @@
 
 #include "common/assert.h"
 #include "common/microprofile.h"
+#include "common/scope_exit.h"
 #include "common/thread.h"
 #include "core/core.h"
 #include "core/frontend/emu_window.h"
@@ -21,6 +22,8 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
                       SynchState& state, Tegra::CDmaPusher& cdma_pusher) {
     std::string name = "yuzu:GPU";
     MicroProfileOnThreadCreate(name.c_str());
+    SCOPE_EXIT({ MicroProfileOnThreadExit(); });
+
     Common::SetCurrentThreadName(name.c_str());
     Common::SetCurrentThreadPriority(Common::ThreadPriority::High);
     system.RegisterHostThread();
@@ -65,7 +68,8 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     }
 }
 
-ThreadManager::ThreadManager(Core::System& system_) : system{system_} {}
+ThreadManager::ThreadManager(Core::System& system_, bool is_async_)
+    : system{system_}, is_async{is_async_} {}
 
 ThreadManager::~ThreadManager() {
     if (!thread.joinable()) {
@@ -97,19 +101,30 @@ void ThreadManager::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 }
 
 void ThreadManager::FlushRegion(VAddr addr, u64 size) {
-    if (!Settings::IsGPULevelHigh()) {
+    if (!is_async) {
+        // Always flush with synchronous GPU mode
         PushCommand(FlushRegionCommand(addr, size));
         return;
     }
-    if (!Settings::IsGPULevelExtreme()) {
-        return;
-    }
-    if (system.Renderer().Rasterizer().MustFlushRegion(addr, size)) {
+
+    // Asynchronous GPU mode
+    switch (Settings::values.gpu_accuracy.GetValue()) {
+    case Settings::GPUAccuracy::Normal:
+        PushCommand(FlushRegionCommand(addr, size));
+        break;
+    case Settings::GPUAccuracy::High:
+        // TODO(bunnei): Is this right? Preserving existing behavior for now
+        break;
+    case Settings::GPUAccuracy::Extreme: {
         auto& gpu = system.GPU();
         u64 fence = gpu.RequestFlush(addr, size);
         PushCommand(GPUTickCommand());
         while (fence > gpu.CurrentFlushRequestFence()) {
         }
+        break;
+    }
+    default:
+        UNIMPLEMENTED_MSG("Unsupported gpu_accuracy {}", Settings::values.gpu_accuracy.GetValue());
     }
 }
 
@@ -123,7 +138,8 @@ void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::WaitIdle() const {
-    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed)) {
+    while (state.last_fence > state.signaled_fence.load(std::memory_order_relaxed) &&
+           system.IsPoweredOn()) {
     }
 }
 
@@ -134,6 +150,12 @@ void ThreadManager::OnCommandListEnd() {
 u64 ThreadManager::PushCommand(CommandData&& command_data) {
     const u64 fence{++state.last_fence};
     state.queue.Push(CommandDataContainer(std::move(command_data), fence));
+
+    if (!is_async) {
+        // In synchronous GPU mode, block the caller until the command has executed
+        WaitIdle();
+    }
+
     return fence;
 }
 

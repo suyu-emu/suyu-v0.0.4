@@ -88,6 +88,10 @@ NVFlinger::NVFlinger(Core::System& system) : system(system) {
 }
 
 NVFlinger::~NVFlinger() {
+    for (auto& buffer_queue : buffer_queues) {
+        buffer_queue->Disconnect();
+    }
+
     if (system.IsMulticore()) {
         is_running = false;
         wait_event->Set();
@@ -104,6 +108,8 @@ void NVFlinger::SetNVDrvInstance(std::shared_ptr<Nvidia::Module> instance) {
 }
 
 std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
+    const auto guard = Lock();
+
     LOG_DEBUG(Service, "Opening \"{}\" display", name);
 
     // TODO(Subv): Currently we only support the Default display.
@@ -121,6 +127,7 @@ std::optional<u64> NVFlinger::OpenDisplay(std::string_view name) {
 }
 
 std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
+    const auto guard = Lock();
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {
@@ -129,18 +136,22 @@ std::optional<u64> NVFlinger::CreateLayer(u64 display_id) {
 
     const u64 layer_id = next_layer_id++;
     const u32 buffer_queue_id = next_buffer_queue_id++;
-    buffer_queues.emplace_back(system.Kernel(), buffer_queue_id, layer_id);
-    display->CreateLayer(layer_id, buffer_queues.back());
+    buffer_queues.emplace_back(
+        std::make_unique<BufferQueue>(system.Kernel(), buffer_queue_id, layer_id));
+    display->CreateLayer(layer_id, *buffer_queues.back());
     return layer_id;
 }
 
 void NVFlinger::CloseLayer(u64 layer_id) {
+    const auto guard = Lock();
+
     for (auto& display : displays) {
         display.CloseLayer(layer_id);
     }
 }
 
 std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) const {
+    const auto guard = Lock();
     const auto* const layer = FindLayer(display_id, layer_id);
 
     if (layer == nullptr) {
@@ -151,6 +162,7 @@ std::optional<u32> NVFlinger::FindBufferQueueId(u64 display_id, u64 layer_id) co
 }
 
 std::shared_ptr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id) const {
+    const auto guard = Lock();
     auto* const display = FindDisplay(display_id);
 
     if (display == nullptr) {
@@ -160,20 +172,16 @@ std::shared_ptr<Kernel::ReadableEvent> NVFlinger::FindVsyncEvent(u64 display_id)
     return display->GetVSyncEvent();
 }
 
-BufferQueue& NVFlinger::FindBufferQueue(u32 id) {
+BufferQueue* NVFlinger::FindBufferQueue(u32 id) {
+    const auto guard = Lock();
     const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
-                                  [id](const auto& queue) { return queue.GetId() == id; });
+                                  [id](const auto& queue) { return queue->GetId() == id; });
 
-    ASSERT(itr != buffer_queues.end());
-    return *itr;
-}
+    if (itr == buffer_queues.end()) {
+        return nullptr;
+    }
 
-const BufferQueue& NVFlinger::FindBufferQueue(u32 id) const {
-    const auto itr = std::find_if(buffer_queues.begin(), buffer_queues.end(),
-                                  [id](const auto& queue) { return queue.GetId() == id; });
-
-    ASSERT(itr != buffer_queues.end());
-    return *itr;
+    return itr->get();
 }
 
 VI::Display* NVFlinger::FindDisplay(u64 display_id) {

@@ -129,23 +129,6 @@ public:
     using WakeupCallback = std::function<void(
         std::shared_ptr<Thread> thread, HLERequestContext& context, ThreadWakeupReason reason)>;
 
-    /**
-     * Puts the specified guest thread to sleep until the returned event is signaled or until the
-     * specified timeout expires.
-     * @param reason Reason for pausing the thread, to be used for debugging purposes.
-     * @param timeout Timeout in nanoseconds after which the thread will be awoken and the callback
-     * invoked with a Timeout reason.
-     * @param callback Callback to be invoked when the thread is resumed. This callback must write
-     * the entire command response once again, regardless of the state of it before this function
-     * was called.
-     * @param writable_event Event to use to wake up the thread. If unspecified, an event will be
-     * created.
-     * @returns Event that when signaled will resume the thread and call the callback function.
-     */
-    std::shared_ptr<WritableEvent> SleepClientThread(
-        const std::string& reason, u64 timeout, WakeupCallback&& callback,
-        std::shared_ptr<WritableEvent> writable_event = nullptr);
-
     /// Populates this context with data from the requesting process/thread.
     ResultCode PopulateFromIncomingCommandBuffer(const HandleTable& handle_table,
                                                  u32_le* src_cmdbuf);

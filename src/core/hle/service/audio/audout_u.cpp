@@ -70,8 +70,10 @@ public:
             Kernel::WritableEvent::CreateEventPair(system.Kernel(), "IAudioOutBufferReleased");
 
         stream = audio_core.OpenStream(system.CoreTiming(), audio_params.sample_rate,
-                                       audio_params.channel_count, std::move(unique_name),
-                                       [this] { buffer_event.writable->Signal(); });
+                                       audio_params.channel_count, std::move(unique_name), [this] {
+                                           const auto guard = LockService();
+                                           buffer_event.writable->Signal();
+                                       });
     }
 
 private:

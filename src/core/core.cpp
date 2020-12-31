@@ -159,7 +159,7 @@ struct System::Impl {
         device_memory = std::make_unique<Core::DeviceMemory>();
 
         is_multicore = Settings::values.use_multi_core.GetValue();
-        is_async_gpu = is_multicore || Settings::values.use_asynchronous_gpu_emulation.GetValue();
+        is_async_gpu = Settings::values.use_asynchronous_gpu_emulation.GetValue();
 
         kernel.SetMulticore(is_multicore);
         cpu_manager.SetMulticore(is_multicore);
@@ -307,7 +307,6 @@ struct System::Impl {
         service_manager.reset();
         cheat_engine.reset();
         telemetry_session.reset();
-        device_memory.reset();
 
         // Close all CPU/threading state
         cpu_manager.Shutdown();

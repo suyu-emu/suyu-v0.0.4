@@ -119,13 +119,13 @@ public:
 
     /// Sends an ioctl command to the specified file descriptor.
     NvResult Ioctl1(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                    std::vector<u8>& output, IoctlCtrl& ctrl);
+                    std::vector<u8>& output);
 
     NvResult Ioctl2(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                    const std::vector<u8>& inline_input, std::vector<u8>& output, IoctlCtrl& ctrl);
+                    const std::vector<u8>& inline_input, std::vector<u8>& output);
 
     NvResult Ioctl3(DeviceFD fd, Ioctl command, const std::vector<u8>& input,
-                    std::vector<u8>& output, std::vector<u8>& inline_output, IoctlCtrl& ctrl);
+                    std::vector<u8>& output, std::vector<u8>& inline_output);
 
     /// Closes a device file descriptor and returns operation success.
     NvResult Close(DeviceFD fd);

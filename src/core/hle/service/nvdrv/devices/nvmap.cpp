@@ -19,8 +19,7 @@ nvmap::nvmap(Core::System& system) : nvdevice(system) {
 
 nvmap::~nvmap() = default;
 
-NvResult nvmap::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                       IoctlCtrl& ctrl) {
+NvResult nvmap::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) {
     switch (command.group) {
     case 0x1:
         switch (command.cmd) {
@@ -49,14 +48,13 @@ NvResult nvmap::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<
 }
 
 NvResult nvmap::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                       const std::vector<u8>& inline_input, std::vector<u8>& output,
-                       IoctlCtrl& ctrl) {
+                       const std::vector<u8>& inline_input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvmap::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                       std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                       std::vector<u8>& inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }

@@ -10,6 +10,7 @@
 #include "core/core_timing.h"
 #include "core/core_timing_util.h"
 #include "core/frontend/emu_window.h"
+#include "core/hardware_interrupt_manager.h"
 #include "core/memory.h"
 #include "core/settings.h"
 #include "video_core/engines/fermi_2d.h"
@@ -36,7 +37,8 @@ GPU::GPU(Core::System& system_, bool is_async_, bool use_nvdec_)
       kepler_compute{std::make_unique<Engines::KeplerCompute>(system, *memory_manager)},
       maxwell_dma{std::make_unique<Engines::MaxwellDMA>(system, *memory_manager)},
       kepler_memory{std::make_unique<Engines::KeplerMemory>(system, *memory_manager)},
-      shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_} {}
+      shader_notify{std::make_unique<VideoCore::ShaderNotify>()}, is_async{is_async_},
+      gpu_thread{system_, is_async_} {}
 
 GPU::~GPU() = default;
 
@@ -196,10 +198,6 @@ void GPU::FlushCommands() {
 
 void GPU::SyncGuestHost() {
     renderer->Rasterizer().SyncGuestHost();
-}
-
-void GPU::OnCommandListEnd() {
-    renderer->Rasterizer().ReleaseFences();
 }
 
 enum class GpuSemaphoreOperation {
@@ -458,6 +456,77 @@ void GPU::ProcessSemaphoreAcquire() {
         // TODO(kemathe73) figure out how to do the acquire_timeout
         regs.acquire_mode = false;
         regs.acquire_source = false;
+    }
+}
+
+void GPU::Start() {
+    gpu_thread.StartThread(*renderer, renderer->Context(), *dma_pusher, *cdma_pusher);
+    cpu_context = renderer->GetRenderWindow().CreateSharedContext();
+    cpu_context->MakeCurrent();
+}
+
+void GPU::ObtainContext() {
+    cpu_context->MakeCurrent();
+}
+
+void GPU::ReleaseContext() {
+    cpu_context->DoneCurrent();
+}
+
+void GPU::PushGPUEntries(Tegra::CommandList&& entries) {
+    gpu_thread.SubmitList(std::move(entries));
+}
+
+void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
+    if (!use_nvdec) {
+        return;
+    }
+    // This condition fires when a video stream ends, clear all intermediary data
+    if (entries[0].raw == 0xDEADB33F) {
+        cdma_pusher.reset();
+        return;
+    }
+    if (!cdma_pusher) {
+        cdma_pusher = std::make_unique<Tegra::CDmaPusher>(*this);
+    }
+
+    // SubmitCommandBuffer would make the nvdec operations async, this is not currently working
+    // TODO(ameerj): RE proper async nvdec operation
+    // gpu_thread.SubmitCommandBuffer(std::move(entries));
+
+    cdma_pusher->Push(std::move(entries));
+    cdma_pusher->DispatchCalls();
+}
+
+void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
+    gpu_thread.SwapBuffers(framebuffer);
+}
+
+void GPU::FlushRegion(VAddr addr, u64 size) {
+    gpu_thread.FlushRegion(addr, size);
+}
+
+void GPU::InvalidateRegion(VAddr addr, u64 size) {
+    gpu_thread.InvalidateRegion(addr, size);
+}
+
+void GPU::FlushAndInvalidateRegion(VAddr addr, u64 size) {
+    gpu_thread.FlushAndInvalidateRegion(addr, size);
+}
+
+void GPU::TriggerCpuInterrupt(const u32 syncpoint_id, const u32 value) const {
+    auto& interrupt_manager = system.InterruptManager();
+    interrupt_manager.GPUInterruptSyncpt(syncpoint_id, value);
+}
+
+void GPU::WaitIdle() const {
+    gpu_thread.WaitIdle();
+}
+
+void GPU::OnCommandListEnd() {
+    if (is_async) {
+        // This command only applies to asynchronous GPU mode
+        gpu_thread.OnCommandListEnd();
     }
 }
 

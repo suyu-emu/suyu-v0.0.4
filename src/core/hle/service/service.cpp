@@ -95,9 +95,14 @@ ServiceFrameworkBase::ServiceFrameworkBase(Core::System& system_, const char* se
     : system{system_}, service_name{service_name_}, max_sessions{max_sessions_},
       handler_invoker{handler_invoker_} {}
 
-ServiceFrameworkBase::~ServiceFrameworkBase() = default;
+ServiceFrameworkBase::~ServiceFrameworkBase() {
+    // Wait for other threads to release access before destroying
+    const auto guard = LockService();
+}
 
 void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager) {
+    const auto guard = LockService();
+
     ASSERT(!port_installed);
 
     auto port = service_manager.RegisterService(service_name, max_sessions).Unwrap();
@@ -106,6 +111,8 @@ void ServiceFrameworkBase::InstallAsService(SM::ServiceManager& service_manager)
 }
 
 void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
+    const auto guard = LockService();
+
     ASSERT(!port_installed);
 
     auto [server_port, client_port] =
@@ -113,17 +120,6 @@ void ServiceFrameworkBase::InstallAsNamedPort(Kernel::KernelCore& kernel) {
     server_port->SetHleHandler(shared_from_this());
     kernel.AddNamedPort(service_name, std::move(client_port));
     port_installed = true;
-}
-
-std::shared_ptr<Kernel::ClientPort> ServiceFrameworkBase::CreatePort(Kernel::KernelCore& kernel) {
-    ASSERT(!port_installed);
-
-    auto [server_port, client_port] =
-        Kernel::ServerPort::CreatePortPair(kernel, max_sessions, service_name);
-    auto port = MakeResult(std::move(server_port)).Unwrap();
-    port->SetHleHandler(shared_from_this());
-    port_installed = true;
-    return client_port;
 }
 
 void ServiceFrameworkBase::RegisterHandlersBase(const FunctionInfoBase* functions, std::size_t n) {
@@ -164,6 +160,8 @@ void ServiceFrameworkBase::InvokeRequest(Kernel::HLERequestContext& ctx) {
 }
 
 ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& context) {
+    const auto guard = LockService();
+
     switch (context.GetCommandType()) {
     case IPC::CommandType::Close: {
         IPC::ResponseBuilder rb{context, 2};
@@ -184,7 +182,11 @@ ResultCode ServiceFrameworkBase::HandleSyncRequest(Kernel::HLERequestContext& co
         UNIMPLEMENTED_MSG("command_type={}", context.GetCommandType());
     }
 
-    context.WriteToOutgoingCommandBuffer(context.GetThread());
+    // If emulation was shutdown, we are closing service threads, do not write the response back to
+    // memory that may be shutting down as well.
+    if (system.IsPoweredOn()) {
+        context.WriteToOutgoingCommandBuffer(context.GetThread());
+    }
 
     return RESULT_SUCCESS;
 }

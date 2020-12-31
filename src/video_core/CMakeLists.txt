@@ -48,6 +48,7 @@ add_library(video_core STATIC
     engines/shader_bytecode.h
     engines/shader_header.h
     engines/shader_type.h
+    framebuffer_config.h
     macro/macro.cpp
     macro/macro.h
     macro/macro_hle.cpp
@@ -59,10 +60,6 @@ add_library(video_core STATIC
     fence_manager.h
     gpu.cpp
     gpu.h
-    gpu_asynch.cpp
-    gpu_asynch.h
-    gpu_synch.cpp
-    gpu_synch.h
     gpu_thread.cpp
     gpu_thread.h
     guest_driver.cpp

@@ -18,21 +18,20 @@ nvdisp_disp0::nvdisp_disp0(Core::System& system, std::shared_ptr<nvmap> nvmap_de
     : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
 nvdisp_disp0 ::~nvdisp_disp0() = default;
 
-NvResult nvdisp_disp0::Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              IoctlCtrl& ctrl) {
+NvResult nvdisp_disp0::Ioctl1(Ioctl command, const std::vector<u8>& input,
+                              std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvdisp_disp0::Ioctl2(Ioctl command, const std::vector<u8>& input,
-                              const std::vector<u8>& inline_input, std::vector<u8>& output,
-                              IoctlCtrl& ctrl) {
+                              const std::vector<u8>& inline_input, std::vector<u8>& output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }
 
 NvResult nvdisp_disp0::Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                              std::vector<u8>& inline_output, IoctlCtrl& ctrl) {
+                              std::vector<u8>& inline_output) {
     UNIMPLEMENTED_MSG("Unimplemented ioctl={:08X}", command.raw);
     return NvResult::NotImplemented;
 }

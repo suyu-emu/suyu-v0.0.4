@@ -18,13 +18,11 @@ public:
                          SyncpointManager& syncpoint_manager);
     ~nvhost_ctrl() override;
 
-    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+    NvResult Ioctl1(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output) override;
     NvResult Ioctl2(Ioctl command, const std::vector<u8>& input,
-                    const std::vector<u8>& inline_input, std::vector<u8>& output,
-                    IoctlCtrl& ctrl) override;
+                    const std::vector<u8>& inline_input, std::vector<u8>& output) override;
     NvResult Ioctl3(Ioctl command, const std::vector<u8>& input, std::vector<u8>& output,
-                    std::vector<u8>& inline_output, IoctlCtrl& ctrl) override;
+                    std::vector<u8>& inline_output) override;
 
 private:
     struct IocSyncptReadParams {
@@ -123,8 +121,7 @@ private:
     static_assert(sizeof(IocCtrlEventKill) == 8, "IocCtrlEventKill is incorrect size");
 
     NvResult NvOsGetConfigU32(const std::vector<u8>& input, std::vector<u8>& output);
-    NvResult IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async,
-                              IoctlCtrl& ctrl);
+    NvResult IocCtrlEventWait(const std::vector<u8>& input, std::vector<u8>& output, bool is_async);
     NvResult IocCtrlEventRegister(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult IocCtrlEventUnregister(const std::vector<u8>& input, std::vector<u8>& output);
     NvResult IocCtrlClearEventWait(const std::vector<u8>& input, std::vector<u8>& output);

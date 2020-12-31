@@ -61,32 +61,9 @@ void NVDRV::Ioctl1(Kernel::HLERequestContext& ctx) {
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
     const auto input_buffer = ctx.ReadBuffer(0);
 
-    IoctlCtrl ctrl{};
-
-    const auto nv_result = nvdrv->Ioctl1(fd, command, input_buffer, output_buffer, ctrl);
-    if (ctrl.must_delay) {
-        ctrl.fresh_call = false;
-        ctx.SleepClientThread(
-            "NVServices::DelayedResponse", ctrl.timeout,
-            [=, this](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx_,
-                      Kernel::ThreadWakeupReason reason) {
-                IoctlCtrl ctrl2{ctrl};
-                std::vector<u8> tmp_output = output_buffer;
-                const auto nv_result2 = nvdrv->Ioctl1(fd, command, input_buffer, tmp_output, ctrl2);
-
-                if (command.is_out != 0) {
-                    ctx.WriteBuffer(tmp_output);
-                }
-
-                IPC::ResponseBuilder rb{ctx_, 3};
-                rb.Push(RESULT_SUCCESS);
-                rb.PushEnum(nv_result2);
-            },
-            nvdrv->GetEventWriteable(ctrl.event_id));
-    } else {
-        if (command.is_out != 0) {
-            ctx.WriteBuffer(output_buffer);
-        }
+    const auto nv_result = nvdrv->Ioctl1(fd, command, input_buffer, output_buffer);
+    if (command.is_out != 0) {
+        ctx.WriteBuffer(output_buffer);
     }
 
     IPC::ResponseBuilder rb{ctx, 3};
@@ -110,36 +87,8 @@ void NVDRV::Ioctl2(Kernel::HLERequestContext& ctx) {
     const auto input_inlined_buffer = ctx.ReadBuffer(1);
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
 
-    IoctlCtrl ctrl{};
-
     const auto nv_result =
-        nvdrv->Ioctl2(fd, command, input_buffer, input_inlined_buffer, output_buffer, ctrl);
-    if (ctrl.must_delay) {
-        ctrl.fresh_call = false;
-        ctx.SleepClientThread(
-            "NVServices::DelayedResponse", ctrl.timeout,
-            [=, this](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx_,
-                      Kernel::ThreadWakeupReason reason) {
-                IoctlCtrl ctrl2{ctrl};
-                std::vector<u8> tmp_output = output_buffer;
-                const auto nv_result2 = nvdrv->Ioctl2(fd, command, input_buffer,
-                                                      input_inlined_buffer, tmp_output, ctrl2);
-
-                if (command.is_out != 0) {
-                    ctx.WriteBuffer(tmp_output);
-                }
-
-                IPC::ResponseBuilder rb{ctx_, 3};
-                rb.Push(RESULT_SUCCESS);
-                rb.PushEnum(nv_result2);
-            },
-            nvdrv->GetEventWriteable(ctrl.event_id));
-    } else {
-        if (command.is_out != 0) {
-            ctx.WriteBuffer(output_buffer);
-        }
-    }
-
+        nvdrv->Ioctl2(fd, command, input_buffer, input_inlined_buffer, output_buffer);
     if (command.is_out != 0) {
         ctx.WriteBuffer(output_buffer);
     }
@@ -165,36 +114,11 @@ void NVDRV::Ioctl3(Kernel::HLERequestContext& ctx) {
     std::vector<u8> output_buffer(ctx.GetWriteBufferSize(0));
     std::vector<u8> output_buffer_inline(ctx.GetWriteBufferSize(1));
 
-    IoctlCtrl ctrl{};
     const auto nv_result =
-        nvdrv->Ioctl3(fd, command, input_buffer, output_buffer, output_buffer_inline, ctrl);
-    if (ctrl.must_delay) {
-        ctrl.fresh_call = false;
-        ctx.SleepClientThread(
-            "NVServices::DelayedResponse", ctrl.timeout,
-            [=, this](std::shared_ptr<Kernel::Thread> thread, Kernel::HLERequestContext& ctx_,
-                      Kernel::ThreadWakeupReason reason) {
-                IoctlCtrl ctrl2{ctrl};
-                std::vector<u8> tmp_output = output_buffer;
-                std::vector<u8> tmp_output2 = output_buffer;
-                const auto nv_result2 =
-                    nvdrv->Ioctl3(fd, command, input_buffer, tmp_output, tmp_output2, ctrl2);
-
-                if (command.is_out != 0) {
-                    ctx.WriteBuffer(tmp_output, 0);
-                    ctx.WriteBuffer(tmp_output2, 1);
-                }
-
-                IPC::ResponseBuilder rb{ctx_, 3};
-                rb.Push(RESULT_SUCCESS);
-                rb.PushEnum(nv_result2);
-            },
-            nvdrv->GetEventWriteable(ctrl.event_id));
-    } else {
-        if (command.is_out != 0) {
-            ctx.WriteBuffer(output_buffer, 0);
-            ctx.WriteBuffer(output_buffer_inline, 1);
-        }
+        nvdrv->Ioctl3(fd, command, input_buffer, output_buffer, output_buffer_inline);
+    if (command.is_out != 0) {
+        ctx.WriteBuffer(output_buffer, 0);
+        ctx.WriteBuffer(output_buffer_inline, 1);
     }
 
     IPC::ResponseBuilder rb{ctx, 3};

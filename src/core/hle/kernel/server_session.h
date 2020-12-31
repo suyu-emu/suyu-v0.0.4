@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "common/threadsafe_queue.h"
+#include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/synchronization_object.h"
 #include "core/hle/result.h"
 
@@ -43,6 +44,8 @@ class Thread;
  * TLS buffer and control is transferred back to it.
  */
 class ServerSession final : public SynchronizationObject {
+    friend class ServiceThread;
+
 public:
     explicit ServerSession(KernelCore& kernel);
     ~ServerSession() override;
@@ -132,7 +135,7 @@ private:
     ResultCode QueueSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory);
 
     /// Completes a sync request from the emulated application.
-    ResultCode CompleteSyncRequest();
+    ResultCode CompleteSyncRequest(HLERequestContext& context);
 
     /// Handles a SyncRequest to a domain, forwarding the request to the proper object or closing an
     /// object handle.
@@ -163,11 +166,8 @@ private:
     /// The name of this session (optional)
     std::string name;
 
-    /// Core timing event used to schedule the service request at some point in the future
-    std::shared_ptr<Core::Timing::EventType> request_event;
-
-    /// Queue of scheduled service requests
-    Common::MPSCQueue<std::shared_ptr<Kernel::HLERequestContext>> request_queue;
+    /// Thread to dispatch service requests
+    std::weak_ptr<ServiceThread> service_thread;
 };
 
 } // namespace Kernel
