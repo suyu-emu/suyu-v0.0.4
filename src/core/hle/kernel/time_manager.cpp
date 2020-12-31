@@ -8,8 +8,8 @@
 #include "core/core_timing_util.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
@@ -18,7 +18,7 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
     time_manager_event_type = Core::Timing::CreateEvent(
         "Kernel::TimeManagerCallback",
         [this](std::uintptr_t thread_handle, std::chrono::nanoseconds) {
-            std::shared_ptr<Thread> thread;
+            std::shared_ptr<KThread> thread;
             {
                 std::lock_guard lock{mutex};
                 const auto proper_handle = static_cast<Handle>(thread_handle);
@@ -35,7 +35,7 @@ TimeManager::TimeManager(Core::System& system_) : system{system_} {
         });
 }
 
-void TimeManager::ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 nanoseconds) {
+void TimeManager::ScheduleTimeEvent(Handle& event_handle, KThread* timetask, s64 nanoseconds) {
     std::lock_guard lock{mutex};
     event_handle = timetask->GetGlobalHandle();
     if (nanoseconds > 0) {
@@ -58,7 +58,7 @@ void TimeManager::UnscheduleTimeEvent(Handle event_handle) {
     cancelled_events[event_handle] = true;
 }
 
-void TimeManager::CancelTimeEvent(Thread* time_task) {
+void TimeManager::CancelTimeEvent(KThread* time_task) {
     std::lock_guard lock{mutex};
     const Handle event_handle = time_task->GetGlobalHandle();
     UnscheduleTimeEvent(event_handle);

@@ -29,6 +29,7 @@
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/handle_table.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/memory/memory_manager.h"
@@ -38,7 +39,6 @@
 #include "core/hle/kernel/resource_limit.h"
 #include "core/hle/kernel/service_thread.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/lock.h"
 #include "core/hle/result.h"
@@ -171,8 +171,8 @@ struct KernelCore::Impl {
             const auto type =
                 static_cast<ThreadType>(THREADTYPE_KERNEL | THREADTYPE_HLE | THREADTYPE_SUSPEND);
             auto thread_res =
-                Thread::Create(system, type, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
-                               nullptr, std::move(init_func), init_func_parameter);
+                KThread::Create(system, type, std::move(name), 0, 0, 0, static_cast<u32>(i), 0,
+                                nullptr, std::move(init_func), init_func_parameter);
 
             suspend_threads[i] = std::move(thread_res).Unwrap();
         }
@@ -236,7 +236,7 @@ struct KernelCore::Impl {
             return result;
         }
         const Kernel::KScheduler& sched = cores[result.host_handle].Scheduler();
-        const Kernel::Thread* current = sched.GetCurrentThread();
+        const Kernel::KThread* current = sched.GetCurrentThread();
         if (current != nullptr && !current->IsPhantomMode()) {
             result.guest_handle = current->GetGlobalHandle();
         } else {
@@ -342,7 +342,7 @@ struct KernelCore::Impl {
     // the release of itself
     std::unique_ptr<Common::ThreadWorker> service_thread_manager;
 
-    std::array<std::shared_ptr<Thread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
+    std::array<std::shared_ptr<KThread>, Core::Hardware::NUM_CPU_CORES> suspend_threads{};
     std::array<Core::CPUInterruptHandler, Core::Hardware::NUM_CPU_CORES> interrupts{};
     std::array<std::unique_ptr<Kernel::KScheduler>, Core::Hardware::NUM_CPU_CORES> schedulers{};
 
@@ -380,8 +380,8 @@ std::shared_ptr<ResourceLimit> KernelCore::GetSystemResourceLimit() const {
     return impl->system_resource_limit;
 }
 
-std::shared_ptr<Thread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
-    return impl->global_handle_table.Get<Thread>(handle);
+std::shared_ptr<KThread> KernelCore::RetrieveThreadFromGlobalHandleTable(Handle handle) const {
+    return impl->global_handle_table.Get<KThread>(handle);
 }
 
 void KernelCore::AppendNewProcess(std::shared_ptr<Process> process) {

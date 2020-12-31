@@ -6,10 +6,10 @@
 #include "common/assert.h"
 #include "core/hle/kernel/client_port.h"
 #include "core/hle/kernel/errors.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/server_port.h"
 #include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 

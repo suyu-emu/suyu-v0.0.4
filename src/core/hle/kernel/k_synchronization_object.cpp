@@ -7,9 +7,9 @@
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/svc_results.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 
@@ -20,7 +20,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
     std::vector<ThreadListNode> thread_nodes(num_objects);
 
     // Prepare for wait.
-    Thread* thread = kernel.CurrentScheduler()->GetCurrentThread();
+    KThread* thread = kernel.CurrentScheduler()->GetCurrentThread();
     Handle timer = InvalidHandle;
 
     {
@@ -148,7 +148,7 @@ void KSynchronizationObject::NotifyAvailable(ResultCode result) {
 
     // Iterate over each thread.
     for (auto* cur_node = thread_list_head; cur_node != nullptr; cur_node = cur_node->next) {
-        Thread* thread = cur_node->thread;
+        KThread* thread = cur_node->thread;
         if (thread->GetState() == ThreadState::Waiting) {
             thread->SetSyncedObject(this, result);
             thread->SetState(ThreadState::Runnable);
@@ -156,8 +156,8 @@ void KSynchronizationObject::NotifyAvailable(ResultCode result) {
     }
 }
 
-std::vector<Thread*> KSynchronizationObject::GetWaitingThreadsForDebugging() const {
-    std::vector<Thread*> threads;
+std::vector<KThread*> KSynchronizationObject::GetWaitingThreadsForDebugging() const {
+    std::vector<KThread*> threads;
 
     // If debugging, dump the list of waiters.
     {

@@ -124,15 +124,15 @@ enum class ThreadWaitReasonForDebugging : u32 {
     Suspended,       ///< Thread is waiting due to process suspension
 };
 
-class Thread final : public KSynchronizationObject, public boost::intrusive::list_base_hook<> {
+class KThread final : public KSynchronizationObject, public boost::intrusive::list_base_hook<> {
     friend class KScheduler;
     friend class Process;
 
 public:
-    explicit Thread(KernelCore& kernel);
-    ~Thread() override;
+    explicit KThread(KernelCore& kernel);
+    ~KThread() override;
 
-    using MutexWaitingThreads = std::vector<std::shared_ptr<Thread>>;
+    using MutexWaitingThreads = std::vector<std::shared_ptr<KThread>>;
 
     using ThreadContext32 = Core::ARM_Interface::ThreadContext32;
     using ThreadContext64 = Core::ARM_Interface::ThreadContext64;
@@ -149,10 +149,10 @@ public:
      * @param owner_process The parent process for the thread, if null, it's a kernel thread
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags,
-                                                     std::string name, VAddr entry_point,
-                                                     u32 priority, u64 arg, s32 processor_id,
-                                                     VAddr stack_top, Process* owner_process);
+    static ResultVal<std::shared_ptr<KThread>> Create(Core::System& system, ThreadType type_flags,
+                                                      std::string name, VAddr entry_point,
+                                                      u32 priority, u64 arg, s32 processor_id,
+                                                      VAddr stack_top, Process* owner_process);
 
     /**
      * Creates and returns a new thread. The new thread is immediately scheduled
@@ -168,12 +168,10 @@ public:
      * @param thread_start_parameter The parameter which will passed to host context on init
      * @return A shared pointer to the newly created thread
      */
-    static ResultVal<std::shared_ptr<Thread>> Create(Core::System& system, ThreadType type_flags,
-                                                     std::string name, VAddr entry_point,
-                                                     u32 priority, u64 arg, s32 processor_id,
-                                                     VAddr stack_top, Process* owner_process,
-                                                     std::function<void(void*)>&& thread_start_func,
-                                                     void* thread_start_parameter);
+    static ResultVal<std::shared_ptr<KThread>> Create(
+        Core::System& system, ThreadType type_flags, std::string name, VAddr entry_point,
+        u32 priority, u64 arg, s32 processor_id, VAddr stack_top, Process* owner_process,
+        std::function<void(void*)>&& thread_start_func, void* thread_start_parameter);
 
     std::string GetName() const override {
         return name;
@@ -387,11 +385,11 @@ public:
         return wait_mutex_threads;
     }
 
-    Thread* GetLockOwner() const {
+    KThread* GetLockOwner() const {
         return lock_owner;
     }
 
-    void SetLockOwner(Thread* owner) {
+    void SetLockOwner(KThread* owner) {
         lock_owner = owner;
     }
 
@@ -485,22 +483,22 @@ public:
             next = nullptr;
         }
 
-        constexpr Thread* GetPrev() const {
+        constexpr KThread* GetPrev() const {
             return prev;
         }
-        constexpr Thread* GetNext() const {
+        constexpr KThread* GetNext() const {
             return next;
         }
-        constexpr void SetPrev(Thread* thread) {
+        constexpr void SetPrev(KThread* thread) {
             prev = thread;
         }
-        constexpr void SetNext(Thread* thread) {
+        constexpr void SetNext(KThread* thread) {
             next = thread;
         }
 
     private:
-        Thread* prev{};
-        Thread* next{};
+        KThread* prev{};
+        KThread* next{};
     };
 
     QueueEntry& GetPriorityQueueEntry(s32 core) {
@@ -553,11 +551,11 @@ public:
         return mutex_wait_address_for_debugging;
     }
 
-    void AddWaiter(Thread* thread);
+    void AddWaiter(KThread* thread);
 
-    void RemoveWaiter(Thread* thread);
+    void RemoveWaiter(KThread* thread);
 
-    [[nodiscard]] Thread* RemoveWaiterByKey(s32* out_num_waiters, VAddr key);
+    [[nodiscard]] KThread* RemoveWaiterByKey(s32* out_num_waiters, VAddr key);
 
     [[nodiscard]] VAddr GetAddressKey() const {
         return address_key;
@@ -603,9 +601,9 @@ private:
 
         template <typename T>
         requires(
-            std::same_as<T, Thread> ||
+            std::same_as<T, KThread> ||
             std::same_as<T, LightCompareType>) static constexpr int Compare(const T& lhs,
-                                                                            const Thread& rhs) {
+                                                                            const KThread& rhs) {
             const uintptr_t l_key = lhs.GetConditionVariableKey();
             const uintptr_t r_key = rhs.GetConditionVariableKey();
 
@@ -624,7 +622,8 @@ private:
     Common::IntrusiveRedBlackTreeNode condvar_arbiter_tree_node{};
 
     using ConditionVariableThreadTreeTraits =
-        Common::IntrusiveRedBlackTreeMemberTraitsDeferredAssert<&Thread::condvar_arbiter_tree_node>;
+        Common::IntrusiveRedBlackTreeMemberTraitsDeferredAssert<
+            &KThread::condvar_arbiter_tree_node>;
     using ConditionVariableThreadTree =
         ConditionVariableThreadTreeTraits::TreeType<ConditionVariableComparator>;
 
@@ -679,9 +678,9 @@ public:
 private:
     void AddSchedulingFlag(ThreadSchedFlags flag);
     void RemoveSchedulingFlag(ThreadSchedFlags flag);
-    void AddWaiterImpl(Thread* thread);
-    void RemoveWaiterImpl(Thread* thread);
-    static void RestorePriority(KernelCore& kernel, Thread* thread);
+    void AddWaiterImpl(KThread* thread);
+    void RemoveWaiterImpl(KThread* thread);
+    static void RestorePriority(KernelCore& kernel, KThread* thread);
 
     Common::SpinLock context_guard{};
     ThreadContext32 context_32{};
@@ -736,7 +735,7 @@ private:
     MutexWaitingThreads wait_mutex_threads;
 
     /// Thread that owns the lock that this thread is waiting for.
-    Thread* lock_owner{};
+    KThread* lock_owner{};
 
     /// Handle used as userdata to reference this object when inserting into the CoreTiming queue.
     Handle global_handle = 0;
@@ -772,7 +771,7 @@ private:
     u32 address_key_value{};
     s32 num_kernel_waiters{};
 
-    using WaiterList = boost::intrusive::list<Thread>;
+    using WaiterList = boost::intrusive::list<KThread>;
     WaiterList waiter_list{};
     WaiterList pinned_waiter_list{};
 

@@ -6,8 +6,8 @@
 
 #include "common/common_types.h"
 #include "common/uuid.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/shared_memory.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/service/time/clock_types.h"
 
 namespace Service::Time {

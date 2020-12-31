@@ -43,7 +43,7 @@ class KScheduler;
 class SharedMemory;
 class ServiceThread;
 class Synchronization;
-class Thread;
+class KThread;
 class TimeManager;
 
 /// Represents a single instance of the kernel.
@@ -84,7 +84,7 @@ public:
     std::shared_ptr<ResourceLimit> GetSystemResourceLimit() const;
 
     /// Retrieves a shared pointer to a Thread instance within the thread wakeup handle table.
-    std::shared_ptr<Thread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
+    std::shared_ptr<KThread> RetrieveThreadFromGlobalHandleTable(Handle handle) const;
 
     /// Adds the given shared pointer to an internal list of active processes.
     void AppendNewProcess(std::shared_ptr<Process> process);
@@ -240,7 +240,7 @@ public:
 private:
     friend class Object;
     friend class Process;
-    friend class Thread;
+    friend class KThread;
 
     /// Creates a new object ID, incrementing the internal object ID counter.
     u32 CreateNewObjectID();

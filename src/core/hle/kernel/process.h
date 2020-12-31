@@ -30,7 +30,7 @@ namespace Kernel {
 
 class KernelCore;
 class ResourceLimit;
-class Thread;
+class KThread;
 class TLSPage;
 
 struct CodeSet;
@@ -252,17 +252,17 @@ public:
     u64 GetTotalPhysicalMemoryUsedWithoutSystemResource() const;
 
     /// Gets the list of all threads created with this process as their owner.
-    const std::list<const Thread*>& GetThreadList() const {
+    const std::list<const KThread*>& GetThreadList() const {
         return thread_list;
     }
 
     /// Registers a thread as being created under this process,
     /// adding it to this process' thread list.
-    void RegisterThread(const Thread* thread);
+    void RegisterThread(const KThread* thread);
 
     /// Unregisters a thread from this process, removing it
     /// from this process' thread list.
-    void UnregisterThread(const Thread* thread);
+    void UnregisterThread(const KThread* thread);
 
     /// Clears the signaled state of the process if and only if it's signaled.
     ///
@@ -380,7 +380,7 @@ private:
     std::array<u64, RANDOM_ENTROPY_SIZE> random_entropy{};
 
     /// List of threads that are running with this process as their owner.
-    std::list<const Thread*> thread_list;
+    std::list<const KThread*> thread_list;
 
     /// Address of the top of the main thread's stack
     VAddr main_thread_stack_top{};

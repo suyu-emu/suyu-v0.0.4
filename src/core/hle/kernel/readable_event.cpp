@@ -7,10 +7,10 @@
 #include "common/logging/log.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/readable_event.h"
-#include "core/hle/kernel/thread.h"
 
 namespace Kernel {
 

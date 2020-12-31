@@ -24,7 +24,7 @@ namespace Kernel {
 
 class KernelCore;
 class Session;
-class Thread;
+class KThread;
 
 class ClientSession final : public KSynchronizationObject {
 public:
@@ -46,7 +46,7 @@ public:
         return HANDLE_TYPE;
     }
 
-    ResultCode SendSyncRequest(std::shared_ptr<Thread> thread, Core::Memory::Memory& memory,
+    ResultCode SendSyncRequest(std::shared_ptr<KThread> thread, Core::Memory::Memory& memory,
                                Core::Timing::CoreTiming& core_timing);
 
     bool IsSignaled() const override;

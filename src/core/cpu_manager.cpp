@@ -11,9 +11,9 @@
 #include "core/core_timing.h"
 #include "core/cpu_manager.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/physical_core.h"
-#include "core/hle/kernel/thread.h"
 #include "video_core/gpu.h"
 
 namespace Core {
@@ -147,7 +147,7 @@ void CpuManager::MultiCoreRunSuspendThread() {
     while (true) {
         auto core = kernel.GetCurrentHostThreadID();
         auto& scheduler = *kernel.CurrentScheduler();
-        Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+        Kernel::KThread* current_thread = scheduler.GetCurrentThread();
         Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[core].host_context);
         ASSERT(scheduler.ContextSwitchPending());
         ASSERT(core == kernel.GetCurrentHostThreadID());
@@ -245,7 +245,7 @@ void CpuManager::SingleCoreRunSuspendThread() {
     while (true) {
         auto core = kernel.GetCurrentHostThreadID();
         auto& scheduler = *kernel.CurrentScheduler();
-        Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+        Kernel::KThread* current_thread = scheduler.GetCurrentThread();
         Common::Fiber::YieldTo(current_thread->GetHostContext(), core_data[0].host_context);
         ASSERT(scheduler.ContextSwitchPending());
         ASSERT(core == kernel.GetCurrentHostThreadID());
@@ -256,7 +256,7 @@ void CpuManager::SingleCoreRunSuspendThread() {
 void CpuManager::PreemptSingleCore(bool from_running_enviroment) {
     {
         auto& scheduler = system.Kernel().Scheduler(current_core);
-        Kernel::Thread* current_thread = scheduler.GetCurrentThread();
+        Kernel::KThread* current_thread = scheduler.GetCurrentThread();
         if (idle_count >= 4 || from_running_enviroment) {
             if (!from_running_enviroment) {
                 system.CoreTiming().Idle();

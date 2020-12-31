@@ -20,11 +20,11 @@
 #include "core/hle/kernel/k_condition_variable.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -36,14 +36,14 @@
 
 namespace Kernel {
 
-bool Thread::IsSignaled() const {
+bool KThread::IsSignaled() const {
     return signaled;
 }
 
-Thread::Thread(KernelCore& kernel) : KSynchronizationObject{kernel} {}
-Thread::~Thread() = default;
+KThread::KThread(KernelCore& kernel) : KSynchronizationObject{kernel} {}
+KThread::~KThread() = default;
 
-void Thread::Stop() {
+void KThread::Stop() {
     {
         KScopedSchedulerLock lock(kernel);
         SetState(ThreadState::Terminated);
@@ -62,18 +62,18 @@ void Thread::Stop() {
     global_handle = 0;
 }
 
-void Thread::Wakeup() {
+void KThread::Wakeup() {
     KScopedSchedulerLock lock(kernel);
     SetState(ThreadState::Runnable);
 }
 
-ResultCode Thread::Start() {
+ResultCode KThread::Start() {
     KScopedSchedulerLock lock(kernel);
     SetState(ThreadState::Runnable);
     return RESULT_SUCCESS;
 }
 
-void Thread::CancelWait() {
+void KThread::CancelWait() {
     KScopedSchedulerLock lock(kernel);
     if (GetState() != ThreadState::Waiting || !is_cancellable) {
         is_sync_cancelled = true;
@@ -103,26 +103,26 @@ static void ResetThreadContext64(Core::ARM_Interface::ThreadContext64& context, 
     context.fpcr = 0;
 }
 
-std::shared_ptr<Common::Fiber>& Thread::GetHostContext() {
+std::shared_ptr<Common::Fiber>& KThread::GetHostContext() {
     return host_context;
 }
 
-ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadType type_flags,
-                                                  std::string name, VAddr entry_point, u32 priority,
-                                                  u64 arg, s32 processor_id, VAddr stack_top,
-                                                  Process* owner_process) {
+ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, ThreadType type_flags,
+                                                    std::string name, VAddr entry_point,
+                                                    u32 priority, u64 arg, s32 processor_id,
+                                                    VAddr stack_top, Process* owner_process) {
     std::function<void(void*)> init_func = Core::CpuManager::GetGuestThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
     return Create(system, type_flags, name, entry_point, priority, arg, processor_id, stack_top,
                   owner_process, std::move(init_func), init_func_parameter);
 }
 
-ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadType type_flags,
-                                                  std::string name, VAddr entry_point, u32 priority,
-                                                  u64 arg, s32 processor_id, VAddr stack_top,
-                                                  Process* owner_process,
-                                                  std::function<void(void*)>&& thread_start_func,
-                                                  void* thread_start_parameter) {
+ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, ThreadType type_flags,
+                                                    std::string name, VAddr entry_point,
+                                                    u32 priority, u64 arg, s32 processor_id,
+                                                    VAddr stack_top, Process* owner_process,
+                                                    std::function<void(void*)>&& thread_start_func,
+                                                    void* thread_start_parameter) {
     auto& kernel = system.Kernel();
     // Check if priority is in ranged. Lowest priority -> highest priority id.
     if (priority > THREADPRIO_LOWEST && ((type_flags & THREADTYPE_IDLE) == 0)) {
@@ -143,7 +143,7 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
         }
     }
 
-    std::shared_ptr<Thread> thread = std::make_shared<Thread>(kernel);
+    std::shared_ptr<KThread> thread = std::make_shared<KThread>(kernel);
 
     thread->thread_id = kernel.CreateNewThreadID();
     thread->thread_state = ThreadState::Initialized;
@@ -185,10 +185,10 @@ ResultVal<std::shared_ptr<Thread>> Thread::Create(Core::System& system, ThreadTy
     thread->host_context =
         std::make_shared<Common::Fiber>(std::move(thread_start_func), thread_start_parameter);
 
-    return MakeResult<std::shared_ptr<Thread>>(std::move(thread));
+    return MakeResult<std::shared_ptr<KThread>>(std::move(thread));
 }
 
-void Thread::SetBasePriority(u32 priority) {
+void KThread::SetBasePriority(u32 priority) {
     ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
                "Invalid priority value.");
 
@@ -201,18 +201,18 @@ void Thread::SetBasePriority(u32 priority) {
     RestorePriority(kernel, this);
 }
 
-void Thread::SetSynchronizationResults(KSynchronizationObject* object, ResultCode result) {
+void KThread::SetSynchronizationResults(KSynchronizationObject* object, ResultCode result) {
     signaling_object = object;
     signaling_result = result;
 }
 
-VAddr Thread::GetCommandBufferAddress() const {
+VAddr KThread::GetCommandBufferAddress() const {
     // Offset from the start of TLS at which the IPC command buffer begins.
     constexpr u64 command_header_offset = 0x80;
     return GetTLSAddress() + command_header_offset;
 }
 
-void Thread::SetState(ThreadState state) {
+void KThread::SetState(ThreadState state) {
     KScopedSchedulerLock sl(kernel);
 
     // Clear debugging state
@@ -227,7 +227,7 @@ void Thread::SetState(ThreadState state) {
     }
 }
 
-void Thread::AddWaiterImpl(Thread* thread) {
+void KThread::AddWaiterImpl(KThread* thread) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Find the right spot to insert the waiter.
@@ -249,7 +249,7 @@ void Thread::AddWaiterImpl(Thread* thread) {
     thread->SetLockOwner(this);
 }
 
-void Thread::RemoveWaiterImpl(Thread* thread) {
+void KThread::RemoveWaiterImpl(KThread* thread) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     // Keep track of how many kernel waiters we have.
@@ -262,7 +262,7 @@ void Thread::RemoveWaiterImpl(Thread* thread) {
     thread->SetLockOwner(nullptr);
 }
 
-void Thread::RestorePriority(KernelCore& kernel, Thread* thread) {
+void KThread::RestorePriority(KernelCore& kernel, KThread* thread) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     while (true) {
@@ -295,7 +295,7 @@ void Thread::RestorePriority(KernelCore& kernel, Thread* thread) {
         KScheduler::OnThreadPriorityChanged(kernel, thread, old_priority);
 
         // Keep the lock owner up to date.
-        Thread* lock_owner = thread->GetLockOwner();
+        KThread* lock_owner = thread->GetLockOwner();
         if (lock_owner == nullptr) {
             return;
         }
@@ -307,25 +307,25 @@ void Thread::RestorePriority(KernelCore& kernel, Thread* thread) {
     }
 }
 
-void Thread::AddWaiter(Thread* thread) {
+void KThread::AddWaiter(KThread* thread) {
     AddWaiterImpl(thread);
     RestorePriority(kernel, this);
 }
 
-void Thread::RemoveWaiter(Thread* thread) {
+void KThread::RemoveWaiter(KThread* thread) {
     RemoveWaiterImpl(thread);
     RestorePriority(kernel, this);
 }
 
-Thread* Thread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
+KThread* KThread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
     ASSERT(kernel.GlobalSchedulerContext().IsLocked());
 
     s32 num_waiters{};
-    Thread* next_lock_owner{};
+    KThread* next_lock_owner{};
     auto it = waiter_list.begin();
     while (it != waiter_list.end()) {
         if (it->GetAddressKey() == key) {
-            Thread* thread = std::addressof(*it);
+            KThread* thread = std::addressof(*it);
 
             // Keep track of how many kernel waiters we have.
             if (Memory::IsKernelAddressKey(thread->GetAddressKey())) {
@@ -357,7 +357,7 @@ Thread* Thread::RemoveWaiterByKey(s32* out_num_waiters, VAddr key) {
     return next_lock_owner;
 }
 
-ResultCode Thread::SetActivity(ThreadActivity value) {
+ResultCode KThread::SetActivity(ThreadActivity value) {
     KScopedSchedulerLock lock(kernel);
 
     auto sched_status = GetState();
@@ -384,7 +384,7 @@ ResultCode Thread::SetActivity(ThreadActivity value) {
     return RESULT_SUCCESS;
 }
 
-ResultCode Thread::Sleep(s64 nanoseconds) {
+ResultCode KThread::Sleep(s64 nanoseconds) {
     Handle event_handle{};
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
@@ -399,7 +399,7 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     return RESULT_SUCCESS;
 }
 
-void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
+void KThread::AddSchedulingFlag(ThreadSchedFlags flag) {
     const auto old_state = GetRawState();
     pausing_state |= static_cast<u32>(flag);
     const auto base_scheduling = GetState();
@@ -407,7 +407,7 @@ void Thread::AddSchedulingFlag(ThreadSchedFlags flag) {
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
-void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
+void KThread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     const auto old_state = GetRawState();
     pausing_state &= ~static_cast<u32>(flag);
     const auto base_scheduling = GetState();
@@ -415,7 +415,7 @@ void Thread::RemoveSchedulingFlag(ThreadSchedFlags flag) {
     KScheduler::OnThreadStateChanged(kernel, this, old_state);
 }
 
-ResultCode Thread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
+ResultCode KThread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) {
     KScopedSchedulerLock lock(kernel);
     const auto HighestSetCore = [](u64 mask, u32 max_cores) {
         for (s32 core = static_cast<s32>(max_cores - 1); core >= 0; core--) {

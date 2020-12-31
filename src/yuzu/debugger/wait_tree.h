@@ -19,8 +19,8 @@ class EmuThread;
 namespace Kernel {
 class HandleTable;
 class KSynchronizationObject;
+class KThread;
 class ReadableEvent;
-class Thread;
 } // namespace Kernel
 
 class WaitTreeThread;
@@ -83,20 +83,20 @@ private:
     VAddr mutex_address;
     u32 mutex_value;
     Kernel::Handle owner_handle;
-    std::shared_ptr<Kernel::Thread> owner;
+    std::shared_ptr<Kernel::KThread> owner;
 };
 
 class WaitTreeCallstack : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
-    explicit WaitTreeCallstack(const Kernel::Thread& thread);
+    explicit WaitTreeCallstack(const Kernel::KThread& thread);
     ~WaitTreeCallstack() override;
 
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
 private:
-    const Kernel::Thread& thread;
+    const Kernel::KThread& thread;
 };
 
 class WaitTreeSynchronizationObject : public WaitTreeExpandableItem {
@@ -131,7 +131,7 @@ private:
 class WaitTreeThread : public WaitTreeSynchronizationObject {
     Q_OBJECT
 public:
-    explicit WaitTreeThread(const Kernel::Thread& thread);
+    explicit WaitTreeThread(const Kernel::KThread& thread);
     ~WaitTreeThread() override;
 
     QString GetText() const override;
@@ -149,14 +149,14 @@ public:
 class WaitTreeThreadList : public WaitTreeExpandableItem {
     Q_OBJECT
 public:
-    explicit WaitTreeThreadList(const std::vector<Kernel::Thread*>& list);
+    explicit WaitTreeThreadList(const std::vector<Kernel::KThread*>& list);
     ~WaitTreeThreadList() override;
 
     QString GetText() const override;
     std::vector<std::unique_ptr<WaitTreeItem>> GetChildren() const override;
 
 private:
-    const std::vector<Kernel::Thread*>& thread_list;
+    const std::vector<Kernel::KThread*>& thread_list;
 };
 
 class WaitTreeModel : public QAbstractItemModel {

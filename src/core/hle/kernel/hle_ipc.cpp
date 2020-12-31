@@ -19,12 +19,12 @@
 #include "core/hle/kernel/hle_ipc.h"
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/server_session.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/writable_event.h"
 #include "core/memory.h"
@@ -48,7 +48,7 @@ void SessionRequestHandler::ClientDisconnected(
 
 HLERequestContext::HLERequestContext(KernelCore& kernel, Core::Memory::Memory& memory,
                                      std::shared_ptr<ServerSession> server_session,
-                                     std::shared_ptr<Thread> thread)
+                                     std::shared_ptr<KThread> thread)
     : server_session(std::move(server_session)),
       thread(std::move(thread)), kernel{kernel}, memory{memory} {
     cmd_buf[0] = 0;
@@ -182,7 +182,7 @@ ResultCode HLERequestContext::PopulateFromIncomingCommandBuffer(const HandleTabl
     return RESULT_SUCCESS;
 }
 
-ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(Thread& thread) {
+ResultCode HLERequestContext::WriteToOutgoingCommandBuffer(KThread& thread) {
     auto& owner_process = *thread.GetOwnerProcess();
     auto& handle_table = owner_process.GetHandleTable();
 

@@ -20,7 +20,7 @@ struct EventType;
 
 namespace Kernel {
 
-class Thread;
+class KThread;
 
 /**
  * The `TimeManager` takes care of scheduling time events on threads and executes their TimeUp
@@ -32,12 +32,12 @@ public:
 
     /// Schedule a time event on `timetask` thread that will expire in 'nanoseconds'
     /// returns a non-invalid handle in `event_handle` if correctly scheduled
-    void ScheduleTimeEvent(Handle& event_handle, Thread* timetask, s64 nanoseconds);
+    void ScheduleTimeEvent(Handle& event_handle, KThread* timetask, s64 nanoseconds);
 
     /// Unschedule an existing time event
     void UnscheduleTimeEvent(Handle event_handle);
 
-    void CancelTimeEvent(Thread* time_task);
+    void CancelTimeEvent(KThread* time_task);
 
 private:
     Core::System& system;

@@ -29,6 +29,7 @@
 #include "core/hle/kernel/k_scheduler.h"
 #include "core/hle/kernel/k_scoped_scheduler_lock_and_sleep.h"
 #include "core/hle/kernel/k_synchronization_object.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block.h"
 #include "core/hle/kernel/memory/memory_layout.h"
@@ -42,7 +43,6 @@
 #include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/svc_types.h"
 #include "core/hle/kernel/svc_wrap.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/kernel/transfer_memory.h"
 #include "core/hle/kernel/writable_event.h"
@@ -363,7 +363,7 @@ static ResultCode GetThreadId(Core::System& system, u64* thread_id, Handle threa
     LOG_TRACE(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", thread_handle);
         return ERR_INVALID_HANDLE;
@@ -395,7 +395,7 @@ static ResultCode GetProcessId(Core::System& system, u64* process_id, Handle han
         return RESULT_SUCCESS;
     }
 
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
     if (thread) {
         const Process* const owner_process = thread->GetOwnerProcess();
         if (!owner_process) {
@@ -474,7 +474,7 @@ static ResultCode CancelSynchronization(Core::System& system, Handle thread_hand
     LOG_TRACE(Kernel_SVC, "called thread=0x{:X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -872,7 +872,7 @@ static ResultCode GetInfo(Core::System& system, u64* result, u64 info_id, u64 ha
             return ERR_INVALID_COMBINATION;
         }
 
-        const auto thread = system.Kernel().CurrentProcess()->GetHandleTable().Get<Thread>(
+        const auto thread = system.Kernel().CurrentProcess()->GetHandleTable().Get<KThread>(
             static_cast<Handle>(handle));
         if (!thread) {
             LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}",
@@ -1033,7 +1033,7 @@ static ResultCode SetThreadActivity(Core::System& system, Handle handle, u32 act
     }
 
     const auto* current_process = system.Kernel().CurrentProcess();
-    const std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    const std::shared_ptr<KThread> thread = current_process->GetHandleTable().Get<KThread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1066,7 +1066,7 @@ static ResultCode GetThreadContext(Core::System& system, VAddr thread_context, H
     LOG_DEBUG(Kernel_SVC, "called, context=0x{:08X}, thread=0x{:X}", thread_context, handle);
 
     const auto* current_process = system.Kernel().CurrentProcess();
-    const std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    const std::shared_ptr<KThread> thread = current_process->GetHandleTable().Get<KThread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1111,7 +1111,7 @@ static ResultCode GetThreadPriority(Core::System& system, u32* priority, Handle 
     LOG_TRACE(Kernel_SVC, "called");
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(handle);
     if (!thread) {
         *priority = 0;
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
@@ -1140,7 +1140,7 @@ static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 pri
 
     const auto* const current_process = system.Kernel().CurrentProcess();
 
-    std::shared_ptr<Thread> thread = current_process->GetHandleTable().Get<Thread>(handle);
+    std::shared_ptr<KThread> thread = current_process->GetHandleTable().Get<KThread>(handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, handle=0x{:08X}", handle);
         return ERR_INVALID_HANDLE;
@@ -1489,9 +1489,9 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
     ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Threads, 1));
 
     ThreadType type = THREADTYPE_USER;
-    CASCADE_RESULT(std::shared_ptr<Thread> thread,
-                   Thread::Create(system, type, "", entry_point, priority, arg, processor_id,
-                                  stack_top, current_process));
+    CASCADE_RESULT(std::shared_ptr<KThread> thread,
+                   KThread::Create(system, type, "", entry_point, priority, arg, processor_id,
+                                   stack_top, current_process));
 
     const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
     if (new_thread_handle.Failed()) {
@@ -1518,7 +1518,7 @@ static ResultCode StartThread(Core::System& system, Handle thread_handle) {
     LOG_DEBUG(Kernel_SVC, "called thread=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -1844,7 +1844,7 @@ static ResultCode GetThreadCoreMask(Core::System& system, Handle thread_handle, 
     LOG_TRACE(Kernel_SVC, "called, handle=0x{:08X}", thread_handle);
 
     const auto& handle_table = system.Kernel().CurrentProcess()->GetHandleTable();
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);
@@ -1914,7 +1914,7 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
     }
 
     const auto& handle_table = current_process->GetHandleTable();
-    const std::shared_ptr<Thread> thread = handle_table.Get<Thread>(thread_handle);
+    const std::shared_ptr<KThread> thread = handle_table.Get<KThread>(thread_handle);
     if (!thread) {
         LOG_ERROR(Kernel_SVC, "Thread handle does not exist, thread_handle=0x{:08X}",
                   thread_handle);

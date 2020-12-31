@@ -9,15 +9,15 @@
 
 #include "common/common_types.h"
 #include "core/hle/kernel/handle_table.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/kernel/time_manager.h"
 
 namespace Kernel {
 
 class KScopedSchedulerLockAndSleep {
 public:
-    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, Thread* t,
+    explicit KScopedSchedulerLockAndSleep(KernelCore& kernel, Handle& event_handle, KThread* t,
                                           s64 timeout)
         : kernel(kernel), event_handle(event_handle), thread(t), timeout_tick(timeout) {
         event_handle = InvalidHandle;
@@ -43,7 +43,7 @@ public:
 private:
     KernelCore& kernel;
     Handle& event_handle;
-    Thread* thread{};
+    KThread* thread{};
     s64 timeout_tick{};
 };
 

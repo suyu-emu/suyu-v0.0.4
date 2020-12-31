@@ -16,13 +16,13 @@
 #include "core/hle/kernel/code_set.h"
 #include "core/hle/kernel/errors.h"
 #include "core/hle/kernel/k_scheduler.h"
+#include "core/hle/kernel/k_thread.h"
 #include "core/hle/kernel/kernel.h"
 #include "core/hle/kernel/memory/memory_block_manager.h"
 #include "core/hle/kernel/memory/page_table.h"
 #include "core/hle/kernel/memory/slab_heap.h"
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/resource_limit.h"
-#include "core/hle/kernel/thread.h"
 #include "core/hle/lock.h"
 #include "core/memory.h"
 #include "core/settings.h"
@@ -39,10 +39,10 @@ namespace {
 void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
     ThreadType type = THREADTYPE_USER;
-    auto thread_res = Thread::Create(system, type, "main", entry_point, priority, 0,
-                                     owner_process.GetIdealCore(), stack_top, &owner_process);
+    auto thread_res = KThread::Create(system, type, "main", entry_point, priority, 0,
+                                      owner_process.GetIdealCore(), stack_top, &owner_process);
 
-    std::shared_ptr<Thread> thread = std::move(thread_res).Unwrap();
+    std::shared_ptr<KThread> thread = std::move(thread_res).Unwrap();
 
     // Register 1 must be a handle to the main thread
     const Handle thread_handle = owner_process.GetHandleTable().Create(thread).Unwrap();
@@ -162,11 +162,11 @@ u64 Process::GetTotalPhysicalMemoryUsedWithoutSystemResource() const {
     return GetTotalPhysicalMemoryUsed() - GetSystemResourceUsage();
 }
 
-void Process::RegisterThread(const Thread* thread) {
+void Process::RegisterThread(const KThread* thread) {
     thread_list.push_back(thread);
 }
 
-void Process::UnregisterThread(const Thread* thread) {
+void Process::UnregisterThread(const KThread* thread) {
     thread_list.remove(thread);
 }
 
@@ -267,7 +267,7 @@ void Process::Run(s32 main_thread_priority, u64 stack_size) {
 void Process::PrepareForTermination() {
     ChangeStatus(ProcessStatus::Exiting);
 
-    const auto stop_threads = [this](const std::vector<std::shared_ptr<Thread>>& thread_list) {
+    const auto stop_threads = [this](const std::vector<std::shared_ptr<KThread>>& thread_list) {
         for (auto& thread : thread_list) {
             if (thread->GetOwnerProcess() != this)
                 continue;
