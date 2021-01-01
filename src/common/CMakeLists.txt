@@ -135,8 +135,6 @@ add_library(common STATIC
     math_util.h
     memory_detect.cpp
     memory_detect.h
-    memory_hook.cpp
-    memory_hook.h
     microprofile.cpp
     microprofile.h
     microprofileui.h

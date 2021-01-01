@@ -8,7 +8,6 @@
 #include <tuple>
 
 #include "common/common_types.h"
-#include "common/memory_hook.h"
 #include "common/virtual_buffer.h"
 
 namespace Common {
@@ -21,23 +20,6 @@ enum class PageType : u8 {
     /// Page is mapped to regular memory, but also needs to check for rasterizer cache flushing and
     /// invalidation
     RasterizerCachedMemory,
-};
-
-struct SpecialRegion {
-    enum class Type {
-        DebugHook,
-        IODevice,
-    } type;
-
-    MemoryHookPointer handler;
-
-    [[nodiscard]] bool operator<(const SpecialRegion& other) const {
-        return std::tie(type, handler) < std::tie(other.type, other.handler);
-    }
-
-    [[nodiscard]] bool operator==(const SpecialRegion& other) const {
-        return std::tie(type, handler) == std::tie(other.type, other.handler);
-    }
 };
 
 /**
