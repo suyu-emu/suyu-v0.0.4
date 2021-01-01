@@ -44,25 +44,10 @@ struct Memory::Impl {
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, target, Common::PageType::Memory);
     }
 
-    void MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
-                     Common::MemoryHookPointer mmio_handler) {
-        UNIMPLEMENTED();
-    }
-
     void UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
         ASSERT_MSG((size & PAGE_MASK) == 0, "non-page aligned size: {:016X}", size);
         ASSERT_MSG((base & PAGE_MASK) == 0, "non-page aligned base: {:016X}", base);
         MapPages(page_table, base / PAGE_SIZE, size / PAGE_SIZE, 0, Common::PageType::Unmapped);
-    }
-
-    void AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                      Common::MemoryHookPointer hook) {
-        UNIMPLEMENTED();
-    }
-
-    void RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                         Common::MemoryHookPointer hook) {
-        UNIMPLEMENTED();
     }
 
     bool IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {
@@ -740,23 +725,8 @@ void Memory::MapMemoryRegion(Common::PageTable& page_table, VAddr base, u64 size
     impl->MapMemoryRegion(page_table, base, size, target);
 }
 
-void Memory::MapIoRegion(Common::PageTable& page_table, VAddr base, u64 size,
-                         Common::MemoryHookPointer mmio_handler) {
-    impl->MapIoRegion(page_table, base, size, std::move(mmio_handler));
-}
-
 void Memory::UnmapRegion(Common::PageTable& page_table, VAddr base, u64 size) {
     impl->UnmapRegion(page_table, base, size);
-}
-
-void Memory::AddDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                          Common::MemoryHookPointer hook) {
-    impl->AddDebugHook(page_table, base, size, std::move(hook));
-}
-
-void Memory::RemoveDebugHook(Common::PageTable& page_table, VAddr base, u64 size,
-                             Common::MemoryHookPointer hook) {
-    impl->RemoveDebugHook(page_table, base, size, std::move(hook));
 }
 
 bool Memory::IsValidVirtualAddress(const Kernel::Process& process, const VAddr vaddr) const {

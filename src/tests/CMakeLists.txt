@@ -4,8 +4,6 @@ add_executable(tests
     common/fibers.cpp
     common/param_package.cpp
     common/ring_buffer.cpp
-    core/arm/arm_test_common.cpp
-    core/arm/arm_test_common.h
     core/core_timing.cpp
     tests.cpp
 )
