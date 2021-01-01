@@ -4,7 +4,6 @@
 
 #include <algorithm>
 #include <memory>
-#include <thread>
 #include <utility>
 #include <QGridLayout>
 #include <QInputDialog>
@@ -576,6 +575,10 @@ void ConfigureInputPlayer::ApplyConfiguration() {
 
     std::transform(motions_param.begin(), motions_param.end(), motions.begin(),
                    [](const Common::ParamPackage& param) { return param.Serialize(); });
+}
+
+void ConfigureInputPlayer::TryConnectSelectedController() {
+    auto& player = Settings::values.players.GetValue()[player_index];
 
     const auto controller_type =
         GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
@@ -588,15 +591,12 @@ void ConfigureInputPlayer::ApplyConfiguration() {
         return;
     }
 
-    // Disconnect the controller first.
-    UpdateController(controller_type, player_index, false);
-
     player.controller_type = controller_type;
     player.connected = player_connected;
 
     ConfigureVibration::SetVibrationDevices(player_index);
 
-    // Handheld
+    // Connect/Disconnect Handheld depending on Player 1's controller configuration.
     if (player_index == 0) {
         auto& handheld = Settings::values.players.GetValue()[HANDHELD_INDEX];
         if (controller_type == Settings::ControllerType::Handheld) {
@@ -611,12 +611,24 @@ void ConfigureInputPlayer::ApplyConfiguration() {
         return;
     }
 
-    // This emulates a delay between disconnecting and reconnecting controllers as some games
-    // do not respond to a change in controller type if it was instantaneous.
-    using namespace std::chrono_literals;
-    std::this_thread::sleep_for(20ms);
-
     UpdateController(controller_type, player_index, player_connected);
+}
+
+void ConfigureInputPlayer::TryDisconnectSelectedController() {
+    const auto& player = Settings::values.players.GetValue()[player_index];
+
+    const auto controller_type =
+        GetControllerTypeFromIndex(ui->comboControllerType->currentIndex());
+    const auto player_connected = ui->groupConnectedController->isChecked() &&
+                                  controller_type != Settings::ControllerType::Handheld;
+
+    // Do not do anything if the controller configuration has not changed.
+    if (player.controller_type == controller_type && player.connected == player_connected) {
+        return;
+    }
+
+    // Disconnect the controller first.
+    UpdateController(controller_type, player_index, false);
 }
 
 void ConfigureInputPlayer::showEvent(QShowEvent* event) {

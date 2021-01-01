@@ -54,6 +54,18 @@ public:
     /// Save all button configurations to settings file.
     void ApplyConfiguration();
 
+    /**
+     * Attempts to connect the currently selected controller in the HID backend.
+     * This function will not do anything if it is not connected in the frontend.
+     */
+    void TryConnectSelectedController();
+
+    /**
+     * Attempts to disconnect the currently selected controller in the HID backend.
+     * This function will not do anything if the configuration has not changed.
+     */
+    void TryDisconnectSelectedController();
+
     /// Set the connection state checkbox (used to sync state).
     void ConnectPlayer(bool connected);
 

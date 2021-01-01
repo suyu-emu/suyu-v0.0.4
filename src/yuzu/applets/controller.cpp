@@ -535,7 +535,7 @@ void QtControllerSelectorDialog::UpdateControllerState(std::size_t player_index)
     // This emulates a delay between disconnecting and reconnecting controllers as some games
     // do not respond to a change in controller type if it was instantaneous.
     using namespace std::chrono_literals;
-    std::this_thread::sleep_for(20ms);
+    std::this_thread::sleep_for(60ms);
 
     UpdateController(controller_type, player_index, player_connected);
 }
