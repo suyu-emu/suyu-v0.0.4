@@ -48,10 +48,13 @@ enum ThreadPriority : u32 {
     THREADPRIO_COUNT = 64,             ///< Total number of possible thread priorities.
 };
 
-enum ThreadType : u32 {
-    THREADTYPE_USER = 0x1,
-    THREADTYPE_KERNEL = 0x2,
+enum class ThreadType : u32 {
+    Main = 0,
+    Kernel = 1,
+    HighPriority = 2,
+    User = 3,
 };
+DECLARE_ENUM_FLAG_OPERATORS(ThreadType);
 
 enum ThreadProcessorId : s32 {
     /// Indicates that no particular processor core is preferred.
@@ -307,7 +310,7 @@ public:
     }
 
     bool IsKernelThread() const {
-        return (type & THREADTYPE_KERNEL) != 0;
+        return type == ThreadType::Kernel;
     }
 
     bool WasRunning() const {

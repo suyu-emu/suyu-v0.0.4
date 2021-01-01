@@ -1488,10 +1488,9 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
 
     ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Threads, 1));
 
-    ThreadType type = THREADTYPE_USER;
     CASCADE_RESULT(std::shared_ptr<KThread> thread,
-                   KThread::Create(system, type, "", entry_point, priority, arg, processor_id,
-                                   stack_top, current_process));
+                   KThread::Create(system, ThreadType::User, "", entry_point, priority, arg,
+                                   processor_id, stack_top, current_process));
 
     const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
     if (new_thread_handle.Failed()) {
