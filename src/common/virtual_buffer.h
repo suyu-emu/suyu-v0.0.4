@@ -15,10 +15,12 @@ void FreeMemoryPages(void* base, std::size_t size) noexcept;
 template <typename T>
 class VirtualBuffer final {
 public:
-    static_assert(
-        std::is_trivially_constructible_v<T>,
-        "T must be trivially constructible, as non-trivial constructors will not be executed "
-        "with the current allocator");
+    // TODO: Uncomment this and change Common::PageTable::PageInfo to be trivially constructible
+    // using std::atomic_ref once libc++ has support for it
+    // static_assert(
+    //     std::is_trivially_constructible_v<T>,
+    //     "T must be trivially constructible, as non-trivial constructors will not be executed "
+    //     "with the current allocator");
 
     constexpr VirtualBuffer() = default;
     explicit VirtualBuffer(std::size_t count) : alloc_size{count * sizeof(T)} {

@@ -10,16 +10,10 @@ PageTable::PageTable() = default;
 
 PageTable::~PageTable() noexcept = default;
 
-void PageTable::Resize(std::size_t address_space_width_in_bits, std::size_t page_size_in_bits,
-                       bool has_attribute) {
-    const std::size_t num_page_table_entries{1ULL
-                                             << (address_space_width_in_bits - page_size_in_bits)};
+void PageTable::Resize(size_t address_space_width_in_bits, size_t page_size_in_bits) {
+    const size_t num_page_table_entries{1ULL << (address_space_width_in_bits - page_size_in_bits)};
     pointers.resize(num_page_table_entries);
     backing_addr.resize(num_page_table_entries);
-
-    if (has_attribute) {
-        attributes.resize(num_page_table_entries);
-    }
 }
 
 } // namespace Common

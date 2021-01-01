@@ -265,7 +265,7 @@ ResultCode PageTable::InitializeForProcess(FileSys::ProgramAddressSpaceType as_t
     physical_memory_usage = 0;
     memory_pool = pool;
 
-    page_table_impl.Resize(address_space_width, PageBits, true);
+    page_table_impl.Resize(address_space_width, PageBits);
 
     return InitializeMemoryLayout(start, end);
 }
