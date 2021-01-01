@@ -41,6 +41,13 @@ private:
     u64 last_measure{};
     u64 accumulated_ticks{};
     u64 rtsc_frequency;
+
+    // factors
+    u64 ns_rtsc_factor{};
+    u64 us_rtsc_factor{};
+    u64 ms_rtsc_factor{};
+    u64 clock_rtsc_factor{};
+    u64 cpu_rtsc_factor{};
 };
 } // namespace X64
 
