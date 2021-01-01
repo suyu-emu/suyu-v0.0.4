@@ -136,6 +136,9 @@ static void SocketLoop(Socket* socket) {
 
 Client::Client() {
     LOG_INFO(Input, "Udp Initialization started");
+    for (size_t id = 0; id < MAX_TOUCH_FINGERS; id++) {
+        finger_id[id] = MAX_UDP_CLIENTS * 2;
+    }
     ReloadSockets();
 }
 
@@ -176,7 +179,7 @@ void Client::ReloadSockets() {
     std::string server_token;
     std::size_t client = 0;
     while (std::getline(servers_ss, server_token, ',')) {
-        if (client == max_udp_clients) {
+        if (client == MAX_UDP_CLIENTS) {
             break;
         }
         std::stringstream server_ss(server_token);
@@ -194,7 +197,7 @@ void Client::ReloadSockets() {
         for (std::size_t pad = 0; pad < 4; ++pad) {
             const std::size_t client_number =
                 GetClientNumber(udp_input_address, udp_input_port, pad);
-            if (client_number != max_udp_clients) {
+            if (client_number != MAX_UDP_CLIENTS) {
                 LOG_ERROR(Input, "Duplicated UDP servers found");
                 continue;
             }
@@ -213,7 +216,7 @@ std::size_t Client::GetClientNumber(std::string_view host, u16 port, std::size_t
             return client;
         }
     }
-    return max_udp_clients;
+    return MAX_UDP_CLIENTS;
 }
 
 void Client::OnVersion([[maybe_unused]] Response::Version data) {
@@ -259,33 +262,14 @@ void Client::OnPadData(Response::PadData data, std::size_t client) {
         std::lock_guard guard(clients[client].status.update_mutex);
         clients[client].status.motion_status = clients[client].motion.GetMotion();
 
-        // TODO: add a setting for "click" touch. Click touch refers to a device that differentiates
-        // between a simple "tap" and a hard press that causes the touch screen to click.
-        const bool is_active = data.touch_1.is_active != 0;
-
-        float x = 0;
-        float y = 0;
-
-        if (is_active && clients[client].status.touch_calibration) {
-            const u16 min_x = clients[client].status.touch_calibration->min_x;
-            const u16 max_x = clients[client].status.touch_calibration->max_x;
-            const u16 min_y = clients[client].status.touch_calibration->min_y;
-            const u16 max_y = clients[client].status.touch_calibration->max_y;
-
-            x = static_cast<float>(std::clamp(static_cast<u16>(data.touch_1.x), min_x, max_x) -
-                                   min_x) /
-                static_cast<float>(max_x - min_x);
-            y = static_cast<float>(std::clamp(static_cast<u16>(data.touch_1.y), min_y, max_y) -
-                                   min_y) /
-                static_cast<float>(max_y - min_y);
+        for (size_t id = 0; id < data.touch.size(); id++) {
+            UpdateTouchInput(data.touch[id], client, id);
         }
-
-        clients[client].status.touch_status = {x, y, is_active};
 
         if (configuring) {
             const Common::Vec3f gyroscope = clients[client].motion.GetGyroscope();
             const Common::Vec3f accelerometer = clients[client].motion.GetAcceleration();
-            UpdateYuzuSettings(client, accelerometer, gyroscope, is_active);
+            UpdateYuzuSettings(client, accelerometer, gyroscope);
         }
     }
 }
@@ -320,20 +304,16 @@ void Client::Reset() {
 }
 
 void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& acc,
-                                const Common::Vec3<float>& gyro, bool touch) {
+                                const Common::Vec3<float>& gyro) {
     if (gyro.Length() > 0.2f) {
-        LOG_DEBUG(Input, "UDP Controller {}: gyro=({}, {}, {}), accel=({}, {}, {}), touch={}",
-                  client, gyro[0], gyro[1], gyro[2], acc[0], acc[1], acc[2], touch);
+        LOG_DEBUG(Input, "UDP Controller {}: gyro=({}, {}, {}), accel=({}, {}, {})", client,
+                  gyro[0], gyro[1], gyro[2], acc[0], acc[1], acc[2]);
     }
     UDPPadStatus pad{
         .host = clients[client].host,
         .port = clients[client].port,
         .pad_index = clients[client].pad_index,
     };
-    if (touch) {
-        pad.touch = PadTouch::Click;
-        pad_queue.Push(pad);
-    }
     for (size_t i = 0; i < 3; ++i) {
         if (gyro[i] > 5.0f || gyro[i] < -5.0f) {
             pad.motion = static_cast<PadMotion>(i);
@@ -345,6 +325,53 @@ void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& a
             pad.motion_value = acc[i];
             pad_queue.Push(pad);
         }
+    }
+}
+
+std::optional<size_t> Client::GetUnusedFingerID() const {
+    size_t first_free_id = 0;
+    while (first_free_id < MAX_TOUCH_FINGERS) {
+        if (!std::get<2>(touch_status[first_free_id])) {
+            return first_free_id;
+        } else {
+            first_free_id++;
+        }
+    }
+    return std::nullopt;
+}
+
+void Client::UpdateTouchInput(Response::TouchPad& touch_pad, size_t client, size_t id) {
+    // TODO: Use custom calibration per device
+    const Common::ParamPackage touch_param(Settings::values.touch_device);
+    const u16 min_x = static_cast<u16>(touch_param.Get("min_x", 100));
+    const u16 min_y = static_cast<u16>(touch_param.Get("min_y", 50));
+    const u16 max_x = static_cast<u16>(touch_param.Get("max_x", 1800));
+    const u16 max_y = static_cast<u16>(touch_param.Get("max_y", 850));
+
+    if (touch_pad.is_active) {
+        if (finger_id[client * 2 + id] == MAX_TOUCH_FINGERS) {
+            const auto first_free_id = GetUnusedFingerID();
+            if (!first_free_id) {
+                // Invalid finger id skip to next input
+                return;
+            }
+            finger_id[client * 2 + id] = first_free_id.value();
+        }
+        auto& [x, y, pressed] = touch_status[finger_id[client * 2 + id]];
+        x = static_cast<float>(std::clamp(static_cast<u16>(touch_pad.x), min_x, max_x) - min_x) /
+            static_cast<float>(max_x - min_x);
+        y = static_cast<float>(std::clamp(static_cast<u16>(touch_pad.y), min_y, max_y) - min_y) /
+            static_cast<float>(max_y - min_y);
+        pressed = true;
+        return;
+    }
+
+    if (finger_id[client * 2 + id] != MAX_TOUCH_FINGERS) {
+        auto& [x, y, pressed] = touch_status[finger_id[client * 2 + id]];
+        x = 0;
+        y = 0;
+        pressed = false;
+        finger_id[client * 2 + id] = MAX_TOUCH_FINGERS;
     }
 }
 
@@ -360,7 +387,7 @@ void Client::EndConfiguration() {
 
 DeviceStatus& Client::GetPadState(const std::string& host, u16 port, std::size_t pad) {
     const std::size_t client_number = GetClientNumber(host, port, pad);
-    if (client_number == max_udp_clients) {
+    if (client_number == MAX_UDP_CLIENTS) {
         return clients[0].status;
     }
     return clients[client_number].status;
@@ -368,10 +395,18 @@ DeviceStatus& Client::GetPadState(const std::string& host, u16 port, std::size_t
 
 const DeviceStatus& Client::GetPadState(const std::string& host, u16 port, std::size_t pad) const {
     const std::size_t client_number = GetClientNumber(host, port, pad);
-    if (client_number == max_udp_clients) {
+    if (client_number == MAX_UDP_CLIENTS) {
         return clients[0].status;
     }
     return clients[client_number].status;
+}
+
+Input::TouchStatus& Client::GetTouchState() {
+    return touch_status;
+}
+
+const Input::TouchStatus& Client::GetTouchState() const {
+    return touch_status;
 }
 
 Common::SPSCQueue<UDPPadStatus>& Client::GetPadQueue() {
@@ -426,24 +461,24 @@ CalibrationConfigurationJob::CalibrationConfigurationJob(
                                         current_status = Status::Ready;
                                         status_callback(current_status);
                                     }
-                                    if (data.touch_1.is_active == 0) {
+                                    if (data.touch[0].is_active == 0) {
                                         return;
                                     }
-                                    LOG_DEBUG(Input, "Current touch: {} {}", data.touch_1.x,
-                                              data.touch_1.y);
-                                    min_x = std::min(min_x, static_cast<u16>(data.touch_1.x));
-                                    min_y = std::min(min_y, static_cast<u16>(data.touch_1.y));
+                                    LOG_DEBUG(Input, "Current touch: {} {}", data.touch[0].x,
+                                              data.touch[0].y);
+                                    min_x = std::min(min_x, static_cast<u16>(data.touch[0].x));
+                                    min_y = std::min(min_y, static_cast<u16>(data.touch[0].y));
                                     if (current_status == Status::Ready) {
                                         // First touch - min data (min_x/min_y)
                                         current_status = Status::Stage1Completed;
                                         status_callback(current_status);
                                     }
-                                    if (data.touch_1.x - min_x > CALIBRATION_THRESHOLD &&
-                                        data.touch_1.y - min_y > CALIBRATION_THRESHOLD) {
+                                    if (data.touch[0].x - min_x > CALIBRATION_THRESHOLD &&
+                                        data.touch[0].y - min_y > CALIBRATION_THRESHOLD) {
                                         // Set the current position as max value and finishes
                                         // configuration
-                                        max_x = data.touch_1.x;
-                                        max_y = data.touch_1.y;
+                                        max_x = data.touch[0].x;
+                                        max_y = data.touch[0].y;
                                         current_status = Status::Completed;
                                         data_callback(min_x, min_y, max_x, max_y);
                                         status_callback(current_status);

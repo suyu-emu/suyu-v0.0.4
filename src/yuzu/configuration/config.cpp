@@ -557,7 +557,8 @@ void Config::ReadMotionTouchValues() {
             .toString()
             .toStdString();
     Settings::values.touch_device =
-        ReadSetting(QStringLiteral("touch_device"), QStringLiteral("engine:emu_window"))
+        ReadSetting(QStringLiteral("touch_device"),
+                    QStringLiteral("min_x:100,min_y:50,max_x:1800,max_y:850"))
             .toString()
             .toStdString();
     Settings::values.use_touch_from_button =

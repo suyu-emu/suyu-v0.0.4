@@ -30,13 +30,17 @@ public:
     void OnLoadInputDevices() override;
 
 private:
+    static constexpr size_t MAX_FINGERS = 16;
+
+    // Returns an unused finger id, if there is no fingers available std::nullopt will be returned
+    std::optional<size_t> GetUnusedFingerID() const;
+
     // If the touch is new it tries to assing a new finger id, if there is no fingers avaliable no
     // changes will be made. Updates the coordinates if the finger id it's already set. If the touch
     // ends delays the output by one frame to set the end_touch flag before finally freeing the
     // finger id
-    void updateTouchInputEvent(const std::tuple<float, float, bool>& touch_input,
-                               size_t& finger_id);
-    static const size_t MAX_FINGERS = 16;
+    size_t UpdateTouchInputEvent(const std::tuple<float, float, bool>& touch_input,
+                                 size_t finger_id);
 
     struct Attributes {
         union {
@@ -88,9 +92,9 @@ private:
     std::unique_ptr<Input::TouchDevice> touch_mouse_device;
     std::unique_ptr<Input::TouchDevice> touch_udp_device;
     std::unique_ptr<Input::TouchDevice> touch_btn_device;
-    size_t mouse_finger_id{-1};
-    size_t keyboard_finger_id{-1};
-    size_t udp_finger_id{-1};
+    std::array<size_t, MAX_FINGERS> mouse_finger_id;
+    std::array<size_t, MAX_FINGERS> keyboard_finger_id;
+    std::array<size_t, MAX_FINGERS> udp_finger_id;
     std::array<Finger, MAX_FINGERS> fingers;
 };
 } // namespace Service::HID
