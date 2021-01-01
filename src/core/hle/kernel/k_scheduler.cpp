@@ -763,9 +763,9 @@ void KScheduler::Initialize() {
     std::string name = "Idle Thread Id:" + std::to_string(core_id);
     std::function<void(void*)> init_func = Core::CpuManager::GetIdleThreadStartFunc();
     void* init_func_parameter = system.GetCpuManager().GetStartFuncParamater();
-    auto thread_res = KThread::Create(system, ThreadType::Kernel, name, 0, THREADPRIO_LOWEST, 0,
-                                      static_cast<u32>(core_id), 0, nullptr, std::move(init_func),
-                                      init_func_parameter);
+    auto thread_res = KThread::Create(system, ThreadType::Kernel, name, 0,
+                                      Svc::LowestThreadPriority, 0, static_cast<u32>(core_id), 0,
+                                      nullptr, std::move(init_func), init_func_parameter);
     idle_thread = thread_res.Unwrap().get();
 
     {

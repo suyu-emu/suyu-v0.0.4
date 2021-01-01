@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "common/assert.h"
+#include "common/common_funcs.h"
 #include "common/common_types.h"
 #include "common/fiber.h"
 #include "common/logging/log.h"
@@ -25,6 +26,7 @@
 #include "core/hle/kernel/memory/memory_layout.h"
 #include "core/hle/kernel/object.h"
 #include "core/hle/kernel/process.h"
+#include "core/hle/kernel/svc_results.h"
 #include "core/hle/kernel/time_manager.h"
 #include "core/hle/result.h"
 #include "core/memory.h"
@@ -124,11 +126,9 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
                                                     std::function<void(void*)>&& thread_start_func,
                                                     void* thread_start_parameter) {
     auto& kernel = system.Kernel();
-    // Check if priority is in ranged. Lowest priority -> highest priority id.
-    if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread priority: {}", priority);
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
+
+    R_UNLESS(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority,
+             Svc::ResultInvalidPriority);
 
     if (processor_id > THREADPROCESSORID_MAX) {
         LOG_ERROR(Kernel_SVC, "Invalid processor id: {}", processor_id);
@@ -186,8 +186,7 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
 }
 
 void KThread::SetBasePriority(u32 priority) {
-    ASSERT_MSG(priority <= THREADPRIO_LOWEST && priority >= THREADPRIO_HIGHEST,
-               "Invalid priority value.");
+    ASSERT(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority);
 
     KScopedSchedulerLock lock(kernel);
 

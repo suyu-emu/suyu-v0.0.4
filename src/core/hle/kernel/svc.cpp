@@ -1130,11 +1130,9 @@ static ResultCode GetThreadPriority32(Core::System& system, u32* priority, Handl
 static ResultCode SetThreadPriority(Core::System& system, Handle handle, u32 priority) {
     LOG_TRACE(Kernel_SVC, "called");
 
-    if (priority > THREADPRIO_LOWEST) {
-        LOG_ERROR(
-            Kernel_SVC,
-            "An invalid priority was specified, expected {} but got {} for thread_handle={:08X}",
-            THREADPRIO_LOWEST, priority, handle);
+    if (priority > Svc::LowestThreadPriority) {
+        LOG_ERROR(Kernel_SVC, "An invalid priority was specified {} for thread_handle={:08X}",
+                  priority, handle);
         return ERR_INVALID_THREAD_PRIORITY;
     }
 
@@ -1472,7 +1470,7 @@ static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr e
         return ERR_INVALID_PROCESSOR_ID;
     }
 
-    if (priority > THREADPRIO_LOWEST) {
+    if (priority > Svc::LowestThreadPriority) {
         LOG_ERROR(Kernel_SVC,
                   "Invalid thread priority specified ({}). Must be within the range 0-64",
                   priority);

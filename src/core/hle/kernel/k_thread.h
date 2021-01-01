@@ -39,15 +39,6 @@ class KernelCore;
 class Process;
 class KScheduler;
 
-enum ThreadPriority : u32 {
-    THREADPRIO_HIGHEST = 0,            ///< Highest thread priority
-    THREADPRIO_MAX_CORE_MIGRATION = 2, ///< Highest priority for a core migration
-    THREADPRIO_USERLAND_MAX = 24,      ///< Highest thread priority for userland apps
-    THREADPRIO_DEFAULT = 44,           ///< Default thread priority for userland apps
-    THREADPRIO_LOWEST = 63,            ///< Lowest thread priority
-    THREADPRIO_COUNT = 64,             ///< Total number of possible thread priorities.
-};
-
 enum class ThreadType : u32 {
     Main = 0,
     Kernel = 1,
@@ -129,6 +120,9 @@ class KThread final : public KSynchronizationObject, public boost::intrusive::li
     friend class Process;
 
 public:
+    static constexpr s32 DefaultThreadPriority = 44;
+    static constexpr s32 IdleThreadPriority = 64;
+
     explicit KThread(KernelCore& kernel);
     ~KThread() override;
 

@@ -219,8 +219,8 @@ AppLoader_NRO::LoadResult AppLoader_NRO::Load(Kernel::Process& process, Core::Sy
     }
 
     is_loaded = true;
-    return {ResultStatus::Success,
-            LoadParameters{Kernel::THREADPRIO_DEFAULT, Core::Memory::DEFAULT_STACK_SIZE}};
+    return {ResultStatus::Success, LoadParameters{Kernel::KThread::DefaultThreadPriority,
+                                                  Core::Memory::DEFAULT_STACK_SIZE}};
 }
 
 ResultStatus AppLoader_NRO::ReadIcon(std::vector<u8>& buffer) {

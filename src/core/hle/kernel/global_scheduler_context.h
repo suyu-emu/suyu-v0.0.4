@@ -13,6 +13,7 @@
 #include "core/hle/kernel/k_priority_queue.h"
 #include "core/hle/kernel/k_scheduler_lock.h"
 #include "core/hle/kernel/k_thread.h"
+#include "core/hle/kernel/svc_types.h"
 
 namespace Kernel {
 
@@ -20,8 +21,12 @@ class KernelCore;
 class SchedulerLock;
 
 using KSchedulerPriorityQueue =
-    KPriorityQueue<KThread, Core::Hardware::NUM_CPU_CORES, THREADPRIO_LOWEST, THREADPRIO_HIGHEST>;
-constexpr s32 HighestCoreMigrationAllowedPriority = 2;
+    KPriorityQueue<KThread, Core::Hardware::NUM_CPU_CORES, Svc::LowestThreadPriority,
+                   Svc::HighestThreadPriority>;
+
+static constexpr s32 HighestCoreMigrationAllowedPriority = 2;
+static_assert(Svc::LowestThreadPriority >= HighestCoreMigrationAllowedPriority);
+static_assert(Svc::HighestThreadPriority <= HighestCoreMigrationAllowedPriority);
 
 class GlobalSchedulerContext final {
     friend class KScheduler;
