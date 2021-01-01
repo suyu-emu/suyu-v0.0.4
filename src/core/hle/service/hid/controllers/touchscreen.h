@@ -30,6 +30,9 @@ public:
     void OnLoadInputDevices() override;
 
 private:
+    void updateTouchInputEvent(const std::tuple<float, float, bool>& touch_input, int& finger_id);
+    static const size_t MAX_FINGERS = 16;
+
     struct Attributes {
         union {
             u32 raw{};
@@ -55,7 +58,7 @@ private:
         s64_le sampling_number;
         s64_le sampling_number2;
         s32_le entry_count;
-        std::array<TouchState, 16> states;
+        std::array<TouchState, MAX_FINGERS> states;
     };
     static_assert(sizeof(TouchScreenEntry) == 0x298, "TouchScreenEntry is an invalid size");
 
@@ -66,9 +69,21 @@ private:
     };
     static_assert(sizeof(TouchScreenSharedMemory) == 0x3000,
                   "TouchScreenSharedMemory is an invalid size");
+
+    struct Finger {
+        u64_le last_touch{};
+        float x{};
+        float y{};
+        u32_le id{};
+        bool pressed{};
+        Attributes attribute;
+    };
+
     TouchScreenSharedMemory shared_memory{};
     std::unique_ptr<Input::TouchDevice> touch_device;
     std::unique_ptr<Input::TouchDevice> touch_btn_device;
-    s64_le last_touch{};
+    int mouse_finger_id{-1};
+    int keyboar_finger_id{-1};
+    std::array<Finger, MAX_FINGERS> fingers;
 };
 } // namespace Service::HID
