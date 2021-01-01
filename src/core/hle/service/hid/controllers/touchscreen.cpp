@@ -40,11 +40,12 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     cur_entry.sampling_number = last_entry.sampling_number + 1;
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
-    updateTouchInputEvent(touch_device->GetStatus(), mouse_finger_id);
-    updateTouchInputEvent(touch_btn_device->GetStatus(), keyboar_finger_id);
+    updateTouchInputEvent(touch_mouse_device->GetStatus(), mouse_finger_id);
+    updateTouchInputEvent(touch_btn_device->GetStatus(), keyboard_finger_id);
+    updateTouchInputEvent(touch_udp_device->GetStatus(), udp_finger_id);
 
     std::array<Finger, 16> sorted_fingers;
-    s32_le active_fingers = 0;
+    size_t active_fingers = 0;
     for (Finger finger : fingers) {
         if (finger.pressed) {
             sorted_fingers[active_fingers++] = finger;
@@ -52,7 +53,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     }
 
     const u64 tick = core_timing.GetCPUTicks();
-    cur_entry.entry_count = active_fingers;
+    cur_entry.entry_count = static_cast<s32_le>(active_fingers);
     for (size_t id = 0; id < MAX_FINGERS; id++) {
         auto& touch_entry = cur_entry.states[id];
         if (id < active_fingers) {
@@ -81,7 +82,8 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
 }
 
 void Controller_Touchscreen::OnLoadInputDevices() {
-    touch_device = Input::CreateDevice<Input::TouchDevice>(Settings::values.touchscreen.device);
+    touch_mouse_device = Input::CreateDevice<Input::TouchDevice>("engine:emu_window");
+    touch_udp_device = Input::CreateDevice<Input::TouchDevice>("engine:cemuhookudp");
     if (Settings::values.use_touch_from_button) {
         touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
     } else {
@@ -90,7 +92,7 @@ void Controller_Touchscreen::OnLoadInputDevices() {
 }
 
 void Controller_Touchscreen::updateTouchInputEvent(
-    const std::tuple<float, float, bool>& touch_input, int& finger_id) {
+    const std::tuple<float, float, bool>& touch_input, size_t& finger_id) {
     bool pressed = false;
     float x, y;
     std::tie(x, y, pressed) = touch_input;
@@ -110,7 +112,7 @@ void Controller_Touchscreen::updateTouchInputEvent(
                 fingers[finger_id].x = x;
                 fingers[finger_id].y = y;
                 fingers[finger_id].pressed = true;
-                fingers[finger_id].id = finger_id;
+                fingers[finger_id].id = static_cast<u32_le>(finger_id);
                 fingers[finger_id].attribute.start_touch.Assign(1);
             }
         } else {

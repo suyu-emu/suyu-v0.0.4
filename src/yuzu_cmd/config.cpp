@@ -296,10 +296,6 @@ void Config::ReadValues() {
         sdl2_config->GetBoolean("ControlsGeneral", "motion_enabled", true));
     Settings::values.touchscreen.enabled =
         sdl2_config->GetBoolean("ControlsGeneral", "touch_enabled", true);
-    Settings::values.touchscreen.device =
-        sdl2_config->Get("ControlsGeneral", "touch_device", "engine:emu_window");
-    Settings::values.touchscreen.finger =
-        sdl2_config->GetInteger("ControlsGeneral", "touch_finger", 0);
     Settings::values.touchscreen.rotation_angle =
         sdl2_config->GetInteger("ControlsGeneral", "touch_angle", 0);
     Settings::values.touchscreen.diameter_x =

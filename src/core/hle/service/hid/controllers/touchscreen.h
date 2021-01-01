@@ -30,7 +30,12 @@ public:
     void OnLoadInputDevices() override;
 
 private:
-    void updateTouchInputEvent(const std::tuple<float, float, bool>& touch_input, int& finger_id);
+    // If the touch is new it tries to assing a new finger id, if there is no fingers avaliable no
+    // changes will be made. Updates the coordinates if the finger id it's already set. If the touch
+    // ends delays the output by one frame to set the end_touch flag before finally freeing the
+    // finger id
+    void updateTouchInputEvent(const std::tuple<float, float, bool>& touch_input,
+                               size_t& finger_id);
     static const size_t MAX_FINGERS = 16;
 
     struct Attributes {
@@ -80,10 +85,12 @@ private:
     };
 
     TouchScreenSharedMemory shared_memory{};
-    std::unique_ptr<Input::TouchDevice> touch_device;
+    std::unique_ptr<Input::TouchDevice> touch_mouse_device;
+    std::unique_ptr<Input::TouchDevice> touch_udp_device;
     std::unique_ptr<Input::TouchDevice> touch_btn_device;
-    int mouse_finger_id{-1};
-    int keyboar_finger_id{-1};
+    size_t mouse_finger_id{-1};
+    size_t keyboard_finger_id{-1};
+    size_t udp_finger_id{-1};
     std::array<Finger, MAX_FINGERS> fingers;
 };
 } // namespace Service::HID
