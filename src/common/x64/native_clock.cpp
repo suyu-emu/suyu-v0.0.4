@@ -17,6 +17,7 @@
 #include <x86intrin.h>
 #endif
 
+#include "common/atomic_ops.h"
 #include "common/uint128.h"
 #include "common/x64/native_clock.h"
 
@@ -102,8 +103,8 @@ NativeClock::NativeClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequen
     : WallClock(emulated_cpu_frequency_, emulated_clock_frequency_, true), rtsc_frequency{
                                                                                rtsc_frequency_} {
     _mm_mfence();
-    last_measure = __rdtsc();
-    accumulated_ticks = 0U;
+    time_point.inner.last_measure = __rdtsc();
+    time_point.inner.accumulated_ticks = 0U;
     ns_rtsc_factor = GetFixedPoint64Factor(1000000000, rtsc_frequency);
     us_rtsc_factor = GetFixedPoint64Factor(1000000, rtsc_frequency);
     ms_rtsc_factor = GetFixedPoint64Factor(1000, rtsc_frequency);
@@ -112,23 +113,35 @@ NativeClock::NativeClock(u64 emulated_cpu_frequency_, u64 emulated_clock_frequen
 }
 
 u64 NativeClock::GetRTSC() {
-    std::scoped_lock scope{rtsc_serialize};
-    _mm_mfence();
-    const u64 current_measure = __rdtsc();
-    u64 diff = current_measure - last_measure;
-    diff = diff & ~static_cast<u64>(static_cast<s64>(diff) >> 63); // max(diff, 0)
-    if (current_measure > last_measure) {
-        last_measure = current_measure;
-    }
-    accumulated_ticks += diff;
+    TimePoint new_time_point{};
+    TimePoint current_time_point{};
+    do {
+        current_time_point.pack = time_point.pack;
+        _mm_mfence();
+        const u64 current_measure = __rdtsc();
+        u64 diff = current_measure - current_time_point.inner.last_measure;
+        diff = diff & ~static_cast<u64>(static_cast<s64>(diff) >> 63); // max(diff, 0)
+        new_time_point.inner.last_measure = current_measure > current_time_point.inner.last_measure
+                                                ? current_measure
+                                                : current_time_point.inner.last_measure;
+        new_time_point.inner.accumulated_ticks = current_time_point.inner.accumulated_ticks + diff;
+    } while (!Common::AtomicCompareAndSwap(time_point.pack.data(), new_time_point.pack,
+                                           current_time_point.pack));
     /// The clock cannot be more precise than the guest timer, remove the lower bits
-    return accumulated_ticks & inaccuracy_mask;
+    return new_time_point.inner.accumulated_ticks & inaccuracy_mask;
 }
 
 void NativeClock::Pause(bool is_paused) {
     if (!is_paused) {
-        _mm_mfence();
-        last_measure = __rdtsc();
+        TimePoint current_time_point{};
+        TimePoint new_time_point{};
+        do {
+            current_time_point.pack = time_point.pack;
+            new_time_point.pack = current_time_point.pack;
+            _mm_mfence();
+            new_time_point.inner.last_measure = __rdtsc();
+        } while (!Common::AtomicCompareAndSwap(time_point.pack.data(), new_time_point.pack,
+                                               current_time_point.pack));
     }
 }
 
