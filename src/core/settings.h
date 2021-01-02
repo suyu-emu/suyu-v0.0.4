@@ -221,7 +221,7 @@ struct Values {
     bool disable_macro_jit;
     bool extended_logging;
 
-    // Misceallaneous
+    // Miscellaneous
     std::string log_filter;
     bool use_dev_keys;
 

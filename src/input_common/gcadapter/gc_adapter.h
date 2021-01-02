@@ -120,17 +120,17 @@ private:
     /// For use in initialization, querying devices to find the adapter
     void Setup();
 
-    /// Resets status of all GC controller devices to a disconected state
+    /// Resets status of all GC controller devices to a disconnected state
     void ResetDevices();
 
-    /// Resets status of device connected to a disconected state
+    /// Resets status of device connected to a disconnected state
     void ResetDevice(std::size_t port);
 
     /// Returns true if we successfully gain access to GC Adapter
     bool CheckDeviceAccess();
 
     /// Captures GC Adapter endpoint address
-    /// Returns true if the endpoind was set correctly
+    /// Returns true if the endpoint was set correctly
     bool GetGCEndpoint(libusb_device* device);
 
     /// For shutting down, clear all data, join all threads, release usb

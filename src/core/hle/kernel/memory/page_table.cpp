@@ -1007,8 +1007,8 @@ constexpr VAddr PageTable::GetRegionAddress(MemoryState state) const {
     case MemoryState::Shared:
     case MemoryState::AliasCode:
     case MemoryState::AliasCodeData:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:
@@ -1042,8 +1042,8 @@ constexpr std::size_t PageTable::GetRegionSize(MemoryState state) const {
     case MemoryState::Shared:
     case MemoryState::AliasCode:
     case MemoryState::AliasCodeData:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:
@@ -1080,8 +1080,8 @@ constexpr bool PageTable::CanContain(VAddr addr, std::size_t size, MemoryState s
     case MemoryState::AliasCodeData:
     case MemoryState::Stack:
     case MemoryState::ThreadLocal:
-    case MemoryState::Transfered:
-    case MemoryState::SharedTransfered:
+    case MemoryState::Transferred:
+    case MemoryState::SharedTransferred:
     case MemoryState::SharedCode:
     case MemoryState::GeneratedCode:
     case MemoryState::CodeOut:

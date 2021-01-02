@@ -55,7 +55,7 @@ public:
     explicit AppletMessageQueue(Kernel::KernelCore& kernel);
     ~AppletMessageQueue();
 
-    const std::shared_ptr<Kernel::ReadableEvent>& GetMesssageRecieveEvent() const;
+    const std::shared_ptr<Kernel::ReadableEvent>& GetMessageReceiveEvent() const;
     const std::shared_ptr<Kernel::ReadableEvent>& GetOperationModeChangedEvent() const;
     void PushMessage(AppletMessage msg);
     AppletMessage PopMessage();
