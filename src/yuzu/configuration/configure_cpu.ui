@@ -109,6 +109,18 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QCheckBox" name="cpuopt_unsafe_inaccurate_nan">
+          <property name="text">
+           <string>Inaccurate NaN handling</string>
+          </property>
+          <property name="toolTip">
+           <string>
+            &lt;div&gt;This option improves speed by removing NaN checking. Please note this also reduces accuracy of certain floating-point instructions.&lt;/div&gt;
+           </string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </widget>
      </item>

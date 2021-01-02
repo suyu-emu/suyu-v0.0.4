@@ -131,6 +131,7 @@ struct Values {
 
     bool cpuopt_unsafe_unfuse_fma;
     bool cpuopt_unsafe_reduce_fp_error;
+    bool cpuopt_unsafe_inaccurate_nan;
 
     // Renderer
     Setting<RendererBackend> renderer_backend;

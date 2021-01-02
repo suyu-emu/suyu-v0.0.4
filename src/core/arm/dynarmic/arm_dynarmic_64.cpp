@@ -212,6 +212,9 @@ std::shared_ptr<Dynarmic::A64::Jit> ARM_Dynarmic_64::MakeJit(Common::PageTable& 
         if (Settings::values.cpuopt_unsafe_reduce_fp_error) {
             config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_ReducedErrorFP;
         }
+        if (Settings::values.cpuopt_unsafe_inaccurate_nan) {
+            config.optimizations |= Dynarmic::OptimizationFlag::Unsafe_InaccurateNaN;
+        }
     }
 
     return std::make_shared<Dynarmic::A64::Jit>(config);
