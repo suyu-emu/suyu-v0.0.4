@@ -129,7 +129,7 @@ void MotionInput::UpdateOrientation(u64 elapsed_time) {
             rad_gyro += ki * integral_error;
             rad_gyro += kd * derivative_error;
         } else {
-            // Give more weight to acelerometer values to compensate for the lack of gyro
+            // Give more weight to accelerometer values to compensate for the lack of gyro
             rad_gyro += 35.0f * kp * real_error;
             rad_gyro += 10.0f * ki * integral_error;
             rad_gyro += 10.0f * kd * derivative_error;

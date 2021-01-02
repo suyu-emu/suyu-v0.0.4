@@ -28,14 +28,14 @@ private:
     mutable std::mutex mutex;
 };
 
-/// A motion device factory that creates motion devices from JC Adapter
+/// A motion device factory that creates motion devices from a UDP client
 UDPMotionFactory::UDPMotionFactory(std::shared_ptr<CemuhookUDP::Client> client_)
     : client(std::move(client_)) {}
 
 /**
  * Creates motion device
  * @param params contains parameters for creating the device:
- *     - "port": the nth jcpad on the adapter
+ *     - "port": the UDP port number
  */
 std::unique_ptr<Input::MotionDevice> UDPMotionFactory::Create(const Common::ParamPackage& params) {
     auto ip = params.Get("ip", "127.0.0.1");
@@ -90,14 +90,14 @@ private:
     mutable std::mutex mutex;
 };
 
-/// A motion device factory that creates motion devices from JC Adapter
+/// A motion device factory that creates motion devices from a UDP client
 UDPTouchFactory::UDPTouchFactory(std::shared_ptr<CemuhookUDP::Client> client_)
     : client(std::move(client_)) {}
 
 /**
  * Creates motion device
  * @param params contains parameters for creating the device:
- *     - "port": the nth jcpad on the adapter
+ *     - "port": the UDP port number
  */
 std::unique_ptr<Input::TouchDevice> UDPTouchFactory::Create(const Common::ParamPackage& params) {
     auto ip = params.Get("ip", "127.0.0.1");

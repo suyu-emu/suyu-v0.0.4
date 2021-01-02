@@ -20,7 +20,7 @@ enum class MouseButton {
     Left,
     Wheel,
     Right,
-    Foward,
+    Forward,
     Backward,
     Undefined,
 };

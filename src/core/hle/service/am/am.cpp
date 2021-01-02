@@ -560,14 +560,14 @@ void ISelfController::GetAccumulatedSuspendedTickChangedEvent(Kernel::HLERequest
 
 AppletMessageQueue::AppletMessageQueue(Kernel::KernelCore& kernel) {
     on_new_message =
-        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageRecieved");
+        Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OnMessageReceived");
     on_operation_mode_changed =
         Kernel::WritableEvent::CreateEventPair(kernel, "AMMessageQueue:OperationModeChanged");
 }
 
 AppletMessageQueue::~AppletMessageQueue() = default;
 
-const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMesssageRecieveEvent() const {
+const std::shared_ptr<Kernel::ReadableEvent>& AppletMessageQueue::GetMessageReceiveEvent() const {
     return on_new_message.readable;
 }
 
@@ -675,7 +675,7 @@ void ICommonStateGetter::GetEventHandle(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2, 1};
     rb.Push(RESULT_SUCCESS);
-    rb.PushCopyObjects(msg_queue->GetMesssageRecieveEvent());
+    rb.PushCopyObjects(msg_queue->GetMessageReceiveEvent());
 }
 
 void ICommonStateGetter::ReceiveMessage(Kernel::HLERequestContext& ctx) {

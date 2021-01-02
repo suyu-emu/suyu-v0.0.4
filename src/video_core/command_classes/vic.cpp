@@ -53,7 +53,7 @@ void Vic::ProcessMethod(Method method, const std::vector<u32>& arguments) {
 
 void Vic::Execute() {
     if (output_surface_luma_address == 0) {
-        LOG_ERROR(Service_NVDRV, "VIC Luma address not set. Recieved 0x{:X}",
+        LOG_ERROR(Service_NVDRV, "VIC Luma address not set. Received 0x{:X}",
                   vic_state.output_surface.luma_offset);
         return;
     }

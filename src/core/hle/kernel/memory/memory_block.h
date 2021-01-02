@@ -73,12 +73,12 @@ enum class MemoryState : u32 {
     ThreadLocal =
         static_cast<u32>(Svc::MemoryState::ThreadLocal) | FlagMapped | FlagReferenceCounted,
 
-    Transfered = static_cast<u32>(Svc::MemoryState::Transfered) | FlagsMisc |
-                 FlagCanAlignedDeviceMap | FlagCanChangeAttribute | FlagCanUseIpc |
-                 FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
+    Transferred = static_cast<u32>(Svc::MemoryState::Transferred) | FlagsMisc |
+                  FlagCanAlignedDeviceMap | FlagCanChangeAttribute | FlagCanUseIpc |
+                  FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
 
-    SharedTransfered = static_cast<u32>(Svc::MemoryState::SharedTransfered) | FlagsMisc |
-                       FlagCanAlignedDeviceMap | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
+    SharedTransferred = static_cast<u32>(Svc::MemoryState::SharedTransferred) | FlagsMisc |
+                        FlagCanAlignedDeviceMap | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
 
     SharedCode = static_cast<u32>(Svc::MemoryState::SharedCode) | FlagMapped |
                  FlagReferenceCounted | FlagCanUseNonSecureIpc | FlagCanUseNonDeviceIpc,
@@ -111,8 +111,8 @@ static_assert(static_cast<u32>(MemoryState::AliasCodeData) == 0x03FFBD09);
 static_assert(static_cast<u32>(MemoryState::Ipc) == 0x005C3C0A);
 static_assert(static_cast<u32>(MemoryState::Stack) == 0x005C3C0B);
 static_assert(static_cast<u32>(MemoryState::ThreadLocal) == 0x0040200C);
-static_assert(static_cast<u32>(MemoryState::Transfered) == 0x015C3C0D);
-static_assert(static_cast<u32>(MemoryState::SharedTransfered) == 0x005C380E);
+static_assert(static_cast<u32>(MemoryState::Transferred) == 0x015C3C0D);
+static_assert(static_cast<u32>(MemoryState::SharedTransferred) == 0x005C380E);
 static_assert(static_cast<u32>(MemoryState::SharedCode) == 0x0040380F);
 static_assert(static_cast<u32>(MemoryState::Inaccessible) == 0x00000010);
 static_assert(static_cast<u32>(MemoryState::NonSecureIpc) == 0x005C3811);

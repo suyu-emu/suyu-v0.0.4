@@ -207,7 +207,7 @@ static void ThreadStart2_2(u32 id, TestControl2& test_control) {
 }
 
 /** This test checks for fiber thread exchange configuration and validates that fibers are
- *  that a fiber has been succesfully transfered from one thread to another and that the TLS
+ *  that a fiber has been successfully transferred from one thread to another and that the TLS
  *  region of the thread is kept while changing fibers.
  */
 TEST_CASE("Fibers::InterExchange", "[common]") {
@@ -299,7 +299,7 @@ static void ThreadStart3(u32 id, TestControl3& test_control) {
 }
 
 /** This test checks for one two threads racing for starting the same fiber.
- *  It checks execution occured in an ordered manner and by no time there were
+ *  It checks execution occurred in an ordered manner and by no time there were
  *  two contexts at the same time.
  */
 TEST_CASE("Fibers::StartRace", "[common]") {

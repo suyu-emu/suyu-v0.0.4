@@ -90,7 +90,7 @@ struct PageTable {
     PageTable& operator=(PageTable&&) noexcept = default;
 
     /**
-     * Resizes the page table to be able to accomodate enough pages within
+     * Resizes the page table to be able to accommodate enough pages within
      * a given address space.
      *
      * @param address_space_width_in_bits The address size width in bits.
