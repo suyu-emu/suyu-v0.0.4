@@ -157,8 +157,6 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
 
 void BufferQueue::Connect() {
     queue_sequence.clear();
-    id = 1;
-    layer_id = 1;
     is_connect = true;
 }
 
