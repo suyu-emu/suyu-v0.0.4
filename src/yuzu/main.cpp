@@ -1045,20 +1045,23 @@ bool GMainWindow::LoadROM(const QString& filename, std::size_t program_index) {
             break;
 
         default:
-            if (static_cast<u32>(result) >
-                static_cast<u32>(Core::System::ResultStatus::ErrorLoader)) {
+            if (result > Core::System::ResultStatus::ErrorLoader) {
                 const u16 loader_id = static_cast<u16>(Core::System::ResultStatus::ErrorLoader);
                 const u16 error_id = static_cast<u16>(result) - loader_id;
                 const std::string error_code = fmt::format("({:04X}-{:04X})", loader_id, error_id);
                 LOG_CRITICAL(Frontend, "Failed to load ROM! {}", error_code);
-                QMessageBox::critical(
-                    this,
-                    tr("Error while loading ROM! ").append(QString::fromStdString(error_code)),
-                    QString::fromStdString(fmt::format(
-                        "{}<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the "
-                        "yuzu quickstart guide</a> to redump your files.<br>You can refer "
-                        "to the yuzu wiki</a> or the yuzu Discord</a> for help.",
-                        static_cast<Loader::ResultStatus>(error_id))));
+
+                const auto title =
+                    tr("Error while loading ROM! %1", "%1 signifies a numeric error code.")
+                        .arg(QString::fromStdString(error_code));
+                const auto description =
+                    tr("%1<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the "
+                       "yuzu quickstart guide</a> to redump your files.<br>You can refer "
+                       "to the yuzu wiki</a> or the yuzu Discord</a> for help.",
+                       "%1 signifies a numeric error ID.")
+                        .arg(error_id);
+
+                QMessageBox::critical(this, title, description);
             } else {
                 QMessageBox::critical(
                     this, tr("Error while loading ROM!"),
