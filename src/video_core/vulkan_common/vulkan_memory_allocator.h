@@ -92,13 +92,22 @@ public:
 
 private:
     /// Allocates a chunk of memory.
-    void AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask, u64 size);
+    void AllocMemory(VkMemoryPropertyFlags flags, u32 type_mask, u64 size);
 
     /// Tries to allocate a memory commit.
-    std::optional<MemoryCommit> TryAllocCommit(const VkMemoryRequirements& requirements,
-                                               VkMemoryPropertyFlags wanted_properties);
+    std::optional<MemoryCommit> TryCommit(const VkMemoryRequirements& requirements,
+                                          VkMemoryPropertyFlags flags);
 
-    const Device& device;                                       ///< Device handler.
+    /// Returns the fastest compatible memory property flags from a wanted usage.
+    VkMemoryPropertyFlags MemoryPropertyFlags(u32 type_mask, MemoryUsage usage) const;
+
+    /// Returns the fastest compatible memory property flags from the wanted flags.
+    VkMemoryPropertyFlags MemoryPropertyFlags(u32 type_mask, VkMemoryPropertyFlags flags) const;
+
+    /// Returns index to the fastest memory type compatible with the passed requirements.
+    std::optional<u32> FindType(VkMemoryPropertyFlags flags, u32 type_mask) const;
+
+    const Device& device;                                       ///< Device handle.
     const VkPhysicalDeviceMemoryProperties properties;          ///< Physical device properties.
     std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
 };
