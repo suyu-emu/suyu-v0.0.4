@@ -19,6 +19,7 @@
 #include "core/hle/kernel/process.h"
 #include "core/hle/kernel/readable_event.h"
 #include "core/hle/kernel/svc_common.h"
+#include "core/hle/kernel/svc_types.h"
 #include "core/memory.h"
 
 namespace {
@@ -334,17 +335,11 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
 
     QString processor;
     switch (thread.GetProcessorID()) {
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_IDEAL:
+    case Kernel::Svc::IdealCoreUseProcessValue:
         processor = tr("ideal");
         break;
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_0:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_1:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_2:
-    case Kernel::ThreadProcessorId::THREADPROCESSORID_3:
-        processor = tr("core %1").arg(thread.GetProcessorID());
-        break;
     default:
-        processor = tr("Unknown processor %1").arg(thread.GetProcessorID());
+        processor = tr("core %1").arg(thread.GetProcessorID());
         break;
     }
 

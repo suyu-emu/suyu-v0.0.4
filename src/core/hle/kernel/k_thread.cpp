@@ -127,14 +127,6 @@ ResultVal<std::shared_ptr<KThread>> KThread::Create(Core::System& system, Thread
                                                     void* thread_start_parameter) {
     auto& kernel = system.Kernel();
 
-    R_UNLESS(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority,
-             Svc::ResultInvalidPriority);
-
-    if (processor_id > THREADPROCESSORID_MAX) {
-        LOG_ERROR(Kernel_SVC, "Invalid processor id: {}", processor_id);
-        return ERR_INVALID_PROCESSOR_ID;
-    }
-
     if (owner_process) {
         if (!system.Memory().IsValidVirtualAddress(*owner_process, entry_point)) {
             LOG_ERROR(Kernel_SVC, "(name={}): invalid entry {:016X}", name, entry_point);
@@ -423,7 +415,7 @@ ResultCode KThread::SetCoreAndAffinityMask(s32 new_core, u64 new_affinity_mask) 
     };
 
     const bool use_override = affinity_override_count != 0;
-    if (new_core == THREADPROCESSORID_DONT_UPDATE) {
+    if (new_core == Svc::IdealCoreNoUpdate) {
         new_core = use_override ? ideal_core_override : ideal_core;
         if ((new_affinity_mask & (1ULL << new_core)) == 0) {
             LOG_ERROR(Kernel, "New affinity mask is incorrect! new_core={}, new_affinity_mask={}",

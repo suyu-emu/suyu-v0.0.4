@@ -39,7 +39,7 @@ namespace {
 void SetupMainThread(Core::System& system, Process& owner_process, u32 priority, VAddr stack_top) {
     const VAddr entry_point = owner_process.PageTable().GetCodeRegionStart();
     auto thread_res = KThread::Create(system, ThreadType::User, "main", entry_point, priority, 0,
-                                      owner_process.GetIdealCore(), stack_top, &owner_process);
+                                      owner_process.GetIdealCoreId(), stack_top, &owner_process);
 
     std::shared_ptr<KThread> thread = std::move(thread_res).Unwrap();
 

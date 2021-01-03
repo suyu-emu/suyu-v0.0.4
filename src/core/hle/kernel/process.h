@@ -173,8 +173,13 @@ public:
     std::shared_ptr<ResourceLimit> GetResourceLimit() const;
 
     /// Gets the ideal CPU core ID for this process
-    u8 GetIdealCore() const {
+    u8 GetIdealCoreId() const {
         return ideal_core;
+    }
+
+    /// Checks if the specified thread priority is valid.
+    bool CheckThreadPriority(s32 prio) const {
+        return ((1ULL << prio) & GetPriorityMask()) != 0;
     }
 
     /// Gets the bitmask of allowed cores that this process' threads can run on.

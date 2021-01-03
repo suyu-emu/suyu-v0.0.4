@@ -1443,54 +1443,40 @@ static void ExitProcess32(Core::System& system) {
     ExitProcess(system);
 }
 
+static constexpr bool IsValidCoreId(int32_t core_id) {
+    return (0 <= core_id && core_id < static_cast<int32_t>(Core::Hardware::NUM_CPU_CORES));
+}
+
 /// Creates a new thread
 static ResultCode CreateThread(Core::System& system, Handle* out_handle, VAddr entry_point, u64 arg,
-                               VAddr stack_top, u32 priority, s32 processor_id) {
+                               VAddr stack_bottom, u32 priority, s32 core_id) {
     LOG_DEBUG(Kernel_SVC,
-              "called entrypoint=0x{:08X}, arg=0x{:08X}, stacktop=0x{:08X}, "
-              "threadpriority=0x{:08X}, processorid=0x{:08X} : created handle=0x{:08X}",
-              entry_point, arg, stack_top, priority, processor_id, *out_handle);
+              "called entry_point=0x{:08X}, arg=0x{:08X}, stack_bottom=0x{:08X}, "
+              "priority=0x{:08X}, core_id=0x{:08X}",
+              entry_point, arg, stack_bottom, priority, core_id);
 
-    auto* const current_process = system.Kernel().CurrentProcess();
-
-    if (processor_id == THREADPROCESSORID_IDEAL) {
-        // Set the target CPU to the one specified by the process.
-        processor_id = current_process->GetIdealCore();
-        ASSERT(processor_id != THREADPROCESSORID_IDEAL);
-    }
-
-    if (processor_id < THREADPROCESSORID_0 || processor_id > THREADPROCESSORID_3) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread processor ID: {}", processor_id);
-        return ERR_INVALID_PROCESSOR_ID;
-    }
-
-    const u64 core_mask = current_process->GetCoreMask();
-    if ((core_mask | (1ULL << processor_id)) != core_mask) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread core specified ({})", processor_id);
-        return ERR_INVALID_PROCESSOR_ID;
-    }
-
-    if (priority > Svc::LowestThreadPriority) {
-        LOG_ERROR(Kernel_SVC,
-                  "Invalid thread priority specified ({}). Must be within the range 0-64",
-                  priority);
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
-
-    if (((1ULL << priority) & current_process->GetPriorityMask()) == 0) {
-        LOG_ERROR(Kernel_SVC, "Invalid thread priority specified ({})", priority);
-        return ERR_INVALID_THREAD_PRIORITY;
-    }
-
+    // Adjust core id, if it's the default magic.
     auto& kernel = system.Kernel();
+    auto& process = *kernel.CurrentProcess();
+    if (core_id == Svc::IdealCoreUseProcessValue) {
+        core_id = process.GetIdealCoreId();
+    }
+
+    // Validate arguments.
+    R_UNLESS(IsValidCoreId(core_id), Svc::ResultInvalidCoreId);
+    R_UNLESS(((1ULL << core_id) & process.GetCoreMask()) != 0, Svc::ResultInvalidCoreId);
+
+    R_UNLESS(Svc::HighestThreadPriority <= priority && priority <= Svc::LowestThreadPriority,
+             Svc::ResultInvalidPriority);
+    R_UNLESS(process.CheckThreadPriority(priority), Svc::ResultInvalidPriority);
 
     ASSERT(kernel.CurrentProcess()->GetResourceLimit()->Reserve(ResourceType::Threads, 1));
 
     CASCADE_RESULT(std::shared_ptr<KThread> thread,
                    KThread::Create(system, ThreadType::User, "", entry_point, priority, arg,
-                                   processor_id, stack_top, current_process));
+                                   core_id, stack_bottom, &process));
 
-    const auto new_thread_handle = current_process->GetHandleTable().Create(thread);
+    const auto new_thread_handle = process.GetHandleTable().Create(thread);
     if (new_thread_handle.Failed()) {
         LOG_ERROR(Kernel_SVC, "Failed to create handle with error=0x{:X}",
                   new_thread_handle.Code().raw);
@@ -1872,10 +1858,10 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
 
     const auto* const current_process = system.Kernel().CurrentProcess();
 
-    if (core == static_cast<u32>(THREADPROCESSORID_IDEAL)) {
-        const u8 ideal_cpu_core = current_process->GetIdealCore();
+    if (core == static_cast<u32>(Svc::IdealCoreUseProcessValue)) {
+        const u8 ideal_cpu_core = current_process->GetIdealCoreId();
 
-        ASSERT(ideal_cpu_core != static_cast<u8>(THREADPROCESSORID_IDEAL));
+        ASSERT(ideal_cpu_core != static_cast<u8>(Svc::IdealCoreUseProcessValue));
 
         // Set the target CPU to the ideal core specified by the process.
         core = ideal_cpu_core;
@@ -1903,8 +1889,8 @@ static ResultCode SetThreadCoreMask(Core::System& system, Handle thread_handle, 
                           affinity_mask);
                 return ERR_INVALID_COMBINATION;
             }
-        } else if (core != static_cast<u32>(THREADPROCESSORID_DONT_CARE) &&
-                   core != static_cast<u32>(THREADPROCESSORID_DONT_UPDATE)) {
+        } else if (core != static_cast<u32>(Svc::IdealCoreDontCare) &&
+                   core != static_cast<u32>(Svc::IdealCoreNoUpdate)) {
             LOG_ERROR(Kernel_SVC, "Invalid processor ID specified (core={}).", core);
             return ERR_INVALID_PROCESSOR_ID;
         }

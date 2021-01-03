@@ -77,6 +77,10 @@ enum class ArbitrationType : u32 {
     WaitIfEqual = 2,
 };
 
+constexpr inline s32 IdealCoreDontCare = -1;
+constexpr inline s32 IdealCoreUseProcessValue = -2;
+constexpr inline s32 IdealCoreNoUpdate = -3;
+
 constexpr inline s32 LowestThreadPriority = 63;
 constexpr inline s32 HighestThreadPriority = 0;
 

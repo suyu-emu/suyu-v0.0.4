@@ -47,28 +47,6 @@ enum class ThreadType : u32 {
 };
 DECLARE_ENUM_FLAG_OPERATORS(ThreadType);
 
-enum ThreadProcessorId : s32 {
-    /// Indicates that no particular processor core is preferred.
-    THREADPROCESSORID_DONT_CARE = -1,
-
-    /// Run thread on the ideal core specified by the process.
-    THREADPROCESSORID_IDEAL = -2,
-
-    /// Indicates that the preferred processor ID shouldn't be updated in
-    /// a core mask setting operation.
-    THREADPROCESSORID_DONT_UPDATE = -3,
-
-    THREADPROCESSORID_0 = 0,   ///< Run thread on core 0
-    THREADPROCESSORID_1 = 1,   ///< Run thread on core 1
-    THREADPROCESSORID_2 = 2,   ///< Run thread on core 2
-    THREADPROCESSORID_3 = 3,   ///< Run thread on core 3
-    THREADPROCESSORID_MAX = 4, ///< Processor ID must be less than this
-
-    /// Allowed CPU mask
-    THREADPROCESSORID_DEFAULT_MASK = (1 << THREADPROCESSORID_0) | (1 << THREADPROCESSORID_1) |
-                                     (1 << THREADPROCESSORID_2) | (1 << THREADPROCESSORID_3)
-};
-
 enum class ThreadState : u16 {
     Initialized = 0,
     Waiting = 1,
