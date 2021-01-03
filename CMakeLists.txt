@@ -165,7 +165,7 @@ macro(yuzu_find_packages)
         "lz4               1.8         lz4/1.9.2"
         "nlohmann_json     3.8         nlohmann_json/3.8.0"
         "ZLIB              1.2         zlib/1.2.11"
-        "zstd              1.4         zstd/1.4.5"
+        "zstd              1.4         zstd/1.4.8"
     )
 
     foreach(PACKAGE ${REQUIRED_LIBS})
