@@ -788,9 +788,9 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
       image(MakeImage(runtime.device, info)), buffer(MakeBuffer(runtime.device, info)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (image) {
-        commit = runtime.memory_manager.Commit(image, false);
+        commit = runtime.memory_allocator.Commit(image, false);
     } else {
-        commit = runtime.memory_manager.Commit(buffer, false);
+        commit = runtime.memory_allocator.Commit(buffer, false);
     }
     if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
         flags |= VideoCommon::ImageFlagBits::Converted;

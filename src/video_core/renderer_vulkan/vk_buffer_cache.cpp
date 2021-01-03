@@ -36,7 +36,7 @@ constexpr VkAccessFlags TRANSFORM_FEEDBACK_WRITE_ACCESS =
 
 } // Anonymous namespace
 
-Buffer::Buffer(const Device& device_, VKMemoryManager& memory_manager, VKScheduler& scheduler_,
+Buffer::Buffer(const Device& device_, MemoryAllocator& memory_allocator, VKScheduler& scheduler_,
                StagingBufferPool& staging_pool_, VAddr cpu_addr_, std::size_t size_)
     : BufferBlock{cpu_addr_, size_}, device{device_}, scheduler{scheduler_}, staging_pool{
                                                                                  staging_pool_} {
@@ -50,7 +50,7 @@ Buffer::Buffer(const Device& device_, VKMemoryManager& memory_manager, VKSchedul
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     });
-    commit = memory_manager.Commit(buffer, false);
+    commit = memory_allocator.Commit(buffer, false);
 }
 
 Buffer::~Buffer() = default;
@@ -162,18 +162,18 @@ void Buffer::CopyFrom(const Buffer& src, std::size_t src_offset, std::size_t dst
 
 VKBufferCache::VKBufferCache(VideoCore::RasterizerInterface& rasterizer_,
                              Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
-                             const Device& device_, VKMemoryManager& memory_manager_,
+                             const Device& device_, MemoryAllocator& memory_allocator_,
                              VKScheduler& scheduler_, VKStreamBuffer& stream_buffer_,
                              StagingBufferPool& staging_pool_)
     : VideoCommon::BufferCache<Buffer, VkBuffer, VKStreamBuffer>{rasterizer_, gpu_memory_,
                                                                  cpu_memory_, stream_buffer_},
-      device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_}, staging_pool{
-                                                                                   staging_pool_} {}
+      device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_},
+      staging_pool{staging_pool_} {}
 
 VKBufferCache::~VKBufferCache() = default;
 
 std::shared_ptr<Buffer> VKBufferCache::CreateBlock(VAddr cpu_addr, std::size_t size) {
-    return std::make_shared<Buffer>(device, memory_manager, scheduler, staging_pool, cpu_addr,
+    return std::make_shared<Buffer>(device, memory_allocator, scheduler, staging_pool, cpu_addr,
                                     size);
 }
 

@@ -69,7 +69,7 @@ struct ImageBufferMap {
 struct TextureCacheRuntime {
     const Device& device;
     VKScheduler& scheduler;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     StagingBufferPool& staging_buffer_pool;
     BlitImageHelper& blit_image_helper;
     std::unordered_map<RenderPassKey, vk::RenderPass> renderpass_cache;

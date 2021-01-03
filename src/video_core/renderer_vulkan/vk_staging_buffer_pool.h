@@ -24,7 +24,7 @@ struct StagingBufferRef {
 
 class StagingBufferPool {
 public:
-    explicit StagingBufferPool(const Device& device, VKMemoryManager& memory_manager,
+    explicit StagingBufferPool(const Device& device, MemoryAllocator& memory_allocator,
                                VKScheduler& scheduler);
     ~StagingBufferPool();
 
@@ -67,7 +67,7 @@ private:
     void ReleaseLevel(StagingBuffersCache& cache, size_t log2);
 
     const Device& device;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     VKScheduler& scheduler;
 
     StagingBuffersCache host_staging_buffers;

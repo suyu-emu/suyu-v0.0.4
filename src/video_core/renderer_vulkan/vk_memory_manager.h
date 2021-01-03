@@ -54,13 +54,13 @@ private:
     std::span<u8> span;             ///< Host visible memory span. Empty if not queried before.
 };
 
-class VKMemoryManager final {
+class MemoryAllocator final {
 public:
-    explicit VKMemoryManager(const Device& device_);
-    ~VKMemoryManager();
+    explicit MemoryAllocator(const Device& device_);
+    ~MemoryAllocator();
 
-    VKMemoryManager& operator=(const VKMemoryManager&) = delete;
-    VKMemoryManager(const VKMemoryManager&) = delete;
+    MemoryAllocator& operator=(const MemoryAllocator&) = delete;
+    MemoryAllocator(const MemoryAllocator&) = delete;
 
     /**
      * Commits a memory with the specified requeriments.

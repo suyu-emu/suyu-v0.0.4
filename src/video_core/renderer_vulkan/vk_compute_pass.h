@@ -60,8 +60,7 @@ private:
 class Uint8Pass final : public VKComputePass {
 public:
     explicit Uint8Pass(const Device& device_, VKScheduler& scheduler_,
-                       VKDescriptorPool& descriptor_pool_,
-                       StagingBufferPool& staging_buffer_pool_,
+                       VKDescriptorPool& descriptor_pool_, StagingBufferPool& staging_buffer_pool_,
                        VKUpdateDescriptorQueue& update_descriptor_queue_);
     ~Uint8Pass();
 

@@ -12,14 +12,14 @@
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
 #include "video_core/renderer_vulkan/vk_staging_buffer_pool.h"
-#include "video_core/vulkan_common/vulkan_wrapper.h"
 #include "video_core/vulkan_common/vulkan_device.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
-StagingBufferPool::StagingBufferPool(const Device& device_, VKMemoryManager& memory_manager_,
+StagingBufferPool::StagingBufferPool(const Device& device_, MemoryAllocator& memory_allocator_,
                                      VKScheduler& scheduler_)
-    : device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_} {}
+    : device{device_}, memory_allocator{memory_allocator_}, scheduler{scheduler_} {}
 
 StagingBufferPool::~StagingBufferPool() = default;
 
@@ -76,7 +76,7 @@ StagingBufferRef StagingBufferPool::CreateStagingBuffer(size_t size, bool host_v
         ++buffer_index;
         buffer.SetObjectNameEXT(fmt::format("Staging Buffer {}", buffer_index).c_str());
     }
-    MemoryCommit commit = memory_manager.Commit(buffer, host_visible);
+    MemoryCommit commit = memory_allocator.Commit(buffer, host_visible);
     const std::span<u8> mapped_span = host_visible ? commit.Map() : std::span<u8>{};
 
     StagingBuffer& entry = GetCache(host_visible)[log2].entries.emplace_back(StagingBuffer{

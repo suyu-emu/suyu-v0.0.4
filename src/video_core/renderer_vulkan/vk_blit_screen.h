@@ -43,7 +43,7 @@ public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
                           Core::Frontend::EmuWindow& render_window,
                           VideoCore::RasterizerInterface& rasterizer, const Device& device,
-                          VKMemoryManager& memory_manager, VKSwapchain& swapchain,
+                          MemoryAllocator& memory_allocator, VKSwapchain& swapchain,
                           VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
 
@@ -86,7 +86,7 @@ private:
     Core::Frontend::EmuWindow& render_window;
     VideoCore::RasterizerInterface& rasterizer;
     const Device& device;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;
     const std::size_t image_count;

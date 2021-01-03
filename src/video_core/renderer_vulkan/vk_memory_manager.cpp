@@ -151,12 +151,12 @@ void MemoryCommit::Release() {
     }
 }
 
-VKMemoryManager::VKMemoryManager(const Device& device_)
+MemoryAllocator::MemoryAllocator(const Device& device_)
     : device{device_}, properties{device_.GetPhysical().GetMemoryProperties()} {}
 
-VKMemoryManager::~VKMemoryManager() = default;
+MemoryAllocator::~MemoryAllocator() = default;
 
-MemoryCommit VKMemoryManager::Commit(const VkMemoryRequirements& requirements, bool host_visible) {
+MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, bool host_visible) {
     const u64 chunk_size = GetAllocationChunkSize(requirements.size);
 
     // When a host visible commit is asked, search for host visible and coherent, otherwise search
@@ -176,19 +176,19 @@ MemoryCommit VKMemoryManager::Commit(const VkMemoryRequirements& requirements, b
     return TryAllocCommit(requirements, wanted_properties).value();
 }
 
-MemoryCommit VKMemoryManager::Commit(const vk::Buffer& buffer, bool host_visible) {
+MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, bool host_visible) {
     auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), host_visible);
     buffer.BindMemory(commit.Memory(), commit.Offset());
     return commit;
 }
 
-MemoryCommit VKMemoryManager::Commit(const vk::Image& image, bool host_visible) {
+MemoryCommit MemoryAllocator::Commit(const vk::Image& image, bool host_visible) {
     auto commit = Commit(device.GetLogical().GetImageMemoryRequirements(*image), host_visible);
     image.BindMemory(commit.Memory(), commit.Offset());
     return commit;
 }
 
-void VKMemoryManager::AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask,
+void MemoryAllocator::AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 type_mask,
                                   u64 size) {
     const u32 type = [&] {
         for (u32 type_index = 0; type_index < properties.memoryTypeCount; ++type_index) {
@@ -211,7 +211,7 @@ void VKMemoryManager::AllocMemory(VkMemoryPropertyFlags wanted_properties, u32 t
                                                              wanted_properties, size, type));
 }
 
-std::optional<MemoryCommit> VKMemoryManager::TryAllocCommit(
+std::optional<MemoryCommit> MemoryAllocator::TryAllocCommit(
     const VkMemoryRequirements& requirements, VkMemoryPropertyFlags wanted_properties) {
     for (auto& allocation : allocations) {
         if (!allocation->IsCompatible(wanted_properties, requirements.memoryTypeBits)) {

@@ -115,10 +115,10 @@ struct VKBlitScreen::BufferData {
 VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
                            Core::Frontend::EmuWindow& render_window_,
                            VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
-                           VKMemoryManager& memory_manager_, VKSwapchain& swapchain_,
+                           MemoryAllocator& memory_allocator_, VKSwapchain& swapchain_,
                            VKScheduler& scheduler_, const VKScreenInfo& screen_info_)
     : cpu_memory{cpu_memory_}, render_window{render_window_}, rasterizer{rasterizer_},
-      device{device_}, memory_manager{memory_manager_}, swapchain{swapchain_},
+      device{device_}, memory_allocator{memory_allocator_}, swapchain{swapchain_},
       scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
 
@@ -657,7 +657,7 @@ void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuff
     };
 
     buffer = device.GetLogical().CreateBuffer(ci);
-    buffer_commit = memory_manager.Commit(buffer, true);
+    buffer_commit = memory_allocator.Commit(buffer, true);
 }
 
 void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
@@ -688,7 +688,7 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-        raw_buffer_commits[i] = memory_manager.Commit(raw_images[i], false);
+        raw_buffer_commits[i] = memory_allocator.Commit(raw_images[i], false);
         raw_image_views[i] = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,

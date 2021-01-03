@@ -56,7 +56,7 @@ public:
     explicit RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra::GPU& gpu_,
                               Tegra::MemoryManager& gpu_memory_, Core::Memory::Memory& cpu_memory_,
                               VKScreenInfo& screen_info_, const Device& device_,
-                              VKMemoryManager& memory_manager_, StateTracker& state_tracker_,
+                              MemoryAllocator& memory_allocator_, StateTracker& state_tracker_,
                               VKScheduler& scheduler_);
     ~RasterizerVulkan() override;
 
@@ -213,7 +213,7 @@ private:
 
     VKScreenInfo& screen_info;
     const Device& device;
-    VKMemoryManager& memory_manager;
+    MemoryAllocator& memory_allocator;
     StateTracker& state_tracker;
     VKScheduler& scheduler;
 
