@@ -1058,8 +1058,9 @@ bool GMainWindow::LoadROM(const QString& filename, std::size_t program_index) {
                     tr("%1<br>Please follow <a href='https://yuzu-emu.org/help/quickstart/'>the "
                        "yuzu quickstart guide</a> to redump your files.<br>You can refer "
                        "to the yuzu wiki</a> or the yuzu Discord</a> for help.",
-                       "%1 signifies a numeric error ID.")
-                        .arg(error_id);
+                       "%1 signifies an error string.")
+                        .arg(QString::fromStdString(
+                            GetResultStatusString(static_cast<Loader::ResultStatus>(error_id))));
 
                 QMessageBox::critical(this, title, description);
             } else {
