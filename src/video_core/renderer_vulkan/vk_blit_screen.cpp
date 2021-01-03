@@ -657,7 +657,7 @@ void VKBlitScreen::CreateStagingBuffer(const Tegra::FramebufferConfig& framebuff
     };
 
     buffer = device.GetLogical().CreateBuffer(ci);
-    buffer_commit = memory_allocator.Commit(buffer, true);
+    buffer_commit = memory_allocator.Commit(buffer, MemoryUsage::Upload);
 }
 
 void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) {
@@ -688,7 +688,7 @@ void VKBlitScreen::CreateRawImages(const Tegra::FramebufferConfig& framebuffer) 
             .pQueueFamilyIndices = nullptr,
             .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
         });
-        raw_buffer_commits[i] = memory_allocator.Commit(raw_images[i], false);
+        raw_buffer_commits[i] = memory_allocator.Commit(raw_images[i], MemoryUsage::DeviceLocal);
         raw_image_views[i] = device.GetLogical().CreateImageView(VkImageViewCreateInfo{
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = nullptr,

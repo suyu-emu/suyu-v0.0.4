@@ -156,11 +156,13 @@ MemoryAllocator::MemoryAllocator(const Device& device_)
 
 MemoryAllocator::~MemoryAllocator() = default;
 
-MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, bool host_visible) {
+MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, MemoryUsage usage) {
     const u64 chunk_size = GetAllocationChunkSize(requirements.size);
 
     // When a host visible commit is asked, search for host visible and coherent, otherwise search
     // for a fast device local type.
+    // TODO: Deduce memory types from usage in a better way
+    const bool host_visible = IsHostVisible(usage);
     const VkMemoryPropertyFlags wanted_properties =
         host_visible ? VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
                      : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
@@ -176,14 +178,14 @@ MemoryCommit MemoryAllocator::Commit(const VkMemoryRequirements& requirements, b
     return TryAllocCommit(requirements, wanted_properties).value();
 }
 
-MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, bool host_visible) {
-    auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), host_visible);
+MemoryCommit MemoryAllocator::Commit(const vk::Buffer& buffer, MemoryUsage usage) {
+    auto commit = Commit(device.GetLogical().GetBufferMemoryRequirements(*buffer), usage);
     buffer.BindMemory(commit.Memory(), commit.Offset());
     return commit;
 }
 
-MemoryCommit MemoryAllocator::Commit(const vk::Image& image, bool host_visible) {
-    auto commit = Commit(device.GetLogical().GetImageMemoryRequirements(*image), host_visible);
+MemoryCommit MemoryAllocator::Commit(const vk::Image& image, MemoryUsage usage) {
+    auto commit = Commit(device.GetLogical().GetImageMemoryRequirements(*image), usage);
     image.BindMemory(commit.Memory(), commit.Offset());
     return commit;
 }
@@ -222,6 +224,18 @@ std::optional<MemoryCommit> MemoryAllocator::TryAllocCommit(
         }
     }
     return std::nullopt;
+}
+
+bool IsHostVisible(MemoryUsage usage) noexcept {
+    switch (usage) {
+    case MemoryUsage::DeviceLocal:
+        return false;
+    case MemoryUsage::Upload:
+    case MemoryUsage::Download:
+        return true;
+    }
+    UNREACHABLE_MSG("Invalid memory usage={}", usage);
+    return false;
 }
 
 } // namespace Vulkan

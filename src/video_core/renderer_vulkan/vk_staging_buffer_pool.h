@@ -28,7 +28,7 @@ public:
                                VKScheduler& scheduler);
     ~StagingBufferPool();
 
-    StagingBufferRef Request(size_t size, bool host_visible);
+    StagingBufferRef Request(size_t size, MemoryUsage usage);
 
     void TickFrame();
 
@@ -56,13 +56,13 @@ private:
     static constexpr size_t NUM_LEVELS = sizeof(size_t) * CHAR_BIT;
     using StagingBuffersCache = std::array<StagingBuffers, NUM_LEVELS>;
 
-    std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, bool host_visible);
+    std::optional<StagingBufferRef> TryGetReservedBuffer(size_t size, MemoryUsage usage);
 
-    StagingBufferRef CreateStagingBuffer(size_t size, bool host_visible);
+    StagingBufferRef CreateStagingBuffer(size_t size, MemoryUsage usage);
 
-    StagingBuffersCache& GetCache(bool host_visible);
+    StagingBuffersCache& GetCache(MemoryUsage usage);
 
-    void ReleaseCache(bool host_visible);
+    void ReleaseCache(MemoryUsage usage);
 
     void ReleaseLevel(StagingBuffersCache& cache, size_t log2);
 
@@ -70,8 +70,9 @@ private:
     MemoryAllocator& memory_allocator;
     VKScheduler& scheduler;
 
-    StagingBuffersCache host_staging_buffers;
-    StagingBuffersCache device_staging_buffers;
+    StagingBuffersCache device_local_cache;
+    StagingBuffersCache upload_cache;
+    StagingBuffersCache download_cache;
 
     size_t current_delete_level = 0;
     u64 buffer_index = 0;

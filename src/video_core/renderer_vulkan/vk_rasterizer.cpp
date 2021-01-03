@@ -1445,7 +1445,7 @@ VkBuffer RasterizerVulkan::DefaultBuffer() {
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     });
-    default_buffer_commit = memory_allocator.Commit(default_buffer, false);
+    default_buffer_commit = memory_allocator.Commit(default_buffer, MemoryUsage::DeviceLocal);
 
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([buffer = *default_buffer](vk::CommandBuffer cmdbuf) {

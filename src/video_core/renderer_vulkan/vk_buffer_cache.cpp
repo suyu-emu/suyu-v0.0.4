@@ -50,13 +50,13 @@ Buffer::Buffer(const Device& device_, MemoryAllocator& memory_allocator, VKSched
         .queueFamilyIndexCount = 0,
         .pQueueFamilyIndices = nullptr,
     });
-    commit = memory_allocator.Commit(buffer, false);
+    commit = memory_allocator.Commit(buffer, MemoryUsage::DeviceLocal);
 }
 
 Buffer::~Buffer() = default;
 
 void Buffer::Upload(std::size_t offset, std::size_t data_size, const u8* data) {
-    const auto& staging = staging_pool.Request(data_size, true);
+    const auto& staging = staging_pool.Request(data_size, MemoryUsage::Upload);
     std::memcpy(staging.mapped_span.data(), data, data_size);
 
     scheduler.RequestOutsideRenderPassOperationContext();
@@ -98,7 +98,7 @@ void Buffer::Upload(std::size_t offset, std::size_t data_size, const u8* data) {
 }
 
 void Buffer::Download(std::size_t offset, std::size_t data_size, u8* data) {
-    auto staging = staging_pool.Request(data_size, true);
+    auto staging = staging_pool.Request(data_size, MemoryUsage::Download);
     scheduler.RequestOutsideRenderPassOperationContext();
 
     const VkBuffer handle = Handle();
@@ -179,7 +179,7 @@ std::shared_ptr<Buffer> VKBufferCache::CreateBlock(VAddr cpu_addr, std::size_t s
 
 VKBufferCache::BufferInfo VKBufferCache::GetEmptyBuffer(std::size_t size) {
     size = std::max(size, std::size_t(4));
-    const auto& empty = staging_pool.Request(size, false);
+    const auto& empty = staging_pool.Request(size, MemoryUsage::DeviceLocal);
     scheduler.RequestOutsideRenderPassOperationContext();
     scheduler.Record([size, buffer = empty.buffer](vk::CommandBuffer cmdbuf) {
         cmdbuf.FillBuffer(buffer, 0, size, 0);

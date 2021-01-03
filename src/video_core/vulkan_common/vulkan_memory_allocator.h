@@ -17,7 +17,16 @@ class Device;
 class MemoryMap;
 class MemoryAllocation;
 
-class MemoryCommit final {
+/// Hints and requirements for the backing memory type of a commit
+enum class MemoryUsage {
+    DeviceLocal, ///< Hints device local usages, fastest memory type to read and write from the GPU
+    Upload,      ///< Requires a host visible memory type optimized for CPU to GPU uploads
+    Download,    ///< Requires a host visible memory type optimized for GPU to CPU readbacks
+};
+
+/// Ownership handle of a memory commitment.
+/// Points to a subregion of a memory allocation.
+class MemoryCommit {
 public:
     explicit MemoryCommit() noexcept = default;
     explicit MemoryCommit(const Device& device_, MemoryAllocation* allocation_,
@@ -54,7 +63,9 @@ private:
     std::span<u8> span;             ///< Host visible memory span. Empty if not queried before.
 };
 
-class MemoryAllocator final {
+/// Memory allocator container.
+/// Allocates and releases memory allocations on demand.
+class MemoryAllocator {
 public:
     explicit MemoryAllocator(const Device& device_);
     ~MemoryAllocator();
@@ -71,13 +82,13 @@ public:
      *
      * @returns A memory commit.
      */
-    MemoryCommit Commit(const VkMemoryRequirements& requirements, bool host_visible);
+    MemoryCommit Commit(const VkMemoryRequirements& requirements, MemoryUsage usage);
 
     /// Commits memory required by the buffer and binds it.
-    MemoryCommit Commit(const vk::Buffer& buffer, bool host_visible);
+    MemoryCommit Commit(const vk::Buffer& buffer, MemoryUsage usage);
 
     /// Commits memory required by the image and binds it.
-    MemoryCommit Commit(const vk::Image& image, bool host_visible);
+    MemoryCommit Commit(const vk::Image& image, MemoryUsage usage);
 
 private:
     /// Allocates a chunk of memory.
@@ -91,5 +102,8 @@ private:
     const VkPhysicalDeviceMemoryProperties properties;          ///< Physical device properties.
     std::vector<std::unique_ptr<MemoryAllocation>> allocations; ///< Current allocations.
 };
+
+/// Returns true when a memory usage is guaranteed to be host visible.
+bool IsHostVisible(MemoryUsage usage) noexcept;
 
 } // namespace Vulkan

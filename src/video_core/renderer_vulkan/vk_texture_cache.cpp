@@ -554,7 +554,7 @@ void TextureCacheRuntime::Finish() {
 }
 
 ImageBufferMap TextureCacheRuntime::MapUploadBuffer(size_t size) {
-    const auto staging_ref = staging_buffer_pool.Request(size, true);
+    const auto staging_ref = staging_buffer_pool.Request(size, MemoryUsage::Upload);
     return ImageBufferMap{
         .handle = staging_ref.buffer,
         .span = staging_ref.mapped_span,
@@ -788,9 +788,9 @@ Image::Image(TextureCacheRuntime& runtime, const ImageInfo& info_, GPUVAddr gpu_
       image(MakeImage(runtime.device, info)), buffer(MakeBuffer(runtime.device, info)),
       aspect_mask(ImageAspectMask(info.format)) {
     if (image) {
-        commit = runtime.memory_allocator.Commit(image, false);
+        commit = runtime.memory_allocator.Commit(image, MemoryUsage::DeviceLocal);
     } else {
-        commit = runtime.memory_allocator.Commit(buffer, false);
+        commit = runtime.memory_allocator.Commit(buffer, MemoryUsage::DeviceLocal);
     }
     if (IsPixelFormatASTC(info.format) && !runtime.device.IsOptimalAstcSupported()) {
         flags |= VideoCommon::ImageFlagBits::Converted;
