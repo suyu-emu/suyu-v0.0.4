@@ -18,7 +18,7 @@ Controller_Touchscreen::Controller_Touchscreen(Core::System& system) : Controlle
 Controller_Touchscreen::~Controller_Touchscreen() = default;
 
 void Controller_Touchscreen::OnInit() {
-    for (size_t id = 0; id < MAX_FINGERS; id++) {
+    for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
         mouse_finger_id[id] = MAX_FINGERS;
         keyboard_finger_id[id] = MAX_FINGERS;
         udp_finger_id[id] = MAX_FINGERS;
@@ -48,23 +48,29 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
     cur_entry.sampling_number2 = cur_entry.sampling_number;
 
     const Input::TouchStatus& mouse_status = touch_mouse_device->GetStatus();
-    const Input::TouchStatus& keyboard_status = touch_btn_device->GetStatus();
     const Input::TouchStatus& udp_status = touch_udp_device->GetStatus();
-    for (size_t id = 0; id < mouse_status.size(); id++) {
+    for (std::size_t id = 0; id < mouse_status.size(); ++id) {
         mouse_finger_id[id] = UpdateTouchInputEvent(mouse_status[id], mouse_finger_id[id]);
-        keyboard_finger_id[id] = UpdateTouchInputEvent(keyboard_status[id], keyboard_finger_id[id]);
         udp_finger_id[id] = UpdateTouchInputEvent(udp_status[id], udp_finger_id[id]);
+    }
+
+    if (Settings::values.use_touch_from_button) {
+        const Input::TouchStatus& keyboard_status = touch_btn_device->GetStatus();
+        for (std::size_t id = 0; id < mouse_status.size(); ++id) {
+            keyboard_finger_id[id] =
+                UpdateTouchInputEvent(keyboard_status[id], keyboard_finger_id[id]);
+        }
     }
 
     std::array<Finger, 16> active_fingers;
     const auto end_iter = std::copy_if(fingers.begin(), fingers.end(), active_fingers.begin(),
                                        [](const auto& finger) { return finger.pressed; });
     const auto active_fingers_count =
-        static_cast<size_t>(std::distance(active_fingers.begin(), end_iter));
+        static_cast<std::size_t>(std::distance(active_fingers.begin(), end_iter));
 
     const u64 tick = core_timing.GetCPUTicks();
     cur_entry.entry_count = static_cast<s32_le>(active_fingers_count);
-    for (size_t id = 0; id < MAX_FINGERS; id++) {
+    for (std::size_t id = 0; id < MAX_FINGERS; ++id) {
         auto& touch_entry = cur_entry.states[id];
         if (id < active_fingers_count) {
             touch_entry.x = static_cast<u16>(active_fingers[id].x * Layout::ScreenUndocked::Width);
@@ -73,7 +79,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
             touch_entry.diameter_y = Settings::values.touchscreen.diameter_y;
             touch_entry.rotation_angle = Settings::values.touchscreen.rotation_angle;
             touch_entry.delta_time = tick - active_fingers[id].last_touch;
-            active_fingers[id].last_touch = tick;
+            fingers[active_fingers[id].id].last_touch = tick;
             touch_entry.finger = active_fingers[id].id;
             touch_entry.attribute.raw = active_fingers[id].attribute.raw;
         } else {
@@ -101,8 +107,8 @@ void Controller_Touchscreen::OnLoadInputDevices() {
     }
 }
 
-std::optional<size_t> Controller_Touchscreen::GetUnusedFingerID() const {
-    size_t first_free_id = 0;
+std::optional<std::size_t> Controller_Touchscreen::GetUnusedFingerID() const {
+    std::size_t first_free_id = 0;
     while (first_free_id < MAX_FINGERS) {
         if (!fingers[first_free_id].pressed) {
             return first_free_id;
@@ -113,11 +119,11 @@ std::optional<size_t> Controller_Touchscreen::GetUnusedFingerID() const {
     return std::nullopt;
 }
 
-size_t Controller_Touchscreen::UpdateTouchInputEvent(
-    const std::tuple<float, float, bool>& touch_input, size_t finger_id) {
+std::size_t Controller_Touchscreen::UpdateTouchInputEvent(
+    const std::tuple<float, float, bool>& touch_input, std::size_t finger_id) {
     const auto& [x, y, pressed] = touch_input;
     if (pressed) {
-        Attributes attribute = {};
+        Attributes attribute{};
         if (finger_id == MAX_FINGERS) {
             const auto first_free_id = GetUnusedFingerID();
             if (!first_free_id) {

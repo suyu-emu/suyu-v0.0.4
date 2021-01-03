@@ -29,16 +29,16 @@ EmuWindow_SDL2::~EmuWindow_SDL2() {
 }
 
 void EmuWindow_SDL2::OnMouseMotion(s32 x, s32 y) {
-    TouchMoved((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
+    TouchMoved((unsigned)std::max(x, 0), (unsigned)std::max(y, 0), 0);
     input_subsystem->GetMouse()->MouseMove(x, y);
 }
 
 void EmuWindow_SDL2::OnMouseButton(u32 button, u8 state, s32 x, s32 y) {
     if (button == SDL_BUTTON_LEFT) {
         if (state == SDL_PRESSED) {
-            TouchPressed((unsigned)std::max(x, 0), (unsigned)std::max(y, 0));
+            TouchPressed((unsigned)std::max(x, 0), (unsigned)std::max(y, 0), 0);
         } else {
-            TouchReleased();
+            TouchReleased(0);
         }
     } else if (button == SDL_BUTTON_RIGHT) {
         if (state == SDL_PRESSED) {
@@ -66,16 +66,16 @@ void EmuWindow_SDL2::OnFingerDown(float x, float y) {
     // 3DS does
 
     const auto [px, py] = TouchToPixelPos(x, y);
-    TouchPressed(px, py);
+    TouchPressed(px, py, 0);
 }
 
 void EmuWindow_SDL2::OnFingerMotion(float x, float y) {
     const auto [px, py] = TouchToPixelPos(x, y);
-    TouchMoved(px, py);
+    TouchMoved(px, py, 0);
 }
 
 void EmuWindow_SDL2::OnFingerUp() {
-    TouchReleased();
+    TouchReleased(0);
 }
 
 void EmuWindow_SDL2::OnKeyEvent(int key, u8 state) {

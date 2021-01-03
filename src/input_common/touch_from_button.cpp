@@ -26,8 +26,8 @@ public:
     }
 
     Input::TouchStatus GetStatus() const override {
-        Input::TouchStatus touch_status = {};
-        for (size_t id = 0; id < map.size() && id < touch_status.size(); id++) {
+        Input::TouchStatus touch_status{};
+        for (std::size_t id = 0; id < map.size() && id < touch_status.size(); ++id) {
             const bool state = std::get<0>(map[id])->GetStatus();
             if (state) {
                 const float x = static_cast<float>(std::get<1>(map[id])) /

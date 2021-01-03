@@ -136,8 +136,8 @@ static void SocketLoop(Socket* socket) {
 
 Client::Client() {
     LOG_INFO(Input, "Udp Initialization started");
-    for (size_t id = 0; id < MAX_TOUCH_FINGERS; id++) {
-        finger_id[id] = MAX_UDP_CLIENTS * 2;
+    for (std::size_t id = 0; id < MAX_TOUCH_FINGERS; ++id) {
+        finger_id[id] = MAX_TOUCH_FINGERS;
     }
     ReloadSockets();
 }
@@ -262,7 +262,7 @@ void Client::OnPadData(Response::PadData data, std::size_t client) {
         std::lock_guard guard(clients[client].status.update_mutex);
         clients[client].status.motion_status = clients[client].motion.GetMotion();
 
-        for (size_t id = 0; id < data.touch.size(); id++) {
+        for (std::size_t id = 0; id < data.touch.size(); ++id) {
             UpdateTouchInput(data.touch[id], client, id);
         }
 
@@ -314,7 +314,7 @@ void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& a
         .port = clients[client].port,
         .pad_index = clients[client].pad_index,
     };
-    for (size_t i = 0; i < 3; ++i) {
+    for (std::size_t i = 0; i < 3; ++i) {
         if (gyro[i] > 5.0f || gyro[i] < -5.0f) {
             pad.motion = static_cast<PadMotion>(i);
             pad.motion_value = gyro[i];
@@ -328,8 +328,8 @@ void Client::UpdateYuzuSettings(std::size_t client, const Common::Vec3<float>& a
     }
 }
 
-std::optional<size_t> Client::GetUnusedFingerID() const {
-    size_t first_free_id = 0;
+std::optional<std::size_t> Client::GetUnusedFingerID() const {
+    std::size_t first_free_id = 0;
     while (first_free_id < MAX_TOUCH_FINGERS) {
         if (!std::get<2>(touch_status[first_free_id])) {
             return first_free_id;
@@ -340,7 +340,7 @@ std::optional<size_t> Client::GetUnusedFingerID() const {
     return std::nullopt;
 }
 
-void Client::UpdateTouchInput(Response::TouchPad& touch_pad, size_t client, size_t id) {
+void Client::UpdateTouchInput(Response::TouchPad& touch_pad, std::size_t client, std::size_t id) {
     // TODO: Use custom calibration per device
     const Common::ParamPackage touch_param(Settings::values.touch_device);
     const u16 min_x = static_cast<u16>(touch_param.Get("min_x", 100));
@@ -367,10 +367,7 @@ void Client::UpdateTouchInput(Response::TouchPad& touch_pad, size_t client, size
     }
 
     if (finger_id[client * 2 + id] != MAX_TOUCH_FINGERS) {
-        auto& [x, y, pressed] = touch_status[finger_id[client * 2 + id]];
-        x = 0;
-        y = 0;
-        pressed = false;
+        touch_status[finger_id[client * 2 + id]] = {};
         finger_id[client * 2 + id] = MAX_TOUCH_FINGERS;
     }
 }

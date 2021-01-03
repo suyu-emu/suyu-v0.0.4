@@ -28,8 +28,8 @@ class Socket;
 namespace Response {
 struct PadData;
 struct PortInfo;
-struct Version;
 struct TouchPad;
+struct Version;
 } // namespace Response
 
 enum class PadMotion {
@@ -129,10 +129,10 @@ private:
 
     // Returns an unused finger id, if there is no fingers available std::nullopt will be
     // returned
-    std::optional<size_t> GetUnusedFingerID() const;
+    std::optional<std::size_t> GetUnusedFingerID() const;
 
     // Merges and updates all touch inputs into the touch_status array
-    void UpdateTouchInput(Response::TouchPad& touch_pad, size_t client, size_t id);
+    void UpdateTouchInput(Response::TouchPad& touch_pad, std::size_t client, std::size_t id);
 
     bool configuring = false;
 
@@ -143,7 +143,7 @@ private:
     std::array<ClientData, MAX_UDP_CLIENTS> clients{};
     Common::SPSCQueue<UDPPadStatus> pad_queue{};
     Input::TouchStatus touch_status{};
-    std::array<size_t, MAX_TOUCH_FINGERS> finger_id{};
+    std::array<std::size_t, MAX_TOUCH_FINGERS> finger_id{};
 };
 
 /// An async job allowing configuration of the touchpad calibration.
