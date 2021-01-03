@@ -764,6 +764,8 @@ void Config::ReadCpuValues() {
             ReadSetting(QStringLiteral("cpuopt_unsafe_unfuse_fma"), true).toBool();
         Settings::values.cpuopt_unsafe_reduce_fp_error =
             ReadSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"), true).toBool();
+        Settings::values.cpuopt_unsafe_inaccurate_nan =
+            ReadSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"), true).toBool();
     }
 
     qt_config->endGroup();
@@ -1327,6 +1329,8 @@ void Config::SaveCpuValues() {
                      Settings::values.cpuopt_unsafe_unfuse_fma, true);
         WriteSetting(QStringLiteral("cpuopt_unsafe_reduce_fp_error"),
                      Settings::values.cpuopt_unsafe_reduce_fp_error, true);
+        WriteSetting(QStringLiteral("cpuopt_unsafe_inaccurate_nan"),
+                     Settings::values.cpuopt_unsafe_inaccurate_nan, true);
     }
 
     qt_config->endGroup();

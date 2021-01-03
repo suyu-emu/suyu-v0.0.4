@@ -36,6 +36,8 @@ void ConfigureCpu::SetConfiguration() {
     ui->cpuopt_unsafe_unfuse_fma->setChecked(Settings::values.cpuopt_unsafe_unfuse_fma);
     ui->cpuopt_unsafe_reduce_fp_error->setEnabled(runtime_lock);
     ui->cpuopt_unsafe_reduce_fp_error->setChecked(Settings::values.cpuopt_unsafe_reduce_fp_error);
+    ui->cpuopt_unsafe_inaccurate_nan->setEnabled(runtime_lock);
+    ui->cpuopt_unsafe_inaccurate_nan->setChecked(Settings::values.cpuopt_unsafe_inaccurate_nan);
 }
 
 void ConfigureCpu::AccuracyUpdated(int index) {
@@ -61,6 +63,7 @@ void ConfigureCpu::ApplyConfiguration() {
         static_cast<Settings::CPUAccuracy>(ui->accuracy->currentIndex());
     Settings::values.cpuopt_unsafe_unfuse_fma = ui->cpuopt_unsafe_unfuse_fma->isChecked();
     Settings::values.cpuopt_unsafe_reduce_fp_error = ui->cpuopt_unsafe_reduce_fp_error->isChecked();
+    Settings::values.cpuopt_unsafe_inaccurate_nan = ui->cpuopt_unsafe_inaccurate_nan->isChecked();
 }
 
 void ConfigureCpu::changeEvent(QEvent* event) {
