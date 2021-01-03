@@ -11,7 +11,7 @@
 
 #include "common/common_types.h"
 #include "video_core/renderer_vulkan/nsight_aftermath_tracker.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 
@@ -24,12 +24,9 @@ const u32 GuestWarpSize = 32;
 /// Handles data specific to a physical device.
 class VKDevice final {
 public:
-    explicit VKDevice(VkInstance instance, u32 instance_version, vk::PhysicalDevice physical,
-                      VkSurfaceKHR surface, const vk::InstanceDispatch& dld);
+    explicit VKDevice(VkInstance instance, vk::PhysicalDevice physical, VkSurfaceKHR surface,
+                      const vk::InstanceDispatch& dld);
     ~VKDevice();
-
-    /// Initializes the device. Returns true on success.
-    bool Create();
 
     /**
      * Returns a format supported by the device for the passed requeriments.
@@ -80,11 +77,6 @@ public:
     /// Returns main present queue family index.
     u32 GetPresentFamily() const {
         return present_family;
-    }
-
-    /// Returns the current instance Vulkan API version in Vulkan-formatted version numbers.
-    u32 InstanceApiVersion() const {
-        return instance_version;
     }
 
     /// Returns the current Vulkan API version provided in Vulkan-formatted version numbers.
@@ -232,10 +224,10 @@ public:
         return use_asynchronous_shaders;
     }
 
-    /// Checks if the physical device is suitable.
-    static bool IsSuitable(vk::PhysicalDevice physical, VkSurfaceKHR surface);
-
 private:
+    /// Checks if the physical device is suitable.
+    void CheckSuitability() const;
+
     /// Loads extensions into a vector and stores available ones in this object.
     std::vector<const char*> LoadExtensions();
 

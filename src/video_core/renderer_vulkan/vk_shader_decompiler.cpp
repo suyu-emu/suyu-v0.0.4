@@ -272,19 +272,12 @@ bool IsPrecise(Operation operand) {
     return false;
 }
 
-u32 ShaderVersion(const VKDevice& device) {
-    if (device.InstanceApiVersion() < VK_API_VERSION_1_1) {
-        return 0x00010000;
-    }
-    return 0x00010300;
-}
-
 class SPIRVDecompiler final : public Sirit::Module {
 public:
     explicit SPIRVDecompiler(const VKDevice& device_, const ShaderIR& ir_, ShaderType stage_,
                              const Registry& registry_, const Specialization& specialization_)
-        : Module(ShaderVersion(device_)), device{device_}, ir{ir_}, stage{stage_},
-          header{ir_.GetHeader()}, registry{registry_}, specialization{specialization_} {
+        : Module(0x00010300), device{device_}, ir{ir_}, stage{stage_}, header{ir_.GetHeader()},
+          registry{registry_}, specialization{specialization_} {
         if (stage_ != ShaderType::Compute) {
             transform_feedback = BuildTransformFeedback(registry_.GetGraphicsInfo());
         }

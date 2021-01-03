@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "common/common_types.h"
-#include "video_core/renderer_vulkan/wrapper.h"
+#include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {
 

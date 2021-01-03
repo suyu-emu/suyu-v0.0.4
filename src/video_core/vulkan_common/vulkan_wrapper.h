@@ -555,7 +555,7 @@ private:
     const DeviceDispatch* dld = nullptr;
 };
 
-using DebugCallback = Handle<VkDebugUtilsMessengerEXT, VkInstance, InstanceDispatch>;
+using DebugUtilsMessenger = Handle<VkDebugUtilsMessengerEXT, VkInstance, InstanceDispatch>;
 using DescriptorSetLayout = Handle<VkDescriptorSetLayout, VkDevice, DeviceDispatch>;
 using DescriptorUpdateTemplateKHR = Handle<VkDescriptorUpdateTemplateKHR, VkDevice, DeviceDispatch>;
 using Pipeline = Handle<VkPipeline, VkDevice, DeviceDispatch>;
@@ -573,16 +573,25 @@ class Instance : public Handle<VkInstance, NoOwner, InstanceDispatch> {
     using Handle<VkInstance, NoOwner, InstanceDispatch>::Handle;
 
 public:
-    /// Creates a Vulkan instance. Use "operator bool" for error handling.
+    /// Creates a Vulkan instance.
+    /// @throw Exception on initialization error.
     static Instance Create(u32 version, Span<const char*> layers, Span<const char*> extensions,
-                           InstanceDispatch& dispatch) noexcept;
+                           InstanceDispatch& dispatch);
 
     /// Enumerates physical devices.
     /// @return Physical devices and an empty handle on failure.
-    std::optional<std::vector<VkPhysicalDevice>> EnumeratePhysicalDevices();
+    /// @throw Exception on Vulkan error.
+    std::vector<VkPhysicalDevice> EnumeratePhysicalDevices() const;
 
-    /// Tries to create a debug callback messenger. Returns an empty handle on failure.
-    DebugCallback TryCreateDebugCallback(PFN_vkDebugUtilsMessengerCallbackEXT callback) noexcept;
+    /// Creates a debug callback messenger.
+    /// @throw Exception on creation failure.
+    DebugUtilsMessenger CreateDebugUtilsMessenger(
+        const VkDebugUtilsMessengerCreateInfoEXT& create_info) const;
+
+    /// Returns dispatch table.
+    const InstanceDispatch& Dispatch() const noexcept {
+        return *dld;
+    }
 };
 
 class Queue {
@@ -787,7 +796,7 @@ class Device : public Handle<VkDevice, NoOwner, DeviceDispatch> {
 public:
     static Device Create(VkPhysicalDevice physical_device, Span<VkDeviceQueueCreateInfo> queues_ci,
                          Span<const char*> enabled_extensions, const void* next,
-                         DeviceDispatch& dispatch) noexcept;
+                         DeviceDispatch& dispatch);
 
     Queue GetQueue(u32 family_index) const noexcept;
 
