@@ -96,6 +96,10 @@ public:
         return has_precise_bug;
     }
 
+    bool HasBrokenTextureViewFormats() const {
+        return has_broken_texture_view_formats;
+    }
+
     bool HasFastBufferSubData() const {
         return has_fast_buffer_sub_data;
     }
@@ -137,6 +141,7 @@ private:
     bool has_variable_aoffi{};
     bool has_component_indexing_bug{};
     bool has_precise_bug{};
+    bool has_broken_texture_view_formats{};
     bool has_fast_buffer_sub_data{};
     bool has_nv_viewport_array2{};
     bool has_debugging_tool_attached{};

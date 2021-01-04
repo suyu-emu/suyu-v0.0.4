@@ -1069,13 +1069,13 @@ bool IsPitchLinearSameSize(const ImageInfo& lhs, const ImageInfo& rhs, bool stri
 
 std::optional<OverlapResult> ResolveOverlap(const ImageInfo& new_info, GPUVAddr gpu_addr,
                                             VAddr cpu_addr, const ImageBase& overlap,
-                                            bool strict_size) {
+                                            bool strict_size, bool broken_views) {
     ASSERT(new_info.type != ImageType::Linear);
     ASSERT(overlap.info.type != ImageType::Linear);
     if (!IsLayerStrideCompatible(new_info, overlap.info)) {
         return std::nullopt;
     }
-    if (!IsViewCompatible(overlap.info.format, new_info.format)) {
+    if (!IsViewCompatible(overlap.info.format, new_info.format, broken_views)) {
         return std::nullopt;
     }
     if (gpu_addr == overlap.gpu_addr) {
@@ -1118,14 +1118,15 @@ bool IsLayerStrideCompatible(const ImageInfo& lhs, const ImageInfo& rhs) {
 }
 
 std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const ImageBase& image,
-                                               GPUVAddr candidate_addr, RelaxedOptions options) {
+                                               GPUVAddr candidate_addr, RelaxedOptions options,
+                                               bool broken_views) {
     const std::optional<SubresourceBase> base = image.TryFindBase(candidate_addr);
     if (!base) {
         return std::nullopt;
     }
     const ImageInfo& existing = image.info;
     if (False(options & RelaxedOptions::Format)) {
-        if (!IsViewCompatible(existing.format, candidate.format)) {
+        if (!IsViewCompatible(existing.format, candidate.format, broken_views)) {
             return std::nullopt;
         }
     }
@@ -1162,8 +1163,8 @@ std::optional<SubresourceBase> FindSubresource(const ImageInfo& candidate, const
 }
 
 bool IsSubresource(const ImageInfo& candidate, const ImageBase& image, GPUVAddr candidate_addr,
-                   RelaxedOptions options) {
-    return FindSubresource(candidate, image, candidate_addr, options).has_value();
+                   RelaxedOptions options, bool broken_views) {
+    return FindSubresource(candidate, image, candidate_addr, options, broken_views).has_value();
 }
 
 void DeduceBlitImages(ImageInfo& dst_info, ImageInfo& src_info, const ImageBase* dst,

@@ -208,6 +208,7 @@ Device::Device()
 
     const bool is_nvidia = vendor == "NVIDIA Corporation";
     const bool is_amd = vendor == "ATI Technologies Inc.";
+    const bool is_intel = vendor == "Intel";
 
     bool disable_fast_buffer_sub_data = false;
     if (is_nvidia && version == "4.6.0 NVIDIA 443.24") {
@@ -231,6 +232,7 @@ Device::Device()
     has_variable_aoffi = TestVariableAoffi();
     has_component_indexing_bug = is_amd;
     has_precise_bug = TestPreciseBug();
+    has_broken_texture_view_formats = is_amd || is_intel;
     has_nv_viewport_array2 = GLAD_GL_NV_viewport_array2;
     has_vertex_buffer_unified_memory = GLAD_GL_NV_vertex_buffer_unified_memory;
     has_debugging_tool_attached = IsDebugToolAttached(extensions);
@@ -248,6 +250,8 @@ Device::Device()
     LOG_INFO(Render_OpenGL, "Renderer_VariableAOFFI: {}", has_variable_aoffi);
     LOG_INFO(Render_OpenGL, "Renderer_ComponentIndexingBug: {}", has_component_indexing_bug);
     LOG_INFO(Render_OpenGL, "Renderer_PreciseBug: {}", has_precise_bug);
+    LOG_INFO(Render_OpenGL, "Renderer_BrokenTextureViewFormats: {}",
+             has_broken_texture_view_formats);
 
     if (Settings::values.use_assembly_shaders.GetValue() && !use_assembly_shaders) {
         LOG_ERROR(Render_OpenGL, "Assembly shaders enabled but not supported");

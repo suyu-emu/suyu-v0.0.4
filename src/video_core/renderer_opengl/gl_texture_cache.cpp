@@ -430,6 +430,8 @@ TextureCacheRuntime::TextureCacheRuntime(const Device& device_, ProgramManager& 
             format_properties[i].emplace(format, properties);
         }
     }
+    has_broken_texture_view_formats = device.HasBrokenTextureViewFormats();
+
     null_image_1d_array.Create(GL_TEXTURE_1D_ARRAY);
     null_image_cube_array.Create(GL_TEXTURE_CUBE_MAP_ARRAY);
     null_image_3d.Create(GL_TEXTURE_3D);
