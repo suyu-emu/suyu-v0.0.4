@@ -26,10 +26,10 @@ void BufferQueue::SetPreallocatedBuffer(u32 slot, const IGBPBuffer& igbp_buffer)
     LOG_WARNING(Service, "Adding graphics buffer {}", slot);
 
     {
-        std::unique_lock lock{queue_mutex};
+        std::unique_lock lock{free_buffers_mutex};
         free_buffers.push_back(slot);
     }
-    condition.notify_one();
+    free_buffers_condition.notify_one();
 
     buffers[slot] = {
         .slot = slot,
@@ -48,8 +48,8 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
                                                                                        u32 height) {
     // Wait for first request before trying to dequeue
     {
-        std::unique_lock lock{queue_mutex};
-        condition.wait(lock, [this] { return !free_buffers.empty() || !is_connect; });
+        std::unique_lock lock{free_buffers_mutex};
+        free_buffers_condition.wait(lock, [this] { return !free_buffers.empty() || !is_connect; });
     }
 
     if (!is_connect) {
@@ -58,7 +58,7 @@ std::optional<std::pair<u32, Service::Nvidia::MultiFence*>> BufferQueue::Dequeue
         return std::nullopt;
     }
 
-    std::unique_lock lock{queue_mutex};
+    std::unique_lock lock{free_buffers_mutex};
 
     auto f_itr = free_buffers.begin();
     auto slot = buffers.size();
@@ -100,6 +100,7 @@ void BufferQueue::QueueBuffer(u32 slot, BufferTransformFlags transform,
     buffers[slot].crop_rect = crop_rect;
     buffers[slot].swap_interval = swap_interval;
     buffers[slot].multi_fence = multi_fence;
+    std::unique_lock lock{queue_sequence_mutex};
     queue_sequence.push_back(slot);
 }
 
@@ -113,15 +114,16 @@ void BufferQueue::CancelBuffer(u32 slot, const Service::Nvidia::MultiFence& mult
     buffers[slot].swap_interval = 0;
 
     {
-        std::unique_lock lock{queue_mutex};
+        std::unique_lock lock{free_buffers_mutex};
         free_buffers.push_back(slot);
     }
-    condition.notify_one();
+    free_buffers_condition.notify_one();
 
     buffer_wait_event.writable->Signal();
 }
 
 std::optional<std::reference_wrapper<const BufferQueue::Buffer>> BufferQueue::AcquireBuffer() {
+    std::unique_lock lock{queue_sequence_mutex};
     std::size_t buffer_slot = buffers.size();
     // Iterate to find a queued buffer matching the requested slot.
     while (buffer_slot == buffers.size() && !queue_sequence.empty()) {
@@ -147,25 +149,29 @@ void BufferQueue::ReleaseBuffer(u32 slot) {
 
     buffers[slot].status = Buffer::Status::Free;
     {
-        std::unique_lock lock{queue_mutex};
+        std::unique_lock lock{free_buffers_mutex};
         free_buffers.push_back(slot);
     }
-    condition.notify_one();
+    free_buffers_condition.notify_one();
 
     buffer_wait_event.writable->Signal();
 }
 
 void BufferQueue::Connect() {
+    std::unique_lock lock{queue_sequence_mutex};
     queue_sequence.clear();
     is_connect = true;
 }
 
 void BufferQueue::Disconnect() {
     buffers.fill({});
-    queue_sequence.clear();
+    {
+        std::unique_lock lock{queue_sequence_mutex};
+        queue_sequence.clear();
+    }
     buffer_wait_event.writable->Signal();
     is_connect = false;
-    condition.notify_one();
+    free_buffers_condition.notify_one();
 }
 
 u32 BufferQueue::Query(QueryType type) {
