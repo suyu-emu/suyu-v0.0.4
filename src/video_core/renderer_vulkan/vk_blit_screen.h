@@ -33,8 +33,8 @@ namespace Vulkan {
 
 struct ScreenInfo;
 
+class Device;
 class RasterizerVulkan;
-class VKDevice;
 class VKScheduler;
 class VKSwapchain;
 
@@ -42,7 +42,7 @@ class VKBlitScreen final {
 public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
                           Core::Frontend::EmuWindow& render_window,
-                          VideoCore::RasterizerInterface& rasterizer, const VKDevice& device,
+                          VideoCore::RasterizerInterface& rasterizer, const Device& device,
                           VKMemoryManager& memory_manager, VKSwapchain& swapchain,
                           VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
@@ -85,7 +85,7 @@ private:
     Core::Memory::Memory& cpu_memory;
     Core::Frontend::EmuWindow& render_window;
     VideoCore::RasterizerInterface& rasterizer;
-    const VKDevice& device;
+    const Device& device;
     VKMemoryManager& memory_manager;
     VKSwapchain& swapchain;
     VKScheduler& scheduler;

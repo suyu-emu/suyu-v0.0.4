@@ -37,7 +37,7 @@ void VKScheduler::CommandChunk::ExecuteAll(vk::CommandBuffer cmdbuf) {
     last = nullptr;
 }
 
-VKScheduler::VKScheduler(const VKDevice& device_, StateTracker& state_tracker_)
+VKScheduler::VKScheduler(const Device& device_, StateTracker& state_tracker_)
     : device{device_}, state_tracker{state_tracker_},
       master_semaphore{std::make_unique<MasterSemaphore>(device)},
       command_pool{std::make_unique<CommandPool>(*master_semaphore, device)} {

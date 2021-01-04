@@ -12,7 +12,7 @@
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKScheduler;
 
 struct DescriptorUpdateEntry {
@@ -31,7 +31,7 @@ struct DescriptorUpdateEntry {
 
 class VKUpdateDescriptorQueue final {
 public:
-    explicit VKUpdateDescriptorQueue(const VKDevice& device_, VKScheduler& scheduler_);
+    explicit VKUpdateDescriptorQueue(const Device& device_, VKScheduler& scheduler_);
     ~VKUpdateDescriptorQueue();
 
     void TickFrame();
@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
 
     const DescriptorUpdateEntry* upload_start = nullptr;

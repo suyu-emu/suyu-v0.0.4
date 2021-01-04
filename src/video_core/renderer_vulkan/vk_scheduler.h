@@ -17,17 +17,17 @@
 namespace Vulkan {
 
 class CommandPool;
+class Device;
 class Framebuffer;
 class MasterSemaphore;
 class StateTracker;
-class VKDevice;
 class VKQueryCache;
 
 /// The scheduler abstracts command buffer and fence management with an interface that's able to do
 /// OpenGL-like operations on Vulkan command buffers.
 class VKScheduler {
 public:
-    explicit VKScheduler(const VKDevice& device, StateTracker& state_tracker);
+    explicit VKScheduler(const Device& device, StateTracker& state_tracker);
     ~VKScheduler();
 
     /// Returns the current command buffer tick.
@@ -179,7 +179,7 @@ private:
 
     void AcquireNewChunk();
 
-    const VKDevice& device;
+    const Device& device;
     StateTracker& state_tracker;
 
     std::unique_ptr<MasterSemaphore> master_semaphore;

@@ -14,7 +14,7 @@
 
 namespace Vulkan {
 
-VKUpdateDescriptorQueue::VKUpdateDescriptorQueue(const VKDevice& device_, VKScheduler& scheduler_)
+VKUpdateDescriptorQueue::VKUpdateDescriptorQueue(const Device& device_, VKScheduler& scheduler_)
     : device{device_}, scheduler{scheduler_} {}
 
 VKUpdateDescriptorQueue::~VKUpdateDescriptorQueue() = default;

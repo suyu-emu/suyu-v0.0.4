@@ -15,14 +15,14 @@
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKScheduler;
 class VKStagingBufferPool;
 class VKUpdateDescriptorQueue;
 
 class VKComputePass {
 public:
-    explicit VKComputePass(const VKDevice& device, VKDescriptorPool& descriptor_pool,
+    explicit VKComputePass(const Device& device, VKDescriptorPool& descriptor_pool,
                            vk::Span<VkDescriptorSetLayoutBinding> bindings,
                            vk::Span<VkDescriptorUpdateTemplateEntryKHR> templates,
                            vk::Span<VkPushConstantRange> push_constants, std::span<const u32> code);
@@ -43,7 +43,7 @@ private:
 
 class QuadArrayPass final : public VKComputePass {
 public:
-    explicit QuadArrayPass(const VKDevice& device_, VKScheduler& scheduler_,
+    explicit QuadArrayPass(const Device& device_, VKScheduler& scheduler_,
                            VKDescriptorPool& descriptor_pool_,
                            VKStagingBufferPool& staging_buffer_pool_,
                            VKUpdateDescriptorQueue& update_descriptor_queue_);
@@ -59,7 +59,7 @@ private:
 
 class Uint8Pass final : public VKComputePass {
 public:
-    explicit Uint8Pass(const VKDevice& device_, VKScheduler& scheduler_,
+    explicit Uint8Pass(const Device& device_, VKScheduler& scheduler_,
                        VKDescriptorPool& descriptor_pool_,
                        VKStagingBufferPool& staging_buffer_pool_,
                        VKUpdateDescriptorQueue& update_descriptor_queue_);
@@ -75,7 +75,7 @@ private:
 
 class QuadIndexedPass final : public VKComputePass {
 public:
-    explicit QuadIndexedPass(const VKDevice& device_, VKScheduler& scheduler_,
+    explicit QuadIndexedPass(const Device& device_, VKScheduler& scheduler_,
                              VKDescriptorPool& descriptor_pool_,
                              VKStagingBufferPool& staging_buffer_pool_,
                              VKUpdateDescriptorQueue& update_descriptor_queue_);

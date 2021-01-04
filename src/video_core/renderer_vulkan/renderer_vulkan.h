@@ -27,9 +27,9 @@ class GPU;
 
 namespace Vulkan {
 
+class Device;
 class StateTracker;
 class VKBlitScreen;
-class VKDevice;
 class VKMemoryManager;
 class VKSwapchain;
 class VKScheduler;
@@ -74,7 +74,7 @@ private:
     VKScreenInfo screen_info;
 
     vk::DebugUtilsMessenger debug_callback;
-    std::unique_ptr<VKDevice> device;
+    std::unique_ptr<Device> device;
     std::unique_ptr<VKMemoryManager> memory_manager;
     std::unique_ptr<StateTracker> state_tracker;
     std::unique_ptr<VKScheduler> scheduler;

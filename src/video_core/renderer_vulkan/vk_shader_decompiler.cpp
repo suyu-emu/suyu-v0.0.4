@@ -274,7 +274,7 @@ bool IsPrecise(Operation operand) {
 
 class SPIRVDecompiler final : public Sirit::Module {
 public:
-    explicit SPIRVDecompiler(const VKDevice& device_, const ShaderIR& ir_, ShaderType stage_,
+    explicit SPIRVDecompiler(const Device& device_, const ShaderIR& ir_, ShaderType stage_,
                              const Registry& registry_, const Specialization& specialization_)
         : Module(0x00010300), device{device_}, ir{ir_}, stage{stage_}, header{ir_.GetHeader()},
           registry{registry_}, specialization{specialization_} {
@@ -2742,7 +2742,7 @@ private:
     };
     static_assert(operation_decompilers.size() == static_cast<std::size_t>(OperationCode::Amount));
 
-    const VKDevice& device;
+    const Device& device;
     const ShaderIR& ir;
     const ShaderType stage;
     const Tegra::Shader::Header header;
@@ -3130,7 +3130,7 @@ ShaderEntries GenerateShaderEntries(const VideoCommon::Shader::ShaderIR& ir) {
     return entries;
 }
 
-std::vector<u32> Decompile(const VKDevice& device, const VideoCommon::Shader::ShaderIR& ir,
+std::vector<u32> Decompile(const Device& device, const VideoCommon::Shader::ShaderIR& ir,
                            ShaderType stage, const VideoCommon::Shader::Registry& registry,
                            const Specialization& specialization) {
     return SPIRVDecompiler(device, ir, stage, registry, specialization).Assemble();

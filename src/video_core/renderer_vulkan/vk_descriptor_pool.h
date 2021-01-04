@@ -11,7 +11,7 @@
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKDescriptorPool;
 class VKScheduler;
 
@@ -39,7 +39,7 @@ class VKDescriptorPool final {
     friend DescriptorAllocator;
 
 public:
-    explicit VKDescriptorPool(const VKDevice& device, VKScheduler& scheduler);
+    explicit VKDescriptorPool(const Device& device, VKScheduler& scheduler);
     ~VKDescriptorPool();
 
     VKDescriptorPool(const VKDescriptorPool&) = delete;
@@ -50,7 +50,7 @@ private:
 
     vk::DescriptorSets AllocateDescriptors(VkDescriptorSetLayout layout, std::size_t count);
 
-    const VKDevice& device;
+    const Device& device;
     MasterSemaphore& master_semaphore;
 
     std::vector<vk::DescriptorPool> pools;

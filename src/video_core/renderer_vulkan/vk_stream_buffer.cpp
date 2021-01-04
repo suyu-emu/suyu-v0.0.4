@@ -60,7 +60,7 @@ u32 GetMemoryType(const VkPhysicalDeviceMemoryProperties& properties,
 
 } // Anonymous namespace
 
-VKStreamBuffer::VKStreamBuffer(const VKDevice& device_, VKScheduler& scheduler_)
+VKStreamBuffer::VKStreamBuffer(const Device& device_, VKScheduler& scheduler_)
     : device{device_}, scheduler{scheduler_} {
     CreateBuffers();
     ReserveWatches(current_watches, WATCHES_INITIAL_RESERVE);

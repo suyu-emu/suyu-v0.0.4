@@ -134,7 +134,7 @@ void AsyncShaders::QueueOpenGLShader(const OpenGL::Device& device,
 }
 
 void AsyncShaders::QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache,
-                                     const Vulkan::VKDevice& device, Vulkan::VKScheduler& scheduler,
+                                     const Vulkan::Device& device, Vulkan::VKScheduler& scheduler,
                                      Vulkan::VKDescriptorPool& descriptor_pool,
                                      Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
                                      std::vector<VkDescriptorSetLayoutBinding> bindings,

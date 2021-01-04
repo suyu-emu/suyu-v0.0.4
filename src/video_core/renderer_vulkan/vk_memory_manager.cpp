@@ -29,7 +29,7 @@ u64 GetAllocationChunkSize(u64 required_size) {
 
 class VKMemoryAllocation final {
 public:
-    explicit VKMemoryAllocation(const VKDevice& device_, vk::DeviceMemory memory_,
+    explicit VKMemoryAllocation(const Device& device_, vk::DeviceMemory memory_,
                                 VkMemoryPropertyFlags properties_, u64 allocation_size_, u32 type_)
         : device{device_}, memory{std::move(memory_)}, properties{properties_},
           allocation_size{allocation_size_}, shifted_type{ShiftType(type_)} {}
@@ -104,7 +104,7 @@ private:
         return std::nullopt;
     }
 
-    const VKDevice& device;                 ///< Vulkan device.
+    const Device& device;                   ///< Vulkan device.
     const vk::DeviceMemory memory;          ///< Vulkan memory allocation handler.
     const VkMemoryPropertyFlags properties; ///< Vulkan properties.
     const u64 allocation_size;              ///< Size of this allocation.
@@ -117,7 +117,7 @@ private:
     std::vector<const VKMemoryCommitImpl*> commits;
 };
 
-VKMemoryManager::VKMemoryManager(const VKDevice& device_)
+VKMemoryManager::VKMemoryManager(const Device& device_)
     : device{device_}, properties{device_.GetPhysical().GetMemoryProperties()} {}
 
 VKMemoryManager::~VKMemoryManager() = default;
@@ -207,7 +207,7 @@ VKMemoryCommit VKMemoryManager::TryAllocCommit(const VkMemoryRequirements& requi
     return {};
 }
 
-VKMemoryCommitImpl::VKMemoryCommitImpl(const VKDevice& device_, VKMemoryAllocation* allocation_,
+VKMemoryCommitImpl::VKMemoryCommitImpl(const Device& device_, VKMemoryAllocation* allocation_,
                                        const vk::DeviceMemory& memory_, u64 begin_, u64 end_)
     : device{device_}, memory{memory_}, interval{begin_, end_}, allocation{allocation_} {}
 

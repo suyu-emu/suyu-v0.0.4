@@ -32,7 +32,7 @@ void DescriptorAllocator::Allocate(std::size_t begin, std::size_t end) {
     descriptors_allocations.push_back(descriptor_pool.AllocateDescriptors(layout, end - begin));
 }
 
-VKDescriptorPool::VKDescriptorPool(const VKDevice& device_, VKScheduler& scheduler)
+VKDescriptorPool::VKDescriptorPool(const Device& device_, VKScheduler& scheduler)
     : device{device_}, master_semaphore{scheduler.GetMasterSemaphore()}, active_pool{
                                                                              AllocateNewPool()} {}
 

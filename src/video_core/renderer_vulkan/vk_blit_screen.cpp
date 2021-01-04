@@ -114,7 +114,7 @@ struct VKBlitScreen::BufferData {
 
 VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
                            Core::Frontend::EmuWindow& render_window_,
-                           VideoCore::RasterizerInterface& rasterizer_, const VKDevice& device_,
+                           VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
                            VKMemoryManager& memory_manager_, VKSwapchain& swapchain_,
                            VKScheduler& scheduler_, const VKScreenInfo& screen_info_)
     : cpu_memory{cpu_memory_}, render_window{render_window_}, rasterizer{rasterizer_},

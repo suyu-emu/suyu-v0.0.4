@@ -11,13 +11,13 @@
 
 namespace Vulkan {
 
-class VKDevice;
+class Device;
 class VKScheduler;
 class VKUpdateDescriptorQueue;
 
 class VKComputePipeline final {
 public:
-    explicit VKComputePipeline(const VKDevice& device_, VKScheduler& scheduler_,
+    explicit VKComputePipeline(const Device& device_, VKScheduler& scheduler_,
                                VKDescriptorPool& descriptor_pool_,
                                VKUpdateDescriptorQueue& update_descriptor_queue_,
                                const SPIRVShader& shader_);
@@ -48,7 +48,7 @@ private:
 
     vk::Pipeline CreatePipeline() const;
 
-    const VKDevice& device;
+    const Device& device;
     VKScheduler& scheduler;
     ShaderEntries entries;
 

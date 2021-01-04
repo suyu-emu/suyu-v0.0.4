@@ -94,7 +94,7 @@ public:
                            CompilerSettings compiler_settings, const Registry& registry,
                            VAddr cpu_addr);
 
-    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache, const Vulkan::VKDevice& device,
+    void QueueVulkanShader(Vulkan::VKPipelineCache* pp_cache, const Vulkan::Device& device,
                            Vulkan::VKScheduler& scheduler,
                            Vulkan::VKDescriptorPool& descriptor_pool,
                            Vulkan::VKUpdateDescriptorQueue& update_descriptor_queue,
@@ -123,7 +123,7 @@ private:
 
         // For Vulkan
         Vulkan::VKPipelineCache* pp_cache;
-        const Vulkan::VKDevice* vk_device;
+        const Vulkan::Device* vk_device;
         Vulkan::VKScheduler* scheduler;
         Vulkan::VKDescriptorPool* descriptor_pool;
         Vulkan::VKUpdateDescriptorQueue* update_descriptor_queue;

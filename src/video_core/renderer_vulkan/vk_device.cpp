@@ -206,8 +206,8 @@ std::unordered_map<VkFormat, VkFormatProperties> GetFormatProperties(
 
 } // Anonymous namespace
 
-VKDevice::VKDevice(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface,
-                   const vk::InstanceDispatch& dld_)
+Device::Device(VkInstance instance_, vk::PhysicalDevice physical_, VkSurfaceKHR surface,
+               const vk::InstanceDispatch& dld_)
     : instance{instance_}, dld{dld_}, physical{physical_}, properties{physical.GetProperties()},
       format_properties{GetFormatProperties(physical, dld)} {
     CheckSuitability();
@@ -449,10 +449,10 @@ VKDevice::VKDevice(VkInstance instance_, vk::PhysicalDevice physical_, VkSurface
     use_asynchronous_shaders = Settings::values.use_asynchronous_shaders.GetValue();
 }
 
-VKDevice::~VKDevice() = default;
+Device::~Device() = default;
 
-VkFormat VKDevice::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
-                                      FormatType format_type) const {
+VkFormat Device::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
+                                    FormatType format_type) const {
     if (IsFormatSupported(wanted_format, wanted_usage, format_type)) {
         return wanted_format;
     }
@@ -483,18 +483,18 @@ VkFormat VKDevice::GetSupportedFormat(VkFormat wanted_format, VkFormatFeatureFla
     return wanted_format;
 }
 
-void VKDevice::ReportLoss() const {
-    LOG_CRITICAL(Render_Vulkan, "Device loss occurred!");
+void Device::ReportLoss() const {
+    LOG_CRITICAL(Render_Vulkan, "Device loss occured!");
 
     // Wait for the log to flush and for Nsight Aftermath to dump the results
     std::this_thread::sleep_for(std::chrono::seconds{15});
 }
 
-void VKDevice::SaveShader(const std::vector<u32>& spirv) const {
+void Device::SaveShader(const std::vector<u32>& spirv) const {
     nsight_aftermath_tracker.SaveShader(spirv);
 }
 
-bool VKDevice::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const {
+bool Device::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) const {
     // Disable for now to avoid converting ASTC twice.
     static constexpr std::array astc_formats = {
         VK_FORMAT_ASTC_4x4_UNORM_BLOCK,   VK_FORMAT_ASTC_4x4_SRGB_BLOCK,
@@ -528,7 +528,7 @@ bool VKDevice::IsOptimalAstcSupported(const VkPhysicalDeviceFeatures& features) 
     return true;
 }
 
-bool VKDevice::TestDepthStencilBlits() const {
+bool Device::TestDepthStencilBlits() const {
     static constexpr VkFormatFeatureFlags required_features =
         VK_FORMAT_FEATURE_BLIT_SRC_BIT | VK_FORMAT_FEATURE_BLIT_DST_BIT;
     const auto test_features = [](VkFormatProperties props) {
@@ -538,8 +538,8 @@ bool VKDevice::TestDepthStencilBlits() const {
            test_features(format_properties.at(VK_FORMAT_D24_UNORM_S8_UINT));
 }
 
-bool VKDevice::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
-                                 FormatType format_type) const {
+bool Device::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wanted_usage,
+                               FormatType format_type) const {
     const auto it = format_properties.find(wanted_format);
     if (it == format_properties.end()) {
         UNIMPLEMENTED_MSG("Unimplemented format query={}", wanted_format);
@@ -549,7 +549,7 @@ bool VKDevice::IsFormatSupported(VkFormat wanted_format, VkFormatFeatureFlags wa
     return (supported_usage & wanted_usage) == wanted_usage;
 }
 
-void VKDevice::CheckSuitability() const {
+void Device::CheckSuitability() const {
     std::bitset<REQUIRED_EXTENSIONS.size()> available_extensions;
     for (const VkExtensionProperties& property : physical.EnumerateDeviceExtensionProperties()) {
         for (std::size_t i = 0; i < REQUIRED_EXTENSIONS.size(); ++i) {
@@ -614,7 +614,7 @@ void VKDevice::CheckSuitability() const {
     }
 }
 
-std::vector<const char*> VKDevice::LoadExtensions() {
+std::vector<const char*> Device::LoadExtensions() {
     std::vector<const char*> extensions;
     extensions.reserve(7 + REQUIRED_EXTENSIONS.size());
     extensions.insert(extensions.begin(), REQUIRED_EXTENSIONS.begin(), REQUIRED_EXTENSIONS.end());
@@ -767,7 +767,7 @@ std::vector<const char*> VKDevice::LoadExtensions() {
     return extensions;
 }
 
-void VKDevice::SetupFamilies(VkSurfaceKHR surface) {
+void Device::SetupFamilies(VkSurfaceKHR surface) {
     const std::vector queue_family_properties = physical.GetQueueFamilyProperties();
     std::optional<u32> graphics;
     std::optional<u32> present;
@@ -798,14 +798,14 @@ void VKDevice::SetupFamilies(VkSurfaceKHR surface) {
     present_family = *present;
 }
 
-void VKDevice::SetupFeatures() {
+void Device::SetupFeatures() {
     const auto supported_features{physical.GetFeatures()};
     is_formatless_image_load_supported = supported_features.shaderStorageImageReadWithoutFormat;
     is_blit_depth_stencil_supported = TestDepthStencilBlits();
     is_optimal_astc_supported = IsOptimalAstcSupported(supported_features);
 }
 
-void VKDevice::CollectTelemetryParameters() {
+void Device::CollectTelemetryParameters() {
     VkPhysicalDeviceDriverPropertiesKHR driver{
         .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES_KHR,
         .pNext = nullptr,
@@ -832,7 +832,7 @@ void VKDevice::CollectTelemetryParameters() {
     }
 }
 
-void VKDevice::CollectToolingInfo() {
+void Device::CollectToolingInfo() {
     if (!ext_tooling_info) {
         return;
     }
@@ -858,7 +858,7 @@ void VKDevice::CollectToolingInfo() {
     }
 }
 
-std::vector<VkDeviceQueueCreateInfo> VKDevice::GetDeviceQueueCreateInfos() const {
+std::vector<VkDeviceQueueCreateInfo> Device::GetDeviceQueueCreateInfos() const {
     static constexpr float QUEUE_PRIORITY = 1.0f;
 
     std::unordered_set<u32> unique_queue_families{graphics_family, present_family};

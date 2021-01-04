@@ -19,7 +19,7 @@ namespace Vulkan {
 VKStagingBufferPool::StagingBuffer::StagingBuffer(std::unique_ptr<VKBuffer> buffer_)
     : buffer{std::move(buffer_)} {}
 
-VKStagingBufferPool::VKStagingBufferPool(const VKDevice& device_, VKMemoryManager& memory_manager_,
+VKStagingBufferPool::VKStagingBufferPool(const Device& device_, VKMemoryManager& memory_manager_,
                                          VKScheduler& scheduler_)
     : device{device_}, memory_manager{memory_manager_}, scheduler{scheduler_} {}
 

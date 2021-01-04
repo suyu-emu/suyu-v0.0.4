@@ -22,11 +22,11 @@ enum class FormatType { Linear, Optimal, Buffer };
 const u32 GuestWarpSize = 32;
 
 /// Handles data specific to a physical device.
-class VKDevice final {
+class Device final {
 public:
-    explicit VKDevice(VkInstance instance, vk::PhysicalDevice physical, VkSurfaceKHR surface,
-                      const vk::InstanceDispatch& dld);
-    ~VKDevice();
+    explicit Device(VkInstance instance, vk::PhysicalDevice physical, VkSurfaceKHR surface,
+                    const vk::InstanceDispatch& dld);
+    ~Device();
 
     /**
      * Returns a format supported by the device for the passed requeriments.

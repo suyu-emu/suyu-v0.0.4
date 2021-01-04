@@ -15,7 +15,7 @@
 
 namespace Vulkan {
 
-VKComputePipeline::VKComputePipeline(const VKDevice& device_, VKScheduler& scheduler_,
+VKComputePipeline::VKComputePipeline(const Device& device_, VKScheduler& scheduler_,
                                      VKDescriptorPool& descriptor_pool_,
                                      VKUpdateDescriptorQueue& update_descriptor_queue_,
                                      const SPIRVShader& shader_)

@@ -94,7 +94,7 @@ VkSampleCountFlagBits ConvertMsaaMode(Tegra::Texture::MsaaMode msaa_mode) {
 
 } // Anonymous namespace
 
-VKGraphicsPipeline::VKGraphicsPipeline(const VKDevice& device_, VKScheduler& scheduler_,
+VKGraphicsPipeline::VKGraphicsPipeline(const Device& device_, VKScheduler& scheduler_,
                                        VKDescriptorPool& descriptor_pool_,
                                        VKUpdateDescriptorQueue& update_descriptor_queue_,
                                        const GraphicsPipelineCacheKey& key,
