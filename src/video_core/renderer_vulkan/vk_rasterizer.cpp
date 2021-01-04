@@ -628,8 +628,10 @@ void RasterizerVulkan::DispatchCompute(GPUVAddr code_addr) {
                       grid_z = launch_desc.grid_dim_z, pipeline_handle, pipeline_layout,
                       descriptor_set](vk::CommandBuffer cmdbuf) {
         cmdbuf.BindPipeline(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_handle);
-        cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, DESCRIPTOR_SET,
-                                  descriptor_set, {});
+        if (descriptor_set) {
+            cmdbuf.BindDescriptorSets(VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout,
+                                      DESCRIPTOR_SET, descriptor_set, nullptr);
+        }
         cmdbuf.Dispatch(grid_x, grid_y, grid_z);
     });
 }
