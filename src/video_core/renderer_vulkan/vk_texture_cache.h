@@ -78,10 +78,7 @@ struct TextureCacheRuntime {
 
     [[nodiscard]] ImageBufferMap MapUploadBuffer(size_t size);
 
-    [[nodiscard]] ImageBufferMap MapDownloadBuffer(size_t size) {
-        // TODO: Have a special function for this
-        return MapUploadBuffer(size);
-    }
+    [[nodiscard]] ImageBufferMap MapDownloadBuffer(size_t size);
 
     void BlitImage(Framebuffer* dst_framebuffer, ImageView& dst, ImageView& src,
                    const std::array<Offset2D, 2>& dst_region,

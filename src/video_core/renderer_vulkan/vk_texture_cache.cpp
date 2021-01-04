@@ -555,7 +555,15 @@ void TextureCacheRuntime::Finish() {
 
 ImageBufferMap TextureCacheRuntime::MapUploadBuffer(size_t size) {
     const auto staging_ref = staging_buffer_pool.Request(size, MemoryUsage::Upload);
-    return ImageBufferMap{
+    return {
+        .handle = staging_ref.buffer,
+        .span = staging_ref.mapped_span,
+    };
+}
+
+ImageBufferMap TextureCacheRuntime::MapDownloadBuffer(size_t size) {
+    const auto staging_ref = staging_buffer_pool.Request(size, MemoryUsage::Download);
+    return {
         .handle = staging_ref.buffer,
         .span = staging_ref.mapped_span,
     };
