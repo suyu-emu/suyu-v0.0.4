@@ -51,8 +51,8 @@ std::pair<std::size_t, std::size_t> SearchBucketEntry(u64 offset, const BlockTyp
             low = mid + 1;
         }
     }
-
     UNREACHABLE_MSG("Offset could not be found in BKTR block.");
+    return {0, 0};
 }
 } // Anonymous namespace
 
