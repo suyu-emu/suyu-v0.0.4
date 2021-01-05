@@ -46,7 +46,7 @@ public:
     ~KeplerCompute();
 
     /// Binds a rasterizer to this engine.
-    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
+    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     static constexpr std::size_t NumConstBuffers = 8;
 

@@ -38,19 +38,18 @@ namespace VideoCore {
 
 std::unique_ptr<Tegra::GPU> CreateGPU(Core::Frontend::EmuWindow& emu_window, Core::System& system) {
     const bool use_nvdec = Settings::values.use_nvdec_emulation.GetValue();
-    std::unique_ptr<Tegra::GPU> gpu = std::make_unique<Tegra::GPU>(
-        system, Settings::values.use_asynchronous_gpu_emulation.GetValue(), use_nvdec);
-
+    const bool use_async = Settings::values.use_asynchronous_gpu_emulation.GetValue();
+    auto gpu = std::make_unique<Tegra::GPU>(system, use_async, use_nvdec);
     auto context = emu_window.CreateSharedContext();
-    const auto scope = context->Acquire();
-
-    auto renderer = CreateRenderer(system, emu_window, *gpu, std::move(context));
-    if (!renderer->Init()) {
+    auto scope = context->Acquire();
+    try {
+        auto renderer = CreateRenderer(system, emu_window, *gpu, std::move(context));
+        gpu->BindRenderer(std::move(renderer));
+        return gpu;
+    } catch (const std::runtime_error& exception) {
+        LOG_ERROR(HW_GPU, "Failed to initialize GPU: {}", exception.what());
         return nullptr;
     }
-
-    gpu->BindRenderer(std::move(renderer));
-    return gpu;
 }
 
 u16 GetResolutionScaleFactor(const RendererBase& renderer) {

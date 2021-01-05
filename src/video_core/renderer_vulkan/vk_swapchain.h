@@ -20,7 +20,8 @@ class VKScheduler;
 
 class VKSwapchain {
 public:
-    explicit VKSwapchain(VkSurfaceKHR surface, const Device& device, VKScheduler& scheduler);
+    explicit VKSwapchain(VkSurfaceKHR surface, const Device& device, VKScheduler& scheduler,
+                         u32 width, u32 height, bool srgb);
     ~VKSwapchain();
 
     /// Creates (or recreates) the swapchain with a given size.

@@ -64,7 +64,7 @@ void EmuThread::run() {
 
     emit LoadProgress(VideoCore::LoadCallbackStage::Prepare, 0, 0);
 
-    system.Renderer().Rasterizer().LoadDiskResources(
+    system.Renderer().ReadRasterizer()->LoadDiskResources(
         system.CurrentProcess()->GetTitleID(), stop_run,
         [this](VideoCore::LoadCallbackStage stage, std::size_t value, std::size_t total) {
             emit LoadProgress(stage, value, total);

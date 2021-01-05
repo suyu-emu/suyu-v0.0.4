@@ -132,7 +132,20 @@ RendererOpenGL::RendererOpenGL(Core::TelemetrySession& telemetry_session_,
                                Core::Memory::Memory& cpu_memory_, Tegra::GPU& gpu_,
                                std::unique_ptr<Core::Frontend::GraphicsContext> context_)
     : RendererBase{emu_window_, std::move(context_)}, telemetry_session{telemetry_session_},
-      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device} {}
+      emu_window{emu_window_}, cpu_memory{cpu_memory_}, gpu{gpu_}, program_manager{device},
+      rasterizer{emu_window, gpu, cpu_memory, device, screen_info, program_manager, state_tracker} {
+    if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(DebugHandler, nullptr);
+    }
+    AddTelemetryFields();
+
+    if (!GLAD_GL_VERSION_4_6) {
+        throw std::runtime_error{"OpenGL 4.3 is not available"};
+    }
+    InitOpenGLObjects();
+}
 
 RendererOpenGL::~RendererOpenGL() = default;
 
@@ -148,7 +161,7 @@ void RendererOpenGL::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {
 
     ++m_current_frame;
 
-    rasterizer->TickFrame();
+    rasterizer.TickFrame();
 
     context->SwapBuffers();
     render_window.OnFrameDisplayed();
@@ -179,7 +192,7 @@ void RendererOpenGL::LoadFBToScreenInfo(const Tegra::FramebufferConfig& framebuf
     framebuffer_crop_rect = framebuffer.crop_rect;
 
     const VAddr framebuffer_addr{framebuffer.address + framebuffer.offset};
-    if (rasterizer->AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
+    if (rasterizer.AccelerateDisplay(framebuffer, framebuffer_addr, framebuffer.stride)) {
         return;
     }
 
@@ -287,14 +300,6 @@ void RendererOpenGL::AddTelemetryFields() {
     telemetry_session.AddField(user_system, "GPU_Vendor", std::string(gpu_vendor));
     telemetry_session.AddField(user_system, "GPU_Model", std::string(gpu_model));
     telemetry_session.AddField(user_system, "GPU_OpenGL_Version", std::string(gl_version));
-}
-
-void RendererOpenGL::CreateRasterizer() {
-    if (rasterizer) {
-        return;
-    }
-    rasterizer = std::make_unique<RasterizerOpenGL>(emu_window, gpu, cpu_memory, device,
-                                                    screen_info, program_manager, state_tracker);
 }
 
 void RendererOpenGL::ConfigureFramebufferTexture(TextureInfo& texture,
@@ -496,26 +501,5 @@ void RendererOpenGL::RenderScreenshot() {
     renderer_settings.screenshot_complete_callback();
     renderer_settings.screenshot_requested = false;
 }
-
-bool RendererOpenGL::Init() {
-    if (Settings::values.renderer_debug && GLAD_GL_KHR_debug) {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(DebugHandler, nullptr);
-    }
-
-    AddTelemetryFields();
-
-    if (!GLAD_GL_VERSION_4_6) {
-        return false;
-    }
-
-    InitOpenGLObjects();
-    CreateRasterizer();
-
-    return true;
-}
-
-void RendererOpenGL::ShutDown() {}
 
 } // namespace OpenGL

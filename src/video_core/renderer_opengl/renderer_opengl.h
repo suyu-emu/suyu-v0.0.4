@@ -10,6 +10,7 @@
 #include "common/math_util.h"
 #include "video_core/renderer_base.h"
 #include "video_core/renderer_opengl/gl_device.h"
+#include "video_core/renderer_opengl/gl_rasterizer.h"
 #include "video_core/renderer_opengl/gl_resource_manager.h"
 #include "video_core/renderer_opengl/gl_shader_manager.h"
 #include "video_core/renderer_opengl/gl_state_tracker.h"
@@ -63,17 +64,17 @@ public:
                             std::unique_ptr<Core::Frontend::GraphicsContext> context_);
     ~RendererOpenGL() override;
 
-    bool Init() override;
-    void ShutDown() override;
     void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) override;
+
+    VideoCore::RasterizerInterface* ReadRasterizer() override {
+        return &rasterizer;
+    }
 
 private:
     /// Initializes the OpenGL state and creates persistent objects.
     void InitOpenGLObjects();
 
     void AddTelemetryFields();
-
-    void CreateRasterizer();
 
     void ConfigureFramebufferTexture(TextureInfo& texture,
                                      const Tegra::FramebufferConfig& framebuffer);
@@ -117,6 +118,8 @@ private:
 
     /// Global dummy shader pipeline
     ProgramManager program_manager;
+
+    RasterizerOpenGL rasterizer;
 
     /// OpenGL framebuffer data
     std::vector<u8> gl_framebuffer_data;

@@ -55,7 +55,7 @@ public:
     ~Maxwell3D();
 
     /// Binds a rasterizer to this engine.
-    void BindRasterizer(VideoCore::RasterizerInterface& rasterizer);
+    void BindRasterizer(VideoCore::RasterizerInterface* rasterizer);
 
     /// Register structure of the Maxwell3D engine.
     /// TODO(Subv): This structure will need to be made bigger as more registers are discovered.

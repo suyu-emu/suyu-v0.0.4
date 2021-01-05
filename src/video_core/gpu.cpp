@@ -44,8 +44,8 @@ GPU::~GPU() = default;
 
 void GPU::BindRenderer(std::unique_ptr<VideoCore::RendererBase> renderer_) {
     renderer = std::move(renderer_);
+    rasterizer = renderer->ReadRasterizer();
 
-    VideoCore::RasterizerInterface& rasterizer = renderer->Rasterizer();
     memory_manager->BindRasterizer(rasterizer);
     maxwell_3d->BindRasterizer(rasterizer);
     fermi_2d->BindRasterizer(rasterizer);
@@ -171,7 +171,7 @@ void GPU::TickWork() {
         const std::size_t size = request.size;
         flush_requests.pop_front();
         flush_request_mutex.unlock();
-        renderer->Rasterizer().FlushRegion(addr, size);
+        rasterizer->FlushRegion(addr, size);
         current_flush_fence.store(fence);
         flush_request_mutex.lock();
     }
@@ -193,11 +193,11 @@ u64 GPU::GetTicks() const {
 }
 
 void GPU::FlushCommands() {
-    renderer->Rasterizer().FlushCommands();
+    rasterizer->FlushCommands();
 }
 
 void GPU::SyncGuestHost() {
-    renderer->Rasterizer().SyncGuestHost();
+    rasterizer->SyncGuestHost();
 }
 
 enum class GpuSemaphoreOperation {

@@ -344,6 +344,9 @@ public:
     /// Construct an empty handle.
     Handle() = default;
 
+    /// Construct an empty handle.
+    Handle(std::nullptr_t) {}
+
     /// Copying Vulkan objects is not supported and will never be.
     Handle(const Handle&) = delete;
     Handle& operator=(const Handle&) = delete;

@@ -18,7 +18,6 @@
 #include "video_core/gpu.h"
 #include "video_core/host_shaders/vulkan_present_frag_spv.h"
 #include "video_core/host_shaders/vulkan_present_vert_spv.h"
-#include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
@@ -113,13 +112,12 @@ struct VKBlitScreen::BufferData {
 };
 
 VKBlitScreen::VKBlitScreen(Core::Memory::Memory& cpu_memory_,
-                           Core::Frontend::EmuWindow& render_window_,
-                           VideoCore::RasterizerInterface& rasterizer_, const Device& device_,
+                           Core::Frontend::EmuWindow& render_window_, const Device& device_,
                            MemoryAllocator& memory_allocator_, VKSwapchain& swapchain_,
                            VKScheduler& scheduler_, const VKScreenInfo& screen_info_)
-    : cpu_memory{cpu_memory_}, render_window{render_window_}, rasterizer{rasterizer_},
-      device{device_}, memory_allocator{memory_allocator_}, swapchain{swapchain_},
-      scheduler{scheduler_}, image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
+    : cpu_memory{cpu_memory_}, render_window{render_window_}, device{device_},
+      memory_allocator{memory_allocator_}, swapchain{swapchain_}, scheduler{scheduler_},
+      image_count{swapchain.GetImageCount()}, screen_info{screen_info_} {
     resource_ticks.resize(image_count);
 
     CreateStaticResources();
@@ -159,7 +157,6 @@ VkSemaphore VKBlitScreen::Draw(const Tegra::FramebufferConfig& framebuffer, bool
         const VAddr framebuffer_addr = framebuffer.address + framebuffer.offset;
         const u8* const host_ptr = cpu_memory.GetPointer(framebuffer_addr);
         const size_t size_bytes = GetSizeInBytes(framebuffer);
-        rasterizer.FlushRegion(ToCacheAddr(host_ptr), size_bytes);
 
         // TODO(Rodrigo): Read this from HLE
         constexpr u32 block_height_log2 = 4;

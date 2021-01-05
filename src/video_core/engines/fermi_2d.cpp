@@ -18,8 +18,8 @@ Fermi2D::Fermi2D() {
 
 Fermi2D::~Fermi2D() = default;
 
-void Fermi2D::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void Fermi2D::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 void Fermi2D::CallMethod(u32 method, u32 method_argument, bool is_last_call) {

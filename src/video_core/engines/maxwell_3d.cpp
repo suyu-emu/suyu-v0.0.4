@@ -30,8 +30,8 @@ Maxwell3D::Maxwell3D(Core::System& system_, MemoryManager& memory_manager_)
 
 Maxwell3D::~Maxwell3D() = default;
 
-void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void Maxwell3D::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 void Maxwell3D::InitializeRegisterDefaults() {

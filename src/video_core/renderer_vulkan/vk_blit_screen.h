@@ -38,12 +38,18 @@ class RasterizerVulkan;
 class VKScheduler;
 class VKSwapchain;
 
-class VKBlitScreen final {
+struct VKScreenInfo {
+    VkImageView image_view{};
+    u32 width{};
+    u32 height{};
+    bool is_srgb{};
+};
+
+class VKBlitScreen {
 public:
     explicit VKBlitScreen(Core::Memory::Memory& cpu_memory,
-                          Core::Frontend::EmuWindow& render_window,
-                          VideoCore::RasterizerInterface& rasterizer, const Device& device,
-                          MemoryAllocator& memory_allocator, VKSwapchain& swapchain,
+                          Core::Frontend::EmuWindow& render_window, const Device& device,
+                          MemoryAllocator& memory_manager, VKSwapchain& swapchain,
                           VKScheduler& scheduler, const VKScreenInfo& screen_info);
     ~VKBlitScreen();
 
@@ -84,7 +90,6 @@ private:
 
     Core::Memory::Memory& cpu_memory;
     Core::Frontend::EmuWindow& render_window;
-    VideoCore::RasterizerInterface& rasterizer;
     const Device& device;
     MemoryAllocator& memory_allocator;
     VKSwapchain& swapchain;

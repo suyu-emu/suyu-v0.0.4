@@ -21,8 +21,8 @@ MemoryManager::MemoryManager(Core::System& system_)
 
 MemoryManager::~MemoryManager() = default;
 
-void MemoryManager::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void MemoryManager::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 GPUVAddr MemoryManager::UpdateRange(GPUVAddr gpu_addr, PageEntry page_entry, std::size_t size) {

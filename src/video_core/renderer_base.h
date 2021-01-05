@@ -37,14 +37,10 @@ public:
                           std::unique_ptr<Core::Frontend::GraphicsContext> context);
     virtual ~RendererBase();
 
-    /// Initialize the renderer
-    [[nodiscard]] virtual bool Init() = 0;
-
-    /// Shutdown the renderer
-    virtual void ShutDown() = 0;
-
     /// Finalize rendering the guest frame and draw into the presentation texture
     virtual void SwapBuffers(const Tegra::FramebufferConfig* framebuffer) = 0;
+
+    [[nodiscard]] virtual RasterizerInterface* ReadRasterizer() = 0;
 
     // Getter/setter functions:
     // ------------------------
@@ -55,14 +51,6 @@ public:
 
     [[nodiscard]] int GetCurrentFrame() const {
         return m_current_frame;
-    }
-
-    [[nodiscard]] RasterizerInterface& Rasterizer() {
-        return *rasterizer;
-    }
-
-    [[nodiscard]] const RasterizerInterface& Rasterizer() const {
-        return *rasterizer;
     }
 
     [[nodiscard]] Core::Frontend::GraphicsContext& Context() {
@@ -98,7 +86,6 @@ public:
 
 protected:
     Core::Frontend::EmuWindow& render_window; ///< Reference to the render window handle.
-    std::unique_ptr<RasterizerInterface> rasterizer;
     std::unique_ptr<Core::Frontend::GraphicsContext> context;
     f32 m_current_fps = 0.0f; ///< Current framerate, should be set by the renderer
     int m_current_frame = 0;  ///< Current frame, should be set by the renderer

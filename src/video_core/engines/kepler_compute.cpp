@@ -21,8 +21,8 @@ KeplerCompute::KeplerCompute(Core::System& system_, MemoryManager& memory_manage
 
 KeplerCompute::~KeplerCompute() = default;
 
-void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface& rasterizer_) {
-    rasterizer = &rasterizer_;
+void KeplerCompute::BindRasterizer(VideoCore::RasterizerInterface* rasterizer_) {
+    rasterizer = rasterizer_;
 }
 
 void KeplerCompute::CallMethod(u32 method, u32 method_argument, bool is_last_call) {

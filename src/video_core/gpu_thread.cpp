@@ -38,6 +38,7 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
     }
 
     auto current_context = context.Acquire();
+    VideoCore::RasterizerInterface* const rasterizer = renderer.ReadRasterizer();
 
     CommandDataContainer next;
     while (state.is_running) {
@@ -52,13 +53,13 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
         } else if (const auto* data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (std::holds_alternative<OnCommandListEndCommand>(next.data)) {
-            renderer.Rasterizer().ReleaseFences();
+            rasterizer->ReleaseFences();
         } else if (std::holds_alternative<GPUTickCommand>(next.data)) {
             system.GPU().TickWork();
         } else if (const auto* flush = std::get_if<FlushRegionCommand>(&next.data)) {
-            renderer.Rasterizer().FlushRegion(flush->addr, flush->size);
+            rasterizer->FlushRegion(flush->addr, flush->size);
         } else if (const auto* invalidate = std::get_if<InvalidateRegionCommand>(&next.data)) {
-            renderer.Rasterizer().OnCPUWrite(invalidate->addr, invalidate->size);
+            rasterizer->OnCPUWrite(invalidate->addr, invalidate->size);
         } else if (std::holds_alternative<EndProcessingCommand>(next.data)) {
             return;
         } else {
@@ -84,6 +85,7 @@ ThreadManager::~ThreadManager() {
 void ThreadManager::StartThread(VideoCore::RendererBase& renderer,
                                 Core::Frontend::GraphicsContext& context,
                                 Tegra::DmaPusher& dma_pusher, Tegra::CDmaPusher& cdma_pusher) {
+    rasterizer = renderer.ReadRasterizer();
     thread = std::thread(RunThread, std::ref(system), std::ref(renderer), std::ref(context),
                          std::ref(dma_pusher), std::ref(state), std::ref(cdma_pusher));
 }
@@ -129,12 +131,12 @@ void ThreadManager::FlushRegion(VAddr addr, u64 size) {
 }
 
 void ThreadManager::InvalidateRegion(VAddr addr, u64 size) {
-    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
+    rasterizer->OnCPUWrite(addr, size);
 }
 
 void ThreadManager::FlushAndInvalidateRegion(VAddr addr, u64 size) {
     // Skip flush on asynch mode, as FlushAndInvalidateRegion is not used for anything too important
-    system.Renderer().Rasterizer().OnCPUWrite(addr, size);
+    rasterizer->OnCPUWrite(addr, size);
 }
 
 void ThreadManager::WaitIdle() const {
