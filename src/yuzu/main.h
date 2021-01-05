@@ -248,6 +248,7 @@ private slots:
     void OnCoreError(Core::System::ResultStatus, std::string);
     void OnReinitializeKeys(ReinitializeKeyBehavior behavior);
     void OnLanguageChanged(const QString& locale);
+    void OnMouseActivity();
 
 private:
     void RemoveBaseContent(u64 program_id, const QString& entry_type);
@@ -335,6 +336,4 @@ protected:
     void dropEvent(QDropEvent* event) override;
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dragMoveEvent(QDragMoveEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mousePressEvent(QMouseEvent* event) override;
 };

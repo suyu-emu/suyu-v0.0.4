@@ -1134,6 +1134,7 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
         [this](std::size_t program_index) { render_window->ExecuteProgram(program_index); });
 
     connect(render_window, &GRenderWindow::Closed, this, &GMainWindow::OnStopGame);
+    connect(render_window, &GRenderWindow::MouseActivity, this, &GMainWindow::OnMouseActivity);
     // BlockingQueuedConnection is important here, it makes sure we've finished refreshing our views
     // before the CPU continues
     connect(emu_thread.get(), &EmuThread::DebugModeEntered, waitTreeWidget,
@@ -1157,8 +1158,8 @@ void GMainWindow::BootGame(const QString& filename, std::size_t program_index) {
 
     if (UISettings::values.hide_mouse) {
         mouse_hide_timer.start();
-        setMouseTracking(true);
-        ui.centralwidget->setMouseTracking(true);
+        render_window->installEventFilter(render_window);
+        render_window->setAttribute(Qt::WA_Hover, true);
     }
 
     std::string title_name;
@@ -1235,8 +1236,8 @@ void GMainWindow::ShutdownGame() {
     }
     game_list->SetFilterFocus();
 
-    setMouseTracking(false);
-    ui.centralwidget->setMouseTracking(false);
+    render_window->removeEventFilter(render_window);
+    render_window->setAttribute(Qt::WA_Hover, false);
 
     UpdateWindowTitle();
 
@@ -2317,12 +2318,12 @@ void GMainWindow::OnConfigure() {
     config->Save();
 
     if (UISettings::values.hide_mouse && emulation_running) {
-        setMouseTracking(true);
-        ui.centralwidget->setMouseTracking(true);
+        render_window->installEventFilter(render_window);
+        render_window->setAttribute(Qt::WA_Hover, true);
         mouse_hide_timer.start();
     } else {
-        setMouseTracking(false);
-        ui.centralwidget->setMouseTracking(false);
+        render_window->removeEventFilter(render_window);
+        render_window->setAttribute(Qt::WA_Hover, false);
     }
 
     UpdateStatusButtons();
@@ -2562,21 +2563,17 @@ void GMainWindow::HideMouseCursor() {
         ShowMouseCursor();
         return;
     }
-    setCursor(QCursor(Qt::BlankCursor));
+    render_window->setCursor(QCursor(Qt::BlankCursor));
 }
 
 void GMainWindow::ShowMouseCursor() {
-    unsetCursor();
+    render_window->unsetCursor();
     if (emu_thread != nullptr && UISettings::values.hide_mouse) {
         mouse_hide_timer.start();
     }
 }
 
-void GMainWindow::mouseMoveEvent(QMouseEvent* event) {
-    ShowMouseCursor();
-}
-
-void GMainWindow::mousePressEvent(QMouseEvent* event) {
+void GMainWindow::OnMouseActivity() {
     ShowMouseCursor();
 }
 
