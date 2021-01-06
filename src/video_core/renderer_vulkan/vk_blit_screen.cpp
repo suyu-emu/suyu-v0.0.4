@@ -21,7 +21,6 @@
 #include "video_core/rasterizer_interface.h"
 #include "video_core/renderer_vulkan/renderer_vulkan.h"
 #include "video_core/renderer_vulkan/vk_blit_screen.h"
-#include "video_core/renderer_vulkan/vk_device.h"
 #include "video_core/renderer_vulkan/vk_master_semaphore.h"
 #include "video_core/renderer_vulkan/vk_memory_manager.h"
 #include "video_core/renderer_vulkan/vk_scheduler.h"
@@ -29,6 +28,7 @@
 #include "video_core/renderer_vulkan/vk_swapchain.h"
 #include "video_core/surface.h"
 #include "video_core/textures/decoders.h"
+#include "video_core/vulkan_common/vulkan_device.h"
 #include "video_core/vulkan_common/vulkan_wrapper.h"
 
 namespace Vulkan {

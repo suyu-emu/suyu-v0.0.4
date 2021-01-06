@@ -32,20 +32,11 @@ namespace Vulkan {
 
 static constexpr char AFTERMATH_LIB_NAME[] = "GFSDK_Aftermath_Lib.x64.dll";
 
-NsightAftermathTracker::NsightAftermathTracker() = default;
-
-NsightAftermathTracker::~NsightAftermathTracker() {
-    if (initialized) {
-        (void)GFSDK_Aftermath_DisableGpuCrashDumps();
-    }
-}
-
-bool NsightAftermathTracker::Initialize() {
+NsightAftermathTracker::NsightAftermathTracker() {
     if (!dl.Open(AFTERMATH_LIB_NAME)) {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath DLL");
-        return false;
+        return;
     }
-
     if (!dl.GetSymbol("GFSDK_Aftermath_DisableGpuCrashDumps",
                       &GFSDK_Aftermath_DisableGpuCrashDumps) ||
         !dl.GetSymbol("GFSDK_Aftermath_EnableGpuCrashDumps",
@@ -64,27 +55,28 @@ bool NsightAftermathTracker::Initialize() {
         LOG_ERROR(Render_Vulkan, "Failed to load Nsight Aftermath function pointers");
         return false;
     }
-
     dump_dir = Common::FS::GetUserPath(Common::FS::UserPath::LogDir) + "gpucrash";
 
-    (void)Common::FS::DeleteDirRecursively(dump_dir);
+    void(Common::FS::DeleteDirRecursively(dump_dir));
     if (!Common::FS::CreateDir(dump_dir)) {
         LOG_ERROR(Render_Vulkan, "Failed to create Nsight Aftermath dump directory");
-        return false;
+        return;
     }
-
     if (!GFSDK_Aftermath_SUCCEED(GFSDK_Aftermath_EnableGpuCrashDumps(
             GFSDK_Aftermath_Version_API, GFSDK_Aftermath_GpuCrashDumpWatchedApiFlags_Vulkan,
             GFSDK_Aftermath_GpuCrashDumpFeatureFlags_Default, GpuCrashDumpCallback,
             ShaderDebugInfoCallback, CrashDumpDescriptionCallback, this))) {
         LOG_ERROR(Render_Vulkan, "GFSDK_Aftermath_EnableGpuCrashDumps failed");
-        return false;
+        return;
     }
-
     LOG_INFO(Render_Vulkan, "Nsight Aftermath dump directory is \"{}\"", dump_dir);
-
     initialized = true;
-    return true;
+}
+
+NsightAftermathTracker::~NsightAftermathTracker() {
+    if (initialized) {
+        (void)GFSDK_Aftermath_DisableGpuCrashDumps();
+    }
 }
 
 void NsightAftermathTracker::SaveShader(const std::vector<u32>& spirv) const {

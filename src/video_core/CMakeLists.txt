@@ -115,8 +115,6 @@ add_library(video_core STATIC
     renderer_vulkan/fixed_pipeline_state.h
     renderer_vulkan/maxwell_to_vk.cpp
     renderer_vulkan/maxwell_to_vk.h
-    renderer_vulkan/nsight_aftermath_tracker.cpp
-    renderer_vulkan/nsight_aftermath_tracker.h
     renderer_vulkan/renderer_vulkan.h
     renderer_vulkan/renderer_vulkan.cpp
     renderer_vulkan/vk_blit_screen.cpp
@@ -131,8 +129,6 @@ add_library(video_core STATIC
     renderer_vulkan/vk_compute_pipeline.h
     renderer_vulkan/vk_descriptor_pool.cpp
     renderer_vulkan/vk_descriptor_pool.h
-    renderer_vulkan/vk_device.cpp
-    renderer_vulkan/vk_device.h
     renderer_vulkan/vk_fence_manager.cpp
     renderer_vulkan/vk_fence_manager.h
     renderer_vulkan/vk_graphics_pipeline.cpp
@@ -257,6 +253,8 @@ add_library(video_core STATIC
     video_core.h
     vulkan_common/vulkan_debug_callback.cpp
     vulkan_common/vulkan_debug_callback.h
+    vulkan_common/vulkan_device.cpp
+    vulkan_common/vulkan_device.h
     vulkan_common/vulkan_instance.cpp
     vulkan_common/vulkan_instance.h
     vulkan_common/vulkan_library.cpp
@@ -265,6 +263,8 @@ add_library(video_core STATIC
     vulkan_common/vulkan_surface.h
     vulkan_common/vulkan_wrapper.cpp
     vulkan_common/vulkan_wrapper.h
+    vulkan_common/nsight_aftermath_tracker.cpp
+    vulkan_common/nsight_aftermath_tracker.h
 )
 
 create_target_directory_groups(video_core)
