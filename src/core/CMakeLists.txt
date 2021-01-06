@@ -635,6 +635,8 @@ if (MSVC)
         /we4267
         # 'context' : truncation from 'type1' to 'type2'
         /we4305
+        # 'function' : not all control paths return a value
+        /we4715
     )
 else()
     target_compile_options(core PRIVATE

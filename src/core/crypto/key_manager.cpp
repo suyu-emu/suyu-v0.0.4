@@ -143,6 +143,7 @@ u64 GetSignatureTypeDataSize(SignatureType type) {
         return 0x3C;
     }
     UNREACHABLE();
+    return 0;
 }
 
 u64 GetSignatureTypePaddingSize(SignatureType type) {
@@ -157,6 +158,7 @@ u64 GetSignatureTypePaddingSize(SignatureType type) {
         return 0x40;
     }
     UNREACHABLE();
+    return 0;
 }
 
 SignatureType Ticket::GetSignatureType() const {
@@ -169,8 +171,7 @@ SignatureType Ticket::GetSignatureType() const {
     if (const auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->sig_type;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 TicketData& Ticket::GetData() {
@@ -183,8 +184,7 @@ TicketData& Ticket::GetData() {
     if (auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->data;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 const TicketData& Ticket::GetData() const {
@@ -197,8 +197,7 @@ const TicketData& Ticket::GetData() const {
     if (const auto* ticket = std::get_if<ECDSATicket>(&data)) {
         return ticket->data;
     }
-
-    UNREACHABLE();
+    throw std::bad_variant_access{};
 }
 
 u64 Ticket::GetSize() const {
