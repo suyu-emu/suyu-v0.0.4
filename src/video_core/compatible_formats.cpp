@@ -10,9 +10,7 @@
 #include "video_core/surface.h"
 
 namespace VideoCore::Surface {
-
 namespace {
-
 using Table = std::array<std::array<u64, 2>, MaxPixelFormat>;
 
 // Compatibility table taken from Table 3.X.2 in:
@@ -233,10 +231,13 @@ constexpr Table MakeCopyTable() {
     EnableRange(copy, COPY_CLASS_64_BITS);
     return copy;
 }
-
 } // Anonymous namespace
 
-bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b) {
+bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b, bool broken_views) {
+    if (broken_views) {
+        // If format views are broken, only accept formats that are identical.
+        return format_a == format_b;
+    }
     static constexpr Table TABLE = MakeViewTable();
     return IsSupported(TABLE, format_a, format_b);
 }

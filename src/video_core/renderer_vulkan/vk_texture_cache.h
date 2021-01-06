@@ -104,6 +104,11 @@ struct TextureCacheRuntime {
     }
 
     void InsertUploadMemoryBarrier() {}
+
+    bool HasBrokenTextureViewFormats() const noexcept {
+        // No known Vulkan driver has broken image views
+        return false;
+    }
 };
 
 class Image : public VideoCommon::ImageBase {

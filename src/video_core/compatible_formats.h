@@ -8,7 +8,7 @@
 
 namespace VideoCore::Surface {
 
-bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b);
+bool IsViewCompatible(PixelFormat format_a, PixelFormat format_b, bool broken_views);
 
 bool IsCopyCompatible(PixelFormat format_a, PixelFormat format_b);
 
