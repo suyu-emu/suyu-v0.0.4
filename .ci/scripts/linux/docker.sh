@@ -22,12 +22,10 @@ rm -vf AppDir/usr/bin/yuzu-cmd AppDir/usr/bin/yuzu-tester
 # Download tools needed to build an AppImage
 wget -nc https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
 wget -nc https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
-wget -nc https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
 wget -nc https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/AppRun-patched-x86_64
 wget -nc https://github.com/darealshinji/AppImageKit-checkrt/releases/download/continuous/exec-x86_64.so
 # Set executable bit
 chmod 755 \
-    appimagetool-x86_64.AppImage \
     AppRun-patched-x86_64 \
     exec-x86_64.so \
     linuxdeploy-x86_64.AppImage \
@@ -49,6 +47,3 @@ cp exec-x86_64.so AppDir/usr/optional/exec.so
 cp AppRun-patched-x86_64 AppDir/AppRun
 cp --dereference /usr/lib/x86_64-linux-gnu/libstdc++.so.6 AppDir/usr/optional/libstdc++/libstdc++.so.6
 cp --dereference /lib/x86_64-linux-gnu/libgcc_s.so.1 AppDir/usr/optional/libgcc_s/libgcc_s.so.1
-
-# Build the AppImage
-./appimagetool-x86_64.AppImage AppDir
