@@ -29,8 +29,8 @@ enum class MemoryUsage {
 class MemoryCommit {
 public:
     explicit MemoryCommit() noexcept = default;
-    explicit MemoryCommit(const Device& device_, MemoryAllocation* allocation_,
-                          VkDeviceMemory memory_, u64 begin, u64 end) noexcept;
+    explicit MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
+                          u64 end_) noexcept;
     ~MemoryCommit();
 
     MemoryCommit& operator=(MemoryCommit&&) noexcept;
@@ -50,16 +50,16 @@ public:
 
     /// Returns the start position of the commit relative to the allocation.
     VkDeviceSize Offset() const {
-        return static_cast<VkDeviceSize>(interval.first);
+        return static_cast<VkDeviceSize>(begin);
     }
 
 private:
     void Release();
 
-    const Device* device{};         ///< Vulkan device.
     MemoryAllocation* allocation{}; ///< Pointer to the large memory allocation.
     VkDeviceMemory memory{};        ///< Vulkan device memory handler.
-    std::pair<u64, u64> interval{}; ///< Interval where the commit exists.
+    u64 begin{};                    ///< Beginning offset in bytes to where the commit exists.
+    u64 end{};                      ///< Offset in bytes where the commit ends.
     std::span<u8> span;             ///< Host visible memory span. Empty if not queried before.
 };
 

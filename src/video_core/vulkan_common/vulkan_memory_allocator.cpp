@@ -71,7 +71,7 @@ public:
             .end = *alloc + size,
         };
         commits.insert(std::ranges::upper_bound(commits, *alloc, {}, &Range::begin), range);
-        return std::make_optional<MemoryCommit>(device, this, *memory, *alloc, *alloc + size);
+        return std::make_optional<MemoryCommit>(this, *memory, *alloc, *alloc + size);
     }
 
     void Free(u64 begin) {
@@ -127,9 +127,9 @@ private:
     std::span<u8> memory_mapped_span; ///< Memory mapped span. Empty if not queried before.
 };
 
-MemoryCommit::MemoryCommit(const Device& device_, MemoryAllocation* allocation_,
-                           VkDeviceMemory memory_, u64 begin, u64 end) noexcept
-    : device{&device_}, allocation{allocation_}, memory{memory_}, interval{begin, end} {}
+MemoryCommit::MemoryCommit(MemoryAllocation* allocation_, VkDeviceMemory memory_, u64 begin_,
+                           u64 end_) noexcept
+    : allocation{allocation_}, memory{memory_}, begin{begin_}, end{end_} {}
 
 MemoryCommit::~MemoryCommit() {
     Release();
@@ -137,28 +137,28 @@ MemoryCommit::~MemoryCommit() {
 
 MemoryCommit& MemoryCommit::operator=(MemoryCommit&& rhs) noexcept {
     Release();
-    device = rhs.device;
     allocation = std::exchange(rhs.allocation, nullptr);
     memory = rhs.memory;
-    interval = rhs.interval;
+    begin = rhs.begin;
+    end = rhs.end;
     span = std::exchange(rhs.span, std::span<u8>{});
     return *this;
 }
 
 MemoryCommit::MemoryCommit(MemoryCommit&& rhs) noexcept
-    : device{rhs.device}, allocation{std::exchange(rhs.allocation, nullptr)}, memory{rhs.memory},
-      interval{rhs.interval}, span{std::exchange(rhs.span, std::span<u8>{})} {}
+    : allocation{std::exchange(rhs.allocation, nullptr)}, memory{rhs.memory}, begin{rhs.begin},
+      end{rhs.end}, span{std::exchange(rhs.span, std::span<u8>{})} {}
 
 std::span<u8> MemoryCommit::Map() {
     if (span.empty()) {
-        span = allocation->Map().subspan(interval.first, interval.second - interval.first);
+        span = allocation->Map().subspan(begin, end - begin);
     }
     return span;
 }
 
 void MemoryCommit::Release() {
     if (allocation) {
-        allocation->Free(interval.first);
+        allocation->Free(begin);
     }
 }
 
