@@ -11,6 +11,7 @@
 #include "core/core.h"
 #include "core/hle/service/nvdrv/devices/nvhost_nvdec_common.h"
 #include "core/hle/service/nvdrv/devices/nvmap.h"
+#include "core/hle/service/nvdrv/syncpoint_manager.h"
 #include "core/memory.h"
 #include "video_core/memory_manager.h"
 #include "video_core/renderer_base.h"
@@ -36,8 +37,9 @@ std::size_t WriteVectors(std::vector<u8>& dst, const std::vector<T>& src, std::s
 }
 } // Anonymous namespace
 
-nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system, std::shared_ptr<nvmap> nvmap_dev)
-    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)) {}
+nvhost_nvdec_common::nvhost_nvdec_common(Core::System& system, std::shared_ptr<nvmap> nvmap_dev,
+                                         SyncpointManager& syncpoint_manager)
+    : nvdevice(system), nvmap_dev(std::move(nvmap_dev)), syncpoint_manager(syncpoint_manager) {}
 nvhost_nvdec_common::~nvhost_nvdec_common() = default;
 
 NvResult nvhost_nvdec_common::SetNVMAPfd(const std::vector<u8>& input) {
@@ -71,10 +73,15 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
     offset = SpliceVectors(input, wait_checks, params.syncpoint_count, offset);
     offset = SpliceVectors(input, fences, params.fence_count, offset);
 
-    // TODO(ameerj): For async gpu, utilize fences for syncpoint 'max' increment
-
     auto& gpu = system.GPU();
-
+    if (gpu.UseNvdec()) {
+        for (std::size_t i = 0; i < syncpt_increments.size(); i++) {
+            const SyncptIncr& syncpt_incr = syncpt_increments[i];
+            fences[i].id = syncpt_incr.id;
+            fences[i].value =
+                syncpoint_manager.IncreaseSyncpoint(syncpt_incr.id, syncpt_incr.increments);
+        }
+    }
     for (const auto& cmd_buffer : command_buffers) {
         auto object = nvmap_dev->GetObject(cmd_buffer.memory_id);
         ASSERT_OR_EXECUTE(object, return NvResult::InvalidState;);
@@ -89,7 +96,13 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
                                       cmdlist.size() * sizeof(u32));
         gpu.PushCommandBuffer(cmdlist);
     }
+    if (gpu.UseNvdec()) {
 
+        fences[0].value = syncpoint_manager.IncreaseSyncpoint(fences[0].id, 1);
+
+        Tegra::ChCommandHeaderList cmdlist{{(4 << 28) | fences[0].id}};
+        gpu.PushCommandBuffer(cmdlist);
+    }
     std::memcpy(output.data(), &params, sizeof(IoctlSubmit));
     // Some games expect command_buffers to be written back
     offset = sizeof(IoctlSubmit);
@@ -98,6 +111,7 @@ NvResult nvhost_nvdec_common::Submit(const std::vector<u8>& input, std::vector<u
     offset = WriteVectors(output, reloc_shifts, offset);
     offset = WriteVectors(output, syncpt_increments, offset);
     offset = WriteVectors(output, wait_checks, offset);
+    offset = WriteVectors(output, fences, offset);
 
     return NvResult::Success;
 }
@@ -107,9 +121,10 @@ NvResult nvhost_nvdec_common::GetSyncpoint(const std::vector<u8>& input, std::ve
     std::memcpy(&params, input.data(), sizeof(IoctlGetSyncpoint));
     LOG_DEBUG(Service_NVDRV, "called GetSyncpoint, id={}", params.param);
 
-    // We found that implementing this causes deadlocks with async gpu, along with degraded
-    // performance. TODO: RE the nvdec async implementation
-    params.value = 0;
+    if (device_syncpoints[params.param] == 0 && system.GPU().UseNvdec()) {
+        device_syncpoints[params.param] = syncpoint_manager.AllocateSyncpoint();
+    }
+    params.value = device_syncpoints[params.param];
     std::memcpy(output.data(), &params, sizeof(IoctlGetSyncpoint));
 
     return NvResult::Success;
