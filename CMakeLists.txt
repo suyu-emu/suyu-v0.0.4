@@ -26,6 +26,10 @@ option(ENABLE_CUBEB "Enables the cubeb audio backend" ON)
 
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence" OFF)
 
+if (NOT ENABLE_WEB_SERVICE)
+    set(YUZU_ENABLE_BOXCAT OFF)
+endif()
+
 # Default to a Release build
 get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if (NOT IS_MULTI_CONFIG AND NOT CMAKE_BUILD_TYPE)
@@ -239,7 +243,7 @@ if(ENABLE_QT)
     if (YUZU_USE_QT_WEB_ENGINE)
         find_package(Qt5 COMPONENTS WebEngineCore WebEngineWidgets)
     endif()
-	
+
     if (ENABLE_QT_TRANSLATION)
         find_package(Qt5 REQUIRED COMPONENTS LinguistTools ${QT_PREFIX_HINT})
     endif()
@@ -322,7 +326,7 @@ if (CONAN_REQUIRED_LIBS)
             list(APPEND Boost_LIBRARIES Boost::context)
         endif()
     endif()
-    
+
     # Due to issues with variable scopes in functions, we need to also find_package(qt5) outside of the function
     if(ENABLE_QT)
         list(APPEND CMAKE_MODULE_PATH "${CONAN_QT_ROOT_RELEASE}")
