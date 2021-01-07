@@ -61,7 +61,7 @@ using VideoCore::Surface::SurfaceType;
 template <class P>
 class TextureCache {
     /// Address shift for caching images into a hash table
-    static constexpr u64 PAGE_SHIFT = 20;
+    static constexpr u64 PAGE_BITS = 20;
 
     /// Enables debugging features to the texture cache
     static constexpr bool ENABLE_VALIDATION = P::ENABLE_VALIDATION;
@@ -184,8 +184,8 @@ private:
     template <typename Func>
     static void ForEachPage(VAddr addr, size_t size, Func&& func) {
         static constexpr bool RETURNS_BOOL = std::is_same_v<std::invoke_result<Func, u64>, bool>;
-        const u64 page_end = (addr + size - 1) >> PAGE_SHIFT;
-        for (u64 page = addr >> PAGE_SHIFT; page <= page_end; ++page) {
+        const u64 page_end = (addr + size - 1) >> PAGE_BITS;
+        for (u64 page = addr >> PAGE_BITS; page <= page_end; ++page) {
             if constexpr (RETURNS_BOOL) {
                 if (func(page)) {
                     break;
@@ -708,7 +708,7 @@ void TextureCache<P>::InvalidateDepthBuffer() {
 template <class P>
 typename P::ImageView* TextureCache<P>::TryFindFramebufferImageView(VAddr cpu_addr) {
     // TODO: Properly implement this
-    const auto it = page_table.find(cpu_addr >> PAGE_SHIFT);
+    const auto it = page_table.find(cpu_addr >> PAGE_BITS);
     if (it == page_table.end()) {
         return nullptr;
     }
@@ -1170,13 +1170,13 @@ void TextureCache<P>::UnregisterImage(ImageId image_id) {
     ForEachPage(image.cpu_addr, image.guest_size_bytes, [this, image_id](u64 page) {
         const auto page_it = page_table.find(page);
         if (page_it == page_table.end()) {
-            UNREACHABLE_MSG("Unregistering unregistered page=0x{:x}", page << PAGE_SHIFT);
+            UNREACHABLE_MSG("Unregistering unregistered page=0x{:x}", page << PAGE_BITS);
             return;
         }
         std::vector<ImageId>& image_ids = page_it->second;
         const auto vector_it = std::ranges::find(image_ids, image_id);
         if (vector_it == image_ids.end()) {
-            UNREACHABLE_MSG("Unregistering unregistered image in page=0x{:x}", page << PAGE_SHIFT);
+            UNREACHABLE_MSG("Unregistering unregistered image in page=0x{:x}", page << PAGE_BITS);
             return;
         }
         image_ids.erase(vector_it);
