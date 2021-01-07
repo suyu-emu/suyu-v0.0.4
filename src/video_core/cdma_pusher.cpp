@@ -145,9 +145,9 @@ void CDmaPusher::ExecuteCommand(u32 state_offset, u32 data) {
     }
 }
 
-void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 offset, u32 argument) {
-    u8* const state_offset = reinterpret_cast<u8*>(&state) + sizeof(u32) * offset;
-    std::memcpy(state_offset, &argument, sizeof(u32));
+void CDmaPusher::ThiStateWrite(ThiRegisters& state, u32 state_offset, u32 argument) {
+    u8* const offset_ptr = reinterpret_cast<u8*>(&state) + sizeof(u32) * state_offset;
+    std::memcpy(offset_ptr, &argument, sizeof(u32));
 }
 
 } // namespace Tegra

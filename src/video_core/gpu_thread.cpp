@@ -49,7 +49,7 @@ static void RunThread(Core::System& system, VideoCore::RendererBase& renderer,
         } else if (auto* command_list = std::get_if<SubmitChCommandEntries>(&next.data)) {
             // NVDEC
             cdma_pusher.ProcessEntries(std::move(command_list->entries));
-        } else if (const auto data = std::get_if<SwapBuffersCommand>(&next.data)) {
+        } else if (const auto* data = std::get_if<SwapBuffersCommand>(&next.data)) {
             renderer.SwapBuffers(data->framebuffer ? &*data->framebuffer : nullptr);
         } else if (std::holds_alternative<OnCommandListEndCommand>(next.data)) {
             rasterizer->ReleaseFences();

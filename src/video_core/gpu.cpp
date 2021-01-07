@@ -493,8 +493,7 @@ void GPU::PushCommandBuffer(Tegra::ChCommandHeaderList& entries) {
     // TODO(ameerj): RE proper async nvdec operation
     // gpu_thread.SubmitCommandBuffer(std::move(entries));
 
-    cdma_pusher->Push(std::move(entries));
-    cdma_pusher->DispatchCalls();
+    cdma_pusher->ProcessEntries(std::move(entries));
 }
 
 void GPU::SwapBuffers(const Tegra::FramebufferConfig* framebuffer) {

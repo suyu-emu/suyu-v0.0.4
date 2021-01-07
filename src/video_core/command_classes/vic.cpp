@@ -134,10 +134,10 @@ void Vic::Execute() {
 
         // Populate luma buffer
         for (std::size_t y = 0; y < surface_height - 1; ++y) {
-            std::size_t src = y * stride;
-            std::size_t dst = y * aligned_width;
+            const std::size_t src = y * stride;
+            const std::size_t dst = y * aligned_width;
 
-            std::size_t size = surface_width;
+            const std::size_t size = surface_width;
 
             for (std::size_t offset = 0; offset < size; ++offset) {
                 luma_buffer[dst + offset] = luma_ptr[src + offset];
@@ -148,8 +148,8 @@ void Vic::Execute() {
 
         // Populate chroma buffer from both channels with interleaving.
         for (std::size_t y = 0; y < half_height; ++y) {
-            std::size_t src = y * half_stride;
-            std::size_t dst = y * aligned_width;
+            const std::size_t src = y * half_stride;
+            const std::size_t dst = y * aligned_width;
 
             for (std::size_t x = 0; x < half_width; ++x) {
                 chroma_buffer[dst + x * 2] = chroma_b_ptr[src + x];
