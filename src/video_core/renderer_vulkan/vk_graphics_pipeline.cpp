@@ -212,11 +212,7 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
         // state is ignored
         dynamic.raw1 = 0;
         dynamic.raw2 = 0;
-        for (FixedPipelineState::VertexBinding& binding : dynamic.vertex_bindings) {
-            // Enable all vertex bindings
-            binding.raw = 0;
-            binding.enabled.Assign(1);
-        }
+        dynamic.vertex_strides.fill(0);
     } else {
         dynamic = state.dynamic_state;
     }
@@ -224,19 +220,16 @@ vk::Pipeline VKGraphicsPipeline::CreatePipeline(const SPIRVProgram& program,
     std::vector<VkVertexInputBindingDescription> vertex_bindings;
     std::vector<VkVertexInputBindingDivisorDescriptionEXT> vertex_binding_divisors;
     for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        const auto& binding = dynamic.vertex_bindings[index];
-        if (!binding.enabled) {
+        if (state.attributes[index].binding_index_enabled == 0) {
             continue;
         }
         const bool instanced = state.binding_divisors[index] != 0;
         const auto rate = instanced ? VK_VERTEX_INPUT_RATE_INSTANCE : VK_VERTEX_INPUT_RATE_VERTEX;
-
         vertex_bindings.push_back({
             .binding = static_cast<u32>(index),
-            .stride = binding.stride,
+            .stride = dynamic.vertex_strides[index],
             .inputRate = rate,
         });
-
         if (instanced) {
             vertex_binding_divisors.push_back({
                 .binding = static_cast<u32>(index),

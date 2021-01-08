@@ -76,7 +76,7 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
             regs.instanced_arrays.IsInstancingEnabled(index) ? regs.vertex_array[index].divisor : 0;
     }
 
-    for (std::size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
+    for (size_t index = 0; index < Maxwell::NumVertexAttributes; ++index) {
         const auto& input = regs.vertex_attrib_format[index];
         auto& attribute = attributes[index];
         attribute.raw = 0;
@@ -85,6 +85,7 @@ void FixedPipelineState::Fill(const Maxwell& regs, bool has_extended_dynamic_sta
         attribute.offset.Assign(input.offset);
         attribute.type.Assign(static_cast<u32>(input.type.Value()));
         attribute.size.Assign(static_cast<u32>(input.size.Value()));
+        attribute.binding_index_enabled.Assign(regs.vertex_array[index].IsEnabled() ? 1 : 0);
     }
 
     for (std::size_t index = 0; index < std::size(attachments); ++index) {
@@ -172,14 +173,9 @@ void FixedPipelineState::DynamicState::Fill(const Maxwell& regs) {
     depth_test_func.Assign(PackComparisonOp(regs.depth_test_func));
     cull_face.Assign(PackCullFace(regs.cull_face));
     cull_enable.Assign(regs.cull_test_enabled != 0 ? 1 : 0);
-
-    for (std::size_t index = 0; index < Maxwell::NumVertexArrays; ++index) {
-        const auto& input = regs.vertex_array[index];
-        VertexBinding& binding = vertex_bindings[index];
-        binding.raw = 0;
-        binding.enabled.Assign(input.IsEnabled() ? 1 : 0);
-        binding.stride.Assign(static_cast<u16>(input.stride.Value()));
-    }
+    std::ranges::transform(regs.vertex_array, vertex_strides.begin(), [](const auto& array) {
+        return static_cast<u16>(array.stride.Value());
+    });
 }
 
 std::size_t FixedPipelineState::Hash() const noexcept {
