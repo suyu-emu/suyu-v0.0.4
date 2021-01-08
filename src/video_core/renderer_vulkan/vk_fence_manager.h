@@ -28,10 +28,8 @@ class VKScheduler;
 
 class InnerFence : public VideoCommon::FenceBase {
 public:
-    explicit InnerFence(const Device& device_, VKScheduler& scheduler_, u32 payload_,
-                        bool is_stubbed_);
-    explicit InnerFence(const Device& device_, VKScheduler& scheduler_, GPUVAddr address_,
-                        u32 payload_, bool is_stubbed_);
+    explicit InnerFence(VKScheduler& scheduler_, u32 payload_, bool is_stubbed_);
+    explicit InnerFence(VKScheduler& scheduler_, GPUVAddr address_, u32 payload_, bool is_stubbed_);
     ~InnerFence();
 
     void Queue();
@@ -41,12 +39,8 @@ public:
     void Wait();
 
 private:
-    bool IsEventSignalled() const;
-
-    const Device& device;
     VKScheduler& scheduler;
-    vk::Event event;
-    u64 ticks = 0;
+    u64 wait_tick = 0;
 };
 using Fence = std::shared_ptr<InnerFence>;
 
@@ -58,7 +52,7 @@ public:
     explicit VKFenceManager(VideoCore::RasterizerInterface& rasterizer_, Tegra::GPU& gpu_,
                             Tegra::MemoryManager& memory_manager_, TextureCache& texture_cache_,
                             VKBufferCache& buffer_cache_, VKQueryCache& query_cache_,
-                            const Device& device_, VKScheduler& scheduler_);
+                            VKScheduler& scheduler_);
 
 protected:
     Fence CreateFence(u32 value, bool is_stubbed) override;
@@ -68,7 +62,6 @@ protected:
     void WaitFence(Fence& fence) override;
 
 private:
-    const Device& device;
     VKScheduler& scheduler;
 };
 

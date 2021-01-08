@@ -428,8 +428,7 @@ RasterizerVulkan::RasterizerVulkan(Core::Frontend::EmuWindow& emu_window_, Tegra
       buffer_cache(*this, gpu_memory, cpu_memory_, device, memory_manager, scheduler, stream_buffer,
                    staging_pool),
       query_cache{*this, maxwell3d, gpu_memory, device, scheduler},
-      fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, device,
-                    scheduler),
+      fence_manager(*this, gpu, gpu_memory, texture_cache, buffer_cache, query_cache, scheduler),
       wfi_event(device.GetLogical().CreateEvent()), async_shaders(emu_window_) {
     scheduler.SetQueryCache(query_cache);
     if (device.UseAsynchronousShaders()) {
