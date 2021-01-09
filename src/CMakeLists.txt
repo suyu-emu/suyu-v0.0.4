@@ -45,10 +45,14 @@ if (MSVC)
 
         # Warnings
         /W3
+        /we4062 # enumerator 'identifier' in a switch of enum 'enumeration' is not handled
+        /we4265 # 'class': class has virtual functions, but destructor is not virtual
+        /we4388 # signed/unsigned mismatch
         /we4547 # 'operator' : operator before comma has no effect; expected operator with side-effect
         /we4549 # 'operator1': operator before comma has no effect; did you intend 'operator2'?
         /we4555 # Expression has no effect; expected expression with side-effect
         /we4834 # Discarding return value of function with 'nodiscard' attribute
+        /we5038 # data member 'member1' will be initialized after data member 'member2'
     )
 
     # /GS- - No stack buffer overflow checks
