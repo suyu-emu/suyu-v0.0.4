@@ -20,60 +20,60 @@ TEST_CASE("RingBuffer: Basic Tests", "[common]") {
     for (std::size_t i = 0; i < 4; i++) {
         const char elem = static_cast<char>(i);
         const std::size_t count = buf.Push(&elem, 1);
-        REQUIRE(count == 1);
+        REQUIRE(count == 1U);
     }
 
-    REQUIRE(buf.Size() == 4);
+    REQUIRE(buf.Size() == 4U);
 
     // Pushing values into a full ring buffer should fail.
     {
         const char elem = static_cast<char>(42);
         const std::size_t count = buf.Push(&elem, 1);
-        REQUIRE(count == 0);
+        REQUIRE(count == 0U);
     }
 
-    REQUIRE(buf.Size() == 4);
+    REQUIRE(buf.Size() == 4U);
 
     // Popping multiple values from a ring buffer with values should succeed.
     {
         const std::vector<char> popped = buf.Pop(2);
-        REQUIRE(popped.size() == 2);
+        REQUIRE(popped.size() == 2U);
         REQUIRE(popped[0] == 0);
         REQUIRE(popped[1] == 1);
     }
 
-    REQUIRE(buf.Size() == 2);
+    REQUIRE(buf.Size() == 2U);
 
     // Popping a single value from a ring buffer with values should succeed.
     {
         const std::vector<char> popped = buf.Pop(1);
-        REQUIRE(popped.size() == 1);
+        REQUIRE(popped.size() == 1U);
         REQUIRE(popped[0] == 2);
     }
 
-    REQUIRE(buf.Size() == 1);
+    REQUIRE(buf.Size() == 1U);
 
     // Pushing more values than space available should partially suceed.
     {
         std::vector<char> to_push(6);
         std::iota(to_push.begin(), to_push.end(), 88);
         const std::size_t count = buf.Push(to_push);
-        REQUIRE(count == 3);
+        REQUIRE(count == 3U);
     }
 
-    REQUIRE(buf.Size() == 4);
+    REQUIRE(buf.Size() == 4U);
 
     // Doing an unlimited pop should pop all values.
     {
         const std::vector<char> popped = buf.Pop();
-        REQUIRE(popped.size() == 4);
+        REQUIRE(popped.size() == 4U);
         REQUIRE(popped[0] == 3);
         REQUIRE(popped[1] == 88);
         REQUIRE(popped[2] == 89);
         REQUIRE(popped[3] == 90);
     }
 
-    REQUIRE(buf.Size() == 0);
+    REQUIRE(buf.Size() == 0U);
 }
 
 TEST_CASE("RingBuffer: Threaded Test", "[common]") {
@@ -93,7 +93,7 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
         std::size_t i = 0;
         while (i < count) {
             if (const std::size_t c = buf.Push(&value[0], 1); c > 0) {
-                REQUIRE(c == 1);
+                REQUIRE(c == 1U);
                 i++;
                 next_value(value);
             } else {
@@ -108,7 +108,7 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
         std::size_t i = 0;
         while (i < count) {
             if (const std::vector<char> v = buf.Pop(1); v.size() > 0) {
-                REQUIRE(v.size() == 2);
+                REQUIRE(v.size() == 2U);
                 REQUIRE(v[0] == value[0]);
                 REQUIRE(v[1] == value[1]);
                 i++;
@@ -123,7 +123,7 @@ TEST_CASE("RingBuffer: Threaded Test", "[common]") {
     producer.join();
     consumer.join();
 
-    REQUIRE(buf.Size() == 0);
+    REQUIRE(buf.Size() == 0U);
     printf("RingBuffer: Threaded Test: full: %zu, empty: %zu\n", full, empty);
 }
 
