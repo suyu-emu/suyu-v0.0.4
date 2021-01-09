@@ -51,6 +51,8 @@ CalibrationConfigurationDialog::CalibrationConfigurationDialog(QWidget* parent,
             case CalibrationConfigurationJob::Status::Completed:
                 text = tr("Configuration completed!");
                 break;
+            default:
+                break;
             }
             QMetaObject::invokeMethod(this, "UpdateLabelText", Q_ARG(QString, text));
             if (status == CalibrationConfigurationJob::Status::Completed) {
