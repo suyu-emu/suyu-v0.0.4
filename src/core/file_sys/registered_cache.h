@@ -67,18 +67,18 @@ public:
     virtual void Refresh() = 0;
 
     virtual bool HasEntry(u64 title_id, ContentRecordType type) const = 0;
-    virtual bool HasEntry(ContentProviderEntry entry) const;
+    bool HasEntry(ContentProviderEntry entry) const;
 
     virtual std::optional<u32> GetEntryVersion(u64 title_id) const = 0;
 
     virtual VirtualFile GetEntryUnparsed(u64 title_id, ContentRecordType type) const = 0;
-    virtual VirtualFile GetEntryUnparsed(ContentProviderEntry entry) const;
+    VirtualFile GetEntryUnparsed(ContentProviderEntry entry) const;
 
     virtual VirtualFile GetEntryRaw(u64 title_id, ContentRecordType type) const = 0;
-    virtual VirtualFile GetEntryRaw(ContentProviderEntry entry) const;
+    VirtualFile GetEntryRaw(ContentProviderEntry entry) const;
 
     virtual std::unique_ptr<NCA> GetEntry(u64 title_id, ContentRecordType type) const = 0;
-    virtual std::unique_ptr<NCA> GetEntry(ContentProviderEntry entry) const;
+    std::unique_ptr<NCA> GetEntry(ContentProviderEntry entry) const;
 
     virtual std::vector<ContentProviderEntry> ListEntries() const;
 
