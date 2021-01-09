@@ -71,15 +71,8 @@ public:
     }
 
     void ExceptionRaised(u32 pc, Dynarmic::A32::Exception exception) override {
-        switch (exception) {
-        case Dynarmic::A32::Exception::UndefinedInstruction:
-        case Dynarmic::A32::Exception::UnpredictableInstruction:
-            break;
-        case Dynarmic::A32::Exception::Breakpoint:
-            break;
-        }
         LOG_CRITICAL(Core_ARM, "ExceptionRaised(exception = {}, pc = {:08X}, code = {:08X})",
-                     static_cast<std::size_t>(exception), pc, MemoryReadCode(pc));
+                     exception, pc, MemoryReadCode(pc));
         UNIMPLEMENTED();
     }
 

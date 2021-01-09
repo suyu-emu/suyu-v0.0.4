@@ -180,9 +180,11 @@ u32 BufferQueue::Query(QueryType type) {
     switch (type) {
     case QueryType::NativeWindowFormat:
         return static_cast<u32>(PixelFormat::RGBA8888);
+    case QueryType::NativeWindowWidth:
+    case QueryType::NativeWindowHeight:
+        break;
     }
-
-    UNIMPLEMENTED();
+    UNIMPLEMENTED_MSG("Unimplemented query type={}", type);
     return 0;
 }
 
