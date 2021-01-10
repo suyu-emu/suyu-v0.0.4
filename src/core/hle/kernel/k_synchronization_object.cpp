@@ -78,6 +78,7 @@ ResultCode KSynchronizationObject::Wait(KernelCore& kernel, s32* out_index,
         thread->SetCancellable();
         thread->SetSyncedObject(nullptr, Svc::ResultTimedOut);
         thread->SetState(ThreadState::Waiting);
+        thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Synchronization);
     }
 
     // The lock/sleep is done, so we should be able to get our result.

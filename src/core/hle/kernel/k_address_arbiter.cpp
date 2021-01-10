@@ -276,6 +276,7 @@ ResultCode KAddressArbiter::WaitIfLessThan(VAddr addr, s32 value, bool decrement
         cur_thread->SetAddressArbiter(std::addressof(thread_tree), addr);
         thread_tree.insert(*cur_thread);
         cur_thread->SetState(ThreadState::Waiting);
+        cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
     }
 
     // Cancel the timer wait.
@@ -339,6 +340,7 @@ ResultCode KAddressArbiter::WaitIfEqual(VAddr addr, s32 value, s64 timeout) {
         cur_thread->SetAddressArbiter(std::addressof(thread_tree), addr);
         thread_tree.insert(*cur_thread);
         cur_thread->SetState(ThreadState::Waiting);
+        cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Arbitration);
     }
 
     // Cancel the timer wait.

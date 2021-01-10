@@ -347,6 +347,7 @@ static ResultCode SendSyncRequest(Core::System& system, Handle handle) {
     {
         KScopedSchedulerLock lock(kernel);
         thread->SetState(ThreadState::Waiting);
+        thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::IPC);
         session->SendSyncRequest(SharedFrom(thread), system.Memory(), system.CoreTiming());
     }
 

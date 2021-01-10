@@ -251,7 +251,29 @@ QString WaitTreeThread::GetText() const {
         }
         break;
     case Kernel::ThreadState::Waiting:
-        status = tr("waiting");
+        switch (thread.GetWaitReasonForDebugging()) {
+        case Kernel::ThreadWaitReasonForDebugging::Sleep:
+            status = tr("sleeping");
+            break;
+        case Kernel::ThreadWaitReasonForDebugging::IPC:
+            status = tr("waiting for IPC reply");
+            break;
+        case Kernel::ThreadWaitReasonForDebugging::Synchronization:
+            status = tr("waiting for objects");
+            break;
+        case Kernel::ThreadWaitReasonForDebugging::ConditionVar:
+            status = tr("waiting for condition variable");
+            break;
+        case Kernel::ThreadWaitReasonForDebugging::Arbitration:
+            status = tr("waiting for address arbiter");
+            break;
+        case Kernel::ThreadWaitReasonForDebugging::Suspended:
+            status = tr("waiting for suspend resume");
+            break;
+        default:
+            status = tr("waiting");
+            break;
+        }
         break;
     case Kernel::ThreadState::Initialized:
         status = tr("initialized");
@@ -288,7 +310,20 @@ QColor WaitTreeThread::GetColor() const {
             return QColor(WaitTreeColors[2][color_index]);
         }
     case Kernel::ThreadState::Waiting:
-        return QColor(WaitTreeColors[3][color_index]);
+        switch (thread.GetWaitReasonForDebugging()) {
+        case Kernel::ThreadWaitReasonForDebugging::IPC:
+            return QColor(WaitTreeColors[4][color_index]);
+        case Kernel::ThreadWaitReasonForDebugging::Sleep:
+            return QColor(WaitTreeColors[5][color_index]);
+        case Kernel::ThreadWaitReasonForDebugging::Synchronization:
+        case Kernel::ThreadWaitReasonForDebugging::ConditionVar:
+        case Kernel::ThreadWaitReasonForDebugging::Arbitration:
+        case Kernel::ThreadWaitReasonForDebugging::Suspended:
+            return QColor(WaitTreeColors[6][color_index]);
+            break;
+        default:
+            return QColor(WaitTreeColors[3][color_index]);
+        }
     case Kernel::ThreadState::Initialized:
         return QColor(WaitTreeColors[7][color_index]);
     case Kernel::ThreadState::Terminated:
@@ -339,7 +374,9 @@ std::vector<std::unique_ptr<WaitTreeItem>> WaitTreeThread::GetChildren() const {
         list.push_back(std::make_unique<WaitTreeText>(tr("not waiting for mutex")));
     }
 
-    if (thread.GetState() == Kernel::ThreadState::Waiting) {
+    if (thread.GetState() == Kernel::ThreadState::Waiting &&
+        thread.GetWaitReasonForDebugging() ==
+            Kernel::ThreadWaitReasonForDebugging::Synchronization) {
         list.push_back(std::make_unique<WaitTreeObjectList>(thread.GetWaitObjectsForDebugging(),
                                                             thread.IsCancellable()));
     }

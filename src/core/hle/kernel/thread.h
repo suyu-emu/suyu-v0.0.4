@@ -114,6 +114,16 @@ enum class ThreadSchedFlags : u32 {
     KernelInitPauseFlag = 1 << 8,
 };
 
+enum class ThreadWaitReasonForDebugging : u32 {
+    None,            ///< Thread is not waiting
+    Sleep,           ///< Thread is waiting due to a SleepThread SVC
+    IPC,             ///< Thread is waiting for the reply from an IPC request
+    Synchronization, ///< Thread is waiting due to a WaitSynchronization SVC
+    ConditionVar,    ///< Thread is waiting due to a WaitProcessWideKey SVC
+    Arbitration,     ///< Thread is waiting due to a SignalToAddress/WaitForAddress SVC
+    Suspended,       ///< Thread is waiting due to process suspension
+};
+
 class Thread final : public KSynchronizationObject, public boost::intrusive::list_base_hook<> {
     friend class KScheduler;
     friend class Process;
@@ -515,6 +525,14 @@ public:
         disable_count--;
     }
 
+    void SetWaitReasonForDebugging(ThreadWaitReasonForDebugging reason) {
+        wait_reason_for_debugging = reason;
+    }
+
+    [[nodiscard]] ThreadWaitReasonForDebugging GetWaitReasonForDebugging() const {
+        return wait_reason_for_debugging;
+    }
+
     void SetWaitObjectsForDebugging(const std::span<KSynchronizationObject*>& objects) {
         wait_objects_for_debugging.clear();
         wait_objects_for_debugging.reserve(objects.size());
@@ -707,6 +725,9 @@ private:
 
     /// The current mutex wait address. This is used for debugging only.
     VAddr mutex_wait_address_for_debugging{};
+
+    /// The reason the thread is waiting. This is used for debugging only.
+    ThreadWaitReasonForDebugging wait_reason_for_debugging{};
 
     KSynchronizationObject* signaling_object;
     ResultCode signaling_result{RESULT_SUCCESS};

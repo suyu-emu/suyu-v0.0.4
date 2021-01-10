@@ -215,7 +215,10 @@ VAddr Thread::GetCommandBufferAddress() const {
 void Thread::SetState(ThreadState state) {
     KScopedSchedulerLock sl(kernel);
 
-    SetMutexWaitAddressForDebugging(0);
+    // Clear debugging state
+    SetMutexWaitAddressForDebugging({});
+    SetWaitReasonForDebugging({});
+
     const ThreadState old_state = thread_state;
     thread_state =
         static_cast<ThreadState>((old_state & ~ThreadState::Mask) | (state & ThreadState::Mask));
@@ -386,6 +389,7 @@ ResultCode Thread::Sleep(s64 nanoseconds) {
     {
         KScopedSchedulerLockAndSleep lock(kernel, event_handle, this, nanoseconds);
         SetState(ThreadState::Waiting);
+        SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::Sleep);
     }
 
     if (event_handle != InvalidHandle) {

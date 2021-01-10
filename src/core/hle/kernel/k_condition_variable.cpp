@@ -133,6 +133,7 @@ ResultCode KConditionVariable::WaitForAddress(Handle handle, VAddr addr, u32 val
                 cur_thread->SetAddressKey(addr, value);
                 owner_thread->AddWaiter(cur_thread);
                 cur_thread->SetState(ThreadState::Waiting);
+                cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
                 cur_thread->SetMutexWaitAddressForDebugging(addr);
             }
         }
@@ -315,6 +316,7 @@ ResultCode KConditionVariable::Wait(VAddr addr, u64 key, u32 value, s64 timeout)
         // If the timeout is non-zero, set the thread as waiting.
         if (timeout != 0) {
             cur_thread->SetState(ThreadState::Waiting);
+            cur_thread->SetWaitReasonForDebugging(ThreadWaitReasonForDebugging::ConditionVar);
             cur_thread->SetMutexWaitAddressForDebugging(addr);
         }
     }

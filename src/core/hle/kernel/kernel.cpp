@@ -605,6 +605,8 @@ void KernelCore::Suspend(bool in_suspention) {
         const auto state = should_suspend ? ThreadState::Runnable : ThreadState::Waiting;
         for (std::size_t i = 0; i < Core::Hardware::NUM_CPU_CORES; i++) {
             impl->suspend_threads[i]->SetState(state);
+            impl->suspend_threads[i]->SetWaitReasonForDebugging(
+                ThreadWaitReasonForDebugging::Suspended);
         }
     }
 }
