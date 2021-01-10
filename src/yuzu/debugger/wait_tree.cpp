@@ -259,6 +259,9 @@ QString WaitTreeThread::GetText() const {
     case Kernel::ThreadState::Terminated:
         status = tr("terminated");
         break;
+    default:
+        status = tr("unknown");
+        break;
     }
 
     const auto& context = thread.GetContext64();
