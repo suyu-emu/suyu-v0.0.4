@@ -37,7 +37,7 @@ static Core::Frontend::ControllerParameters ConvertToFrontendParameters(
         .border_colors = std::move(identification_colors),
         .enable_explain_text = enable_text,
         .explain_text = std::move(text),
-        .allow_pro_controller = npad_style_set.pro_controller == 1,
+        .allow_pro_controller = npad_style_set.fullkey == 1,
         .allow_handheld = npad_style_set.handheld == 1,
         .allow_dual_joycons = npad_style_set.joycon_dual == 1,
         .allow_left_joycon = npad_style_set.joycon_left == 1,
