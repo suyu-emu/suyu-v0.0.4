@@ -475,7 +475,7 @@ bool GRenderWindow::TouchStart(const QTouchEvent::TouchPoint& touch_point) {
 
 bool GRenderWindow::TouchUpdate(const QTouchEvent::TouchPoint& touch_point) {
     for (std::size_t id = 0; id < touch_ids.size(); ++id) {
-        if (touch_ids[id] == touch_point.id() + 1) {
+        if (touch_ids[id] == static_cast<std::size_t>(touch_point.id() + 1)) {
             const auto [x, y] = ScaleTouch(touch_point.pos());
             this->TouchMoved(x, y, id + 1);
             return true;
@@ -486,8 +486,9 @@ bool GRenderWindow::TouchUpdate(const QTouchEvent::TouchPoint& touch_point) {
 
 bool GRenderWindow::TouchExist(std::size_t id,
                                const QList<QTouchEvent::TouchPoint>& touch_points) const {
-    return std::any_of(touch_points.begin(), touch_points.end(),
-                       [id](const auto& point) { return id == point.id() + 1; });
+    return std::any_of(touch_points.begin(), touch_points.end(), [id](const auto& point) {
+        return id == static_cast<std::size_t>(point.id() + 1);
+    });
 }
 
 bool GRenderWindow::event(QEvent* event) {

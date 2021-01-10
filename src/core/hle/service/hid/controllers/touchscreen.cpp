@@ -100,11 +100,7 @@ void Controller_Touchscreen::OnUpdate(const Core::Timing::CoreTiming& core_timin
 void Controller_Touchscreen::OnLoadInputDevices() {
     touch_mouse_device = Input::CreateDevice<Input::TouchDevice>("engine:emu_window");
     touch_udp_device = Input::CreateDevice<Input::TouchDevice>("engine:cemuhookudp");
-    if (Settings::values.use_touch_from_button) {
-        touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
-    } else {
-        touch_btn_device.reset();
-    }
+    touch_btn_device = Input::CreateDevice<Input::TouchDevice>("engine:touch_from_button");
 }
 
 std::optional<std::size_t> Controller_Touchscreen::GetUnusedFingerID() const {

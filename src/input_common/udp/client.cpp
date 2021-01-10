@@ -136,9 +136,7 @@ static void SocketLoop(Socket* socket) {
 
 Client::Client() {
     LOG_INFO(Input, "Udp Initialization started");
-    for (std::size_t id = 0; id < MAX_TOUCH_FINGERS; ++id) {
-        finger_id[id] = MAX_TOUCH_FINGERS;
-    }
+    finger_id.fill(MAX_TOUCH_FINGERS);
     ReloadSockets();
 }
 
@@ -347,17 +345,17 @@ void Client::UpdateTouchInput(Response::TouchPad& touch_pad, std::size_t client,
     const u16 min_y = static_cast<u16>(touch_param.Get("min_y", 50));
     const u16 max_x = static_cast<u16>(touch_param.Get("max_x", 1800));
     const u16 max_y = static_cast<u16>(touch_param.Get("max_y", 850));
-
+    const std::size_t touch_id = client * 2 + id;
     if (touch_pad.is_active) {
-        if (finger_id[client * 2 + id] == MAX_TOUCH_FINGERS) {
+        if (finger_id[touch_id] == MAX_TOUCH_FINGERS) {
             const auto first_free_id = GetUnusedFingerID();
             if (!first_free_id) {
                 // Invalid finger id skip to next input
                 return;
             }
-            finger_id[client * 2 + id] = first_free_id.value();
+            finger_id[touch_id] = *first_free_id;
         }
-        auto& [x, y, pressed] = touch_status[finger_id[client * 2 + id]];
+        auto& [x, y, pressed] = touch_status[finger_id[touch_id]];
         x = static_cast<float>(std::clamp(static_cast<u16>(touch_pad.x), min_x, max_x) - min_x) /
             static_cast<float>(max_x - min_x);
         y = static_cast<float>(std::clamp(static_cast<u16>(touch_pad.y), min_y, max_y) - min_y) /
@@ -366,9 +364,9 @@ void Client::UpdateTouchInput(Response::TouchPad& touch_pad, std::size_t client,
         return;
     }
 
-    if (finger_id[client * 2 + id] != MAX_TOUCH_FINGERS) {
-        touch_status[finger_id[client * 2 + id]] = {};
-        finger_id[client * 2 + id] = MAX_TOUCH_FINGERS;
+    if (finger_id[touch_id] != MAX_TOUCH_FINGERS) {
+        touch_status[finger_id[touch_id]] = {};
+        finger_id[touch_id] = MAX_TOUCH_FINGERS;
     }
 }
 

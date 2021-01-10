@@ -28,12 +28,11 @@ private:
     public:
         explicit Device(std::weak_ptr<TouchState>&& touch_state) : touch_state(touch_state) {}
         Input::TouchStatus GetStatus() const override {
-            Input::TouchStatus touch_status{};
             if (auto state = touch_state.lock()) {
                 std::lock_guard guard{state->mutex};
-                touch_status = state->status;
+                return state->status;
             }
-            return touch_status;
+            return {};
         }
 
     private:
