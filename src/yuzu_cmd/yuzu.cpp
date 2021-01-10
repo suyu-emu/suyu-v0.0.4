@@ -95,8 +95,6 @@ int main(int argc, char** argv) {
     int option_index = 0;
 
     InitializeLogging();
-
-    char* endarg;
 #ifdef _WIN32
     int argc_w;
     auto argv_w = CommandLineToArgvW(GetCommandLineW(), &argc_w);
