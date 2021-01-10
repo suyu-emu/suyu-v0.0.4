@@ -113,8 +113,13 @@ public:
             BitField<2, 1, u32> joycon_dual;
             BitField<3, 1, u32> joycon_left;
             BitField<4, 1, u32> joycon_right;
-
-            BitField<6, 1, u32> pokeball; // TODO(ogniK): Confirm when possible
+            BitField<5, 1, u32> gamecube;
+            BitField<6, 1, u32> pokeball;
+            BitField<7, 1, u32> lark;
+            BitField<8, 1, u32> handheld_lark;
+            BitField<9, 1, u32> lucia;
+            BitField<29, 1, u32> system_ext;
+            BitField<30, 1, u32> system;
         };
     };
     static_assert(sizeof(NpadStyleSet) == 4, "NpadStyleSet is an invalid size");
@@ -285,6 +290,9 @@ private:
 
             BitField<26, 1, u64> right_sl;
             BitField<27, 1, u64> right_sr;
+
+            BitField<28, 1, u64> palma;
+            BitField<30, 1, u64> handheld_left_b;
         };
     };
     static_assert(sizeof(ControllerPadState) == 8, "ControllerPadState is an invalid size");
@@ -329,6 +337,15 @@ private:
     };
     static_assert(sizeof(NPadGeneric) == 0x350, "NPadGeneric is an invalid size");
 
+    struct SixAxisAttributes {
+        union {
+            u32_le raw{};
+            BitField<0, 1, u32> IsConnected;
+            BitField<1, 1, u32> IsInterpolated;
+        };
+    };
+    static_assert(sizeof(SixAxisAttributes) == 4, "SixAxisAttributes is an invalid size");
+
     struct SixAxisStates {
         s64_le timestamp{};
         INSERT_PADDING_WORDS(2);
@@ -337,7 +354,8 @@ private:
         Common::Vec3f gyro{};
         Common::Vec3f rotation{};
         std::array<Common::Vec3f, 3> orientation{};
-        s64_le always_one{1};
+        SixAxisAttributes attribute;
+        INSERT_PADDING_BYTES(4); // Reserved
     };
     static_assert(sizeof(SixAxisStates) == 0x68, "SixAxisStates is an invalid size");
 
@@ -356,10 +374,19 @@ private:
     struct NPadProperties {
         union {
             s64_le raw{};
+            BitField<0, 1, s64> is_charging_joy_dual;
+            BitField<1, 1, s64> is_charging_joy_left;
+            BitField<2, 1, s64> is_charging_joy_right;
+            BitField<3, 1, s64> is_powered_joy_dual;
+            BitField<4, 1, s64> is_powered_joy_left;
+            BitField<5, 1, s64> is_powered_joy_right;
+            BitField<9, 1, s64> is_system_unsuported_button;
+            BitField<10, 1, s64> is_system_ext_unsuported_button;
             BitField<11, 1, s64> is_vertical;
             BitField<12, 1, s64> is_horizontal;
             BitField<13, 1, s64> use_plus;
             BitField<14, 1, s64> use_minus;
+            BitField<15, 1, s64> use_directional_buttons;
         };
     };
 
