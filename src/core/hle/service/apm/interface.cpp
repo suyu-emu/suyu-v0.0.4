@@ -56,7 +56,7 @@ APM::APM(Core::System& system_, std::shared_ptr<Module> apm_, Controller& contro
     static const FunctionInfo functions[] = {
         {0, &APM::OpenSession, "OpenSession"},
         {1, &APM::GetPerformanceMode, "GetPerformanceMode"},
-        {6, nullptr, "IsCpuOverclockEnabled"},
+        {6, &APM::IsCpuOverclockEnabled, "IsCpuOverclockEnabled"},
     };
     RegisterHandlers(functions);
 }
@@ -76,6 +76,14 @@ void APM::GetPerformanceMode(Kernel::HLERequestContext& ctx) {
 
     IPC::ResponseBuilder rb{ctx, 2};
     rb.PushEnum(controller.GetCurrentPerformanceMode());
+}
+
+void APM::IsCpuOverclockEnabled(Kernel::HLERequestContext& ctx) {
+    LOG_WARNING(Service_APM, "(STUBBED) called");
+
+    IPC::ResponseBuilder rb{ctx, 3};
+    rb.Push(RESULT_SUCCESS);
+    rb.Push(false);
 }
 
 APM_Sys::APM_Sys(Core::System& system_, Controller& controller_)

@@ -20,6 +20,7 @@ public:
 private:
     void OpenSession(Kernel::HLERequestContext& ctx);
     void GetPerformanceMode(Kernel::HLERequestContext& ctx);
+    void IsCpuOverclockEnabled(Kernel::HLERequestContext& ctx);
 
     std::shared_ptr<Module> apm;
     Controller& controller;
