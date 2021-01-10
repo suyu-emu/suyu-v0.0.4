@@ -86,7 +86,7 @@ void Config::ReadValues() {
     Settings::values.touchscreen.diameter_y = 15;
 
     Settings::values.use_docked_mode.SetValue(
-        sdl2_config->GetBoolean("Controls", "use_docked_mode", false));
+        sdl2_config->GetBoolean("Controls", "use_docked_mode", true));
 
     // Data Storage
     Settings::values.use_virtual_sd =
